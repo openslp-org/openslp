@@ -113,7 +113,7 @@ int SlpPerfTest1_slpfindsrvtypes(SLPHandle hslp,
 /*-------------------------------------------------------------------------*/
 {
     SLPError errorcode;
-    int      found;
+    int      found = 0;
 
     errorcode = SLPFindSrvTypes(hslp,
                                 "*",
