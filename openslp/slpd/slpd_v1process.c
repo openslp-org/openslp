@@ -623,7 +623,12 @@ int v1ProcessSrvTypeRqst(struct sockaddr_in* peeraddr,
                          int errorcode)
 /*-------------------------------------------------------------------------*/
 {
+    char*                           start;
+    char*                           end;
+    char*                           slider;
+    int                             i;
     int                             typelen;
+    int                             numsrvtypes = 0;
     int                             size        = 0;
     SLPDDatabaseSrvTypeRqstResult*  db          = 0;
     SLPBuffer                       result      = *sendbuf;
@@ -676,27 +681,52 @@ int v1ProcessSrvTypeRqst(struct sockaddr_in* peeraddr,
     /* ensure the buffer is big enough to handle the whole srvtyperply */
     /*-----------------------------------------------------------------*/
     size = 16; /* 12 bytes for header, 2 bytes for error code, 2 bytes
-                  for srvtype length  */
+                  for num of service types */
     if(errorcode == 0)
     {
-        typelen = INT_MAX;
-        errorcode = SLPv1ToEncoding(0,
-                                    &typelen,
-                                    message->header.encoding,  
-                                    db->srvtypelist,
-                                    db->srvtypelistlen);
-        if(errorcode)
+        if(db->srvtypelistlen) 
         {
-            size += typelen;
+            /* there has to be at least one service type*/
+            numsrvtypes = 1;
+
+            /* count the rest of the service types */
+            start = db->srvtypelist;
+            for(i=0; i< db->srvtypelistlen; i++)
+            {
+                if(start[i] == ',')
+                {
+                    numsrvtypes += 1;
+                }
+            }
+            
+            /* figure out how much memory is required for srvtype strings */
+            typelen = INT_MAX;
+            errorcode = SLPv1ToEncoding(0,
+                                        &typelen,
+                                        message->header.encoding,  
+                                        db->srvtypelist,
+                                        db->srvtypelistlen);
+            
+            /* TRICKY: we add in the numofsrvtypes + 1 to make room for the */
+            /* type length.  We can do this because the ',' of the comma    */
+            /* delimited list is one byte.                                  */
+            size = size + typelen + numsrvtypes + 1;
+        }
+        else
+        {
+            numsrvtypes = 0;
         }
     }
+    
+    /*-----------------*/
+    /* Allocate memory */
+    /*-----------------*/
     result = SLPBufferRealloc(result,size);
     if(result == 0)
     {
         errorcode = SLP_ERROR_INTERNAL_ERROR;
         goto FINISHED;
     }
-
 
     /*----------------*/
     /* Add the header */
@@ -722,26 +752,40 @@ int v1ProcessSrvTypeRqst(struct sockaddr_in* peeraddr,
     /* Add rest of the SrvTypeRply */
     /*-----------------------------*/
     result->curpos = result->start + 12;
-
     /* error code*/
     ToUINT16(result->curpos, errorcode);
     result->curpos += 2;
     if(errorcode == 0)
     {
-        
-        /* service type length */
-        ToUINT16(result->curpos, db->srvtypelistlen);
+        /* num of service types */
+        ToUINT16(result->curpos, numsrvtypes);
         result->curpos += 2;
-    
-        /* service type string */
+        
+        /* service type strings */
+        start = db->srvtypelist;
+        slider = db->srvtypelist;
+        end = &(start[db->srvtypelistlen]);
+        for(i=0;i<numsrvtypes; i++)
+        {
+            while(slider < end && *slider != ',') slider++;
+            
+            typelen = size;
+            /* put in the encoded service type */
+            SLPv1ToEncoding(result->curpos + 2, 
+                            &typelen,
+                            message->header.encoding,
+                            start,
+                            slider - start);
+            /* slip in the typelen */
+            ToUINT16(result->curpos, typelen);
+            result->curpos += 2;
+            result->curpos += typelen;
+
+            slider ++; /* skip comma */
+            start = slider;
+        }
+
         /* TODO - make sure we don't return generic types */
-        typelen = size;
-        SLPv1ToEncoding(result->curpos, 
-                        &typelen,
-                        message->header.encoding,  
-                        db->srvtypelist,
-                        db->srvtypelistlen);
-        result->curpos += typelen;
     }
 
     FINISHED:   
