@@ -1132,7 +1132,7 @@ void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead)
         {
             peeraddr.s_addr = htonl(SLP_MCAST_ADDRESS);
             sock = SLPDSocketCreateDatagram(&peeraddr,DATAGRAM_MULTICAST);
-#ifdef ENABLE_SLPV1
+#ifdef ENABLE_SLPv1
             peeraddr.s_addr = htonl(SLPv1_DA_MCAST_ADDRESS);
             v1sock = SLPDSocketCreateDatagram(&peeraddr,
                                               DATAGRAM_MULTICAST);
@@ -1143,7 +1143,7 @@ void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead)
         {
             peeraddr.s_addr = htonl(SLP_BCAST_ADDRESS);
             sock = SLPDSocketCreateDatagram(&peeraddr,DATAGRAM_BROADCAST);
-#ifdef ENABLE_SLPV1
+#ifdef ENABLE_SLPv1
             v1sock = SLPDSocketCreateDatagram(&peeraddr,DATAGRAM_BROADCAST);
 #endif
         }
@@ -1168,8 +1168,8 @@ void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead)
                 SLPDKnownDAGenerateMyV1DAAdvert(0,
                                                 SLP_CHAR_UTF8,
                                                 SLPXidGenerate(),
-                                                &(sock->sendbuf));
-                SLPDOutgoingDatagramWrite(sock);
+                                                &(v1sock->sendbuf));
+                SLPDOutgoingDatagramWrite(v1sock);
             }
         }
 #endif
