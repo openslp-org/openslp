@@ -84,8 +84,10 @@ typedef int sockfd_t;
 static int
 strncasecmp(const char *s1, const char *s2, size_t len)
 {
-    while ( len-- > 1 && *s1 && (*s1 == *s2 || tolower(*s1) == tolower(*s2)) )
+    while ( *s1 && (*s1 == *s2 || tolower(*s1) == tolower(*s2)) )
     {
+        len--;
+        if(len == 0) return 0;
         s1++;
         s2++;
     }
