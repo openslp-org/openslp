@@ -734,7 +734,7 @@ void KnownDABadDA(struct sockaddr_storage* daaddr)
             if(entry == NULL) break;
             
             /* Assume DAs are identical if their in_addrs match */
-            if(memcmp(daaddr,&(entry->msg->peer),sizeof(struct sockaddr_storage)) == 0)
+            if(SLPNetCompareAddrs(daaddr,&(entry->msg->peer)) == 0)
             {
                 SLPDatabaseRemove(dh,entry);
                 break;            
