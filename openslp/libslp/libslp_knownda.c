@@ -431,7 +431,8 @@ int KnownDAConnect(int scopelistlen,
     timeout.tv_usec = (timeout.tv_sec % 1000) * 1000;
     timeout.tv_sec = timeout.tv_sec / 1000;
 
-    /* Weird way of nesting many if()s */
+    /* TODO do we want to check for local slpd and never mcast if it exists? */
+
     daentry = KnownDADiscoverFromIPC(scopelistlen,scopelist);
     if(daentry) goto CONNECT;
     daentry = KnownDADiscoverFromCache(scopelistlen,scopelist);
