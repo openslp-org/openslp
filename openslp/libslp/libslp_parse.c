@@ -460,6 +460,7 @@ SLPError SLPParseAttrs(const char* pcAttrList,
 {
     const char* slider1;
     const char* slider2;
+    size_t      attridlen;
 
     /* Check for bad parameters */
     if(pcAttrList == 0 ||
@@ -469,6 +470,7 @@ SLPError SLPParseAttrs(const char* pcAttrList,
         return SLP_PARAMETER_BAD;
     }
 
+    attridlen = strlen(pcAttrId);
     slider1 = pcAttrList;
     while(1)
     {
@@ -485,7 +487,8 @@ SLPError SLPParseAttrs(const char* pcAttrList,
 
         while(*slider2 && *slider2 != '=' && *slider2 !=')') slider2++;
 
-        if(strncasecmp(slider1, pcAttrId, slider2 - slider1) == 0)
+        if(attridlen == slider2-slider1 && 
+           strncasecmp(slider1, pcAttrId, slider2 - slider1) == 0)
         {
             /* found the attribute id */
             slider1 = slider2;
@@ -501,9 +504,10 @@ SLPError SLPParseAttrs(const char* pcAttrList,
             memcpy(*ppcAttrVal,slider1,slider2-slider1);
             (*ppcAttrVal)[slider2-slider1] = 0;
                 
-            break;
+            return SLP_OK;
         }
     }
 
-    return SLP_OK;
+    /* attrid does not exist */
+    return SLP_PARSE_ERROR;
 }
