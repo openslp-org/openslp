@@ -1,7 +1,5 @@
 import sys
 
-sys.path.append('/home/rganesan/download/python/Pyrex-0.5')
-
 from distutils.core import setup
 from distutils.extension import Extension
 from Pyrex.Distutils import build_ext
