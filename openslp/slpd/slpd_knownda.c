@@ -647,6 +647,7 @@ int SLPDKnownDAAdd(SLPMessage msg, SLPBuffer buf)
             if(entry)
             {
                 SLPDatabaseAdd(dh, entry);
+                SLPDLogDAAdvertisement("Addition",entry);
             }
             else
             {
@@ -683,6 +684,7 @@ void SLPDKnownDARemove(struct in_addr* addr)
             if(memcmp(addr,&(entry->msg->peer.sin_addr),sizeof(*addr)) == 0 )
             {
                 SLPDatabaseRemove(dh,entry);
+                SLPDLogDAAdvertisement("Removal",entry);
                 break;            
             }
         }

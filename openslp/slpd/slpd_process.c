@@ -1304,8 +1304,7 @@ int SLPDProcessMessage(struct sockaddr_in* peerinfo,
 		    errorcode = ProcessSrvReg(message,recvbuf,sendbuf,errorcode);
 		    if(errorcode == 0)
 		    {
-			SLPDKnownDAEcho(message, recvbuf);
-			SLPDLogRegistration("Service Registration",message);
+			    SLPDKnownDAEcho(message, recvbuf);         
 		    }
 		    break;
                 
@@ -1313,8 +1312,7 @@ int SLPDProcessMessage(struct sockaddr_in* peerinfo,
 		    errorcode = ProcessSrvDeReg(message,sendbuf,errorcode);
 		    if(errorcode == 0)
 		    {
-			SLPDKnownDAEcho(message, recvbuf);
-			SLPDLogRegistration("Service Deregistration",message);
+    			SLPDKnownDAEcho(message, recvbuf);         
 		    }
 		    break;
                 
@@ -1331,8 +1329,7 @@ int SLPDProcessMessage(struct sockaddr_in* peerinfo,
 						recvbuf,
 						sendbuf,
 						errorcode);
-		    SLPDLogDAAdvertisement("DA Advertisement", message);
-		    break;
+            break;
                 
 		case SLP_FUNCT_SRVTYPERQST:
 		    errorcode = ProcessSrvTypeRqst(message, sendbuf, errorcode);

@@ -848,8 +848,7 @@ int SLPDv1ProcessMessage(struct sockaddr_in* peeraddr,
 					    errorcode);
 		if(errorcode == 0)
 		{
-		    SLPDKnownDAEcho(message, recvbuf);
-		    SLPDLogRegistration("Service (SLPv1) registration",message);
+		    SLPDKnownDAEcho(message, recvbuf);      
 		}
 		break;
             
@@ -857,8 +856,7 @@ int SLPDv1ProcessMessage(struct sockaddr_in* peeraddr,
 		errorcode = v1ProcessSrvDeReg(peeraddr, message, sendbuf, errorcode);
 		if(errorcode == 0)
 		{
-		    SLPDKnownDAEcho(message, recvbuf);
-		    SLPDLogRegistration("Service (SLPv1) Deregistration",message);
+		    SLPDKnownDAEcho(message, recvbuf);      
 		} 
 		break;
             
@@ -873,8 +871,7 @@ int SLPDv1ProcessMessage(struct sockaddr_in* peeraddr,
 	    case SLP_FUNCT_DAADVERT:
 		/* we are a SLPv2 DA, ignore other v1 DAs */
 		(*sendbuf)->end = (*sendbuf)->start;
-		SLPDLogDAAdvertisement("SLPv1 DA Advertisement", message);
-		break;
+        break;
             
 	    default:
 		/* Should never happen... but we're paranoid */

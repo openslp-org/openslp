@@ -123,6 +123,7 @@ void SLPDDatabaseAge(int seconds, int ageall)
             if(srvreg->urlentry.lifetime <= 0)
             {
                 SLPDatabaseRemove(dh,entry);
+                SLPDLogRegistration("Timeout",entry);
             }
         }
 
@@ -168,11 +169,9 @@ int SLPDDatabaseReg(SLPMessage msg, SLPBuffer buf)
         return SLP_ERROR_INVALID_REGISTRATION;
     }     
     
-   
     dh = SLPDatabaseOpen(&G_SlpdDatabase.database);
     if(dh)
     {
-        
         /*-----------------------------------------------------*/
         /* Check to see if there is already an identical entry */
         /*-----------------------------------------------------*/
@@ -205,7 +204,7 @@ int SLPDDatabaseReg(SLPMessage msg, SLPBuffer buf)
                         SLPDatabaseClose(dh);
                         return SLP_ERROR_AUTHENTICATION_FAILED;
                     }
-
+                    
 #ifdef ENABLE_SLPv2_SECURITY
                     if(entryreg->urlentry.authcount &&
                        entryreg->urlentry.authcount != reg->urlentry.authcount)
@@ -228,17 +227,21 @@ int SLPDDatabaseReg(SLPMessage msg, SLPBuffer buf)
         if(entry)
         {
             /* set the source (allows for quicker aging ) */
-            if(ISLOCAL(msg->peer.sin_addr))
+            if(msg->body.srvreg.source == SLP_REG_SOURCE_UNKNOWN)
             {
-                msg->body.srvreg.source = SLP_REG_SOURCE_LOCAL; 
-            }
-            else
-            {
-                msg->body.srvreg.source = SLP_REG_SOURCE_REMOTE;     
+                if(ISLOCAL(msg->peer.sin_addr))
+                {
+                    msg->body.srvreg.source = SLP_REG_SOURCE_LOCAL; 
+                }
+                else
+                {
+                    msg->body.srvreg.source = SLP_REG_SOURCE_REMOTE;     
+                }
             }
 
             /* add to database */
             SLPDatabaseAdd(dh, entry);
+            SLPDLogRegistration("Registration",entry);
             
             /* SUCCESS! */
             result = 0;
@@ -322,6 +325,7 @@ int SLPDDatabaseDeReg(SLPMessage msg)
 #endif                    
                     /* remove the registration from the database */
                     SLPDatabaseRemove(dh,entry);                   
+                    SLPDLogRegistration("Deregistration",entry);
                     break;
                 }
             }
@@ -360,7 +364,6 @@ int SLPDDatabaseSrvRqstStart(SLPMessage msg,
     int                         i;
 #endif
 
-    
     /* start with the result set to NULL just to be safe */
     *result = NULL;
     
@@ -847,11 +850,6 @@ int SLPDDatabaseInit(const char* regfile)
             {
                 /* Log registration */
                 result = SLPDDatabaseReg(msg, buf);
-                if(result == 0)
-                {
-                    SLPDLogRegistration("Service Registration (STATIC)",msg);
-                }
-                
             }
 
             fclose(fd);

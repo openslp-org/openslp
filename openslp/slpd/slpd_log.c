@@ -404,11 +404,9 @@ void SLPDLogMessage(const char* prefix,
             msg = SLPMessageAlloc();
             if(msg)
             {
-            
-                
                 SLPDLog("\n");
     	        SLPDLogTime();
-                SLPDLog("%s:\n",prefix);
+                SLPDLog("MESSAGE - %s:\n",prefix);
                 if(SLPMessageParseBuffer(peerinfo,buf,msg) == 0)
                 {
                     SLPDLogMessageInternals(msg);
@@ -427,14 +425,14 @@ void SLPDLogMessage(const char* prefix,
 }
 
 /*=========================================================================*/
-void SLPDLogRegistration(const char* prefix, SLPMessage srvreg)
-/* Log record of receiving an SLP Registration Message.  Logging will only */
-/* occur if registration message logging is enabled                        */
+void SLPDLogRegistration(const char* prefix, SLPDatabaseEntry* entry)
+/* Log record of having added a registration to the database.  Logging of  */
+/* registraions will only occur if registration trace is enabled           */
 /* G_SlpProperty.traceReg != 0                                             */
 /*                                                                         */
 /* prefix   (IN) an informative prefix for the log entry                   */
 /*                                                                         */
-/* msg      (IN) the SrvReg message to log                                 */
+/* entry    (IN) the database entry that was affected                      */
 /*                                                                         */
 /* Returns: none                                                           */
 /*=========================================================================*/
@@ -443,21 +441,45 @@ void SLPDLogRegistration(const char* prefix, SLPMessage srvreg)
     {
         SLPDLog("\n");
         SLPDLogTime();
-        SLPDLog("%s:\n",prefix);
-        SLPDLogMessageInternals(srvreg);
+        SLPDLog("DATABASE - %s:\n",prefix);
+        SLPDLog("    SA address = ");
+        switch(entry->msg->body.srvreg.source)
+        {
+        case SLP_REG_SOURCE_UNKNOWN:
+            SLPDLog("<unknown>\n");
+            break;
+        case SLP_REG_SOURCE_REMOTE:
+            SLPDLog("%s\n", inet_ntoa(entry->msg->peer.sin_addr));
+            break;
+        case SLP_REG_SOURCE_LOCAL:
+            SLPDLog("IPC (libslp)\n");
+            break;
+        case SLP_REG_SOURCE_STATIC:
+            SLPDLog("static (slp.reg)\n");
+            break;
+        }
+        SLPDLogBuffer("    service-url = ",
+                      entry->msg->body.srvreg.urlentry.urllen,
+                      entry->msg->body.srvreg.urlentry.url);
+        SLPDLogBuffer("    scope = ",
+                      entry->msg->body.srvreg.scopelistlen,
+                      entry->msg->body.srvreg.scopelist);
+        SLPDLogBuffer("    attributes = ",
+                      entry->msg->body.srvreg.attrlistlen,
+                      entry->msg->body.srvreg.attrlist);
     }
 }
 
 /*=========================================================================*/
 void SLPDLogDAAdvertisement(const char* prefix,
-                            SLPMessage daadvert)
-/* Log record of receiving an SLP DA Advertisement Message.  Logging will  */
-/* only occur if DA Advertisment message logging is enabled                */
+                            SLPDatabaseEntry* entry)
+/* Log record of addition or removal of a DA to the store of known DAs.    */
+/* Will only occur if DA Advertisment message logging is enabled           */
 /* G_SlpProperty.traceDATraffic != 0                                       */
 /*                                                                         */
 /* prefix   (IN) an informative prefix for the log entry                   */
 /*                                                                         */
-/* msg      (IN) the SrvReg message to log                                 */
+/* entry    (IN) the database entry that was affected                      */
 /*                                                                         */
 /* Returns: none                                                           */
 /*=========================================================================*/
@@ -466,8 +488,23 @@ void SLPDLogDAAdvertisement(const char* prefix,
     {
         SLPDLog("\n");
         SLPDLogTime();
-        SLPDLog("\n%s:\n",prefix);
-        SLPDLogMessageInternals(daadvert);
+        SLPDLog("KNOWNDA - %s:\n",prefix);
+        SLPDLog("    DA address = %s\n",inet_ntoa(entry->msg->peer.sin_addr));
+        SLPDLogBuffer("    directory-agent-url = ",
+                      entry->msg->body.daadvert.urllen,
+                      entry->msg->body.daadvert.url);
+        SLPDLog("    bootstamp = %x",entry->msg->body.daadvert.bootstamp);
+        SLPDLogBuffer("    scope = ",
+                      entry->msg->body.daadvert.scopelistlen,
+                      entry->msg->body.daadvert.scopelist);
+        SLPDLogBuffer("    attributes = ",
+                      entry->msg->body.daadvert.attrlistlen,
+                      entry->msg->body.daadvert.attrlist);
+#ifdef ENABLE_SLPV2_SECURITY
+        SLPDLogBuffer("    SPI list = ",
+                      entry->msg->body.daadvert.spilistlen,
+                      entry->msg->body.daadvert.spilist);
+#endif /*ENABLE_SLPV2_SECURITY*/
     }
 }
 

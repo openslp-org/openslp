@@ -57,6 +57,7 @@
 /* common code includes                                                    */
 /*=========================================================================*/
 #include "slp_message.h"
+#include "slp_database.h"
 
 
 /*=========================================================================*/
@@ -125,14 +126,14 @@ void SLPDLogMessage(const char* prefix,
 
 
 /*=========================================================================*/
-void SLPDLogRegistration(const char* prefix, SLPMessage srvreg);
-/* Log record of receiving an SLP Registration Message.  Logging will only */
-/* occur if registration message logging is enabled                        */
+void SLPDLogRegistration(const char* prefix, SLPDatabaseEntry* entry);
+/* Log record of having added a registration to the database.  Logging of  */
+/* registraions will only occur if registration trace is enabled           */
 /* G_SlpProperty.traceReg != 0                                             */
 /*                                                                         */
 /* prefix   (IN) an informative prefix for the log entry                   */
 /*                                                                         */
-/* msg      (IN) the SrvReg message to log                                 */
+/* entry    (IN) the database entry that was affected                     */
 /*                                                                         */
 /* Returns: none                                                           */
 /*=========================================================================*/
@@ -140,16 +141,15 @@ void SLPDLogRegistration(const char* prefix, SLPMessage srvreg);
 
 /*=========================================================================*/
 void SLPDLogDAAdvertisement(const char* prefix,
-                            SLPMessage daadvert);
-/* Log record of receiving an SLP DA Advertisement Message.  Logging will  */
-/* only occur if DA Advertisment message logging is enabled                */
+                            SLPDatabaseEntry* entry);
+/* Log record of addition or removal of a DA to the store of known DAs.    */
+/* Will only occur if DA Advertisment message logging is enabled           */
 /* G_SlpProperty.traceDATraffic != 0                                       */
 /*                                                                         */
 /* prefix   (IN) an informative prefix for the log entry                   */
 /*                                                                         */
-/* msg      (IN) the SrvReg message to log                                 */
+/* entry    (IN) the database entry that was affected                      */
 /*                                                                         */
 /* Returns: none                                                           */
 /*=========================================================================*/
-
 #endif
