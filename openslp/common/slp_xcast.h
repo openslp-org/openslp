@@ -49,8 +49,6 @@
 #ifndef SLP_XCAST_H_INCLUDED
 #define SLP_XCAST_H_INCLUDED
 
-#include "slp_buffer.h"
-#include "slp_iface.h"
 
 /*========================================================================*/
 int SLPBroadcastSend(SLPInterfaceInfo* ifaceinfo, SLPBuffer msg);
@@ -80,3 +78,5 @@ int SLPMulticastSend(SLPInterfaceInfo* ifaceinfo, SLPBuffer msg);
  * Returns:
  *    Zero on sucess.  Non-zero with errno set on error
  *========================================================================*/
+
+#endif

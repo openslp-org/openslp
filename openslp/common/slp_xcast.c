@@ -46,89 +46,157 @@
 /*                                                                         */
 /***************************************************************************/
 
+
+#include "slp_buffer.h"
+#include "slp_iface.h"
 #include "slp_xcast.h"
+#include "slp_message.h"
+
 
 /*========================================================================*/
-int SLPBroadcastSend(SLPInterfaceInfo* ifaceinfo, SLPBuffer msg);
-/* Description:
- *    Broadcast a message.
- *
- * Parameters:
- *    ifaceinfo (IN) Pointer to the SLPInterfaceInfo structure that contains
- *                   information about the interfaces to send on
- *    msg       (IN) Buffer to send
- *
- * Returns:
- *    Zero on sucess.  Non-zero with errno set on error
- *========================================================================*/
+int SLPBroadcastSend(SLPInterfaceInfo *ifaceinfo, SLPBuffer msg)
+/*========================================================================*/
 {
-    /* TODO:
-     *    To be finished by Satya and Venu.
-     *
-     * HINTS:
-     *    For each member of the ifaceinfo->bcast_addr (you know how many
-     *    there are by looking at ifaceinfo->iface_count) you will need to
-     *    call sendto().  Look at slp_network.c:244 to see how this is done
-     *    currently.
-     *
-     *    Before you iterate through the ifaceinfo, you will need to create
-     *    a SOCK_DGRAM socket and set the socket option for broadcast
-     *    Look at slp_network.c:200 to see how this is done.
-     *
-     *    Note that the current implementation from slp_network.c only
-     *    sends to 255.255.255.255 instead of the broadcast for each
-     *    interface.
-     *
-     *    You need only create one socket, but you will have to call sendto()
-     *    for each member of ifaceinfo->bcast_addr().  If any of the sockets
-     *    calls fail, return -1 otherwise return zero.
-     *
-     *    By definition, datagram sockets never block on sendto().
-     */
+    struct sockaddr_in  peeraddr;
+    int                 sockfd;
+    int                 iface_index;
+    int                 xferbytes;
+    int                 flags = 0;  
+
+#ifdef WIN32
+    BOOL    on = 1;
+#else
+    int     on = 1;
+#endif
+
+
+#if defined(MSG_NOSIGNAL)
+    flags = MSG_NOSIGNAL;
+#endif
+
+    sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (sockfd < 0)
+    {
+        return -1;
+    }
+        
+    peeraddr.sin_family = AF_INET;
+    peeraddr.sin_port = htons(SLP_RESERVED_PORT);
+    if (setsockopt(sockfd, SOL_SOCKET, SO_BROADCAST, &on, sizeof(on)))
+    {
+        return -1;
+    }
+    
+    for (iface_index=0; iface_index < ifaceinfo->iface_count; iface_index++)
+    {
+        peeraddr.sin_addr.s_addr = ifaceinfo->bcast_addr[iface_index].sin_addr.s_addr;
+
+        xferbytes = sendto(sockfd, 
+                           msg->start,
+                           msg->end - msg->start,
+                           0,
+                           (struct sockaddr *) &peeraddr,
+                           sizeof(struct sockaddr_in));
+        if(xferbytes  < 0)
+        { dl380s2.
+            /* Error sending to broadcast */
+            return -1;
+        }
+    }  
+
+
     return 0;
 }
 
-
 /*========================================================================*/
-int SLPMulticastSend(SLPInterfaceInfo* ifaceinfo, SLPBuffer msg);
-/* Description:
- *    Multicast a message.
- *
- * Parameters:
- *    ifaceinfo (IN) Pointer to the SLPInterfaceInfo structure that contains
- *                   information about the interfaces to send on
- *    msg       (IN) Buffer to send
- *
- * Returns:
- *    Zero on sucess.  Non-zero with errno set on error
- *========================================================================*/
- {
-     /* TODO:
-      *    To be finished by Satya and Venu
-      *
-      * HINTS:
-      *    For each member of ifaceinfo->iface_addr (you know how many there
-      *    are by looking at ifaceinfo->iface_count) you will need to create
-      *    a socket, set the socket option for IP_MULTICAST_IF to be the
-      *    ifaceinfo->iface_addr[x], call sendto(), and close the socket.
-      *    The address you should send to is 239.255.255.253.
-      *
-      *    The loop should look something like this.
-      *        set struct sockaddr_in peeraddr to be AF_INET, port 427, addr 239.255.255.253
-      *        for every item in ifaceinfo->iface_addr
-      *        begin loop
-      *            create socket x
-      *            set IP_MULTICAST_IF socket option for x to be ifaceinfo->iface_addr[x]
-      *            call sendo() using x, msg, and peeraddr
-      *            close socket x
-      *        end loop
-      *
-      *    Please see current implementation at slp_network.c:109-170 for help.
-      *    Note that the current implementation in slp_network.c does not set the
-      *    IP_MULTICAST_IF socket option. 
-      *
-      *    If any of the sockets calls fail return -1 otherwise return zero.
-      */
+int SLPMulticastSend(SLPInterfaceInfo *ifaceinfo, SLPBuffer msg)
+/*========================================================================*/
+{
 
-     return 0;
- }
+    struct sockaddr_in  peeraddr;
+    int                 sockfd;
+    int                 xferbytes;
+    int                 iface_index;
+    struct SLPBuffer*   buf;
+    struct in_addr      saddr;
+    int                 flags = 0;
+
+#if defined(MSG_NOSIGNAL)
+    flags = MSG_NOSIGNAL;
+#endif
+
+    peeraddr.sin_family = AF_INET;
+    peeraddr.sin_port = htons(SLP_RESERVED_PORT);
+    peeraddr.sin_addr.s_addr = htonl(SLP_MCAST_ADDRESS);
+
+    sockfd = socket(AF_INET,SOCK_DGRAM,0);
+    if(sockfd < 0)
+    {
+        return -1;
+    }
+
+    for (iface_index=0;iface_index<ifaceinfo->iface_count;iface_index++)
+    {
+        saddr.s_addr = ifaceinfo->iface_addr[iface_index].sin_addr.s_addr;
+        
+        if( setsockopt(sockfd, 
+                       IPPROTO_IP, 
+                       IP_MULTICAST_IF, 
+                       &saddr, 
+                       sizeof(struct in_addr)))
+        {
+            return -1;
+        }
+
+        xferbytes = sendto(sockfd,
+                           msg->start,
+                           msg->end - msg->start,
+                           flags,
+                           (struct sockaddr *)&peeraddr,
+                           sizeof(struct sockaddr_in));
+        if (xferbytes <= 0)
+        {
+            return -1;
+        }
+    }
+
+    close(sockfd);
+
+    return 0;
+
+}
+
+/*===========================================================================
+ * TESTING CODE may be compiling with the following command line:
+ *
+ * $ gcc -g -DDEBUG -DSLP_XMIT_TEST slp_xcast.c slp_iface.c slp_buffer.c 
+ *   slp_linkedlist.c slp_compare.c slp_xmalloc.c
+ *==========================================================================*/ 
+#ifdef SLP_XMIT_TEST
+main()
+{
+    SLPInterfaceInfo    ifaceinfo;
+    SLPBuffer           buffer;
+
+    buffer = SLPBufferAlloc(SLP_MAX_DATAGRAM_SIZE);
+    if(buffer)
+    {
+        
+        strcpy(buffer->start,"testdata");
+    
+        SLPInterfaceGetInformation(NULL,&ifaceinfo);
+    
+        if (SLPBroadcastSend(&ifaceinfo, buffer) !=0)
+            printf("\n SLPBroadcastSend failed \n");
+    
+        if (SLPMulticastSend(&ifaceinfo, buffer) !=0)
+            printf("\n SLPMulticast failed \n");
+    
+        printf("Success\n");
+
+        SLPBufferFree(buffer);
+    }
+}
+
+#endif
+
