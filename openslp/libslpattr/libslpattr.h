@@ -6,6 +6,12 @@
 #include "../libslp/slp.h"
 #include <stdio.h>
 
+
+#ifdef WIN32
+#define strncasecmp strnicmp
+#endif
+
+
 #define SLP_TAG_BAD 300
 #define SLP_TAG_ERROR 400
 
