@@ -512,10 +512,10 @@ int main(int argc, char* argv[])
     /* Initialize for the first time                    */
     /*--------------------------------------------------*/
     if(SLPDPropertyInit(G_SlpdCommandLine.cfgfile) ||
-       SLPDDatabaseInit(G_SlpdCommandLine.regfile) ||
 #ifdef ENABLE_AUTHENTICATION
        SLPDSpiInit(G_SlpdCommandLine.spifile) ||
-#endif
+#endif     
+       SLPDDatabaseInit(G_SlpdCommandLine.regfile) ||
        SLPDIncomingInit() ||
        SLPDOutgoingInit() ||
        SLPDKnownDAInit())

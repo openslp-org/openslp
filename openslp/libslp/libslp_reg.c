@@ -106,13 +106,13 @@ SLPError ProcessSrvReg(PSLPHandleInfo handle)
                                 &urlauth);
         if(result == 0)
         {
-            result = SLPAuthSignUrl(handle->hspi,
-                                    0,
-                                    0,
-                                    handle->params.reg.attrlistlen,
-                                    handle->params.reg.attrlist,
-                                    &attrauthlen,
-                                    &attrauth);
+            result = SLPAuthSignString(handle->hspi,
+                                       0,
+                                       0,
+                                       handle->params.reg.attrlistlen,
+                                       handle->params.reg.attrlist,
+                                       &attrauthlen,
+                                       &attrauth);
         }
         bufsize += urlauthlen;
         bufsize += attrauthlen;

@@ -1294,8 +1294,81 @@ int SLPDPredicateTest(int version,
         SLPAttrFree(attr);
     }
 
+    /* Un null terminate */
     ((char*)predicate)[predicatelen] = prednull;
     ((char*)attrlist)[attrlistlen] = attrnull;
 
     return result;
+}
+
+
+
+/*=========================================================================*/
+int SLPDFilterAttributes(int attrlistlen,
+                         const char* attrlist,
+                         int taglistlen,
+                         const char* taglist,
+                         int* resultlen,
+                         char** result)
+/* Copies attributes from the specified attribute list to a result string  */
+/* according to the taglist as described by section 10.4. of RFC 2608      */
+/*                                                                         */
+/* version    (IN) SLP version of the predicate string (should always be   */
+/*                 2 since we don't handle SLPv1 predicates yet)           */
+/*                                                                         */
+/* attrlistlen  (IN) length of attrlist                                    */
+/*                                                                         */
+/* attr         (IN) attribute list to test                                */
+/*                                                                         */
+/* predicatelen (IN) length of the predicate string                        */
+/*                                                                         */
+/* predicate    (IN) the predicate string                                  */
+/*                                                                         */
+/* Returns: Zero on success.  Nonzero on failure                           */
+/*=========================================================================*/
+{
+    SLPAttributes   attr;
+    FilterResult    err;
+    char            attrnull;
+    char            tagnull;
+    
+    *result = 0;
+    *resultlen = 0;
+    
+    /* TRICKY: Temporarily NULL terminate the attribute list     */
+    /*         and the tag string.  We can do this because       */
+    /*         there is room in the corresponding SLPv2 SRVREG   */
+    /*         and ATTRRQST messages.  Basically we are squashing */
+    /*         the authcount and the spi string length.  Don't   */
+    /*         worry, we fix things up later and it is MUCH      */
+    /*         faster than a malloc() for a new buffer 1 byte    */
+    /*         longer!                                           */
+    tagnull = taglist[taglistlen];
+    ((char*)taglist)[taglistlen] = 0;
+    attrnull = attrlist[attrlistlen];
+    ((char*)attrlist)[attrlistlen] = 0;
+
+
+    /* Generate an SLPAttr from the comma delimited list */
+    err = 1;
+    if(SLPAttrAlloc("en", NULL, SLP_FALSE, &attr) == 0)
+    {
+        if(SLPAttrFreshen(attr, attrlist) == 0)
+        {
+            err = SLPAttrSerialize(attr,
+                                   taglist,
+                                   result,
+                                   *resultlen,
+                                   resultlen,
+                                   SLP_FALSE);
+        }
+        
+        SLPAttrFree(attr);
+    }
+
+    /* Un null terminate */
+    ((char*)taglist)[taglistlen] = tagnull;
+    ((char*)attrlist)[attrlistlen] = attrnull;
+
+    return (*resultlen == 0);
 }

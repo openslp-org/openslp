@@ -83,7 +83,7 @@ int SLPDFilterAttributes(int attrlistlen,
                          int taglistlen,
                          const char* taglist,
                          int* resultlen,
-                         char* result);
+                         char** result);
 /* Copies attributes from the specified attribute list to a result string  */
 /* according to the taglist as described by section 10.4. of RFC 2608      */
 /*                                                                         */
@@ -98,7 +98,6 @@ int SLPDFilterAttributes(int attrlistlen,
 /*                                                                         */
 /* predicate    (IN) the predicate string                                  */
 /*                                                                         */
-/* Returns: Boolean value.  Zero of test fails.  Non-zero if test fails    */
-/*          or if there is a parse error in the predicate string           */
+/* Returns: Zero on success.  Nonzero on failure                           */
 /*=========================================================================*/
 #endif 

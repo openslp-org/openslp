@@ -980,11 +980,6 @@ int ProcessAttrRqst(SLPMessage message,
                     break;
                 }
             }
-            
-            if(i==db->authcount)
-            {
-                errorcode = SLP_ERROR_AUTHENTICATION_UNKNOWN;
-            }
         }
         else
         {
@@ -1052,6 +1047,7 @@ int ProcessAttrRqst(SLPMessage message,
             memcpy(result->curpos, db->attrlist, db->attrlistlen);
         }
         result->curpos = result->curpos + db->attrlistlen;
+
         /* authentication block */
     #ifdef ENABLE_AUTHENTICATION
         if(opaqueauth)

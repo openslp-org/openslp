@@ -342,7 +342,7 @@ SLPError SLPFindAttrs(SLPHandle   hSLP,
         handle->params.findattrs.scopelist    = SLPGetProperty("net.slp.useScopes");
         handle->params.findattrs.scopelistlen = strlen(handle->params.findattrs.scopelist);
     }
-    if(pcScopeList && *pcScopeList)
+    if(pcAttrIds && *pcAttrIds)
     {
         handle->params.findattrs.taglistlen = strlen(pcAttrIds);
         handle->params.findattrs.taglist    = pcAttrIds;

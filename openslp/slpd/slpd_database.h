@@ -101,6 +101,7 @@ typedef struct _SLPDDatabaseAttrRqstResult
     int             attrlistlen;
     SLPAuthBlock*   autharray;
     int             authcount;
+    int             ispartial;
 }SLPDDatabaseAttrRqstResult;       
 
 

@@ -296,6 +296,10 @@ int SLPDDatabaseSrvRqstStart(SLPMessage msg,
     SLPDatabaseEntry*           entry;
     SLPSrvReg*                  entryreg;
     SLPSrvRqst*                 srvrqst;
+#ifdef ENABLE_AUTHENTICATION
+    int                         i;
+#endif
+
     
     /* start with the result set to NULL just to be safe */
     *result = NULL;
@@ -360,6 +364,26 @@ int SLPDDatabaseSrvRqstStart(SLPMessage msg,
                                          srvrqst->predicate) )
 #endif
                     {
+                        
+#ifdef ENABLE_AUTHENTICATION
+                        if(srvrqst->spistrlen)
+                        {
+                            for(i=0; i< entryreg->urlentry.authcount;i++)
+                            {
+                                if(SLPCompareString(srvrqst->spistrlen,
+                                                    srvrqst->spistr,
+                                                    entryreg->urlentry.autharray[i].spistrlen,
+                                                    entryreg->urlentry.autharray[i].spistr) == 0)
+                                {
+                                    break;
+                                }
+                            }
+                            if(i == entryreg->urlentry.authcount)
+                            {
+                                continue;
+                            }
+                        }
+#endif
                         if((*result)->urlcount + 1 > G_SlpdDatabase.urlcount)
                         {
                             /* Oops we did not allocate a big enough result */
@@ -463,33 +487,31 @@ int SLPDDatabaseSrvTypeRqstStart(SLPMessage msg,
                    SLPIntersectStringList(srvtyperqst->scopelistlen,
                                           srvtyperqst->scopelist,
                                           entryreg->scopelistlen,
-                                          entryreg->scopelist) )
+                                          entryreg->scopelist) &&
+                   SLPContainsStringList((*result)->srvtypelistlen, 
+                                         (*result)->srvtypelist,
+                                         entryreg->srvtypelen,
+                                         entryreg->srvtype) == 0 )
                 {
-                    if(SLPContainsStringList((*result)->srvtypelistlen, 
-                                             (*result)->srvtypelist,
-                                             entryreg->srvtypelen,
-                                             entryreg->srvtype) == 0)
+                    /* Check to see if we allocated a big enough srvtypelist */
+                    if((*result)->srvtypelistlen + entryreg->srvtypelen > G_SlpdDatabase.srvtypelistlen)
                     {
-                        /* Check to see if we allocated a big enough srvtypelist */
-                        if((*result)->srvtypelistlen + entryreg->srvtypelen > G_SlpdDatabase.srvtypelistlen)
-                        {
-                            /* Oops we did not allocate a big enough result */
-                            G_SlpdDatabase.srvtypelistlen *= 2;
-                            break;
-                        }
-
-                        /* Append a comma if needed */
-                        if((*result)->srvtypelistlen)
-                        {
-                            (*result)->srvtypelist[(*result)->srvtypelistlen] = ',';
-                            (*result)->srvtypelistlen += 1;
-                        }
-                        /* Append the service type */
-                        memcpy(((*result)->srvtypelist) + (*result)->srvtypelistlen,
-                               entryreg->srvtype,
-                               entryreg->srvtypelen);
-                        (*result)->srvtypelistlen += entryreg->srvtypelen;
+                        /* Oops we did not allocate a big enough result */
+                        G_SlpdDatabase.srvtypelistlen *= 2;
+                        break;
                     }
+
+                    /* Append a comma if needed */
+                    if((*result)->srvtypelistlen)
+                    {
+                        (*result)->srvtypelist[(*result)->srvtypelistlen] = ',';
+                        (*result)->srvtypelistlen += 1;
+                    }
+                    /* Append the service type */
+                    memcpy(((*result)->srvtypelist) + (*result)->srvtypelistlen,
+                           entryreg->srvtype,
+                           entryreg->srvtypelen);
+                    (*result)->srvtypelistlen += entryreg->srvtypelen;
                 }
             }
         }
@@ -536,6 +558,9 @@ int SLPDDatabaseAttrRqstStart(SLPMessage msg,
     SLPDatabaseEntry*           entry;
     SLPSrvReg*                  entryreg;
     SLPAttrRqst*                attrrqst;
+#ifdef ENABLE_AUTHENTICATION
+    int                         i;
+#endif
     
     *result = xmalloc(sizeof(SLPDDatabaseAttrRqstResult));
     if(*result == NULL)
@@ -578,11 +603,49 @@ int SLPDDatabaseAttrRqstStart(SLPMessage msg,
                                           entryreg->scopelistlen,
                                           entryreg->scopelist))
                 {
-                    (*result)->attrlistlen = entryreg->attrlistlen;
-                    (*result)->attrlist = (char*)entryreg->attrlist;
-                    (*result)->authcount = entryreg->authcount;
-                    (*result)->autharray = entryreg->autharray;
-                    break;
+                    if(attrrqst->taglistlen == 0)
+                    {
+#ifdef ENABLE_AUTHENTICATION
+                        if(attrrqst->spistrlen)
+                        {
+                            for(i=0; i< entryreg->authcount;i++)
+                            {
+                                if(SLPCompareString(attrrqst->spistrlen,
+                                                    attrrqst->spistr,
+                                                    entryreg->autharray[i].spistrlen,
+                                                    entryreg->autharray[i].spistr) == 0)
+                                {
+                                    break;
+                                }
+                            }
+                            if(i == entryreg->authcount)
+                            {
+                                continue;
+                            }
+                        }
+#endif
+                        /* Send back what was registered */
+                        (*result)->attrlistlen = entryreg->attrlistlen;
+                        (*result)->attrlist = (char*)entryreg->attrlist;
+                        (*result)->authcount = entryreg->authcount;
+                        (*result)->autharray = entryreg->autharray;                        
+                    }
+#ifdef ENABLE_PREDICATES
+                    else
+                    {
+                        /* Send back a partial list as specified by taglist */
+                        if(SLPDFilterAttributes(entryreg->attrlistlen,
+                                                entryreg->attrlist,
+                                                attrrqst->taglistlen,
+                                                attrrqst->taglist,
+                                                &(*result)->attrlistlen,
+                                                &(*result)->attrlist) == 0)
+                        {
+                            (*result)->ispartial = 1;
+                            break;
+                        }
+                    }
+#endif
                 }
             }
         }
@@ -605,6 +668,7 @@ void SLPDDatabaseAttrRqstEnd(SLPDDatabaseAttrRqstResult* result)
     if(result)
     {
         SLPDatabaseClose((SLPDatabaseHandle)result->reserved);
+        if(result->ispartial && result->attrlist) free(result->attrlist);
         xfree(result);
     }
 }
