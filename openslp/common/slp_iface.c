@@ -189,10 +189,10 @@ int SLPIfaceSockaddrsToString(const struct sockaddr_storage* addrs,
     }
     #endif
 
-    /* 16 is the maximum size of a string representation of
-     * an IPv4 address (including the comman for the list)
+    /* 40 is the maximum size of a string representation of
+     * an IPv6 address (including the comman for the list)
      */
-    *addrstr = (char *)xmalloc(addrcount * 16);
+    *addrstr = (char *)xmalloc(addrcount * 40);
     *addrstr[0] = 0;
     
     for (i=0;i<addrcount;i++)

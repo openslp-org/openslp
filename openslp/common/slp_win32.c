@@ -63,7 +63,7 @@ int inet_pton(int af, const char *src, void *dst) {
 }
 
 const char *inet_ntop(int af, const void *src, char *dst, size_t size) {
-    char tmp[5];
+    char tmp[25];
     DWORD i;
 
     if (size > 0) {
@@ -87,16 +87,16 @@ const char *inet_ntop(int af, const void *src, char *dst, size_t size) {
             struct in_addr6 *d6 = (struct in6_addr *) src;
             unsigned char *paddr = (unsigned char *)&(d6->s6_addr);
             for (i = 0; i < 7; i++) {
-                itoa(paddr[2 * i], tmp, 16);
+                sprintf(tmp, "%2.2X", paddr[2 * i]);
                 strncat(dst, tmp, size - (strlen(dst) + 1));
-                itoa(paddr[(2 * i) + 1], tmp, 16);
+                sprintf(tmp, "%2.2X", paddr[(2 * i) + 1]);
                 strncat(dst, tmp, size - (strlen(dst) + 1));
                 strncat(dst, ":", size - (strlen(dst) + 1));
             }
             // now do the last one
-            itoa(paddr[14], tmp, 16);
+            sprintf(tmp, "%2.2X", paddr[14]);
             strncat(dst, tmp, size - (strlen(dst) + 1));
-            itoa(paddr[15], tmp, 16);
+            sprintf(tmp, "%2.2X", paddr[15]);
             strncat(dst, tmp, size - (strlen(dst) + 1));
         }
     }

@@ -98,6 +98,8 @@ int SLPMulticastSend(const SLPIfaceInfo* ifaceinfo,
  *                    responses.  MUST be close by caller using 
  *                    SLPXcastSocketsClose() 
  *
+ *   dst        (IN)  Address to send to if using ipv6 - can be NULL
+ *                    for v4.  
  * Returns:
  *    Zero on sucess.  Non-zero with errno set on error
  *========================================================================*/
