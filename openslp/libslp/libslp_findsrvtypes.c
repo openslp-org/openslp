@@ -305,7 +305,7 @@ SLPError ProcessSrvTypeRqst(PSLPHandleInfo handle)
                                           bufsize,
                                           ProcessSrvTypeRplyCallback,
                                           handle);
-            #endif MI_NOT_SUPPORTED	      
+            #endif /* MI_NOT_SUPPORTED */
             break;
         }
 
