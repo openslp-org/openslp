@@ -122,7 +122,6 @@ typedef UINT32*         PUINT32;
 #define SLP_ERROR_INVALID_UPDATE           13
 #define SLP_ERROR_MESSAGE_NOT_SUPPORTED    14
 #define SLP_ERROR_REFRESH_REJECTED         15
-#define SLP_ERROR_MESSAGE_DROPPED          0xff /* used internally */
 
 /*=========================================================================*/
 /* SLP Flags                                                               */

@@ -383,11 +383,6 @@ void SLPDLogMessage(const char* prefix,
     
     if(G_SlpdProperty.traceMsg)
     {
-        if(buf->end == buf->start)
-        {
-            return;
-        }
-
         msg = SLPMessageAlloc();
         if(msg)
         {
@@ -401,9 +396,10 @@ void SLPDLogMessage(const char* prefix,
             else
             {
                 SLPDLog("Message parsing failed\n");
-	        SLPDLog("Peer: \n");
+	            SLPDLog("Peer: \n");
                 SLPDLog("   IP address: %s\n", inet_ntoa(msg->peer.sin_addr));	        
             }
+
             SLPMessageFree(msg);
         }
     }

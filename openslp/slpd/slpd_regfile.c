@@ -535,13 +535,13 @@ CLEANUP:
     switch(result)
     {
     case SLP_ERROR_INTERNAL_ERROR:
-        SLPDLog("Out of memory one reg file line:\n   %s\n",line);
+        SLPDLog("\nERROR: Out of memory one reg file line:\n   %s\n",line);
         break;
     case SLP_ERROR_INVALID_REGISTRATION:
-        SLPDLog("Invalid reg file format near:\n   %s\n",line);
+        SLPDLog("\nERROR: Invalid reg file format near:\n   %s\n",line);
         break;
     case SLP_ERROR_SCOPE_NOT_SUPPORTED:
-        SLPDLog("Duplicate scopes for same registration near:\n   %s\n",line);
+        SLPDLog("\nERROR: Duplicate scopes for same registration near:\n   %s\n",line);
         break;
     default:
         break;

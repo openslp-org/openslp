@@ -821,7 +821,7 @@ int SLPDDatabaseInit(const char* regfile)
         if(fd)
         {
             
-            while(SLPDRegFileReadSrvReg(fd, &msg, &buf) >= 0)
+            while(SLPDRegFileReadSrvReg(fd, &msg, &buf) == 0)
             {
                 /* Log registration */
                 result = SLPDDatabaseReg(msg, buf);

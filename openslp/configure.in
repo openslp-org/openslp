@@ -114,10 +114,14 @@ dnl ***********************************************************************
 dnl Set C/C++ compiler specific warning/optimization flags
 dnl ***********************************************************************
 if test X"$GCC" = X"yes"; then	
-    CFLAGS="$CFLAGS -Wall -Werror"
+    CFLAGS="$CFLAGS -Wall"
+    if test X"$debug" = X"yes"; then
+       CFLAGS="$CFLAGS -Werror"
+    fi
     if test X"$debug" = X"no"; then 
        OPTFLAGS="-O3"
     fi
+    
 elif $CC -V 2>&1 | grep "WorkShop Compilers"; then
     dnl Allow C++ style comments
     CFLAGS="$CFLAGS -xCC" 

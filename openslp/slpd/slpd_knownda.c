@@ -628,6 +628,8 @@ int SLPDKnownDAAdd(SLPMessage msg, SLPBuffer buf)
                 }
                 
                 SLPDatabaseRemove(dh,entry);
+                /* MTP DEBUG */
+                SLPDLog("SLPDatabaseRemove(dh,%p)\n",entry);
                 break;
             }
         }
@@ -642,6 +644,8 @@ int SLPDKnownDAAdd(SLPMessage msg, SLPBuffer buf)
         {
             /* Create and link in a new entry */
             entry = SLPDatabaseEntryCreate(msg,buf);
+            /*MTP*/
+            SLPDLog("SLPDatabaseEntryCreate(msg = %p, buf=%p)",msg,buf);
             if(entry)
             {
                 SLPDatabaseAdd(dh, entry);

@@ -1,4 +1,4 @@
-/***************************************************************************/
+/**************************************************************************/
 /*                                                                         */
 /* Project:     OpenSLP - OpenSource implementation of Service Location    */
 /*              Protocol Version 2                                         */
@@ -281,8 +281,7 @@ int ProcessDASrvRqst(SLPMessage message,
         if(message->header.flags & SLP_FLAG_MCAST ||
            ISMCAST(message->peer.sin_addr))
         {
-            errorcode = SLP_ERROR_MESSAGE_DROPPED;
-	    (*sendbuf)->end = (*sendbuf)->start;
+            (*sendbuf)->end = (*sendbuf)->start;
         }
     }
 
@@ -406,8 +405,7 @@ int ProcessSrvRqst(SLPMessage message,
         if(message->header.flags & SLP_FLAG_MCAST ||
            ISMCAST(message->peer.sin_addr))
         {
-            errorcode = SLP_ERROR_MESSAGE_DROPPED;
-	    result->end = result->start;
+            result->end = result->start;
             goto FINISHED;  
         }
     }
@@ -558,7 +556,9 @@ int ProcessSrvReg(SLPMessage message,
     /* Go directly to send response code  also do not process mcast */
     /* srvreg or srvdereg messages                                  */
     /*--------------------------------------------------------------*/
-    if(errorcode || message->header.flags & SLP_FLAG_MCAST)
+    if(errorcode || 
+       message->header.flags & SLP_FLAG_MCAST ||
+       ISMCAST(message->peer.sin_addr))
     {
         goto RESPOND;
     }
@@ -621,7 +621,6 @@ int ProcessSrvReg(SLPMessage message,
     if(message->header.flags & SLP_FLAG_MCAST ||
        ISMCAST(message->peer.sin_addr))
     {
-        errorcode = SLP_ERROR_MESSAGE_DROPPED;
         result->end = result->start;
         goto FINISHED;
     }
@@ -727,7 +726,6 @@ int ProcessSrvDeReg(SLPMessage message,
     if(message->header.flags & SLP_FLAG_MCAST ||
        ISMCAST(message->peer.sin_addr))
     {
-        errorcode = SLP_ERROR_MESSAGE_DROPPED;
         result->end = result->start;
         goto FINISHED;
     }
@@ -785,9 +783,7 @@ int ProcessSrvAck(SLPMessage message,
     SLPBuffer result = *sendbuf;
 
     result->end = result->start;
-    /*return message->body.srvack.errorcode; */
-    
-    return SLP_ERROR_MESSAGE_DROPPED;    
+    return 0;
 }
 
 
@@ -914,8 +910,7 @@ int ProcessAttrRqst(SLPMessage message,
         if(message->header.flags & SLP_FLAG_MCAST ||
            ISMCAST(message->peer.sin_addr))
         {
-            errorcode = SLP_ERROR_MESSAGE_DROPPED;
-	    result->end = result->start;
+            result->end = result->start;
             goto FINISHED;  
         }
     }
@@ -1095,7 +1090,7 @@ int ProcessDAAdvert(SLPMessage message,
     RESPOND:
     /* DAAdverts should never be replied to.  Set result buffer to empty*/
     result->end = result->start;
-    errorcode = SLP_ERROR_MESSAGE_DROPPED;
+    
 
     *sendbuf = result;
 
@@ -1113,7 +1108,7 @@ int ProcessSrvTypeRqst(SLPMessage message,
     SLPDDatabaseSrvTypeRqstResult*  db      = 0;
     SLPBuffer                       result  = *sendbuf;
 
-
+    
     /*-------------------------------------------------*/
     /* Check for one of our IP addresses in the prlist */
     /*-------------------------------------------------*/
@@ -1124,7 +1119,7 @@ int ProcessSrvTypeRqst(SLPMessage message,
     {
         /* Silently ignore */
         result->end = result->start;
-        goto FINISHED;
+        goto FINISHED;  
     }
 
     /*------------------------------------*/
@@ -1153,8 +1148,7 @@ int ProcessSrvTypeRqst(SLPMessage message,
         if(message->header.flags & SLP_FLAG_MCAST ||
            ISMCAST(message->peer.sin_addr))
         {
-            errorcode = SLP_ERROR_MESSAGE_DROPPED;
-	    result->end = result->start;
+            result->end = result->start;
             goto FINISHED;  
         }
     }
@@ -1385,12 +1379,12 @@ int SLPDProcessMessage(struct sockaddr_in* peerinfo,
     {
         /* do nothing at all */
     }
-    else if(errorcode == SLP_ERROR_MESSAGE_DROPPED)
+    else if((*sendbuf)->end == (*sendbuf)->start)
     {
         if(G_SlpdProperty.traceDrop)
 	{
-	   SLPDLogMessage("Dropped message (silently ignored)",
-			  peerinfo,*sendbuf);
+	   SLPDLogMessage("Ignored message (no response to)",
+                      peerinfo,*sendbuf);
 	}
     }
     else

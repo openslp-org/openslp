@@ -867,7 +867,6 @@ int SLPDv1ProcessMessage(struct sockaddr_in* peeraddr,
             
                 case SLP_FUNCT_DAADVERT:
                     /* we are a SLPv2 DA, ignore other DAs */
-                    errorcode = SLP_ERROR_MESSAGE_DROPPED;     
                     (*sendbuf)->end = (*sendbuf)->start;
                     break;
             
