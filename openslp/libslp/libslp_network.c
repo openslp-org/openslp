@@ -483,6 +483,8 @@ SLPError NetworkRqstRply(int sock,
         /*----------------*/
         do
         {
+			peeraddr.ss_family = AF_UNSPEC;
+
             if(SLPNetworkRecvMessage(sock,
                                      socktype,
                                      &recvbuf,
@@ -508,6 +510,13 @@ SLPError NetworkRqstRply(int sock,
                 if(AsUINT16(recvbuf->start+10) == xid)
                 {
                     rplycount += 1;
+
+					/* Check the family type of the peeraddr. If it is not set, 
+					   assume the dstaddr is the peeraddr. peeraddr is only
+					   set on SOCK_DGM sockets in the SLPNetworkRecvMessage() 
+					   call. */
+					if (peeraddr.ss_family == AF_UNSPEC)
+						memcpy(&peeraddr, destaddr, sizeof(struct sockaddr_storage));
 
                     /* Call the callback with the result and recvbuf */
                     if(callback(result,&peeraddr,recvbuf,cookie) == SLP_FALSE)
