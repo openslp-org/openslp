@@ -59,7 +59,9 @@
 #include <netinet/in.h>
 #endif
 #ifdef __WIN32__
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#include <winsock.h>
 #endif
 
 #define SLP_MAX_IFACES 10

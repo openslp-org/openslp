@@ -197,7 +197,7 @@ int SLPNetworkConnectToBroadcast(struct sockaddr_in* peeraddr)
         peeraddr->sin_port = htons(SLP_RESERVED_PORT);
         peeraddr->sin_addr.s_addr = htonl(SLP_BCAST_ADDRESS);
 
-        if(setsockopt(sockfd, SOL_SOCKET, SO_BROADCAST, &on, sizeof(on)))
+        if(setsockopt(sockfd, SOL_SOCKET, SO_BROADCAST, (char*)&on, sizeof(on)))
         {
             return -1;
         }

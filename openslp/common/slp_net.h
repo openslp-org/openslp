@@ -53,7 +53,9 @@
 #if(_WIN32_WINNT >= 0x0400 && _WIN32_WINNT < 0x0500) 
 #include <ws2tcpip.h>
 #endif
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#include <winsock.h>
 #include <io.h>
 #include <errno.h>
 #define ETIMEDOUT 110

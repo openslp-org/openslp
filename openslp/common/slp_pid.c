@@ -49,6 +49,7 @@
 #include "slp_pid.h"
 
 #ifdef __WIN32__
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #else
 #include <unistd.h>
@@ -102,9 +103,14 @@ int SLPPidExists(uint32_t pid)
         }
     }
 
-    return 1;
 #else
-    /* FIXME */
-    return 0;
+	HANDLE h;
+	if (!(h = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, (DWORD)pid)))
+	{
+		/* pid does not exist - or we have so few rights we shouldn't be running! */
+		return 0;
+	}
+	CloseHandle(h);
 #endif
+	return 1;
 }

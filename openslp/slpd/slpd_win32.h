@@ -49,8 +49,8 @@
 #ifndef SLPD_WIN32_H_INCLUDED
 #define SLPD_WIN32_H_INCLUDED
 
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-#include <winbase.h>
 #include <stdio.h>
 #include <winsock.h>
 #include <process.h>

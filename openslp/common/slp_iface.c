@@ -58,6 +58,11 @@
 #include <sys/ioctl.h>
 #include <net/if.h>
 #include <arpa/inet.h>
+#else
+#ifndef UINT32_T_DEFINED
+#define UINT32_T_DEFINED
+typedef unsigned int uint32_t; 
+#endif
 #endif
 
 #ifdef LINUX

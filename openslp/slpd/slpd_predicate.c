@@ -79,6 +79,7 @@
 
 #include <assert.h>
 #include <ctype.h>
+#include <stdlib.h>
 
 #include "slpd_predicate.h"
 

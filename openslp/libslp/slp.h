@@ -57,24 +57,36 @@ extern "C"
 {
 #endif
 
+/*
+	It's not a good idea to export __stdcall - export signatures are 
+	currently incompatible between IAPx86 and IA64 - microsoft 
+	has a workaround to this, but it's undocumented and requires
+	hand-rolled tools to post-process the product files. __declspec
+	(dllexport) has it's own set of problems - better for now just to 
+	use a .def file. -- jmc
+
 #ifdef __WIN32__
 # define SLPCALLBACK __stdcall
 # ifdef LIBSLP_EXPORTS
 #  define SLPAPI __declspec(dllexport) __stdcall
-# else /* LIBSLP_EXPORTS */
+# else
 #  define SLPAPI __declspec(dllimport) __stdcall
-# endif /* LIBSLP_EXPORTS */
-#else /* __WIN32__ */
+# endif
+#else
+*/
+
 # define SLPCALLBACK
 # define SLPAPI
-#endif /* __WIN32__ */
+
+/*
+#endif
+*/
 
 /*==========================================================================*/
 /* lifetime values, in  seconds, that are frequently used.                  */
 /*==========================================================================*/
 #define SLP_LIFETIME_DEFAULT 10800   /* 3 hours  */
 #define SLP_LIFETIME_MAXIMUM 65535   /* 18 hours */
-
 
 
 /*==========================================================================*/
