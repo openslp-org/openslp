@@ -110,13 +110,14 @@ SLPError ProcessSrvReg(PSLPHandleInfo handle)
     char*               buf         = 0;
     char*               curpos      = 0;
     SLPError            result      = 0;
+    int                 extoffset   = 0;
 
 #ifdef ENABLE_SLPv2_SECURITY
     int                 urlauthlen  = 0;
     unsigned char*      urlauth     = 0;
     int                 attrauthlen = 0;
     unsigned char*      attrauth    = 0;
-
+    
     if(SLPPropertyAsBoolean(SLPGetProperty("net.slp.securityEnabled")))
     {
         result = SLPAuthSignUrl(handle->hspi,
@@ -153,6 +154,13 @@ SLPError ProcessSrvReg(PSLPHandleInfo handle)
     bufsize += handle->params.reg.scopelistlen + 2; /*  2 bytes for len field */
     bufsize += handle->params.reg.attrlistlen + 2;  /*  2 bytes for len field */
     bufsize += 1;                                   /*  1 byte for authcount */
+    if(handle->params.reg.flags & SLP_REG_FLAG_WATCH_PID)
+    {
+        bufsize += 9; /* 2 bytes for extid      */
+                      /* 3 bytes for nextoffset */
+                      /* 4 bytes for pid        */
+    }
+
 
     buf = curpos = (char*)xmalloc(bufsize);
     if(buf == 0)
@@ -236,36 +244,42 @@ SLPError ProcessSrvReg(PSLPHandleInfo handle)
         curpos = curpos + 1;
     }
 
+    /* Put in the SLP_EXTENSION_ID_REG_PID */
+    if(handle->params.reg.flags & SLP_REG_FLAG_WATCH_PID)
+    {
+        extoffset = curpos - buf;
+        ToUINT16(curpos,SLP_EXTENSION_ID_REG_PID);
+        curpos += 2;
+        ToUINT24(curpos,0);
+        curpos += 3;
+        ToUINT32(curpos,getpid());
+        curpos += 4;
+    }
+
+
     /*--------------------------*/
     /* Call the RqstRply engine */
     /*--------------------------*/
-    do
+    sock = NetworkConnectToSA(handle,
+                              handle->params.reg.scopelist,
+                              handle->params.reg.scopelistlen,
+                              &peeraddr);
+    if(sock)
     {
-        sock = NetworkConnectToSA(handle,
-                                  handle->params.reg.scopelist,
-                                  handle->params.reg.scopelistlen,
-                                  &peeraddr);
-        if(sock == -1)
-        {
-            result = SLP_NETWORK_INIT_FAILED;
-            break;
-        }
-
         result = NetworkRqstRply(sock,
-                                 &peeraddr,
-                                 handle->langtag,
-                                 buf,
-                                 SLP_FUNCT_SRVREG,
-                                 bufsize,
-                                 CallbackSrvReg,
-                                 handle);
-        if(result)
+                             &peeraddr,
+                             handle->langtag,
+                             extoffset,
+                             buf,
+                             SLP_FUNCT_SRVREG,
+                             bufsize,
+                             CallbackSrvReg,
+                             handle);
+        if (result)
         {
             NetworkDisconnectSA(handle);
-        }
-
-    }while(result == SLP_NETWORK_ERROR);
-
+        }   
+    }
 
     FINISHED:
     if(buf) xfree(buf);
@@ -303,7 +317,7 @@ SLPError SLPReg(SLPHandle   hSLP,
                 const unsigned short lifetime,
                 const char  *srvType,
                 const char  *attrList,
-                SLPBoolean  fresh,
+                unsigned long flags,
                 SLPRegReport callback,
                 void *cookie)
 /*                                                                         */
@@ -328,20 +342,28 @@ SLPError SLPReg(SLPHandle   hSLP,
         return SLP_PARAMETER_BAD;
     }
 
-    /*-----------------------------------------*/
-    /* We don't handle fresh registrations     */
-    /*-----------------------------------------*/
-    if(fresh == SLP_FALSE)
+    /*---------------------------------------------*/
+    /* We don't handle non-fresh registrations     */
+    /*---------------------------------------------*/
+    if(flags == 0)
     {
         return SLP_NOT_IMPLEMENTED;
     }
 
+    /*------------------------------------------------------------------
+     * We don't allow SLP_LIFETIME_MAXIMUM unless SLP_REG_FLAG_WATCH_PID
+     * is used.
+     */
+    if(lifetime >= SLP_LIFETIME_MAXIMUM && 
+       !(flags & SLP_REG_FLAG_WATCH_PID))
+    {
+        return SLP_PARAMETER_BAD;
+    } 
 
     /*-----------------------------------------*/
     /* cast the SLPHandle into a SLPHandleInfo */
     /*-----------------------------------------*/
     handle = (PSLPHandleInfo)hSLP;
-
 
     /*-----------------------------------------*/
     /* Check to see if the handle is in use    */
@@ -371,7 +393,7 @@ SLPError SLPReg(SLPHandle   hSLP,
     /*-------------------------------------------*/
     /* Set the handle up to reference parameters */
     /*-------------------------------------------*/
-    handle->params.reg.fresh         = fresh;
+    handle->params.reg.flags         = flags;
     handle->params.reg.lifetime      = lifetime;
     handle->params.reg.urllen        = strlen(srvUrl);
     handle->params.reg.url           = srvUrl;

@@ -841,6 +841,65 @@ int ParseSrvTypeRply(SLPBuffer buffer, SLPSrvTypeRply* srvtyperply)
     return 0;
 }
 
+/*--------------------------------------------------------------------------*/
+int ParseExtension(SLPBuffer buffer, SLPMessage message)
+/* Parse extensions *after* all standard protocol fields are parsed         */
+/*--------------------------------------------------------------------------*/
+{
+    int             extid;
+    int             nextoffset;
+    int             result  = SLP_ERROR_OK;
+
+    nextoffset = message->header.extoffset;
+    while(nextoffset)
+    {
+        buffer->curpos = buffer->start + nextoffset;
+        if(buffer->curpos + 5 >= buffer->end)
+        {
+            /* Extension takes us past the end of the buffer */
+            result = SLP_ERROR_PARSE_ERROR;
+            goto CLEANUP;
+        }
+    
+        extid = AsUINT16(buffer->curpos);
+        buffer->curpos += 2;
+
+        nextoffset = AsUINT24(buffer->curpos);
+        buffer->curpos += 3;
+        
+        switch(extid)
+        {
+        case SLP_EXTENSION_ID_REG_PID:
+            if(message->header.functionid == SLP_FUNCT_SRVREG)
+            {
+                /* check to see if buffer is large enough to contain the 4 byte pid */
+                if(buffer->curpos + 4 > buffer->end)
+                {
+                    result = SLP_ERROR_PARSE_ERROR;
+                    goto CLEANUP;
+                }
+                
+                message->body.srvreg.pid = AsUINT32(buffer->curpos);
+                buffer->curpos += 4;
+            }
+            break;
+
+        default:
+            if (extid >= 0x4000 && extid <= 0x7FFF )
+            {
+                /* This is a required extension.  We better error out */
+                result = SLP_ERROR_MESSAGE_NOT_SUPPORTED;
+                goto CLEANUP;
+            }
+            break;
+        }
+    }
+
+CLEANUP:
+    
+    return result;
+}
+
 /*=========================================================================*/
 void SLPMessageFreeInternals(SLPMessage message)
 /*=========================================================================*/
@@ -1062,6 +1121,11 @@ int SLPMessageParseBuffer(struct sockaddr_in* peerinfo,
         default:
             result = SLP_ERROR_MESSAGE_NOT_SUPPORTED;
         }
+    }
+
+    if(result == 0 && message->header.extoffset)
+    {
+        result = ParseExtension(buffer,message);
     }
 
     return result;

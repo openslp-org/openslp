@@ -1428,29 +1428,29 @@ int SLPDProcessMessage(struct sockaddr_in* peerinfo,
                     errorcode = SLP_ERROR_PARSE_ERROR;
                     break;
                 }
-
-                if (header.functionid == SLP_FUNCT_SRVREG ||
-                    header.functionid == SLP_FUNCT_DAADVERT )
-                {
-                    /* TRICKY: If this is a reg or daadvert message we do not
-                    * free the message descriptor or duplicated recvbuf 
-                    * because they are being kept in the database!
-                    *
-                    */
-                    if (errorcode == 0)
-                    {
-                        goto FINISHED;
-                    }
-
-                    /* TRICKY: If there is an error we need to free the 
-                     * duplicated recvbuf,
-                     */
-                    SLPBufferFree(recvbuf);                    
-                }
             }
             else
             {
                 SLPDLogParseWarning(peerinfo, recvbuf);
+            }
+                            
+            if (header.functionid == SLP_FUNCT_SRVREG ||
+                header.functionid == SLP_FUNCT_DAADVERT )
+            {
+                /* TRICKY: If this is a reg or daadvert message we do not
+                * free the message descriptor or duplicated recvbuf 
+                * because they are being kept in the database!
+                *
+                */
+                if (errorcode == 0)
+                {
+                    goto FINISHED;
+                }
+
+                /* TRICKY: If there is an error we need to free the 
+                 * duplicated recvbuf,
+                 */
+                SLPBufferFree(recvbuf);                    
             }
 
             SLPMessageFree(message);
@@ -1476,9 +1476,8 @@ int SLPDProcessMessage(struct sockaddr_in* peerinfo,
                 inet_ntoa(peerinfo->sin_addr));
     }
 #endif
-
-    
-    /* Log messaged silently ignored because of an error */
+ 
+    /* Log message silently ignored because of an error */
     if(errorcode)
     {
         if (*sendbuf == 0 ||
@@ -1491,5 +1490,5 @@ int SLPDProcessMessage(struct sockaddr_in* peerinfo,
     /* Log trace message */
     SLPDLogMessage(SLPDLOG_TRACEMSG_OUT, peerinfo, *sendbuf);
 
-    return 0;
+    return errorcode;
 }                

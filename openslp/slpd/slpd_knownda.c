@@ -88,11 +88,12 @@ SLPDatabase G_SlpdKnownDAs;
 int G_KnownDATimeSinceLastRefresh = 0;
 /*=========================================================================*/
 
-
 /*-------------------------------------------------------------------------*/
 int MakeActiveDiscoveryRqst(int ismcast, SLPBuffer* buffer)
-/* Pack a buffer with service:directory-agent SrvRqst                      */
-/*-------------------------------------------------------------------------*/
+/* Pack a buffer with service:directory-agent SrvRqst                      *
+ *                                                                         *
+ * Caller must free buffer                                                 *
+ *-------------------------------------------------------------------------*/
 {
     size_t          size;
     void*           eh;
@@ -300,6 +301,115 @@ void SLPDKnownDARegisterAll(SLPMessage daadvert, int immortalonly)
 
 
 /*-------------------------------------------------------------------------*/
+int MakeSrvderegFromSrvReg(SLPMessage msg, 
+                           SLPBuffer inbuf,
+                           SLPBuffer* outbuf)
+/* Pack a buffer with a SrvDereg message using information from an existing
+ * SrvReg message
+ * 
+ * Caller must free outbuf
+ *-------------------------------------------------------------------------*/
+{
+    int                 size;
+    SLPBuffer           sendbuf;
+    SLPSrvReg*          srvreg;
+    
+    srvreg = &(msg->body.srvreg);
+
+    /*-------------------------------------------------------------*/
+    /* ensure the buffer is big enough to handle the whole srvdereg*/
+    /*-------------------------------------------------------------*/
+    size = msg->header.langtaglen + 18; /* 14 bytes for header     */
+                                           /*  2 bytes for scopelen */
+                                           /*  see below for URLEntry */
+                                           /*  2 bytes for taglist len */
+    if ( srvreg->urlentry.opaque )
+    {
+        size += srvreg->urlentry.opaquelen;
+    }
+    else
+    {
+        size += 6; /* +6 for the static portion of the url-entry */
+        size += srvreg->urlentry.urllen;
+    }
+    size += srvreg->scopelistlen;
+    /* taglistlen is always 0 */
+
+    *outbuf = sendbuf = SLPBufferAlloc(size);
+    if (*outbuf == NULL)
+    {
+        return SLP_ERROR_INTERNAL_ERROR;
+    }
+
+    /*----------------------*/
+    /* Construct a SrvDereg */
+    /*----------------------*/
+    /*version*/
+    *(sendbuf->start)       = 2;
+    /*function id*/
+    *(sendbuf->start + 1)   = SLP_FUNCT_SRVDEREG;
+    /*length*/
+    ToUINT24(sendbuf->start + 2, size);
+    /*flags*/
+    ToUINT16(sendbuf->start + 5,
+             (size > SLP_MAX_DATAGRAM_SIZE ? SLP_FLAG_OVERFLOW : 0));
+    /*ext offset*/
+    ToUINT24(sendbuf->start + 7,0);
+    /*xid*/
+    ToUINT16(sendbuf->start + 10,SLPXidGenerate());
+    /*lang tag len*/
+    ToUINT16(sendbuf->start + 12,msg->header.langtaglen);
+    /*lang tag*/
+    memcpy(sendbuf->start + 14,
+           msg->header.langtag,
+           msg->header.langtaglen);
+    sendbuf->curpos = sendbuf->start + 14 + msg->header.langtaglen;
+
+    /* scope list */
+    ToUINT16(sendbuf->curpos, srvreg->scopelistlen);
+    sendbuf->curpos = sendbuf->curpos + 2;
+    memcpy(sendbuf->curpos,srvreg->scopelist,srvreg->scopelistlen);
+    sendbuf->curpos = sendbuf->curpos + srvreg->scopelistlen;
+    /* the urlentry */
+#ifdef ENABLE_SLPv1
+    if ( srvreg->urlentry.opaque == 0 )
+    {
+        /* url-entry reserved */
+        *sendbuf->curpos = 0;        
+        sendbuf->curpos += 1;
+        /* url-entry lifetime */
+        ToUINT16(sendbuf->curpos,srvreg->urlentry.lifetime);
+        sendbuf->curpos = sendbuf->curpos + 2;
+        /* url-entry urllen */
+        ToUINT16(sendbuf->curpos,srvreg->urlentry.urllen);
+        sendbuf->curpos += 2;
+        /* url-entry url */
+        memcpy(sendbuf->curpos,
+               srvreg->urlentry.url,
+               srvreg->urlentry.urllen);
+        sendbuf->curpos += srvreg->urlentry.urllen;                        
+        /* url-entry authcount */
+        *sendbuf->curpos = 0;        
+        sendbuf->curpos += 1;
+    }
+    else
+#endif /* ENABLE_SLPv1 */
+    {
+        memcpy(sendbuf->curpos,
+               srvreg->urlentry.opaque,
+               srvreg->urlentry.opaquelen);
+        sendbuf->curpos += srvreg->urlentry.opaquelen;
+    }
+
+    /* taglist (always 0) */
+    ToUINT16(sendbuf->curpos,0);
+    sendbuf->curpos += 1;
+
+    return 0;
+}
+
+
+/*-------------------------------------------------------------------------*/
 void SLPDKnownDADeregisterAll(SLPMessage daadvert)
 /* de-registers all services with specified DA                             */
 /*-------------------------------------------------------------------------*/
@@ -308,7 +418,6 @@ void SLPDKnownDADeregisterAll(SLPMessage daadvert)
     SLPMessage          msg;
     SLPSrvReg*          srvreg;
     SLPDSocket*         sock;
-    size_t              size;
     SLPBuffer           sendbuf     = 0;
     void*               handle      = 0;
 
@@ -342,91 +451,8 @@ void SLPDKnownDADeregisterAll(SLPMessage daadvert)
             if ( srvreg->source == SLP_REG_SOURCE_LOCAL || 
                  srvreg->source == SLP_REG_SOURCE_STATIC )
             {
-                /*-------------------------------------------------------------*/
-                /* ensure the buffer is big enough to handle the whole srvdereg*/
-                /*-------------------------------------------------------------*/
-                size = msg->header.langtaglen + 18; /* 14 bytes for header     */
-                                                    /*  2 bytes for scopelen */
-                                                    /*  see below for URLEntry */
-                                                    /*  2 bytes for taglist len */
-                if ( srvreg->urlentry.opaque )
+                if(MakeSrvderegFromSrvReg(msg,buf,&sendbuf) == 0)
                 {
-                    size += srvreg->urlentry.opaquelen;
-                }
-                else
-                {
-                    size += 6; /* +6 for the static portion of the url-entry */
-                    size += srvreg->urlentry.urllen;
-                }
-                size += srvreg->scopelistlen;
-                /* taglistlen is always 0 */
-
-                sendbuf = SLPBufferAlloc(size);
-                if ( sendbuf )
-                {
-                    /*----------------------*/
-                    /* Construct a SrvDereg */
-                    /*----------------------*/
-                    /*version*/
-                    *(sendbuf->start)       = 2;
-                    /*function id*/
-                    *(sendbuf->start + 1)   = SLP_FUNCT_SRVDEREG;
-                    /*length*/
-                    ToUINT24(sendbuf->start + 2, size);
-                    /*flags*/
-                    ToUINT16(sendbuf->start + 5,
-                             (size > SLP_MAX_DATAGRAM_SIZE ? SLP_FLAG_OVERFLOW : 0));
-                    /*ext offset*/
-                    ToUINT24(sendbuf->start + 7,0);
-                    /*xid*/
-                    ToUINT16(sendbuf->start + 10,SLPXidGenerate());
-                    /*lang tag len*/
-                    ToUINT16(sendbuf->start + 12,msg->header.langtaglen);
-                    /*lang tag*/
-                    memcpy(sendbuf->start + 14,
-                           msg->header.langtag,
-                           msg->header.langtaglen);
-                    sendbuf->curpos = sendbuf->start + 14 + msg->header.langtaglen;
-
-                    /* scope list */
-                    ToUINT16(sendbuf->curpos, srvreg->scopelistlen);
-                    sendbuf->curpos = sendbuf->curpos + 2;
-                    memcpy(sendbuf->curpos,srvreg->scopelist,srvreg->scopelistlen);
-                    sendbuf->curpos = sendbuf->curpos + srvreg->scopelistlen;
-                    /* the urlentry */
-#ifdef ENABLE_SLPv1
-                    if ( srvreg->urlentry.opaque == 0 )
-                    {
-                        /* url-entry reserved */
-                        *sendbuf->curpos = 0;        
-                        sendbuf->curpos = sendbuf->curpos + 1;
-                        /* url-entry lifetime */
-                        ToUINT16(sendbuf->curpos,srvreg->urlentry.lifetime);
-                        sendbuf->curpos = sendbuf->curpos + 2;
-                        /* url-entry urllen */
-                        ToUINT16(sendbuf->curpos,srvreg->urlentry.urllen);
-                        sendbuf->curpos = sendbuf->curpos + 2;
-                        /* url-entry url */
-                        memcpy(sendbuf->curpos,
-                               srvreg->urlentry.url,
-                               srvreg->urlentry.urllen);
-                        sendbuf->curpos = sendbuf->curpos + srvreg->urlentry.urllen;                        
-                        /* url-entry authcount */
-                        *sendbuf->curpos = 0;        
-                        sendbuf->curpos = sendbuf->curpos + 1;
-                    }
-                    else
-#endif /* ENABLE_SLPv1 */
-                    {
-                        memcpy(sendbuf->curpos,
-                               srvreg->urlentry.opaque,
-                               srvreg->urlentry.opaquelen);
-                        sendbuf->curpos = sendbuf->curpos + srvreg->urlentry.opaquelen;
-                    }
-
-                    /* taglist (always 0) */
-                    ToUINT16(sendbuf->curpos,0);
-
                     /*--------------------------------------------------*/
                     /* link newly constructed buffer to socket sendlist */
                     /*--------------------------------------------------*/
@@ -1481,7 +1507,7 @@ void SLPDKnownDAImmortalRefresh(int seconds)
     {
         /* Refresh all SLP_LIFETIME_MAXIMUM registrations */
         dh = SLPDatabaseOpen(&G_SlpdKnownDAs);
-        if ( dh )
+        if(dh)
         {
 
             /*-----------------------------------------------------*/
@@ -1509,6 +1535,57 @@ void SLPDKnownDAImmortalRefresh(int seconds)
         }
 
         G_KnownDATimeSinceLastRefresh = 0;
+    }
+}
+
+
+/*=========================================================================*/
+void SLPDKnownDADeRegisterWithAllDas(SLPMessage msg, SLPBuffer buf)
+/* Deregister the registration described by the specified message          */
+/*                                                                         */
+/* msg (IN) A message descriptor for a SrvReg or SrvDereg message to       */
+/*          deregister                                                     */
+/*                                                                         */
+/* buf (IN) Message buffer associated with msg                             */
+/*                                                                         */
+/* Returns: None                                                           */
+/*=========================================================================*/
+{
+    SLPBuffer  sendbuf;
+    
+    if(msg->header.functionid == SLP_FUNCT_SRVREG)
+    {
+        if(MakeSrvderegFromSrvReg(msg,buf, &sendbuf) == 0)
+        {
+            SLPDKnownDAEcho(msg,sendbuf);
+            SLPBufferFree(sendbuf); 
+        }
+    }
+    else if (msg->header.functionid == SLP_FUNCT_SRVDEREG)
+    {
+        /* Simply echo the message through as is */
+        SLPDKnownDAEcho(msg,buf);
+    }
+}
+
+
+/*=========================================================================*/
+void SLPDKnownDARegisterWithAllDas(SLPMessage msg, SLPBuffer buf)
+/* Register the registration described by the specified message with all   */
+/* known DAs                                                               */
+/*                                                                         */
+/* msg (IN) A message descriptor for a SrvReg or SrvDereg message to       */
+/*          deregister                                                     */
+/*                                                                         */
+/* buf (IN) Message buffer associated with msg                             */
+/*                                                                         */
+/* Returns: None                                                           */
+/*=========================================================================*/
+{
+    if (msg->header.functionid == SLP_FUNCT_SRVDEREG)
+    {
+        /* Simply echo the message through as is */
+        SLPDKnownDAEcho(msg,buf);
     }
 }
 

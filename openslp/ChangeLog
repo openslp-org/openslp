@@ -6,6 +6,10 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 
+02/13/02 matt@caldera.com
+Added PID monitoring.  Now when the process that called SLPReg() (with
+SLP_REG_FLAG_WATCH_PID) dies the registration will automatically be deregistered.
+
 01/25/2002 matt@caldera.com
 Added relevant fixes from the stable branch:
    - Applied patch from Garth Bushell that fixes a problem where not enough

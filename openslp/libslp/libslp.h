@@ -137,7 +137,7 @@ typedef struct _SLPRegParams
 /*=========================================================================*/
 {
     int             lifetime;
-    int             fresh;
+    int             flags;
     int             urllen;
     const char*     url;
     int             srvtypelen;
@@ -382,6 +382,7 @@ typedef SLPBoolean NetworkRplyCallback(SLPError errorcode,
 SLPError NetworkRqstRply(int sock,
                          struct sockaddr_in* peeraddr,
                          const char* langtag,
+                         int extoffset,
                          char* buf,
                          char buftype,
                          int bufsize,

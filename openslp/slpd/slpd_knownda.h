@@ -216,6 +216,34 @@ void SLPDKnownDAImmortalRefresh(int seconds);
 /*=========================================================================*/
 
 
+/*=========================================================================*/
+void SLPDKnownDADeRegisterWithAllDas(SLPMessage msg, SLPBuffer buf);
+/* Deregister the registration described by the specified message with all */
+/* known DAs                                                               */
+/*                                                                         */
+/* msg (IN) A message descriptor for a SrvReg or SrvDereg message to       */
+/*          deregister                                                     */
+/*                                                                         */
+/* buf (IN) Message buffer associated with msg                             */
+/*                                                                         */
+/* Returns: None                                                           */
+/*=========================================================================*/
+
+
+/*=========================================================================*/
+void SLPDKnownDARegisterWithAllDas(SLPMessage msg, SLPBuffer buf);
+/* Register the registration described by the specified message with all   */
+/* known DAs                                                               */
+/*                                                                         */
+/* msg (IN) A message descriptor for a SrvReg or SrvDereg message to       */
+/*          deregister                                                     */
+/*                                                                         */
+/* buf (IN) Message buffer associated with msg                             */
+/*                                                                         */
+/* Returns: None                                                           */
+/*=========================================================================*/
+
+
 #ifdef DEBUG
 /*=========================================================================*/
 void SLPDKnownDADump();

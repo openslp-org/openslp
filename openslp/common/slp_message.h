@@ -148,6 +148,7 @@ typedef UINT32*         PUINT32;
 #define SLP_DA_SERVICE_TYPE       "service:directory-agent"
 #define SLP_SA_SERVICE_TYPE       "service:service-agent"
 
+
 /*=========================================================================*/
 /* SLP Registration Sources                                                */
 /*=========================================================================*/
@@ -155,6 +156,12 @@ typedef UINT32*         PUINT32;
 #define SLP_REG_SOURCE_REMOTE   1  /* from a remote host    */
 #define SLP_REG_SOURCE_LOCAL    2  /* from localhost or IPC */
 #define SLP_REG_SOURCE_STATIC   3  /* from the slp.reg file */
+
+
+/*=========================================================================*/
+/* SLP Extension IDs                                                       */
+/*=========================================================================*/
+#define SLP_EXTENSION_ID_REG_PID   0x9799
 
 
 /*=========================================================================*/
@@ -252,6 +259,8 @@ typedef struct _SLPSrvReg
     const char*         attrlist;
     int                 authcount;
     SLPAuthBlock*       autharray;
+    /* The following are used for OpenSLP specific extensions */
+    pid_t               pid;
     /* The following are not part of the RFC protocol.  They are used by   */
     /* the OpenSLP implementation for convenience                          */
     int                 source;
@@ -364,6 +373,7 @@ typedef struct _SLPSAAdvert
     int             authcount;
     SLPAuthBlock*   autharray;
 }SLPSAAdvert;
+
 
 
 /*=========================================================================*/

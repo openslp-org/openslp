@@ -254,6 +254,7 @@ int NetworkConnectToSA(PSLPHandleInfo handle,
 SLPError NetworkRqstRply(int sock,
                          struct sockaddr_in* destaddr,
                          const char* langtag,
+                         int extoffset,
                          char* buf,
                          char buftype,
                          int bufsize,
@@ -439,7 +440,11 @@ SLPError NetworkRqstRply(int sock,
         }
         ToUINT16(sendbuf->start + 5, flags);
         /*ext offset*/
-        ToUINT24(sendbuf->start + 7,0);
+        /* TRICKY: the extoffset passed into us was the offset not
+         * including the header.  We need to fix up the offset so
+         * that it is from the beginning of the SLP message
+         */
+        ToUINT24(sendbuf->start + 7,extoffset + langtaglen + 14);
         /*xid*/
         ToUINT16(sendbuf->start + 10,xid);
         /*lang tag len*/

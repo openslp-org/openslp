@@ -235,6 +235,7 @@ SLPError ProcessAttrRqst(PSLPHandleInfo handle)
         result = NetworkRqstRply(sock,
                                  &peeraddr,
                                  handle->langtag,
+                                 0,
                                  buf,
                                  SLP_FUNCT_ATTRRQST,
                                  bufsize,

@@ -201,7 +201,6 @@ typedef int SLPError;
 /* in a registration do not match the service type template for         */
 /* the service.                                                         */
 
-
 /*==========================================================================*/
 /* SLPBoolean                                                               */
 /*------------                                                              */
@@ -455,6 +454,8 @@ void SLPClose(SLPHandle hSLP);
 /* SLPHandle    A SLPHandle handle returned from a call to SLPOpen().      */
 /*=========================================================================*/
 
+#define SLP_REG_FLAG_FRESH      (1) 
+#define SLP_REG_FLAG_WATCH_PID  (1 << 1)
 
 /*=========================================================================*/
 SLPError SLPReg(SLPHandle   hSLP,
@@ -462,7 +463,7 @@ SLPError SLPReg(SLPHandle   hSLP,
                 const unsigned short usLifetime,
                 const char  *pcSrvType,
                 const char  *pcAttrs,
-                SLPBoolean  fresh,
+                unsigned long flags,
                 SLPRegReport callback,
                 void *pvCookie); 
 /*                                                                         */
@@ -492,7 +493,9 @@ SLPError SLPReg(SLPHandle   hSLP,
 /*              integer less than or equal to SLP_LIFETIME_MAXIMUM and     */
 /*              greater than zero. If SLP_LIFETIME_MAXIMUM is used, the    */
 /*              registration will remain for the life of the calling       */
-/*              process.                                                   */
+/*              process.  Also, OpenSLP, will not allow registrations to   */
+/*              be made with SLP_LIFETIME_MAXIMUM unless                   */
+/*              SLP_REG_FLAG_WATCH_PID is also used                        */
 /*                                                                         */
 /* pcSrvType    This parameter is ALWAYS ignored since the SLP Service URL */
 /*              syntax required for the pcSrvURL encapsulates the service  */
@@ -502,10 +505,17 @@ SLPError SLPReg(SLPHandle   hSLP,
 /*              for the attributes of the advertisement.  Use empty string,*/
 /*              "" for no attributes.                                      */
 /*                                                                         */
-/* fresh        An SLPBoolean that is SLP_TRUE if the registration is new  */
-/*              or SLP_FALSE if a reregistration.  OpenSLP does not support*/
-/*              incremental registrations.  If SLP_FALSE is passed in, an  */
-/*              SLP_NOT_IMPLEMENTED error will be returned.                */
+/* flags        SLP_REG_FLAG_FRESH - same thing as SLP_TRUE for fresh.     */
+/*                  Non-fresh registrations are deprecated.  All           */
+/*                  registration are fresh.                                */
+/*                                                                         */
+/*              SLP_REG_FLAG_WATCH_PID - Instruct the implementation to    */
+/*                  watch the process ID of the calling process and        */
+/*                  and automatically deregister when the PID disappears   */
+/*                  It is recommended that this flag be used. However,     */
+/*                  programmer beware (especially on Linux where threads   */
+/*                  have their own PID) to not  allow the process that     */
+/*                  called SLPReg() to die accidentially.                  */
 /*                                                                         */
 /* callback     A SLPRegReport callback to report the operation completion */
 /*              status.                                                    */
@@ -544,7 +554,6 @@ SLPError SLPDereg(SLPHandle  hSLP,
 /* Returns:     If an error occurs in starting the operation, one of the   */
 /*              SLPError codes is returned.                                */
 /*=========================================================================*/
-
 
 
 /*=========================================================================*/

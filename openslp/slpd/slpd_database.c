@@ -56,6 +56,7 @@
 #include "slpd_regfile.h"
 #include "slpd_property.h"
 #include "slpd_log.h"
+#include "slpd_knownda.h"
 #ifdef ENABLE_PREDICATES
     #include "slpd_predicate.h"
 #endif
@@ -117,7 +118,25 @@ void SLPDDatabaseAge(int seconds, int ageall)
                 }
             }
 
+            /* Age entries by seconds */
             srvreg->urlentry.lifetime -= seconds;
+
+            /* Age local entries to death when registering pid disappears */
+            if(srvreg->source == SLP_REG_SOURCE_LOCAL && srvreg->pid)
+            {
+                /* Send benign signal to process (don't worry, chances are 
+                 * that we'll get an EPERM since we've droped root 
+                 * permissions)
+                 */
+                if(kill(srvreg->pid,SIGUSR2))
+                {
+                    if(errno == ESRCH)
+                    {
+                        srvreg->urlentry.lifetime = 0;
+                        SLPDKnownDADeRegisterWithAllDas(entry->msg,entry->buf);
+                    }
+                }
+            }
 
             /* Remove entries that have timed out */
             if ( srvreg->urlentry.lifetime <= 0 )

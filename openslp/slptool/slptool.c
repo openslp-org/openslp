@@ -227,11 +227,13 @@ void FindScopes(SLPToolCommandLine* cmdline)
     }               
 }
 
+/*-------------------------------------------------------------------------*/
 void mySLPRegReport(SLPHandle hslp, SLPError errcode, void* cookie)
 {
     if (errcode)
     printf("(de)registration errorcode %d\n", errcode);
 }
+
 
 /*=========================================================================*/
 void Register(SLPToolCommandLine* cmdline)
@@ -259,13 +261,13 @@ void Register(SLPToolCommandLine* cmdline)
     {
 
         result = SLPReg(hslp,
-			cmdline->cmdparam1,
-			SLP_LIFETIME_MAXIMUM,
-			srvtype,
-			cmdline->cmdparam2,
-			SLP_TRUE,
-			mySLPRegReport,
-			0);
+                        cmdline->cmdparam1,
+                        SLP_LIFETIME_DEFAULT,
+                        srvtype,
+                        cmdline->cmdparam2,
+                        SLP_TRUE,
+                        mySLPRegReport,
+                        0);
         if(result != SLP_OK)
         {
             printf("errorcode: %i\n",result);
