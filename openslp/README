@@ -130,24 +130,5 @@ at:
     
 7 - FAQ
 --------
-A really compresensive FAQ is not yet available for OpenSLP so please send
-you questions to the OpenSLP mailing lists:
-
-    openslp-devel@lists.sourceforge.net
-    openslp-users@lists.sourceforge.net
-    
-Q: Where is the configure script?
-A: Did you read section 3 of this document?  You need to run autogen.sh to
-   generate the configure script.
-   
-Q: How do I build OpenSLP on Windows?  
-A: The MSVC project files used by the developers who ported OpenSLP to win32
-   available in the source directories.  If you do not use MSVC and you are a 
-   Windows developer, then you will be used to trying to get MSVC makes to
-   work with your tools
-   
-Q: Will OpenSLP work on my operating system
-A: Yes, the OpenSLP code has proven to be very portable.  It currently works
-   many operating systems including: Linux, BSD, Solaris, Tru64, HPUX, and
-   Windows
-   
+The frequently asked questions have been moved to a faq.html file located in 
+the doc directory of the OpenSLP tarball.  
