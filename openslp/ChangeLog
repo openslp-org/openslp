@@ -6,6 +6,18 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 
+*** TAG OpenSLP-1.1.3 ***
+
+02/12/03 matt@sco.com
+Many very good bugfixes.  Much very goog new DHCP code from 
+jcalcote@novell.com
+
+02/12/03 matt@sco.com
+Skipped 1.1.2 release to avoid any rumors that a 1.1.2 release was made 
+unofficially.
+
+*** TAG OpenSLP-1.1.2 ***
+
 08/31/02 aaron@clove.org
 Fixed parsing bug for service URL strings. Made the port default to 80.
 
