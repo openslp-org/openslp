@@ -5,6 +5,10 @@ Please make entries to this log (in addition to the CVS log) that describe
 major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
+08/31/01 matt@caldera.com
+Changed code path for handling of directory-agent SrvRqst.  Fixes problems
+DAs listed in net.slp.DAAddresses could not be found if multicast was not
+working
 
 08/30/01 matt@caldera.com
 Fixed a few debug problems when last handle is closed.  Fixed KnownDA usage
