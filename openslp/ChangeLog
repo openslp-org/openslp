@@ -6,6 +6,8 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 
+*** Tag OpenSLP-1.0.7 ***
+
 01/25/02 matt@caldera.com
 Fixed all documentation to reflect use of the new net.slp.multicastIF setting
 
