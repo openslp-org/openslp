@@ -4,7 +4,7 @@
 #
 
 SUBDIRS	= common libslpattr slpd libslp test
-EXTRA_DIST = win32 doc etc README.W32 
+EXTRA_DIST = win32 doc etc README.W32 openslp.proj
 DOC_DIR = $(prefix)/doc/openslp-$(VERSION)
 
 install-data-local:
@@ -16,14 +16,12 @@ install-data-local:
 	if [ -f $$file ]; then cp -f $$file $$file.bak; else true; fi
 	cp -f $(srcdir)/etc/slp.conf $(DESTDIR)$(sysconfdir)
 	rm -rf $(DESTDIR)$(DOC_DIR)
-	mkdir -p $(DESTDIR)$(DOC_DIR)/IntroductionToSLP
-	mkdir -p $(DESTDIR)$(DOC_DIR)/UsersGuide
-	mkdir -p $(DESTDIR)$(DOC_DIR)/ProgrammersGuide
-	cp $(srcdir)/doc/html/IntroductionToSLP/*.html $(DESTDIR)$(DOC_DIR)/IntroductionToSLP
-	cp $(srcdir)/doc/html/UsersGuide/*.html $(srcdir)/doc/html/UsersGuide/*.jpg $(DESTDIR)$(DOC_DIR)/UsersGuide
-	cp $(srcdir)/doc/html/ProgrammersGuide/*.html $(srcdir)/doc/html/ProgrammersGuide/*.jpg  $(DESTDIR)$(DOC_DIR)/ProgrammersGuide
+	mkdir -p $(DESTDIR)$(DOC_DIR)
+	cp -r $(srcdir)/doc/* $(DESTDIR)$(DOC_DIR)
+	rm -rf `find $(DESTDIR)$(DOC_DIR) -name CVS`
 
 dist-hook:
 	rm -rf `find $(distdir)/doc -name CVS`
 	rm -rf `find $(distdir)/etc -name CVS`
-	rm -r  `find $(distdir)/win32 -name CVS`
+	rm -rf `find $(distdir)/win32 -name CVS`
+	chmod -R og-w $(distdir)
