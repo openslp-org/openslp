@@ -206,7 +206,7 @@ int SLPMulticastSend(const SLPIfaceInfo* ifaceinfo,
         if(setsockopt(socks->sock[socks->sock_count],
                       IPPROTO_IP,
                       IP_MULTICAST_TTL,
-                      &optarg,
+                      (char*)&optarg,
                       sizeof(optarg)))
         {
             return -1;
