@@ -137,7 +137,7 @@ int SLPNetResolveHostToAddr(const char* host,
             return 0;
         }
         else if (he->h_addrtype == AF_INET6) {
-            SLPNetSetAddr(addr, AF_INET6, 0, he->h_addr_list[0], sizeof(struct in_addr));
+            SLPNetSetAddr(addr, AF_INET6, 0, he->h_addr_list[0], sizeof(struct in_addr6));
             return 0;
         }
     }
