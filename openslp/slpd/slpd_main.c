@@ -419,6 +419,7 @@ int main(int argc, char* argv[])
 #if(defined DEBUG)
     SLPDIncomingDeinit();
     SLPDOutgoingDeinit();
+    SLPDPropertyDeinit();
     printf("Number of calls to SLPBufferAlloc() = %i\n",G_Debug_SLPBufferAllocCount);
     printf("Number of calls to SLPBufferFree() = %i\n",G_Debug_SLPBufferFreeCount);
 #endif

@@ -228,11 +228,8 @@ void SLPDPropertyInit(const char* conffile)
     G_SlpdProperty.interfaces = SLPPropertyGet("net.slp.interfaces");
     if(*G_SlpdProperty.interfaces == 0)
     {
-        G_SlpdProperty.interfaces = GetInterfaceList();
-        if(G_SlpdProperty.interfaces == 0)
-        {
-            G_SlpdProperty.interfaces = SLPPropertyGet("net.slp.interfaces");
-        }
+        SLPPropertySet("net.slp.interfaces", GetInterfaceList());
+        G_SlpdProperty.interfaces = SLPPropertyGet("net.slp.interfaces");
     }
     G_SlpdProperty.interfacesLen = strlen(G_SlpdProperty.interfaces);
     
@@ -270,4 +267,11 @@ void SLPDPropertyInit(const char* conffile)
 }
 
 
-
+#ifdef DEBUG
+/*=========================================================================*/
+void SLPDPropertyDeinit()
+/*=========================================================================*/
+{
+    SLPPropertyFreeAll();     
+}
+#endif
