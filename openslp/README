@@ -1,10 +1,18 @@
-README OpenSLP releas 0.6.1
+README OpenSLP releas 0.7.0
 ---------------------------
 
-OpenSLP release 0.6.x is based on the original Caldera Systems source code 
-snapshot from April.  Some SLPv2 features were not implemented because they 
-were not considered overly useful.  Please see the Project Roadmap 
-<http://www.openslp.org> for an idea of what still needs to be finished.  
+OpenSLP release 0.7.0 contains significant code changes from the original is
+based on the original Caldera Systems source code snapshot from 
+April.  Additional features (such as DA support in the library and
+configuration enhancements have been added, but most of the changes to the 
+code were made to tighty things up in order to (hopefully) make OpenSLP
+easier to port and maintain. 
+
+The OpenSLP library is nearly complete (about 90%) which means that 
+for a few exceptions, it will change very little in the next major
+releases (0.8.x, 0.9.x and 1.0.x).  The OpenSLP daemon, on the other
+hand is only about 60% complete.  Look for major feature enhancement to 
+slpd in the future.
 
 Sufficent testing resources have not been available to properly test OpenSLP.
 Therefore, we can not currently give an accurate expectation with regard to
