@@ -23,34 +23,37 @@
 <hr WIDTH="100%">
 <br>&nbsp;
 <h3>
-Release Notes for 1.0.0</h3>
-OpenSLP 1.0.0 is the first "stable/complete" release of OpenSLP. 
-<b>It
-is highly recommended that all OpenSLP users upgrade to this release.</b>
-<p>The following is a shortened list changes for 1.0.0:
+Release Notes for 1.0.1</h3>
+OpenSLP 1.0.1 is the second "stable/complete" release of OpenSLP.&nbsp;
+It turns out that a few rather bugs did slip into the 1.0.0 release.&nbsp;
+We hope that they are all fixed in 1.0.1.&nbsp; <b>It is highly recommended
+that all OpenSLP users upgrade to this release.</b>
+<p>The following is a shortened list changes for 1.0.1:
 <ul>
 <li>
-Fixes all known bugs (see SourceForge bug tracker http://sourceforge.net/tracker/?group_id=1730&amp;atid=101730
-for details)</li>
+Fixed minor KnownDAEcho problem that resulted in some DAs not getting registrations.</li>
 
 <li>
-Duplicate results in sync API calls are now removed</li>
+Fixed SLP_INTERNAL_ERROR problem that was caused by left over "debug commenting"</li>
 
 <li>
-Fixed several SEGVs attributed to parsing bugs</li>
+Fixed Database "initialization" order so that LOCAL or (API registered)
+services will be preserved on reset or SIGHUP</li>
 
 <li>
-Fix "echo to ourselves" bug when slpd is running as a DA</li>
+Applied Michael Sweet's patch to configure.in that allows use of CFLAGS
+and LDFLAGS</li>
 
 <li>
-Cosmetic logging changes</li>
-
-<li>
-ALL PLANNED FEATURES ARE SUPPORTED IN THIS RELEASE</li>
+Applied Michael Sweet's patch to fix parsing problem in SLPParseSrvURL()
+that could cause SEGVSource Code</li>
 </ul>
 
 <h3>
-Source Code</h3>
+</h3>
+
+<h3>
+Source&nbsp;Code</h3>
 
 <table NOSAVE >
 <tr NOSAVE>
@@ -62,7 +65,7 @@ Source Code</h3>
 </tr>
 
 <tr NOSAVE>
-<td NOSAVE><a href="http://prdownloads.sourceforge.net/openslp/openslp-1.0.1-1.src.rpm">openslp-1.0.1-1.src.rpm</a></td>
+<td NOSAVE><a href="http://prdownloads.sourceforge.net/openslp/openslp-1.0.1-4.src.rpm">openslp-1.0.1-1.src.rpm</a></td>
 
 <td>
 <blockquote>OpenSLP source RPM</blockquote>
@@ -70,7 +73,7 @@ Source Code</h3>
 </tr>
 
 <tr>
-<td><a href="http://prdownloads.sourceforge.net/openslp/openslp-contrib-1.0.1.tar.gz">openslp-contrib-1.0.1.tar.gz</a></td>
+<td><a href="http://prdownloads.sourceforge.net/openslp/openslp-contrib.1.0.1.tar.gz">openslp-contrib-1.0.1.tar.gz</a></td>
 
 <td>
 <blockquote>Collection of SLP related utilities and tools</blockquote>
@@ -83,7 +86,7 @@ Binary Packages</h3>
 
 <table NOSAVE >
 <tr NOSAVE>
-<td NOSAVE><a href="http://prdownloads.sourceforge.net/openslp/openslp-1.0.1-1.i386.rpm">openslp-1.0.1-1.i386.rpm</a></td>
+<td NOSAVE><a href="http://prdownloads.sourceforge.net/openslp/openslp-1.0.1-4.i386.rpm">openslp-1.0.1-1.i386.rpm</a></td>
 
 <td>
 <blockquote>OpenSLP binary RPM for Linux (Caldera OpenLinux, RedHat, SUSE,
