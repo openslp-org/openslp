@@ -1,7 +1,7 @@
 <!doctype html public "-//w3c//dtd html 4.0 transitional//en">
 <html>
 <head>
-   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-15">
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
    <meta name="GENERATOR" content="Mozilla/4.72C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.2.14 i686) [Netscape]">
    <title>OpenSLP Users Guide - The slp.conf File</title>
 </head>
@@ -17,10 +17,10 @@ OpenSLP library.&nbsp;&nbsp;&nbsp; The master slp.conf file is located
 at <tt>/etc/slp.conf</tt>.&nbsp; There is <a href="CommandLine.html">command
 line option</a> that forces slpd to read a different configuration file,
 but the SLP library is hard coded to read from <tt>/etc/slp.conf</tt> and
-can only be changed by re-compiline the library.
+can only be changed by re-compiling the library.
 <p>The OpenSLP slp.conf file diverges <i>slightly</i> from the <a href="../../rfc/rfc2614.txt">RFC
 2614</a> specification for the slp configuration file, so you should probably
-<a href="#Divergance from RFC 2614">Divergance
+<a href="#Divergence from RFC 2614">Divergence
 from RFC 2614</a> even if you are familiar with the RFC spec.
 <br>&nbsp;
 <h3>
@@ -104,7 +104,7 @@ characters. [7]</blockquote>
 OpenSLP does not support all of the settings that are specified by RFC
 2614.&nbsp; The reasons for not supporting some of the settings range from
 the implementors' opinions that they are either not useful or very difficult
-to implement with regard to their usefullness.&nbsp; The following is a
+to implement with regard to their usefulness.&nbsp; The following is a
 list of options that OpenSLP has no plans to support.
 <p><b>net.slp.serializedRegURL</b>
 <blockquote>slpd accepts the [-r] command line parameter that specifies

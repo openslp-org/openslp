@@ -1,7 +1,7 @@
 <!doctype html public "-//w3c//dtd html 4.0 transitional//en">
 <html>
 <head>
-   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-15">
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
    <meta name="GENERATOR" content="Mozilla/4.72C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.2.14 i686) [Netscape]">
    <title>OpenSLP Programmers Guide - SLPReg()</title>
 </head>
@@ -88,7 +88,7 @@ syntax.</td>
 <tr VALIGN=TOP NOSAVE>
 <td NOSAVE><a NAME="attrs"></a>attrs</td>
 
-<td>A list of attriute assignment expressions for the attributes of the
+<td>A list of attribute assignment expressions for the attributes of the
 registered service.&nbsp; Use the empty string, "" for no attributes.&nbsp;
 Example: "(attr1=val1)(attr2=val2)(attr3=val3)"</td>
 </tr>
@@ -200,7 +200,7 @@ SLP_TRUE,</tt>
 MySLPRegReport,</tt>
 <br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 &amp;callbackerr );</tt>
-<p><tt>&nbsp;&nbsp;&nbsp; /* err may contain an error code that occured
+<p><tt>&nbsp;&nbsp;&nbsp; /* err may contain an error code that occurred
 as the slp library&nbsp;&nbsp;&nbsp; */</tt>
 <br><tt>&nbsp;&nbsp;&nbsp; /* _prepared_ to make the call.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 */</tt>
@@ -212,7 +212,7 @@ service with slp %i\n",err);</tt>
 <br><tt>&nbsp;&nbsp;&nbsp; }</tt>
 <p><tt>&nbsp;&nbsp;&nbsp; /* callbackerr may contain an error code (that
 was assigned through */</tt>
-<br><tt>&nbsp;&nbsp;&nbsp; /* the callback cookie) that occured as slp
+<br><tt>&nbsp;&nbsp;&nbsp; /* the callback cookie) that occurred as slp
 packets were sent on&nbsp;&nbsp;&nbsp; */</tt>
 <br><tt>&nbsp;&nbsp;&nbsp; /* the wire */</tt>
 <br><tt>&nbsp;&nbsp;&nbsp; if( callbackerr != SLP_OK)</tt>

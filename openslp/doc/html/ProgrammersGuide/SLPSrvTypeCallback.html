@@ -1,7 +1,7 @@
 <!doctype html public "-//w3c//dtd html 4.0 transitional//en">
 <html>
 <head>
-   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-15">
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
    <meta name="GENERATOR" content="Mozilla/4.7C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.2.14 i686) [Netscape]">
    <title>OpenSLP Programmers Guide - SLPSrvTypeCallback</title>
 </head>
@@ -27,7 +27,7 @@ Description</h3>
 The <tt>SLPSrvTypeCallback</tt> type is the type of the callback function
 passed as a parameter to the <tt><a href="SLPFindSrvTypes.html">SLPFindSrvTypes()</a></tt>
 function.&nbsp; If the hslp parameter was opened asynchronously, the results
-retuned through the callback may be uncollated.&nbsp; If the hslp handle
+returned through the callback may be uncollated.&nbsp; If the hslp handle
 parameter was opened synchronously, then the results will be collated to
 remove duplicates.
 <h3>
@@ -51,7 +51,7 @@ for more information on service type syntax.&nbsp;</td>
 <tr VALIGN=TOP NOSAVE>
 <td><a NAME="errcode"></a><tt>errcode</tt></td>
 
-<td NOSAVE>An error code indicating if an error occured during the operation.&nbsp;
+<td NOSAVE>An error code indicating if an error occurred during the operation.&nbsp;
 The callback should check this error code before processing the parameters.&nbsp;</td>
 </tr>
 

@@ -1,7 +1,7 @@
 <!doctype html public "-//w3c//dtd html 4.0 transitional//en">
 <html>
 <head>
-   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-15">
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
    <meta name="GENERATOR" content="Mozilla/4.72C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.2.14 i686) [Netscape]">
    <title>OpenSLP - Static Registration File</title>
 </head>
@@ -13,7 +13,7 @@ The Static Registration File</h2>
 <hr WIDTH="100%">
 <p>Often it will be very useful for OpenSLP users to be able to statically
 register legacy services (applications that were not compiled to use the
-SLP library).&nbsp; To accomidate this need <a href="http://www.openslp.org/doc/rfc/rfc2614.txt">RFC
+SLP library).&nbsp; To accommodate this need <a href="http://www.openslp.org/doc/rfc/rfc2614.txt">RFC
 2614</a> specifies a syntax for a registration file that is read by the
 OpenSLP daemon (slpd).&nbsp; All of the registration from the registration
 file are maintained by slpd and will remain registered as long as slpd
@@ -83,7 +83,7 @@ Several examples of registration entries are provided below:
 <a NAME="Service URL Syntax"></a>Service URL Syntax</h3>
 <tt>If you decide to use Service URLs extensively, you should probably
 read <a href="http://www.openslp.org/doc/rfc/rfc2609.txt">RFC 2609</a>,
-but if you just want to know what they look like, the following explaination
+but if you just want to know what they look like, the following explanation
 should be good enough:</tt>
 <blockquote><tt>service-url = "service:"&lt;service-type>"://"&lt;addrspec></tt></blockquote>
 The service-type is a service type as explained <a href="#SLP Service Type Syntax">below</a>.
@@ -101,22 +101,22 @@ The official definition of Service Type strings can be found in <a href="http://
 2609</a>, "Service Templates and Service Schemes".&nbsp; If you will be
 working with "well known" (IANA) service types, you should read it.&nbsp;
 If you are developing applications for "proprietary" services then you
-will probably be satisfied with the following explaination:
+will probably be satisfied with the following explanation:
 <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <tt>service-type = &lt;abstract-type.naming-authority>":"&lt;concrete-type></tt>
 <p>The abstract-type is simple (hopefully short) descriptive string that
 describes the type of service.&nbsp; The naming-authority is the name (hopefully
 unique) name of the organization that named the service.&nbsp; The naming-authority
-is optional, but if it is ommitted then IANA is assumed to be the naming
+is optional, but if it is omitted then IANA is assumed to be the naming
 authority and IANA requires service-types to be registered (see <a href="http://www.openslp.org/doc/rfc/rfc2609.txt">RFC
 2609</a>).&nbsp; The concrete-type is also optional.&nbsp; Think of a concrete-type
 as a kind of sub-type of the abstract-type.&nbsp; For example, "printer"
 is an abstract type (owned by IANA) and "printer:lpr" is a concrete type
 (owned by IANA).
 <p><b>Service Type Examples</b>
-<p><tt>weather.nasa:wtp</tt>&nbsp; - A (ficticious) weather service type
+<p><tt>weather.nasa:wtp</tt>&nbsp; - A (fictitious) weather service type
 owned by NASA that uses Weather Transfer protocol
-<br>weather.nasa:swtp - A (ficticious) wether service type owned by NASA
-tha uses Simple Weather Transfer protocol.
+<br>weather.nasa:swtp - A (fictitious) weather service type owned by NASA
+that uses Simple Weather Transfer protocol.
 <br><tt>chat.superchat</tt> - A chat service type owned by SuperChat
 <br><tt>printer.samba</tt> - A samba printer service type
 <br><tt>ftp</tt> - An IANA ftp service type

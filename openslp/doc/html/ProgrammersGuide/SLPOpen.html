@@ -1,7 +1,7 @@
 <!doctype html public "-//w3c//dtd html 4.0 transitional//en">
 <html>
 <head>
-   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-15">
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
    <meta name="GENERATOR" content="Mozilla/4.72C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.2.14 i686) [Netscape]">
    <title>OpenSLP Programmers Guide - SLPOpen</title>
 </head>
@@ -41,7 +41,7 @@ from the API function. The <tt>SLPClose()</tt> API function terminates
 any outstanding calls on the handle. If an implementation is unable to
 support a asynchronous( resp. synchronous) operation, due to memory constraints
 or lack of threading support, the <tt>SLP_NOT_IMPLEMENTED </tt>flag may
-be reurned when the isasync flag is <tt>SLP_TRUE</tt> (resp. <tt>SLP_FALSE</tt>).
+be returned when the isasync flag is <tt>SLP_TRUE</tt> (resp. <tt>SLP_FALSE</tt>).
 <br>&nbsp;
 <h3>
 Parameters</h3>
@@ -60,7 +60,7 @@ registrations issued on the handle.&nbsp; Pass in NULL or the empty string,
 <td><a NAME="isasync"></a><tt>isasync</tt></td>
 
 <td NOSAVE>A <tt>SLPBoolean</tt> value indicating whether the <tt>SLPHandle</tt>
-should be opend for asynchronuous operation or not.</td>
+should be opened for asynchronous operation or not.</td>
 </tr>
 
 <tr VALIGN=TOP NOSAVE>
