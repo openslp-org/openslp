@@ -276,26 +276,15 @@ int KnownDADiscoverFromMulticast()
 /*-------------------------------------------------------------------------*/
 {
     struct sockaddr_in peeraddr;
-    time_t curtime;
     int sockfd; 
     int result = 0;
 
-    if (SLPPropertyAsBoolean(SLPGetProperty("net.slp.activeDADetection")) &&
-        SLPPropertyAsInteger(SLPGetProperty("net.slp.DAActiveDiscoveryInterval")))
+    sockfd = NetworkConnectToMulticast(&peeraddr);
+    if (sockfd >= 0)
     {
-        curtime = time(&curtime);
-        if(G_KnownDALastCacheRefresh == 0 ||
-           curtime - G_KnownDALastCacheRefresh > MINIMUM_DISCOVERY_INTERVAL )
-        {
-            G_KnownDALastCacheRefresh = curtime;
-            sockfd = NetworkConnectToMulticast(&peeraddr);
-            if (sockfd >= 0)
-            {
-                result = KnownDADiscoveryRqstRply(sockfd,&peeraddr,0,"");
-                close(sockfd);
-            }               
-        }
-    }
+        result = KnownDADiscoveryRqstRply(sockfd,&peeraddr,0,"");
+        close(sockfd);
+    }               
 
     return result;
 }
@@ -412,6 +401,8 @@ SLPDAEntry* KnownDAFromCache(int scopelistlen,
         if(G_KnownDALastCacheRefresh == 0 ||
            curtime - G_KnownDALastCacheRefresh > MINIMUM_DISCOVERY_INTERVAL )
         {
+            G_KnownDALastCacheRefresh = curtime;
+
             /* discover DAs */
             if(KnownDADiscoverFromIPC() == 0)
             {
@@ -498,6 +489,8 @@ int KnownDAGetScopes(int* scopelistlen,
     if(G_KnownDALastCacheRefresh == 0 ||
        curtime - G_KnownDALastCacheRefresh > MINIMUM_DISCOVERY_INTERVAL )
     {
+        G_KnownDALastCacheRefresh = curtime;
+
         /* discover DAs */
         if(KnownDADiscoverFromIPC() == 0)
         {

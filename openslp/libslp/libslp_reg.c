@@ -156,6 +156,7 @@ SLPError ProcessSrvReg(PSLPHandleInfo handle)
                                   &peeraddr);
         if(sock == -1)
         {
+            result = SLP_NETWORK_INIT_FAILED;
             break;
         }
 

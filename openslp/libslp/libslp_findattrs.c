@@ -153,6 +153,7 @@ SLPError ProcessAttrRqst(PSLPHandleInfo handle)
                                  CallbackAttrRqst,
                                  handle);
             close(sock);
+            
             break;
         }
 

@@ -165,8 +165,7 @@ int ProcessDASrvRqst(struct sockaddr_in* peeraddr,
         *sendbuf = SLPBufferRealloc(*sendbuf, 4096);
         if(*sendbuf == 0)
         {
-            errorcode = SLP_ERROR_INTERNAL_ERROR;
-            goto FINISHED;
+            return SLP_ERROR_INTERNAL_ERROR;
         }
         
         if(errorcode == 0)

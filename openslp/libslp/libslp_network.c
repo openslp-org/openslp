@@ -349,7 +349,7 @@ SLPError NetworkRqstRply(int sock,
     {
         /* do something special for SRVRQST that will be discovering DAs */
         maxwait = SLPPropertyAsInteger(SLPGetProperty("net.slp.DADiscoveryMaximumWait"));
-        SLPPropertyAsIntegerVector(SLPGetProperty("net.slp.DADiscovertTimeouts"),
+        SLPPropertyAsIntegerVector(SLPGetProperty("net.slp.DADiscoveryTimeouts"),
                                    timeouts,
                                    MAX_RETRANSMITS );
         /* SLP_FUNCT_DASRVRQST is a fake function.  We really want to */
