@@ -1,73 +1,65 @@
-/***************************************************************************/
-/*                                                                         */
-/* Project:     OpenSLP - OpenSource implementation of Service Location    */
-/*              Protocol                                                   */
-/*                                                                         */
-/* File:        slp_parse.c                                                */
-/*                                                                         */
-/* Abstract:    Common string parsing functionality                        */
-/*                                                                         */
-/*-------------------------------------------------------------------------*/
-/*                                                                         */
-/*     Please submit patches to http://www.openslp.org                     */
-/*                                                                         */
-/*-------------------------------------------------------------------------*/
-/*                                                                         */
-/* Copyright (C) 2000 Caldera Systems, Inc                                 */
-/* All rights reserved.                                                    */
-/*                                                                         */
-/* Redistribution and use in source and binary forms, with or without      */
-/* modification, are permitted provided that the following conditions are  */
-/* met:                                                                    */ 
-/*                                                                         */
-/*      Redistributions of source code must retain the above copyright     */
-/*      notice, this list of conditions and the following disclaimer.      */
-/*                                                                         */
-/*      Redistributions in binary form must reproduce the above copyright  */
-/*      notice, this list of conditions and the following disclaimer in    */
-/*      the documentation and/or other materials provided with the         */
-/*      distribution.                                                      */
-/*                                                                         */
-/*      Neither the name of Caldera Systems nor the names of its           */
-/*      contributors may be used to endorse or promote products derived    */
-/*      from this software without specific prior written permission.      */
-/*                                                                         */
-/* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS     */
-/* `AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT      */
-/* LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR   */
-/* A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE CALDERA      */
-/* SYSTEMS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, */
-/* SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT        */
-/* LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE,  */
-/* DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON       */
-/* ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT */
-/* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE   */
-/* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.    */
-/*                                                                         */
-/***************************************************************************/
+/*-------------------------------------------------------------------------
+ * Copyright (C) 2000 Caldera Systems, Inc
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ *    Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ *
+ *    Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ *    Neither the name of Caldera Systems nor the names of its
+ *    contributors may be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * `AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE CALDERA
+ * SYSTEMS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *-------------------------------------------------------------------------*/
+
+/** Service URL parsing routines.
+ *
+ * @file       slp_parse.c
+ * @author     Matthew Peterson, John Calcote (jcalcote@novell.com)
+ * @attention  Please submit patches to http://www.openslp.org
+ * @ingroup    CommonCode
+ */
 
 #include "slp_parse.h"
 #include "slp_xmalloc.h"
 
 #include <errno.h>
 
-/*=========================================================================*/
+/** Parse a service URL.
+ *
+ * Parses a service URL into its constituent parts.
+ *
+ * @param[in] srvurllen - The size of @p srvurl in bytes.
+ * @param[in] srvurl - A pointer to the URL to be parsed.
+ * @param[out] parsedurl - The address of storage for the parsed
+ *    URL components.
+ *
+ * @return Zero on success, or an errno value on failure.
+ *
+ * @remarks The returned pointer must be freed by caller with a call 
+ *    to xfree.
+ */
 int SLPParseSrvUrl(int srvurllen,
                    const char* srvurl,
                    SLPParsedSrvUrl** parsedurl)
-/*                                            
- * Description:
- *    Parses a service URL into its parts                             
- *
- * Parameters:
- *    srvurllen (IN) size of srvurl in bytes
- *    srvurl    (IN) pointer to service URL to parse
- *    parsedurl (OUT) pointer to SLPParsedSrvUrl pointer that will be
- *                    set to xmalloc()ed parsed url parts.  Returned
- *                    pointer must be freed by caller with call to xfree() 
- *                                                                         
- * Returns: zero on success, errno on failure..                            
- *=========================================================================*/
 {
     char*   empty;   /* always points to an empty string */
     char*   buf;     /* points to location in the SLPSrvUrl buffer */
@@ -184,13 +176,13 @@ int SLPParseSrvUrl(int srvurllen,
     return 0;
 }
 
-
 /*===========================================================================
- * TESTING CODE enabled by removing #define comment and compiling with the 
- * following command line:
+ *  TESTING CODE enabled by removing #define comment and compiling with the 
+ *  following command line:
  *
- * $ gcc -g -DSLP_PARSE_TEST -DDEBUG slp_parse.c slp_xmalloc.c slp_linkedlist.c
- *==========================================================================*/
+ *  $ gcc -g -DSLP_PARSE_TEST -DDEBUG slp_parse.c slp_xmalloc.c 
+ *        slp_linkedlist.c
+ */
 //#define SLP_PARSE_TEST
 #ifdef SLP_PARSE_TEST 
 
@@ -395,3 +387,4 @@ int main(int argc, char* argv[])
 }
 #endif
 
+/*=========================================================================*/

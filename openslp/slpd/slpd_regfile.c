@@ -1,77 +1,67 @@
-/***************************************************************************/
-/*                                                                         */
-/* Project:     OpenSLP - OpenSource implementation of Service Location    */
-/*              Protocol Version 2                                         */
-/*                                                                         */
-/* File:        slpd_regfile.c                                             */
-/*                                                                         */
-/* Abstract:    Reads service registrations from a file                    */
-/*                                                                         */
-/* WARNING:     NOT thread safe!                                           */
-/*                                                                         */
-/*-------------------------------------------------------------------------*/
-/*                                                                         */
-/*     Please submit patches to http://www.openslp.org                     */
-/*                                                                         */
-/*-------------------------------------------------------------------------*/
-/*                                                                         */
-/* Copyright (C) 2000 Caldera Systems, Inc                                 */
-/* All rights reserved.                                                    */
-/*                                                                         */
-/* Redistribution and use in source and binary forms, with or without      */
-/* modification, are permitted provided that the following conditions are  */
-/* met:                                                                    */ 
-/*                                                                         */
-/*      Redistributions of source code must retain the above copyright     */
-/*      notice, this list of conditions and the following disclaimer.      */
-/*                                                                         */
-/*      Redistributions in binary form must reproduce the above copyright  */
-/*      notice, this list of conditions and the following disclaimer in    */
-/*      the documentation and/or other materials provided with the         */
-/*      distribution.                                                      */
-/*                                                                         */
-/*      Neither the name of Caldera Systems nor the names of its           */
-/*      contributors may be used to endorse or promote products derived    */
-/*      from this software without specific prior written permission.      */
-/*                                                                         */
-/* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS     */
-/* `AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT      */
-/* LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR   */
-/* A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE CALDERA      */
-/* SYSTEMS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, */
-/* SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT        */
-/* LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE,  */
-/* DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON       */
-/* ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT */
-/* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE   */
-/* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.    */
-/*                                                                         */
-/***************************************************************************/
+/*-------------------------------------------------------------------------
+ * Copyright (C) 2000 Caldera Systems, Inc
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ *    Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ *
+ *    Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ *    Neither the name of Caldera Systems nor the names of its
+ *    contributors may be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * `AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE CALDERA
+ * SYSTEMS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *-------------------------------------------------------------------------*/
 
-/*=========================================================================*/
-/* slpd includes                                                           */
-/*=========================================================================*/
+/** Reads service registration file.
+ *
+ * @file       slpd_regfile.c
+ * @author     Matthew Peterson, John Calcote (jcalcote@novell.com)
+ * @attention  Please submit patches to http://www.openslp.org
+ * @ingroup    SlpdCode
+ */
+
 #include "slpd_regfile.h"
 #include "slpd_property.h"
 #include "slpd_log.h"
+
 #ifdef ENABLE_SLPv2_SECURITY
-#include "slpd_spi.h"
+# include "slpd_spi.h"
 #endif
 
-/*=========================================================================*/
-/* common code includes                                                    */
-/*=========================================================================*/
 #include "slp_xmalloc.h"
 #include "slp_compare.h"
+
 #ifdef ENABLE_SLPv2_SECURITY
-#include "slp_auth.h"
+# include "slp_auth.h"
 #endif
 
-
-
-/*-------------------------------------------------------------------------*/
+/** Trim leading and trailing whitespace from a string.
+ *
+ * @param[in,out] str - The address of the string to be trimmed.
+ *
+ * @return A pointer to the first non-whitespace character in @p str.
+ *
+ * @internal
+ */
 char* TrimWhitespace(char* str)
-/*-------------------------------------------------------------------------*/
 {
     char* end;
 
@@ -97,9 +87,17 @@ char* TrimWhitespace(char* str)
     return str;
 }
 
-/*-------------------------------------------------------------------------*/
+/** Read a line from a file into a buffer.
+ *
+ * @param[in] fd - The file to read from.
+ * @param[out] line - The address of storage for the read line.
+ * @param[in] linesize - The size of the buffer pointed to by @p line.
+ *
+ * @return A pointer to @p line for convenience.
+ *
+ * @internal
+ */
 char* RegFileReadLine(FILE* fd, char* line, int linesize)
-/*-------------------------------------------------------------------------*/
 {
     while(1)
     {
@@ -128,28 +126,27 @@ char* RegFileReadLine(FILE* fd, char* line, int linesize)
     return line;
 }
 
-/*=========================================================================*/
+/** Read service registrations from a text file.
+ *
+ * A really big and nasty function that reads service registrations from
+ * from a file. Don't look at this too hard or you'll be sick. This is by
+ * far the most horrible code in OpenSLP. Please volunteer to rewrite it!
+ *
+ * "THANK GOODNESS this function is only called at startup" -- Matt
+ *
+ * @param[in] fd - The file to read from.
+ * @param[out] msg - A message describing the SrvReg in buf.
+ * @param[out] buf - The buffer used to hold @p message data.
+ *
+ * @return Zero on success. A value greater than zero on error. A value
+ *    less than zero on EOF.
+ *
+ * @note Eventually the caller needs to call SLPBufferFree and
+ *    SLPMessageFree to free memory.
+ */
 int SLPDRegFileReadSrvReg(FILE* fd,
                           SLPMessage* msg,
                           SLPBuffer* buf)
-/* A really big and nasty function that reads an service registration from */
-/* from a file. Don't look at this too hard or you'll be sick.  This is by */
-/* the most horrible code in OpenSLP.  Please volunteer to rewrite it!     */
-/*                                                                         */
-/*  "THANK GOODNESS this function is only called at startup" -- Matt       */
-/*                                                                         */
-/*                                                                         */
-/* fd       (IN) file to read from                                         */
-/*                                                                         */
-/* msg      (OUT) message describing the SrvReg in buf                     */
-/*                                                                         */
-/* buf      (OUT) buffer containing the SrvReg                             */
-/*                                                                         */
-/* Returns:  zero on success. > 0 on error.  < 0 if EOF                    */
-/*                                                                         */
-/* Note:    Eventually the caller needs to call SLPBufferFree() and        */
-/*          SLPMessageFree() to free memory                                */
-/*=========================================================================*/
 {
     char*   slider1;
     char*   slider2;
@@ -602,3 +599,5 @@ CLEANUP:
 
     return result;
 }
+
+/*=========================================================================*/

@@ -1,36 +1,45 @@
-/***************************************************************************/
-/*                                                                         */
-/* Project:     OpenSLP command line UA wrapper                            */
-/*                                                                         */
-/* File:        slptool.c                                                  */
-/*                                                                         */
-/* Abstract:    Command line wrapper for OpenSLP                           */
-/*                                                                         */
-/* Requires:    OpenSLP installation                                       */
-/*                                                                         */
-/* Author(s):   Matt Peterson <mpeterson@caldera.com>                      */
-/*                                                                         */
-/* Copyright (c) 1995, 1999  Caldera Systems, Inc.                         */
-/*                                                                         */
-/* This program is free software; you can redistribute it and/or modify it */
-/* under the terms of the GNU Lesser General Public License as published   */
-/* by the Free Software Foundation; either version 2.1 of the License, or  */
-/* (at your option) any later version.                                     */
-/*                                                                         */
-/*     This program is distributed in the hope that it will be useful,     */
-/*     but WITHOUT ANY WARRANTY; without even the implied warranty of      */
-/*     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the       */
-/*     GNU Lesser General Public License for more details.                 */
-/*                                                                         */
-/*     You should have received a copy of the GNU Lesser General Public    */
-/*     License along with this program; see the file COPYING.  If not,     */
-/*     please obtain a copy from http://www.gnu.org/copyleft/lesser.html   */
-/*                                                                         */
-/*-------------------------------------------------------------------------*/
-/*                                                                         */
-/*     Please submit patches to maintainer of http://www.openslp.org       */
-/*                                                                         */
-/***************************************************************************/
+/*-------------------------------------------------------------------------
+ * Copyright (C) 2000 Caldera Systems, Inc
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ *    Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ *
+ *    Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ *    Neither the name of Caldera Systems nor the names of its
+ *    contributors may be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * `AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE CALDERA
+ * SYSTEMS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *-------------------------------------------------------------------------*/
+
+/** OpenSLP command line User Agent wrapper.
+ *
+ * This file contains code that provide command line access to all OpenSLP
+ * User Agent library functionality.
+ *
+ * @file       slptool.c
+ * @author     Matthew Peterson, John Calcote (jcalcote@novell.com)
+ * @attention  Please submit patches to http://www.openslp.org
+ * @ingroup    SlpToolCode
+ */
 
 #include "slptool.h"
 
@@ -53,13 +62,10 @@ int strcasecmp(const char *s1, const char *s2);
 # endif
 #endif 
 
-
-/*=========================================================================*/
 SLPBoolean mySrvTypeCallback( SLPHandle hslp, 
                               const char* srvtypes, 
                               SLPError errcode, 
                               void* cookie ) 
-/*=========================================================================*/
 {
     char* cpy;
     char* slider1;
@@ -92,10 +98,7 @@ SLPBoolean mySrvTypeCallback( SLPHandle hslp,
     return SLP_TRUE;
 }
 
-
-/*=========================================================================*/
 void FindSrvTypes(SLPToolCommandLine* cmdline)
-/*=========================================================================*/
 {
     SLPError    result;
     SLPHandle   hslp;
@@ -128,11 +131,8 @@ void FindSrvTypes(SLPToolCommandLine* cmdline)
     }
 }
 
-
 #ifndef UNICAST_NOT_SUPPORTED
-/*=========================================================================*/
 void UnicastFindSrvTypes(SLPToolCommandLine* cmdline)
-/*=========================================================================*/
 {
     SLPError    result;
     SLPHandle   hslp;
@@ -173,9 +173,7 @@ void UnicastFindSrvTypes(SLPToolCommandLine* cmdline)
 
 
 #ifndef MI_NOT_SUPPORTED
-/*=========================================================================*/
 void FindSrvTypesUsingIFList(SLPToolCommandLine* cmdline)
-/*=========================================================================*/
 {
     SLPError    result;
     SLPHandle   hslp;
@@ -216,12 +214,10 @@ void FindSrvTypesUsingIFList(SLPToolCommandLine* cmdline)
 }
 #endif /* MI_NOT_SUPPORTED */
 
-/*=========================================================================*/
 SLPBoolean myAttrCallback(SLPHandle hslp, 
                         const char* attrlist, 
                         SLPError errcode, 
                         void* cookie )
-/*=========================================================================*/
 {
     if(errcode == SLP_OK)
     {
@@ -231,10 +227,7 @@ SLPBoolean myAttrCallback(SLPHandle hslp,
     return SLP_TRUE;
 }
 
-
-/*=========================================================================*/
 void FindAttrs(SLPToolCommandLine* cmdline)
-/*=========================================================================*/
 {
     SLPError    result;
     SLPHandle   hslp;
@@ -258,9 +251,7 @@ void FindAttrs(SLPToolCommandLine* cmdline)
 
 
 #ifndef UNICAST_NOT_SUPPORTED
-/*=========================================================================*/
 void UnicastFindAttrs(SLPToolCommandLine* cmdline)
-/*=========================================================================*/
 {
     SLPError    result;
     SLPHandle   hslp;
@@ -288,11 +279,8 @@ void UnicastFindAttrs(SLPToolCommandLine* cmdline)
 }
 #endif
 
-
 #ifndef MI_NOT_SUPPORTED 
-/*=========================================================================*/
 void FindAttrsUsingIFList(SLPToolCommandLine* cmdline)
-/*=========================================================================*/
 {
     SLPError    result;
     SLPHandle   hslp;
@@ -321,14 +309,11 @@ void FindAttrsUsingIFList(SLPToolCommandLine* cmdline)
 }
 #endif /* MI_NOT_SUPPORTED */
 
- 
-/*=========================================================================*/
 SLPBoolean mySrvUrlCallback( SLPHandle hslp, 
                              const char* srvurl, 
                              unsigned short lifetime, 
                              SLPError errcode, 
                              void* cookie ) 
-/*=========================================================================*/
 {
     if(errcode == SLP_OK)
     {
@@ -338,10 +323,7 @@ SLPBoolean mySrvUrlCallback( SLPHandle hslp,
     return SLP_TRUE;
 }
 
-
-/*=========================================================================*/
 void FindSrvs(SLPToolCommandLine* cmdline)
-/*=========================================================================*/
 {
     SLPError    result;
     SLPHandle   hslp;
@@ -364,9 +346,7 @@ void FindSrvs(SLPToolCommandLine* cmdline)
 
 
 #ifndef MI_NOT_SUPPORTED
-/*=========================================================================*/
 void FindSrvsUsingIFList(SLPToolCommandLine* cmdline)
-/*=========================================================================*/
 {
     SLPError    result;
     SLPHandle   hslp;
@@ -395,11 +375,8 @@ void FindSrvsUsingIFList(SLPToolCommandLine* cmdline)
 }
 #endif /* MI_NOT_SUPPORTED */
 
-
 #ifndef UNICAST_NOT_SUPPORTED
-/*=========================================================================*/
 void UnicastFindSrvs(SLPToolCommandLine* cmdline)
-/*=========================================================================*/
 {
     SLPError    result;
     SLPHandle   hslp;
@@ -427,10 +404,7 @@ void UnicastFindSrvs(SLPToolCommandLine* cmdline)
 }
 #endif
 
-
-/*=========================================================================*/
 void FindScopes(SLPToolCommandLine* cmdline)
-/*=========================================================================*/
 {
     SLPError    result;
     SLPHandle   hslp;
@@ -449,17 +423,13 @@ void FindScopes(SLPToolCommandLine* cmdline)
     }               
 }
 
-/*-------------------------------------------------------------------------*/
 void mySLPRegReport(SLPHandle hslp, SLPError errcode, void* cookie)
 {
     if (errcode)
     printf("(de)registration errorcode %d\n", errcode);
 }
 
-
-/*=========================================================================*/
 void Register(SLPToolCommandLine* cmdline)
-/*=========================================================================*/
 {
     SLPError    result;
     SLPHandle   hslp;
@@ -498,9 +468,7 @@ void Register(SLPToolCommandLine* cmdline)
     }               
 }
 
-/*=========================================================================*/
 void Deregister(SLPToolCommandLine* cmdline)
-/*=========================================================================*/
 {
     SLPError    result;
     SLPHandle   hslp;
@@ -520,9 +488,7 @@ void Deregister(SLPToolCommandLine* cmdline)
     }               
 }
 
-/*=========================================================================*/
 void PrintVersion(SLPToolCommandLine* cmdline)
-/*=========================================================================*/
 {
     printf("slptool version = %s\n", SLP_VERSION);
     printf("libslp version = %s\n", 
@@ -532,9 +498,7 @@ void PrintVersion(SLPToolCommandLine* cmdline)
            SLPGetProperty("net.slp.OpenSLPConfigFile"));
 }
 
-/*=========================================================================*/
 void GetProperty(SLPToolCommandLine* cmdline)
-/*=========================================================================*/  
 {
     const char* propertyValue;
     
@@ -544,10 +508,7 @@ void GetProperty(SLPToolCommandLine* cmdline)
 	   propertyValue == 0 ? "" : propertyValue);
 }
 
-/*=========================================================================*/
 int ParseCommandLine(int argc,char* argv[], SLPToolCommandLine* cmdline)
-/* Returns  Zero on success.  Non-zero on error.                           */
-/*=========================================================================*/
 {
     int i;
 
@@ -912,10 +873,7 @@ int ParseCommandLine(int argc,char* argv[], SLPToolCommandLine* cmdline)
     return 0;
 }
 
-
-/*=========================================================================*/
 void DisplayUsage()
-/*=========================================================================*/
 {
     printf("Usage: slptool [options] command-and-arguments \n");
     printf("   options may be:\n");
@@ -974,10 +932,7 @@ void DisplayUsage()
     printf("   slptool getproperty net.slp.useScopes\n");
 }
 
-
-/*=========================================================================*/
 int main(int argc, char* argv[])
-/*=========================================================================*/
 {
     int                 result;
     SLPToolCommandLine  cmdline;
@@ -1066,3 +1021,5 @@ int main(int argc, char* argv[])
 
     return 0;
 }
+
+/*=========================================================================*/ 

@@ -1,64 +1,65 @@
-/***************************************************************************/
-/*                                                                         */
-/* Project:     OpenSLP - OpenSource implementation of Service Location    */
-/*              Protocol Version 2                                         */
-/*                                                                         */
-/* File:        slplib_findattrs.c                                         */
-/*                                                                         */
-/* Abstract:    Implementation for SLPFindAttrs() call.                    */
-/*                                                                         */
-/*-------------------------------------------------------------------------*/
-/*                                                                         */
-/*     Please submit patches to http://www.openslp.org                     */
-/*                                                                         */
-/*-------------------------------------------------------------------------*/
-/*                                                                         */
-/* Copyright (C) 2000 Caldera Systems, Inc                                 */
-/* All rights reserved.                                                    */
-/*                                                                         */
-/* Redistribution and use in source and binary forms, with or without      */
-/* modification, are permitted provided that the following conditions are  */
-/* met:                                                                    */ 
-/*                                                                         */
-/*      Redistributions of source code must retain the above copyright     */
-/*      notice, this list of conditions and the following disclaimer.      */
-/*                                                                         */
-/*      Redistributions in binary form must reproduce the above copyright  */
-/*      notice, this list of conditions and the following disclaimer in    */
-/*      the documentation and/or other materials provided with the         */
-/*      distribution.                                                      */
-/*                                                                         */
-/*      Neither the name of Caldera Systems nor the names of its           */
-/*      contributors may be used to endorse or promote products derived    */
-/*      from this software without specific prior written permission.      */
-/*                                                                         */
-/* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS     */
-/* `AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT      */
-/* LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR   */
-/* A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE CALDERA      */
-/* SYSTEMS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, */
-/* SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT        */
-/* LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE,  */
-/* DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON       */
-/* ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT */
-/* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE   */
-/* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.    */
-/*                                                                         */
-/***************************************************************************/
+/*-------------------------------------------------------------------------
+ * Copyright (C) 2000 Caldera Systems, Inc
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ *    Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ *
+ *    Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ *    Neither the name of Caldera Systems nor the names of its
+ *    contributors may be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * `AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE CALDERA
+ * SYSTEMS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *-------------------------------------------------------------------------*/
 
+/** Find attributes.
+ *
+ * Implementation for SLPFindAttrs() call.
+ *
+ * @file       libslp_findattrs.c
+ * @author     Matthew Peterson, John Calcote (jcalcote@novell.com)
+ * @attention  Please submit patches to http://www.openslp.org
+ * @ingroup    LibSLPCode
+ */
 
 #include "slp.h"
 #include "libslp.h"
 
-
-/* TODO: do we need to add anything for collation here? */
-
-/*-------------------------------------------------------------------------*/
+/** SLPFindAttrs callback routine for NetworkRqstRply.
+ *
+ * @param[in] errorcode - The network operation error code.
+ * @param[in] peeraddr - The network address of the responder.
+ * @param[in] replybuf - The response buffer from the network request.
+ * @param[in] cookie - Callback context data from ProcessSrvReg.
+ *
+ * @return SLP_FALSE (to stop any iterative callbacks).
+ *
+ * @todo Do we need to add anything for collation here?
+ *
+ * @internal
+ */
 SLPBoolean ProcessAttrRplyCallback(SLPError errorcode, 
                                    struct sockaddr_storage* peerinfo,
                                    SLPBuffer replybuf,
                                    void* cookie)
-/*-------------------------------------------------------------------------*/
 {
     SLPMessage      replymsg;
     SLPAttrRply*    attrrply;
@@ -134,10 +135,14 @@ SLPBoolean ProcessAttrRplyCallback(SLPError errorcode,
     return result;
 }
 
-
-/*-------------------------------------------------------------------------*/
+/** Formats and sends an SLPFindAttrs wire buffer request.
+ *
+ * @param handle - The OpenSLP session handle, containing request 
+ *    parameters. See docs for SLPFindAttrs.
+ *
+ * @return Zero on success, or an SLP API error code.
+ */
 SLPError ProcessAttrRqst(PSLPHandleInfo handle)
-/*-------------------------------------------------------------------------*/
 {
     int						sock;
     struct sockaddr_storage peeraddr;
@@ -284,9 +289,16 @@ SLPError ProcessAttrRqst(PSLPHandleInfo handle)
 }
 
 #ifdef ENABLE_ASYNC_API
-/*-------------------------------------------------------------------------*/ 
+/** Thread start procedure for asynchronous attribute request.
+ *
+ * @param[in,out] handle - Contains the request parameters, returns the
+ *    request result.
+ *
+ * @return An SLPError code.
+ *
+ * @internal
+ */
 SLPError AsyncProcessAttrRqst(PSLPHandleInfo handle)
-/*-------------------------------------------------------------------------*/
 {
     SLPError result = ProcessAttrRqst(handle);
     xfree((void*)handle->params.findattrs.url);
@@ -297,54 +309,53 @@ SLPError AsyncProcessAttrRqst(PSLPHandleInfo handle)
 }
 #endif
 
-
-/*=========================================================================*/
+/** Returns a list of service attributes based on a search query.
+ *
+ * This function returns service attributes matching the attribute ids
+ * for the indicated service URL or service type. If @p pcURLOrServiceType
+ * is a service URL, the attribute information returned is for that
+ * particular advertisement in the language locale of the SLPHandle.
+ *
+ * @par 
+ * If @p pcURLOrServiceType is a service type name (including naming
+ * authority if any), then the attributes for all advertisements of that
+ * service type are returned regardless of the language of registration.
+ * Results are returned through the @p callback.
+ *
+ * @par
+ * The result is filtered with an SLP attribute request filter string
+ * parameter, the syntax of which is described in [RFC 2608]. If the 
+ * filter string is the empty string, i.e. "", all attributes are 
+ * returned.
+ *
+ * @param[in] hSLP - The language specific SLPHandle on which to search 
+ *    for attributes.
+ * @param[in] pcURLOrServiceType - The service URL or service type. See 
+ *    [RFC 2608] for URL and service type syntax. May not be the empty 
+ *    string.
+ * @param[in] pcScopeList - A pointer to a char containing a comma 
+ *    separated list of scope names. Pass NULL or the empty string ("") 
+ *    to find services in all the scopes the local host is configured to 
+ *    query.
+ * @param[in] pcAttrIds - The filter string indicating which attribute 
+ *    values to return. Use empty string, "", to indicate all values. 
+ *    Wildcards matching all attribute ids having a particular prefix or 
+ *    suffix are also possible. See [RFC 2608] for the exact format of the 
+ *    filter string.
+ * @param[in] callback - A callback function through which the results of 
+ *    the operation are reported.
+ * @param[in] pvCookie - Memory passed to the callback code from the client.
+ *    May be NULL.
+ *
+ * @return If an error occurs in starting the operation, one of the 
+ *    SLPError codes is returned.
+ */
 SLPError SLPAPI SLPFindAttrs(SLPHandle   hSLP,
                       const char *pcURLOrServiceType,
                       const char *pcScopeList,
                       const char *pcAttrIds,
                       SLPAttrCallback callback,
                       void *pvCookie)
-/*                                                                         */
-/* This function returns service attributes matching the attribute ids     */
-/* for the indicated service URL or service type.  If pcURLOrServiceType   */
-/* is a service URL, the attribute information returned is for that        */
-/* particular advertisement in the language locale of the SLPHandle.       */
-/*                                                                         */
-/* If pcURLOrServiceType is a service type name (including naming          */
-/* authority if any), then the attributes for all advertisements of that   */
-/* service type are returned regardless of the language of registration.   */
-/* Results are returned through the callback.                              */
-/*                                                                         */
-/* The result is filtered with an SLP attribute request filter string      */
-/* parameter, the syntax of which is described in RFC 2608. If the filter  */
-/* string is the empty string, i.e.  "", all attributes are returned.      */
-/*                                                                         */
-/* hSLP                 The language specific SLPHandle on which to search */
-/*                      for attributes.                                    */
-/*                                                                         */
-/* pcURLOrServiceType   The service URL or service type.  See RFC 2608 for */
-/*                      URL and service type syntax.  May not be the empty */
-/*                      string.                                            */
-/*                                                                         */
-/* pcScopeList          A pointer to a char containing a comma separated   */
-/*                      list of scope names. Pass in NULL or the empty     */
-/*                      string "" to find services in all the scopes the   */
-/*                      local host is configured query.                    */
-/*                                                                         */
-/* pcAttrIds            A comma separated list of attribute ids to return. */
-/*                      Use NULL or the empty string, "", to indicate all  */
-/*                      values. Wildcards are not currently supported      */
-/*                                                                         */
-/* callback             A callback function through which the results of   */
-/*                      the operation are reported.                        */
-/*                                                                         */
-/* pvCookie             Memory passed to the callback code from the client.*/  
-/*                      May be NULL.                                       */
-/*                                                                         */
-/* Returns:             If an error occurs in starting the operation, one  */
-/*                      of the SLPError codes is returned.                 */
-/*=========================================================================*/
 {
     PSLPHandleInfo      handle;
     SLPError            result;
@@ -449,6 +460,4 @@ SLPError SLPAPI SLPFindAttrs(SLPHandle   hSLP,
     return result;
 }
 
-
-
-
+/*=========================================================================*/

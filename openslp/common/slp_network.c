@@ -1,66 +1,57 @@
-/***************************************************************************/
-/*                                                                         */
-/* Project:     OpenSLP - OpenSource implementation of Service Location    */
-/*              Protocol                                                   */
-/*                                                                         */
-/* File:        slp_network.c                                              */
-/*                                                                         */
-/* Abstract:    Implementation for functions that are related              */
-/*              network (and ipc) communication.                           */
-/*                                                                         */
-/*-------------------------------------------------------------------------*/
-/*                                                                         */
-/*     Please submit patches to http://www.openslp.org                     */
-/*                                                                         */
-/*-------------------------------------------------------------------------*/
-/*                                                                         */
-/* Copyright (C) 2000 Caldera Systems, Inc                                 */
-/* All rights reserved.                                                    */
-/*                                                                         */
-/* Redistribution and use in source and binary forms, with or without      */
-/* modification, are permitted provided that the following conditions are  */
-/* met:                                                                    */ 
-/*                                                                         */
-/*      Redistributions of source code must retain the above copyright     */
-/*      notice, this list of conditions and the following disclaimer.      */
-/*                                                                         */
-/*      Redistributions in binary form must reproduce the above copyright  */
-/*      notice, this list of conditions and the following disclaimer in    */
-/*      the documentation and/or other materials provided with the         */
-/*      distribution.                                                      */
-/*                                                                         */
-/*      Neither the name of Caldera Systems nor the names of its           */
-/*      contributors may be used to endorse or promote products derived    */
-/*      from this software without specific prior written permission.      */
-/*                                                                         */
-/* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS     */
-/* `AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT      */
-/* LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR   */
-/* A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE CALDERA      */
-/* SYSTEMS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, */
-/* SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT        */
-/* LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE,  */
-/* DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON       */
-/* ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT */
-/* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE   */
-/* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.    */
-/*                                                                         */
-/***************************************************************************/
+/*-------------------------------------------------------------------------
+ * Copyright (C) 2000 Caldera Systems, Inc
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ *    Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ *
+ *    Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ *    Neither the name of Caldera Systems nor the names of its
+ *    contributors may be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * `AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE CALDERA
+ * SYSTEMS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *-------------------------------------------------------------------------*/
+
+/** Functions related to network and ipc communication.
+ *
+ * These routines are specific to stream-oriented (TCP) message transfer.
+ *
+ * @file       slp_network.c
+ * @author     Matthew Peterson, John Calcote (jcalcote@novell.com)
+ * @attention  Please submit patches to http://www.openslp.org
+ * @ingroup    CommonCode
+ */
 
 #include "slp_network.h"
 #include "slp_net.h"
 
-/*=========================================================================*/ 
+/** Connect a TCP stream to the specified peer.
+ *
+ * @param[in] peeraddr - A pointer to the peer to connect to.
+ * @param[in] timeout - The maximum time to spend connecting.
+ *
+ * @return A connected socket, or SLP_INVALID_SOCKET on error.
+ */
 int SLPNetworkConnectStream(struct sockaddr_storage *peeraddr,   
                             struct timeval* timeout)
-/* Connect a TCP stream to the specified peer                              */
-/*                                                                         */
-/* peeraddr (IN) pointer to the peer to connect to                         */
-/*                                                                         */
-/* timeout  (IN) pointer to the maximum time to spend connecting           */
-/*                                                                         */
-/* returns: a connected socket or -1                                       */
-/*=========================================================================*/ 
 {
 #ifdef _WIN32
     char lowat;
@@ -69,7 +60,7 @@ int SLPNetworkConnectStream(struct sockaddr_storage *peeraddr,
 #endif
     int result;
 
-    /* TODO: Make this connect non-blocking so that it will timeout */
+    /** @todo Make the socket non-blocking so we can timeout on connect. */
     if (peeraddr->ss_family == AF_INET6) {
         result = socket(PF_INET6,SOCK_STREAM,0);
     }
@@ -106,21 +97,24 @@ int SLPNetworkConnectStream(struct sockaddr_storage *peeraddr,
     return result;
 }
 
-
-
-/*=========================================================================*/ 
+/** Sends a message.
+ *
+ * @param[in] sockfd - The pre-configured socket to send on.
+ * @param[in] socktype - The type of message (datagram or stream).
+ * @param[in] buf - The buffer to be sent.
+ * @param[in] bufsz - The number of bytes in @p buf to be sent.
+ * @param[in] peeraddr - The address to which @p buf should be sent.
+ * @param[in] timeout - The maximum time to wait for network operations.
+ *
+ * @return Zero on success non-zero on failure with errno set. Possible 
+ *    values for errno include EPIPE on write error, and ETIMEOUT on 
+ *    read timeout error.
+ */
 int SLPNetworkSendMessage(int sockfd,
                           int socktype,
                           SLPBuffer buf,
                           struct sockaddr_storage* peeraddr,
                           struct timeval* timeout)
-/* Sends a message                                                         */
-/*                                                                         */
-/* Returns  -  zero on success non-zero on failure                         */
-/*                                                                         */
-/* errno         EPIPE error during write                                  */
-/*               ETIME read timed out                                      */
-/*=========================================================================*/ 
 {
     fd_set      writefds;
     int         xferbytes;
@@ -183,23 +177,23 @@ int SLPNetworkSendMessage(int sockfd,
     return 0;
 }
 
-
-
-/*=========================================================================*/ 
+/** Receives a message.
+ *
+ * @param[in] sockfd - The pre-configured socket on which to read.
+ * @param[in] socktype - The socket type (stream or datagram).
+ * @param[out] buf - The buffer into which a message should be read.
+ * @param[out] peeraddr - The address of storage for the remote address.
+ * @param[in] timeout - The maximum time to wait for network operations.
+ *
+ * @return Zero on success, or non-zero on failure with errno set. Values
+ *    for errno include ENOTCONN on read error, ETIMEOUT on network timeout,
+ *    ENOMEM on out-of-memory error, and EINVAL on parse error.
+ */ 
 int SLPNetworkRecvMessage(int sockfd,
                           int socktype,
                           SLPBuffer* buf,
                           struct sockaddr_storage* peeraddr,
                           struct timeval* timeout)
-/* Receives a message                                                      */
-/*                                                                         */
-/* Returns  -    zero on success, non-zero on failure                      */
-/*                                                                         */
-/* errno         ENOTCONN error during read                                */
-/*               ETIME read timed out                                      */
-/*               ENOMEM out of memory                                      */
-/*               EINVAL parse error                                        */
-/*=========================================================================*/ 
 {
     int         xferbytes;
     fd_set      readfds;
@@ -313,3 +307,5 @@ int SLPNetworkRecvMessage(int sockfd,
 
     return 0;
 }
+
+/*=========================================================================*/

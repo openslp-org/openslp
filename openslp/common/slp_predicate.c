@@ -1,3 +1,46 @@
+/*-------------------------------------------------------------------------
+ * Copyright (C) 2000 Caldera Systems, Inc
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ *    Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ *
+ *    Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ *    Neither the name of Caldera Systems nor the names of its
+ *    contributors may be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * `AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE CALDERA
+ * SYSTEMS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *-------------------------------------------------------------------------*/
+
+/** Functions for predicate matching.
+ *
+ * This file also contains a few debug routines for dumping attribute lists
+ * and filter trees to verify their formats.
+ *
+ * @file       slp_predicate.c
+ * @author     Matthew Peterson, John Calcote (jcalcote@novell.com)
+ * @attention  Please submit patches to http://www.openslp.org
+ * @ingroup    CommonCode
+ */
+
 #include <string.h>
 #include <stdio.h>
 #include <fnmatch.h> 
@@ -23,6 +66,15 @@
 #define SLP_MAX(a, b) ((a) > (b) ? (a) : (b))
 
 #ifdef DEBUG
+/** Dump the attribute list to STDOUT.
+ *
+ * @param[in] level - The tab-indent level at which to print each string.
+ * @param[in] attrs - The attribute list to be dumped.
+ *
+ * @remarks This routine is only used by debug code.
+ *
+ * @internal
+ */
 void dumpAttrList(int level, const SLPAttrList *attrs)
 {
     int i;
@@ -64,6 +116,14 @@ void dumpAttrList(int level, const SLPAttrList *attrs)
     return;
 }
 
+/** Prints an LDAPv3 filter operator as a string.
+ *
+ * @param[in] op - The LDAPv3 filter operator code to be printed.
+ *
+ * @remarks This routine is only used by Debug code.
+ *
+ * @internal
+ */
 void printOperator(int op)
 {
     switch ( op )
@@ -93,6 +153,14 @@ void printOperator(int op)
     return; 
 }
 
+/** Dumps the LDAPv3 filter tree to STDOUT.
+ *
+ * @param[in] filter - The filter to be dumped.
+ *
+ * @remarks This routine is only used by Debug code.
+ *
+ * @internal
+ */
 void dumpFilterTree( const SLPLDAPFilter *filter )
 {
     int i; 
@@ -122,8 +190,17 @@ void dumpFilterTree( const SLPLDAPFilter *filter )
 
     return;
 }
-#endif /* DEBUG*/
+#endif   /* DEBUG */
 
+/** Returns a boolean value based on a compare result and an operation.
+ *
+ * @param[in] compare_result - A value < 0, 0, or > 0.
+ * @param[in] operation - The operation used to generate @p compare_result.
+ *
+ * @return A boolean value TRUE (1) or FALSE (0).
+ *
+ * @internal
+ */
 int SLPEvaluateOperation(int compare_result, int operation)
 {
     switch ( operation )
@@ -151,7 +228,17 @@ int SLPEvaluateOperation(int compare_result, int operation)
     return(FALSE);
 }
 
-/* evaluates attr values, not names */
+/** Evaluates attribute values.
+ *
+ * @param[in] a - The first value to evaluate.
+ * @param[in] b - The second value to evaluate.
+ * @param[in] op - The LDAPv3 filter operation to use in the evaluation.
+ *
+ * @return A boolean false (0) or true (1) based on the comparison 
+ *    results. If the compare operation is true, returns 1.
+ *
+ * @internal
+ */
 int SLPEvaluateAttributes(const SLPAttrList *a, const SLPAttrList *b, int op)
 {
     /* first ensure they are the same type  */
@@ -185,8 +272,19 @@ int SLPEvaluateAttributes(const SLPAttrList *a, const SLPAttrList *b, int op)
 
 }
 
-
-/* filter is a filter tree, attrs is ptr to an attr listhead */
+/** Evaluates an entire LDAPv3 filter tree.
+ *
+ * @param[in,out] filter - The LDAPv3 filter tree to evaluate.
+ * @param[in] attrs - The attribute list to apply @p filter to.
+ *
+ * @return A boolean false (0) or true (1) based on the comparison 
+ *    results. If the compare operation is true, returns 1.
+ *
+ * @remarks On exit, @p filter has been updated with per-node evaluation
+ *    values.
+ *
+ * @internal
+ */
 int SLPEvaluateFilterTree(SLPLDAPFilter *filter, const SLPAttrList *attrs)
 {
     if ( !SLP_IS_EMPTY( &(filter->children) ) )
@@ -279,7 +377,14 @@ int SLPEvaluateFilterTree(SLPLDAPFilter *filter, const SLPAttrList *attrs)
     return(filter->logical_value);
 }
 
-/* a is an attribute list, while b is a string representation of an ldap filter */
+/** Match attribute in a list to a specified filter.
+ *
+ * @param[in] attrlist - The attribute list to apply @p filter to.
+ * @param[in] filter - A string representation of an LDAPv3 filter.
+ *
+ * @return A boolean false (0) or true (1) based on the comparison 
+ *    results. If the compare operation is true, returns 1.
+ */
 int SLP_predicate_match(const SLPAttrList *attrlist,
                          const char *filter)
 {
@@ -300,4 +405,4 @@ int SLP_predicate_match(const SLPAttrList *attrlist,
     return(FALSE);
 }
 
-
+/*=========================================================================*/

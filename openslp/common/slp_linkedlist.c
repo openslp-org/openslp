@@ -1,62 +1,59 @@
-/***************************************************************************/
-/*                                                                         */
-/* Project:     OpenSLP                                                    */
-/*                                                                         */
-/* File:        linkedlist.c                                               */
-/*                                                                         */
-/* Abstract:    Functions to manipulate a simple linked list               */
-/*                                                                         */
-/*-------------------------------------------------------------------------*/
-/*                                                                         */
-/*     Please submit patches to http://www.openslp.org                     */
-/*                                                                         */
-/*-------------------------------------------------------------------------*/
-/*                                                                         */
-/* Copyright (C) 2000 Caldera Systems, Inc                                 */
-/* All rights reserved.                                                    */
-/*                                                                         */
-/* Redistribution and use in source and binary forms, with or without      */
-/* modification, are permitted provided that the following conditions are  */
-/* met:                                                                    */ 
-/*                                                                         */
-/*      Redistributions of source code must retain the above copyright     */
-/*      notice, this list of conditions and the following disclaimer.      */
-/*                                                                         */
-/*      Redistributions in binary form must reproduce the above copyright  */
-/*      notice, this list of conditions and the following disclaimer in    */
-/*      the documentation and/or other materials provided with the         */
-/*      distribution.                                                      */
-/*                                                                         */
-/*      Neither the name of Caldera Systems nor the names of its           */
-/*      contributors may be used to endorse or promote products derived    */
-/*      from this software without specific prior written permission.      */
-/*                                                                         */
-/* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS     */
-/* `AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT      */
-/* LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR   */
-/* A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE CALDERA      */
-/* SYSTEMS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, */
-/* SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT        */
-/* LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE,  */
-/* DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON       */
-/* ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT */
-/* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE   */
-/* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.    */
-/*                                                                         */
-/***************************************************************************/
+/*-------------------------------------------------------------------------
+ * Copyright (C) 2000 Caldera Systems, Inc
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ *    Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ *
+ *    Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ *    Neither the name of Caldera Systems nor the names of its
+ *    contributors may be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * `AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE CALDERA
+ * SYSTEMS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *-------------------------------------------------------------------------*/
+
+/** Functions to manipulate a simple linked-list.
+ *
+ * Lists are managed by ensuring that objects that want to be linked have
+ * a link structure as their first element. These routines would not be 
+ * good for a generalized linked-list implementation, but since all the
+ * structures we want to "listify" can be modified to contain a link
+ * structure as their first element, they serve us well.
+ *
+ * @file       slp_linkedlist.c
+ * @author     Matthew Peterson, John Calcote (jcalcote@novell.com)
+ * @attention  Please submit patches to http://www.openslp.org
+ * @ingroup    CommonCode
+ */
 
 #include "slp_linkedlist.h"
 
-/*=========================================================================*/
+/** Unlinks an item from a list.
+ *
+ * @param[in] list - A pointer to the list to unlink the item from.
+ * @param[in] item - The item to be removed from @p list.
+ *
+ * @return A pointer to the unlinked item.
+ */
 SLPListItem* SLPListUnlink(SLPList* list, SLPListItem* item)
-/* Unlinks the specified item from the specified list.                     */
-/*                                                                         */
-/* list     (IN) pointer to the list to unlink the item from               */
-/*                                                                         */
-/* item     (IN) item to be removed from the list                          */
-/*                                                                         */
-/* Returns  pointer to the unlinked item                                   */
-/*=========================================================================*/
 {
     if(item->previous)
     {
@@ -82,17 +79,14 @@ SLPListItem* SLPListUnlink(SLPList* list, SLPListItem* item)
     return item;
 }
 
-
-/*=========================================================================*/
+/** Links an item into a list.
+ *
+ * @param[in] list - A pointer to the list to link to.
+ * @param[in] item - The item to be linked into @p list.
+ *
+ * @return A pointer to the linked item.
+ */
 SLPListItem* SLPListLinkHead(SLPList* list, SLPListItem* item)
-/* Links the specified item to the head of the specified list.             */
-/*                                                                         */
-/* list     (IN) pointer to the list to link to                            */
-/*                                                                         */
-/* item     (IN) item to be linkedto the list                              */
-/*                                                                         */
-/* Returns  pointer to the linked item                                     */
-/*=========================================================================*/
 {
     item->previous = 0;
     item->next = list->head;
@@ -114,17 +108,14 @@ SLPListItem* SLPListLinkHead(SLPList* list, SLPListItem* item)
     return item;
 }
 
-
-/*=========================================================================*/
+/** Links an item to the tail of a list.
+ *
+ * @param[in] list - A pointer to the list to link to.
+ * @param[in] item - The item to be linked into @p list.
+ *
+ * @return A pointer to the linked item.
+ */
 SLPListItem* SLPListLinkTail(SLPList* list, SLPListItem* item)
-/* Links the specified item to the tail of the specified list.             */
-/*                                                                         */
-/* list     (IN) pointer to the list to link to                            */
-/*                                                                         */
-/* item     (IN) item to be linkedto the list                              */
-/*                                                                         */
-/* Returns  pointer to the linked item                                     */
-/*=========================================================================*/
 {
     item->previous = list->tail;
     item->next = 0;
@@ -146,3 +137,4 @@ SLPListItem* SLPListLinkTail(SLPList* list, SLPListItem* item)
     return item;
 }
 
+/*=========================================================================*/

@@ -1,56 +1,44 @@
-/***************************************************************************/
-/*                                                                         */
-/* Project:     OpenSLP - OpenSource implementation of Service Location    */
-/*              Protocol Version 2                                         */
-/*                                                                         */
-/* File:        slpd_main.c                                                */
-/*                                                                         */
-/* Abstract:    Main daemon loop                                           */
-/*                                                                         */
-/*-------------------------------------------------------------------------*/
-/*                                                                         */
-/*     Please submit patches to http://www.openslp.org                     */
-/*                                                                         */
-/*-------------------------------------------------------------------------*/
-/*                                                                         */
-/* Copyright (C) 2000 Caldera Systems, Inc                                 */
-/* All rights reserved.                                                    */
-/*                                                                         */
-/* Redistribution and use in source and binary forms, with or without      */
-/* modification, are permitted provided that the following conditions are  */
-/* met:                                                                    */ 
-/*                                                                         */
-/*      Redistributions of source code must retain the above copyright     */
-/*      notice, this list of conditions and the following disclaimer.      */
-/*                                                                         */
-/*      Redistributions in binary form must reproduce the above copyright  */
-/*      notice, this list of conditions and the following disclaimer in    */
-/*      the documentation and/or other materials provided with the         */
-/*      distribution.                                                      */
-/*                                                                         */
-/*      Neither the name of Caldera Systems nor the names of its           */
-/*      contributors may be used to endorse or promote products derived    */
-/*      from this software without specific prior written permission.      */
-/*                                                                         */
-/* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS     */
-/* `AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT      */
-/* LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR   */
-/* A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE CALDERA      */
-/* SYSTEMS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, */
-/* SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT        */
-/* LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE,  */
-/* DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON       */
-/* ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT */
-/* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE   */
-/* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.    */
-/*                                                                         */
-/***************************************************************************/
+/*-------------------------------------------------------------------------
+ * Copyright (C) 2000 Caldera Systems, Inc
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ *    Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ *
+ *    Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ *    Neither the name of Caldera Systems nor the names of its
+ *    contributors may be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * `AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE CALDERA
+ * SYSTEMS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *-------------------------------------------------------------------------*/
+
+/** Main entry point for the slpd process.
+ *
+ * @file       slpd_main.c
+ * @author     Matthew Peterson, John Calcote (jcalcote@novell.com)
+ * @attention  Please submit patches to http://www.openslp.org
+ * @ingroup    SlpdCode
+ */
 
 #include "slpd.h"
-
-/*=========================================================================*/
-/* slpd includes                                                           */
-/*=========================================================================*/
 #include "slpd_log.h"
 #include "slpd_socket.h"
 #include "slpd_incoming.h"
@@ -59,34 +47,35 @@
 #include "slpd_cmdline.h"
 #include "slpd_knownda.h"
 #include "slpd_property.h"
+
 #ifdef ENABLE_SLPv2_SECURITY
-#include "slpd_spi.h"
+# include "slpd_spi.h"
 #endif
 
-/*=========================================================================*/
-/* common code includes                                                    */
-/*=========================================================================*/
 #include "slp_xmalloc.h"
 #include "slp_xid.h"
 #include "slp_net.h"
 
-
-/*==========================================================================*/
 int G_SIGALRM;
 int G_SIGTERM;
 int G_SIGHUP;                                                                                                 
 #ifdef DEBUG
 int G_SIGINT;		/* Signal being used for dumping registrations */
 #endif 
-/*==========================================================================*/
 
-
-/*-------------------------------------------------------------------------*/
+/** Configures fd_set objects with sockets.
+ *
+ * @param[in] socklist - The list of sockets that is being currently 
+ *    monitored by OpenSLP components.
+ * @param[out] highfd - The address of storage for returning the value 
+ *    of the highest file descriptor (number) in use.
+ * @param[out] readfds - The fd_set to fill with read descriptors.
+ * @param[out] writefds - The fd_set to fill with write descriptors.
+ */
 void LoadFdSets(SLPList* socklist, 
                 int* highfd, 
                 fd_set* readfds, 
                 fd_set* writefds)
-/*-------------------------------------------------------------------------*/
 {
     SLPDSocket* sock = 0;
     SLPDSocket* del = 0;
@@ -143,10 +132,9 @@ void LoadFdSets(SLPList* socklist,
     }
 }
 
-
-/*------------------------------------------------------------------------*/
+/** Handles a SIG_TERM signal from the system.
+ */
 void HandleSigTerm()
-/*------------------------------------------------------------------------*/
 {
     struct timeval  timeout;
     fd_set          readfds;
@@ -212,9 +200,11 @@ void HandleSigTerm()
 
 }
 
-/*------------------------------------------------------------------------*/
+/** Handles a SIG_HUP signal from the system.
+ *
+ * @internal
+ */
 void HandleSigHup()
-/*------------------------------------------------------------------------*/
 {
     /* Reinitialize */
     SLPDLog("****************************************\n");
@@ -245,9 +235,9 @@ void HandleSigHup()
     SLPDLog("****************************************\n\n");
 }
 
-/*------------------------------------------------------------------------*/
+/** Handles a SIG_ALRM signal from the system.
+ */
 void HandleSigAlrm()
-/*------------------------------------------------------------------------*/
 {
     SLPDIncomingAge(SLPD_AGE_INTERVAL);
     SLPDOutgoingAge(SLPD_AGE_INTERVAL);
@@ -267,11 +257,12 @@ void HandleSigAlrm()
     SLPDDatabaseAge(SLPD_AGE_INTERVAL,G_SlpdProperty.isDA);
 }
 
-
 #ifdef DEBUG
-/*--------------------------------------------------------------------------*/
+/** Handles a SIG_INT signal from the system.
+ *
+ * @internal
+ */
 void HandleSigInt()
-/*--------------------------------------------------------------------------*/
 {
     SLPDIncomingSocketDump();
     SLPDOutgoingSocketDump();
@@ -280,14 +271,18 @@ void HandleSigInt()
 }
 #endif
 
-
 #ifndef _WIN32
-/*-------------------------------------------------------------------------*/
+/** Check a pid file to see if slpd is already running.
+ *
+ * The pid file contains the PID of the process that is already running.
+ *
+ * @param[in] pidfile - The name of a file to read.
+ *
+ * @return Zero on success or a non-zero value on failure.
+ *
+ * @internal
+ */
 int CheckPid(const char* pidfile)
-/* Check a pid file to see if slpd is already running                      */
-/*                                                                         */
-/* Returns: 0 on success.  non-zero on failure                             */
-/*-------------------------------------------------------------------------*/
 {
     pid_t   pid;
     FILE*   fd;
@@ -318,13 +313,16 @@ int CheckPid(const char* pidfile)
     return 0;
 }
 
-
-/*-------------------------------------------------------------------------*/
+/** Write the pid file.
+ *
+ * @param[in] pidfile - The name of the file to write.
+ * @param[in] pid - The PID value to write to @p pidfile.
+ *
+ * @return Zero on success, or a non-zero value on failure.
+ *
+ * @internal
+ */
 int WritePid(const char* pidfile, pid_t pid)
-/* Write the pid file                                                      */
-/*                                                                         */
-/* Returns: 0 on success.  non-zero on failure                             */
-/*-------------------------------------------------------------------------*/
 {
     FILE*   fd;
     char    pidstr[14];
@@ -341,14 +339,19 @@ int WritePid(const char* pidfile, pid_t pid)
     return 0;
 }
 
-
-/*-------------------------------------------------------------------------*/
+/** Daemonize the calling process.
+ *
+ * Turn the calling process into a daemon (detach from tty setuid(), etc.
+ *
+ * @param[in] pidfile - The name of a file to which the process id should
+ *    be written.
+ *
+ * @return Zero on success, or a non-zero value if slpd could not daemonize 
+ *    (or if slpd is already running).
+ *
+ * @internal
+ */
 int Daemonize(const char* pidfile)
-/* Turn the calling process into a daemon (detach from tty setuid(), etc   */
-/*                                                                         */      
-/* Returns: zero on success non-zero if slpd could not daemonize (or if    */
-/*          slpd is already running                             .          */
-/*-------------------------------------------------------------------------*/
 {
     FILE*   fd;
     struct  passwd* pwent;
@@ -421,10 +424,13 @@ int Daemonize(const char* pidfile)
     return 0;
 }
 
-
-/*--------------------------------------------------------------------------*/
+/** Handles all registered signals from the system.
+ *
+ * @param[in] signum - The signal number to handle.
+ *
+ * @internal
+ */
 void SignalHandler(int signum)
-/*--------------------------------------------------------------------------*/
 {
     switch(signum)
     {
@@ -452,10 +458,16 @@ void SignalHandler(int signum)
     }
 }
 
-
-/*-------------------------------------------------------------------------*/
+/** Configures signal handlers for the process.
+ *
+ * Configures the process to receive SIGALRM, SIGTERM, SIGHUP, SIGPIPE,
+ * and SIGINT (Debug only).
+ *
+ * @return Zero on success, or a non-zero value on failure.
+ *
+ * @internal
+ */
 int SetUpSignalHandlers()
-/*-------------------------------------------------------------------------*/
 {
     int result;
     struct sigaction sa;
@@ -481,9 +493,16 @@ int SetUpSignalHandlers()
     return result;
 }
 
-/*=========================================================================*/
+/** Process main entry point.
+ *
+ * @param[in] argc - The number of command line arguments passed in @p argv.
+ * @param[in] argv - An array of pointers to command line arguments.
+ *
+ * @return Zero on success, or a non-zero shell error code.
+ *
+ * @remarks This routine contains the main server loop.
+ */
 int main(int argc, char* argv[])
-/*=========================================================================*/
 {
     fd_set          readfds;
     fd_set          writefds;
@@ -656,5 +675,4 @@ int main(int argc, char* argv[])
 }
 #endif /*ifndef _WIN32 */
 
-
-
+/*=========================================================================*/

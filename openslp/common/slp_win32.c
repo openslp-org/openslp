@@ -1,7 +1,34 @@
-#include "slp_net.h"
-#include "slp_win32.h"
-
-/*
+/*-------------------------------------------------------------------------
+ * Copyright (C) 2000 Caldera Systems, Inc
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ *    Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ *
+ *    Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ *    Neither the name of Caldera Systems nor the names of its
+ *    contributors may be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * `AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE CALDERA
+ * SYSTEMS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  * Copyright (C) 1996-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -16,62 +43,53 @@
  * FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ *-------------------------------------------------------------------------*/
+
+/** Missing Win32 functions.
+ *
+ * The functions in this file include routines to convert network addresses
+ * from binary to presentation and from presentation to binary format. The
+ * purpose of this file however is to provide a place to implement functions
+ * that are common on Unix platforms, but which are missing on Win32 
+ * platforms. Current versions of Windows (Win 2k, sp4 and higher) actually
+ * do contain implementations of @p ntop and @p pton, so we may switch to 
+ * these native versions shortly.
+ *
+ * @file       slp_win32.c
+ * @author     Matthew Peterson, Paul Vixie, 
+ *             John Calcote (jcalcote@novell.com)
+ * @attention  Please submit patches to http://www.openslp.org
+ * @ingroup    CommonCode
  */
 
-/*
- * WARNING: Don't even consider trying to compile this on a system where
- * sizeof(int) < 4.  sizeof(int) > 4 is fine; all the world's not a VAX.
- */
+#include "slp_net.h"
+#include "slp_win32.h"
 
-#define NS_INT16SZ	    2
-#define NS_INADDRSZ	    4
-#define NS_IN6ADDRSZ	16
+#define NS_INT16SZ      2
+#define NS_INADDRSZ     4
+#define NS_IN6ADDRSZ    16
 
-
-
-#define EAFNOSUPPORT -1
 #define snprintf _snprintf
 #define strlcpy strncpy
-static const char *inet_ntop4(const unsigned char *src, char *dst,
-			      size_t size);
 
-static const char *inet_ntop6(const unsigned char *src, char *dst,
-			      size_t size);
+#define EAFNOSUPPORT    -1
 
-/* char *
- * isc_net_ntop(af, src, dst, size)
- *	convert a network format address to presentation format.
- * return:
- *	pointer to presentation format address (`dst'), or NULL (see errno).
- * author:
- *	Paul Vixie, 1996.
+/** Format an IPv4 address as a display string.
+ *
+ * @param[in] src - A binary buffer containing the IPv4 address 
+ *    to be formatted.
+ * @param[out] dst - A string buffer in which to store the 
+ *    formatted address string.
+ * @param[in] size - The size of @p dst.
+ *
+ * @returns A const pointer to @p dst.
+ *
+ * @note Uses no static variables.
+ * @note Takes an unsigned char *, not an in_addr as input.
+ *
+ * @internal
  */
-const char *inet_ntop(int af, const void *src, char *dst, size_t size) {
-	switch (af) {
-	case AF_INET:
-		return (inet_ntop4(src, dst, size));
-	case AF_INET6:
-		return (inet_ntop6(src, dst, size));
-	default:
-		errno = EAFNOSUPPORT;
-		return (NULL);
-	}
-	/* NOTREACHED */
-}
-
-/* const char *
- * inet_ntop4(src, dst, size)
- *	format an IPv4 address
- * return:
- *	`dst' (as a const)
- * notes:
- *	(1) uses no statics
- *	(2) takes a unsigned char* not an in_addr as input
- * author:
- *	Paul Vixie, 1996.
- */
-static const char *
-inet_ntop4(const unsigned char *src, char *dst, size_t size)
+static const char * inet_ntop4(const unsigned char *src, char *dst, size_t size)
 {
 	static const char *fmt = "%u.%u.%u.%u";
 	char tmp[sizeof "255.255.255.255"];
@@ -86,14 +104,19 @@ inet_ntop4(const unsigned char *src, char *dst, size_t size)
 	return (dst);
 }
 
-/* const char *
- * isc_inet_ntop6(src, dst, size)
- *	convert IPv6 binary address into presentation (printable) format
- * author:
- *	Paul Vixie, 1996.
+/** Format an IPv6 address as a display string.
+ *
+ * @param[in] src - A binary buffer containing the IPv6 address 
+ *    to be formatted.
+ * @param[out] dst - A string buffer in which to store the
+ *    formatted address string.
+ * @param[in] size - The size of @p dst.
+ *
+ * @returns A const pointer to @p dst.
+ *
+ * @internal
  */
-static const char *
-inet_ntop6(const unsigned char *src, char *dst, size_t size)
+static const char * inet_ntop6(const unsigned char *src, char *dst, size_t size)
 {
 	/*
 	 * Note that int32_t and int16_t need only be "at least" large enough
@@ -182,46 +205,45 @@ inet_ntop6(const unsigned char *src, char *dst, size_t size)
 	return (dst);
 }
 
-static int inet_pton4(const char *src, unsigned char *dst);
-static int inet_pton6(const char *src, unsigned char *dst);
-
-/* int
- * isc_net_pton(af, src, dst)
- *	convert from presentation format (which usually means ASCII printable)
- *	to network format (which is usually some kind of binary format).
- * return:
- *	1 if the address was valid for the specified address family
- *	0 if the address wasn't valid (`dst' is untouched in this case)
- *	-1 if some other error occurred (`dst' is untouched in this case, too)
- * author:
- *	Paul Vixie, 1996.
+/** Convert a network format address to presentation format.
+ *
+ * @param[in] af - The address family (AF_INET or AF_INET6) of @p src.
+ * @param[in] src - The binary IPv4 or IPv6 address to be formatted.
+ * @param[out] dst - A string buffer in which to store the
+ *    formatted address string.
+ * @param[in] size - The size of @p dst.
+ *
+ * @returns A const pointer to @p dst on success; or NULL on failure, 
+ *    and sets @a errno to EAFNOSUPPORT.
  */
-int
-inet_pton(int af, const char *src, void *dst) {
+const char *inet_ntop(int af, const void *src, char *dst, size_t size) {
 	switch (af) {
 	case AF_INET:
-		return (inet_pton4(src, dst));
+		return (inet_ntop4(src, dst, size));
 	case AF_INET6:
-		return (inet_pton6(src, dst));
+		return (inet_ntop6(src, dst, size));
 	default:
 		errno = EAFNOSUPPORT;
-		return (-1);
+		return (NULL);
 	}
 	/* NOTREACHED */
 }
 
-/* int
- * inet_pton4(src, dst)
- *	like inet_aton() but without all the hexadecimal and shorthand.
- * return:
- *	1 if `src' is a valid dotted quad, else 0.
- * notice:
- *	does not touch `dst' unless it's returning 1.
- * author:
- *	Paul Vixie, 1996.
+/** Converts a string IPv4 address to a binary address buffer.
+ *
+ * Works like inet_aton() but without all the hexadecimal and shorthand.
+ *
+ * @param[in] src - The string IPv4 address to be converted.
+ * @param[out] dst - The address of a buffer to receive the binary 
+ *    IPv4 address.
+ *
+ * @returns True (1) if @p src is a valid dotted quad, else False (0).
+ *
+ * @note Doesn't touch @p dst unless it's returning 1.
+ *
+ * @internal
  */
-static int
-inet_pton4(const char *src, unsigned char *dst) {
+static int inet_pton4(const char *src, unsigned char *dst) {
 	static const char digits[] = "0123456789";
 	int saw_digit, octets, ch;
 	unsigned char tmp[NS_INADDRSZ], *tp;
@@ -259,21 +281,21 @@ inet_pton4(const char *src, unsigned char *dst) {
 	return (1);
 }
 
-/* int
- * inet_pton6(src, dst)
- *	convert presentation level address to network order binary form.
- * return:
- *	1 if `src' is a valid [RFC1884 2.2] address, else 0.
- * notice:
- *	(1) does not touch `dst' unless it's returning 1.
- *	(2) :: in a full address is silently ignored.
- * credit:
- *	inspired by Mark Andrews.
- * author:
- *	Paul Vixie, 1996.
+/** Converts a string IPv6 address to a binary address buffer.
+ *
+ * @param[in] src - The string IPv6 address to be converted.
+ * @param[out] dst - A pointer to a buffer in which to store the 
+ *    converted binary IPv6 address.
+ *
+ * @returns True (1) if @p src is a valid [RFC1884 2.2] address; 
+ *    False (0), if not.
+ *
+ * @note Doesn't touch @p dst unless it's returning True.
+ * @note The sequence '::' in a full address is silently ignored.
+ *
+ * @internal
  */
-static int
-inet_pton6(const char *src, unsigned char *dst) {
+static int inet_pton6(const char *src, unsigned char *dst) {
 	static const char xdigits_l[] = "0123456789abcdef",
 			  xdigits_u[] = "0123456789ABCDEF";
 	unsigned char tmp[NS_IN6ADDRSZ], *tp, *endp, *colonp;
@@ -353,3 +375,30 @@ inet_pton6(const char *src, unsigned char *dst) {
 	memcpy(dst, tmp, NS_IN6ADDRSZ);
 	return (1);
 }
+
+/** Converts a string IPv4 or IPv6 address to a binary address buffer.
+ *
+ * @param[in] af - The address family (AF_INET or AF_INET6) of @p src.
+ * @param[in] src - The string address to be converted.
+ * @param[out] dst - A pointer to a buffer in which to store the 
+ *    converted binary address.
+ *
+ * @returns True (1) if the address was valid for the specified address 
+ *    family; False (0) if the address wasn't valid (@p dst is untouched 
+ *    in this case); Error (-1) if some other error occurred (@p dst is 
+ *    untouched in this case, too).
+ */
+int inet_pton(int af, const char *src, void *dst) {
+	switch (af) {
+	case AF_INET:
+		return (inet_pton4(src, dst));
+	case AF_INET6:
+		return (inet_pton6(src, dst));
+	default:
+		errno = EAFNOSUPPORT;
+		return (-1);
+	}
+	/* NOTREACHED */
+}
+
+/*=========================================================================*/

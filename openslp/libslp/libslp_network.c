@@ -1,66 +1,165 @@
-/***************************************************************************/
-/*                                                                         */
-/* Project:     OpenSLP - OpenSource implementation of Service Location    */
-/*              Protocol                                                   */
-/*                                                                         */
-/* File:        libslp_network.c                                           */
-/*                                                                         */
-/* Abstract:    Implementation for functions that are related to INTERNAL  */
-/*              library network (and ipc) communication.                   */
-/*                                                                         */
-/*-------------------------------------------------------------------------*/
-/*                                                                         */
-/*     Please submit patches to http://www.openslp.org                     */
-/*                                                                         */
-/*-------------------------------------------------------------------------*/
-/*                                                                         */
-/* Copyright (C) 2000 Caldera Systems, Inc                                 */
-/* All rights reserved.                                                    */
-/*                                                                         */
-/* Redistribution and use in source and binary forms, with or without      */
-/* modification, are permitted provided that the following conditions are  */
-/* met:                                                                    */ 
-/*                                                                         */
-/*      Redistributions of source code must retain the above copyright     */
-/*      notice, this list of conditions and the following disclaimer.      */
-/*                                                                         */
-/*      Redistributions in binary form must reproduce the above copyright  */
-/*      notice, this list of conditions and the following disclaimer in    */
-/*      the documentation and/or other materials provided with the         */
-/*      distribution.                                                      */
-/*                                                                         */
-/*      Neither the name of Caldera Systems nor the names of its           */
-/*      contributors may be used to endorse or promote products derived    */
-/*      from this software without specific prior written permission.      */
-/*                                                                         */
-/* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS     */
-/* `AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT      */
-/* LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR   */
-/* A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE CALDERA      */
-/* SYSTEMS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, */
-/* SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT        */
-/* LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE,  */
-/* DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON       */
-/* ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT */
-/* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE   */
-/* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.    */
-/*                                                                         */
-/***************************************************************************/
+/*-------------------------------------------------------------------------
+ * Copyright (C) 2000 Caldera Systems, Inc
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ *    Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ *
+ *    Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ *    Neither the name of Caldera Systems nor the names of its
+ *    contributors may be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * `AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE CALDERA
+ * SYSTEMS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *-------------------------------------------------------------------------*/
+
+/** Networking routines.
+ *
+ * Implementation for functions that are related to INTERNAL library 
+ * network (and ipc) communication.
+ *
+ * @file       libslp_network.c
+ * @author     Matthew Peterson, John Calcote (jcalcote@novell.com)
+ * @attention  Please submit patches to http://www.openslp.org
+ * @ingroup    LibSLPCode
+ */
 
 #include "slp.h"
 #include "libslp.h"
 #include "slp_net.h"
 
-int NetworkGetMcastAddrs(const char msgtype, const char *msg, SLPIfaceInfo *ifaceinfo);
+/** Returns all multi-cast addresses to which a message type can be sent.
+ *
+ * Returns all the multicast addresses the msgtype can be sent out to. If
+ * there is more than one address returned, the address will be in the
+ * order that they should be sent to.
+ *
+ * @param[in] msgtype - The function-id to use in the SLPMessage header
+ * @param[in] msg - A pointer to the portion of the SLP message to send. 
+ *    The portion to that should be pointed to is everything after the 
+ *    pr-list. Only needed for Service Requests. Set to NULL if not needed.
+ * @param[out] ifaceinfo - The interface to send the msg to.
+ *
+ * @return SLP_OK on success. SLP_ERROR on failure.
+ *
+ * @internal
+ */
+int NetworkGetMcastAddrs(const char msgtype, const char *msg, SLPIfaceInfo *ifaceinfo)
+{
+	if (ifaceinfo == NULL)
+		return SLP_PARAMETER_BAD;
 
-/*=========================================================================*/
+	ifaceinfo->bcast_count = ifaceinfo->iface_count = 0;
+	switch (msgtype) {
+		case SLP_FUNCT_SRVRQST:
+			if (msg == NULL)
+				return SLP_PARAMETER_BAD;
+			if (SLPNetIsIPV6()) {
+				unsigned short srvtype_len = AsUINT16(msg);
+				/* Add IPv6 multicast groups in order they should appear. */
+				SLPNetGetSrvMcastAddr(msg+2, (unsigned long)srvtype_len, SLP_SCOPE_NODE_LOCAL, &ifaceinfo->iface_addr[ifaceinfo->iface_count]);
+				SLPNetSetPort(&ifaceinfo->iface_addr[ifaceinfo->iface_count], SLP_RESERVED_PORT);
+				ifaceinfo->iface_count++;
+				SLPNetGetSrvMcastAddr(msg+2, srvtype_len, SLP_SCOPE_LINK_LOCAL, &ifaceinfo->iface_addr[ifaceinfo->iface_count]);
+				SLPNetSetPort(&ifaceinfo->iface_addr[ifaceinfo->iface_count], SLP_RESERVED_PORT);
+				ifaceinfo->iface_count++;
+				SLPNetGetSrvMcastAddr(msg+2, srvtype_len, SLP_SCOPE_SITE_LOCAL, &ifaceinfo->iface_addr[ifaceinfo->iface_count]);
+				SLPNetSetPort(&ifaceinfo->iface_addr[ifaceinfo->iface_count], SLP_RESERVED_PORT);
+				ifaceinfo->iface_count++;
+			}
+			if (SLPNetIsIPV4()) {
+				struct in_addr mcastaddr;
+				mcastaddr.s_addr = SLP_MCAST_ADDRESS;
+				SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count], AF_INET, SLP_RESERVED_PORT, (unsigned char *)&mcastaddr, sizeof(mcastaddr));
+				ifaceinfo->iface_count++;
+			}
+			break;
+		case SLP_FUNCT_ATTRRQST:
+			if (SLPNetIsIPV6()) {
+				/* Add IPv6 multicast groups in order they should appear. */
+				SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count],AF_INET6, SLP_RESERVED_PORT, (char *)&in6addr_srvloc_node, sizeof(struct in6_addr));
+				ifaceinfo->iface_count++;
+				SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count],AF_INET6, SLP_RESERVED_PORT, (char *)&in6addr_srvloc_link, sizeof(struct in6_addr));
+				ifaceinfo->iface_count++;
+				SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count],AF_INET6, SLP_RESERVED_PORT, (char *)&in6addr_srvloc_site, sizeof(struct in6_addr));
+				ifaceinfo->iface_count++;
+			}
+			if (SLPNetIsIPV4()) {
+				struct in_addr mcastaddr;
+				mcastaddr.s_addr = SLP_MCAST_ADDRESS;
+				SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count], AF_INET, SLP_RESERVED_PORT, (unsigned char *)&mcastaddr, sizeof(mcastaddr));
+
+				ifaceinfo->iface_count++;
+			}
+			break;
+		case SLP_FUNCT_SRVTYPERQST:
+			if (SLPNetIsIPV6()) {
+				/* Add IPv6 multicast groups in order they should appear. */
+				SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count],AF_INET6, SLP_RESERVED_PORT, (char *)&in6addr_srvloc_node, sizeof(struct in6_addr));
+				ifaceinfo->iface_count++;
+				SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count],AF_INET6, SLP_RESERVED_PORT, (char *)&in6addr_srvloc_link, sizeof(struct in6_addr));
+				ifaceinfo->iface_count++;
+				SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count],AF_INET6, SLP_RESERVED_PORT, (char *)&in6addr_srvloc_site, sizeof(struct in6_addr));
+				ifaceinfo->iface_count++;
+			}
+			if (SLPNetIsIPV4()) {
+				struct in_addr mcastaddr;
+				mcastaddr.s_addr = SLP_MCAST_ADDRESS;
+				SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count], AF_INET, SLP_RESERVED_PORT, (unsigned char *)&mcastaddr, sizeof(mcastaddr));
+				ifaceinfo->iface_count++;
+			}
+			break;
+		case SLP_FUNCT_DASRVRQST:
+if (SLPNetIsIPV6()) {
+				/* Add IPv6 multicast groups in order they should appear. */
+				SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count],AF_INET6, SLP_RESERVED_PORT, (char *)&in6addr_srvlocda_node, sizeof(struct in6_addr));
+				ifaceinfo->iface_count++;
+				SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count],AF_INET6, SLP_RESERVED_PORT, (char *)&in6addr_srvlocda_link, sizeof(struct in6_addr));
+				ifaceinfo->iface_count++;
+				SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count],AF_INET6, SLP_RESERVED_PORT, (char *)&in6addr_srvlocda_site, sizeof(struct in6_addr));
+				ifaceinfo->iface_count++;
+			}
+			if (SLPNetIsIPV4()) {
+				struct in_addr mcastaddr;
+				mcastaddr.s_addr = SLP_MCAST_ADDRESS;
+				SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count], AF_INET, SLP_RESERVED_PORT, (unsigned char *)&mcastaddr, sizeof(mcastaddr));
+				ifaceinfo->iface_count++;
+			}
+			break;
+		default:
+			return SLP_PARAMETER_BAD;
+	}
+
+	return SLP_OK;
+}		
+
+/** Connects to slpd and provides a peeraddr to send to.
+ *
+ * @param[out] peeraddr - The address of storage for the connected 
+ *    DA's address.
+ * @param[in,out] peeraddrsz - The size in bytes of @p peeraddr on 
+ *    entry; the size of the address stored in @p peeraddr on exit.
+ *
+ * @return The connected socket, or -1 if no DA connection can be made.
+ */
 int NetworkConnectToSlpd(struct sockaddr_storage* peeraddr)
-/* Connects to slpd and provides a peeraddr to send to                     */
-/*                                                                         */
-/* peeraddr         (OUT) pointer to receive the connected DA's address    */
-/*                                                                         */
-/* Returns          Connected socket or -1 if no DA connection can be made */
-/*=========================================================================*/
 {
     int sock = -1;
 
@@ -76,12 +175,13 @@ int NetworkConnectToSlpd(struct sockaddr_storage* peeraddr)
 	return sock;
 }
 
-/*=========================================================================*/ 
+/** Disconnect from the connected DA.
+ *
+ * Called after DA fails to respond.
+ *
+ * @param[in] handle - The SLP handle containing the socket to close.
+ */
 void NetworkDisconnectDA(PSLPHandleInfo handle)
-/* Called after DA fails to respond                                        */
-/*                                                                         */
-/* handle   (IN) a handle previously passed to NetworkConnectToDA()        */
-/*=========================================================================*/ 
 {
     if(handle->dasock)
     {
@@ -98,12 +198,13 @@ void NetworkDisconnectDA(PSLPHandleInfo handle)
 }
 
 
-/*=========================================================================*/ 
+/** Disconnect from the connected SA.
+ *
+ * Called after SA fails to respond.
+ *
+ * @param[in] handle - The SLP handle containing the socket to close.
+ */
 void NetworkDisconnectSA(PSLPHandleInfo handle)
-/* Called after SA fails to respond                                        */
-/*                                                                         */
-/* handle   (IN) a handle previously passed to NetworkConnectToSA()        */
-/*=========================================================================*/ 
 {
     if(handle->sasock)
     {
@@ -116,25 +217,22 @@ void NetworkDisconnectSA(PSLPHandleInfo handle)
     }
 }
 
-/*=========================================================================*/ 
+/** Connects to slpd and provides a peeraddr to send to
+ *
+ * @param[in] handle - The SLP handle containing the socket to close.
+ * @param[in] scopelist - The scope that must be supported by DA. Pass 
+ *    in NULL for any scope
+ * @param[in] scopelistlen - The length of @p scopelist. Ignored if
+ *    @p scopelist is NULL.
+ * @param[out] peeraddr - The address of storage to receive the connected 
+ *    DA's address.
+ *
+ * @return The connected socket, or -1 if no DA connection can be made.
+ */ 
 int NetworkConnectToDA(PSLPHandleInfo handle,
                        const char* scopelist,
                        int scopelistlen,
                        struct sockaddr_storage* peeraddr)
-/* Connects to slpd and provides a peeraddr to send to                     */
-/*                                                                         */
-/* handle           (IN) SLPHandle info  (caches connection info           */
-/*                                                                         */
-/* scopelist        (IN) Scope that must be supported by DA. Pass in NULL  */
-/*                       for any scope                                     */
-/*                                                                         */
-/* scopelistlen     (IN) Length of the scope list in bytes.  Ignored if    */
-/*                       scopelist is NULL                                 */
-/*                                                                         */
-/* peeraddr         (OUT) pointer to receive the connected DA's address    */
-/*                                                                         */
-/* Returns          Connected socket or -1 if no DA connection can be made */
-/*=========================================================================*/
 {
     /*-----------------------------------------------------------------*/
     /* attempt to use a cached socket if scope is supported  otherwise */
@@ -178,24 +276,30 @@ int NetworkConnectToDA(PSLPHandleInfo handle,
     return handle->dasock;
 }
 
-/*=========================================================================*/ 
+/** Connects to slpd and provides a network address to send to.
+ *
+ * This routine attempts to use a cached socket if the cached socket supports
+ * one of the scopes specified in @p scopelist, otherwise it attempts to 
+ * connect to the local Service Agent, or a DA that supports the scope, in 
+ * order to register directly, if no local SA is present.
+ *
+ * @param[in] handle - SLPHandle info (caches connection info).
+ * @param[in] scopelist - Scope that must be supported by SA. Pass in 
+ *    NULL for any scope.
+ * @param[in] scopelistlen - The length of @p scopelist in bytes.
+ *    Ignored if @p scopelist is NULL.
+ * @param[out] saaddr - The address of storage to receive the connected 
+ *    SA's address.
+ *
+ * @return The connected socket, or -1 if no SA connection can be made.
+ *
+ * @note The memory pointed to by @p saaddr must at least as large as a 
+ * sockaddr_storage buffer.
+ */ 
 int NetworkConnectToSA(PSLPHandleInfo handle,
                        const char* scopelist,
                        int scopelistlen,
                        struct sockaddr_storage* peeraddr)
-/* Connects to slpd and provides a peeraddr to send to                     */
-/*                                                                         */
-/* handle           (IN) SLPHandle info  (caches connection info)          */
-/*                                                                         */
-/* scopelist        (IN) Scope that must be supported by SA. Pass in NULL  */
-/*                       for any scope                                     */
-/*                                                                         */
-/* scopelistlen     (IN) Length of the scope list in bytes.  Ignored if    */
-/*                       scopelist is NULL                                 */
-/*                                                                         */
-/* peeraddr         (OUT) pointer to receive the connected SA's address    */
-/*                                                                         */
-/* Returns          Connected socket or -1 if no SA connection can be made */ 
 {
 
     /*-----------------------------------------------------------------*/
@@ -243,9 +347,20 @@ int NetworkConnectToSA(PSLPHandleInfo handle,
     return handle->sasock;
 }
 
-
-
-/*=========================================================================*/ 
+/** Make a request and wait for a reply, or timeout.
+ *
+ * @param[in] sock - The socket to send/receive on.
+ * @param[in] peeraddr - The address to send to.
+ * @param[in] langtag - The language to send in.
+ * @param[in] extoffset - The offset to the first extension in @p buf.
+ * @param[in] buf - The message to send.
+ * @param[in] buftype - The type of @p buf.
+ * @param[in] bufsize - The size of @p buf.
+ * @param[in] callback - The user callback to call with response data.
+ * @param[in] cookie - A pass through value from the caller to @p callback.
+ *
+ * @return SLP_OK on success, or an SLP error code on failure.
+ */ 
 SLPError NetworkRqstRply(int sock,
                          struct sockaddr_storage* destaddr,
                          const char* langtag,
@@ -255,10 +370,6 @@ SLPError NetworkRqstRply(int sock,
                          int bufsize,
                          NetworkRplyCallback callback,
                          void * cookie)
-/* Transmits and receives SLP messages via multicast convergence algorithm */
-/*                                                                         */
-/* Returns  -    SLP_OK on success                                         */
-/*=========================================================================*/ 
 {
     struct timeval      timeout;
     struct sockaddr_storage  peeraddr;
@@ -617,8 +728,23 @@ SLPError NetworkRqstRply(int sock,
     return result;
 }
 
-
-/*=========================================================================*/ 
+/** Make a request and wait for a reply, or timeout.
+ *
+ * @param[in] handle - The SLP handle associated with this request.
+ *
+ * param[in] langtag - Language tag to use in SLP message header
+ *
+ * @param[in] buf - The pointer to the portion of the SLP message to
+ *    send. The portion to that should be pointed to is everything after
+ *    the pr-list. NetworkXcastRqstRply() automatically generates the 
+ *    header and the prlist.
+ * @param[in] buftype - The function-id to use in the SLPMessage header.
+ * @param[in] bufsize - The size of the buffer pointed to by buf.
+ * @param[in] callback - The callback to use for reporting results.
+ * @param[in] cookie - The cookie to pass to the callback.
+ *
+ * @return SLP_OK on success. SLP_ERROR on failure.
+ */ 
 #ifndef MI_NOT_SUPPORTED
 SLPError NetworkMcastRqstRply(PSLPHandleInfo handle,
 #else
@@ -629,27 +755,6 @@ SLPError NetworkMcastRqstRply(const char* langtag,
                               int bufsize,
                               NetworkRplyCallback callback,
                               void * cookie)
-/* Description:                                                            */
-/*                                                                         */
-/* Broadcasts/multicasts SLP messages via multicast convergence algorithm  */
-/*                                                                         */
-/* langtag  (IN) Language tag to use in SLP message header                 */
-/*                                                                         */
-/* buf      (IN) pointer to the portion of the SLP message to send. The    */
-/*               portion to that should be pointed to is everything after  */
-/*               the pr-list. NetworkXcastRqstRply() automatically         */
-/*               generates the header and the prlist.                      */
-/*                                                                         */
-/* buftype  (IN) the function-id to use in the SLPMessage header           */
-/*                                                                         */
-/* bufsize  (IN) the size of the buffer pointed to by buf                  */
-/*                                                                         */
-/* callback (IN) the callback to use for reporting results                 */
-/*                                                                         */
-/* cookie   (IN) the cookie to pass to the callback                        */
-/*                                                                         */
-/* Returns  -    SLP_OK on success. SLP_ERROR on failure                   */
-/*=========================================================================*/ 
 {
     struct timeval      timeout;
     struct sockaddr_storage peeraddr;
@@ -1090,31 +1195,23 @@ SLPError NetworkMcastRqstRply(const char* langtag,
 
 
 #ifndef UNICAST_NOT_SUPPORTED
-/*=========================================================================*/
+/** Unicasts SLP messages.
+ *
+ * @param[in] handle - A pointer to the SLP handle.
+ * @param[in] buf - A pointer to the portion of the SLP message to send.
+ * @param[in] buftype - The function-id to use in the SLPMessage header.
+ * @param[in] bufsize - the size of the buffer pointed to by @p buf.
+ * @param[in] callback - The callback to use for reporting results.
+ * @param[in] cookie - The cookie to pass to the callback.
+ *
+ * @return SLP_OK on success. SLP_ERROR on failure.
+ */
 SLPError NetworkUcastRqstRply(PSLPHandleInfo handle,
                               char* buf,
                               char buftype,
                               int bufsize,
                               NetworkRplyCallback callback,
                               void * cookie)
-/* Description:                                                            */
-/*                                                                         */
-/* Unicasts SLP messages */
-/*                                                                         */
-/* handle  (IN) pointer to the SLP handle                                 */
-/*                                                                         */
-/* buf      (IN) pointer to the portion of the SLP message to send.       */
-/*                                                                         */
-/* buftype  (IN) the function-id to use in the SLPMessage header           */
-/*                                                                         */
-/* bufsize  (IN) the size of the buffer pointed to by buf                  */
-/*                                                                         */
-/* callback (IN) the callback to use for reporting results                 */
-/*                                                                         */
-/* cookie   (IN) the cookie to pass to the callback                        */
-/*                                                                         */
-/* Returns  -    SLP_OK on success. SLP_ERROR on failure                   */
-/*=========================================================================*/
 {
     struct timeval			timeout;
     struct sockaddr_storage peeraddr;
@@ -1376,106 +1473,3 @@ SLPError NetworkUcastRqstRply(PSLPHandleInfo handle,
 #endif
 	
 /*=========================================================================*/
-int NetworkGetMcastAddrs(const char msgtype, const char *msg, SLPIfaceInfo *ifaceinfo)
-/* Returns all the multicast addresses the msgtype can be sent out to. If  */
-/* there is more than one address returned, the address will be in the     */
-/* order that they should be sent to.                                      */
-/*                                                                         */
-/* msgtype   (IN)  The function-id to use in the SLPMessage header         */
-/* msg       (IN)  Pointer to the portion of the SLP message to send. The  */
-/*                 portion to that should be pointed to is everything after*/
-/*                 the pr-list. Only needed for Service Requests. Set to   */
-/*                 NULL if not needed.								       */
-/* ifaceinfo (OUT) Interface info to send the msg to.    		   	       */
-/*                                                                         */
-/* Returns  -    SLP_OK on success. SLP_ERROR on failure                   */
-/*=========================================================================*/
-{
-	if (ifaceinfo == NULL)
-		return SLP_PARAMETER_BAD;
-
-	ifaceinfo->bcast_count = ifaceinfo->iface_count = 0;
-	switch (msgtype) {
-		case SLP_FUNCT_SRVRQST:
-			if (msg == NULL)
-				return SLP_PARAMETER_BAD;
-			if (SLPNetIsIPV6()) {
-				unsigned short srvtype_len = AsUINT16(msg);
-				/* Add IPv6 multicast groups in order they should appear. */
-				SLPNetGetSrvMcastAddr(msg+2, (unsigned long)srvtype_len, SLP_SCOPE_NODE_LOCAL, &ifaceinfo->iface_addr[ifaceinfo->iface_count]);
-				SLPNetSetPort(&ifaceinfo->iface_addr[ifaceinfo->iface_count], SLP_RESERVED_PORT);
-				ifaceinfo->iface_count++;
-				SLPNetGetSrvMcastAddr(msg+2, srvtype_len, SLP_SCOPE_LINK_LOCAL, &ifaceinfo->iface_addr[ifaceinfo->iface_count]);
-				SLPNetSetPort(&ifaceinfo->iface_addr[ifaceinfo->iface_count], SLP_RESERVED_PORT);
-				ifaceinfo->iface_count++;
-				SLPNetGetSrvMcastAddr(msg+2, srvtype_len, SLP_SCOPE_SITE_LOCAL, &ifaceinfo->iface_addr[ifaceinfo->iface_count]);
-				SLPNetSetPort(&ifaceinfo->iface_addr[ifaceinfo->iface_count], SLP_RESERVED_PORT);
-				ifaceinfo->iface_count++;
-			}
-			if (SLPNetIsIPV4()) {
-				struct in_addr mcastaddr;
-				mcastaddr.s_addr = SLP_MCAST_ADDRESS;
-				SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count], AF_INET, SLP_RESERVED_PORT, (unsigned char *)&mcastaddr, sizeof(mcastaddr));
-				ifaceinfo->iface_count++;
-			}
-			break;
-		case SLP_FUNCT_ATTRRQST:
-			if (SLPNetIsIPV6()) {
-				/* Add IPv6 multicast groups in order they should appear. */
-				SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count],AF_INET6, SLP_RESERVED_PORT, (char *)&in6addr_srvloc_node, sizeof(struct in6_addr));
-				ifaceinfo->iface_count++;
-				SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count],AF_INET6, SLP_RESERVED_PORT, (char *)&in6addr_srvloc_link, sizeof(struct in6_addr));
-				ifaceinfo->iface_count++;
-				SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count],AF_INET6, SLP_RESERVED_PORT, (char *)&in6addr_srvloc_site, sizeof(struct in6_addr));
-				ifaceinfo->iface_count++;
-			}
-			if (SLPNetIsIPV4()) {
-				struct in_addr mcastaddr;
-				mcastaddr.s_addr = SLP_MCAST_ADDRESS;
-				SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count], AF_INET, SLP_RESERVED_PORT, (unsigned char *)&mcastaddr, sizeof(mcastaddr));
-
-				ifaceinfo->iface_count++;
-			}
-			break;
-		case SLP_FUNCT_SRVTYPERQST:
-			if (SLPNetIsIPV6()) {
-				/* Add IPv6 multicast groups in order they should appear. */
-				SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count],AF_INET6, SLP_RESERVED_PORT, (char *)&in6addr_srvloc_node, sizeof(struct in6_addr));
-				ifaceinfo->iface_count++;
-				SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count],AF_INET6, SLP_RESERVED_PORT, (char *)&in6addr_srvloc_link, sizeof(struct in6_addr));
-				ifaceinfo->iface_count++;
-				SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count],AF_INET6, SLP_RESERVED_PORT, (char *)&in6addr_srvloc_site, sizeof(struct in6_addr));
-				ifaceinfo->iface_count++;
-			}
-			if (SLPNetIsIPV4()) {
-				struct in_addr mcastaddr;
-				mcastaddr.s_addr = SLP_MCAST_ADDRESS;
-				SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count], AF_INET, SLP_RESERVED_PORT, (unsigned char *)&mcastaddr, sizeof(mcastaddr));
-				ifaceinfo->iface_count++;
-			}
-			break;
-		case SLP_FUNCT_DASRVRQST:
-if (SLPNetIsIPV6()) {
-				/* Add IPv6 multicast groups in order they should appear. */
-				SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count],AF_INET6, SLP_RESERVED_PORT, (char *)&in6addr_srvlocda_node, sizeof(struct in6_addr));
-				ifaceinfo->iface_count++;
-				SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count],AF_INET6, SLP_RESERVED_PORT, (char *)&in6addr_srvlocda_link, sizeof(struct in6_addr));
-				ifaceinfo->iface_count++;
-				SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count],AF_INET6, SLP_RESERVED_PORT, (char *)&in6addr_srvlocda_site, sizeof(struct in6_addr));
-				ifaceinfo->iface_count++;
-			}
-			if (SLPNetIsIPV4()) {
-				struct in_addr mcastaddr;
-				mcastaddr.s_addr = SLP_MCAST_ADDRESS;
-				SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count], AF_INET, SLP_RESERVED_PORT, (unsigned char *)&mcastaddr, sizeof(mcastaddr));
-				ifaceinfo->iface_count++;
-			}
-			break;
-		default:
-			return SLP_PARAMETER_BAD;
-	}
-
-	return SLP_OK;
-}		
-
-		

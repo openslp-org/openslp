@@ -1,65 +1,50 @@
-/***************************************************************************/
-/*                                                                         */
-/* Project:     OpenSLP - OpenSource implementation of Service Location    */
-/*              Protocol Version 2                                         */
-/*                                                                         */
-/* File:        slpd_v1process.c                                           */
-/*                                                                         */
-/* Abstract:    Processes incoming SLP messages                            */
-/*                                                                         */
-/*-------------------------------------------------------------------------*/
-/*                                                                         */
-/*     Please submit patches to http://www.openslp.org                     */
-/*                                                                         */
-/*-------------------------------------------------------------------------*/
-/*                                                                         */
-/* Copyright (C) 2000 Caldera Systems, Inc                                 */
-/* All rights reserved.                                                    */
-/*                                                                         */
-/* Redistribution and use in source and binary forms, with or without      */
-/* modification, are permitted provided that the following conditions are  */
-/* met:                                                                    */ 
-/*                                                                         */
-/*      Redistributions of source code must retain the above copyright     */
-/*      notice, this list of conditions and the following disclaimer.      */
-/*                                                                         */
-/*      Redistributions in binary form must reproduce the above copyright  */
-/*      notice, this list of conditions and the following disclaimer in    */
-/*      the documentation and/or other materials provided with the         */
-/*      distribution.                                                      */
-/*                                                                         */
-/*      Neither the name of Caldera Systems nor the names of its           */
-/*      contributors may be used to endorse or promote products derived    */
-/*      from this software without specific prior written permission.      */
-/*                                                                         */
-/* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS     */
-/* `AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT      */
-/* LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR   */
-/* A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE CALDERA      */
-/* SYSTEMS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, */
-/* SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT        */
-/* LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE,  */
-/* DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON       */
-/* ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT */
-/* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE   */
-/* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.    */
-/*                                                                         */
-/***************************************************************************/
+/*-------------------------------------------------------------------------
+ * Copyright (C) 2000 Caldera Systems, Inc
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ *    Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ *
+ *    Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ *    Neither the name of Caldera Systems nor the names of its
+ *    contributors may be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * `AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE CALDERA
+ * SYSTEMS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *-------------------------------------------------------------------------*/
 
+/** Processes incoming SLPv1 messages
+ *
+ * @file       slpd_v1process.c
+ * @author     Matthew Peterson, Ganesan Rajagopal, 
+ *             John Calcote (jcalcote@novell.com)
+ * @attention  Please submit patches to http://www.openslp.org
+ * @ingroup    SlpdCode
+ */
 
-/*=========================================================================*/
-/* slpd includes                                                           */
-/*=========================================================================*/
 #include "slpd_process.h"
 #include "slpd_property.h"
 #include "slpd_database.h"
 #include "slpd_knownda.h"
 #include "slpd_log.h"
 
-
-/*=========================================================================*/
-/* common code includes                                                    */
-/*=========================================================================*/
 #include "slp_xmalloc.h"
 #include "slp_message.h"
 #include "slp_v1message.h"
@@ -69,14 +54,23 @@
 
 #include <limits.h>
 
-
-/*-------------------------------------------------------------------------*/
+/** Process an SLPv1 DA Service Request.
+ *
+ * @param[in] peeraddr - The address of the remote client.
+ * @param[in] localaddr - The locally bound address for this message.
+ * @param[in] message - The SRV request message.
+ * @param[out] sendbuf - The response buffer to be sent back to the client.
+ * @param[in] errorcode - The error code from the client request. 
+ *
+ * @return Zero on success, or a non-zero value on failure.
+ *
+ * @internal
+ */
 int v1ProcessDASrvRqst(struct sockaddr_storage* peeraddr,
                        struct sockaddr_storage* localaddr,
                        SLPMessage message,
                        SLPBuffer* sendbuf,
                        int errorcode)
-/*-------------------------------------------------------------------------*/
 {
     if (message->body.srvrqst.scopelistlen == 0 ||
         SLPIntersectStringList(message->body.srvrqst.scopelistlen,
@@ -110,14 +104,15 @@ int v1ProcessDASrvRqst(struct sockaddr_storage* peeraddr,
     return errorcode;
 }
 
-
-/*-------------------------------------------------------------------------*/
+/** Process an SLPv1 general Service Request.
+ *
+ * @internal
+ */
 int v1ProcessSrvRqst(struct sockaddr_storage* peeraddr,
                      struct sockaddr_storage* localaddr,
                      SLPMessage message,
                      SLPBuffer* sendbuf,
                      int errorcode)
-/*-------------------------------------------------------------------------*/
 {
     int                         i;
     int                         urllen;
@@ -280,15 +275,23 @@ int v1ProcessSrvRqst(struct sockaddr_storage* peeraddr,
     return errorcode;
 }
 
-/*-------------------------------------------------------------------------*/
+/** Process an SLPv1 general Service Registration.
+ *
+ * @param[in] peeraddr - The remote address of the client.
+ * @param[in] message - The client message object.
+ * @param[in] recvbuf - The client message receive buffer.
+ * @param[in] sendbuf - The server response send buffer.
+ * @param[in] errorcode - The error code from the client message.
+ *
+ * @return Non-zero if message should be silently dropped.
+ *
+ * @internal
+ */
 int v1ProcessSrvReg(struct sockaddr_storage* peeraddr,
                     SLPMessage message,
                     SLPBuffer recvbuf,
                     SLPBuffer* sendbuf,
                     int errorcode)
-/*                                                                         */
-/* Returns: non-zero if message should be silently dropped                 */
-/*-------------------------------------------------------------------------*/
 {
     SLPBuffer       result = *sendbuf;
 
@@ -379,15 +382,19 @@ int v1ProcessSrvReg(struct sockaddr_storage* peeraddr,
     return errorcode;
 }
 
-
-/*-------------------------------------------------------------------------*/
+/** Process an SLPv1 general Service Deregistration.
+ *
+ * @param[in] peeraddr - The remote client's address.
+ * @param[in] message - The inbound SrvDereg message.
+ * @param[out] sendbuf - The outbound reply buffer.
+ * @param[in] errorcode - The inbound request error code.
+ *
+ * @return Non-zero if message should be silently dropped.
+ */
 int v1ProcessSrvDeReg(struct sockaddr_storage* peeraddr,
                       SLPMessage message,
                       SLPBuffer* sendbuf,
                       int errorcode)
-/*                                                                         */
-/* Returns: non-zero if message should be silently dropped                 */
-/*-------------------------------------------------------------------------*/
 {
     SLPBuffer result = *sendbuf;
 
@@ -470,12 +477,19 @@ int v1ProcessSrvDeReg(struct sockaddr_storage* peeraddr,
     return errorcode;
 }
 
-/*-------------------------------------------------------------------------*/
+/** Process an SLPv1 Attribute Request message.
+ *
+ * @param[in] peeraddr - The remote client's address.
+ * @param[in] message - The inbound request message.
+ * @param[out] sendbuf - The outbound response buffer.
+ * @param[in] errorcode - The inbound request error code.
+ *
+ * @return Zero on success, or a non-zero value on failure.
+ */
 int v1ProcessAttrRqst(struct sockaddr_storage* peeraddr,
                       SLPMessage message,
                       SLPBuffer* sendbuf,
                       int errorcode)
-/*-------------------------------------------------------------------------*/
 {
     SLPDDatabaseAttrRqstResult* db              = 0;
     int                         attrlen     = 0;
@@ -607,13 +621,19 @@ int v1ProcessAttrRqst(struct sockaddr_storage* peeraddr,
     return errorcode;
 }        
 
-
-/*-------------------------------------------------------------------------*/
+/** Process an SLPv1 Service Type request message.
+ *
+ * @param[in] peeraddr - The remote client's address.
+ * @param[in] message - The inbound request message.
+ * @param[out] sendbuf - The outbound response buffer.
+ * @param[in] errorcode - The inbound request error code.
+ *
+ * @return Zero on success, or a non-zero value on failure.
+ */
 int v1ProcessSrvTypeRqst(struct sockaddr_storage* peeraddr,
                          SLPMessage message,
                          SLPBuffer* sendbuf,
                          int errorcode)
-/*-------------------------------------------------------------------------*/
 {
     char*                           type;
     char*                           end;
@@ -788,21 +808,21 @@ int v1ProcessSrvTypeRqst(struct sockaddr_storage* peeraddr,
     return errorcode;
 }
 
-/*=========================================================================*/
+/** Process an SLPv1 message.
+ *
+ * Process an SLPv1 message, and place the results in an outbound
+ * buffer object.
+ *
+ * @param[in] peeraddr - The remote client's address.
+ * @param[in] recvbuf  - The inbound message to process.
+ * @param[out] sendbuf - The outbound response buffer.
+ *
+ * @return Zero on success, or SLP_ERROR_PARSE_ERROR on general failure, 
+ *    or SLP_ERROR_INTERNAL_ERROR under out-of-memory conditions.
+ */
 int SLPDv1ProcessMessage(struct sockaddr_storage* peeraddr,
                          SLPBuffer recvbuf,
                          SLPBuffer* sendbuf)
-/* Processes the SLPv1 message and places the results in sendbuf           */
-/*                                                                         */
-/* peeraddr - the socket the message was received on                       */
-/*                                                                         */
-/* recvbuf  - message to process                                           */
-/*                                                                         */
-/* sendbuf  - results of the processed message                             */
-/*                                                                         */
-/* Returns  - zero on success SLP_ERROR_PARSE_ERROR or                     */
-/*            SLP_ERROR_INTERNAL_ERROR on ENOMEM.                          */
-/*=========================================================================*/
 {
     SLPHeader   header;
     SLPMessage  message;
@@ -908,3 +928,5 @@ int SLPDv1ProcessMessage(struct sockaddr_storage* peeraddr,
 
     return errorcode;
 }                
+
+/*=========================================================================*/

@@ -1,56 +1,43 @@
-/***************************************************************************/
-/*                                                                         */
-/* Project:     OpenSLP - OpenSource implementation of Service Location    */
-/*              Protocol Version 2                                         */
-/*                                                                         */
-/* File:        slpd_log.c                                                 */
-/*                                                                         */
-/* Abstract:    slpd logging functions                                     */
-/*                                                                         */
-/* WARNING:     NOT thread safe!                                           */
-/*                                                                         */
-/*-------------------------------------------------------------------------*/
-/*                                                                         */
-/*     Please submit patches to http://www.openslp.org                     */
-/*                                                                         */
-/*-------------------------------------------------------------------------*/
-/*                                                                         */
-/* Copyright (C) 2000 Caldera Systems, Inc                                 */
-/* All rights reserved.                                                    */
-/*                                                                         */
-/* Redistribution and use in source and binary forms, with or without      */
-/* modification, are permitted provided that the following conditions are  */
-/* met:                                                                    */ 
-/*                                                                         */
-/*      Redistributions of source code must retain the above copyright     */
-/*      notice, this list of conditions and the following disclaimer.      */
-/*                                                                         */
-/*      Redistributions in binary form must reproduce the above copyright  */
-/*      notice, this list of conditions and the following disclaimer in    */
-/*      the documentation and/or other materials provided with the         */
-/*      distribution.                                                      */
-/*                                                                         */
-/*      Neither the name of Caldera Systems nor the names of its           */
-/*      contributors may be used to endorse or promote products derived    */
-/*      from this software without specific prior written permission.      */
-/*                                                                         */
-/* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS     */
-/* `AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT      */
-/* LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR   */
-/* A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE CALDERA      */
-/* SYSTEMS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, */
-/* SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT        */
-/* LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE,  */
-/* DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON       */
-/* ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT */
-/* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE   */
-/* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.    */
-/*                                                                         */
-/***************************************************************************/
+/*-------------------------------------------------------------------------
+ * Copyright (C) 2000 Caldera Systems, Inc
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ *    Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ *
+ *    Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ *    Neither the name of Caldera Systems nor the names of its
+ *    contributors may be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * `AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE CALDERA
+ * SYSTEMS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *-------------------------------------------------------------------------*/
 
-/*=========================================================================*/
-/* slpd includes                                                           */
-/*=========================================================================*/
+/** Logging functions.
+ *
+ * @file       slpd_log.c
+ * @author     Matthew Peterson, John Calcote (jcalcote@novell.com)
+ * @attention  Please submit patches to http://www.openslp.org
+ * @ingroup    SlpdCode
+ */
+
 #include "slpd_log.h"
 #include "slpd_property.h"
 
@@ -62,22 +49,19 @@
 /* TODO: Make these functions thread safe!! */
 /********************************************/
 
-/*=========================================================================*/
-static FILE*   G_SlpdLogFile    = 0;
-/*=========================================================================*/
+static FILE * G_SlpdLogFile = 0;
+/*!< The internal log file object.
+ */
 
-
-/*=========================================================================*/
+/** Prepares the file at the specified path as the log file.
+ *
+ * @param[in] path - The path to the log file. If path is the empty
+ *    string (""), then we log to stdout.
+ * @param[in] append - If zero log file will be truncated.
+ *
+ * @return Zero on success, or a non-zero value on failure with errno set.
+ */
 int SLPDLogFileOpen(const char* path, int append)                           
-/* Prepares the file at the specified path as the log file.                */
-/*                                                                         */
-/* path     - (IN) the path to the log file. If path is the empty string   */
-/*            (""), then we log to stdout.                                 */
-/*                                                                         */
-/* append   - (IN) if zero log file will be truncated.                     */
-/*                                                                         */
-/* Returns  - zero on success. errno on failure.                           */
-/*=========================================================================*/
 {
     if (G_SlpdLogFile)
     {
@@ -119,10 +103,11 @@ int SLPDLogFileOpen(const char* path, int append)
 }
 
 #ifdef DEBUG
-/*=========================================================================*/
+/** Releases resources associated with the log file.
+ *
+ * @return Zero - always.
+ */
 int SLPDLogFileClose()
-/* Releases resources associated with the log file                         */
-/*=========================================================================*/
 {
     fclose(G_SlpdLogFile);
 
@@ -130,11 +115,14 @@ int SLPDLogFileClose()
 }
 #endif
 
-
-/*=========================================================================*/
+/** Logs a message.
+ *
+ * @param[in] msg - The message to log.
+ * 
+ * @note This is a variadic function. The number and types of actual 
+ *    parameters is determined by the string contents of @p msg.
+ */
 void SLPDLog(const char* msg, ...)
-/* Logs a message                                                          */
-/*=========================================================================*/
 {
     va_list ap;
 
@@ -147,10 +135,14 @@ void SLPDLog(const char* msg, ...)
     }
 }
 
-/*=========================================================================*/
+/** Logs a message and halts the process.
+ *
+ * @param[in] msg - The message to log.
+ * 
+ * @note This is a variadic function. The number and types of actual 
+ *    parameters is determined by the string contents of @p msg.
+ */
 void SLPDFatal(const char* msg, ...)
-/* Logs a message and halts the process                                    */
-/*=========================================================================*/
 {
     va_list ap;
 
@@ -173,10 +165,13 @@ void SLPDFatal(const char* msg, ...)
     exit(1);
 }
 
-/*=========================================================================*/
+/** Writes a buffer to the log file.
+ *
+ * @param[in] prefix - The prefix string to write before @p buf.
+ * @param[in] bufsize - The size of @p buf in bytes.
+ * @param[in] buf - A pointer to the buffer to write.
+ */
 void SLPDLogBuffer(const char* prefix, int bufsize, const char* buf)
-/* Writes a buffer to the logfile                                          */
-/*=========================================================================*/
 {
     if (G_SlpdLogFile)
     {
@@ -187,21 +182,21 @@ void SLPDLogBuffer(const char* prefix, int bufsize, const char* buf)
     }
 }
 
-
-
-/*=========================================================================*/
+/** Logs the current time and date to the log file.
+ */
 void SLPDLogTime()
-/* Logs a timestamp                                                        */
-/*=========================================================================*/
 {
     time_t curtime = time(NULL);
     SLPDLog("%s",ctime(&curtime)); 
 }
 
-
-/*-------------------------------------------------------------------------*/
+/** Logs information about a SrvRequest message to the log file.
+ *
+ * @param[in] srvrqst - The message to log.
+ *
+ * @internal
+ */
 void SLPDLogSrvRqstMessage(SLPSrvRqst* srvrqst)
-/*-------------------------------------------------------------------------*/
 {
     SLPDLog("Message SRVRQST:\n");
     SLPDLogBuffer("   srvtype = ", srvrqst->srvtypelen, srvrqst->srvtype);
@@ -209,17 +204,25 @@ void SLPDLogSrvRqstMessage(SLPSrvRqst* srvrqst)
     SLPDLogBuffer("   predicate = ", srvrqst->predicatelen, srvrqst->predicate);
 }
 
-/*-------------------------------------------------------------------------*/
+/** Logs information about a SrvReply message to the log file.
+ *
+ * @param[in] srvrply - The message to log.
+ *
+ * @internal
+ */
 void SLPDLogSrvRplyMessage(SLPSrvRply* srvrply)
-/*-------------------------------------------------------------------------*/
 {
     SLPDLog("Message SRVRPLY:\n");
     SLPDLog("   errorcode = %i\n",srvrply->errorcode);
 }
 
-/*-------------------------------------------------------------------------*/
+/** Logs information about a SrvReg message to the log file.
+ *
+ * @param[in] srvreg - The message to log.
+ *
+ * @internal
+ */
 void SLPDLogSrvRegMessage(SLPSrvReg* srvreg)
-/*-------------------------------------------------------------------------*/
 {
     SLPDLog("Message SRVREG:\n");
     SLPDLogBuffer("   srvtype = ", srvreg->srvtypelen, srvreg->srvtype);
@@ -228,43 +231,63 @@ void SLPDLogSrvRegMessage(SLPSrvReg* srvreg)
     SLPDLogBuffer("   attributes = ", srvreg->attrlistlen, srvreg->attrlist);
 }
 
-/*-------------------------------------------------------------------------*/
+/** Logs information about a SrvDereg message to the log file.
+ *
+ * @param[in] srvdereg - The message to log.
+ *
+ * @internal
+ */
 void SLPDLogSrvDeRegMessage(SLPSrvDeReg* srvdereg)
-/*-------------------------------------------------------------------------*/
 {
     SLPDLog("Message SRVDEREG:\n");
     SLPDLogBuffer("   scope = ", srvdereg->scopelistlen, srvdereg->scopelist);
     SLPDLogBuffer("   url = ", srvdereg->urlentry.urllen, srvdereg->urlentry.url);
 }
 
-/*-------------------------------------------------------------------------*/
+/** Logs information about a SrvAck message to the log file.
+ *
+ * @param[in] srvack - The message to log.
+ *
+ * @internal
+ */
 void SLPDLogSrvAckMessage(SLPSrvAck* srvack)
-/*-------------------------------------------------------------------------*/
 {
     SLPDLog("Message SRVACK:\n");
     SLPDLog("   errorcode = %i\n",srvack->errorcode);
 }
 
-/*-------------------------------------------------------------------------*/
+/** Logs information about an AttrReq message to the log file.
+ *
+ * @param[in] attrrqst - The message to log.
+ *
+ * @internal
+ */
 void SLPDLogAttrRqstMessage(SLPAttrRqst* attrrqst)
-/*-------------------------------------------------------------------------*/
 {
     SLPDLog("Message ATTRRQST:\n");
     SLPDLogBuffer("   scope = ", attrrqst->scopelistlen, attrrqst->scopelist);
     SLPDLogBuffer("   url = ", attrrqst->urllen, attrrqst->url);
 }
 
-/*-------------------------------------------------------------------------*/
+/** Logs information about an AttrReply message to the log file.
+ *
+ * @param[in] attrrply - The message to log.
+ *
+ * @internal
+ */
 void SLPDLogAttrRplyMessage(SLPAttrRply* attrrply)
-/*-------------------------------------------------------------------------*/
 {
     SLPDLog("Message ATTRRPLY:\n");
     SLPDLog("   errorcode = %i\n",attrrply->errorcode);
 } 
 
-/*-------------------------------------------------------------------------*/
+/** Logs information about a DAAdvert message to the log file.
+ *
+ * @param[in] daadvert - The message to log.
+ *
+ * @internal
+ */
 void SLPDLogDAAdvertMessage(SLPDAAdvert* daadvert)
-/*-------------------------------------------------------------------------*/
 {
     SLPDLog("Message DAADVERT:\n");
     SLPDLogBuffer("   scope = ", daadvert->scopelistlen, daadvert->scopelist);
@@ -272,26 +295,38 @@ void SLPDLogDAAdvertMessage(SLPDAAdvert* daadvert)
     SLPDLogBuffer("   attributes = ", daadvert->attrlistlen, daadvert->attrlist);
 }
 
-/*-------------------------------------------------------------------------*/
+/** Logs information about a SrvTypeReq message to the log file.
+ *
+ * @param[in] srvtyperqst - The message to log.
+ *
+ * @internal
+ */
 void SLPDLogSrvTypeRqstMessage(SLPSrvTypeRqst* srvtyperqst)
-/*-------------------------------------------------------------------------*/
 {
     SLPDLog("Message SRVTYPERQST:\n");
     SLPDLogBuffer("   namingauth = ", srvtyperqst->namingauthlen, srvtyperqst->namingauth);
     SLPDLogBuffer("   scope = ", srvtyperqst->scopelistlen, srvtyperqst->scopelist);
 }
 
-/*-------------------------------------------------------------------------*/
+/** Logs information about a SrvTypeReply message to the log file.
+ *
+ * @param[in] srvtyperply - The message to log.
+ *
+ * @internal
+ */
 void SLPDLogSrvTypeRplyMessage(SLPSrvTypeRply* srvtyperply)
-/*-------------------------------------------------------------------------*/ 
 {
     SLPDLog("Message SRVTYPERPLY:\n");
     SLPDLog("   errorcode = %i\n",srvtyperply->errorcode);
 }        
 
-/*-------------------------------------------------------------------------*/
+/** Logs information about an SAAdvert message to the log file.
+ *
+ * @param[in] saadvert - The message to log.
+ *
+ * @internal
+ */
 void SLPDLogSAAdvertMessage(SLPSAAdvert* saadvert)
-/*-------------------------------------------------------------------------*/
 {
     SLPDLog("Message SAADVERT:\n");
     SLPDLogBuffer("   scope = ", saadvert->scopelistlen, saadvert->scopelist);
@@ -299,19 +334,24 @@ void SLPDLogSAAdvertMessage(SLPSAAdvert* saadvert)
     SLPDLogBuffer("   attributes = ", saadvert->attrlistlen, saadvert->attrlist);
 }
 
-
-/*-------------------------------------------------------------------------*/
+/** Logs a peer address to the log file.
+ *
+ * @param[in] peeraddr - The address to write.
+ *
+ * @internal
+ */
 void SLPDLogPeerAddr(struct sockaddr_storage* peeraddr)
-/*-------------------------------------------------------------------------*/
 {
     char    addr_str[INET6_ADDRSTRLEN];
 
     SLPDLog("Peer IP address: %s\n", SLPNetSockAddrStorageToString(peeraddr, addr_str, sizeof(addr_str)));
 }
 
-/*=========================================================================*/
+/** Logs common message information to the log file.
+ *
+ * @param[in] message - The message to log.
+ */
 void SLPDLogMessageInternals(SLPMessage message)
-/*=========================================================================*/
 {
     char    addr_str[INET6_ADDRSTRLEN];
 
@@ -379,24 +419,19 @@ void SLPDLogMessageInternals(SLPMessage message)
     }
 }
 
-/*=========================================================================*/
+/** Log record of receiving or sending an SLP message.
+ *
+ * @param[in] msglogflags - The type of message to log.
+ * @param[in] peerinfo - The source or destination peer.
+ * @param[in] localaddr - The locally bound address.
+ * @param[in] buf - The message data buffer to be logged.
+ *
+ * @note Logging will only occur if message logging is enabled.
+ */
 void SLPDLogMessage(int msglogflags,
                     struct sockaddr_storage* peerinfo,
                     struct sockaddr_storage* localaddr,
                     SLPBuffer buf)
-/* Log record of receiving or sending an SLP Message.  Logging will only   */
-/* occur if message logging is enabled G_SlpProperty.traceMsg != 0         */
-/*                                                                         */
-/* msglogflags   (IN) What type of message to log                          */
-/*                                                                         */
-/* peerinfo (IN) the source or destination peer                            */
-/*                                                                         */
-/* peerinfo (IN) the local address                                         */
-/*                                                                         */
-/* msg      (IN) the message to log                                        */
-/*                                                                         */
-/* Returns: none                                                           */
-/*=========================================================================*/
 {
     SLPMessage msg;
     char addr_str[INET6_ADDRSTRLEN];
@@ -454,19 +489,15 @@ void SLPDLogMessage(int msglogflags,
     }
 }
 
-
-/*=========================================================================*/
+/** Log record of having added a registration to the database.  
+ *
+ * @param[in] prefix - An informative prefix for the log entry.
+ * @param[in] entry - The database entry that was affected.
+ *
+ * @note Logging of registraions will only occur if registration trace 
+ *    is enabled.
+ */
 void SLPDLogRegistration(const char* prefix, SLPDatabaseEntry* entry)
-/* Log record of having added a registration to the database.  Logging of  */
-/* registraions will only occur if registration trace is enabled           */
-/* G_SlpProperty.traceReg != 0                                             */
-/*                                                                         */
-/* prefix   (IN) an informative prefix for the log entry                   */
-/*                                                                         */
-/* entry    (IN) the database entry that was affected                      */
-/*                                                                         */
-/* Returns: none                                                           */
-/*=========================================================================*/
 {
     char    addr_str[INET6_ADDRSTRLEN];
 
@@ -509,19 +540,16 @@ void SLPDLogRegistration(const char* prefix, SLPDatabaseEntry* entry)
     }
 }
 
-/*=========================================================================*/
+/** Log record of addition or removal of a DA to the store of known DAs.
+ *
+ * @param[in] prefix - An informative prefix for the log entry.
+ * @param[in] entry - The database entry that was affected.
+ *
+ * @note Logging of DA modifications will only occur if DA Advertisment 
+ *    message logging is enabled.
+ */
 void SLPDLogDAAdvertisement(const char* prefix,
                             SLPDatabaseEntry* entry)
-/* Log record of addition or removal of a DA to the store of known DAs.    */
-/* Will only occur if DA Advertisment message logging is enabled           */
-/* G_SlpProperty.traceDATraffic != 0                                       */
-/*                                                                         */
-/* prefix   (IN) an informative prefix for the log entry                   */
-/*                                                                         */
-/* entry    (IN) the database entry that was affected                      */
-/*                                                                         */
-/* Returns: none                                                           */
-/*=========================================================================*/
 {
     char    addr_str[INET6_ADDRSTRLEN];
 
@@ -555,10 +583,12 @@ void SLPDLogDAAdvertisement(const char* prefix,
     }
 }
 
-/*=========================================================================*/
+/** Log a parse warning and dump the invalid message.
+ *
+ * @param[in] peeraddr - The remote address of the message sender.
+ * @param[in] buf - The message buffer with the parse problem.
+ */
 void SLPDLogParseWarning(struct sockaddr_storage* peeraddr, SLPBuffer buf)
-/* Log a parsing error warning and dumps the invalid message.              */
-/*=========================================================================*/  
 {
     unsigned char* curpos;
     int i = 0;
@@ -597,3 +627,5 @@ void SLPDLogParseWarning(struct sockaddr_storage* peeraddr, SLPBuffer buf)
     }    
     SLPDLog("\n");
 }
+
+/*=========================================================================*/

@@ -1,69 +1,63 @@
-/***************************************************************************/
-/*                                                                         */
-/* Project:     OpenSLP - OpenSource implementation of Service Location    */
-/*              Protocol Version 2                                         */
-/*                                                                         */
-/* File:        slplib_parse.c                                             */
-/*                                                                         */
-/* Abstract:    Implementation for SLPParseSrvUrl(), SLPEscape(),          */
-/*              SLPUnescape() and SLPFree() calls.                         */
-/*                                                                         */
-/*-------------------------------------------------------------------------*/
-/*                                                                         */
-/*     Please submit patches to http://www.openslp.org                     */
-/*                                                                         */
-/*-------------------------------------------------------------------------*/
-/*                                                                         */
-/* Copyright (C) 2000 Caldera Systems, Inc                                 */
-/* All rights reserved.                                                    */
-/*                                                                         */
-/* Redistribution and use in source and binary forms, with or without      */
-/* modification, are permitted provided that the following conditions are  */
-/* met:                                                                    */ 
-/*                                                                         */
-/*      Redistributions of source code must retain the above copyright     */
-/*      notice, this list of conditions and the following disclaimer.      */
-/*                                                                         */
-/*      Redistributions in binary form must reproduce the above copyright  */
-/*      notice, this list of conditions and the following disclaimer in    */
-/*      the documentation and/or other materials provided with the         */
-/*      distribution.                                                      */
-/*                                                                         */
-/*      Neither the name of Caldera Systems nor the names of its           */
-/*      contributors may be used to endorse or promote products derived    */
-/*      from this software without specific prior written permission.      */
-/*                                                                         */
-/* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS     */
-/* `AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT      */
-/* LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR   */
-/* A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE CALDERA      */
-/* SYSTEMS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, */
-/* SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT        */
-/* LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE,  */
-/* DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON       */
-/* ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT */
-/* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE   */
-/* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.    */
-/*                                                                         */
-/***************************************************************************/
+/*-------------------------------------------------------------------------
+ * Copyright (C) 2000 Caldera Systems, Inc
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ *    Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ *
+ *    Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ *    Neither the name of Caldera Systems nor the names of its
+ *    contributors may be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * `AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE CALDERA
+ * SYSTEMS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *-------------------------------------------------------------------------*/
+
+/** Parse URL.
+ *
+ * Implementation for SLPParseSrvUrl(), SLPEscape(), SLPUnescape() and 
+ * SLPFree() calls.
+ *
+ * @file       libslp_parse.c
+ * @author     Matthew Peterson, John Calcote (jcalcote@novell.com)
+ * @attention  Please submit patches to http://www.openslp.org
+ * @ingroup    LibSLPCode
+ */
 
 #include "slp.h"
 #include "libslp.h"
 
 #ifdef _WIN32 /* on Win32 strncasecmp is named strnicmp, but behaves the same */
-    #define strncasecmp(String1, String2, Num) strnicmp(String1, String2, Num)
+# define strncasecmp(String1, String2, Num) strnicmp(String1, String2, Num)
 #endif
 
-/*=========================================================================*/
+/** Free a block of memory acquired through the OpenSLP interface.
+ *
+ * Frees memory returned from SLPParseSrvURL, SLPFindScopes, SLPEscape, 
+ * and SLPUnescape.
+ *
+ * @param[in] pvMem - A pointer to the storage allocated by the 
+ *    SLPParseSrvURL, SLPEscape, SLPUnescape, or SLPFindScopes functions.
+ *    Ignored if NULL.
+ */
 void SLPAPI SLPFree(void* pvMem)                                                  
-/*                                                                         */
-/* Frees memory returned from SLPParseSrvURL(), SLPFindScopes(),           */
-/* SLPEscape(), and SLPUnescape().                                         */
-/*                                                                         */
-/* pvMem    A pointer to the storage allocated by the SLPParseSrvURL(),    */
-/*          SLPEscape(), SLPUnescape(), or SLPFindScopes() function.       */
-/*          Ignored if NULL.                                               */
-/*=========================================================================*/
 {
     if(pvMem)
     {
@@ -71,33 +65,35 @@ void SLPAPI SLPFree(void* pvMem)
     }
 }
 
-/*=========================================================================*/
+/** Parse a service URL into constituent parts.
+ *
+ * Parses the URL passed in as the argument into a service URL structure
+ * and returns it in the ppSrvURL pointer. If a parse error occurs,
+ * returns SLP_PARSE_ERROR. The input buffer pcSrvURL is destructively
+ * modified during the parse and used to fill in the fields of the
+ * return structure. The structure returned in ppSrvURL should be freed
+ * with SLPFreeURL. If the URL has no service part, the s_pcSrvPart
+ * string is the empty string, "", i.e. not NULL. If pcSrvURL is not a
+ * service: URL, then the s_pcSrvType field in the returned data
+ * structure is the URL's scheme, which might not be the same as the
+ * service type under which the URL was registered. If the transport is
+ * IP, the s_pcTransport field is the empty string. If the transport is
+ * not IP or there is no port number, the s_iPort field is zero.
+ *
+ * @param[in] pcSrvURL - A pointer to a character buffer containing the 
+ *    null terminated URL string to parse. Note that RFC 2614 makes this 
+ *    parameter non-const, and the routine destructive, but this is 
+ *    unecessary from an API perspective, as the memory for the output 
+ *    parameter is allocated.
+ * @param[in] ppSrvURL - A pointer to a pointer for the SLPSrvURL structure 
+ *    to receive the parsed URL. The memory should be freed by a call to
+ *    SLPFree when no longer needed.
+ *
+ * @return If no error occurs, the return value is SLP_OK. Otherwise, the
+ *    appropriate error code is returned.
+ */
 SLPError SLPAPI SLPParseSrvURL(const char *pcSrvURL,
                         SLPSrvURL** ppSrvURL)
-/*                                                                         */
-/* Parses the URL passed in as the argument into a service URL structure   */
-/* and returns it in the ppSrvURL pointer.  If a parse error occurs,       */
-/* returns SLP_PARSE_ERROR. The input buffer pcSrvURL is destructively     */
-/* modified during the parse and used to fill in the fields of the         */
-/* return structure.  The structure returned in ppSrvURL should be freed   */
-/* with SLPFreeURL().  If the URL has no service part, the s_pcSrvPart     */
-/* string is the empty string, "", i.e.  not NULL. If pcSrvURL is not a    */
-/* service:  URL, then the s_pcSrvType field in the returned data          */
-/* structure is the URL's scheme, which might not be the same as the       */
-/* service type under which the URL was registered.  If the transport is   */
-/* IP, the s_pcTransport field is the empty string.  If the transport is   */
-/* not IP or there is no port number, the s_iPort field is zero.           */
-/*                                                                         */
-/* pcSrvURL A pointer to a character buffer containing the null terminated */
-/*          URL string to parse.                                           */
-/*                                                                         */
-/* ppSrvURL A pointer to a pointer for the SLPSrvURL structure to receive  */
-/*          the parsed URL. The memory should be freed by a call to        */
-/*          SLPFree() when no longer needed.                               */
-/*                                                                         */
-/* Returns: If no error occurs, the return value is SLP_OK. Otherwise, the */
-/*          appropriate error code is returned.                            */
-/*=========================================================================*/
 {
     int result = SLPParseSrvUrl(strlen(pcSrvURL),
                                 pcSrvURL,
@@ -113,37 +109,36 @@ SLPError SLPAPI SLPParseSrvURL(const char *pcSrvURL,
     return SLP_OK;
 }
 
-#define ATTRIBUTE_RESERVE_STRING	"(),\\!<=>~"
-#define ATTRIBUTE_BAD_TAG			"\r\n\t_"
-#define ESCAPE_CHARACTER			'\\'
-#define ESCAPE_CHARACTER_STRING		"\\"
-/*=========================================================================*/
+#define ATTRIBUTE_RESERVE_STRING "(),\\!<=>~"
+#define ATTRIBUTE_BAD_TAG        "\r\n\t_"
+#define ESCAPE_CHARACTER         '\\'
+#define ESCAPE_CHARACTER_STRING  "\\"
+
+/** Escape an SLP string.
+ *
+ * Process the input string in pcInbuf and escape any SLP reserved
+ * characters. If the isTag parameter is SLPTrue, then look for bad tag
+ * characters and signal an error if any are found by returning the
+ * SLP_PARSE_ERROR code. The results are put into a buffer allocated by
+ * the API library and returned in the ppcOutBuf parameter. This buffer
+ * should be deallocated using SLPFree when the memory is no longer
+ * needed.
+ *
+ * @param[in] pcInbuf - Pointer to he input buffer to process for escape 
+ *    characters.
+ * @param[out] ppcOutBuf - Pointer to a pointer for the output buffer with 
+ *    the SLP reserved characters escaped. Must be freed using SLPFree
+ *    when the memory is no longer needed.
+ * @param[in] isTag - When true, the input buffer is checked for bad tag 
+ *    characters.
+ *
+ * @return Return SLP_PARSE_ERROR if any characters are bad tag characters 
+ *    and the isTag flag is true, otherwise SLP_OK, or the appropriate error
+ *    code if another error occurs.
+ */
 SLPError SLPAPI SLPEscape(const char* pcInbuf,
                    char** ppcOutBuf,
                    SLPBoolean isTag)
-/*                                                                         */
-/* Process the input string in pcInbuf and escape any SLP reserved         */
-/* characters.  If the isTag parameter is SLPTrue, then look for bad tag   */
-/* characters and signal an error if any are found by returning the        */
-/* SLP_PARSE_ERROR code.  The results are put into a buffer allocated by   */
-/* the API library and returned in the ppcOutBuf parameter.  This buffer   */
-/* should be deallocated using SLPFree() when the memory is no longer      */
-/* needed.                                                                 */
-/*                                                                         */
-/* pcInbuf      Pointer to he input buffer to process for escape           */
-/*              characters.                                                */
-/*                                                                         */
-/* ppcOutBuf    Pointer to a pointer for the output buffer with the SLP    */
-/*              reserved characters escaped.  Must be freed using          */
-/*              SLPFree()when the memory is no longer needed.              */ 
-/*                                                                         */
-/* isTag        When true, the input buffer is checked for bad tag         */
-/*              characters.                                                */
-/*                                                                         */
-/* Returns:     Return SLP_PARSE_ERROR if any characters are bad tag       */
-/*              characters and the isTag flag is true, otherwise SLP_OK,   */
-/*              or the appropriate error code if another error occurs.     */
-/*=========================================================================*/
 {
     char        *current_inbuf, *current_outBuf;
     int         amount_of_escape_characters;
@@ -231,34 +226,32 @@ SLPError SLPAPI SLPEscape(const char* pcInbuf,
     return(SLP_OK);
 }
 
-/*=========================================================================*/
+/** Unescape an SLP string.
+ *
+ * Process the input string in pcInbuf and unescape any SLP reserved
+ * characters.  If the isTag parameter is SLPTrue, then look for bad tag
+ * characters and signal an error if any are found with the
+ * SLP_PARSE_ERROR code.  No transformation is performed if the input
+ * string is an opaque.  The results are put into a buffer allocated by
+ * the API library and returned in the ppcOutBuf parameter.  This buffer
+ * should be deallocated using SLPFree() when the memory is no longer
+ * needed.
+ *
+ * @param[in] pcInbuf - Pointer to he input buffer to process for escape 
+ *    characters.
+ * @param[out] ppcOutBuf - Pointer to a pointer for the output buffer with 
+ *    the SLP reserved characters escaped. Must be freed using SLPFree
+ *    when the memory is no longer needed.
+ * @param[in] isTag - When true, the input buffer is checked for bad tag 
+ *    characters.
+ *
+ * @return Return SLP_PARSE_ERROR if any characters are bad tag characters 
+ *    and the isTag flag is true, otherwise SLP_OK, or the appropriate 
+ *    error code if another error occurs.
+ */
 SLPError SLPAPI SLPUnescape(const char* pcInbuf,
                      char** ppcOutBuf,
                      SLPBoolean isTag)
-/*                                                                         */
-/* Process the input string in pcInbuf and unescape any SLP reserved       */
-/* characters.  If the isTag parameter is SLPTrue, then look for bad tag   */
-/* characters and signal an error if any are found with the                */
-/* SLP_PARSE_ERROR code.  No transformation is performed if the input      */
-/* string is an opaque.  The results are put into a buffer allocated by    */
-/* the API library and returned in the ppcOutBuf parameter.  This buffer   */
-/* should be deallocated using SLPFree() when the memory is no longer      */
-/* needed.                                                                 */
-/*                                                                         */
-/* pcInbuf      Pointer to he input buffer to process for escape           */
-/*              characters.                                                */
-/*                                                                         */
-/* ppcOutBuf    Pointer to a pointer for the output buffer with the SLP    */
-/*              reserved characters escaped.  Must be freed using          */
-/*              SLPFree() when the memory is no longer needed.             */
-/*                                                                         */
-/* isTag        When true, the input buffer is checked for bad tag         */
-/*              characters.                                                */
-/*                                                                         */
-/* Returns:     Return SLP_PARSE_ERROR if any characters are bad tag       */
-/*              characters and the isTag flag is true, otherwise SLP_OK,   */
-/*              or the appropriate error code if another error occurs.     */
-/*=========================================================================*/
 {
     int     output_buffer_size;
     char    *current_Inbuf, *current_OutBuf;
@@ -340,29 +333,26 @@ SLPError SLPAPI SLPUnescape(const char* pcInbuf,
     return(SLP_OK);
 }
 
-
-/*=========================================================================*/
+/** Parse an SLP attribute buffer.
+ *
+ * Used to get individual attribute values from an attribute string that
+ * is passed to the SLPAttrCallback.
+ *
+ * @param[in] pcAttrList - A character buffer containing a comma separated, 
+ *    null terminated list of attribute id/value assignments, in SLP wire 
+ *    format; i.e. "(attr-id=attr-value-list)".
+ * @param[in] pcAttrId - The string indicating which attribute value to 
+ *    return. MUST not be null. MUST not be the empty string ("").
+ * @param[out] ppcAttrVal - A pointer to a pointer to the buffer to receive 
+ *    the attribute value. The memory should be freed by a call to SLPFree
+ *    when no longer needed.
+ *
+ * @return Returns SLP_PARSE_ERROR if an attribute of the specified id
+ *    was not found otherwise SLP_OK.
+ */
 SLPError SLPAPI SLPParseAttrs(const char* pcAttrList,
                        const char *pcAttrId,
                        char** ppcAttrVal)
-/*                                                                         */
-/* Used to get individual attribute values from an attribute string that   */
-/* is passed to the SLPAttrCallback                                        */
-/*                                                                         */
-/* pcAttrList (IN) A character buffer containing a comma separated, null   */
-/*                 terminated list of attribute id/value assignments, in   */
-/*                 SLP wire format; i.e.  "(attr-id=attr-value-list)"      */
-/*                                                                         */
-/* pcAttrId (IN)   The string indicating which attribute value to return.  */
-/*                 MUST not be null.  MUST not be the empty string ("").   */
-/*                                                                         */
-/* ppcAttrVal (IN) A pointer to a pointer to the buffer to receive         */
-/*                 attribute value.  The memory should be freed by a call  */
-/*                 to SLPFree() when no longer needed.                     */
-/*                                                                         */
-/* Returns: Returns SLP_PARSE_ERROR if an attribute of the specified id    */
-/*          was not found otherwise SLP_OK                                 */
-/*=========================================================================*/
 {
     const char* slider1;
     const char* slider2;
@@ -417,3 +407,5 @@ SLPError SLPAPI SLPParseAttrs(const char* pcAttrList,
     /* attrid does not exist */
     return SLP_PARSE_ERROR;
 }
+
+/*=========================================================================*/

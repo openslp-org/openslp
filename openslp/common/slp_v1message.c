@@ -1,116 +1,82 @@
-/***************************************************************************/
-/*                                                                         */
-/* Project:     OpenSLP - OpenSource implementation of Service Location    */
-/*              Protocol                                                   */
-/*                                                                         */
-/* File:        slp_v1message.c                                            */
-/*                                                                         */
-/* Abstract:    Source file specific to the SLPv1 wire protocol messages.  */
-/*                                                                         */
-/*-------------------------------------------------------------------------*/
-/*                                                                         */
-/* This program is free software; you can redistribute it and/or modify it */
-/* under the terms of the GNU Lesser General Public License as published   */
-/* by the Free Software Foundation; either version 2.1 of the License, or  */
-/* (at your option) any later version.                                     */
-/*                                                                         */
-/*     This program is distributed in the hope that it will be useful,     */
-/*     but WITHOUT ANY WARRANTY; without even the implied warranty of      */
-/*     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the       */
-/*     GNU Lesser General Public License for more details.                 */
-/*                                                                         */
-/*     You should have received a copy of the GNU Lesser General Public    */
-/*     License along with this program; see the file COPYING.  If not,     */
-/*     please obtain a copy from http://www.gnu.org/copyleft/lesser.html   */
-/*                                                                         */
-/*-------------------------------------------------------------------------*/
-/*                                                                         */
-/*     Please submit patches to http://www.openslp.org                     */
-/*                                                                         */
-/***************************************************************************/
+/*-------------------------------------------------------------------------
+ * Copyright (C) 2000 Caldera Systems, Inc
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ *    Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ *
+ *    Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ *    Neither the name of Caldera Systems nor the names of its
+ *    contributors may be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * `AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE CALDERA
+ * SYSTEMS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *-------------------------------------------------------------------------*/
+
+/** Header file that defines SLPv1 wire protocol message structures.
+ *
+ * This file contains buffer parsing routines specific to version 1 of 
+ * the SLP wire protocol.
+ *
+ * @note This file duplicates the parsing routines in slp_message.c. Even
+ * though the format of the messages are mostly identical, handling of
+ * the character encoding makes it enough of a problem to keep this
+ * code independent.
+ *
+ * @note Unicode handling is currently a hack. We assume that we have enough
+ * space the UTF-8 string in place instead of the unicode string. This
+ * assumption is not always correct 16-bit unicode encoding.
+ *
+ * @file       slp_v1message.c
+ * @author     Matthew Peterson, Ganesan Rajagopal, 
+ *             John Calcote (jcalcote@novell.com)
+ * @attention  Please submit patches to http://www.openslp.org
+ * @ingroup    CommonCode
+ */
 
 #include <string.h>
 #include <ctype.h>
 
 #ifndef _WIN32
-#include <stdlib.h>
-#include <sys/types.h>
-#include <netinet/in.h>
+# include <stdlib.h>
+# include <sys/types.h>
+# include <netinet/in.h>
 #endif
 
 #include "slp_v1message.h"
 #include "slp_utf8.h"
 #include "slp_compare.h"
 
-/* Implementation Note:
- * 
- * This file duplicates the parsing routines in slp_message.c. Even
- * though the format of the messages are mostly identical, handling of
- * the character encoding makes it enough of a problem to keep this
- * code independent.
+/** Parse an SLPv1 URL entry.
  *
- * Unicode handling is currently a hack. We assume that we have enough
- * space the UTF-8 string in place instead of the unicode string. This
- * assumption is not always correct 16-bit unicode encoding.
+ * @param[in] buffer - The buffer containing the data to be parsed.
+ * @param[in] encoding - The language encoding of the message.
+ * @param[out] urlentry - The URL entry object into which 
+ *    @p buffer should be parsed.
+ *
+ * @return Zero on success, SLP_ERROR_INTERNAL_ERROR (out of memory) or
+ *    SLP_ERROR_PARSE_ERROR.
+ *
+ * @internal
  */
-
-/*=========================================================================*/
-int SLPv1MessageParseHeader(SLPBuffer buffer, SLPHeader* header)
-/*                                                                         */
-/* Returns  - Zero on success, SLP_ERROR_VER_NOT_SUPPORTED, or             */
-/*            SLP_ERROR_PARSE_ERROR.                                       */
-/*=========================================================================*/
-{
-    header->version     = *(buffer->curpos);
-    header->functionid  = *(buffer->curpos + 1);
-	
-    header->length      = AsUINT16(buffer->curpos + 2);
-    header->flags       = *(buffer->curpos + 4);
-    header->encoding    = AsUINT16(buffer->curpos + 8);
-    header->extoffset   = 0; /* not used for SLPv1 */
-    header->xid         = AsUINT16(buffer->curpos + 10);
-    header->langtaglen  = 2;
-    header->langtag     = buffer->curpos + 6;
-
-    if(header->functionid > SLP_FUNCT_SRVTYPERQST)
-    {
-        /* invalid function id */
-        return SLP_ERROR_PARSE_ERROR;
-    }
-
-    if(header->encoding != SLP_CHAR_ASCII &&
-       header->encoding != SLP_CHAR_UTF8 &&
-       header->encoding != SLP_CHAR_UNICODE16 &&
-       header->encoding != SLP_CHAR_UNICODE32)
-    {
-        return SLP_ERROR_CHARSET_NOT_UNDERSTOOD;
-    }
-
-    if(header->length != buffer->end - buffer->start ||
-       header->length < 12)
-    {
-        /* invalid length 12 bytes is the smallest v1 message*/
-        return SLP_ERROR_PARSE_ERROR;
-    }
-
-    /* TODO - do something about the other flags */
-    if(header->flags & 0x07)
-    {
-        /* invalid flags */
-        return SLP_ERROR_PARSE_ERROR;
-    }
-
-    buffer->curpos += 12;
-
-    return 0;
-}
-
-/*--------------------------------------------------------------------------*/
 int v1ParseUrlEntry(SLPBuffer buffer, SLPHeader* header, SLPUrlEntry* urlentry)
-/*                                                                          */
-/* Returns  - Zero on success, SLP_ERROR_INTERNAL_ERROR (out of memory) or  */
-/*            SLP_ERROR_PARSE_ERROR.                                        */
-/*--------------------------------------------------------------------------*/
 {
     int result;
 
@@ -152,10 +118,19 @@ int v1ParseUrlEntry(SLPBuffer buffer, SLPHeader* header, SLPUrlEntry* urlentry)
     return 0;
 }
 
-
-/*--------------------------------------------------------------------------*/
+/** Parse an SLPv1 Service Request message.
+ *
+ * @param[in] buffer - The buffer containing the data to be parsed.
+ * @param[in] encoding - The language encoding of the message.
+ * @param[out] srvrqst - The service request object into which 
+ *    @p buffer should be parsed.
+ *
+ * @return Zero on success, SLP_ERROR_INTERNAL_ERROR (out of memory) or
+ *    SLP_ERROR_PARSE_ERROR.
+ *
+ * @internal
+ */
 int v1ParseSrvRqst(SLPBuffer buffer, SLPHeader* header, SLPSrvRqst* srvrqst)
-/*--------------------------------------------------------------------------*/
 {
     char *tmp;
     int result;
@@ -251,10 +226,19 @@ int v1ParseSrvRqst(SLPBuffer buffer, SLPHeader* header, SLPSrvRqst* srvrqst)
     return 0;
 }
 
-
-/*--------------------------------------------------------------------------*/
+/** Parse an SLPv1 Service Registration message.
+ *
+ * @param[in] buffer - The buffer containing the data to be parsed.
+ * @param[in] encoding - The language encoding of the message.
+ * @param[out] srvreg - The service registration object into which 
+ *    @p buffer should be parsed.
+ *
+ * @return Zero on success, SLP_ERROR_INTERNAL_ERROR (out of memory) or
+ *    SLP_ERROR_PARSE_ERROR.
+ *
+ * @internal
+ */
 int v1ParseSrvReg(SLPBuffer buffer, SLPHeader* header, SLPSrvReg* srvreg)
-/*--------------------------------------------------------------------------*/
 {
     char           *tmp;
     int             result;
@@ -316,10 +300,19 @@ int v1ParseSrvReg(SLPBuffer buffer, SLPHeader* header, SLPSrvReg* srvreg)
     return 0;
 }
 
-
-/*--------------------------------------------------------------------------*/
+/** Parse an SLPv1 Service Deregister message.
+ *
+ * @param[in] buffer - The buffer containing the data to be parsed.
+ * @param[in] encoding - The language encoding of the message.
+ * @param[out] srvdereg - The service deregister object into which 
+ *    @p buffer should be parsed.
+ *
+ * @return Zero on success, SLP_ERROR_INTERNAL_ERROR (out of memory) or
+ *    SLP_ERROR_PARSE_ERROR.
+ *
+ * @internal
+ */
 int v1ParseSrvDeReg(SLPBuffer buffer, SLPHeader* header, SLPSrvDeReg* srvdereg)
-/*--------------------------------------------------------------------------*/
 {
     int            result;
 
@@ -368,10 +361,19 @@ int v1ParseSrvDeReg(SLPBuffer buffer, SLPHeader* header, SLPSrvDeReg* srvdereg)
     return 0;
 }
 
-
-/*--------------------------------------------------------------------------*/
+/** Parse an SLPv1 Attribute Request message.
+ *
+ * @param[in] buffer - The buffer containing the data to be parsed.
+ * @param[in] encoding - The language encoding of the message.
+ * @param[out] attrrqst - The attribute request object into which 
+ *    @p buffer should be parsed.
+ *
+ * @return Zero on success, SLP_ERROR_INTERNAL_ERROR (out of memory) or
+ *    SLP_ERROR_PARSE_ERROR.
+ *
+ * @internal
+ */
 int v1ParseAttrRqst(SLPBuffer buffer, SLPHeader* header, SLPAttrRqst* attrrqst)
-/*--------------------------------------------------------------------------*/
 {
     int result;
 
@@ -455,11 +457,20 @@ int v1ParseAttrRqst(SLPBuffer buffer, SLPHeader* header, SLPAttrRqst* attrrqst)
     return 0;
 }
 
-
-/*--------------------------------------------------------------------------*/
+/** Parse an SLPv1 Service Type Request message.
+ *
+ * @param[in] buffer - The buffer containing the data to be parsed.
+ * @param[in] encoding - The language encoding of the message.
+ * @param[out] srvtyperqst - The service type request object into which 
+ *    @p buffer should be parsed.
+ *
+ * @return Zero on success, SLP_ERROR_INTERNAL_ERROR (out of memory) or
+ *    SLP_ERROR_PARSE_ERROR.
+ *
+ * @internal
+ */
 int v1ParseSrvTypeRqst(SLPBuffer buffer, SLPHeader* header,
                        SLPSrvTypeRqst* srvtyperqst) 
-/*--------------------------------------------------------------------------*/
 {
     int result;
 
@@ -532,26 +543,86 @@ int v1ParseSrvTypeRqst(SLPBuffer buffer, SLPHeader* header,
     return 0;
 }
 
-/*=========================================================================*/
+/** Parse an SLPv1 message header.
+ *
+ * @param[in] buffer - The buffer from which data should be parsed.
+ * @param[out] header - The SLP message header into which 
+ *    @p buffer should be parsed.
+ *
+ * @return Zero on success, SLP_ERROR_VER_NOT_SUPPORTED, 
+ *    or SLP_ERROR_PARSE_ERROR.
+ *
+ * @todo Add more flag constraints.
+ */
+int SLPv1MessageParseHeader(SLPBuffer buffer, SLPHeader* header)
+{
+    header->version     = *(buffer->curpos);
+    header->functionid  = *(buffer->curpos + 1);
+	
+    header->length      = AsUINT16(buffer->curpos + 2);
+    header->flags       = *(buffer->curpos + 4);
+    header->encoding    = AsUINT16(buffer->curpos + 8);
+    header->extoffset   = 0; /* not used for SLPv1 */
+    header->xid         = AsUINT16(buffer->curpos + 10);
+    header->langtaglen  = 2;
+    header->langtag     = buffer->curpos + 6;
+
+    if(header->functionid > SLP_FUNCT_SRVTYPERQST)
+    {
+        /* invalid function id */
+        return SLP_ERROR_PARSE_ERROR;
+    }
+
+    if(header->encoding != SLP_CHAR_ASCII &&
+       header->encoding != SLP_CHAR_UTF8 &&
+       header->encoding != SLP_CHAR_UNICODE16 &&
+       header->encoding != SLP_CHAR_UNICODE32)
+    {
+        return SLP_ERROR_CHARSET_NOT_UNDERSTOOD;
+    }
+
+    if(header->length != buffer->end - buffer->start ||
+       header->length < 12)
+    {
+        /* invalid length 12 bytes is the smallest v1 message*/
+        return SLP_ERROR_PARSE_ERROR;
+    }
+
+    /* TODO - do something about the other flags */
+    if(header->flags & 0x07)
+    {
+        /* invalid flags */
+        return SLP_ERROR_PARSE_ERROR;
+    }
+
+    buffer->curpos += 12;
+
+    return 0;
+}
+
+/** Parse a wire buffer into an SLPv1 message descriptor.
+ *
+ * Since this is an SLPv2 server with v1 backward-compatibility, we don't
+ * need to implement the entire SLPv1 specification. Only those portions
+ * that are necessary for v1 backward-compatibility.
+ *
+ * @param[in] buffer - The buffer from which data should be parsed.
+ * @param[out] message - The message into which @p buffer should be parsed.
+ *
+ * @return Zero on success, SLP_ERROR_PARSE_ERROR, or 
+ *    SLP_ERROR_INTERNAL_ERROR if out of memory.
+ *
+ * @remarks If successful, pointers in the SLPMessage reference memory in
+ *    the parsed SLPBuffer. If SLPBufferFree is called then the pointers 
+ *    in SLPMessage will be invalidated.
+ *
+ * @remarks It is assumed that SLPMessageParseBuffer is calling this 
+ *    routine and has already reset the message to accomodate new buffer
+ *    data.
+ */
 int SLPv1MessageParseBuffer(struct sockaddr_storage* peerinfo,
                             SLPBuffer buffer, 
                             SLPMessage message) 
-/* Initializes a SLPv1 message descriptor by parsing the specified buffer. */
-/*                                                                         */
-/* peerinfo - (IN pointer to information about where buffer came from      */
-/*                                                                         */
-/* buffer   - (IN) pointer the SLPBuffer to parse                          */
-/*                                                                         */
-/* message  - (OUT) set to describe the message from the buffer            */
-/*                                                                         */
-/* Returns  - Zero on success, SLP_ERROR_PARSE_ERROR, or                   */
-/*            SLP_ERROR_INTERNAL_ERROR if out of memory.  SLPMessage is    */
-/*            invalid return is not successful.                            */
-/*                                                                         */
-/* WARNING  - If successful, pointers in the SLPMessage reference memory in*/ 
-/*            the parsed SLPBuffer.  If SLPBufferFree() is called then the */
-/*            pointers in SLPMessage will be invalidated.                  */
-/*=========================================================================*/
 {
     int result;
 
@@ -614,3 +685,4 @@ int SLPv1MessageParseBuffer(struct sockaddr_storage* peerinfo,
     return result;
 }
 
+/*=========================================================================*/

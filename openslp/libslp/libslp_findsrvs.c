@@ -1,62 +1,69 @@
-/***************************************************************************/
-/*                                                                         */
-/* Project:     OpenSLP - OpenSource implementation of Service Location    */
-/*              Protocol Version 2                                         */
-/*                                                                         */
-/* File:        slplib_findsrvs.c                                          */
-/*                                                                         */
-/* Abstract:    Implementation for SLPFindSrvs() call.                     */
-/*                                                                         */
-/*-------------------------------------------------------------------------*/
-/*                                                                         */
-/*     Please submit patches to http://www.openslp.org                     */
-/*                                                                         */
-/*-------------------------------------------------------------------------*/
-/*                                                                         */
-/* Copyright (C) 2000 Caldera Systems, Inc                                 */
-/* All rights reserved.                                                    */
-/*                                                                         */
-/* Redistribution and use in source and binary forms, with or without      */
-/* modification, are permitted provided that the following conditions are  */
-/* met:                                                                    */ 
-/*                                                                         */
-/*      Redistributions of source code must retain the above copyright     */
-/*      notice, this list of conditions and the following disclaimer.      */
-/*                                                                         */
-/*      Redistributions in binary form must reproduce the above copyright  */
-/*      notice, this list of conditions and the following disclaimer in    */
-/*      the documentation and/or other materials provided with the         */
-/*      distribution.                                                      */
-/*                                                                         */
-/*      Neither the name of Caldera Systems nor the names of its           */
-/*      contributors may be used to endorse or promote products derived    */
-/*      from this software without specific prior written permission.      */
-/*                                                                         */
-/* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS     */
-/* `AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT      */
-/* LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR   */
-/* A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE CALDERA      */
-/* SYSTEMS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, */
-/* SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT        */
-/* LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE,  */
-/* DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON       */
-/* ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT */
-/* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE   */
-/* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.    */
-/*                                                                         */
-/***************************************************************************/
+/*-------------------------------------------------------------------------
+ * Copyright (C) 2000 Caldera Systems, Inc
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ *    Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ *
+ *    Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ *    Neither the name of Caldera Systems nor the names of its
+ *    contributors may be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * `AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE CALDERA
+ * SYSTEMS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *-------------------------------------------------------------------------*/
+
+/** Find servers.
+ *
+ * Implementation for SLPFindSrvs() call.
+ *
+ * @file       libslp_findsrvs.c
+ * @author     Matthew Peterson, John Calcote (jcalcote@novell.com)
+ * @attention  Please submit patches to http://www.openslp.org
+ * @ingroup    LibSLPCode
+ */
 
 #include "slp.h"
 #include "libslp.h"
 #include "slp_net.h"
 
-/*-------------------------------------------------------------------------*/
+/** Collates response data to user callback for SLPFindSrv requests.
+ *
+ * @param[in] hSLP - The SLP handle object associated with the request.
+ * @param[in] pcSrvURL - The service URL for this pass.
+ * @param[in] sLifetime - The lifetime value for @p pcSrvURL.
+ * @param[in] errorcode - The error code received on this pass.
+ *
+ * @return An SLP boolean value; SLP_TRUE indicates we are finished; 
+ *    SLP_FALSE indicates we should continue.
+ *
+ * @todo Trace the logic of CollateToSLPSrvURLCallback to ensure 
+ *    that it works.
+ *
+ * @internal
+ */
 SLPBoolean ColateSLPSrvURLCallback(SLPHandle hSLP,
                                    const char* pcSrvURL,
                                    unsigned short sLifetime,
                                    SLPError errCode,
                                    void *pvCookie)
-/*-------------------------------------------------------------------------*/
 {
     SLPSrvUrlColatedItem*   collateditem;
     PSLPHandleInfo          handle;
@@ -147,12 +154,21 @@ CLEANUP:
     return SLP_FALSE;
 }
 
-/*-------------------------------------------------------------------------*/
+/** SLPFindSrvs callback routine for NetworkRqstRply.
+ *
+ * @param[in] errorcode - The network operation error code.
+ * @param[in] peeraddr - The network address of the responder.
+ * @param[in] replybuf - The response buffer from the network request.
+ * @param[in] cookie - Callback context data from ProcessSrvReg.
+ *
+ * @return SLP_FALSE (to stop any iterative callbacks).
+ *
+ * @internal
+ */
 SLPBoolean ProcessSrvRplyCallback(SLPError errorcode,
                                   struct sockaddr_storage* peerinfo,
                                   SLPBuffer replybuf,
                                   void* cookie)
-/*-------------------------------------------------------------------------*/
 {
     int             i;
     SLPUrlEntry*    urlentry;
@@ -276,10 +292,14 @@ SLPBoolean ProcessSrvRplyCallback(SLPError errorcode,
     return result;
 }
 
-
-/*-------------------------------------------------------------------------*/
+/** Formats and sends an SLPFindSrvs wire buffer request.
+ *
+ * @param handle - The OpenSLP session handle, containing request 
+ *    parameters. See docs for SLPFindSrvs.
+ *
+ * @return Zero on success, or an SLP API error code.
+ */
 SLPError ProcessSrvRqst(PSLPHandleInfo handle)
-/*-------------------------------------------------------------------------*/
 {
     struct sockaddr_storage peeraddr;
     int						sock        = -1;
@@ -441,11 +461,17 @@ SLPError ProcessSrvRqst(PSLPHandleInfo handle)
     return result;
 }   
 
-
 #ifdef ENABLE_ASYNC_API
-/*-------------------------------------------------------------------------*/ 
+/** Thread start procedure for asynchronous find services request.
+ *
+ * @param[in,out] handle - Contains the request parameters, returns the
+ *    request result.
+ *
+ * @return An SLPError code.
+ *
+ * @internal
+ */
 SLPError AsyncProcessSrvRqst(PSLPHandleInfo handle)
-/*-------------------------------------------------------------------------*/
 {
     SLPError result = ProcessSrvRqst(handle);
     xfree((void*)handle->params.findsrvs.srvtype);
@@ -456,50 +482,39 @@ SLPError AsyncProcessSrvRqst(PSLPHandleInfo handle)
 }
 #endif
 
-
-/*=========================================================================*/
+/** Return a list of service matching a query specification.
+ *
+ * Issue the query for services on the language specific SLPHandle and
+ * return the results through the @p callback. The parameters determine
+ * the results.
+ *
+ * @param[in] hSLP - The language specific SLPHandle on which to search 
+ *    for services.
+ * @param[in] pcServiceType - The Service Type String, including authority 
+ *    string if any, for the request, such as can be discovered using 
+ *    SLPSrvTypes. This could be, for example "service:printer:lpr" or
+ *    "service:nfs". May not be the empty string or NULL.
+ * @param[in] pcScopeList - A pointer to a char containing a comma-separated 
+ *    list of scope names. Pass in NULL or the empty string ("") to find 
+ *    services in all the scopes the local host is configured to query.
+ * @param[in] pcSearchFilter - A query formulated of attribute pattern 
+ *    matching expressions in the form of a LDAPv3 Search Filter, see 
+ *    [RFC 2254]. If this filter is empty, i.e. "" or NULL, all services 
+ *    of the requested type in the specified scopes are returned.
+ * @param[in] callback - A callback function through which the results of 
+ *    the operation are reported.
+ * @param[in] pvCookie - Memory passed to the @p callback code from the 
+ *    client. May be NULL.
+ *
+ * @return If an error occurs in starting the operation, one of the SLPError
+ *    codes is returned.
+ */
 SLPError SLPAPI SLPFindSrvs(SLPHandle  hSLP,
                      const char *pcServiceType,
                      const char *pcScopeList,
                      const char *pcSearchFilter,
                      SLPSrvURLCallback callback,
                      void *pvCookie)
-/*                                                                         */
-/* Issue the query for services on the language specific SLPHandle and     */
-/* return the results through the callback.  The parameters determine      */
-/* the results                                                             */
-/*                                                                         */
-/* hSLP             The language specific SLPHandle on which to search for */
-/*                  services.                                              */
-/*                                                                         */
-/* pcServiceType    The Service Type String, including authority string if */
-/*                  any, for the request, such as can be discovered using  */
-/*                  SLPSrvTypes(). This could be, for example              */
-/*                  "service:printer:lpr" or "service:nfs".  May not be    */
-/*                  the empty string or NULL.                              */
-/*                                                                         */
-/*                                                                         */
-/* pcScopeList      A pointer to a char containing comma separated list of */
-/*                  scope names.  Pass in the NULL or the empty string ""  */
-/*                  to find services in all the scopes the local host is   */
-/*                  configured query.                                      */
-/*                                                                         */
-/* pcSearchFilter   A query formulated of attribute pattern matching       */
-/*                  expressions in the form of a LDAPv3 Search Filter.     */
-/*                  If this filter is NULL or empty, i.e.  "", all         */
-/*                  services of the requested type in the specified scopes */
-/*                  are returned.                                          */
-/*                                                                         */
-/* callback         A callback function through which the results of the   */
-/*                  operation are reported. May not be NULL                */
-/*                                                                         */
-/* pvCookie         Memory passed to the callback code from the client.    */
-/*                  May be NULL.                                           */
-/*                                                                         */
-/* Returns:         If an error occurs in starting the operation, one of   */
-/*                  the SLPError codes is returned.                        */
-/*                                                                         */
-/*=========================================================================*/
 {
     PSLPHandleInfo      handle;
     SLPError            result;
@@ -606,3 +621,4 @@ SLPError SLPAPI SLPFindSrvs(SLPHandle  hSLP,
     return result;
 }
 
+/*=========================================================================*/

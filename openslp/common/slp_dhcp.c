@@ -1,72 +1,63 @@
-/***************************************************************************/
-/*                                                                         */
-/* Project:     OpenSLP - OpenSource implementation of Service Location    */
-/*              Protocol                                                   */
-/*                                                                         */
-/* File:        slp_dhcp.h                                                 */
-/*                                                                         */
-/* Abstract:    Implementation for functions that are related              */
-/*              to acquiring specific dhcp parameters.                     */
-/*                                                                         */
-/*-------------------------------------------------------------------------*/
-/*                                                                         */
-/*     Please submit patches to http://www.openslp.org                     */
-/*                                                                         */
-/*-------------------------------------------------------------------------*/
-/*                                                                         */
-/* Copyright (C) 2000 Caldera Systems, Inc                                 */
-/* All rights reserved.                                                    */
-/*                                                                         */
-/* Redistribution and use in source and binary forms, with or without      */
-/* modification, are permitted provided that the following conditions are  */
-/* met:                                                                    */
-/*                                                                         */
-/*      Redistributions of source code must retain the above copyright     */
-/*      notice, this list of conditions and the following disclaimer.      */
-/*                                                                         */
-/*      Redistributions in binary form must reproduce the above copyright  */
-/*      notice, this list of conditions and the following disclaimer in    */
-/*      the documentation and/or other materials provided with the         */
-/*      distribution.                                                      */
-/*                                                                         */
-/*      Neither the name of Caldera Systems nor the names of its           */
-/*      contributors may be used to endorse or promote products derived    */
-/*      from this software without specific prior written permission.      */
-/*                                                                         */
-/* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS     */
-/* `AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT      */
-/* LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR   */
-/* A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE CALDERA      */
-/* SYSTEMS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, */
-/* SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT        */
-/* LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE,  */
-/* DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON       */
-/* ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT */
-/* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE   */
-/* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.    */
-/*                                                                         */
-/***************************************************************************/
+/*-------------------------------------------------------------------------
+ * Copyright (C) 2001 Novell, Inc
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ *    Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ *
+ *    Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ *    Neither the name of Novell nor the names of its contributors 
+ *    may be used to endorse or promote products derived from this 
+ *    software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * `AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE CALDERA
+ * SYSTEMS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *-------------------------------------------------------------------------*/
+
+/** Functions related to acquiring specific DHCP parameters.
+ *
+ * @file       slp_dhcp.c
+ * @author     John Calcote (jcalcote@novell.com)
+ * @attention  Please submit patches to http://www.openslp.org
+ * @ingroup    CommonCode
+ */
 
 #include "slp_dhcp.h"
 #include "slp_message.h"
 #include "slp_xmalloc.h"
 
 #ifdef _WIN32
-#include <winsock2.h>
-#include <iphlpapi.h>
-#define ETIMEDOUT	110
-#define ENOTCONN	107
+# include <winsock2.h>
+# include <iphlpapi.h>
+# define ETIMEDOUT	110
+# define ENOTCONN	107
 #else
 /* non-win32 platforms close sockets with 'close' */
-#define closesocket close
-#include <unistd.h>
-#include <netdb.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <sys/ioctl.h>
-#include <net/if_arp.h>
-#include <bits/ioctls.h>
-#include <sys/time.h>
+# define closesocket close
+# include <unistd.h>
+# include <netdb.h>
+# include <sys/types.h>
+# include <sys/socket.h>
+# include <sys/ioctl.h>
+# include <net/if_arp.h>
+# include <bits/ioctls.h>
+# include <sys/time.h>
 #endif
 
 #include <stdlib.h>
@@ -76,53 +67,55 @@
 #include "slp_net.h"
 
 /* UDP port numbers, server and client. */
-#define IPPORT_BOOTPS		67
-#define IPPORT_BOOTPC		68
+#define IPPORT_BOOTPS      67
+#define IPPORT_BOOTPC      68
 
 /* BOOTP header op codes */
-#define BOOTREQUEST			1
-#define BOOTREPLY				2
+#define BOOTREQUEST        1
+#define BOOTREPLY          2
 
 /* BOOTP header field value maximums */
-#define MAXHTYPES				7		/* Number of htypes defined */
-#define MAXHADDRLEN			6 		/* Max hw address length in bytes */
-#define MAXSTRINGLEN			80		/* Max string length */
+#define MAXHTYPES          7     /* Number of htypes defined */
+#define MAXHADDRLEN        6     /* Max hw address length in bytes */
+#define MAXSTRINGLEN       80    /* Max string length */
 
 /* Some other useful constants */
-#define MAX_MACADDR_SIZE	64		/* Max hardware address length */
-#define MAX_DHCP_RETRIES	2		/* Max dhcp request retries */
+#define MAX_MACADDR_SIZE   64    /* Max hardware address length */
+#define MAX_DHCP_RETRIES   2     /* Max dhcp request retries */
 
 /* timeout values */
-#define USECS_PER_MSEC		1000
-#define MSECS_PER_SEC		1000
-#define USECS_PER_SEC		(USECS_PER_MSEC * MSECS_PER_SEC)
-#define INIT_TMOUT_USECS	(250 * USECS_PER_MSEC)
+#define USECS_PER_MSEC     1000
+#define MSECS_PER_SEC      1000
+#define USECS_PER_SEC      (USECS_PER_MSEC * MSECS_PER_SEC)
+#define INIT_TMOUT_USECS   (250 * USECS_PER_MSEC)
 
 /* DHCP vendor area cookie values */
-#define DHCP_COOKIE1			99
-#define DHCP_COOKIE2			130
-#define DHCP_COOKIE3			83
-#define DHCP_COOKIE4			99
+#define DHCP_COOKIE1       99
+#define DHCP_COOKIE2       130
+#define DHCP_COOKIE3       83
+#define DHCP_COOKIE4       99
 
 /* DHCP Message Types for TAG_DHCP_MSG_TYPE */
-#define DHCP_MSG_DISCOVER	1
-#define DHCP_MSG_OFFER		2
-#define DHCP_MSG_REQUEST	3
-#define DHCP_MSG_DECLINE	4
-#define DHCP_MSG_ACK			5
-#define DHCP_MSG_NAK			6
-#define DHCP_MSG_RELEASE	7
-#define DHCP_MSG_INFORM		8
+#define DHCP_MSG_DISCOVER  1
+#define DHCP_MSG_OFFER     2
+#define DHCP_MSG_REQUEST   3
+#define DHCP_MSG_DECLINE   4
+#define DHCP_MSG_ACK       5
+#define DHCP_MSG_NAK       6
+#define DHCP_MSG_RELEASE   7
+#define DHCP_MSG_INFORM    8
 
-/*=========================================================================*/ 
+/** Create a DHCP broadcast socket.
+ *
+ * Creates a socket and provides a broadcast addr to which DHCP requests
+ * should be sent. Also binds the socket to the DHCP client port.
+ *
+ * @param[out] peeraddr - A pointer to receive the address to which 
+ *    DHCP requests are to be sent.
+ *
+ * @return A valid socket, or -1 if no DA connection can be made.
+ */
 static int dhcpCreateBCSkt(struct sockaddr_storage *peeraddr) 
-/*	Creates a socket and provides a broadcast addr to which DHCP requests
-	should be sent. Also binds the socket to the DHCP client port.
-
-	peeraddr         (OUT) ptr to rcv addr to which DHCP requests are sent
-
-	Returns          Valid socket or -1 if no DA connection can be made
-  =========================================================================*/
 {
 	int sockfd;
 #ifdef _WIN32
@@ -151,17 +144,22 @@ static int dhcpCreateBCSkt(struct sockaddr_storage *peeraddr)
 	return sockfd;
 }
 
-
-/*=========================================================================*/ 
+/** Sends a DHCP request.
+ *
+ * Sends a DHCP request buffer to a specified DHCP server. Times out after 
+ * a specified period.
+ *
+ * @param[in] sockfd - The socket on which to send.
+ * @param[in] buf - The buffer to send.
+ * @param[in] bufsz - The size of @p buf.
+ * @param[in] peeraddr - The target address.
+ * @param[in] timeout - The desired timeout value.
+ *
+ * @return Zero on success; non-zero on failure, and errno is set to 
+ *    either EPIPE (for write error), or ETIMEDOUT (on timeout).
+ */ 
 static int dhcpSendRequest(int sockfd, void *buf, size_t bufsz,
 		struct sockaddr_storage* peeraddr, struct timeval* timeout)
-/*	Sends a buffer to PEERADDR, times out after period specified in TIMEOUT
-
-	Returns  -		zero on success non-zero on failure
-
-	errno				EPIPE error during write
-						ETIMEDOUT read timed out
-  =========================================================================*/ 
 {
 	fd_set writefds;
 	int xferbytes;
@@ -196,19 +194,22 @@ static int dhcpSendRequest(int sockfd, void *buf, size_t bufsz,
 	return 0;
 }
 
-
-/*=========================================================================*/ 
+/** Receives a DHCP response.
+ *
+ * Receives a DHCP response from a DHCP server. Since DHCP responses are
+ * broadcasts, we compare XID with received response to ensure we are
+ * returning the correct response from a prior request.
+ *
+ * @param[in] sockfd - The socket from which to receive.
+ * @param[out] buf - The address of storage for the received packet.
+ * @param[in] bufsz - The size of @p buf.
+ * @param[in] timeout - The desired timeout value.
+ *
+ * @return Zero on success; non-zero on failure with errno set to
+ *    ENOTCONN (socket not connected), or ETIMEDOUT (on timeout error).
+ */
 static int dhcpRecvResponse(int sockfd, void *buf, size_t bufsz,
 		struct timeval* timeout)
-/*	Receives a DHCP response from a DHCP server. Since DHCP responses are
-	broadcasts, we compare XID with received response to ensure we are
-	returning the correct response from a prior request.
-
-	Returns  -    	zero on success, non-zero on failure
-
-	errno         	ENOTCONN error during read
-						ETIMEDOUT read timed out
-  =========================================================================*/ 
 {
 	int xferbytes;
 	fd_set readfds;
@@ -234,18 +235,19 @@ static int dhcpRecvResponse(int sockfd, void *buf, size_t bufsz,
 	return -1;
 }
 
-/*=========================================================================*/ 
+/** Calls a callback function once for each option returned by a DHCP server.
+ *
+ * @param[in] data - The DHCP response data buffer to parse.
+ * @param[in] datasz - The length of @p data.
+ * @param[in] dhcpInfoCB - The callback function to call for each option.
+ * @param[in] context - Callback context data.
+ *
+ * @return Zero on success; non-zero on failure, with errno set to
+ * ENOTCONN (error during read), ETIMEDOUT (read timed out), 
+ * ENOMEM (out of memory error), or EINVAL (parse error).
+ */
 static int dhcpProcessOptions(unsigned char *data, size_t datasz,
 		DHCPInfoCallBack *dhcpInfoCB, void *context)
-/*	Calls dhcpInfoCB once for each option returned by the dhcp server.
-
-	Returns	-		zero on success, non-zero on failure
-
-	errno				ENOTCONN error during read
-						ETIME read timed out
-						ENOMEM out of memory
-						EINVAL parse error
-  =========================================================================*/ 
 {
 	int err, taglen;
 	unsigned char tag;
@@ -276,13 +278,19 @@ static int dhcpProcessOptions(unsigned char *data, size_t datasz,
 	return 0;	
 }
 
-/*=========================================================================*/ 
+/** Determines the hardware MAC address for the specified IP address.
+ *
+ * @param[in] ipaddr - The IP address for which to determine MAC address.
+ * @param[out] chaddr - The MAC address found for @p ipaddr.
+ * @param[out] hlen - The length of the value returned in @p chaddr.
+ * @param[out] htype - The address type returned in @p chaddr.
+ *
+ * @return Zero on success; non-zero on failure.
+ *
+ * @internal
+ */
 static int dhcpGetAddressInfo(unsigned char *ipaddr, unsigned char *chaddr, 
 		unsigned char *hlen, unsigned char *htype)
-/*	return hardware MAC address for specified ip address.
-
-	Returns	-		zero on success, non-zero on failure
-  =========================================================================*/ 
 {
 #ifdef _WIN32
 
@@ -374,71 +382,23 @@ static int dhcpGetAddressInfo(unsigned char *ipaddr, unsigned char *chaddr,
 	return *hlen? 0: -1;
 }
 
-
-/*=========================================================================*/ 
+/** Queries a DHCP server and calls a callback once for each option.
+ *
+ * Queries the sub-net DHCP server for a specified set of DHCP options
+ * and then calls a user-supplied callback function once for each of 
+ * the desired options returned by the server.
+ *
+ * @param[in] dhcpOptCodes - An array of option codes to query for.
+ * @param[in] dhcpOptCodeCnt - The number of elements in @p dhcpOptCodes.
+ * @param[in] dhcpInfoCB - The callback function to call for each option.
+ * @param[in] context - callback context.
+ *
+ * @return Zero on success; non-zero on failure, with errno set to 
+ *    ENOTCONN (read error), ETIMEDOUT (read timeout), ENOMEM (out of
+ *    memory), or EINVAL (on parse error).
+ */
 int DHCPGetOptionInfo(unsigned char *dhcpOptCodes, int dhcpOptCodeCnt, 
 		DHCPInfoCallBack *dhcpInfoCB, void *context)
-/* Calls dhcpInfoCB once for each requested option in dhcpOptCodes.
-
-	Returns  -    	zero on success, non-zero on failure
-
-	errno         	ENOTCONN error during read
-               	ETIME read timed out
-               	ENOMEM out of memory
-               	EINVAL parse error
-
-	BOOTP/DHCP packet header format:
-
-	Offs	Len	Name		Description
-	0		1		opcode	Message opcode: 1 = BOOTREQUEST, 2 = BOOTREPLY
-	1		1		htype		Hardware address type (eg., 1 = 10mb ethernet)
-	2		1		hlen		Hardware address length (eg., 6 = 10mb ethernet)
-	3		1		hops		Client sets to zero, optionally used by relay agents
-	4		4		xid		Transaction ID, random number chosen by client
-	8		2		secs		Client sets to seconds since start of boot process
-	10		2		flags		Bit 0: broadcast response bit
-	12		4		ciaddr	Client IP address - only filled if client is bound
-	16		4		yiaddr	'your' (Client) IP address
-	20		4		siaddr	IP address of next server to use in bootstrap
-	24		4		giaddr	Relay agent IP address, used in booting via RA
-	28		16		chaddr	Client hardware address
-	44		64		sname		Optional server host name, null-terminated string
-	108	128	file		Boot file name, null-terminated string
-	236	var	options	Optional parameters field
-
-	The options field has the following format:
-
-	Offs	Len	Name		Description
-	0		4		cookie	4-byte cookie field: 99.130.83.99 (0x63825363)
-	
-	Followed by 1-byte option codes and 1-byte option lengths, except
-	for the two special fixed length options, pad (0) and end (255).
-	Options are defined in slp_dhcp.h as TAG_XXX values. The two we
-	really care about here are options TAG_SLP_DA and TAG_SLP_SCOPE,
-	78 and 79, respectively. 
-	
-	The format for TAG_SLP_DA (starting with the tag) is:
-	
-	Offs	Len	Name		Description
-	0		1		tag		TAG_SLP_DA - directory agent ip addresses
-	1		1		length	length of remaining data in the option
-	2		1		mand		flag: the use of these DA's is mandatory
-	3		4		a(0)		4-byte ip address
-	...
-	3+n*4	4		a(n)		4-byte ip address
-
-	The format for TAG_SLP_SCOPE (starting with the tag) is:
-
-	Offs	Len	Name		Description
-	0		1		tag		TAG_SLP_SCOPE - directory scopes to use
-	1		1		length	length of remaining data in the option
-	2		1		mand		flag: the use of these scopes is mandatory
-	3		var	scopes	a null-terminated, comma-separated string of scopes
-
-	The "DHCP Message Type" option must be included in every DHCP message.
-	All tags except for TAG_PAD(0) and TAG_END(255) begin with a tag value
-	followed by a length of remaining data value. 
-  =========================================================================*/ 
 {
 	UINT32 xid;
 	time_t timer;
@@ -547,13 +507,20 @@ int DHCPGetOptionInfo(unsigned char *dhcpOptCodes, int dhcpOptCodeCnt,
 			dhcpInfoCB, context): -1;
 }
 
-/*-------------------------------------------------------------------------*/
+/** A callback routine that tests each DA discovered from DHCP.
+ *
+ * Each DA that passes is added to the DA cache.
+ *
+ * @param[in] tag - The DHCP option tag for this call.
+ * @param[in] optdata - A pointer to the DHCP option data for this call.
+ * @param[in] optdatasz - The size of @p optdata.
+ * @param[in] context - Callback context data. For this callback routine
+ *    this parameter is actually a pointer to DHCPContext data.
+ *
+ * @return Zero on success, or a non-zero value to stop the caller from 
+ *    continuing to parse the buffer and call this routine.
+ */
 int DHCPParseSLPTags(int tag, void *optdata, size_t optdatasz, void *context)
-/* Callback routined tests each DA discovered from DHCP and add it to the	*/
-/*	DA cache.																					*/
-/*                                                                         */
-/* Returns: 0 on success, or nonzero to stop being called.						*/
-/*-------------------------------------------------------------------------*/
 {
 	int cpysz, bufsz;
 	DHCPContext *ctxp = (DHCPContext *)context;
@@ -681,9 +648,4 @@ int DHCPParseSLPTags(int tag, void *optdata, size_t optdatasz, void *context)
 	return 0;
 }
 
-
-
-
-
-
-
+/*=========================================================================*/

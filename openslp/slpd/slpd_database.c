@@ -1,93 +1,72 @@
-/***************************************************************************/
-/*                                                                         */
-/* Project:     OpenSLP - OpenSource implementation of Service Location    */
-/*              Protocol Version 2                                         */
-/*                                                                         */
-/* File:        slpd_database.c                                            */
-/*                                                                         */
-/* Abstract:    Implements database abstraction.  Currently a simple       */
-/*              double linked list (common/slp_database.c) is used for the */
-/*              underlying storage.                                        */
-/*                                                                         */
-/*-------------------------------------------------------------------------*/
-/*                                                                         */
-/*     Please submit patches to http://www.openslp.org                     */
-/*                                                                         */
-/*-------------------------------------------------------------------------*/
-/*                                                                         */
-/* Copyright (C) 2000 Caldera Systems, Inc                                 */
-/* All rights reserved.                                                    */
-/*                                                                         */
-/* Redistribution and use in source and binary forms, with or without      */
-/* modification, are permitted provided that the following conditions are  */
-/* met:                                                                    */ 
-/*                                                                         */
-/*      Redistributions of source code must retain the above copyright     */
-/*      notice, this list of conditions and the following disclaimer.      */
-/*                                                                         */
-/*      Redistributions in binary form must reproduce the above copyright  */
-/*      notice, this list of conditions and the following disclaimer in    */
-/*      the documentation and/or other materials provided with the         */
-/*      distribution.                                                      */
-/*                                                                         */
-/*      Neither the name of Caldera Systems nor the names of its           */
-/*      contributors may be used to endorse or promote products derived    */
-/*      from this software without specific prior written permission.      */
-/*                                                                         */
-/* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS     */
-/* `AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT      */
-/* LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR   */
-/* A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE CALDERA      */
-/* SYSTEMS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, */
-/* SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT        */
-/* LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE,  */
-/* DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON       */
-/* ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT */
-/* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE   */
-/* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.    */
-/*                                                                         */
-/***************************************************************************/
+/*-------------------------------------------------------------------------
+ * Copyright (C) 2000 Caldera Systems, Inc
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ *    Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ *
+ *    Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ *    Neither the name of Caldera Systems nor the names of its
+ *    contributors may be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * `AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE CALDERA
+ * SYSTEMS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *-------------------------------------------------------------------------*/
 
+/** Database abstraction.
+ *
+ * Implements database abstraction. Currently a simple double linked list 
+ * (common/slp_database.c) is used for the underlying storage.
+ *
+ * @file       slpd_database.c
+ * @author     Matthew Peterson, John Calcote (jcalcote@novell.com)
+ * @attention  Please submit patches to http://www.openslp.org
+ * @ingroup    SlpdCode
+ */
 
-/*=========================================================================*/
-/* slpd includes                                                           */
-/*=========================================================================*/
 #include "slpd_database.h"
 #include "slpd_regfile.h"
 #include "slpd_property.h"
 #include "slpd_log.h"
 #include "slpd_knownda.h"
+
 #ifdef ENABLE_PREDICATES
-    #include "slpd_predicate.h"
+# include "slpd_predicate.h"
 #endif
 
-
-/*=========================================================================*/
-/* common code includes                                                    */
-/*=========================================================================*/
 #include "slp_compare.h"
 #include "slp_xmalloc.h"
 #include "slp_pid.h"
 #include "slp_net.h"
 #include "slpd_incoming.h"
 
-
-/*=========================================================================*/
 SLPDDatabase G_SlpdDatabase;
-/* slpd database global                                                    */
-/*=========================================================================*/
+/*!< The slpd static global database object.
+ */
 
-
-/*=========================================================================*/
+/** Ages the database entries and clears new and deleted entry lists
+ *
+ * @param[in] seconds - The number of seconds to age each entry by.
+ * @param[in] ageall - Age even entries with SLP_LIFETIME_MAXIMUM.
+ */
 void SLPDDatabaseAge(int seconds, int ageall)
-/* Ages the database entries and clears new and deleted entry lists        */
-/*                                                                         */
-/* seconds  (IN) the number of seconds to age each entry by                */
-/*																		   */
-/* ageall   (IN) age even entries with SLP_LIFETIME_MAXIMUM                */
-/*                                                                         */
-/* Returns  - None                                                         */
-/*=========================================================================*/
 {
     SLPDatabaseHandle   dh;
     SLPDatabaseEntry*   entry;
@@ -139,20 +118,19 @@ void SLPDDatabaseAge(int seconds, int ageall)
     }
 }
 
-/*=========================================================================*/
+/** Add a service registration to the database.
+ *
+ * @param[in] msg - SLPMessage of a SrvReg message as returned by
+ *    SLPMessageParse.
+ *
+ * @param[in] buf - Otherwise unreferenced buffer interpreted by the 
+ *    msg structure.
+ *
+ * @return Zero on success, or a non-zero value on error.
+ *
+ * @remarks All registrations are treated as fresh.
+ */
 int SLPDDatabaseReg(SLPMessage msg, SLPBuffer buf)
-/* Add a service registration to the database                              */
-/*                                                                         */
-/* msg          (IN) SLPMessage of a SrvReg message as returned by         */
-/*                   SLPMessageParse()                                     */
-/*                                                                         */
-/* buf          (IN) Otherwise unreferenced buffer interpreted by the msg  */
-/*                   structure                                             */
-/*                                                                         */
-/* Returns  -   Zero on success.  Nonzero on error                         */
-/*                                                                         */
-/* NOTE:        All registrations are treated as fresh                     */
-/*=========================================================================*/
 {
     SLPDatabaseHandle   dh;
     SLPDatabaseEntry*   entry;
@@ -293,15 +271,13 @@ int SLPDDatabaseReg(SLPMessage msg, SLPBuffer buf)
     return result;
 }
 
-
-/*=========================================================================*/
+/** Remove a service registration from the database.
+ *
+ * @param[in] msg - Message interpreting an SrvDereg message.
+ *
+ * @return Zero on success, or a non-zero value on failure.
+ */
 int SLPDDatabaseDeReg(SLPMessage msg)
-/* Remove a service registration from the database                         */
-/*                                                                         */
-/* msg  - (IN) message interpreting an SrvDereg message                    */
-/*                                                                         */
-/* Returns  -   Zero on success.  Non-zero on failure                      */
-/*=========================================================================*/
 {
     SLPDatabaseHandle   dh;
     SLPDatabaseEntry*   entry = NULL;
@@ -423,19 +399,20 @@ int SLPDDatabaseDeReg(SLPMessage msg)
     return 0;
 }
 
-/*=========================================================================*/
+/** Find services in the database.
+ *
+ * @param[in] msg - The SrvRqst to find.
+ *
+ * @param[out] result - The address of storage for the returned 
+ *    result structure
+ *
+ * @return Zero on success, or a non-zero value on failure.
+ *
+ * @remarks Caller must pass @p result (dereferenced) to 
+ *    SLPDDatabaseSrvRqstEnd to free.
+ */
 int SLPDDatabaseSrvRqstStart(SLPMessage msg,
                              SLPDDatabaseSrvRqstResult** result)
-/* Find services in the database                                           */
-/*                                                                         */
-/* msg      (IN) the SrvRqst to find.                                      */
-/*                                                                         */
-/* result   (OUT) pointer result structure                                 */
-/*                                                                         */
-/* Returns  - Zero on success. Non-zero on failure                         */
-/*                                                                         */
-/* Note:    Caller must pass *result to SLPDDatabaseSrvRqstEnd() to free   */
-/*=========================================================================*/
 {
     SLPDatabaseHandle           dh;
     SLPDatabaseEntry*           entry;
@@ -547,16 +524,12 @@ int SLPDDatabaseSrvRqstStart(SLPMessage msg,
     return 0;
 }
 
-
-/*=========================================================================*/
+/** Find services in the database.
+ *
+ * @param[in] result - The result structure previously passed to
+ *    SLPDDatabaseSrvRqstStart.
+ */
 void SLPDDatabaseSrvRqstEnd(SLPDDatabaseSrvRqstResult* result)
-/* Find services in the database                                           */
-/*                                                                         */
-/* result   (IN) pointer result structure previously passed to             */
-/*               SLPDDatabaseSrvRqstStart                                  */
-/*                                                                         */
-/* Returns  - None                                                         */
-/*=========================================================================*/
 {
     if ( result )
     {
@@ -565,21 +538,18 @@ void SLPDDatabaseSrvRqstEnd(SLPDDatabaseSrvRqstResult* result)
     }
 }
 
-
-/*=========================================================================*/
+/** Find service types in the database.
+ *
+ * @param[in] msg - The SrvTypRqst to find.
+ * @param[out] result - The address of storage for the result structure.
+ *
+ * @return Zero on success, or a non-zero value on failure.
+ *
+ * @remarks Caller must pass @p result (dereferenced) to 
+ *    SLPDDatabaseSrvtypeRqstEnd to free it.
+ */
 int SLPDDatabaseSrvTypeRqstStart(SLPMessage msg,
                                  SLPDDatabaseSrvTypeRqstResult** result)
-/* Find service types in the database                                      */
-/*                                                                         */
-/* msg      (IN) the SrvTypRqst to find.                                   */
-/*                                                                         */
-/* result   (OUT) pointer result structure                                 */
-/*                                                                         */
-/* Returns  - Zero on success. Non-zero on failure                         */
-/*                                                                         */
-/* Note:    Caller must pass *result to SLPDDatabaseSrvtypeRqstEnd() to    */
-/*          free                                                           */
-/*=========================================================================*/
 {
     SLPDatabaseHandle           dh;
     SLPDatabaseEntry*           entry;
@@ -667,16 +637,12 @@ int SLPDDatabaseSrvTypeRqstStart(SLPMessage msg,
     return 0;
 }
 
-
-/*=========================================================================*/
+/** Release resources used to find service types in the database.
+ *
+ * @param[in] result - A pointer to the result structure previously 
+ *    passed to SLPDDatabaseSrvTypeRqstStart.
+ */
 void SLPDDatabaseSrvTypeRqstEnd(SLPDDatabaseSrvTypeRqstResult* result)
-/* Release resources used to find service types in the database            */
-/*                                                                         */
-/* result   (IN) pointer result structure previously passed to             */
-/*               SLPDDatabaseSrvTypeRqstStart                              */
-/*                                                                         */
-/* Returns  - None                                                         */
-/*=========================================================================*/
 {
     if ( result )
     {
@@ -685,21 +651,20 @@ void SLPDDatabaseSrvTypeRqstEnd(SLPDDatabaseSrvTypeRqstResult* result)
     }
 }
 
-
-/*=========================================================================*/
+/** Find attributes in the database.
+ *
+ * @param[in] msg - The AttrRqst to find.
+ *
+ * @param[out] result - The address of storage for the returned 
+ *    result structure.
+ *
+ * @return Zero on success, or a non-zero value on failure.
+ *
+ * @remarks Caller must pass @p result (dereferenced) to 
+ *    SLPDDatabaseAttrRqstEnd to free it.
+ */
 int SLPDDatabaseAttrRqstStart(SLPMessage msg,
                               SLPDDatabaseAttrRqstResult** result)
-/* Find attributes in the database                                         */
-/*                                                                         */
-/* msg      (IN) the AttrRqst to find.                                     */
-/*                                                                         */
-/* result   (OUT) pointer result structure                                 */
-/*                                                                         */
-/* Returns  - Zero on success. Non-zero on failure                         */
-/*                                                                         */
-/* Note:    Caller must pass *result to SLPDDatabaseAttrRqstEnd() to       */
-/*          free                                                           */
-/*=========================================================================*/
 {
     SLPDatabaseHandle           dh;
     SLPDatabaseEntry*           entry;
@@ -801,16 +766,12 @@ int SLPDDatabaseAttrRqstStart(SLPMessage msg,
     return 0;
 }
 
-
-/*=========================================================================*/
+/** Release resources used to find attributes in the database.
+ *
+ * @param[in] result - A pointer to the result structure previously 
+ *    passed to SLPDDatabaseSrvTypeRqstStart.
+ */
 void SLPDDatabaseAttrRqstEnd(SLPDDatabaseAttrRqstResult* result)
-/* Release resources used to find attributes in the database               */
-/*                                                                         */
-/* result   (IN) pointer result structure previously passed to             */
-/*               SLPDDatabaseSrvTypeRqstStart                              */
-/*                                                                         */
-/* Returns  - None                                                         */
-/*=========================================================================*/
 {
     if ( result )
     {
@@ -820,35 +781,29 @@ void SLPDDatabaseAttrRqstEnd(SLPDDatabaseAttrRqstResult* result)
     }
 }
 
-
-/*=========================================================================*/
+/** Start an enumeration of the entire database.
+ *
+ * @return An enumeration handle that is passed to subsequent calls to
+ *    SLPDDatabaseEnum. Returns 0 on failure. Returned enumeration handle 
+ *    (if not 0) must be passed to SLPDDatabaseEnumEnd when you are done 
+ *    with it.
+ */
 void* SLPDDatabaseEnumStart()
-/* Start an enumeration of the entire database                             */
-/*                                                                         */
-/* Returns: An enumeration handle that is passed to subsequent calls to    */
-/*          SLPDDatabaseEnum().  Returns NULL on failure.  Returned        */
-/*          enumeration handle (if not NULL) must be passed to             */
-/*          SLPDDatabaseEnumEnd() when you are done with it.               */
-/*=========================================================================*/
 {
     return SLPDatabaseOpen(&G_SlpdDatabase.database);   
 }
 
-
-/*=========================================================================*/
+/** Enumerate through all entries of the database.
+ *
+ * @param[in] eh - A pointer to opaque data that is used to maintain
+ *    enumerate entries. Pass in a pointer to NULL to start the process.
+ *
+ * @param[out] msg - The address of storage for a SrvReg message object.
+ * @param[out] buf - The address of storage for a SrvReg buffer object.
+ *
+ * @return A pointer to the enumerated entry or 0 if end of enumeration.
+ */
 SLPMessage SLPDDatabaseEnum(void* eh, SLPMessage* msg, SLPBuffer* buf)
-/* Enumerate through all entries of the database                           */
-/*                                                                         */
-/* eh (IN) pointer to opaque data that is used to maintain                 */
-/*         enumerate entries.  Pass in a pointer to NULL to start          */
-/*         enumeration.                                                    */
-/*                                                                         */
-/* msg (OUT) pointer to the SrvReg message that discribes buf              */
-/*                                                                         */
-/* buf (OUT) pointer to the SrvReg message buffer                          */
-/*                                                                         */
-/* returns: Pointer to enumerated entry or NULL if end of enumeration      */
-/*=========================================================================*/
 {
     SLPDatabaseEntry*   entry;
     entry = SLPDatabaseEnum((SLPDatabaseHandle) eh);
@@ -866,14 +821,11 @@ SLPMessage SLPDDatabaseEnum(void* eh, SLPMessage* msg, SLPBuffer* buf)
     return *msg;
 }
 
-
-/*=========================================================================*/
+/** End an enumeration started by SLPDDatabaseEnumStart.
+ *
+ * @param[in] eh - The enumeration handle returned by SLPDDatabaseEnumStart.
+ */
 void SLPDDatabaseEnumEnd(void* eh)
-/* End an enumeration started by SLPDDatabaseEnumStart()                   */
-/*                                                                         */
-/* Parameters:  eh (IN) The enumeration handle returned by                 */
-/*              SLPDDatabaseEnumStart()                                    */
-/*=========================================================================*/
 {
     if ( eh )
     {
@@ -881,11 +833,11 @@ void SLPDDatabaseEnumEnd(void* eh)
     }
 }
 
-
-/*=========================================================================*/
+/** Indicates whether or not the database is empty.
+ *
+ * @return A boolean value; True if the database is empty, False if not.
+ */
 int SLPDDatabaseIsEmpty()
-/* Returns an boolean value indicating whether the database is empty       */
-/*=========================================================================*/
 {
     int result = 1;
 
@@ -898,15 +850,14 @@ int SLPDDatabaseIsEmpty()
     return result;
 }
 
-
-/*=========================================================================*/
+/** Initialize the database with registrations from a regfile.
+ *
+ * @param[in] regfile - The registration file to register. 
+ *    Pass in 0 for no registration file.
+ *
+ * @return Zero on success, or a non-zero value on error.
+ */
 int SLPDDatabaseInit(const char* regfile)
-/* Initialize the database with registrations from a regfile.              */
-/*                                                                         */
-/* regfile  (IN)    the regfile to register.  Pass in NULL for no regfile  */
-/*                                                                         */
-/* Returns  - zero on success or non-zero on error.                        */
-/*=========================================================================*/
 {
 
     /* Set initial values */
@@ -919,15 +870,13 @@ int SLPDDatabaseInit(const char* regfile)
     return SLPDDatabaseReInit(regfile);
 }
 
-
-/*=========================================================================*/
+/** Re-initialize the database with changed registrations from a regfile.
+ *
+ * @param[in] regfile - The registration file to register.
+ *
+ * @return Zzero on success, or a non-zero value on error.
+ */
 int SLPDDatabaseReInit(const char* regfile)
-/* Re-initialize the database with changed registrations from a regfile.   */
-/*                                                                         */
-/* regfile  (IN)    the regfile to register.                               */
-/*                                                                         */
-/* Returns  - zero on success or non-zero on error.                        */
-/*=========================================================================*/
 {
     SLPDatabaseHandle   dh;
     SLPDatabaseEntry*   entry;
@@ -976,19 +925,16 @@ int SLPDDatabaseReInit(const char* regfile)
 }
 
 #ifdef DEBUG
-/*=========================================================================*/
+/** Cleans up all resources used by the database.
+ */
 void SLPDDatabaseDeinit(void)
-/* Cleans up all resources used by the database                            */
-/*=========================================================================*/
 {
     SLPDatabaseDeinit(&G_SlpdDatabase.database);
 }
 
-
-/*=========================================================================*/
+/** Dumps currently valid service registrations present with slpd.
+ */
 void SLPDDatabaseDump(void)
-/* Dumps currently valid service registrations present with slpd           */
-/*=========================================================================*/
 {
     SLPMessage      msg;
     SLPBuffer       buf;
@@ -1010,3 +956,5 @@ void SLPDDatabaseDump(void)
     }
 }
 #endif
+
+/*=========================================================================*/

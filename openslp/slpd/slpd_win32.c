@@ -1,57 +1,44 @@
-/***************************************************************************/
-/*                                                                         */
-/* Project:     OpenSLP - OpenSource implementation of Service Location    */
-/*              Protocol Version 2                                         */
-/*                                                                         */
-/* File:        slpd_win32.c                                               */
-/*                                                                         */
-/* Abstract:    Win32 specific part, to make SLPD run as a "service"       */
-/*                                                                         */
-/*-------------------------------------------------------------------------*/
-/*                                                                         */
-/*     Please submit patches to http://www.openslp.org                     */
-/*                                                                         */
-/*-------------------------------------------------------------------------*/
-/*                                                                         */
-/* Copyright (C) 2000 Caldera Systems, Inc                                 */
-/* All rights reserved.                                                    */
-/*                                                                         */
-/* Redistribution and use in source and binary forms, with or without      */
-/* modification, are permitted provided that the following conditions are  */
-/* met:                                                                    */ 
-/*                                                                         */
-/*      Redistributions of source code must retain the above copyright     */
-/*      notice, this list of conditions and the following disclaimer.      */
-/*                                                                         */
-/*      Redistributions in binary form must reproduce the above copyright  */
-/*      notice, this list of conditions and the following disclaimer in    */
-/*      the documentation and/or other materials provided with the         */
-/*      distribution.                                                      */
-/*                                                                         */
-/*      Neither the name of Caldera Systems nor the names of its           */
-/*      contributors may be used to endorse or promote products derived    */
-/*      from this software without specific prior written permission.      */
-/*                                                                         */
-/* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS     */
-/* `AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT      */
-/* LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR   */
-/* A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE CALDERA      */
-/* SYSTEMS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, */
-/* SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT        */
-/* LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE,  */
-/* DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON       */
-/* ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT */
-/* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE   */
-/* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.    */
-/*                                                                         */
-/***************************************************************************/
+/*-------------------------------------------------------------------------
+ * Copyright (C) 2000 Caldera Systems, Inc
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ *    Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ *
+ *    Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ *    Neither the name of Caldera Systems nor the names of its
+ *    contributors may be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * `AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE CALDERA
+ * SYSTEMS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *-------------------------------------------------------------------------*/
 
+/** Win32 service code.
+ *
+ * @file       slpd_win32.c
+ * @author     Matthew Peterson, John Calcote (jcalcote@novell.com)
+ * @attention  Please submit patches to http://www.openslp.org
+ * @ingroup    SlpdCode
+ */
 
 #include "slpd.h"
-
-/*=========================================================================*/
-/* slpd includes                                                           */
-/*=========================================================================*/
 #include "slpd_cmdline.h"
 #include "slpd_log.h"
 #include "slpd_property.h"
@@ -61,63 +48,38 @@
 #include "slpd_outgoing.h"
 #include "slpd_knownda.h"
 
-
-/*=========================================================================*/
-/* common code includes                                                    */
-/*=========================================================================*/
 #include "slp_linkedlist.h"
 #include "slp_xid.h"
 
-SERVICE_STATUS          ssStatus;       /* current status of the service  */
-SERVICE_STATUS_HANDLE   sshStatusHandle; 
-BOOL                    bDebug = FALSE; 
-TCHAR                   szErr[256];
+SERVICE_STATUS ssStatus;       /* current status of the service  */
+SERVICE_STATUS_HANDLE sshStatusHandle; 
+BOOL bDebug = FALSE; 
+TCHAR szErr[256];
 
-/*-------------------------------------------------------------------------*/
+/* externals (variables) from slpd_main.c */
 extern int G_SIGTERM;
-/* see slpd_main.c                                                         */
-/*-------------------------------------------------------------------------*/
 
-
-/*-------------------------------------------------------------------------*/
+/* externals (functions) from slpd_main.c */
 void LoadFdSets(SLPList* socklist, 
                 int* highfd, 
                 fd_set* readfds, 
                 fd_set* writefds);
-/* see slpd_main.c                                                         */
-/*-------------------------------------------------------------------------*/
-
-
-/*------------------------------------------------------------------------*/
 void HandleSigTerm();
-/* see slpd_main.c                                                        */
-/*------------------------------------------------------------------------*/
-
-
-/*------------------------------------------------------------------------*/
 void HandleSigAlrm();
-/* see slpd_main.c                                                        */
-/*------------------------------------------------------------------------*/
 
-
-/*--------------------------------------------------------------------------*/
+/** Reports the current status of the service to the SCM.
+ *
+ * @param[in] dwCurrentState - The state of the service.
+ * @param[in] dwWin32ExitCode - The error code to report.
+ * @param[in] dwWaitHint - Worst case estimate to next checkpoint.
+ *
+ * @return A boolean value; TRUE on success, FALSE on failure.
+ *
+ * @internal
+ */
 BOOL ReportStatusToSCMgr(DWORD dwCurrentState, 
                          DWORD dwWin32ExitCode, 
                          DWORD dwWaitHint) 
-/*                                                                          */
-/*  PURPOSE: Sets the current status of the service and                     */
-/*           reports it to the Service Control Manager                      */
-/*                                                                          */
-/*  PARAMETERS:                                                             */
-/*    dwCurrentState - the state of the service                             */
-/*    dwWin32ExitCode - error code to report                                */
-/*    dwWaitHint - worst case estimate to next checkpoint                   */
-/*                                                                          */
-/*  RETURN VALUE:                                                           */
-/*    TRUE  - success                                                       */
-/*    FALSE - failure                                                       */
-/*                                                                          */
-/*--------------------------------------------------------------------------*/
 {
     static DWORD dwCheckPoint = 1; 
     BOOL fResult = TRUE; 
@@ -158,20 +120,16 @@ BOOL ReportStatusToSCMgr(DWORD dwCurrentState,
     return fResult; 
 } 
 
-
-/*--------------------------------------------------------------------------*/
+/** Copies error message text to a string.
+ *
+ * @param[out] lpszBuf - A destination buffer.
+ * @param[in] dwSize - The size of @p lpszBuf in bytes.
+ *
+ * @return A pointer to the destination buffer (for convenience). 
+ *
+ * @internal
+ */
 LPTSTR GetLastErrorText( LPTSTR lpszBuf, DWORD dwSize ) 
-/*                                                                          */
-/*  PURPOSE: copies error message text to string                            */
-/*                                                                          */
-/*  PARAMETERS:                                                             */
-/*    lpszBuf - destination buffer                                          */
-/*    dwSize - size of buffer                                               */
-/*                                                                          */
-/*  RETURN VALUE:                                                           */
-/*    destination buffer                                                    */
-/*                                                                          */
-/*--------------------------------------------------------------------------*/
 {
     DWORD dwRet; 
     LPTSTR lpszTemp = NULL; 
@@ -205,10 +163,9 @@ LPTSTR GetLastErrorText( LPTSTR lpszBuf, DWORD dwSize )
     return lpszBuf; 
 } 
 
-
-/*--------------------------------------------------------------------------*/
+/** Signal the service to stop, and then report it.
+ */
 void ServiceStop() 
-/*--------------------------------------------------------------------------*/
 {
     G_SIGTERM = 1;
     ReportStatusToSCMgr(SERVICE_STOPPED,       /* service state */
@@ -216,10 +173,14 @@ void ServiceStop()
                         3000);                 /* wait hint    */
 } 
 
-
-/*--------------------------------------------------------------------------*/
+/** Start the service and report it.
+ *
+ * @param[in] argc - The number of arguments in @p argv.
+ * @param[in] argv - An array of argument string pointers.
+ *
+ * @internal
+ */
 void ServiceStart (int argc, char **argv) 
-/*--------------------------------------------------------------------------*/
 {
     fd_set          readfds;
     fd_set          writefds;
@@ -384,19 +345,15 @@ void ServiceStart (int argc, char **argv)
     ;
 } 
 
-/*==========================================================================*/
+/** Handles console control events.
+ *
+ * @param[in] dwCtrlType - The type of control event.
+ *
+ * @return A boolean value; TRUE if the event was handled, FALSE if not.
+ *
+ * @internal
+ */
 BOOL WINAPI ControlHandler ( DWORD dwCtrlType ) 
-/*                                                                          */
-/*  PURPOSE: Handled console control events                                 */
-/*                                                                          */
-/*  PARAMETERS:                                                             */
-/*    dwCtrlType - type of control event                                    */
-/*                                                                          */
-/*  RETURN VALUE:                                                           */
-/*    True - handled                                                        */
-/*    False - unhandled                                                     */
-/*                                                                          */
-/*==========================================================================*/
 {
     switch(dwCtrlType)
     {
@@ -411,20 +368,13 @@ BOOL WINAPI ControlHandler ( DWORD dwCtrlType )
     return FALSE; 
 } 
 
-
-/*==========================================================================*/
+/** Called by the SCM whenever ControlService is called on this service.
+ *
+ * @param[in] dwCtrlCode - The type of control requested.
+ *
+ * @internal
+ */
 VOID WINAPI ServiceCtrl(DWORD dwCtrlCode) 
-/*                                                                          */
-/*  PURPOSE: This function is called by the SCM whenever                    */
-/*           ControlService() is called on this service.                    */
-/*                                                                          */
-/*  PARAMETERS:                                                             */
-/*    dwCtrlCode - type of control requested                                */
-/*                                                                          */
-/*  RETURN VALUE:                                                           */
-/*    none                                                                  */
-/*                                                                          */
-/*==========================================================================*/
 {
     /* Handle the requested control code.    */
     /*    */
@@ -450,10 +400,15 @@ VOID WINAPI ServiceCtrl(DWORD dwCtrlCode)
     ReportStatusToSCMgr(ssStatus.dwCurrentState, NO_ERROR, 0); 
 } 
 
-
-/*==========================================================================*/
+/** Win32 service main entry point.
+ *
+ * @param[in] argc - The number of arguments in @p argv.
+ *
+ * @param[in] argv - An array of argument string pointers.
+ *
+ * @internal
+ */
 void WINAPI SLPDServiceMain(DWORD argc, LPTSTR *argv) 
-/*==========================================================================*/
 {
 
     /* register our service control handler:    */
@@ -482,14 +437,16 @@ void WINAPI SLPDServiceMain(DWORD argc, LPTSTR *argv)
         (void)ReportStatusToSCMgr(SERVICE_STOPPED, 
                                   0, 
                                   0);
-
-
 } 
 
-
-/*--------------------------------------------------------------------------*/
+/** Install the service.
+ *
+ * @param[in] automatic - A flag indicating whether or not the service
+ *    should be installed to start automatically at boot time.
+ *
+ * @internal
+ */
 void SLPDCmdInstallService(int automatic) 
-/*--------------------------------------------------------------------------*/
 {
     SC_HANDLE   schService; 
     SC_HANDLE   schSCManager; 
@@ -552,6 +509,12 @@ void SLPDCmdInstallService(int automatic)
         printf("OpenSCManager failed - %s\n", GetLastErrorText(szErr,256)); 
 } 
 
+/** Stop a service by service handle.
+ *
+ * @param[in] schService - A handle to the service to be stopped.
+ *
+ * @internal
+ */
 static void SLPDHlpStopService(SC_HANDLE schService)
 {
 	/* try to stop the service    */
@@ -578,9 +541,11 @@ static void SLPDHlpStopService(SC_HANDLE schService)
 	}
 }
  
-/*--------------------------------------------------------------------------*/
+/** Uninstall the service.
+ *
+ * @internal
+ */
 void SLPDCmdRemoveService() 
-/*--------------------------------------------------------------------------*/
 {
     SC_HANDLE schService; 
     SC_HANDLE schSCManager; 
@@ -615,9 +580,11 @@ void SLPDCmdRemoveService()
         printf("OpenSCManager failed - %s\n", GetLastErrorText(szErr,256)); 
 } 
 
-/*--------------------------------------------------------------------------*/
+/** Start the service.
+ *
+ * @internal
+ */
 void SLPDCmdStartService()
-/*--------------------------------------------------------------------------*/
 {
 	 SC_HANDLE schService; 
 	 SC_HANDLE schSCManager; 
@@ -650,9 +617,11 @@ void SLPDCmdStartService()
 	 }
 }
 
-/*--------------------------------------------------------------------------*/
+/** Stop the service.
+ *
+ * @internal
+ */
 void SLPDCmdStopService()
-/*--------------------------------------------------------------------------*/
 {
 	 SC_HANDLE schService; 
 	 SC_HANDLE schSCManager; 
@@ -682,9 +651,15 @@ void SLPDCmdStopService()
 	 }
 }
 
-/*--------------------------------------------------------------------------*/
+/** Debug the service.
+ *
+ * @param[in] argc - The number of arguments in @p argv.
+ *
+ * @param[in] argv - An array of argument string pointers.
+ *
+ * @internal
+ */
 void SLPDCmdDebugService(int argc, char ** argv) 
-/*--------------------------------------------------------------------------*/
 {
     printf("Debugging %s.\n", G_SERVICEDISPLAYNAME); 
 
@@ -692,9 +667,13 @@ void SLPDCmdDebugService(int argc, char ** argv)
     ServiceStart( argc, argv ); 
 }
 
-/*==========================================================================*/
+/** The main program entry point (when not executed as a service). 
+ *
+ * @param[in] argc - The number of arguments in @p argv.
+ *
+ * @param[in] argv - An array of argument string pointers.
+ */
 void __cdecl main(int argc, char **argv) 
-/*==========================================================================*/
 {
     SERVICE_TABLE_ENTRY dispatchTable[] = 
     { 
@@ -735,6 +714,4 @@ void __cdecl main(int argc, char **argv)
     } 
 } 
 
-
-
-
+/*=========================================================================*/

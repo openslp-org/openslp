@@ -1,50 +1,56 @@
-/***************************************************************************/
-/*                                                                         */
-/* Project:     OpenSLP - OpenSource implementation of Service Location    */
-/*              Protocol                                                   */
-/*                                                                         */
-/* File:        slplib_property.c                                          */
-/*                                                                         */
-/* Abstract:    Implementation for SLPGetProperty() and SLPSetProperty()   */
-/*                                                                         */
-/*-------------------------------------------------------------------------*/
-/*                                                                         */
-/*     Please submit patches to http://www.openslp.org                     */
-/*                                                                         */
-/*-------------------------------------------------------------------------*/
-/*                                                                         */
-/* Copyright (C) 2000 Caldera Systems, Inc                                 */
-/* All rights reserved.                                                    */
-/*                                                                         */
-/* Redistribution and use in source and binary forms, with or without      */
-/* modification, are permitted provided that the following conditions are  */
-/* met:                                                                    */ 
-/*                                                                         */
-/*      Redistributions of source code must retain the above copyright     */
-/*      notice, this list of conditions and the following disclaimer.      */
-/*                                                                         */
-/*      Redistributions in binary form must reproduce the above copyright  */
-/*      notice, this list of conditions and the following disclaimer in    */
-/*      the documentation and/or other materials provided with the         */
-/*      distribution.                                                      */
-/*                                                                         */
-/*      Neither the name of Caldera Systems nor the names of its           */
-/*      contributors may be used to endorse or promote products derived    */
-/*      from this software without specific prior written permission.      */
-/*                                                                         */
-/* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS     */
-/* `AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT      */
-/* LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR   */
-/* A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE CALDERA      */
-/* SYSTEMS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, */
-/* SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT        */
-/* LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE,  */
-/* DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON       */
-/* ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT */
-/* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE   */
-/* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.    */
-/*                                                                         */
-/***************************************************************************/
+/*-------------------------------------------------------------------------
+ * Copyright (C) 2000 Caldera Systems, Inc
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ *    Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ *
+ *    Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ *    Neither the name of Caldera Systems nor the names of its
+ *    contributors may be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * `AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE CALDERA
+ * SYSTEMS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *-------------------------------------------------------------------------*/
+
+/** Implementation for SLPGetProperty and SLPSetProperty
+ *
+ * These routines represent the internal implementation of the property 
+ * management routines. Some really creative string management needs to be
+ * done to properly implement the API, as designed in RFC 2614 because the
+ * SLPGetProperty routine returns reference (pointer) into the property
+ * value storage. Since this is the case, SLPSetProperty can't just delete
+ * old values because an outstanding reference might exist so such a value.
+ *
+ * @par
+ * One possible solution to this problem might be to cache all old values 
+ * in a table that may only be freed at the time the program terminates,
+ * but this could get expensive, memory-wise. We may try this approach 
+ * anyway - for the few times properties will need to be set at run-time,
+ * the cost may be worth it.
+ *
+ * @file       slp_property.c
+ * @author     Matthew Peterson, John Calcote (jcalcote@novell.com)
+ * @attention  Please submit patches to http://www.openslp.org
+ * @ingroup    CommonCode
+ */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -61,21 +67,20 @@
 #include "slp_property.h"
 #include "slp_xmalloc.h"
 
-/*=========================================================================*/
-/* Global Variables                                                        */
-/*=========================================================================*/
+/* Global Variables */ 
+/** @todo Make property list non-global. */
 SLPList G_SLPPropertyList = {0,0,0};
 
-
-/*-------------------------------------------------------------------------*/
-SLPProperty* Find(const char* pcName)
-/* Finds the property in the property list with the specified name.        */
-/*                                                                         */
-/* pcName   pointer to the property name                                   */
-/*                                                                         */
-/* Returns: pointer to the requested property or null if the requested     */
-/*          property was not found.                                        */
-/*-------------------------------------------------------------------------*/
+/** Locate a property by name.
+ *
+ * @param[in] pcName - The property name.
+ *
+ * @return A pointer to the requested property, or null if the requested
+ *    property was not found.
+ *
+ * @internal
+ */
+SLPProperty * Find(const char * pcName)
 {
     SLPProperty*  curProperty;
 
@@ -92,11 +97,13 @@ SLPProperty* Find(const char* pcName)
     return curProperty;
 }
 
-
-
-/*=========================================================================*/
-const char* SLPPropertyGet(const char* pcName)
-/*=========================================================================*/
+/** Return a property by name.
+ *
+ * @param[in] pcName - The name of the property to return.
+ *
+ * @return A pointer to the value of the property named by @p pcName.
+ */
+const char * SLPPropertyGet(const char * pcName)
 {
     SLPProperty* existingProperty = Find(pcName);
     if(existingProperty)
@@ -107,11 +114,15 @@ const char* SLPPropertyGet(const char* pcName)
     return 0;
 }
 
-
-/*=========================================================================*/
+/** Set a new value for a property by name.
+ *
+ * @param[in] pcName - The name of the desired property.
+ * @param[in] pcValue - The new value to which @p pcName should be set.
+ *
+ * @return Zero on success; -1 on error, with errno set.
+ */
 int SLPPropertySet(const char *pcName,
                    const char *pcValue)
-/*=========================================================================*/
 {
     int             pcNameSize; 
     int             pcValueSize;
@@ -178,10 +189,11 @@ int SLPPropertySet(const char *pcName,
     return 0;
 }
 
-
-/*-------------------------------------------------------------------------*/
+/** Sets all SLP default property values.
+ *
+ * @return Zero on success, or -1 with errno set on error.
+ */
 int SetDefaultValues()
-/*-------------------------------------------------------------------------*/
 {
     int result = 0;                                
 
@@ -223,16 +235,16 @@ int SetDefaultValues()
     return result;
 }
 
-
-/*=========================================================================*/
+/** Reads the property file into the property table.
+ *
+ * Reads and sets properties from the specified configuration file.
+ *
+ * @param[in] conffile - The path of the config file to be read.
+ *
+ * @return Zero on success, or a non-zero value on error. Properties will 
+ *    be set to default on error.
+ */
 int SLPPropertyReadFile(const char* conffile)
-/* Reads and sets properties from the specified configuration file         */
-/*                                                                         */
-/* conffile     (IN) the path of the config file to read.                  */
-/*                                                                         */
-/* Returns  -   zero on success. non-zero on error.  Properties will be set*/
-/*              to default on error.                                       */
-/*=========================================================================*/
 {
     char*   line;
     char*   alloced;
@@ -345,9 +357,17 @@ int SLPPropertyReadFile(const char* conffile)
     return 0;
 }
 
-/*=========================================================================*/
+/** Converts a string boolean to a binary boolean.
+ *
+ * Returns the specified property value as a binary boolean value.
+ *
+ * @param[in] property - The name of a boolean property to return as 
+ *    a boolean value.
+ *
+ * @return Zero if @p property refers to a FALSE boolean string value;
+ *    Non-zero if @p property refers to a TRUE boolean string value.
+ */
 int SLPPropertyAsBoolean(const char* property)
-/*=========================================================================*/
 {
     if(property)
     {
@@ -364,19 +384,41 @@ int SLPPropertyAsBoolean(const char* property)
     return 0;
 }
 
-/*=========================================================================*/
+/** Converts a string integer to a binary integer.
+ *
+ * Returns the specified property value as a binary integer value.
+ *
+ * @param[in] property - The name of an integer property to return as
+ *    an integer value.
+ *
+ * @return An integer value of the string value associated with 
+ *    @p property.
+ */
 int SLPPropertyAsInteger(const char* property)
-/*=========================================================================*/
 {
     return atoi(property);
 }
 
-
-/*=========================================================================*/
+/** Converts a string integer vector to a binary integer vector.
+ *
+ * Returns the specified property value as a binary integer value.
+ *
+ * @param[in] property - The name of an integer vector property to return
+ *    as a binary integer vector.
+ * @param[out] vector - The address of storage for a vector of integers.
+ * @param[in] vectorsize - The amount of storage in @p vector.
+ *
+ * @return Zero on success, or a non-zero value on error.
+ *
+ * @remarks The array in pre-initialized to zero so that all 
+ *    un-initialized entries are zero on return.
+ *
+ * @todo Convert this routine to return the number of entries set on 
+ *    success, rather than simply zero.
+ */
 int SLPPropertyAsIntegerVector(const char* property, 
                                int* vector, 
                                int vectorsize)
-/*=========================================================================*/
 {
     int         i;
     char*       slider1;
@@ -413,10 +455,12 @@ int SLPPropertyAsIntegerVector(const char* property,
 }
 
 #ifdef DEBUG
-
-/*=========================================================================*/
-void SLPPropertyFreeAll()
-/*=========================================================================*/
+/** Free all property memory (DEBUG only).
+ *
+ * This routine is debug only because the amount of memory used by the 
+ * property code is limited at runtime by a finite number of properties.
+ */
+void SLPPropertyFreeAll(void)
 {
     SLPProperty* property;
     SLPProperty* del;
@@ -432,5 +476,6 @@ void SLPPropertyFreeAll()
 
     memset(&G_SLPPropertyList,0,sizeof(G_SLPPropertyList));
 }
-
 #endif
+
+/*=========================================================================*/

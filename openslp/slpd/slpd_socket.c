@@ -1,75 +1,60 @@
-/***************************************************************************/
-/*                                                                         */
-/* Project:     OpenSLP - OpenSource implementation of Service Location    */
-/*              Protocol Version 2                                         */
-/*                                                                         */
-/* File:        slpd_socket.c                                              */
-/*                                                                         */
-/* Abstract:    Socket specific functions implementation                   */
-/*                                                                         */
-/* WARNING:     NOT thread safe!                                           */
-/*-------------------------------------------------------------------------*/
-/*                                                                         */
-/*     Please submit patches to http://www.openslp.org                     */
-/*                                                                         */
-/*-------------------------------------------------------------------------*/
-/*                                                                         */
-/* Copyright (C) 2000 Caldera Systems, Inc                                 */
-/* All rights reserved.                                                    */
-/*                                                                         */
-/* Redistribution and use in source and binary forms, with or without      */
-/* modification, are permitted provided that the following conditions are  */
-/* met:                                                                    */ 
-/*                                                                         */
-/*      Redistributions of source code must retain the above copyright     */
-/*      notice, this list of conditions and the following disclaimer.      */
-/*                                                                         */
-/*      Redistributions in binary form must reproduce the above copyright  */
-/*      notice, this list of conditions and the following disclaimer in    */
-/*      the documentation and/or other materials provided with the         */
-/*      distribution.                                                      */
-/*                                                                         */
-/*      Neither the name of Caldera Systems nor the names of its           */
-/*      contributors may be used to endorse or promote products derived    */
-/*      from this software without specific prior written permission.      */
-/*                                                                         */
-/* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS     */
-/* `AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT      */
-/* LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR   */
-/* A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE CALDERA      */
-/* SYSTEMS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, */
-/* SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT        */
-/* LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE,  */
-/* DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON       */
-/* ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT */
-/* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE   */
-/* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.    */
-/*                                                                         */
-/***************************************************************************/
+/*-------------------------------------------------------------------------
+ * Copyright (C) 2000 Caldera Systems, Inc
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ *    Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ *
+ *    Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ *    Neither the name of Caldera Systems nor the names of its
+ *    contributors may be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * `AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE CALDERA
+ * SYSTEMS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *-------------------------------------------------------------------------*/
 
-/*=========================================================================*/
-/* slpd includes                                                           */
-/*=========================================================================*/
+/** Socket-specific functions.
+ *
+ * @file       slpd_socket.c
+ * @author     Matthew Peterson, John Calcote (jcalcote@novell.com)
+ * @attention  Please submit patches to http://www.openslp.org
+ * @ingroup    SlpdCode
+ */
+
 #include "slpd_socket.h"
 #include "slpd_property.h"
 
-
-/*=========================================================================*/
-/* common code includes                                                    */
-/*=========================================================================*/
 #include "slp_message.h"
 #include "slp_xmalloc.h"
 #include "slp_net.h"
 
-
-/*-------------------------------------------------------------------------*/
+/** Sets the socket options to receive broadcast traffic.
+ *
+ * @param[in] sockfd - The socket file descriptor for which to 
+ *    enable broadcast.
+ *
+ * @return Zero on success, or a non-zero value on failure.
+ *
+ * @internal
+ */
 int EnableBroadcast(sockfd_t sockfd)
-/* Sets the socket options to receive broadcast traffic                    */
-/*                                                                         */
-/* sockfd   - the socket file descriptor to set option on                  */
-/*                                                                         */
-/* returns  - zero on success                                              */
-/*-------------------------------------------------------------------------*/
 {
 #ifdef _WIN32
     const char on = 1;
@@ -79,14 +64,17 @@ int EnableBroadcast(sockfd_t sockfd)
     return setsockopt(sockfd,SOL_SOCKET,SO_BROADCAST,&on,sizeof(on));
 }
 
-/*-------------------------------------------------------------------------*/
+/** Set the socket options for ttl (time-to-live).
+ *
+ * @param[in] sockfd - the socket file descriptor for which to set TTL state.
+ * @param[in] ttl - A boolean value indicating whether to enable or disable
+ *    the time-to-live option.
+ *
+ * @return Zero on success, or a non-zero value on failure.
+ *
+ * @internal
+ */
 int SetMulticastTTL(sockfd_t sockfd, int ttl)
-/* Set the socket options for ttl                                          */
-/*                                                                         */
-/* sockfd   - the socket file descriptor to set option on                  */
-/*                                                                         */
-/* returns  - zero on success                                              */
-/*-------------------------------------------------------------------------*/
 {
 
 #if defined(linux)
@@ -133,25 +121,21 @@ int SetMulticastTTL(sockfd_t sockfd, int ttl)
     return 0;
 }
 
-
-/*-------------------------------------------------------------------------*/
+/** Configures a socket to receive mcast on a specified interface.
+ *
+ * @param[in] family - The address family of the multicast group to join.
+ * @param[in] sockfd - The socket file descriptor to set the options on.
+ * @param[in] maddr - A pointer to multicast group to join.
+ * @param[in] addr - A pointer to address of the interface to join on.
+ *
+ * @return Zero on success, or a non-zero value on failure.
+ *
+ * @internal
+ */
 int JoinSLPMulticastGroup(int family,
                           sockfd_t sockfd,
                           struct sockaddr_storage* maddr,
                           struct sockaddr_storage* addr)
-/* Sets the socket options to receive multicast traffic from the specified */
-/* interface.                                                              */
-/*                                                                         */
-/* family   - the address family of the multicast group to join.           */
-/*                                                                         */
-/* sockfd   - the socket file descriptor to set the options on.            */
-/*                                                                         */
-/* maddr    - pointer to multicast group to join                           */
-/*                                                                         */
-/* addr     - pointer to address of the interface to join on               */
-/*                                                                         */
-/* returns  - zero on success                                              */
-/*-------------------------------------------------------------------------*/
 {
     struct ip_mreq      mreq4;
     struct ipv6_mreq    mreq6;
@@ -189,23 +173,21 @@ int JoinSLPMulticastGroup(int family,
     }
 }
 
-
-/*-------------------------------------------------------------------------*/
+/** Configures a socket NOT to receive mcast traffic on an interface.
+ *
+ * @param[in] family - The address family (AF_INET or AF_INET6).
+ * @param[in] sockfd - The socket file descriptor to set the options on.
+ * @param[in] maddr - A pointer to the multicast address
+ * @param[in] addr - A pointer to the multicast address
+ *
+ * @return Zero on success, or a non-zero value on failure.
+ *
+ * @internal
+ */
 int DropSLPMulticastGroup(int family,
                           sockfd_t sockfd,
                           struct sockaddr_storage* maddr,
                           struct sockaddr_storage* addr)
-/* Sets the socket options to not receive multicast traffic from the       */
-/* specified interface.                                                    */
-/*                                                                         */
-/* family   - the address family (AF_INET or AF_INET6).                    */
-/*                                                                         */
-/* sockfd   - the socket file descriptor to set the options on.            */
-/*                                                                         */
-/* maddr    - pointer to the multicast address                             */
-/*                                                                         */
-/* addr     - pointer to the multicast address                             */
-/*-------------------------------------------------------------------------*/
 {
     struct ip_mreq      mreq4;
     struct ipv6_mreq    mreq6;
@@ -237,19 +219,17 @@ int DropSLPMulticastGroup(int family,
     }
 }
 
-
-/*-------------------------------------------------------------------------*/
+/** Binds the specified socket to the SLP port and interface.
+ *
+ * @param[in] family - The address family (AF_INET or AF_INET6).
+ * @param[in] sock - The socket to be bound.
+ * @param[in] addr - The address to bind to.
+ *
+ * @return Zero on success, -1 on error.
+ *
+ * @internal
+ */
 int BindSocketToInetAddr(int family, int sock, struct sockaddr_storage* addr)
-/* Binds the specified socket to the SLP port and interface.               */
-/*                                                                         */
-/* family   - the address family (AF_INET or AF_INET6).                    */
-/*                                                                         */
-/* sock     - the socket to be bound                                       */
-/*                                                                         */
-/* addr     - the address to bind to.                                      */
-/*                                                                         */
-/* Returns  - zero on success, -1 on error.                                */
-/*-------------------------------------------------------------------------*/
 {
     struct sockaddr_storage temp_addr;
     int                     result;
@@ -297,18 +277,16 @@ int BindSocketToInetAddr(int family, int sock, struct sockaddr_storage* addr)
     return result;
 }
 
-
-/*-------------------------------------------------------------------------*/
+/** Binds a socket to a port of the loopback interface.
+ *
+ * @param[in] family - The address family (AF_INET or AF_INET6).
+ * @param[in] sock - The socket to be bound.
+ *
+ * @return Zero on success, -1 on error.
+ *
+ * @internal
+ */
 int BindSocketToLoopback(int family, int sock)
-/* Binds the specified socket to the specified port of the loopback        */
-/* interface.                                                              */
-/*                                                                         */
-/* family   - the address family (AF_INET or AF_INET6).                    */
-/*                                                                         */
-/* sock     - the socket to be bound                                       */
-/*                                                                         */
-/* Returns  - zero on success, -1 on error.                                */
-/*-------------------------------------------------------------------------*/
 {
     struct sockaddr_storage loaddr;
 
@@ -332,13 +310,12 @@ int BindSocketToLoopback(int family, int sock)
     }
 }
 
-/*=========================================================================*/
+/** Allocate memory for a new SLPDSocket.
+ *
+ * @return A pointer to a newly allocated SLPDSocket, or NULL if out of
+ *    memory.
+ */
 SLPDSocket* SLPDSocketAlloc()
-/* Allocate memory for a new SLPDSocket.                                   */
-/*                                                                         */
-/* Returns: pointer to a newly allocated SLPDSocket, or NULL if out of     */
-/*          memory.                                                        */
-/*=========================================================================*/
 {
     SLPDSocket* sock;
 
@@ -352,12 +329,11 @@ SLPDSocket* SLPDSocketAlloc()
     return sock;
 }
 
-/*=========================================================================*/
+/** Frees memory associated with the specified SLPDSocket.
+ *
+ * @param[in] sock - A pointer to the socket to free.
+ */
 void SLPDSocketFree(SLPDSocket* sock)
-/* Frees memory associated with the specified SLPDSocket                   */
-/*                                                                         */
-/* sock (IN) pointer to the socket to free                                 */
-/*=========================================================================*/
 {
     /* close the socket descriptor */
     CloseSocket(sock->fd);
@@ -386,17 +362,17 @@ void SLPDSocketFree(SLPDSocket* sock)
     xfree(sock);
 }
 
-
-/*==========================================================================*/
+/** Creates a datagram buffer for a remote address.
+ *
+ * @param[in] peeraddr - The address of the peer to connect to.
+ * @param[in] type - The type of the datagram; one of DATAGRAM_UNICAST, 
+ *    DATAGRAM_MULTICAST or DATAGRAM_BROADCAST.
+ *
+ * @return A datagram socket SLPDSocket->state will be set to
+ *    DATAGRAM_UNICAST, DATAGRAM_MULTICAST or DATAGRAM_BROADCAST.
+ */
 SLPDSocket* SLPDSocketCreateDatagram(struct sockaddr_storage* peeraddr,
                                      int type)
-/* peeraddr - (IN) the address of the peer to connect to                    */
-/*                                                                          */
-/* type (IN) DATAGRAM_UNICAST, DATAGRAM_MULTICAST, DATAGRAM_BROADCAST       */
-/*                                                                          */
-/* Returns: A datagram socket SLPDSocket->state will be set to              */
-/*          DATAGRAM_UNICAST, DATAGRAM_MULTICAST, or DATAGRAM_BROADCAST     */
-/*==========================================================================*/
 {
     SLPDSocket*     sock;  
     sock = SLPDSocketAlloc();
@@ -463,19 +439,19 @@ SLPDSocket* SLPDSocketCreateDatagram(struct sockaddr_storage* peeraddr,
     return sock;
 } 
 
-/*==========================================================================*/
+/** Creates and binds a datagram buffer for a remote address.
+ *
+ * @param[in] myaddr - The address of the interface to join mcast on.
+ * @param[in] peeraddr - The address of the peer to connect to.
+ * @param[in] type - The type of datagram; one of DATAGRAM_UNICAST, 
+ *    DATAGRAM_MULTICAST or DATAGRAM_BROADCAST.
+ *
+ * @return A datagram socket SLPDSocket->state will be set to
+ *    DATAGRAM_UNICAST, DATAGRAM_MULTICAST or DATAGRAM_BROADCAST.
+ */
 SLPDSocket* SLPDSocketCreateBoundDatagram(struct sockaddr_storage* myaddr,
                                           struct sockaddr_storage* peeraddr,
                                           int type)
-/* myaddr - (IN) the address of the interface to join mcast on              */ 
-/*                                                                          */
-/* peeraddr - (IN) the address of the peer to connect to                    */
-/*                                                                          */
-/* type (IN) DATAGRAM_UNICAST, DATAGRAM_MULTICAST, DATAGRAM_BROADCAST       */
-/*                                                                          */
-/* Returns: A datagram socket SLPDSocket->state will be set to              */
-/*          DATAGRAM_UNICAST, DATAGRAM_MULTICAST, or DATAGRAM_BROADCAST     */
-/*==========================================================================*/
 {
     SLPDSocket*                 sock;
 
@@ -554,17 +530,14 @@ SLPDSocket* SLPDSocketCreateBoundDatagram(struct sockaddr_storage* myaddr,
     return sock;    
 }
 
-
-/*==========================================================================*/
+/** Creates an SLP listen socket.
+ *
+ * @param[in] peeraddr - The address of the peer to connect to.
+ *
+ * @return A listening socket. SLPDSocket->state will be set to 
+ *    SOCKET_LISTEN. Returns NULL on error.
+ */
 SLPDSocket* SLPDSocketCreateListen(struct sockaddr_storage* peeraddr)
-/*                                                                          */
-/* peeraddr - (IN) the address of the peer to connect to                    */
-/*                                                                          */
-/* type (IN) DATAGRAM_UNICAST, DATAGRAM_MULTICAST, DATAGRAM_BROADCAST       */
-/*                                                                          */
-/* Returns: A listening socket. SLPDSocket->state will be set to            */
-/*          SOCKET_LISTEN.   Returns NULL on error                          */
-/*==========================================================================*/
 {
     int fdflags;
     SLPDSocket* sock;
@@ -615,16 +588,15 @@ SLPDSocket* SLPDSocketCreateListen(struct sockaddr_storage* peeraddr)
     return 0;
 }
 
-/*==========================================================================*/
+/** Determines if a socket is listening on an address.
+ *
+ * @param[in] sock - The socket to check.
+ * @param[in] addr - The address to check for.
+ *
+ * @return A non-zero value if the socket is listening on @p addr,
+ *    otherwise zero.
+ */
 int SLPDSocketIsMcastOn(SLPDSocket* sock, struct sockaddr_storage* addr)
-/*                                                                          */
-/* sock - (IN) the socket to check                                          */
-/*                                                                          */
-/* addr - (IN) the address to check                                         */
-/*                                                                          */
-/* Returns: non-zero if the socket is listening on that address.            */
-/*          Zero, otherwise.                                                */
-/*==========================================================================*/
 {
     switch (sock->mcastaddr.ss_family) {
         case AF_INET:
@@ -643,16 +615,16 @@ int SLPDSocketIsMcastOn(SLPDSocket* sock, struct sockaddr_storage* addr)
     }
 }
 
-/*==========================================================================*/
+/** Create a connected socket.
+ *
+ * @param[in] addr - The address of the peer to connect to.
+ *
+ * @return A connected socket or a socket in the process of being connected
+ *    if the socket was connected the SLPDSocket->state will be set to 
+ *    writable. If the connect would block, SLPDSocket->state will be set 
+ *    to connect; NULL on error.
+ */
 SLPDSocket* SLPDSocketCreateConnected(struct sockaddr_storage* addr)
-/*                                                                          */
-/* addr - (IN) the address of the peer to connect to                        */
-/*                                                                          */
-/* Returns: A connected socket or a socket in the process of being connected*/
-/*          if the socket was connected the SLPDSocket->state will be set   */
-/*          to writable.  If the connect would block, SLPDSocket->state will*/
-/*          be set to connect.  Return NULL on error                        */
-/*==========================================================================*/
 {
 #ifdef _WIN32
     char                lowat;
@@ -748,3 +720,4 @@ SLPDSocket* SLPDSocketCreateConnected(struct sockaddr_storage* addr)
     return sock;
 }
 
+/*=========================================================================*/

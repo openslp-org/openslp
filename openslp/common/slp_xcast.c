@@ -1,100 +1,92 @@
-/***************************************************************************/
-/*                                                                         */
-/* Project:     OpenSLP - OpenSource implementation of Service Location    */
-/*              Protocol                                                   */
-/*                                                                         */
-/* File:        slp_xcast.c                                                */
-/*                                                                         */
-/* Abstract:    Functions used to multicast and broadcast SLP messages     */
-/*                                                                         */
-/*-------------------------------------------------------------------------*/
-/*                                                                         */
-/*     Please submit patches to http://www.openslp.org                     */
-/*                                                                         */
-/*-------------------------------------------------------------------------*/
-/*                                                                         */
-/* Copyright (C) 2000 Caldera Systems, Inc                                 */
-/* All rights reserved.                                                    */
-/*                                                                         */
-/* Redistribution and use in source and binary forms, with or without      */
-/* modification, are permitted provided that the following conditions are  */
-/* met:                                                                    */
-/*                                                                         */
-/*      Redistributions of source code must retain the above copyright     */
-/*      notice, this list of conditions and the following disclaimer.      */
-/*                                                                         */
-/*      Redistributions in binary form must reproduce the above copyright  */
-/*      notice, this list of conditions and the following disclaimer in    */
-/*      the documentation and/or other materials provided with the         */
-/*      distribution.                                                      */
-/*                                                                         */
-/*      Neither the name of Caldera Systems nor the names of its           */
-/*      contributors may be used to endorse or promote products derived    */
-/*      from this software without specific prior written permission.      */
-/*                                                                         */
-/* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS     */
-/* `AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT      */
-/* LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR   */
-/* A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE CALDERA      */
-/* SYSTEMS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, */
-/* SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT        */
-/* LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE,  */
-/* DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON       */
-/* ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT */
-/* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE   */
-/* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.    */
-/*                                                                         */
-/***************************************************************************/
+/*-------------------------------------------------------------------------
+ * Copyright (C) 2000 Caldera Systems, Inc
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ *    Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ *
+ *    Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ *    Neither the name of Caldera Systems nor the names of its
+ *    contributors may be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * `AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE CALDERA
+ * SYSTEMS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *-------------------------------------------------------------------------*/
+
+/** Functions used to multicast and broadcast SLP messages.
+ *
+ * The routines in this file are used by the OpenSLP UA, SA and DA code to
+ * to send and receive SLPv2 broadcast and multicast messages.
+ *
+ * @file       slp_xcast.c
+ * @author     Matthew Peterson, John Calcote (jcalcote@novell.com)
+ * @attention  Please submit patches to http://www.openslp.org
+ * @ingroup    CommonCode
+ */
 
 #ifdef _WIN32
-#define WIN32_LEAN_AND_MEAN
-#include <winsock2.h>
-#include <ws2tcpip.H>
-#include <windows.h>
-#include <io.h>
-#include <errno.h>
-#define ETIMEDOUT 110
-#define ENOTCONN  107
+# define WIN32_LEAN_AND_MEAN
+# include <winsock2.h>
+# include <ws2tcpip.H>
+# include <windows.h>
+# include <io.h>
+# include <errno.h>
+# define ETIMEDOUT 110
+# define ENOTCONN  107
 #else
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <sys/socket.h>
-#include <sys/time.h>
-#include <netinet/in.h>
-#include <arpa/inet.h> 
-#include <netdb.h> 
-#include <fcntl.h> 
-#include <errno.h>
+# include <stdlib.h>
+# include <unistd.h>
+# include <string.h>
+# include <sys/socket.h>
+# include <sys/time.h>
+# include <netinet/in.h>
+# include <arpa/inet.h> 
+# include <netdb.h> 
+# include <fcntl.h> 
+# include <errno.h>
 #endif
 
 #ifndef UNICAST_NOT_SUPPORTED
-#include "../libslp/slp.h"
+# include "../libslp/slp.h"
 #endif
 
 #include "slp_xcast.h"
 #include "slp_message.h"
 #include "slp_net.h"
 
-/*========================================================================*/
+/** Broadcast a message.
+ *
+ * @param[in] ifaceinfo - A pointer to the SLPIfaceInfo structure that 
+ *    contains information about the interfaces on which to send.
+ * @param[in] msg - The buffer to be sent.
+ * @param[out] socks - The address of storage for returning the sockets
+ *    that were used to broadcast. 
+ *
+ * @return Zero on sucess, or a non-zero value with @a errno set on error.
+ *
+ * @remarks The sockets returned in @p socks may be used to receive 
+ *    responses. Must be close by caller using SLPXcastSocketsClose.
+ */                        
 int SLPBroadcastSend(const SLPIfaceInfo* ifaceinfo, 
                      SLPBuffer msg,
                      SLPXcastSockets* socks)
-/* Description:
- *    Broadcast a message.
- *
- * Parameters:
- *    ifaceinfo (IN) Pointer to the SLPIfaceInfo structure that contains
- *                   information about the interfaces to send on
- *    msg       (IN) Buffer to send
- *
- *   socks      (OUT) Sockets used broadcast multicast.  May be used to 
- *                    recv() responses.  MUST be close by caller using 
- *                    SLPXcastSocketsClose() 
- *
- * Returns:
- *    Zero on sucess.  Non-zero with errno set on error
- *========================================================================*/
 {
     int                 xferbytes;
     int                 flags = 0;  
@@ -155,27 +147,23 @@ int SLPBroadcastSend(const SLPIfaceInfo* ifaceinfo,
     return 0;
 }
 
-/*========================================================================*/
+/** Multicast a message.
+ *
+ * @param[in] ifaceinfo - A pointer to the SLPIfaceInfo structure that 
+ *    contains information about the interfaces on which to send.
+ * @param[in] msg - The buffer to be sent.
+ * @param[out] socks - The address of storage for the sockets that were used
+ *    to multicast.
+ * @param[in] dst - The target address, if using ipv6; can be null for IPv4.  
+ *
+ * @return Zero on sucess, or a non-zero value, with errno set on error.
+ *
+ * @remarks May be used to receive responses. Must be close by caller using 
+ *    SLPXcastSocketsClose.
+ */
 int SLPMulticastSend(const SLPIfaceInfo* ifaceinfo, 
                      SLPBuffer msg,
                      SLPXcastSockets* socks, struct sockaddr_storage *dst)
-/* Description:
- *    Multicast a message.
- *
- * Parameters:
- *    ifaceinfo (IN) Pointer to the SLPIfaceInfo structure that contains
- *                   information about the interfaces to send on
- *    msg       (IN) Buffer to send
- *
- *   socks      (OUT) Sockets used to multicast.  May be used to recv() 
- *                    responses.  MUST be close by caller using 
- *                    SLPXcastSocketsClose() 
- *   dst        (IN)  Address to send to if using ipv6 - can be NULL
- *                    for v4.  
- *
- * Returns:
- *    Zero on sucess.  Non-zero with errno set on error
- *========================================================================*/
 {
     int             flags = 0;
     int             xferbytes;
@@ -247,57 +235,26 @@ int SLPMulticastSend(const SLPIfaceInfo* ifaceinfo,
 
 }
 
-
-/*========================================================================*/
-int SLPXcastSocketsClose(SLPXcastSockets* socks)
-/* Description:
- *    Closes sockets that were opened by calls to SLPMulticastSend() and
- *    SLPBroadcastSend()
+/** Receives datagram messages.
  *
- * Parameters:
- *    socks (IN) Pointer to the SLPXcastSockets structure being close
+ * Receives messages from one of the sockets in the specified 
+ * SLPXcastsSockets structure, @p sockets.
+ *  
+ * @param[in] sockets - A pointer to the SOPXcastSockets structure that 
+ *    describes the sockets from which to read messages.
+ * @param[out] buf - A pointer to an SLPBuffer that will contain the 
+ *    received message upon successful return.
+ * @param[out] peeraddr - A pointer to a sockaddr structure that will 
+ *    contain the address of the peer from which the message was received.
+ * @param[in,out] timeout - A pointer to the timeval structure that 
+ *    indicates how much time to wait for a message to arrive.
  *
- * Returns:
- *    Zero on sucess.  Non-zero with errno set on error
- *========================================================================*/
-{
-    while(socks->sock_count)
-    {
-        socks->sock_count = socks->sock_count - 1;
-		#ifdef _WIN32 
-			closesocket(socks->sock[socks->sock_count]);
-		#else
-	        close(socks->sock[socks->sock_count]);
-		#endif
-    }
-
-    return 0;
-}
-
-
-
-/*=========================================================================*/
+ * @return Zero on success, or a non-zero with errno set on failure.
+ */
 int SLPXcastRecvMessage(const SLPXcastSockets* sockets,
                         SLPBuffer* buf,
                         struct sockaddr_storage *peeraddr,
                         struct timeval* timeout)
-/* Description: 
- *    Receives datagram messages from one of the sockets in the specified  
- *    SLPXcastsSockets structure
- *  
- * Parameters:
- *    sockets (IN) Pointer to the SOPXcastSockets structure that describes
- *                 which sockets to read messages from.
- *    buf     (OUT) Pointer to SLPBuffer that will contain the message upon
- *                  successful return.
- *    peeraddr (OUT) Pointer to struc sockaddr that will contain the
- *                   address of the peer that sent the received message.
- *    timeout (IN/OUT) pointer to the struct timeval that indicates how much
- *                     time to wait for a message to arrive
- *
- * Returns:
- *    Zero on success, non-zero with errno set on failure.
- *========================================================================*/
 {
     fd_set  readfds;
     int     highfd;
@@ -413,15 +370,40 @@ int SLPXcastRecvMessage(const SLPXcastSockets* sockets,
     return result;
 }
 
+/** Closes sockets.
+ *
+ * Closes the sockets in the @p socks parameter, which were previously 
+ * opened by calls to SLPMulticastSend and SLPBroadcastSend.
+ *
+ * @param[in,out] socks - A pointer to the SLPXcastSockets structure 
+ *    being closed.
+ *
+ * @return Zero on sucess, or a non-zero with errno set on error.
+ */
+int SLPXcastSocketsClose(SLPXcastSockets* socks)
+{
+    while(socks->sock_count)
+    {
+        socks->sock_count = socks->sock_count - 1;
+#ifdef _WIN32 
+         closesocket(socks->sock[socks->sock_count]);
+#else
+         close(socks->sock[socks->sock_count]);
+#endif
+    }
+
+    return 0;
+}
+
 /*===========================================================================
  * TESTING CODE may be compiling with the following command line:
  *
  * $ gcc -g -DDEBUG -DSLP_XMIT_TEST slp_xcast.c slp_iface.c slp_buffer.c 
- *   slp_linkedlist.c slp_compare.c slp_xmalloc.c
- *==========================================================================*/ 
+ *    slp_linkedlist.c slp_compare.c slp_xmalloc.c
+ */
 /* #define SLP_XMIT_TEST */
 #ifdef SLP_XMIT_TEST
-main()
+int main(void)
 {
     SLPIfaceInfo    ifaceinfo;
     SLPIfaceInfo    ifaceinfo6;
@@ -429,10 +411,10 @@ main()
     SLPBuffer           buffer;
     BYTE v6Addr[] = {0xFF, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x16};  // multicat srvloc address
     struct sockaddr_storage dst;
-    #ifdef _WIN32
+#ifdef _WIN32
     WSADATA wsadata;
     WSAStartup(MAKEWORD(2,2), &wsadata);
-    #endif
+#endif
 
     //const struct in6_addr in6addr;
     buffer = SLPBufferAlloc(SLP_MAX_DATAGRAM_SIZE);
@@ -467,10 +449,12 @@ main()
 
         SLPBufferFree(buffer);
     }
-    #ifdef _WIN32
-    WSACleanup();
-    #endif
+#ifdef _WIN32
+   WSACleanup();
+#endif
+   return 0;
 }
 
 #endif
 
+/*=========================================================================*/

@@ -1,63 +1,57 @@
+/*-------------------------------------------------------------------------
+ * Copyright (C) 2000 Caldera Systems, Inc
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ *    Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ *
+ *    Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ *    Neither the name of Caldera Systems nor the names of its
+ *    contributors may be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * `AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE CALDERA
+ * SYSTEMS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *-------------------------------------------------------------------------*/
 
-/***************************************************************************/
-/*                                                                         */
-/* Project:     OpenSLP - OpenSource implementation of Service Location    */
-/*              Protocol                                                   */
-/*                                                                         */
-/* File:        slp_net.h                                                  */
-/*                                                                         */
-/* Abstract:    Network utility functions                                  */
-/*                                                                         */
-/*-------------------------------------------------------------------------*/
-/*                                                                         */
-/*     Please submit patches to http://www.openslp.org                     */
-/*                                                                         */
-/*-------------------------------------------------------------------------*/
-/*                                                                         */
-/* Copyright (C) 2000 Caldera Systems, Inc                                 */
-/* All rights reserved.                                                    */
-/*                                                                         */
-/* Redistribution and use in source and binary forms, with or without      */
-/* modification, are permitted provided that the following conditions are  */
-/* met:                                                                    */ 
-/*                                                                         */
-/*      Redistributions of source code must retain the above copyright     */
-/*      notice, this list of conditions and the following disclaimer.      */
-/*                                                                         */
-/*      Redistributions in binary form must reproduce the above copyright  */
-/*      notice, this list of conditions and the following disclaimer in    */
-/*      the documentation and/or other materials provided with the         */
-/*      distribution.                                                      */
-/*                                                                         */
-/*      Neither the name of Caldera Systems nor the names of its           */
-/*      contributors may be used to endorse or promote products derived    */
-/*      from this software without specific prior written permission.      */
-/*                                                                         */
-/* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS     */
-/* `AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT      */
-/* LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR   */
-/* A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE CALDERA      */
-/* SYSTEMS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, */
-/* SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT        */
-/* LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE,  */
-/* DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON       */
-/* ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT */
-/* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE   */
-/* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.    */
-/*                                                                         */
-/***************************************************************************/
+/** Network utility functions.
+ *
+ * These routines manage network address data structures, and provide host-
+ * to-address conversion functionality.
+ *
+ * @file       slp_net.c
+ * @author     Matthew Peterson, John Calcote (jcalcote@novell.com)
+ * @attention  Please submit patches to http://www.openslp.org
+ * @ingroup    CommonCode
+ */
 
 #include "../libslp/slp.h"
 #include "slp_net.h"
 #include "slp_xmalloc.h"
 #include "slp_property.h"
 #include <assert.h>
+
 #ifndef min
-#define min(a,b) (((a)<(b))?(a):(b))
+# define min(a,b) (((a)<(b))?(a):(b))
 #endif
-/*=========================================================================*/
-/* IPv6 SLP address constants                                              */
-/*=========================================================================*/
+
+/* IPv6 SLP address constants */
 const struct in6_addr in6addr_srvloc_node       = {{{ 0xFF,0x1,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x01,0x16 }}};
 const struct in6_addr in6addr_srvloc_link       = {{{ 0xFF,0x2,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x01,0x16 }}};
 const struct in6_addr in6addr_srvloc_site       = {{{ 0xFF,0x5,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x01,0x16 }}};
@@ -67,11 +61,22 @@ const struct in6_addr in6addr_srvlocda_site     = {{{ 0xFF,0x5,0x0,0x0,0x0,0x0,0
 const struct in6_addr in6addr_service_node_mask = {{{ 0xFF,0x1,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x1,0x10,0x00 }}};
 const struct in6_addr in6addr_service_link_mask = {{{ 0xFF,0x2,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x1,0x10,0x00 }}};
 const struct in6_addr in6addr_service_site_mask = {{{ 0xFF,0x5,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x1,0x10,0x00 }}};
+const struct in6_addr slp_in6addr_any           = SLP_IN6ADDR_ANY_INIT;
+const struct in6_addr slp_in6addr_loopback      = SLP_IN6ADDR_LOOPBACK_INIT;
 
-const struct in6_addr slp_in6addr_any = SLP_IN6ADDR_ANY_INIT;
-const struct in6_addr slp_in6addr_loopback = SLP_IN6ADDR_LOOPBACK_INIT;
-
-// return 1 if successful, 0 if fails, and -1 if a:f argument is unknown
+/** Resolve a host name to an address.
+ *
+ * @param[in] af - The address family to resolve to.
+ * @param[in] src - The host name to be resolved.
+ * @param[out] dst - The address of storage for the resolved binary address.
+ *
+ * @return 1 if successful, 0 on failure, and -1 if @p af is unknown.
+ *
+ * @note The buffer pointed to by @p dst must be at least large enough to 
+ *    hold an address of the family specified by @p af.
+ *
+ * @internal
+ */
 int resolveHost(int af, const char *src, void *dst) {
     int sts = 0;
     struct addrinfo *res;
@@ -132,391 +137,30 @@ int resolveHost(int af, const char *src, void *dst) {
     return(sts);
 }
 
-
-int SLPNetGetThisHostname(char* hostfdn, unsigned int hostfdnLen, int numeric_only, int family)
-/* 
- * Description:
- *    Returns a string represting this host (the FDN) or null.                                                     
+/** Determines if the specified IPv6 address is the IPv6 loopback address.
  *
- * Parameters:
- *    hostfdn   (OUT) pointer to char pointer that is set to buffer 
- *                    contining this machine's FDN.  Caller must free
- *                    returned string with call to xfree()
- *    numeric_only (IN) force return of numeric address.  
+ * @param[in] a - The IPv6 address to be checked.
  *
- *     family    (IN) Hint family to get info for - can be AF_INET, AF_INET6, 
- *                    or AF_UNSPEC for both
- *     
- *-------------------------------------------------------------------------*/
-{
-    char host[MAX_HOST_NAME];
-    struct addrinfo *ifaddr;
-    struct addrinfo hints;
-    int sts = 0;
-
-    *hostfdn = 0;
-
-    memset(&hints, 0, sizeof(hints));
-    hints.ai_socktype = SOCK_STREAM;
-    hints.ai_family = family;
-    if(gethostname(host, MAX_HOST_NAME) == 0)
-    {
-        sts = getaddrinfo(host, NULL, &hints, &ifaddr);
-        if (sts == 0) {
-            /* if the hostname has a '.' then it is probably a qualified 
-             * domain name.  If it is not then we better use the IP address
-            */ 
-            if(!numeric_only && strchr(host, '.'))
-            {
-                 strncpy(hostfdn, host, hostfdnLen);
-            }
-            else
-            {   
-                sts = SLPNetAddrInfoToString(ifaddr,  hostfdn, hostfdnLen);
-            }
-            freeaddrinfo(ifaddr);
-        }
-        else {
-            assert(1);
-        }
-    }
-
-    return(sts);
-}
-
-
-/*-------------------------------------------------------------------------*/
-int SLPNetResolveHostToAddr(const char* host,
-                            struct sockaddr_storage* addr)
-/* 
- * Description:
- *    Returns a string represting this host (the FDN) or null.                                                    
+ * @return A boolean value; True (1) if @p a is the IPv6 loopback 
+ *    address, or False (0) if not.
  *
- * Parameters:
- *    host  (IN)  pointer to hostname to resolve
- *    addr  (OUT) pointer to in_addr that will be filled with address
- *
- * Returns: zero on success, non-zero on error;
- *-------------------------------------------------------------------------*/
-{
-    int sts = 0;
-    struct sockaddr_in6 *a6 = (struct sockaddr_in6 *) addr;
-    struct sockaddr_in *a4 = (struct sockaddr_in *) addr;
-    /* quick check for dotted quad IPv4 address */
-    if(resolveHost(AF_INET, host, &a4->sin_addr) == 1) {
-        addr->ss_family = AF_INET;
-    }
-    else {
-        // try a IPv6 address
-        if(resolveHost(AF_INET6, host, &a6->sin6_addr) == 1) {
-            addr->ss_family = AF_INET6;
-        }
-        else {
-            sts = -1;
-        }
-    }
-    return(sts);
-}
-
-int SLPNetIsIPV6() {
-    int isv6 = SLPPropertyAsBoolean(SLPPropertyGet("net.slp.useIPV6"));
-    if (isv6) {
-        return(1);
-    }
-    else {
-    	return(0);
-    }
-}
-
-int SLPNetIsIPV4() {
-    int isv4 = SLPPropertyAsBoolean(SLPPropertyGet("net.slp.useIPV4"));
-    if (isv4) {
-        return(1);
-    }
-    else {
-    	return(0);
-    }
-}
-
-int SLPNetCompareAddrs(const struct sockaddr_storage *addr1, const struct sockaddr_storage *addr2) {
-    int sts = -1;
-    if (addr1->ss_family == addr2->ss_family) {
-        if (addr1->ss_family == AF_INET) {
-            struct sockaddr_in *v41 = (struct sockaddr_in *) addr1;
-            struct sockaddr_in *v42 = (struct sockaddr_in *) addr2;
-            if (v41->sin_family == v42->sin_family) {
-                sts = memcmp(&v41->sin_addr, &v42->sin_addr, sizeof(v41->sin_addr));
-            }
-        }
-        else if (addr1->ss_family == AF_INET6) {
-            struct sockaddr_in6 *v61 = (struct sockaddr_in6 *) addr1;
-            struct sockaddr_in6 *v62 = (struct sockaddr_in6 *) addr2;
-            if (v61->sin6_family == v62->sin6_family) {
-                sts = memcmp(&v61->sin6_addr, &v62->sin6_addr, sizeof(v61->sin6_addr));
-            }
-        }
-        else {
-            // don't know how to decode - use memcmp for now
-            sts = memcmp(addr1, addr2, sizeof(struct sockaddr_storage));
-        }
-    }
-    else {
-        sts = -1;
-    }
-    return(sts);
-}
-
-int SLPNetCompareStructs(const struct sockaddr_storage *addr1, const struct sockaddr_storage *addr2) {
-    int sts = -1;
-    if (addr1->ss_family == addr2->ss_family) {
-        if (addr1->ss_family == AF_INET) {
-            struct sockaddr_in *v41 = (struct sockaddr_in *) addr1;
-            struct sockaddr_in *v42 = (struct sockaddr_in *) addr2;
-            if (v41->sin_family == v42->sin_family) {
-                if (v41->sin_port == v42->sin_port) {
-                    sts = memcmp(&v41->sin_addr, &v42->sin_addr, sizeof(v41->sin_addr));
-                }
-            }
-        }
-        else if (addr1->ss_family == AF_INET6) {
-            struct sockaddr_in6 *v61 = (struct sockaddr_in6 *) addr1;
-            struct sockaddr_in6 *v62 = (struct sockaddr_in6 *) addr2;
-            if (v61->sin6_family == v62->sin6_family) {
-                //if (v61->sin6_flowinfo == v62->sin6_flowinfo) {
-                    if (v61->sin6_port == v62->sin6_port) {
-                        if (v61->sin6_scope_id == v62->sin6_scope_id) {
-                            sts = memcmp(&v61->sin6_addr, &v62->sin6_addr, sizeof(v61->sin6_addr));
-                        }
-                    }
-                //}
-            }
-        }
-        else {
-            // don't know how to decode - use memcmp for now
-            sts = memcmp(addr1, addr2, sizeof(struct sockaddr_storage));
-        }
-    }
-    else {
-        sts = -1;
-    }
-    return(sts);
-}
-
-int SLPNetIsMCast(const struct sockaddr_storage *addr) {
-    if (addr->ss_family == AF_INET) {
-        struct sockaddr_in *v4 = (struct sockaddr_in *) addr;
-        if ((ntohl(v4->sin_addr.s_addr) & 0xff000000) >= 0xef000000) {
-            return(1);
-        }
-        else {
-            return(0);
-        }
-    }
-    else if (addr->ss_family == AF_INET6) {
-        struct sockaddr_in6 *v6 = (struct sockaddr_in6 *) addr;
-        return(IN6_IS_ADDR_MULTICAST(&v6->sin6_addr));
-    }
-	return(0);
-}
-
-int SLPNetIsLocal(const struct sockaddr_storage *addr) {
-    int sts = 0;
-    if (addr->ss_family == AF_INET) {
-        struct sockaddr_in *v4 = (struct sockaddr_in *) addr;
-        if ((ntohl(v4->sin_addr.s_addr) & 0xff000000) == 0x7f000000) {
-            sts = 1;
-        }
-        else {
-            sts = 0;
-        }
-    }
-    else if (addr->ss_family == AF_INET6) {
-        struct sockaddr_in6 *v6 = (struct sockaddr_in6 *) addr;
-        sts = IN6_IS_ADDR_LOOPBACK(&v6->sin6_addr);
-    }
-	return(sts);
-}
-
-
+ * @internal
+ */
 int SLP_IN6_IS_ADDR_LOOPBACK(const struct in6_addr *a)
 {
     return (memcmp(a, &slp_in6addr_loopback, sizeof(struct in6_addr)) == 0);
 }
 
-int SLPNetIsLoopback(const struct sockaddr_storage *addr) {
-    int sts = 0;
-    if (addr->ss_family == AF_INET) {
-        struct sockaddr_in *v4 = (struct sockaddr_in *) addr;
-        if ((ntohl(v4->sin_addr.s_addr) == INADDR_LOOPBACK)) {
-            sts = 1;
-        }
-        else {
-            sts = 0;
-        }
-    }
-    else if (addr->ss_family == AF_INET6) {
-        struct sockaddr_in6 *v6 = (struct sockaddr_in6 *) addr;
-        sts = SLP_IN6_IS_ADDR_LOOPBACK(&v6->sin6_addr);
-    }
-	return(sts);
-}
-
-/* returns the ipv6 scope of the address */
-/* v6Addr must be pointer to a 16 byte ipv6 address in binary form */
-int setScopeFromAddress(const unsigned char *v6Addr) {
-
-    if (IN6_IS_ADDR_MULTICAST((const struct in6_addr *) v6Addr)) {
-        if (IN6_IS_ADDR_MC_GLOBAL((const struct in6_addr *)v6Addr)) {
-            return(SLP_SCOPE_GLOBAL);
-        }
-        if (IN6_IS_ADDR_MC_ORGLOCAL((const struct in6_addr *)v6Addr)) {
-            return(SLP_SCOPE_ORG_LOCAL);
-        }
-        if (IN6_IS_ADDR_MC_SITELOCAL((const struct in6_addr *)v6Addr)) {
-            return(SLP_SCOPE_SITE_LOCAL);
-        }
-        if (IN6_IS_ADDR_MC_NODELOCAL((const struct in6_addr *)v6Addr)) {
-            return(SLP_SCOPE_NODE_LOCAL);
-        }
-        if (IN6_IS_ADDR_MC_LINKLOCAL((const struct in6_addr *)v6Addr)) {
-            return(SLP_SCOPE_LINK_LOCAL);
-        }
-    }
-    if (IN6_IS_ADDR_SITELOCAL((const struct in6_addr *)v6Addr)) {
-        return(SLP_SCOPE_SITE_LOCAL);
-    }
-    if (SLP_IN6_IS_ADDR_LOOPBACK((const struct in6_addr *)v6Addr)) {
-        return(SLP_SCOPE_NODE_LOCAL);
-    }
-    if (IN6_IS_ADDR_LINKLOCAL((const struct in6_addr *)v6Addr)) {
-        return(SLP_SCOPE_LINK_LOCAL);
-    }
-    return(0);
-}
-
-
-
-int SLPNetSetAddr(struct sockaddr_storage *addr, const int family, const short port, const unsigned char *address, const int addrLen) {
-    int sts = 0;
-    addr->ss_family = family;
-    if (family == AF_INET) {
-        struct sockaddr_in *v4 = (struct sockaddr_in *) addr;
-        v4->sin_family = family;
-        v4->sin_port = htons(port);
-        if (address == NULL)
-            v4->sin_addr.s_addr = INADDR_ANY;
-        else
-            v4->sin_addr.s_addr = htonl(*((int *) address));
-    }
-    else if (family == AF_INET6) {
-        struct sockaddr_in6 *v6 = (struct sockaddr_in6 *) addr;
-        v6->sin6_family = family;
-        v6->sin6_flowinfo = 0;
-        v6->sin6_port = htons(port);
-        v6->sin6_scope_id = 0;
-        if (address == NULL) {
-            memcpy(&v6->sin6_addr, &slp_in6addr_any, sizeof(struct in6_addr));
-		}
-        else {
-            memcpy(&v6->sin6_addr, address, min(addrLen, sizeof(v6->sin6_addr)));
-		}
-    }
-    else {
-        sts = -1;
-    }
-	return(sts);
-}
-
-int SLPNetSetParams(struct sockaddr_storage *addr, const int family, const short port) {
-    int sts = 0;
-    addr->ss_family = family;
-    if (family == AF_INET) {
-        struct sockaddr_in *v4 = (struct sockaddr_in *) addr;
-        v4->sin_family = family;
-        v4->sin_port = htons(port);
-    }
-    else if (family == AF_INET6) {
-        struct sockaddr_in6 *v6 = (struct sockaddr_in6 *) addr;
-        v6->sin6_family = family;
-        v6->sin6_flowinfo = 0;
-        v6->sin6_port = htons(port);
-        v6->sin6_scope_id = 0;
-    }
-    else {
-        sts = -1;
-    }
-	return(sts);
-}
-
-int SLPNetCopyAddr(struct sockaddr_storage *dst, const struct sockaddr_storage *src) {
-    memcpy(dst, src, sizeof(struct sockaddr_storage));
-	return(0);
-}
-
-
-int SLPNetSetSockAddrStorageFromAddrInfo(struct sockaddr_storage *dst, struct addrinfo *src) {
-    dst->ss_family = src->ai_family;
-    if (src->ai_family == AF_INET) {
-        memcpy(dst, src->ai_addr, sizeof(struct sockaddr_in));
-    }
-    else if (src->ai_family == AF_INET6) {
-        struct sockaddr_in6 *v6 = (struct sockaddr_in6 *) dst;
-        v6->sin6_family = AF_INET6;
-        v6->sin6_flowinfo = 0;
-        v6->sin6_port = 0;
-        v6->sin6_scope_id = 0;
-        memcpy(&v6->sin6_addr, &((struct sockaddr_in6 *) src->ai_addr)->sin6_addr, sizeof(struct in6_addr));
-    }
-    else {
-        return(-1);
-    }
-    return(0);
-}
-
-int SLPNetSetPort(struct sockaddr_storage *addr, const short port) {
-	if (addr->ss_family == AF_INET) {
-		((struct sockaddr_in *)addr)->sin_port = htons(port);
-    }
-	else if (addr->ss_family == AF_INET6) {
-		((struct sockaddr_in6 *)addr)->sin6_port = htons(port);
-    }
-    else {
-        return -1;
-    }
-	return 0;
-}
-
-/*
- * Description:
- *    Used to obtain a string representation of the network portion of a sockaddr_storage struct
- *    
+/** Formats an addrinfo structure as a displayable string.
  *
- * Parameters:
- *  (in) src        Source address to grab the network address from
- *  (in/out) dst    Destination address to be filled in with the address ("x.x.x.x" for ipv4,
- *                   ("x:x:..:x" for IPV6)
- *  (out) dstLen    The number of bytes that may be copied into dst
+ * @param[in] src - The addrinfo structure to be foramtted.
+ * @param[out] dst - The address of storage for the formatted string.
+ * @param[in] dstLen - The size of @p dst in bytes.
  *
- * Returns: dst if address set correctly, NULL if there were errors setting dst
- *-------------------------------------------------------------------------*/
-char * SLPNetSockAddrStorageToString(struct sockaddr_storage *src, char *dst, int dstLen) {
-    if (src->ss_family == AF_INET) {
-        struct sockaddr_in *v4 = (struct sockaddr_in *) src;
-
-        inet_ntop(v4->sin_family, &v4->sin_addr, dst, dstLen);
-    }
-    else if (src->ss_family == AF_INET6) {
-        struct sockaddr_in6 *v6 = (struct sockaddr_in6 *) src;
-
-        inet_ntop(v6->sin6_family, &v6->sin6_addr, dst, dstLen);
-    }
-    else {
-        return(NULL);
-    }
-    return(dst);
-}
-
-
+ * @return Zero on success, or a non-zero value on failure.
+ *
+ * @internal
+ */
 int SLPNetAddrInfoToString(struct addrinfo *src, char *dst, int dstLen) {
     if (src->ai_family == AF_INET) {
         struct sockaddr *addr = (struct sockaddr *) src->ai_addr;
@@ -532,51 +176,20 @@ int SLPNetAddrInfoToString(struct addrinfo *src, char *dst, int dstLen) {
     return(0);
 }
 
-
-/*
- * Description:
- *    Returns the IPv6 multicast address for the specified Service Type.
- *    
+/** Format that portion of an IPv6 shorthand address before the '::'.
  *
- * Parameters:
- *  (in) pSrvType   The Service Type String
- *  (in) len		Length of pSrvType
- *  (inout)addr		Sockaddr storage to return the multicast addr
+ * @param[in] start - Points to the start of a formatted IPv6 address
+ *    thats in shorthand notation (eg., xxxx: ... :: ... :xxxx). 
+ * @param[out] result - Points to the output buffer where the address
+ *    in @p start is to be expanded.
  *
- * Returns: zero on success, non-zero on error;
- *-------------------------------------------------------------------------*/
-unsigned long SLPNetGetSrvMcastAddr(const char *pSrvType, unsigned int len, int scope, struct sockaddr_storage *addr) {
-	unsigned long group_id = 0;
-	struct in6_addr *v6;
-
-	if (addr == NULL || pSrvType == NULL)
-		return -1;
-
-	/* Run Hash to get group id */
-	while (len-- != 0) {
-		group_id *= 33;
-		group_id += *pSrvType++;
-	}
-	group_id &= 0x3FF;
-
-	v6 = &((struct sockaddr_in6 *) addr)->sin6_addr;
-	if (scope == SLP_SCOPE_NODE_LOCAL)
-		memcpy(v6, &in6addr_service_node_mask, sizeof(struct in6_addr));
-	else if (scope == SLP_SCOPE_LINK_LOCAL)
-		memcpy(v6, &in6addr_service_link_mask, sizeof(struct in6_addr));
-	else if (scope == SLP_SCOPE_SITE_LOCAL)
-		memcpy(v6, &in6addr_service_site_mask, sizeof(struct in6_addr));
-	else
-		return -1;
-	
-	v6->s6_addr[15] |= (group_id & 0xFF);
-	v6->s6_addr[14] |= (group_id >> 8);
-	addr->ss_family = AF_INET6;
-
-	return 0;
-}
-
-
+ * @return Zero.
+ *
+ * @remarks Copies character data from @p start into the pre-formatted 
+ *    template in @p result till it comes to a double colon.
+ *
+ * @internal
+ */
 int handlePreArea(char *start, char *result) {
     char *slider1;
     char *slider2;
@@ -609,6 +222,22 @@ int handlePreArea(char *start, char *result) {
     return(0);
 }
 
+/** Format that portion of an IPv6 shorthand address after the '::'.
+ *
+ * @param[in] start - Points to the second colon in the double-colon 
+ *    of a shorthand-formatted IPv6 address.
+ *    (eg., xxxx: ... :: ... :xxxx). 
+ * @param[out] result - Points to the output buffer where the address
+ *    is to be expanded.
+ *
+ * @return Zero.
+ *
+ * @remarks Copies character data backward from @p start into the 
+ *    pre-formatted template in @p result till it returns to the first 
+ *    character in @p start - the second colon in the double-colon mark.
+ *
+ * @internal
+ */
 int handlePostArea(char *start, char *result) {
     char *slider1;
     char *slider2;
@@ -636,19 +265,360 @@ int handlePostArea(char *start, char *result) {
     return(0);
 }
 
+/** Returns an address for the specified host name.
+ *
+ * @param[in] host - A pointer to hostname to resolve.
+ * @param[out] addr - The address of storage for the returned address 
+ *    data.
+ *
+ * @return Zero on success, or non-zero on error.
+ *
+ * @remarks This routine returns address data of unspecified family, so 
+ *    the output buffer is purposely defined as a sockaddr_storage buffer.
+ */
+int SLPNetResolveHostToAddr(const char* host,
+                            struct sockaddr_storage* addr)
+{
+    int sts = 0;
+    struct sockaddr_in6 *a6 = (struct sockaddr_in6 *) addr;
+    struct sockaddr_in *a4 = (struct sockaddr_in *) addr;
+    /* quick check for dotted quad IPv4 address */
+    if(resolveHost(AF_INET, host, &a4->sin_addr) == 1) {
+        addr->ss_family = AF_INET;
+    }
+    else {
+        // try a IPv6 address
+        if(resolveHost(AF_INET6, host, &a6->sin6_addr) == 1) {
+            addr->ss_family = AF_INET6;
+        }
+        else {
+            sts = -1;
+        }
+    }
+    return(sts);
+}
 
-/* 
-*   Description
-*    fully expand a ipv6 address given an ipv6 address in the shorthand notation  
-*
-*   Parameters
-*    [in] ipv6Addr - the shorthand address to expand
-*    [out] result - buffer to store the expanded address in
-*    [in] resultSize - size of the result buffer, must be atleast 40 bytes
-*
-*   Returns
-*   zero on success, non-zero if errors were detected
-*-------------------------------------------------------------------------*/
+/** Determine if we should use IPv6.
+ *
+ * @return A boolean value; True if IPv6 should be used, False if not.
+ *
+ * @todo Change this routine to get v6 net info, not property info.
+ */
+int SLPNetIsIPV6() {
+    int isv6 = SLPPropertyAsBoolean(SLPPropertyGet("net.slp.useIPV6"));
+    if (isv6) {
+        return(1);
+    }
+    else {
+    	return(0);
+    }
+}
+
+/** Determine if we should use IPv4.
+ *
+ * @return A boolean value; True if IPv4 should be used, False if not.
+ *
+ * @todo Change this routine to get v4 net info, not property info.
+ */
+int SLPNetIsIPV4() {
+    int isv4 = SLPPropertyAsBoolean(SLPPropertyGet("net.slp.useIPV4"));
+    if (isv4) {
+        return(1);
+    }
+    else {
+    	return(0);
+    }
+}
+
+/** Compare two address buffers.
+ *
+ * @param[in] addr1 - The first address to compare.
+ * @param[in] addr2 - The second address to compare.
+ *
+ * @return Zero if @p addr1 is the same as @p addr2. Non-zero if not.
+ *
+ * @note The sizes of @p addr1 and @p addr2 must both be at least
+ *    sizeof(struct sockaddr_storage) if the address families are not
+ *    one of AF_INET or AF_INET6.
+ */
+int SLPNetCompareAddrs(const struct sockaddr_storage *addr1, const struct sockaddr_storage *addr2) {
+    int sts = -1;
+    if (addr1->ss_family == addr2->ss_family) {
+        if (addr1->ss_family == AF_INET) {
+            struct sockaddr_in *v41 = (struct sockaddr_in *) addr1;
+            struct sockaddr_in *v42 = (struct sockaddr_in *) addr2;
+            if (v41->sin_family == v42->sin_family) {
+                sts = memcmp(&v41->sin_addr, &v42->sin_addr, sizeof(v41->sin_addr));
+            }
+        }
+        else if (addr1->ss_family == AF_INET6) {
+            struct sockaddr_in6 *v61 = (struct sockaddr_in6 *) addr1;
+            struct sockaddr_in6 *v62 = (struct sockaddr_in6 *) addr2;
+            if (v61->sin6_family == v62->sin6_family) {
+                sts = memcmp(&v61->sin6_addr, &v62->sin6_addr, sizeof(v61->sin6_addr));
+            }
+        }
+        else {
+            // don't know how to decode - use memcmp for now
+            sts = memcmp(addr1, addr2, sizeof(struct sockaddr_storage));
+        }
+    }
+    else {
+        sts = -1;
+    }
+    return(sts);
+}
+
+/** Determines if the specified address is a multi-cast address.
+ *
+ * @param[in] addr - The address to be checked.
+ *
+ * @return A boolean value; True (1) if @p addr is a multi-cast address,
+ *    or False (0) if not.
+ */
+int SLPNetIsMCast(const struct sockaddr_storage *addr) {
+    if (addr->ss_family == AF_INET) {
+        struct sockaddr_in *v4 = (struct sockaddr_in *) addr;
+        if ((ntohl(v4->sin_addr.s_addr) & 0xff000000) >= 0xef000000) {
+            return(1);
+        }
+        else {
+            return(0);
+        }
+    }
+    else if (addr->ss_family == AF_INET6) {
+        struct sockaddr_in6 *v6 = (struct sockaddr_in6 *) addr;
+        return(IN6_IS_ADDR_MULTICAST(&v6->sin6_addr));
+    }
+	return(0);
+}
+
+/** Determines if the specified address is on the local host.
+ *
+ * @param[in] addr - The address to be checked.
+ *
+ * @return A boolean value; True (1) if @p addr is a local host
+ *    address, or False (0) if not.
+ */
+int SLPNetIsLocal(const struct sockaddr_storage *addr) {
+    int sts = 0;
+    if (addr->ss_family == AF_INET) {
+        struct sockaddr_in *v4 = (struct sockaddr_in *) addr;
+        if ((ntohl(v4->sin_addr.s_addr) & 0xff000000) == 0x7f000000) {
+            sts = 1;
+        }
+        else {
+            sts = 0;
+        }
+    }
+    else if (addr->ss_family == AF_INET6) {
+        struct sockaddr_in6 *v6 = (struct sockaddr_in6 *) addr;
+        sts = IN6_IS_ADDR_LOOPBACK(&v6->sin6_addr);
+    }
+	return(sts);
+}
+
+/** Determines if the specified address is a loopback address.
+ *
+ * @param[in] addr - The address to be checked.
+ *
+ * @return A boolean value; True (1) if @p addr is a local loopback
+ *    address, False (0) if not.
+ *
+ * @remarks This version works on either IPv4 or IPv6.
+ */
+int SLPNetIsLoopback(const struct sockaddr_storage *addr) {
+    int sts = 0;
+    if (addr->ss_family == AF_INET) {
+        struct sockaddr_in *v4 = (struct sockaddr_in *) addr;
+        if ((ntohl(v4->sin_addr.s_addr) == INADDR_LOOPBACK)) {
+            sts = 1;
+        }
+        else {
+            sts = 0;
+        }
+    }
+    else if (addr->ss_family == AF_INET6) {
+        struct sockaddr_in6 *v6 = (struct sockaddr_in6 *) addr;
+        sts = SLP_IN6_IS_ADDR_LOOPBACK(&v6->sin6_addr);
+    }
+	return(sts);
+}
+
+/** Fills in the fields of an address structure.
+ *
+ * @param[out] addr - The address structure to be filled.
+ * @param[in] family - The address family value to set.
+ * @param[in] port - The port number to set.
+ * @param[in] address - The address data to set.
+ *
+ * @return Zero on success, or a non-zero value on failure.
+ *
+ * @note The size of @p addr is determined by @p family, and 
+ *    both address buffers must be large enough to accommodate
+ *    the address family specified in @p family.
+ */
+int SLPNetSetAddr(struct sockaddr_storage *addr, const int family, const short port, const unsigned char *address, const int addrLen) {
+    int sts = 0;
+    addr->ss_family = family;
+    if (family == AF_INET) {
+        struct sockaddr_in *v4 = (struct sockaddr_in *) addr;
+        v4->sin_family = family;
+        v4->sin_port = htons(port);
+        if (address == NULL)
+            v4->sin_addr.s_addr = INADDR_ANY;
+        else
+            v4->sin_addr.s_addr = htonl(*((int *) address));
+    }
+    else if (family == AF_INET6) {
+        struct sockaddr_in6 *v6 = (struct sockaddr_in6 *) addr;
+        v6->sin6_family = family;
+        v6->sin6_flowinfo = 0;
+        v6->sin6_port = htons(port);
+        v6->sin6_scope_id = 0;
+        if (address == NULL) {
+            memcpy(&v6->sin6_addr, &slp_in6addr_any, sizeof(struct in6_addr));
+		}
+        else {
+            memcpy(&v6->sin6_addr, address, min(addrLen, sizeof(v6->sin6_addr)));
+		}
+    }
+    else {
+        sts = -1;
+    }
+	return(sts);
+}
+
+/** Sets the family and port of an address structure.
+ *
+ * @param[out] addr - The address structure to be set.
+ * @param[in] family - The family value to set.
+ * @param[in] port - The port value to set.
+ *
+ * @return Zero on success, or a non-zero value on failure.
+ */
+int SLPNetSetParams(struct sockaddr_storage *addr, const int family, const short port) {
+    int sts = 0;
+    addr->ss_family = family;
+    if (family == AF_INET) {
+        struct sockaddr_in *v4 = (struct sockaddr_in *) addr;
+        v4->sin_family = family;
+        v4->sin_port = htons(port);
+    }
+    else if (family == AF_INET6) {
+        struct sockaddr_in6 *v6 = (struct sockaddr_in6 *) addr;
+        v6->sin6_family = family;
+        v6->sin6_flowinfo = 0;
+        v6->sin6_port = htons(port);
+        v6->sin6_scope_id = 0;
+    }
+    else {
+        sts = -1;
+    }
+	return(sts);
+}
+
+/** Sets the port value of an address structure.
+ *
+ * @param[out] addr - The address structure whose port should be set.
+ * @param[in] port - The port value to set in @p addr.
+ *
+ * @return Zero on success, or a non-zero value on failure.
+ */
+int SLPNetSetPort(struct sockaddr_storage *addr, const short port) {
+	if (addr->ss_family == AF_INET) {
+		((struct sockaddr_in *)addr)->sin_port = htons(port);
+    }
+	else if (addr->ss_family == AF_INET6) {
+		((struct sockaddr_in6 *)addr)->sin6_port = htons(port);
+    }
+    else {
+        return -1;
+    }
+	return 0;
+}
+
+/** Format an address structure as a displayable string.
+ *     
+ * @param[in] src - The source address to format.
+ * @param[out] dst - The destination string buffer.
+ * @param[in] dstLen - The size of @p dst in bytes.
+ *
+ * @return A pointer to @p dst on success, or zero on failure.
+ *
+ * @remarks The format for an IPv4 address is "x.x.x.x". The format for 
+ *    an IPv6 address is "x:x:..:x".
+ */
+char * SLPNetSockAddrStorageToString(struct sockaddr_storage *src, char *dst, int dstLen) {
+    if (src->ss_family == AF_INET) {
+        struct sockaddr_in *v4 = (struct sockaddr_in *) src;
+
+        inet_ntop(v4->sin_family, &v4->sin_addr, dst, dstLen);
+    }
+    else if (src->ss_family == AF_INET6) {
+        struct sockaddr_in6 *v6 = (struct sockaddr_in6 *) src;
+
+        inet_ntop(v6->sin6_family, &v6->sin6_addr, dst, dstLen);
+    }
+    else {
+        return(NULL);
+    }
+    return(dst);
+}
+
+/** Determines an IPv6 multi-cast address for a specified service type.
+ *
+ * The multi-cast address is determined from a hash value calculated on the
+ * string name of the service type.
+ *
+ * @param[in] pSrvType - The service type string.
+ * @param[in] len - The length of @p pSrvType in bytes.
+ * @param[in] scope - The scope associated with this request.
+ * @param[out] addr - The address buffer in which to return the address.
+ *
+ * @return Zero on success, or a non-zero value on failure.
+ */
+unsigned long SLPNetGetSrvMcastAddr(const char *pSrvType, unsigned int len, int scope, struct sockaddr_storage *addr) {
+	unsigned long group_id = 0;
+	struct in6_addr *v6;
+
+	if (addr == NULL || pSrvType == NULL)
+		return -1;
+
+	/* Run Hash to get group id */
+	while (len-- != 0) {
+		group_id *= 33;
+		group_id += *pSrvType++;
+	}
+	group_id &= 0x3FF;
+
+	v6 = &((struct sockaddr_in6 *) addr)->sin6_addr;
+	if (scope == SLP_SCOPE_NODE_LOCAL)
+		memcpy(v6, &in6addr_service_node_mask, sizeof(struct in6_addr));
+	else if (scope == SLP_SCOPE_LINK_LOCAL)
+		memcpy(v6, &in6addr_service_link_mask, sizeof(struct in6_addr));
+	else if (scope == SLP_SCOPE_SITE_LOCAL)
+		memcpy(v6, &in6addr_service_site_mask, sizeof(struct in6_addr));
+	else
+		return -1;
+	
+	v6->s6_addr[15] |= (group_id & 0xFF);
+	v6->s6_addr[14] |= (group_id >> 8);
+	addr->ss_family = AF_INET6;
+
+	return 0;
+}
+
+/** Expands an IPv6 address from shorthand to full format notation.
+ *
+ * @param[in] ipv6Addr - The shorthand address to be expanded.
+ * @param[out] result - The address of storage for the expanded address.
+ * @param[in] resultSize - The size in bytes of @p result.
+ *
+ * @return Zero on success, or a non-zero value on failure.
+ *
+ * @remarks The @p result buffer must be at least 40 bytes.
+ */
 int SLPNetExpandIpv6Addr(char *ipv6Addr, char *result, int resultSize) {
     char templateAddr[] = "0000:0000:0000:0000:0000:0000:0000:0000";
     char *doublec;
@@ -688,17 +658,27 @@ int SLPNetExpandIpv6Addr(char *ipv6Addr, char *result, int resultSize) {
 #endif
 }
 
+/*=========================================================================
+ * TEST MAIN
+ */
 /*#define SLP_NET_TEST*/
 #ifdef SLP_NET_TEST
+
+int SLPNetCopyAddr(struct sockaddr_storage *dst, const struct sockaddr_storage *src) 
+{
+   memcpy(dst, src, sizeof(struct sockaddr_storage));
+   return 0;
+}
+
 int main(int argc, char* argv[]) {
     char addrString[1024];
     int sts;
     int errorCount = 0;
     struct sockaddr_storage addr;
-    #ifdef _WIN32
+#ifdef _WIN32
     WSADATA wsadata;
     WSAStartup(MAKEWORD(2,2), &wsadata);
-    #endif
+#endif
 
     sts = SLPNetResolveHostToAddr("localhost", &addr);
     if (sts != 0) {
@@ -859,13 +839,182 @@ int main(int argc, char* argv[]) {
         int SLPNetIsLocal(const struct sockaddr_storage *addr);
     */
 
-    #ifdef _WIN32
+#ifdef _WIN32
     WSACleanup();
-    #endif
+#endif
 
 }
 #endif
 
+#if 0
+/** Returns local hostname.
+ *
+ * @param[out] hostfdn - A pointer to char pointer that is set to buffer 
+ *    contining this machine's FDN.
+ * @param[in] hostfdnLen - The length of @p hostfdn. 
+ * @param[in] numeric_only - A flag that forces the return of numeric 
+ *    addresss.
+ * @param[in] family - A hint: The family to get info for - can be 
+ *    AF_INET, AF_INET6, or AF_UNSPEC for both.
+ *
+ * @remarks Caller must free returns @p hostfdn string with xfree.
+ */
+int SLPNetGetThisHostname(char* hostfdn, unsigned int hostfdnLen, int numeric_only, int family)
+{
+    char host[MAX_HOST_NAME];
+    struct addrinfo *ifaddr;
+    struct addrinfo hints;
+    int sts = 0;
 
+    *hostfdn = 0;
 
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_family = family;
+    if(gethostname(host, MAX_HOST_NAME) == 0)
+    {
+        sts = getaddrinfo(host, NULL, &hints, &ifaddr);
+        if (sts == 0) {
+            /* if the hostname has a '.' then it is probably a qualified 
+             * domain name.  If it is not then we better use the IP address
+            */ 
+            if(!numeric_only && strchr(host, '.'))
+            {
+                 strncpy(hostfdn, host, hostfdnLen);
+            }
+            else
+            {   
+                sts = SLPNetAddrInfoToString(ifaddr,  hostfdn, hostfdnLen);
+            }
+            freeaddrinfo(ifaddr);
+        }
+        else {
+            assert(1);
+        }
+    }
 
+    return(sts);
+}
+
+/** Compare two address structures.
+ *
+ * If the host addresses, ports, and other local configuration are the
+ * same, then return zero.
+ *
+ * @param[in] addr1 - The first address to compare.
+ * @param[in] addr2 - The second address to compare.
+ *
+ * @return Zero if @p addr1 is the same as @p addr2. Non-zero if not.
+ *
+ * @note The sizes of @p addr1 and @p addr2 must be at least 
+ *    sizeof(struct sockaddr_storage) if the address families are not
+ *    one of AF_INET or AF_INET6.
+ *
+ * @internal
+ */
+int SLPNetCompareStructs(const struct sockaddr_storage *addr1, const struct sockaddr_storage *addr2) {
+    int sts = -1;
+    if (addr1->ss_family == addr2->ss_family) {
+        if (addr1->ss_family == AF_INET) {
+            struct sockaddr_in *v41 = (struct sockaddr_in *) addr1;
+            struct sockaddr_in *v42 = (struct sockaddr_in *) addr2;
+            if (v41->sin_family == v42->sin_family) {
+                if (v41->sin_port == v42->sin_port) {
+                    sts = memcmp(&v41->sin_addr, &v42->sin_addr, sizeof(v41->sin_addr));
+                }
+            }
+        }
+        else if (addr1->ss_family == AF_INET6) {
+            struct sockaddr_in6 *v61 = (struct sockaddr_in6 *) addr1;
+            struct sockaddr_in6 *v62 = (struct sockaddr_in6 *) addr2;
+            if (v61->sin6_family == v62->sin6_family) {
+                //if (v61->sin6_flowinfo == v62->sin6_flowinfo) {
+                    if (v61->sin6_port == v62->sin6_port) {
+                        if (v61->sin6_scope_id == v62->sin6_scope_id) {
+                            sts = memcmp(&v61->sin6_addr, &v62->sin6_addr, sizeof(v61->sin6_addr));
+                        }
+                    }
+                //}
+            }
+        }
+        else {
+            // don't know how to decode - use memcmp for now
+            sts = memcmp(addr1, addr2, sizeof(struct sockaddr_storage));
+        }
+    }
+    else {
+        sts = -1;
+    }
+    return(sts);
+}
+
+/** Determines the IPv6 scope of a specified address.
+ *
+ * @param[in] v6Addr - The IPv6 address to be checked.
+ *
+ * @return The ipv6 scope of the address.
+ *
+ * @remarks The @p v6Addr parameter must be pointer to a 16-byte IPv6 
+ *    address in binary form.
+ * 
+ * @internal
+ */
+int setScopeFromAddress(const unsigned char *v6Addr) {
+
+    if (IN6_IS_ADDR_MULTICAST((const struct in6_addr *) v6Addr)) {
+        if (IN6_IS_ADDR_MC_GLOBAL((const struct in6_addr *)v6Addr)) {
+            return(SLP_SCOPE_GLOBAL);
+        }
+        if (IN6_IS_ADDR_MC_ORGLOCAL((const struct in6_addr *)v6Addr)) {
+            return(SLP_SCOPE_ORG_LOCAL);
+        }
+        if (IN6_IS_ADDR_MC_SITELOCAL((const struct in6_addr *)v6Addr)) {
+            return(SLP_SCOPE_SITE_LOCAL);
+        }
+        if (IN6_IS_ADDR_MC_NODELOCAL((const struct in6_addr *)v6Addr)) {
+            return(SLP_SCOPE_NODE_LOCAL);
+        }
+        if (IN6_IS_ADDR_MC_LINKLOCAL((const struct in6_addr *)v6Addr)) {
+            return(SLP_SCOPE_LINK_LOCAL);
+        }
+    }
+    if (IN6_IS_ADDR_SITELOCAL((const struct in6_addr *)v6Addr)) {
+        return(SLP_SCOPE_SITE_LOCAL);
+    }
+    if (SLP_IN6_IS_ADDR_LOOPBACK((const struct in6_addr *)v6Addr)) {
+        return(SLP_SCOPE_NODE_LOCAL);
+    }
+    if (IN6_IS_ADDR_LINKLOCAL((const struct in6_addr *)v6Addr)) {
+        return(SLP_SCOPE_LINK_LOCAL);
+    }
+    return(0);
+}
+
+/** Copies an addrinfo structure into a address structure.
+ *
+ * @param[out] dst - The destination address structure.
+ * @param[in] src - The source addrinfo structure.
+ *
+ * @return Zero on success, or a non-zero value on failure.
+ */
+int SLPNetSetSockAddrStorageFromAddrInfo(struct sockaddr_storage *dst, struct addrinfo *src) {
+    dst->ss_family = src->ai_family;
+    if (src->ai_family == AF_INET) {
+        memcpy(dst, src->ai_addr, sizeof(struct sockaddr_in));
+    }
+    else if (src->ai_family == AF_INET6) {
+        struct sockaddr_in6 *v6 = (struct sockaddr_in6 *) dst;
+        v6->sin6_family = AF_INET6;
+        v6->sin6_flowinfo = 0;
+        v6->sin6_port = 0;
+        v6->sin6_scope_id = 0;
+        memcpy(&v6->sin6_addr, &((struct sockaddr_in6 *) src->ai_addr)->sin6_addr, sizeof(struct in6_addr));
+    }
+    else {
+        return(-1);
+    }
+    return(0);
+}
+#endif
+
+/*=========================================================================*/

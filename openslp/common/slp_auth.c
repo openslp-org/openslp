@@ -1,51 +1,46 @@
-/***************************************************************************/
-/*                                                                         */
-/* Project:     OpenSLP - OpenSource implementation of Service Location    */
-/*              Protocol                                                   */
-/*                                                                         */
-/* File:        slp_auth.c                                                 */
-/*                                                                         */
-/* Abstract:    Common for OpenSLP's SLPv2 authentication implementation   */
-/*              Currently only bsd 0x0002 (DSA-SHA1) is supported          */
-/*                                                                         */
-/*-------------------------------------------------------------------------*/
-/*                                                                         */
-/*     Please submit patches to http://www.openslp.org                     */
-/*                                                                         */
-/*-------------------------------------------------------------------------*/
-/*                                                                         */
-/* Copyright (C) 2000 Caldera Systems, Inc                                 */
-/* All rights reserved.                                                    */
-/*                                                                         */
-/* Redistribution and use in source and binary forms, with or without      */
-/* modification, are permitted provided that the following conditions are  */
-/* met:                                                                    */ 
-/*                                                                         */
-/*      Redistributions of source code must retain the above copyright     */
-/*      notice, this list of conditions and the following disclaimer.      */
-/*                                                                         */
-/*      Redistributions in binary form must reproduce the above copyright  */
-/*      notice, this list of conditions and the following disclaimer in    */
-/*      the documentation and/or other materials provided with the         */
-/*      distribution.                                                      */
-/*                                                                         */
-/*      Neither the name of Caldera Systems nor the names of its           */
-/*      contributors may be used to endorse or promote products derived    */
-/*      from this software without specific prior written permission.      */
-/*                                                                         */
-/* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS     */
-/* `AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT      */
-/* LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR   */
-/* A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE CALDERA      */
-/* SYSTEMS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, */
-/* SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT        */
-/* LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE,  */
-/* DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON       */
-/* ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT */
-/* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE   */
-/* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.    */
-/*                                                                         */
-/***************************************************************************/
+/*-------------------------------------------------------------------------
+ * Copyright (C) 2000 Caldera Systems, Inc
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ *    Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ *
+ *    Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ *    Neither the name of Caldera Systems nor the names of its
+ *    contributors may be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * `AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE CALDERA
+ * SYSTEMS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *-------------------------------------------------------------------------*/
+
+/** Common routines for OpenSLP's SLPv2 authentication.
+ *
+ * This file contains functions that are common to OpenSLP's UA, SA and DA
+ * which deal exclusively with SLPv2 authentication message headers and 
+ * parsing algorithms. Currently only BSD 0x0002 (DSA-SHA1) is supported.
+ *
+ * @file       slp_auth.c
+ * @author     Matthew Peterson, John Calcote (jcalcote@novell.com)
+ * @attention  Please submit patches to http://www.openslp.org
+ * @ingroup    CommonCode
+ */
 
 #include <time.h>
 
@@ -53,14 +48,31 @@
 #include "slp_auth.h"
 #include "slp_crypto.h"
 
-/*-------------------------------------------------------------------------*/
+/** Create a digest for a URL or attribute string.
+ *
+ * @param[in] spistr - The SPI string to sign.
+ * @param[in] spistrlen - The length of @p spistr in bytes.
+ * @param[in] string - The string data to sign.
+ * @param[in] stringlen - The length of @p string in bytes.
+ * @param[in] timestamp - The timestamp to be digested.
+ * @param[out] digest - A buffer to receive the digest.
+ * 
+ * @return Zero on success, or a non-zero error code. The most common
+ *    error code at this time is SLP_ERROR_INTERNAL_ERROR.
+ *
+ * @remarks The @p digest parameter must be at least 
+ *    SLPAUTH_SHA1_DIGEST_SIZE bytes in length.
+ *
+ * @todo Return a real error code here.
+ *
+ * @internal
+ */
 int SLPAuthDigestString(int spistrlen,
                         const char* spistr,
                         int stringlen,
                         const char* string,
                         unsigned long timestamp,
                         unsigned char* digest)
-/*-------------------------------------------------------------------------*/
 {
     int                 result;
     int                 tmpbufsize;
@@ -118,7 +130,26 @@ int SLPAuthDigestString(int spistrlen,
     return result;
 }
 
-/*-------------------------------------------------------------------------*/
+/** Digest a DAAdvert Message.
+ *
+ * @param[in] spistr - The SPI string.
+ * @param[in] spistrlen - The length of the @p spistr.
+ * @param[in] timestamp - The timestamp of the message.
+ * @param[in] bootstamp - The stateless DA boot timestamp.
+ * @param[in] url - The URL to sign.
+ * @param[in] urllen - The length of @p url.
+ * @param[in] attrlist - The attribute list to sign.
+ * @param[in] attrlistlen - The length of @p attrlist.
+ * @param[in] scopelist - The DA's scope list.
+ * @param[in] scopelistlen - length of @p scopelist.
+ * @param[in] daspistr - The list of the DA's SPI's.
+ * @param[in] daspistrlen - The length of @p daspistr.
+ * @param[out] digest - The digest for the specified information.
+ *
+ * @return Zero on success, or an SLP error code on failure.
+ *
+ * @internal
+ */
 int SLPAuthDigestDAAdvert(unsigned short spistrlen,
                           const char* spistr,
                           unsigned long timestamp,
@@ -132,7 +163,6 @@ int SLPAuthDigestDAAdvert(unsigned short spistrlen,
                           unsigned short daspistrlen,
                           const char* daspistr,
                           unsigned char* digest)
-/*-------------------------------------------------------------------------*/
 {
     int                 result;
     int                 tmpbufsize;
@@ -213,14 +243,27 @@ int SLPAuthDigestDAAdvert(unsigned short spistrlen,
 }
 
 
-/*-------------------------------------------------------------------------*/
+/** Sign a Digest.
+ *
+ * @param[in] spistr - The SPI string to sign.
+ * @param[in] spistrlen - The length of @p spistr.
+ * @param[in] key - The key to sign the digest with.
+ * @param[in] digest - The digest to be signed.
+ * @param[out] authblock - The address of storage for the generated 
+ *    authblock signature.
+ * @param[out] authblocklen - On entry, the size of @p authblock; 
+ *    on exit, the number of bytes stored in @p authblock.
+ *
+ * @return Zero on success, or an SLP error code on failure.
+ *
+ * @internal
+ */
 int SLPAuthSignDigest(int spistrlen,
                       const char* spistr,
                       SLPCryptoDSAKey* key,
                       unsigned char* digest,
                       int* authblocklen,
                       unsigned char** authblock)
-/*-------------------------------------------------------------------------*/
 {
     int                 signaturelen;
     int                 result;
@@ -290,14 +333,27 @@ ERROR:
     return result;
 }
 
-/*-------------------------------------------------------------------------*/
+/** Verify a digest.
+ *
+ * @param[in] hspi - The open SPI handle.
+ * @param[in] emptyisfail - If non-zero, messages without 
+ *    authblocks will fail.
+ * @param[in] key - The key to use to verify the digest signature.
+ * @param[in] digest - The digest to be verified.
+ * @param[in] autharray - An authentication block array to verify.
+ * @param[in] authcount - The number of elements in @p autharray.
+ *
+ * @return Zero on success, or SLP_ERROR_AUTHENTICATION_FAILED if the
+ *    digest could not be verified.
+ *
+ * @internal
+ */
 int SLPVerifyDigest(SLPSpiHandle hspi,
                     int emptyisfail,
                     SLPCryptoDSAKey* key,
                     unsigned char* digest,
                     int authcount,
                     const SLPAuthBlock* autharray)
-/*-------------------------------------------------------------------------*/
 {
     int                 i;
     int                 signaturelen;
@@ -371,25 +427,24 @@ int SLPVerifyDigest(SLPSpiHandle hspi,
 
 
 
-/*=========================================================================*/
+/** Verify authenticity of a specified attribute list.
+ *
+ * @param[in] hspi - An open SPI handle.
+ * @param[in] emptyisfail - If non-zero, messages without 
+ *    authblocks will fail.
+ * @param[in] string - The list to verify.
+ * @param[in] stringlen - The length of @p string.
+ * @param[in] autharray - An array of authblocks.
+ * @param[in] authcount - The number of blocks in @p autharray.
+ * 
+ * @return Zero on success, or an SLP error code on failure.
+ */
 int SLPAuthVerifyString(SLPSpiHandle hspi,
                         int emptyisfail,
                         unsigned short stringlen,
                         const char* string,
                         int authcount,
                         const SLPAuthBlock* autharray)
-/* Verify authenticity of  the specified attribute list                    */
-/*                                                                         */
-/* Parameters: hspi        (IN) open SPI handle                            */
-/*             emptyisfail (IN) if non-zero, messages without authblocks   */
-/*                              will fail                                  */
-/*             stringlen   (IN) the length of string to verify             */
-/*             string      (IN) the list to verify                         */
-/*             authcount   (IN) the number of blocks in autharray          */
-/*             autharray   (IN) array of authblocks                        */
-/*                                                                         */
-/* Returns: 0 on success or SLP_ERROR_xxx code on failure                  */
-/*=========================================================================*/
 {
     int                 i;
     int                 signaturelen;
@@ -478,19 +533,18 @@ int SLPAuthVerifyString(SLPSpiHandle hspi,
 }
 
 
-/*=========================================================================*/
+/** Verify the authenticity of a specified URL entry.
+ *
+ * @param[in] hspi - An open SPI handle.
+ * @param[in] emptyisfail - If non-zero, messages without 
+ *    authblocks will fail.
+ * @param[in] urlentry - The URL entry to verify.
+ * 
+ * @return Zero on success, or an SLP error code on failure.
+ */
 int SLPAuthVerifyUrl(SLPSpiHandle hspi,
                      int emptyisfail,
                      const SLPUrlEntry* urlentry)
-/* Verify authenticity of  the specified url entry                         */
-/*                                                                         */
-/* Parameters: hspi         (IN) open SPI handle                            */
-/*             emptyisfail  (IN) if non-zero, messages without authblocks  */
-/*                               will fail                                 */
-/*             urlentry     (IN) the url entry to verify                   */
-/*                                                                         */
-/* Returns: 0 on success or SLP_ERROR_xxx code on failure                  */
-/*=========================================================================*/
 {
     return SLPAuthVerifyString(hspi,
                                emptyisfail,
@@ -501,21 +555,18 @@ int SLPAuthVerifyUrl(SLPSpiHandle hspi,
 }
 
 
-/*=========================================================================*/
+/** Verify the authenticity of the specified DAAdvert.
+ *
+ * @param[in] hspi - An open SPI handle.
+ * @param[in] emptyisfail - If non-zero, messages without 
+ *    authblocks will fail.
+ * @param[in] daadvert - The DAAdvert message to verify.
+ * 
+ * @return Zero on success, or an SLP error code on failure.
+ */
 int SLPAuthVerifyDAAdvert(SLPSpiHandle hspi,
                           int emptyisfail,
                           const SLPDAAdvert* daadvert)
-/* Verify authenticity of  the specified DAAdvert                          */
-/*                                                                         */
-/* Parameters: hspi        (IN) open SPI handle                            */
-/*                         (IN) if non-zero, messages without authblocks   */
-/*                              will fail                                  */
-/*             spistrlen   (IN) length of the spi string                   */
-/*             sprstr      (IN) the spi string                             */
-/*             daadvert    (IN) the DAAdvert to verify                     */
-/*                                                                         */
-/* Returns: 0 on success or SLP_ERROR_xxx code on failure                  */
-/*=========================================================================*/
 {
     int                 i;
     int                 signaturelen;
@@ -615,27 +666,39 @@ int SLPAuthVerifyDAAdvert(SLPSpiHandle hspi,
 }
 
 
-/*=========================================================================*/
+/** Verify authenticity of the specified SAAdvert.
+ *
+ * @param[in] hspi - An open SPI handle.
+ * @param[in] emptyisfail - If non-zero, messages without 
+ *    authblocks will fail.
+ * @param[in] saadvert - The SAAdvert message to verify.
+ * 
+ * @return Zero on success, or an SLP error code on failure.
+ */
 int SLPAuthVerifySAAdvert(SLPSpiHandle hspi,
                           int emptyisfail,
                           const SLPSAAdvert* saadvert)
-/* Verify authenticity of  the specified SAAdvert                          */
-/*                                                                         */
-/* Parameters: hspi        (IN) open SPI handle                            */
-/*             emptyisfail (IN) if non-zero, messages without authblocks   */
-/*                              will fail                                  */
-/*             spistrlen   (IN) length of the spi string                   */
-/*             sprstr      (IN) the spi string                             */
-/*             saadvert    (IN) the SAADVERT to verify                     */
-/*                                                                         */
-/* Returns: 0 on success or SLP_ERROR_xxx code on failure                  */
-/*=========================================================================*/
 {
     return 0;
 }
 
 
-/*=========================================================================*/
+/** Sign an authblock.
+ *
+ * @param[in] hspi - An open SPI handle.
+ * @param[in] spistr - The SPI string.
+ * @param[in] spistrlen - The length of @p spistr.
+ * @param[in] string - The attribute list to sign.
+ * @param[in] stringlen - The length of @p string.
+ * @param[out] authblock - The address of storage for the 
+ *    generated authblock signature.
+ * @param[out] authblocklen - On entry, the size of @p authblock; 
+ *    on exit, the number of bytes stored in @p authblock.
+ * 
+ * @return Zero on success, or an SLP error code on failure.
+ *
+ * @todo Fix the expiration time.
+ */
 int SLPAuthSignString(SLPSpiHandle hspi,
                       int spistrlen,
                       const char* spistr,
@@ -643,19 +706,6 @@ int SLPAuthSignString(SLPSpiHandle hspi,
                       const char* string,
                       int* authblocklen,
                       unsigned char** authblock)
-/* Generate an authblock signature for an attribute list                   */
-/*                                                                         */
-/* Parameters: hspi         (IN) open SPI handle                           */
-/*             spistrlen    (IN) length of the SPI string                  */
-/*             spistr       (IN) SPI to sign with                          */
-/*             attrlistlen  (IN) the length of the URL to sign             */
-/*             attrlist     (IN) the url to sign                           */
-/*             authblocklen (OUT) the length of the authblock signature    */
-/*             authblock    (OUT) buffer containing authblock signature    */
-/*                                must be freed by the caller              */ 
-/*                                                                         */
-/* Returns: 0 on success or SLP_ERROR_xxx code on failure                  */
-/*=========================================================================*/
 {
     int                 result;
     SLPCryptoDSAKey*    key;
@@ -738,7 +788,20 @@ ERROR:
 }
 
 
-/*=========================================================================*/
+/** Generate an authblock signature for a URL.
+ *
+ * @param[in] hspi - An open SPI handle.
+ * @param[in] spistr - The SPI string.
+ * @param[in] spistrlen - The length of @p spistr.
+ * @param[in] url - The URL to sign.
+ * @param[in] urllen - The length of @p url.
+ * @param[out] authblock - The address of storage for the 
+ *    generated authblock signature.
+ * @param[out] authblocklen - On entry, the size of @p authblock;
+ *    on exit, the number of bytes stored in @p authblock.
+ * 
+ * @return Zero on success, or an SLP error code on failure.
+ */
 int SLPAuthSignUrl(SLPSpiHandle hspi,
                    int spistrlen,
                    const char* spistr,
@@ -746,19 +809,6 @@ int SLPAuthSignUrl(SLPSpiHandle hspi,
                    const char* url,
                    int* authblocklen,
                    unsigned char** authblock)
-/* Generate an authblock signature for a Url                               */
-/*                                                                         */
-/* Parameters: hspi         (IN) open SPI handle                           */
-/*             spistrlen    (IN) length of the SPI string                  */
-/*             spistr       (IN) SPI to sign with                          */
-/*             urllen       (IN) the length of the URL to sign             */
-/*             url          (IN) the url to sign                           */
-/*             authblocklen (OUT) the length of the authblock signature    */
-/*             authblock    (OUT) buffer containing authblock signature    */
-/*                                must be freed by the caller              */
-/*                                                                         */
-/* Returns: 0 on success or SLP_ERROR_xxx code on failure                  */
-/*=========================================================================*/
 {
     return  SLPAuthSignString(hspi,
                               spistrlen,
@@ -770,7 +820,27 @@ int SLPAuthSignUrl(SLPSpiHandle hspi,
 }
 
 
-/*=========================================================================*/
+/** Generate an authblock signature for a DAADVERT
+ *
+ * @param[in] hspi - An open SPI handle.
+ * @param[in] spistr - The SPI string.
+ * @param[in] spistrlen - The length of the @p spistr.
+ * @param[in] bootstamp - The stateless DA boot timestamp.
+ * @param[in] url - The URL to sign.
+ * @param[in] urllen - The length of @p url.
+ * @param[in] attrlist - The attribute list to sign.
+ * @param[in] attrlistlen - The length of @p attrlist.
+ * @param[in] scopelist - The DA's scope list.
+ * @param[in] scopelistlen - The length of @p scopelist.
+ * @param[in] daspistr - The list of the DA's SPI's.
+ * @param[in] daspistrlen - The length of @p daspistr.
+ * @param[out] authblock - The address of storage for the 
+ *    generated authblock signature.
+ * @param[out] authblocklen - On entry, the size of @p authblock;
+ *    on exit, the number of bytes stored in @p authblock.
+ *
+ * @return Zero on success, or an SLP error code on failure.
+ */
 int SLPAuthSignDAAdvert(SLPSpiHandle hspi,
                         unsigned short spistrlen,
                         const char* spistr,
@@ -785,26 +855,6 @@ int SLPAuthSignDAAdvert(SLPSpiHandle hspi,
                         const char* daspistr,
                         int* authblocklen,
                         unsigned char** authblock)
-/* Generate an authblock signature for a DAADVERT                          */
-/*                                                                         */
-/* Parameters: hspi         (IN) open SPI handle                           */
-/*             spistrlen (IN) length of the spi string                     */
-/*             sprstr (IN) the spi string                                  */
-/*             bootstamp (IN) the statless DA boot timestamp               */
-/*             urllen (IN) the length of the URL to sign                   */
-/*             url (IN) the url to sign                                    */
-/*             attrlistlen (IN) the length of the URL to sign              */
-/*             attrlist (IN) the url to sign                               */
-/*             scopelistlen (IN) the length of the DA's scope list         */
-/*             scopelist (IN) the DA's scope list                          */
-/*             daspistrlen (IN) the length of the list of DA's SPIs        */
-/*             daspistr (IN) the list of the DA's SPI's                    */
-/*             authblocklen (OUT) the length of the authblock signature    */
-/*             authblock (OUT) buffer containing authblock signature must  */
-/*                             be freed by the caller                      */
-/*                                                                         */
-/* Returns: 0 on success or SLP_ERROR_xxx code on failure                  */
-/*=========================================================================*/
 {
     int                 result;
     SLPCryptoDSAKey*    key;
@@ -894,7 +944,23 @@ ERROR:
 }
 
 
-/*=========================================================================*/
+/** Generate an authblock signature for an SAADVERT message.
+ *
+ * @param[in] spistr - The SPI string.
+ * @param[in] spistrlen - The length of the @p spistr.
+ * @param[in] url - The URL to sign.
+ * @param[in] urllen - The length of @p url.
+ * @param[in] attrlist - The attribute list to sign.
+ * @param[in] attrlistlen - The length of @p attrlist.
+ * @param[in] scopelist - The DA's scope list.
+ * @param[in] scopelistlen - The length of @p scopelist.
+ * @param[out] authblock - The address of storage for the 
+ *    generated authblock signature.
+ * @param[out] authblocklen - On entry, the size of @p authblock;
+ *    on exit, the number of bytes stored in @p authblock.
+ *
+ * @return Zero on success, or an SLP error code on failure.
+ */
 int SLPAuthSignSAAdvert(unsigned short spistrlen,
                         const char* spistr,
                         unsigned short urllen,
@@ -905,24 +971,10 @@ int SLPAuthSignSAAdvert(unsigned short spistrlen,
                         const char* scopelist,
                         int* authblocklen,
                         unsigned char** authblock)
-/* Generate an authblock signature for a SAADVERT                          */
-/*                                                                         */
-/* Parameters: spistrlen (IN) length of the spi string                     */
-/*             sprstr (IN) the spi string                                  */
-/*             urllen (IN) the length of the URL to sign                   */
-/*             url (IN) the url to sign                                    */
-/*             attrlistlen (IN) the length of the URL to sign              */
-/*             attrlist (IN) the url to sign                               */
-/*             scopelistlen (IN) the length of the DA's scope list         */
-/*             scopelist (IN) the DA's scope list                          */
-/*             authblocklen (OUT) the length of the authblock signature    */
-/*             authblock (OUT) buffer containing authblock signature       */
-/*                                                                         */
-/* Returns: 0 on success or SLP_ERROR_xxx code on failure                  */
-/*=========================================================================*/
 {
     *authblocklen = 0;
     *authblock = 0;
     return 0;
 }
 
+/*=========================================================================*/ 

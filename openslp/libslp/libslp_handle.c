@@ -1,98 +1,95 @@
-/***************************************************************************/
-/*                                                                         */
-/* Project:     OpenSLP - OpenSource implementation of Service Location    */
-/*              Protocol                                                   */
-/*                                                                         */
-/* File:        slplib_handle.h                                            */
-/*                                                                         */
-/* Abstract:    Implementation for SLPOpen() and SLPClose() functions      */
-/*                                                                         */
-/*-------------------------------------------------------------------------*/
-/*                                                                         */
-/*     Please submit patches to http://www.openslp.org                     */
-/*                                                                         */
-/*-------------------------------------------------------------------------*/
-/*                                                                         */
-/* Copyright (C) 2000 Caldera Systems, Inc                                 */
-/* All rights reserved.                                                    */
-/*                                                                         */
-/* Redistribution and use in source and binary forms, with or without      */
-/* modification, are permitted provided that the following conditions are  */
-/* met:                                                                    */ 
-/*                                                                         */
-/*      Redistributions of source code must retain the above copyright     */
-/*      notice, this list of conditions and the following disclaimer.      */
-/*                                                                         */
-/*      Redistributions in binary form must reproduce the above copyright  */
-/*      notice, this list of conditions and the following disclaimer in    */
-/*      the documentation and/or other materials provided with the         */
-/*      distribution.                                                      */
-/*                                                                         */
-/*      Neither the name of Caldera Systems nor the names of its           */
-/*      contributors may be used to endorse or promote products derived    */
-/*      from this software without specific prior written permission.      */
-/*                                                                         */
-/* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS     */
-/* `AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT      */
-/* LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR   */
-/* A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE CALDERA      */
-/* SYSTEMS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, */
-/* SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT        */
-/* LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE,  */
-/* DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON       */
-/* ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT */
-/* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE   */
-/* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.    */
-/*                                                                         */
-/***************************************************************************/
+/*-------------------------------------------------------------------------
+ * Copyright (C) 2000 Caldera Systems, Inc
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ *    Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ *
+ *    Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ *    Neither the name of Caldera Systems nor the names of its
+ *    contributors may be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * `AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE CALDERA
+ * SYSTEMS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *-------------------------------------------------------------------------*/
+
+/** Open and close handle.
+ *
+ * Implementation for functions open, close, and associate ifc.
+ *
+ * @file       libslp_handle.c
+ * @author     Matthew Peterson, John Calcote (jcalcote@novell.com)
+ * @attention  Please submit patches to http://www.openslp.org
+ * @ingroup    LibSLPCode
+ */
 
 #include "slp.h"
 #include "libslp.h"
 #include "slp_net.h"
 
-/*=========================================================================*/
 int G_OpenSLPHandleCount = 0;
-/* Global variable that keeps track of the number of handles that are open */
-/*=========================================================================*/
+/*!< Global variable that keeps track of the number of handles 
+ * that are open.
+ */
 
-
-/*=========================================================================*/
+/** Open an OpenSLP session handle.
+ *
+ * Returns a SLPHandle handle in the phSLP parameter for the language
+ * locale passed in as the pcLang parameter. The client indicates if
+ * operations on the handle are to be synchronous or asynchronous
+ * through the isAsync parameter. The handle encapsulates the language
+ * locale for SLP requests issued through the handle, and any other
+ * resources required by the implementation. However, SLP properties
+ * are not encapsulated by the handle; they are global. The return
+ * value of the function is an SLPError code indicating the status of
+ * the operation. Upon failure, the phSLP parameter is NULL.
+ *
+ * @par
+ * An SLPHandle can only be used for one SLP API operation at a time.
+ * If the original operation was started asynchronously, any attempt
+ * to start an additional operation on the handle while the original
+ * operation is pending results in the return of an SLP_HANDLE_IN_USE
+ * error from the API function. The SLPClose() API function terminates
+ * any outstanding calls on the handle. If an implementation is unable
+ * to support a asynchronous (resp. synchronous) operation, due to
+ * memory constraints or lack of threading support, the
+ * SLP_NOT_IMPLEMENTED flag may be returned when the isAsync flag
+ * is SLP_TRUE (resp. SLP_FALSE).
+ *
+ * @param[in] pcLang -  A pointer to an array of characters containing 
+ *    the [RFC 1766] Language Tag for the natural language locale of 
+ *    requests and registrations issued on the handle. (Pass NULL or
+ *    the empty string to use the default locale.)
+ *
+ * @param[in] isAsync - An SLPBoolean indicating whether the SLPHandle 
+ *    should be opened for asynchronous operation or not.
+ *
+ * @param[out] phSLP - A pointer to an SLPHandle, in which the open  
+ *    SLPHandle is returned. If an error occurs, the value upon return 
+ *    is NULL.
+ *
+ * @return An SLPError code; SLP_OK(0) on success, SLP_PARAMETER_BAD,
+ *    SLP_NOT_IMPLEMENTED, SLP_MEMORY_ALLOC_FAILED, 
+ *    SLP_NETWORK_INIT_FAILED, SLP_INTERNAL_SYSTEM_ERROR
+ */
 SLPError SLPAPI SLPOpen(const char *pcLang, SLPBoolean isAsync, SLPHandle *phSLP)
-/*                                                                         */
-/* Returns a SLPHandle handle in the phSLP parameter for the language      */
-/* locale passed in as the pcLang parameter.  The client indicates if      */
-/* operations on the handle are to be synchronous or asynchronous          */
-/* through the isAsync parameter.  The handle encapsulates the language    */
-/* locale for SLP requests issued through the handle, and any other        */
-/* resources required by the implementation.  However, SLP properties      */
-/* are not encapsulated by the handle; they are global.  The return        */
-/* value of the function is an SLPError code indicating the status of      */
-/* the operation.  Upon failure, the phSLP parameter is NULL.              */
-/*                                                                         */
-/* An SLPHandle can only be used for one SLP API operation at a time.      */
-/* If the original operation was started asynchronously, any attempt to    */
-/* start an additional operation on the handle while the original          */
-/* operation is pending results in the return of an SLP_HANDLE_IN_USE      */
-/* error from the API function.  The SLPClose() API function terminates    */
-/* any outstanding calls on the handle.  If an implementation is unable    */
-/* to support a asynchronous( resp.  synchronous) operation, due to        */
-/* memory constraints or lack of threading support, the                    */
-/* SLP_NOT_IMPLEMENTED flag may be returned when the isAsync flag is       */
-/* SLP_TRUE (resp.  SLP_FALSE).                                            */
-/*                                                                         */
-/* pcLang   A pointer to an array of characters containing the RFC 1766    */
-/*          Language Tag RFC 1766 for the natural language locale of       */
-/*          requests and registrations issued on the handle. Pass in NULL  */
-/*          or the empty string, "" to use the default locale              */
-/*                                                                         */
-/* isAsync  An SLPBoolean indicating whether the SLPHandle should be opened*/
-/*          for asynchronous operation or not.                             */
-/*                                                                         */
-/* phSLP    A pointer to an SLPHandle, in which the open SLPHandle is      */
-/*          returned.  If an error occurs, the value upon return is NULL.  */
-/*                                                                         */
-/* Returns  SLPError code                                                  */
-/*=========================================================================*/
 {
     SLPError        result = SLP_OK;
     PSLPHandleInfo  handle = 0;
@@ -215,17 +212,11 @@ SLPError SLPAPI SLPOpen(const char *pcLang, SLPBoolean isAsync, SLPHandle *phSLP
     return result;
 }
 
-
-/*=========================================================================*/
+/** Close an SLP handle.
+ *
+ * @param[in] hSLP - The handle to be closed.
+ */
 void SLPAPI SLPClose(SLPHandle hSLP)                                             
-/*                                                                         */
-/* Frees all resources associated with the handle.  If the handle was      */
-/* invalid, the function returns silently.  Any outstanding synchronous    */
-/* or asynchronous operations are cancelled so their callback functions    */
-/* will not be called any further.                                         */
-/*                                                                         */
-/* SLPHandle    A SLPHandle handle returned from a call to SLPOpen().      */
-/*=========================================================================*/
 {
     PSLPHandleInfo   handle;
 
@@ -304,23 +295,22 @@ void SLPAPI SLPClose(SLPHandle hSLP)
 
 }
 
-
 #ifndef MI_NOT_SUPPORTED
-/*=========================================================================*/
+/** Associates an interface list with an SLP handle.
+ *
+ * Associates a list of interfaces McastIFList on which multicast needs
+ * to be done with a particular SLPHandle hSLP. McastIFList is a comma 
+ * separated list of host interface IP addresses.
+ *
+ * @param[in] hSLP - The SLPHandle with which the interface list is to be 
+ *    associated with.
+ *
+ * @param[in] McastIFList - A comma separated list of host interface IP 
+ *    addresses on which multicast needs to be done.
+ *
+ * @return An SLPError code.
+ */
 SLPError SLPAssociateIFList( SLPHandle hSLP, const char* McastIFList)
-/*                                                                         */
-/* Associates a list of interfaces McastIFList on which multicast needs to */
-/* be done with a particular SLPHandle hSLP. McastIFList is a comma        */
-/* separated list of host interface IP addresses.                          */
-/*                                                                         */
-/* hSLP                 The SLPHandle with which the interface list is to  */
-/*                      be associated with.                                */
-/*                                                                         */
-/* McastIFList          A comma separated list of host interface IP        */
-/*                      addresses on which multicast needs to be done.     */
-/*                                                                         */
-/* Returns  SLPError code                                                  */
-/*=========================================================================*/
 {
 
     PSLPHandleInfo      handle;
@@ -350,21 +340,21 @@ SLPError SLPAssociateIFList( SLPHandle hSLP, const char* McastIFList)
 
 
 #ifndef UNICAST_NOT_SUPPORTED
-/*=========================================================================*/
+/** Associates a unicast IP address with an open SLP handle.
+ *
+ * Associates an IP address unicast_ip with a particular SLPHandle hSLP.
+ * unicast_ip is the IP address of the SA/DA from which service is 
+ * requested.
+ *
+ * @param[in] hSLP - The SLPHandle with which the unicast_ip address is 
+ *    to be associated with.
+ *
+ * @param[in] unicast_ip - IP address of the SA/DA from which service 
+ *    is requested.
+ *
+ * @return An SLPError code.
+ */
 SLPError SLPAssociateIP( SLPHandle hSLP, const char* unicast_ip)
-/*                                                                         */
-/* Associates an IP address unicast_ip with a particular SLPHandle hSLP.   */
-/* unicast_ip is the IP address of the SA/DA from which service is         */
-/* requested.                                                              */
-/*                                                                         */
-/* hSLP                 The SLPHandle with which the unicast_ip address is */
-/*                      to be associated with.                             */
-/*                                                                         */
-/* unicast_ip           IP address of the SA/DA from which service is      */
-/*                      requested.                                         */
-/*                                                                         */
-/* Returns  SLPError code                                                  */
-/*=========================================================================*/
 {
 
     PSLPHandleInfo				handle;
@@ -388,6 +378,7 @@ SLPError SLPAssociateIP( SLPHandle hSLP, const char* unicast_ip)
 #endif
     handle->dounicast = 1;
 
+   /** @todo Verify error conditions in associate ip address. */
 	result = SLPNetResolveHostToAddr(unicast_ip, &handle->unicastaddr);
 	if (SLPNetSetPort(&handle->unicastaddr, SLP_RESERVED_PORT) != 0)
 		return SLP_PARAMETER_BAD;
@@ -395,3 +386,4 @@ SLPError SLPAssociateIP( SLPHandle hSLP, const char* unicast_ip)
 }
 #endif
 
+/*=========================================================================*/

@@ -1,81 +1,70 @@
-/***************************************************************************/
-/*                                                                         */
-/* Project:     OpenSLP - OpenSource implementation of Service Location    */
-/*              Protocol Version 2                                         */
-/*                                                                         */
-/* File:        slpd_database.c                                            */
-/*                                                                         */
-/* Abstract:    This files contains an implementation of LDAPv3 search     */
-/*              filters for SLP (as specified in RFC 2254).                */
-/*                                                                         */
-/*-------------------------------------------------------------------------*/
-/*                                                                         */
-/*     Please submit patches to http://www.openslp.org                     */
-/*                                                                         */
-/*-------------------------------------------------------------------------*/
-/*                                                                         */
-/* Copyright (C) 2000 Caldera Systems, Inc                                 */
-/* All rights reserved.                                                    */
-/*                                                                         */
-/* Redistribution and use in source and binary forms, with or without      */
-/* modification, are permitted provided that the following conditions are  */
-/* met:                                                                    */ 
-/*                                                                         */
-/*      Redistributions of source code must retain the above copyright     */
-/*      notice, this list of conditions and the following disclaimer.      */
-/*                                                                         */
-/*      Redistributions in binary form must reproduce the above copyright  */
-/*      notice, this list of conditions and the following disclaimer in    */
-/*      the documentation and/or other materials provided with the         */
-/*      distribution.                                                      */
-/*                                                                         */
-/*      Neither the name of Caldera Systems nor the names of its           */
-/*      contributors may be used to endorse or promote products derived    */
-/*      from this software without specific prior written permission.      */
-/*                                                                         */
-/* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS     */
-/* `AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT      */
-/* LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR   */
-/* A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE CALDERA      */
-/* SYSTEMS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, */
-/* SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT        */
-/* LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE,  */
-/* DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON       */
-/* ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT */
-/* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE   */
-/* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.    */
-/*                                                                         */
-/***************************************************************************/
-
-/*********/
-/* TODO: The current implementation reparses the predicate string every    */
-/*       time it is evaluated. This implementation should be refactored to */
-/*       parse the predicate string once, build some sort of data-         */
-/*       structure out of that, and then compare the predicate DS with the */
-/*       attribute DS.                                                     */
-/*********/
-
-/*********
+/*-------------------------------------------------------------------------
+ * Copyright (C) 2000 Caldera Systems, Inc
+ * All rights reserved.
  *
- * Assumptions:
- *  - If a tag specified in the query string does not exist, that's a FALSE
- *  - The "Undefined" value mentioned in the LDAPv3 RFC (2251) is synonymous 
- *    with "false".
- *  - The "Approx" operator matches as an equal operator. 
- *  - Variable matching on type is strict: ie, the right-hand-side of an 
- *    operator must evaluate to the same type as the tag referenced on the 
- *    left-hand-side. 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
  *
- * Known Bugs/TODO:
- *  - If trash follows the last operand to a binary argument, it will be 
- *    ignored if the operand is not evaluated due to short circuiting: 
- *    ie, in "(&(first=*)(second<=3)trash)", "trash" will be silently 
- *    ignored _if_ "(first=*)" is true.
- *  - Escaped '*' characters are treated as wildcards in the string equality 
- *    operator: ie, in "(string=abc\2axyz)" will match the literal string
- *    "abc\2axyz" instead of "abc*xyz". 
- *  - No operations can be performed on opaque data types. 
- *********/
+ *    Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ *
+ *    Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ *    Neither the name of Caldera Systems nor the names of its
+ *    contributors may be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * `AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE CALDERA
+ * SYSTEMS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *-------------------------------------------------------------------------*/
+
+/** LDAPv3 search filter implementation.
+ *
+ * This files contains an implementation of LDAPv3 search filters for SLP 
+ * as specified in RFC 2254.
+ *
+ * @file       slpd_predicate.c
+ * @author     Matthew Peterson, John Calcote (jcalcote@novell.com)
+ * @attention  Please submit patches to http://www.openslp.org
+ * @ingroup    SlpdCode
+ *
+ * @todo The current implementation reparses the predicate string every time 
+ * it is evaluated. This implementation should be refactored to parse the 
+ * predicate string once, build some sort of data structure out of that, 
+ * and then compare the predicate DS with the attribute DS.
+ *
+ * @par Assumptions
+ * @li If a tag specified in the query string does not exist, that's a FALSE
+ * @li The "Undefined" value mentioned in the LDAPv3 RFC (2251) is synonymous 
+ *     with "false".
+ * @li The "Approx" operator matches as an equal operator. 
+ * @li Variable matching on type is strict: ie, the right-hand-side of an 
+ *     operator must evaluate to the same type as the tag referenced on the 
+ *     left-hand-side. 
+ *
+ * @bug If trash follows the last operand to a binary argument, it will
+ * be ignored if the operand is not evaluated due to short circuiting: 
+ * ie, in "(&(first=*)(second<=3)trash)", "trash" will be silently 
+ * ignored _if_ "(first=*)" is true.
+ *
+ * @bug Escaped '*' characters are treated as wildcards in the string 
+ * equality operator: ie, in "(string=abc\2axyz)" will match the literal 
+ * string "abc\2axyz" instead of "abc*xyz". 
+ *
+ * @bug No operations can be performed on opaque data types. 
+ */
 
 #include <assert.h>
 #include <ctype.h>
@@ -92,34 +81,43 @@
 #define BRACKET_CLOSE ')'
 
 #ifndef MIN
-    #define MIN(x,y) (x < y ? x : y)
+# define MIN(x,y) (x < y ? x : y)
 #endif
 
 /************************* <Lifted from slp_attr.c> ***********************/
 
-/* Tests a character to see if it reserved (as defined in RFC 2608, p11). */
+/** Tests a character to see if it reserved (as defined in RFC 2608, p11). 
+ */
 #define IS_RESERVED(x) (((x) == '(' || (x) == ')' || (x) == ',' || (x) == '\\' || (x) == '!' || (x) == '<' || (x) == '=' || (x) == '>' || (x) == '~') || ((((char)0x01 <= (x)) && ((char)0x1F >= (x))) || ((x) == (char)0x7F)))
 
-
+/** Alias for IS_RESERVED.
+ */
 #define IS_INVALID_VALUE_CHAR(x) IS_RESERVED(x)
 
+/** Tests a character to see if it's an invalid tag character.
+ */
 #define IS_INVALID_TAG_CHAR(x) (IS_RESERVED(x) || ((x) == '*') || ((x) == (char)0x0D) || ((x) == (char)0x0A) || ((x) == (char)0x09) || ((x) == '_'))
 
+/** Tests a character to see if it's a valid tag character.
+ */
 #define IS_VALID_TAG_CHAR(x) (!IS_INVALID_TAG_CHAR(x))
 
-/************************* </Lifted from slp_attr.c> ***********************/
-
-
-/*--------------------------------------------------------------------------*/
+/** Does a case insensitive substring match for needle in haystack.
+ *
+ * @param[in] haystack - The memory buffer to search in.
+ * @param[in] needle - The string to search for.
+ * @param[in] needle_len - The length of @p needle in bytes.
+ *
+ * @return A pointer to the start of the substring. NULL if the substring 
+ *    is not found.
+ *
+ * @bug This implementation of substr isn't exactly blazingly fast...
+ *
+ * @internal
+ */
 const char *substr(const char *haystack, 
                    const char *needle, 
                    int needle_len)
-/* Does a case insensitive substring match for needle in haystack.          */
-/*                                                                          */
-/* Returns pointer to the start of the substring. NULL if the substring is  */
-/* not found.                                                               */
-/* FIXME This implementation isn't exactly blazingly fast...                */
-/*--------------------------------------------------------------------------*/
 {
     const char *hs_cur; 
 
@@ -134,33 +132,43 @@ const char *substr(const char *haystack,
     return NULL;
 }
 
-
-/*--------------------------------------------------------------------------*/
+/** Result codes for the filter routines.
+ */
 typedef enum
 {
-    FR_UNSET /* Placeholder. Used to detect errors. */, 
-    FR_INTERNAL_SYSTEM_ERROR /* Internal error. */,
-    FR_PARSE_ERROR /* Parse error detected. */, 
-    FR_MEMORY_ALLOC_FAILED /* Ran out of memory. */, 
-    FR_EVAL_TRUE /* Expression successfully evaluated to true. */, 
-    FR_EVAL_FALSE /* Expression successfully evaluated to false. */
+   FR_UNSET,
+   /*!< Placeholder. Used to detect errors.
+    */
+   FR_INTERNAL_SYSTEM_ERROR,
+   /*!< Internal error.
+    */
+   FR_PARSE_ERROR,
+   /*!< Parse error detected.
+    */
+   FR_MEMORY_ALLOC_FAILED,
+   /*!< Ran out of memory.
+    */
+   FR_EVAL_TRUE,
+   /*!< Expression successfully evaluated to true.
+    */
+   FR_EVAL_FALSE,
+   /*!< Expression successfully evaluated to false.
+    */
 } FilterResult;
-/*--------------------------------------------------------------------------*/
 
-/*--------------------------------------------------------------------------*/
+/** Verifies and finds the length of an escaped string.
+ *
+ * @param[in] escaped - The string of escaped characters.
+ * @param[in] len - The length of @p escaped in bytes.
+ * @param[out] punescaped_len - The address of storage to return the 
+ *    unescaped length of @p escaped.
+ *
+ * @return A boolean value; true if valid string, false if invalid. 
+ *    If false, then @p punescaped_count will not be set.
+ *
+ * @internal
+ */
 int escaped_verify(char *escaped, int len, int *punescaped_len) 
-/* Verifies and finds the length of an escaped string                       */
-/*                                                                          */
-/* Params:                                                                  */
-/*  escaped -- (IN) string of escaped characters                            */
-/*  len -- (IN) length of escaped                                           */
-/*  unescaped_len -- (OUT) pointer to location to write the unescaped       */
-/*     length of escaped to                                                 */
-/*                                                                          */
-/* Returns:                                                                 */
-/*  1 if valid string, 0 if invalid. If 0, then punescaped_count will not   */
-/*  be set                                                                  */
-/*--------------------------------------------------------------------------*/
 {
     int i;
     int unescaped_len;
@@ -208,19 +216,19 @@ int escaped_verify(char *escaped, int len, int *punescaped_len)
     return 1;
 }
 
-/*--------------------------------------------------------------------------*/
+/** Unescape the character represented by the two given hex values.
+ *
+ * @param[in] d1 - The first hexadecimal character.
+ * @param[in] d2 - The second hexadecimal character.
+ * @param[out] val - The address of storage for returning the value of 
+ *    the character.
+ *
+ * @return A boolean value; true on successful conversion, false if one or 
+ *    more of the hex digits are invalid.
+ *
+ * @internal
+ */
 int unescape_check(char d1, char d2, char *val) 
-/* Unescape the character represented by the two given hex values.          */
-/*                                                                          */
-/* Params:                                                                  */
-/*  d1 -- (IN) First hex char                                               */
-/*  d1 -- (IN) second hex char                                              */
-/*  val -- (OUT) the value of the character is written to here              */
-/*                                                                          */
-/* Returns:                                                                 */
-/*  1 on successful conversion, 0 if one or more of the hex digits are      */
-/*  invalid                                                                 */
-/*--------------------------------------------------------------------------*/
 {
     if(!isxdigit((int) d1) || !isxdigit((int) d2))
     {
@@ -242,22 +250,24 @@ int unescape_check(char d1, char d2, char *val)
 }
 
 
-/*--------------------------------------------------------------------------*/
+/** Compares two strings that (potentially) contain escaped characters.
+ *
+ * @param[in] escaped - The escaped string to compare.
+ * @param[in] escaped_len - The length of @p escaped in bytes 
+ *    (including esc chars).
+ * @param[in] verbatim - The string to compare against (not escaped).
+ * @param[in] verbatim_len - The length of @p verbatim in bytes.
+ * @param[in] strict_len - If TRUE, the number of characters in @p verbatim 
+ *    that match must be _exactly_ @p verbatim_len. If FALSE, at most 
+ *    @p verbatim_len characters may match.
+ * @param[out] punescaped_count - The number of unescaped characters. 
+ *    Optional; can be NULL.
+ *
+ * @return A filter result object.
+ *
+ * @internal
+ */
 FilterResult unescape_cmp(const char *escaped, int escaped_len, const char *verbatim, int verbatim_len, SLPBoolean strict_len, int *punescaped_count)
-/* Compares two strings that (potentially) contain escaped characters       */
-/*                                                                          */
-/* Params:                                                                  */
-/*   escaped -- escaped string to compare                                   */
-/*   escaped_len -- length of the escaped string (including esc chars)      */
-/*   verbatim -- string to compare against (not escaped)                    */
-/*   verbatim_len -- length of the verbatim string                          */
-/*   strict_len -- if TRUE, the number of characters in verbatim that match */
-/*            must be _exactly_ verbatim_len. If FALSE, at most verbatim_len*/
-/*            characters may match                                          */
-/*   unescaped_count -- (OUT) the number of unescaped characters. Can be    */
-/*            NULL                                                          */
-/*                                                                          */
-/*--------------------------------------------------------------------------*/
 {
     char unesc; /* Holder for unescaped characters. */
 
@@ -333,23 +343,20 @@ FilterResult unescape_cmp(const char *escaped, int escaped_len, const char *verb
     }
 }
 
-
-
-/*--------------------------------------------------------------------------*/
+/** Locate an escaped sub-string.
+ *
+ * @param[in] haystack - The unescaped buffer to search.
+ * @param[in] haystack_len - The length of @p haystack in bytes.
+ * @param[in] needle - The escaped string to search for.
+ * @param[in] needle_len - The length of @p needle.
+ * @param[out] punescaped_len - The size of the unescaped needle. 
+ *    Invalid if NULL is returned.
+ *
+ * @return A pointer to the sub-string if found, or NULL if not found.
+ *
+ * @internal
+ */
 void *my_memmem(char *haystack, int haystack_len, char *needle, int needle_len, int *punescaped_len) 
-/* locate an (escaped) substring                                            */
-/*                                                                          */
-/* Params:                                                                  */
-/*  haystack -- (IN) unescaped memory to look in                            */
-/*  haystack_len -- (IN) length of haystack                                 */
-/*  needle -- (IN) escaped memory to search for                             */
-/*  needle_len -- (IN) length of needle                                     */
-/*  punescaped_len -- (OUT) the size of the unescaped needle. invalid if    */
-/*       NULL is returned                                                   */
-/*                                                                          */
-/* Returns:                                                                 */
-/*  pointer to substring. NULL if there is no substring                     */
-/*--------------------------------------------------------------------------*/
 {
     int offset;
     int search_len;
@@ -377,20 +384,18 @@ void *my_memmem(char *haystack, int haystack_len, char *needle, int needle_len, 
     return NULL;
 }
 
-
-
-/*--------------------------------------------------------------------------*/
+/** Internal wildcard pattern match.
+ *
+ * @param[in] pattern - The pattern to evaluate.
+ * @param[in] pattern_len - The length of @p pattern in bytes.
+ * @param[in] str - The string to test the pattern on.
+ * @param[in] str_len - The length of @p str.
+ *
+ * @return -1 error, 0 success, 1 failure.
+ *
+ * @internal
+ */
 FilterResult wildcard_wc_str(char *pattern, int pattern_len, char *str, int str_len)
-/*                                                                          */
-/* Params:                                                                  */
-/*  pattern -- the pattern to evaluate                                      */
-/*  pattern_len -- the length of the pattern (in bytes)                     */
-/*  str -- the  string to test the pattern on                               */
-/*  str_len -- the length of the string                                     */
-/*                                                                          */
-/* Returns:                                                                 */
-/*   -1 error,  0 success,  1 failure                                       */
-/*--------------------------------------------------------------------------*/
 {
     char *text_start; /* Pointer to the text following the WC(s) */
     int text_len; /* Length of the text. */
@@ -464,25 +469,23 @@ FilterResult wildcard_wc_str(char *pattern, int pattern_len, char *str, int str_
     assert(0);
 }
 
-
-/*--------------------------------------------------------------------------*/
+/** Check a pattern against a string.
+ *
+ * Public interface to wildcard functionality.
+ *
+ * @param[in] pattern - The pattern to evaluate.
+ * @param[in] pattern_len - The length of @p pattern in bytes.
+ * @param[in] str - The string to test the pattern on.
+ * @param[in] str_len - The length of @p str in bytes.
+ *
+ * @return -1 error, 0 success, 1 failure
+ *
+ * @remarks This is the interface to wildcard finding. It actually just 
+ *    prepares for repeated calls to wildcard_wc_str.
+ *
+ * @internal
+ */
 FilterResult wildcard(const char *pattern, int pattern_len, const char *str, int str_len)
-/* Check the pattern against the given string. Public interface to wildcard */
-/* functionality.                                                           */
-/*                                                                          */
-/* Params:                                                                  */
-/*  pattern -- the pattern to evaluate                                      */
-/*  pattern_len -- the length of the pattern (in bytes)                     */
-/*  str -- the  string to test the pattern on                               */
-/*  str_len -- the length of the string                                     */
-/*                                                                          */
-/* Returns:                                                                 */
-/*   -1 error,  0 success,  1 failure                                       */
-/*                                                                          */
-/* Implementation:                                                          */
-/*  This is the interface to wildcard finding. It actually just prepares    */
-/*  for repeated calls to wildcard_wc_str()                                 */
-/*--------------------------------------------------------------------------*/
 {
     char *first_wc; /* Position of the first WC in the pattern. */
     int first_wc_len; /* Position of first_wc in pattern. */
@@ -518,11 +521,17 @@ FilterResult wildcard(const char *pattern, int pattern_len, const char *str, int
     return wildcard_wc_str(first_wc, pattern_len - first_wc_len, (char *)str + unescaped_first_wc_len, str_len - unescaped_first_wc_len);
 }
 
-
-/*--------------------------------------------------------------------------*/
+/** Tests a string to see if it is a boolean.
+ *
+ * @param[in] str - The string to be tested.
+ * @param[in] str_len - The length of @p str in bytes.
+ * @param[in] val - A boolean result; SLP_TRUE or SLP_FALSE.
+ *
+ * @return A boolean value; true on success, false on failure.
+ *
+ * @internal
+ */
 int is_bool_string(const char *str, int str_len, SLPBoolean *val)
-/* Tests a string to see if it is a boolean. */
-/*--------------------------------------------------------------------------*/
 {
     if(str_len == 4 && memcmp(str, "true", 4) == 0) /* 4 -> length of string "true" */
     {
@@ -537,22 +546,34 @@ int is_bool_string(const char *str, int str_len, SLPBoolean *val)
     return 0;
 }
 
-
-/*--------------------------------------------------------------------------*/
+/** Comparator operators.
+ */
 typedef enum
 {
-    EQUAL, APPROX, GREATER, LESS, PRESENT
+   EQUAL, 
+   APPROX, 
+   GREATER, 
+   LESS, 
+   PRESENT
 } Operation;
-/*--------------------------------------------------------------------------*/
 
-/*--------------------------------------------------------------------------*/
+/** Perform an integer operation.
+ *
+ * @param[in] slp_attr - 
+ * @param[in] tag - 
+ * @param[in] tag_len - The length of @p tag in bytes.
+ * @param[in] rhs - 
+ * @param[in] op - 
+ *
+ * @return A filter result object.
+ *
+ * @internal
+ */
 FilterResult int_op(SLPAttributes slp_attr, 
                     char *tag, 
                     int tag_len,
                     char *rhs, 
                     Operation op)
-/* Perform an integer operation.                                            */
-/*--------------------------------------------------------------------------*/
 {
     int rhs_val; /* The converted value of rhs. */
     char *end; /* Pointer to the end of op. */
@@ -638,14 +659,21 @@ FilterResult int_op(SLPAttributes slp_attr,
     return result;
 }
 
-
-/*--------------------------------------------------------------------------*/
+/** Perform a keyword operation.
+ *
+ * @param[in] slp_attr - 
+ * @param[in] tag - 
+ * @param[in] rhs - 
+ * @param[in] op - 
+ *
+ * @return A filter result object.
+ *
+ * @internal
+ */
 FilterResult keyw_op(SLPAttributes slp_attr, 
                      char *tag, 
                      char *rhs, 
                      Operation op)
-/* Perform a keyword operation.                                             */
-/*--------------------------------------------------------------------------*/
 {
     /* Note that the only test keywords are allowed to undergo is PRESENT, 
      * also note that PRESENT is handled by our calling function.
@@ -656,17 +684,25 @@ FilterResult keyw_op(SLPAttributes slp_attr,
     return FR_EVAL_FALSE;
 }
 
-
-
-/*--------------------------------------------------------------------------*/
+/** Perform a boolean operation.
+ *
+ * @param[in] slp_attr - 
+ * @param[in] tag - 
+ * @param[in] tag_len - The length of @p tag in bytes.
+ * @param[in] rhs - 
+ * @param[in] rhs_len - The length of @p rhs in bytes.
+ * @param[in] op - 
+ *
+ * @return A filter result object.
+ *
+ * @internal
+ */
 FilterResult bool_op(SLPAttributes slp_attr, 
                      char *tag, 
                      int tag_len,
                      char *rhs, 
                      int rhs_len,
                      Operation op)
-/* Perform a boolean operation. */
-/*--------------------------------------------------------------------------*/
 {
     SLPBoolean rhs_val; /* The value of the rhs. */
     var_t *var;
@@ -715,17 +751,25 @@ FilterResult bool_op(SLPAttributes slp_attr,
     return result;
 }
 
-
-
-/*--------------------------------------------------------------------------*/
+/** Perform a string operation.
+ *
+ * @param[in] slp_attr - 
+ * @param[in] tag - 
+ * @param[in] tag_len - The length of @p tag in bytes.
+ * @param[in] rhs - 
+ * @param[in] rhs_len - The length of @p rhs in bytes.
+ * @param[in] op - 
+ *
+ * @return A filter result object.
+ *
+ * @internal
+ */
 FilterResult str_op(SLPAttributes slp_attr, 
                     char *tag, 
                     int tag_len,
                     char *rhs, 
                     int rhs_len,
                     Operation op)
-/* Perform a string operation.                                              */
-/*--------------------------------------------------------------------------*/
 {
     char *str_val; /* Converted value of rhs. */
     int str_len; /* Length of converted value. */
@@ -797,16 +841,25 @@ FilterResult str_op(SLPAttributes slp_attr,
     return FR_EVAL_FALSE;
 }
 
-
-/*--------------------------------------------------------------------------*/
+/** Perform an opaque operation.
+ *
+ * @param[in] slp_attr - 
+ * @param[in] tag - 
+ * @param[in] tag_len - The length of @p tag in bytes.
+ * @param[in] rhs - 
+ * @param[in] rhs_len - The length of @p rhs in bytes.
+ * @param[in] op - 
+ *
+ * @return A filter result object.
+ *
+ * @internal
+ */
 FilterResult opaque_op(SLPAttributes slp_attr, 
                        char *tag, 
                        int tag_len,
                        char *rhs, 
                        int rhs_len,
                        Operation op)
-/* Perform an opaque operation.                                              */
-/*--------------------------------------------------------------------------*/
 {
     char *str_val; /* Converted value of rhs. */
     int str_len; /* Length of converted value. */
@@ -878,11 +931,15 @@ FilterResult opaque_op(SLPAttributes slp_attr,
     return FR_EVAL_FALSE;
 }
 
-
-/*--------------------------------------------------------------------------*/
+/** Tests a string to see if it consists wholly of numeric characters.
+ *
+ * @param[in] str - The string to test.
+ *
+ * @return A boolean value; true if string is an int, false if not.
+ *
+ * @internal
+ */
 int is_int_string(const char *str)
-/* Tests a string to see if it consists wholly of numeric characters.       */
-/*--------------------------------------------------------------------------*/
 {
     int i;
 
@@ -897,11 +954,17 @@ int is_int_string(const char *str)
     return 1;
 }
 
-
-/*--------------------------------------------------------------------------*/
+/** Locate a sub-string in a string.
+ *
+ * @param[in] src - The string to search for @p to_find.
+ * @param[in] src_len - The length in bytes of @p src.
+ * @param[in] to_find - The sub-string to locate.
+ *
+ * @return A pointer to start of substring, or null.
+ *
+ * @internal
+ */
 char *find_substr(char *src, int src_len, char *to_find)
-/* Returns ptr to start of substring, or null.                              */
-/*--------------------------------------------------------------------------*/
 {
     int i;
 
@@ -927,12 +990,15 @@ char *find_substr(char *src, int src_len, char *to_find)
     return 0;
 }
 
-
-
-/*--------------------------------------------------------------------------*/
+/** Finds a bracket matched to this one. Returns 0 if there isn't one.
+ *
+ * @param[in] str - The string in which to look for the bracket.
+ *
+ * @return A pointer to the bracket character, or NULL if none is found.
+ *
+ * @internal
+ */
 char *find_bracket_end(const char *str)
-/* Finds a bracket matched to this one. Returns 0 if there isn't one.       */
-/*--------------------------------------------------------------------------*/
 {
     int open_count; 
     const char *cur;
@@ -969,38 +1035,39 @@ char *find_bracket_end(const char *str)
     return 0;
 }       
 
-
-/*--------------------------------------------------------------------------*/
+/** Represents a string and its length.
+ */
 struct pair
-/* Represents a string and its length. */
 {
-    char *start;
-    char *end; /* Stop reading _BEFORE_ end. ie, at end-1. */
+   char * start;
+   char * end;
+   /*!< Stop reading _BEFORE_ end. ie, at end-1.
+    */
 };
-/*--------------------------------------------------------------------------*/
 
 #if defined(ENABLE_SLPv1)
-
-
-/*--------------------------------------------------------------------------*/
+/** Generate a filtered list of attributes for SLPv1.
+ *
+ * @param[in] start - The start of the string to work in.
+ * @param[out] end - The end of the string processed. After successful 
+ *    processing (ie, no PARSE_ERRORs), this will be pointed at the 
+ *    character following the last char in this level of the expression.
+ * @param[in] slp_attr - The attributes handle to compare on.
+ * @param[out] return_value - The result of the search. Only valid if 
+ *    SLP_OK was returned.
+ *
+ * @return SLP_OK on successful search (ie, the search was do-able).
+ *    SLP_PARSE_ERROR on search error. The end of the expression is
+ *    returned through end.
+ *
+ * @note This attempt only implements one comparision operator (==).
+ *
+ * @internal
+ */
 FilterResult filterv1(const char *start, 
                       const char **end, 
                       SLPAttributes slp_attr, 
                       int recursion_depth)
-/* Parameters:                                                              */
-/* start -- (IN) The start of the string to work in.                        */
-/* end -- (OUT) The end of the string processed. After successful processing*/
-/*              (ie, no PARSE_ERRORs), this will be pointed at the character*/
-/*              following the last char in this level of the expression.    */
-/* slp_attr -- (IN) The attributes handle to compare on.                    */
-/* return_value -- (OUT) The result of the search. Only valid if SLP_OK was */
-/*                       returned.                                          */
-/*                                                                          */
-/* Returns: SLP_OK on successful search (ie, the search was do-able).       */
-/*          SLP_PARSE_ERROR on search error.  The end of the expression is  */
-/*          returned through end.                                           */
-/* NOTE: This attempt only implements one comparision operator (==)         */
-/*--------------------------------------------------------------------------*/
 {
     char *operator; /* Pointer to the operator substring. */
     const char *cur; /* Current working character. */
@@ -1206,24 +1273,25 @@ FilterResult filterv1(const char *start,
 }
 #endif
 
-/*--------------------------------------------------------------------------*/
+/** Generate a list of filtered attributes.
+ *
+ * @param[in] start - The start of the string to work in.
+ * @param[out] end - The end of the string processed. After successful 
+ *    processing (ie, no PARSE_ERRORs), this will be pointed at the 
+ *    character following the last char in this level of the expression.
+ * @param[in] slp_attr - The attributes handle to compare on.
+ * @param[in] recursion_depth - The maximum depth to recurse during search.
+ *
+ * @return SLP_OK on successful search (ie, the search was do-able).
+ *    SLP_PARSE_ERROR on search error. The end of the expression is
+ *    returned through end.
+ *
+ * @internal
+ */
 FilterResult filter(const char *start, 
                     const char **end, 
                     SLPAttributes slp_attr, 
                     int recursion_depth)
-/* Parameters:                                                              */
-/* start -- (IN) The start of the string to work in.                        */
-/* end -- (OUT) The end of the string processed. After successful processing*/
-/*              (ie, no PARSE_ERRORs), this will be pointed at the character*/
-/*              following the last char in this level of the expression.    */
-/* slp_attr -- (IN) The attributes handle to compare on.                    */
-/* return_value -- (OUT) The result of the search. Only valid if SLP_OK was */
-/*                       returned.                                          */
-/*                                                                          */
-/* Returns: SLP_OK on successful search (ie, the search was do-able).       */
-/*          SLP_PARSE_ERROR on search error.  The end of the expression is  */
-/*          returned through end.                                           */
-/*--------------------------------------------------------------------------*/
 {
     char *operator; /* Pointer to the operator substring. */
     const char *cur; /* Current working character. */
@@ -1450,30 +1518,23 @@ FilterResult filter(const char *start,
     return FR_PARSE_ERROR;
 }
 
-
-/*=========================================================================*/
+/** Determine whether an attribute list satisfies a predicate.
+ *
+ * @param[in] version - The SLP version of the predicate string 
+ *    (should always be 2 since we don't handle SLPv1 predicates yet).
+ * @param[in] attrlistlen - The length of @p attrlist in bytes.
+ * @param[in] attrlist - The attribute list to test.
+ * @param[in] predicatelen - The length of @p predicate in bytes.
+ * @param[in] predicate - The predicate string.
+ *
+ * @return A Boolean value; false if test fails. Non-zero if test fails
+ *    or if there is a parse error in the predicate string.
+ */
 int SLPDPredicateTest(int version,
                       int attrlistlen,
                       const char* attrlist,
                       int predicatelen,
                       const char* predicate)
-/* Determine whether the specified attribute list satisfies                */
-/* the specified predicate                                                 */
-/*                                                                         */
-/* version    (IN) SLP version of the predicate string (should always be   */
-/*                 2 since we don't handle SLPv1 predicates yet)           */
-/*                                                                         */
-/* attrlistlen  (IN) length of attrlist                                    */
-/*                                                                         */
-/* attr         (IN) attribute list to test                                */
-/*                                                                         */
-/* predicatelen (IN) length of the predicate string                        */
-/*                                                                         */
-/* predicate    (IN) the predicate string                                  */
-/*                                                                         */
-/* Returns: Boolean value.  Zero of test fails.  Non-zero if test fails    */
-/*          or if there is a parse error in the predicate string           */
-/*=========================================================================*/
 {
     SLPAttributes   attr;
     const char      *end; /* Pointer to the end of the parsed attribute string. */
@@ -1549,31 +1610,28 @@ int SLPDPredicateTest(int version,
     return result;
 }
 
-
-
-/*=========================================================================*/
+/** Copies attributes from a list to a string.
+ *
+ * Copies attributes from the specified attribute list to a result string
+ * according to the taglist as described by section 10.4. of RFC 2608
+ *
+ * @param[in] attrlistlen - The length of @p attrlist in bytes.
+ * @param[in] attrlist - The attribute list to test.
+ * @param[in] taglistlen - The length of @p taglist in bytes.
+ * @param[in] taglist - 
+ * @param[out] resultlen - The address of storage for the length of the 
+ *    returned @p result parameter.
+ * @param[out] result - The address of storage for the returned result 
+ *    string.
+ *
+ * @return Zero on success, or a non-zero value on failure.
+ */
 int SLPDFilterAttributes(int attrlistlen,
                          const char* attrlist,
                          int taglistlen,
                          const char* taglist,
                          int* resultlen,
                          char** result)
-/* Copies attributes from the specified attribute list to a result string  */
-/* according to the taglist as described by section 10.4. of RFC 2608      */
-/*                                                                         */
-/* version    (IN) SLP version of the predicate string (should always be   */
-/*                 2 since we don't handle SLPv1 predicates yet)           */
-/*                                                                         */
-/* attrlistlen  (IN) length of attrlist                                    */
-/*                                                                         */
-/* attr         (IN) attribute list to test                                */
-/*                                                                         */
-/* predicatelen (IN) length of the predicate string                        */
-/*                                                                         */
-/* predicate    (IN) the predicate string                                  */
-/*                                                                         */
-/* Returns: Zero on success.  Nonzero on failure                           */
-/*=========================================================================*/
 {
     SLPAttributes   attr;
     FilterResult    err;
@@ -1626,3 +1684,5 @@ int SLPDFilterAttributes(int attrlistlen,
 
     return(*resultlen == 0);
 }
+
+/*=========================================================================*/

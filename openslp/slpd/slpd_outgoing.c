@@ -1,79 +1,63 @@
-/***************************************************************************/
-/*                                                                         */
-/* Project:     OpenSLP - OpenSource implementation of Service Location    */
-/*              Protocol Version 2                                         */
-/*                                                                         */
-/* File:        slpd_outgoing.c                                            */
-/*                                                                         */
-/* Abstract:    Handles "outgoing" network conversations requests made by  */
-/*              other agents to slpd. (slpd_incoming.c handles reqests     */
-/*              made by other agents to slpd)                              */
-/*                                                                         */
-/*-------------------------------------------------------------------------*/
-/*                                                                         */
-/*     Please submit patches to http://www.openslp.org                     */
-/*                                                                         */
-/*-------------------------------------------------------------------------*/
-/*                                                                         */
-/* Copyright (C) 2000 Caldera Systems, Inc                                 */
-/* All rights reserved.                                                    */
-/*                                                                         */
-/* Redistribution and use in source and binary forms, with or without      */
-/* modification, are permitted provided that the following conditions are  */
-/* met:                                                                    */ 
-/*                                                                         */
-/*      Redistributions of source code must retain the above copyright     */
-/*      notice, this list of conditions and the following disclaimer.      */
-/*                                                                         */
-/*      Redistributions in binary form must reproduce the above copyright  */
-/*      notice, this list of conditions and the following disclaimer in    */
-/*      the documentation and/or other materials provided with the         */
-/*      distribution.                                                      */
-/*                                                                         */
-/*      Neither the name of Caldera Systems nor the names of its           */
-/*      contributors may be used to endorse or promote products derived    */
-/*      from this software without specific prior written permission.      */
-/*                                                                         */
-/* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS     */
-/* `AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT      */
-/* LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR   */
-/* A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE CALDERA      */
-/* SYSTEMS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, */
-/* SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT        */
-/* LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE,  */
-/* DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON       */
-/* ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT */
-/* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE   */
-/* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.    */
-/*                                                                         */
-/***************************************************************************/
+/*-------------------------------------------------------------------------
+ * Copyright (C) 2000 Caldera Systems, Inc
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ *    Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ *
+ *    Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ *    Neither the name of Caldera Systems nor the names of its
+ *    contributors may be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * `AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE CALDERA
+ * SYSTEMS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *-------------------------------------------------------------------------*/
 
+/** Outgoing request handler.
+ *
+ * Handles "outgoing" network conversations requests made by other agents 
+ * to slpd.(slpd_incoming.c handles reqests made by other agents to slpd)
+ *
+ * @file       slpd_outgoing.c
+ * @author     Matthew Peterson, John Calcote (jcalcote@novell.com)
+ * @attention  Please submit patches to http://www.openslp.org
+ * @ingroup    SlpdCode
+ */
 
-/*=========================================================================*/
-/* slpd includes                                                           */
-/*=========================================================================*/
 #include "slpd_outgoing.h"
 #include "slpd_property.h"
 #include "slpd_process.h"
 #include "slpd_log.h"
 #include "slpd_knownda.h"
 
-
-/*=========================================================================*/
-/* common code includes                                                    */
-/*=========================================================================*/
 #include "slp_message.h"
 #include "slp_net.h"
 
+SLPList G_OutgoingSocketList = {0, 0, 0};
 
-/*=========================================================================*/
-SLPList G_OutgoingSocketList = {0,0,0};
-/*=========================================================================*/
-
-
-/*-------------------------------------------------------------------------*/
+/** Read a datagram from an outbound socket.
+ *
+ * @param[in] socklist - The list of sockets being monitored.
+ * @param[in] sock - The socket to be read from.
+ */
 void OutgoingDatagramRead(SLPList* socklist, SLPDSocket* sock)
-/*-------------------------------------------------------------------------*/
 {
     int                 bytesread;
     int                 peeraddrlen = sizeof(struct sockaddr_storage);
@@ -97,10 +81,12 @@ void OutgoingDatagramRead(SLPList* socklist, SLPDSocket* sock)
     }
 }
 
-
-/*-------------------------------------------------------------------------*/
+/** Reconnect an outbound socket.
+ *
+ * @param[in] socklist - The list of sockets being monitored.
+ * @param[in] sock - The socket to be reconnected.
+ */
 void OutgoingStreamReconnect(SLPList* socklist, SLPDSocket* sock)
-/*-------------------------------------------------------------------------*/
 {
     char                addr_str[INET6_ADDRSTRLEN];
 #ifdef _WIN32
@@ -197,10 +183,12 @@ void OutgoingStreamReconnect(SLPList* socklist, SLPDSocket* sock)
     sock->state = STREAM_WRITE_FIRST;
 }
 
-
-/*-------------------------------------------------------------------------*/
+/** Read data from an outbound stream-oriented connection.
+ *
+ * @param[in] socklist - The list of sockets being monitored.
+ * @param[in] sock - The socket to be read from.
+ */
 void OutgoingStreamRead(SLPList* socklist, SLPDSocket* sock)
-/*-------------------------------------------------------------------------*/
 {
     int     bytesread;
     char    peek[16];
@@ -308,10 +296,12 @@ void OutgoingStreamRead(SLPList* socklist, SLPDSocket* sock)
     }
 }
 
-
-/*-------------------------------------------------------------------------*/
+/** Write data to an outbound, stream-oriented socket.
+ *
+ * @param[in] socklist - The list of sockets being monitored.
+ * @param[in] sock - The socket to be written to.
+ */
 void OutgoingStreamWrite(SLPList* socklist, SLPDSocket* sock)
-/*-------------------------------------------------------------------------*/
 {
     int        byteswritten;
     int        flags = 0;
@@ -386,17 +376,18 @@ void OutgoingStreamWrite(SLPList* socklist, SLPDSocket* sock)
     }
 }
 
-/*=========================================================================*/
+/** Connect for outbound traffic to a specified remote address.
+ *
+ * @param[in] addr - The address to be connected to.
+ *
+ * @remarks Get a pointer to a connected socket that is associated with
+ * the outgoing socket list. If a connected socket already exists on the
+ * outgoing list, a pointer to it is returned, otherwise a new connection
+ * is made and added to the outgoing list
+ *
+ * @return A pointer to socket, or null on error.
+ */
 SLPDSocket* SLPDOutgoingConnect(struct sockaddr_storage* addr)
-/* Get a pointer to a connected socket that is associated with the         */
-/* outgoing socket list.  If a connected socket already exists on the      */
-/* outgoing list, a pointer to it is returned, otherwise a new connection  */
-/* is made and added to the outgoing list                                  */
-/*                                                                         */
-/* addr (IN) the address of the peer a connection is desired for           */
-/*                                                                         */
-/* returns: pointer to socket or null on error                             */
-/*=========================================================================*/
 {
     SLPDSocket* sock = (SLPDSocket*)G_OutgoingSocketList.head;
     while ( sock )
@@ -424,14 +415,14 @@ SLPDSocket* SLPDOutgoingConnect(struct sockaddr_storage* addr)
     return sock;
 }
 
-/*=========================================================================*/
+/** Add a ready-to-write outgoing datagram socket to the outgoing list.
+ *
+ * The datagram will be written then sit in the list until it ages out
+ * (after net.slp.unicastMaximumWait).
+ *
+ * @param[in] sock - The socket that will belong on the outgoing list.
+ */
 void SLPDOutgoingDatagramWrite(SLPDSocket* sock)
-/* Add a ready to write outgoing datagram socket to the outgoing list.     */
-/* The datagram will be written then sit in the list until it ages out     */
-/* (after  net.slp.unicastMaximumWait)                                     */
-/*                                                                         */
-/* sock (IN) the socket that will belong on the outgoing list              */
-/*=========================================================================*/
 {
     if ( sendto(sock->fd,
                 sock->sendbuf->start,
@@ -453,21 +444,15 @@ void SLPDOutgoingDatagramWrite(SLPDSocket* sock)
     }   
 }
 
-
-/*=========================================================================*/
+/** Handles outgoing requests pending on specified file discriptors.
+ *
+ * @param[in,out] fdcount - The number of file descriptors marked in fd_sets.
+ * @param[in] readfds - The set of file descriptors with pending read IO.
+ * @param[in] writefds - The set of file descriptors with pending write IO.
+ */
 void SLPDOutgoingHandler(int* fdcount,
                          fd_set* readfds,
                          fd_set* writefds)
-
-/* Handles all outgoing requests that are pending on the specified file    */
-/* discriptors                                                             */
-/*                                                                         */
-/* fdcount  (IN/OUT) number of file descriptors marked in fd_sets          */
-/*                                                                         */
-/* readfds  (IN) file descriptors with pending read IO                     */
-/*                                                                         */
-/* writefds  (IN) file descriptors with pending read IO                    */
-/*=========================================================================*/
 {
     SLPDSocket* sock;
     sock = (SLPDSocket*)G_OutgoingSocketList.head;
@@ -520,10 +505,12 @@ void SLPDOutgoingHandler(int* fdcount,
     }                               
 }
 
-
-/*=========================================================================*/
+/** Age the outgoing socket list.
+ *
+ * @param[in] seconds - The number of seconds old an entry must be to be 
+ *    removed from the outgoing list.
+ */
 void SLPDOutgoingAge(time_t seconds)
-/*=========================================================================*/
 {
     SLPDSocket* del  = 0;
     SLPDSocket* sock = (SLPDSocket*)G_OutgoingSocketList.head;
@@ -612,15 +599,11 @@ void SLPDOutgoingAge(time_t seconds)
     }                                                 
 }
 
-/*=========================================================================*/
+/** Initialize outgoing socket list for all network interfaces.
+ *
+ * @return Zero - always.
+ */
 int SLPDOutgoingInit()
-/* Initialize outgoing socket list to have appropriate sockets for all     */
-/* network interfaces                                                      */
-/*                                                                         */
-/* list     (IN/OUT) pointer to a socket list to be filled with sockets    */
-/*                                                                         */
-/* Returns  Zero on success non-zero on error                              */
-/*=========================================================================*/
 {
     /*------------------------------------------------------------*/
     /* First, remove all of the sockets that might be in the list */
@@ -633,16 +616,18 @@ int SLPDOutgoingInit()
     return 0;
 }
 
-
-/*=========================================================================*/
+/** Release all unused socket on inbound socket list.
+ *
+ * Deinitialize incoming socket list to have appropriate sockets for all
+ * network interfaces.
+ *
+ * @param[in] graceful - Flag indicates do NOT close sockets with pending 
+ *    writes outstanding.
+ *
+ * @return Zero on success, or a non-zero value when pending writes 
+ *    remain.
+ */
 int SLPDOutgoingDeinit(int graceful)
-/* Deinitialize incoming socket list to have appropriate sockets for all   */
-/* network interfaces                                                      */
-/*                                                                         */
-/* graceful (IN) Do not close sockets with pending writes                  */
-/*                                                                         */
-/* Returns  Zero on success non-zero when pending writes remain            */
-/*=========================================================================*/
 {
     SLPDSocket* del  = 0;
     SLPDSocket* sock = (SLPDSocket*)G_OutgoingSocketList.head;
@@ -671,14 +656,14 @@ int SLPDOutgoingDeinit(int graceful)
     return G_OutgoingSocketList.count;
 }
 
-
-
 #ifdef DEBUG
-/*=========================================================================*/
+/** Dump outbound socket data.
+ *
+ * @note This routine is compiled in Debug code only.
+ */
 void SLPDOutgoingSocketDump()
-/*=========================================================================*/
 {
-
 }
 #endif
 
+/*=========================================================================*/

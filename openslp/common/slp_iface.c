@@ -1,50 +1,45 @@
-/***************************************************************************/
-/*                                                                         */
-/* Project:     OpenSLP - OpenSource implementation of Service Location    */
-/*              Protocol                                                   */
-/*                                                                         */
-/* File:        slp_iface.c                                                */
-/*                                                                         */
-/* Abstract:    Common code to obtain network interface information        */
-/*                                                                         */
-/*-------------------------------------------------------------------------*/
-/*                                                                         */
-/*     Please submit patches to http://www.openslp.org                     */
-/*                                                                         */
-/*-------------------------------------------------------------------------*/
-/*                                                                         */
-/* Copyright (C) 2000 Caldera Systems, Inc                                 */
-/* All rights reserved.                                                    */
-/*                                                                         */
-/* Redistribution and use in source and binary forms, with or without      */
-/* modification, are permitted provided that the following conditions are  */
-/* met:                                                                    */ 
-/*                                                                         */
-/*      Redistributions of source code must retain the above copyright     */
-/*      notice, this list of conditions and the following disclaimer.      */
-/*                                                                         */
-/*      Redistributions in binary form must reproduce the above copyright  */
-/*      notice, this list of conditions and the following disclaimer in    */
-/*      the documentation and/or other materials provided with the         */
-/*      distribution.                                                      */
-/*                                                                         */
-/*      Neither the name of Caldera Systems nor the names of its           */
-/*      contributors may be used to endorse or promote products derived    */
-/*      from this software without specific prior written permission.      */
-/*                                                                         */
-/* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS     */
-/* `AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT      */
-/* LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR   */
-/* A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE CALDERA      */
-/* SYSTEMS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, */
-/* SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT        */
-/* LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE,  */
-/* DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON       */
-/* ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT */
-/* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE   */
-/* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.    */
-/*                                                                         */
-/***************************************************************************/
+/*-------------------------------------------------------------------------
+ * Copyright (C) 2000 Caldera Systems, Inc
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ *    Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ *
+ *    Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ *    Neither the name of Caldera Systems nor the names of its
+ *    contributors may be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * `AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE CALDERA
+ * SYSTEMS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *-------------------------------------------------------------------------*/
+
+/** Functions for obtaining network interface information.
+ *
+ * @todo The interface routines in slp_dhcp.c are similar - these should
+ *    be merged.
+ *
+ * @file       slp_iface.c
+ * @author     Matthew Peterson, John Calcote (jcalcote@novell.com)
+ * @attention  Please submit patches to http://www.openslp.org
+ * @ingroup    CommonCode
+ */
 
 #include "slp_iface.h"
 #include "slp_xmalloc.h"
@@ -57,41 +52,39 @@
 #include <string.h>
 
 #ifdef SOLARIS
-#include <sys/sockio.h>
+# include <sys/sockio.h>
 #endif
 
 #ifndef _WIN32
-#include <sys/ioctl.h>
-#include <net/if.h>
-#include <arpa/inet.h>
+# include <sys/ioctl.h>
+# include <net/if.h>
+# include <arpa/inet.h>
 #else
-#ifndef UINT32_T_DEFINED
-#define UINT32_T_DEFINED
+# ifndef UINT32_T_DEFINED
+#  define UINT32_T_DEFINED
 typedef unsigned int uint32_t; 
-#endif
+# endif
 #endif
 
 /* the max index for v6 address to test for valid scope ids */
 #define MAX_INTERFACE_TEST_INDEX 255
 
-/*=========================================================================*/
+/** Checks a string-list for the occurence of a string
+ *
+ * @param[in] list - A pointer to the string-list to be checked.
+ * @param[in] listlen - The length in bytes of @p list.
+ * @param[in] string - A pointer to a string to find in @p list.
+ * @param[in] stringlen - The length in bytes of @p string.
+ *
+ * @return Zero if @p string is NOT contained in @p list; 
+ *    A non-zero value if it is.
+ *
+ * @internal
+ */
 int SLPIfaceContainsAddr(int listlen, 
                          const char* list,
                          int stringlen,
                          const char* string) 
-/* Checks a string-list for the occurence of a string                      */
-/*                                                                         */
-/* list -       pointer to the string-list to be checked                   */
-/*                                                                         */
-/* listlen -    length in bytes of the list to be checked                  */
-/*                                                                         */
-/* string -     pointer to a string to find in the string-list             */
-/*                                                                         */
-/* stringlen -  the length of the string in bytes                          */
-/*                                                                         */
-/* Returns -    zero if string is NOT contained in the list. non-zero if it*/
-/*              is.                                                        */
-/*=========================================================================*/
 {
     char* listend = (char*)list + listlen;
     char* itembegin = (char*)list;
@@ -152,26 +145,22 @@ int SLPIfaceContainsAddr(int listlen,
     return 0;
 }
 
-
-/*=========================================================================*/
+/** Get the network interface addresses for this host.
+ *
+ * @param[in] useifaces - Pointer to comma delimited string of interface 
+ *    IPv4 addresses to get interface information for. Pass 0 or the empty 
+ *    string to get all interfaces (except the loopback interface).
+ * @param[out] ifaceinfo - The address of a buffer in which to return 
+ *    information about the requested interfaces.
+ * @param[in] family - A hint indicating the address family to get info 
+ *    for - can be AF_INET, AF_INET6, or AF_UNSPEC for both.
+ *
+ * @return Zero on success; A non-zero value (with errno set) on error.
+ *
+ * @remarks Does NOT return the loopback interface.
+ */
 int SLPIfaceGetInfo(const char* useifaces,
                     SLPIfaceInfo* ifaceinfo, int family)
-/* Description:
- *    Get the network interface addresses for this host.  Exclude the
- *    loopback interface
- *
- * Parameters:
- *     useifaces (IN) Pointer to comma delimited string of interface IPv4
- *                    addresses to get interface information for.  Pass
- *                    NULL or empty string to get all interfaces (except 
- *                    loopback)
- *     ifaceinfo (OUT) Information about requested interfaces.
- *     family    (IN) Hint for family to get info for - can be AF_INET, AF_INET6, 
- *                    or AF_UNSPEC for both
- *
- * Returns:
- *     zero on success, non-zero (with errno set) on error.
- *=========================================================================*/
 {
 	char *interfaceString;
 	char *bcastString;
@@ -344,22 +333,21 @@ int SLPIfaceGetInfo(const char* useifaces,
 
 	return(sts);
 }
-/*=========================================================================*/
+
+/** Convert an array of sockaddr_storage buffers to a comma-delimited list.
+ *
+ * @param[in] addrs - A pointer to array of sockaddr_storages to convert.
+ * @param[in] addrcount - The number of elements in @p addrs.
+ * @param[out] addrstr - The address in which to return a pointer to an
+ *    allocated comma-delimited list of addresses.
+ *
+ * @return Zero on success, non-zero (with errno set) on error.
+ *
+ * @remarks The caller must free @p addrstr when no longer needed.
+ */
 int SLPIfaceSockaddrsToString(const struct sockaddr_storage* addrs,
                               int addrcount,
                               char** addrstr)
-/* Description:
- *    Get the comma delimited string of addresses from an array of sockaddr_storages
- *
- * Parameters:
- *     addrs (IN) Pointer to array of sockaddr_storages to convert
- *     addrcount (IN) Number of sockaddr_storages in addrs.
- *     addrstr (OUT) pointer to receive malloc() allocated address string.
- *                   Caller must free() addrstr when no longer needed.
- *
- * Returns:
- *     zero on success, non-zero (with errno set) on error.
- *=========================================================================*/
 {
     int i;
     
@@ -397,25 +385,20 @@ int SLPIfaceSockaddrsToString(const struct sockaddr_storage* addrs,
     return 0;
 }  
 
-
-/*=========================================================================*/
+/** Converts a comma-delimited list of address to address buffers.
+ *
+ * @param[in] addrstr - The comma-delimited string to convert.
+ * @param[out] addrs - The address of a buffer to fill with 
+ *    sockaddr_storage entries.
+ * @param[in,out] addrcount - On entry, contains the number of 
+ *    sockaddr_storage buffers in @p addrs; on exit, returns the number
+ *    of buffers written.
+ *
+ * @return Zero on success, non-zero (with errno set) on error.
+ */
 int SLPIfaceStringToSockaddrs(const char* addrstr,
                               struct sockaddr_storage* addrs,
                               int* addrcount)
-/* Description:
- *    Fill an array of struct sockaddr_storages from the comma delimited string of
- *    addresses.
- *
- * Parameters:
- *     addrstr (IN) Address string to convert.
- *     addrcount (OUT) sockaddr_storage array to fill.
- *     addrcount (INOUT) The number of sockaddr_storage stuctures in the addr array
- *                       on successful return will contain the number of
- *                       sockaddr_storages that were filled in the addr array
- *
- * Returns:
- *     zero on success, non-zero (with errno set) on error.
- *=========================================================================*/
 {
     int i;
     char* str;
@@ -494,13 +477,12 @@ int SLPIfaceStringToSockaddrs(const char* addrstr,
 }
 
 
-
 /*===========================================================================
  * TESTING CODE enabled by removing #define comment and compiling with the 
  * following command line:
  *
  * $ gcc -g -DDEBUG slp_iface.c slp_xmalloc.c slp_linkedlist.c slp_compare.c
- *==========================================================================*/
+ */
 /* #define SLP_IFACE_TEST  */
 #ifdef SLP_IFACE_TEST 
 int main(int argc, char* argv[])
@@ -583,4 +565,4 @@ int main(int argc, char* argv[])
 }
 #endif
 
-
+/*=========================================================================*/
