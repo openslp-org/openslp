@@ -121,8 +121,9 @@ case "$1" in
     fi
     echo -n 'Starting slpd: '
 
-    multicast_enabled= multicast_route_set 1
-    if [ $multicasti_enabled > 0 ] ; then
+    multicast_route_set 1
+    multicast_enabled=$?
+    if [ "$multicast_enabled" != "0" ] ; then
       echo "Failure: No Route Available for Multicast Traffic"
       exit 1
     fi
