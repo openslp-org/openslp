@@ -741,7 +741,7 @@ int ProcessAttrRqst(struct sockaddr_in* peeraddr,
                     int errorcode)
 /*-------------------------------------------------------------------------*/
 {
-    SLPDDatabaseAttr        attr;
+    SLPDDatabaseAttr        attr = { 0, 0 };
     int                     size        = 0;
     int                     found       = 0;
     SLPBuffer               result      = *sendbuf;
@@ -862,7 +862,8 @@ int ProcessAttrRqst(struct sockaddr_in* peeraddr,
     /* attr-list len */
     ToUINT16(result->curpos, attr.attrlistlen);
     result->curpos = result->curpos + 2;
-    memcpy(result->curpos, attr.attrlist, attr.attrlistlen);
+    if (attr.attrlistlen)
+	memcpy(result->curpos, attr.attrlist, attr.attrlistlen);
     result->curpos = result->curpos + attr.attrlistlen;
 
 
