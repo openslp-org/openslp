@@ -1,6 +1,10 @@
 NEWS - list of user-visible changes between releases of OpenSLP
 
-New in openslp-0.8.1 (2000-12-??)
+New in openslp-0.8.2 (2001-02-1?)
+---------------------------------
+* Minor fixes in the html documentation.
+
+New in openslp-0.8.1 (2000-12-19)
 ---------------------------------
 * slpd now correctly refreshes and ages services as required by DA and SA 
   specifications

@@ -6,6 +6,12 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 
+02/14/01 rganesan@myrealbox.com
+Modified top-level Makefile.am to install rfcs in the install directory.
+
+02/14/01 rganesan@myrealbox.com
+Fixed many doc bugs based on comments from Susan G. Kleinmann (sgk@debian.org).
+
 02/12/01 mpeterson@caldera.com
 Fixed a serious but *very* rare segfault due to uninitialized buf variables
 
