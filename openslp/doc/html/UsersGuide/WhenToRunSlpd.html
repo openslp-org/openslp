@@ -18,11 +18,11 @@ provides UA functionality internally on a per process basis with out the
 need to communicate with slpd. This means that in certain cases, the slp
 daemon does not always have to be loaded on every machine.&nbsp; We're
 not sure if this will be a valuable feature to a majority of users, but
-at least it offers the additional flexibility minimize the overhead for
+at least it offers the additional flexibility to minimize the overhead for
 SLP for those machines that will only need UA capabilities.&nbsp; (If you're
 wondering about the meaning of DA, SA, and UA, you should probably read
 <a href="../IntroductionToSLP/index.html">An
-Introduction to SLP</a>)
+Introduction to SLP</a>).
 <br>&nbsp;
 <h3>
 When is slpd needed?</h3>
@@ -43,7 +43,7 @@ to other machines, you must run slpd.</li>
 
 <li>
 slpd is required for automatic DA and scope discovery to work correctly.&nbsp;
-If you do not run slpd, then DAs and scops can only be discovered via DHCP
+If you do not run slpd, then DAs and scopes can only be discovered via DHCP
 or the <tt><a href="SlpConf.html">/etc/slp.conf</a></tt> file. (Note: Due
 to a lack of a standard DHCP API DA discovery via DHCP is not yet supported).</li>
 </ul>
@@ -54,7 +54,7 @@ When is slpd not needed?</h3>
 <ul>
 <li>
 slpd is not needed if a machine will only be requesting services.&nbsp;
-In other words, slpd does not required on machines if a call will never
+In other words, slpd is not required on machines if a call will never
 be made to <tt>SLPReg()</tt>, <tt>SLPDeReg()</tt>, or <tt>SLPDelAttrs().</tt></li>
 
 <li>

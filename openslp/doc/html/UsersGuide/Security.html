@@ -23,19 +23,18 @@ the <tt>PARANOID</tt> defined, slpd will relinquish root privileges and
 suid() to the daemon user (if it exists).</li>
 
 <li>
-If slpd is build with <tt>PARANOID</tt> is defined, extra SLP message checking
+If slpd is built with <tt>PARANOID</tt> defined, extra SLP message checking
 is enforced.&nbsp; This slows down the operation of slpd slightly but ensures
 that malformed or intentionally malicious SLP messages will not cause segmentation
 faults in the daemon.</li>
 </ul>
 
 <h3>
-Protecting the integrity of service registrations</h3>
-Although not implemented in OpenSLP-0.6.0, OpenSLP will support the full
-SLPv2 authentication specification which ensures that registrations can
-not be modified in transit and that they are sent to and received from
-a valid agents.&nbsp; See RFC 2608
-<br>&nbsp;
+Protecting the integrity of service registrations</h3> Although not
+implemented yet, OpenSLP will support the full SLPv2 authentication
+specification which ensures that registrations can not be modified in
+transit and that they are sent to and received from valid agents.&nbsp; See
+<a href="../../rfc/rfc2608.txt">RFC 2608</a>.  <br>&nbsp;
 <h3>
 User Level Access Control</h3>
 Plans have been made to provide a mechanism that will enforce user level

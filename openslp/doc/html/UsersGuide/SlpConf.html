@@ -20,14 +20,14 @@ but the SLP library is hard coded to read from <tt>/etc/slp.conf</tt> and
 can only be changed by re-compiling the library.
 <p>The OpenSLP slp.conf file diverges <i>slightly</i> from the <a href="../../rfc/rfc2614.txt">RFC
 2614</a> specification for the slp configuration file, so you should probably
-<a href="#Divergence from RFC 2614">Divergence
+read <a href="#Divergence from RFC 2614">Divergence
 from RFC 2614</a> even if you are familiar with the RFC spec.
 <br>&nbsp;
 <h3>
 File Syntax</h3>
 The slp.conf file syntax is very simple.&nbsp; OpenSLP follows the syntax
 specified in <a href="../../rfc/rfc2614.txt">RFC 2614</a> which is simply
-a list of key/value pares separate by &lt;cr>&lt;lf>.&nbsp; Comment lines
+a list of key/value pares separate by newlines; Comment lines
 begin with a '#' or a ';'.&nbsp; A good example file is copied to <tt>/etc/slp.conf</tt>
 with the OpenSLP distribution. Take a look at it or <a href="../../rfc/rfc2614.txt">read
 the RFC if you need more details</a>.
