@@ -665,13 +665,13 @@ SLPDAEntry* SLPDKnownDAAdd(struct in_addr* addr,
         /* for now assume entries are the same if in_addrs match */
         if (memcmp(&entry->daaddr,addr,sizeof(struct in_addr)) == 0)
         {
-            /* Found an existing entry */
-            if(entry->bootstamp == 0)
+            /* Check to see if DA is going down */
+            if(daentry->bootstamp == 0)
             {
                 /* DA is going down. Remove it from our list */
                 SLPDKnownDARemove(entry);
             }
-            else if(entry->bootstamp > daentry->bootstamp)
+            else if(entry->bootstamp >= daentry->bootstamp)
             {
                 /* DA went down and came up. Record new entry and */
                 /* Re-register all services                       */

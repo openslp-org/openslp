@@ -182,8 +182,7 @@ SLPError ProcessSrvReg(PSLPHandleInfo handle)
                          SLP_FUNCT_SRVREG,
                          bufsize,
                          CallbackSrvReg,
-                         handle); 
-
+                         handle);
     }
     
     FINISHED:
