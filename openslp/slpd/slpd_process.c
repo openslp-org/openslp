@@ -1259,8 +1259,9 @@ int SLPDProcessMessage(struct sockaddr_in* peerinfo,
     SLPMessage  message     = 0;
     int         errorcode   = 0;
     
+    SLPDLogMessage("Trace message (IN)",peerinfo,recvbuf);
+
     /* Parse just the message header the reset the buffer "curpos" pointer */
-    recvbuf->curpos = recvbuf->start;
     errorcode = SLPMessageParseHeader(recvbuf,&header);
 #if defined(ENABLE_SLPv1)   
     if(errorcode == SLP_ERROR_VER_NOT_SUPPORTED &&
@@ -1293,7 +1294,6 @@ int SLPDProcessMessage(struct sockaddr_in* peerinfo,
             errorcode = SLPMessageParseBuffer(peerinfo,recvbuf, message);
             if(errorcode == 0)
             {    
-                SLPDLogMessage("Incoming",message);
                 {
                     /* Process messages based on type */
                     switch(message->header.functionid)
@@ -1307,6 +1307,7 @@ int SLPDProcessMessage(struct sockaddr_in* peerinfo,
                         if(errorcode == 0)
                         {
                             SLPDKnownDAEcho(message, recvbuf);
+                            SLPDLogRegistration("Service Registration",message);
                         }
                         break;
                 
@@ -1315,6 +1316,7 @@ int SLPDProcessMessage(struct sockaddr_in* peerinfo,
                         if(errorcode == 0)
                         {
                             SLPDKnownDAEcho(message, recvbuf);
+                            SLPDLogRegistration("Service Deregistration",message);
                         }
                         break;
                 
@@ -1331,7 +1333,7 @@ int SLPDProcessMessage(struct sockaddr_in* peerinfo,
                                                     recvbuf,
                                                     sendbuf,
                                                     errorcode);
-                        SLPDLogDAAdvertisement("IN", message);
+                        SLPDLogDAAdvertisement("DA Advertisement", message);
                         break;
                 
                     case SLP_FUNCT_SRVTYPERQST:
@@ -1378,23 +1380,25 @@ int SLPDProcessMessage(struct sockaddr_in* peerinfo,
         }
     }
     
+    SLPDLogMessage("Trace message (OUT)", peerinfo, *sendbuf);
+
     /* Log reception of important errors */
     switch(errorcode)
     {
     case SLP_ERROR_DA_BUSY_NOW:
-        SLPDLog("DA_BUSY from %s\n",
+        SLPDLog("DA_BUSY in talking to: %s\n",
                 inet_ntoa(peerinfo->sin_addr));
         break;
     case SLP_ERROR_INTERNAL_ERROR:
-        SLPDLog("INTERNAL_ERROR from %s\n",
+        SLPDLog("INTERNAL_ERROR in talking to: %s\n",
                 inet_ntoa(peerinfo->sin_addr));
         break;
     case SLP_ERROR_PARSE_ERROR:
-        SLPDLog("PARSE_ERROR from %s\n",
+        SLPDLog("PARSE_ERROR in talking to: %s\n",
                 inet_ntoa(peerinfo->sin_addr));
         break;
     case SLP_ERROR_VER_NOT_SUPPORTED:
-        SLPDLog("VER_NOT_SUPPORTED from %s\n",
+        SLPDLog("VER_NOT_SUPPORTED in talking to: %s\n",
                 inet_ntoa(peerinfo->sin_addr));
         break;                    
     }

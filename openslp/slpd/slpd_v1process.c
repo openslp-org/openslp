@@ -829,8 +829,6 @@ int SLPDv1ProcessMessage(struct sockaddr_in* peeraddr,
             /* Parse the message and fill out the message descriptor */
             errorcode = SLPv1MessageParseBuffer(peeraddr,recvbuf, message);
             
-            SLPDLogMessage("Incoming",message);
-            
             switch(message->header.functionid)
             {
             case SLP_FUNCT_SRVRQST:

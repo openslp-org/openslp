@@ -53,9 +53,9 @@
 /* slpd includes                                                           */
 /*=========================================================================*/
 #include "slpd_database.h"
-#include "slpd_log.h"
 #include "slpd_regfile.h"
 #include "slpd_property.h"
+#include "slpd_log.h"
 #ifdef ENABLE_PREDICATES
 #include "slpd_predicate.h"
 #endif
@@ -827,7 +827,7 @@ int SLPDDatabaseInit(const char* regfile)
                 result = SLPDDatabaseReg(msg, buf);
                 if(result == 0)
                 {
-                    SLPDLogMessage("Static Registration",msg);
+                    SLPDLogRegistration("Service Registration (STATIC)",msg);
                 }
                 
             }

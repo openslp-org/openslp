@@ -108,11 +108,15 @@ void SLPDLogMessageInternals(SLPMessage message);
 
 
 /*=========================================================================*/
-void SLPDLogMessage(const char* prefix, SLPMessage msg);
+void SLPDLogMessage(const char* prefix, 
+                    struct sockaddr_in* peerinfo,
+                    SLPBuffer buf);
 /* Log record of receiving or sending an SLP Message.  Logging will only   */
 /* occur if message logging is enabled G_SlpProperty.traceMsg != 0         */
 /*                                                                         */
 /* prefix   (IN) an informative prefix for the log entry                   */
+/*                                                                         */
+/* peerinfo (IN) the source or destination peer                            */
 /*                                                                         */
 /* msg      (IN) the message to log                                        */
 /*                                                                         */

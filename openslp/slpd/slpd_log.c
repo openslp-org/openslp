@@ -364,23 +364,40 @@ void SLPDLogMessageInternals(SLPMessage message)
 }
 
 /*=========================================================================*/
-void SLPDLogMessage(const char* prefix, SLPMessage msg)
+void SLPDLogMessage(const char* prefix, 
+                    struct sockaddr_in* peerinfo,
+                    SLPBuffer buf)
 /* Log record of receiving or sending an SLP Message.  Logging will only   */
 /* occur if message logging is enabled G_SlpProperty.traceMsg != 0         */
 /*                                                                         */
 /* prefix   (IN) an informative prefix for the log entry                   */
+/*                                                                         */
+/* peerinfo (IN) the source or destination peer                            */
 /*                                                                         */
 /* msg      (IN) the message to log                                        */
 /*                                                                         */
 /* Returns: none                                                           */
 /*=========================================================================*/
 {
+    SLPMessage msg;
     if(G_SlpdProperty.traceMsg)
     {
+        msg = SLPMessageAlloc();
+        if(msg)
+        {
             SLPDLogTime();
-            SLPDLog("Trace Message %s:\n",prefix);
-            SLPDLogMessageInternals(msg);
-            SLPDLog("\n");
+            SLPDLog("%s:\n",prefix);
+            if(SLPMessageParseBuffer(peerinfo,buf,msg))
+            {
+                SLPDLogMessageInternals(msg);
+                SLPDLog("\n");
+            }
+            else
+            {
+                SLPDLog("Message parsing failed\n\n");
+            }
+            SLPMessageFree(msg);
+        }
     }
 }
 
@@ -400,7 +417,7 @@ void SLPDLogRegistration(const char* prefix, SLPMessage srvreg)
     if(G_SlpdProperty.traceReg)
     {
         SLPDLogTime();
-        SLPDLog("Trace Registration %s:\n",prefix);
+        SLPDLog("%s:\n",prefix);
         SLPDLogMessageInternals(srvreg);
         SLPDLog("\n\n");
     }
@@ -423,7 +440,7 @@ void SLPDLogDAAdvertisement(const char* prefix,
     if(G_SlpdProperty.traceDATraffic)
     {
         SLPDLogTime();
-        SLPDLog("Trace DA Traffic %s:\n",prefix);
+        SLPDLog("%s:\n",prefix);
         SLPDLogMessageInternals(daadvert);
         SLPDLog("\n\n");
     }
