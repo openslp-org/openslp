@@ -169,13 +169,12 @@ typedef struct _SLPHeader
 /*=========================================================================*/
 typedef struct _SLPAuthBlock
 {
-    struct _SLPAuthBlock*   next;  /* The next authblock in a list or NULL */
     unsigned int            bsd;
     int                     length;
     unsigned int            timestamp;
     int                     spistrlen;
     const char*             spistr;
-    const char*             authstruct;
+    const unsigned char*    authstruct;
 }SLPAuthBlock;
 
 

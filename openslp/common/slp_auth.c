@@ -47,11 +47,36 @@
 /*                                                                         */
 /***************************************************************************/
 
-#include <openssl/ssl.h>
-
 #include "slp_auth.h"
-/*#include "slp_keys.h"*/
 #include "slp_crypto.h"
+/*#include "slp_keys.h"*/
+
+/*-------------------------------------------------------------------------*/
+int SLPAuthVerifyBuffer(int spistrlen,
+                        const char* spistr,
+                        int buflen,
+                        const unsigned char* buf,
+                        int signaturelen,,
+                        const unsigned char signature)
+/*-------------------------------------------------------------------------*/
+{
+    unsigned char   digest[20];
+    
+    SLPCryptoSHA1Digest(buf,buflen,digest);
+
+    
+    if(SLPCryptoDSAVerify(SLPCryptoDSAKey* key,
+                          digest,
+                          sizeof(digest),
+                          autharray[i].authstruct,
+                          signaturelen))
+    {
+        return 0;
+    }
+
+    return SLP_ERROR_AUTHENTICATION_FAILED;
+}
+                        
 
 
 /*=========================================================================*/
@@ -69,8 +94,59 @@ int SLPAuthVerifyString(unsigned short stringlen,
 /* Returns: 0 on success or SLP_ERROR_xxx code on failure                  */
 /*=========================================================================*/
 {
-    return 0;
+    int             i;
+    int             tempbufsize;
+    unsigned char*  tempbuf         = 0;
+    int             result          = SLP_ERROR_AUTHENTICATION_FAILED;
+    
+    
+    /* TODO: Actually get the key */
+
+    for(i=0;i<authcount;i++)
+    {
+        /* TODO: what if the time stamp is expired? */
+        
+        /*-------------------------------------------------------*/
+        /* Allocate temporary buffer for contiguous data         */
+        /*-------------------------------------------------------*/
+        /* +8 makes room for:  stringlen (2 bytes)               */
+        /*                     autharray[i].spistrlen (2 bytes)  */
+        /*                     timestamp 4 bytes                 */
+        tmpbufsize = stringlen + autharray[i].spistrlen + 8;
+        tmpbuf = realloc(tmpbuf,tmpbufsize);
+        if(tmpbuf == 0)
+        {
+            return SLP_ERROR_INTERNAL;
+        }
+        
+        /*------------------------------------------------------------*/
+        /* Calculate the size of the DSA signature from the authblock */
+        /*------------------------------------------------------------*/
+        /* we have to calculate the signature length since            */
+        /* autharray[i].length is (stupidly) the length of the entire */
+        /* authblock                                                  */
+        signaturelen = autharray[i].length - (autharray[i].spistrlen + 10);
+        
+        result = SLPAuthVerifyBuffer(autharray[i].spistrlen,
+                                     autharray[i].spi,
+                                     tmpbufsize,
+                                     tmpbuf,
+                                     signaturelen,
+                                     autharray[i].authstruct);
+        if(result == 0)
+        {
+            break;
+        }
+    }
+    
+    if(tmpbuf)
+    {
+        free(tmpbuf);
+    }
+
+    return result;
 }
+
 
 /*=========================================================================*/
 int SLPAuthVerifyUrl(const SLPUrlEntry* urlentry)
