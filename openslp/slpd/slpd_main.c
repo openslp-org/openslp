@@ -150,7 +150,7 @@ void HandleSigTerm()
     struct timeval  timeout;
     fd_set          readfds;
     fd_set          writefds;
-    int             highfd;
+    int             highfd          = 0;
     int             fdcount         = 0;
 
     SLPDLog("****************************************\n");

@@ -534,6 +534,8 @@ int SLPDDatabaseSrvTypeRqstStart(SLPMessage msg,
                 }
             }
         }
+       
+        SLPDatabaseClose(dh);
     }
 
     return 0;

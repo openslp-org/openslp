@@ -547,6 +547,7 @@ int SLPDKnownDADeinit()
             
             SLPDKnownDADeregisterAll(entry->msg);
         }
+        SLPDatabaseClose(dh);
     }
 
     SLPDatabaseDeinit(&G_SlpdKnownDAs);

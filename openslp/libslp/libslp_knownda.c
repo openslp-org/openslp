@@ -116,7 +116,8 @@ SLPBoolean KnownDAListFind(int scopelistlen,
                     return SLP_TRUE;
                 }
             }
-        }    
+        }
+        SLPDatabaseClose(dh);
     }
 
     return SLP_FALSE;
@@ -217,7 +218,8 @@ SLPBoolean KnownDADiscoveryCallback(SLPError errorcode,
                         if(SLPParseSrvURL(replymsg->body.daadvert.url, &srvurl) == 0)
                         {
                             he = gethostbyname(srvurl->s_pcHost);
-                            if(he)
+                            SLPFree(srvurl);
+			    if(he)
                             {
                                 /* Reset the peer to the one in the URL */
                                 replymsg->peer.sin_addr.s_addr = *((unsigned int*)(he->h_addr_list[0]));
@@ -231,9 +233,7 @@ SLPBoolean KnownDADiscoveryCallback(SLPError errorcode,
                                  }
                                  
                                  return SLP_TRUE;
-                            }
-
-                            SLPFree(srvurl);
+                            }                            
                         }
                          
                      }
@@ -499,10 +499,9 @@ int KnownDAConnect(PSLPHandleInfo handle,
 {
     struct timeval  timeout;
     int             sock = -1;
-#ifdef ENABLE_AUTHENTICATION
     int                 spistrlen   = 0;
     char*               spistr      = 0;
-
+#ifdef ENABLE_AUTHENTICATION
     if(SLPPropertyAsBoolean(SLPGetProperty("net.slp.securityEnabled")))
     {
         SLPSpiGetDefaultSPI(handle->hspi,
