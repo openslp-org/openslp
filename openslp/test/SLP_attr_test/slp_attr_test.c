@@ -15,7 +15,109 @@
 #define OP1 "aasdf"
 #define OP2 "ae\nl;adsf;\\y"
 
+#define SER1 "(abool=false),keyw,(anInt=51)"
+
+#define TERM_INT  (long)-2345
+
 #include <stdarg.h>
+
+/* Tests a serialized string to see if an attribute contains the named 
+ * values. 
+ *
+ * Params:
+ * str - The serialized attribute list. 
+ * name - Name of the attribute to test. 
+ * ... - List of strings the attribute must contain. Null terminated. 
+ * 
+ * Returns 1 iff the attributes contain all of the named values. 0 otherwise.
+ */
+int test_serialized(char *str, char *name, ...) {
+	char *vl_start; /* The start of the serialized value list. */
+	char *vl_end; /* End of the value list. The ')'. */
+	size_t vl_size; /* The expected size of the value list. */
+
+	va_list ap;
+	char *current_value; /* Current member of ap. */
+	
+	/***** Find value list. *****/
+	{
+		char *attr_name; /* The attribute name as it should appear in the serialized string. (ie, with preceeding '(' and trailing '=')*/
+		
+		size_t len; /* The length of the name. */
+		
+		/**** Build attribute as it should appear in str. ****/
+		len = strlen(name) + 2; /* +2 for '(' and '='. */
+
+		attr_name = (char *)malloc(len + 1); /* +1 for null. */
+		assert(attr_name);
+
+		/*** Add pre/post fix. ***/
+		*attr_name = '(';
+		strcpy(attr_name + 1, name);
+		attr_name[len - 1] = '=';
+		attr_name[len] = 0;
+
+		
+		/**** Search in attribute list. ****/
+		vl_start = strstr(str, attr_name);
+		len = strlen(attr_name); /* Icky variable reuse. */
+		free(attr_name);
+		if (vl_start == NULL) {
+			return 0;
+		}
+
+		vl_start += len; /* Zip to the start of the attribute list. */
+		vl_end = strchr(vl_start, ')');
+		if (vl_end == NULL) {
+			return 0; /* No terminating ')'. Syntax error. */
+		}
+	}
+
+	vl_size = 0;
+	
+	/***** Text contents of value list. *****/
+	va_start(ap, name);
+	current_value = va_arg(ap, char *);
+
+	while (current_value != NULL) { /* Foreach value... */
+		char *index; /* Index to current_value in value list. */
+		
+		/* Check to see if the current value is in the value list. */
+		index = strstr(vl_start, current_value);
+		if (index == NULL) {
+			/* A value is missing. */
+			va_end(ap);
+			return 0;
+		}
+
+		/* Check that it's _within_ the list. */
+		if (index > vl_end) {
+			va_end(ap);
+			return 0;
+		}
+
+		/* TODO Check that it is properly delimited. */
+		
+		
+		/* Increment vl_size. */
+		vl_size += strlen(current_value) + 1; /* +1 for comma. */
+		
+		current_value = va_arg(ap, char *); /* NEXT! */
+	}
+	va_end(ap);
+
+	
+	/***** Check that all values in str are accounted for (ie, there are no extra). *****/
+	/**** Account for commas in value list. ****/
+	vl_size -= 1; /* -1 for lack of trailing comma. */
+	if (vl_size != (size_t) (vl_end - vl_start)) {
+		return 0;
+	}
+	
+	return 1;	
+}
+
+
 
 /* Finds the number of attributes in an attribute list. 
  *
@@ -38,6 +140,63 @@ int test_size(SLPAttributes attr) {
 	SLPAttrIteratorFree(iter);
 	
 	return count;
+}
+
+
+/* Tests the named attribute to see if it has all of the named values. 
+ *
+ * Params:
+ * name - Name of the attribute to test. 
+ * ... - List of longs that must be associated with name. Terminated with a 
+ * 		TERM_INT.
+ * 
+ * Returns 1 iff the attributes contain all of the named values. 0 otherwise.
+ */
+int test_int(SLPAttributes attr, char *name, ...) {
+	long *int_arr; /* Values returned from SLPAttrGet_str(). */
+	size_t len; /* Number of values returned. */
+	long current_value; /* The passed value currently being tested. */
+	size_t values_seen; /* The count of passed values. */
+	size_t i;
+	va_list ap;
+	SLPError err;
+
+	err = SLPAttrGet_int(attr, name, &int_arr, &len); 
+	assert(err == SLP_OK);
+
+	/* Foreach value... */
+	values_seen = 0;
+	va_start(ap, name);
+	current_value = va_arg(ap, long);
+	while (current_value != TERM_INT) {
+		values_seen++;
+		/* Check to see if the current value is in the value list. */
+		for (i = 0; i < len; i++) {
+			if (int_arr[i] == current_value) {
+				break;
+			}
+		}
+		
+		/* The current value was not found. */
+		if (i == len) {
+			/* TODO cleanup:  */
+			va_end(ap);
+			return 0;
+		}
+		
+		current_value = va_arg(ap, long);
+	}
+	va_end(ap);
+
+	/* Cleanup memory. */
+	free(int_arr);
+	
+	/* Check that all values in str_attr are accounted for (ie, there are no extra). */
+	if (values_seen != len) {
+		return 0;
+	}
+	
+	return 1;	
 }
 
 /* Tests the named attribute to see if it has all of the named attributes. 
@@ -110,14 +269,16 @@ int main(int argc, char *argv[]) {
 	long *int_arr;
 	char **str_arr;
 	SLPType type;
-	char *str, *tag;
+	char *str, *tag, *str2;
 	SLPAttrIterator iter;
 	
 	len = strlen(data);
 	data[4] = '\0';
 	
+#ifdef USE_PREDICATES
 
-
+	printf("Predicates enabled. Performing full test for libslpattr.c\n");
+	
 	/****** Test Simple boolean set and get. *****/
 	err = SLPAttrAlloc("en", NULL, SLP_FALSE, &attr);
 	assert(err == SLP_OK);
@@ -243,8 +404,15 @@ int main(int argc, char *argv[]) {
 	
 	SLPAttrFree(attr);
 
+	/**** Check deserialization. ****/
+	err = SLPAttrAllocStr("en", NULL, SLP_FALSE, &attr, "(doc=12,34,56)");
+	assert(err == SLP_OK);
 	
+	assert(test_int(attr, "doc", (long)12, (long)34, (long)56, TERM_INT));
+	
+	SLPAttrFree(attr);
 
+	
 	/****** Test keyword set and get. *****/
 	err = SLPAttrAlloc("en", NULL, SLP_FALSE, &attr);
 	assert(err == SLP_OK);
@@ -298,6 +466,7 @@ int main(int argc, char *argv[]) {
 	
 //	assert(strcmp(str_arr[0], "string") == 0);
 	free(str_arr[0]);
+	free(str_arr[1]);
 	free(str_arr);
 	SLPAttrFree(attr);
 	
@@ -403,7 +572,8 @@ int main(int argc, char *argv[]) {
 	}
 	SLPAttrIteratorFree(iter);
 
-	err = SLPAttrSerialize(attr, NULL, &str, SLP_TRUE);
+	str = NULL;
+	err = SLPAttrSerialize(attr, NULL, &str, 0, NULL, SLP_TRUE);
 	assert(err == SLP_OK);
 	
 	/* FIXME Check str. */
@@ -437,11 +607,46 @@ int main(int argc, char *argv[]) {
 	
 	SLPAttrFree(attr);
 
+	/**** Test the buffering for serialization. ****/
+	err = SLPAttrAllocStr("en", NULL, SLP_FALSE, &attr, SER1);
+	assert(err == SLP_OK);
+
+	/*** Try with too small a buffer.  ***/
+	str2 = str = (char *)malloc(5);
+	assert(str);
+	assert(5 < strlen(SER1) + 1);
+	err = SLPAttrSerialize(attr, NULL, &str, 5, NULL, SLP_FALSE);
+	assert(str == str2); /* Ensure a new buffer wasn't created. */
+	assert(err == SLP_BUFFER_OVERFLOW);
+	free(str);
+
+	/*** Try with a "just right" buffer. ***/
+	str2 = str = (char *)malloc(strlen(SER1) + 1);
+	assert(str);
+	err = SLPAttrSerialize(attr, NULL, &str, strlen(SER1)+1, NULL, SLP_FALSE);
+	assert(err == SLP_OK);
+	assert(str == str2); /* Ensure a new buffer wasn't created. */
+	assert(strstr(str, "(abool=false)") != NULL);
+	assert(strstr(str, "keyw") != NULL);
+	assert(strstr(str, "(anInt=51)") != NULL);
+	assert(strlen(str) == 29);
+	free(str);
+
+	/*** Try with an "n-1" buffer. (too small) ***/
+	str2 = str = (char *)malloc(strlen(SER1));
+	assert(str);
+	err = SLPAttrSerialize(attr, NULL, &str, strlen(SER1), NULL, SLP_FALSE);
+	assert(err == SLP_BUFFER_OVERFLOW);
+	free(str);
+
+	SLPAttrFree(attr);
+
 	/**** Test the freshening. ****/
 	err = SLPAttrAllocStr("en", NULL, SLP_FALSE, &attr, "(abool=false),keyw,(anInt=51)");
 	assert(err == SLP_OK);
 
-	err = SLPAttrSerialize(attr, NULL, &str, SLP_TRUE);
+	str = NULL;
+	err = SLPAttrSerialize(attr, NULL, &str, 0, NULL, SLP_TRUE);
 	assert(err == SLP_OK);
 	assert(strstr(str, "(abool=false)") != NULL);
 	assert(strstr(str, "keyw") != NULL);
@@ -452,7 +657,8 @@ int main(int argc, char *argv[]) {
 	err = SLPAttrSet_bool(attr, "abool", SLP_FALSE);
 	assert(err == SLP_OK);
 
-	err = SLPAttrSerialize(attr, NULL, &str, SLP_TRUE);
+	str = NULL;
+	err = SLPAttrSerialize(attr, NULL, &str, 0, NULL, SLP_TRUE);
 	assert(err == SLP_OK);
 	assert(strcmp("(abool=false)", str) == 0);
 	free(str);
@@ -463,7 +669,8 @@ int main(int argc, char *argv[]) {
 	err = SLPAttrAllocStr("en", NULL, SLP_FALSE, &attr, "(a=1)");
 	assert(err == SLP_OK);
 
-	err = SLPAttrSerialize(attr, NULL, &str, SLP_TRUE);
+	str = NULL;
+	err = SLPAttrSerialize(attr, NULL, &str, 0, NULL, SLP_TRUE);
 	assert(err == SLP_OK);
 	assert(strcmp(str, "(a=1)") == 0);
 	free(str);
@@ -475,7 +682,8 @@ int main(int argc, char *argv[]) {
 	err = SLPAttrAllocStr("en", NULL, SLP_FALSE, &attr, "(a=0)");
 	assert(err == SLP_OK);
 
-	err = SLPAttrSerialize(attr, NULL, &str, SLP_TRUE);
+	str = NULL;
+	err = SLPAttrSerialize(attr, NULL, &str, 0, NULL, SLP_TRUE);
 	assert(err == SLP_OK);
 	assert(strcmp(str, "(a=0)") == 0);
 	free(str);
@@ -486,7 +694,8 @@ int main(int argc, char *argv[]) {
 	err = SLPAttrAllocStr("en", NULL, SLP_FALSE, &attr, "(a=-1)");
 	assert(err == SLP_OK);
 
-	err = SLPAttrSerialize(attr, NULL, &str, SLP_TRUE);
+	str = NULL;
+	err = SLPAttrSerialize(attr, NULL, &str, 0, NULL, SLP_TRUE);
 	assert(err == SLP_OK);
 	assert(strcmp(str, "(a=-1)") == 0);
 	free(str);
@@ -497,7 +706,8 @@ int main(int argc, char *argv[]) {
 	err = SLPAttrAllocStr("en", NULL, SLP_FALSE, &attr, "(a=52)");
 	assert(err == SLP_OK);
 
-	err = SLPAttrSerialize(attr, NULL, &str, SLP_TRUE);
+	str = NULL;
+	err = SLPAttrSerialize(attr, NULL, &str, 0, NULL, SLP_FALSE);
 	assert(err == SLP_OK);
 	assert(strcmp(str, "(a=52)") == 0);
 	free(str);
@@ -508,12 +718,116 @@ int main(int argc, char *argv[]) {
 	err = SLPAttrAllocStr("en", NULL, SLP_FALSE, &attr, "(a=-2000)");
 	assert(err == SLP_OK);
 
-	err = SLPAttrSerialize(attr, NULL, &str, SLP_TRUE);
+	str = NULL;
+	err = SLPAttrSerialize(attr, NULL, &str, 0, NULL, SLP_FALSE);
 	assert(err == SLP_OK);
 	assert(strcmp(str, "(a=-2000)") == 0);
 	free(str);
 	
 	SLPAttrFree(attr);
+
+	/**** Do it again. ****/
+	err = SLPAttrAllocStr("en", NULL, SLP_FALSE, &attr, "(public=log),(slug=pig),(doc=12,34,56),zoink");
+	assert(err == SLP_OK);
+	
+	assert(test_int(attr, "doc", (long)12, (long)34, (long)56, TERM_INT));
+
+	/*** Test singular desrialization. ***/
+	str = NULL;
+	err = SLPAttrSerialize(attr, "doc", &str, 0, NULL, SLP_FALSE);
+	assert(err == SLP_OK);
+
+	/* Check that serialized values are there. */
+	assert(strstr(str, "12") != NULL);
+	assert(strstr(str, "34") != NULL);
+	assert(strstr(str, "56") != NULL);
+	assert(strstr(str, "doc") != NULL);
+	
+	/* Check that other tags aren't. */
+	assert(strstr(str, "public") == NULL);
+	assert(strstr(str, "slug") == NULL);
+	assert(strstr(str, "zoink") == NULL);
+
+	free(str);
+	
+	/*** Test binary deserialization. ***/
+	str = NULL;
+	err = SLPAttrSerialize(attr, "doc,zoink", &str, 0, NULL, SLP_FALSE);
+	assert(err == SLP_OK);
+
+	/* Check that serialized values are there. */
+	assert(strstr(str, "12") != NULL);
+	assert(strstr(str, "34") != NULL);
+	assert(strstr(str, "56") != NULL);
+	assert(strstr(str, "zoink") != NULL);
+	assert(strstr(str, "doc") != NULL);
+
+	/* Check that other tags aren't. */
+	assert(strstr(str, "public") == NULL);
+	assert(strstr(str, "slug") == NULL);
+
+	free(str);
+
+
+	/*** Test binary deserialization. ***/
+	str = NULL;
+	err = SLPAttrSerialize(attr, "doc,public", &str, 0, NULL, SLP_FALSE);
+	assert(err == SLP_OK);
+
+	/* Check that serialized values are there. */
+	assert(strstr(str, "12") != NULL);
+	assert(strstr(str, "34") != NULL);
+	assert(strstr(str, "56") != NULL);
+	assert(strstr(str, "log") != NULL);
+	assert(strstr(str, "public") != NULL);
+
+	/* Check that other tags aren't. */
+	assert(strstr(str, "slug") == NULL);
+	assert(strstr(str, "pig") == NULL);
+	assert(strstr(str, "zoink") == NULL);
+
+	free(str);
+	
+	
+	/*** Test binary deserialization. ***/
+	str = NULL;
+	err = SLPAttrSerialize(attr, "doc,zoink,public", &str, 0, NULL, SLP_FALSE);
+	assert(err == SLP_OK);
+
+	/* Check that serialized values are there. */
+	assert(strstr(str, "12") != NULL);
+	assert(strstr(str, "34") != NULL);
+	assert(strstr(str, "56") != NULL);
+	assert(strstr(str, "zoink") != NULL);
+	assert(strstr(str, "doc") != NULL);
+	assert(strstr(str, "public=log") != NULL);
+
+	/* Check that other tags aren't. */
+	assert(strstr(str, "slug") == NULL);
+	assert(strstr(str, "pig") == NULL);
+
+	free(str);
+
+	/*** Test binary deserialization. ***/
+	str = NULL;
+	err = SLPAttrSerialize(attr, "doc,zoink,public,slug", &str, 0, NULL, SLP_FALSE);
+	assert(err == SLP_OK);
+
+	/* Check that serialized values are there. */
+	assert(strstr(str, "12") != NULL);
+	assert(strstr(str, "34") != NULL);
+	assert(strstr(str, "56") != NULL);
+	assert(strstr(str, "zoink") != NULL);
+	assert(strstr(str, "doc") != NULL);
+	assert(strstr(str, "public=log") != NULL);
+	assert(strstr(str, "slug=pig") != NULL);
+
+	assert(strlen(str) == 44);
+	
+	free(str);
+	
+	SLPAttrFree(attr);
+
 
 	/**** Test deserialization. ****/
 	err = SLPAttrAllocStr("en", NULL, SLP_FALSE, &attr, "(attr1=val1),(attr2=val1,val2),(attr3=val1,val2,val3)");
@@ -528,6 +842,115 @@ int main(int argc, char *argv[]) {
 	assert(test_size(attr) == 3);
 	
 	SLPAttrFree(attr);
+	
+	
+	/**** Test deserialization. ****/
+	err = SLPAttrAllocStr("en", NULL, SLP_FALSE, &attr, "(attr1=val1),(attr2=val1,val2),(attr3=val1,val2,val3)");
+	assert(err == SLP_OK);
+
+	/* Check that all values were deserialized. */
+	assert(test_string(attr, "attr1", "val1", NULL));
+	assert(test_string(attr, "attr2", "val1", "val2", NULL));
+	assert(test_string(attr, "attr3", "val1", "val2", "val3", NULL));
+
+	/* Check that there are no extra values. */
+	assert(test_size(attr) == 3);
+	
+	SLPAttrFree(attr);
+	
+	
+	/**** Test deserialization. ****/
+	str2 = "keyw1,keyw2,(ValX3=val1,val2,val3),(ints=12,3244,93,-15,2,-135),(aBool1=true),(aBool2=false)";
+	err = SLPAttrAllocStr("en", NULL, SLP_FALSE, &attr, str2);
+	assert(err == SLP_OK);
+
+	/* Check that all values were deserialized. */
+	assert(SLPAttrGet_keyw(attr, "keyw1") == SLP_OK);
+	assert(SLPAttrGet_keyw(attr, "keyw2") == SLP_OK);
+	assert(test_string(attr, "ValX3", "val1","val2","val3", NULL));
+	assert(test_int(attr, "ints", 12, 3244, 93, -15, 2, -135, TERM_INT));
+	assert(SLPAttrGet_bool(attr, "aBool1", &bool) == SLP_OK && bool == SLP_TRUE);
+	assert(SLPAttrGet_bool(attr, "aBool2", &bool) == SLP_OK && bool == SLP_FALSE);
+
+	/*** Test standard case of deserialization. ***/
+	str = (char *)93; /* It's ok. it shouldn't write here, cause we pass a length of zero in. */
+	err = SLPAttrSerialize(attr, NULL, &str, 0, &len, SLP_FALSE);
+	assert(err == SLP_BUFFER_OVERFLOW);
+	assert(strlen(str2) + 1 == len); /* +1 for null. */
+
+	str = (char *)malloc(len);
+	assert(str != NULL);
+	/* Check for n+1 error. */
+	err = SLPAttrSerialize(attr, NULL, &str, len, &len, SLP_FALSE);
+	assert(err == SLP_OK);
+
+	free(str);
+	
+	SLPAttrFree(attr);
+
+	
+#else /* USE_PREDICATES */
+	printf("Predicates disabled. Performing partial test for libslpattr_tiny.c");
+
+	
+#endif /* USE_PREDICATES */
+	/***** Common tests. *****/
+	
+	/**** Basic creation. ****/
+	err = SLPAttrAlloc("en", NULL, SLP_FALSE, &attr);
+	assert(err == SLP_OK);
+
+	SLPAttrFree(attr);
+
+	/**** Test deserialization. ****/
+	str2 = "keyw1,keyw2,(ValX3=val1,val2,val3),(ints=12,3244,93,-15,2,-135),(aBool1=true),(aBool2=false)";
+	err = SLPAttrAlloc("en", NULL, SLP_FALSE, &attr);
+	assert(err == SLP_OK);
+
+	err = SLPAttrFreshen(attr, str2);
+	assert(err == SLP_OK);
+	
+	/*** Test standard case of deserialization. ***/
+	str = (char *)93; /* It's ok. it shouldn't write here, cause we pass a length of zero in. */
+	err = SLPAttrSerialize(attr, NULL, &str, 0, &len, SLP_FALSE);
+	assert(err == SLP_BUFFER_OVERFLOW);
+	assert(strlen(str2) + 1 == len); /* +1 for null. */
+
+	str = (char *)malloc(len);
+	assert(str != NULL);
+	/* Check for n+1 error. */
+	err = SLPAttrSerialize(attr, NULL, &str, len, &len, SLP_FALSE);
+	assert(err == SLP_OK);
+
+	/* Check length of serialized. */
+	assert(strlen(str) == strlen(str2));
+
+	/* Check contents of serialized. */
+	assert(strstr(str, "keyw1"));
+	assert(strstr(str, "keyw2"));
+	assert(strstr(str, "keyw2"));
+
+	free(str);
+	
+	SLPAttrFree(attr);
+	
+	/**** Create and freshen. ****/
+	str2 = "keyword,(aBool=true),(int=1,2,3,-4,1000,-2000),(str=val 1,val 2,val 3)";
+	
+	err = SLPAttrAlloc("en", NULL, SLP_FALSE, &attr);
+	assert(err == SLP_OK);
+
+	err = SLPAttrFreshen(attr, str2);
+	assert(err == SLP_OK);
+
+	/*** Check the serialized attribute string. ***/
+	assert(test_serialized(str2, "aBool", "true", NULL));
+	assert(test_serialized(str2, "int", "1", "2", "3", "-4", "1000", "-2000", NULL));
+	assert(test_serialized(str2, "str", "val 1", "val 2", "val 3", NULL));
+	
+	
+	SLPAttrFree(attr);
+
 	
 	return 0;
 }
