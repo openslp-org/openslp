@@ -1,0 +1,46 @@
+# Software list file for OpenSLP.
+
+# Directories...
+$DESTDIR=
+$prefix=@prefix@
+$exec_prefix=@exec_prefix@
+$bindir=@bindir@
+$sbindir=@sbindir@
+$etcdir=@sysconfdir@
+$datadir=@datadir@
+$libdir=@libdir@
+$mandir=@mandir@
+$includedir=@includedir@
+$srcdir=@top_srcdir@
+$sharedir=@sharedstatedir@
+$vardir=@localstatedir@
+
+# Product information
+%product OpenSLP
+%copyright Caldera Systems, Inc (BSD)
+%vendor OpenSLP Project
+%license ${srcdir}/COPYING
+%readme ${srcdir}/README
+%description Open source implementation of Service Location Protocol V2.
+%version 0.8.2
+
+# Binaries
+%system all
+d 0755 root sys ${prefix} -
+d 0755 root sys ${bindir} -
+d 0755 root sys ${sbindir} -
+d 0755 root sys ${includedir} -
+d 0755 root sys ${etcdir} -
+d 0755 root sys ${libdir} -
+d 0755 root sys ${sharedir} -
+d 0755 root sys ${sharedir}/doc -
+d 0755 root sys ${sharedir}/doc/openslp-$version -
+c 0644 root sys ${etcdir}/slp.conf ${DESTDIR}${etcdir}/slp.conf
+c 0644 root sys ${etcdir}/slp.reg ${DESTDIR}${etcdir}/slp.reg
+f 0755 root sys ${sbindir}/slpd ${DESTDIR}${sbindir}/slpd
+f 0755 root sys ${bindir}/slptool ${DESTDIR}${bindir}/slptool
+f 0644 root sys ${includedir}/slp.h ${DESTDIR}${includedir}/slp.h
+f 0644 root sys ${libdir}/libslp.so.0.0.3 ${DESTDIR}${libdir}/libslp.so.0.0.3
+l 0777 root sys ${libdir}/libslp.so.0 libslp.so.0.0.3
+l 0777 root sys ${libdir}/libslp.so libslp.so.0.0.3
+
