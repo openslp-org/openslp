@@ -49,6 +49,7 @@
 #include "slp_iface.h"
 #include "slp_xmalloc.h"
 #include "slp_compare.h"
+#include "slp_net.h"
 
 #include <errno.h>
 #include <stdio.h>
@@ -57,7 +58,7 @@
 #include <string.h>
 #include <arpa/inet.h>
 
-
+#ifdef LINUX
 /*=========================================================================*/
 int SLPIfaceGetInfo(const char* useifaces,
                     SLPIfaceInfo* ifaceinfo)
@@ -164,6 +165,88 @@ int SLPIfaceGetInfo(const char* useifaces,
 
     return 0;
 }
+#else
+/*=========================================================================*/
+int SLPIfaceGetInfo(const char* useifaces,
+                    SLPIfaceInfo* ifaceinfo)
+/* Description:
+ *    Get the network interface addresses for this host.  Exclude the
+ *    loopback interface
+ *
+ * Parameters:
+ *     useifaces (IN) Pointer to comma delimited string of interface IPv4
+ *                    addresses to get interface information for.  Pass
+ *                    NULL or empty string to get all interfaces (except 
+ *                    loopback)
+ *     ifaceinfo (OUT) Information about requested interfaces.
+ *
+ * Returns:
+ *     zero on success, non-zero (with errno set) on error.
+ *=========================================================================*/
+{
+    /*---------------------------------------------------*/
+    /* Use gethostbyname(). Not necessarily the best way */
+    /*---------------------------------------------------*/
+    struct hostent* myhostent;
+    char*           myname;
+    struct in_addr  ifaddr;
+    uint32_t**      haddr;
+    int             useifaceslen;
+    
+    if(SLPNetGetThisHostname(&myname) == 0)
+    {
+        myhostent = gethostbyname(myname);
+        if(myhostent != 0)
+        {
+            if(myhostent->h_addrtype == AF_INET)
+            {
+                if(useifaces && *useifaces)
+                {
+                    useifaceslen = strlen(useifaces);
+                }
+                else
+                {
+                    useifaceslen = 0;
+                }
+
+                haddr = (uint32_t**)(myhostent->h_addr_list);
+                
+                /* count the interfaces */
+                while(*haddr)
+                {
+                    ifaddr.s_addr = **haddr;
+
+                    if(useifaceslen == 0 ||
+                       SLPContainsStringList(useifaceslen,
+                                             useifaces,
+                                             strlen(inet_ntoa(ifaddr)),
+                                             inet_ntoa(ifaddr)))
+                    {
+                        memcpy(&(ifaceinfo->iface_addr[ifaceinfo->iface_count].sin_addr),
+                               &ifaddr,
+                               sizeof(ifaddr));                    
+                        
+                        /* There is no way to deterine the broadcast address */
+                        /* Set it to global broadcast                        */
+                        ifaceinfo->bcast_addr[ifaceinfo->iface_count] = 0xffffffff;
+
+                        ifaceinfo->iface_count ++;
+
+                    } 
+
+                    haddr ++;
+                }
+            }
+        }
+
+        xfree(myname);    
+    }
+
+    return 0;
+}
+#endif
+
+
 
 
 /*=========================================================================*/
