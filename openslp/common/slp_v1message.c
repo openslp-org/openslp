@@ -229,17 +229,18 @@ int v1ParseSrvRqst(SLPBuffer buffer, SLPHeader* header, SLPSrvRqst* srvrqst)
         tmp = strchr(srvrqst->scopelist, '/');
         if(!tmp)
             return SLP_ERROR_PARSE_ERROR;
-        *tmp = 0;       /* null terminate scope list */
+        /* null terminate scope list */
+        *tmp = 0;       
+        
         srvrqst->scopelistlen = tmp - srvrqst->scopelist;
         srvrqst->predicate += srvrqst->scopelistlen + 1;
         srvrqst->predicatelen -= srvrqst->scopelistlen + 1;
     }
-
-    /* We don't have SLPv1 predicate handling support yet, so
-       substitute a null predicate so that everything matches. */
-    srvrqst->predicate = "";
-    srvrqst->predicatelen = 1;
-
+    srvrqst->predicatelen--;
+    tmp = (char*)(srvrqst->predicate + srvrqst->predicatelen); 
+    /* null term. pred */
+    *tmp = 0;
+    
     /* SLPv1 service requests don't have SPI strings */
     srvrqst->spistrlen = 0;
     srvrqst->spistr = 0;
