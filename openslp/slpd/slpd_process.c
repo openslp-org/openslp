@@ -1137,7 +1137,7 @@ int SLPDProcessMessage(struct sockaddr_in* peerinfo,
 
 	case SLP_FUNCT_SRVREG:
 		errorcode = ProcessSrvReg(peerinfo, message,sendbuf, errorcode);
-		if(errorcode)
+		if(errorcode == 0)
 		{
 			SLPDKnownDAEcho(peerinfo, message, recvbuf);
 		}
