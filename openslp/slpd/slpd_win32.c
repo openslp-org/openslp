@@ -488,21 +488,31 @@ void WINAPI SLPDServiceMain(DWORD argc, LPTSTR *argv)
 
 
 /*--------------------------------------------------------------------------*/
-void SLPDCmdInstallService() 
+void SLPDCmdInstallService(int automatic) 
 /*--------------------------------------------------------------------------*/
 {
-    SC_HANDLE   schService; 
-    SC_HANDLE   schSCManager; 
+    SC_HANDLE schService; 
+    SC_HANDLE schSCManager; 
 
+    DWORD start_type;
     TCHAR szPath[512]; 
 
-    if(GetModuleFileName( NULL, szPath, 512 ) == 0)
+    if(GetModuleFileName(NULL, szPath, 512) == 0)
     {
         printf("Unable to install %s - %s\n", 
                G_SERVICEDISPLAYNAME, 
                GetLastErrorText(szErr, 256)); 
         return; 
     }
+
+    if(automatic)
+    {
+      start_type = SERVICE_AUTO_START;
+    }
+    else
+    {
+      start_type = SERVICE_DEMAND_START;
+    } 
 
     schSCManager = OpenSCManager(
                                 NULL,                   /* machine (NULL == local)    */
@@ -517,7 +527,7 @@ void SLPDCmdInstallService()
                                   G_SERVICEDISPLAYNAME, /* name to display    */
                                   SERVICE_ALL_ACCESS,         /* desired access    */
                                   SERVICE_WIN32_OWN_PROCESS,  /* service type    */
-                                  SERVICE_DEMAND_START,       /* start type    */
+                                  start_type,       			  /* start type    */
                                   SERVICE_ERROR_NORMAL,       /* error control type    */
                                   szPath,                     /* service's binary    */
                                   NULL,                       /* no load ordering group    */
@@ -543,6 +553,33 @@ void SLPDCmdInstallService()
 } 
 
 
+static void SLPDHlpStopService(SC_HANDLE schService)
+{
+	 /* try to stop the service */
+	 if(ControlService(schService, SERVICE_CONTROL_STOP, &ssStatus))
+    {
+    	  printf("Stopping %s.", G_SERVICEDISPLAYNAME);
+        Sleep(1000);
+
+        while(QueryServiceStatus(schService, &ssStatus))
+		  {
+	  			if(ssStatus.dwCurrentState == SERVICE_STOP_PENDING)
+	    		{
+	      		 printf(".");
+	      		 Sleep(1000);
+	    		}
+	  			else
+	    			 break;
+			}
+
+			if(ssStatus.dwCurrentState == SERVICE_STOPPED)
+				 printf("\n%s stopped.\n", G_SERVICEDISPLAYNAME);
+      	else
+				 printf("\n%s failed to stop.\n", G_SERVICEDISPLAYNAME);
+	 }
+}
+
+
 /*--------------------------------------------------------------------------*/
 void SLPDCmdRemoveService() 
 /*--------------------------------------------------------------------------*/
@@ -560,31 +597,9 @@ void SLPDCmdRemoveService()
 
         if(schService)
         {
-            /* try to stop the service    */
-            if(ControlService( schService, SERVICE_CONTROL_STOP, &ssStatus ))
-            {
-                printf("Stopping %s.", G_SERVICEDISPLAYNAME); 
-                Sleep( 1000 ); 
-
-                while(QueryServiceStatus( schService, &ssStatus ))
-                {
-                    if(ssStatus.dwCurrentState == SERVICE_STOP_PENDING)
-                    {
-                        printf("."); 
-                        Sleep( 1000 ); 
-                    }
-                    else
-                        break; 
-                } 
-
-                if(ssStatus.dwCurrentState == SERVICE_STOPPED)
-                    printf("\n%s stopped.\n", G_SERVICEDISPLAYNAME );
-                else
-                    printf("\n%s failed to stop.\n", G_SERVICEDISPLAYNAME ); 
-
-            }
-
-            /* now remove the service    */
+	     		SLPDHlpStopService(schService);
+	    
+	    		/* now remove the service    */
             if(DeleteService(schService))
                 printf("%s removed.\n", G_SERVICEDISPLAYNAME );
             else
@@ -601,6 +616,75 @@ void SLPDCmdRemoveService()
     else
         printf("OpenSCManager failed - %s\n", GetLastErrorText(szErr,256)); 
 } 
+
+
+/*--------------------------------------------------------------------------*/
+void SLPDCmdStartService()
+/*--------------------------------------------------------------------------*/
+{
+    SC_HANDLE schService; 
+    SC_HANDLE schSCManager; 
+
+    schSCManager = OpenSCManager(
+                                NULL,                   /* machine (NULL == local)    */
+                                NULL,                   /* database (NULL == default)    */
+                                SC_MANAGER_ALL_ACCESS); /* access required    */
+    if(schSCManager)
+    {
+        schService = OpenService(schSCManager, G_SERVICENAME, SERVICE_ALL_ACCESS); 
+
+        if(schService)
+	  	  {
+	    		if(!StartService(schService, 0, NULL))
+	      	{
+					printf("OpenService failed - %s\n", GetLastErrorText(szErr,256)); 
+	      	}
+	    		CloseServiceHandle(schService); 
+	  	  }
+        else
+	  	  {
+	    		printf("OpenService failed - %s\n", GetLastErrorText(szErr,256)); 
+	  	  }
+        CloseServiceHandle(schSCManager); 
+    }
+    else
+    {
+    	  printf("OpenSCManager failed - %s\n", GetLastErrorText(szErr,256)); 
+    }
+}
+
+
+/*--------------------------------------------------------------------------*/
+void SLPDCmdStopService()
+/*--------------------------------------------------------------------------*/
+{
+    SC_HANDLE schService;
+    SC_HANDLE schSCManager;
+
+    schSCManager = OpenSCManager(
+                                NULL,                   /* machine (NULL == local)    */
+                                NULL,                   /* database (NULL == default)    */
+                                SC_MANAGER_ALL_ACCESS); /* access required    */
+    if(schSCManager)
+    {
+        schService = OpenService(schSCManager, G_SERVICENAME, SERVICE_ALL_ACCESS);
+
+        if(schService)
+	  	  {
+	    		SLPDHlpStopService(schService);
+	    		CloseServiceHandle(schService);
+	  	  }
+        else
+	  	  {
+	    		printf("OpenService failed - %s\n", GetLastErrorText(szErr,256));
+	  	  }
+        CloseServiceHandle(schSCManager);
+    }
+    else
+    {
+        printf("OpenSCManager failed - %s\n", GetLastErrorText(szErr,256));
+    }
+}
 
 
 /*--------------------------------------------------------------------------*/
@@ -637,16 +721,24 @@ void __cdecl main(int argc, char **argv)
     case SLPD_DEBUG:
         SLPDCmdDebugService(argc, argv);
         break;
-    case SLPD_INSTALL:
-        SLPDCmdInstallService();
+    case SLPD_INSTALL_AUTO:
+        SLPDCmdInstallService(1);
+        break;
+    case SLPD_INSTALL_MANUAL:
+        SLPDCmdInstallService(0);
         break;
     case SLPD_REMOVE:
         SLPDCmdRemoveService();
         break;
+    case SLPD_START:
+        SLPDCmdStartService();
+		  break;
+    case SLPD_STOP:
+        SLPDCmdStopService();
+        break;
     default:
         SLPDPrintUsage();
         StartServiceCtrlDispatcher(dispatchTable);
-
         break;
     } 
 } 
