@@ -1,7 +1,7 @@
 README OpenSLP releas 0.6.1
 ---------------------------
 
-OpenSLP release 0.6.1 is based on the original Caldera Systems source code 
+OpenSLP release 0.6.x is based on the original Caldera Systems source code 
 snapshot from April.  Some SLPv2 features were not implemented because they 
 were not considered overly useful.  Please see the Project Roadmap 
 <http://www.openslp.org> for an idea of what still needs to be finished.  
