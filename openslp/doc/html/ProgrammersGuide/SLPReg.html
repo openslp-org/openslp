@@ -13,7 +13,8 @@ SLPReg</h2>
 <hr WIDTH="100%">
 <h3>
 Declaration</h3>
-<tt><a href="SLPError.html">SLPError</a> SLPReg( <a href="SLPTypes.html#SLPHandle">SLPHandle</a><a href="#hslp">hslp</a>,</tt>
+<tt><a href="SLPError.html">SLPError</a> SLPReg( <a href="SLPTypes.html#SLPHandle">SLPHandle</a>
+<a href="#hslp">hslp</a>,</tt>
 <br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 const char* <a href="#srvurl">srvurl</a>,</tt>
 <br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
@@ -23,11 +24,13 @@ const char* <a href="#srvtype">srvtype</a>,</tt>
 <br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 const char* <a href="#attrs">attrs</a>,</tt>
 <br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
 <a href="SLPTypes.html#SLPBoolean">SLPBoolean</a> <a href="#fresh">fresh</a>,</tt>
 <br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-<a href="SLPRegReport.html">SLPRegReport</a> <a href="#callback">callback</a>,</tt>
+
+ <a href="SLPRegReport.html">SLPRegReport</a> <a href="#callback">callback</a>,</tt>
 <br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-void* <a href="#cookie">cookie</a>)</tt>
+void* <a href="#cookie">cookie </a>)</tt>
 <h3>
 Description</h3>
 Registers the URL in <tt>srvurl</tt> having the lifetime <tt>lifetime</tt>
@@ -150,6 +153,79 @@ See Also</h3>
 <a href="SLPDeReg.html">SLPDeReg()</a>, <a href="Syntax.html">Syntax</a>,
 <a href="Callbacks.html">Callbacks</a>
 <br>&nbsp;
+<h3>
+Example Code</h3>
+
+<blockquote><tt>#include &lt;slp.h></tt>
+<p><tt>void MySLPRegReport(SLPHandle hslp, SLPError errcode, void* cookie)</tt>
+<br><tt>{</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; /* return the error code in the cookie */</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; *(SLPError*)cookie = errcode;</tt>
+<p><tt>&nbsp;&nbsp;&nbsp; /* You could do something else here like print
+out&nbsp; */</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; /* the errcode, etc.&nbsp; Remember, as a general
+rule,&nbsp; */</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; /* do not try to do too much in a callback because&nbsp;
+*/</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; /* it is being executed by the same thread that
+is&nbsp; */</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; /* reading slp packets from the wire.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+*/</tt>
+<br><tt>}</tt>
+<p><tt>int main(int argc, char* argv[])</tt>
+<br><tt>{</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; SLPError err;</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; SLPError callbackerr;</tt>
+<p><tt>&nbsp;&nbsp;&nbsp; err = SLPOpen("en",SLP_FALSE,&amp;hslp)</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; if(err != SLP_OK)</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; {</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; printf("Error opening
+slp handle %i\n",err);</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return err;</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; }</tt>
+<p><tt>&nbsp;&nbsp;&nbsp; /* Register a service with SLP */</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; err = SLPReg( hslp,</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+"service:myservice.myorg:\\hostname.domain.com:6672",</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+SLP_LIFETIME_MAXIMUM,</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+0,</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+"(public_key = ......my_pgp_key.......)",</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+SLP_TRUE,</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+MySLPRegReport,</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&amp;callbackerr );</tt>
+<p><tt>&nbsp;&nbsp;&nbsp; /* err may contain an error code that occured
+as the slp library&nbsp;&nbsp;&nbsp; */</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; /* _prepared_ to make the call.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+*/</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; if( err != SLP_OK) || callbackerr != SLP_OK)</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; {</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; printf("Error registering
+service with slp %i\n",err);</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return err</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; }</tt>
+<p><tt>&nbsp;&nbsp;&nbsp; /* callbackerr may contain an error code (that
+was assigned through */</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; /* the callback cookie) that occured as slp
+packets were sent on&nbsp;&nbsp;&nbsp; */</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; /* the wire */</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; if( calbackerr != SLP_OK)</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; {</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; printf("Error registering
+service with slp %i\n",callbackerr);</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return callbackerr</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; }</tt>
+<p><tt>&nbsp;&nbsp;&nbsp; /* Now that we're done using slp, close the slp
+handle */</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; SLPClose(hslp);</tt>
+<p><tt>&nbsp;&nbsp;&nbsp; /* rest of program */</tt>
+<br><tt>}</tt></blockquote>
+
 <br>&nbsp;
 </body>
 </html>

@@ -25,7 +25,8 @@ see <a href="SLPReg.html">SLPReg()</a>,
 <a href="SLPDeReg.html">SLPDeReg()</a>,
 <a href="SLPDelAttrs.html">SLPDelAttrs()</a>,
 <a href="SLPFindSrvs.html">SLPFindSrvs()</a>,
-<a href="SLPFindAttrs.html">SLPFindAttrs()</a>, and <a href="SLPFindSrvTypes.html">SLPFindSrvTypes()</a>,
+<a href="SLPFindAttrs.html">SLPFindAttrs()</a>,
+and <a href="SLPFindSrvTypes.html">SLPFindSrvTypes()</a>,
 <p>Callback functions must accept the parameters that the caller (the SLP
 library) expects to pass to them.&nbsp; This is why callback function types
 are defined.&nbsp; See <a href="SLPRegReport.html">SLPRegReport()</a>,
@@ -36,7 +37,8 @@ What's different about SLP callback functions?</h3>
 Callbacks are an integral part of the SLP API.&nbsp; Developers usually
 associate callbacks with asyncronous APIs, but the SLP API uses callbacks
 for both syncronous and asyncronous operations.&nbsp; Whether the callback
-is called syncronously or asyncronously, depends on the <tt><a href="SLPOpen.html#isasync">isasync</a>&nbsp;
+is called syncronously or asyncronously, depends on the <tt><a href="SLPOpen.html#isasync">isasync</a>
+
 </tt>parameter in the call to <tt><a href="SLPOpen.html">SLPOpen()</a></tt>.&nbsp;
 Remember the following rules and you should not have any problems with
 your callback functions.
@@ -54,8 +56,8 @@ because the memory passed in will be <tt>free()</tt>d by the library when
 the callback returns.</li>
 
 <li>
-Make your callback functions as efficient as possible.&nbsp; This is especially
-important when a call is made with an async <tt><a href="SLPTypes.html#SLPHandle">SLPHandle</a></tt>
+<blink>Make your callback functions as efficient as possible.</blink>&nbsp;
+This is especially important when a call is made with an async <tt><a href="SLPTypes.html#SLPHandle">SLPHandle</a></tt>
 because results are not collected or colated by the library before the
 callback function is called.&nbsp; In other words,&nbsp; in async mode,
 the library will call the callback each time a reply message is received
@@ -63,8 +65,8 @@ until the request times out.</li>
 
 <li>
 If the <tt>errcode</tt> upon entry to the callback is set to anything but
-<tt>SLP_OK</tt>, the rest of the parameters may be invalid.&nbsp; Check
-the error code first.</li>
+<tt>SLP_OK</tt>,
+the rest of the parameters may be invalid.&nbsp; Check the error code first.</li>
 
 <li>
 Use the <tt>cookie</tt> parameter.&nbsp; It is the best way to get information
@@ -74,7 +76,7 @@ to and from your callback.</li>
 <h3>
 How does OpenSLP library handle asyncronous operation?</h3>
 When an SLP library call is made with an SLPHandle that was opened in async
-mode, the library does everything it can with out blocking. &nbsp;It then
+mode, the library does everything it can with out blocking.&nbsp; It then
 creates a thread (hopefully a user level thread) and returns SLP_OK.&nbsp;
 The newly created thread processes the request (possibly blocking to wait
 for data to arrive from the network) and calls the callback function as
@@ -100,6 +102,8 @@ thought their way would be better.&nbsp; OpenSLP API is just an implementation
 of a standardized specification.
 <h3>
 Can I see an example?</h3>
-Yep.&nbsp; Follow the links below to walk through some example code.
+Yes, example code can be found in the documentation for the <a href="SLPReg.html">SLPReg()</a>,
+<a href="SLPFindSrvs.html">SLPFindSrv()</a>, <a href="SLPFindAttrs.html">SLPFindAttrs()</a>
+and <a href="SLPFindSrvTypes.html">SLPFindSrvTypes()</a> functions.
 </body>
 </html>

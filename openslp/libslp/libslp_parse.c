@@ -85,6 +85,14 @@ SLPError SLPParseSrvURL(const char *pcSrvURL,
     char*   slider2;
     char*   slider3;
 
+    /* Check for bad parameters */
+    if(pcSrvURL == 0 ||
+       ppSrvURL == 0 )
+    {
+        return SLP_PARAMETER_BAD;
+    }
+
+
     *ppSrvURL = (SLPSrvURL*)malloc(strlen(pcSrvURL) + sizeof(SLPSrvURL) + 4);
     /* +4 ensures space for 4 null terminations */
     if(*ppSrvURL == 0)
@@ -239,4 +247,80 @@ SLPError SLPUnescape(const char* pcInbuf,
 /*=========================================================================*/
 {
     return SLP_NOT_IMPLEMENTED;
+}
+
+
+/*=========================================================================*/
+SLPError SLPParseAttrs(const char* attrstr, 
+                       const char* id,
+                       int* valsize,
+                       const char** val)
+/*                                                                         */
+/* Used to get individual attribute values from an attribute string that   */
+/* is passed to the SLPAttrCallback                                        */
+/*                                                                         */
+/* attrstr  (IN) the attribute string as passed to SLPAttrCallback         */
+/*                                                                         */
+/* id       (IN) the ID of the attribute you want the value for            */
+/*                                                                         */
+/* valsize  (OUT) the size in bytes of the attribute value.  May be zero   */
+/*                if the ID was not found                                  */
+/*                                                                         */
+/* val      (OUT) the attribute value of the requested attribute. Maybe    */
+/*                null if ID was not found. The returned pointer points    */
+/*                back into the original attrstr. Do not free the returned */
+/*                pointer.                                                 */
+/*                                                                         */
+/* Returns: Returns SLP_PARSE_ERROR if an attribute of the specified id    */
+/*          was not found                                                  */
+/*=========================================================================*/
+{
+    const char* slider1;
+    const char* slider2;
+
+    /* Check for bad parameters */
+    if( attrstr == 0 ||
+        id == 0      ||
+        valsize == 0 ||
+        val == 0)
+    {
+        return SLP_PARAMETER_BAD;
+    }
+
+    slider1 = attrstr;
+    while(1)
+    {
+        while(*slider1 != '(')
+        {
+            if(*slider1 == 0)
+            {
+                *val = 0;
+                *valsize = 0;
+                return SLP_PARSE_ERROR;
+            }
+            slider1++;
+        }
+        slider1++;
+        slider2=slider1;
+
+        while(*slider2 && *slider2 != '=' && *slider1 !=')') slider2++;
+
+        if(strncasecmp(slider1, id, slider2 - slider1) == 0)
+        {
+            /* found the attribute id */
+            if(*slider2 != 0 && *slider1 != ')')
+            {
+                slider2++;
+            }
+            *val = slider2;
+
+            while(*slider2 && *slider2 != ')') slider2++;
+
+            *valsize = slider2 - *val;
+            
+            break;
+        }
+    }
+    
+    return SLP_OK;
 }

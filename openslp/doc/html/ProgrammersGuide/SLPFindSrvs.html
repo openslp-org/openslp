@@ -13,14 +13,15 @@ SLPFindSrvs</h2>
 <hr WIDTH="100%">
 <h3>
 Declaration</h3>
-<tt><a href="SLPError.html">SLPError</a> SLPFindSrvs( <a href="SLPTypes.html#SLPHandle">SLPHandle</a><a href="#hslp">hslp</a>,</tt>
+<tt><a href="SLPError.html">SLPError</a> SLPFindSrvs( <a href="SLPTypes.html#SLPHandle">SLPHandle</a>
+<a href="#hslp">hslp</a>,</tt>
 <br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 const char* <a href="#srvtype">srvtype</a>,</tt>
 <br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 const char* <a href="#scopelist">scopelist</a>,</tt>
 <br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 const char* <a href="#filter">filter</a>,</tt>
-<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 
 <a href="SLPSrvURLCallback.html">SLPSrvURLCallback</a> callback,</tt>
 <br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
@@ -53,7 +54,7 @@ Type syntax.&nbsp;</td>
 <td><a NAME="scopelist"></a><tt>scopelist</tt></td>
 
 <td NOSAVE>A pointer to a comma separated list of scope names.&nbsp; Pass
-in NULL&nbsp;of the empty string, "" if you wish to use scopes this machine
+in NULL of the empty string, "" if you wish to use scopes this machine
 is configured for.&nbsp; May not be NULL.</td>
 </tr>
 
@@ -107,5 +108,97 @@ is ignored.&nbsp; All services of the specified <tt>srvtype</tt> are returned.</
 <h3>
 See Also</h3>
 <a href="Syntax.html">Syntax</a>, <a href="Callbacks.html">Callbacks</a>
+<br>&nbsp;
+<h3>
+Example Code</h3>
+
+<blockquote><tt>#include &lt;slp.h></tt><tt></tt>
+<p><tt>SLPBoolean MySLPSrvURLCallback( SLPHandle hslp,</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+const char* srvurl,</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+unsigned short lifetime,</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+SLPError errcode,</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+void* cookie )</tt>
+<br><tt>{</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; if(errcode == SLP_OK || errcode == SLP_LAST_CALL)</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; {</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; printf("Service URL&nbsp;&nbsp;&nbsp;&nbsp;
+= %s\n",srvurl);</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; printf("Service Timeout
+= %i\n",lifetime);</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; *(SLPError*)cookie =
+SLP_OK;</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; }</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; else</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; {</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; *(SLPError*)cookie =
+errcode;</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; }</tt>
+<br><tt>&nbsp;</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; /* return SLP_TRUE because we want to be called
+again */</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; /* if more services were found&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+*/</tt><tt></tt>
+<p><tt>&nbsp;&nbsp;&nbsp; return SLP_TRUE;</tt>
+<br><tt>}</tt><tt></tt>
+<p><tt>int main( int argc, char*&nbsp;argv[])</tt>
+<br><tt>{</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; SLPError err;</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; SLPError callbackerr;</tt>
+<br><tt>&nbsp;</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; err = SLPOpen("en",SLP_FALSE,&amp;hslp)</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; if(err != SLP_OK)</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; {</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; printf("Error opening
+slp handle %i\n",err);</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return err;</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; }</tt>
+<br><tt></tt>&nbsp;<tt></tt>
+<p><tt>&nbsp;&nbsp;&nbsp; err = SLPFindSrvs( hslp,</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+"myservice.myorg",</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+0,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+/* use configured scopes */</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+0,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+/* no attr filter&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; */</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+mySLPSrvURLCallback,</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&amp;callbackerr );</tt>
+<br><tt>&nbsp;</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; /* err may contain an error code that occured
+as the slp library&nbsp;&nbsp;&nbsp; */</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; /* _prepared_ to make the call.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+*/</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; if( err != SLP_OK) || callbackerr != SLP_OK)</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; {</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; printf("Error registering
+service with slp %i\n",err);</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return err</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; }</tt><tt></tt>
+<p><tt>&nbsp;&nbsp;&nbsp; /* callbackerr may contain an error code (that
+was assigned through */</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; /* the callback cookie) that occured as slp
+packets were sent on&nbsp;&nbsp;&nbsp; */</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; /* the wire */</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; if( calbackerr != SLP_OK)</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; {</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; printf("Error registering
+service with slp %i\n",callbackerr);</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return callbackerr</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; }</tt><tt></tt>
+<p><tt>&nbsp;&nbsp;&nbsp; /* Now that we're done using slp, close the slp
+handle */</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; SLPClose(hslp);</tt>
+<br><tt>&nbsp;</tt>
+<br><tt>&nbsp;</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; /* rest of program */</tt>
+<br><tt>}</tt></blockquote>
+
 </body>
 </html>

@@ -843,4 +843,31 @@ void SLPSetProperty(const char *pcName,
 /*          character encoding.                                            */
 /*=========================================================================*/
 
+
+//*=========================================================================*/
+SLPError SLPParseAttrs(const char* attrstr, 
+                       const char* id,
+                       int* valsize,
+                       const char** val);
+/*                                                                         */
+/* Used to get individual attribute values from an attribute string that   */
+/* is passed to the SLPAttrCallback                                        */
+/*                                                                         */
+/* attrstr  (IN) the attribute string as passed to SLPAttrCallback         */
+/*                                                                         */
+/* id       (IN) the ID of the attribute you want the value for            */
+/*                                                                         */
+/* valsize  (OUT) the size in bytes of the attribute value.  May be zero   */
+/*                if the ID was not found                                  */
+/*                                                                         */
+/* val      (OUT) the attribute value of the requested attribute. Maybe    */
+/*                null if ID was not found. The returned pointer points    */
+/*                back into the original attrstr. Do not free the returned */
+/*                pointer.                                                 */
+/*                                                                         */
+/* Returns: Returns SLP_PARSE_ERROR if an attribute of the specified id    */
+/*          was not found                                                  */
+/*=========================================================================*/
+
+
 #endif  /* (!defined SLP_H_INCLUDED) */
