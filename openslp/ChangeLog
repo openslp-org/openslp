@@ -6,6 +6,9 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 
+04/10/01 mpeterson@caldera.com
+Brought Win32 port up to date with 0.9.0 source code
+
 04/18/01 mpeterson@caldera.com
 Fixed several socket re-connect, re-usage and aging bugs
 

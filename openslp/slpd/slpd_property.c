@@ -150,7 +150,7 @@ char* GetInterfaceList(char** result)
     struct in_addr ifaddr;
     int i;
 
-    myname = GetHostname();
+    myname = GetHostname(&myname);
     if(myname)
     {
         myhostent = gethostbyname(myname);

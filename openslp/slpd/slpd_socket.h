@@ -82,6 +82,11 @@
 #define    STREAM_WRITE_FIRST      11   + SOCKET_PENDING_IO
 #define    STREAM_WRITE_WAIT       12   + SOCKET_PENDING_IO
 
+#ifdef WIN32
+#define CloseSocket(Arg) closesocket(Arg)
+#else
+#define CloseSocket(Arg) close(Arg)
+#endif
 
 /*=========================================================================*/
 typedef struct _SLPDSocket

@@ -57,8 +57,7 @@
 #include <ctype.h>
 #include <time.h>
 #include <stdarg.h> 
-
-#define SLP_VERSION "0.8.2"
+#include <limits.h>
 
 /*  internal name of the service  */
 #define G_SERVICENAME        "slpd"    

@@ -283,7 +283,11 @@ void Deregister(SLPToolCommandLine* cmdline)
 void PrintVersion(SLPToolCommandLine* cmdline)
 /*=========================================================================*/
 {
-    printf("slptool version = %s\n",VERSION);
+#ifdef WIN32
+    printf("slptool version = %s\n",SLP_VERSION);
+#else
+	printf("slptool version = %s\n",VERSION);
+#endif
     printf("OpenSLP version = %s\n", 
 	   SLPGetProperty("net.slp.OpenSLPVersion"));
 }

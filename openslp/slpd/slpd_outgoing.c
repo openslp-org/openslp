@@ -120,7 +120,7 @@ void OutgoingStreamReconnect(SLPList* socklist, SLPDSocket* sock)
     /* Close the existing socket to clean the stream  and open an new */
     /* socket                                                         */
     /*----------------------------------------------------------------*/
-    close(sock->fd);
+    CloseSocket(sock->fd);
     sock->fd = socket(PF_INET,SOCK_STREAM,0);
     if(sock->fd < 0)
     {

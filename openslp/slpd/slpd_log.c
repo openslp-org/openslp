@@ -90,10 +90,10 @@ int SLPDLogFileOpen(const char* path, int append)
     else
     {
         /* Log to file. */
-        
+#ifndef WIN32        
         /* only owner can read/write */
         umask(0077); 
-        
+#endif        
         if(append)
         {
             G_SlpdLogFile = fopen(path,"a");

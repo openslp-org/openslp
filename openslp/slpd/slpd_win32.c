@@ -46,7 +46,27 @@
 /*                                                                         */
 /***************************************************************************/
 
+
 #include "slpd.h"
+
+/*=========================================================================*/
+/* slpd includes                                                           */
+/*=========================================================================*/
+#include "slpd_cmdline.h"
+#include "slpd_log.h"
+#include "slpd_property.h"
+#include "slpd_database.h"
+#include "slpd_socket.h"
+#include "slpd_incoming.h"
+#include "slpd_outgoing.h"
+#include "slpd_knownda.h"
+
+
+/*=========================================================================*/
+/* common code includes                                                    */
+/*=========================================================================*/
+#include "../common/slp_linkedlist.h"
+#include "../common/slp_xid.h"
 
 SERVICE_STATUS          ssStatus;       /* current status of the service  */
 SERVICE_STATUS_HANDLE   sshStatusHandle; 
@@ -132,7 +152,7 @@ BOOL ReportStatusToSCMgr(DWORD dwCurrentState,
 
         if(!(fResult = SetServiceStatus( sshStatusHandle, &ssStatus)))
         {
-            SLPLog("SetServiceStatus failed"); 
+            SLPDLog("SetServiceStatus failed"); 
         }
     }
     return fResult; 
@@ -249,9 +269,9 @@ void ServiceStart (int argc, char **argv)
     /*------------------------------*/
     /* Initialize the log file      */
     /*------------------------------*/
-    if(SLPLogFileOpen(G_SlpdCommandLine.logfile, 1))
+    if(SLPDLogFileOpen(G_SlpdCommandLine.logfile, 1))
     {
-        SLPLog("Could not open logfile %s\n",G_SlpdCommandLine.logfile);
+        SLPDLog("Could not open logfile %s\n",G_SlpdCommandLine.logfile);
         goto cleanup_winsock;
     }
 
@@ -263,13 +283,13 @@ void ServiceStart (int argc, char **argv)
     /*---------------------*/
     /* Log startup message */
     /*---------------------*/
-    SLPLog("****************************************\n");
-    SLPLogTime();
-    SLPLog("SLPD daemon started\n");
-    SLPLog("****************************************\n");
-    SLPLog("Command line = %s\n",argv[0]);
-    SLPLog("Using configuration file = %s\n",G_SlpdCommandLine.cfgfile);
-    SLPLog("Using registration file = %s\n",G_SlpdCommandLine.regfile);
+    SLPDLog("****************************************\n");
+    SLPDLogTime();
+    SLPDLog("SLPD daemon started\n");
+    SLPDLog("****************************************\n");
+    SLPDLog("Command line = %s\n",argv[0]);
+    SLPDLog("Using configuration file = %s\n",G_SlpdCommandLine.cfgfile);
+    SLPDLog("Using registration file = %s\n",G_SlpdCommandLine.regfile);
     if(!ReportStatusToSCMgr(SERVICE_START_PENDING, /* service state    */
                             NO_ERROR,              /* exit code    */
                             3000))                 /* wait hint    */
@@ -287,11 +307,11 @@ void ServiceStart (int argc, char **argv)
        SLPDOutgoingInit() ||
        SLPDKnownDAInit())
     {
-        SLPLog("slpd initialization failed\n");
+        SLPDLog("slpd initialization failed\n");
         goto cleanup_winsock;
     }
-    SLPLog("Agent Interfaces = %s\n",G_SlpdProperty.interfaces);
-    SLPLog("Agent URL = %s\n",G_SlpdProperty.myUrl);
+    SLPDLog("Agent Interfaces = %s\n",G_SlpdProperty.interfaces);
+    SLPDLog("Agent URL = %s\n",G_SlpdProperty.myUrl);
 
     /* Service is now running, perform work until shutdown    */
 
@@ -306,7 +326,7 @@ void ServiceStart (int argc, char **argv)
     /*-----------*/
     /* Main loop */
     /*-----------*/
-    SLPLog("Startup complete entering main run loop ...\n\n");
+    SLPDLog("Startup complete entering main run loop ...\n\n");
     G_SIGTERM   = 0;
     curtime = time(&alarmtime);
     alarmtime = curtime + SLPD_AGE_INTERVAL;
@@ -609,7 +629,7 @@ void __cdecl main(int argc, char **argv)
     /*------------------------*/
     if(SLPDParseCommandLine(argc,argv))
     {
-        SLPFatal("Invalid command line\n");
+        SLPDFatal("Invalid command line\n");
     }
 
     switch(G_SlpdCommandLine.action)

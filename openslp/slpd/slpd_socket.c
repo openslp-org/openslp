@@ -61,12 +61,6 @@
 #include "../common/slp_xmalloc.h"
 
 
-#ifdef WIN32
-#define CloseSocket(Arg) closesocket(Arg)
-#else
-#define CloseSocket(Arg) close(Arg)
-#endif
-
 /*-------------------------------------------------------------------------*/
 int EnableBroadcast(sockfd_t sockfd)
 /* Sets the socket options to receive broadcast traffic                    */
@@ -291,7 +285,7 @@ void SLPDSocketFree(SLPDSocket* sock)
 /*=========================================================================*/
 {
     /* close the socket descriptor */
-    close(sock->fd);
+    CloseSocket(sock->fd);
 
     /* free receive buffer */
     if(sock->recvbuf)

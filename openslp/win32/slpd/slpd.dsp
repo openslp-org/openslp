@@ -43,7 +43,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /YX /FD /c
-# ADD CPP /nologo /W3 /GX /O2 /D "NDEBUG" /D "ENABLE" /D "ENABLE_SLPv1" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "i386" /D "USE_PREDICATES" /YX /FD /c
+# ADD CPP /nologo /W3 /GX /O2 /D "NDEBUG" /D "ENABLE" /D "ENABLE_SLPv1" /D "_WINDOWS" /D "i386" /D "USE_PREDICATES" /D "WIN32" /D "_MBCS" /D SLP_VERSION=\"0.9.0\" /YX /FD /c
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
@@ -70,7 +70,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /YX /FD /GZ /c
-# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /D "_DEBUG" /D "ENABLE_SLPv1" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "i386" /D "USE_PREDICATES" /YX /FD /GZ /c
+# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /D "ENABLE_SLPv1" /D "_WINDOWS" /D "i386" /D "USE_PREDICATES" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D SLP_VERSION=\"0.9.0\" /YX /FD /GZ /c
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
@@ -106,15 +106,11 @@ SOURCE=..\..\common\slp_compare.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\common\slp_da.c
+SOURCE=\mpeterson\cvs\openslp\common\slp_database.c
 # End Source File
 # Begin Source File
 
 SOURCE=..\..\common\slp_linkedlist.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\common\slp_logfile.c
 # End Source File
 # Begin Source File
 
@@ -186,7 +182,7 @@ SOURCE=..\..\slpd\slpd_socket.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\slpd\slpd_v1process.c
+SOURCE=\mpeterson\cvs\openslp\slpd\slpd_v1process.c
 # End Source File
 # Begin Source File
 
@@ -214,7 +210,7 @@ SOURCE=..\..\common\slp_compare.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\common\slp_da.h
+SOURCE=\mpeterson\cvs\openslp\common\slp_database.h
 # End Source File
 # Begin Source File
 
@@ -247,6 +243,54 @@ SOURCE=..\..\common\slp_xid.h
 # Begin Source File
 
 SOURCE=..\..\slpd\slpd.h
+# End Source File
+# Begin Source File
+
+SOURCE=\mpeterson\cvs\openslp\slpd\slpd_cmdline.h
+# End Source File
+# Begin Source File
+
+SOURCE=\mpeterson\cvs\openslp\slpd\slpd_database.h
+# End Source File
+# Begin Source File
+
+SOURCE=\mpeterson\cvs\openslp\slpd\slpd_incoming.h
+# End Source File
+# Begin Source File
+
+SOURCE=\mpeterson\cvs\openslp\slpd\slpd_knownda.h
+# End Source File
+# Begin Source File
+
+SOURCE=\mpeterson\cvs\openslp\slpd\slpd_log.h
+# End Source File
+# Begin Source File
+
+SOURCE=\mpeterson\cvs\openslp\slpd\slpd_outgoing.h
+# End Source File
+# Begin Source File
+
+SOURCE=\mpeterson\cvs\openslp\slpd\slpd_predicate.h
+# End Source File
+# Begin Source File
+
+SOURCE=\mpeterson\cvs\openslp\slpd\slpd_process.h
+# End Source File
+# Begin Source File
+
+SOURCE=\mpeterson\cvs\openslp\slpd\slpd_property.h
+# End Source File
+# Begin Source File
+
+SOURCE=\mpeterson\cvs\openslp\slpd\slpd_regfile.h
+# End Source File
+# Begin Source File
+
+SOURCE=\mpeterson\cvs\openslp\slpd\slpd_socket.h
+# End Source File
+# Begin Source File
+
+SOURCE=\mpeterson\cvs\openslp\slpd\slpd_unistd.h
 # End Source File
 # Begin Source File
 
