@@ -4,7 +4,7 @@
 #
 
 SUBDIRS	= common libslpattr slpd libslp test 
-EXTRA_DIST = doc etc OpenSlp.dsp OpenSlp.dsw README.W32 
+EXTRA_DIST = doc etc win32 README.W32 
 DOC_DIR = $(prefix)/doc/openslp-$(VERSION)
 
 install-data-local:
