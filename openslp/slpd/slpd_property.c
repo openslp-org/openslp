@@ -232,9 +232,7 @@ int SLPDPropertyInit(const char* conffile)
         G_SlpdProperty.interfaces = SLPPropertyGet("net.slp.interfaces");
     }
     G_SlpdProperty.interfacesLen = strlen(G_SlpdProperty.interfaces);
-    SLPLog("Agent Interfaces = %s\n",G_SlpdProperty.interfaces);     
-
-
+    
     /*---------------------------------------------------------*/
     /* Set the value used internally as the url for this agent */
     /*---------------------------------------------------------*/
@@ -257,8 +255,7 @@ int SLPDPropertyInit(const char* conffile)
 
         free(myname);
     }
-    SLPLog("Agent URL = %s\n",G_SlpdProperty.myUrl);     
-
+    
     /*----------------------------------*/
     /* Set other values used internally */
     /*----------------------------------*/

@@ -444,7 +444,7 @@ void SLPDKnownDARegisterAll(SLPDAEntry* daentry, int immortalonly)
                 /* Only pass on local registrations of scopes supported by */
                 /* peer DA   											   */
                 /*---------------------------------------------------------*/
-                if(dbentry->islocal &&
+                if(dbentry->regtype & SLPDDATABASE_REG_LOCAL &&
                    SLPIntersectStringList(daentry->scopelistlen,
                                           daentry->scopelist,
                                           dbentry->scopelistlen,
@@ -570,7 +570,7 @@ void SLPDKnownDADeregisterAll(SLPDAEntry* daentry)
     {
         while(SLPDDatabaseEnum(&handle,&dbentry) == 0)
         {
-            if(dbentry->islocal)
+            if(dbentry->regtype & SLPDDATABASE_REG_LOCAL)
             {
                 /*-------------------------------------------------------------*/
                 /* ensure the buffer is big enough to handle the whole srvrply */

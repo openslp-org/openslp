@@ -504,7 +504,8 @@ int ProcessSrvReg(struct sockaddr_in* peeraddr,
 /* Returns: non-zero if message should be silently dropped                 */
 /*-------------------------------------------------------------------------*/
 {
-    SLPBuffer result = *sendbuf;
+    unsigned int    regtype;
+    SLPBuffer       result  = *sendbuf;
 
     /*--------------------------------------------------------------*/
     /* If errorcode is set, we can not be sure that message is good */
@@ -533,9 +534,16 @@ int ProcessSrvReg(struct sockaddr_in* peeraddr,
         /*---------------------------------*/
         /* put the service in the database */
         /*---------------------------------*/
-        errorcode = SLPDDatabaseReg(&(message->body.srvreg),
-                                    message->header.flags & SLP_FLAG_FRESH,
-                                    ISLOCAL(peeraddr->sin_addr));
+        regtype = 0;
+        if(message->header.flags & SLP_FLAG_FRESH)
+        {
+            regtype |= SLPDDATABASE_REG_FRESH;
+        }
+        if(ISLOCAL(peeraddr->sin_addr))
+        {
+            regtype |= SLPDDATABASE_REG_LOCAL;
+        }
+        errorcode = SLPDDatabaseReg(&(message->body.srvreg),regtype);
         if(errorcode > 0)
         {
             errorcode = SLP_ERROR_INVALID_REGISTRATION;

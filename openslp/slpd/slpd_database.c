@@ -97,7 +97,7 @@ void SLPDDatabaseAge(int seconds, int ageall)
         /* OK, if an entry is local and has a lifetime of 			 */
         /* SLP_LIFETIME_MAXIMUM then it must never ever ever be aged */
         /*-----------------------------------------------------------*/
-        if(!(entry->islocal && entry->lifetime == SLP_LIFETIME_MAXIMUM))
+        if(!(entry->regtype & SLPDDATABASE_REG_LOCAL && entry->lifetime == SLP_LIFETIME_MAXIMUM))
         {
             /*---------------------------------------------------------*/
             /* don't age services with lifetime > SLP_LIFETIME_MAXIMUM */
@@ -125,17 +125,15 @@ void SLPDDatabaseAge(int seconds, int ageall)
 
 
 /*=========================================================================*/
-int SLPDDatabaseReg(SLPSrvReg* srvreg,
-                    int fresh,
-                    int islocal)
+int SLPDDatabaseReg(SLPSrvReg* srvreg, unsigned int regtype)
 /* Add a service registration to the database                              */
 /*                                                                         */
 /* srvreg   -   (IN) pointer to the SLPSrvReg to be added to the database  */
 /*                                                                         */
-/* fresh    -   (IN) pass in nonzero if the registration is fresh.         */
-/*                                                                         */
-/* islocal -    (IN) pass in nonzero if the registration is local to this  */
-/*              machine                                                    */
+/* regtype  -   (IN) registration types or'ed together:                    */
+/*                   SLPDDATABASE_REG_FRESH                                */
+/*                   SLPDDATABASE_REG_LOCAL                                */
+/*                   SLPDDATABASE_REG_STATIC                               */
 /*                                                                         */
 /* Returns  -   Zero on success.  > 0 if something is wrong with srvreg    */
 /*              < 0 if out of memory                                       */
@@ -213,7 +211,7 @@ int SLPDDatabaseReg(SLPSrvReg* srvreg,
     entry->lifetime     = srvreg->urlentry.lifetime;
 
     /* is local */
-    entry->islocal      = islocal;
+    entry->regtype      = regtype;
 
     /* SrvType */
     if(entry->srvtypelen >= srvreg->srvtypelen)
@@ -590,9 +588,6 @@ int SLPDDatabaseInit(const char* regfile)
         fd = fopen(regfile,"rb");
         if(fd)
         {
-
-            SLPLog("Reading registration file %s\n",regfile);
-
             while(SLPDRegFileReadEntry(fd,&entry) != 0)
             {
                 /* Log registration */
@@ -607,6 +602,40 @@ int SLPDDatabaseInit(const char* regfile)
 
     return 0;
 }
+
+/*=========================================================================*/
+int SLPDDatabaseReInit(const char* regfile)
+/* Re-initialize the database with changed registrations from a regfile.   */
+/*                                                                         */
+/* regfile  (IN)    the regfile to register.                               */
+/*                                                                         */
+/* Returns  - zero on success or non-zero on error.                        */
+/*=========================================================================*/
+{
+    /* Delete all static registrations */
+    SLPDDatabaseEntry* del;
+    SLPDDatabaseEntry* entry = (SLPDDatabaseEntry*)G_DatabaseList.head;
+
+    /* delete all the static entries */
+    while(entry)
+    {
+        if(entry->regtype & SLPDDATABASE_REG_STATIC)
+        {
+            del = entry;
+            entry = (SLPDDatabaseEntry*) entry->listitem.next;
+            SLPDDatabaseEntryFree((SLPDDatabaseEntry*)SLPListUnlink(&G_DatabaseList,
+                                                                    (SLPListItem*)del));
+        }
+        else
+        {
+            entry = (SLPDDatabaseEntry*) entry->listitem.next;
+        }
+    }
+
+    /* reload all the static entries by calling the init function */
+    return SLPDDatabaseInit(regfile);
+}
+
 
 #ifdef DEBUG
 /*=========================================================================*/

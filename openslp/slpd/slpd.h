@@ -48,65 +48,75 @@
 /***************************************************************************/
 
 #if(!defined SLPD_H_INCLUDED)
-    #define SLPD_H_INCLUDED
+#define SLPD_H_INCLUDED
 
 /* Include platform specific headers files */
-    #ifdef WIN32
-        #include "slpd_win32.h"
-    #else
-        #include "slpd_unistd.h"
-    #endif
+#ifdef WIN32
+    #include "slpd_win32.h"
+#else
+    #include "slpd_unistd.h"
+#endif
 
-    #ifdef USE_PREDICATES
-        #include "libslpattr.h"
-        #include <assert.h>
-    #endif
+#ifdef USE_PREDICATES
+    #include "libslpattr.h"
+    #include <assert.h>
+#endif
 
 
 /* common includes */
-    #include "slp_compare.h"
-    #include "slp_buffer.h"
-    #include "slp_message.h"
-    #include "slp_logfile.h"
-    #include "slp_property.h"
-    #include "slp_linkedlist.h"
-    #include "slp_da.h"
+#include "slp_compare.h"
+#include "slp_buffer.h"
+#include "slp_message.h"
+#include "slp_logfile.h"
+#include "slp_property.h"
+#include "slp_linkedlist.h"
+#include "slp_da.h"
 
-    #if(!defined MAX_PATH)
-        #define MAX_PATH    256
-    #endif
+#if(!defined MAX_PATH)
+#define MAX_PATH    256
+#endif
 
 /*=========================================================================*/
 /* Misc constants                                                          */
 /*=========================================================================*/
-    #define SLPD_SMALLEST_MESSAGE       18   /* 18 bytes is smallest SLPv2 msg */
-    #define SLPD_MAX_SOCKETS            64   /* maximum number of sockets */
-    #define SLPD_COMFORT_SOCKETS        32   /* a comfortable number of sockets */
-    #define SLPD_CONFIG_CLOSE_CONN      900  /* max idle time of socket - 60 min*/
-    #define SLPD_AGE_INTERVAL           15   /* age every 15 seconds */
-    #define SLPD_ATTR_RECURSION_DEPTH   50
+#define SLPD_SMALLEST_MESSAGE       18   /* 18 bytes is smallest SLPv2 msg */
+#define SLPD_MAX_SOCKETS            64   /* maximum number of sockets */
+#define SLPD_COMFORT_SOCKETS        32   /* a comfortable number of sockets */
+#define SLPD_CONFIG_CLOSE_CONN      900  /* max idle time of socket - 60 min*/
+#define SLPD_AGE_INTERVAL           15   /* age every 15 seconds */
+#define SLPD_ATTR_RECURSION_DEPTH   50
 
 
 /*=========================================================================*/
 /* Values representing a type or state of a socket                         */
 /*=========================================================================*/
-    #define    SOCKET_PENDING_IO       100
-    #define    SOCKET_LISTEN           0
-    #define    SOCKET_CLOSE            1
-    #define    DATAGRAM_UNICAST        2
-    #define    DATAGRAM_MULTICAST      3
-    #define    DATAGRAM_BROADCAST      4
-    #define    STREAM_CONNECT_IDLE     5
-    #define    STREAM_CONNECT_BLOCK    6    + SOCKET_PENDING_IO
-    #define    STREAM_CONNECT_CLOSE    7    + SOCKET_PENDING_IO
-    #define    STREAM_READ             8    + SOCKET_PENDING_IO
-    #define    STREAM_READ_FIRST       9    + SOCKET_PENDING_IO
-    #define    STREAM_WRITE            10   + SOCKET_PENDING_IO
-    #define    STREAM_WRITE_FIRST      11   + SOCKET_PENDING_IO
-    #define    STREAM_WRITE_WAIT       12   + SOCKET_PENDING_IO
+#define    SOCKET_PENDING_IO       100
+#define    SOCKET_LISTEN           0
+#define    SOCKET_CLOSE            1
+#define    DATAGRAM_UNICAST        2
+#define    DATAGRAM_MULTICAST      3
+#define    DATAGRAM_BROADCAST      4
+#define    STREAM_CONNECT_IDLE     5
+#define    STREAM_CONNECT_BLOCK    6    + SOCKET_PENDING_IO
+#define    STREAM_CONNECT_CLOSE    7    + SOCKET_PENDING_IO
+#define    STREAM_READ             8    + SOCKET_PENDING_IO
+#define    STREAM_READ_FIRST       9    + SOCKET_PENDING_IO
+#define    STREAM_WRITE            10   + SOCKET_PENDING_IO
+#define    STREAM_WRITE_FIRST      11   + SOCKET_PENDING_IO
+#define    STREAM_WRITE_WAIT       12   + SOCKET_PENDING_IO
 
 
+/*=========================================================================*/
+/* Values representing a type of database registration                     */
+/*=========================================================================*/
+#define    SLPDDATABASE_REG_FRESH   0x00000001
+#define    SLPDDATABASE_REG_LOCAL   0x00000002
+#define    SLPDDATABASE_REG_STATIC  0x00000004      
+
+
+/*=========================================================================*/
 /* Global variables representing signals */
+/*=========================================================================*/
 extern int G_SIGALRM;
 extern int G_SIGTERM;
 extern int G_SIGHUP;
@@ -245,10 +255,10 @@ typedef struct _SLPDDatabaseEntry
 /*=========================================================================*/
 {
     SLPListItem         listitem;
+    unsigned int        regtype;
     char*               langtag;
     unsigned int        langtaglen;
     int                 lifetime;
-    int                 islocal;
     unsigned int        urllen;
     char*               url;
     unsigned int        scopelistlen;
@@ -283,6 +293,16 @@ int SLPDKnownDADeinit();
 /* all services.                                                           */
 /*                                                                         */
 /* returns  zero on success, Non-zero on failure                           */
+/*=========================================================================*/
+
+
+/*=========================================================================*/
+int SLPDDatabaseReInit(const char* regfile);
+/* Re-initialize the database with changed registrations from a regfile.   */
+/*                                                                         */
+/* regfile  (IN)    the regfile to register.                               */
+/*                                                                         */
+/* Returns  - zero on success or non-zero on error.                        */
 /*=========================================================================*/
 
 
@@ -338,17 +358,15 @@ int SLPDDatabaseEnum(void** handle,
 
 
 /*=========================================================================*/
-int SLPDDatabaseReg(SLPSrvReg* srvreg,
-                    int fresh,
-                    int islocal);
+int SLPDDatabaseReg(SLPSrvReg* srvreg, unsigned int regtype);
 /* Add a service registration to the database                              */
 /*                                                                         */
 /* srvreg   -   (IN) pointer to the SLPSrvReg to be added to the database  */
 /*                                                                         */
-/* fresh    -   (IN) pass in nonzero if the registration is fresh.         */
-/*                                                                         */
-/* islocal -    (IN) pass in nonzero if the registration is local to this  */
-/*              machine                                                    */
+/* regtype  -   (IN) registration types or'ed together:                    */
+/*                   SLPDDATABASE_REG_FRESH                                */
+/*                   SLPDDATABASE_REG_LOCAL                                */
+/*                   SLPDDATABASE_REG_STATIC                               */
 /*                                                                         */
 /* Returns  -   Zero on success.  > 0 if something is wrong with srvreg    */
 /*              < 0 if out of memory                                       */
@@ -362,8 +380,7 @@ int SLPDDatabaseReg(SLPSrvReg* srvreg,
 int SLPDDatabaseDeReg(SLPSrvDeReg* srvdereg);
 /* Remove a service registration from the database                         */
 /*                                                                         */
-/* regfile  -   (IN) filename of the registration file to read into the    */
-/*              database. Pass in NULL for no file.                        */
+/* srvdereg  -  (IN) pointer to the SLPSrvDeReg* to be removed             */
 /*                                                                         */
 /* Returns  -   Zero on success.  Non-zero if syntax error in registration */
 /*              file.                                                      */
