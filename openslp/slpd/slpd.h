@@ -360,15 +360,17 @@ typedef enum _SLPDSocketState
 /* Value representing a type or state of a socket                          */
 /*=========================================================================*/
 {
-    SOCKET_LISTEN       = 0,
-    DATAGRAM_UNICAST    = 1,
-    DATAGRAM_MULTICAST  = 2,
-    DATAGRAM_BROADCAST  = 3,
-    STREAM_READ         = 4,
-    STREAM_FIRST_READ   = 5,
-    STREAM_WRITE        = 6,
-    STREAM_FIRST_WRITE  = 7,
-    SOCKET_CLOSE        = 8
+    SOCKET_LISTEN           = 0,
+    DATAGRAM_UNICAST        = 1,
+    DATAGRAM_MULTICAST      = 2,
+    DATAGRAM_BROADCAST      = 3,
+    STREAM_FIRST_CONNECT    = 4,
+    STREAM_CONNECT          = 5,
+    STREAM_READ             = 6,
+    STREAM_FIRST_READ       = 7,
+    STREAM_WRITE            = 8,
+    STREAM_FIRST_WRITE      = 9,
+    SOCKET_CLOSE            = 10
 }SLPDSocketState;
 
 
@@ -478,10 +480,19 @@ void SLPDLogDATrafficMsg(const char* prefix,
 
 
 /*=========================================================================*/
-SLPDAEntry* KnownDAAddition(struct in_addr* addr,
-                            unsigned long bootstamp,
-                            const char* scopelist,
-                            int scopelistlen);
+int SLPDKnownDAInit();
+/* Initializes the KnownDA list.  Removes all entries and adds entries     */
+/* that are statically configured.                                         */
+/*                                                                         */
+/* returns  zero on success, Non-zero on failure                           */
+/*=========================================================================*/
+
+
+/*=========================================================================*/
+SLPDAEntry* SLPDKnownDAAddition(struct in_addr* addr,
+                                unsigned long bootstamp,
+                                const char* scopelist,
+                                int scopelistlen);
 /* Adds a DA to the known DA list.  If DA already exists, entry is updated */
 /*                                                                         */
 /* addr     (IN) pointer to in_addr of the DA to add                       */

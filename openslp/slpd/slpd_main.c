@@ -173,7 +173,15 @@ int Daemonize(const char* pidfile)
     return 0;
 }
 
+
+/*-------------------------------------------------------------------------*/
+void HandleStreamConnect(SLPDSocketList* list, SLPDSocket*sock)
+/*-------------------------------------------------------------------------*/
+{
+    /* TODO add a lot of stuff here */
+}
                   
+
 /*-------------------------------------------------------------------------*/
 void HandleSocketClose(SLPDSocketList* list, SLPDSocket* sock)
 /*-------------------------------------------------------------------------*/
@@ -452,11 +460,12 @@ int main(int argc, char* argv[])
     SLPLog("command line = %s\n",argv[0]);
     
     /*--------------------------------------------------*/
-    /* Initialize for the first timestamp                    */
+    /* Initialize for the first time                    */
     /*--------------------------------------------------*/
     SLPDPropertyInit(G_SlpdCommandLine.cfgfile);
     SLPDDatabaseInit(G_SlpdCommandLine.regfile);
     SLPDSocketInit(&sockets);
+    SLPDKnownDAInit();
     
     /*---------------------------*/
     /* make slpd run as a daemon */
@@ -521,6 +530,8 @@ int main(int argc, char* argv[])
     
             case STREAM_WRITE:
             case STREAM_FIRST_WRITE:
+            case STREAM_CONNECT:
+            case STREAM_FIRST_CONNECT:
                 FD_SET(sock->fd,&writefds);
                 break;
     
@@ -539,9 +550,11 @@ int main(int argc, char* argv[])
             SLPLog("*** SLPD daemon restarted            ***\n");
             SLPLog("****************************************\n");
             SLPLog("Got SIGHUP reinitializing... \n");
+            
             SLPDPropertyInit(G_SlpdCommandLine.cfgfile);
             SLPDDatabaseInit(G_SlpdCommandLine.regfile);
             SLPDSocketInit(&sockets);                
+            SLPDKnownDAInit();
             G_SIGHUP = 0;
         }
 
@@ -552,6 +565,7 @@ int main(int argc, char* argv[])
         {
             /* TODO: put call to echo net registrations here */
             /* TODO: add call to do passive DAAdvert */
+            
             SLPDDatabaseAge(SLPD_AGE_INTERVAL);
             G_SIGALRM = 0;
             alarm(SLPD_AGE_INTERVAL);
@@ -603,11 +617,25 @@ int main(int argc, char* argv[])
                     }
 
                     fdcount --;
-                } 
-
-                if(FD_ISSET(sock->fd,&writefds))
+                }
+                else if(FD_ISSET(sock->fd,&writefds))
                 {
-                    HandleStreamWrite(&sockets,sock);
+                    switch(sock->state)
+                    {
+                    case STREAM_WRITE:
+                    case STREAM_FIRST_WRITE:
+                        HandleStreamWrite(&sockets,sock);
+                        break;
+
+                    case STREAM_CONNECT:
+                    case STREAM_FIRST_CONNECT:
+                       HandleStreamConnect(&sockets,sock);
+                       break;
+                        
+                    default:
+                        break;
+                    }
+                    
                     fdcount --;
                 }   
 

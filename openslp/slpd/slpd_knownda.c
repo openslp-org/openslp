@@ -39,10 +39,22 @@ SLPDAEntry* G_KnownDAListHead = 0;
 /*=========================================================================*/
 
 /*=========================================================================*/
-SLPDAEntry* KnownDAAddition(struct in_addr* addr,
-                            unsigned long bootstamp,
-                            const char* scopelist,
-                            int scopelistlen)
+int SLPDKnownDAInit()
+/* Initializes the KnownDA list.  Removes all entries and adds entries     */
+/* that are statically configured.                                         */
+/*                                                                         */
+/* returns  zero on success, Non-zero on failure                           */
+/*=========================================================================*/
+{
+    return 0;    
+}
+
+
+/*=========================================================================*/
+SLPDAEntry* SLPDKnownDAAddition(struct in_addr* addr,
+                                unsigned long bootstamp,
+                                const char* scopelist,
+                                int scopelistlen)
 /* Adds a DA to the known DA list.  If DA already exists, entry is updated */
 /*                                                                         */
 /* addr     (IN) pointer to in_addr of the DA to add                       */

@@ -869,21 +869,22 @@ void ProcessDAAdvert(SLPDPeerInfo* peerinfo,
                 if(he)
                 {
                     /* Add the DA to a list of known DAs (ignore return)*/
-                    KnownDAAddition((struct in_addr*)(he->h_addr_list[0]),
-                                    message->body.daadvert.bootstamp,
-                                    message->body.daadvert.scopelist,
-                                    message->body.daadvert.scopelistlen);
+                    SLPDKnownDAAddition((struct in_addr*)(he->h_addr_list[0]),
+                                        message->body.daadvert.bootstamp,
+                                        message->body.daadvert.scopelist,
+                                        message->body.daadvert.scopelistlen);
                 }
                 
                 SLPFree(srvurl);
             }
             #endif
             
-            /* TODO: the following is allows for easy DA masquarading (unsafe)*/
-            KnownDAAddition(&(peerinfo->peeraddr.sin_addr), 
-                            message->body.daadvert.bootstamp,
-                            message->body.daadvert.scopelist,
-                            message->body.daadvert.scopelistlen);
+            /* TODO: the following is allows for easy DA masquarading (unsafe) */
+            /*       remove it when the above is fixed                         */
+            SLPDKnownDAAddition(&(peerinfo->peeraddr.sin_addr), 
+                                message->body.daadvert.bootstamp,
+                                message->body.daadvert.scopelist,
+                                message->body.daadvert.scopelistlen);
         }
                                    
         /* If necessary log that we received a DAAdvert */
