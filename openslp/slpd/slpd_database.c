@@ -69,6 +69,7 @@
 #include "slp_xmalloc.h"
 #include "slp_pid.h"
 #include "slp_net.h"
+#include "slpd_incoming.h"
 
 
 /*=========================================================================*/
@@ -158,6 +159,8 @@ int SLPDDatabaseReg(SLPMessage msg, SLPBuffer buf)
     SLPSrvReg*          entryreg;
     SLPSrvReg*          reg;
     int                 result;
+    SLPIfaceInfo        ifaces;
+    int                 i;
 
     /* reg is the SrvReg message being registered */
     reg = &(msg->body.srvreg);
@@ -244,7 +247,7 @@ int SLPDDatabaseReg(SLPMessage msg, SLPBuffer buf)
             /* set the source (allows for quicker aging ) */
             if ( msg->body.srvreg.source == SLP_REG_SOURCE_UNKNOWN )
             {
-                if ( SLPNetIsLocal(&(msg->peer)) )
+                if ( SLPNetIsLoopback(&(msg->peer)) )
                 {
                     msg->body.srvreg.source = SLP_REG_SOURCE_LOCAL; 
                 }
@@ -257,6 +260,20 @@ int SLPDDatabaseReg(SLPMessage msg, SLPBuffer buf)
             /* add to database */
             SLPDatabaseAdd(dh, entry);
             SLPDLogRegistration("Registration",entry);
+            
+            /* add a socket to listen for IPv6 requests */
+            if (SLPNetIsIPV6() && msg->peer.ss_family == AF_INET6) {
+                if (msg->body.srvreg.source == SLP_REG_SOURCE_LOCAL) {
+                    SLPIfaceGetInfo(G_SlpdProperty.interfaces, &ifaces, AF_INET6);
+                    for (i = 0; i < ifaces.iface_count; i++) {
+                        if (IN6_IS_ADDR_LINKLOCAL(&(((struct sockaddr_in6*) &ifaces.iface_addr[i])->sin6_addr)))
+                            SLPDIncomingAddService(msg->body.srvreg.srvtype, msg->body.srvreg.srvtypelen, (struct sockaddr_in6*) &ifaces.iface_addr[i]);
+                    }
+                }
+                else {
+                    SLPDIncomingAddService(msg->body.srvreg.srvtype, msg->body.srvreg.srvtypelen, (struct sockaddr_in6*) &msg->peer);
+                }
+            }
 
             /* SUCCESS! */
             result = 0;
@@ -290,6 +307,8 @@ int SLPDDatabaseDeReg(SLPMessage msg)
     SLPDatabaseEntry*   entry;
     SLPSrvReg*          entryreg;
     SLPSrvDeReg*        dereg;
+    char                srvtype[MAX_HOST_NAME];
+    int                 srvtypelen;
 
     dh = SLPDatabaseOpen(&G_SlpdDatabase.database);
     if ( dh )
@@ -347,9 +366,14 @@ int SLPDDatabaseDeReg(SLPMessage msg)
                         return SLP_ERROR_AUTHENTICATION_FAILED;
                     }
 #endif                    
+                    /* save the srvtype for later */
+                    strncpy(srvtype, entryreg->srvtype, entryreg->srvtypelen);
+                    srvtypelen = entryreg->srvtypelen;
+
                     /* remove the registration from the database */
                     SLPDLogRegistration("Deregistration",entry);
-		    SLPDatabaseRemove(dh,entry);
+		            SLPDatabaseRemove(dh,entry);
+
                     break;
                 }
             }
@@ -357,7 +381,40 @@ int SLPDDatabaseDeReg(SLPMessage msg)
 
         SLPDatabaseClose(dh);
 
-        if ( entry==NULL )
+        if ( entry!=NULL )
+        {
+
+            /* check to see if we can stop listening for service requests for this service */
+            dh = SLPDatabaseOpen(&G_SlpdDatabase.database);
+            if (dh)
+            {
+                while (1)
+                {
+                    entry = SLPDatabaseEnum(dh);
+                    if ( entry == NULL ) break;
+
+                    entryreg = &(entry->msg->body.srvreg);
+
+                    if ( SLPCompareString(entryreg->srvtypelen,
+                                          entryreg->srvtype,
+                                          srvtypelen,
+                                          srvtype) == 0 )
+                    {
+                        break;
+                    }
+                }
+            }
+
+            SLPDatabaseClose(dh);
+
+            /* okay, remove the listening sockets */
+            if ( entry == NULL )
+            {
+                SLPDIncomingRemoveService(srvtype, srvtypelen);
+            }
+
+        }
+        else
         {
             return SLP_ERROR_INVALID_REGISTRATION;
         }

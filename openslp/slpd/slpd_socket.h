@@ -98,6 +98,7 @@ typedef struct _SLPDSocket
     time_t                  age;    /* in seconds */
     int                     state;
     struct sockaddr_storage peeraddr;
+    struct sockaddr_storage mcastaddr;
 
     /* Incoming socket stuff */
     SLPBuffer               recvbuf;
@@ -130,6 +131,18 @@ SLPDSocket* SLPDSocketCreateListen(struct sockaddr_storage* peeraddr);
 /*                                                                          */
 /* Returns: A listening socket. SLPDSocket->state will be set to            */
 /*          SOCKET_LISTEN.   Returns NULL on error                          */
+/*==========================================================================*/
+
+
+/*==========================================================================*/
+int SLPDSocketIsMcastOn(SLPDSocket* sock, struct sockaddr_storage* addr);
+/*                                                                          */
+/* sock - (IN) the socket to check                                          */
+/*                                                                          */
+/* addr - (IN) the address to check                                         */
+/*                                                                          */
+/* Returns: non-zero if the socket is listening on that address.            */
+/*          Zero, otherwise.                                                */
 /*==========================================================================*/
 
 

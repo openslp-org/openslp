@@ -160,14 +160,19 @@ int SLPDPropertyInit(const char* conffile)
     /* Set the value used internally as the url for this agent */
     /*---------------------------------------------------------*/
     /* 27 is the size of "service:directory-agent://(NULL)" */
-    //// need to do this for v4 and v6... need a new property :(
-    if(SLPNetGetThisHostname(myname,sizeof(myname),1,family) == 0)
-    {
-        /* if myname is an IPv6 address, wrap it with '[' and ']' */
+    myname[0] = '\0';
+    if (SLPPropertyGet("net.slp.hostName"))
+        strncpy(myname, SLPPropertyGet("net.slp.hostName"), sizeof(myname));
+    else
+        gethostname(myname, sizeof(myname));
+    
+    /* test length of myname... VxWorks and possibly other OSes can have 0-length hostnames */
+    myname_len = strlen(myname);
+    if (myname_len > 0) {
+        /* if myname happens to be an IPv6 address, wrap it with '[' and ']' */
         myaddr_check = inet_pton(AF_INET6, myname, &myaddr);
         if (myaddr_check == 1)
         {
-            myname_len = strlen(myname);
             if (myname_len < MAX_HOST_NAME - 1)   /* make room for the null terminator */
             {
                 for (i = myname_len; i > 0; i--)
@@ -189,7 +194,7 @@ int SLPDPropertyInit(const char* conffile)
         }
         strcat(myurl,"://");
         strcat(myurl,myname);
-        
+
         SLPPropertySet("net.slp.agentUrl",myurl);
 
         G_SlpdProperty.myUrl = SLPPropertyGet("net.slp.agentUrl");

@@ -175,7 +175,7 @@ int JoinSLPMulticastGroup(int family,
         memcpy(&mreq6.ipv6mr_multiaddr, &(((struct sockaddr_in6*) maddr)->sin6_addr), sizeof(struct in6_addr));
 
         /* join with specified interface */
-        mreq6.ipv6mr_interface = 0;
+        mreq6.ipv6mr_interface = ((struct sockaddr_in6*) addr)->sin6_scope_id;
         return setsockopt(sockfd,
                           IPPROTO_IPV6,
                           IPV6_JOIN_GROUP,
@@ -277,10 +277,10 @@ int BindSocketToInetAddr(int family, int sock, struct sockaddr_storage* addr)
         {
             addr = &temp_addr;
             addr->ss_family = AF_INET6;
+            ((struct sockaddr_in6*) addr)->sin6_scope_id = 0;
             memcpy(&(((struct sockaddr_in6*) addr)->sin6_addr), &in6addr_any, sizeof(struct in6_addr));
         }
         ((struct sockaddr_in6*) addr)->sin6_port = htons(SLP_RESERVED_PORT);
-        ((struct sockaddr_in6*) addr)->sin6_scope_id = 0;
     }
 
     setsockopt(sock,SOL_SOCKET,SO_REUSEADDR,(const char *)&reuse,sizeof(reuse));
@@ -293,6 +293,9 @@ int BindSocketToInetAddr(int family, int sock, struct sockaddr_storage* addr)
         lowat = 18;
         setsockopt(sock,SOL_SOCKET,SO_RCVLOWAT,&lowat,sizeof(lowat));
         setsockopt(sock,SOL_SOCKET,SO_SNDLOWAT,&lowat,sizeof(lowat));
+    }
+    else {
+        printf("Error was %d\n", WSAGetLastError());
     }
 
     return result;
@@ -323,6 +326,7 @@ int BindSocketToLoopback(int family, int sock)
     {
         ((struct sockaddr_in6*) &loaddr)->sin6_family = AF_INET6;
         memcpy(&(((struct sockaddr_in6*) &loaddr)->sin6_addr), &in6addr_loopback, sizeof(struct in6_addr));
+        ((struct sockaddr_in6*) &loaddr)->sin6_scope_id = 0;
         return BindSocketToInetAddr(AF_INET6, sock,&loaddr);
     }
     else
@@ -524,6 +528,9 @@ SLPDSocket* SLPDSocketCreateBoundDatagram(struct sockaddr_storage* myaddr,
                 case DATAGRAM_MULTICAST:
                     if(JoinSLPMulticastGroup(peeraddr->ss_family, sock->fd, peeraddr, myaddr) == 0)
                     {
+                        /* store mcast address */
+                        memcpy(&(sock->mcastaddr), peeraddr, sizeof(struct sockaddr_storage));
+
                         sock->state = DATAGRAM_MULTICAST;
                         goto SUCCESS;
                     }
@@ -599,7 +606,7 @@ SLPDSocket* SLPDSocketCreateListen(struct sockaddr_storage* peeraddr)
                     fcntl(sock->fd,F_SETFL, fdflags | O_NONBLOCK);
 #endif        
                     sock->state = SOCKET_LISTEN;
-
+                    
                     return sock;
                 }
             }
@@ -614,6 +621,33 @@ SLPDSocket* SLPDSocketCreateListen(struct sockaddr_storage* peeraddr)
     return 0;
 }
 
+/*==========================================================================*/
+int SLPDSocketIsMcastOn(SLPDSocket* sock, struct sockaddr_storage* addr)
+/*                                                                          */
+/* sock - (IN) the socket to check                                          */
+/*                                                                          */
+/* addr - (IN) the address to check                                         */
+/*                                                                          */
+/* Returns: non-zero if the socket is listening on that address.            */
+/*          Zero, otherwise.                                                */
+/*==========================================================================*/
+{
+    switch (sock->mcastaddr.ss_family) {
+        case AF_INET:
+            if (memcmp(&(((struct sockaddr_in*) &sock->mcastaddr)->sin_addr), &(((struct sockaddr_in*) addr)->sin_addr), sizeof(struct in_addr)) == 0)
+                return 1;
+            else
+                return 0;
+        case AF_INET6:
+            if (memcmp(&(((struct sockaddr_in6*) &sock->mcastaddr)->sin6_addr), &(((struct sockaddr_in6*) addr)->sin6_addr), sizeof(struct in6_addr)) == 0)
+                return 1;
+            else
+                return 0;
+        default:
+            /* only IPv4 and IPv6 are supported */
+            return 0;
+    }
+}
 
 /*==========================================================================*/
 SLPDSocket* SLPDSocketCreateConnected(struct sockaddr_storage* addr)

@@ -185,7 +185,7 @@ int ProcessDASrvRqst(SLPMessage message,
     /* Special case for when libslp asks slpd (through the loopback) about */
     /* a known DAs. Fill sendbuf with DAAdverts from all known DAs.        */
     /*---------------------------------------------------------------------*/
-    if (SLPNetIsLocal(&(message->peer)))
+    if (SLPNetIsLoopback(&(message->peer)))
     {
         /* TODO: be smarter about how much memory is allocated here! */
         /* 4096 may not be big enough to handle all DAAdverts        */
@@ -631,7 +631,7 @@ int ProcessSrvReg(SLPMessage message,
             /* TRICKY: Remember the recvbuf was duplicated back in          */
             /*         SLPDProcessMessage()                                 */
 
-            if (SLPNetIsLocal(&(message->peer)))
+            if (SLPNetIsLoopback(&(message->peer)))
             {
                 message->body.srvreg.source= SLP_REG_SOURCE_LOCAL;
             }

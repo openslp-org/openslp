@@ -423,6 +423,115 @@ void SLPDIncomingAge(time_t seconds)
 
 
 /*=========================================================================*/
+int SLPDIncomingAddService(const char * srvtype, int len, struct sockaddr_storage* localaddr)
+/* Add sockets that will listen for service requests of the given type.    */
+/* This function only works for IPv6.                                      */
+/*                                                                         */
+/* Returns  Zero on success non-zero on error                              */
+/*=========================================================================*/
+{
+    struct sockaddr_storage srvaddr;
+    SLPDSocket*             sock;
+    int                     res;
+    char                    addr_str[INET6_ADDRSTRLEN];
+
+    /* create a listening socket for node-local service request queries */
+    res = SLPNetGetSrvMcastAddr(srvtype, len, SLP_SCOPE_NODE_LOCAL, &srvaddr);
+    if (res != 0) return -1;
+
+    sock =  SLPDSocketCreateBoundDatagram(localaddr,
+                                          &srvaddr,
+                                          DATAGRAM_MULTICAST);
+    if (sock)
+    {
+        SLPListLinkTail(&G_IncomingSocketList,(SLPListItem*)sock);
+        SLPDLog("Listening on %s...\n", inet_ntop(AF_INET6, &(((struct sockaddr_in6*) &srvaddr)->sin6_addr), addr_str, sizeof(addr_str)));
+    }
+    else
+    {
+        SLPDLog("NETWORK_ERROR - Could not listen on %s.\n", inet_ntop(AF_INET6, &(((struct sockaddr_in6*) &srvaddr)->sin6_addr), addr_str, sizeof(addr_str)));
+        SLPDLog("INTERNAL_ERROR - No SLPLIB support will be available\n");
+    }
+
+    /* create a listening socket for link-local service request queries */
+    res = SLPNetGetSrvMcastAddr(srvtype, len, SLP_SCOPE_LINK_LOCAL, &srvaddr);
+    if (res != 0) return -1;
+
+    sock =  SLPDSocketCreateBoundDatagram(localaddr,
+                                          &srvaddr,
+                                          DATAGRAM_MULTICAST);
+    if (sock)
+    {
+        SLPListLinkTail(&G_IncomingSocketList,(SLPListItem*)sock);
+        SLPDLog("Listening on %s...\n", inet_ntop(AF_INET6, &(((struct sockaddr_in6*) &srvaddr)->sin6_addr), addr_str, sizeof(addr_str)));
+    }
+    else
+    {
+        SLPDLog("NETWORK_ERROR - Could not listen on %s.\n", inet_ntop(AF_INET6, &(((struct sockaddr_in6*) &srvaddr)->sin6_addr), addr_str, sizeof(addr_str)));
+        SLPDLog("INTERNAL_ERROR - No SLPLIB support will be available\n");
+    }
+
+    /* create a listening socket for site-local service request queries */
+    res = SLPNetGetSrvMcastAddr(srvtype, len, SLP_SCOPE_SITE_LOCAL, &srvaddr);
+    if (res != 0) return -1;
+
+    sock =  SLPDSocketCreateBoundDatagram(localaddr,
+                                          &srvaddr,
+                                          DATAGRAM_MULTICAST);
+    if (sock)
+    {
+        SLPListLinkTail(&G_IncomingSocketList,(SLPListItem*)sock);
+        SLPDLog("Listening on %s...\n", inet_ntop(AF_INET6, &(((struct sockaddr_in6*) &srvaddr)->sin6_addr), addr_str, sizeof(addr_str)));
+    }
+    else
+    {
+        SLPDLog("NETWORK_ERROR - Could not listen on %s.\n", inet_ntop(AF_INET6, &(((struct sockaddr_in6*) &srvaddr)->sin6_addr), addr_str, sizeof(addr_str)));
+        SLPDLog("INTERNAL_ERROR - No SLPLIB support will be available\n");
+    }
+
+    return 0;
+}
+
+
+/*=========================================================================*/
+int SLPDIncomingRemoveService(const char * srvtype, int len)
+/* Remove the sockets that listen for service requests of the given type.  */
+/* This function only works for IPv6.                                      */
+/*                                                                         */
+/* Returns  Zero on success non-zero on error                              */
+/*=========================================================================*/
+{
+    SLPDSocket*             sock = NULL;
+    SLPDSocket*             sock_next = (SLPDSocket*)G_IncomingSocketList.head;
+    struct sockaddr_storage srvaddr_node;
+    struct sockaddr_storage srvaddr_link;
+    struct sockaddr_storage srvaddr_site;
+    int                     res;
+
+    while (sock_next)
+    {
+        sock = sock_next;
+        sock_next = (SLPDSocket*)sock->listitem.next;
+
+        res = SLPNetGetSrvMcastAddr(srvtype, len, SLP_SCOPE_SITE_LOCAL, &srvaddr_node);
+        if (res != 0) return -1;
+        res = SLPNetGetSrvMcastAddr(srvtype, len, SLP_SCOPE_SITE_LOCAL, &srvaddr_link);
+        if (res != 0) return -1;
+        res = SLPNetGetSrvMcastAddr(srvtype, len, SLP_SCOPE_SITE_LOCAL, &srvaddr_site);
+        if (res != 0) return -1;
+
+        if (sock && (SLPDSocketIsMcastOn(sock, &srvaddr_node) || SLPDSocketIsMcastOn(sock, &srvaddr_link) || SLPDSocketIsMcastOn(sock, &srvaddr_site)))
+        {
+            SLPDSocketFree((SLPDSocket*)SLPListUnlink(&G_IncomingSocketList,(SLPListItem*)sock));
+            sock = NULL;
+        }
+    } 
+
+    return 0;
+}
+
+
+/*=========================================================================*/
 int SLPDIncomingInit()
 /* Initialize incoming socket list to have appropriate sockets for all     */
 /* network interfaces                                                      */
@@ -430,10 +539,10 @@ int SLPDIncomingInit()
 /* Returns  Zero on success non-zero on error                              */
 /*=========================================================================*/
 {
-    char*                   begin = NULL;
-    char*                   beginSave = NULL;
-    char*                   end = NULL;
-    int                     finished;
+//    char*                   begin = NULL;
+//    char*                   beginSave = NULL;
+//    char*                   end = NULL;
+//    int                     finished;
     struct sockaddr_storage myaddr;
     struct sockaddr_storage mcast4addr;
     struct sockaddr_storage bcast4addr;
@@ -447,6 +556,8 @@ int SLPDIncomingInit()
     struct sockaddr_storage srvlocda6addr_site;
     SLPDSocket*             sock;
     char                    addr_str[INET6_ADDRSTRLEN];
+    SLPIfaceInfo            ifaces;
+    int                     i;
 
     /*------------------------------------------------------------*/
     /* First, remove all of the sockets that might be in the list */
@@ -475,24 +586,31 @@ int SLPDIncomingInit()
     /*-------------------------------------------------------*/
     lo6addr.ss_family = AF_INET6;
     ((struct sockaddr_in6*) &lo6addr)->sin6_family = AF_INET6;
+    ((struct sockaddr_in6*) &lo6addr)->sin6_scope_id = 0;
     memcpy(&(((struct sockaddr_in6*) &lo6addr)->sin6_addr), &in6addr_loopback, sizeof(struct in6_addr));
     srvloc6addr_node.ss_family = AF_INET6;
     ((struct sockaddr_in6*) &srvloc6addr_node)->sin6_family = AF_INET6;
+    ((struct sockaddr_in6*) &lo6addr)->sin6_scope_id = 0;
     memcpy(&(((struct sockaddr_in6*) &srvloc6addr_node)->sin6_addr), &in6addr_srvloc_node, sizeof(struct in6_addr));
     srvloc6addr_link.ss_family = AF_INET6;
     ((struct sockaddr_in6*) &srvloc6addr_link)->sin6_family = AF_INET6;
+    ((struct sockaddr_in6*) &lo6addr)->sin6_scope_id = 0;
     memcpy(&(((struct sockaddr_in6*) &srvloc6addr_link)->sin6_addr), &in6addr_srvloc_link, sizeof(struct in6_addr));
     srvloc6addr_site.ss_family = AF_INET6;
     ((struct sockaddr_in6*) &srvloc6addr_site)->sin6_family = AF_INET6;
+    ((struct sockaddr_in6*) &lo6addr)->sin6_scope_id = 0;
     memcpy(&(((struct sockaddr_in6*) &srvloc6addr_site)->sin6_addr), &in6addr_srvloc_site, sizeof(struct in6_addr));
     srvlocda6addr_node.ss_family = AF_INET6;
     ((struct sockaddr_in6*) &srvlocda6addr_node)->sin6_family = AF_INET6;
+    ((struct sockaddr_in6*) &lo6addr)->sin6_scope_id = 0;
     memcpy(&(((struct sockaddr_in6*) &srvlocda6addr_node)->sin6_addr), &in6addr_srvlocda_node, sizeof(struct in6_addr));
     srvlocda6addr_link.ss_family = AF_INET6;
     ((struct sockaddr_in6*) &srvlocda6addr_link)->sin6_family = AF_INET6;
+    ((struct sockaddr_in6*) &lo6addr)->sin6_scope_id = 0;
     memcpy(&(((struct sockaddr_in6*) &srvlocda6addr_link)->sin6_addr), &in6addr_srvlocda_link, sizeof(struct in6_addr));
     srvlocda6addr_site.ss_family = AF_INET6;
     ((struct sockaddr_in6*) &srvlocda6addr_site)->sin6_family = AF_INET6;
+    ((struct sockaddr_in6*) &lo6addr)->sin6_scope_id = 0;
     memcpy(&(((struct sockaddr_in6*) &srvlocda6addr_site)->sin6_addr), &in6addr_srvlocda_site, sizeof(struct in6_addr));
 
     /*--------------------------------------------------------------------*/
@@ -536,32 +654,39 @@ int SLPDIncomingInit()
 
     if (G_SlpdProperty.interfaces != NULL)
     {
-        begin = xstrdup((char *) G_SlpdProperty.interfaces);
-        beginSave = begin;  /* save pointer for free() operation later */
-        end = begin;
-        finished = 0;
+        SLPIfaceGetInfo(G_SlpdProperty.interfaces, &ifaces, AF_UNSPEC);
+        
+//        begin = xstrdup((char *) G_SlpdProperty.interfaces);
+//        beginSave = begin;  /* save pointer for free() operation later */
+//        end = begin;
+//        finished = 0;
     }
     else
     {
-        finished = 1; /* if no interface is defined,       */
-                      /* don't even enter the parsing loop */
+        ifaces.iface_count = 0;
+//        finished = 1; /* if no interface is defined,       */
+//                      /* don't even enter the parsing loop */
     }
 
-    for (; (finished == 0); begin = ++end)
-    {
-        while (*end && *end != ',') end ++;
-        if (*end == 0) finished = 1;
-        *end = 0;                      /* Terminate string. */
-        if (end <= begin) continue;    /* Skip empty entries */
+//    for (; (finished == 0); begin = ++end)
+//    {
+//        while (*end && *end != ',') end ++;
+//        if (*end == 0) finished = 1;
+//        *end = 0;                      /* Terminate string. */
+//        if (end <= begin) continue;    /* Skip empty entries */
+//
+//        /* begin now points to a null terminated ip address string */
+//        if (inet_pton(AF_INET6, begin, &(((struct sockaddr_in6*) &myaddr)->sin6_addr)) == 1) {
+//            myaddr.ss_family = AF_INET6;
+//        }
+//        else {
+//            myaddr.ss_family = AF_INET;
+//            inet_pton(AF_INET, begin, &(((struct sockaddr_in*) &myaddr)->sin_addr));
+//        }
 
-        /* begin now points to a null terminated ip address string */
-        if (inet_pton(AF_INET6, begin, &(((struct sockaddr_in6*) &myaddr)->sin6_addr)) == 1) {
-            myaddr.ss_family = AF_INET6;
-        }
-        else {
-            myaddr.ss_family = AF_INET;
-            inet_pton(AF_INET, begin, &(((struct sockaddr_in*) &myaddr)->sin_addr));
-        }
+    for (i = 0; i < ifaces.iface_count; i++)
+    {
+        memcpy(&myaddr, &ifaces.iface_addr[i], sizeof(struct sockaddr_storage));
 
         /*------------------------------------------------*/
         /* Create TCP_LISTEN that will handle unicast TCP */
@@ -572,7 +697,6 @@ int SLPDIncomingInit()
             SLPListLinkTail(&G_IncomingSocketList,(SLPListItem*)sock);
             SLPDLog("Listening on %s ...\n",SLPNetSockAddrStorageToString(&myaddr, addr_str, sizeof(addr_str)));
         }
-
 
         /*----------------------------------------------------------------*/
         /* Create socket that will handle multicast UDP.                  */
@@ -718,7 +842,7 @@ int SLPDIncomingInit()
         }
     }     
 
-    if (beginSave) xfree(beginSave);
+//    if (beginSave) xfree(beginSave);
 
 
     /*--------------------------------------------------------*/
