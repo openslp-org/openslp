@@ -382,7 +382,7 @@ int Daemonize(const char* pidfile)
     /*----------------*/
     /* TODO: why do the following lines mess up my signal handlers? */
     pwent = getpwnam("daemon"); 
-    if(pwent)int chdir(const char *path);
+    if(pwent)
     {
         if(setgroups(1, &pwent->pw_gid) < 0 ||
            setgid(pwent->pw_gid) < 0 ||
