@@ -8,6 +8,9 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 
+08/04/00 rganesan@myrealbox.com
+Documentation updates - codeset converted to iso-8859-1 and spell checked.
+
 08/04/00 david.mccormack@ottawa.com
 Modified slpd command line parameter parsing to print version and help 
 information
