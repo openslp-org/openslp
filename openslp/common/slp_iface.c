@@ -128,6 +128,11 @@ int SLPIfaceGetInfo(const char* useifaces,
     #endif
     {
         perror("ioctl failed");
+        #ifdef _WIN32
+        closesocket(fd);
+        #else
+        close(fd);
+        #endif
         return 1;
     }
 
@@ -182,6 +187,12 @@ int SLPIfaceGetInfo(const char* useifaces,
             }
         }
     }
+
+    #ifdef _WIN32
+    closesocket(fd);
+    #else
+    close(fd);
+    #endif
 
     return 0;
 }
