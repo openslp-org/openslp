@@ -840,6 +840,7 @@ void ProcessDAAdvert(SLPDPeerInfo* peerinfo,
                      SLPBuffer result)
 /*-------------------------------------------------------------------------*/
 {
+
     /* TODO: enable the following when we link to libslp and        */
     /* have SLPParseSrvURL()                                        */
     #if(0)
