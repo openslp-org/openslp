@@ -175,7 +175,7 @@ RESPOND:
         if (errorcode != 0)
         {
             result->end = result->start;
-            return errorcode;   
+            goto FINISHED;   
         }
     }
 
@@ -323,7 +323,7 @@ int ProcessSrvRqst(SLPDPeerInfo* peerinfo,
                          "service:directory-agent") == 0)
     {
         errorcode = ProcessDASrvRqst(peerinfo, message, sendbuf, errorcode);
-        goto FINISHED;
+        return errorcode;
     }
     if (SLPCompareString(message->body.srvrqst.srvtypelen,
                          message->body.srvrqst.srvtype,
@@ -331,7 +331,7 @@ int ProcessSrvRqst(SLPDPeerInfo* peerinfo,
                          "service:service-agent") == 0)
     {
         errorcode = ProcessSASrvRqst(peerinfo, message, sendbuf, errorcode);
-        goto FINISHED;
+        return errorcode;
     }
 
     /*------------------------------------*/
