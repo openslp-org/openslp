@@ -2,9 +2,8 @@
 #define SLPD_PREDICATE_H_INCLUDED
 
 #include <libslpattr.h>
-#include <slp.h>
 
-typedef void * SLPDPredicate ; 
+typedef void * SLPDPredicate; 
 
 SLPError SLPDPredicateAlloc(const char *predicate, size_t len, SLPDPredicate *pred);
 void SLPDPredicateFree(SLPDPredicate *victim);
