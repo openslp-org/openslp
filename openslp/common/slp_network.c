@@ -136,10 +136,7 @@ int SLPNetworkConnectToMulticast(struct sockaddr_in* peeraddr,
     mysockaddr.sin_port = 0;
 #endif
 
-
-
-
-    /* setup multicast socket */
+   /* setup multicast socket */
     sockfd = socket(AF_INET,SOCK_DGRAM,0);
     if(sockfd >= 0)
     {
@@ -165,21 +162,27 @@ int SLPNetworkConnectToMulticast(struct sockaddr_in* peeraddr,
                       (char *)&TTLArg,
                       sizeof(TTLArg)))
         {
-            return -1;
+            goto FAILURE;
         }
 #else
         if(setsockopt(sockfd,IPPROTO_IP,IP_MULTICAST_TTL,&optarg,sizeof(optarg)))
         {
-            return -1;
+            goto FAILURE;
         }
         if(iface && setsockopt(sockfd,IPPROTO_IP,IP_MULTICAST_IF,iface,sizeof(*iface)))
         {
-            return -1;
+            goto FAILURE;
         }
 #endif
     }
 
     return sockfd;
+   
+FAILURE:
+   
+    close(sockfd);
+    
+    return -1;   
 }
 
 /*=========================================================================*/ 
