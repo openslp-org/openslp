@@ -808,12 +808,12 @@ sysconfdir='${RPM_PREFIX}/etc'
 if test "${enable_debug+set}" = set; then
   enableval="$enable_debug"
   case "${enableval}" in
-  yes) CFLAGS='-g -ggdb -DDEBUG' ;;
-  no)  CFLAGS=;;
+  yes) CFLAGS='-g -ggdb -DDEBUG -Wall' ;;
+  no)  CFLAGS+=;;
   *) { echo "configure: error: bad value ${enableval} for --enable-debug" 1>&2; exit 1; } ;;
 esac
 else
-  debug=false
+  CFLAGS='-Wall -O3'
 fi
 
 
