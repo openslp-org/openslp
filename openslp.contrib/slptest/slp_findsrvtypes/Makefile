@@ -19,7 +19,7 @@
 
 include ../SETUP.mk
 BINARY = slp_findsrvtypes
-INCLUDES = -I$(SLPROOT)/libslp
+INCLUDES = -I$(SLPROOT)/libslp -I$(SLPROOT)/common
 
 SOURCES = slp_findsrvtypes.c ../slp_testcommon.h
 LDADD = $(SLPROOT)/libslp/libslp.la

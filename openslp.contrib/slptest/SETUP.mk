@@ -1,1 +1,1 @@
-SLPROOT=/home/local/openslp-0.9.0
+SLPROOT=/home/local/openslp-0.9.1-pre1

@@ -2,13 +2,14 @@
 /*                                                                         */
 /* Project:     OpenSLP automated test suite                               */
 /*                                                                         */
-/* File:        slp_findsrvtypes.c                                         */
+/* File:        slp_reg.c                                                  */
 /*                                                                         */
-/* Abstract:    Tests SLPFindSrvTypes API                                  */
+/* Abstract:    Tests SLPReg API                                           */
 /*                                                                         */
 /* Requires:    OpenSLP installation                                       */
 /*                                                                         */
 /* Author(s):   Cody Batt   <cbatt@caldera.com>                            */
+/*              John Bowers <jbowers@caldera.com                           */
 /*                                                                         */
 /* Copyright (c) 1995, 2001  Caldera Systems, Inc.                         */
 /*                                                                         */
@@ -101,11 +102,11 @@ int doTest(SLPHandle hslp,
         myCookie->retval=result;
 
     if ( myCookie->retval == myCookie->expectedRetval ) {
-        printf("SLPFindSrvTypes\t(%*s): %10s\n", 
+        printf("SLPReg   \t(%*s): %10s\n", 
                TEST_TYPE_PADDING, testid, "PASSED");
     }
     else {
-        printf("SLPFindSrvTypes\t(%*s): %12s\n", 
+        printf("SLPReg   \t(%*s): %12s\n", 
                TEST_TYPE_PADDING, testid, "**FAILED**");
         printf("\tReturn Value:\t\t%s\n\tExpected:\t\t%s",errcodeToStr(myCookie->retval),errcodeToStr(myCookie->expectedRetval)); 
         printf("\n\tMessage:\t\t%s\n",myCookie->msg);

@@ -135,7 +135,7 @@ int main(int argc, char* argv[])
         setupResultCookie(&resultCookie, NUM_SCOPE_STRS, scope_string,
                           -19);
         result = doTest(hslp, 
-                        "service:slp_test_scopeydopey?", 
+                        "service:slp_test_scopeydopey", 
                         "someunknownandneverusedscope", 
                         0, 
                         "non-existent service", 

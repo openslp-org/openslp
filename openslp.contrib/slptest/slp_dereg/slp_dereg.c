@@ -2,9 +2,9 @@
 /*                                                                         */
 /* Project:     OpenSLP automated test suite                               */
 /*                                                                         */
-/* File:        slp_findsrvtypes.c                                         */
+/* File:        slp_dereg.c                                                */
 /*                                                                         */
-/* Abstract:    Tests SLPFindSrvTypes API                                  */
+/* Abstract:    Tests SLPDereg API                                         */
 /*                                                                         */
 /* Requires:    OpenSLP installation                                       */
 /*                                                                         */
@@ -64,11 +64,11 @@ int doTest(SLPHandle hslp,
                      cookie ); 
     
     if ( myCookie->retval == myCookie->retval ) {
-        printf("SLPFindSrvTypes\t(%*s): %10s\n", 
+        printf("SLPDereg\t(%*s): %10s\n", 
                TEST_TYPE_PADDING, testid, "PASSED");
     }
     else {
-        printf("SLPFindSrvTypes\t(%*s): %12s\n", 
+        printf("SLPDereg\t(%*s): %12s\n", 
                TEST_TYPE_PADDING, testid, "**FAILED**");
         printf("\tReturn Value:\t\t%s\n\tExpected:\t\t%s\n\tMessage:\t\t%s\n", 
                errcodeToStr(myCookie->retval), 
