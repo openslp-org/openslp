@@ -258,7 +258,8 @@ int test_string(SLPAttributes attr, char *name, ...) {
 	return 1;	
 }
 
-
+/* Forward declare. */
+int find_value_list_end(char *value, int *value_count, SLPType *type, int *unescaped_len, char **end);
 
 int main(int argc, char *argv[]) {
 	SLPAttributes attr;
@@ -272,7 +273,7 @@ int main(int argc, char *argv[]) {
 	long *int_arr;
 	char **str_arr;
 	SLPType type;
-	char *tag, *str2;
+	char *tag;
 	SLPAttrIterator iter;
 	
 	len = strlen(data);
@@ -280,7 +281,115 @@ int main(int argc, char *argv[]) {
 	
 	printf("Predicates enabled. Performing full test for libslpattr.c\n");
 	
-	/****** Test Simple boolean set and get. *****/
+	/***** Test string parsing. *****/
+	{
+		int int_err; /* Somewhere to store integer return values. */
+		int value_count; 
+		SLPType type;
+		int unescaped_len;
+		char *cur;
+		char *val;
+
+		/*** Valid case: Single string. ***/
+		val = "value";
+		int_err = find_value_list_end(val, &value_count, &type, &unescaped_len, &cur);
+		assert(int_err == 1);
+		assert(value_count == 1);
+		assert(type == SLP_STRING);
+		assert(unescaped_len == strlen(val));
+		assert(cur == val + (strlen(val)));
+
+
+		/*** Valid case: paired string. ***/
+		val = "value,12";
+		int_err = find_value_list_end(val, &value_count, &type, &unescaped_len, &cur);
+		assert(int_err == 1);
+		assert(value_count == 2);
+		assert(type == SLP_STRING);
+		assert(unescaped_len == strlen(val) - 1);
+		assert(cur == val + (strlen(val)));
+
+
+		/*** Valid case: tripled string. ***/
+		val = "2,value,12";
+		int_err = find_value_list_end(val, &value_count, &type, &unescaped_len, &cur);
+		assert(int_err == 1);
+		assert(value_count == 3);
+		assert(type == SLP_STRING);
+		assert(unescaped_len == strlen(val) - 2);
+		assert(cur == val + (strlen(val)));
+
+
+		/*** Valid case: tripled string. ***/
+		val = "2,v,12";
+		int_err = find_value_list_end(val, &value_count, &type, &unescaped_len, &cur);
+		assert(int_err == 1);
+		assert(value_count == 3);
+		assert(type == SLP_STRING);
+		assert(unescaped_len == strlen(val) - 2);
+		assert(cur == val + (strlen(val)));
+
+
+		/*** Valid case: boolean. ***/
+		val = "true";
+		int_err = find_value_list_end(val, &value_count, &type, &unescaped_len, &cur);
+		assert(int_err == 1);
+		assert(value_count == 1);
+		assert(type == SLP_BOOLEAN);
+		assert(cur == val + (strlen(val)));
+
+
+		/*** Valid case: boolean. ***/
+		val = "false";
+		int_err = find_value_list_end(val, &value_count, &type, &unescaped_len, &cur);
+		assert(int_err == 1);
+		assert(value_count == 1);
+		assert(type == SLP_BOOLEAN);
+		assert(cur == val + (strlen(val)));
+
+
+		/*** Valid case: paired string (devolve from int to str). ***/
+		val = "false,true";
+		int_err = find_value_list_end(val, &value_count, &type, &unescaped_len, &cur);
+		assert(int_err == 1);
+		assert(value_count == 2);
+		assert(type == SLP_STRING);
+		assert(unescaped_len == strlen(val) - 1);
+		assert(cur == val + (strlen(val)));
+		
+		
+		/*** Valid case: Single opaque. ***/
+		val = "\\00\\AB";
+		int_err = find_value_list_end(val, &value_count, &type, &unescaped_len, &cur);
+		assert(int_err == 1);
+		assert(value_count == 1);
+		assert(type == SLP_OPAQUE);
+		assert(unescaped_len == 1);
+		assert(cur == val + (strlen(val)));
+		
+		
+		/*** Valid case: paired opaque. ***/
+		val = "\\00\\AB,\\00\\12";
+		int_err = find_value_list_end(val, &value_count, &type, &unescaped_len, &cur);
+		assert(int_err == 1);
+		assert(value_count == 2);
+		assert(type == SLP_OPAQUE);
+		assert(unescaped_len == 2);
+		assert(cur == val + (strlen(val)));
+		
+		
+		/*** Invalid case: Opaque and non-opaque. ***/
+		val = "\\00\\AB,\\00\\12,2";
+		int_err = find_value_list_end(val, &value_count, &type, &unescaped_len, &cur);
+		assert(int_err == 0);
+		
+		
+		/*** Invalid case: Opaque and non-opaque. ***/
+		val = "dog,\\00\\AB";
+		int_err = find_value_list_end(val, &value_count, &type, &unescaped_len, &cur);
+		assert(int_err == 0);
+	}
+	/***** Test Simple boolean set and get. *****/
 	err = SLPAttrAlloc("en", NULL, SLP_FALSE, &attr);
 	assert(err == SLP_OK);
 	
@@ -889,6 +998,16 @@ int main(int argc, char *argv[]) {
 	
 	SLPAttrFree(attr);
 
+	
+	/*** Test that integers/strings are properly recognized. ***/
+	str2 = "(int=1,2,3),(str=1,2-3)";
+	err = SLPAttrAllocStr("en", NULL, SLP_FALSE, &attr, str2);
+	assert(err == SLP_OK);
+
+	assert(test_string(attr, "str", "1","2-3", NULL));
+	assert(test_int(attr, "int", 1, 2, 3, TERM_INT));
+	
+	SLPAttrFree(attr);
 	
 #else /* USE_PREDICATES */
 	printf("Predicates disabled. Performing partial test for libslpattr_tiny.c");
