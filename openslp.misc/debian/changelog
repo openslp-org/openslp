@@ -1,3 +1,10 @@
+openslp (1.0.2-2) unstable; urgency=low
+
+  * Updated package descriptions so that they're .. well, more descriptive.
+    (Closes: #113107) 
+
+ -- Ganesan Rajagopal <rganesan@debian.org>  Sat, 22 Sep 2001 08:14:24 +0530
+
 openslp (1.0.2-1) unstable; urgency=low
 
   * New upstream release
@@ -58,11 +65,8 @@ openslp (0.8.3-2) unstable; urgency=low
 openslp (0.8.3-1) unstable; urgency=low
 
   * New upstream version.
-  
   * Removed "set -e" from init.d because it causes problems in upgrading.
-
   * Added warning to enable multicast for the interfaces.
-
   * Fixed a couple of lintian warnings.
 
  -- Ganesan Rajagopal <rganesan@myrealbox.com>  Wed, 14 Mar 2001 14:10:13 +0530
@@ -77,9 +81,7 @@ openslp (0.8.1-2) unstable; urgency=low
 
   * Updated with review comments from Susan G. Kleinmann (sgk@debian.org).  
     New package openslp-doc created.
-  
   * Added doc-base entries for openslp-doc.
-  
   * Renamed openslpd package to slpd (based on how openldap2 does this).
 
  -- Ganesan Rajagopal <rganesan@myrealbox.com>  Wed, 14 Feb 2001 17:09:53 +0530
