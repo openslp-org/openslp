@@ -136,10 +136,11 @@ void SLPDPropertyInit(const char* conffile)
     /*---------------------------------------------------------*/
     /* Set the value used internally as the url for this agent */
     /*---------------------------------------------------------*/     
+    /* 27 is the size of "service:directory-agent://(NULL)" */
 #ifdef WIN32
-    G_SlpdProperty.myUrl = (const char*)malloc(25 + strlen(myname));
+    G_SlpdProperty.myUrl = (const char*)malloc(27 + strlen(myname));
 #else 
-    G_SlpdProperty.myUrl = (const char*)malloc(25 + strlen(myname.nodename));
+    G_SlpdProperty.myUrl = (const char*)malloc(27 + strlen(myname.nodename));
 #endif
     if(G_SlpdProperty.myUrl == 0)
     {
@@ -155,16 +156,14 @@ void SLPDPropertyInit(const char* conffile)
     }
 
 #ifdef WIN32
-      if (strlen(myname) > 0)
+    if (strlen(myname) > 0)
     {
-        /* 25 is the length of "service:directory-agent://" */
-    	strcat((char*)G_SlpdProperty.myUrl,myname);
+        strcat((char*)G_SlpdProperty.myUrl,myname);
     }   
 #else
     if(uname(&myname) >= 0)
     {
-        /* 25 is the length of "service:directory-agent://" */
-    	strcat((char*)G_SlpdProperty.myUrl,myname.nodename);
+        strcat((char*)G_SlpdProperty.myUrl,myname.nodename);
     }   
 #endif
 
