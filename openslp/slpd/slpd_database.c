@@ -104,9 +104,11 @@ void SLPDDatabaseAge(int seconds, int ageall)
 
             if ( srvreg->urlentry.lifetime == SLP_LIFETIME_MAXIMUM )
             {
-                if ( srvreg->source == SLP_REG_SOURCE_LOCAL )
+                if ( srvreg->source == SLP_REG_SOURCE_LOCAL ||
+                     srvreg->source == SLP_REG_SOURCE_STATIC )
                 {
                     /* entries that were made from local registrations    */
+                    /* and entries made from static registration file     */
                     /* that have a lifetime of SLP_LIFETIME_MAXIMUM must  */
                     /* NEVER be aged                                      */
                     continue;
@@ -120,22 +122,8 @@ void SLPDDatabaseAge(int seconds, int ageall)
                 }
             }
 
-            /* Age entries by seconds */
+            /* Age entry */
             srvreg->urlentry.lifetime -= seconds;
-
-            /* Age local entries to death when registering pid disappears */
-            if(srvreg->source == SLP_REG_SOURCE_LOCAL && srvreg->pid)
-            {
-                /* Send benign signal to process (don't worry, chances are 
-                 * that we'll get an EPERM since we've droped root 
-                 * permissions)
-                 */
-                if(SLPPidExists(srvreg->pid))
-                {
-                    srvreg->urlentry.lifetime = 0;
-                    SLPDKnownDADeRegisterWithAllDas(entry->msg,entry->buf);
-                }
-            }
 
             /* Remove entries that have timed out */
             if ( srvreg->urlentry.lifetime <= 0 )
@@ -148,7 +136,6 @@ void SLPDDatabaseAge(int seconds, int ageall)
         SLPDatabaseClose(dh);
     }
 }
-
 
 /*=========================================================================*/
 int SLPDDatabaseReg(SLPMessage msg, SLPBuffer buf)
