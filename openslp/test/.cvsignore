@@ -1,2 +1,16 @@
 Makefile
 Makefile.in
+.deps
+.libs
+*.actual.output
+testslp_attr_test
+testslpd_predicate_test
+testslpdereg
+testslpescape
+testslpfindattrs
+testslpfindsrvs
+testslpfindsrvtypes
+testslpopen
+testslpparsesrvurl
+testslpreg
+testslpunescape
