@@ -1,5 +1,5 @@
 %define	ver 1.0.7
-%define	rel 1
+%define	rel 2
 %define	name openslp
 %define libver 1.0.0
 
@@ -13,7 +13,7 @@ Summary     	: OpenSLP implementation of Service Location Protocol V2
 Copyright   	: Caldera Systems (BSD)
 Packager    	: Matthew Peterson <mpeterson@calderasystems.com>
 URL         	: http://www.openslp.org/
-BuildRoot   	: /tmp/%{name}-%{ver}
+BuildRoot	: %{_tmppath}/%{name}-root
 Source0		: ftp://openslp.org/pub/openslp/%{name}-%{ver}/%{name}-%{ver}.tar.gz
 
 %Description
@@ -30,38 +30,41 @@ files and documentation
 %setup -n %{name}-%{ver}
 
 %Build
-%{mkDESTDIR}
+libtoolize --force
+aclocal
+automake
+autoconf
 ./configure
 make
 
 %Install
-%{mkDESTDIR}
-mkdir -p $DESTDIR/etc
-cp etc/slp.conf $DESTDIR/etc
-cp etc/slp.reg $DESTDIR/etc
-mkdir -p $DESTDIR/usr/lib
-libtool install libslp/libslp.la $DESTDIR/usr/lib
-ln -s libslp.so.%{libver} $DESTDIR/usr/lib/libslp.so.0
-mkdir -p  $DESTDIR/usr/sbin
-libtool install slpd/slpd $DESTDIR/usr/sbin 
-mkdir -p $DESTDIR/usr/bin
-libtool install slptool/slptool $DESTDIR/usr/bin
-mkdir -p $DESTDIR/usr/include
-cp libslp/slp.h $DESTDIR/usr/include
-mkdir -p $DESTDIR/usr/doc/openslp-%{ver}
-cp -a doc/* $DESTDIR/usr/doc/openslp-%{ver}
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+mkdir -p $RPM_BUILD_ROOT/etc
+cp etc/slp.conf $RPM_BUILD_ROOT/etc
+cp etc/slp.reg $RPM_BUILD_ROOT/etc
+mkdir -p $RPM_BUILD_ROOT/usr/lib
+libtool install libslp/libslp.la $RPM_BUILD_ROOT/usr/lib
+ln -s libslp.so.%{libver} $RPM_BUILD_ROOT/usr/lib/libslp.so.0
+mkdir -p  $RPM_BUILD_ROOT/usr/sbin
+libtool install slpd/slpd $RPM_BUILD_ROOT/usr/sbin 
+mkdir -p $RPM_BUILD_ROOT/usr/bin
+libtool install slptool/slptool $RPM_BUILD_ROOT/usr/bin
+mkdir -p $RPM_BUILD_ROOT/usr/include
+cp libslp/slp.h $RPM_BUILD_ROOT/usr/include
+mkdir -p $RPM_BUILD_ROOT/usr/doc/openslp-%{ver}
+cp -a doc/* $RPM_BUILD_ROOT/usr/doc/openslp-%{ver}
 
-mkdir -p $DESTDIR/etc/sysconfig/daemons 
-cat <<EOD  > $DESTDIR/etc/sysconfig/daemons/slpd
+mkdir -p $RPM_BUILD_ROOT/etc/sysconfig/daemons 
+cat <<EOD  > $RPM_BUILD_ROOT/etc/sysconfig/daemons/slpd
 IDENT=slp
 DESCRIPTIVE="SLP Service Agent"
 ONBOOT="yes"
 EOD
-mkdir -p $DESTDIR/etc/rc.d/init.d
-install -m 755 etc/slpd.all_init $DESTDIR/etc/rc.d/init.d/slpd
+mkdir -p $RPM_BUILD_ROOT/etc/rc.d/init.d
+install -m 755 etc/slpd.all_init $RPM_BUILD_ROOT/etc/rc.d/init.d/slpd
 
 %Clean
-rm -rf $RPM_BUILD_ROOT/usr
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
 
 %Pre
 rm -f /usr/lib/libslp*
@@ -146,6 +149,11 @@ fi
 
 
 %ChangeLog
+* Wed Feb 06 2002 alain.richard@equation.fr
+	Adapted to enable build under redhat 7.x (uses BuildRoot macro,
+	install instead of installtool for non libraries objects,
+	protected rm -r for install & clean)
+
 * Wed Jun 13 2001 matt@caldera.com
         Removed server stuff.  We want on binary rpm again
 	
