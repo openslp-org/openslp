@@ -182,7 +182,6 @@ int SLPMulticastSend(const SLPIfaceInfo* ifaceinfo,
 {
     int             flags = 0;
     int             xferbytes;
-    int           ad = SLP_MCAST_ADDRESS;
 
 #if defined(MSG_NOSIGNAL)
     flags = MSG_NOSIGNAL;
@@ -218,7 +217,7 @@ int SLPMulticastSend(const SLPIfaceInfo* ifaceinfo,
         else if (ifaceinfo->iface_addr[socks->sock_count].ss_family == AF_INET6) {
             struct sockaddr_in6 *s6 = (struct sockaddr_in6 *) &socks->peeraddr[socks->sock_count];
             struct sockaddr_in6 *s6dst = (struct sockaddr_in6 *) dst;
-            unsigned int interfaceId = s6->sin6_scope_id; /* should be interface id to send the broadcast message to */
+
             /* send via IPV6 multicast */
             if (bind(socks->sock[socks->sock_count], (struct sockaddr *) &socks->peeraddr[socks->sock_count], sizeof(struct sockaddr_storage)) != 0) {
                 /* error setting socket option */
