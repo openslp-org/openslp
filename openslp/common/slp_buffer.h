@@ -36,7 +36,7 @@
 #if(!defined SLP_BUFFER_H_INCLUDED)
 #define SLP_BUFFER_H_INCLUDED
 
-#include <malloc.h>
+#include <stdlib.h>
 
 #include <slp_linkedlist.h>
 

@@ -35,7 +35,8 @@
 #include <slp_message.h>
 
 #ifndef WIN32
-#include <malloc.h>
+#include <stdlib.h>
+#include <sys/types.h>
 #include <netinet/in.h>
 #endif
 
