@@ -196,7 +196,10 @@ SLPError SLPAPI SLPOpen(const char *pcLang, SLPBoolean isAsync, SLPHandle *phSLP
     handle->isAsync = isAsync;
     handle->dasock = -1;
     handle->sasock = -1;
-
+#ifndef UNICAST_NOT_SUPPORTED
+    handle->unicastsock = -1;
+#endif
+		
     G_OpenSLPHandleCount ++;  
 
     *phSLP = (SLPHandle)handle; 

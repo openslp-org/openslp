@@ -369,7 +369,22 @@ SLPError ProcessSrvRqst(PSLPHandleInfo handle)
     /*--------------------------*/
     do
     {
-        if(strncasecmp(handle->params.findsrvs.srvtype,
+
+        #ifndef UNICAST_NOT_SUPPORTED
+	if ( handle->dounicast == 1 ) 
+	{
+	    void *cookie = (PSLPHandleInfo) handle;
+	    result = NetworkUcastRqstRply(handle,
+                                          buf,
+                                          SLP_FUNCT_SRVRQST,
+					  bufsize,
+					  ProcessSrvRplyCallback,
+                                          cookie);
+            break;
+	}
+	else
+	#endif
+	if(strncasecmp(handle->params.findsrvs.srvtype,
                        SLP_SA_SERVICE_TYPE,
                        handle->params.findsrvs.srvtypelen))
         {
@@ -382,13 +397,22 @@ SLPError ProcessSrvRqst(PSLPHandleInfo handle)
         if(sock == -1)
         {
             /* use multicast as a last resort */
-            result = NetworkMcastRqstRply(handle->langtag,
+            #ifndef MI_NOT_SUPPORTED
+	    result = NetworkMcastRqstRply(handle,
+					  buf,
+					  SLP_FUNCT_SRVRQST,
+					  bufsize,
+					  ProcessSrvRplyCallback,
+					  NULL);
+	    #else		
+	    result = NetworkMcastRqstRply(handle->langtag,
                                           buf,
                                           SLP_FUNCT_SRVRQST,
                                           bufsize,
                                           ProcessSrvRplyCallback,
                                           handle);
-            break;
+            #endif /* MI_NOT_SUPPORTED */
+	    break;
         }
 
         result = NetworkRqstRply(sock,

@@ -250,6 +250,16 @@ typedef struct _SLPHandleInfo
     struct sockaddr_in  saaddr;
     char*               sascope;
     int                 sascopelen;
+#ifndef MI_NOT_SUPPORTED
+    const char *McastIFList;
+#endif /* MI_NOT_SUPPORTED */
+#ifndef UNICAST_NOT_SUPPORTED
+    int                 dounicast;
+    int                 unicastsock;
+    struct sockaddr_in  unicastaddr;
+    char*               unicastscope;
+    int                 unicastscopelen;
+    #endif
     int                 langtaglen;
     char*               langtag;
     int                 callbackcount;
@@ -397,7 +407,11 @@ SLPError NetworkRqstRply(int sock,
 
 
 /*=========================================================================*/ 
+#ifndef MI_NOT_SUPPORTED
+SLPError NetworkMcastRqstRply(PSLPHandleInfo handle,
+#else
 SLPError NetworkMcastRqstRply(const char* langtag,
+#endif /* MI_NOT_SUPPORTED */
                               char* buf,
                               char buftype,
                               int bufsize,
@@ -425,6 +439,34 @@ SLPError NetworkMcastRqstRply(const char* langtag,
 /* Returns  -    SLP_OK on success. SLP_ERROR on failure                   */
 /*=========================================================================*/ 
 
+#ifndef UNICAST_NOT_SUPPORTED
+/*=========================================================================*/
+SLPError NetworkUcastRqstRply(PSLPHandleInfo handle,
+                              char* buf,
+                              char buftype,
+                              int bufsize,
+                              NetworkRplyCallback callback,
+                              void * cookie);
+/* Description:                                                            */
+/*                                                                         */
+/* Unicasts SLP messages */
+/*                                                                         */
+/* handle  (IN) pointer to the SLP handle                                  */
+/*                                                                         */
+/* buf      (IN) pointer to the portion of the SLP message to send.        */
+/*                                                                         */
+/* buftype  (IN) the function-id to use in the SLPMessage header           */
+/*                                                                         */
+/* bufsize  (IN) the size of the buffer pointed to by buf                  */
+/*                                                                         */
+/* callback (IN) the callback to use for reporting results                 */
+/*                                                                         */
+/* cookie   (IN) the cookie to pass to the callback                        */
+/*                                                                         */
+/* Returns  -    SLP_OK on success. SLP_ERROR on failure                   */
+/*=========================================================================*/
+#endif
+			      
 
 /*=========================================================================*/
 int KnownDAConnect(PSLPHandleInfo handle,
@@ -458,7 +500,12 @@ void KnownDABadDA(struct in_addr* daaddr);
 
 /*=========================================================================*/
 int KnownDAGetScopes(int* scopelistlen,
+#ifndef MI_NOT_SUPPORTED
+                     char** scopelist,
+                     PSLPHandleInfo handle);
+#else
                      char** scopelist);
+#endif /* MI_NOT_SUPPORTED */
 /* Gets a list of scopes from the known DA list                            */
 /*                                                                         */
 /* scopelistlen (OUT) stringlen of the scopelist                           */

@@ -134,7 +134,13 @@ SLPBoolean ColateSrvTypeCallback(SLPHandle hSLP,
             }
             else
             {
+                #ifndef COLLATION_CHANGES
+                xfree(handle->collatedsrvtypes);
+                handle->collatedsrvtypes = srvtypes;
+                handle->collatedsrvtypes[srvtypeslen] = '\0';
+                #else
                 xfree(srvtypes);
+                #endif /* COLLATION_CHANGES */
             }   
         }
         else
@@ -264,19 +270,42 @@ SLPError ProcessSrvTypeRqst(PSLPHandleInfo handle)
     /*--------------------------*/
     do
     {
-        sock = NetworkConnectToDA(handle,
+        #ifndef UNICAST_NOT_SUPPORTED
+        if ( handle->dounicast == 1 ) 
+	{
+            void *cookie = (PSLPHandleInfo) handle;
+	    result = NetworkUcastRqstRply(handle,
+                                          buf,
+                                          SLP_FUNCT_SRVTYPERQST,
+                                          bufsize,
+					  ProcessSrvTypeRplyCallback,
+					  cookie);
+	    break;
+        }
+	else
+	#endif
+	sock = NetworkConnectToDA(handle,
                                   handle->params.findsrvtypes.scopelist,
                                   handle->params.findsrvtypes.scopelistlen,
                                   &peeraddr);
         if(sock == -1)
         {
             /* use multicast as a last resort */
+            #ifndef MI_NOT_SUPPORTED
+            result = NetworkMcastRqstRply(handle,
+                                          buf,
+					  SLP_FUNCT_SRVTYPERQST,
+					  bufsize,
+                                          ProcessSrvTypeRplyCallback,
+					  NULL);
+            #else
             result = NetworkMcastRqstRply(handle->langtag,
                                           buf,
                                           SLP_FUNCT_SRVTYPERQST,
                                           bufsize,
                                           ProcessSrvTypeRplyCallback,
                                           handle);
+            #endif MI_NOT_SUPPORTED	      
             break;
         }
 

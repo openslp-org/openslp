@@ -88,7 +88,12 @@ SLPError SLPAPI SLPFindScopes(SLPHandle hSLP,
     /* start with nothing */
     *ppcScopeList = 0;
 
+
+#ifndef MI_NOT_SUPPORTED
+    if(KnownDAGetScopes(&scopelistlen,ppcScopeList, hSLP))
+#else
     if(KnownDAGetScopes(&scopelistlen,ppcScopeList))
+#endif /* MI_NOT_SUPPORTED */
     {
         return SLP_MEMORY_ALLOC_FAILED;
     }

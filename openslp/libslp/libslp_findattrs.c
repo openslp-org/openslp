@@ -216,19 +216,44 @@ SLPError ProcessAttrRqst(PSLPHandleInfo handle)
     /*--------------------------*/
     do
     {
-        sock = NetworkConnectToDA(handle,
+
+        #ifndef UNICAST_NOT_SUPPORTED
+	if ( handle->dounicast == 1 ) 
+	{
+	    void *cookie = (PSLPHandleInfo) handle;
+	    result = NetworkUcastRqstRply(handle,
+                                          buf,
+                                          SLP_FUNCT_ATTRRQST,
+					  bufsize,
+                                          ProcessAttrRplyCallback,
+					  cookie);
+	    break;
+	}
+	else
+	#endif
+	sock = NetworkConnectToDA(handle,
                                   handle->params.findattrs.scopelist,
                                   handle->params.findattrs.scopelistlen,
                                   &peeraddr);
         if(sock == -1)
         {
             /* use multicast as a last resort */
-            result = NetworkMcastRqstRply(handle->langtag,
+            
+            #ifndef MI_NOT_SUPPORTED
+            result = NetworkMcastRqstRply(handle,
+                                          buf,
+                                          SLP_FUNCT_ATTRRQST,
+                                          bufsize,
+                                          ProcessAttrRplyCallback,
+                                          NULL);
+            #else	
+	    result = NetworkMcastRqstRply(handle->langtag,
                                           buf,
                                           SLP_FUNCT_ATTRRQST,
                                           bufsize,
                                           ProcessAttrRplyCallback,
                                           handle);
+            #endif /* MI_NOT_SUPPORTED */			
             break;
         }
 

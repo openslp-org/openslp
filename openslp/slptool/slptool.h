@@ -52,7 +52,18 @@ typedef enum _SLPToolCommand
     GETPROPERTY,
     REGISTER,
     DEREGISTER,
-    PRINT_VERSION
+    PRINT_VERSION,
+#ifndef MI_NOT_SUPPORTED
+    FINDSRVSUSINGIFLIST,
+    FINDATTRSUSINGIFLIST,
+    FINDSRVTYPESUSINGIFLIST,
+#endif /* MI_NOT_SUPPORTED */
+#ifndef UNICAST_NOT_SUPPORTED
+    UNICASTFINDSRVS,
+    UNICASTFINDATTRS,
+    UNICASTFINDSRVTYPES,
+#endif
+    DUMMY
 }SLPToolCommand;
 
 
@@ -66,7 +77,24 @@ typedef struct _SLPToolCommandLine
     const char*     scopes;
     const char*     cmdparam1;
     const char*     cmdparam2;
+    const char*     cmdparam3;
 }SLPToolCommandLine;
+
+
+#ifndef MI_NOT_SUPPORTED
+/*=========================================================================*/
+SLPError SLPAssociateIFList( SLPHandle hSLP,
+			     SLPToolCommandLine* cmdline);
+/*=========================================================================*/
+#endif /* MI_NOT_SUPPORTED */
+
+
+#ifndef UNICAST_NOT_SUPPORTED
+/*=========================================================================*/
+SLPError SLPAssociateIP( SLPHandle hSLP,
+                         SLPToolCommandLine* cmdline);
+/*=========================================================================*/
+#endif /* UNICAST_NOT_SUPPORTED */
 
 
 /*=========================================================================*/
@@ -74,19 +102,62 @@ void FindSrvs(SLPToolCommandLine* cmdline);
 /*=========================================================================*/
 
 
+#ifndef MI_NOT_SUPPORTED
+/*=========================================================================*/
+void FindSrvsUsingIFList(SLPToolCommandLine* cmdline);
+/*=========================================================================*/
+#endif
+
+
+#ifndef UNICAST_NOT_SUPPORTED
+/*=========================================================================*/
+void UnicastFindSrvs(SLPToolCommandLine* cmdline);
+/*=========================================================================*/
+#endif
+
+
 /*=========================================================================*/
 void FindAttrs(SLPToolCommandLine* cmdline);
 /*=========================================================================*/
 
 
+#ifndef UNICAST_NOT_SUPPORTED
+/*=========================================================================*/
+void UnicastFindAttrs(SLPToolCommandLine* cmdline);
+/*=========================================================================*/
+#endif
+
+
+#ifndef MI_NOT_SUPPORTED
+/*=========================================================================*/
+void FindAttrsUsingIFList(SLPToolCommandLine* cmdline);
+/*=========================================================================*/
+#endif
+
+
 /*=========================================================================*/            
 void FindSrvTypes(SLPToolCommandLine* cmdline);
 /*=========================================================================*/
-            
+
+
+#ifndef UNICAST_NOT_SUPPORTED
+/*=========================================================================*/
+void UnicastFindSrvTypes(SLPToolCommandLine* cmdline);
+/*=========================================================================*/
+#endif
+
+
+#ifndef MI_NOT_SUPPORTED
+/*=========================================================================*/
+void FindSrvTypesUsingIFList(SLPToolCommandLine* cmdline);
+/*=========================================================================*/
+#endif
+
 
 /*=========================================================================*/
 void GetProperty(SLPToolCommandLine* cmdline);
 /*=========================================================================*/
+
 
 /*=========================================================================*/
 void Register(SLPToolCommandLine* cmdline);

@@ -66,6 +66,10 @@
 #include <errno.h>
 #endif
 
+#ifndef UNICAST_NOT_SUPPORTED
+#include "../libslp/slp.h"
+#endif
+
 #include "slp_xcast.h"
 #include "slp_message.h"
 
@@ -338,6 +342,22 @@ int SLPXcastRecvMessage(const SLPXcastSockets* sockets,
                         else
                         {
                             /* we got a bad message, or one that is too big! */
+#ifndef UNICAST_NOT_SUPPORTED
+                            /* Reading SLP_MAX_DATAGRAM_SIZE bytes on the socket */
+		            *buf = SLPBufferRealloc(*buf, SLP_MAX_DATAGRAM_SIZE);
+		            bytesread = recv(sockets->sock[i],
+		                              (*buf)->curpos,
+					      (*buf)->end - (*buf)->curpos,
+					      0);
+			    if(bytesread != SLP_MAX_DATAGRAM_SIZE)
+			    {
+			        /* This should never happen but we'll be paranoid*/
+			        (*buf)->end = (*buf)->curpos + bytesread;
+			    }
+			    result = SLP_RETRY_UNICAST;
+			    recvloop = 0;
+			    return result;
+#endif
                         }
                     }
                     else

@@ -33,10 +33,16 @@
 /***************************************************************************/
 
 #include "slptool.h"
+#ifndef MI_NOT_SUPPORTED
+#include "libslp.h"
+#else
+#ifndef UNICAST_NOT_SUPPORTED
+#include "libslp.h"
+#endif
+#endif /* MI_NOT_SUPPORTED */
 
-                       
 
-#ifdef _WIN32
+#ifdef WIN32
 #define strncasecmp(String1, String2, Num) strnicmp(String1, String2, Num)
 #define strcasecmp(String1, String2) stricmp(String1, String2)
 #define inet_aton(opt,bind) ((bind)->s_addr = inet_addr(opt))
@@ -51,11 +57,88 @@ strcasecmp(const char *s1, const char *s2);
 #endif
 #endif 
 
+#ifndef MI_NOT_SUPPORTED
 /*=========================================================================*/
-SLPBoolean SLPCALLBACK mySrvTypeCallback( SLPHandle hslp,
-                                          const char* srvtypes,
-                                          SLPError errcode,
-                                          void* cookie ) 
+SLPError SLPAssociateIFList( SLPHandle hSLP,
+                         SLPToolCommandLine* cmdline)
+/*=========================================================================*/
+{
+
+    PSLPHandleInfo      handle;
+
+    /*------------------------------*/
+    /* check for invalid parameters */
+    /*------------------------------*/
+    if(hSLP            == 0 ||
+       *(unsigned int*)hSLP != SLP_HANDLE_SIG ||
+       cmdline->cmdparam3 == 0 ||
+       *cmdline->cmdparam3 == 0)  /* interface list can't be empty string */
+    {
+        return SLP_PARAMETER_BAD;
+    }
+
+    handle = (PSLPHandleInfo)hSLP;
+
+#ifdef DEBUG
+    fprintf(stderr, "SLPAssociateIFList(): cmdline->cmdparam3 = %s\n", cmdline->cmdparam3);
+#endif
+
+    if ((cmdline->cmd == FINDSRVSUSINGIFLIST) || 
+        (cmdline->cmd ==  FINDATTRSUSINGIFLIST) || 
+        (cmdline->cmd == FINDSRVTYPESUSINGIFLIST))
+    { 
+        handle->McastIFList = cmdline->cmdparam3;
+    } else {
+        return SLP_PARAMETER_BAD;
+    }
+
+    return SLP_OK;
+}
+#endif /* MI_NOT_SUPPORTED */
+
+
+#ifndef UNICAST_NOT_SUPPORTED
+/*=========================================================================*/
+SLPError SLPAssociateIP( SLPHandle hSLP,
+                         SLPToolCommandLine* cmdline)
+/*=========================================================================*/
+{
+
+    PSLPHandleInfo      handle;
+
+    /*------------------------------*/
+    /* check for invalid parameters */
+    /*------------------------------*/
+    if(hSLP            == 0 ||
+       *(unsigned int*)hSLP != SLP_HANDLE_SIG ||
+       cmdline->cmdparam3 == 0 ||
+       *cmdline->cmdparam3 == 0)  /* unicast address not specified */
+    {
+        return SLP_PARAMETER_BAD;
+    }
+
+    handle = (PSLPHandleInfo)hSLP;
+
+#ifdef DEBUG
+    fprintf(stderr, "SLPAssociateIP(): cmdline->cmdparam3 = %s\n", cmdline->cmdparam3);
+#endif
+    handle->dounicast = 1;
+    handle->unicastaddr.sin_family = AF_INET;
+    if (inet_aton(cmdline->cmdparam3, ((struct in_addr *)(&handle->unicastaddr.sin_addr))) == 0 ) {
+        return SLP_PARAMETER_BAD;
+    }
+    handle->unicastaddr.sin_port = htons(SLP_RESERVED_PORT);
+
+    return SLP_OK;
+}
+#endif
+
+
+/*=========================================================================*/
+SLPBoolean mySrvTypeCallback( SLPHandle hslp, 
+                              const char* srvtypes, 
+                              SLPError errcode, 
+                              void* cookie ) 
 /*=========================================================================*/
 {
     char* cpy;
@@ -125,11 +208,99 @@ void FindSrvTypes(SLPToolCommandLine* cmdline)
     }
 }
 
+
+#ifndef UNICAST_NOT_SUPPORTED
 /*=========================================================================*/
-SLPBoolean SLPCALLBACK myAttrCallback(SLPHandle hslp,
-                                      const char* attrlist,
-                                      SLPError errcode,
-                                      void* cookie )
+void UnicastFindSrvTypes(SLPToolCommandLine* cmdline)
+/*=========================================================================*/
+{
+    SLPError    result;
+    SLPHandle   hslp;
+
+    if(SLPOpen(cmdline->lang,SLP_FALSE,&hslp) == SLP_OK) {
+        if((result = SLPAssociateIP(hslp, cmdline)) != SLP_OK)
+        {
+            printf("errorcode: %i\n",result);
+            SLPClose(hslp);
+            return;
+        }
+
+        if(cmdline->cmdparam1)
+        {
+            result = SLPFindSrvTypes(hslp,
+                                     cmdline->cmdparam1,
+                                     cmdline->scopes,
+                                     mySrvTypeCallback,
+                                     0);
+        }
+        else
+        {
+            result = SLPFindSrvTypes(hslp,
+                                     "*",
+                                     cmdline->scopes,
+                                     mySrvTypeCallback,
+                                     0);
+        }
+
+        if(result != SLP_OK)
+        {
+            printf("errorcode: %i\n",result);
+        }
+        SLPClose(hslp);
+    }
+}
+#endif
+
+
+#ifndef MI_NOT_SUPPORTED
+/*=========================================================================*/
+void FindSrvTypesUsingIFList(SLPToolCommandLine* cmdline)
+/*=========================================================================*/
+{
+    SLPError    result;
+    SLPHandle   hslp;
+
+    if(SLPOpen(cmdline->lang,SLP_FALSE,&hslp) == SLP_OK)
+    {
+	if((result = SLPAssociateIFList(hslp, cmdline)) != SLP_OK)
+        {
+            printf("errorcode: %i\n",result);
+            SLPClose(hslp);
+            return;
+        }
+
+        if(cmdline->cmdparam1)
+        {
+            result = SLPFindSrvTypes(hslp,
+                                     cmdline->cmdparam1,
+                                     cmdline->scopes,
+                                     mySrvTypeCallback,
+                                     0);
+	}
+        else
+        {
+	    result = SLPFindSrvTypes(hslp,
+                                     "*",
+                                     cmdline->scopes,
+                                     mySrvTypeCallback,
+                                     0);
+	}
+       
+        if(result != SLP_OK)
+        {
+            printf("errorcode: %i\n",result);
+        }
+       
+        SLPClose(hslp);
+    }
+}
+#endif /* MI_NOT_SUPPORTED */
+
+/*=========================================================================*/
+SLPBoolean myAttrCallback(SLPHandle hslp, 
+                        const char* attrlist, 
+                        SLPError errcode, 
+                        void* cookie )
 /*=========================================================================*/
 {
     if(errcode == SLP_OK)
@@ -165,13 +336,78 @@ void FindAttrs(SLPToolCommandLine* cmdline)
     }               
 }
 
+
+#ifndef UNICAST_NOT_SUPPORTED
+/*=========================================================================*/
+void UnicastFindAttrs(SLPToolCommandLine* cmdline)
+/*=========================================================================*/
+{
+    SLPError    result;
+    SLPHandle   hslp;
+
+    if(SLPOpen(cmdline->lang,SLP_FALSE,&hslp) == SLP_OK) {
+        if((result = SLPAssociateIP(hslp, cmdline)) != SLP_OK)
+        {
+            printf("errorcode: %i\n",result);
+            SLPClose(hslp);
+            return;
+        }
+
+        result = SLPFindAttrs(hslp,
+                             cmdline->cmdparam1,
+                             cmdline->scopes,
+                             cmdline->cmdparam2,
+                             myAttrCallback,
+                             0);
+        if(result != SLP_OK)
+        {
+            printf("errorcode: %i\n",result);
+        }
+        SLPClose(hslp);
+    }
+}
+#endif
+
+
+#ifndef MI_NOT_SUPPORTED 
+/*=========================================================================*/
+void FindAttrsUsingIFList(SLPToolCommandLine* cmdline)
+/*=========================================================================*/
+{
+    SLPError    result;
+    SLPHandle   hslp;
+
+    if(SLPOpen(cmdline->lang,SLP_FALSE,&hslp) == SLP_OK)
+    {
+	if((result = SLPAssociateIFList(hslp, cmdline)) != SLP_OK)
+        {
+            printf("errorcode: %i\n",result);
+            SLPClose(hslp);
+            return;
+        }
+
+        result = SLPFindAttrs(hslp,
+                              cmdline->cmdparam1,
+                              cmdline->scopes,
+                              cmdline->cmdparam2,
+                              myAttrCallback,
+                              0);
+        if(result != SLP_OK)
+        {
+            printf("errorcode: %i\n",result);
+        }
+        SLPClose(hslp);
+    }               
+}
+#endif /* MI_NOT_SUPPORTED */
+
  
 /*=========================================================================*/
-SLPBoolean SLPCALLBACK mySrvUrlCallback( SLPHandle hslp,
-                                         const char* srvurl,
-                                         unsigned short lifetime,
-                                         SLPError errcode,
-                                         void* cookie )
+SLPBoolean mySrvUrlCallback( SLPHandle hslp, 
+                             const char* srvurl, 
+                             unsigned short lifetime, 
+                             SLPError errcode, 
+                             void* cookie ) 
 /*=========================================================================*/
 {
     if(errcode == SLP_OK)
@@ -206,6 +442,72 @@ void FindSrvs(SLPToolCommandLine* cmdline)
     }               
 }
 
+
+#ifndef MI_NOT_SUPPORTED
+/*=========================================================================*/
+void FindSrvsUsingIFList(SLPToolCommandLine* cmdline)
+/*=========================================================================*/
+{
+    SLPError    result;
+    SLPHandle   hslp;
+
+    if(SLPOpen(cmdline->lang,SLP_FALSE,&hslp) == SLP_OK)
+    {
+	if((result = SLPAssociateIFList(hslp, cmdline)) != SLP_OK)
+        {
+            printf("errorcode: %i\n",result);
+            SLPClose(hslp);
+            return;
+        }
+
+        result = SLPFindSrvs(hslp,
+                             cmdline->cmdparam1,
+                             cmdline->scopes,
+                             cmdline->cmdparam2,
+                             mySrvUrlCallback,
+                             0);
+        if(result != SLP_OK)
+        {
+            printf("errorcode: %i\n",result);
+        }
+        SLPClose(hslp);
+    }               
+}
+#endif /* MI_NOT_SUPPORTED */
+
+
+#ifndef UNICAST_NOT_SUPPORTED
+/*=========================================================================*/
+void UnicastFindSrvs(SLPToolCommandLine* cmdline)
+/*=========================================================================*/
+{
+    SLPError    result;
+    SLPHandle   hslp;
+
+    if(SLPOpen(cmdline->lang,SLP_FALSE,&hslp) == SLP_OK) {
+	if((result = SLPAssociateIP(hslp, cmdline)) != SLP_OK)
+        {
+            printf("errorcode: %i\n",result);
+            SLPClose(hslp);
+            return;
+        }
+
+        result = SLPFindSrvs(hslp,
+                             cmdline->cmdparam1,
+                             cmdline->scopes,
+			     cmdline->cmdparam2,
+			     mySrvUrlCallback,
+                             0);
+        if(result != SLP_OK)
+        {
+            printf("errorcode: %i\n",result);
+        }
+        SLPClose(hslp);
+    }
+}
+#endif
+
+
 /*=========================================================================*/
 void FindScopes(SLPToolCommandLine* cmdline)
 /*=========================================================================*/
@@ -228,7 +530,7 @@ void FindScopes(SLPToolCommandLine* cmdline)
 }
 
 /*-------------------------------------------------------------------------*/
-void SLPCALLBACK mySLPRegReport(SLPHandle hslp, SLPError errcode, void* cookie)
+void mySLPRegReport(SLPHandle hslp, SLPError errcode, void* cookie)
 {
     if (errcode)
     printf("(de)registration errorcode %d\n", errcode);
@@ -302,7 +604,7 @@ void Deregister(SLPToolCommandLine* cmdline)
 void PrintVersion(SLPToolCommandLine* cmdline)
 /*=========================================================================*/
 {
-#ifdef _WIN32
+#ifdef WIN32
     printf("slptool version = %s\n",SLP_VERSION);
 #else
 	printf("slptool version = %s\n",VERSION);
@@ -404,6 +706,77 @@ int ParseCommandLine(int argc,char* argv[], SLPToolCommandLine* cmdline)
 
             break;
         }
+        #ifndef MI_NOT_SUPPORTED
+        else if(strcasecmp(argv[i],"findsrvsusingiflist") == 0)
+        {
+            cmdline->cmd = FINDSRVSUSINGIFLIST;
+
+	    /* (required) IFList */
+	    i++;
+	    if(i < argc)
+	    {
+                cmdline->cmdparam3 = argv[i];
+	    }
+	    else
+	    {
+                return 1;
+	    }
+            
+            /* service type */
+            i++;
+            if(i < argc)
+            {
+                cmdline->cmdparam1 = argv[i];
+            }
+            else
+            {
+                return 1;
+            }
+
+            /* (optional) filter */
+            i++;
+            if(i < argc)
+            {
+                cmdline->cmdparam2 = argv[i];
+            }
+
+            break;
+        }
+        #endif /* MI_NOT_SUPPORTED */
+        #ifndef UNICAST_NOT_SUPPORTED
+        else if(strcasecmp(argv[i],"unicastfindsrvs") == 0)
+        {
+            cmdline->cmd = UNICASTFINDSRVS;
+            
+            i++;
+            if(i < argc)
+            {
+                cmdline->cmdparam3 = argv[i];
+            }
+            else
+            {
+                return 1;
+            }
+
+            /* service type */
+            i++;
+            if(i < argc)
+            {
+                cmdline->cmdparam1 = argv[i];
+            } else {
+		return 1;
+	    }
+	
+		/* optional filter */
+	    i++;
+            if(i < argc)
+            {
+                cmdline->cmdparam2 = argv[i];
+            } 
+
+            break;
+        }
+        #endif
         else if(strcasecmp(argv[i],"findattrs") == 0)
         {
             cmdline->cmd = FINDATTRS;     
@@ -426,6 +799,76 @@ int ParseCommandLine(int argc,char* argv[], SLPToolCommandLine* cmdline)
                 cmdline->cmdparam2 = argv[i];
             }
         }
+        #ifndef UNICAST_NOT_SUPPORTED
+        else if(strcasecmp(argv[i],"unicastfindattrs") == 0)
+        {
+            cmdline->cmd = UNICASTFINDATTRS;
+
+            /* unicast IP address */
+            i++;
+            if(i < argc)
+            {
+                cmdline->cmdparam3 = argv[i];
+            }
+            else
+            {
+                return 1;
+            }
+
+            /* url or service type */
+            i++;
+            if(i < argc)
+            {
+                cmdline->cmdparam1 = argv[i];
+            } else {
+                return 1;
+            }
+
+                /* optional filter */
+            i++;
+            if(i < argc)
+            {
+                cmdline->cmdparam2 = argv[i];
+            }
+
+            break;
+        }
+        #endif
+#ifndef MI_NOT_SUPPORTED
+        else if(strcasecmp(argv[i],"findattrsusingiflist") == 0)
+        {
+            cmdline->cmd = FINDATTRSUSINGIFLIST;     
+                  
+	    /* (required) IFList */
+            i++;
+            if(i < argc)
+            {
+                cmdline->cmdparam3 = argv[i];
+            }
+            else
+            {
+                return 1;
+            }
+            
+            /* url or service type */
+            i++;
+            if(i < argc)
+            {
+                cmdline->cmdparam1 = argv[i];
+            }
+            else
+            {
+                return 1;
+            }
+
+            /* (optional) attrids */
+            i++;
+            if(i < argc)
+            {
+                cmdline->cmdparam2 = argv[i];
+            }
+        }
+#endif /* MI_NOT_SUPPORTED */
         else if(strcasecmp(argv[i],"findsrvtypes") == 0)
         {
             cmdline->cmd = FINDSRVTYPES;
@@ -437,6 +880,53 @@ int ParseCommandLine(int argc,char* argv[], SLPToolCommandLine* cmdline)
                 cmdline->cmdparam1 = argv[i];
             }                             
         }
+        #ifndef UNICAST_NOT_SUPPORTED
+        else if(strcasecmp(argv[i],"unicastfindsrvtypes") == 0)
+        {
+            cmdline->cmd = UNICASTFINDSRVTYPES;
+
+            /* unicast IP address */
+            i++;
+            if(i < argc)
+            {
+                cmdline->cmdparam3 = argv[i];
+            }
+            else
+            {
+                return 1;
+            }
+            /* (optional) naming authority */
+            i++;
+            if(i < argc)
+            {
+                cmdline->cmdparam1 = argv[i];
+            }
+        }
+        #endif
+#ifndef MI_NOT_SUPPORTED
+        else if(strcasecmp(argv[i],"findsrvtypesusingiflist") == 0)
+        {
+            cmdline->cmd = FINDSRVTYPESUSINGIFLIST;
+
+            /* (required) IFList */
+            i++;
+            if(i < argc)
+            {
+                cmdline->cmdparam3 = argv[i];
+            }
+            else
+            {
+                return 1;
+            }
+
+            /* (optional) naming authority */
+            i++;
+            if(i < argc)
+            {
+                cmdline->cmdparam1 = argv[i];
+            }                             
+        }
+#endif /* MI_NOT_SUPPORTED */
         else if(strcasecmp(argv[i],"findscopes") == 0)
         {
 	    cmdline->cmd = FINDSCOPES;
@@ -518,8 +1008,26 @@ void DisplayUsage()
     printf("      -l (or --language) followed by a language tag\n");
     printf("   command-and-arguments may be:\n");
     printf("      findsrvs service-type [filter]\n");
+#ifndef MI_NOT_SUPPORTED
+    printf("      findsrvsusingiflist interface-list service-type [filter]\n");
+#endif /* MI_NOT_SUPPORTED */
+#ifndef UNICAST_NOT_SUPPORTED
+    printf("      unicastfindsrvs ip-address service-type [filter]\n");
+#endif
     printf("      findattrs url [attrids]\n");
+#ifndef UNICAST_NOT_SUPPORTED
+    printf("      unicastfindattrs ip-address url [attrids]\n");
+#endif
+#ifndef MI_NOT_SUPPORTED
+    printf("      findattrsusingiflist interface-list url [attrids]\n");
+#endif /* MI_NOT_SUPPORTED */
     printf("      findsrvtypes [authority]\n");
+#ifndef UNICAST_NOT_SUPPORTED
+    printf("      unicastfindsrvtypes [authority]\n");
+#endif
+#ifndef MI_NOT_SUPPORTED
+    printf("      findsrvtypesusingiflist interface-list [authority]\n");
+#endif /* MI_NOT_SUPPORTED */
     printf("      findscopes\n");
     printf("      register url [attrs]\n");
     printf("      deregister url\n");
@@ -528,8 +1036,24 @@ void DisplayUsage()
     printf("   slptool register service:myserv.x://myhost.com \"(attr1=val1),(attr2=val2)\"\n");
     printf("   slptool findsrvs service:myserv.x\n");
     printf("   slptool findsrvs service:myserv.x \"(attr1=val1)\"\n");
+#ifndef MI_NOT_SUPPORTED
+    printf("   slptool findsrvsusingiflist 10.77.13.240,192.168.250.240 service:myserv.x\n");
+    printf("   slptool findsrvsusingiflist 10.77.13.243 service:myserv.x \"(attr1=val1)\"\n");
+#endif /* MI_NOT_SUPPORTED */
+#ifndef UNICAST_NOT_SUPPORTED
+    printf("   slptool unicastfindsrvs 10.77.13.237 service:myserv.x\n");
+    printf("   slptool unicastfindsrvs 10.77.13.237 service:myserv.x \"(attr1=val1)\"\n");
+#endif
     printf("   slptool findattrs service:myserv.x://myhost.com\n");
     printf("   slptool findattrs service:myserv.x://myhost.com attr1\n");
+#ifndef UNICAST_NOT_SUPPORTED
+    printf("   slptool unicastfindattrs 10.77.13.237 service:myserv.x\n");
+    printf("   slptool unicastfindattrs 10.77.13.237 service:myserv.x://myhost.com attr1 \n");
+#endif
+#ifndef MI_NOT_SUPPORTED
+    printf("   slptool findattrsusingiflist 10.77.13.240,192.168.250.240 service:myserv.x://myhost.com\n");
+    printf("   slptool findattrsusingiflist 10.77.13.243 service:myserv.x://myhost.com attr1\n");
+#endif /* MI_NOT_SUPPORTED */
     printf("   slptool deregister service:myserv.x://myhost.com\n");
     printf("   slptool getproperty net.slp.useScopes\n");
 }
@@ -554,14 +1078,32 @@ int main(int argc, char* argv[])
             FindSrvs(&cmdline);
             break;
         
+        #ifndef UNICAST_NOT_SUPPORTED
+        case UNICASTFINDSRVS:
+	    UnicastFindSrvs(&cmdline);
+            break;
+	#endif
+
         case FINDATTRS:
             FindAttrs(&cmdline);
             break;
         
+        #ifndef UNICAST_NOT_SUPPORTED
+        case UNICASTFINDATTRS:
+	    UnicastFindAttrs(&cmdline);
+            break;
+	#endif
+
         case FINDSRVTYPES:
             FindSrvTypes(&cmdline);
             break;
 	
+        #ifndef UNICAST_NOT_SUPPORTED
+        case UNICASTFINDSRVTYPES:
+	    UnicastFindSrvTypes(&cmdline);
+            break;
+	#endif
+
 	case FINDSCOPES:
 	    FindScopes(&cmdline);
 	    break;
@@ -577,6 +1119,20 @@ int main(int argc, char* argv[])
 	 case DEREGISTER:
             Deregister(&cmdline);
             break;
+
+#ifndef MI_NOT_SUPPORTED
+	 case FINDSRVSUSINGIFLIST:
+            FindSrvsUsingIFList(&cmdline);
+            break;
+
+        case FINDATTRSUSINGIFLIST:
+            FindAttrsUsingIFList(&cmdline);
+            break;
+        
+        case FINDSRVTYPESUSINGIFLIST:
+            FindSrvTypesUsingIFList(&cmdline);
+            break;
+#endif /* MI_NOT_SUPPORTED */
 
 	 case PRINT_VERSION:
 	    PrintVersion(&cmdline);

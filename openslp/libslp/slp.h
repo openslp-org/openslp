@@ -209,6 +209,14 @@ typedef int SLPError;
 
 #define SLP_TYPE_ERROR              -26
 
+	
+#ifndef UNICAST_NOT_SUPPORTED
+/* The SLP UA needs to send a unicast query to a SA because this SA has */
+/* sent a packet > MTU size                                            */
+# define SLP_RETRY_UNICAST           -27
+#endif
+
+	
 /* If the API supports type checking of registrations against           */
 /* service type templates, this error can arise if the attributes       */
 /* in a registration do not match the service type template for         */

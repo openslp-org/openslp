@@ -274,8 +274,13 @@ SLPBoolean KnownDADiscoveryCallback(SLPError errorcode,
 /*-------------------------------------------------------------------------*/
 int KnownDADiscoveryRqstRply(int sock, 
                              struct sockaddr_in* peeraddr,
-                             int scopelistlen,
+			     int scopelistlen,
+#ifndef MI_NOT_SUPPORTED
+                             const char* scopelist,
+                             PSLPHandleInfo handle)
+#else
                              const char* scopelist)
+#endif /* MI_NOT_SUPPORTED */
 /* Returns: number of *new* DAEntries found                                */
 /*-------------------------------------------------------------------------*/
 {
@@ -320,7 +325,12 @@ int KnownDADiscoveryRqstRply(int sock,
     
     if(sock == -1)
     {
+
+#ifndef MI_NOT_SUPPORTED
+        NetworkMcastRqstRply(handle,
+#else
         NetworkMcastRqstRply("en",
+#endif /* MI_NOT_SUPPORTED */
                              buf,
                              SLP_FUNCT_DASRVRQST,
                              bufsize,
@@ -348,7 +358,11 @@ int KnownDADiscoveryRqstRply(int sock,
 
 
 /*-------------------------------------------------------------------------*/
+#ifndef MI_NOT_SUPPORTED
+int KnownDADiscoverFromMulticast(int scopelistlen, const char* scopelist, PSLPHandleInfo handle)
+#else
 int KnownDADiscoverFromMulticast(int scopelistlen, const char* scopelist)
+#endif /* MI_NOT_SUPPORTED */
 /* Locates  DAs via multicast convergence                                  */
 /*                                                                         */
 /* Returns: number of *new* DAs found                                      */
@@ -362,7 +376,12 @@ int KnownDADiscoverFromMulticast(int scopelistlen, const char* scopelist)
         result = KnownDADiscoveryRqstRply(-1,
                                           NULL,
                                           scopelistlen,
+#ifndef MI_NOT_SUPPORTED
+                                          scopelist,
+                                          handle);
+#else
                                           scopelist);
+#endif /* MI_NOT_SUPPORTED */
     }
 
     return result;
@@ -430,7 +449,12 @@ int KnownDADiscoverFromDHCP()
 
 /*-------------------------------------------------------------------------*/
 int KnownDADiscoverFromProperties(int scopelistlen,
+#ifndef MI_NOT_SUPPORTED
+                                  const char* scopelist,
+                                  PSLPHandleInfo handle)
+#else
                                   const char* scopelist)
+#endif /* MI_NOT_SUPPORTED */
 /* Locates DAs from the property list of DA hostnames                      */
 /*                                                                         */
 /* Returns: number of *new* DAs found                                      */
@@ -481,7 +505,12 @@ int KnownDADiscoverFromProperties(int scopelistlen,
                     result = KnownDADiscoveryRqstRply(sockfd,
                                                       &peeraddr,
                                                       scopelistlen,
-                                                      scopelist);
+#ifndef MI_NOT_SUPPORTED
+                                                      scopelist,
+                                                      handle);
+#else                                                 
+			                              scopelist);
+#endif		    
                     closesocket(sockfd);
                     if(scopelistlen && result)
                     {
@@ -503,7 +532,11 @@ int KnownDADiscoverFromProperties(int scopelistlen,
 
 
 /*-------------------------------------------------------------------------*/
+#ifndef MI_NOT_SUPPORTED
+int KnownDADiscoverFromIPC(PSLPHandleInfo handle)
+#else
 int KnownDADiscoverFromIPC()
+#endif
 /* Ask Slpd if it knows about a DA                                         */ 
 /*                                                                         */
 /* Returns: number of *new* DAs found                                      */
@@ -516,7 +549,11 @@ int KnownDADiscoverFromIPC()
     sockfd = NetworkConnectToSlpd(&peeraddr);
     if(sockfd >= 0)
     {
+#ifndef MI_NOT_SUPPORTED
+        result = KnownDADiscoveryRqstRply(sockfd, &peeraddr, 0, "", handle);
+#else
         result = KnownDADiscoveryRqstRply(sockfd, &peeraddr, 0, "");
+#endif
         closesocket(sockfd);
     }
 
@@ -528,7 +565,12 @@ SLPBoolean KnownDAFromCache(int scopelistlen,
                             const char* scopelist,
                             int spistrlen,
                             const char* spistr,
+#ifndef MI_NOT_SUPPORTED
+                            struct in_addr* daaddr,
+                            PSLPHandleInfo handle)
+#else
                             struct in_addr* daaddr)
+#endif /* MI_NOT_SUPPORTED */
 /* Ask Slpd if it knows about a DA                                         */ 
 /*                                                                         */
 /* Returns: non-zero on success, zero if DA can not be found               */
@@ -549,19 +591,29 @@ SLPBoolean KnownDAFromCache(int scopelistlen,
             G_KnownDALastCacheRefresh = curtime;
 
             /* discover DAs */
-
+#ifndef MI_NOT_SUPPORTED
+            if(KnownDADiscoverFromIPC(handle) == 0)
+                if(KnownDADiscoverFromProperties(scopelistlen, scopelist, handle) == 0)
+                    if(KnownDADiscoverFromDHCP() == 0)
+                        KnownDADiscoverFromMulticast(scopelistlen, scopelist, handle);
+#else
             if(KnownDADiscoverFromIPC() == 0)
                 if(KnownDADiscoverFromProperties(scopelistlen, scopelist) == 0)
                     if(KnownDADiscoverFromDHCP() == 0)
-                        KnownDADiscoverFromMulticast(scopelistlen,
-                                                     scopelist);
+                        KnownDADiscoverFromMulticast(scopelistlen, scopelist);
+#endif		
         }
 
         return KnownDAListFind(scopelistlen,
                                scopelist,
                                spistrlen,
                                spistr,
-                               daaddr);
+#ifndef MI_NOT_SUPPORTED
+                               daaddr,
+                               handle) == 0)
+#else
+                               daaddr) == 0)
+#endif /* MI_NOT_SUPPORTED */
     }
 
     return SLP_TRUE; 
@@ -674,7 +726,12 @@ void KnownDABadDA(struct in_addr* daaddr)
 
 /*=========================================================================*/
 int KnownDAGetScopes(int* scopelistlen,
+#ifndef MI_NOT_SUPPORTED
+                     char** scopelist,
+                     PSLPHandleInfo handle)
+#else
                      char** scopelist)
+#endif
 /* Gets a list of scopes from the known DA list                            */
 /*                                                                         */
 /* scopelistlen (OUT) stringlen of the scopelist                           */
@@ -689,11 +746,20 @@ int KnownDAGetScopes(int* scopelistlen,
     SLPDatabaseEntry*   entry;
     
     /* discover all DAs */
+#ifndef MI_NOT_SUPPORTED
+    if(KnownDADiscoverFromIPC(handle) == 0)
+#else
     if(KnownDADiscoverFromIPC() == 0)
+#endif
     {
         KnownDADiscoverFromDHCP();
-        KnownDADiscoverFromProperties(0,"");
+#ifndef MI_NOT_SUPPORTED
+        KnownDADiscoverFromProperties(0,"", handle);
+        KnownDADiscoverFromMulticast(0,"", handle);
+#else
+	KnownDADiscoverFromProperties(0,"");
         KnownDADiscoverFromMulticast(0,"");
+#endif
     }
 
 
@@ -788,11 +854,20 @@ void KnownDAProcessSrvRqst(PSLPHandleInfo handle)
     char                tmp;
 
     /* discover all DAs */
+#ifndef MI_NOT_SUPPORTED
+    if(KnownDADiscoverFromIPC(handle) == 0)
+#else
     if(KnownDADiscoverFromIPC() == 0)
+#endif
     {
         KnownDADiscoverFromDHCP();
-        KnownDADiscoverFromProperties(0,"");
+#ifndef MI_NOT_SUPPORTED
+        KnownDADiscoverFromProperties(0,"", handle);
+        KnownDADiscoverFromMulticast(0,"", handle);
+#else
+	KnownDADiscoverFromProperties(0,"");
         KnownDADiscoverFromMulticast(0,"");
+#endif
     }
 
     /* Enumerate through knownDA database */

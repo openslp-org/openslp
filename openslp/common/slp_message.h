@@ -142,7 +142,9 @@ typedef UINT32*         PUINT32;
 #define SLP_FLAG_OVERFLOW         0x8000
 #define SLP_FLAG_FRESH            0x4000
 #define SLP_FLAG_MCAST            0x2000
-
+#ifndef UNICAST_NOT_SUPPORTED
+#define SLP_FLAG_UCAST            0x0000
+#endif
 
 /*=========================================================================*/
 /* SLP Constants                                                           */
