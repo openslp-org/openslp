@@ -50,4 +50,6 @@ noinst_HEADERS = \
 	slp_auth.h \
 	slp_spi.h \
 	slp_xmalloc.h \
-	slp_utf8.h 
+	slp_utf8.h \
+	slp_xcast.h \
+	slp_iface.h
