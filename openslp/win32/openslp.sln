@@ -1,0 +1,37 @@
+Microsoft Visual Studio Solution File, Format Version 8.00
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libslp", "libslp\libslp.vcproj", "{DFA77EBC-CF9F-49D5-8942-8746383331B2}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "slpd", "slpd\slpd.vcproj", "{39221BEE-3AE1-48C8-A9CD-F0333F579D6D}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "slptool", "slptool\slptool.vcproj", "{75F31B1C-567B-458D-8368-D6C69574D241}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfiguration) = preSolution
+		Debug = Debug
+		Release = Release
+	EndGlobalSection
+	GlobalSection(ProjectConfiguration) = postSolution
+		{DFA77EBC-CF9F-49D5-8942-8746383331B2}.Debug.ActiveCfg = Debug|Win32
+		{DFA77EBC-CF9F-49D5-8942-8746383331B2}.Debug.Build.0 = Debug|Win32
+		{DFA77EBC-CF9F-49D5-8942-8746383331B2}.Release.ActiveCfg = Release|Win32
+		{DFA77EBC-CF9F-49D5-8942-8746383331B2}.Release.Build.0 = Release|Win32
+		{39221BEE-3AE1-48C8-A9CD-F0333F579D6D}.Debug.ActiveCfg = Debug|Win32
+		{39221BEE-3AE1-48C8-A9CD-F0333F579D6D}.Debug.Build.0 = Debug|Win32
+		{39221BEE-3AE1-48C8-A9CD-F0333F579D6D}.Release.ActiveCfg = Release|Win32
+		{39221BEE-3AE1-48C8-A9CD-F0333F579D6D}.Release.Build.0 = Release|Win32
+		{75F31B1C-567B-458D-8368-D6C69574D241}.Debug.ActiveCfg = Debug|Win32
+		{75F31B1C-567B-458D-8368-D6C69574D241}.Debug.Build.0 = Debug|Win32
+		{75F31B1C-567B-458D-8368-D6C69574D241}.Release.ActiveCfg = Release|Win32
+		{75F31B1C-567B-458D-8368-D6C69574D241}.Release.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+	EndGlobalSection
+	GlobalSection(ExtensibilityAddIns) = postSolution
+	EndGlobalSection
+EndGlobal
