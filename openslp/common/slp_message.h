@@ -169,6 +169,11 @@ typedef struct _SLPHeader
 /*=========================================================================*/
 typedef struct _SLPAuthBlock
 {
+    void*                   opaque;      /* opaque is a pointer to the     */
+                                         /* authblock as a contiguous      */
+                                         /* buffer in wire format. length  */
+                                         /* can be used as the size of the */
+                                         /* contiguous opaque buffer       */
     unsigned int            bsd;
     int                     length;
     unsigned int            timestamp;

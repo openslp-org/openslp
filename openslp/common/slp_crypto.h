@@ -132,7 +132,7 @@ int SLPCryptoDSASign(SLPCryptoDSAKey* key,
 /*             digestlen    (IN)  length of the digest buffer              */
 /*             signature    (OUT) buffer that will hold the ASN.1 DER      */
 /*                                encoded signature.                       */
-/*             signaturelen (IN)  The length of the signature buffer       */
+/*             signaturelen (OUT) The length of the signature buffer       */
 /*                                SLPCryptoDSASignLen(key) should be       */
 /*                                called to determine how big signature    */
 /*                                should be.                               */
@@ -145,7 +145,7 @@ int SLPCryptoDSASign(SLPCryptoDSAKey* key,
 int SLPCryptoDSAVerify(SLPCryptoDSAKey* key,
                        const unsigned char* digest,
                        int digestlen,
-                       unsigned char* signature,
+                       const unsigned char* signature,
                        int signaturelen);
 /* Verify a DSA signature to ensure it matches the specified digest        */
 /*                                                                         */

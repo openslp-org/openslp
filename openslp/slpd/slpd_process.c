@@ -508,7 +508,7 @@ int ProcessSrvRqst(struct sockaddr_in* peeraddr,
         for(authcount=0;authcount<srvarray[i].authcount;authcount++)
         {
             memcpy(result->curpos,
-                   srvarray[i].autharray[authcount].auth,
+                   srvarray[i].autharray[authcount].opaque,
                    srvarray[i].autharray[authcount].length);
             result->curpos = result -> curpos + srvarray[i].autharray[authcount].length;
         }
@@ -795,8 +795,8 @@ int ProcessAttrRqst(struct sockaddr_in* peeraddr,
     SLPBuffer               result          = *sendbuf;
     
     #ifdef ENABLE_AUTHENTICATION
-    void*                   attrauth       = 0;
-    int                     attrauthlen    = 0;
+    unsigned char*    attrauth       = 0;
+    int               attrauthlen    = 0;
     #endif
 
     /*--------------------------------------------------------------*/

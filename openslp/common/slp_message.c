@@ -132,9 +132,10 @@ int ParseAuthBlock(SLPBuffer buffer, SLPAuthBlock* authblock)
         return SLP_ERROR_PARSE_ERROR;
     }
 
+    authblock->opaque       = buffer->curpos;
     authblock->bsd          = AsUINT16(buffer->curpos);
     authblock->length       = AsUINT16(buffer->curpos + 2);
-
+    
     if(authblock->length > buffer->end - buffer->curpos)
     {
         return SLP_ERROR_PARSE_ERROR;

@@ -108,7 +108,7 @@ int SLPAuthSignString(unsigned short spistrlen,
                       unsigned short stringlen,
                       const char* string,
                       int* authblocklen,
-                      void** authblock);
+                      unsigned char** authblock);
 /* Generate an authblock signature for an attribute list                   */
 /*                                                                         */
 /* Parameters: spistrlen (IN) length of the spi string                     */
@@ -116,7 +116,8 @@ int SLPAuthSignString(unsigned short spistrlen,
 /*             attrlistlen (IN) the length of the URL to sign              */
 /*             attrlist (IN) the url to sign                               */
 /*             authblocklen (OUT) the length of the authblock signature    */
-/*             authblock (OUT) buffer containing authblock signature       */
+/*             authblock (OUT) buffer containing authblock signature must  */
+/*                             be freed by the caller                      */
 /*                                                                         */
 /* Returns: 0 on success or SLP_ERROR_xxx code on failure                  */
 /*=========================================================================*/
@@ -128,7 +129,7 @@ int SLPAuthSignUrl(unsigned short spistrlen,
                    unsigned short urllen,
                    const char* url,
                    int* authblocklen,
-                   void** authblock);
+                   unsigned char** authblock);
 /* Generate an authblock signature for a Url                               */
 /*                                                                         */
 /* Parameters: spistrlen (IN) length of the spi string                     */
@@ -136,7 +137,8 @@ int SLPAuthSignUrl(unsigned short spistrlen,
 /*             urllen (IN) the length of the URL to sign                   */
 /*             url (IN) the url to sign                                    */
 /*             authblocklen (OUT) the length of the authblock signature    */
-/*             authblock (OUT) buffer containing authblock signature       */
+/*             authblock (OUT) buffer containing authblock signature must  */
+/*                             be freed by the caller                      */
 /*                                                                         */
 /* Returns: 0 on success or SLP_ERROR_xxx code on failure                  */
 /*=========================================================================*/
@@ -155,7 +157,7 @@ int SLPAuthSignDAAdvert(unsigned short spistrlen,
                         unsigned short daspistrlen,
                         const char* daspistr,
                         int* authblocklen,
-                        void** authblock);
+                        unsigned char** authblock);
 /* Generate an authblock signature for a DAADVERT                          */
 /*                                                                         */
 /* Parameters: spistrlen (IN) length of the spi string                     */
@@ -170,7 +172,8 @@ int SLPAuthSignDAAdvert(unsigned short spistrlen,
 /*             daspistrlen (IN) the length of the list of DA's SPIs        */
 /*             daspistr (IN) the list of the DA's SPI's                    */
 /*             authblocklen (OUT) the length of the authblock signature    */
-/*             authblock (OUT) buffer containing authblock signature       */
+/*             authblock (OUT) buffer containing authblock signature must  */
+/*                             be freed by the caller                      */
 /*                                                                         */
 /* Returns: 0 on success or SLP_ERROR_xxx code on failure                  */
 /*=========================================================================*/
@@ -185,7 +188,7 @@ int SLPAuthSignSAAdvert(unsigned short spistrlen,
                         unsigned short scopelistlen,
                         const char* scopelist,
                         int* authblocklen,
-                        void** authblock);
+                        unsigned char** authblock);
 /* Generate an authblock signature for a SAADVERT                          */
 /*                                                                         */
 /* Parameters: spistrlen (IN) length of the spi string                     */
@@ -197,7 +200,8 @@ int SLPAuthSignSAAdvert(unsigned short spistrlen,
 /*             scopelistlen (IN) the length of the DA's scope list         */
 /*             scopelist (IN) the DA's scope list                          */
 /*             authblocklen (OUT) the length of the authblock signature    */
-/*             authblock (OUT) buffer containing authblock signature       */
+/*             authblock (OUT) buffer containing authblock signature must  */
+/*                             be freed by the caller                      */
 /*                                                                         */
 /* Returns: 0 on success or SLP_ERROR_xxx code on failure                  */
 /*=========================================================================*/

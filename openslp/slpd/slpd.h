@@ -235,12 +235,12 @@ void SLPDPropertyDeinit();
 
 
 /*=========================================================================*/
-typedef struct _SLPDDatabaseEntryAuthBlock
+typedef struct _SLPDDatabaseAuthOpaque
 /*=========================================================================*/
 {
-    int         length;
-    void*       auth;
-}SLPDDatabaseEntryAuthBlock;
+    int     length;
+    void*   opaque;
+}SLPDDatabaseAuthOpaque;
 
 
 /*=========================================================================*/
@@ -262,7 +262,7 @@ typedef struct _SLPDDatabaseSrvUrl
     int     urllen;
     char*   url;
     int     authcount;
-    SLPDDatabaseEntryAuthBlock*  autharray;
+    SLPDDatabaseAuthOpaque* autharray;
 }SLPDDatabaseSrvUrl;
 
 
@@ -296,8 +296,8 @@ typedef struct _SLPDDatabaseEntry
     SLPAttributes   attr;
 #endif
 #ifdef ENABLE_AUTHENTICATION
-    int                         authcount;
-    SLPDDatabaseEntryAuthBlock* autharray;
+    int                     authcount;
+    SLPDDatabaseAuthOpaque* autharray;
 #endif
     int             attrlistlen;
     char*           attrlist;   

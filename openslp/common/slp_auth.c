@@ -52,32 +52,66 @@
 /*#include "slp_keys.h"*/
 
 /*-------------------------------------------------------------------------*/
-int SLPAuthVerifyBuffer(int spistrlen,
+int SLPAuthDigestString(int spistrlen,
                         const char* spistr,
-                        int buflen,
-                        const unsigned char* buf,
-                        int signaturelen,,
-                        const unsigned char signature)
+                        int stringlen,
+                        const char* string,
+                        unsigned long timestamp,
+                        unsigned char* digest)
 /*-------------------------------------------------------------------------*/
 {
-    unsigned char   digest[20];
-    
-    SLPCryptoSHA1Digest(buf,buflen,digest);
+    int                 result;
+    int                 tmpbufsize;
+    unsigned char*      tmpbuf;
+    unsigned char*      curpos;
 
-    
-    if(SLPCryptoDSAVerify(SLPCryptoDSAKey* key,
-                          digest,
-                          sizeof(digest),
-                          autharray[i].authstruct,
-                          signaturelen))
+    /* assume success */
+    result = 0;
+
+    /*-------------------------------------------------------*/
+    /* Allocate temporary buffer for contiguous data         */
+    /*-------------------------------------------------------*/
+    /* +8 makes room for:  stringlen (2 bytes)               */
+    /*                     autharray[i].spistrlen (2 bytes)  */
+    /*                     timestamp 4 bytes                 */
+    tmpbufsize = stringlen + spistrlen + 8;
+    tmpbuf = malloc(tmpbufsize);
+    if(tmpbuf == 0)
     {
-        return 0;
+        return SLP_ERROR_INTERNAL_ERROR;
+    }
+    
+    /*-----------------------------------*/
+    /* Copy data into continguous buffer */
+    /*-----------------------------------*/
+    curpos = tmpbuf;
+    ToUINT16(curpos,spistrlen);
+    curpos = curpos + 2;
+    memcpy(curpos, spistr, spistrlen);
+    curpos = curpos + spistrlen;
+    ToUINT16(curpos,stringlen);
+    curpos = curpos + 2;
+    memcpy(curpos, string, stringlen);
+    curpos = curpos + stringlen; 
+    ToUINT32(curpos, timestamp);
+
+    /*---------------------*/
+    /* Generate the digest */
+    /*---------------------*/
+    if(SLPCryptoSHA1Digest(tmpbuf,
+                           tmpbufsize,
+                           digest))
+    {
+        result = SLP_ERROR_INTERNAL_ERROR;
     }
 
-    return SLP_ERROR_AUTHENTICATION_FAILED;
-}
-                        
+    /*------------------------------*/
+    /* Cleanup the temporary buffer */
+    /*------------------------------*/
+    free(tmpbuf);
 
+    return result;
+}
 
 /*=========================================================================*/
 int SLPAuthVerifyString(unsigned short stringlen,
@@ -94,56 +128,62 @@ int SLPAuthVerifyString(unsigned short stringlen,
 /* Returns: 0 on success or SLP_ERROR_xxx code on failure                  */
 /*=========================================================================*/
 {
-    int             i;
-    int             tempbufsize;
-    unsigned char*  tempbuf         = 0;
-    int             result          = SLP_ERROR_AUTHENTICATION_FAILED;
+    int                 i;
+    int                 signaturelen;
+    int                 result;
+    SLPCryptoDSAKey*    key;
+    unsigned char       digest[20];
     
+    /* Assume failure */
+    result = SLP_ERROR_AUTHENTICATION_FAILED;
     
-    /* TODO: Actually get the key */
-
+    /*------------------------------------------------------*/
+    /* Iterate and check all authentication blocks          */
+    /*------------------------------------------------------*/
+    /* If any one of the authblocks can be verified then we */
+    /* accept it                                            */
     for(i=0;i<authcount;i++)
     {
+        /* TODO: actually lookup the key corresponds to the SPI */
+        key = 0;
+        
         /* TODO: what if the time stamp is expired? */
         
-        /*-------------------------------------------------------*/
-        /* Allocate temporary buffer for contiguous data         */
-        /*-------------------------------------------------------*/
-        /* +8 makes room for:  stringlen (2 bytes)               */
-        /*                     autharray[i].spistrlen (2 bytes)  */
-        /*                     timestamp 4 bytes                 */
-        tmpbufsize = stringlen + autharray[i].spistrlen + 8;
-        tmpbuf = realloc(tmpbuf,tmpbufsize);
-        if(tmpbuf == 0)
-        {
-            return SLP_ERROR_INTERNAL;
-        }
-        
-        /*------------------------------------------------------------*/
-        /* Calculate the size of the DSA signature from the authblock */
-        /*------------------------------------------------------------*/
-        /* we have to calculate the signature length since            */
-        /* autharray[i].length is (stupidly) the length of the entire */
-        /* authblock                                                  */
-        signaturelen = autharray[i].length - (autharray[i].spistrlen + 10);
-        
-        result = SLPAuthVerifyBuffer(autharray[i].spistrlen,
-                                     autharray[i].spi,
-                                     tmpbufsize,
-                                     tmpbuf,
-                                     signaturelen,
-                                     autharray[i].authstruct);
+        /*--------------------------*/
+        /* Generate the SHA1 digest */
+        /*--------------------------*/
+        result = SLPAuthDigestString(autharray[i].spistrlen,
+                                     autharray[i].spistr,
+                                     stringlen,
+                                     string,
+                                     autharray[i].timestamp,
+                                     digest);
         if(result == 0)
         {
-            break;
+            /*------------------------------------------------------------*/
+            /* Calculate the size of the DSA signature from the authblock */
+            /*------------------------------------------------------------*/
+            /* we have to calculate the signature length since            */
+            /* autharray[i].length is (stupidly) the length of the entire */
+            /* authblock                                                  */
+            signaturelen = autharray[i].length - (autharray[i].spistrlen + 10);
+    
+            /*----------------------*/
+            /* Verify the signature */
+            /*----------------------*/
+            if(SLPCryptoDSAVerify(key,
+                                  digest,
+                                  sizeof(digest),
+                                  autharray[i].authstruct,
+                                  signaturelen))
+            {
+                break;
+            }
+
+            result = SLP_ERROR_AUTHENTICATION_FAILED;
         }
     }
     
-    if(tmpbuf)
-    {
-        free(tmpbuf);
-    }
-
     return result;
 }
 
@@ -157,7 +197,10 @@ int SLPAuthVerifyUrl(const SLPUrlEntry* urlentry)
 /* Returns: 0 on success or SLP_ERROR_xxx code on failure                  */
 /*=========================================================================*/
 {
-    return 0;
+    return SLPAuthVerifyString(urlentry->urllen,
+                               urlentry->url,
+                               urlentry->authcount,
+                               urlentry->autharray);
 }
 
 
@@ -197,7 +240,7 @@ int SLPAuthSignString(unsigned short spistrlen,
                       unsigned short stringlen,
                       const char* string,
                       int* authblocklen,
-                      void** authblock)
+                      unsigned char** authblock)
 /* Generate an authblock signature for an attribute list                   */
 /*                                                                         */
 /* Parameters: spistrlen (IN) length of the spi string                     */
@@ -205,15 +248,96 @@ int SLPAuthSignString(unsigned short spistrlen,
 /*             attrlistlen (IN) the length of the URL to sign              */
 /*             attrlist (IN) the url to sign                               */
 /*             authblocklen (OUT) the length of the authblock signature    */
-/*             authblock (OUT) buffer containing authblock signature       */
+/*             authblock (OUT) buffer containing authblock signature must  */
+/*                             be freed by the caller                      */
 /*                                                                         */
 /* Returns: 0 on success or SLP_ERROR_xxx code on failure                  */
 /*=========================================================================*/
 {
-    *authblocklen = 0;
-    *authblock = 0;
+    SLPCryptoDSAKey*    key;
+    int                 signaturelen;
+    int                 result;
+    unsigned char*      curpos;
+    unsigned char       digest[20];
+
+
+    /* TODO: actually look up a key for the spi */
+    key = 0;
+
+    
+    /*----------------------------------------------*/
+    /* Allocate memory for the authentication block */
+    /*----------------------------------------------*/
+    /* +10 makes room for:                          */
+    /*     - the bsd (2 bytes)                      */
+    /*     - the the authblock length (2 bytes)     */
+    /*     - the spi string length (2 bytes)        */
+    /*     - the timestamp (4 bytes)                */
+    signaturelen = SLPCryptoDSASignLen(key);
+    *authblocklen = spistrlen + signaturelen + 10;
+    *authblock = (unsigned char*)malloc(*authblocklen);
+    if(*authblock == 0)
+    {
+        return  SLP_ERROR_INTERNAL_ERROR;
+    }
+    
+    /*---------------------------------------------------------*/
+    /* Fill in the Authblock with everything but the signature */
+    /*---------------------------------------------------------*/
+    curpos = *authblock;
+    ToUINT16(curpos,0x0002); /* the BSD for DSA-SHA1 */
+    curpos += 2;
+    ToUINT16(curpos,signaturelen);
+    curpos += 2;
+    ToUINT32(curpos,0xffffffff); /* very long expiration (for now) */
+    curpos += 4;
+    ToUINT32(curpos, spistrlen);
+    curpos += 2;
+    memcpy(curpos, spistr, spistrlen);
+    curpos += spistrlen;
+
+    /*--------------------------*/
+    /* Generate the SHA1 digest */
+    /*--------------------------*/
+    result = SLPAuthDigestString(spistrlen,
+                                 spistr,
+                                 stringlen,
+                                 string,
+                                 0xffffffff, /* very long expiration (for now) */
+                                 digest);
+    if(result)
+    {
+        goto ERROR;
+    }
+
+    /*---------------------------------------------*/
+    /* Sign the digest and put it in the authblock */
+    /*---------------------------------------------*/
+    if( SLPCryptoDSASign(key,
+                         digest,
+                         sizeof(digest),
+                         curpos,
+                         &signaturelen))
+    {
+        result = SLP_ERROR_INTERNAL_ERROR;
+        goto ERROR;
+    }
+
     return 0;
+
+
+ERROR:
+    
+    /*-------------------------------*/
+    /* Clean up and return errorcode */
+    /*-------------------------------*/ 
+    free(*authblock);
+    *authblock = 0;
+    *authblocklen = 0;
+    
+    return result;
 }
+
 
 
 /*=========================================================================*/
@@ -222,7 +346,7 @@ int SLPAuthSignUrl(unsigned short spistrlen,
                    unsigned short urllen,
                    const char* url,
                    int* authblocklen,
-                   void** authblock)
+                   unsigned char** authblock)
 /* Generate an authblock signature for a Url                               */
 /*                                                                         */
 /* Parameters: spistrlen (IN) length of the spi string                     */
@@ -235,9 +359,12 @@ int SLPAuthSignUrl(unsigned short spistrlen,
 /* Returns: 0 on success or SLP_ERROR_xxx code on failure                  */
 /*=========================================================================*/
 {
-    *authblocklen = 0;
-    *authblock = 0;
-    return 0;
+    return  SLPAuthSignString(spistrlen,
+                              spistr,
+                              urllen,
+                              url,
+                              authblocklen,
+                              authblock);
 }
 
 
@@ -254,7 +381,7 @@ int SLPAuthSignDAAdvert(unsigned short spistrlen,
                         unsigned short daspistrlen,
                         const char* daspistr,
                         int* authblocklen,
-                        void** authblock)
+                        unsigned char** authblock)
 /* Generate an authblock signature for a DAADVERT                          */
 /*                                                                         */
 /* Parameters: spistrlen (IN) length of the spi string                     */
@@ -290,7 +417,7 @@ int SLPAuthSignSAAdvert(unsigned short spistrlen,
                         unsigned short scopelistlen,
                         const char* scopelist,
                         int* authblocklen,
-                        void** authblock)
+                        unsigned char** authblock)
 /* Generate an authblock signature for a SAADVERT                          */
 /*                                                                         */
 /* Parameters: spistrlen (IN) length of the spi string                     */

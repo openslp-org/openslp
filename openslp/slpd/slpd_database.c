@@ -60,6 +60,10 @@ void SLPDDatabaseEntryFree(SLPDDatabaseEntry* entry)
 /* Free all resource related to the specified entry                        */
 /*=========================================================================*/
 {
+    #ifdef ENABLE_AUTHENTICATION
+    int i;
+    #endif
+    
     if(entry)
     {
         if(entry->scopelist) free(entry->scopelist);
@@ -70,6 +74,16 @@ void SLPDDatabaseEntryFree(SLPDDatabaseEntry* entry)
 #ifdef USE_PREDICATES
         if(entry->attr) SLPAttrFree(entry->attr);
 #endif 
+#ifdef ENABLE_AUTHENTICATION
+        if(entry->autharray)
+        {
+            for(i=0;i<entry->authcount; i++)
+            {
+                free(entry->autharray[i].opaque);
+            }
+            free (entry->autharray);
+        }
+#endif
         free(entry);
     }
 }
@@ -145,6 +159,10 @@ int SLPDDatabaseReg(SLPSrvReg* srvreg, unsigned int regtype)
     int                result = -1; 
     SLPDDatabaseEntry* entry  = (SLPDDatabaseEntry*)G_DatabaseList.head;
     
+    #ifdef ENABLE_AUTHENTICATION
+    int i;
+    #endif
+
     /*-----------------------------------------------------*/
     /* Check to see if there is already an identical entry */
     /*-----------------------------------------------------*/
@@ -290,9 +308,41 @@ int SLPDDatabaseReg(SLPSrvReg* srvreg, unsigned int regtype)
     /*----------------*/
     /* Authentication */
     /*----------------*/
-    /* TODO: fix this later */
-    entry->authcount = 0;
-    entry->autharray = 0;
+    /* free the previous autharray if any */
+    
+    if(entry->autharray)
+    {
+        for(i=0;i<entry->authcount; i++)
+        {
+            free(entry->autharray[i].opaque);
+        }
+        free (entry->autharray);
+        entry->autharray = 0;
+        entry->authcount = 0;
+    }
+
+    /* save of auths as opaque */
+    if(srvreg->urlentry.authcount)
+    {
+        entry->autharray = (SLPDDatabaseAuthOpaque*) malloc(sizeof(SLPDDatabaseAuthOpaque) * srvreg->urlentry.authcount);
+
+        if(entry->autharray == 0)
+        {
+            goto FAILURE;
+        }
+        
+        for(i=0;i<srvreg->urlentry.authcount;i++)
+        {
+            entry->autharray[i].opaque = memdup(srvreg->urlentry.autharray[i].opaque,
+                                                srvreg->urlentry.autharray[i].length);
+            if(entry->autharray[i].opaque == 0)
+            {
+                goto FAILURE;
+            }
+            entry->autharray[i].length = srvreg->urlentry.autharray[i].length;
+        }
+        entry->authcount = srvreg->urlentry.authcount; 
+    }
 #endif
 
     /* link the new (or modified) entry into the list */
@@ -374,10 +424,6 @@ int SLPDDatabaseFindSrv(SLPSrvRqst* srvrqst,
     int                 found;
 
 #ifdef USE_PREDICATES
-
-
-
-
     /* Tricky: perform an in place null termination of the predicate string */
     /*         Remember this squishes the high byte of spilistlen which is  */
     /*         not a problem because it was already copied                  */
@@ -414,6 +460,10 @@ int SLPDDatabaseFindSrv(SLPSrvRqst* srvrqst,
                     result[found].lifetime = entry->lifetime;
                     result[found].urllen = entry->urllen;
                     result[found].url = entry->url;
+#ifdef ENABLE_AUTHENTICATION
+                    result[found].authcount = entry->authcount;
+                    result[found].autharray = entry->autharray;
+#endif
                     found ++;
                     if(found >= count)
                     {
