@@ -983,7 +983,7 @@ SLPError NetworkMcastRqstRply(const char* langtag,
 					{
 						strcat(prlist,",");
 					}
-					inet_ntop(peeraddr.ss_family, &peeraddr, peeraddrstr, INET6_ADDRSTRLEN);
+					inet_ntop(peeraddr.ss_family, &((struct sockaddr_in6 *)&peeraddr)->sin6_addr, peeraddrstr, INET6_ADDRSTRLEN);
 					strcat(prlist, peeraddrstr);
 					prlistlen =  strlen(prlist);
 				}
@@ -1255,7 +1255,7 @@ SLPError NetworkUcastRqstRply(PSLPHandleInfo handle,
 	        strcat(prlist,",");
 	    }
 
-		inet_ntop(peeraddr.ss_family, &peeraddr, peeraddrstr, INET6_ADDRSTRLEN);
+		inet_ntop(peeraddr.ss_family, &((struct sockaddr_in6 *)&peeraddr)->sin6_addr, peeraddrstr, INET6_ADDRSTRLEN);
 		strcat(prlist, peeraddrstr);
 	    prlistlen =  strlen(prlist);
 	}

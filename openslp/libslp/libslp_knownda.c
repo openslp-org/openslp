@@ -257,7 +257,7 @@ SLPBoolean KnownDADiscoveryCallback(SLPError errorcode,
 	                        
 							SLPFree(srvurl);
 
-							if(retval <= 0)
+							if(retval > 0)
 							{
 								(*count) += 1;
 	                            
@@ -442,7 +442,7 @@ int KnownDADiscoverFromDHCP()
 	}
 	scopelistlen = strlen(ctx.scopelist);
 
-	SLPNetSetAddr(&peeraddr, AF_INET, htons(SLP_RESERVED_PORT), NULL, 0);
+	SLPNetSetAddr(&peeraddr, AF_INET, SLP_RESERVED_PORT, NULL, 0);
 
 	timeout.tv_sec = SLPPropertyAsInteger(SLPGetProperty("net.slp.DADiscoveryMaximumWait"));
 	timeout.tv_usec = (timeout.tv_sec % 1000) * 1000;
@@ -686,11 +686,11 @@ int KnownDAConnect(PSLPHandleInfo handle,
         }
 
 		if (peeraddr->ss_family == AF_INET6 && SLPNetIsIPV6()) {
-			SLPNetSetAddr(peeraddr, AF_INET6, htons(SLP_RESERVED_PORT), NULL, 0);
+			SLPNetSetParams(peeraddr, AF_INET6, SLP_RESERVED_PORT);
 			sock = SLPNetworkConnectStream(peeraddr,&timeout);
 		}
 		if (peeraddr->ss_family == AF_INET && SLPNetIsIPV4()) {
-			SLPNetSetAddr(peeraddr, AF_INET, htons(SLP_RESERVED_PORT), NULL, 0);
+			SLPNetSetParams(peeraddr, AF_INET, SLP_RESERVED_PORT);
 			sock = SLPNetworkConnectStream(peeraddr,&timeout);
 		}
         
