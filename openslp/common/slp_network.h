@@ -53,9 +53,6 @@
 #include <slp_xid.h>
 
 
-#define MAX_RETRANSMITS     8
-
-
 /*=========================================================================*/ 
 int SLPNetworkConnectStream(struct sockaddr_in* peeraddr,
                             struct timeval* timeout);

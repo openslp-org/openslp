@@ -41,8 +41,12 @@
 #include "libslp.h"
  
 /*=========================================================================*/
-SLPDAEntry* G_KnownDAListHead = 0;
+SLPDAEntry* G_KnownDAListHead = 0;                                         
+/* The list of know DAs.  All calls in the file are ment to fill this list */
+/* with useable DAs.                                                       */
 /*=========================================================================*/
+
+struct stat G_HintStat;
 
 /*-------------------------------------------------------------------------*/
 SLPBoolean KnownDADiscoveryCallback(SLPMessage msg, void* cookie)
@@ -120,7 +124,7 @@ int KnownDADiscoveryRqstRply(int sock, struct sockaddr_in* peeraddr)
                     peeraddr,
                     "en",
                     buf,
-                    SLP_FUNCT_SRVRQST,
+                    SLP_FUNCT_DASRVRQST,
                     bufsize,
                     KnownDADiscoveryCallback,
                     &result);
@@ -132,7 +136,7 @@ int KnownDADiscoveryRqstRply(int sock, struct sockaddr_in* peeraddr)
 
 
 /*-------------------------------------------------------------------------*/
-int KnownDADiscoveryByMulticast(const char* scopelist, int scopelistlen)
+int KnownDADiscoveryByMulticast()
 /* Locates  DAs via multicast convergence                                  */
 /*                                                                         */
 /* Returns  The number of DAs found                                        */
@@ -154,8 +158,7 @@ int KnownDADiscoveryByMulticast(const char* scopelist, int scopelistlen)
 
 
 /*-------------------------------------------------------------------------*/
-int KnownDADiscoveryByName(const char* daaddresses,
-                           struct timeval* timeout)
+int KnownDADiscoveryByProperties(struct timeval* timeout)
 /* Locates DAs from a list of DA hostnames                                 */
 /*                                                                         */
 /* Returns  number of DAs discovered                                       */
@@ -168,12 +171,12 @@ int KnownDADiscoveryByName(const char* daaddresses,
     int                 sock;
     struct hostent*     he;
     struct sockaddr_in  peeraddr;
-
+    
     memset(&peeraddr,0,sizeof(peeraddr));
     peeraddr.sin_family = AF_INET;
     peeraddr.sin_port = htons(SLP_RESERVED_PORT);
     
-    slider1 = slider2 = temp = strdup(daaddresses);
+    slider1 = slider2 = temp = strdup(SLPGetProperty("net.slp.DAAddresses"));
     while(1)
     {
         while(*slider2 && *slider2 != ',') slider2++;
@@ -205,11 +208,29 @@ int KnownDADiscoveryByName(const char* daaddresses,
 void KnownDADiscover(struct timeval* timeout) 
 /*=========================================================================*/
 {
-    const char* daaddresses; 
+    int         fd;
+    struct stat hintstat;
+    const char* hintfile = SLPGetProperty("net.slp.HintsFile");
 
+    
+    /* TODO THIS FUNCTION MUST BE SYNCRONIZED !! */
+    
     /*-------------------------------------------*/
     /* Check hints file to and load it if it     */
     /*-------------------------------------------*/
+    if(stat(hintfile,&hintstat) == 0)
+    {
+        if(hintstat.st_mtime != G_HintStat.st_mtime)
+        {
+            fd = open(hintfile,O_RDONLY);
+            if(fd >= 0)
+            {
+                SLPDAEntryListRead(fd, &G_KnownDAListHead);
+                close(fd);
+            }
+        }
+    }
+    
     /* if (hints file changed)                   */
     /* {                                         */
     /*     if(load hints file)                   */
@@ -218,37 +239,56 @@ void KnownDADiscover(struct timeval* timeout)
     /*     }                                     */
     /* }                                         */
 
-
-    /*----------------------------------------------------*/
-    /* Check values from the net.slp.DAAddresses property */
-    /*----------------------------------------------------*/
+    /* The logic of the following if(G_KnownDAListHead) statements is an   */
+    /* attempt to reduce wasted time and network bandwidth due to unneeded */
+    /* communication with DAs and multicast                                */
+    
     if(G_KnownDAListHead == 0)
     {
-        daaddresses = SLPGetProperty("net.slp.DAAddresses");
-        if(daaddresses && *daaddresses)
+        /*----------------------------------------------------*/
+        /* Check values from the net.slp.DAAddresses property */
+        /*----------------------------------------------------*/
+        KnownDADiscoveryByProperties(timeout);
+        
+        /*------------------------------*/
+        /* Check data from DHCP Options */
+        /*------------------------------*/ 
+
+        if(G_KnownDAListHead)
         {
-            KnownDADiscoveryByName(daaddresses,timeout);
+            return;
         }
     }
-
-    /*------------------------------*/
-    /* Check data from DHCP Options */
-    /*------------------------------*/
-
-
+    
+    
     /*-------------*/
     /* IPC to slpd */
     /*-------------*/
 
-    
+
     /*-------------------*/
     /* Multicast for DAs */
     /*-------------------*/ 
-
+    if(SLPPropertyAsBoolean(SLPGetProperty("net.slp.activeDADetection")) &&
+       SLPPropertyAsInteger(SLPGetProperty("net.slp.DAActiveDiscoveryInterval")))
+    {
+        KnownDADiscoveryByMulticast();
+    }
     
+
     /*---------------------*/
     /* Save the hints file */
     /*---------------------*/
+    fd = open(hintfile,
+              O_RDONLY | O_CREAT,
+              S_IROTH | S_IWOTH | S_IRGRP| S_IWGRP | S_IRUSR, S_IWUSR);
+    if(fd >= 0)
+    {
+        SLPDAEntryListWrite(fd, &G_KnownDAListHead);
+        close(fd);
+        stat(hintfile,&G_HintStat);
+    }
+    
 }
 
 /*=========================================================================*/
@@ -261,6 +301,8 @@ int KnownDAConnect(const char* scopelist,
     int                 sock;
     SLPDAEntry*         entry;
     
+    /* TODO THIS FUNCTION MUST BE SYNCRONIZED !! */
+
     memset(peeraddr,0,sizeof(struct sockaddr_in));
     peeraddr->sin_family = AF_INET;
     peeraddr->sin_port   = htons(SLP_RESERVED_PORT);

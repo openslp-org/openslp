@@ -65,8 +65,7 @@ int NetworkConnectToMulticast(struct sockaddr_in* peeraddr)
 /*=========================================================================*/ 
 int NetworkConnectToDA(const char* scopelist,
                        int scopelistlen,
-                       struct sockaddr_in* peeraddr,
-                       struct timeval* timeout)
+                       struct sockaddr_in* peeraddr)
 /* Connects to slpd and provides a peeraddr to send to                     */
 /*                                                                         */
 /* scopelist        (IN) Scope that must be supported by DA. Pass in NULL  */
@@ -80,20 +79,29 @@ int NetworkConnectToDA(const char* scopelist,
 /* Returns          Connected socket or -1 if no DA connection can be made */
 /*=========================================================================*/
 {
-    time_t      curtime;
-    int         dinterval;
-    int         sock;
+    time_t          curtime;
+    int             dinterval;
+    int             sock;
+    struct timeval  timeout;
 
-    sock = KnownDAConnect(scopelist,scopelistlen,peeraddr,timeout);
+    timeout.tv_sec = SLPPropertyAsInteger(SLPGetProperty("net.slp.unicastMaxTimeout"));
+    timeout.tv_usec = (timeout.tv_sec % 1000) * 1000;
+    timeout.tv_sec = timeout.tv_sec / 1000;
+
+    sock = KnownDAConnect(scopelist,scopelistlen,peeraddr,&timeout);
     if(sock < 0)
     {
         time(&curtime);
         dinterval = atoi(SLPGetProperty("net.slp.DAActiveDiscoveryInterval"));
+        if(dinterval < MINIMUM_DISCOVERY_INTERVAL)
+        {
+            dinterval = MINIMUM_DISCOVERY_INTERVAL;
+        }
         if(curtime - G_LastDADiscovery > dinterval)
         {
-            KnownDADiscover(timeout);
+            KnownDADiscover(&timeout);
 
-            sock = KnownDAConnect(scopelist,scopelistlen,peeraddr,timeout);
+            sock = KnownDAConnect(scopelist,scopelistlen,peeraddr,&timeout);
         }   
     }       
 
@@ -185,25 +193,41 @@ SLPError NetworkRqstRply(int sock,
         goto CLEANUP;
     }
 
-    /* Figure unicast/multicast,TCP/UDP, wait and time out stuff */
-    if(ntohl(destaddr->sin_addr.s_addr) > 0xe0000000)
+    if(buftype == SLP_FUNCT_DASRVRQST)
     {
-        maxwait = SLPPropertyAsInteger(SLPGetProperty("net.slp.multicastMaximumWait"));
-        SLPPropertyAsIntegerVector(SLPGetProperty("net.slp.multicastTimeouts"), 
-                                   timeouts, 
+        /* do something special for SRVRQST that will be discovering DAs */
+        maxwait = SLPPropertyAsInteger(SLPGetProperty("net.slp.DADiscoveryMaximumWait"));
+        SLPPropertyAsIntegerVector(SLPGetProperty("net.slp.DADiscovertTimeouts"),
+                                   timeouts,
                                    MAX_RETRANSMITS );
-        socktype = SOCK_DGRAM;
+        /* SLP_FUNCT_DASRVRQST is a fake function.  We really want to */
+        /* send a SRVRQST                                             */
+        buftype = SLP_FUNCT_SRVRQST;
     }
     else
     {
-        maxwait = SLPPropertyAsInteger(SLPGetProperty("net.slp.unicastMaximumWait"));
-        SLPPropertyAsIntegerVector(SLPGetProperty("net.slp.unicastTimeouts"), 
-                                   timeouts, 
-                                   MAX_RETRANSMITS );
-        size = sizeof(socktype);
-        getsockopt(sock,SOL_SOCKET,SO_TYPE,&socktype,&size);
+        /* Figure unicast/multicast,TCP/UDP, wait and time out stuff */
+        if(ntohl(destaddr->sin_addr.s_addr) > 0xe0000000)
+        {
+            maxwait = SLPPropertyAsInteger(SLPGetProperty("net.slp.multicastMaximumWait"));
+            SLPPropertyAsIntegerVector(SLPGetProperty("net.slp.multicastTimeouts"), 
+                                       timeouts, 
+                                       MAX_RETRANSMITS );
+            socktype = SOCK_DGRAM;
+        }
+        else
+        {
+            maxwait = SLPPropertyAsInteger(SLPGetProperty("net.slp.unicastMaximumWait"));
+            SLPPropertyAsIntegerVector(SLPGetProperty("net.slp.unicastTimeouts"), 
+                                       timeouts, 
+                                       MAX_RETRANSMITS );
+            size = sizeof(socktype);
+            getsockopt(sock,SOL_SOCKET,SO_TYPE,&socktype,&size);
+        }
     }
     
+    
+
     /*--------------------------------*/
     /* Allocate memory for the prlist */
     /*--------------------------------*/

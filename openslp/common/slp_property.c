@@ -158,30 +158,32 @@ int SLPPropertySet(const char *pcName,
 int SetDefaultValues()
 /*-------------------------------------------------------------------------*/
 {
-    int result = 0;
+    int result = 0;                                
 
     result |= SLPPropertySet("net.slp.isBroadcastOnly","false");
     result |= SLPPropertySet("net.slp.multicastTimeouts","500,750,1000,2000,4000,8000");
     result |= SLPPropertySet("net.slp.multicastMaximumWait","5000");
-    result |= SLPPropertySet("net.slp.passiveDADetection","false");
-    result |= SLPPropertySet("net.slp.locale","en");
-    result |= SLPPropertySet("net.slp.DADiscoveryTimeouts","");
+    result |= SLPPropertySet("net.slp.unicastTimeouts","500,750,1000,2000,4000,8000");
+    result |= SLPPropertySet("net.slp.uniticastMaximumWait","5000");
     result |= SLPPropertySet("net.slp.datagramTimeouts","");
+    result |= SLPPropertySet("net.slp.DADiscoveryTimeouts","500,750,1000,2000,4000,8000");
+    result |= SLPPropertySet("net.slp.DADiscoveryMaximumWait","2000");
+    result |= SLPPropertySet("net.slp.DAActiveDiscoveryInterval","900");
+    result |= SLPPropertySet("net.slp.DAAddresses","");
+    result |= SLPPropertySet("net.slp.HintsFile","/tmp/slp.hints");
+    result |= SLPPropertySet("net.slp.activeDADetection","true");
+    result |= SLPPropertySet("net.slp.passiveDADetection","false");
+    result |= SLPPropertySet("net.slp.useScopes","DEFAULT");
+    result |= SLPPropertySet("net.slp.locale","en");
     result |= SLPPropertySet("net.slp.randomWaitBound","1000");
     result |= SLPPropertySet("net.slp.interfaces","");
-    result |= SLPPropertySet("net.slp.DAAddresses","");
     result |= SLPPropertySet("net.slp.securityEnabled","false");
-    result |= SLPPropertySet("net.slp.unicastMaximumWait","15000");
-    result |= SLPPropertySet("net.slp.multicastTTL","255");
+    result |= SLPPropertySet("net.slp.multicastTTL","8");
     result |= SLPPropertySet("net.slp.MTU","1400");
-    result |= SLPPropertySet("net.slp.useScopes","DEFAULT");
     result |= SLPPropertySet("net.slp.traceMsg","false");
     result |= SLPPropertySet("net.slp.traceReg","false");
     result |= SLPPropertySet("net.slp.traceDrop","false");
     result |= SLPPropertySet("net.slp.traceDATraffic","false");
-    result |= SLPPropertySet("net.slp.interfaces","");
-    result |= SLPPropertySet("net.slp.DAActiveDiscoveryInterval","900");
-    result |= SLPPropertySet("net.slp.multicastTTL","8");
     result |= SLPPropertySet("net.slp.isDA","false");
     result |= SLPPropertySet("notfound","");
 

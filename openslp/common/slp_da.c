@@ -111,3 +111,46 @@ SLPDAEntry* SLPDAEntryRead(int fd)
   
     return entry;
 }
+
+/*=========================================================================*/
+int SLPDAEntryListWrite(int fd, SLPDAEntry** head)
+/* Returns: Number of entries written                                      */
+/*=========================================================================*/
+{
+    int         result = 0;
+    SLPDAEntry* entry = *head;
+    
+    while(entry)
+    {
+        if(SLPDAEntryWrite(fd, entry) == 0)
+        {
+            break;
+        } 
+        result += 1;
+        entry = (SLPDAEntry*)entry->listitem.next;
+    }
+
+    return result;
+}
+
+/*=========================================================================*/
+int SLPDAEntryListRead(int fd, SLPDAEntry** head)
+/* Returns: zero on success, -1 on error                                   */
+/*=========================================================================*/
+{
+    int         result = 0;
+    SLPDAEntry* entry;
+
+    while(1)
+    {
+        entry = SLPDAEntryRead(fd);
+        if(entry == 0)
+        {
+            break;
+        }
+        result += 1;
+        ListLink((PListItem*)head,(PListItem)entry);
+    }
+
+    return result;
+}

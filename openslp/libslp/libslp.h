@@ -22,6 +22,10 @@
 #include <netdb.h> 
 #include <fcntl.h> 
 #include <errno.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h> 
+
 
 #include <slp_buffer.h>
 #include <slp_message.h>
@@ -30,6 +34,11 @@
 #include <slp_network.h>
 #include <slp_da.h>
 #include <slp_compare.h>
+
+
+#define MINIMUM_DISCOVERY_INTERVAL  600    /* 5 minutes */
+#define MAX_RETRANSMITS             5      /* we'll only re-xmit 5 times! */
+#define SLP_FUNCT_DASRVRQST         0x7f   /* fake id used internally */
 
 /*=========================================================================*/
 typedef enum _SLPCallType
@@ -42,6 +51,8 @@ typedef enum _SLPCallType
     SLPFINDATTRS,
     SLPDELATTRS
 }SLPCallType;
+
+
 
 /*=========================================================================*/
 typedef struct _SLPRegParams
@@ -170,8 +181,7 @@ int NetworkConnectToMulticast(struct sockaddr_in* peeraddr);
 /*=========================================================================*/ 
 int NetworkConnectToDA(const char* scopelist,
                        int scopelistlen,
-                       struct sockaddr_in* peeraddr,
-                       struct timeval* timeout);
+                       struct sockaddr_in* peeradd);
 /* Connects to slpd and provides a peeraddr to send to                     */
 /*                                                                         */
 /* scopelist        (IN) Scope that must be supported by DA. Pass in NULL  */
