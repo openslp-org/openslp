@@ -172,7 +172,7 @@ SLPDSocket* SLPDSocketListRemove(SLPDSocketList* list, SLPDSocket* sock)
 /*                                                                         */
 /* sock     - pointer to the SLPSocket to unlink to the list               */
 /*                                                                         */
-/* Returns  - none                                                         */
+/* Returns  - pointer to the removed socket                                */
 /*=========================================================================*/
 {
     ListUnlink((PListItem*)&list->head,(PListItem)sock);

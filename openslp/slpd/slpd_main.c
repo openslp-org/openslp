@@ -189,9 +189,10 @@ void HandleSocketListen(SLPDSocketList* list, SLPDSocket* sock)
 /*-------------------------------------------------------------------------*/
 {
     SLPDSocket* connsock;
-    const int   lowat = 18;
+    const int   lowat = SLPD_SMALLEST_MESSAGE;
     
-    /* check to see if we have accepted the maximum number of sockets */
+    /* Only accept if we can. If we still maximum number of sockets, just*/
+    /* ignore the connection */
     if(list->count < SLPD_MAX_SOCKETS)
     {
         connsock = (SLPDSocket*) malloc(sizeof(SLPDSocket));
@@ -216,10 +217,6 @@ void HandleSocketListen(SLPDSocketList* list, SLPDSocket* sock)
         {
             free(connsock);
         }
-    }
-    else
-    {
-        /* TODO: Marking some sockets as closed */
     }
 }
 
@@ -298,7 +295,7 @@ void HandleStreamRead(SLPDSocketList* list, SLPDSocket* sock)
                 sock->recvbuf = SLPBufferRealloc(sock->recvbuf,AsUINT24(peek+2));
                 if(sock->recvbuf)
                 {
-                    sock->state = STREAM_READ;
+                    sock->state = STREAM_READ; 
                 }
                 else
                 {
@@ -337,11 +334,7 @@ void HandleStreamRead(SLPDSocketList* list, SLPDSocket* sock)
     
         if(bytesread > 0)
         {
-            /*------------------------------*/
-            /* Reset the timestamp          */
-            /*------------------------------*/
-            time(&(sock->timestamp));
-            
+            time(&(sock->timestamp)); /* Reset the timestamp */
             sock->recvbuf->curpos += bytesread;
             if(sock->recvbuf->curpos == sock->recvbuf->end)
             {
@@ -393,11 +386,7 @@ void HandleStreamWrite(SLPDSocketList* list, SLPDSocket* sock)
                             MSG_DONTWAIT);
         if(byteswritten > 0)
         {
-            /*------------------------------*/
-            /* Reset the timestamp          */
-            /*------------------------------*/
-            time(&(sock->timestamp));
-    
+            time(&(sock->timestamp)); /* Reset the timestamp */
             sock->sendbuf->curpos += byteswritten;
             if(sock->sendbuf->curpos == sock->sendbuf->end)
             {
@@ -422,6 +411,7 @@ int main(int argc, char* argv[])
 /*=========================================================================*/
 {
     time_t          timestamp;
+    time_t          lifetime;
     fd_set          readfds;
     fd_set          writefds;
     int             highfd          = 0;
@@ -482,7 +472,7 @@ int main(int argc, char* argv[])
     /*------------------------------*/
     /* Set up alarm to age database */
     /*------------------------------*/
-    alarm(SLPD_AGE_TIMEOUT);
+    alarm(SLPD_AGE_INTERVAL);
 
     
     /*-----------*/
@@ -557,9 +547,9 @@ int main(int argc, char* argv[])
         {
             /* TODO: put call to echo net registrations here */
             /* TODO: add call to do passive DAAdvert */
-            SLPDDatabaseAge(SLPD_AGE_TIMEOUT);
+            SLPDDatabaseAge(SLPD_AGE_INTERVAL);
             G_SIGALRM = 0;
-            alarm(SLPD_AGE_TIMEOUT);
+            alarm(SLPD_AGE_INTERVAL);
         }
         
         /*-------------*/
@@ -568,7 +558,18 @@ int main(int argc, char* argv[])
         fdcount = select(highfd+1,&readfds,&writefds,0,0);
         if(fdcount > 0)
         {
+            /* determine the lifetime of a socket */
+            if(sockets.count > SLPD_COMFORT_SOCKETS)
+            {
+                lifetime = G_SlpdProperty.unicastMaximumWait;
+            }
+            else
+            {
+                lifetime = SLPD_MAX_SOCKET_LIFETIME;
+            }
             time(&timestamp);
+
+            /* check fd_set */
             sock = sockets.head;
             while(sock && fdcount)
             {
@@ -606,18 +607,18 @@ int main(int argc, char* argv[])
                 }   
 
                 /* Mark old sockets/connections for close */
-                if(sock->timestamp)
+                if(sock->state != SOCKET_LISTEN)
                 {
                     if(sock->timestamp > timestamp)
                     {
-                        if(sock->timestamp - timestamp > SLPD_MAX_SOCKET_AGE)
+                        if(sock->timestamp - timestamp > lifetime)
                         {
                             sock->state = SOCKET_CLOSE;
                         }
                     }
                     else
                     {
-                        if(timestamp - sock->timestamp > SLPD_MAX_SOCKET_AGE)
+                        if(timestamp - sock->timestamp > lifetime)
                         {
                             sock->state = SOCKET_CLOSE;
                         }

@@ -846,6 +846,7 @@ void ProcessDAAdvert(SLPDPeerInfo* peerinfo,
                      SLPBuffer result)
 /*-------------------------------------------------------------------------*/
 {
+
 }
 
 

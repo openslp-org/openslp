@@ -63,10 +63,13 @@
 #if(!defined MAX_PATH)
 #define MAX_PATH    256
 #endif
-#define SLPDPROCESS_RESULT_COUNT    256 
-#define SLPD_MAX_SOCKETS            128  
-#define SLPD_AGE_TIMEOUT            15   /* age every 15 seconds */
-#define SLPD_MAX_SOCKET_AGE         60
+
+#define SLPDPROCESS_RESULT_COUNT   256  
+#define SLPD_SMALLEST_MESSAGE       18   /* 18 bytes is smallest SLPv2 msg */
+#define SLPD_MAX_SOCKETS            64   /* maximum number of sockets */
+#define SLPD_COMFORT_SOCKETS        32   /* a comfortable number of sockets */
+#define SLPD_MAX_SOCKET_LIFETIME    3600 /* max idle time of a socket */
+#define SLPD_AGE_INTERVAL           15   /* age every 15 seconds */
 
 
 /*=========================================================================*/
@@ -413,7 +416,7 @@ SLPDSocket* SLPDSocketListRemove(SLPDSocketList* list, SLPDSocket* sock);
 /*                                                                         */
 /* sock     - pointer to the SLPSocket to unlink to the list               */
 /*                                                                         */
-/* Returns  - pointer to the unlinked socket                               */
+/* Returns  - pointer to the removed socket                                */
 /*=========================================================================*/
 
 
