@@ -962,48 +962,50 @@ int ProcessAttrRqst(SLPMessage message,
                                             /*  2 bytes for error code */
                                             /*  2 bytes for attr-list len */
                                             /*  1 byte for the authcount */
-    size += db->attrlistlen;
-
-#ifdef ENABLE_SLPv2_SECURITY
-
-    /*------------------------------------------------------------------*/
-    /* Generate authblock if necessary or just use the one was included */
-    /* by registering agent.  Reserve sufficent space for either case.  */
-    /*------------------------------------------------------------------*/
-    if (G_SlpdProperty.securityEnabled &&
-        message->body.attrrqst.spistrlen )
+    if(errorcode == 0)
     {
-        if (message->body.attrrqst.taglistlen == 0)
+        size += db->attrlistlen;
+    
+#ifdef ENABLE_SLPv2_SECURITY
+    
+        /*------------------------------------------------------------------*/
+        /* Generate authblock if necessary or just use the one was included */
+        /* by registering agent.  Reserve sufficent space for either case.  */
+        /*------------------------------------------------------------------*/
+        if (G_SlpdProperty.securityEnabled &&
+            message->body.attrrqst.spistrlen )
         {
-            for (i=0; i<db->authcount;i++)
+            if (message->body.attrrqst.taglistlen == 0)
             {
-                if (SLPCompareString(db->autharray[i].spistrlen,
-                                     db->autharray[i].spistr,
-                                     message->body.attrrqst.spistrlen,
-                                     message->body.attrrqst.spistr) == 0)
+                for (i=0; i<db->authcount;i++)
                 {
-                    opaqueauth = db->autharray[i].opaque;
-                    opaqueauthlen = db->autharray[i].opaquelen;
-                    break;
+                    if (SLPCompareString(db->autharray[i].spistrlen,
+                                         db->autharray[i].spistr,
+                                         message->body.attrrqst.spistrlen,
+                                         message->body.attrrqst.spistr) == 0)
+                    {
+                        opaqueauth = db->autharray[i].opaque;
+                        opaqueauthlen = db->autharray[i].opaquelen;
+                        break;
+                    }
                 }
             }
+            else
+            {
+                errorcode = SLPAuthSignString(G_SlpdSpiHandle,
+                                              message->body.attrrqst.spistrlen,
+                                              message->body.attrrqst.spistr,
+                                              db->attrlistlen,
+                                              db->attrlist,
+                                              &generatedauthlen,
+                                              &generatedauth);
+                opaqueauthlen = generatedauthlen;
+                opaqueauth = generatedauth;
+            }
+            size += opaqueauthlen;
         }
-        else
-        {
-            errorcode = SLPAuthSignString(G_SlpdSpiHandle,
-                                          message->body.attrrqst.spistrlen,
-                                          message->body.attrrqst.spistr,
-                                          db->attrlistlen,
-                                          db->attrlist,
-                                          &generatedauthlen,
-                                          &generatedauth);
-            opaqueauthlen = generatedauthlen;
-            opaqueauth = generatedauth;
-        }
-        size += opaqueauthlen;
-    }
 #endif
-
+    }
     /*-------------------*/
     /* Alloc the  buffer */
     /*-------------------*/
@@ -1230,8 +1232,10 @@ int ProcessSrvTypeRqst(SLPMessage message,
                                             /*  2 bytes for error code */
                                             /*  2 bytes for srvtype
                                                 list length  */
-    size += db->srvtypelistlen;
-
+    if(errorcode == 0)
+    {
+        size += db->srvtypelistlen;
+    }
 
     /*------------------------------*/
     /* Reallocate the result buffer */
