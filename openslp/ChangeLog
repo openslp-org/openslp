@@ -6,6 +6,9 @@ Please make entries to this log (in addition to the CVS log) that describe
 major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
+12/12/00 mpeterson@caldera.com
+Added code to refresh SLP_LIFETIME_MAXIMUM services
+
 12/08/00 mpeterson@caldera.com
 Fixed DA / SA lookup code in libslp.  Fixes infinate loop under certain
 error producing situations 

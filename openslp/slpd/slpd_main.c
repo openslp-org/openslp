@@ -474,9 +474,10 @@ int main(int argc, char* argv[])
         {
             SLPDIncomingAge(SLPD_AGE_INTERVAL);
             SLPDOutgoingAge(SLPD_AGE_INTERVAL);
-            SLPDDatabaseAge(SLPD_AGE_INTERVAL);
-            SLPDKnownDAPassiveDAAdvert(SLPD_AGE_INTERVAL, 0);
+            SLPDDatabaseAge(SLPD_AGE_INTERVAL,G_SlpdProperty.isDA);
+            SLPDKnownDAPassiveDAAdvert(SLPD_AGE_INTERVAL,0);
             SLPDKnownDAActiveDiscovery(SLPD_AGE_INTERVAL);
+			SLPDKnownDAImmortalRefresh(SLPD_AGE_INTERVAL);
             G_SIGALRM = 0;
             alarm(SLPD_AGE_INTERVAL);
         }

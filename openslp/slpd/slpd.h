@@ -308,13 +308,16 @@ void SLPDDatabaseEntryFree(SLPDDatabaseEntry* entry);
 
 
 /*=========================================================================*/
-void SLPDDatabaseAge(int seconds);
+void SLPDDatabaseAge(int seconds, int ageall);
 /* Agea the database entries and clears new and deleted entry lists        */
 /*                                                                         */
 /* seconds  (IN) the number of seconds to age each entry by                */
+/*																		   */
+/* ageall   (IN) age even entries with SLP_LIFETIME_MAX					   */
 /*                                                                         */
 /* Returns  - None                                                         */
 /*=========================================================================*/
+
 
 
 /*=========================================================================*/
@@ -813,6 +816,14 @@ void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead);
 /*              sent                                                       */
 /*                                                                         */
 /* Returns:  none                                                          */
+/*=========================================================================*/
+
+
+/*=========================================================================*/
+void SLPDKnownDAImmortalRefresh(int seconds);
+/* Refresh all SLP_LIFETIME_MAXIMUM services                               */
+/* 																		   */
+/* seconds (IN) time in seconds since last call                            */
 /*=========================================================================*/
 
 

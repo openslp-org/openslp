@@ -76,10 +76,12 @@ void SLPDDatabaseEntryFree(SLPDDatabaseEntry* entry)
 
 
 /*=========================================================================*/
-void SLPDDatabaseAge(int seconds)
+void SLPDDatabaseAge(int seconds, int ageall)
 /* Agea the database entries and clears new and deleted entry lists        */
 /*                                                                         */
 /* seconds  (IN) the number of seconds to age each entry by                */
+/*																		   */
+/* ageall   (IN) age even entries with SLP_LIFETIME_MAX					   */
 /*                                                                         */
 /* Returns  - None                                                         */
 /*=========================================================================*/
@@ -91,8 +93,10 @@ void SLPDDatabaseAge(int seconds)
     entry = (SLPDDatabaseEntry*)G_DatabaseList.head;
     while(entry)
     {
-        /* don't age services with lifetime > SLP_LIFETIME_MAXIMUM */
-        if(entry->lifetime < SLP_LIFETIME_MAXIMUM)
+        /* don't age services with lifetime > SLP_LIFETIME_MAXIMUM unless  */
+		/* explicitly told to                                              */
+        if(ageall ||
+		   entry->lifetime < SLP_LIFETIME_MAXIMUM)
         {
             entry->lifetime = entry->lifetime - seconds;
             if(entry->lifetime <= 0)
