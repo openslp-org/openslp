@@ -1,0 +1,62 @@
+#############################################################################
+#
+# OpenSLP SPI file
+#
+# Security Parameter Index (SPI) is an unformated string that us used
+# by SLP to identify security information used to authenticate SLPv2
+# message.  See RFC 2608 for more information.
+#
+# Format and contents conform of this file are specific to the OpenSLP
+# implementation of SLPv2 authentication.  See comments below for more 
+# explaination of the file format.
+#
+# NOTE: OpenSLP only supports DSA keys!!!
+#
+#############################################################################
+#
+#-------------
+# File format:
+#-------------
+# Each line of this file maps an SPI string to a PEM encoded key file.  
+# 
+# <PRIVATE|PUBLIC> <spi_string_without_whitespace> <PEM key file>
+#
+#
+#--------------
+# PRIVATE key:
+#--------------
+# The PRIVATE key line specifies the location of a PEM encoded key file 
+# that contains a PEM encoded DSA private key.  This key is used for signing
+# SLP messages that are sent from this host. 
+#
+# Only one PRIVATE key is recognized by the implementation.  If two PRIVATE
+# key entries exist, only the first entry will be used.  
+#
+# A PRIVATE key entry is not required.  If a PRIVATE entry does not exist,
+# then SLP messages send from by this host will not be signed.
+#
+# In most cases, the PUBLIC and PRIVATE key entries should be DSA key pairs
+#
+# The following is a commented example of a PRIVATE entry:
+#
+#    PRIVATE myprivateslpkey /etc/secure/myprivateslpkey.pem
+#
+#
+#-------------
+# PUBLIC keys:
+#-------------
+# The PUBLIC key line specifies the location of a PEM encoded key file that 
+# contains a PEM encoded DSA public key.  This key is used for verifying 
+# messages sent by other SLP agents
+#
+# More than one PUBLIC key entry is recognized by the implementation.  However
+# it is not useful to have more than one PUBLIC key unless a DA is running 
+# on this host (see the OpenSLP Users Guide for more details)
+#
+# In most cases, the PUBLIC and PRIVATE key entries should be DSA key pairs
+#
+# The following is a commented example of a PRIVATE entry:
+#
+#   PUBLIC mypublicslpkey /etc/secure/mypublicslpkey.pem
+#
+#
