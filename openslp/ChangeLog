@@ -5,8 +5,10 @@ Please make entries to this log (in addition to the CVS log) that describe
 major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
+10/23/02 matt@sco.com
+SLPDeReg() fix from Matthew Layton
 
-09/12/02 matt@soc.com
+09/12/02 matt@sco.com
 Fixed win32 project files so that ENABLE_PREDICATES is defined
 
 09/09/02 matt@sco.com

@@ -197,8 +197,8 @@ SLPError ProcessSrvDeReg(PSLPHandleInfo handle)
     /* Call the RqstRply engine */
     /*--------------------------*/
     sock = NetworkConnectToSA(handle,
-                              handle->params.reg.scopelist,
-                              handle->params.reg.scopelistlen,
+                              handle->params.dereg.scopelist,
+                              handle->params.dereg.scopelistlen,
                               &peeraddr);
     if(sock >= 0)
     {
