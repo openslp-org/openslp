@@ -170,7 +170,7 @@ typedef struct _SLPAuthBlock
     struct _SLPAuthBlock*   next;  /* The next authblock in a list or NULL */
     int                     bsd;
     int                     length;
-    unsigned long           timestamp;
+    unsigned int            timestamp;
     int                     spistrlen;
     const char*             spistr;
     const char*             authstruct;

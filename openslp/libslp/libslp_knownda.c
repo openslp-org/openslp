@@ -202,7 +202,7 @@ SLPBoolean KnownDADiscoveryCallback(SLPError errorcode,
                         daentry.attrlist = msg->body.daadvert.attrlist;
                         daentry.spilistlen = msg->body.daadvert.spilistlen;
                         daentry.spilist = msg->body.daadvert.spilist;
-                        addr.s_addr = *((unsigned long*)(he->h_addr_list[0]));
+                        addr.s_addr = *((unsigned int*)(he->h_addr_list[0]));
                         entry = SLPDAEntryCreate(&addr, &daentry);
                         if(entry)
                         {
@@ -368,7 +368,7 @@ int KnownDADiscoverFromProperties()
             he = gethostbyname(slider1);
             if (he)
             {
-                peeraddr.sin_addr.s_addr = *((unsigned long*)(he->h_addr_list[0]));
+                peeraddr.sin_addr.s_addr = *((unsigned int*)(he->h_addr_list[0]));
                 sockfd = SLPNetworkConnectStream(&peeraddr,&timeout);
                 if (sockfd >= 0)
                 {

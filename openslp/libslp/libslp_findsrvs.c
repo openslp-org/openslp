@@ -258,7 +258,7 @@ SLPError SLPFindSrvs(SLPHandle  hSLP,
     /* check for invalid parameters */
     /*------------------------------*/
     if( hSLP            == 0 ||
-        *(unsigned long*)hSLP != SLP_HANDLE_SIG ||
+        *(unsigned int*)hSLP != SLP_HANDLE_SIG ||
         pcServiceType   == 0 ||
         *pcServiceType  == 0 ||  /* srvtype can't be empty string */
         callback        == 0) 

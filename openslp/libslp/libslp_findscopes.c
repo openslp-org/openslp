@@ -79,7 +79,7 @@ SLPError SLPFindScopes(SLPHandle hSLP,
     /* check for invalid parameters */
     /*------------------------------*/
     if( hSLP == 0 ||
-        *(unsigned long*)hSLP != SLP_HANDLE_SIG ||
+        *(unsigned int*)hSLP != SLP_HANDLE_SIG ||
         ppcScopeList  == 0 )
     {
         return SLP_PARAMETER_BAD;

@@ -263,7 +263,7 @@ SLPError SLPFindAttrs(SLPHandle   hSLP,
     /* check for invalid parameters */
     /*------------------------------*/
     if( hSLP == 0 ||
-        *(unsigned long*)hSLP != SLP_HANDLE_SIG ||
+        *(unsigned int*)hSLP != SLP_HANDLE_SIG ||
         pcURLOrServiceType == 0 ||
         *pcURLOrServiceType == 0 || 
         callback == 0) 

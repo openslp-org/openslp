@@ -238,7 +238,7 @@ SLPError SLPReg(SLPHandle   hSLP,
     /* check for invalid parameters */
     /*------------------------------*/
     if( hSLP        == 0 ||
-        *(unsigned long*)hSLP != SLP_HANDLE_SIG ||
+        *(unsigned int*)hSLP != SLP_HANDLE_SIG ||
         srvUrl      == 0 ||
         *srvUrl     == 0 ||  /* srvUrl can't be empty string */
         lifetime    == 0 ||  /* lifetime can not be zero */

@@ -677,7 +677,7 @@ int SLPDKnownDAInit()
                 he = gethostbyname(slider1);
                 if (he)
                 {
-                    daaddr.s_addr = *((unsigned long*)(he->h_addr_list[0]));
+                    daaddr.s_addr = *((unsigned int*)(he->h_addr_list[0]));
                     
                     /*--------------------------------------------------------*/
                     /* Get an outgoing socket to the DA and set it up to make */

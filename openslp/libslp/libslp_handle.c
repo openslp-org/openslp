@@ -211,7 +211,7 @@ void SLPClose(SLPHandle hSLP)
     /*------------------------------*/
     /* check for invalid parameters */
     /*------------------------------*/
-    if(hSLP == 0 || *(unsigned long*)hSLP != SLP_HANDLE_SIG)
+    if(hSLP == 0 || *(unsigned int*)hSLP != SLP_HANDLE_SIG)
     {
         return;
     }

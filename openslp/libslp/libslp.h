@@ -200,7 +200,7 @@ typedef struct _SLPHandleInfo
 /* a struct _SLPHandleInfo                                                 */
 /*=========================================================================*/
 {
-    unsigned long       sig;
+    unsigned int        sig;
     SLPBoolean          inUse;
     SLPBoolean          isAsync;
     int                 dasock;
