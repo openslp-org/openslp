@@ -71,7 +71,6 @@ SLPError ProcessSrvDeReg(PSLPHandleInfo handle)
 /*-------------------------------------------------------------------------*/
 {
     struct sockaddr_in  peeraddr;
-    int                 sock        = 0;
     int                 bufsize     = 0;
     char*               buf         = 0;
     char*               curpos      = 0;
@@ -129,23 +128,8 @@ SLPError ProcessSrvDeReg(PSLPHandleInfo handle)
     ToUINT16(curpos,0);
 
     
-    /*---------------------------------------*/
-    /* Connect to slpd or a DA               */
-    /*---------------------------------------*/
-    sock = NetworkConnectToSlpd(&peeraddr);
-    if(sock < 0)
-    {
-        sock = NetworkConnectToDA(handle->params.dereg.scopelist,
-                                  handle->params.dereg.scopelistlen,
-                                  &peeraddr);
-        if(sock < 0)
-        {
-            result = SLP_NETWORK_INIT_FAILED;
-            goto FINISHED;
-        }
-    }
-
-    result = NetworkRqstRply(sock,
+    /* try first with existing SA socket */
+    result = NetworkRqstRply(handle->sasock,
                              &peeraddr,
                              handle->langtag,
                              buf,
@@ -153,7 +137,39 @@ SLPError ProcessSrvDeReg(PSLPHandleInfo handle)
                              bufsize,
                              CallbackSrvDeReg,
                              handle);
+
+    /* Connect / Re-connect and try again */
+    if(result)
+    {
+        if(handle->sasock >= 0)
+        {
+            close(handle->sasock);
+        }
+
+        handle->sasock = NetworkConnectToSlpd(&peeraddr);
+        if(handle->sasock < 0)
+        {
+            handle->sasock = NetworkConnectToDA(handle->params.dereg.scopelist,
+                                                handle->params.dereg.scopelistlen,
+                                                &peeraddr);
+            if(handle->sasock < 0)
+            {
+                result = SLP_NETWORK_INIT_FAILED;
+                goto FINISHED;
+            }
+        }
+        
+        result = NetworkRqstRply(handle->sasock,
+                         &peeraddr,
+                         handle->langtag,
+                         buf,
+                         SLP_FUNCT_SRVDEREG,
+                         bufsize,
+                         CallbackSrvDeReg,
+                         handle);
+    }
     
+
     FINISHED:
     if(buf) free(buf);
 

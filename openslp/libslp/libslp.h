@@ -167,6 +167,8 @@ typedef struct _SLPHandleInfo
     unsigned long       sig;
     SLPBoolean          inUse;
     SLPBoolean          isAsync;
+    int                 dasock;
+    int                 sasock;
     int                 langtaglen;
     char*               langtag;
     SLPHandleCallParams params;

@@ -189,6 +189,14 @@ SLPError NetworkRqstRply(int sock,
     int                 timeouts[MAX_RETRANSMITS];
 
     /*----------------------------------------------------*/
+    /* Quick check to see if socket is valid              */
+    /*----------------------------------------------------*/
+    if(sock == -1)
+    {
+        return SLP_NETWORK_ERROR;
+    }
+
+    /*----------------------------------------------------*/
     /* Save off a few things we don't want to recalculate */
     /*----------------------------------------------------*/
     langtaglen = strlen(langtag);
@@ -412,7 +420,6 @@ SLPError NetworkRqstRply(int sock,
     SLPBufferFree(sendbuf);
     SLPBufferFree(recvbuf);
     SLPMessageFree(msg);
-    close(sock);
 
     return result;
 }

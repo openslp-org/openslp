@@ -9,6 +9,9 @@ blank lines and include the date, developer's email, and change description.
 =============================================================================
 
 10/06/00 mpeterson@caldera.com
+Added code to make libslp reuse TCP connections
+
+10/06/00 mpeterson@caldera.com
 Fixed timing bug in slpd where in some cases a non-blocking recvfrom() was 
 called before any data could possibly be in the stream.  This would cause
 libslp to return unexplained -19 on SLPReg() and friends.

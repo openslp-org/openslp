@@ -76,7 +76,6 @@ SLPError ProcessSrvTypeRqst(PSLPHandleInfo handle)
 /*-------------------------------------------------------------------------*/
 {
     struct sockaddr_in  peeraddr;
-    int                 sock        = 0;
     int                 bufsize     = 0;
     char*               buf         = 0;
     char*               curpos      = 0;
@@ -121,23 +120,8 @@ SLPError ProcessSrvTypeRqst(PSLPHandleInfo handle)
            handle->params.findsrvtypes.scopelistlen);
     curpos = curpos + handle->params.findsrvtypes.scopelistlen;
     
-    /*---------------------------------------*/
-    /* Connect to DA, multicast or broadcast */
-    /*---------------------------------------*/
-    sock = NetworkConnectToDA(handle->params.findsrvtypes.scopelist,
-                              handle->params.findsrvtypes.scopelistlen,
-                              &peeraddr);
-    if(sock < 0)
-    {
-        sock = NetworkConnectToMulticast(&peeraddr);
-        if(sock < 0)
-        {
-            result = SLP_NETWORK_INIT_FAILED;
-            goto FINISHED;
-        }
-    }
-    
-    result = NetworkRqstRply(sock,
+    /* try first with existing DA socket */
+    result = NetworkRqstRply(handle->dasock,
                              &peeraddr,
                              handle->langtag,
                              buf,
@@ -145,6 +129,37 @@ SLPError ProcessSrvTypeRqst(PSLPHandleInfo handle)
                              bufsize,
                              CallbackSrvTypeRqst,
                              handle);
+
+    /* Connect / Re-connect and try again on error*/
+    if(result)
+    {
+        if(handle->dasock >= 0)
+        {
+            close(handle->dasock);
+        }
+
+        handle->dasock = NetworkConnectToDA(handle->params.findsrvtypes.scopelist,
+                                            handle->params.findsrvtypes.scopelistlen,
+                                            &peeraddr);
+        if(handle->dasock < 0)
+        {
+            handle->dasock = NetworkConnectToMulticast(&peeraddr);
+            if(handle->dasock < 0)
+            {
+                result = SLP_NETWORK_INIT_FAILED;
+                goto FINISHED;
+            }
+        }
+        
+        result = NetworkRqstRply(handle->dasock,
+                         &peeraddr,
+                         handle->langtag,
+                         buf,
+                         SLP_FUNCT_SRVTYPERQST,
+                         bufsize,
+                         CallbackSrvTypeRqst,
+                         handle);
+    }
 
     FINISHED:
     if(buf) free(buf);

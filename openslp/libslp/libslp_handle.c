@@ -159,14 +159,15 @@ SLPError SLPOpen(const char *pcLang, SLPBoolean isAsync, SLPHandle *phSLP)
         SLPXidSeed();
     }
      
+    handle->sig = SLP_HANDLE_SIG;
     handle->inUse = SLP_FALSE;
     handle->isAsync = isAsync;
-    handle->sig = SLP_HANDLE_SIG;
+    handle->dasock = -1;
+    handle->sasock = -1;
 
     G_OpenSLPHandleCount ++;  
     
-    *phSLP = (SLPHandle)handle;
-    
+    *phSLP = (SLPHandle)handle; 
     
     FINISHED:                  
     
@@ -209,6 +210,16 @@ void SLPClose(SLPHandle hSLP)
     if(handle->langtag)
     {
         free(handle->langtag);
+    }
+
+    if(handle->dasock >=0)
+    {
+        close(handle->dasock);
+    }
+
+    if(handle->sasock >=0)
+    {
+        close(handle->sasock);
     }
 
     handle->sig = 0;  /* If they use the handle again, it won't be valid */
