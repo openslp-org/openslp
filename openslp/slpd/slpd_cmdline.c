@@ -81,9 +81,9 @@ void SLPDPrintUsage()
 {
 
 #ifdef WIN32
-    printf("USAGE: slpd -install|-remove|-debug [-d] [-c conf file] [-l log file] [-s spi file] [-r reg file] [-v version]\n");
+    fprintf(stderr,"USAGE: slpd -install|-remove|-debug [-d] [-c conf file] [-l log file] [-s spi file] [-r reg file] [-v version]\n");
 #else
-    printf("USAGE: slpd [-d] [-c conf file] [-l log file] [-r reg file] [-s spi file] [-v version]\n");
+    fprintf(stderr,"USAGE: slpd [-d] [-c conf file] [-l log file] [-r reg file] [-s spi file] [-v version]\n");
 #endif
 
 }
@@ -184,14 +184,14 @@ int SLPDParseCommandLine(int argc,char* argv[])
                 || (strcmp(argv[i], "-version") == 0))
         {
 #ifdef WIN32
-            printf("slpd version: %s\n", SLP_VERSION);
+            fprintf(stderr,"slpd version: %s\n", SLP_VERSION);
 #else /* UNIX */
-            printf("slpd version: %s\n", VERSION);
+            fprintf(stderr,"slpd version: %s\n", VERSION);
 #endif
 
 
             /* Show options. */
-            printf("compile options:\n"
+            fprintf(stderr,"compile options:\n"
                    "   debugging:            "
 #ifdef DEBUG
                    "enabled"

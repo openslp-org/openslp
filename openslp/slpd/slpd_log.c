@@ -159,7 +159,7 @@ void SLPDFatal(const char* msg, ...)
     }
     else
     {
-        printf("A FATAL Error has occured:\n");
+        fprintf(stderr,"A FATAL Error has occured:\n");
         va_start(ap,msg);
         vprintf(msg,ap);
         va_end(ap);
