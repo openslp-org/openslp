@@ -8,6 +8,9 @@ blank lines and include the date, developer's email, and change description.
 =============================================================================
 
 11/2/00 mpeterson@caldera.com
+Added graceful shutdown code
+
+11/2/00 mpeterson@caldera.com
 Removed ALL memory leaks from slpd and libslp (predicate code not done yet)
 
 10/31/00 mpeterson@caldera.com
