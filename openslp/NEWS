@@ -7,7 +7,7 @@ New in openslp-0.8.3 (2001-03-13)
 * Preliminary support for asyncronous API calls is now a compile time option.
   Async calls still not fully supported.
 * Addition of SLPParseAttr() API that complies with what will be in RFC2614bis
-  (Note: the libslp.so library version is not 0.0.3)
+  (Note: the libslp.so library version is now 0.0.3)
 * Many fixes to documentation based on review feedback from debian 
   developer Susan G. Kleinmann (sgk@debian.org).
 * Many bug fixes including the following:
