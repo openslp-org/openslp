@@ -63,13 +63,13 @@ int NetworkConnectToMulticast(struct sockaddr_in* peeraddr)
     {
         if (SLPGetProperty("net.slp.multicastIF"))
         {
-            if (inet_aton(SLPGetProperty("net.slp.multicastIF"), &iface))
+            if( inet_aton(SLPGetProperty("net.slp.multicastIF"), &iface) )
             {
-                return -1;
+                ifaceptr = &iface;
             } 
             else 
             {
-                ifaceptr = &iface;
+                return -1;
             }
         }
 
