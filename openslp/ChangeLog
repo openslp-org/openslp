@@ -6,6 +6,12 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 
+
+09/17/01 matt@caldera.com
+Removed calls that (sort of) enforce service-url checking.  This is for the
+benefit of AFP's usage of SRVLOC.  Developers are now trusted not to 
+register ambiguous service-urls.
+
 09/17/01 matt@caldera.com
 Applied Tomasz K?oczko patch for automake 1.5
 

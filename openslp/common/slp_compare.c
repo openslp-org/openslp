@@ -480,6 +480,11 @@ int SLPCheckServiceUrlSyntax(const char* srvurl,
  *
  *=========================================================================*/
 {
+    /* TODO: Do we actually need to do something here to ensure correct
+     * service-url syntax, or should we expect that it will be used
+     * by smart developers who know that ambiguities could be encountered
+     * if they don't?
+     
     if(srvurllen < 8)
     {
         return 1;
@@ -490,9 +495,10 @@ int SLPCheckServiceUrlSyntax(const char* srvurl,
         return 1;
     }        
    
-    /* TODO: make this a little smarter */
-   
     return 0;
+    */
+
+    return 1;
 }
  
  
