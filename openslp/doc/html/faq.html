@@ -2,7 +2,7 @@
 <html>
 <head>
    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-   <meta name="GENERATOR" content="Mozilla/4.77C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.4.2 i686) [Netscape]">
+   <meta name="GENERATOR" content="Mozilla/4.77C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.4.13 i686) [Netscape]">
    <title>OpenSLP FAQ</title>
 </head>
 <body text="#000000" bgcolor="#FFFFFF" link="#0000EF" vlink="#51188E" alink="#FF0000">
@@ -75,7 +75,7 @@ by findsrvs</tt>
 <br><tt><b>A:</b> Please read the updated installation guide</tt>
 <br><tt>&nbsp;&nbsp; <a href="http://www.openslp.org/doc/html/UsersGuide/Installation.html">http://www.openslp.org/doc/html/UsersGuide/Installation.html.</a></tt>
 <br><tt>&nbsp;&nbsp; There are special instructions for users of multi-homed
-machines.</tt><tt></tt>
+machines.</tt>
 <p><tt><b>Q:</b> In our development lab, the multicast SLP requests work
 just fine.</tt>
 <br><tt>&nbsp;&nbsp; However, in our SVT lab, the multicasts requests never
@@ -90,7 +90,7 @@ I should put this in</tt>
 <br><tt>&nbsp;&nbsp; the FAQ because I get a lot of questions.&nbsp; The
 following is a list of the</tt>
 <br><tt>&nbsp;&nbsp; most common problems along with trouble shooting and
-resolution info:</tt><tt></tt>
+resolution info:</tt>
 <p><tt>&nbsp;&nbsp; No multicast route</tt>
 <br><tt>&nbsp;&nbsp; -------------------</tt>
 <br><tt>&nbsp;&nbsp; A very common problem with some OS installations (especially
@@ -108,24 +108,22 @@ datagram and returns</tt>
 <br><tt>&nbsp;&nbsp; an error 101 - network unreachable error which translates
 into a SLPError</tt>
 <br><tt>&nbsp;&nbsp; -23 SLP_NETWORK_ERROR. A quick test is to try to ping
-SLP multicast:</tt><tt></tt>
-<p><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; $ ping 239.255.255.253</tt><tt></tt>
+SLP multicast:</tt>
+<p><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; $ ping 239.255.255.253</tt>
 <p><tt>&nbsp;&nbsp; If ping returns an error that the network was unreachable,
 you will need</tt>
 <br><tt>&nbsp;&nbsp; to set up a default route or a multicast route.</tt>
-<br><tt>&nbsp;</tt>
-<br><tt>&nbsp;&nbsp; Note you may not get any responses to the ping.&nbsp;
+<p><tt>&nbsp;&nbsp; Note you may not get any responses to the ping.&nbsp;
 This may not indicate</tt>
 <br><tt>&nbsp;&nbsp; a problem.&nbsp; The only thing to be concerned about
 is if there is an error</tt>
 <br><tt>&nbsp;&nbsp; actually sending the ping.</tt>
-<br><tt>&nbsp;</tt>
-<br><tt>&nbsp;&nbsp; Please read the installation instructions for more
+<p><tt>&nbsp;&nbsp; Please read the installation instructions for more
 information on how</tt>
-<br><tt>&nbsp;&nbsp; to install a multicast route:</tt><tt></tt>
-<p><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; http://www.openslp.org/doc/html/UsersGuide/Installation.html</tt><tt></tt>
-<p><tt>&nbsp;</tt>
-<br><tt>&nbsp;&nbsp; The "smart switch /stupid router" problem</tt>
+<br><tt>&nbsp;&nbsp; to install a multicast route:</tt>
+<p><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; http://www.openslp.org/doc/html/UsersGuide/Installation.html</tt>
+<br>&nbsp;
+<p><tt>&nbsp;&nbsp; The "smart switch /stupid router" problem</tt>
 <br><tt>&nbsp;&nbsp; ------------------------------------------</tt>
 <br><tt>&nbsp;&nbsp; The smart switch / stupid router (or no router) problem
 is something that</tt>
@@ -143,7 +141,7 @@ traffic and only</tt>
 are connected to a</tt>
 <br><tt>&nbsp;&nbsp; host that has maintained the appropriate IGMP conversations
 with the</tt>
-<br><tt>&nbsp;&nbsp; router.</tt><tt></tt>
+<br><tt>&nbsp;&nbsp; router.</tt>
 <p><tt>&nbsp;&nbsp; At a very high level, IGMP works like this.&nbsp; First,
 the host joins the</tt>
 <br><tt>&nbsp;&nbsp; multicast group by sending the router an IGMP message.&nbsp;
@@ -155,7 +153,7 @@ IGMP conversations are</tt>
 <br><tt>&nbsp;&nbsp; handled transparently by the kernel level IP stack
 implementations, most</tt>
 <br><tt>&nbsp;&nbsp; developers and users do not even realize anything
-is happening.</tt><tt></tt>
+is happening.</tt>
 <p><tt>&nbsp;&nbsp; However, "smart" ethernet switches do realize something
 is happening!</tt>
 <br><tt>&nbsp;&nbsp; If they do not see the IGMP messages being sent from
@@ -170,15 +168,14 @@ in terms of</tt>
 it so multicast will not</tt>
 <br><tt>&nbsp;&nbsp; work at all if a router does not exist (or does not
 support IGMP) to</tt>
-<br><tt>&nbsp;&nbsp; maintain it's end of the IGMP conversation.</tt><tt></tt>
-<p><tt>&nbsp;&nbsp; Trouble Shooting:</tt><tt></tt>
+<br><tt>&nbsp;&nbsp; maintain it's end of the IGMP conversation.</tt>
+<p><tt>&nbsp;&nbsp; Trouble Shooting:</tt>
 <p><tt>&nbsp;&nbsp; Monitor IGMP traffic!&nbsp; Make sure that periodic
 IGMP traffic is happening</tt>
 <br><tt>&nbsp;&nbsp; on your network.&nbsp; IGMP traffic can be monitored
 on Linux (and many other</tt>
 <br><tt>&nbsp;&nbsp; OSes) with the following command:</tt>
-<br><tt>&nbsp;</tt>
-<br><tt>&nbsp;&nbsp;&nbsp;&nbsp; # tcpdump igmp</tt><tt></tt>
+<p><tt>&nbsp;&nbsp;&nbsp;&nbsp; # tcpdump igmp</tt>
 <p><tt>&nbsp;&nbsp; Issue this command before starting slpd.&nbsp; You
 will notice that several</tt>
 <br><tt>&nbsp;&nbsp; IGMP "report" messages are sent.&nbsp; The important
@@ -187,12 +184,11 @@ thing to look for a IGMP</tt>
 see the IGMP query</tt>
 <br><tt>&nbsp;&nbsp; message from the router then you will soon find that
 you will no longer</tt>
-<br><tt>&nbsp;&nbsp; see any "report" messages either.</tt><tt></tt>
+<br><tt>&nbsp;&nbsp; see any "report" messages either.</tt>
 <p><tt>&nbsp;&nbsp; Another good test is to try to ping the multicast address
 and see where</tt>
 <br><tt>&nbsp;&nbsp; it is visable.</tt>
-<br><tt>&nbsp;</tt>
-<br><tt>&nbsp;&nbsp;&nbsp;&nbsp; $ ping 239.255.255.253</tt><tt></tt>
+<p><tt>&nbsp;&nbsp;&nbsp;&nbsp; $ ping 239.255.255.253</tt>
 <p><tt>&nbsp;&nbsp; Finally, the best advice is to read the normally untouched
 section of</tt>
 <br><tt>&nbsp;&nbsp; your ethernet switch manual that describes how the
@@ -205,7 +201,7 @@ to every port</tt>
 allow this behavior to be</tt>
 <br><tt>&nbsp;&nbsp; configured.&nbsp; If you are on a network without
 a router, then it is</tt>
-<br><tt>&nbsp;&nbsp; possible that you might need to "dumb down" your switch.</tt><tt></tt>
+<br><tt>&nbsp;&nbsp; possible that you might need to "dumb down" your switch.</tt>
 <p><tt>&nbsp;&nbsp; Broken NIC driver</tt>
 <br><tt>&nbsp;&nbsp; ------------------</tt>
 <br><tt>&nbsp;&nbsp; Some NICs do not support multicast operation, so the
@@ -224,9 +220,69 @@ work on unreliable</tt>
 OpenSLP may not</tt>
 <br><tt>&nbsp;&nbsp; be able to find DAs or other services.&nbsp; This
 would result in erratic</tt>
-<br><tt>&nbsp;&nbsp; behavior.</tt>
-<br><tt></tt>&nbsp;
-<br><tt></tt>&nbsp;
+<br><tt>&nbsp;&nbsp; behavior.</tt><tt></tt>
+<p><tt><b>Q:</b> I'm pretty new to SLP. I just installed the Open-SLP package.
+It comes</tt>
+<br><tt>&nbsp;&nbsp; with the SLP daemon(slpd). Is it the Directory agent?</tt>
+<br><tt>&nbsp;</tt>
+<br><tt><b>A:</b> OpenSLP consists of two binary pieces of software.&nbsp;
+One is libslp.so and the</tt>
+<br><tt>&nbsp;&nbsp; other is slpd.</tt>
+<br><tt>&nbsp;</tt>
+<br><tt>&nbsp;&nbsp; libslp.so is the SLP API implementation library that
+is linked to applications</tt>
+<br><tt>&nbsp;&nbsp; that will be using SLP to register and locate services.&nbsp;
+See</tt>
+<br><tt>&nbsp;&nbsp; http://www.openslp.org/doc/html/ProgrammersGuide/index.html
+for more information</tt>
+<br><tt>&nbsp;&nbsp; on how this library can be used to write more intelligent
+applications.</tt><tt></tt>
+<p><tt>&nbsp;&nbsp; slpd is the SA/DA daemon.&nbsp; In otherwords, slpd
+has two modes of operation.&nbsp; slpd</tt>
+<br><tt>&nbsp;&nbsp; can be an SA or it can be an SA and a DA.</tt><tt></tt>
+<p><tt>&nbsp;&nbsp; In SA only mode, slpd keeps track services that were
+registered by applications</tt>
+<br><tt>&nbsp;&nbsp; that link to libslp.so and call SLPReg().&nbsp; As
+an SA slpd responds appropriately</tt>
+<br><tt>&nbsp;&nbsp; to multicast requests for location of services that
+it has registrations for.</tt><tt></tt>
+<p><tt>&nbsp;&nbsp; In SA/DA mode slpd additionally acts as an DA (directory
+agent).&nbsp; The existence</tt>
+<br><tt>&nbsp;&nbsp; of a DA is optional, but desireable on large networks
+to reduce multicast</tt>
+<br><tt>&nbsp;&nbsp; traffic.&nbsp; To enable DA functionality in slpd,
+you will need to set the</tt>
+<br><tt>&nbsp;&nbsp; .net.slp.isDA=true setting in the /etc/slp.conf file.</tt><tt></tt>
+<p><tt>&nbsp;&nbsp; In deploying OpenSLP you should be aware of the following
+guidelines:</tt><tt></tt>
+<p><tt>&nbsp;&nbsp; 1 - Existence of a DA (directory agent) is optional
+but beneficial on larger</tt>
+<br><tt>&nbsp;&nbsp; networks to reduce the amount of multicast SLP traffic.&nbsp;
+On smaller networks</tt>
+<br><tt>&nbsp;&nbsp; where multicast traffic is not a problem it is simpler
+to operate without a DA.</tt><tt></tt>
+<p><tt>&nbsp;&nbsp; 2 - As a general rule there should only be one DA per
+IP network.&nbsp; Too many DAs</tt>
+<br><tt>&nbsp;&nbsp; on the same network will cause a reduction in performance.</tt>
+<br><tt>&nbsp;</tt>
+<br><tt>&nbsp;&nbsp; 3 - With OpenSLP it is not required that ALL machines
+run slpd however it is</tt>
+<br><tt>&nbsp;&nbsp; highly recommended.&nbsp; This is because the OpenSLP
+implementation uses slpd to</tt>
+<br><tt>&nbsp;&nbsp; cache important information that would otherwise need
+to be discovered via</tt>
+<br><tt>&nbsp;&nbsp; multicast or broadcast.&nbsp; Therefore, for optimal
+performance, slpd should run on</tt>
+<br><tt>&nbsp;&nbsp; all machines as an SA with only a very few (usually
+1) machine running slpd as a</tt>
+<br><tt>&nbsp;&nbsp; DA.</tt>
+<br><tt>&nbsp;</tt>
+<br><tt>&nbsp;&nbsp; 4 - In deployments where it is not possible to run
+slpd on all machines it is at</tt>
+<br><tt>&nbsp;&nbsp; least REQUIRED that slpd run on ALL machines that
+run software that calls</tt>
+<br><tt>&nbsp;&nbsp; SLPReg() or SLPDeReg().</tt>
+<br>&nbsp;
 <br>&nbsp;
 </body>
 </html>
