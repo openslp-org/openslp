@@ -184,7 +184,9 @@ SLPError SLPParseSrvURL(const char *pcSrvURL,
     return SLP_OK;
 }
 
-
+#define ATTRIBUTE_RESERVE_STRING	"(),\\!<=>~"
+#define ATTRIBUTE_BAD_TAG			"\r\n\t_"
+#define ESCAPE_CHARACTER			'\\'
 /*=========================================================================*/
 SLPError SLPEscape(const char* pcInbuf,
                    char** ppcOutBuf,
@@ -213,7 +215,86 @@ SLPError SLPEscape(const char* pcInbuf,
 /*              or the appropriate error code if another error occurs.     */
 /*=========================================================================*/
 {
-    return SLP_NOT_IMPLEMENTED;
+	char		*current_inbuf, *current_outBuf;
+	int			amount_of_escape_characters;
+	char		hex_digit;
+
+	/* Ensure that the parameters are good. */
+	if ((pcInbuf == NULL) || ((isTag != SLP_TRUE) && (isTag != SLP_FALSE)))
+		return(SLP_PARAMETER_BAD);
+
+	/* 
+	 * Loop thru the string, counting the number of reserved characters 
+	 * and checking for bad tags when required.  This is also used to 
+	 * calculate the size of the new string to create.
+	 * ASSUME: that pcInbuf is a NULL terminated string. 
+	 */
+	current_inbuf = (char *) pcInbuf;
+	amount_of_escape_characters = 0;
+	while (*current_inbuf != '\0')
+	{
+		/* Ensure that there are no bad tags when it is a tag. */
+		if ((isTag) && strchr(ATTRIBUTE_BAD_TAG, *current_inbuf))
+			return(SLP_PARSE_ERROR);
+
+		if (strchr(ATTRIBUTE_RESERVE_STRING, *current_inbuf))
+			amount_of_escape_characters++;
+
+		current_inbuf++;
+	} /* End While. */
+
+	/* Allocate the string. */
+	*ppcOutBuf = (char *) malloc(
+					sizeof(char) * 
+					(strlen(pcInbuf) + (amount_of_escape_characters * 2) + 1));
+	
+	if (ppcOutBuf == NULL)
+		return(SLP_MEMORY_ALLOC_FAILED);
+
+	/*
+	 * Go over it, again.  Replace each of the escape characters with their 
+	 * \hex equivalent.
+	 */
+	current_inbuf = (char *) pcInbuf;
+	current_outBuf = *ppcOutBuf;
+	while (*current_inbuf != '\0')
+	{
+		/* Check to see if it is an escape character. */
+		if (strchr(ATTRIBUTE_RESERVE_STRING, *current_inbuf))
+		{
+			/* Insert the escape character. */
+			*current_outBuf = ESCAPE_CHARACTER;
+			current_outBuf++;
+
+			/* Do the first digit. */
+			hex_digit = (*current_inbuf & 0xF0)/0x0F;
+			if  ((hex_digit >= 0) && (hex_digit <= 9))
+				*current_outBuf = hex_digit + '0';
+			else
+				*current_outBuf = hex_digit + 'A' - 0x0A;
+
+			current_outBuf++;
+
+			/* Do the last digit. */
+			hex_digit = *current_inbuf & 0x0F;
+			if ((hex_digit >= 0) && (hex_digit <= 9))
+				*current_outBuf = hex_digit + '0';
+			else
+				*current_outBuf = hex_digit + 'A' - 0x0A;
+		}
+		else
+		{
+			*current_outBuf = *current_inbuf;
+		} /* End If, Else. */
+
+		current_outBuf += sizeof(char);
+		current_inbuf += sizeof(char);
+	} /* End While. */
+
+	/* Make sure that the string is properly terminated. */
+	*current_outBuf = '\0';
+	
+    return(SLP_OK);
 }
 
 
