@@ -1,17 +1,6 @@
 #! /bin/sh
-#
-# skeleton	example file to build /etc/init.d/ scripts.
-#		This file should be used to construct scripts for /etc/init.d.
-#
-#		Written by Miquel van Smoorenburg <miquels@cistron.nl>.
-#		Modified for Debian GNU/Linux
-#		by Ian Murdock <imurdock@gnu.ai.mit.edu>.
-#
-# Version:	@(#)skeleton  1.8  03-Mar-1998  miquels@cistron.nl
-#
-# This file was automatically customized by dh-make on Fri, 18 Aug 2000 14:42:16 +0530
+# script to start/stop the OpenSLP daemon
 
-PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 DAEMON=/usr/sbin/slpd
 NAME=slpd
 DESC=openslp
@@ -39,11 +28,6 @@ case "$1" in
 		/var/run/$NAME.pid --exec $DAEMON
   ;;
   restart|force-reload)
-	#
-	#	If the "reload" option is implemented, move the "force-reload"
-	#	option to the "reload" entry above. If not, "force-reload" is
-	#	just the same as "restart".
-	#
 	echo -n "Restarting $DESC: "
 	start-stop-daemon --stop --quiet --pidfile \
 		/var/run/$NAME.pid --exec $DAEMON

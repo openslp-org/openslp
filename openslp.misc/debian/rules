@@ -54,9 +54,8 @@ binary-arch: build install
 	dh_installinit
 	dh_installdocs
 
-	# Remove the installed html documentation (we'll pull it in by 
-        # install-docs
-	rm -rf `pwd`/debian/tmp/usr/doc
+	# remove calderalogo.jpg
+	rm -f `pwd`/debian/openslp-doc/usr/share/doc/html/UsersGuide/calderalogo.jpg
 
         #
         # build libslp${major} package by moving files from openslpd
@@ -70,19 +69,14 @@ binary-arch: build install
         #
 	dh_movefiles -plibslp-dev usr/include usr/lib
 
-	#
-	# move the docs into the html directory
-	#
-	dh_installdirs usr/share/doc/openslpd/html
-	dh_installdirs -plibslp-dev usr/share/doc/libslp-dev/html
-	mv `pwd`/debian/libslp-dev/usr/share/doc/libslp-dev/{ProgrammersGuide,html}
-	mv `pwd`/debian/tmp/usr/share/doc/openslpd/{UsersGuide,IntroductionToSLP,html}
+	# Remove the installed html documentation (we'll pull it in by 
+        # install-docs) into openslp-doc package
+	rm -rf `pwd`/debian/tmp/usr/doc
 
-	# remove empty directories in openslpd package
+        # remove empty directories in openslpd package
 	rmdir `pwd`/debian/tmp/usr/include
 	rmdir `pwd`/debian/tmp/usr/lib
 
-#	dh_installdebconf	
 #	dh_installexamples
 #	dh_installmenu
 #	dh_installemacsen
