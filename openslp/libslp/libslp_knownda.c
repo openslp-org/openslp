@@ -281,7 +281,7 @@ int KnownDADiscoveryRqstRply(int sock,
     bufsize += scopelistlen;
 
     /* TODO: make sure that we don't exceed the MTU */
-    buf = curpos = (char*)malloc(bufsize);
+    buf = curpos = (char*)xmalloc(bufsize);
     if(buf == 0)
     {
         return 0;
@@ -375,7 +375,7 @@ int KnownDADiscoverFromProperties()
     peeraddr.sin_family = AF_INET;
     peeraddr.sin_port = htons(SLP_RESERVED_PORT);
 
-    slider1 = slider2 = temp = strdup(SLPGetProperty("net.slp.DAAddresses"));
+    slider1 = slider2 = temp = xstrdup(SLPGetProperty("net.slp.DAAddresses"));
     if(temp)
     {
         tempend = temp + strlen(temp);
@@ -637,7 +637,7 @@ int KnownDAGetScopes(int* scopelistlen,
                                          &newlen,
                                          G_KnownDAScopes) < 0)
                 {
-                    G_KnownDAScopes = realloc(G_KnownDAScopes,newlen);
+                    G_KnownDAScopes = xrealloc(G_KnownDAScopes,newlen);
                     if(G_KnownDAScopes == 0)
                     {
                         G_KnownDAScopesLen = 0;
@@ -660,7 +660,7 @@ int KnownDAGetScopes(int* scopelistlen,
                                  &newlen,
                                  G_KnownDAScopes) < 0)
         {
-            G_KnownDAScopes = realloc(G_KnownDAScopes,newlen);
+            G_KnownDAScopes = xrealloc(G_KnownDAScopes,newlen);
             if(G_KnownDAScopes == 0)
             {
                 G_KnownDAScopesLen = 0;
@@ -672,7 +672,7 @@ int KnownDAGetScopes(int* scopelistlen,
 
     if(G_KnownDAScopesLen)
     {
-        *scopelist = malloc(G_KnownDAScopesLen + 1);
+        *scopelist = xmalloc(G_KnownDAScopesLen + 1);
         if(*scopelist == 0)
         {
             return -1;
@@ -683,7 +683,7 @@ int KnownDAGetScopes(int* scopelistlen,
     }
     else
     {
-        *scopelist = strdup("");
+        *scopelist = xstrdup("");
         if(*scopelist == 0)
         {
             return -1;
@@ -694,3 +694,25 @@ int KnownDAGetScopes(int* scopelistlen,
     return 0;
 }
 
+
+/*=========================================================================*/
+void KnownDAFreeAll()
+/* Frees all (cached) resources associated with known DAs                  */
+/*                                                                         */
+/* returns: none                                                           */
+/*=========================================================================*/
+{
+    SLPDatabaseHandle   dh;
+    SLPDatabaseEntry*   entry;
+    dh = SLPDatabaseOpen(&G_KnownDACache);
+    if(dh)
+    {
+        while(1)
+        {
+            entry = SLPDatabaseEnum(dh);
+            if(entry == NULL) break;
+            
+            SLPDatabaseRemove(dh,entry);
+        }
+    }       
+}

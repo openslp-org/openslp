@@ -64,7 +64,7 @@ typedef struct _SLPBuffer
     SLPListItem listitem;
     /* SLPListItem so that SLPBuffers can be linked into a list*/
 
-    /* the allocated size of this buffer (the actual malloc'd size is
+    /* the allocated size of this buffer (the actual xmalloc'd size is
        one byte more than this to null terminate C strings) */
     size_t  allocated;
 

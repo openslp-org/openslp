@@ -154,7 +154,7 @@ SLPError ProcessSrvReg(PSLPHandleInfo handle)
     bufsize += handle->params.reg.attrlistlen + 2;  /*  2 bytes for len field */
     bufsize += 1;                                   /*  1 byte for authcount */
 
-    buf = curpos = (char*)malloc(bufsize);
+    buf = curpos = (char*)xmalloc(bufsize);
     if(buf == 0)
     {
         result = SLP_MEMORY_ALLOC_FAILED;
@@ -285,10 +285,10 @@ SLPError AsyncProcessSrvReg(PSLPHandleInfo handle)
 {
     SLPError result = ProcessSrvReg(handle);
 
-    free((void*)handle->params.reg.url);
-    free((void*)handle->params.reg.srvtype);
-    free((void*)handle->params.reg.scopelist);
-    free((void*)handle->params.reg.attrlist);
+    xfree((void*)handle->params.reg.url);
+    xfree((void*)handle->params.reg.srvtype);
+    xfree((void*)handle->params.reg.scopelist);
+    xfree((void*)handle->params.reg.attrlist);
 
     handle->inUse = SLP_FALSE;
 
@@ -394,10 +394,10 @@ SLPError SLPReg(SLPHandle   hSLP,
     if(handle->isAsync)
     {
         /* Copy all of the referenced parameters before making thread */
-        handle->params.reg.url = strdup(handle->params.reg.url);
-        handle->params.reg.srvtype = strdup(handle->params.reg.url);
-        handle->params.reg.scopelist = strdup(handle->params.reg.scopelist);
-        handle->params.reg.attrlist = strdup(handle->params.reg.attrlist);
+        handle->params.reg.url = xstrdup(handle->params.reg.url);
+        handle->params.reg.srvtype = xstrdup(handle->params.reg.url);
+        handle->params.reg.scopelist = xstrdup(handle->params.reg.scopelist);
+        handle->params.reg.attrlist = xstrdup(handle->params.reg.attrlist);
 
         /* make sure that the strdups did not fail */
         if(handle->params.reg.url &&
@@ -414,10 +414,10 @@ SLPError SLPReg(SLPHandle   hSLP,
 
         if(result)
         {
-            if(handle->params.reg.url) free((void*)handle->params.reg.url);
-            if(handle->params.reg.srvtype) free((void*)handle->params.reg.srvtype);
-            if(handle->params.reg.scopelist) free((void*)handle->params.reg.scopelist);
-            if(handle->params.reg.attrlist) free((void*)handle->params.reg.attrlist);
+            if(handle->params.reg.url) xfree((void*)handle->params.reg.url);
+            if(handle->params.reg.srvtype) xfree((void*)handle->params.reg.srvtype);
+            if(handle->params.reg.scopelist) xfree((void*)handle->params.reg.scopelist);
+            if(handle->params.reg.attrlist) xfree((void*)handle->params.reg.attrlist);
             handle->inUse = SLP_FALSE;
         }
     }

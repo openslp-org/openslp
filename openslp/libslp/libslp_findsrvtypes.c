@@ -125,7 +125,7 @@ SLPError ProcessSrvTypeRqst(PSLPHandleInfo handle)
     bufsize += handle->params.findsrvtypes.scopelistlen + 2; /*  2 bytes for len field */
 
     /* TODO: make sure that we don't exceed the MTU */
-    buf = curpos = (char*)malloc(bufsize);
+    buf = curpos = (char*)xmalloc(bufsize);
     if(buf == 0)
     {
         result = SLP_MEMORY_ALLOC_FAILED;
@@ -213,8 +213,8 @@ SLPError AsyncProcessSrvTypeRqst(PSLPHandleInfo handle)
 /*-------------------------------------------------------------------------*/
 {
     SLPError result = ProcessSrvTypeRqst(handle);
-    free((void*)handle->params.findsrvtypes.namingauth);
-    free((void*)handle->params.findsrvtypes.scopelist);
+    xfree((void*)handle->params.findsrvtypes.namingauth);
+    xfree((void*)handle->params.findsrvtypes.scopelist);
     handle->inUse = SLP_FALSE;
     return result;
 }
@@ -308,8 +308,8 @@ SLPError SLPFindSrvTypes(SLPHandle    hSLP,
     if(handle->isAsync)
     {
         /* COPY all the referenced parameters */
-        handle->params.findsrvtypes.namingauth = strdup(handle->params.findsrvtypes.namingauth);
-        handle->params.findsrvtypes.scopelist = strdup(handle->params.findsrvtypes.scopelist);
+        handle->params.findsrvtypes.namingauth = xstrdup(handle->params.findsrvtypes.namingauth);
+        handle->params.findsrvtypes.scopelist = xstrdup(handle->params.findsrvtypes.scopelist);
 
         /* make sure strdups did not fail */
         if(handle->params.findsrvtypes.namingauth &&
@@ -324,8 +324,8 @@ SLPError SLPFindSrvTypes(SLPHandle    hSLP,
 
         if(result)
         {
-            if(handle->params.findsrvtypes.namingauth) free((void*)handle->params.findsrvtypes.namingauth);
-            if(handle->params.findsrvtypes.scopelist) free((void*)handle->params.findsrvtypes.scopelist);
+            if(handle->params.findsrvtypes.namingauth) xfree((void*)handle->params.findsrvtypes.namingauth);
+            if(handle->params.findsrvtypes.scopelist) xfree((void*)handle->params.findsrvtypes.scopelist);
             handle->inUse = SLP_FALSE;
         }
     }

@@ -383,7 +383,7 @@ SLPError NetworkRqstRply(int sock,
        buftype == SLP_FUNCT_ATTRRQST ||
        buftype == SLP_FUNCT_SRVTYPERQST)
     {
-        prlist = (char*)malloc(mtu);
+        prlist = (char*)xmalloc(mtu);
         if(prlist == 0)
         {
             result = SLP_MEMORY_ALLOC_FAILED;

@@ -129,7 +129,7 @@ SLPError SLPOpen(const char *pcLang, SLPBoolean isAsync, SLPHandle *phSLP)
     /*------------------------------------*/
     /* allocate a SLPHandleInfo structure */
     /*------------------------------------*/
-    handle = (PSLPHandleInfo)malloc(sizeof(SLPHandleInfo));
+    handle = (PSLPHandleInfo)xmalloc(sizeof(SLPHandleInfo));
     if(handle == 0)
     {
         result =  SLP_PARAMETER_BAD;
@@ -143,7 +143,7 @@ SLPError SLPOpen(const char *pcLang, SLPBoolean isAsync, SLPHandle *phSLP)
     if(pcLang && *pcLang)
     {
         handle->langtaglen = strlen(pcLang);
-        handle->langtag = (char*)malloc(handle->langtaglen + 1);
+        handle->langtag = (char*)xmalloc(handle->langtaglen + 1);
         if(handle->langtag == 0)
         {
             free(handle);
@@ -155,7 +155,7 @@ SLPError SLPOpen(const char *pcLang, SLPBoolean isAsync, SLPHandle *phSLP)
     else
     {
         handle->langtaglen = strlen(SLPGetProperty("net.slp.locale"));
-        handle->langtag = (char*)malloc(handle->langtaglen + 1);
+        handle->langtag = (char*)xmalloc(handle->langtaglen + 1);
         if(handle->langtag == 0)
         {
             free(handle);
@@ -179,6 +179,11 @@ SLPError SLPOpen(const char *pcLang, SLPBoolean isAsync, SLPHandle *phSLP)
             goto FINISHED;
         }
 #endif
+
+#ifdef DEBUG
+        xmalloc_init("/tmp/libslp_xmalloc.log",0);
+#endif
+        
         SLPXidSeed();
     }
 
@@ -267,4 +272,25 @@ void SLPClose(SLPHandle hSLP)
     handle->sig = 0;  /* If they use the handle again, it won't be valid */
 
     free(hSLP);
+
+    G_OpenSLPHandleCount --;
+    
+    /* Free additional resources if this is the last handle open */
+    if(G_OpenSLPHandleCount <= 0)
+    {
+        G_OpenSLPHandleCount = 0;
+
+        SLPPropertyFreeAll();
+
+        KnownDAFreeAll();
+
+#ifdef WIN32
+        WSAShutdown();
+#endif  
+
+#ifdef DEBUG
+        xmalloc_deinit();
+#endif
+
+    }
 }

@@ -139,7 +139,7 @@ SLPError ProcessSrvDeReg(PSLPHandleInfo handle)
     /*--------------------------------------------*/
     /* Allocate a buffer for the SRVDEREG message */
     /*--------------------------------------------*/
-    buf = curpos = (char*)malloc(bufsize);
+    buf = curpos = (char*)xmalloc(bufsize);
     if(buf == 0)
     {
         result = SLP_MEMORY_ALLOC_FAILED;
@@ -239,8 +239,8 @@ SLPError AsyncProcessSrvDeReg(PSLPHandleInfo handle)
 /*-------------------------------------------------------------------------*/
 {
     SLPError result = ProcessSrvDeReg(handle);
-    free((void*)handle->params.dereg.scopelist);
-    free((void*)handle->params.dereg.url);
+    xfree((void*)handle->params.dereg.scopelist);
+    xfree((void*)handle->params.dereg.url);
     handle->inUse = SLP_FALSE;
     return result;
 }
@@ -323,8 +323,8 @@ SLPError SLPDereg(SLPHandle  hSLP,
     if(handle->isAsync)
     {
         /* COPY all the parameters */
-        handle->params.dereg.scopelist = strdup(handle->params.dereg.scopelist);
-        handle->params.dereg.url = strdup(handle->params.dereg.url);
+        handle->params.dereg.scopelist = xstrdup(handle->params.dereg.scopelist);
+        handle->params.dereg.url = xstrdup(handle->params.dereg.url);
 
         /* make sure the strdups did not fail */
         if(handle->params.dereg.scopelist &&
@@ -339,8 +339,8 @@ SLPError SLPDereg(SLPHandle  hSLP,
 
         if(result)
         {
-            if(handle->params.dereg.scopelist) free((void*)handle->params.dereg.scopelist);
-            if(handle->params.dereg.url) free((void*)handle->params.dereg.url);
+            if(handle->params.dereg.scopelist) xfree((void*)handle->params.dereg.scopelist);
+            if(handle->params.dereg.url) xfree((void*)handle->params.dereg.url);
             handle->inUse = SLP_FALSE;
         }
     }

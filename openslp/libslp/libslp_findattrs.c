@@ -164,7 +164,7 @@ SLPError ProcessAttrRqst(PSLPHandleInfo handle)
     bufsize += spistrlen;
 #endif
 
-    buf = curpos = (char*)malloc(bufsize);
+    buf = curpos = (char*)xmalloc(bufsize);
     if(buf == 0)
     {
         result = SLP_MEMORY_ALLOC_FAILED;
@@ -262,9 +262,9 @@ SLPError AsyncProcessAttrRqst(PSLPHandleInfo handle)
 /*-------------------------------------------------------------------------*/
 {
     SLPError result = ProcessAttrRqst(handle);
-    free((void*)handle->params.findattrs.url);
-    free((void*)handle->params.findattrs.scopelist);
-    free((void*)handle->params.findattrs.taglist);
+    xfree((void*)handle->params.findattrs.url);
+    xfree((void*)handle->params.findattrs.scopelist);
+    xfree((void*)handle->params.findattrs.taglist);
     handle->inUse = SLP_FALSE;
     return result;
 }
@@ -385,9 +385,9 @@ SLPError SLPFindAttrs(SLPHandle   hSLP,
     if(handle->isAsync)
     {
         /* COPY all the referenced parameters */
-        handle->params.findattrs.url = strdup(handle->params.findattrs.url);
-        handle->params.findattrs.scopelist = strdup(handle->params.findattrs.scopelist);
-        handle->params.findattrs.taglist = strdup(handle->params.findattrs.taglist);
+        handle->params.findattrs.url = xstrdup(handle->params.findattrs.url);
+        handle->params.findattrs.scopelist = xstrdup(handle->params.findattrs.scopelist);
+        handle->params.findattrs.taglist = xstrdup(handle->params.findattrs.taglist);
 
         /* make sure strdups did not fail */
         if(handle->params.findattrs.url &&
@@ -403,9 +403,9 @@ SLPError SLPFindAttrs(SLPHandle   hSLP,
 
         if(result)
         {
-            if(handle->params.findattrs.url) free((void*)handle->params.findattrs.url);
-            if(handle->params.findattrs.scopelist) free((void*)handle->params.findattrs.scopelist);
-            if(handle->params.findattrs.taglist) free((void*)handle->params.findattrs.taglist);
+            if(handle->params.findattrs.url) xfree((void*)handle->params.findattrs.url);
+            if(handle->params.findattrs.scopelist) xfree((void*)handle->params.findattrs.scopelist);
+            if(handle->params.findattrs.taglist) xfree((void*)handle->params.findattrs.taglist);
             handle->inUse = SLP_FALSE;
         }
     }

@@ -79,6 +79,7 @@
 #include "../common/slp_network.h"
 #include "../common/slp_database.h"
 #include "../common/slp_compare.h"
+#include "../common/slp_xmalloc.h"
 #ifdef ENABLE_SECURITY
 #include "../common/slp_auth.h"
 #include "../common/slp_spi.h"
@@ -418,5 +419,12 @@ int KnownDAGetScopes(int* scopelistlen,
 /* returns: zero on success, non-zero on failure                           */
 /*=========================================================================*/
 
+
+/*=========================================================================*/
+void KnownDAFreeAll();
+/* Frees all (cached) resources associated with known DAs                  */
+/*                                                                         */
+/* returns: none                                                           */
+/*=========================================================================*/
 
 #endif

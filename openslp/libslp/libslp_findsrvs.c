@@ -207,7 +207,7 @@ SLPError ProcessSrvRqst(PSLPHandleInfo handle)
     bufsize += spistrlen;
 #endif
     
-    buf = curpos = (char*)malloc(bufsize);
+    buf = curpos = (char*)xmalloc(bufsize);
     if(buf == 0)
     {
         result = SLP_MEMORY_ALLOC_FAILED;
@@ -303,9 +303,9 @@ SLPError AsyncProcessSrvRqst(PSLPHandleInfo handle)
 /*-------------------------------------------------------------------------*/
 {
     SLPError result = ProcessSrvRqst(handle);
-    free((void*)handle->params.findsrvs.srvtype);
-    free((void*)handle->params.findsrvs.scopelist);
-    free((void*)handle->params.findsrvs.predicate);
+    xfree((void*)handle->params.findsrvs.srvtype);
+    xfree((void*)handle->params.findsrvs.scopelist);
+    xfree((void*)handle->params.findsrvs.predicate);
     handle->inUse = SLP_FALSE;
     return result;
 }
@@ -424,9 +424,9 @@ SLPError SLPFindSrvs(SLPHandle  hSLP,
     if(handle->isAsync)
     {
         /* COPY all the referenced parameters */
-        handle->params.findsrvs.srvtype = strdup(handle->params.findsrvs.srvtype);
-        handle->params.findsrvs.scopelist = strdup(handle->params.findsrvs.scopelist);
-        handle->params.findsrvs.predicate = strdup(handle->params.findsrvs.predicate);
+        handle->params.findsrvs.srvtype = xstrdup(handle->params.findsrvs.srvtype);
+        handle->params.findsrvs.scopelist = xstrdup(handle->params.findsrvs.scopelist);
+        handle->params.findsrvs.predicate = xstrdup(handle->params.findsrvs.predicate);
 
         /* make sure strdups did not fail */
         if(handle->params.findsrvs.srvtype &&
@@ -442,9 +442,9 @@ SLPError SLPFindSrvs(SLPHandle  hSLP,
 
         if(result)
         {
-            if(handle->params.findsrvs.srvtype) free((void*)handle->params.findsrvs.srvtype);
-            if(handle->params.findsrvs.scopelist) free((void*)handle->params.findsrvs.scopelist);
-            if(handle->params.findsrvs.predicate) free((void*)handle->params.findsrvs.predicate);
+            if(handle->params.findsrvs.srvtype) xfree((void*)handle->params.findsrvs.srvtype);
+            if(handle->params.findsrvs.scopelist) xfree((void*)handle->params.findsrvs.scopelist);
+            if(handle->params.findsrvs.predicate) xfree((void*)handle->params.findsrvs.predicate);
             handle->inUse = SLP_FALSE;
         }
     }

@@ -112,7 +112,7 @@ SLPError SLPParseSrvURL(const char *pcSrvURL,
     }
 
 
-    *ppSrvURL = (SLPSrvURL*)malloc(strlen(pcSrvURL) + sizeof(SLPSrvURL) + 4);
+    *ppSrvURL = (SLPSrvURL*)xmalloc(strlen(pcSrvURL) + sizeof(SLPSrvURL) + 4);
     /* +4 ensures space for 4 null terminations */
     if(*ppSrvURL == 0)
     {
@@ -127,7 +127,7 @@ SLPError SLPParseSrvURL(const char *pcSrvURL,
     slider3 = (char*)strstr(slider2,":/");
     if(slider3 == 0)
     {
-        free(*ppSrvURL);
+        xfree(*ppSrvURL);
         *ppSrvURL = 0;
         return SLP_PARSE_ERROR;
     }
@@ -135,7 +135,7 @@ SLPError SLPParseSrvURL(const char *pcSrvURL,
     /* ensure that URL is of the service: scheme 
      if(strstr(slider2,"service:") == 0)
      {
-         free(*ppSrvURL);
+         xfree(*ppSrvURL);
          *ppSrvURL = 0;
          return SLP_PARSE_ERROR;
      }
@@ -269,7 +269,7 @@ SLPError SLPEscape(const char* pcInbuf,
     } /* End While. */
 
     /* Allocate the string. */
-    *ppcOutBuf = (char *) malloc(
+    *ppcOutBuf = (char *) xmalloc(
                                 sizeof(char) * 
                                 (strlen(pcInbuf) + (amount_of_escape_characters * 2) + 1));
 
@@ -384,7 +384,7 @@ SLPError SLPUnescape(const char* pcInbuf,
     } /* End While. */
 
     /* Allocate the string. */
-    *ppcOutBuf = (char *) malloc((sizeof(char) * output_buffer_size) + 1);
+    *ppcOutBuf = (char *) xmalloc((sizeof(char) * output_buffer_size) + 1);
 
     if(ppcOutBuf == NULL)
         return(SLP_MEMORY_ALLOC_FAILED);
@@ -492,7 +492,7 @@ SLPError SLPParseAttrs(const char* pcAttrList,
             if(*slider1 == '=') slider1++;
             while(*slider2 && *slider2 !=')') slider2++;
             
-            *ppcAttrVal = (char*)malloc((slider2 - slider1) + 1);
+            *ppcAttrVal = (char*)xmalloc((slider2 - slider1) + 1);
             if(*ppcAttrVal == 0)
             {
                 return SLP_MEMORY_ALLOC_FAILED;
