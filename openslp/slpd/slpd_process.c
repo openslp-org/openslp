@@ -538,7 +538,7 @@ int ProcessSrvReg(struct sockaddr_in* peeraddr,
         {
             errorcode = SLP_ERROR_INVALID_REGISTRATION;
         }
-        else
+        else if(errorcode < 0)
         {
             errorcode = SLP_ERROR_INTERNAL_ERROR;
         }    
@@ -645,7 +645,7 @@ int ProcessSrvDeReg(struct sockaddr_in* peeraddr,
         {
             errorcode = 0;
         }
-        else
+        else 
         {
             errorcode = SLP_ERROR_INTERNAL_ERROR;
         }

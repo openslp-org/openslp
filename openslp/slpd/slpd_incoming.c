@@ -228,7 +228,6 @@ void IncomingStreamRead(SLPList* socklist, SLPDSocket* sock)
                                           sock->recvbuf,
                                           &(sock->sendbuf)))
                 {            
-                case SLP_ERROR_INTERNAL_ERROR:
                 case SLP_ERROR_PARSE_ERROR:
                 case SLP_ERROR_VER_NOT_SUPPORTED:
                     sock->state = SOCKET_CLOSE;
