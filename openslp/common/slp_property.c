@@ -162,7 +162,7 @@ int SLPPropertyReadFile(const char* conffile)
 /*=========================================================================*/
 {
     char*   line;
-	 char*	alloced;
+    char*   alloced;
     FILE*   fd;
     char*   namestart;
     char*   nameend;
@@ -175,8 +175,8 @@ int SLPPropertyReadFile(const char* conffile)
         return -1;
     }
     
-    alloced = line = malloc(4096);
-    if(line == 0)
+    alloced = malloc(4096);
+    if(alloced == 0)
     {
         /* out of memory */
         errno = ENOMEM;
@@ -189,18 +189,26 @@ int SLPPropertyReadFile(const char* conffile)
         goto CLEANUP;
     }   
 
-    while(fgets(line,4096,fd))
+    while(fgets(alloced,4096,fd))
     {
-        /* trim whitespace */
-        while(*line && *line <= 0x20) 
-			  line++;
+        line = alloced;
+	
+	/* trim whitespace */
+        while(*line && *line <= 0x20)
+	{       	
+	    line++;
+	}
 
-        if(*line == 0) 
-			  continue;
+        if(*line == 0)
+	{	
+            continue;
+	}
 
         /* skip commented lines */
         if(*line == '#' || *line == ';') 
-			  continue;
+	{
+            continue;
+	}
         
         /* parse out the property name*/
         namestart = line;
@@ -209,10 +217,11 @@ int SLPPropertyReadFile(const char* conffile)
         while(*nameend && *nameend != '=') 
 			  nameend++;
 
-        if(*nameend == 0) 
-			  continue;
-
-        valuestart = nameend + 1;  /* start of value for later*/
+        if(*nameend == 0)
+        {
+	    continue;
+	}
+	valuestart = nameend + 1;  /* start of value for later*/
 
         while(*nameend <= 0x20 || *nameend == '=')
         {
@@ -220,15 +229,18 @@ int SLPPropertyReadFile(const char* conffile)
             nameend --;
         }
 
-        /* parse out theproperty value */
+        /* parse out the property value */
         while(*valuestart <= 0x20) 
-			  valuestart++;
+	{
+            valuestart++;
+	}
 
         valueend = valuestart;
 
-        while(*valueend) 
-			  valueend++;
-
+        while(*valueend)
+	{
+	    valueend++;
+	}
         while(*valueend <= 0x20)
         {
             *valueend = 0;
@@ -242,8 +254,10 @@ int SLPPropertyReadFile(const char* conffile)
 
     CLEANUP:
 
-    if(line) 
-		 free(alloced);
+    if(alloced)
+    {
+        free(alloced);
+    }
 
     return 0;
 }
