@@ -1,10 +1,14 @@
-#!/bin/bash
+#!/bin/sh
+
 echo "SLPParseSrvURL"
-./SLPParseSrvURL service:test://10.0.0.1 > SLPParseSrvURL.actual.output
+rm -f SLPParseSrvURL.actual.output
+scriptdir=${srcdir}/SLPParseSrvURL
+
+./slpparsesrvurl service:test://10.0.0.1 > SLPParseSrvURL.actual.output
 echo >> SLPParseSrvURL.actual.output
-./SLPParseSrvURL service:test1:test2://10.0.0.1:80 >> SLPParseSrvURL.actual.output
+./slpparsesrvurl service:test1:test2://10.0.0.1:80 >> SLPParseSrvURL.actual.output
 echo >> SLPParseSrvURL.actual.output
-./SLPParseSrvURL service:test://10.0.0.1:80/foo/goo >> SLPParseSrvURL.actual.output
+./slpparsesrvurl service:test://10.0.0.1:80/foo/goo >> SLPParseSrvURL.actual.output
 echo >> SLPParseSrvURL.actual.output
-./SLPParseSrvURL service:test://10.0.0.1/foo/goo >> SLPParseSrvURL.actual.output 
-diff --brief SLPParseSrvURL.expected.output SLPParseSrvURL.actual.output
+./slpparsesrvurl service:test://10.0.0.1/foo/goo >> SLPParseSrvURL.actual.output 
+diff --brief ${scriptdir}/SLPParseSrvURL.expected.output SLPParseSrvURL.actual.output

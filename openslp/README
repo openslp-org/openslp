@@ -1,5 +1,26 @@
-README OpenSLP releas 0.7.0
----------------------------
+README OpenSLP release 0.7.2
+----------------------------
+
+OpenSLP 0.7.2 is again just slightly more stable than 0.7.1. For developers,
+the build system has been revamped build system to take full advantage
+automake and libtool integration. You can now build in a directory different
+from the source directory. The test suite has also been integrated into
+automake; you now need to run make check (instead of make test) to run the
+tests. 
+
+
+README OpenSLP release 0.7.1
+----------------------------
+
+As far as enhancements go OpenSLP release 0.7.1 just slightly more stable
+release of 0.7.0. Several bug fixes (that kept 0.7.0 from working in some
+cases) have been added.  For developers, OpenSLP 0.7.1 introduces a new make
+file system that uses automake/autoconf...  one step closer to our goal of
+making OpenSLP easier to port and maintain.
+
+
+README OpenSLP release 0.7.0
+----------------------------
 
 OpenSLP release 0.7.0 contains significant code changes from the original is
 based on the original Caldera Systems source code snapshot from 

@@ -64,43 +64,41 @@ CC = @CC@
 CFLAGS = @CFLAGS@
 DLLTOOL = @DLLTOOL@
 LIBTOOL = @LIBTOOL@
-LIBTOOL_DEPS = @LIBTOOL_DEPS@
 LN_S = @LN_S@
 MAKEINFO = @MAKEINFO@
 OBJDUMP = @OBJDUMP@
 PACKAGE = @PACKAGE@
-RPM_PREFIX = @RPM_PREFIX@
-VERSION = @VERSION@
-prefix = @prefix@
-sysconfdir = @sysconfdir@
-
 RANLIB = @RANLIB@
-noinst_LIBRARIES = libcommonslpd.a libcommonlibslp.a
+VERSION = @VERSION@
 
-libcommonlibslp_a_SOURCES =  	slp_buffer.c			slp_message.c			slp_property.c			slp_linkedlist.c		slp_xid.c				slp_network.c			slp_da.c				slp_compare.c
+noinst_LTLIBRARIES = libcommonslpd.la libcommonlibslp.la
+
+libcommonlibslp_la_SOURCES =  	slp_buffer.c		slp_message.c		slp_property.c		slp_linkedlist.c 	slp_xid.c		slp_network.c		slp_da.c		slp_compare.c
 
 
-libcommonslpd_a_SOURCES =  	slp_compare.c			slp_logfile.c			slp_buffer.c			slp_message.c			slp_property.c			slp_linkedlist.c
+libcommonslpd_la_SOURCES =  	slp_compare.c		slp_logfile.c		slp_buffer.c		slp_message.c		slp_property.c		slp_linkedlist.c
 
 
-noinst_HEADERS =  	slp_buffer.h			slp_da.h				slp_logfile.h			slp_network.h			slp_xid.h				slp_compare.h			slp_linkedlist.h		slp_message.h			slp_property.h
+noinst_HEADERS =  	slp_buffer.h		slp_da.h		slp_logfile.h		slp_network.h		slp_xid.h		slp_compare.h		slp_linkedlist.h 	slp_message.h		slp_property.h
 
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_CLEAN_FILES = 
-LIBRARIES =  $(noinst_LIBRARIES)
+LTLIBRARIES =  $(noinst_LTLIBRARIES)
 
 
 DEFS = @DEFS@ -I. -I$(srcdir) 
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
-libcommonslpd_a_LIBADD = 
-libcommonslpd_a_OBJECTS =  slp_compare.o slp_logfile.o slp_buffer.o \
-slp_message.o slp_property.o slp_linkedlist.o
-libcommonlibslp_a_LIBADD = 
-libcommonlibslp_a_OBJECTS =  slp_buffer.o slp_message.o slp_property.o \
-slp_linkedlist.o slp_xid.o slp_network.o slp_da.o slp_compare.o
-AR = ar
+libcommonslpd_la_LDFLAGS = 
+libcommonslpd_la_LIBADD = 
+libcommonslpd_la_OBJECTS =  slp_compare.lo slp_logfile.lo slp_buffer.lo \
+slp_message.lo slp_property.lo slp_linkedlist.lo
+libcommonlibslp_la_LDFLAGS = 
+libcommonlibslp_la_LIBADD = 
+libcommonlibslp_la_OBJECTS =  slp_buffer.lo slp_message.lo \
+slp_property.lo slp_linkedlist.lo slp_xid.lo slp_network.lo slp_da.lo \
+slp_compare.lo
 COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
@@ -112,13 +110,13 @@ DIST_COMMON =  Makefile.am Makefile.in
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
-TAR = gtar
+TAR = tar
 GZIP_ENV = --best
 DEP_FILES =  .deps/slp_buffer.P .deps/slp_compare.P .deps/slp_da.P \
 .deps/slp_linkedlist.P .deps/slp_logfile.P .deps/slp_message.P \
 .deps/slp_network.P .deps/slp_property.P .deps/slp_xid.P
-SOURCES = $(libcommonslpd_a_SOURCES) $(libcommonlibslp_a_SOURCES)
-OBJECTS = $(libcommonslpd_a_OBJECTS) $(libcommonlibslp_a_OBJECTS)
+SOURCES = $(libcommonslpd_la_SOURCES) $(libcommonlibslp_la_SOURCES)
+OBJECTS = $(libcommonslpd_la_OBJECTS) $(libcommonlibslp_la_OBJECTS)
 
 all: all-redirect
 .SUFFIXES:
@@ -131,14 +129,14 @@ Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status $(BUILT_SOURCES)
 	  && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
 
-mostlyclean-noinstLIBRARIES:
+mostlyclean-noinstLTLIBRARIES:
 
-clean-noinstLIBRARIES:
-	-test -z "$(noinst_LIBRARIES)" || rm -f $(noinst_LIBRARIES)
+clean-noinstLTLIBRARIES:
+	-test -z "$(noinst_LTLIBRARIES)" || rm -f $(noinst_LTLIBRARIES)
 
-distclean-noinstLIBRARIES:
+distclean-noinstLTLIBRARIES:
 
-maintainer-clean-noinstLIBRARIES:
+maintainer-clean-noinstLTLIBRARIES:
 
 .s.o:
 	$(COMPILE) -c $<
@@ -172,15 +170,11 @@ distclean-libtool:
 
 maintainer-clean-libtool:
 
-libcommonslpd.a: $(libcommonslpd_a_OBJECTS) $(libcommonslpd_a_DEPENDENCIES)
-	-rm -f libcommonslpd.a
-	$(AR) cru libcommonslpd.a $(libcommonslpd_a_OBJECTS) $(libcommonslpd_a_LIBADD)
-	$(RANLIB) libcommonslpd.a
+libcommonslpd.la: $(libcommonslpd_la_OBJECTS) $(libcommonslpd_la_DEPENDENCIES)
+	$(LINK)  $(libcommonslpd_la_LDFLAGS) $(libcommonslpd_la_OBJECTS) $(libcommonslpd_la_LIBADD) $(LIBS)
 
-libcommonlibslp.a: $(libcommonlibslp_a_OBJECTS) $(libcommonlibslp_a_DEPENDENCIES)
-	-rm -f libcommonlibslp.a
-	$(AR) cru libcommonlibslp.a $(libcommonlibslp_a_OBJECTS) $(libcommonlibslp_a_LIBADD)
-	$(RANLIB) libcommonlibslp.a
+libcommonlibslp.la: $(libcommonlibslp_la_OBJECTS) $(libcommonlibslp_la_DEPENDENCIES)
+	$(LINK)  $(libcommonlibslp_la_LDFLAGS) $(libcommonlibslp_la_OBJECTS) $(libcommonlibslp_la_LIBADD) $(LIBS)
 
 tags: TAGS
 
@@ -282,7 +276,7 @@ install-am: all-am
 install: install-am
 uninstall-am:
 uninstall: uninstall-am
-all-am: Makefile $(LIBRARIES) $(HEADERS)
+all-am: Makefile $(LTLIBRARIES) $(HEADERS)
 all-redirect: all-am
 install-strip:
 	$(MAKE) $(AM_MAKEFLAGS) AM_INSTALL_PROGRAM_FLAGS=-s install
@@ -298,25 +292,25 @@ distclean-generic:
 	-rm -f config.cache config.log stamp-h stamp-h[0-9]*
 
 maintainer-clean-generic:
-mostlyclean-am:  mostlyclean-noinstLIBRARIES mostlyclean-compile \
+mostlyclean-am:  mostlyclean-noinstLTLIBRARIES mostlyclean-compile \
 		mostlyclean-libtool mostlyclean-tags mostlyclean-depend \
 		mostlyclean-generic
 
 mostlyclean: mostlyclean-am
 
-clean-am:  clean-noinstLIBRARIES clean-compile clean-libtool clean-tags \
-		clean-depend clean-generic mostlyclean-am
+clean-am:  clean-noinstLTLIBRARIES clean-compile clean-libtool \
+		clean-tags clean-depend clean-generic mostlyclean-am
 
 clean: clean-am
 
-distclean-am:  distclean-noinstLIBRARIES distclean-compile \
+distclean-am:  distclean-noinstLTLIBRARIES distclean-compile \
 		distclean-libtool distclean-tags distclean-depend \
 		distclean-generic clean-am
 	-rm -f libtool
 
 distclean: distclean-am
 
-maintainer-clean-am:  maintainer-clean-noinstLIBRARIES \
+maintainer-clean-am:  maintainer-clean-noinstLTLIBRARIES \
 		maintainer-clean-compile maintainer-clean-libtool \
 		maintainer-clean-tags maintainer-clean-depend \
 		maintainer-clean-generic distclean-am
@@ -325,8 +319,8 @@ maintainer-clean-am:  maintainer-clean-noinstLIBRARIES \
 
 maintainer-clean: maintainer-clean-am
 
-.PHONY: mostlyclean-noinstLIBRARIES distclean-noinstLIBRARIES \
-clean-noinstLIBRARIES maintainer-clean-noinstLIBRARIES \
+.PHONY: mostlyclean-noinstLTLIBRARIES distclean-noinstLTLIBRARIES \
+clean-noinstLTLIBRARIES maintainer-clean-noinstLTLIBRARIES \
 mostlyclean-compile distclean-compile clean-compile \
 maintainer-clean-compile mostlyclean-libtool distclean-libtool \
 clean-libtool maintainer-clean-libtool tags mostlyclean-tags \
@@ -343,4 +337,3 @@ mostlyclean distclean maintainer-clean
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:
-

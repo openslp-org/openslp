@@ -69,43 +69,38 @@ CC = @CC@
 CFLAGS = @CFLAGS@
 DLLTOOL = @DLLTOOL@
 LIBTOOL = @LIBTOOL@
-LIBTOOL_DEPS = @LIBTOOL_DEPS@
 LN_S = @LN_S@
 MAKEINFO = @MAKEINFO@
 OBJDUMP = @OBJDUMP@
 PACKAGE = @PACKAGE@
-RPM_PREFIX = @RPM_PREFIX@
-VERSION = @VERSION@
-prefix = @prefix@
-sysconfdir = @sysconfdir@
-
-SUBDIRS = common slpd libslp
-DOC_DIR = $(prefix)/doc/openslp-$(VERSION)
-
 RANLIB = @RANLIB@
-INCLUDEDIR = common/ slpd/	
+VERSION = @VERSION@
+
+SUBDIRS = common slpd libslp test
+DOC_DIR = $(prefix)/doc/openslp-$(VERSION)
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_CLEAN_FILES = 
 DIST_COMMON =  README AUTHORS COPYING ChangeLog INSTALL Makefile.am \
-Makefile.in NEWS aclocal.m4 config.guess config.sub configure \
-configure.in install-sh ltconfig ltmain.sh missing mkinstalldirs
+Makefile.in NEWS acinclude.m4 aclocal.m4 config.guess config.sub \
+configure configure.in install-sh ltconfig ltmain.sh missing \
+mkinstalldirs
 
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
-TAR = gtar
+TAR = tar
 GZIP_ENV = --best
 all: all-redirect
 .SUFFIXES:
 $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
-	cd $(top_srcdir) && $(AUTOMAKE) --gnu Makefile
+	cd $(top_srcdir) && $(AUTOMAKE) --foreign Makefile
 
 Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status $(BUILT_SOURCES)
 	cd $(top_builddir) \
 	  && CONFIG_FILES=$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
-$(ACLOCAL_M4):  configure.in 
+$(ACLOCAL_M4):  configure.in  acinclude.m4
 	cd $(srcdir) && $(ACLOCAL)
 
 config.status: $(srcdir)/configure $(CONFIG_STATUS_DEPENDENCIES)
@@ -244,11 +239,11 @@ distdir: $(DISTFILES)
 	top_distdir=`cd $(distdir) && pwd`; \
 	distdir=`cd $(distdir) && pwd`; \
 	cd $(top_srcdir) \
-	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(top_srcdir) --output-dir=$$top_distdir --gnu Makefile
+	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(top_srcdir) --output-dir=$$top_distdir --foreign Makefile
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
 	  if test -d $$d/$$file; then \
-	    cp -pr $$d/$$file $(distdir)/$$file; \
+	    cp -pr $$/$$file $(distdir)/$$file; \
 	  else \
 	    test -f $(distdir)/$$file \
 	    || ln $$d/$$file $(distdir)/$$file 2> /dev/null \
@@ -338,16 +333,16 @@ maintainer-clean-generic clean mostlyclean distclean maintainer-clean
 
 
 install-data-local:
-	mkdir -p $(sysconfdir)
-	cp -f etc/slp.reg	$(sysconfdir)
-	cp -f etc/slp.conf	$(sysconfdir)
-	rm -rf $(DOC_DIR)
-	mkdir -p $(DOC_DIR)/IntroductionToSLP
-	mkdir -p $(DOC_DIR)/UsersGuide
-	mkdir -p $(DOC_DIR)/ProgrammersGuide
-	cp doc/html/IntroductionToSLP/*.html $(DOC_DIR)/IntroductionToSLP
-	cp doc/html/UsersGuide/*.html doc/html/UsersGuide/*.jpg $(DOC_DIR)/UsersGuide
-	cp doc/html/ProgrammersGuide/*.html doc/html/ProgrammersGuide/*.jpg  $(DOC_DIR)/ProgrammersGuide
+	mkdir -p $(DESTDIR)$(sysconfdir)
+	cp -f $(srcdir)/etc/slp.reg $(DESTDIR)$(sysconfdir)
+	cp -f $(srcdir)/etc/slp.conf $(DESTDIR)$(sysconfdir)
+	rm -rf $(DESTDIR)$(DOC_DIR)
+	mkdir -p $(DESTDIR)$(DOC_DIR)/IntroductionToSLP
+	mkdir -p $(DESTDIR)$(DOC_DIR)/UsersGuide
+	mkdir -p $(DESTDIR)$(DOC_DIR)/ProgrammersGuide
+	cp $(srcdir)/doc/html/IntroductionToSLP/*.html $(DESTDIR)$(DOC_DIR)/IntroductionToSLP
+	cp $(srcdir)/doc/html/UsersGuide/*.html $(srcdir)/doc/html/UsersGuide/*.jpg $(DESTDIR)$(DOC_DIR)/UsersGuide
+	cp $(srcdir)/doc/html/ProgrammersGuide/*.html $(srcdir)/doc/html/ProgrammersGuide/*.jpg  $(DESTDIR)$(DOC_DIR)/ProgrammersGuide
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

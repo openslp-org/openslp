@@ -2,26 +2,16 @@ dnl ***********************************************************************
 dnl Process this file with autoconf to produce a configure script.
 dnl ***********************************************************************
 AC_INIT(slpd/slpd_main.c)
-AM_INIT_AUTOMAKE(slp, 0.7.1)
+AM_INIT_AUTOMAKE(slp, 0.7.2)
 
-dnl ***********************************************************************
-dnl Default location
-dnl ***********************************************************************
-ac_default_prefix=/usr
-
-dnl ***********************************************************************
-dnl Take care of directory stuff and rpm stuff
-dnl ***********************************************************************
-AC_ARG_WITH(rpm-prefix,
-[  --with-rpm-prefix=DIR   prefix where rpm-devel was installed],
-)
-RPM_PREFIX="$with_rpm_prefix"
-AC_SUBST(RPM_PREFIX)
-prefix='${RPM_PREFIX}/usr'
-AC_SUBST(prefix)
-
-sysconfdir='${RPM_PREFIX}/etc'
-AC_SUBST(sysconfdir)
+dnl We don't want /usr/etc or /usr/var
+test "$prefix" = NONE && prefix=/usr
+if test "$prefix" = '/usr'; then 
+    # We don't want /usr/etc and /usr/var
+    test "$sysconfdir" = '${prefix}/etc' && sysconfdir=/etc
+    test "$sharedstatedir" = '${prefix}/com' && localstatedir=/var
+    test "$localstatedir" = '${prefix}/var' && localstatedir=/var
+fi
 
 dnl ***********************************************************************
 dnl Take care of the debug stuff
@@ -45,7 +35,6 @@ AC_ISC_POSIX
 AC_PROG_CC
 AC_ARG_PROGRAM
 AM_PROG_LIBTOOL
-AC_SUBST(LIBTOOL_DEPS)
 
 dnl ***********************************************************************
 dnl Checks for header files.
@@ -54,10 +43,14 @@ AC_STDC_HEADERS
 AC_HAVE_HEADERS(string.h) 
 
 dnl ***********************************************************************
-dnl Create these Makefiles
+dnl Checks for data types.
 dnl ***********************************************************************
-AC_OUTPUT([Makefile 
-	common/Makefile 
-	libslp/Makefile
-	slpd/Makefile
-])
+AC_OPENSLP_CHECK_TYPE(socklen_t, size_t)
+
+dnl ***********************************************************************
+dnl Checks for libraries.
+dnl ***********************************************************************
+AC_CHECK_LIB(socket, main)
+AC_CHECK_LIB(nsl, gethostbyname)
+
+AC_OUTPUT(Makefile common/Makefile libslp/Makefile slpd/Makefile test/Makefile)

@@ -1,6 +1,10 @@
-#!/bin/bash
+#!/bin/sh 
+
 echo "SLPOpen"
-../../slpd/slpd -r slp.test.reg
-./SLPOpen > SLPOpen.actual.output
+rm -f SLPOpen.actual.output
+scriptdir=${srcdir}/SLPOpen
+
+../slpd/slpd -r ${scriptdir}/slp.test.reg &
+./slpopen > SLPOpen.actual.output
 killall slpd
-diff --brief SLPOpen.expected.output SLPOpen.actual.output
+diff --brief ${scriptdir}/SLPOpen.expected.output SLPOpen.actual.output

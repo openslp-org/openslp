@@ -1,11 +1,14 @@
-#!/bin/bash
+#!/bin/sh
+
+echo "SLPDereg"
 rm -f SLPDereg.actual.output
-echo SLPDereg
-../../slpd/slpd -r slp.test.reg 
-./SLPDereg service:registered 10.0.0.1 service:registered 10.0.0.1 >>  SLPDereg.actual.output
+scriptdir=${srcdir}/SLPDereg
+
+../slpd/slpd -r ${scriptdir}/slp.test.reg &
+./slpdereg service:registered 10.0.0.1 service:registered 10.0.0.1 >>  SLPDereg.actual.output
 echo >> SLPDereg.actual.output
-./SLPDereg service:registered 10.0.0.1 service:unregistered 10.0.0.1 >> SLPDereg.actual.output
+./slpdereg service:registered 10.0.0.1 service:unregistered 10.0.0.1 >> SLPDereg.actual.output
 echo >> SLPDereg.actual.output
-./SLPDereg service:test 10.0.0.1 >> SLPDereg.actual.output
+./slpdereg service:test 10.0.0.1 >> SLPDereg.actual.output
 killall slpd
-diff --brief SLPDereg.expected.output SLPDereg.actual.output
+diff --brief ${scriptdir}/SLPDereg.expected.output SLPDereg.actual.output

@@ -76,20 +76,16 @@ MAKEINFO = @MAKEINFO@
 OBJDUMP = @OBJDUMP@
 PACKAGE = @PACKAGE@
 RANLIB = @RANLIB@
-RPM_PREFIX = @RPM_PREFIX@
 VERSION = @VERSION@
-prefix = @prefix@
-sysconfdir = @sysconfdir@
 
-lib_LTLIBRARIES = libslp.so
-INCLUDES = -I../common 
-libslp_so_LIBADD = $(top_srcdir)/common/libcommonlibslp.a
-AR = gcc
-LIBTOOL_DEPS = @LIBTOOL_DEPS@
-libslp_so_LDFLAGS =  -shared
+lib_LTLIBRARIES = libslp.la
+include_HEADERS = slp.h
+INCLUDES = -I$(top_srcdir)/common 
 
-libslp_so_SOURCES = libslp_dereg.c   	libslp_findscopes.c 	libslp_reg.c 	libslp_findsrvs.c 	libslp_parse.c 	libslp_property.c  	libslp_handle.c  	libslp_thread.c 	libslp_network.c 	libslp_findattrs.c 	libslp_delattrs.c 	libslp_findsrvtypes.c 	libslp_knownda.c
+libslp_la_SOURCES = libslp_dereg.c   	libslp_findscopes.c 	libslp_reg.c 	libslp_findsrvs.c 	libslp_parse.c 	libslp_property.c  	libslp_handle.c  	libslp_thread.c 	libslp_network.c 	libslp_findattrs.c 	libslp_delattrs.c 	libslp_findsrvtypes.c 	libslp_knownda.c
 
+libslp_la_LIBADD = ../common/libcommonlibslp.la
+libslp_la_LDFLAGS = -version-info 0:1:0
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_CLEAN_FILES = 
 LTLIBRARIES =  $(lib_LTLIBRARIES)
@@ -99,21 +95,23 @@ DEFS = @DEFS@ -I. -I$(srcdir)
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
-libslp_so_DEPENDENCIES =  $(top_srcdir)/common/libcommonlibslp.a
-libslp_so_OBJECTS =  libslp_dereg.o libslp_findscopes.o libslp_reg.o \
-libslp_findsrvs.o libslp_parse.o libslp_property.o libslp_handle.o \
-libslp_thread.o libslp_network.o libslp_findattrs.o libslp_delattrs.o \
-libslp_findsrvtypes.o libslp_knownda.o
+libslp_la_DEPENDENCIES =  ../common/libcommonlibslp.la
+libslp_la_OBJECTS =  libslp_dereg.lo libslp_findscopes.lo libslp_reg.lo \
+libslp_findsrvs.lo libslp_parse.lo libslp_property.lo libslp_handle.lo \
+libslp_thread.lo libslp_network.lo libslp_findattrs.lo \
+libslp_delattrs.lo libslp_findsrvtypes.lo libslp_knownda.lo
 COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
 LINK = $(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(LDFLAGS) -o $@
+HEADERS =  $(include_HEADERS)
+
 DIST_COMMON =  Makefile.am Makefile.in
 
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
-TAR = gtar
+TAR = tar
 GZIP_ENV = --best
 DEP_FILES =  .deps/libslp_delattrs.P .deps/libslp_dereg.P \
 .deps/libslp_findattrs.P .deps/libslp_findscopes.P \
@@ -121,14 +119,14 @@ DEP_FILES =  .deps/libslp_delattrs.P .deps/libslp_dereg.P \
 .deps/libslp_handle.P .deps/libslp_knownda.P .deps/libslp_network.P \
 .deps/libslp_parse.P .deps/libslp_property.P .deps/libslp_reg.P \
 .deps/libslp_thread.P
-SOURCES = $(libslp_so_SOURCES)
-OBJECTS = $(libslp_so_OBJECTS)
+SOURCES = $(libslp_la_SOURCES)
+OBJECTS = $(libslp_la_OBJECTS)
 
 all: all-redirect
 .SUFFIXES:
 .SUFFIXES: .S .c .lo .o .s
 $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
-	cd $(top_srcdir) && $(AUTOMAKE) --gnu libslp/Makefile
+	cd $(top_srcdir) && $(AUTOMAKE) --foreign libslp/Makefile
 
 Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status $(BUILT_SOURCES)
 	cd $(top_builddir) \
@@ -192,8 +190,23 @@ distclean-libtool:
 
 maintainer-clean-libtool:
 
-libslp.so: $(libslp_so_OBJECTS) $(libslp_so_DEPENDENCIES)
-	$(LINK) -rpath $(libdir) $(libslp_so_LDFLAGS) $(libslp_so_OBJECTS) $(libslp_so_LIBADD) $(LIBS)
+libslp.la: $(libslp_la_OBJECTS) $(libslp_la_DEPENDENCIES)
+	$(LINK) -rpath $(libdir) $(libslp_la_LDFLAGS) $(libslp_la_OBJECTS) $(libslp_la_LIBADD) $(LIBS)
+
+install-includeHEADERS: $(include_HEADERS)
+	@$(NORMAL_INSTALL)
+	$(mkinstalldirs) $(DESTDIR)$(includedir)
+	@list='$(include_HEADERS)'; for p in $$list; do \
+	  if test -f "$$p"; then d= ; else d="$(srcdir)/"; fi; \
+	  echo " $(INSTALL_DATA) $$d$$p $(DESTDIR)$(includedir)/$$p"; \
+	  $(INSTALL_DATA) $$d$$p $(DESTDIR)$(includedir)/$$p; \
+	done
+
+uninstall-includeHEADERS:
+	@$(NORMAL_UNINSTALL)
+	list='$(include_HEADERS)'; for p in $$list; do \
+	  rm -f $(DESTDIR)$(includedir)/$$p; \
+	done
 
 tags: TAGS
 
@@ -233,7 +246,7 @@ distdir: $(DISTFILES)
 	top_distdir=`cd $(top_distdir) && pwd`; \
 	distdir=`cd $(distdir) && pwd`; \
 	cd $(top_srcdir) \
-	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(top_srcdir) --output-dir=$$top_distdir --gnu libslp/Makefile
+	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(top_srcdir) --output-dir=$$top_distdir --foreign libslp/Makefile
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
 	  if test -d $$d/$$file; then \
@@ -287,20 +300,20 @@ installcheck: installcheck-am
 install-exec-am: install-libLTLIBRARIES
 install-exec: install-exec-am
 
-install-data-am: install-data-local
+install-data-am: install-includeHEADERS
 install-data: install-data-am
 
 install-am: all-am
 	@$(MAKE) $(AM_MAKEFLAGS) install-exec-am install-data-am
 install: install-am
-uninstall-am: uninstall-libLTLIBRARIES
+uninstall-am: uninstall-libLTLIBRARIES uninstall-includeHEADERS
 uninstall: uninstall-am
-all-am: Makefile $(LTLIBRARIES)
+all-am: Makefile $(LTLIBRARIES) $(HEADERS)
 all-redirect: all-am
 install-strip:
 	$(MAKE) $(AM_MAKEFLAGS) AM_INSTALL_PROGRAM_FLAGS=-s install
 installdirs:
-	$(mkinstalldirs)  $(DESTDIR)$(libdir)
+	$(mkinstalldirs)  $(DESTDIR)$(libdir) $(DESTDIR)$(includedir)
 
 
 mostlyclean-generic:
@@ -344,30 +357,17 @@ clean-libLTLIBRARIES maintainer-clean-libLTLIBRARIES \
 uninstall-libLTLIBRARIES install-libLTLIBRARIES mostlyclean-compile \
 distclean-compile clean-compile maintainer-clean-compile \
 mostlyclean-libtool distclean-libtool clean-libtool \
-maintainer-clean-libtool tags mostlyclean-tags distclean-tags \
-clean-tags maintainer-clean-tags distdir mostlyclean-depend \
-distclean-depend clean-depend maintainer-clean-depend info-am info \
-dvi-am dvi check check-am installcheck-am installcheck install-exec-am \
-install-exec install-data-local install-data-am install-data install-am \
-install uninstall-am uninstall all-redirect all-am all installdirs \
-mostlyclean-generic distclean-generic clean-generic \
-maintainer-clean-generic clean mostlyclean distclean maintainer-clean
+maintainer-clean-libtool uninstall-includeHEADERS \
+install-includeHEADERS tags mostlyclean-tags distclean-tags clean-tags \
+maintainer-clean-tags distdir mostlyclean-depend distclean-depend \
+clean-depend maintainer-clean-depend info-am info dvi-am dvi check \
+check-am installcheck-am installcheck install-exec-am install-exec \
+install-data-am install-data install-am install uninstall-am uninstall \
+all-redirect all-am all installdirs mostlyclean-generic \
+distclean-generic clean-generic maintainer-clean-generic clean \
+mostlyclean distclean maintainer-clean
 
-
-libtool: $(LIBTOOL_DEPS)
-	$(SHELL) ./config.status --recheck
-
-install-data-local:
-	mkdir -p $(libdir)
-	mkdir -p $(includedir)
-	cp -f $(lib_LTLIBRARIES) $(libdir)/libslp.so.$(VERSION)
-	cp -f slp.h	$(includedir)/
-	ln -f -s $(libdir)/libslp.so.$(VERSION) $(libdir)/libslp.so
-
-../common/libcommon.a:
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:
-
-

@@ -1,9 +1,12 @@
-#!/bin/bash
+#!/bin/sh
+
 echo "SLPReg"
 rm -f SLPReg.actual.output
-../../slpd/slpd
-./SLPReg service:valid 10.0.0.1 service:valid >>  SLPReg.actual.output
+scriptdir=${srcdir}/SLPReg
+
+../slpd/slpd &
+./slpreg service:valid 10.0.0.1 service:valid >>  SLPReg.actual.output
 echo >> SLPReg.actual.output
-./SLPReg service:valid 10.0.0.1 service:invalid >> SLPReg.actual.output
+./slpreg service:valid 10.0.0.1 service:invalid >> SLPReg.actual.output
 killall slpd
-diff --brief SLPReg.expected.output SLPReg.actual.output
+diff --brief ${scriptdir}/SLPReg.expected.output SLPReg.actual.output

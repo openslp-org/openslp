@@ -1,11 +1,15 @@
-#!/bin/bash
+#!/bin/sh
+
 echo "SLPEscape"
-./SLPEscape asdf\(asdf > SLPEscape.actual.output
+rm -f SLPEscape.actual.output
+scriptdir=${srcdir}/SLPEscape
+
+./slpescape asdf\(asdf > SLPEscape.actual.output
 echo >> SLPEscape.actual.output
-./SLPEscape \(asdf >> SLPEscape.actual.output
+./slpescape \(asdf >> SLPEscape.actual.output
 echo >> SLPEscape.actual.output
-./SLPEscape asdf\\ >> SLPEscape.actual.output
+./slpescape asdf\\ >> SLPEscape.actual.output
 echo >> SLPEscape.actual.output
-./SLPEscape \(\),\\!\<=\>\~ >> SLPEscape.actual.output
+./slpescape \(\),\\!\<=\>\~ >> SLPEscape.actual.output
 echo >> SLPEscape.actual.output
-diff --brief SLPEscape.expected.output SLPEscape.actual.output
+diff --brief ${scriptdir}/SLPEscape.expected.output SLPEscape.actual.output

@@ -8,6 +8,11 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 
+08/02/00 rganesan@myrealbox.com
+Build changes to take advantage of automake/libtool integration. Building 
+with builddir != srcdir works. DESTDIR is supported for make install to
+ease packaging. Test suites are integrated and run using 'make check'.  
+
 07/17/00 mpeterson@calderasystems.com
 Finalized the DA discovery routines in libslp
 

@@ -5,17 +5,11 @@
 #     containing exacts functions which are required.
 #
 
-lib_LTLIBRARIES		= libslp.so
-INCLUDES			= -I../common 
-libslp_so_LIBADD	=  $(top_srcdir)/common/libcommonlibslp.a
-AR					= gcc
-LIBTOOL_DEPS 		= @LIBTOOL_DEPS@
-libslp_so_LDFLAGS	+= -shared
+lib_LTLIBRARIES	= libslp.la
+include_HEADERS = slp.h
+INCLUDES	= -I$(top_srcdir)/common 
 
-libtool: $(LIBTOOL_DEPS)
-	$(SHELL) ./config.status --recheck
-
-libslp_so_SOURCES	= libslp_dereg.c   \
+libslp_la_SOURCES = libslp_dereg.c   \
 	libslp_findscopes.c \
 	libslp_reg.c \
 	libslp_findsrvs.c \
@@ -28,13 +22,5 @@ libslp_so_SOURCES	= libslp_dereg.c   \
 	libslp_delattrs.c \
 	libslp_findsrvtypes.c \
 	libslp_knownda.c
-
-install-data-local:
-	mkdir -p $(libdir)
-	mkdir -p $(includedir)
-	cp -f $(lib_LTLIBRARIES) $(libdir)/libslp.so.$(VERSION)
-	cp -f slp.h	$(includedir)/
-	ln -f -s $(libdir)/libslp.so.$(VERSION) $(libdir)/libslp.so
-
-../common/libcommon.a:
-
+libslp_la_LIBADD = ../common/libcommonlibslp.la
+libslp_la_LDFLAGS = -version-info 0:1:0

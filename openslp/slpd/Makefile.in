@@ -71,24 +71,19 @@ CC = @CC@
 CFLAGS = @CFLAGS@
 DLLTOOL = @DLLTOOL@
 LIBTOOL = @LIBTOOL@
-LIBTOOL_DEPS = @LIBTOOL_DEPS@
 LN_S = @LN_S@
 MAKEINFO = @MAKEINFO@
 OBJDUMP = @OBJDUMP@
 PACKAGE = @PACKAGE@
 RANLIB = @RANLIB@
-RPM_PREFIX = @RPM_PREFIX@
 VERSION = @VERSION@
-prefix = @prefix@
-sysconfdir = @sysconfdir@
 
-DIRS = common
 sbin_PROGRAMS = slpd
-INCLUDES = -I../common -I../slpd
-slpd_LDADD = $(top_srcdir)/common/libcommonslpd.a
+INCLUDES = -I$(top_srcdir)/common -I$(srcdir)
 
 slpd_SOURCES = slpd_socket.c     slpd_database.c     slpd_main.c         slpd_process.c      slpd_cmdline.c      slpd_property.c     slpd_regfile.c      slpd_log.c
 
+slpd_LDADD = ../common/libcommonslpd.la
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_CLEAN_FILES = 
 PROGRAMS =  $(sbin_PROGRAMS)
@@ -100,7 +95,7 @@ LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 slpd_OBJECTS =  slpd_socket.o slpd_database.o slpd_main.o slpd_process.o \
 slpd_cmdline.o slpd_property.o slpd_regfile.o slpd_log.o
-slpd_DEPENDENCIES =  $(top_srcdir)/common/libcommonslpd.a
+slpd_DEPENDENCIES =  ../common/libcommonslpd.la
 slpd_LDFLAGS = 
 COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -111,7 +106,7 @@ DIST_COMMON =  Makefile.am Makefile.in
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
-TAR = gtar
+TAR = tar
 GZIP_ENV = --best
 DEP_FILES =  .deps/slpd_cmdline.P .deps/slpd_database.P .deps/slpd_log.P \
 .deps/slpd_main.P .deps/slpd_process.P .deps/slpd_property.P \
@@ -350,9 +345,6 @@ distclean-generic clean-generic maintainer-clean-generic clean \
 mostlyclean distclean maintainer-clean
 
 
-../common/libcommon.a:
-
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:
-
