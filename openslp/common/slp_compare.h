@@ -139,25 +139,22 @@ int SLPIntersectStringList(int list1len,
 /*=========================================================================*/
 
 
-/*=========================================================================*/
-int SLPComparePredicate(int predicatelen, 
-                        const char* predicate, 
-                        int attrlistlen,
-                        const char* attrlist);
-/*                                                                         */
-/* Determine whether the specified attribute list satisfies                */
-/* the specified predicate                                                 */
-/*                                                                         */
-/* predicatelen (IN) the length of the predicate string                    */
-/*                                                                         */
-/* predicate    (IN) the predicate string                                  */
-/*                                                                         */
-/* attrlistlen  (IN) the length of the attribute list                      */
-/*                                                                         */
-/* attrlist     (IN) a comma delimited attribute list                      */
-/*                                                                         */
-/* Returns: Non-zero if predicate matches attribute list                   */
-/*          zero otherwise.                                                */
-/*=========================================================================*/
-
+///*=========================================================================*/
+//int SLPComparePredicate(int predicatelen, 
+//                        const char* predicate, 
+//                        SLPAttributes attr);
+///*                                                                         */
+///* Determine whether the specified attribute list satisfies                */
+///* the specified predicate                                                 */
+///*                                                                         */
+///* predicatelen (IN) the length of the predicate string                    */
+///*                                                                         */
+///* predicate    (IN) the predicate string                                  */
+///*                                                                         */
+///* attr         (IN) attribute list to test                                */
+///*                                                                         */
+///* Returns: Zero if there is a match, a positive value if there was not a  */
+///*          match, and a negative value if there was a parse error in the  */
+///*          predicate string.                                              */
+///*=========================================================================*/
 #endif

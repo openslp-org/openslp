@@ -295,29 +295,3 @@ int SLPIntersectStringList(int list1len,
     return result;
 }
 
-/*=========================================================================*/
-int SLPComparePredicate(int predicatelen, 
-                        const char* predicate, 
-                        int attrlistlen,
-                        const char* attrlist)
-/*                                                                         */
-/* Determine whether the specified attribute list satisfies                */
-/* the specified predicate                                                 */
-/*                                                                         */
-/* predicatelen (IN) the length of the predicate string                    */
-/*                                                                         */
-/* predicate    (IN) the predicate string                                  */
-/*                                                                         */
-/* attrlistlen  (IN) the length of the attribute list                      */
-/*                                                                         */
-/* attrlist     (IN) a comma delimited attribute list                      */
-/*                                                                         */
-/* Returns: Non-zero if predicate matches attribute list                   */
-/*          zero otherwise.                                                */
-/*=========================================================================*/
-{
-    /* Everything matches until Evan Hughes puts code here */
-
-    return 1;
-}
-
