@@ -13,8 +13,7 @@ SLPReg</h2>
 <hr WIDTH="100%">
 <h3>
 Declaration</h3>
-<tt><a href="SLPError.html">SLPError</a> SLPReg( <a href="SLPTypes.html#SLPHandle">SLPHandle</a>
-<a href="#hslp">hslp</a>,</tt>
+<tt><a href="SLPError.html">SLPError</a> SLPReg( <a href="SLPTypes.html#SLPHandle">SLPHandle</a><a href="#hslp">hslp</a>,</tt>
 <br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 const char* <a href="#srvurl">srvurl</a>,</tt>
 <br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
@@ -24,11 +23,9 @@ const char* <a href="#srvtype">srvtype</a>,</tt>
 <br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 const char* <a href="#attrs">attrs</a>,</tt>
 <br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-
 <a href="SLPTypes.html#SLPBoolean">SLPBoolean</a> <a href="#fresh">fresh</a>,</tt>
 <br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-
- <a href="SLPRegReport.html">SLPRegReport</a> <a href="#callback">callback</a>,</tt>
+<a href="SLPRegReport.html">SLPRegReport</a> <a href="#callback">callback</a>,</tt>
 <br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 void* <a href="#cookie">cookie </a>)</tt>
 <h3>
@@ -176,6 +173,7 @@ is&nbsp; */</tt>
 <br><tt>{</tt>
 <br><tt>&nbsp;&nbsp;&nbsp; SLPError err;</tt>
 <br><tt>&nbsp;&nbsp;&nbsp; SLPError callbackerr;</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; SLPHandle hslp;</tt>
 <p><tt>&nbsp;&nbsp;&nbsp; err = SLPOpen("en",SLP_FALSE,&amp;hslp)</tt>
 <br><tt>&nbsp;&nbsp;&nbsp; if(err != SLP_OK)</tt>
 <br><tt>&nbsp;&nbsp;&nbsp; {</tt>
@@ -192,7 +190,7 @@ SLP_LIFETIME_MAXIMUM,</tt>
 <br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 0,</tt>
 <br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-"(public_key = ......my_pgp_key.......)",</tt>
+"(public_key=......my_pgp_key.......)",</tt>
 <br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 SLP_TRUE,</tt>
 <br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;

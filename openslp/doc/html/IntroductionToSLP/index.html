@@ -9,17 +9,17 @@
 
 <h1>
 An Introduction to SLP</h1>
-&nbsp;
+
 <h3>
-<b>Whitepaper, <a href="http://www.calderasystems.com">Caldera Systems,
-Inc</a></b></h3>
+<b>Whitepaper (DRAFT), <a href="http://www.calderasystems.com">Caldera
+Systems, Inc</a></b></h3>
 
 <hr WIDTH="100%">
 <h3>
 What Is SLP?</h3>
 
 <p><br>Service Location Protocol is an IETF standards track protocol that
-provides a framework to allow networking applications to discover the existance,
+provides a framework to allow networking applications to discover the existence,
 location, and configuration of networked services in enterprise networks.&nbsp;
 Traditionally, in order to locate services on the network, users of network
 applications are required to supply the host name or network address of
@@ -27,24 +27,24 @@ the machine that supplies a desired service.&nbsp; Ensuring that users
 and applications are supplied with the correct information has in many
 cases become an administration nightmare.
 <p>Protocols that allow service location are often taken for granted, mostly
-because they are already included (with out fan-fair) in many network operating.
-With out Microsoft's SMB service location facilities, "Network Neighborhood"
-could not discover service available for use on the network and Novell
-Netware would be unable to locate NDS trees.&nbsp; Nevertheless, an IETF
-service location protocol was not standardized until the advent of SLP.&nbsp;
-Because it is not tied to a proprietary technology, SLP provides is a service
-location solution that could become extremely important (especially on
-Unix) platforms.
+because they are already included (with out fanfare) in many network operating
+systems. For example, without Microsoft's SMB service location facilities,
+"Network Neighborhood" could not discover services available for use on
+the network and Novell Netware would be unable to locate NDS trees.&nbsp;
+Nevertheless, an IETF service location protocol was not standardized until
+the advent of SLP.&nbsp; Because it is not tied to a proprietary technology,
+SLP provides is a service location solution that could become extremely
+important (especially on Unix) platforms.
 <br>&nbsp;
 <h3>
 About this Document</h3>
-Like all Internet Enginner Task Force (IETF) standards, Service Location
+Like all Internet Engineering Task Force (IETF) standards, Service Location
 Protocol (SLP) is described in great detail by documents called Request
 For Comments (RFC).&nbsp; IETF RFCs are usually lengthy, very detailed,
 and written in using precise language and notations.&nbsp; This document,
 on the other hand, was written to give a overview presentation of SLP.&nbsp;
 This document will, by nature, omit important details that would be interesting
-to the more technical reader.&nbsp; For these, the reader is refered the
+to the more technical reader.&nbsp; For these, the reader is refereed the
 following RFCs:
 <blockquote><a href="../../rfc/rfc2165.txt">RFC 2165</a> - Service Location
 Protocol, Version 1
@@ -57,7 +57,7 @@ Protocol</blockquote>
 
 <h3>
 SLP for Users and Administrators</h3>
-SLP eliminates the need for users to know the names of network hosts.&nbsp;
+SLP can eliminates the need for to know the names of network hosts.&nbsp;
 Instead, with SLP, the user only needs to know the description of the of
 service they are interested in.&nbsp; Based on this description, SLP is
 then able to return the URL of the desired service.
@@ -90,20 +90,20 @@ files.
 an LDAP enabled application.
 <br>&nbsp;
 <blockquote><b><u>Traditional</u></b>
-<br>The only way to know the hostname to use in the call to ldap_bind()
-is to read it from a configuration file.&nbsp; The configuration file must
-be created at install time and updated as the location of the LDAP server
-changes.&nbsp; This keeping the configuration file up-to-date becomes a
-real problem especially when the application is installed on a laptop that
-connects to various networks.
+<br>Currently, the only way to know the hostname to use in the call to
+ldap_bind() is to read it from a configuration file.&nbsp; The configuration
+file must be created at install time and updated as the location of the
+LDAP server changes.&nbsp; Keeping this configuration file up to date becomes
+a real problem especially when the LDAP application is installed on a laptop
+that connects to various networks.
 <p><b><u>With SLP</u></b>
 <p>The developer uses SLP to obtain a the host names and attributes of
-LDAP servers that is displayed to the user at install time and again if
+LDAP servers that are displayed to the user at install time and again if
 the user desires to connect to a different LDAP server.
-<br>As illustrated in the example above, SLP does not always eliminate
-the need to prompt users for information.&nbsp; However, it does allow
-the software developer to present a descriptive list of services that can
-be understood by the user.</blockquote>
+<p>As illustrated in the example above, SLP does not always eliminate the
+need to prompt users for information.&nbsp; However, it does allow the
+software developer to present a descriptive list of services that can be
+understood by the user.</blockquote>
 
 <h3>
 Agents</h3>
@@ -136,7 +136,7 @@ exchanges of request and reply messages.
 contains the URL of the requested service
 <p><b>Service Registration (SrvReg)</b>
 <br>Message sent by SAs to DAs containing information about a service that
-is avaliable.
+is available.
 <p><b>Service Deregister (SrvDeReg)</b>
 <br>Message sent by SAs to DAs to inform that a service is no longer available.
 <p><b>Service Acknowledge (SrvAck)</b>
