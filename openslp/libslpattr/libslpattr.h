@@ -159,7 +159,14 @@ SLPError SLPAttrGet_opaque(
 /* Misc. */
 SLPError SLPAttrGetType(SLPAttributes attr_h, const char *tag, SLPType *type);
 
-SLPError SLPAttrSerialize(SLPAttributes attr_h, size_t *count, char **str, SLPBoolean);
+//SLPError SLPAttrSerialize(SLPAttributes attr_h, size_t *count, char **str, SLPBoolean);
+SLPError SLPAttrSerialize(SLPAttributes attr_h,
+		const char* tags /* NULL terminated */,
+		char **buffer,
+		size_t bufferlen, /* Size of buffer. */
+		size_t* count, /* Bytes needed/written. */
+		SLPBoolean find_delta
+);
 
 SLPError SLPAttrFreshen(SLPAttributes attr_h, const char *new_attrs);
 

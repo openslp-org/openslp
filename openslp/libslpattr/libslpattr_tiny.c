@@ -13,7 +13,7 @@
 #include <libslpattr.h>
 #include <stdlib.h>
 #include <string.h>
-
+#include <assert.h>
 
 /*****************************************************************************
  *
@@ -86,6 +86,41 @@ SLPError SLPAttrFreshen(SLPAttributes attr_h, const char *new_attrs) {
 	/***** Done. *****/
 	return SLP_OK;
 }
+
+
+SLPError SLPAttrSerialize(SLPAttributes attr_h,
+		const char* tags /* NULL terminated */,
+		char **out_buffer /* Where to write. if *out_buffer == NULL, space is alloc'd */,
+		size_t bufferlen, /* Size of buffer. */
+		size_t* count, /* Bytes needed/written. */
+		SLPBoolean find_delta
+) {
+	struct xx_TinyAttr *slp_attr = (struct xx_TinyAttr*)attr_h;
+
+	/* Write the amount of space we need. */
+	if (count != NULL) {
+		*count = slp_attr->attr_len + 1; /* For the null. */
+	}
+
+	/* Check that we have somewhere to write to. */
+	if (bufferlen < slp_attr->attr_len + 1) { /* +1 for null. */
+		return SLP_BUFFER_OVERFLOW;
+	}
+	assert(out_buffer != NULL && *out_buffer != NULL); /* Verify we have somewhere to write. */
+
+	
+	/* Check for empty string. */
+	if (slp_attr->attr_len == 0) {
+		**out_buffer = 0; /* Empty string. */
+		return SLP_OK;
+	}
+
+	/* Copy. */
+	strcpy(*out_buffer, slp_attr->attributes);
+	
+	return SLP_OK;
+}
+
 
 
 /*****************************************************************************
@@ -219,29 +254,6 @@ SLPError SLPAttrGet_opaque(
 SLPError SLPAttrGetType(SLPAttributes attr_h, const char *tag, SLPType *type) {
 	return SLP_NOT_IMPLEMENTED;
 }
-
-
-SLPError SLPAttrSerialize(SLPAttributes attr_h, size_t *count, char **str, SLPBoolean xxx) {
-	struct xx_TinyAttr *slp_attr = (struct xx_TinyAttr*)attr_h;
-
-	if (count != NULL) {
-		*count = slp_attr->attr_len;
-	}
-
-	/* Check for empty string. */
-	if (slp_attr->attr_len == 0) {
-		*str = strdup("");
-		return SLP_OK;
-	}
-
-	*str = strdup(slp_attr->attributes);
-	if (*str == NULL) {
-		return SLP_MEMORY_ALLOC_FAILED;
-	}
-	
-	return SLP_OK;
-}
-
 
 /* Functions. */
 SLPError SLPRegAttr( 

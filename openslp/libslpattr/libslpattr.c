@@ -704,6 +704,8 @@ void attr_add(struct xx_SLPAttributes *slp_attr, var_t *var) {
 
 
 /* Find a variable by its tag.
+ *
+ * Returns a NULL if the value could not be found.
  */
 var_t *attr_val_find_str(struct xx_SLPAttributes *slp_attr, const char *tag) {
 	var_t *var;
@@ -1316,12 +1318,35 @@ SLPError SLPAttrGetType(SLPAttributes attr_h, const char *tag, SLPType *type) {
  *
  * The string returned must be free()'d by the caller.
  *
- * If find_delta is set to true, only the attributes that have changed since 
- * the last serialize are updated.
+ * Params:
+ * attr_h -- (IN) Attribute handle to add serialize.
+ * tags -- (IN) The tags to serialize. If NULL, all tags are serialized. 
+ * out_buffer -- (IN/OUT) A buffer to write the serialized string to. If 
+ *               (*out_buffer == NULL), then a new buffer is allocated by 
+ *               the API. 
+ * bufferlen -- (IN) The length of the buffer. Ignored if 
+ *              (*out_buffer == NULL). 
+ * count -- (OUT) The size needed/used of out_buffer (includes trailing null).
+ * find_delta -- (IN)  If find_delta is set to true, only the attributes that 
+ *               have changed since the last serialize are updated.
+ * 
+ * Returns:
+ * SLP_OK -- Serialization occured. 
+ * SLP_BUFFER_OVERFLOW -- If (*out_buffer) is defined, but bufferlen is 
+ *                    smaller than the amount of memory necessary to serialize 
+ *                    the attr. list.
+ * SLP_MEMORY_ALLOC_FAILED -- Ran out of memory. 
  */
-SLPError SLPAttrSerialize(SLPAttributes attr_h, size_t *count, char **str, SLPBoolean find_delta) {
+SLPError SLPAttrSerialize(SLPAttributes attr_h,
+		const char* tags /* NULL terminated */,
+		char **out_buffer /* Where to write. if *out_buffer == NULL, space is alloc'd */,
+		size_t bufferlen, /* Size of buffer. */
+		size_t* count, /* Bytes needed/written. */
+		SLPBoolean find_delta
+) {
 	struct xx_SLPAttributes *slp_attr = (struct xx_SLPAttributes *)attr_h;
-	var_t *var; /* For iterating. */
+	var_t *var; /* For iterating over attributes to serialize. */
+	var_t *to_serialize; /* The list of elements to serialize. */
 	unsigned int size; /* Size of the string to allocate. */
 	unsigned int var_count; /* To count the number of variables. */
 	char *build_str; /* The string that is being built. */
@@ -1329,9 +1354,90 @@ SLPError SLPAttrSerialize(SLPAttributes attr_h, size_t *count, char **str, SLPBo
 	
 	size = 0;
 	var_count = 0;
+
+	/***** Build a list of attributes to serialize. *****/
+	if (tags == NULL || *tags == 0) 
+	{
+		/**** Serialize the entire attribute list. ****/
+		to_serialize = slp_attr->attrs;
+	}
+	else 
+	{
+		/**** Create a useful tag list. ****/
+		char *end;
+		char *tag_string; /* A modifiable version of the tag list. */
+		char *next_tag; /* A pointer to the next tag to look at. */
+		size_t tag_len; /* The number of tags in tag_list. */
+		size_t i; /* Index for looping overe tags. */
+		int done; /* A flag for looping over tags. */
+
+		tag_string = strdup(tags); /* free()'d at block end. */
+		if (tag_string == NULL) 
+		{
+			return SLP_MEMORY_ALLOC_FAILED;
+		}
+		
+		
+		
+		/**** Serialize a subset of the attribute list. ****/
+
+		/*** Find the size of the tag list. ***/
+		tag_len = 0;
+		next_tag = tag_string;
+		while ((next_tag = strchr(next_tag, ','))) 
+		{
+			tag_len++;
+			next_tag++; /* Move past old comma. */
+		}
+		tag_len++; /* For the final tag. */
+		
+		/*** Create a copy of the tag list. ***/
+		/** Malloc. **/
+		to_serialize = (var_t *)malloc(tag_len * sizeof(var_t));
+		if (to_serialize == NULL) 
+		{
+			return SLP_MEMORY_ALLOC_FAILED;
+		}
+		
+		/** Copy. **/
+		end = next_tag = tag_string;
+		done = 0;
+		i = 0;
+		while(!done) 
+		{
+			var_t *to_copy;
+			end = strchr(next_tag, ',');
+			if (end != NULL) 
+			{
+				*end = 0; /* Null terminate. */
+			}
+			else 
+			{
+				done = 1;
+			}
+			
+			to_copy = attr_val_find_str(slp_attr, next_tag);
+			if (to_copy == NULL) {
+				/* FIXME Cleanup. */
+				free(to_serialize);
+				free(tag_string);
+				return SLP_TAG_ERROR;
+			}
+			assert(i < tag_len);
+			memcpy(&to_serialize[i], to_copy, sizeof(var_t) );
+			to_serialize[i].next = to_serialize + i + 1; /* Note that the last element is repointed outside this loop. */
+
+			next_tag = end+1;
+			i++;
+		}
+		/** Null terminate. **/
+		to_serialize[tag_len-1].next = NULL;
+
+		free(tag_string);
+	}
 	
 	/***** Find the size of string needed for the attribute string. *****/
-	for (var = slp_attr->attrs; var != NULL; var = var->next) {
+	for (var = to_serialize; var != NULL; var = var->next) {
 		/*** Skip old attributes. ***/
 		if (find_delta == SLP_TRUE && var->modified == SLP_FALSE) {
 			continue;
@@ -1366,20 +1472,49 @@ SLPError SLPAttrSerialize(SLPAttributes attr_h, size_t *count, char **str, SLPBo
 	}
 
 	/*** Count the number of characters between attributes. ***/
-	if (var_count > 0) {
+	if (var_count > 0) 
+	{
 		size += (var_count - 1) * VAR_SEPARATOR_LEN;
+	}
+
+
+	/***** Return the size needed/used. *****/
+	if (count != NULL) {
+		*count = size + 1;
 	}
 	
 	/***** Create the string. *****/
-	build_str = (char *)malloc( size + 1);
-	if (build_str == NULL) {
-		return SLP_MEMORY_ALLOC_FAILED;
+	if (*out_buffer == NULL) 
+	{
+		/* We have to locally alloc the string. */
+		build_str = (char *)malloc( size + 1);
+		if (build_str == NULL) {
+			/* clean up to_serialize. */
+			if (to_serialize != slp_attr->attrs) {
+				free(to_serialize);
+			}
+			return SLP_MEMORY_ALLOC_FAILED;
+		}
+	}
+	else 
+	{
+		/* We write into a pre-alloc'd buffer. */
+		/**** Check that out_buffer is big enough. ****/
+		if (size + 1 > bufferlen) 
+		{
+			/* clean up to_serialize. */
+			if (to_serialize != slp_attr->attrs) {
+				free(to_serialize);
+			}
+			return SLP_BUFFER_OVERFLOW;
+		}
+			build_str = *out_buffer;
 	}
 	build_str[0] = '\0';
 	
 	/***** Add values *****/
 	cur = build_str;
-	for (var = slp_attr->attrs; var != NULL; var = var->next) { 
+	for (var = to_serialize; var != NULL; var = var->next) { 
 		/*** Skip old attributes. ***/
 		if (find_delta == SLP_TRUE && var->modified == SLP_FALSE) {
 			continue;
@@ -1443,6 +1578,10 @@ SLPError SLPAttrSerialize(SLPAttributes attr_h, size_t *count, char **str, SLPBo
 						break;
 					default:
 						printf("Unknown type (%s:%d).\n", __FILE__, __LINE__);
+						/* TODO Clean up memory leak: the output string */
+						if (to_serialize != slp_attr->attrs) {
+							free(to_serialize);
+						}
 						return SLP_INTERNAL_SYSTEM_ERROR;
 				}
 				
@@ -1475,7 +1614,13 @@ SLPError SLPAttrSerialize(SLPAttributes attr_h, size_t *count, char **str, SLPBo
 	 * be safe than sorry =) *****/
 	*cur = '\0';
 	
-	*str = build_str;
+	*out_buffer = build_str;
+	
+	/***** Free the attribute list. *****/
+	if (to_serialize != slp_attr->attrs) {
+		free(to_serialize);
+	}
+	 
 	return SLP_OK;
 }	
 
@@ -1777,7 +1922,7 @@ SLPError SLPAttrFreshen(SLPAttributes slp_attr_h, const char *str) {
 	if (str == NULL) {
 		return SLP_MEMORY_ALLOC_FAILED;
 	}
-	err = attr_destringify(slp_attr, mangle, SLP_REPLACE);
+	err = attr_destringify(slp_attr, mangle, SLP_ADD);
 	free(mangle);
 
 	return err;
