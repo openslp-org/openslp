@@ -269,7 +269,11 @@ int SLPXcastSocketsClose(SLPXcastSockets* socks)
     while(socks->sock_count)
     {
         socks->sock_count = socks->sock_count - 1;
-        close(socks->sock[socks->sock_count]);
+		#ifdef _WIN32 
+			closesocket(socks->sock[socks->sock_count]);
+		#else
+	        close(socks->sock[socks->sock_count]);
+		#endif
     }
 
     return 0;

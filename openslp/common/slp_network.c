@@ -94,7 +94,11 @@ int SLPNetworkConnectStream(struct sockaddr_storage *peeraddr,
         }
         else
         {
-            close(result);
+			#ifdef _WIN32 
+			closesocket(result);
+			#else
+			close(result);
+			#endif
             result = -1;
         }
     }
