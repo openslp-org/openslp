@@ -19,7 +19,7 @@ if ENABLE_SLPv1
 slpd_v1process_SRCS = slpd_v1process.c
 endif
 
-if ENABLE_SECURITY
+if ENABLE_SLPv2_SECURITY
 slpd_security_SRCS = slpd_spi.c slpd_spi.h
 endif
 

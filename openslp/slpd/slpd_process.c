@@ -54,7 +54,7 @@
 #include "slpd_database.h"
 #include "slpd_knownda.h"
 #include "slpd_log.h"
-#ifdef ENABLE_SECURITY
+#ifdef ENABLE_SLPv2_SECURITY
 #include "slpd_spi.h"
 #endif
 
@@ -65,7 +65,7 @@
 #include "slp_xmalloc.h"
 #include "slp_message.h"
 #include "slp_compare.h"
-#ifdef ENABLE_SECURITY
+#ifdef ENABLE_SLPv2_SECURITY
 #include "slp_auth.h"
 #endif
 
@@ -301,7 +301,7 @@ int ProcessSrvRqst(SLPMessage message,
     int                         size        = 0;
     SLPBuffer                   result      = *sendbuf;
 
-#ifdef ENABLE_SECURITY
+#ifdef ENABLE_SLPv2_SECURITY
     SLPAuthBlock*               authblock    = 0;
    int                          j;
 #endif
@@ -334,7 +334,7 @@ int ProcessSrvRqst(SLPMessage message,
     /* because there is no way we can return URL entries that ares      */
     /* signed in a way the requester can understand                     */
     /*------------------------------------------------------------------*/
-#ifdef ENABLE_SECURITY
+#ifdef ENABLE_SLPv2_SECURITY
     if(G_SlpdProperty.securityEnabled)
     {
         if(SLPSpiCanVerify(G_SlpdSpiHandle,
@@ -427,7 +427,7 @@ int ProcessSrvRqst(SLPMessage message,
                                           /*  2 bytes for lifetime */
                                           /*  2 bytes for urllen   */
                                           /*  1 byte for authcount */
-#ifdef ENABLE_SECURITY
+#ifdef ENABLE_SLPv2_SECURITY
             /* make room to include the authblock that was asked for */
             if(G_SlpdProperty.securityEnabled &&
                message->body.srvrqst.spistrlen )
@@ -572,7 +572,7 @@ int ProcessSrvReg(SLPMessage message,
                               G_SlpdProperty.useScopes))
     {
 
-#ifdef ENABLE_SECURITY
+#ifdef ENABLE_SLPv2_SECURITY
         /*-------------------------------*/
         /* Validate the authblocks       */
         /*-------------------------------*/
@@ -698,7 +698,7 @@ int ProcessSrvDeReg(SLPMessage message,
                               G_SlpdProperty.useScopesLen,
                               G_SlpdProperty.useScopes))
     {
-#ifdef ENABLE_SECURITY
+#ifdef ENABLE_SLPv2_SECURITY
         /*-------------------------------*/
         /* Validate the authblocks       */
         /*-------------------------------*/
@@ -797,7 +797,7 @@ int ProcessAttrRqst(SLPMessage message,
     int                         size            = 0;
     SLPBuffer                   result          = *sendbuf;
     
-#ifdef ENABLE_SECURITY
+#ifdef ENABLE_SLPv2_SECURITY
     int               i;
     unsigned char*    generatedauth       = 0;
     int               generatedauthlen    = 0;
@@ -843,7 +843,7 @@ int ProcessAttrRqst(SLPMessage message,
         /* because there is no way we can return URL entries that ares      */
         /* signed in a way the requester can understand                     */
         /*------------------------------------------------------------------*/
-#ifdef ENABLE_SECURITY
+#ifdef ENABLE_SLPv2_SECURITY
         if(G_SlpdProperty.securityEnabled)
         {
             if(message->body.attrrqst.taglistlen == 0)
@@ -925,7 +925,7 @@ int ProcessAttrRqst(SLPMessage message,
                                             /*  2 bytes for the authcount */
     size += db->attrlistlen;
    
-#ifdef ENABLE_SECURITY
+#ifdef ENABLE_SLPv2_SECURITY
     /*------------------------------------------------------------------*/
     /* Generate authblock if necessary or just use the one was included */
     /* by registering agent.  Reserve sufficent space for either case.  */
@@ -1016,7 +1016,7 @@ int ProcessAttrRqst(SLPMessage message,
         result->curpos = result->curpos + db->attrlistlen;
 
         /* authentication block */
-    #ifdef ENABLE_SECURITY
+    #ifdef ENABLE_SLPv2_SECURITY
         if(opaqueauth)
         {
             /* authcount */
@@ -1039,7 +1039,7 @@ int ProcessAttrRqst(SLPMessage message,
 
     FINISHED:
     
-#ifdef ENABLE_SECURITY    
+#ifdef ENABLE_SLPv2_SECURITY    
     /* free the generated authblock if any */
     if(generatedauth) xfree(generatedauth);
 #endif
@@ -1073,7 +1073,7 @@ int ProcessDAAdvert(SLPMessage message,
     /*-------------------------------*/
     /* Validate the authblocks       */
     /*-------------------------------*/
-#ifdef ENABLE_SECURITY
+#ifdef ENABLE_SLPv2_SECURITY
     errorcode = SLPAuthVerifyDAAdvert(G_SlpdSpiHandle,
                                       0,
                                       &(message->body.daadvert));

@@ -62,7 +62,7 @@ SLPBoolean ProcessAttrRplyCallback(SLPError errorcode,
     PSLPHandleInfo  handle      = (PSLPHandleInfo) cookie;
     SLPBoolean      result      = SLP_TRUE;
 
-#ifdef ENABLE_SECURITY 
+#ifdef ENABLE_SLPv2_SECURITY 
     int             securityenabled;
     securityenabled = SLPPropertyAsBoolean(SLPGetProperty("net.slp.securityEnabled"));
 #endif
@@ -94,7 +94,7 @@ SLPBoolean ProcessAttrRplyCallback(SLPError errorcode,
             if(attrrply->attrlistlen)
             {
      
-#ifdef ENABLE_SECURITY
+#ifdef ENABLE_SLPv2_SECURITY
                 /*-------------------------------*/
                 /* Validate the authblocks       */
                 /*-------------------------------*/
@@ -143,7 +143,7 @@ SLPError ProcessAttrRqst(PSLPHandleInfo handle)
     char*               curpos      = 0;
     SLPError            result      = 0;
 
-#ifdef ENABLE_SECURITY
+#ifdef ENABLE_SLPv2_SECURITY
     int                 spistrlen   = 0;
     char*               spistr      = 0;
 
@@ -163,7 +163,7 @@ SLPError ProcessAttrRqst(PSLPHandleInfo handle)
     bufsize += handle->params.findattrs.scopelistlen + 2; /*  2 bytes for len field */
     bufsize += handle->params.findattrs.taglistlen + 2;   /*  2 bytes for len field */
     bufsize += 2;    /*  2 bytes for spistr len*/
-#ifdef ENABLE_SECURITY
+#ifdef ENABLE_SLPv2_SECURITY
     bufsize += spistrlen;
 #endif
 
@@ -198,7 +198,7 @@ SLPError ProcessAttrRqst(PSLPHandleInfo handle)
            handle->params.findattrs.taglist,
            handle->params.findattrs.taglistlen);
     curpos = curpos + handle->params.findattrs.taglistlen;
-#ifdef ENABLE_SECURITY
+#ifdef ENABLE_SLPv2_SECURITY
     ToUINT16(curpos,spistrlen);
     curpos = curpos + 2;
     memcpy(curpos,spistr,spistrlen);
@@ -252,7 +252,7 @@ SLPError ProcessAttrRqst(PSLPHandleInfo handle)
 
     FINISHED:
     if(buf) xfree(buf);
-#ifdef ENABLE_SECURITY
+#ifdef ENABLE_SLPv2_SECURITY
     if(spistr) xfree(spistr);
 #endif
 

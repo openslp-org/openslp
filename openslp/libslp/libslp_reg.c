@@ -111,7 +111,7 @@ SLPError ProcessSrvReg(PSLPHandleInfo handle)
     char*               curpos      = 0;
     SLPError            result      = 0;
 
-#ifdef ENABLE_SECURITY
+#ifdef ENABLE_SLPv2_SECURITY
     int                 urlauthlen  = 0;
     unsigned char*      urlauth     = 0;
     int                 attrauthlen = 0;
@@ -179,7 +179,7 @@ SLPError ProcessSrvReg(PSLPHandleInfo handle)
            handle->params.reg.urllen);
     curpos = curpos + handle->params.reg.urllen;
     /* url-entry authblock */
-#ifdef ENABLE_SECURITY
+#ifdef ENABLE_SLPv2_SECURITY
     if(urlauth)
     {
         /* authcount */
@@ -218,7 +218,7 @@ SLPError ProcessSrvReg(PSLPHandleInfo handle)
            handle->params.reg.attrlistlen);
     curpos = curpos + handle->params.reg.attrlistlen;
     /* attribute auth block */
-#ifdef ENABLE_SECURITY
+#ifdef ENABLE_SLPv2_SECURITY
     if(attrauth)
     {
         /* authcount */
@@ -270,7 +270,7 @@ SLPError ProcessSrvReg(PSLPHandleInfo handle)
     FINISHED:
     if(buf) xfree(buf);
     
-#ifdef ENABLE_SECURITY
+#ifdef ENABLE_SLPv2_SECURITY
     if(urlauth) xfree(urlauth);
     if(attrauth) xfree(attrauth);
 #endif 

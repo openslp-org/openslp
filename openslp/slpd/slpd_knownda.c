@@ -57,7 +57,7 @@
 #include "slpd_socket.h"
 #include "slpd_outgoing.h"
 #include "slpd_log.h"
-#ifdef ENABLE_SECURITY
+#ifdef ENABLE_SLPv2_SECURITY
 #include "slpd_spi.h"
 #endif
 
@@ -69,7 +69,7 @@
 #include "slp_utf8.h"
 #include "slp_compare.h"
 #include "slp_xid.h"
-#ifdef ENABLE_SECURITY
+#ifdef ENABLE_SLPv2_SECURITY
 #include "slp_auth.h"
 #include "slp_spi.h"
 #endif
@@ -602,7 +602,7 @@ int SLPDKnownDAAdd(SLPMessage msg, SLPBuffer buf)
                                 daadvert->url) == 0)
             {  
 
-#ifdef ENABLE_SECURITY                
+#ifdef ENABLE_SLPv2_SECURITY                
                 if(G_SlpdProperty.checkSourceAddr &&
                    memcmp(&(entry->msg->peer.sin_addr),
                           &(msg->peer.sin_addr),
@@ -776,7 +776,7 @@ int SLPDKnownDAGenerateMyDAAdvert(int errorcode,
     int       size;
     SLPBuffer result = *sendbuf;
 
-#ifdef ENABLE_SECURITY
+#ifdef ENABLE_SLPv2_SECURITY
     int                 daadvertauthlen  = 0;
     unsigned char*      daadvertauth     = 0;
     int                 spistrlen   = 0;
@@ -824,7 +824,7 @@ int SLPDKnownDAGenerateMyDAAdvert(int errorcode,
                                            /*  1 byte for authblock count */
     size += G_SlpdProperty.myUrlLen;
     size += G_SlpdProperty.useScopesLen;
-#ifdef ENABLE_SECURITY
+#ifdef ENABLE_SLPv2_SECURITY
     size += spistrlen;
     size += daadvertauthlen; 
 #endif
@@ -902,7 +902,7 @@ int SLPDKnownDAGenerateMyDAAdvert(int errorcode,
         /* memcpy(result->start, ???, 0);                          */
         /* result->curpos = result->curpos + daentry->attrlistlen; */
         /* SPI List */
-#ifdef ENABLE_SECURITY
+#ifdef ENABLE_SLPv2_SECURITY
         ToUINT16(result->curpos,spistrlen);
         result->curpos = result->curpos + 2;
         memcpy(result->curpos,spistr,spistrlen);
@@ -912,7 +912,7 @@ int SLPDKnownDAGenerateMyDAAdvert(int errorcode,
         result->curpos = result->curpos + 2;
 #endif
         /* authblock count */
-#ifdef ENABLE_SECURITY
+#ifdef ENABLE_SLPv2_SECURITY
         if(daadvertauth)
         {
             /* authcount */
@@ -931,7 +931,7 @@ int SLPDKnownDAGenerateMyDAAdvert(int errorcode,
     }
 
     FINISHED:
-#ifdef ENABLE_SECURITY
+#ifdef ENABLE_SLPv2_SECURITY
     if(daadvertauth) xfree(daadvertauth);
     if(spistr) xfree(spistr);
 #endif

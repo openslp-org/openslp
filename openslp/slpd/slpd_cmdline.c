@@ -109,7 +109,7 @@ int SLPDParseCommandLine(int argc,char* argv[])
     strcpy(G_SlpdCommandLine.logfile,SLPD_LOGFILE);
     strcpy(G_SlpdCommandLine.regfile,SLPD_REGFILE);
     strcpy(G_SlpdCommandLine.pidfile,SLPD_PIDFILE);
-    #ifdef ENABLE_SECURITY
+    #ifdef ENABLE_SLPv2_SECURITY
     strcpy(G_SlpdCommandLine.spifile,SLPD_SPIFILE);
     #endif
 #else
@@ -117,7 +117,7 @@ int SLPDParseCommandLine(int argc,char* argv[])
     ExpandEnvironmentStrings(SLPD_LOGFILE,G_SlpdCommandLine.logfile,MAX_PATH);
     ExpandEnvironmentStrings(SLPD_REGFILE,G_SlpdCommandLine.regfile,MAX_PATH);
     ExpandEnvironmentStrings(SLPD_PIDFILE,G_SlpdCommandLine.pidfile,MAX_PATH);
-    #ifdef ENABLE_SECURITY
+    #ifdef ENABLE_SLPv2_SECURITY
     ExpandEnvironmentStrings(SLPD_SPIFILE,G_SlpdCommandLine.spifile,MAX_PATH);
     #endif
     G_SlpdCommandLine.action = -1;
@@ -160,7 +160,7 @@ int SLPDParseCommandLine(int argc,char* argv[])
             if(i >= argc) goto USAGE;
             strncpy(G_SlpdCommandLine.cfgfile,argv[i],MAX_PATH-1);        
         }
-   #ifdef ENABLE_SECURITY
+   #ifdef ENABLE_SLPv2_SECURITY
         else if(strcmp(argv[i],"-s") == 0)
         {
             i++;
@@ -214,11 +214,11 @@ int SLPDParseCommandLine(int argc,char* argv[])
 #endif /* ENABLE_SLPv1 */
                    "\n"
                    "   slpv2 security:       "
-#ifdef ENABLE_SECURITY
+#ifdef ENABLE_SLPv2_SECURITY
                    "enabled"
 #else
                    "disabled"
-#endif /* ENABLE_SECURITY */
+#endif /* ENABLE_SLPv2_SECURITY */
                    "\n"
                   );
             exit(1);

@@ -5,7 +5,7 @@ if ENABLE_SLPv1
 slp_v1message_SRCS = slp_v1message.c slp_utf8.c
 endif
 
-if ENABLE_SECURITY
+if ENABLE_SLPv2_SECURITY
 slp_security_SRCS = slp_auth.c slp_crypto.c slp_spi.c
 endif
 

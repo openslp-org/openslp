@@ -62,7 +62,7 @@ SLPBoolean ProcessSrvRplyCallback(SLPError errorcode,
     PSLPHandleInfo  handle      = (PSLPHandleInfo) cookie;
     SLPBoolean      result      = SLP_TRUE;
 
-#ifdef ENABLE_SECURITY  
+#ifdef ENABLE_SLPv2_SECURITY  
     int             securityenabled;
     securityenabled = SLPPropertyAsBoolean(SLPGetProperty("net.slp.securityEnabled"));
 #endif
@@ -97,7 +97,7 @@ SLPBoolean ProcessSrvRplyCallback(SLPError errorcode,
                 for(i=0;i<replymsg->body.srvrply.urlcount;i++)
                 {
                     
-            #ifdef ENABLE_SECURITY
+            #ifdef ENABLE_SLPv2_SECURITY
                     /*-------------------------------*/
                     /* Validate the authblocks       */
                     /*-------------------------------*/
@@ -130,7 +130,7 @@ SLPBoolean ProcessSrvRplyCallback(SLPError errorcode,
             else if(replymsg->header.functionid == SLP_FUNCT_DAADVERT &&
                     replymsg->body.daadvert.errorcode == 0)
             {
-#ifdef ENABLE_SECURITY
+#ifdef ENABLE_SLPv2_SECURITY
                 if(securityenabled &&
                    SLPAuthVerifyDAAdvert(handle->hspi,
                                          1,
@@ -151,7 +151,7 @@ SLPBoolean ProcessSrvRplyCallback(SLPError errorcode,
             }
             else if(replymsg->header.functionid == SLP_FUNCT_SAADVERT)
             {
-#ifdef ENABLE_SECURITY
+#ifdef ENABLE_SLPv2_SECURITY
                 if(securityenabled &&
                    SLPAuthVerifySAAdvert(handle->hspi,
                                          1,
@@ -192,7 +192,7 @@ SLPError ProcessSrvRqst(PSLPHandleInfo handle)
     char*               curpos      = 0;
     SLPError            result      = 0;
 
-#ifdef ENABLE_SECURITY
+#ifdef ENABLE_SLPv2_SECURITY
     int                 spistrlen   = 0;
     char*               spistr      = 0;
 
@@ -212,7 +212,7 @@ SLPError ProcessSrvRqst(PSLPHandleInfo handle)
     bufsize += handle->params.findsrvs.scopelistlen + 2; /*  2 bytes for len field */
     bufsize += handle->params.findsrvs.predicatelen + 2; /*  2 bytes for len field */
     bufsize += 2;    /*  2 bytes for spistr len*/
-#ifdef ENABLE_SECURITY
+#ifdef ENABLE_SLPv2_SECURITY
     bufsize += spistrlen;
 #endif
     
@@ -247,7 +247,7 @@ SLPError ProcessSrvRqst(PSLPHandleInfo handle)
            handle->params.findsrvs.predicate,
            handle->params.findsrvs.predicatelen);
     curpos = curpos + handle->params.findsrvs.predicatelen;
-#ifdef ENABLE_SECURITY
+#ifdef ENABLE_SLPv2_SECURITY
     ToUINT16(curpos,spistrlen);
     curpos = curpos + 2;
     memcpy(curpos,spistr,spistrlen);
@@ -308,7 +308,7 @@ SLPError ProcessSrvRqst(PSLPHandleInfo handle)
 
     FINISHED:
     if(buf) xfree(buf);
-#ifdef ENABLE_SECURITY
+#ifdef ENABLE_SLPv2_SECURITY
     if(spistr) xfree(spistr);
 #endif
 

@@ -81,7 +81,7 @@
 #include "slp_database.h"
 #include "slp_compare.h"
 #include "slp_xmalloc.h"
-#ifdef ENABLE_SECURITY
+#ifdef ENABLE_SLPv2_SECURITY
 #include "slp_auth.h"
 #include "slp_spi.h"
 #endif
@@ -242,7 +242,7 @@ typedef struct _SLPHandleInfo
     int                 sascopelen;
     int                 langtaglen;
     char*               langtag;
-#ifdef ENABLE_SECURITY
+#ifdef ENABLE_SLPv2_SECURITY
     SLPSpiHandle        hspi;
 #endif
     SLPHandleCallParams params;

@@ -59,7 +59,7 @@
 #include "slpd_cmdline.h"
 #include "slpd_knownda.h"
 #include "slpd_property.h"
-#ifdef ENABLE_SECURITY
+#ifdef ENABLE_SLPv2_SECURITY
 #include "slpd_spi.h"
 #endif
 
@@ -193,7 +193,7 @@ void HandleSigTerm()
     SLPDLog("****************************************\n");
 
 #ifdef DEBUG
-    #ifdef ENABLE_SECURITY
+    #ifdef ENABLE_SLPv2_SECURITY
     SLPDSpiDeinit();
     #endif
     SLPDDatabaseDeinit();
@@ -219,7 +219,7 @@ void HandleSigHup()
     /* re-read properties */
     SLPDPropertyInit(G_SlpdCommandLine.cfgfile);
 
-#ifdef ENABLE_SECURITY
+#ifdef ENABLE_SLPv2_SECURITY
     /* Re-initialize SPI stuff*/
     SLPDSpiInit(G_SlpdCommandLine.spifile);
 #endif
@@ -515,7 +515,7 @@ int main(int argc, char* argv[])
     SLPDLog("Command line = %s\n",argv[0]);
     SLPDLog("Using configuration file = %s\n",G_SlpdCommandLine.cfgfile);
     SLPDLog("Using registration file = %s\n",G_SlpdCommandLine.regfile);
-#ifdef ENABLE_SECURITY
+#ifdef ENABLE_SLPv2_SECURITY
     SLPDLog("Using SPI file = %s\n",G_SlpdCommandLine.spifile);
 #endif
    
@@ -523,7 +523,7 @@ int main(int argc, char* argv[])
     /* Initialize for the first time                    */
     /*--------------------------------------------------*/
     if(SLPDPropertyInit(G_SlpdCommandLine.cfgfile) ||
-#ifdef ENABLE_SECURITY
+#ifdef ENABLE_SLPv2_SECURITY
        SLPDSpiInit(G_SlpdCommandLine.spifile) ||
 #endif     
        SLPDDatabaseInit(G_SlpdCommandLine.regfile) ||
