@@ -114,7 +114,7 @@ int SLPIfaceGetInfo(const char* useifaces,
         useifacesLen = 0;
     }
     sts = GetAdaptersAddresses(family,
-            GAA_FLAG_SKIP_FRIENDLY_NAME,
+            GAA_FLAG_SKIP_FRIENDLY_NAME | GAA_FLAG_SKIP_DNS_SERVER,
             NULL,
             addresses,
             &addressesLen);
@@ -309,7 +309,7 @@ int SLPIfaceStringToSockaddrs(const char* addrstr,
  *
  * $ gcc -g -DDEBUG slp_iface.c slp_xmalloc.c slp_linkedlist.c slp_compare.c
  *==========================================================================*/
-/*#define SLP_IFACE_TEST */
+/* #define SLP_IFACE_TEST */
 #ifdef SLP_IFACE_TEST 
 int main(int argc, char* argv[])
 {
@@ -365,10 +365,24 @@ int main(int argc, char* argv[])
                                          addrscount,
                                          &addrstr) == 0)
         {
-            printf("sock addr string = %s\n",addrstr);
+            printf("sock addr string v4 = %s\n",addrstr);
             xfree(addrstr);
         }
     }
+
+    if(SLPIfaceStringToSockaddrs("1:2::4,10::11",
+                                 addrs,
+                                 &addrscount) == 0)
+    {
+        if(SLPIfaceSockaddrsToString(addrs, 
+                                         addrscount,
+                                         &addrstr) == 0)
+        {
+            printf("sock addr string v6 = %s\n",addrstr);
+            xfree(addrstr);
+        }
+    }
+
 #ifdef _WIN32
     WSACleanup();
 #endif

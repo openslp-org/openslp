@@ -251,6 +251,7 @@ int SLPContainsStringList(int listlen,
     char* listend = (char*)list + listlen;
     char* itembegin = (char*)list;
     char* itemend = itembegin;
+    char ipv6Buffer[41]; /* must be at least 40 characters */
 
     while(itemend < listend)
     {
@@ -269,15 +270,24 @@ int SLPContainsStringList(int listlen,
 
             itemend ++;
         }
-
-        if(SLPCompareString(itemend - itembegin,
+        if (strchr(itembegin, ':')) {
+            SLPNetExpandIpv6Addr(itembegin, ipv6Buffer, sizeof(ipv6Buffer));
+            if(SLPCompareString(itemend - itembegin,
+                ipv6Buffer,
+                stringlen,
+                string) == 0) {
+                    return 1;
+                }
+        }
+        else {
+            if(SLPCompareString(itemend - itembegin,
                             itembegin,
                             stringlen,
                             string) == 0)
-        {
-            return 1;
+            {
+                return 1;
+            }
         }
-
         itemend ++;    
     }
 

@@ -401,10 +401,107 @@ unsigned long SLPNetGetSrvMcastAddr(const char *pSrvType, unsigned int len, int 
 	return 0;
 }
 
-//#define SLP_NET_TEST
+
+int handlePreArea(char *start, char *result) {
+    char *slider1;
+    char *slider2;
+    char *end;
+
+    end = strstr(start, "::");
+    if (end == NULL) {
+        end = start + strlen(start);
+    }
+
+    if ((start == NULL) || end == NULL) {
+        return(0);
+    }
+    slider1 = start;
+    while (slider1 < end) {
+        slider2 = strchr(slider1, ':');
+        if (slider2) {
+            strncpy(result + (4 - (slider2 - slider1)), slider1, slider2 - slider1);
+            result += 5;
+            slider1 = slider2 + 1;
+        }
+        else {
+            strncpy(result + (4 - (end - slider1)), slider1, end - slider1);
+            break;
+        }
+            
+    }
+    return(0);
+}
+
+int handlePostArea(char *start, char *result) {
+    char *slider1;
+    char *slider2;
+    char ourCopy[256];
+
+    if ((start == NULL) || result == NULL) {
+        return(0);
+    }
+    strncpy(ourCopy, start, min(strlen(start) + 1, sizeof(ourCopy)));
+    result += strlen(result); /*we will work from the back */
+    slider1 = ourCopy + strlen(ourCopy);
+    while (slider1 > ourCopy) {
+        slider2 = strrchr(ourCopy, ':');  /* find the last : */
+        if ((slider2) && (slider2 < (slider1 - 1))) {
+            slider2++; /* get past the colon */
+            *(slider2 - 1) = '\0'; /* set the colon to null - for the next strrchr */
+            strncpy(result - (slider1 - slider2), slider2, (slider1 - slider2));
+            result -= 5;
+            slider1 = slider2 - 1;
+        }
+        else {
+            break;
+        }
+    }
+    return(0);
+}
+
+
+/* 
+*   Description
+*    fully expand a ipv6 address given an ipv6 address in the shorthand notation  
+*
+*   Parameters
+*    [in] ipv6Addr - the shorthand address to expand
+*    [out] result - buffer to store the expanded address in
+*    [in] resultSize - size of the result buffer, must be atleast 40 bytes
+*
+*   Returns
+*   zero on success, non-zero if errors were detected
+*-------------------------------------------------------------------------*/
+int SLPNetExpandIpv6Addr(char *ipv6Addr, char *result, int resultSize) {
+    char templateAddr[] = "0000:0000:0000:0000:0000:0000:0000:0000";
+    char *doublec;
+    int sts;
+
+    if (resultSize < sizeof(templateAddr)) {
+        return(-1);
+    }
+    if ((ipv6Addr == NULL) || (result == NULL)) {
+        return(-1);
+    }
+    strcpy(result, templateAddr);
+    /* the stragety here is to divide the string up into a pre (before the ::), 
+       and a post (after the ::) area, and tackle each piece seperately.  The 
+       pre area will copy from the front, the post from the rear */
+
+    sts = handlePreArea(ipv6Addr, result);
+    if (sts == 0) {
+        doublec = strstr(ipv6Addr, "::");
+        if (doublec) {
+            doublec += 1; /* get past the :: */
+            sts = handlePostArea(doublec, result);
+        }
+    }
+    return(sts);
+}
+
+/* #define SLP_NET_TEST */
 #ifdef SLP_NET_TEST
 int main(int argc, char* argv[]) {
-    char hostfdn[1024];
     char addrString[1024];
     int sts;
     int errorCount = 0;
@@ -413,39 +510,6 @@ int main(int argc, char* argv[]) {
     WSADATA wsadata;
     WSAStartup(MAKEWORD(2,2), &wsadata);
     #endif
-
-    sts = SLPNetGetThisHostname(hostfdn, sizeof(hostfdn), 0, AF_INET);
-    if (sts != 0) {
-        printf("error %d with SLPNetGetThisHostname.\r\n", sts);
-        errorCount++;
-    }
-    else {
-        printf("hostfdn = %s\r\n", hostfdn);
-    }
-    sts = SLPNetGetThisHostname(hostfdn, sizeof(hostfdn), 1, AF_INET);
-    if (sts != 0) {
-        printf("error %d with SLPNetGetThisHostname.\r\n", sts);
-        errorCount++;
-    }
-    else {
-        printf("hostfdn = %s\r\n", hostfdn);
-    }
-    sts = SLPNetGetThisHostname(hostfdn, sizeof(hostfdn), 0, AF_INET6);
-    if (sts != 0) {
-        printf("error %d with SLPNetGetThisHostname.\r\n", sts);
-        errorCount++;
-    }
-    else {
-        printf("hostfdn = %s\r\n", hostfdn);
-    }
-    sts = SLPNetGetThisHostname(hostfdn, sizeof(hostfdn), 1, AF_INET6);
-    if (sts != 0) {
-        printf("error %d with SLPNetGetThisHostname.\r\n", sts);
-        errorCount++;
-    }
-    else {
-        printf("hostfdn = %s\r\n", hostfdn);
-    }
 
     sts = SLPNetResolveHostToAddr("localhost", &addr);
     if (sts != 0) {
@@ -519,6 +583,85 @@ int main(int argc, char* argv[]) {
         sts = SLPNetCompareAddrs(&a1, &a2);
         if (sts != 0) {
             printf("Error, address a1 does not equal a2\r\n");
+        }
+    }
+    /* now test the ipv6 expansion */
+    {
+        char t1[] = "::";
+        char a1[] = "0000:0000:0000:0000:0000:0000:0000:0000";
+
+        char t2[] = "1::";
+        char a2[] = "0001:0000:0000:0000:0000:0000:0000:0000";
+
+        char t3[] = "::1";
+        char a3[] = "0000:0000:0000:0000:0000:0000:0000:0001";
+
+        char t4[] = "12::34";
+        char a4[] = "0012:0000:0000:0000:0000:0000:0000:0034";
+
+        char t5[] = "1111:2222:3333::5555:6666:7777:8888";
+        char a5[] = "1111:2222:3333:0000:5555:6666:7777:8888";
+
+        char t6[] = "1:02::003:0004";
+        char a6[] = "0001:0002:0000:0000:0000:0000:0003:0004";
+
+        char t7[] = "0001:0002:0003:0004:0005:0006:0007:0008";
+        char a7[] = "0001:0002:0003:0004:0005:0006:0007:0008";
+
+        char t8[] = "1:02:003:0004:0005:006:07:8";
+        char a8[] = "0001:0002:0003:0004:0005:0006:0007:0008";
+
+        char i1[] = "1::2::3";
+        char i2[] = "1:::3";
+
+        char buf[40];  /* min buf size - 8*4 + 7 + null */
+        int sts;
+
+        sts = SLPNetExpandIpv6Addr(t1, buf, sizeof(buf));
+        if ((sts != 0) || (strcmp(buf, a1) != 0)) {
+            printf("Error expanding ipv6 address t1\r\n");
+        }
+
+        sts = SLPNetExpandIpv6Addr(t2, buf, sizeof(buf));
+        if ((sts != 0) || (strcmp(buf, a2) != 0)) {
+            printf("Error expanding ipv6 address t2\r\n");
+        }
+
+        sts = SLPNetExpandIpv6Addr(t3, buf, sizeof(buf));
+        if ((sts != 0) || (strcmp(buf, a3) != 0)) {
+            printf("Error expanding ipv6 address t3\r\n");
+        }
+
+        sts = SLPNetExpandIpv6Addr(t4, buf, sizeof(buf));
+        if ((sts != 0) || (strcmp(buf, a4) != 0)) {
+            printf("Error expanding ipv6 address t4\r\n");
+        }
+
+        sts = SLPNetExpandIpv6Addr(t5, buf, sizeof(buf));
+        if ((sts != 0) || (strcmp(buf, a5) != 0)) {
+            printf("Error expanding ipv6 address t5\r\n");
+        }
+
+        sts = SLPNetExpandIpv6Addr(t6, buf, sizeof(buf));
+        if ((sts != 0) || (strcmp(buf, a6) != 0)) {
+            printf("Error expanding ipv6 address t6\r\n");
+        }
+
+        sts = SLPNetExpandIpv6Addr(t7, buf, sizeof(buf));
+        if ((sts != 0) || (strcmp(buf, a7) != 0)) {
+            printf("Error expanding ipv6 address t7\r\n");
+        }
+
+        sts = SLPNetExpandIpv6Addr(t8, buf, sizeof(buf));
+        if ((sts != 0) || (strcmp(buf, a8) != 0)) {
+            printf("Error expanding ipv6 address t8\r\n");
+        }
+
+        sts = SLPNetExpandIpv6Addr(i1, buf, sizeof(buf));
+        sts = SLPNetExpandIpv6Addr(i2, buf, sizeof(buf));
+        sts = SLPNetExpandIpv6Addr(t6, buf, 5);
+        if (sts == 0) {
+            printf("Error, size not checked for expansion\r\n");
         }
     }
 

@@ -295,4 +295,18 @@ unsigned long SLPNetGetSrvMcastAddr(const char *pSrvType, unsigned int len, int 
  * Returns: zero on success, non-zero on error;
  *-------------------------------------------------------------------------*/
 
+int SLPNetExpandIpv6Addr(char *ipv6Addr, char *result, int resultSize);
+/* 
+*   Description
+*    fully expands a ipv6 address given an ipv6 address in the shorthand notation  
+*
+*   Parameters
+*    [in] ipv6Addr - the shorthand address to expand
+*    [out] result - buffer to store the expanded address in
+*    [in] resultSize - size of the result buffer, must be atleast 40 bytes
+*
+*   Returns
+*   zero on success, non-zero if errors were detected
+*-------------------------------------------------------------------------*/
+
 #endif
