@@ -355,7 +355,7 @@ SLPError SLPUnescape(const char* pcInbuf,
         if((isTag) && strchr(ATTRIBUTE_BAD_TAG, *current_Inbuf))
             return(SLP_PARSE_ERROR);
 
-        if(strchr(ESCAPE_CHARACTER_STRING, *current_Inbuf))
+        if(strchr(ATTRIBUTE_RESERVE_STRING, *current_Inbuf))
             output_buffer_size-=2;
 
         current_Inbuf++;

@@ -747,31 +747,24 @@ void KnownDAProcessSrvRqst(PSLPHandleInfo handle)
             /* is there anything left? */
             if(entry == NULL) break;
             
-            if (handle->params.findsrvs.scopelistlen == 0 ||
-                SLPIntersectStringList(entry->msg->body.daadvert.scopelistlen, 
-                                       entry->msg->body.daadvert.scopelist, 
-                                       handle->params.findsrvs.scopelistlen,
-                                       handle->params.findsrvs.scopelist))
+            /* TRICKY temporary null termination of DA url */
+            tmp = entry->msg->body.daadvert.url[entry->msg->body.daadvert.urllen];
+            ((char*)(entry->msg->body.daadvert.url))[entry->msg->body.daadvert.urllen] = 0;
+
+            /* Call the SrvURLCallback */
+            cb_result = handle->params.findsrvs.callback((SLPHandle)handle,
+                                                         entry->msg->body.daadvert.url,
+                                                         SLP_LIFETIME_MAXIMUM,
+                                                         SLP_OK,
+                                                         handle->params.findsrvs.cookie);
+
+            /* TRICKY: undo temporary null termination of DA url */
+            ((char*)(entry->msg->body.daadvert.url))[entry->msg->body.daadvert.urllen] = tmp;
+            
+            /* does the caller want more? */
+            if(cb_result == SLP_FALSE)
             {
-                /* TRICKY temporary null termination of DA url */
-                tmp = entry->msg->body.daadvert.url[entry->msg->body.daadvert.urllen];
-                ((char*)(entry->msg->body.daadvert.url))[entry->msg->body.daadvert.urllen] = 0;
-    
-                /* Call the SrvURLCallback */
-                cb_result = handle->params.findsrvs.callback((SLPHandle)handle,
-                                                             entry->msg->body.daadvert.url,
-                                                             SLP_LIFETIME_MAXIMUM,
-                                                             SLP_OK,
-                                                             handle->params.findsrvs.cookie);
-    
-                /* TRICKY: undo temporary null termination of DA url */
-                ((char*)(entry->msg->body.daadvert.url))[entry->msg->body.daadvert.urllen] = tmp;
-                
-                /* does the caller want more? */
-                if(cb_result == SLP_FALSE)
-                {
-                    break;
-                }
+                break;
             }
         }
 

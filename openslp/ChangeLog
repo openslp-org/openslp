@@ -6,6 +6,10 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 
+11/2/01 matt@caldera.com
+Changed declaration and definition for strncasecmp and strcasecmp so that
+there is only one place for them in slp_compare.c and slp_compare.h
+
 11/1/01 matt@caldera.com
 Honor scopes in SrvRqsts for the special "service:directory-agent" type
 
