@@ -6,6 +6,9 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 
+06/11/02 matt@caldera.com
+Added support for the net.slp.DAHeartBeat setting
+
 04/04/02 matt@caldera.com
 Added patch from Arun Barboza that makes attribute compares case insensitive
 as per RFC 2608

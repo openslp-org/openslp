@@ -90,6 +90,7 @@ typedef struct _SLPDProperty
     int             isDA;
     int             securityEnabled;
     int             checkSourceAddr;
+    int             DAHeartBeat;
 }SLPDProperty;
 
 

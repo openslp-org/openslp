@@ -1410,7 +1410,7 @@ void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead)
 
     if ( G_SlpdProperty.nextPassiveDAAdvert <= 0 || dadead )
     {
-        G_SlpdProperty.nextPassiveDAAdvert = SLPD_CONFIG_DA_BEAT;
+        G_SlpdProperty.nextPassiveDAAdvert = G_SlpdProperty.DAHeartBeat;
 
         /*--------------------------------------------------*/
         /* Create new DATAGRAM socket with appropriate peer */

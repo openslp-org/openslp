@@ -450,7 +450,7 @@ SLPError NetworkRqstRply(int sock,
 	}
         else
         {
-	    toUINT24(sendbuf->start + 7, 0);
+	    ToUINT24(sendbuf->start + 7, 0);
 	}
         /*xid*/
         ToUINT16(sendbuf->start + 10,xid);
