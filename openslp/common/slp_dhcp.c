@@ -53,7 +53,6 @@
 
 #ifdef _WIN32
 #include <winsock2.h>
-#include <windows.h>
 #include <iphlpapi.h>
 #define ETIMEDOUT	110
 #define ENOTCONN	107

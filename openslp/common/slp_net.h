@@ -51,8 +51,8 @@
 
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
-#include <windows.h>
 #include <winsock2.h>
+#include <windows.h>
 #include <io.h>
 #include <errno.h>
 //#if(_WIN32_WINNT >= 0x0400 && _WIN32_WINNT < 0x0500) 

@@ -214,6 +214,7 @@ int SLPMulticastSend(const SLPIfaceInfo* ifaceinfo,
         }
         SLPNetCopyAddr(&socks->peeraddr[socks->sock_count], &ifaceinfo->iface_addr[socks->sock_count]);
         if(ifaceinfo->iface_addr[socks->sock_count].ss_family == AF_INET) {
+
             struct sockaddr_in *s4 = (struct sockaddr_in *) &socks->peeraddr[socks->sock_count];
             if( setsockopt(socks->sock[socks->sock_count], 
                            IPPROTO_IP, 
@@ -439,7 +440,7 @@ int SLPXcastRecvMessage(const SLPXcastSockets* sockets,
  * $ gcc -g -DDEBUG -DSLP_XMIT_TEST slp_xcast.c slp_iface.c slp_buffer.c 
  *   slp_linkedlist.c slp_compare.c slp_xmalloc.c
  *==========================================================================*/ 
-//#define SLP_XMIT_TEST
+#define SLP_XMIT_TEST
 #ifdef SLP_XMIT_TEST
 main()
 {
