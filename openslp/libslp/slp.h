@@ -463,7 +463,7 @@ SLPError SLPReg(SLPHandle   hSLP,
                 const unsigned short usLifetime,
                 const char  *pcSrvType,
                 const char  *pcAttrs,
-                unsigned long flags,
+                SLPBoolean fresh,
                 SLPRegReport callback,
                 void *pvCookie); 
 /*                                                                         */
@@ -505,17 +505,9 @@ SLPError SLPReg(SLPHandle   hSLP,
 /*              for the attributes of the advertisement.  Use empty string,*/
 /*              "" for no attributes.                                      */
 /*                                                                         */
-/* flags        SLP_REG_FLAG_FRESH - same thing as SLP_TRUE for fresh.     */
-/*                  Non-fresh registrations are deprecated.  All           */
-/*                  registration are fresh.                                */
-/*                                                                         */
-/*              SLP_REG_FLAG_WATCH_PID - Instruct the implementation to    */
-/*                  watch the process ID of the calling process and        */
-/*                  and automatically deregister when the PID disappears   */
-/*                  It is recommended that this flag be used. However,     */
-/*                  programmer beware (especially on Linux where threads   */
-/*                  have their own PID) to not  allow the process that     */
-/*                  called SLPReg() to die accidentially.                  */
+/* fresh        Use of non-fresh registrations is deprecated.  SLP_TRUE    */
+/*              must be passed in for this parameter or SLP_BAD_PARAMETER  */
+/*              will be returned                                           */
 /*                                                                         */
 /* callback     A SLPRegReport callback to report the operation completion */
 /*              status.                                                    */

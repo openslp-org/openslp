@@ -154,7 +154,7 @@ SLPError ProcessSrvReg(PSLPHandleInfo handle)
     bufsize += handle->params.reg.scopelistlen + 2; /*  2 bytes for len field */
     bufsize += handle->params.reg.attrlistlen + 2;  /*  2 bytes for len field */
     bufsize += 1;                                   /*  1 byte for authcount */
-    if(handle->params.reg.flags & SLP_REG_FLAG_WATCH_PID)
+    if(SLPPropertyAsBoolean(SLPGetProperty("net.slp.watchRegistrationPID")))
     {
         bufsize += 9; /* 2 bytes for extid      */
                       /* 3 bytes for nextoffset */
@@ -245,7 +245,7 @@ SLPError ProcessSrvReg(PSLPHandleInfo handle)
     }
 
     /* Put in the SLP_EXTENSION_ID_REG_PID */
-    if(handle->params.reg.flags & SLP_REG_FLAG_WATCH_PID)
+    if(SLPPropertyAsBoolean(SLPGetProperty("net.slp.watchRegistrationPID")))
     {
         extoffset = curpos - buf;
         ToUINT16(curpos,SLP_EXTENSION_ID_REG_PID);
@@ -321,7 +321,7 @@ SLPError SLPReg(SLPHandle   hSLP,
                 const unsigned short lifetime,
                 const char  *srvType,
                 const char  *attrList,
-                unsigned long flags,
+                SLPBoolean fresh,
                 SLPRegReport callback,
                 void *cookie)
 /*                                                                         */
@@ -349,20 +349,10 @@ SLPError SLPReg(SLPHandle   hSLP,
     /*---------------------------------------------*/
     /* We don't handle non-fresh registrations     */
     /*---------------------------------------------*/
-    if(flags == 0)
+    if(fresh == SLP_FALSE)
     {
         return SLP_NOT_IMPLEMENTED;
     }
-
-    /*------------------------------------------------------------------
-     * We don't allow SLP_LIFETIME_MAXIMUM unless SLP_REG_FLAG_WATCH_PID
-     * is used.
-     */
-    if(lifetime >= SLP_LIFETIME_MAXIMUM && 
-       !(flags & SLP_REG_FLAG_WATCH_PID))
-    {
-        return SLP_PARAMETER_BAD;
-    } 
 
     /*-----------------------------------------*/
     /* cast the SLPHandle into a SLPHandleInfo */
@@ -397,7 +387,7 @@ SLPError SLPReg(SLPHandle   hSLP,
     /*-------------------------------------------*/
     /* Set the handle up to reference parameters */
     /*-------------------------------------------*/
-    handle->params.reg.flags         = flags;
+    handle->params.reg.fresh         = fresh;
     handle->params.reg.lifetime      = lifetime;
     handle->params.reg.urllen        = strlen(srvUrl);
     handle->params.reg.url           = srvUrl;

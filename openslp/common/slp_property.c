@@ -189,6 +189,7 @@ int SetDefaultValues()
     result |= SLPPropertySet("net.slp.DADiscoveryMaximumWait","2000");
     result |= SLPPropertySet("net.slp.DAActiveDiscoveryInterval","1");
     result |= SLPPropertySet("net.slp.DAAddresses","");
+    result |= SLPPropertySet("net.slp.watchRegistrationPID","true");
     result |= SLPPropertySet("net.slp.activeDADetection","true");
     result |= SLPPropertySet("net.slp.passiveDADetection","true");
     result |= SLPPropertySet("net.slp.useScopes","default");

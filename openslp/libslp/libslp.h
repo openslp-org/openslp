@@ -137,7 +137,7 @@ typedef struct _SLPRegParams
 /*=========================================================================*/
 {
     int             lifetime;
-    int             flags;
+    int             fresh;
     int             urllen;
     const char*     url;
     int             srvtypelen;
