@@ -46,7 +46,6 @@ char* GetHostname()
 /*-------------------------------------------------------------------------*/
 {
     char*   host    = 0;
-    int     hostlen;
 
     /* TODO find a better constant for MAX_HOSTNAME */
     #define MAX_HOST_NAME 1024    
