@@ -592,10 +592,18 @@ SLPError filter(char *start,
                 SLPAttributes slp_attr, 
                 SLPBoolean *return_value, 
                 int recursion_depth)
+/* Parameters:                                                              */
+/* start -- (IN) The start of the string to work in.                        */
+/* end -- (OUT) The end of the string processed. After successful processing*/
+/*              (ie, no PARSE_ERRORs), this will be pointed at the character*/
+/*              following the last char in this level of the expression.    */
+/* slp_attr -- (IN) The attributes handle to compare on.                    */
+/* return_value -- (OUT) The result of the search. Only valid if SLP_OK was */
+/*                       returned.                                          */
 /*                                                                          */
 /* Returns: SLP_OK on successful search (ie, the search was do-able).       */
-/*          0 on search error.  The end of the expression is returned       */
-/*          through end.                                                    */
+/*          SLP_PARSE_ERROR on search error.  The end of the expression is  */
+/*          returned through end.                                           */
 /*--------------------------------------------------------------------------*/
 {
     char *operator; /* Pointer to the operator substring. */
@@ -641,54 +649,45 @@ SLPError filter(char *start,
     switch (*cur)
     {
     case('&'): /***** And. *****/
-        /**** Left child *****/
-        cur++;
-        err = filter(cur, &cur, slp_attr, &result, recursion_depth);
-        if (err != SLP_OK)
-        {
-            return err;
-        }
+	case('|'): /***** Or. *****/
+		{
+			SLPBoolean stop_condition; /* Stop when this value is returned. */
+	
+			if (*cur == '&') 
+			{
+				stop_condition = SLP_FALSE;
+			}
+			else if (*cur == '|')
+			{
+				stop_condition = SLP_TRUE;
+			}
+			
+			cur++; /* Move past operator. */
 
-        /**** Do short circuiting... ****/
-        if (result != SLP_TRUE)
-        {
-            *return_value = SLP_FALSE;
-            return SLP_OK;
-        }
+			/*** Ensure that we have at least one operator. ***/
+			if (*cur != BRACKET_OPEN) 
+			{
+				return SLP_PARSE_ERROR;
+			}
+			
+			while(*cur == BRACKET_OPEN && cur < last_char) 
+			{
+	    	    err = filter(cur, &cur, slp_attr, &result, recursion_depth);
+				/*** Propagate errors. ***/
+	    	    if (err != SLP_OK)
+    	    	{
+	    	        return err;
+	    	    }
 
-        /**** Right child *****/
-        err = filter(cur, &cur, slp_attr, &result, recursion_depth);
-        if (err != SLP_OK)
-        {
-            return err;
-        }
-
-        *return_value = result;
-        return SLP_OK;
-
-    case('|'): /***** Or. *****/
-        /**** Left child *****/
-        cur++;
-        err = filter(cur, &cur, slp_attr, &result, recursion_depth);
-        if (err != SLP_OK)
-        {
-            return err;
-        }
-
-        /**** Do short circuiting... ****/
-        if (result == SLP_TRUE)
-        {
-            *return_value = SLP_TRUE;
-            return SLP_OK;
-        }
-
-        /**** Right child *****/
-        err = filter(cur, &cur, slp_attr, &result, recursion_depth);
-        if (err != SLP_OK)
-        {
-            return err;
-        }
-
+				/*** Short circuit. ***/
+				if (result == stop_condition) 
+				{
+					*return_value = stop_condition;
+					return SLP_OK;
+				}
+			}
+		}
+		
         *return_value = result;
         return SLP_OK;
 
@@ -704,7 +703,7 @@ SLPError filter(char *start,
         *return_value = ( result == SLP_TRUE ? SLP_FALSE : SLP_TRUE );
         return SLP_OK;
 
-    default: /***** Uh oh, could be an error... *****/
+    default: /***** Unknown operator. *****/
     }
 
     /***** Check for leaf operator. *****/
