@@ -51,6 +51,7 @@
 #include <ctype.h>
 
 #include "slp_compare.h"
+#include "slp_net.h"
 
 
 #ifdef _WIN32

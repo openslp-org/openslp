@@ -1041,7 +1041,7 @@ void SLPMessageFree(SLPMessage message)
 
 
 /*=========================================================================*/
-int SLPMessageParseBuffer(struct sockaddr* peerinfo,
+int SLPMessageParseBuffer(struct sockaddr_storage *peerinfo,
                           SLPBuffer buffer, 
                           SLPMessage message)
 /* Initializes a message descriptor by parsing the specified buffer.       */
