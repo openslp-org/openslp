@@ -54,7 +54,8 @@ static FILE*   G_LogFile    = 0;
 int SLPLogFileOpen(const char* path, int append)                           
 /* Prepares the file at the specified path as the log file.                */
 /*                                                                         */
-/* path     - (IN) the path to the log file.                               */
+/* path     - (IN) the path to the log file. If path is the empty string   */
+/*            (""), then we log to stdout.                                 */
 /*                                                                         */
 /* append   - (IN) if zero log file will be truncated.                     */
 /*                                                                         */
@@ -67,20 +68,28 @@ int SLPLogFileOpen(const char* path, int append)
         fclose(G_LogFile);
     }
 
-    if(append)
-    {
-        G_LogFile = fopen(path,"a");
-    }
-    else
-    {
-        G_LogFile = fopen(path,"w");
-    }
-    
-    if(G_LogFile == 0)
-    {
-        /* could not open the log file */
-        return -1;
-    }
+	if (*path == 0) {
+		/* Log to console. */
+		G_LogFile = stdout;
+	}
+	else
+	{
+		/* Log to file. */
+		if(append)
+		{
+			G_LogFile = fopen(path,"a");
+		}
+		else
+		{
+			G_LogFile = fopen(path,"w");
+		}
+
+		if(G_LogFile == 0)
+		{
+			/* could not open the log file */
+			return -1;
+		}
+	}
     
     return 0;
 }
