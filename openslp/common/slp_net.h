@@ -58,15 +58,7 @@
 #include <winsock2.h>
 #include <io.h>
 #include <errno.h>
-
-
-int inet_pton(int af, const char *src, void *dst);
-
-const char *inet_ntop(int af, const void *src,
-                            char *dst, size_t size);
-
-
-
+#include "slp_win32.h"
 #define ETIMEDOUT 110
 #define ENOTCONN  107
 #else

@@ -1,12 +1,12 @@
-
 /***************************************************************************/
 /*                                                                         */
 /* Project:     OpenSLP - OpenSource implementation of Service Location    */
 /*              Protocol                                                   */
 /*                                                                         */
-/* File:        slp_net.h                                                  */
+/* File:        slp_win32.  h                                              */
 /*                                                                         */
-/* Abstract:    Network utility functions                                  */
+/* Abstract:    Common functions used by OpenSLP that are not present in   */
+/*              the Windows development environment                        */
 /*                                                                         */
 /*-------------------------------------------------------------------------*/
 /*                                                                         */
@@ -47,123 +47,17 @@
 /*                                                                         */
 /***************************************************************************/
 
-#include "slp_net.h"
-#include "slp_xmalloc.h"
-/*-------------------------------------------------------------------------*/
-int SLPNetGetThisHostname(char** hostfdn, int numeric_only)
-/* 
- * Description:
- *    Returns a string represting this host (the FDN) or null. Caller must    
- *    free returned string                                                    
- *
- * Parameters:
- *    hostfdn   (OUT) pointer to char pointer that is set to buffer 
- *                    contining this machine's FDN.  Caller must free
- *                    returned string with call to xfree()
- *    numeric_only (IN) force return of numeric address.  
- *-------------------------------------------------------------------------*/
-{
-    /* TODO find a better constant for MAX_HOSTNAME */
-    #define MAX_HOST_NAME 256
+#ifndef _SLP_WIN32_H
+#define _SLP_WIN32_H
 
-    char            host[MAX_HOST_NAME];
-    struct hostent* he;
-    struct in_addr  ifaddr;
-
-    *hostfdn = 0;
-
-    if(gethostname(host, MAX_HOST_NAME) == 0)
-    {
-        he = gethostbyname(host);
-        if(he)
-        {
-            /* if the hostname has a '.' then it is probably a qualified 
-             * domain name.  If it is not then we better use the IP address
-             */
-            if(!numeric_only && strchr(he->h_name,'.'))
-            {
-                *hostfdn = xstrdup(he->h_name);
-            }
-            else
-            {
-                ifaddr.s_addr = *((unsigned long*)he->h_addr);
-                *hostfdn = xstrdup(inet_ntoa(ifaddr));
-            }
-            
-        }
-    }
-
-    return 0;
-}
-
-/*-------------------------------------------------------------------------*/
-int SLPNetResolveHostToAddr(const char* host,
-                            struct in_addr* addr)
-/* 
- * Description:
- *    Returns a string represting this host (the FDN) or null. Caller must    
- *    free returned string                                                    
- *
- * Parameters:
- *    host  (IN)  pointer to hostname to resolve
- *    addr  (OUT) pointer to in_addr that will be filled with address
- *
- * Returns: zero on success, non-zero on error;
- *-------------------------------------------------------------------------*/
-{
-    struct hostent* he;
-    
-    /* quick check for dotted quad IPv4 address */
-    if(inet_aton(host,addr))
-    {
-        return 0;
-    }
-
-    /* Use resolver */
-    he = gethostbyname(host);
-    if(he != 0)
-    {
-        if(he->h_addrtype == AF_INET)
-        {
-            memcpy(addr,he->h_addr_list[0],sizeof(struct in_addr));
-            return 0;
-        }
-        else
-        {
-            /* TODO: support other address types */
-        }
-    }
-
-    return -1;
-}
-
-int SLPNetIsIPV6() {
-	return(0);
-}
-
-int SLPNetIsIPV4() {
-    return(0);
-}
-
-int SLPNetCompareAddrs(const struct sockaddr_storage *addr1, const struct sockaddr_storage *addr2) {
-	return(0);
-}
+#define strncasecmp(String1, String2, Num) strnicmp(String1, String2, Num)
+#define strcasecmp(String1, String2, Num) stricmp(String1, String2, Num)
+#define inet_aton(opt,bind) ((bind)->s_addr = inet_addr(opt))
 
 
-int SLPNetIsMCast(const struct sockaddr_storage *addr) {
-	return(0);
-}
+int inet_pton(int af, const char *src, void *dst);
 
-int SLPNetIsLocal(const struct sockaddr_storage *addr) {
-	return(0);
-}
+const char *inet_ntop(int af, const void *src,
+                            char *dst, size_t size);
 
-int SLPNetSetAddr(struct sockaddr_storage *addr, const int family, const short port, const unsigned char *address, const int addrLen) {
-	return(0);
-}
-
-int SLPNetCopyAddr(struct sockaddr_storage *dst, const struct sockaddr_storage *src) {
-	return(0);
-}
-
-
+#endif
