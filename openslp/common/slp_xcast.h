@@ -108,22 +108,22 @@ int SLPXcastRecvMessage(const SLPXcastSockets* sockets,
                         struct sockaddr_in* peeraddr,
                         struct timeval* timeout);
 /* Description: 
- *    Receives datagram messages from one of the sockets in the specified  
- *    SLPXcastsSockets structure
- *  
- * Parameters:
- *    sockets (IN) Pointer to the SOPXcastSockets structure that describes
- *                 which sockets to read messages from.
- *    buf     (OUT) Pointer to SLPBuffer that will contain the message upon
- *                  successful return.
- *    peeraddr (OUT) Pointer to struc sockaddr_in that will contain the
- *                   address of the peer that sent the received message.
- *    timeout (IN/OUT) pointer to the struct timeval that indicates how much
- *                     time to wait for a message to arrive
- *
- * Returns:
- *    Zero on success, errno on failure.
- *========================================================================*/
+ *    Receives datagram messages from one of the sockets in the specified
+ *    SLPXcastsSockets structure
+ *  
+ * Parameters:
+ *    sockets (IN) Pointer to the SOPXcastSockets structure that describes
+ *                 which sockets to read messages from.
+ *    buf     (OUT) Pointer to SLPBuffer that will contain the message upon
+ *                  successful return.
+ *    peeraddr (OUT) Pointer to struc sockaddr_in that will contain the
+ *                   address of the peer that sent the received message.
+ *    timeout (IN/OUT) pointer to the struct timeval that indicates how much
+ *                     time to wait for a message to arrive
+ *
+ * Returns:
+ *    Zero on success, errno on failure.
+ *========================================================================*/
 
 
 /*========================================================================*/
