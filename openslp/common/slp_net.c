@@ -337,9 +337,10 @@ int SLPNetIsLocal(const struct sockaddr_storage *addr) {
 	return(sts);
 }
 
+
 int SLP_IN6_IS_ADDR_LOOPBACK(const struct in6_addr *a)
 {
-    return IN6_ADDR_EQUAL(a, &slp_in6addr_loopback);
+    return memcmp(a, &slp_in6addr_loopback, sizeof(struct in6_addr));
 }
 
 int SLPNetIsLoopback(const struct sockaddr_storage *addr) {
