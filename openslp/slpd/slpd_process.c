@@ -65,6 +65,7 @@
 #include "slp_xmalloc.h"
 #include "slp_message.h"
 #include "slp_compare.h"
+#include "slp_net.h"
 #ifdef ENABLE_SLPv2_SECURITY
     #include "slp_auth.h"
 #endif
@@ -184,7 +185,7 @@ int ProcessDASrvRqst(SLPMessage message,
     /* Special case for when libslp asks slpd (through the loopback) about */
     /* a known DAs. Fill sendbuf with DAAdverts from all known DAs.        */
     /*---------------------------------------------------------------------*/
-    if (ISLOCAL(message->peer.sin_addr))
+    if (SLPNetIsLocal(&(message->peer)))
     {
         /* TODO: be smarter about how much memory is allocated here! */
         /* 4096 may not be big enough to handle all DAAdverts        */
@@ -288,7 +289,7 @@ int ProcessDASrvRqst(SLPMessage message,
     if (errorcode != 0)
     {
         if (message->header.flags & SLP_FLAG_MCAST ||
-            ISMCAST(message->peer.sin_addr))
+            SLPNetIsMCast(&(message->peer)))
         {
             (*sendbuf)->end = (*sendbuf)->start;
         }
@@ -428,7 +429,7 @@ int ProcessSrvRqst(SLPMessage message,
     if (errorcode != 0 || db->urlcount == 0)
     {
         if (message->header.flags & SLP_FLAG_MCAST ||
-            ISMCAST(message->peer.sin_addr))
+            SLPNetIsMCast(&(message->peer)))
         {
             result->end = result->start;
             goto FINISHED;  
@@ -590,7 +591,7 @@ int ProcessSrvReg(SLPMessage message,
     /*--------------------------------------------------------------*/
     if (errorcode || 
         message->header.flags & SLP_FLAG_MCAST ||
-        ISMCAST(message->peer.sin_addr))
+        SLPNetIsMCast(&(message->peer)))
     {
         goto RESPOND;
     }
@@ -630,7 +631,7 @@ int ProcessSrvReg(SLPMessage message,
             /* TRICKY: Remember the recvbuf was duplicated back in          */
             /*         SLPDProcessMessage()                                 */
 
-            if (ISLOCAL(message->peer.sin_addr))
+            if (SLPNetIsLocal(&(message->peer)))
             {
                 message->body.srvreg.source= SLP_REG_SOURCE_LOCAL;
             }
@@ -652,7 +653,7 @@ int ProcessSrvReg(SLPMessage message,
     /* don't send back reply anything multicast SrvReg (set result empty) */
     /*--------------------------------------------------------------------*/
     if (message->header.flags & SLP_FLAG_MCAST ||
-        ISMCAST(message->peer.sin_addr))
+        SLPNetIsMCast(&(message->peer)))
     {
         result->end = result->start;
         goto FINISHED;
@@ -758,7 +759,7 @@ int ProcessSrvDeReg(SLPMessage message,
     /* don't do anything multicast SrvDeReg (set result empty) */
     /*---------------------------------------------------------*/
     if (message->header.flags & SLP_FLAG_MCAST ||
-        ISMCAST(message->peer.sin_addr))
+        SLPNetIsMCast(&(message->peer)))
     {
         result->end = result->start;
         goto FINISHED;
@@ -943,7 +944,7 @@ int ProcessAttrRqst(SLPMessage message,
     if (errorcode != 0 || db->attrlistlen == 0)
     {
         if (message->header.flags & SLP_FLAG_MCAST ||
-            ISMCAST(message->peer.sin_addr))
+            SLPNetIsMCast(&(message->peer)))
         {
             result->end = result->start;
             goto FINISHED;  
@@ -1215,7 +1216,7 @@ int ProcessSrvTypeRqst(SLPMessage message,
     if (errorcode != 0 || db->srvtypelistlen == 0)
     {
         if (message->header.flags & SLP_FLAG_MCAST ||
-            ISMCAST(message->peer.sin_addr))
+            SLPNetIsMCast(&(message->peer)))
         {
             result->end = result->start;
             goto FINISHED;  
@@ -1310,7 +1311,7 @@ int ProcessSAAdvert(SLPMessage message,
 
 
 /*=========================================================================*/
-int SLPDProcessMessage(struct sockaddr_in* peerinfo,
+int SLPDProcessMessage(struct sockaddr_storage* peerinfo,
                        SLPBuffer recvbuf,
                        SLPBuffer* sendbuf)
 /* Processes the recvbuf and places the results in sendbuf                 */
@@ -1328,6 +1329,9 @@ int SLPDProcessMessage(struct sockaddr_in* peerinfo,
     SLPHeader   header;
     SLPMessage  message     = 0;
     int         errorcode   = 0;
+#ifdef DEBUG
+    char        addr_str[INET6_ADDRSTRLEN];
+#endif
 
     SLPDLogMessage(SLPDLOG_TRACEMSG_IN,peerinfo,recvbuf);
 
@@ -1479,7 +1483,7 @@ int SLPDProcessMessage(struct sockaddr_in* peerinfo,
     {
         SLPDLog("\n*** DEBUG *** errorcode %i during processing of message from %s\n",
                 errorcode,
-                inet_ntoa(peerinfo->sin_addr));
+                inet_ntop(peerinfo->ss_family, peerinfo, addr_str, sizeof(addr_str)));
     }
 #endif
  

@@ -104,6 +104,7 @@ int MakeActiveDiscoveryRqst(int ismcast, SLPBuffer* buffer)
     int             errorcode   = 0;
     SLPBuffer       tmp         = 0;
     SLPBuffer       result      = *buffer;
+    char            addr_str[INET6_ADDRSTRLEN];
 
     /*-------------------------------------------------*/
     /* Generate a DA service request buffer to be sent */
@@ -139,7 +140,7 @@ int MakeActiveDiscoveryRqst(int ismcast, SLPBuffer* buffer)
             {
                 break;
             }
-            strcat(prlist,inet_ntoa(msg->peer.sin_addr));
+            strcat(prlist,inet_ntop(msg->peer.ss_family, &(msg->peer), addr_str, sizeof(addr_str)));
             strcat(prlist,",");
             prlistlen = strlen(prlist);
         }
@@ -254,7 +255,7 @@ void SLPDKnownDARegisterAll(SLPMessage daadvert, int immortalonly)
     /*----------------------------------------------*/
     /* Establish a new connection with the known DA */
     /*----------------------------------------------*/
-    sock = SLPDOutgoingConnect(&(daadvert->peer.sin_addr));
+    sock = SLPDOutgoingConnect(&(daadvert->peer));
     if ( sock )
     {
         while ( 1 )
@@ -439,7 +440,7 @@ void SLPDKnownDADeregisterAll(SLPMessage daadvert)
     }
 
     /* Establish a new connection with the known DA */
-    sock = SLPDOutgoingConnect(&(daadvert->peer.sin_addr));
+    sock = SLPDOutgoingConnect(&(daadvert->peer));
     if ( sock )
     {
         while ( 1 )
@@ -480,23 +481,25 @@ int SLPDKnownDAFromDHCP()
 /* returns  zero on success, Non-zero on failure                           */
 /*=========================================================================*/
 {
-	SLPBuffer			buf;
-	DHCPContext			ctx;
-	SLPDSocket*			sock;
-	struct in_addr		daaddr;
-	unsigned char *	alp;
-	unsigned char		dhcpOpts[] = {TAG_SLP_SCOPE, TAG_SLP_DA};
+	SLPBuffer			        buf;
+	DHCPContext			        ctx;
+	SLPDSocket*			        sock;
+	struct sockaddr_storage		daaddr;
+	unsigned char *	            alp;
+	unsigned char		        dhcpOpts[] = {TAG_SLP_SCOPE, TAG_SLP_DA};
 
 	*ctx.scopelist = 0;
 	ctx.addrlistlen = 0;
 
 	DHCPGetOptionInfo(dhcpOpts, sizeof(dhcpOpts), DHCPParseSLPTags, &ctx);
-
+    
+    //// needs work to be made ipv6 compatible
 	alp = ctx.addrlist;
 	while(ctx.addrlistlen >= 4)
 	{
-		memcpy(&daaddr.s_addr, alp, 4);
-		if (daaddr.s_addr)
+        daaddr.ss_family = AF_INET;
+		memcpy(&(((struct sockaddr_in*) &daaddr)->sin_addr.s_addr), alp, 4);
+		if (&(((struct sockaddr_in*) &daaddr)->sin_addr.s_addr))
 		{
 			/*--------------------------------------------------------
 				Get an outgoing socket to the DA and set it up to make
@@ -529,14 +532,14 @@ int SLPKnownDAFromProperties()
 /* returns  zero on success, Non-zero on failure                           */
 /*=========================================================================*/
 {
-	char*               temp;
-	char*               tempend;
-	char*               slider1;
-	char*               slider2;
-	struct hostent*     he;
-	struct in_addr      daaddr;
-	SLPDSocket*         sock;
-	SLPBuffer           buf;
+	char*                       temp;
+	char*                       tempend;
+	char*                       slider1;
+	char*                       slider2;
+	struct hostent*             he;
+	struct sockaddr_storage     daaddr;
+	SLPDSocket*                 sock;
+	SLPBuffer                   buf;
 
 	if (G_SlpdProperty.DAAddresses && *G_SlpdProperty.DAAddresses)
 	{
@@ -551,15 +554,17 @@ int SLPKnownDAFromProperties()
 				while (*slider2 && *slider2 != ',') slider2++;
 				*slider2++ = 0;
 
-				daaddr.s_addr = 0;
-				if(inet_aton(slider1, &daaddr) == 0)
+                //// this part will need to be duplicated for ipv6
+				daaddr.ss_family = AF_INET;
+                ((struct sockaddr_in*) &daaddr)->sin_addr.s_addr = 0;
+				if(inet_pton(AF_INET, slider1, &daaddr) == 0)
 				{
 					he = gethostbyname(slider1);
 					if (he)
-						daaddr.s_addr = *((unsigned int*)(he->h_addr_list[0]));
+						((struct sockaddr_in*) &daaddr)->sin_addr.s_addr = *((unsigned int*)(he->h_addr_list[0]));
 				}
 			    
-				if(daaddr.s_addr)
+				if(((struct sockaddr_in*) &daaddr)->sin_addr.s_addr)
 				{
 					/*--------------------------------------------------------*/
 					/* Get an outgoing socket to the DA and set it up to make */
@@ -664,13 +669,13 @@ int SLPDKnownDAAdd(SLPMessage msg, SLPBuffer buf)
 /* returns  Zero on success, Non-zero on error                             */
 /*=========================================================================*/
 {
-    SLPDatabaseEntry*   entry;
-    SLPDAAdvert*        entrydaadvert;
-    SLPDAAdvert*        daadvert;
-    struct in_addr      daaddr;
-    SLPParsedSrvUrl*    parsedurl       = NULL;
-    int                 result          = 0;
-    SLPDatabaseHandle   dh              = NULL;
+    SLPDatabaseEntry*           entry;
+    SLPDAAdvert*                entrydaadvert;
+    SLPDAAdvert*                daadvert;
+    struct sockaddr_storage     daaddr;
+    SLPParsedSrvUrl*            parsedurl       = NULL;
+    int                         result          = 0;
+    SLPDatabaseHandle           dh              = NULL;
 
     dh = SLPDatabaseOpen(&G_SlpdKnownDAs);
     if ( dh == NULL )
@@ -696,7 +701,7 @@ int SLPDKnownDAAdd(SLPMessage msg, SLPBuffer buf)
         result = SLP_ERROR_PARSE_ERROR;
         goto CLEANUP;
     }
-    if (SLPNetResolveHostToAddr(parsedurl->host,&daaddr))
+    if (SLPNetResolveHostToAddr(parsedurl->host,&daaddr)) ////// change to ipv6 compat
     {
         /* Unable to resolve the host in the DA advert to an address */
         xfree(parsedurl);
@@ -708,7 +713,7 @@ int SLPDKnownDAAdd(SLPMessage msg, SLPBuffer buf)
     /* set the peer address in the DAAdvert message so that it matches
      * the address the DA service URL resolves to 
      */
-    msg->peer.sin_addr = daaddr;
+    msg->peer = daaddr;
 
 
     /*-----------------------------------------------------*/
@@ -729,15 +734,24 @@ int SLPDKnownDAAdd(SLPMessage msg, SLPBuffer buf)
                               daadvert->url) == 0 )
         {
 
-#ifdef ENABLE_SLPv2_SECURITY                
-            if ( G_SlpdProperty.checkSourceAddr &&
-                 memcmp(&(entry->msg->peer.sin_addr),
-                        &(msg->peer.sin_addr),
-                        sizeof(struct in_addr)) )
+#ifdef ENABLE_SLPv2_SECURITY
+            if ( G_SlpdProperty.checkSourceAddr )
             {
-                SLPDatabaseClose(dh);
-                result = SLP_ERROR_AUTHENTICATION_FAILED;
-                goto CLEANUP;
+                if ( (entry->msg->peer.ss_family == AF_INET &&
+                      msg->peer.ss_family == AF_INET &&
+                      memcmp(&(((sockaddr_in) entry->msg->peer).sin_addr),
+                             &(((sockaddr_in) msg->peer).sin_addr),
+                             sizeof(struct in_addr))) ||
+                     (entry->msg->peer.ss_family == AF_INET6 &&
+                      msg->peer.ss_family == AF_INET6 &&
+                      memcmp(&(((sockaddr_in6) entry->msg->peer).sin6_addr),
+                             &(((sockaddr_in6) msg->peer).sin6_addr),
+                             sizeof(struct in6_addr))) )
+                {
+                    SLPDatabaseClose(dh);
+                    result = SLP_ERROR_AUTHENTICATION_FAILED;
+                    goto CLEANUP;
+                }
             }
 
             /* make sure an unauthenticated DAAdvert can't replace */
@@ -838,7 +852,7 @@ int SLPDKnownDAAdd(SLPMessage msg, SLPBuffer buf)
 }
 
 /*=========================================================================*/
-void SLPDKnownDARemove(struct in_addr* addr)
+void SLPDKnownDARemove(struct sockaddr_storage* addr)
 /* Removes known DAs that sent DAAdverts from the specified in_addr        */
 /*=========================================================================*/
 {
@@ -857,7 +871,7 @@ void SLPDKnownDARemove(struct in_addr* addr)
             if ( entry == NULL ) break;
 
             /* Assume DAs are identical if their peer match */
-            if ( memcmp(addr,&(entry->msg->peer.sin_addr),sizeof(*addr)) == 0 )
+            if ( memcmp(addr,&(entry->msg->peer),sizeof(*addr)) == 0 )
             {
                 SLPDatabaseRemove(dh,entry);
                 SLPDLogDAAdvertisement("Removal",entry);
@@ -1280,7 +1294,7 @@ void SLPDKnownDAEcho(SLPMessage msg, SLPBuffer buf)
 
     /* Do not echo registrations if we are a DA unless they were made  */
     /* local through the API!                                          */
-    if ( G_SlpdProperty.isDA && !ISLOCAL(msg->peer.sin_addr) )
+    if ( G_SlpdProperty.isDA && !SLPNetIsLocal(&(msg->peer)) )
     {
         return;
     }
@@ -1337,7 +1351,7 @@ void SLPDKnownDAEcho(SLPMessage msg, SLPBuffer buf)
                     /*------------------------------------------*/
                     /* Load the socket with the message to send */
                     /*------------------------------------------*/
-                    sock = SLPDOutgoingConnect(&(entry->msg->peer.sin_addr));
+                    sock = SLPDOutgoingConnect(&(entry->msg->peer));
                     if ( sock )
                     {
                         dup = SLPBufferDup(buf);
@@ -1371,8 +1385,8 @@ void SLPDKnownDAActiveDiscovery(int seconds)
 /* Returns:  none                                                          */
 /*=========================================================================*/
 {
-    struct in_addr  peeraddr;
-    SLPDSocket*     sock;
+    struct sockaddr_storage peeraddr;
+    SLPDSocket*             sock;
 
     /* Check to see if we should perform active DA detection */
     if ( G_SlpdProperty.DAActiveDiscoveryInterval == 0 )
@@ -1408,12 +1422,16 @@ void SLPDKnownDAActiveDiscovery(int seconds)
         /*--------------------------------------------------*/
         if ( G_SlpdProperty.isBroadcastOnly == 0 )
         {
-            peeraddr.s_addr = htonl(SLP_MCAST_ADDRESS);
+            //// will need to be done for ipv6 too
+            peeraddr.ss_family = AF_INET;
+            ((struct sockaddr_in*) &peeraddr)->sin_addr.s_addr = htonl(SLP_MCAST_ADDRESS);
             sock = SLPDSocketCreateDatagram(&peeraddr,DATAGRAM_MULTICAST);
         }
         else
         {
-            peeraddr.s_addr = htonl(SLP_BCAST_ADDRESS);
+            //// will need to be done for ipv6 too
+            peeraddr.ss_family = AF_INET;
+            ((struct sockaddr_in*) &peeraddr)->sin_addr.s_addr = htonl(SLP_BCAST_ADDRESS);
             sock = SLPDSocketCreateDatagram(&peeraddr,DATAGRAM_BROADCAST);
         }
 
@@ -1447,10 +1465,10 @@ void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead)
 /* Returns:  none                                                          */
 /*=========================================================================*/
 {
-    struct in_addr  peeraddr;
-    SLPDSocket*     sock;
+    struct sockaddr_storage peeraddr;
+    SLPDSocket*             sock;
 #ifdef ENABLE_SLPv1
-    SLPDSocket*     v1sock;
+    SLPDSocket*             v1sock;
 #endif
 
 
@@ -1475,13 +1493,16 @@ void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead)
         /*--------------------------------------------------*/
         if ( G_SlpdProperty.isBroadcastOnly == 0 )
         {
-            peeraddr.s_addr = htonl(SLP_MCAST_ADDRESS);
+            //// this will need to be done for ipv6 too
+            peeraddr.ss_family = AF_INET;
+            ((struct sockaddr_in*) &peeraddr)->sin_addr.s_addr = htonl(SLP_MCAST_ADDRESS);
             sock = SLPDSocketCreateDatagram(&peeraddr,DATAGRAM_MULTICAST);
 
 #ifdef ENABLE_SLPv1
             if ( !dadead )
             {
-                peeraddr.s_addr = htonl(SLPv1_DA_MCAST_ADDRESS);
+                peeraddr.ss_family = AF_INET;
+                ((struct sockaddr_in*) &peeraddr)->sin_addr.s_addr = htonl(SLPv1_DA_MCAST_ADDRESS);
                 v1sock = SLPDSocketCreateDatagram(&peeraddr,
                                                   DATAGRAM_MULTICAST);
             }
@@ -1493,7 +1514,8 @@ void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead)
         }
         else
         {
-            peeraddr.s_addr = htonl(SLP_BCAST_ADDRESS);
+            peeraddr.ss_family = AF_INET;
+            ((struct sockaddr_in*) &peeraddr)->sin_addr.s_addr = htonl(SLP_BCAST_ADDRESS);
             sock = SLPDSocketCreateDatagram(&peeraddr,DATAGRAM_BROADCAST);
 
 #ifdef ENABLE_SLPv1

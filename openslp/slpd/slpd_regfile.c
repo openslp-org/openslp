@@ -155,20 +155,20 @@ int SLPDRegFileReadSrvReg(FILE* fd,
     char*   slider2;
     char    line[4096];
     
-    struct  sockaddr_in     peer;
-    int     result          = 0;
-    int     bufsize         = 0;
-    int     langtaglen      = 0;
-    char*   langtag         = 0;
-    int     scopelistlen    = 0;
-    char*   scopelist       = 0;
-    int     urllen          = 0;
-    char*   url             = 0;
-    int     lifetime        = 0;
-    int     srvtypelen      = 0;
-    char*   srvtype         = 0;
-    int     attrlistlen     = 0;
-    char*   attrlist        = 0;
+    struct  sockaddr_storage    peer;
+    int     result              = 0;
+    int     bufsize             = 0;
+    int     langtaglen          = 0;
+    char*   langtag             = 0;
+    int     scopelistlen        = 0;
+    char*   scopelist           = 0;
+    int     urllen              = 0;
+    char*   url                 = 0;
+    int     lifetime            = 0;
+    int     srvtypelen          = 0;
+    char*   srvtype             = 0;
+    int     attrlistlen         = 0;
+    char*   attrlist            = 0;
 #ifdef ENABLE_SLPv2_SECURITY
     unsigned char*  urlauth         = 0;
     int             urlauthlen      = 0;
@@ -551,8 +551,10 @@ int SLPDRegFileReadSrvReg(FILE* fd,
         result = SLP_ERROR_INTERNAL_ERROR;
         goto CLEANUP;
     }
-    peer.sin_addr.s_addr = htonl(LOOPBACK_ADDRESS);
-    result = SLPMessageParseBuffer(&peer,*buf,*msg);
+    //// this may need to be done for ipv6 too
+    peer.ss_family = AF_INET;
+    ((struct sockaddr_in*) &peer)->sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    result = SLPMessageParseBuffer((struct sockaddr_storage*) &peer,*buf,*msg);
     (*msg)->body.srvreg.source = SLP_REG_SOURCE_STATIC;
     
     

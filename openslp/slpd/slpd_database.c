@@ -68,6 +68,7 @@
 #include "slp_compare.h"
 #include "slp_xmalloc.h"
 #include "slp_pid.h"
+#include "slp_net.h"
 
 
 /*=========================================================================*/
@@ -201,13 +202,22 @@ int SLPDDatabaseReg(SLPMessage msg, SLPBuffer buf)
 
                     /* Check to ensure the source addr is the same */
                     /* as the original */
-                    if ( G_SlpdProperty.checkSourceAddr &&
-                         memcmp(&(entry->msg->peer.sin_addr),
-                                &(msg->peer.sin_addr),
-                                sizeof(struct in_addr)) )
+                    if ( G_SlpdProperty.checkSourceAddr )
                     {
-                        SLPDatabaseClose(dh);
-                        return SLP_ERROR_AUTHENTICATION_FAILED;
+                        if ( (entry->msg->peer.ss_family == AF_INET &&
+                              msg->peer.ss_family == AF_INET &&
+                              memcmp(&(((struct sockaddr_in*) &(entry->msg->peer))->sin_addr),
+                                     &(((struct sockaddr_in*) &(msg->peer))->sin_addr),
+                                     sizeof(struct in_addr))) ||
+                             (entry->msg->peer.ss_family == AF_INET6 &&
+                              msg->peer.ss_family == AF_INET6 &&
+                              memcmp(&(((struct sockaddr_in6*) &(entry->msg->peer))->sin6_addr),
+                                     &(((struct sockaddr_in6*) &(msg->peer))->sin6_addr),
+                                     sizeof(struct in6_addr))) )
+                        {
+                            SLPDatabaseClose(dh);
+                            return SLP_ERROR_AUTHENTICATION_FAILED;
+                        }
                     }
 
 #ifdef ENABLE_SLPv2_SECURITY
@@ -234,7 +244,7 @@ int SLPDDatabaseReg(SLPMessage msg, SLPBuffer buf)
             /* set the source (allows for quicker aging ) */
             if ( msg->body.srvreg.source == SLP_REG_SOURCE_UNKNOWN )
             {
-                if ( ISLOCAL(msg->peer.sin_addr) )
+                if ( SLPNetIsLocal(&(msg->peer)) )
                 {
                     msg->body.srvreg.source = SLP_REG_SOURCE_LOCAL; 
                 }
@@ -311,13 +321,22 @@ int SLPDDatabaseDeReg(SLPMessage msg)
 
                     /* Check to ensure the source addr is the same as */
                     /* the original */
-                    if ( G_SlpdProperty.checkSourceAddr &&
-                         memcmp(&(entry->msg->peer.sin_addr),
-                                &(msg->peer.sin_addr),
-                                sizeof(struct in_addr)) )
+                    if ( G_SlpdProperty.checkSourceAddr )
                     {
-                        SLPDatabaseClose(dh);
-                        return SLP_ERROR_AUTHENTICATION_FAILED;
+                        if ( (entry->msg->peer.ss_family == AF_INET &&
+                              msg->peer.ss_family == AF_INET &&
+                              memcmp(&(((struct sockaddr_in*) &(entry->msg->peer))->sin_addr),
+                                     &(((struct sockaddr_in*) &(msg->peer))->sin_addr),
+                                     sizeof(struct in_addr))) ||
+                             (entry->msg->peer.ss_family == AF_INET6 &&
+                              msg->peer.ss_family == AF_INET6 &&
+                              memcmp(&(((struct sockaddr_in6*) &(entry->msg->peer))->sin6_addr),
+                                     &(((struct sockaddr_in6*) &(msg->peer))->sin6_addr),
+                                     sizeof(struct in6_addr))) )
+                        {
+                            SLPDatabaseClose(dh);
+                            return SLP_ERROR_AUTHENTICATION_FAILED;
+                        }
                     }
 
 #ifdef ENABLE_SLPv2_SECURITY

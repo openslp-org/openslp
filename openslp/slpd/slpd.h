@@ -55,6 +55,7 @@
 /*=========================================================================*/
 #ifdef _WIN32
 #include "slpd_win32.h"
+#include "slp_win32.h"
 #else
 #include "slpd_unistd.h"
 #endif

@@ -93,24 +93,24 @@ typedef struct _SLPDSocket
 /* Structure representing a socket                                         */
 /*=========================================================================*/
 {
-    SLPListItem         listitem;    
-    int                 fd;
-    time_t              age;    /* in seconds */
-    int                 state;
-    struct sockaddr_in  peeraddr;
+    SLPListItem             listitem;    
+    int                     fd;
+    time_t                  age;    /* in seconds */
+    int                     state;
+    struct sockaddr_storage peeraddr;
 
     /* Incoming socket stuff */
-    SLPBuffer           recvbuf;
-    SLPBuffer           sendbuf;
+    SLPBuffer               recvbuf;
+    SLPBuffer               sendbuf;
 
     /* Outgoing socket stuff */
-    int                 reconns;
-    SLPList             sendlist;
+    int                     reconns;
+    SLPList                 sendlist;
 }SLPDSocket;
 
 
 /*==========================================================================*/
-SLPDSocket* SLPDSocketCreateConnected(struct in_addr* addr);
+SLPDSocket* SLPDSocketCreateConnected(struct sockaddr_storage* addr);
 /*                                                                          */
 /* addr - (IN) the address of the peer to connect to                        */
 /*                                                                          */
@@ -122,7 +122,7 @@ SLPDSocket* SLPDSocketCreateConnected(struct in_addr* addr);
 
 
 /*==========================================================================*/
-SLPDSocket* SLPDSocketCreateListen(struct in_addr* peeraddr);
+SLPDSocket* SLPDSocketCreateListen(struct sockaddr_storage* peeraddr);
 /*                                                                          */
 /* peeraddr - (IN) the address of the peer to connect to                    */
 /*                                                                          */
@@ -134,7 +134,7 @@ SLPDSocket* SLPDSocketCreateListen(struct in_addr* peeraddr);
 
 
 /*==========================================================================*/
-SLPDSocket* SLPDSocketCreateDatagram(struct in_addr* peeraddr, int type); 
+SLPDSocket* SLPDSocketCreateDatagram(struct sockaddr_storage* peeraddr, int type); 
 /* peeraddr - (IN) the address of the peer to connect to                    */
 /*                                                                          */
 /* type - (IN) the type of socket to create DATAGRAM_UNICAST,               */
@@ -145,8 +145,8 @@ SLPDSocket* SLPDSocketCreateDatagram(struct in_addr* peeraddr, int type);
 
 
 /*==========================================================================*/
-SLPDSocket* SLPDSocketCreateBoundDatagram(struct in_addr* myaddr,
-                                          struct in_addr* peeraddr,
+SLPDSocket* SLPDSocketCreateBoundDatagram(struct sockaddr_storage* myaddr,
+                                          struct sockaddr_storage* peeraddr,
                                           int type);                                                                          
 /* myaddr - (IN) the address of the interface to join mcast on              */
 /*                                                                          */

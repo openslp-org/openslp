@@ -90,7 +90,7 @@ int SLPDKnownDAAdd(SLPMessage msg, SLPBuffer buf);
 
 
 /*=========================================================================*/
-void SLPDKnownDARemove(struct in_addr* addr);
+void SLPDKnownDARemove(struct sockaddr_storage* addr);
 /* Removes known DAs that sent DAAdverts from the specified in_addr        */
 /*=========================================================================*/
 

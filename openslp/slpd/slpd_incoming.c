@@ -63,6 +63,7 @@
 /*=========================================================================*/
 #include "slp_xmalloc.h"
 #include "slp_message.h"
+#include "slp_net.h"
 
 
 /*=========================================================================*/
@@ -77,13 +78,14 @@ void IncomingDatagramRead(SLPList* socklist, SLPDSocket* sock)
     int                 bytesread;
     int                 bytestowrite;
     int                 byteswritten;
-    int                 peeraddrlen = sizeof(struct sockaddr_in);
+    int                 peeraddrlen = sizeof(struct sockaddr_storage);
+    char                addr_str[INET6_ADDRSTRLEN];
 
     bytesread = recvfrom(sock->fd,
                          sock->recvbuf->start,
                          SLP_MAX_DATAGRAM_SIZE,
                          0,
-                         (struct sockaddr *) &(sock->peeraddr),
+                         (struct sockaddr*) &(sock->peeraddr),
                          &peeraddrlen);
     if (bytesread > 0)
     {
@@ -106,13 +108,16 @@ void IncomingDatagramRead(SLPList* socklist, SLPDSocket* sock)
                                       sock->sendbuf->start,
                                       bytestowrite,
                                       0,
-                                      (struct sockaddr *)&(sock->peeraddr),
-                                      sizeof(struct sockaddr_in));
+                                      (struct sockaddr*)&(sock->peeraddr),
+                                      sizeof(struct sockaddr_storage));
                 if (byteswritten != bytestowrite)
                 {
                     SLPDLog("NETWORK_ERROR - %d replying %s\n",
                             errno,
-                            inet_ntoa(sock->peeraddr.sin_addr));
+                            inet_ntop(sock->peeraddr.ss_family,
+                                      &(sock->peeraddr),
+                                      addr_str,
+                                      sizeof(addr_str)));
                 }
             }
         }
@@ -176,7 +181,7 @@ void IncomingStreamRead(SLPList* socklist, SLPDSocket* sock)
 {
     int     bytesread, recvlen = 0;
     char    peek[16];
-    int     peeraddrlen = sizeof(struct sockaddr_in);
+    int     peeraddrlen = sizeof(struct sockaddr_storage);
 
     if (sock->state == STREAM_READ_FIRST)
     {
@@ -187,7 +192,7 @@ void IncomingStreamRead(SLPList* socklist, SLPDSocket* sock)
                              peek,
                              16,
                              MSG_PEEK,
-                             (struct sockaddr *)&(sock->peeraddr),
+                             (struct sockaddr*) &(sock->peeraddr),
                              &peeraddrlen);
         if (bytesread > 0)
         {
@@ -260,15 +265,15 @@ void IncomingStreamRead(SLPList* socklist, SLPDSocket* sock)
 void IncomingSocketListen(SLPList* socklist, SLPDSocket* sock)
 /*-------------------------------------------------------------------------*/
 {
-    int                 fdflags;
-    sockfd_t            fd;
-    SLPDSocket*         connsock;
-    struct sockaddr_in  peeraddr;
-    socklen_t           peeraddrlen;
+    int                     fdflags;
+    sockfd_t                fd;
+    SLPDSocket*             connsock;
+    struct sockaddr_storage peeraddr;
+    socklen_t               peeraddrlen;
 #ifdef _WIN32
-    const char   lowat = SLPD_SMALLEST_MESSAGE;
+    const char              lowat = SLPD_SMALLEST_MESSAGE;
 #else    
-    const int   lowat = SLPD_SMALLEST_MESSAGE;
+    const int               lowat = SLPD_SMALLEST_MESSAGE;
 #endif
 
 
@@ -278,7 +283,7 @@ void IncomingSocketListen(SLPList* socklist, SLPDSocket* sock)
     {
         peeraddrlen = sizeof(peeraddr);
         fd = accept(sock->fd,
-                    (struct sockaddr *) &peeraddr, 
+                    (struct sockaddr*) &peeraddr, 
                     &peeraddrlen);
         if (fd >= 0)
         {
@@ -428,15 +433,17 @@ int SLPDIncomingInit()
 /* Returns  Zero on success non-zero on error                              */
 /*=========================================================================*/
 {
-    char*           begin = NULL;
-    char*           beginSave = NULL;
-    char*           end = NULL;
-    int             finished;
-    struct in_addr  myaddr;
-    struct in_addr  mcastaddr;
-    struct in_addr  bcastaddr;
-    struct in_addr  loaddr;
-    SLPDSocket*     sock;
+    char*                   begin = NULL;
+    char*                   beginSave = NULL;
+    char*                   end = NULL;
+    int                     finished;
+    struct sockaddr_storage myaddr;
+    struct sockaddr_storage mcastaddr;
+    struct sockaddr_storage bcastaddr;
+    struct sockaddr_storage loaddr;
+    //// need these addresses for ipv6 too
+    SLPDSocket*             sock;
+    char                    addr_str[INET6_ADDRSTRLEN];
 
     /*------------------------------------------------------------*/
     /* First, remove all of the sockets that might be in the list */
@@ -450,13 +457,18 @@ int SLPDIncomingInit()
     /*--------------------------------------------------*/
     /* set up address to use for loopback and broadcast */
     /*--------------------------------------------------*/
-    loaddr.s_addr = htonl(LOOPBACK_ADDRESS);
-    bcastaddr.s_addr = htonl(SLP_BCAST_ADDRESS);
-    mcastaddr.s_addr = htonl(SLP_MCAST_ADDRESS);
+    //// need to do this for ipv6 too
+    loaddr.ss_family = AF_INET;
+    ((struct sockaddr_in*) &loaddr)->sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    bcastaddr.ss_family = AF_INET;
+    ((struct sockaddr_in*) &bcastaddr)->sin_addr.s_addr = htonl(INADDR_BROADCAST);
+    mcastaddr.ss_family = AF_INET;
+    ((struct sockaddr_in*) &mcastaddr)->sin_addr.s_addr = htonl(SLP_MCAST_ADDRESS);
 
     /*--------------------------------------------------------------------*/
     /* Create SOCKET_LISTEN socket for LOOPBACK for the library to talk to*/
     /*--------------------------------------------------------------------*/
+    //// needs to be done for ipv6 too
     sock = SLPDSocketCreateListen(&loaddr);
     if (sock)
     {
@@ -499,7 +511,9 @@ int SLPDIncomingInit()
         if (end <= begin) continue;    /* Skip empty entries */
 
         /* begin now points to a null terminated ip address string */
-        myaddr.s_addr = inet_addr(begin);
+        //// need to address the ipv6 case here
+        myaddr.ss_family = AF_INET;
+        ((struct sockaddr_in*) &myaddr)->sin_addr.s_addr = inet_addr(begin);
 
         /*------------------------------------------------*/
         /* Create TCP_LISTEN that will handle unicast TCP */
@@ -508,7 +522,7 @@ int SLPDIncomingInit()
         if (sock)
         {
             SLPListLinkTail(&G_IncomingSocketList,(SLPListItem*)sock);
-            SLPDLog("Listening on %s ...\n",inet_ntoa(myaddr));
+            SLPDLog("Listening on %s ...\n",inet_ntop(myaddr.ss_family, &myaddr, addr_str, sizeof(addr_str)));
         }
 
 
@@ -522,12 +536,12 @@ int SLPDIncomingInit()
         if (sock)
         {
             SLPListLinkTail(&G_IncomingSocketList,(SLPListItem*)sock);
-            SLPDLog("Multicast socket on %s ready\n",inet_ntoa(myaddr));
+            SLPDLog("Multicast socket on %s ready\n",inet_ntop(myaddr.ss_family, &myaddr, addr_str, sizeof(addr_str)));
         }
         else
         {
             SLPDLog("Couldn't bind to multicast for interface %s (%s)\n",
-                    inet_ntoa(myaddr), strerror(errno));
+                    inet_ntop(myaddr.ss_family, &myaddr, addr_str, sizeof(addr_str)), strerror(errno));
         }
 
 #if defined(ENABLE_SLPv1)
@@ -537,7 +551,9 @@ int SLPDIncomingInit()
             /* Create socket that will handle multicast UDP for SLPv1 DA  */
             /* Discovery.                                                 */
             /*------------------------------------------------------------*/
-            mcastaddr.s_addr = htonl(SLPv1_DA_MCAST_ADDRESS);
+            //// need to do this for ipv6 as well
+            mcastaddr.ss_family = AF_INET;
+            ((struct sockaddr_in*) &mcastaddr)->sin_addr.s_addr = htonl(SLPv1_DA_MCAST_ADDRESS);
             sock =  SLPDSocketCreateBoundDatagram(&myaddr,
                                                   &mcastaddr,
                                                   DATAGRAM_MULTICAST);
@@ -545,7 +561,7 @@ int SLPDIncomingInit()
             {
                 SLPListLinkTail(&G_IncomingSocketList,(SLPListItem*)sock);
                 SLPDLog("SLPv1 DA Discovery Multicast socket on %s ready\n",
-                        inet_ntoa(myaddr));
+                        inet_ntop(myaddr.ss_family, &myaddr, addr_str, sizeof(addr_str)));
             }
         }
 #endif
@@ -559,7 +575,7 @@ int SLPDIncomingInit()
         if (sock)
         {
             SLPListLinkTail(&G_IncomingSocketList,(SLPListItem*)sock);
-            SLPDLog("Unicast socket on %s ready\n",inet_ntoa(myaddr));
+            SLPDLog("Unicast socket on %s ready\n",inet_ntop(myaddr.ss_family, &myaddr, addr_str, sizeof(addr_str)));
         }
     }     
 
@@ -575,7 +591,7 @@ int SLPDIncomingInit()
     if (sock)
     {
         SLPListLinkTail(&G_IncomingSocketList,(SLPListItem*)sock);
-        SLPDLog("Broadcast socket for %s ready\n", inet_ntoa(bcastaddr));
+        SLPDLog("Broadcast socket for %s ready\n", inet_ntop(bcastaddr.ss_family, &bcastaddr, addr_str, sizeof(addr_str)));
     }
 
     if (G_IncomingSocketList.count == 0)
