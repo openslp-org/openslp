@@ -1,13 +1,15 @@
-noinst_LTLIBRARIES	= libslpattr.la 
+
+EXTRA_DIST = libslpattr.dsp libslpattr.dsw libslpattr.mak
+
+noinst_LTLIBRARIES	= libslpattr.la  
 
 if USE_PREDICATES
-PREDICATE_SRCS = libslpattr.c
+PREDICATE_SRCS = libslpattr.c 
 else
 PREDICATE_SRCS = libslpattr_tiny.c
 endif
 
+EXTRA_libslpattr_la_SOURCES = libslpattr.c libslpattr_tiny.c
+libslpattr_la_SOURCES = $(PREDICATE_SRCS) libslpattr_internal.h
 
-libslpattr_la_SOURCES = $(PREDICATE_SRCS)
-
-noinst_HEADERS = \
-	libslpattr.h
+noinst_HEADERS = libslpattr.h 

@@ -1,3 +1,5 @@
+EXTRA_DIST = slp_debug.h 
+
 TESTS = SLPOpen/test.script SLPFindSrvTypes/test.script  \
         SLPFindSrvs/test.script SLPReg/test.script       \
         SLPDereg/test.script SLPFindAttrs/test.script    \
@@ -16,8 +18,8 @@ noinst_PROGRAMS = slpdereg slpescape slpfindattrs slpfindsrvtypes \
 LDADD = ../libslp/libslp.la ../libslpattr/libslpattr.la
 slpd_predicate_test_LDADD = $(LDADD) ../slpd/slpd_predicate.o ../common/libcommonslpd.la
 
-# Automake 1.4 doesn't allow subdirectory dependencies :-(, VPATH is a kludge 
-# to get around that. It's either this or a makefile for each test.
+# Automake 1.4 doesn't allow subdirectory dependencies :-(, VPATH is a 
+# kludge to get around that. It's either this or a makefile for each test.
 
 VPATH = $(srcdir):$(srcdir)/SLPDereg:$(srcdir)/SLPEscape:$(srcdir)/SLPFindAttrs:$(srcdir)/SLPFindSrvTypes:$(srcdir)/SLPFindSrvs:$(srcdir)/SLPOpen:$(srcdir)/SLPParseSrvURL:$(srcdir)/SLPReg:$(srcdir)/SLPUnescape:$(srcdir)/SLP_attr_test:$(srcdir)/SLPD_predicate_test
 
@@ -33,7 +35,6 @@ slpreg_SOURCES = SLPReg.c
 slpunescape_SOURCES = SLPUnescape.c
 slp_attr_test_SOURCES = slp_attr_test.c
 slpd_predicate_test_SOURCES = slpd_predicate_test.c
-
 
 # Remove all lines from VPATH (inclusive) to this line and uncomment
 # the following lines when Automake 1.5 is released
@@ -51,3 +52,12 @@ slpd_predicate_test_SOURCES = slpd_predicate_test.c
 
 clean-local:
 	-rm -f *.output
+
+dist-hook:
+	# We have to manually copy files in the VPATH directories. 
+	@for d in `echo $(VPATH) | sed 's/:/ /g'`; do             \
+            if test $$d != $(srcdir); then                        \
+                cp -pr $$d $(distdir)/`basename $$d`;             \
+            fi;                                                   \
+        done;                                                      \
+	rm -rf `find $(distdir) -name CVS`

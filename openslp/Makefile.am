@@ -4,6 +4,7 @@
 #
 
 SUBDIRS	= common libslpattr slpd libslp test 
+EXTRA_DIST = doc etc OpenSlp.dsp OpenSlp.dsw README.W32 
 DOC_DIR = $(prefix)/doc/openslp-$(VERSION)
 
 install-data-local:
@@ -21,3 +22,7 @@ install-data-local:
 	cp $(srcdir)/doc/html/IntroductionToSLP/*.html $(DESTDIR)$(DOC_DIR)/IntroductionToSLP
 	cp $(srcdir)/doc/html/UsersGuide/*.html $(srcdir)/doc/html/UsersGuide/*.jpg $(DESTDIR)$(DOC_DIR)/UsersGuide
 	cp $(srcdir)/doc/html/ProgrammersGuide/*.html $(srcdir)/doc/html/ProgrammersGuide/*.jpg  $(DESTDIR)$(DOC_DIR)/ProgrammersGuide
+
+dist-hook:
+	rm -rf `find $(distdir)/doc -name CVS`
+	rm -rf `find $(distdir)/etc -name CVS`
