@@ -28,12 +28,12 @@ enterprise networks.
 ./configure --disable-predicates
 make
 cd ../slptool-%{Version}
-LIBDIR=../openslp-%{Version}/libslp/.lib make
+make LIBS=../openslp-%{Version}/libslp/.libs INCS=../openslp-%{Version}/libslp
 
 
 %Install
 %{mkDESTDIR}
-make install 
+make install DOC_DIR=$DESTDIR/%{_defaultdocdir}/openslp-%{Version}
 mkdir -p $DESTDIR/etc/rc.d/init.d
 install -m 755 etc/slpd.caldera_init $DESTDIR%{SVIdir}/slpd
 mkdir -p $DESTDIR/usr/bin
