@@ -100,7 +100,7 @@ SLPDDatabaseEntry* SLPDRegFileReadEntry(FILE* fd, SLPDDatabaseEntry** entry)
 /*                a dynamically allocated SLPDDatabase entry.  The entry   */
 /*                must be freed                                            */
 /*                                                                         */
-/* Returns  *entry or null on SLPD_ERROR.                                       */
+/* Returns  *entry or null on error.                                       */
 /*=========================================================================*/
 {
     char*   slider1;
@@ -145,7 +145,7 @@ SLPDDatabaseEntry* SLPDRegFileReadEntry(FILE* fd, SLPDDatabaseEntry** entry)
         if((*entry)->url == 0)
         {
             SLPLog("Out of memory reading srvurl from regfile line ->%s",line);
-            goto SLPD_ERROR;
+            goto ERROR;
         }
         (*entry)->urllen = strlen((*entry)->url);
         
@@ -154,7 +154,7 @@ SLPDDatabaseEntry* SLPDRegFileReadEntry(FILE* fd, SLPDDatabaseEntry** entry)
         if((*entry)->srvtype == 0)
         {
             SLPLog("Looks like a bad url on regfile line ->%s",line);
-            goto SLPD_ERROR;   
+            goto ERROR;   
         }
         *(*entry)->srvtype = 0;
         (*entry)->srvtype=strdup(TrimWhitespace(slider1));
@@ -170,14 +170,14 @@ SLPDDatabaseEntry* SLPDRegFileReadEntry(FILE* fd, SLPDDatabaseEntry** entry)
             if((*entry)->langtag == 0)
             {
                 SLPLog("Out of memory reading langtag from regfile line ->%s",line);
-                goto SLPD_ERROR;
+                goto ERROR;
             }            (*entry)->langtaglen = strlen((*entry)->langtag);     
             slider1 = slider2 + 1;                                  
         }
         else
         {
             SLPLog("Expected language tag near regfile line ->%s\n",line);
-            goto SLPD_ERROR;
+            goto ERROR;
         }
              
         /* ltime */
@@ -196,7 +196,7 @@ SLPDDatabaseEntry* SLPDRegFileReadEntry(FILE* fd, SLPDDatabaseEntry** entry)
         if((*entry)->lifetime < 1 || (*entry)->lifetime > 0xffff)
         {
             SLPLog("Invalid lifetime near regfile line ->%s\n",line);
-            goto SLPD_ERROR;
+            goto ERROR;
         }
         
         /* get the srvtype if one was not derived by the srvurl*/
@@ -206,13 +206,13 @@ SLPDDatabaseEntry* SLPDRegFileReadEntry(FILE* fd, SLPDDatabaseEntry** entry)
             if((*entry)->srvtype == 0)
             {
                 SLPLog("Out of memory reading srvtype from regfile line ->%s",line);
-                goto SLPD_ERROR;
+                goto ERROR;
             }
             (*entry)->srvtypelen = strlen((*entry)->srvtype);
             if((*entry)->srvtypelen == 0)
             {
                 SLPLog("Expected to derive service-type near regfile line -> %s\n",line);
-                goto SLPD_ERROR;
+                goto ERROR;
             }
         }   
 
@@ -220,7 +220,7 @@ SLPDDatabaseEntry* SLPDRegFileReadEntry(FILE* fd, SLPDDatabaseEntry** entry)
     else
     {
         SLPLog("Expected to find srv-url near regfile line -> %s\n",line);
-        goto SLPD_ERROR;
+        goto ERROR;
     }
     
     /*-------------------------------------------------*/
@@ -257,14 +257,14 @@ SLPDDatabaseEntry* SLPDRegFileReadEntry(FILE* fd, SLPDDatabaseEntry** entry)
                     if((*entry)->scopelist)
                     {
                         SLPLog("scopes already defined previous to regfile line ->%s",line);
-                        goto SLPD_ERROR;
+                        goto ERROR;
                     }
 
                     (*entry)->scopelist=strdup(TrimWhitespace(slider2));
                     if((*entry)->scopelist == 0)
                     {
                         SLPLog("Out of memory adding scopes from regfile line ->%s",line);
-                        goto SLPD_ERROR;
+                        goto ERROR;
                     }
                     (*entry)->scopelistlen = strlen((*entry)->scopelist);
                 }
@@ -272,7 +272,8 @@ SLPDDatabaseEntry* SLPDRegFileReadEntry(FILE* fd, SLPDDatabaseEntry** entry)
         }
         else
         {
-			char *tag; /* Will point to the start of the tag. */
+            #ifdef USE_PREDICATES
+            char *tag; /* Will point to the start of the tag. */
 			char *val; /* Will point to the start of the value. */
 			char *end;
 			char *tag_end;
@@ -315,10 +316,38 @@ SLPDDatabaseEntry* SLPDRegFileReadEntry(FILE* fd, SLPDDatabaseEntry** entry)
 			while(isspace(*end)) {
 				*end = 0; /* Overwrite ws. */
 				end--;
-			}
-
-			#ifdef USE_PREDICATES
+			}           
+			
             SLPAttrSet_guess((*entry)->attr, tag, val, SLP_ADD);
+
+            #else
+            
+            /* line contains an attribute (slow but it works)*/
+            /* TODO Fix this so we do not have to realloc memory each time! */
+            TrimWhitespace(line); 
+            (*entry)->attrlistlen += strlen(line) + 2;
+            
+            if((*entry)->attrlist == 0)
+            {
+                (*entry)->attrlist = malloc((*entry)->attrlistlen + 1);
+                *(*entry)->attrlist = 0;
+            }
+            else
+            {
+                (*entry)->attrlist = realloc((*entry)->attrlist,
+                                             (*entry)->attrlistlen + 1);
+            }
+            
+            if((*entry)->attrlist == 0)
+            {
+                SLPLog("Out of memory adding DEFAULT scope\n");
+                goto ERROR;
+            }
+
+            strcat((*entry)->attrlist,"(");
+            strcat((*entry)->attrlist,line);
+            strcat((*entry)->attrlist,")");
+
             #endif
         }
     }
@@ -330,23 +359,17 @@ SLPDDatabaseEntry* SLPDRegFileReadEntry(FILE* fd, SLPDDatabaseEntry** entry)
         if((*entry)->scopelist == 0)
         {
             SLPLog("Out of memory adding DEFAULT scope\n");
-            goto SLPD_ERROR;
+            goto ERROR;
         }
         (*entry)->scopelistlen = 7;
     }
 
     return *entry;
 
-SLPD_ERROR:
+ERROR:
     if(*entry)
     {
-//        if((*entry)->srvtype) free((*entry)->srvtype);
-//        if((*entry)->url) free((*entry)->url);
-//        if((*entry)->langtag) free((*entry)->langtag);
-//        if((*entry)->scopelist) free((*entry)->scopelist);
-//        if((*entry)->attrlist) free((*entry)->attrlist);
-//        free(*entry);
-		FreeEntry(*entry);
+        FreeEntry(*entry);
 		*entry = 0;
     }
 
