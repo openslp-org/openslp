@@ -6,6 +6,13 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 
+*** TAG OpenSLP-1.1.4 ***
+07/15/2003 smhatre@cisco.com
+Support for SLP queries on multiple network interfaces from
+asigupta@cisco.com
+Support for SLP query through a unicast from
+smhatre@cisco.com
+
 *** TAG OpenSLP-1.1.3 ***
 
 02/12/03 matt@sco.com
