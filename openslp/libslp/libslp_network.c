@@ -203,29 +203,25 @@ SLPError NetworkRqstRply(int sock,
         /* send a SRVRQST                                             */
         buftype = SLP_FUNCT_SRVRQST;
     }
+     
+    /* Figure unicast/multicast,TCP/UDP, wait and time out stuff */
+    if(ntohl(destaddr->sin_addr.s_addr) > 0xe0000000)
+    {
+        maxwait = SLPPropertyAsInteger(SLPGetProperty("net.slp.multicastMaximumWait"));
+        SLPPropertyAsIntegerVector(SLPGetProperty("net.slp.multicastTimeouts"), 
+                                   timeouts, 
+                                   MAX_RETRANSMITS );
+        socktype = SOCK_DGRAM;
+    }
     else
     {
-        /* Figure unicast/multicast,TCP/UDP, wait and time out stuff */
-        if(ntohl(destaddr->sin_addr.s_addr) > 0xe0000000)
-        {
-            maxwait = SLPPropertyAsInteger(SLPGetProperty("net.slp.multicastMaximumWait"));
-            SLPPropertyAsIntegerVector(SLPGetProperty("net.slp.multicastTimeouts"), 
-                                       timeouts, 
-                                       MAX_RETRANSMITS );
-            socktype = SOCK_DGRAM;
-        }
-        else
-        {
-            maxwait = SLPPropertyAsInteger(SLPGetProperty("net.slp.unicastMaximumWait"));
-            SLPPropertyAsIntegerVector(SLPGetProperty("net.slp.unicastTimeouts"), 
-                                       timeouts, 
-                                       MAX_RETRANSMITS );
-            size = sizeof(socktype);
-            getsockopt(sock,SOL_SOCKET,SO_TYPE,&socktype,&size);
-        }
+        maxwait = SLPPropertyAsInteger(SLPGetProperty("net.slp.unicastMaximumWait"));
+        SLPPropertyAsIntegerVector(SLPGetProperty("net.slp.unicastTimeouts"), 
+                                   timeouts, 
+                                   MAX_RETRANSMITS );
+        size = sizeof(socktype);
+        getsockopt(sock,SOL_SOCKET,SO_TYPE,&socktype,&size);
     }
-    
-    
     
     /*--------------------------------*/
     /* Allocate memory for the prlist */
