@@ -32,13 +32,13 @@
 /***************************************************************************/
 
 #include "slpd.h"
+#include <grp.h>
 
 /*==========================================================================*/
 int G_SIGALRM   = 0;
 int G_SIGTERM   = 0;
 int G_SIGHUP    = 0;
-/*==========================================================================*/                                                       
-                                                       
+/*==========================================================================*/                                                                                                 
 
 /*--------------------------------------------------------------------------*/
 void SignalHandler(int signum)
@@ -77,7 +77,9 @@ int SetUpSignalHandlers()
     result = sigaction(SIGALRM,&sa,0);
     result |= sigaction(SIGTERM,&sa,0);
     result |= sigaction(SIGPIPE,&sa,0);
-    result |= sigaction(SIGHUP,&sa,0);
+    
+    signal(SIGHUP,SignalHandler);
+    //result |= sigaction(SIGHUP,&sa,0);
 
     return result;
 }
@@ -95,11 +97,11 @@ int Daemonize(const char* pidfile)
     FILE*   fd;
     struct  passwd* pwent;
     char    pidstr[13];
-
-    #if(defined PARANOID)
-    struct  passwd* p;
-    #endif
-
+    
+#if(0)
+    /*-------------------------------------------*/
+    /* Release the controlling tty and std files */
+    /*-------------------------------------------*/
     switch(fork())
     {
     case -1:
@@ -112,17 +114,12 @@ int Daemonize(const char* pidfile)
         /* parent dies */
         exit(0);
     }
-    
-    /*-------------------------------------------*/
-    /* Release the controlling tty and std files */
-    /*-------------------------------------------*/
-    close(0); dup2(fd, 0);
-    close(1); dup2(fd, 1);
-    close(2); dup2(fd, 2);
-    if( setsid() < 0 )
-    {
-        return -1;
-    }
+
+    close(0); 
+    close(1); 
+    close(2); 
+    setsid(); /* will only fail if we are already the process group leader */
+#endif    
     
 
     /*------------------------------------------*/
@@ -137,9 +134,10 @@ int Daemonize(const char* pidfile)
         pid = atoi(pidstr);
         if(pid)
         {
-            if(kill(pid,SIGWINCH) == 0)
+            if(kill(pid,0) == 0)
             {
                 /* we are already running */
+                SLPError("slpd daemon is already running\n");
                 return -1;
             }
         }    
@@ -156,18 +154,20 @@ int Daemonize(const char* pidfile)
     /*----------------*/
     /* suid to daemon */
     /*----------------*/
-    /* TODO: why do the following lines mess up my signal handlers?
+    /* TODO: why do the following lines mess up my signal handlers? */
     pwent = getpwnam("daemon"); 
     if(pwent)
     {
-        chown(pidfile, pwent->pw_uid, pwent->pw_gid);
-        setgroups(1, &pwent->pw_gid);
-        setgid(pwent->pw_gid);
-        setuid(pwent->pw_uid);
+        if( setgroups(1, &pwent->pw_gid) < 0 ||
+            setgid(pwent->pw_gid) < 0 ||
+            setuid(pwent->pw_uid) < 0 )
+        {
+            SLPError("Could not setuid() to \"daemon\" user\n");
+            return -1;
+        }
     }
-    */  
     
-        return 0;
+    return 0;
 }
 
                   
@@ -487,9 +487,9 @@ int main(int argc, char* argv[])
     /*---------------------------*/
     if(Daemonize(G_SlpdCommandLine.pidfile))
     {
-        SLPFatal("Could not run as a daemon. slpd is probably already running\n");
+        SLPFatal("Could not run as daemon\n");
     }
-
+    
     /*-----------------------*/
     /* Setup signal handlers */ 
     /*-----------------------*/
@@ -503,6 +503,7 @@ int main(int argc, char* argv[])
     /*------------------------------*/
     alarm(SLPD_AGE_TIMEOUT);
 
+    
     /*-----------*/
     /* Main loop */
     /*-----------*/
@@ -634,11 +635,6 @@ int main(int argc, char* argv[])
     }
 
     SLPLog("Got SIGTERM.  Going down\n");
-
-    /*---------------------*/
-    /* remove the pid file */
-    /*---------------------*/
-    unlink(G_SlpdCommandLine.pidfile);
 
     return 0;
 }

@@ -349,14 +349,53 @@ SLPError AsyncProcessAttrRqst(PSLPHandleInfo handle)
 }
 
 
-/*========================================================================*/
+/*=========================================================================*/
 SLPError SLPFindAttrs(SLPHandle   hSLP,
                       const char *pcURLOrServiceType,
                       const char *pcScopeList,
                       const char *pcAttrIds,
                       SLPAttrCallback callback,
                       void *pvCookie)
-/*========================================================================*/
+/*                                                                         */
+/* This function returns service attributes matching the attribute ids     */
+/* for the indicated service URL or service type.  If pcURLOrServiceType   */
+/* is a service URL, the attribute information returned is for that        */
+/* particular advertisement in the language locale of the SLPHandle.       */
+/*                                                                         */
+/* If pcURLOrServiceType is a service type name (including naming          */
+/* authority if any), then the attributes for all advertisements of that   */
+/* service type are returned regardless of the language of registration.   */
+/* Results are returned through the callback.                              */
+/*                                                                         */
+/* The result is filtered with an SLP attribute request filter string      */
+/* parameter, the syntax of which is described in RFC 2608. If the filter  */
+/* string is the empty string, i.e.  "", all attributes are returned.      */
+/*                                                                         */
+/* hSLP                 The language specific SLPHandle on which to search */
+/*                      for attributes.                                    */
+/*                                                                         */
+/* pcURLOrServiceType   The service URL or service type.  See RFC 2608 for */
+/*                      URL and service type syntax.  May not be the empty */
+/*                      string.                                            */
+/*                                                                         */
+/* pcScopeList          A pointer to a char containing a comma separated   */
+/*                      list of scope names. Pass in NULL or the empty     */
+/*                      string "" to find services in all the scopes the   */
+/*                      local host is configured query.                    */
+/*                                                                         */
+/* pcAttrIds            A comma separated list of attribute ids to return. */
+/*                      Use NULL or the empty string, "", to indicate all  */
+/*                      values. Wildcards are not currently supported      */
+/*                                                                         */
+/* callback             A callback function through which the results of   */
+/*                      the operation are reported.                        */
+/*                                                                         */
+/* pvCookie             Memory passed to the callback code from the client.*/  
+/*                      May be NULL.                                       */
+/*                                                                         */
+/* Returns:             If an error occurs in starting the operation, one  */
+/*                      of the SLPError codes is returned.                 */
+/*=========================================================================*/
 {
     PSLPHandleInfo      handle;
     SLPError            result;
@@ -367,7 +406,6 @@ SLPError SLPFindAttrs(SLPHandle   hSLP,
     if( hSLP            == 0 ||
         pcURLOrServiceType  == 0 ||
         *pcURLOrServiceType  == 0 || 
-        pcScopeList     == 0 ||
         callback        == 0) 
     {
         return SLP_PARAMETER_BAD;
@@ -393,7 +431,7 @@ SLPError SLPFindAttrs(SLPHandle   hSLP,
     /*-------------------------------------------*/
     handle->params.findattrs.urllen   = strlen(pcURLOrServiceType);
     handle->params.findattrs.url      = pcURLOrServiceType;
-    if(*pcScopeList)
+    if(pcScopeList && *pcScopeList)
     {   
         handle->params.findattrs.scopelistlen = strlen(pcScopeList);
         handle->params.findattrs.scopelist    = pcScopeList;
@@ -403,8 +441,16 @@ SLPError SLPFindAttrs(SLPHandle   hSLP,
         handle->params.findattrs.scopelist    = SLPGetProperty("net.slp.useScopes");
         handle->params.findattrs.scopelistlen = strlen(handle->params.findattrs.scopelist);
     }
-    handle->params.findattrs.taglistlen = strlen(pcAttrIds);
-    handle->params.findattrs.taglist    = pcAttrIds;
+    if(pcScopeList && *pcScopeList)
+    {
+        handle->params.findattrs.taglistlen = strlen(pcAttrIds);
+        handle->params.findattrs.taglist    = pcAttrIds;
+    }
+    else
+    {
+        handle->params.findattrs.taglistlen = 0;
+        handle->params.findattrs.taglist    = (char*)&handle->params.findattrs.taglistlen;
+    }
     handle->params.findattrs.callback   = callback;
     handle->params.findattrs.cookie     = pvCookie; 
 

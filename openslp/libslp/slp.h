@@ -648,13 +648,13 @@ SLPError SLPFindAttrs(SLPHandle   hSLP,
 /*                      string.                                            */
 /*                                                                         */
 /* pcScopeList          A pointer to a char containing a comma separated   */
-/*                      list of scope names. Pass in the empty string ""   */
-/*                      to find services in all the scopes the local host  */
-/*                      is configured query.  May not be NULL              */
+/*                      list of scope names. Pass in NULL or the empty     */
+/*                      string "" to find services in all the scopes the   */
+/*                      local host is configured query.                    */
 /*                                                                         */
 /* pcAttrIds            A comma separated list of attribute ids to return. */
-/*                      Use empty string, "", to indicate all values.      */
-/*                      Wildcards are not currently supported              */
+/*                      Use NULL or the empty string, "", to indicate all  */
+/*                      values. Wildcards are not currently supported      */
 /*                                                                         */
 /* callback             A callback function through which the results of   */
 /*                      the operation are reported.                        */

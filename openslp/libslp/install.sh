@@ -8,7 +8,7 @@ if [ "$LIB" ]; then
       install slp.h /usr/include
       install ./$LIB /usr/lib
       cd /usr/lib
-      ln $LIB libslp.so
+      ln -f $LIB libslp.so
       ldconfig
       exit 0
    fi

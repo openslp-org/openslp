@@ -13,14 +13,16 @@ SLPFindAttrs</h2>
 <hr WIDTH="100%">
 <h3>
 Declaration</h3>
-<tt><a href="/SLPError.html">SLPError</a> SLPFindAttrs( <a href="/SLPTypes.html#SLPHandle">SLPHandle</a><a href="#hslp">hslp</a>,</tt>
+<tt><a href="/SLPError.html">SLPError</a> SLPFindAttrs( <a href="/SLPTypes.html#SLPHandle">SLPHandle</a>
+<a href="#hslp">hslp</a>,</tt>
 <br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 const char* srvurlorsrvtype,</tt>
 <br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 const char* <a href="#scopelist">scopelist</a>,</tt>
 <br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 const char* attrids,</tt>
-<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
 <a href="SLPAttrCallback.html">SLPAttrCallback</a> <a href="#callback">callback</a>,</tt>
 <br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 void* <a href="#cookie">cookie</a>)</tt>
@@ -47,23 +49,22 @@ for attributes the service.</td>
 
 <td NOSAVE>The service URL or service type to get the attibutes of.&nbsp;
 See <a href="Syntax.html#Service Type">Syntax</a> for more information
-service types and SLP Service URLs.&nbsp;&nbsp;</td>
+service types and SLP Service URLs.&nbsp;</td>
 </tr>
 
 <tr VALIGN=TOP NOSAVE>
 <td NOSAVE><a NAME="attrids"></a><tt>attrids</tt></td>
 
-<td>A comma separated list of attribute ids to return. Use the empty string
-("") for all attributes.&nbsp;&nbsp; Attribute ids may contain wildcard
-characters ('*')&nbsp;</td>
+<td>A comma separated list of attribute ids to return. Use NULL or the
+empty string ("") for all attributes.&nbsp;&nbsp; Attribute ids may contain
+wildcard characters ('*')&nbsp;</td>
 </tr>
 
 <tr VALIGN=TOP NOSAVE>
 <td><a NAME="scopelist"></a><tt>scopelist</tt></td>
 
-<td NOSAVE>A pointer to a comma separated list of scope names.&nbsp; <i>May
-be the empty string</i> if you wish to use scopes this machine is configured
-for.&nbsp; May not be NULL.</td>
+<td NOSAVE>A pointer to a comma separated list of scope names.&nbsp; Use
+NULL or the empty string, "" to use scopes this machine is configured for.&nbsp;</td>
 </tr>
 
 <tr VALIGN=TOP NOSAVE>
@@ -103,7 +104,7 @@ not available:
 <ul>
 <li>
 <tt>srvurlorsrvtype</tt> may not be a service-type.&nbsp; slpd only compares
-SLP&nbsp;Service URLs.</li>
+SLP Service URLs.</li>
 
 <li>
 a<tt>ttrids </tt>is ignored.&nbsp; slpd will always return back all attributes.</li>

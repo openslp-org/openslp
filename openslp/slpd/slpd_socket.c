@@ -293,8 +293,8 @@ void SLPDSocketInit(SLPDSocketList* list)
             /* could not bind, close the socket*/
             close(slpsocket->fd);
             free(slpsocket);
-            SLPError("Could not bind to loopback. \n");
-            SLPError("No SLPLIB support will be available\n");
+            SLPError("Could not bind loopback port 427.\n");
+            SLPError("slpd may already be running\n");
         }
     }
     else
@@ -431,8 +431,7 @@ void SLPDSocketInit(SLPDSocketList* list)
         }   
 
         begin = end + 1;
-    }
-   
+    }     
 }
 
 
