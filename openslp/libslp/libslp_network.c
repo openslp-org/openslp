@@ -551,15 +551,17 @@ SLPError NetworkRqstRply(int sock,
     /*-----------------------------------------------*/
     /* Notify the last time callback that we're done */
     /*-----------------------------------------------*/
+
     if(rplycount)
     {
         result = SLP_LAST_CALL; 
     }
-    else if(result == 0 && rplycount == 0)
+    
+    if(result == SLP_NETWORK_TIMED_OUT && ISMCAST(destaddr->sin_addr))
     {
-        result = SLP_NETWORK_TIMED_OUT;
+        result = SLP_LAST_CALL;
     }
-     
+
     callback(result, &peeraddr, recvbuf, cookie);
     
     if(result == SLP_LAST_CALL)
