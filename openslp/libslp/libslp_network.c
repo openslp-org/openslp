@@ -3,10 +3,10 @@
 /* Project:     OpenSLP - OpenSource implementation of Service Location    */
 /*              Protocol                                                   */
 /*                                                                         */
-/* File:        slplib_network.c                                           */
+/* File:        libslp_network.c                                           */
 /*                                                                         */
-/* Abstract:    Implementation for INTERNAL functions that are related     */
-/*              network (and ipc) communication.                           */
+/* Abstract:    Implementation for functions that are related to INTERNAL  */
+/*              library network (and ipc) communication.                   */
 /*                                                                         */
 /*-------------------------------------------------------------------------*/
 /*                                                                         */
@@ -52,6 +52,7 @@ int LocateDAviaProperty(char** daaddresses)
     return -1;
 }
 
+
 /*-------------------------------------------------------------------------*/
 int LocateDAviaDHCP(char** daaddresses)
 /*-------------------------------------------------------------------------*/
@@ -78,8 +79,8 @@ int LocateDAviaMulticast(char** daaddresses)
 
 /*=========================================================================*/ 
 int NetworkConnectToDA(const char* scopelist,
-                       int scopelistlen,
-                       struct sockaddr_in* peeraddr)
+                          int scopelistlen,
+                          struct sockaddr_in* peeraddr)
 /* Connects to slpd and provides a peeraddr to send to                     */
 /*                                                                         */
 /* scopelist        (IN) Scope that must be supported by DA. Pass in NULL  */
@@ -89,8 +90,6 @@ int NetworkConnectToDA(const char* scopelist,
 /*                       scopelist is NULL                                 */
 /*                                                                         */
 /* peeraddr         (OUT) pointer to receive the connected DA's address    */
-/*                                                                         */
-/* peeraddrlen      (IN/OUT) Size of the peeraddr structure                */
 /*                                                                         */
 /* Returns          Connected socket or -1 if no DA connection can be made */
 /*=========================================================================*/
@@ -184,8 +183,6 @@ int NetworkConnectToSlpd(struct sockaddr_in* peeraddr)
 /*                                                                         */
 /* peeraddr         (OUT) pointer to receive the connected DA's address    */
 /*                                                                         */
-/* peeraddrlen      (IN/OUT) Size of the peeraddr structure                */
-/*                                                                         */
 /* Returns          Connected socket or -1 if no DA connection can be made */
 /*=========================================================================*/
 {
@@ -218,238 +215,3 @@ int NetworkConnectToSlpd(struct sockaddr_in* peeraddr)
     return result;
 }
 
-
-/*=========================================================================*/ 
-int NetworkConnectToSlpMulticast(struct sockaddr_in* peeraddr)
-/* Creates a socket and provides a peeraddr to send to                     */
-/*                                                                         */
-/* peeraddr         (OUT) pointer to receive the connected DA's address    */
-/*                                                                         */
-/* peeraddrlen      (IN/OUT) Size of the peeraddr structure                */
-/*                                                                         */
-/* Returns          Valid socket or -1 if no DA connection can be made     */
-/*=========================================================================*/
-{
-    
-    const char*         bcastonly;
-    int                 sockfd;
-    int                 ttl;
-
-    bcastonly = SLPGetProperty("net.slp.isBroadcastOnly"); 
-    if(*bcastonly == 'T' ||
-       *bcastonly == 't' ||
-       *bcastonly == 'Y' ||
-       *bcastonly == 'y')
-    {
-        return -1;
-    }
-
-    /* setup multicast socket */
-    sockfd = socket(AF_INET,SOCK_DGRAM,0);
-    if(sockfd >= 0)
-    {
-        peeraddr->sin_family = AF_INET;
-        peeraddr->sin_port = htons(SLP_RESERVED_PORT);
-        peeraddr->sin_addr.s_addr = htonl(SLP_MCAST_ADDRESS);
-
-        ttl = atoi(SLPGetProperty("net.slp.multicastTTL"));
-        if(setsockopt(sockfd,IPPROTO_IP,IP_MULTICAST_TTL,&ttl,sizeof(ttl)))
-        {
-            return -1;
-        }
-    }
-
-    return sockfd;
-}
-
-/*=========================================================================*/ 
-int NetworkConnectToSlpBroadcast(struct sockaddr_in* peeraddr)
-/* Creates a socket and provides a peeraddr to send to                     */
-/*                                                                         */
-/* peeraddr         (OUT) pointer to receive the connected DA's address    */                                                       
-/*                                                                         */
-/* peeraddrlen      (IN/OUT) Size of the peeraddr structure                */
-/*                                                                         */
-/* Returns          Valid socket or -1 if no DA connection can be made     */
-/*=========================================================================*/
-{
-    int                 sockfd;
-    int                 on = 1;
-
-    /* setup broadcast */
-    sockfd = socket(AF_INET, SOCK_DGRAM, 0);
-    if(sockfd >= 0)
-    {
-        peeraddr->sin_family = AF_INET;
-        peeraddr->sin_port = htons(SLP_RESERVED_PORT);
-        peeraddr->sin_addr.s_addr = htonl(SLP_BCAST_ADDRESS);
-
-        if(setsockopt(sockfd, SOL_SOCKET, SO_BROADCAST, &on, sizeof(on)))
-        {
-            return -1;
-        }
-    }
-
-    return sockfd;
-}
-
-
-/*=========================================================================*/ 
-SLPError NetworkSendMessage(int sockfd,
-                           SLPBuffer buf,
-                           struct timeval* timeout,
-                           struct sockaddr_in* peeraddr)
-/* Returns  -    SLP_OK, SLP_NETWORK_TIMEOUT, SLP_NETWORK_ERROR, or        */
-/*               SLP_PARSE_ERROR.                                          */
-/*=========================================================================*/ 
-{
-    fd_set      writefds;
-    int         xferbytes;
-    SLPError    result      = SLP_OK;
-
-    while(buf->curpos < buf->end)
-    {
-        FD_ZERO(&writefds);
-        FD_SET(sockfd, &writefds);
-
-        xferbytes = select(sockfd + 1, 0, &writefds, 0, timeout);
-        if(xferbytes > 0)
-        {
-            xferbytes = sendto(sockfd,
-                               buf->curpos, 
-                               buf->end - buf->curpos, 
-                               0,
-                               peeraddr,
-                               sizeof(struct sockaddr_in));
-            if(xferbytes > 0)
-            {
-                buf->curpos = buf->curpos + xferbytes;
-            }
-            else
-            {
-                result = SLP_NETWORK_ERROR;
-                break;
-            }
-        }
-        else if(xferbytes == 0)
-        {
-            result = SLP_NETWORK_TIMED_OUT;
-            break;
-        }
-        else
-        {
-            result = SLP_NETWORK_ERROR;
-            break;
-        }
-    }
-    
-    return result;
-}
-
-
-
-/*=========================================================================*/ 
-SLPError NetworkRecvMessage(int sockfd,
-                           SLPBuffer buf,
-                           struct timeval* timeout,
-                           struct sockaddr_in* peeraddr)
-/* Receives a message                                                      */
-/*                                                                         */
-/* Returns  -    SLP_OK, SLP_NETWORK_TIMEOUT, SLP_NETWORK_ERROR, or        */
-/*               SLP_PARSE_ERROR.                                          */
-/*=========================================================================*/ 
-{
-    int         xferbytes;
-    fd_set      readfds;
-    char        peek[16];
-    int         peeraddrlen = sizeof(struct sockaddr_in);
-    SLPError    result      = SLP_OK;
-
-    /*---------------------------------------------------------------*/
-    /* take a peek at the packet to get version and size information */
-    /*---------------------------------------------------------------*/
-    FD_ZERO(&readfds);
-    FD_SET(sockfd, &readfds);
-    xferbytes = select(sockfd + 1, &readfds, 0 , 0, timeout);
-    if(xferbytes > 0)
-    {
-        xferbytes = recvfrom(sockfd,
-                             peek,
-                             16,
-                             MSG_PEEK,
-                             peeraddr,
-                             &peeraddrlen);
-        if(xferbytes <= 0)
-        {
-            result = SLP_NETWORK_ERROR;
-        } 
-    }
-    else if(xferbytes == 0)
-    {
-        result = SLP_NETWORK_TIMED_OUT;
-    }
-    else
-    {
-        result = SLP_NETWORK_ERROR;
-    }
-
-    /*---------------------------------------*/
-    /* return now if peek was not successful */
-    /*---------------------------------------*/
-    if(result) return result;
-
-    
-    /*------------------------------*/
-    /* Read the rest of the message */
-    /*------------------------------*/
-    /* check the version */
-    if(*peek == 2)
-    {
-        /* allocate the recvmsg big enough for the whole message */
-        if(SLPBufferRealloc(buf, AsUINT24(peek + 2)))
-        {
-            while(buf->curpos < buf->end)
-            {
-                FD_ZERO(&readfds);
-                FD_SET(sockfd, &readfds);
-                xferbytes = select(sockfd + 1, &readfds, 0 , 0, timeout);
-                if(xferbytes > 0)
-                {
-                     xferbytes = recv(sockfd,
-                                   buf->curpos, 
-                                   buf->end - buf->curpos, 
-                                   0);
-                    if(xferbytes > 0)
-                    {
-                        buf->curpos = buf->curpos + xferbytes;
-                    }
-                    else
-                    {
-                        result =  SLP_NETWORK_ERROR;
-                        break;
-                    }
-                }
-                else if(xferbytes == 0)
-                {
-                    result = SLP_NETWORK_TIMED_OUT;
-                    break;
-                }
-                else
-                {
-                    result =  SLP_NETWORK_ERROR;
-                    break;
-                }
-            } /* end of main read while. */  
-        }
-        else
-        {
-            result = SLP_MEMORY_ALLOC_FAILED;
-        }
-    }
-    else
-    {
-        result = SLP_PARSE_ERROR;
-    }
-
-    return result;
-}

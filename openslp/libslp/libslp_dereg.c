@@ -159,18 +159,16 @@ SLPError ProcessSrvDeReg(PSLPHandleInfo handle)
     timeout.tv_sec = atoi(SLPGetProperty("net.slp.unicastMaximumWait")) / 1000;  
     timeout.tv_usec = 0;        
     buf->curpos = buf->start;
-    error = NetworkSendMessage(slpdsock,
-                               buf,
-                               &timeout,
-                               &slpdaddr);
-    if(error == SLP_OK)
+    if(SLPNetworkSendMessage(slpdsock,
+                             buf,
+                             &timeout,
+                             &slpdaddr) == 0)
     {
         /* Recv the SrvAck */
-        error = NetworkRecvMessage(slpdsock,
-                                  buf,
-                                  &timeout,
-                                  &peeraddr);
-        if(error == SLP_OK)
+        if(SLPNetworkRecvMessage(slpdsock,
+                                 buf,
+                                 &timeout,
+                                 &peeraddr) == 0)
         {
             /* parse the SrvAck message */
             error = SLPMessageParseBuffer(buf,msg);
@@ -181,18 +179,38 @@ SLPError ProcessSrvDeReg(PSLPHandleInfo handle)
                 {
                     /* map and use errorcode from message */
                     error = -(msg->body.srvack.errorcode);
+                    goto FINISHED;
                 }
                 else
                 {
                     error = SLP_NETWORK_ERROR;
+                    goto FINISHED;
                 }
             }
         }
     }
-    
+    switch(errno)
+    {
+    case 0:
+        error = SLP_OK;
+    case ENOTCONN:
+    case EPIPE:
+        error = SLP_NETWORK_ERROR;
+        break;
+    case ETIME:
+        error = SLP_NETWORK_TIMED_OUT;
+        break;
+    case ENOMEM:
+        error = SLP_MEMORY_ALLOC_FAILED;
+        break;
+    case EINVAL:
+        error = SLP_PARSE_ERROR;
+        break;
+    default:
+        error = SLP_INTERNAL_SYSTEM_ERROR;
+    }
 
     FINISHED:
-
     /* call callback function */
     handle->params.dereg.callback((SLPHandle)handle,
                                   error,

@@ -42,6 +42,7 @@ SLPError ProcessSrvRqst(PSLPHandleInfo handle)
     struct sockaddr_in  peeraddr;
     
     SLPError            result      = 0;
+    const char*         bcastonly   = 0;
     char*               prlist      = 0;
     int                 prlistlen   = 0;
     int                 rplytot     = 0;
@@ -65,14 +66,26 @@ SLPError ProcessSrvRqst(PSLPHandleInfo handle)
                               &peeraddr);
     if(sock < 0)
     {
+        /* Lets try multicast / broadcast */
         ismcast = 1;
         maxwait = atoi(SLPGetProperty("net.slp.multicastMaximumWait")) / 1000;
         wait    = 1;
-
-        sock = NetworkConnectToSlpMulticast(&peeraddr);
+        bcastonly = SLPPropertyGet("net.slp.isBroadcastOnly"); 
+        if(*bcastonly == 'T' ||
+           *bcastonly == 't' ||
+           *bcastonly == 'Y' ||
+           *bcastonly == 'y')
+        {
+            sock = SLPNetworkConnectToBroadcast(&peeraddr);
+        }
+        else                                                                 
+        {
+            sock = SLPNetworkConnectToMulticast(&peeraddr,
+                                                atoi(SLPGetProperty("net.slp.ttl")));
+        }
+        
         if(sock < 0)
         {
-            sock = NetworkConnectToSlpBroadcast(&peeraddr);
             if(sock < 0)
             {
                 result = SLP_NETWORK_INIT_FAILED;
@@ -82,6 +95,7 @@ SLPError ProcessSrvRqst(PSLPHandleInfo handle)
     }
     else
     {
+        /* Going with unicast tcp */
         ismcast = 0;
         maxwait = atoi(SLPGetProperty("net.slp.unicastMaximumWait")) / 1000;
         wait    = maxwait;
@@ -214,11 +228,10 @@ SLPError ProcessSrvRqst(PSLPHandleInfo handle)
         
         
         buf->curpos = buf->start;
-        result = NetworkSendMessage(sock,
-                                    buf,
-                                    &timeout,
-                                    &peeraddr);
-        if(result != SLP_OK)
+        if(SLPNetworkSendMessage(sock,
+                                 buf,
+                                 &timeout,
+                                 &peeraddr) != 0)
         {
             /* we could not send the message for some reason */
             /* we're done */
@@ -229,10 +242,10 @@ SLPError ProcessSrvRqst(PSLPHandleInfo handle)
         do
         {
             /* Recv the SrvAck */
-            result = NetworkRecvMessage(sock,
-                                        buf,
-                                        &timeout,
-                                        &peeraddr);
+            result = SLPNetworkRecvMessage(sock,
+                                           buf,
+                                           &timeout,
+                                           &peeraddr);
             if(result != SLP_OK)
             {
                 /* An error occured while receiving the message */

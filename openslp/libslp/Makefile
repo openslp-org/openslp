@@ -16,9 +16,9 @@ LIBSLP_SRC = $(LIBSLP_DIR)/libslp_dereg.c   \
 	     $(LIBSLP_DIR)/libslp_parse.c \
 	     $(LIBSLP_DIR)/libslp_property.c  \
 	     $(LIBSLP_DIR)/libslp_handle.c  \
-	     $(LIBSLP_DIR)/libslp_network.c \
-	     $(LIBSLP_DIR)/libslp_thread.c \
-             $(LIBSLP_DIR)/libslp_findattrs.c \
+             $(LIBSLP_DIR)/libslp_thread.c \
+             $(LIBSLP_DIR)/libslp_network.c \
+	     $(LIBSLP_DIR)/libslp_findattrs.c \
 	     $(LIBSLP_DIR)/libslp_delattrs.c \
 	     $(LIBSLP_DIR)/libslp_findsrvtypes.c
 	      
@@ -27,7 +27,8 @@ COMMON_SRC = $(COMMON_DIR)/slp_buffer.c  \
 	     $(COMMON_DIR)/slp_message.c \
 	     $(COMMON_DIR)/slp_property.c \
              $(COMMON_DIR)/slp_linkedlist.c \
-	     $(COMMON_DIR)/slp_xid.c 
+	     $(COMMON_DIR)/slp_xid.c \
+	     $(COMMON_DIR)/slp_network.c 
 	     
 
 TEST_SRC   = $(TEST_DIR)/LIBSLP_test.c
