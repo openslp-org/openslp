@@ -268,7 +268,8 @@ void OutgoingStreamRead(SLPList* socklist, SLPDSocket* sock)
                 default:
                     /* End of outgoing message exchange. Unlink   */
                     /* send buf from to do list and free it       */
-                    SLPBufferFree((SLPBuffer)SLPListUnlink(&(sock->sendlist),(SLPListItem*)(sock->sendbuf)));
+                    SLPBufferFree(sock->sendbuf);
+                    sock->sendbuf = NULL;
                     sock->state = STREAM_WRITE_FIRST;
                     /* clear the reconnection count since we actually
                      * transmitted a successful message exchange
@@ -308,7 +309,7 @@ void OutgoingStreamWrite(SLPList* socklist, SLPDSocket* sock)
 
     if ( sock->state == STREAM_WRITE_FIRST )
     {
-        /* make sure that there is something to do list */
+        /* set sendbuf to the first item in the send list*/
         sock->sendbuf = (SLPBuffer)sock->sendlist.head;
         if ( sock->sendbuf == 0 )
         {
@@ -319,6 +320,8 @@ void OutgoingStreamWrite(SLPList* socklist, SLPDSocket* sock)
             sock->reconns = 0;
             return;
         }
+        /* Unlink the send buffer we are sending from the send list */
+        SLPListUnlink(&(sock->sendlist),(SLPListItem*)(sock->sendbuf));
 
         /* make sure that the start and curpos pointers are the same */
         sock->sendbuf->curpos = sock->sendbuf->start;

@@ -6,7 +6,16 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 
-1/15/01 matt@caldera.com
+11/21/01 matt@caldera.com
+Made a change to the outgoing socket send code that unlinks the sendbuf 
+from the send list before it is sent.  This way if there is a reconnect
+failure and the socket is SLPDSocketFree()d then the sendbuf won't be
+SLPBufferFree()d twice.  This fixes a SEGV in the SA when a DA goes down 
+during a transaction.
+
+*** Tag OpenSLP-1.0.5 ***
+
+11/15/01 matt@caldera.com
 Added Timothy Zurcher to the THANKS file.  He deserves it!
 
 11/13/01 matt@caldera.com
