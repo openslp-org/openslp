@@ -319,7 +319,7 @@ int SLPNetSetSockAddrStorageFromAddrInfo(struct sockaddr_storage *dst, struct ad
         v6->sin6_flowinfo = 0;
         v6->sin6_port = 0;
         v6->sin6_scope_id = 0;
-        memcpy(&v6->sin6_addr, src->ai_addr, sizeof(struct sockaddr_in6));
+        memcpy(&v6->sin6_addr, &((struct sockaddr_in6 *)&src->ai_addr)->sin6_addr, sizeof(struct in6_addr));
     }
     else {
         return(-1);
