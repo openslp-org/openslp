@@ -1,49 +1,33 @@
+Announcement
+------------
+As of  version 0.8.1, the Win32 port of OpenSLP has been broken.  I guess this
+is what happens when no one is taking care of a port. 
 
+Beginning with 0.8.2  Matt Peterson will personally take over the Win32 port. 
+The eventual goal is to fully support OpenSLP on Win32.  The reasons for
+full support of the Win32 "platform" are related to the fact that Micro$oft
+insists on supporting location protocols other than the one designed by the
+IETF.  The hope is that by offering a really good port of OpenSLP, Microsoft
+enslaved developers and partners will have some ammunition to fight
+proprietary or otherwise inoperable protocols.
 
-WIN32 PORT OF OPENSLP
----------------------
+Current State
+-------------
+Currently the OpenSLP code base will not work on Win32.  Libslp does work,
+but MSVC files included in 0.8.2 are not set up to build anything.  They are
+place holders for working files that will be included in 0.8.3.  In other
+words, wait for 0.8.3.  
 
-The Win32 support is still experimental and far from perfect.
-However the basic functions like SLPD and libslp (Service registration, etc) 
-seem to work.
+Schedule
+--------
+OpenSLP 0.8.2 - Reorganize location of MSVC files and clean libsmbclient
+OpenSLP 0.8.3 - Clean slpd and test on Win2000 and Win98 "platforms"
+OpenSLP 0.9.0 - Provide installable binaries
 
-The main change w.r.t. the UNIX version is the fact that slpd is an NT
-service. The source code related to that specificity can be found in
-slpd/slpd_win32.c
+Credits
+-------
+The work currently being done in no way invalidates the contribution of
+Matthieu Desmons and Rick Brady who did the original port of the 0.7.x
+codebase.  Most of the actual code changes can still be attributed to them
+as well as the initive to to show that the port was actually possible.
 
-
-BUILD INSTRUCTIONS
-------------------
-
-The buil procedure still relies heavily on Cygwin.
-To build it on your system, you should just have adapt the line "VCPATH =" 
-in the file "defs.mk", to tell it where to find the Visual Studio stuff.
-
-You can also modify the "OUT=" line to install the file where you want.
-
-
-SLPD installation
------------------
-
-Once SLPD is built, you can test it by runnig "slpd -debug" followed by the 
-same options as the UNIX version. 
-
-If you want to install it on your system in a persistent way, type 
-"slpd -install" still followed by the necessary options.
-
-Then you should see the service "Service Location Protocol" in the Services 
-section of the Control Panel. You just have to start it by clicking on "start".
-
-Note that the service will not start automatically after a reboot (which is 
-quite frequent on NT), this behavior must be modified.
-
-BUGS
-----
-
-Due to the lack of tests, many bugs will probably appear ;-)
-
-LIMITATIONS
------------
-
-* the build procedure must rely completely on Visual Studio
-* the multicast TTL can't be set on NT4, thus SLP won't work across routers

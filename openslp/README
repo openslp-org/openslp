@@ -16,24 +16,19 @@ The OpenSLP project is an effort to develop an open-source implementation of
 Service Location Protocol suitable for commercial and non-commercial 
 application.
 
-The latest version of OpenSLP is 0.8.1  Changes for this version and the
-previous version consist of the following:
+The latest version of OpenSLP is 0.8.2  Changes for this version consist of
+the following:
 
-    - SLPv1 Passive DAAdvert support
-    - Significant 64-bit cleanup work
-    - Bugs related to unreturned errorcodes (-19 was being returned for
-      almost everything)
-    - autoconf/automake changes to do things "The Right Way"
-    - SLP_MAX_LIFETIME services should now age and refreshed correctly
-    - Library code hardened more against bad DAs
-    - Code changes to the way "my host and domain hame" is determined
-    - Changes as suggested by a Security Audit from Olaf Kirch
-      
+    - Bug fixes (including "slpd tight loop" problem)
+    - Logging changes (no log file truncation and log timestamps)
+    - Corrections in the usage of DAAdvert bootstamps, scopelists, and XIDs 
+    - Several documentation corrections
+    - Massive Win32 specific changes.  Please read README.WIN32 !
 
 2 - Roadmap
 ------------
-OpenSLP is getting very close to being release in alpha and beta form.  It
-is currently useable for most applications, but still lacks a few important
+OpenSLP is getting very close to being released nd beta form.  It is 
+currently useable for most applications, but still lacks a few important
 features:
     
     - libslp does not collate results for syncronous calls

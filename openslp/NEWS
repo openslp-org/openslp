@@ -1,8 +1,15 @@
-NEWS - list of user-visible changes between releases of OpenSLP
+NEWS - list of user-visible changes between releases of OpenSLP and other
+important events.
 
-New in openslp-0.8.2 (2001-02-1?)
+New in openslp-0.8.2 (2001-02-14)
 ---------------------------------
 * Minor fixes in the html documentation.
+* Bug fixes (including "slpd tight loop" problem)
+* Logging changes (no log file truncation and log timestamps)
+* Corrections in the usage of DAAdvert bootstamps, scopelists,
+  and XIDs   
+* Several documentation corrections
+* Massive Win32 specific changes.  Please read README.WIN32 !     
 
 New in openslp-0.8.1 (2000-12-19)
 ---------------------------------
