@@ -8,6 +8,17 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 
+10/06/00 mpeterson@caldera.com
+Fixed timing bug in slpd where in some cases a non-blocking recvfrom() was 
+called before any data could possibly be in the stream.  This would cause
+libslp to return unexplained -19 on SLPReg() and friends.
+
+10/05/00 mpeterson@caldera.com
+Active DA discovery is now working correctly.  There is still need for 
+code to be added so the DAAdvert statless bootstamp is honored correctly.
+The SA should re-register all services with a DA if it is new or bootstamp
+is stale
+
 09/29/00 rganesan@myrealbox.com
 Implemented SLPv1 support when running as a DA. This can be turned off by the
 configure option --disable-slpv1. New files common/slp_v1message.h,

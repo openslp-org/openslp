@@ -659,9 +659,9 @@ void SLPDKnownDARemove(SLPDAEntry* daentry);
 
 
 /*=========================================================================*/
-void SLPDKnownDARegister(struct sockaddr_in* peerinfo,
-                         SLPMessage msg,
-                         SLPBuffer buf);
+void SLPDKnownDAEcho(struct sockaddr_in* peerinfo,
+                     SLPMessage msg,
+                     SLPBuffer buf);
 /* Echo a srvreg message to a known DA                                     */
 /*									                                       */
 /* peerinfo (IN) the peer that the registration came from                  */    
