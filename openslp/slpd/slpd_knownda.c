@@ -191,7 +191,6 @@ SLPDAEntry* SLPDKnownDAEvaluate(struct in_addr* addr,
     if(entry == 0)
     {
         /* Create and link in a new entry */    
-        bootstamp = 0;  /* make sure we re-register with new entries */
         entry = SLPDAEntryCreate(addr,bootstamp,scopelist,scopelistlen);
         SLPListLinkHead(&G_KnownDAList,(SLPListItem*)entry);
 
@@ -234,12 +233,30 @@ void SLPDKnownDAEcho(struct sockaddr_in* peeraddr,
 /*                                                                         */
 /* buf (IN) the message buffer to echo                                     */
 /*                                                                         */
-/* Returns:  Zero on success, non-zero on error                            */
+/* Returns:  none                                                          */
 /*=========================================================================*/
 {
     SLPDAEntry* daentry;
     SLPDSocket* sock;
     SLPBuffer   dup;
+    const char* msgscope;
+    int         msgscopelen;
+
+    if(msg->header.functionid == SLP_FUNCT_SRVREG)
+    {
+        msgscope = msg->body.srvreg.scopelist;
+        msgscopelen = msg->body.srvreg.scopelistlen;
+    }
+    else if(msg->header.functionid == SLP_FUNCT_SRVDEREG)
+    {
+        msgscope = msg->body.srvdereg.scopelist;
+        msgscopelen = msg->body.srvdereg.scopelistlen;
+    }
+    else
+    {
+        /* We only echo SRVREG and SRVDEREG */
+        return;
+    }
 
     daentry = (SLPDAEntry*)G_KnownDAList.head;
     while (daentry)
@@ -247,74 +264,55 @@ void SLPDKnownDAEcho(struct sockaddr_in* peeraddr,
         /*-----------------------------------------------------*/
         /* Do not echo to agents that do not support the scope */
         /*-----------------------------------------------------*/
-        if(msg->header.functionid == SLP_FUNCT_SRVREG)
-        {
-            if(SLPIntersectStringList(daentry->scopelistlen,
+        if(SLPIntersectStringList(daentry->scopelistlen,
                                   daentry->scopelist,
-                                  msg->body.srvreg.scopelistlen,
-                                  msg->body.srvreg.scopelist) == 0)
-            {
-                continue;
-            }
+                                  msgscopelen,
+                                  msgscope) )
+        {
 
-        }
-        else if(msg->header.functionid == SLP_FUNCT_SRVDEREG)
-        {
-            if(SLPIntersectStringList(daentry->scopelistlen,
-                                  daentry->scopelist,
-                                  msg->body.srvdereg.scopelistlen,
-                                  msg->body.srvdereg.scopelist) == 0)
+            /*--------------------------------------------------------------*/
+            /* Check to see if we already have a connection to the Known DA */
+            /*--------------------------------------------------------------*/
+            sock = (SLPDSocket*)G_OutgoingSocketList.head;
+            while (sock)
             {
-                continue;
-            }
-        }
-        else
-        {
-            continue;
-        } 
-        
-        /*--------------------------------------------------------------*/
-        /* Check to see if we already have a connection to the Known DA */
-        /*--------------------------------------------------------------*/
-        sock = (SLPDSocket*)G_OutgoingSocketList.head;
-        while (sock)
-        {
-            if (sock->daentry == daentry)
-            {
-                break;
-            }
-            sock = (SLPDSocket*)sock->listitem.next;
-        }
-
-        /*----------------------------------------------------------*/
-        /* if we don't have a connection to the known DA create one */
-        /*--------------------------------------------------------------*/
-        if (sock == 0)
-        {
-            sock = SLPDSocketCreateConnected(&(daentry->daaddr));
-            if (sock)
-            {
-                sock->daentry = daentry;
-                SLPListLinkTail(&G_OutgoingSocketList,(SLPListItem*)sock);
-            }  
-        }
-
-        /*------------------------------------------*/
-        /* Load the socket with the message to send */
-        /*------------------------------------------*/
-        if(sock)
-        {
-            dup = SLPBufferDup(buf);
-            if (dup)
-            {
-                if (sock->state == STREAM_CONNECT_IDLE)
+                if (sock->daentry == daentry)
                 {
-                    sock->state = STREAM_WRITE_FIRST;
+                    break;
                 }
-                SLPListLinkTail(&(sock->sendlist),(SLPListItem*)dup);
+                sock = (SLPDSocket*)sock->listitem.next;
+            }
+    
+            /*----------------------------------------------------------*/
+            /* if we don't have a connection to the known DA create one */
+            /*--------------------------------------------------------------*/
+            if (sock == 0)
+            {
+                sock = SLPDSocketCreateConnected(&(daentry->daaddr));
+                if (sock)
+                {
+                    sock->daentry = daentry;
+                    SLPListLinkTail(&G_OutgoingSocketList,(SLPListItem*)sock);
+                }  
+            }
+    
+            /*------------------------------------------*/
+            /* Load the socket with the message to send */
+            /*------------------------------------------*/
+            if(sock)
+            {
+                dup = SLPBufferDup(buf);
+                if (dup)
+                {
+                    if (sock->state == STREAM_CONNECT_IDLE)
+                    {
+                        sock->state = STREAM_WRITE_FIRST;
+                    }
+                    SLPListLinkTail(&(sock->sendlist),(SLPListItem*)dup);
+                }
             }
         }
-        
+
         daentry = (SLPDAEntry*)daentry->listitem.next;
     }
 }

@@ -275,7 +275,6 @@ void OutgoingStreamWrite(SLPList* socklist, SLPDSocket* sock)
             {
                 /* Message is completely sent. Set state to read the reply */
                 sock->state = STREAM_READ_FIRST;
-                OutgoingStreamRead(socklist, sock);
             }
         }
         else
