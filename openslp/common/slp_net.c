@@ -47,15 +47,16 @@
 /*                                                                         */
 /***************************************************************************/
 
+#include "..\libslp\slp.h"
 #include "slp_net.h"
 #include "slp_xmalloc.h"
+#include "slp_property.h"
 #include <assert.h>
 /*-------------------------------------------------------------------------*/
 int SLPNetGetThisHostname(char* hostfdn, unsigned int hostfdnLen, int numeric_only)
 /* 
  * Description:
- *    Returns a string represting this host (the FDN) or null. Caller must    
- *    free returned string                                                    
+ *    Returns a string represting this host (the FDN) or null.                                                     
  *
  * Parameters:
  *    hostfdn   (OUT) pointer to char pointer that is set to buffer 
@@ -79,7 +80,7 @@ int SLPNetGetThisHostname(char* hostfdn, unsigned int hostfdnLen, int numeric_on
             */ 
             if(!numeric_only && strchr(ifaddr->ai_canonname, '.'))
             {
-                 strncpy(hostfdn, ifaddr->ai_canonname, hostfdnLen);
+                 strncpy(hostfdn, host, hostfdnLen);
             }
             else
             {
@@ -100,8 +101,7 @@ int SLPNetResolveHostToAddr(const char* host,
                             struct sockaddr_storage* addr)
 /* 
  * Description:
- *    Returns a string represting this host (the FDN) or null. Caller must    
- *    free returned string                                                    
+ *    Returns a string represting this host (the FDN) or null.                                                    
  *
  * Parameters:
  *    host  (IN)  pointer to hostname to resolve
@@ -113,55 +113,116 @@ int SLPNetResolveHostToAddr(const char* host,
     struct hostent* he;
     
     /* quick check for dotted quad IPv4 address */
-    if(inet_pton(addr->ss_family, host, addr))
-    {
-        return 0;
+    if(inet_pton(PF_INET, host, addr) != 1) {
+        // try a IPv6 address
+        if(inet_pton(PF_INET6, host, addr) != 1) {
+            return -1;
+        }
     }
-
     /* Use resolver */
     he = gethostbyname(host);
     if(he != 0)
     {
-        if(he->h_addrtype == AF_INET)
+        if(he->h_addrtype == PF_INET)
         {
-            memcpy(addr,he->h_addr_list[0],sizeof(struct in_addr));
+            SLPNetSetAddr(addr, PF_INET, 0, he->h_addr_list[0], sizeof(struct in_addr));
             return 0;
         }
-        else
-        {
-            /* TODO: support other address types */
+        else if (he->h_addrtype == PF_INET6) {
+            SLPNetSetAddr(addr, PF_INET6, 0, he->h_addr_list[0], sizeof(struct in_addr));
+            return 0;
         }
     }
-
     return -1;
 }
 
 int SLPNetIsIPV6() {
-	return(0);
+    int isv6 = SLPPropertyAsBoolean(SLPGetProperty("net.slp.useIPV6"));
+    if (isv6) {
+        return(1);
+    }
+    else {
+    	return(0);
+    }
 }
 
 int SLPNetIsIPV4() {
-    return(0);
+    int isv4 = SLPPropertyAsBoolean(SLPGetProperty("net.slp.useIPV4"));
+    if (isv4) {
+        return(1);
+    }
+    else {
+    	return(0);
+    }
 }
 
 int SLPNetCompareAddrs(const struct sockaddr_storage *addr1, const struct sockaddr_storage *addr2) {
-	return(0);
+    if (memcmp(addr1, addr2, sizeof(struct sockaddr_storage)) == 0) {
+        return(1);
+    }
+    else {
+	    return(0);
+    }
 }
 
 
 int SLPNetIsMCast(const struct sockaddr_storage *addr) {
+    if (addr->ss_family == PF_INET) {
+        struct sockaddr_in *v4 = (struct sockaddr_in *) addr;
+        if ((ntohl(v4->sin_addr.S_un.S_addr) & 0xff000000) >= 0xef000000) {
+            return(1);
+        }
+        else {
+            return(0);
+        }
+    }
+    else if (addr->ss_family == PF_INET6) {
+        IN6_IS_ADDR_MULTICAST((struct in6_addr *)addr);
+    }
 	return(0);
 }
 
 int SLPNetIsLocal(const struct sockaddr_storage *addr) {
+    if (addr->ss_family == PF_INET) {
+        struct sockaddr_in *v4 = (struct sockaddr_in *) addr;
+        if ((ntohl(v4->sin_addr.S_un.S_addr) & 0xff000000) == 0x7f000000) {
+            return(1);
+        }
+        else {
+            return(0);
+        }
+    }
+    else if (addr->ss_family == PF_INET6) {
+        IN6_IS_ADDR_LINKLOCAL((struct in6_addr *)addr);
+    }
 	return(0);
 }
 
 int SLPNetSetAddr(struct sockaddr_storage *addr, const int family, const short port, const unsigned char *address, const int addrLen) {
-	return(0);
+    int sts = 0;
+    addr->ss_family = family;
+    if (family == PF_INET) {
+        struct sockaddr_in *v4 = (struct sockaddr_in *) addr;
+        v4->sin_family = family;
+        v4->sin_port = htons(port);
+        memcpy(&(v4->sin_addr), address, min(addrLen, sizeof(v4->sin_addr)));
+    }
+    else if (family == PF_INET6) {
+        struct sockaddr_in6 *v6 = (struct sockaddr_in6 *) addr;
+        v6->sin6_family = family;
+        v6->sin6_flowinfo = 0;
+        v6->sin6_port = htons(port);
+        v6->sin6_scope_id = 0;
+        memcpy(&v6->sin6_addr, address, min(addrLen, sizeof(v6->sin6_addr)));
+    }
+    else {
+        sts = -1;
+    }
+	return(sts);
 }
 
 int SLPNetCopyAddr(struct sockaddr_storage *dst, const struct sockaddr_storage *src) {
+    memcpy(dst, src, sizeof(struct sockaddr_storage));
 	return(0);
 }
 

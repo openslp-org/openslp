@@ -69,11 +69,14 @@ int SLPNetworkConnectStream(struct sockaddr_storage *peeraddr,
     int result;
 
     /* TODO: Make this connect non-blocking so that it will timeout */
-    if (SLPNetIsIPV6()) {
-        result = socket(AF_INET6,SOCK_STREAM,0);
+    if (peeraddr->ss_family == PF_INET6) {
+        result = socket(PF_INET6,SOCK_STREAM,0);
+    }
+    else if (peeraddr->ss_family == PF_INET) {
+        result = socket(PF_INET,SOCK_STREAM,0);
     }
     else {
-        result = socket(AF_INET,SOCK_STREAM,0);
+        return(-1);
     }
     if(result >= 0)
     {
@@ -98,121 +101,6 @@ int SLPNetworkConnectStream(struct sockaddr_storage *peeraddr,
     return result;
 }
 
-
-/*=========================================================================*/ 
-int SLPNetworkConnectToMulticast(struct sockaddr_storage *peeraddr, int ttl)
-/* Creates a socket and provides a peeraddr to send to                     */
-/*                                                                         */
-/* peeraddr  (OUT) pointer to receive the connected DA's address           */
-/*                                                                         */
-/* ttl       (IN) ttl for the mcast socket                                 */
-/*                                                                         */
-/* Returns   Valid socket or -1 if no DA connection can be made            */
-/*=========================================================================*/
-{
-    int                 sockfd;
-#if defined(linux)
-    int         optarg;
-#else
-
-
-
-    /* Solaris and Tru64 expect a unsigned char parameter */
-    unsigned char   optarg;
-#endif
-
-
-#ifdef _WIN32
-    BOOL Reuse = TRUE;
-    int TTLArg;
-    struct sockaddr_storage  mysockaddr_storage;
-
-    memset(&mysockaddr_storage, 0, sizeof(mysockaddr_storage));
-    if (SLPNetIsIPV6()) {
-        SLPNetSetAddr(&mysockaddr_storage, PF_INET6, SLP_RESERVED_PORT, NULL, 0);
-    }
-    else {
-        SLPNetSetAddr(&mysockaddr_storage, PF_INET, SLP_RESERVED_PORT, NULL, 0);
-    }
-#endif
-
-    /* setup multicast socket */
-    sockfd = socket(AF_INET,SOCK_DGRAM,0);
-    if(sockfd >= 0)
-    {
-        DWORD add = SLP_MCAST_ADDRESS;
-        if (SLPNetIsIPV6()) {
-            SLPNetSetAddr(peeraddr, PF_INET6, SLP_RESERVED_PORT, (unsigned char *) &add, sizeof(add));
-        }
-        else {
-            SLPNetSetAddr(peeraddr, PF_INET, SLP_RESERVED_PORT, (unsigned char *) &add, sizeof(add));
-        }
-        optarg = ttl;
-    }
-
-
-#ifdef _WIN32
-    TTLArg = ttl;
-    if(setsockopt(sockfd,
-        SOL_SOCKET,
-        SO_REUSEADDR,
-        (const char  *)&Reuse,
-        sizeof(Reuse)) ||
-        bind(sockfd, 
-        (struct sockaddr *)&mysockaddr_storage, 
-        sizeof(mysockaddr_storage)) ||
-        setsockopt(sockfd,
-        IPPROTO_IP,
-        IP_MULTICAST_TTL,
-        (char *)&TTLArg,
-        sizeof(TTLArg)))
-    {
-        return -1;
-    }
-#else
-    if(setsockopt(sockfd,IPPROTO_IP,IP_MULTICAST_TTL,&optarg,sizeof(optarg)))
-    {
-        return -1;
-    }
-#endif
-    return sockfd;
-}
-
-/*=========================================================================*/ 
-int SLPNetworkConnectToBroadcast(struct sockaddr_storage *peeraddr)
-/* Creates a socket and provides a peeraddr to send to                     */
-/*                                                                         */
-/* peeraddr         (OUT) pointer to receive the connected DA's address    */                                                       
-/*                                                                         */
-/* Returns          Valid socket or -1 if no DA connection can be made     */
-/*=========================================================================*/
-{
-    int     sockfd;
-#ifdef _WIN32
-    BOOL    on = 1;
-#else
-    int     on = 1;
-#endif
-
-
-
-    if (SLPNetIsIPV6()) {
-        return(-1);
-    }
-    /* setup broadcast */
-    sockfd = socket(AF_INET, SOCK_DGRAM, 0);
-    if(sockfd >= 0)
-    {
-        DWORD ad = SLP_BCAST_ADDRESS;
-        SLPNetSetAddr(peeraddr, PF_INET, SLP_RESERVED_PORT, (unsigned char *) &ad, sizeof(ad));
-        if(setsockopt(sockfd, SOL_SOCKET, SO_BROADCAST, (char*)&on, sizeof(on)))
-        {
-            return -1;
-        }
-    }
-
-    return sockfd;
-}
 
 
 /*=========================================================================*/ 

@@ -81,6 +81,15 @@
 #include "slp_xid.h"
 
 
+#define SLP_MULTICAST_SERVICE_TYPE_SRVLOC   0x01
+#define SLP_MULTICAST_SERVICE_TYPE_SRVLOCDA 0x02
+
+#define SLP_SCOPE_NODE_LOCAL                0x01
+#define SLP_SCOPE_LINK_LOCAL                0x02
+#define SLP_SCOPE_SITE_LOCAL                0x03
+#define SLP_SCOPE_ORG_LOCAL                 0x04
+#define SLP_SCOPE_GLOBAL                    0x05
+
 /*=========================================================================*/ 
 int SLPNetworkConnectStream(struct sockaddr_storage *peeraddr,
                             struct timeval* timeout);  
@@ -93,29 +102,6 @@ int SLPNetworkConnectStream(struct sockaddr_storage *peeraddr,
 /* returns: a connected socket or -1                                       */
 /*=========================================================================*/
 
-
-/*=========================================================================*/
-int SLPNetworkConnectToMulticast(struct sockaddr_storage *peeraddr, int ttl); 
-/* Creates a socket and provides a peeraddr to send to                     */
-/*                                                                         */
-/* peeraddr         (OUT) pointer to receive the connected DA's address    */
-/*                                                                         */
-/* ttl              (IN)  ttl for the mcast socket                         */
-/*                                                                         */
-/* Returns          Valid socket or -1 if no DA connection can be made     */
-/*=========================================================================*/
-
-
-/*=========================================================================*/
-int SLPNetworkConnectToBroadcast(struct sockaddr_storage *peeraddr);                                                        
-/* Creates a socket and provides a peeraddr to send to                     */
-/*                                                                         */
-/* peeraddr         (OUT) pointer to receive the connected DA's address    */
-/*                                                                         */
-/* peeraddrlen      (IN/OUT) Size of the peeraddr structure                */
-/*                                                                         */
-/* Returns          Valid socket or -1 if no DA connection can be made     */
-/*=========================================================================*/
 
 
 /*=========================================================================*/

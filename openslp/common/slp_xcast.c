@@ -113,46 +113,46 @@ int SLPBroadcastSend(const SLPIfaceInfo* ifaceinfo,
          socks->sock_count < ifaceinfo->iface_count; 
          socks->sock_count++)
     {
-        socks->sock[socks->sock_count] = socket(AF_INET, SOCK_DGRAM, 0);
-        if (socks->sock[socks->sock_count] < 0)
-        {
-            /* error creating socket */
-            return -1;
-        }
-        
-        if( (setsockopt(socks->sock[socks->sock_count],
-                        SOL_SOCKET, 
-                        SO_BROADCAST, 
-                        &on, 
-                        sizeof(on))) )
-        {
-            /* Error setting socket option */
-            return -1;
-        }
-        SLPNetCopyAddr(&(socks->peeraddr[socks->sock_count]), &(ifaceinfo->bcast_addr[socks->sock_count]));
-        if (SLPNetIsIPV6()) {
-            SLPNetSetAddr(&(socks->peeraddr[socks->sock_count]), PF_INET6, SLP_RESERVED_PORT, NULL, 0);
+        if (ifaceinfo[socks->sock_count].iface_addr->ss_family == PF_INET) {
+            socks->sock[socks->sock_count] = socket(ifaceinfo[socks->sock_count].iface_addr->ss_family, SOCK_DGRAM, 0);
+
+            if (socks->sock[socks->sock_count] < 0)
+            {
+                /* error creating socket */
+                return -1;
+            }
+            
+            if( (setsockopt(socks->sock[socks->sock_count],
+                            SOL_SOCKET, 
+                            SO_BROADCAST, 
+                            &on, 
+                            sizeof(on))) )
+            {
+                /* Error setting socket option */
+                return -1;
+            }
+            SLPNetCopyAddr(&(socks->peeraddr[socks->sock_count]), &(ifaceinfo->bcast_addr[socks->sock_count]));
+
+            SLPNetSetAddr(&(socks->peeraddr[socks->sock_count]), PF_INET, SLP_RESERVED_PORT, NULL, 0);
+            xferbytes = sendto(socks->sock[socks->sock_count], 
+                            msg->start,
+                            msg->end - msg->start,
+                            0,
+                            (struct sockaddr *) &(socks->peeraddr[socks->sock_count]),
+                            sizeof(struct sockaddr_storage));
+            if(xferbytes  < 0)
+            { 
+                /* Error sending to broadcast */
+                return -1;
+            }
         }
         else {
-            SLPNetSetAddr(&(socks->peeraddr[socks->sock_count]), PF_INET, SLP_RESERVED_PORT, NULL, 0);
-        }
-
-        xferbytes = sendto(socks->sock[socks->sock_count], 
-                           msg->start,
-                           msg->end - msg->start,
-                           0,
-                           (struct sockaddr *) &(socks->peeraddr[socks->sock_count]),
-                           sizeof(struct sockaddr_storage));
-        if(xferbytes  < 0)
-        { 
-            /* Error sending to broadcast */
-            return -1;
-        }
-    }  
-
+            /* assume broadcast for IPV4 only */
+            socks->sock[socks->sock_count] = 0;
+        }  
+    }
     return 0;
 }
-
 
 /*========================================================================*/
 int SLPMulticastSend(const SLPIfaceInfo* ifaceinfo, 
@@ -188,7 +188,7 @@ int SLPMulticastSend(const SLPIfaceInfo* ifaceinfo,
          socks->sock_count < ifaceinfo->iface_count;
          socks->sock_count++)
     {
-        socks->sock[socks->sock_count] = socket(AF_INET, SOCK_DGRAM, 0);
+        socks->sock[socks->sock_count] = socket(ifaceinfo[socks->sock_count].iface_addr->ss_family, SOCK_DGRAM, 0);
         if (socks->sock[socks->sock_count] < 0)
         {
             /* error creating socket */
@@ -205,12 +205,7 @@ int SLPMulticastSend(const SLPIfaceInfo* ifaceinfo,
             /* error setting socket option */
             return -1;
         }
-        if (SLPNetIsIPV6()) {
-            SLPNetSetAddr(&(socks->peeraddr[socks->sock_count]), PF_INET6, SLP_RESERVED_PORT, (unsigned char *) ad, sizeof(ad));
-        }
-        else {
-            SLPNetSetAddr(&(socks->peeraddr[socks->sock_count]), PF_INET, SLP_RESERVED_PORT, (unsigned char *) ad, sizeof(ad));
-        }
+        SLPNetSetAddr(&(socks->peeraddr[socks->sock_count]), ifaceinfo[socks->sock_count].iface_addr->ss_family, SLP_RESERVED_PORT, (unsigned char *) ad, sizeof(ad));
         xferbytes = sendto(socks->sock[socks->sock_count],
                            msg->start,
                            msg->end - msg->start,
