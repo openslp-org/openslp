@@ -1411,11 +1411,11 @@ SLPError SLPAttrGet_opaque(
  *  SLP_TAG_ERROR
  *    If the attribute is not set. 
  */
-SLPError SLPAttrGetType(SLPAttributes attr_h, const char *tag, SLPType *type) {
+SLPError SLPAttrGetType_len(SLPAttributes attr_h, const char *tag, size_t tag_len, SLPType *type) {
 	struct xx_SLPAttributes *slp_attr = (struct xx_SLPAttributes *)attr_h;
 	var_t *var;
 
-	var = attr_val_find_str(slp_attr, tag, strlen(tag));
+	var = attr_val_find_str(slp_attr, tag, tag_len);
 
 	/***** Check that the tag exists. *****/
 	if (var == NULL) {
@@ -1427,6 +1427,9 @@ SLPError SLPAttrGetType(SLPAttributes attr_h, const char *tag, SLPType *type) {
 	}
 	
 	return SLP_OK;
+}
+SLPError SLPAttrGetType(SLPAttributes attr_h, const char *tag, SLPType *type) {
+	return SLPAttrGetType_len(attr_h, tag, strlen(tag), type);
 }
 
 

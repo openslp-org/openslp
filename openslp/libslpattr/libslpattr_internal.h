@@ -75,3 +75,6 @@ struct xx_SLPAttributes {
 
 /* Finds a variable by its tag. */
 var_t *attr_val_find_str(struct xx_SLPAttributes *slp_attr, const char *tag, size_t tag_len); 
+
+/* Finds the type of an attribute. */
+SLPError SLPAttrGetType_len(SLPAttributes attr_h, const char *tag, size_t tag_len, SLPType *type); 
