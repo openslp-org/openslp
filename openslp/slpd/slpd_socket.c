@@ -359,7 +359,7 @@ SLPDSocket* SLPDSocketCreateBoundDatagram(struct in_addr* myaddr,
     /*------------------------------------------*/
     /* Adjust for multicast binding differences */
     /*------------------------------------------*/
-    #if(defined LINUX)
+    #ifdef LINUX
     bindaddr = peeraddr;  
     #else
     if(type == DATAGRAM_MULTICAST)

@@ -44,7 +44,7 @@ void SLPDKnownDARegisterAll(SLPDAEntry* daentry)
 /* Forks a child process to register all services with specified DA        */
 /*-------------------------------------------------------------------------*/
 {
-    
+    /* Child process should random wait */
 }   
 
 /*=========================================================================*/
@@ -68,59 +68,57 @@ int SLPDKnownDAInit()
     if(G_SlpdProperty.isDA)
     {
         /* TODO: some day we may put something here for DA to DA communication */
-        temp = 0;
-    }
-    else
-    {
-        slider1 = slider2 = temp = strdup(G_SlpdProperty.DAAddresses);
+        return 0;
     }
     
     /*------------------------------------------------------*/
     /* Added statically configured DAs to the Known DA List */
     /*------------------------------------------------------*/
-    if (temp && *temp)
+    if (G_SlpdProperty.DAAddresses && *G_SlpdProperty.DAAddresses)
     {
-        tempend = temp + strlen(temp);
-        while (slider1 != tempend)
+        temp = slider1 = slider2 = strdup(G_SlpdProperty.DAAddresses);
+        if(temp)
         {
-            while (*slider2 && *slider2 != ',') slider2++;
-            *slider2 = 0;
-
-            he = gethostbyname(slider1);
-            if (he)
+            tempend = temp + strlen(temp);
+            while (slider1 != tempend)
             {
-                daaddr.s_addr = *((unsigned long*)(he->h_addr_list[0]));
-
-                SLPDKnownDAEvaluate(&daaddr,
-                                    1, 
-                                    G_SlpdProperty.useScopes,
-                                    G_SlpdProperty.useScopesLen);
-
-                // For now do not contact the DA to see if it is up.  Just 
-                // assume that the statically configured DAs are available.
-                // KnownDAConnect() will remove them if they can not be 
-                // connected to.
-
-                //sock = SLPNetworkConnectStream(&peeraddr,timeout);
-                //if(sock >= 0)
-                //{
-                //    result += KnownDADiscoveryRqstRply(sock, &peeraddr);
-                //    close(sock);
-                //}
+                while (*slider2 && *slider2 != ',') slider2++;
+                *slider2 = 0;
+    
+                he = gethostbyname(slider1);
+                if (he)
+                {
+                    daaddr.s_addr = *((unsigned long*)(he->h_addr_list[0]));
+    
+                    SLPDKnownDAEvaluate(&daaddr,
+                                        1, 
+                                        G_SlpdProperty.useScopes,
+                                        G_SlpdProperty.useScopesLen);
+    
+                    // For now do not contact the DA to see if it is up.  Just 
+                    // assume that the statically configured DAs are available.
+                    // KnownDAConnect() will remove them if they can not be 
+                    // connected to.
+    
+                    //sock = SLPNetworkConnectStream(&peeraddr,timeout);
+                    //if(sock >= 0)
+                    //{
+                    //    result += KnownDADiscoveryRqstRply(sock, &peeraddr);
+                    //    close(sock);
+                    //}
+                }
+    
+                slider1 = slider2;
+                slider2++;
             }
-
-            slider1 = slider2;
-            slider2++;
+    
+            free(temp);
         }
-
-        free(temp);
     }
-    else
-    {
-        /* Perform active discovery if no statically configured DAs */
-        SLPDKnownDAActiveDiscovery();
-    }
-
+    
+    /* Lastly, Perform active discovery */
+    SLPDKnownDAActiveDiscovery();
+    
     return 0;
 }
 
@@ -173,7 +171,7 @@ SLPDAEntry* SLPDKnownDAEvaluate(struct in_addr* addr,
                 }
                 else
                 {
-                    /* Should we do anything special here */
+                    /* TODO: Should we do anything special here */
                 } 
             }
             else
@@ -241,7 +239,9 @@ void SLPDKnownDAEcho(struct sockaddr_in* peeraddr,
     SLPBuffer   dup;
     const char* msgscope;
     int         msgscopelen;
-
+    
+    /* TODO: make sure that we do not echo to ourselves */
+    
     if(msg->header.functionid == SLP_FUNCT_SRVREG)
     {
         msgscope = msg->body.srvreg.scopelist;
