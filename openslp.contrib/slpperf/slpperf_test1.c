@@ -79,7 +79,7 @@ TestService_T* CreateRandomTestService(int id)
     sprintf(ids,"slpperf%i",id);
     sprintf(serviceurl,"service:%s.x://%s",ids,myname.nodename);
     sprintf(servicetype,"service:%s.x",ids);
-    sprintf(attributes,"(attr1=%s-val)(attr2=%s-val)(attr3=%s-val)", ids,ids,ids);
+    sprintf(attributes,"(attr1=%s-val),(attr2=%s-val),(attr3=%s-val)", ids,ids,ids);
       
 
     return  CreateTestService(serviceurl,servicetype,attributes);
