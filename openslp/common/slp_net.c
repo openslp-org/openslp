@@ -332,7 +332,7 @@ int SLPNetIsLocal(const struct sockaddr_storage *addr) {
     }
     else if (addr->ss_family == AF_INET6) {
         struct sockaddr_in6 *v6 = (struct sockaddr_in6 *) addr;
-        sts = IN6_IS_ADDR_LINKLOCAL(&v6->sin6_addr);
+        sts = IN6_IS_ADDR_LOOPBACK(&v6->sin6_addr);
     }
 	return(sts);
 }
@@ -340,7 +340,7 @@ int SLPNetIsLocal(const struct sockaddr_storage *addr) {
 
 int SLP_IN6_IS_ADDR_LOOPBACK(const struct in6_addr *a)
 {
-    return memcmp(a, &slp_in6addr_loopback, sizeof(struct in6_addr));
+    return (memcmp(a, &slp_in6addr_loopback, sizeof(struct in6_addr)) == 0);
 }
 
 int SLPNetIsLoopback(const struct sockaddr_storage *addr) {
