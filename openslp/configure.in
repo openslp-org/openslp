@@ -2,7 +2,7 @@ dnl ***********************************************************************
 dnl Process this file with autoconf to produce a configure script.
 dnl ***********************************************************************
 AC_INIT(slpd/slpd_main.c)
-AM_INIT_AUTOMAKE(slp, 0.7.4)
+AM_INIT_AUTOMAKE(openslp, 0.7.4)
 
 dnl We don't want /usr/etc or /usr/var
 test "$prefix" = NONE && prefix=/usr
