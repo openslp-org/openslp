@@ -295,7 +295,7 @@ int BindSocketToInetAddr(int family, int sock, struct sockaddr_storage* addr)
         setsockopt(sock,SOL_SOCKET,SO_SNDLOWAT,&lowat,sizeof(lowat));
     }
     else {
-        printf("Error was %d\n", WSAGetLastError());
+        printf("Bind error.\n");
     }
 
     return result;
@@ -417,7 +417,7 @@ SLPDSocket* SLPDSocketCreateDatagram(struct sockaddr_storage* peeraddr,
             else if (peeraddr->ss_family == AF_INET6)
                 sock->fd = socket(PF_INET6, SOCK_DGRAM, 0);
             else
-                sock->fd = INVALID_SOCKET;  /* only IPv4 (and soon IPv6) are supported */
+                sock->fd = -1;  /* only IPv4 (and soon IPv6) are supported */
 
             if(sock->fd >= 0)
             {
@@ -509,7 +509,7 @@ SLPDSocket* SLPDSocketCreateBoundDatagram(struct sockaddr_storage* myaddr,
         else if (SLPNetIsIPV6() && peeraddr->ss_family == AF_INET6)
             sock->fd = socket(PF_INET6, SOCK_DGRAM, 0);
         else
-            sock->fd = INVALID_SOCKET;  /* only ipv4 and ipv6 are supported */
+            sock->fd = -1;  /* only ipv4 and ipv6 are supported */
 
         if(sock->fd >=0)
         {
@@ -588,7 +588,7 @@ SLPDSocket* SLPDSocketCreateListen(struct sockaddr_storage* peeraddr)
         else if (SLPNetIsIPV6() && peeraddr->ss_family == AF_INET6)
             sock->fd = socket(PF_INET6, SOCK_STREAM, 0);
         else
-            sock->fd = INVALID_SOCKET;  /* only ipv4 (and soon ipv6) are supported */
+            sock->fd = -1;  /* only ipv4 (and soon ipv6) are supported */
 
         if(sock->fd >= 0)
         {
@@ -681,7 +681,7 @@ SLPDSocket* SLPDSocketCreateConnected(struct sockaddr_storage* addr)
     else if (addr->ss_family == AF_INET6)
         sock->fd = socket(PF_INET6,SOCK_STREAM,0);
     else
-        sock->fd = INVALID_SOCKET;
+        sock->fd = -1;
 
     if(sock->fd < 0)
     {

@@ -267,11 +267,11 @@ int SLPDDatabaseReg(SLPMessage msg, SLPBuffer buf)
                     SLPIfaceGetInfo(G_SlpdProperty.interfaces, &ifaces, AF_INET6);
                     for (i = 0; i < ifaces.iface_count; i++) {
                         if (IN6_IS_ADDR_LINKLOCAL(&(((struct sockaddr_in6*) &ifaces.iface_addr[i])->sin6_addr)))
-                            SLPDIncomingAddService(msg->body.srvreg.srvtype, msg->body.srvreg.srvtypelen, (struct sockaddr_in6*) &ifaces.iface_addr[i]);
+                            SLPDIncomingAddService(msg->body.srvreg.srvtype, msg->body.srvreg.srvtypelen, &ifaces.iface_addr[i]);
                     }
                 }
                 else {
-                    SLPDIncomingAddService(msg->body.srvreg.srvtype, msg->body.srvreg.srvtypelen, (struct sockaddr_in6*) &msg->peer);
+                    SLPDIncomingAddService(msg->body.srvreg.srvtype, msg->body.srvreg.srvtypelen, &msg->peer);
                 }
             }
 
@@ -304,11 +304,11 @@ int SLPDDatabaseDeReg(SLPMessage msg)
 /*=========================================================================*/
 {
     SLPDatabaseHandle   dh;
-    SLPDatabaseEntry*   entry;
+    SLPDatabaseEntry*   entry = NULL;
     SLPSrvReg*          entryreg;
     SLPSrvDeReg*        dereg;
     char                srvtype[MAX_HOST_NAME];
-    int                 srvtypelen;
+    int                 srvtypelen = 0;
 
     dh = SLPDatabaseOpen(&G_SlpdDatabase.database);
     if ( dh )
