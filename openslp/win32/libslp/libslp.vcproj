@@ -695,6 +695,9 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\..\common\slp_win32.c">
+			</File>
+			<File
 				RelativePath="..\..\common\slp_xcast.c">
 				<FileConfiguration
 					Name="Release|Win32">
@@ -788,6 +791,9 @@
 			</File>
 			<File
 				RelativePath="..\..\common\slp_v1message.h">
+			</File>
+			<File
+				RelativePath="..\..\common\slp_win32.h">
 			</File>
 			<File
 				RelativePath="..\..\common\slp_xcast.h">
