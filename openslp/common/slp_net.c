@@ -110,12 +110,6 @@ int SLPNetGetThisHostname(char* hostfdn, unsigned int hostfdnLen, int numeric_on
             }
             freeaddrinfo(ifaddr);
         }
-        else {
-#ifdef _DEBUG
-            printf("gethostname failed with error %s\r\n", DecodeError(WSAGetLastError()));
-            assert(1);
-#endif
-        }
     }
     else {
         /* problable cause - not calling wsastartup in windows */
@@ -322,7 +316,7 @@ int SLPNetSetSockAddrStorageFromAddrInfo(struct sockaddr_storage *dst, struct ad
         v6->sin6_flowinfo = 0;
         v6->sin6_port = 0;
         v6->sin6_scope_id = 0;
-        memcpy(&v6->sin6_addr, &((struct sockaddr_in6 *)&src->ai_addr)->sin6_addr, sizeof(struct in6_addr));
+        memcpy(&v6->sin6_addr, &((struct sockaddr_in6 *) src->ai_addr)->sin6_addr, sizeof(struct in6_addr));
     }
     else {
         return(-1);
@@ -368,9 +362,9 @@ char * SLPNetSockAddrStorageToString(struct sockaddr_storage *src, char *dst, in
         inet_ntop(v6->sin6_family, &v6->sin6_addr, dst, dstLen);
     }
     else {
-        return(dst);
+        return(NULL);
     }
-    return(NULL);
+    return(dst);
 }
 
 
