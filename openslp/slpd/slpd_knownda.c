@@ -610,6 +610,8 @@ int SLPDKnownDAAdd(SLPMessage msg, SLPBuffer buf)
                                 daadvert->urllen,
                                 daadvert->url) == 0)
             {  
+
+#ifdef ENABLE_AUTHENTICATION                
                 if(G_SlpdProperty.checkSourceAddr &&
                    memcmp(&(entry->msg->peer.sin_addr),
                           &(msg->peer.sin_addr),
@@ -619,7 +621,6 @@ int SLPDKnownDAAdd(SLPMessage msg, SLPBuffer buf)
                     return SLP_ERROR_AUTHENTICATION_FAILED;
                 }
 
-#ifdef ENABLE_AUTHENTICATION
                 /* make sure an unauthenticated DAAdvert can't replace */
                 /* an authenticated one                                */
                 if(entrydaadvert->authcount &&
