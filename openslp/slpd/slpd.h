@@ -61,12 +61,13 @@
 #define MAX_PATH    256
 #endif
 
-#define SLPDPROCESS_RESULT_COUNT   256  
+#define SLPDPROCESS_RESULT_COUNT    256  
 #define SLPD_SMALLEST_MESSAGE       18   /* 18 bytes is smallest SLPv2 msg */
 #define SLPD_MAX_SOCKETS            64   /* maximum number of sockets */
 #define SLPD_COMFORT_SOCKETS        32   /* a comfortable number of sockets */
 #define SLPD_MAX_SOCKET_LIFETIME    3600 /* max idle time of socket - 60 min*/
 #define SLPD_AGE_INTERVAL           15   /* age every 15 seconds */
+#define SLPD_ATTR_RECURSION_DEPTH   50
 
 
 /* Global variables representing signals */
@@ -212,12 +213,14 @@ typedef struct _SLPDDatabaseEntry
     char*               scopelist;
     int                 srvtypelen;
     char*               srvtype;
-#ifdef USE_PREDICATES
+    #ifdef USE_PREDICATES
     SLPAttributes		attr;
-#else
+    #endif
     int                 attrlistlen;
     char*               attrlist;
-#endif     
+    int                 partiallistlen;
+    char*               partiallist;
+
     /* TODO: we might need some authblock storage here */
 }SLPDDatabaseEntry;
 
@@ -691,40 +694,7 @@ extern SLPList G_KnownDAList;
 #if(defined USE_PREDICATES)
 
 /*=========================================================================*/
-typedef void* SLPDPredicate; 
-/* Opaque type representing an predicate                                   */
-/*=========================================================================*/
-
-/*=========================================================================*/
-int SLPDPredicateAlloc(const char *predicate_str,
-                       size_t len,
-                       SLPDPredicate *pred); 
-/*                                                                         */
-/* Create a predicate structure.                                           */
-/*                                                                         */
-/* predicate    (IN) the predicate string                                  */
-/*                                                                         */
-/* len          (IN) the length of the predicate string                    */
-/*                                                                         */
-/* pred         (IN) the predicate struct to populate                      */
-/*                                                                         */
-/* Returns:                                                                */
-/*   SLP_OK if allocated properly.                                         */
-/*   SLP_PARSE_ERROR if there is an error in the predicate string.         */
-/*   SLP_MEMORY_ALLOC_FAILED if out of memory                              */
-/*=========================================================================*/
-
-/*=========================================================================*/
-void SLPDPredicateFree(SLPDPredicate *victim);
-/* Free memory associated with the specified predicate                     */
-/*                                                                         */
-/* victim (IN) The predicate to free                                       */
-/*                                                                         */
-/* Returns: none                                                           */
-/*=========================================================================*/
-
-/*=========================================================================*/
-int SLPDTestPredicate(SLPDPredicate predicate, SLPAttributes attr);
+int SLPDTestPredicate(const char* predicate, SLPAttributes attr);
 /* Determine whether the specified attribute list satisfies                */
 /* the specified predicate                                                 */
 /*                                                                         */
