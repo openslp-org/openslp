@@ -2,7 +2,7 @@
 <html>
 <head>
    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-   <meta name="GENERATOR" content="Mozilla/4.72C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.2.14 i686) [Netscape]">
+   <meta name="GENERATOR" content="Mozilla/4.76C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.4.0 i686) [Netscape]">
    <title>OpenSLP Programmers Guide - Divergence from RFC 2614</title>
 </head>
 <body text="#000000" bgcolor="#FFFFFF" link="#0000EE" vlink="#551A8B" alink="#FF0000">
@@ -39,9 +39,10 @@ the following scenario:
 <blockquote>Suppose that two calls were made to SLPReg() with a <tt>srvurl</tt>s
 and <tt>srvtype</tt>s of "192.168.100.2","http" and "192.168.100.2","ftp".&nbsp;
 Now the developer wants to deregister one service with out deregistering
-the other.&nbsp; How can it be done?&nbsp; The SLPDeReg() call does have
-a service type parameter so it would be impossible for the underlying implementation
-to distinguish between the two registrations.</blockquote>
+the other.&nbsp; How can it be done?&nbsp; The SLPDeReg() call does not
+have a service type parameter so it would be impossible for the underlying
+implementation to distinguish between the two registrations.&nbsp; In attempt
+to standardize, OpenSLP expects valid Service URLS.</blockquote>
 OpenSLP requires strict Service URL syntax because a Service URL can be
 treated as a unique "database key" that identifies a registered service.&nbsp;&nbsp;
 Not requiring Service URL syntax allows for several ambiguities like the
@@ -63,19 +64,6 @@ Unless they are writing some sort of SLP browser, they will be very content
 to use the scope that the machine is configured to use.
 <br>&nbsp;
 <h3>
-NULL and empty string are acceptable parameters</h3>
-According to RFC 2614, NULL is not exceptable value for any parameter.&nbsp;
-Instead programmers are instructed to passed the empty string "".&nbsp;
-OpenSLP allows programmers to use either NULL or the empty string.&nbsp;&nbsp;
-It is very easy to deal with both NULL or empty string in the implementation,
-and allows developers to write more familiar and slightly more efficient
-code.&nbsp; There should not be any reason why the compiler should be required
-to pass a pointer to a static constant empty string when NULL will do just
-a well.&nbsp;&nbsp; This is why the vast majority of C APIs use NULL to
-indicate an ignored parameter or default value -- not the empty string
-("").
-<br>&nbsp;
-<h3>
 The SLPSetProperty() is ignored</h3>
 The SLPSetProperty() and SLPGetProperty() calls are impossible implement
 in a way that would be both scalable and thread safe.&nbsp; The SLPGetProperty()
@@ -90,6 +78,41 @@ performance might be adversely affected due to mutex bottlenecking or the
 amount of processing required to resolve the attribute name to a value.
 <br>&nbsp;
 <h3>
+NULL and empty string are acceptable parameters</h3>
+According to RFC 2614, NULL is not exceptable value for any parameter.&nbsp;
+Instead programmers are instructed to passed the empty string "".&nbsp;
+OpenSLP allows programmers to use either NULL or the empty string.&nbsp;&nbsp;
+It is very easy to deal with both NULL or empty string in the implementation,
+and allows developers to write more familiar and slightly more efficient
+code.&nbsp; There should not be any reason why the compiler should be required
+to pass a pointer to a static constant empty string when NULL will do just
+a well.&nbsp;&nbsp; This is why the vast majority of C APIs use NULL to
+indicate an ignored parameter or default value -- not the empty string
+("").
+<br>&nbsp;
+<h3>
+Incremental registrations an de-registrations</h3>
+The only reason I can think of ever wanting to expose the functionality
+of incremental registration and deregistration is to represent dynamic
+data via SLP attributes.&nbsp; I can think of a long list of reasons why
+this is a very very bad idea.&nbsp; With out doubt, it is best to instruct
+SLP developers to minimize when ever possible, the number of calls that
+ultimately generate SrvReg and SrvDereg messages.&nbsp; If dynamic data
+is to be represented, it is best do do it via a specialized protocol optimized
+for the given service.&nbsp; OpenSLP does not support incremental registrations
+and de-registrations via SLPReg() and SLPDelAttrs() because we have found
+that when developers really learn what happens "under the SLP covers" they
+are very carefull *not* to call then very often.
+<p>In addition to poor usage of network resources, incremental registrations
+and de-registrations require additional code that decreases the efficiency
+of and increases the size, and complexity of API and agent implementations.
+<br>&nbsp;
+<h3>
+Some .conf properties are ignored</h3>
+See the <a href="../UsersGuide/SlpConf.html">OpenSLP Users Guide</a> for
+more details
+<br>&nbsp;
+<h3>
 Some features are not implemented</h3>
 OpenSLP is a work in progress.&nbsp; Though usable, OpenSLP is lacking
 some of the features that are specified by the SLP RFCs.&nbsp; Make sure
@@ -101,10 +124,5 @@ Can I Help</a> section of the www.openslp.org web page to see a good list
 of the features are planned for completion.&nbsp; If a feature is missing
 from the list that you would like to see, please contact the <a href="mpeterson@calderasystems.com">OpenSLP
 Maintainer</a>.
-<br>&nbsp;
-<h3>
-Some .conf properties are ignored</h3>
-See the <a href="../UsersGuide/SlpConf.html">OpenSLP Users Guide</a> for
-more details
 </body>
 </html>
