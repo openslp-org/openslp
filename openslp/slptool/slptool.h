@@ -41,12 +41,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#ifdef WIN32
-#include <malloc.h>
-#define strcasecmp(str1,str2) stricmp(str1,str2)
-#define strncasecmp(str1,str2,size) strnicmp(str1,str2,size)
-#endif
-
 /*=========================================================================*/
 typedef enum _SLPToolCommand
 /*=========================================================================*/
