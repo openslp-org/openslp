@@ -6,6 +6,20 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 
+*** TAG OpenSLP-1.3.0 ***
+03/02/2004 beastham@emware.com
+IPv6 support has been added to OpenSLP.  It is generally transparent to the
+API user, but it would be a good idea to look at the conf file additions to
+acquaint yourself with the new settings available.
+beastham@emware.com
+
+*** TAG OpenSLP-1.2.0 ***
+02/24/2004 beastham@emware.com
+This release includes all of the code updates and feature changes up to 1.1.5.
+The 1.2 branch will concentrate on bug fixes and minor enhancements, while
+the 1.3 branch is where major enhancements and changes will be made.
+beastham@emware.com
+
 *** TAG OpenSLP-1.1.5 ***
 08/20/2003 smhatre@cisco.com
 Fixes for the following 2 sourceforge bugs:-
