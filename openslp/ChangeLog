@@ -5,6 +5,9 @@ Please make entries to this log (in addition to the CVS log) that describe
 major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
+01/24/02 matt@caldera.com
+Applied patch from Garth Bushell that fixes a problem where not enough
+memory was being allocated to hold an escaped string in SLPEscape(). 
 
 01/17/02 matt@caldera.com
 Fixed some problems with multicast route handling code in the slpd 
