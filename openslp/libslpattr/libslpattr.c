@@ -5,8 +5,8 @@
 #include <math.h>
 #include <ctype.h>
 
-#include "../libslpattr/libslpattr.h"
-#include "../libslpattr/libslpattr_internal.h"
+#include "libslpattr.h"
+#include "libslpattr_internal.h"
 
 /* The strings used to represent non-string variables. */
 #define BOOL_TRUE_STR "true"
@@ -46,9 +46,7 @@
 
 
 /******************************************************************************
- *
  *                                   Utility
- *
  *****************************************************************************/
 
 /* Tests a character to see if it reserved (as defined in RFC 2608, p11). */
@@ -105,8 +103,8 @@ char const *find_tag_end(const char *tag)
  */
 char unescape(char d1, char d2)
 {
-    assert(isxdigit(d1));
-    assert(isxdigit(d2));
+    assert(isxdigit((int) d1));
+    assert(isxdigit((int) d2));
 
     if((d1 >= 'A') && (d1 <= 'F'))
         d1 = d1 - 'A' + 0x0A;
@@ -151,7 +149,8 @@ char *unescape_into(char *dest, const char *src, int len, int
             /*** Check that the characters are legal, and that the value has
              * not been truncated. 
              ***/
-            if((i + 2 < len) && isxdigit(src[i+1]) && isxdigit(src[i+2]))
+            if((i + 2 < len) && isxdigit((int) src[i+1])
+			   && isxdigit((int) src[i+2]))
             {
                 *write = unescape(src[i+1], src[i+2]);
                 i += 2;

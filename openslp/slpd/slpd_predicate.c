@@ -160,7 +160,7 @@ int escaped_verify(char *escaped, int len, int *punescaped_len)
 {
     int i;
     int unescaped_len;
-    int seq_pos; /* Position in the current escape sequence. Set to zero when not in escape seq.*/
+    int seq_pos; /* Position in the current escape sequence. Set to zero when not in escape seq. */ 
 
     seq_pos = 0;
 
@@ -169,7 +169,7 @@ int escaped_verify(char *escaped, int len, int *punescaped_len)
         /* Verify escape sequences. */
         if(seq_pos == 1 || seq_pos == 2)
         {
-            if(!isxdigit(escaped[i]))
+            if(!isxdigit((int) escaped[i]))
             {
                 return 0;
             }
@@ -218,7 +218,7 @@ int unescape_check(char d1, char d2, char *val)
 /*  invalid                                                                 */
 /*--------------------------------------------------------------------------*/
 {
-    if(!isxdigit(d1) || !isxdigit(d2))
+    if(!isxdigit((int) d1) || !isxdigit((int) d2))
     {
         return 0;
     }

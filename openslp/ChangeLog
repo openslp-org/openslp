@@ -6,6 +6,10 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 
+08/08/01 rganesan@myrealbox.com
+Minor compilation and bug fixes: typecast char to int when passed to is*() 
+functions, fix size of Attribute Reply buf etc.
+
 *** Tag OpenSLP-1.0.1 ***
 
 08/03/01 rganesan@myrealbox.com
