@@ -432,6 +432,9 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\..\common\slp_win32.c">
+			</File>
+			<File
 				RelativePath="..\..\common\slp_xid.c">
 				<FileConfiguration
 					Name="Debug|Win32">
@@ -745,6 +748,9 @@
 				RelativePath="..\..\libslp\slp.h">
 			</File>
 			<File
+				RelativePath="..\..\common\slp_attr.h">
+			</File>
+			<File
 				RelativePath="..\..\common\slp_buffer.h">
 			</File>
 			<File
@@ -782,6 +788,9 @@
 			</File>
 			<File
 				RelativePath="..\..\common\slp_v1message.h">
+			</File>
+			<File
+				RelativePath="..\..\common\slp_win32.h">
 			</File>
 			<File
 				RelativePath="..\..\common\slp_xid.h">
