@@ -1384,7 +1384,7 @@ int SLPDProcessMessage(struct sockaddr_in* peerinfo,
         if(G_SlpdProperty.traceDrop)
     	{
     	   SLPDLogMessage("Ignored message (no response to)",
-                          peerinfo,*sendbuf);
+                          peerinfo,recvbuf);
     	}
     }
     else
