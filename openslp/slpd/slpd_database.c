@@ -128,8 +128,8 @@ void SLPDDatabaseAge(int seconds, int ageall)
             /* Remove entries that have timed out */
             if ( srvreg->urlentry.lifetime <= 0 )
             {
-                SLPDatabaseRemove(dh,entry);
                 SLPDLogRegistration("Timeout",entry);
+		SLPDatabaseRemove(dh,entry);
             }
         }
 
@@ -329,8 +329,8 @@ int SLPDDatabaseDeReg(SLPMessage msg)
                     }
 #endif                    
                     /* remove the registration from the database */
-                    SLPDatabaseRemove(dh,entry);                   
                     SLPDLogRegistration("Deregistration",entry);
+		    SLPDatabaseRemove(dh,entry);
                     break;
                 }
             }
