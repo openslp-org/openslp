@@ -57,7 +57,6 @@ CLEAN :
 	-@erase "$(INTDIR)\slp_v1message.obj"
 	-@erase "$(INTDIR)\slp_xid.obj"
 	-@erase "$(INTDIR)\slpd.idb"
-	-@erase "$(INTDIR)\slpd.pdb"
 	-@erase "$(INTDIR)\slpd_cmdline.obj"
 	-@erase "$(INTDIR)\slpd_database.obj"
 	-@erase "$(INTDIR)\slpd_incoming.obj"
@@ -74,11 +73,12 @@ CLEAN :
 	-@erase "$(INTDIR)\slpd_win32.obj"
 	-@erase "$(OUTDIR)\slpd.exe"
 	-@erase "$(OUTDIR)\slpd.map"
+	-@erase "$(OUTDIR)\slpd.pdb"
 
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
-CPP_PROJ=/nologo /ML /W3 /Zi /O2 /I "../../common" /D "ENABLE" /D "ENABLE_SLPv1" /D "_WINDOWS" /D "i386" /D "USE_PREDICATES" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D SLP_VERSION=\"1.0.5\" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\slpd.pdb" /FD /c 
+CPP_PROJ=/nologo /ML /W3 /Zi /O2 /I "../../common" /D "ENABLE" /D "ENABLE_SLPv1" /D "_WINDOWS" /D "i386" /D "USE_PREDICATES" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D SLP_VERSION=\"1.1.1\" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\slpd.pdb" /FD /c 
 MTL_PROJ=/nologo /D "NDEBUG" /mktyplib203 /win32 
 BSC32=bscmake.exe
 BSC32_FLAGS=/nologo /o"$(OUTDIR)\slpd.bsc" 
@@ -91,6 +91,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\slp_buffer.obj" \
 	"$(INTDIR)\slp_compare.obj" \
 	"$(INTDIR)\slp_database.obj" \
+	"$(INTDIR)\slp_dhcp.obj" \
 	"$(INTDIR)\slp_iface.obj" \
 	"$(INTDIR)\slp_linkedlist.obj" \
 	"$(INTDIR)\slp_message.obj" \
@@ -114,8 +115,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\slpd_regfile.obj" \
 	"$(INTDIR)\slpd_socket.obj" \
 	"$(INTDIR)\slpd_v1process.obj" \
-	"$(INTDIR)\slpd_win32.obj" \
-	"$(INTDIR)\slp_dhcp.obj"
+	"$(INTDIR)\slpd_win32.obj"
 
 "$(OUTDIR)\slpd.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -150,7 +150,6 @@ CLEAN :
 	-@erase "$(INTDIR)\slp_v1message.obj"
 	-@erase "$(INTDIR)\slp_xid.obj"
 	-@erase "$(INTDIR)\slpd.idb"
-	-@erase "$(INTDIR)\slpd.pdb"
 	-@erase "$(INTDIR)\slpd_cmdline.obj"
 	-@erase "$(INTDIR)\slpd_database.obj"
 	-@erase "$(INTDIR)\slpd_incoming.obj"
@@ -168,11 +167,12 @@ CLEAN :
 	-@erase "$(OUTDIR)\slpd.exe"
 	-@erase "$(OUTDIR)\slpd.ilk"
 	-@erase "$(OUTDIR)\slpd.map"
+	-@erase "$(OUTDIR)\slpd.pdb"
 
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
-CPP_PROJ=/nologo /MLd /W3 /Gm /ZI /Od /I "../../common" /D "ENABLE_SLPv1" /D "_WINDOWS" /D "i386" /D "USE_PREDICATES" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D SLP_VERSION=\"1.0.5\" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\slpd.pdb" /FD /GZ /c 
+CPP_PROJ=/nologo /MLd /W3 /Gm /ZI /Od /I "../../common" /D "ENABLE_SLPv1" /D "_WINDOWS" /D "i386" /D "USE_PREDICATES" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D SLP_VERSION=\"1.1.1\" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\slpd.pdb" /FD /GZ /c 
 MTL_PROJ=/nologo /D "_DEBUG" /mktyplib203 /win32 
 BSC32=bscmake.exe
 BSC32_FLAGS=/nologo /o"$(OUTDIR)\slpd.bsc" 
@@ -185,6 +185,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\slp_buffer.obj" \
 	"$(INTDIR)\slp_compare.obj" \
 	"$(INTDIR)\slp_database.obj" \
+	"$(INTDIR)\slp_dhcp.obj" \
 	"$(INTDIR)\slp_iface.obj" \
 	"$(INTDIR)\slp_linkedlist.obj" \
 	"$(INTDIR)\slp_message.obj" \
@@ -208,8 +209,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\slpd_regfile.obj" \
 	"$(INTDIR)\slpd_socket.obj" \
 	"$(INTDIR)\slpd_v1process.obj" \
-	"$(INTDIR)\slpd_win32.obj" \
-	"$(INTDIR)\slp_dhcp.obj"
+	"$(INTDIR)\slpd_win32.obj"
 
 "$(OUTDIR)\slpd.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<

@@ -74,8 +74,8 @@ CLEAN :
 	-@erase "$(OUTDIR)\slp.exp"
 	-@erase "$(OUTDIR)\slp.lib"
 	-@erase "$(OUTDIR)\slp.map"
+	-@erase "$(OUTDIR)\slp.pdb"
 	-@erase ".\Release\slp.idb"
-	-@erase ".\Release\slp.pdb"
 
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
@@ -83,7 +83,7 @@ CLEAN :
 "$(INTDIR)" :
     if not exist "$(INTDIR)/$(NULL)" mkdir "$(INTDIR)"
 
-CPP_PROJ=/nologo /MT /W3 /Zi /O2 /I "../../common" /D "_USRDLL" /D "LIBSLP_EXPORTS" /D "ENABLE" /D "_WINDOWS" /D "i386" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D SLP_VERSION=\"1.0.5\" /Fo"$(INTDIR)\\" /Fd"Release\slp.pdb" /FD /c 
+CPP_PROJ=/nologo /MT /W3 /Zi /O2 /I "../../common" /D "_USRDLL" /D "LIBSLP_EXPORTS" /D "ENABLE" /D "_WINDOWS" /D "i386" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D SLP_VERSION=\"1.1.1\" /Fo"$(INTDIR)\\" /Fd"Release\slp.pdb" /FD /c 
 MTL_PROJ=/nologo /D "NDEBUG" /mktyplib203 /win32 
 BSC32=bscmake.exe
 BSC32_FLAGS=/nologo /o"$(OUTDIR)\libslp.bsc" 
@@ -108,6 +108,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\slp_buffer.obj" \
 	"$(INTDIR)\slp_compare.obj" \
 	"$(INTDIR)\slp_database.obj" \
+	"$(INTDIR)\slp_dhcp.obj" \
 	"$(INTDIR)\slp_iface.obj" \
 	"$(INTDIR)\slp_linkedlist.obj" \
 	"$(INTDIR)\slp_message.obj" \
@@ -119,8 +120,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\slp_utf8.obj" \
 	"$(INTDIR)\slp_v1message.obj" \
 	"$(INTDIR)\slp_xcast.obj" \
-	"$(INTDIR)\slp_xid.obj" \
-	"$(INTDIR)\slp_dhcp.obj"
+	"$(INTDIR)\slp_xid.obj"
 
 "$(OUTDIR)\slp.dll" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -186,8 +186,8 @@ CLEAN :
 	-@erase "$(OUTDIR)\slp.ilk"
 	-@erase "$(OUTDIR)\slp.lib"
 	-@erase "$(OUTDIR)\slp.map"
+	-@erase "$(OUTDIR)\slp.pdb"
 	-@erase ".\Debug\slp.idb"
-	-@erase ".\Debug\slp.pdb"
 
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
@@ -195,7 +195,7 @@ CLEAN :
 "$(INTDIR)" :
     if not exist "$(INTDIR)/$(NULL)" mkdir "$(INTDIR)"
 
-CPP_PROJ=/nologo /MTd /W3 /Gm /ZI /Od /I "../../common" /D "_USRDLL" /D "LIBSLP_EXPORTS" /D "_WINDOWS" /D "i386" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D SLP_VERSION=\"1.0.5\" /Fo"$(INTDIR)\\" /Fd"Debug/slp.pdb" /FD /GZ /c 
+CPP_PROJ=/nologo /MTd /W3 /Gm /ZI /Od /I "../../common" /D "_USRDLL" /D "LIBSLP_EXPORTS" /D "_WINDOWS" /D "i386" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D SLP_VERSION=\"1.1.1\" /Fo"$(INTDIR)\\" /Fd"Debug/slp.pdb" /FD /GZ /c 
 MTL_PROJ=/nologo /D "_DEBUG" /mktyplib203 /win32 
 BSC32=bscmake.exe
 BSC32_FLAGS=/nologo /o"$(OUTDIR)\libslp.bsc" 
@@ -220,6 +220,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\slp_buffer.obj" \
 	"$(INTDIR)\slp_compare.obj" \
 	"$(INTDIR)\slp_database.obj" \
+	"$(INTDIR)\slp_dhcp.obj" \
 	"$(INTDIR)\slp_iface.obj" \
 	"$(INTDIR)\slp_linkedlist.obj" \
 	"$(INTDIR)\slp_message.obj" \
@@ -231,8 +232,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\slp_utf8.obj" \
 	"$(INTDIR)\slp_v1message.obj" \
 	"$(INTDIR)\slp_xcast.obj" \
-	"$(INTDIR)\slp_xid.obj" \
-	"$(INTDIR)\slp_dhcp.obj"
+	"$(INTDIR)\slp_xid.obj"
 
 "$(OUTDIR)\slp.dll" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<

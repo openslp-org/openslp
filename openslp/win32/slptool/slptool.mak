@@ -49,7 +49,7 @@ CLEAN :
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
-CPP_PROJ=/nologo /ML /W3 /Zi /O2 /I "../../libslp" /I "../../common" /D "_CONSOLE" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D SLP_VERSION=\"1.0.5\" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\slptool.pdb" /FD /c 
+CPP_PROJ=/nologo /ML /W3 /Zi /O2 /I "../../libslp" /I "../../common" /D "_CONSOLE" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D SLP_VERSION=\"1.1.1\" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\slptool.pdb" /FD /c 
 BSC32=bscmake.exe
 BSC32_FLAGS=/nologo /o"$(OUTDIR)\slptool.bsc" 
 BSC32_SBRS= \
@@ -86,7 +86,7 @@ CLEAN :
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
-CPP_PROJ=/nologo /MLd /W3 /Gm /ZI /Od /I "../../libslp" /I "../../common" /D "_CONSOLE" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D SLP_VERSION=\"1.0.5\" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\slptool.pdb" /FD /GZ /c 
+CPP_PROJ=/nologo /MLd /W3 /Gm /ZI /Od /I "../../libslp" /I "../../common" /D "_CONSOLE" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D SLP_VERSION=\"1.1.1\" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\slptool.pdb" /FD /GZ /c 
 BSC32=bscmake.exe
 BSC32_FLAGS=/nologo /o"$(OUTDIR)\slptool.bsc" 
 BSC32_SBRS= \
