@@ -196,18 +196,12 @@ SLPError ProcessSrvDeReg(PSLPHandleInfo handle)
     /*--------------------------*/
     /* Call the RqstRply engine */
     /*--------------------------*/
-    do
+    sock = NetworkConnectToSA(handle,
+                              handle->params.reg.scopelist,
+                              handle->params.reg.scopelistlen,
+                              &peeraddr);
+    if(sock)
     {
-        sock = NetworkConnectToSA(handle,
-                                  handle->params.dereg.scopelist,
-                                  handle->params.dereg.scopelistlen,
-                                  &peeraddr);
-        if(sock == -1)
-        {
-            result = SLP_NETWORK_INIT_FAILED;
-            break;
-        }
-
         result = NetworkRqstRply(sock,
                                  &peeraddr,
                                  handle->langtag,
@@ -216,12 +210,11 @@ SLPError ProcessSrvDeReg(PSLPHandleInfo handle)
                                  bufsize,
                                  CallbackSrvDeReg,
                                  handle);
-        if(result)
+        if (result)
         {
             NetworkDisconnectSA(handle);
-        }
-
-    }while(result == SLP_NETWORK_ERROR);
+        }   
+    }
 
 
     FINISHED:

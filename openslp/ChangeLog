@@ -5,6 +5,13 @@ Please make entries to this log (in addition to the CVS log) that describe
 major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
+02/13/02 matt@caldera.com
+Fixed a problem in SLPProcessMessage where errorcodes were not being returned
+resulting in attempts to send non-allocated sendbufs (i.e. SEGV).
+
+02/13/02 matt@caldera.com
+Fixed a problem where SLPReg() would hang if used against a DA or SA that
+prematurely dropped connections
 
 02/05/02 matt@caldera.com
 Force use of numeric IP addresses in all DAAdvert and SAAdvert messages.
