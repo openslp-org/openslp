@@ -319,7 +319,7 @@ int SLPXcastRecvMessage(const SLPXcastSockets* sockets,
         highfd = 0;
         for (i=0; i<sockets->sock_count; i++)
         {
-            FD_SET( (DWORD) sockets->sock[i],&readfds);
+            FD_SET( (unsigned int) sockets->sock[i],&readfds);
             if(sockets->sock[i] > highfd)
             {
                 highfd = sockets->sock[i];
