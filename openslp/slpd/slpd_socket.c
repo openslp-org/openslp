@@ -298,7 +298,8 @@ void SLPDSocketFree(SLPDSocket* sock)
             SLPBufferFree((SLPBuffer)SLPListUnlink(&(sock->sendlist), sock->sendlist.head));
         }
     }
-    else if(sock->sendbuf)
+    
+    if(sock->sendbuf)
     {
         SLPBufferFree(sock->sendbuf);                        
     }
