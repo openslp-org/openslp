@@ -99,6 +99,17 @@ int SLPNetworkConnectToMulticast(struct sockaddr_in* peeraddr, int ttl)
     unsigned char	optarg;
 #endif
     
+    
+#ifdef WIN32
+    BOOL Reuse = TRUE;
+    int TTLArg;
+    struct sockaddr_in	mysockaddr;
+
+    memset(&mysockaddr, 0, sizeof(mysockaddr));
+    mysockaddr.sin_family = AF_INET;
+    mysockaddr.sin_port = 0;
+#endif
+
     /* setup multicast socket */
     sockfd = socket(AF_INET,SOCK_DGRAM,0);
     if(sockfd >= 0)
@@ -108,10 +119,31 @@ int SLPNetworkConnectToMulticast(struct sockaddr_in* peeraddr, int ttl)
         peeraddr->sin_addr.s_addr = htonl(SLP_MCAST_ADDRESS);
 	optarg = ttl;
         
-        if(setsockopt(sockfd,IPPROTO_IP,IP_MULTICAST_TTL,&optarg,sizeof(optarg)))
+      
+#ifdef WIN32
+        TTLArg = ttl;
+        if (setsockopt(sockfd,
+                        SOL_SOCKET,
+                        SO_REUSEADDR,
+                        (const char  *)&Reuse,
+                        sizeof(Reuse)) ||
+            bind(sockfd, 
+                 (struct sockaddr *)&mysockaddr, 
+                 sizeof(mysockaddr)) ||
+            setsockopt(sockfd,
+                       IPPROTO_IP,
+                       IP_MULTICAST_TTL,
+                       (char *)&TTLArg,
+                       sizeof(TTLArg)))
+            {
+              return -1;
+            }
+#else
+                       if(setsockopt(sockfd,IPPROTO_IP,IP_MULTICAST_TTL,&optarg,sizeof(optarg)))
         {
-            return -1;
+          return -1;
         }
+#endif
     }
 
     return sockfd;
@@ -259,10 +291,15 @@ int SLPNetworkRecvMessage(int sockfd,
                              &peeraddrlen);
         if(xferbytes <= 0)
         {
-#ifndef WIN32
+#ifdef WIN32
+            if (WSAGetLastError() != WSAEMSGSIZE)
+            {
+                return -1;
+            }
+#else
             errno = ENOTCONN;
-#endif
             return -1;
+#endif
         } 
     }
     else if(xferbytes == 0)
