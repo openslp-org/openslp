@@ -373,46 +373,55 @@ int SLPNetworkRecvMessage(int sockfd,
     /* check the version */
     if(*peek == 2)
     {
-        /* allocate the recvmsg big enough for the whole message */
-        *buf = SLPBufferRealloc(*buf, AsUINT24(peek + 2));
-        if(*buf)
+        /* Check the buffer size to make sure it is sane */
+        if(AsUINT24(peek + 2) > 0xffff)
         {
-            while((*buf)->curpos < (*buf)->end)
+            /* allocate the recvmsg big enough for the whole message */
+            *buf = SLPBufferRealloc(*buf, AsUINT24(peek + 2));
+            if(*buf)
             {
-                FD_ZERO(&readfds);
-                FD_SET(sockfd, &readfds);
-                xferbytes = select(sockfd + 1, &readfds, 0 , 0, timeout);
-                if(xferbytes > 0)
+                while((*buf)->curpos < (*buf)->end)
                 {
-                    xferbytes = recv(sockfd,
-                                     (*buf)->curpos, 
-                                     (*buf)->end - (*buf)->curpos, 
-                                     0);
+                    FD_ZERO(&readfds);
+                    FD_SET(sockfd, &readfds);
+                    xferbytes = select(sockfd + 1, &readfds, 0 , 0, timeout);
                     if(xferbytes > 0)
                     {
-                        (*buf)->curpos = (*buf)->curpos + xferbytes;
+                        xferbytes = recv(sockfd,
+                                         (*buf)->curpos, 
+                                         (*buf)->end - (*buf)->curpos, 
+                                         0);
+                        if(xferbytes > 0)
+                        {
+                            (*buf)->curpos = (*buf)->curpos + xferbytes;
+                        }
+                        else
+                        {
+                            errno = ENOTCONN;
+                            return -1;
+                        }
+                    }
+                    else if(xferbytes == 0)
+                    {
+                        errno = ETIMEDOUT;
+                        return -1;
                     }
                     else
                     {
-                        errno = ENOTCONN;
+                        errno =  ENOTCONN;
                         return -1;
                     }
-                }
-                else if(xferbytes == 0)
-                {
-                    errno = ETIMEDOUT;
-                    return -1;
-                }
-                else
-                {
-                    errno =  ENOTCONN;
-                    return -1;
-                }
-            } /* end of main read while. */  
+                } /* end of main read while. */  
+            }
+            else
+            {
+                errno = ENOMEM;
+                return -1;
+            }
         }
         else
         {
-            errno = ENOMEM;
+            errno = EINVAL;
             return -1;
         }
     }

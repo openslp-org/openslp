@@ -189,30 +189,51 @@ void IncomingStreamRead(SLPList* socklist, SLPDSocket* sock)
                              MSG_PEEK,
                              (struct sockaddr *)&(sock->peeraddr),
                              &peeraddrlen);
-        if (bytesread > 0)
-        {
-
-            if (*peek == 2)
-                recvlen = AsUINT24(peek + 2);
-            else if (*peek == 1) /* SLPv1 packet */
-                recvlen = AsUINT16(peek + 2);
-            /* allocate the recvbuf big enough for the whole message */
-            sock->recvbuf = SLPBufferRealloc(sock->recvbuf,recvlen);
-            if (sock->recvbuf)
-            {
-                sock->state = STREAM_READ; 
-            }
-            else
-            {
-                SLPDLog("INTERNAL_ERROR - out of memory!\n");
-                sock->state = SOCKET_CLOSE;
-            }
-        }
-        else
+        if (bytesread <= 0)
         {
             sock->state = SOCKET_CLOSE;
             return;
-        }        
+        }
+
+        if (*peek == 2)
+        {
+            recvlen = AsUINT24(peek + 2);
+        }
+        else if (*peek == 1) /* SLPv1 packet */
+        {
+            recvlen = AsUINT16(peek + 2);
+        }
+        else
+        {
+            /* Version not supported */
+            SLPDLog("WARNING - Version %i not supported from %s",
+                    *peek,    
+                    inet_ntoa(sock->peeraddr.sin_addr));
+            sock->state = SOCKET_CLOSE;
+            return;
+        }
+        
+        /* Check the recvlen for a sane value */
+        if(recvlen > 0xffff)
+        {
+            SLPDLog("WARNING - Message too large. %i bytes from %s",
+                    recvlen,    
+                    inet_ntoa(sock->peeraddr.sin_addr));
+            sock->state = SOCKET_CLOSE;
+            return;
+        }
+
+        /* allocate the recvbuf big enough for the whole message */
+        sock->recvbuf = SLPBufferRealloc(sock->recvbuf,recvlen);
+        if (sock->recvbuf)
+        {
+            sock->state = STREAM_READ; 
+        }
+        else
+        {
+            SLPDLog("ERROR - out of memory\n");
+            sock->state = SOCKET_CLOSE;
+        }
     }
 
     if (sock->state == STREAM_READ)

@@ -191,6 +191,7 @@ void OutgoingStreamRead(SLPList* socklist, SLPDSocket* sock)
 /*-------------------------------------------------------------------------*/
 {
     int     bytesread;
+    int     recvlen;
     char    peek[16];
     int     peeraddrlen = sizeof(struct sockaddr_in);
 
@@ -207,15 +208,46 @@ void OutgoingStreamRead(SLPList* socklist, SLPDSocket* sock)
                              &peeraddrlen);
         if ( bytesread > 0 )
         {
+            
+            /* Check the version */
+            if (*peek == 2)
+            {
+                recvlen = AsUINT24(peek + 2);
+            }
+            else if (*peek == 1) /* SLPv1 packet */
+            {
+                recvlen = AsUINT16(peek + 2);
+            }
+            else
+            {
+                /* Version not supported */
+                SLPDLog("WARNING - Version %i not supported from %s",
+                        *peek,    
+                        inet_ntoa(sock->peeraddr.sin_addr));
+                sock->state = SOCKET_CLOSE;
+                return;
+            }
+            
+            /* Check the recvlen for a sane value */
+            recvlen = AsUINT24(peek+2);
+            if(recvlen > 0xffff)
+            {
+                SLPDLog("WARNING - Message too large. %i bytes from %s",
+                        recvlen,    
+                        inet_ntoa(sock->peeraddr.sin_addr));
+                sock->state = SOCKET_CLOSE;
+                return;
+            }
+            
             /* allocate the recvbuf big enough for the whole message */
-            sock->recvbuf = SLPBufferRealloc(sock->recvbuf,AsUINT24(peek+2));
+            sock->recvbuf = SLPBufferRealloc(sock->recvbuf,recvlen);
             if ( sock->recvbuf )
             {
                 sock->state = STREAM_READ;
             }
             else
             {
-                SLPDLog("INTERNAL_ERROR - out of memory!\n");
+                SLPDLog("ERROR - out of memory");
                 sock->state = SOCKET_CLOSE;
             }
         }
