@@ -276,7 +276,7 @@ void SLPClose(SLPHandle hSLP)
     G_OpenSLPHandleCount --;
     
 
-#if(0)
+#if 0
     /* Free additional resources if this is the last handle open */
     if(G_OpenSLPHandleCount <= 0)
     {

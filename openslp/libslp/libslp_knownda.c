@@ -617,59 +617,60 @@ int KnownDAGetScopes(int* scopelistlen,
             KnownDADiscoverFromProperties();
             KnownDADiscoverFromMulticast(0,"");
         }
-
-        /* enumerate through all the knownda entries and generate a */
-        /* scopelist                                                */
-        dh = SLPDatabaseOpen(&G_KnownDACache);
-        if(dh)
-        {
-            /*-----------------------------------*/
-            /* Check to find the requested entry */
-            /*-----------------------------------*/
-            while(1)
-            {
-                entry = SLPDatabaseEnum(dh);
-                if(entry == NULL) break;
-                newlen = G_KnownDAScopesLen;
-                while(SLPUnionStringList(G_KnownDAScopesLen,
-                                         G_KnownDAScopes,
-                                         entry->msg->body.daadvert.scopelistlen,
-                                         entry->msg->body.daadvert.scopelist,
-                                         &newlen,
-                                         G_KnownDAScopes) < 0)
-                {
-                    G_KnownDAScopes = xrealloc(G_KnownDAScopes,newlen);
-                    if(G_KnownDAScopes == 0)
-                    {
-                        G_KnownDAScopesLen = 0;
-                        break;
-                    }
-                }
-                G_KnownDAScopesLen = newlen;
-    
-            }
-
-            SLPDatabaseClose(dh);
-        }
-
-        /* Explicitly add in the useScopes property */
-        newlen = G_KnownDAScopesLen;
-        while(SLPUnionStringList(G_KnownDAScopesLen,
-                                 G_KnownDAScopes,
-                                 strlen(SLPPropertyGet("net.slp.useScopes")),
-                                 SLPPropertyGet("net.slp.useScopes"),
-                                 &newlen,
-                                 G_KnownDAScopes) < 0)
-        {
-            G_KnownDAScopes = xrealloc(G_KnownDAScopes,newlen);
-            if(G_KnownDAScopes == 0)
-            {
-                G_KnownDAScopesLen = 0;
-                break;
-            }
-        }
-        G_KnownDAScopesLen = newlen;
     }
+
+    /* enumerate through all the knownda entries and generate a */
+    /* scopelist                                                */
+    dh = SLPDatabaseOpen(&G_KnownDACache);
+    if(dh)
+    {
+        /*-----------------------------------*/
+        /* Check to find the requested entry */
+        /*-----------------------------------*/
+        while(1)
+        {
+            entry = SLPDatabaseEnum(dh);
+            if(entry == NULL) break;
+            newlen = G_KnownDAScopesLen;
+            while(SLPUnionStringList(G_KnownDAScopesLen,
+                                     G_KnownDAScopes,
+                                     entry->msg->body.daadvert.scopelistlen,
+                                     entry->msg->body.daadvert.scopelist,
+                                     &newlen,
+                                     G_KnownDAScopes) < 0)
+            {
+                G_KnownDAScopes = xrealloc(G_KnownDAScopes,newlen);
+                if(G_KnownDAScopes == 0)
+                {
+                    G_KnownDAScopesLen = 0;
+                    break;
+                }
+            }
+            G_KnownDAScopesLen = newlen;
+
+        }
+
+        SLPDatabaseClose(dh);
+    }
+
+    /* Explicitly add in the useScopes property */
+    newlen = G_KnownDAScopesLen;
+    while(SLPUnionStringList(G_KnownDAScopesLen,
+                             G_KnownDAScopes,
+                             strlen(SLPPropertyGet("net.slp.useScopes")),
+                             SLPPropertyGet("net.slp.useScopes"),
+                             &newlen,
+                             G_KnownDAScopes) < 0)
+    {
+        G_KnownDAScopes = xrealloc(G_KnownDAScopes,newlen);
+        if(G_KnownDAScopes == 0)
+        {
+            G_KnownDAScopesLen = 0;
+            break;
+        }
+    }
+    G_KnownDAScopesLen = newlen;
+
 
     if(G_KnownDAScopesLen)
     {

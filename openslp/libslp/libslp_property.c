@@ -71,7 +71,7 @@ const char* SLPGetProperty(const char* pcName)
 /*=========================================================================*/
 {
     char conffile[MAX_PATH]; 
-    char* result;
+    const char* result;
 
     memset(conffile,0,MAX_PATH);
 
