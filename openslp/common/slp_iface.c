@@ -123,7 +123,7 @@ int SLPIfaceGetInfo(const char* useifaces,
 		if (SLPNetIsIPV6() && ((family == AF_INET6) || (family == AF_UNSPEC)) ){
 			struct sockaddr_storage storageaddr_any;
 
-			SLPNetSetAddr(&storageaddr_any, AF_INET6, 0, (char *) &in6addr_any, sizeof(in6addr_any));
+			SLPNetSetAddr(&storageaddr_any, AF_INET6, 0, (char *) &slp_in6addr_any, sizeof(slp_in6addr_any));
 	        SLPNetCopyAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count], &storageaddr_any);
 			ifaceinfo->iface_count++;
 		}
