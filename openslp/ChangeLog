@@ -7,6 +7,9 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 
+12/06/00 mpeterson@caldera.com
+Fixed bug where certain services were being ommited from a SrvTypeRply
+
 *** TAG OpenSLP 0.8.0 ****
 
 11/30/00 mpeterson@caldera.com
