@@ -13,16 +13,15 @@ SLPFindAttrs</h2>
 <hr WIDTH="100%">
 <h3>
 Declaration</h3>
-<tt><a href="/SLPError.html">SLPError</a> SLPFindAttrs( <a href="/SLPTypes.html#SLPHandle">SLPHandle</a>
-<a href="#hslp">hslp</a>,</tt>
+<tt>#include &lt;slp.h></tt>
+<p><tt><a href="/SLPError.html">SLPError</a> SLPFindAttrs( <a href="/SLPTypes.html#SLPHandle">SLPHandle</a><a href="#hslp">hslp</a>,</tt>
 <br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 const char* srvurlorsrvtype,</tt>
 <br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 const char* <a href="#scopelist">scopelist</a>,</tt>
 <br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 const char* attrids,</tt>
-<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 <a href="SLPAttrCallback.html">SLPAttrCallback</a> <a href="#callback">callback</a>,</tt>
 <br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 void* <a href="#cookie">cookie</a>)</tt>
@@ -72,8 +71,8 @@ NULL or the empty string, "" to use scopes this machine is configured for.&nbsp;
 
 <td NOSAVE>The address of an <a href="SLPAttrCallback.html">SLPAttrCallback</a>
 function that will be called to report the results of the operation.&nbsp;
-See <a href="Callbacks.html">Callbacks</a> for more information on how
-callbacks are used by the SLPAPI.</td>
+May not be NULL. See <a href="Callbacks.html">Callbacks</a> for more information
+on how callbacks are used by the SLPAPI.</td>
 </tr>
 
 <tr VALIGN=TOP NOSAVE>

@@ -13,7 +13,8 @@ SLPReg</h2>
 <hr WIDTH="100%">
 <h3>
 Declaration</h3>
-<tt><a href="SLPError.html">SLPError</a> SLPReg( <a href="SLPTypes.html#SLPHandle">SLPHandle</a><a href="#hslp">hslp</a>,</tt>
+<tt>#include &lt;slp.h></tt>
+<p><tt><a href="SLPError.html">SLPError</a> SLPReg( <a href="SLPTypes.html#SLPHandle">SLPHandle</a><a href="#hslp">hslp</a>,</tt>
 <br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 const char* <a href="#srvurl">srvurl</a>,</tt>
 <br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
@@ -22,9 +23,11 @@ unsigned short <a href="#lifetime">lifetime</a>,</tt>
 const char* <a href="#srvtype">srvtype</a>,</tt>
 <br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 const char* <a href="#attrs">attrs</a>,</tt>
-<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
 <a href="SLPTypes.html#SLPBoolean">SLPBoolean</a> <a href="#fresh">fresh</a>,</tt>
-<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
 <a href="SLPRegReport.html">SLPRegReport</a> <a href="#callback">callback</a>,</tt>
 <br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 void* <a href="#cookie">cookie </a>)</tt>
@@ -106,8 +109,8 @@ will return <tt><a href="SLPError.html#SLP_NOT_IMPLEMENTED">SLP_NOT_IMPLEMENTED<
 
 <td NOSAVE>The address of an <tt><a href="SLPRegReport.html">SLPRegReport</a></tt>
 function that will be called to report the operation completion status.&nbsp;
-See <a href="Callbacks.html">Callbacks</a> for more information on how
-callbacks are used by the SLPAPI.</td>
+Man not be NULL. See <a href="Callbacks.html">Callbacks</a> for more information
+on how callbacks are used by the SLPAPI.</td>
 </tr>
 
 <tr VALIGN=TOP NOSAVE>
