@@ -85,6 +85,21 @@ if test "$asyncapi" = "yes"; then
     AC_DEFINE(ENABLE_ASYNC_API)
 fi
 
+dnl ***********************************************************************
+dnl Enable authentication support 
+dnl ***********************************************************************
+AC_ARG_ENABLE(authentication,
+[  --enable-authentication Turn on authentication support (default off)],
+authentication=$enableval,
+authentication=no)
+
+dnl Conditional for optional asyncronous support in libslp SLP API library
+AM_CONDITIONAL(ENABLE_AUTHENTICATION, test "$authentication" = "yes")
+
+if test "$authentication" = "yes"; then
+    AC_DEFINE(ENABLE_AUTHENTICATION)
+fi
+
 
 dnl ***********************************************************************
 dnl Checks for programs.

@@ -73,6 +73,9 @@
 #include "../common/slp_property.h"
 #include "../common/slp_xid.h"
 #include "../common/slp_da.h"
+#ifdef ENABLE_AUTHENTICATION
+#include "../common/slp_auth.h"
+#endif
 
 #if(!defined MAX_PATH)
 #define MAX_PATH    256
@@ -232,13 +235,21 @@ void SLPDPropertyDeinit();
 
 
 /*=========================================================================*/
+typedef struct _SLPDDatabaseEntryAuthBlock
+/*=========================================================================*/
+{
+    int         length;
+    void*       auth;
+}SLPDDatabaseEntryAuthBlock;
+
+
+/*=========================================================================*/
 typedef struct _SLPDDatabaseAttr
 /* Structure representing the result of a database query for attributes    */
 /*=========================================================================*/
 {
     int   attrlistlen;
     const char* attrlist;
-    /* TODO: we might need some authblock storage here */
 }SLPDDatabaseAttr;
 
 
@@ -250,7 +261,8 @@ typedef struct _SLPDDatabaseSrvUrl
     int     lifetime;
     int     urllen;
     char*   url;
-    /* TODO: we might need some authblock storage here */
+    int     authcount;
+    SLPDDatabaseEntryAuthBlock*  autharray;
 }SLPDDatabaseSrvUrl;
 
 
@@ -261,7 +273,6 @@ typedef struct _SLPDDatabaseSrvType
 {
     int     typelen;
     char*   type;
-    /* TODO: we might need some authblock storage here */
 }SLPDDatabaseSrvType;
 
 
@@ -284,12 +295,14 @@ typedef struct _SLPDDatabaseEntry
 #ifdef USE_PREDICATES
     SLPAttributes   attr;
 #endif
-    int    attrlistlen;
-    char*           attrlist;
-    int    partiallistlen;
+#ifdef ENABLE_AUTHENTICATION
+    int                         authcount;
+    SLPDDatabaseEntryAuthBlock* autharray;
+#endif
+    int             attrlistlen;
+    char*           attrlist;   
+    int             partiallistlen;
     char*           partiallist;
-
-    /* TODO: we might need some authblock storage here */
 }SLPDDatabaseEntry;
 
 

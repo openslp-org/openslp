@@ -144,8 +144,10 @@ int SLPDDatabaseReg(SLPSrvReg* srvreg, unsigned int regtype)
 {
     int                result = -1; 
     SLPDDatabaseEntry* entry  = (SLPDDatabaseEntry*)G_DatabaseList.head;
-
+    
+    /*-----------------------------------------------------*/
     /* Check to see if there is already an identical entry */
+    /*-----------------------------------------------------*/
     while(entry)
     {
         if(SLPCompareString(entry->urllen,
@@ -166,7 +168,9 @@ int SLPDDatabaseReg(SLPSrvReg* srvreg, unsigned int regtype)
         entry = (SLPDDatabaseEntry*) entry->listitem.next;
     }
 
+    /*---------------------------------------------------*/
     /* if no identical entry are found, create a new one */
+    /*---------------------------------------------------*/
     if(entry == 0)
     {
         entry = SLPDDatabaseEntryAlloc();
@@ -181,7 +185,9 @@ int SLPDDatabaseReg(SLPSrvReg* srvreg, unsigned int regtype)
     /* copy info from the message from the wire to the database entry */
     /*----------------------------------------------------------------*/
 
+    /*-------*/
     /* scope */
+    /*-------*/
     if(entry->scopelistlen >= srvreg->scopelistlen)
     {
         memcpy(entry->scopelist,srvreg->scopelist,srvreg->scopelistlen);
@@ -194,7 +200,9 @@ int SLPDDatabaseReg(SLPSrvReg* srvreg, unsigned int regtype)
     }
     entry->scopelistlen = srvreg->scopelistlen;
 
-    /* URL */
+    /*-------*/
+    /* URL   */
+    /*-------*/
     if(entry->urllen >= srvreg->urlentry.urllen)
     {
         memcpy(entry->url,srvreg->urlentry.url,srvreg->urlentry.urllen);
@@ -207,13 +215,19 @@ int SLPDDatabaseReg(SLPSrvReg* srvreg, unsigned int regtype)
     }
     entry->urllen = srvreg->urlentry.urllen;
 
+    /*----------*/
     /* lifetime */
+    /*----------*/
     entry->lifetime     = srvreg->urlentry.lifetime;
 
+    /*----------*/
     /* is local */
+    /*----------*/
     entry->regtype      = regtype;
 
-    /* SrvType */
+    /*----------*/
+    /* SrvType  */
+    /*----------*/
     if(entry->srvtypelen >= srvreg->srvtypelen)
     {
         memcpy(entry->srvtype,srvreg->srvtype,srvreg->srvtypelen);
@@ -226,14 +240,12 @@ int SLPDDatabaseReg(SLPSrvReg* srvreg, unsigned int regtype)
     }
     entry->srvtypelen = srvreg->srvtypelen;
 
+    /*------------*/
     /* Attributes */
+    /*------------*/
     if(srvreg->attrlistlen)
     {
 #ifdef USE_PREDICATES
-
-
-
-
         /* Tricky: perform an in place null termination of the attrlist */
         /*         Remember this squishes the authblock count           */
         ((char*)srvreg->attrlist)[srvreg->attrlistlen] = 0;
@@ -273,6 +285,15 @@ int SLPDDatabaseReg(SLPSrvReg* srvreg, unsigned int regtype)
         entry->attrlistlen = srvreg->attrlistlen;
 #endif 
     }
+
+#ifdef ENABLE_AUTHENTICATION
+    /*----------------*/
+    /* Authentication */
+    /*----------------*/
+    /* TODO: fix this later */
+    entry->authcount = 0;
+    entry->autharray = 0;
+#endif
 
     /* link the new (or modified) entry into the list */
     SLPListLinkHead(&G_DatabaseList,(SLPListItem*)entry);

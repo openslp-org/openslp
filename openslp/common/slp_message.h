@@ -90,9 +90,6 @@ typedef UINT32*         PUINT32;
 #endif
 
 
-
-
-
 /*=========================================================================*/
 /* SLP Function ID constants                                               */
 /*=========================================================================*/
@@ -107,9 +104,6 @@ typedef UINT32*         PUINT32;
 #define SLP_FUNCT_SRVTYPERQST     9
 #define SLP_FUNCT_SRVTYPERPLY     10
 #define SLP_FUNCT_SAADVERT        11
-
-
-
 
 
 /*=========================================================================*/
@@ -132,11 +126,6 @@ typedef UINT32*         PUINT32;
 #define SLP_ERROR_REFRESH_REJECTED         15
 
 
-
-
-
-
-
 /*=========================================================================*/
 /* SLP Flags                                                               */
 /*=========================================================================*/
@@ -145,27 +134,17 @@ typedef UINT32*         PUINT32;
 #define SLP_FLAG_MCAST            0x2000
 
 
-
-
-
 /*=========================================================================*/
 /* SLP Constants                                                           */
 /*=========================================================================*/
 /* Max time to wait for a complete multicast query response        */
 #define CONFIG_MC_MAX             15    
 
-
-
 /* Wait interval to give up on a unicast request retransmission  */
 #define CONFIG_RETRY_MAX          15    
 
-
-
 /* Default wait between retransmits*/
 #define CONFIG_RETRY_INTERVAL      3    
-
-
-
 
 
 /*=========================================================================*/
