@@ -1,0 +1,20 @@
+#############################################################################
+#
+# OpenSLP registration file
+#
+# May be used to register services for legacy applications that do not use
+# the SLPAPIs to register for themselves
+#
+# Format and contents conform to specification in IETF RFC 2614 so the
+# comments use the language of the RFC.  In OpenSLP, SLPD operates as an SA
+# and a DA.  The SLP UA functionality is encapsulated by SLPLIB.
+#
+#############################################################################
+
+#comment
+;comment 
+#service-url,language-tag,lifetime,[service-type]<newline> 
+#["scopes="scope-list<newline>]
+#[attrid"="val1<newline>] 
+#[attrid"="val1,val2,val3<newline>] 
+#<newline>

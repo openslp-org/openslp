@@ -1,0 +1,11 @@
+#!/bin/bash
+echo "SLPUnescape"
+./SLPUnescape asdfasdf > SLPUnescape.actual.output
+echo >> SLPUnescape.actual.output
+./SLPUnescape \\28abc >> SLPUnescape.actual.output
+echo >> SLPUnescape.actual.output
+./SLPUnescape abc\\7E >> SLPUnescape.actual.output
+echo >> SLPUnescape.actual.output
+./SLPUnescape \\28\\29\\2C\\5C\\21\\3C\\3D\\3E\\7E >> SLPUnescape.actual.output
+echo >> SLPUnescape.actual.output
+diff --brief SLPUnescape.expected.output SLPUnescape.actual.output

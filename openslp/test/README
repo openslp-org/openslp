@@ -1,0 +1,48 @@
+===============================================================================
+David McCormack & Evan Hughes                      Thu May 25 09:21:35 EDT 2000
+slp_project@nexus.carleton.ca
+===============================================================================
+
+Setup
+  Perform these steps to setup the program for testing.
+    0.  Ensure OpenSLP v0.6.5 source tree is installed
+    1.  `tar xvfz test-suite.tar.gz' into the openslp directory.
+    2.  Perform a root make of Openslp to ensure all libraries are created
+    3.  Ensure that libslp.so.0.*.* is sym linked to libslp.so in the libslp 
+        directory.
+
+Executing Tests
+  Go into the root directory and type the following commands:
+    make clean
+    make 
+    make test
+  All tests are passed if the Makefile exits normally.
+
+Functionality Tested
+  The following functionality has been tested (as of the date in the square
+  brackets):
+    [20000525] - SLPDereg()
+    [20000525] - SLPFindSrvs()
+    [20000525] - SLPParseSrvURL()
+    [20000525] - SLPFindAttrs()
+    [20000525] - SLPOpen()
+    [20000525] - SLPReg()
+
+  The following SLP function as defined in RFC 2614 were not tested:
+    - SLPDelAttrs()
+    - SLPFindSrvTypes()
+    - SLPEscape() 
+    - SLPUnescape() 
+    - SLPFree()
+    - SLPGetRefreshInterval() 
+    - SLPFindScopes() 
+    - SLPGetProperty() 
+    - SLPSetProperty()
+
+Assorted Information
+  Please contact us (slp_project@nexus.carleton.ca) if there are any issues 
+  with this test suite.
+
+  The running of this test suite does not ensure that all of the functionality 
+  is working correctly, it mearly ensures that the tested modules return the 
+  valid results given their input.

@@ -1,0 +1,18 @@
+Registering     = service:registered://10.0.0.1
+Srv. Registered = service:registered://10.0.0.1
+Querying        = service:registered
+Service Found   = service:registered://10.0.0.1
+Deregistering   = service:registered://10.0.0.1
+Deregistered    = service:registered://10.0.0.1
+
+Registering     = service:registered://10.0.0.1
+Srv. Registered = service:registered://10.0.0.1
+Querying        = service:unregistered
+Error registering service with slp.
+-19: SLP_NETWORK_TIMED_OUT
+When no reply can be obtained in the time specified by the configured timeout interval for a unicast request, this error is returned.
+
+Querying        = service:test
+Service Found   = service:test://10.0.0.1
+Deregistering   = service:test://10.0.0.1
+Deregistered    = service:test://10.0.0.1

@@ -1,0 +1,6 @@
+#!/bin/bash
+echo "SLPOpen"
+../../slpd/slpd -r slp.test.reg
+./SLPOpen > SLPOpen.actual.output
+killall slpd
+diff --brief SLPOpen.expected.output SLPOpen.actual.output
