@@ -570,12 +570,11 @@ int v1ProcessAttrRqst(struct sockaddr_in* peeraddr,
 		      int errorcode)
 /*-------------------------------------------------------------------------*/
 {
-    int                     i, attrlen;
-    int                     attrlistlen  = 0;
+    
+    SLPDDatabaseAttr        attr;
+    int                     attrlen     = 0;
     int                     size        = 0;
-    int                     count       = 0;
     int                     found       = 0;
-    SLPDDatabaseAttr*       attrarray   = 0;
     SLPBuffer               result      = *sendbuf;
 
     /*--------------------------------------------------------------*/
@@ -609,32 +608,11 @@ int v1ProcessAttrRqst(struct sockaddr_in* peeraddr,
         /*-------------------------------*/
         /* Find attributes in the database */
         /*-------------------------------*/
-        while (found == count)
+        found = SLPDDatabaseFindAttr(&(message->body.attrrqst), &attr);
+        if (found < 0)
         {
-            count += G_SlpdProperty.maxResults;
-    
-            if (attrarray) free(attrarray);
-            attrarray = (SLPDDatabaseAttr*)malloc(sizeof(SLPDDatabaseAttr) * count);
-            if (attrarray == 0)
-            {
-                found       = 0;
-                errorcode   = SLP_ERROR_INTERNAL_ERROR;
-                break;
-            }
-    
-            found = SLPDDatabaseFindAttr(&(message->body.attrrqst), attrarray, count);
-            if (found < 0)
-            {
-                found = 0;
-                errorcode   = SLP_ERROR_INTERNAL_ERROR;
-                break;
-            }
-        }
-    
-        /* remember the amount found if is really big for next time */
-        if (found > G_SlpdProperty.maxResults)
-        {
-            G_SlpdProperty.maxResults = found;
+            found = 0;
+            errorcode   = SLP_ERROR_INTERNAL_ERROR;
         }
     }
     else
@@ -664,23 +642,18 @@ RESPOND:
     size = 16; /* 12 bytes for header, 2 bytes for error code, 2 bytes
 		  for attr-list len */ 
 
-    for (i=0;i<found;i++)
-    {
-	attrlen = INT_MAX;
+    attrlen = INT_MAX;
 	errorcode = SLPv1ToEncoding(0, &attrlen,
 				    message->header.encoding,  
-				    attrarray[i].attr,
-				    attrarray[i].attrlen);
+				    attr.attrlist,
+				    attr.attrlistlen);
 	if (errorcode)
 	{
-	    found = 0;
-	    break;
-	}
-	
-        attrlistlen += attrlen;
-    }
-    size += attrlistlen;
+	    found = 0;   
+	}   
+    size += attrlen;
     
+
     /*-------------------*/
     /* Alloc the  buffer */
     /*-------------------*/
@@ -719,20 +692,16 @@ RESPOND:
     ToUINT16(result->curpos, errorcode);
     result->curpos = result->curpos + 2;
     /* attr-list len */
-    ToUINT16(result->curpos, attrlistlen);
+    ToUINT16(result->curpos, attrlen);
     result->curpos = result->curpos + 2;
-    for (i=0;i<found;i++)
-    {
-	attrlen = size;
+    attrlen = size;
 	SLPv1ToEncoding(result->curpos, &attrlen,
-			message->header.encoding,  
-			attrarray[i].attr,
-			attrarray[i].attrlen);
-        result->curpos = result->curpos + attrlen;
-    }
+                    message->header.encoding,
+                    attr.attrlist,
+                    attr.attrlistlen);
+    result->curpos = result->curpos + attrlen; 
 
 FINISHED:
-    if (attrarray) free(attrarray);
     *sendbuf = result;
     return errorcode;
 }        

@@ -724,12 +724,9 @@ int ProcessAttrRqst(struct sockaddr_in* peeraddr,
                     int errorcode)
 /*-------------------------------------------------------------------------*/
 {
-    int                     i;
-    int                     attrlistlen = 0;
+    SLPDDatabaseAttr        attr;
     int                     size        = 0;
-    int                     count       = 0;
     int                     found       = 0;
-    SLPDDatabaseAttr*       attrarray   = 0;
     SLPBuffer               result      = *sendbuf;
 
     /*--------------------------------------------------------------*/
@@ -764,33 +761,12 @@ int ProcessAttrRqst(struct sockaddr_in* peeraddr,
         /*-------------------------------*/
         /* Find attributes in the database */
         /*-------------------------------*/
-        while(found == count)
+        found = SLPDDatabaseFindAttr(&(message->body.attrrqst), &attr);
+        if(found < 0)
         {
-            count +=  G_SlpdProperty.maxResults;
-    
-            if(attrarray) free(attrarray);
-            attrarray = (SLPDDatabaseAttr*)malloc(sizeof(SLPDDatabaseAttr) * count);
-            if(attrarray == 0)
-            {
-                found       = 0;
-                errorcode   = SLP_ERROR_INTERNAL_ERROR;
-                break;
-            }
-    
-            found = SLPDDatabaseFindAttr(&(message->body.attrrqst), attrarray, count);
-            if(found < 0)
-            {
-                found = 0;
-                errorcode   = SLP_ERROR_INTERNAL_ERROR;
-                break;
-            }
-        }
-    
-        /* remember the amount found if is really big for next time */
-        if (found > G_SlpdProperty.maxResults)
-        {
-            G_SlpdProperty.maxResults = found;
-        }
+            found = 0;
+            errorcode   = SLP_ERROR_INTERNAL_ERROR;
+         }
     }
     else
     {
@@ -818,12 +794,7 @@ int ProcessAttrRqst(struct sockaddr_in* peeraddr,
                                             /*  2 bytes for error code */
                                             /*  2 bytes for attr-list len */
                                             /*  2 bytes for the authblockcount */
-    for(i=0;i<found;i++)
-    {
-        attrlistlen += attrarray[i].attrlen;
-    }
-    size += attrlistlen;
-
+    size += attr.attrlistlen;
 
     /*-------------------*/
     /* Alloc the  buffer */
@@ -866,20 +837,18 @@ int ProcessAttrRqst(struct sockaddr_in* peeraddr,
     ToUINT16(result->curpos, errorcode);
     result->curpos = result->curpos + 2;
     /* attr-list len */
-    ToUINT16(result->curpos, attrlistlen);
+    ToUINT16(result->curpos, attr.attrlistlen);
     result->curpos = result->curpos + 2;
-    for(i=0;i<found;i++)
-    {
-        memcpy(result->curpos,attrarray[i].attr,attrarray[i].attrlen);
-        result->curpos = result->curpos + attrarray[i].attrlen;
-    }
+    memcpy(result->curpos, &attr.attrlist, attr.attrlistlen);
+    result->curpos = result->curpos + attr.attrlistlen;
+    
 
     /* TODO: no auth block */
     ToUINT16(result->curpos, 0);
 
     FINISHED:
-    if(attrarray) free(attrarray);
     *sendbuf = result;
+    
     return errorcode;
 }        
 

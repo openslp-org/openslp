@@ -404,8 +404,7 @@ int SLPDDatabaseFindType(SLPSrvTypeRqst* srvtyperqst,
 
 /*=========================================================================*/
 int SLPDDatabaseFindAttr(SLPAttrRqst* attrrqst, 
-                         SLPDDatabaseAttr* result,
-                         int count)
+                         SLPDDatabaseAttr* result)
 /* Find attributes                                                         */
 /*                                                                         */
 /* srvtyperqst  (IN) the request to find.                                  */
@@ -413,10 +412,7 @@ int SLPDDatabaseFindAttr(SLPAttrRqst* attrrqst,
 /* result   (OUT) pointer to a result structure that receives              */
 /*                results                                                  */
 /*                                                                         */
-/* count    (IN)  number of elements in the result array                   */
-/*                                                                         */
-/* Returns  -   >0 on success. 0 if the url of the attrrqst could not be   */
-/*              cound and <0 on error.                                     */
+/* Returns  -   1 on success, zero if not found, negative on error         */
 /*=========================================================================*/
 {
     SLPDDatabaseEntry*  entry   = 0;
@@ -474,20 +470,19 @@ int SLPDDatabaseFindAttr(SLPAttrRqst* attrrqst,
 
                     if(err == SLP_OK)
                     {
-                        result[found].attrlen = entry->partiallist;
-                        result[found].attr = entry->partiallistlen;
-                        found++;
+                        result->attrlistlen = entry->partiallist;
+                        result->attrlist = entry->partiallistlen;
+                        found = 1;
+                        break;
                     }
                 }
                 else
                 #else
-                if(entry->attrlistlen)
-                {
-                    result[found].attrlen = entry->attrlistlen;
-                    result[found].attr = entry->attrlist;
-                    found++;
+                {   result->attrlistlen = entry->attrlistlen;
+                    result->attrlist = entry->attrlist;
+                    found = 1;
+                    break;
                 }
-                break;
                 #endif
             }
         }
