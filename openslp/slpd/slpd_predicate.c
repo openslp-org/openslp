@@ -280,6 +280,7 @@ FilterResult int_op(SLPAttributes slp_attr,
     switch (op)
 	{
     case(EQUAL):
+		result = FR_EVAL_FALSE;
 	    for (i = 0; i < size; i++)
     	{
             if (tag_vals[i] == rhs_val)
@@ -294,6 +295,7 @@ FilterResult int_op(SLPAttributes slp_attr,
 		result = FR_EVAL_FALSE; 
 		break;
     case(GREATER):
+		result = FR_EVAL_FALSE;
 	    for (i = 0; i < size; i++)
     	{
             if (tag_vals[i] >= rhs_val)
@@ -304,6 +306,7 @@ FilterResult int_op(SLPAttributes slp_attr,
 	    }
     	break;
     case(LESS):
+		result = FR_EVAL_FALSE;
 	    for (i = 0; i < size; i++)
     	{
             if (tag_vals[i] <= rhs_val)
@@ -443,6 +446,7 @@ FilterResult str_op(SLPAttributes slp_attr,
     switch (op)
     {
     case(LESS):
+		result = FR_EVAL_FALSE;
         for (i = 0; i < size; i++)
         {
             if (strcmp(tag_vals[i], rhs_val) <= 0)
@@ -454,6 +458,7 @@ FilterResult str_op(SLPAttributes slp_attr,
         }
         break;
     case(EQUAL):
+		result = FR_EVAL_FALSE;
         for (i = 0; i < size; i++)
         {
             if (wildcard(rhs_val, tag_vals[i]) == 0)
@@ -467,6 +472,7 @@ FilterResult str_op(SLPAttributes slp_attr,
     case(APPROX):
         assert(0); /* TODO: Figure out how this works later. */
     case(GREATER):
+		result = FR_EVAL_FALSE;
         for (i = 0; i < size; i++)
         {
             if (strcmp(tag_vals[i], rhs_val) >= 0)
@@ -627,7 +633,6 @@ FilterResult filter(const char *start,
     const char *cur; /* Current working character. */
     const char *last_char; /* The last character in the working string. */
     FilterResult err = FR_UNSET; /* The result of an evaluation. */
-    SLPBoolean result;
     
     if (recursion_depth <= 0)
     {
@@ -699,7 +704,7 @@ FilterResult filter(const char *start,
 	    	    }
 
 				/*** Short circuit. ***/
-				if (result == stop_condition) 
+				if (err == stop_condition) 
 				{
 					return stop_condition;
 				}
@@ -722,7 +727,7 @@ FilterResult filter(const char *start,
         }
 
 		/*** Perform "not". ***/
-        return (err == FR_EVAL_TRUE ? FR_EVAL_FALSE : FR_EVAL_FALSE );
+        return (err == FR_EVAL_TRUE ? FR_EVAL_FALSE : FR_EVAL_TRUE);
 
     default: /***** Unknown operator. *****/
 		/* We don't do anything here because this will catch the first character of every leaf predicate. */
@@ -887,36 +892,34 @@ int SLPDTestPredicate(const char* predicate, SLPAttributes attr)
 {
     const char *end; /* Pointer to the end of the parsed attribute string. */
     SLPError err;
-    SLPBoolean result = SLP_FALSE;
 
     
     /***** An NULL or empty string is always true. *****/
     if (predicate == 0 || *(char *)predicate == 0)
     {
-        return SLP_OK;
+        return 0;
     }
 
     err = filter(predicate, &end, attr, SLPD_ATTR_RECURSION_DEPTH);
+	assert(err != FR_UNSET);
 
     /***** Check for trailing trash data. *****/
     if ((err == FR_EVAL_TRUE || err == FR_EVAL_FALSE)&& *end != 0)
     {
-        return SLP_PARSE_ERROR;
+        return -1;
     }
     
     switch (err)
     {
-    case(SLP_OK):
-        if (result == SLP_TRUE)
-        {
-            return 0;
-        }
-        return 1;
-
-    case(SLP_INTERNAL_SYSTEM_ERROR):
+    case(FR_EVAL_TRUE):
+		return 0;
+    case(FR_EVAL_FALSE):
+		return 1;
+    case(FR_INTERNAL_SYSTEM_ERROR):
         SLPLog("The predicate string \"%s\" caused an internal error\n", (char *)predicate);
-    case(SLP_PARSE_ERROR):
-        return -1;
+	case(FR_PARSE_ERROR):
+	case(FR_MEMORY_ALLOC_FAILED):
+		return -1;
 
     default:
         SLPLog("SLPAttrEvalPred() returned an out of range value (%d) when evaluating \"%s\"\n", err, (char *)predicate);
