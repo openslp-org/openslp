@@ -29,7 +29,7 @@ Description: OpenSLP development libraries
  dynamic linking. The library implements RFC 2614 - An API for Service
  Location. 
 
-Package: libslp0
+Package: libslp1
 Architecture: any
 Depends: ${shlibs:Depends}
 Suggests: openslp-doc (= ${Source-Version})
