@@ -503,9 +503,7 @@ int ProcessSrvRqst(SLPMessage message,
         for(i=0;i<db->urlcount;i++)
         {
             /* urlentry is the url from the db result */
-            urlentry = db->urlarray[i];
-            
-
+            urlentry = db->urlarray[i]; 
 
 #ifdef ENABLE_AUTHENTICATION
             if(G_SlpdProperty.securityEnabled == 0 && 
@@ -1051,6 +1049,7 @@ int ProcessAttrRqst(SLPMessage message,
         {
             /* authcount */
             *(result->curpos) = 1;
+            result->curpos = result->curpos + 1;
             memcpy(result->curpos,
                    opaqueauth,
                    opaqueauthlen);
@@ -1133,7 +1132,6 @@ int ProcessDAAdvert(SLPMessage message,
     RESPOND:
     /* DAAdverts should never be replied to.  Set result buffer to empty*/
     result->end = result->start;
-
 
     *sendbuf = result;
     return errorcode;
@@ -1262,6 +1260,8 @@ int ProcessSrvTypeRqst(SLPMessage message,
     FINISHED:   
     if(db) SLPDDatabaseSrvTypeRqstEnd(db);
 
+    *sendbuf = result;
+
     return errorcode;
 }
 
@@ -1298,8 +1298,8 @@ int SLPDProcessMessage(struct sockaddr_in* peerinfo,
     int         errorcode   = 0;
     
     /* Parse just the message header the reset the buffer "curpos" pointer */
-    errorcode = SLPMessageParseHeader(recvbuf,&header);
     recvbuf->curpos = recvbuf->start;
+    errorcode = SLPMessageParseHeader(recvbuf,&header);
 #if defined(ENABLE_SLPv1)   
     if(errorcode == SLP_ERROR_VER_NOT_SUPPORTED &&
        header.version == 1)
@@ -1391,13 +1391,10 @@ int SLPDProcessMessage(struct sockaddr_in* peerinfo,
     
             /* TRICKY: Do not free the message descriptor for SRVREGs */
             /*         because we are keeping them in the database    */
-            if(errorcode == 0 && header.functionid == SLP_FUNCT_SRVREG)
+            /*         unless there is an error then we free memory   */
+            if(header.functionid == SLP_FUNCT_SRVREG && errorcode != 0 )
             {
-                /* Don't free the message descriptor cause it referenced */
-                /* by the the database                                   */
-            }
-            else
-            {
+                SLPBufferFree(recvbuf);
                 SLPMessageFree(message);
             }
         }

@@ -165,6 +165,7 @@ SLPError ProcessSrvDeReg(PSLPHandleInfo handle)
     {
         /* authcount */
         *(curpos) = 0;
+        curpos = curpos + 1;
     } 
     /* tag list */
     /* TODO: No tag list for now put in taglist stuff */

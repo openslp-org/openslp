@@ -172,6 +172,7 @@ SLPError ProcessSrvReg(PSLPHandleInfo handle)
     {
         /* authcount */
         *curpos = 0;
+        curpos = curpos + 1;
     } 
     /* service type */
     ToUINT16(curpos,handle->params.reg.srvtypelen);

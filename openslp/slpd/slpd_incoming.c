@@ -273,13 +273,7 @@ void IncomingSocketListen(SLPList* socklist, SLPDSocket* sock)
 #else    
     const int   lowat = SLPD_SMALLEST_MESSAGE;
 #endif
-
-
-
-
-
-
-
+   
     /* Only accept if we can. If we still maximum number of sockets, just*/
     /* ignore the connection */
     if(socklist->count < SLPD_MAX_SOCKETS)

@@ -585,10 +585,17 @@ int SLPv1MessageParseBuffer(struct sockaddr_in* peerinfo,
     /* Copy in the peer info */
     memcpy(&message->peer,peerinfo,sizeof(message->peer)); 
   
+    /* Get ready to parse */
+    SLPMessageFreeInternals(message);
+    buffer->curpos = buffer->start;
+
     /* parse the header first */
     result = SLPv1MessageParseHeader(buffer,&(message->header));
     if(result == 0)
     {
+        
+        
+        
         /* switch on the function id to parse the body */
         switch(message->header.functionid)
         {

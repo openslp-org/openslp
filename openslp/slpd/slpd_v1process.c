@@ -827,8 +827,8 @@ int SLPDv1ProcessMessage(struct sockaddr_in* peeraddr,
     }
 
     /* Parse just the message header the reset the buffer "curpos" pointer */
-    errorcode = SLPv1MessageParseHeader(recvbuf, &header);
     recvbuf->curpos = recvbuf->start;
+    errorcode = SLPv1MessageParseHeader(recvbuf, &header);
     if(errorcode)
     {
         /* TRICKY: Duplicate SRVREG recvbufs *before* parsing them   */
@@ -896,15 +896,13 @@ int SLPDv1ProcessMessage(struct sockaddr_in* peeraddr,
 
         /* TRICKY: Do not free the message descriptor for SRVREGs */
         /*         because we are keeping them in the database    */
-        if(errorcode == 0 && header.functionid == SLP_FUNCT_SRVREG)
+        /*         UNLESS there is an error, then free memory     */
+        if(header.functionid == SLP_FUNCT_SRVREG && errorcode != 0)
         {
-            /* Don't free the message descriptor cause it referenced */
-            /* by the the database                                   */
-        }
-        else
-        {
+            SLPBufferFree(recvbuf);
             SLPMessageFree(message);
         }
+        
     }
     else
     {
