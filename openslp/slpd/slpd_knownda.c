@@ -57,7 +57,9 @@
 #include "slpd_socket.h"
 #include "slpd_outgoing.h"
 #include "slpd_log.h"
-
+#ifdef ENABLE_AUTHENTICATION
+#include "slpd_spi.h"
+#endif
 
 /*=========================================================================*/
 /* common code includes                                                    */
@@ -67,6 +69,10 @@
 #include "../common/slp_utf8.h"
 #include "../common/slp_compare.h"
 #include "../common/slp_xid.h"
+#ifdef ENABLE_AUTHENTICATION
+#include "../common/slp_auth.h"
+#include "../common/slp_spi.h"
+#endif
 
 
 /*=========================================================================*/
@@ -124,7 +130,6 @@ int MakeActiveDiscoveryRqst(int ismcast, SLPBuffer* buffer)
     {
         while(1)
         {
-        
             if(SLPDKnownDAEnum(eh, &msg, &tmp) == 0)
             {
                 break;
@@ -593,7 +598,19 @@ int SLPDKnownDAAdd(SLPMessage msg, SLPBuffer buf)
                                 entrydaadvert->url,
                                 daadvert->urllen,
                                 daadvert->url) == 0)
-            {
+            {  
+
+#ifdef ENABLE_AUTHENTICATION
+                /* make sure an unauthenticated DAAdvert can't replace */
+                /* an authenticated one                                */
+                if(entrydaadvert->authcount &&
+                   entrydaadvert->authcount != daadvert->authcount)
+                {
+                    SLPDatabaseClose(dh);
+                    return SLP_ERROR_AUTHENTICATION_FAILED;
+                }
+#endif
+
                 if(daadvert->bootstamp != 0 &&
                    daadvert->bootstamp <= entrydaadvert->bootstamp)
                 {
@@ -652,7 +669,7 @@ void SLPDKnownDARemove(struct in_addr* addr)
             if(entry == NULL) break;
             
             /* Assume DAs are identical if their peer match */
-            if(memcmp(addr,&(entry->msg->peer.sin_addr),sizeof(*addr)) == 0)
+            if(memcmp(addr,&(entry->msg->peer.sin_addr),sizeof(*addr)) == 0 )
             {
                 SLPDatabaseRemove(dh,entry);
                 break;            
@@ -748,6 +765,41 @@ int SLPDKnownDAGenerateMyDAAdvert(int errorcode,
     int       size;
     SLPBuffer result = *sendbuf;
 
+#ifdef ENABLE_AUTHENTICATION
+    int                 daadvertauthlen  = 0;
+    unsigned char*      daadvertauth     = 0;
+    int                 spistrlen   = 0;
+    char*               spistr      = 0;  
+
+    G_SlpdProperty.DATimestamp += 1;
+    
+    if(G_SlpdProperty.securityEnabled)
+    {
+        SLPSpiGetDefaultSPI(G_SlpdSpiHandle,
+                            SLPSPI_KEY_TYPE_PRIVATE,
+                            &spistrlen,
+                            &spistr);
+
+        SLPAuthSignDAAdvert(G_SlpdSpiHandle,
+                            spistrlen,
+                            spistr,
+                            G_SlpdProperty.DATimestamp,
+                            G_SlpdProperty.myUrlLen,
+                            G_SlpdProperty.myUrl,
+                            0,
+                            0,
+                            G_SlpdProperty.useScopesLen,
+                            G_SlpdProperty.useScopes,
+                            spistrlen,
+                            spistr,
+                            &daadvertauthlen,
+                            &daadvertauth);
+    }
+#else
+    G_SlpdProperty.DATimestamp += 1;
+#endif
+
+
     /*-------------------------------------------------------------*/
     /* ensure the buffer is big enough to handle the whole srvrply */
     /*-------------------------------------------------------------*/
@@ -761,8 +813,10 @@ int SLPDKnownDAGenerateMyDAAdvert(int errorcode,
                                            /*  1 byte for authblock count */
     size += G_SlpdProperty.myUrlLen;
     size += G_SlpdProperty.useScopesLen;
-    size += 0;
-    size += 0;
+#ifdef ENABLE_AUTHENTICATION
+    size += spistrlen;
+    size += daadvertauthlen; 
+#endif
 
     result = SLPBufferRealloc(result,size);
     if(result == 0)
@@ -811,7 +865,6 @@ int SLPDKnownDAGenerateMyDAAdvert(int errorcode,
         }
         else
         {
-            G_SlpdProperty.DATimestamp += 1;
             ToUINT32(result->curpos,G_SlpdProperty.DATimestamp);
         }
         result->curpos = result->curpos + 4;                       
@@ -838,13 +891,32 @@ int SLPDKnownDAGenerateMyDAAdvert(int errorcode,
         /* memcpy(result->start, ???, 0);                          */
         /* result->curpos = result->curpos + daentry->attrlistlen; */
         /* SPI List */
+#ifdef ENABLE_AUTHENTICATION
+        ToUINT16(result->curpos,spistrlen);
+        result->curpos = result->curpos + 2;
+        memcpy(result->curpos,spistr,spistrlen);
+        result->curpos = result->curpos + spistrlen;
+#else
         ToUINT16(result->curpos,0);
         result->curpos = result->curpos + 2;
-        /*memcpy(result->start,0,0);                               */
-        /*result->curpos = result->curpos + daentry->spilistlen;   */
+#endif
         /* authblock count */
-        *(result->curpos) = 0;
-        result->curpos = result->curpos + 1;
+#ifdef ENABLE_AUTHENTICATION
+        if(daadvertauth)
+        {
+            /* authcount */
+            *(result->curpos) = 1;
+            result->curpos = result->curpos + 1;
+            /* authblock */
+            memcpy(result->curpos,daadvertauth,daadvertauthlen);
+            result->curpos = result->curpos + daadvertauthlen;
+        }
+        else
+#endif
+        {
+            *(result->curpos) = 0;
+            result->curpos = result->curpos + 1;
+        }
     }
 
     FINISHED:

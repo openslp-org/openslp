@@ -104,7 +104,7 @@ SLPBoolean CallbackSrvRqst(SLPError errorcode,
                 if(securityenabled &&
                    SLPAuthVerifyUrl(handle->hspi,
                                     1,
-                                    &(urlentry[i]))
+                                    &(urlentry[i])))
                 {
                     /* authentication failed skip this URLEntry */
                     continue;
@@ -255,9 +255,6 @@ SLPError ProcessSrvRqst(PSLPHandleInfo handle)
 #ifdef ENABLE_AUTHENTICATION
     if(spistr) free(spistr);
 #endif
-
-
-
 
     return result;
 }   

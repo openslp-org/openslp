@@ -202,12 +202,10 @@ int ProcessDASrvRqst(SLPMessage message,
             {
                 while(1)
                 {
-                
                     if(SLPDKnownDAEnum(eh, &msg, &tmp) == 0)
                     {
                         break;
                     }
-                    
                     
                     if(((*sendbuf)->curpos) + (tmp->end - tmp->start) > (*sendbuf)->end)
                     {

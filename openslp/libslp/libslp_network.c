@@ -191,7 +191,10 @@ int NetworkConnectToDA(PSLPHandleInfo handle,
         }
 
         /* Attempt to connect to DA that does support the scope */
-        handle->dasock = KnownDAConnect(scopelistlen,scopelist,&(handle->daaddr));
+        handle->dasock = KnownDAConnect(handle,
+                                        scopelistlen,
+                                        scopelist,
+                                        &(handle->daaddr));
         if(handle->dasock >= 0)
         {
             if(handle->dascope) free(handle->dascope);

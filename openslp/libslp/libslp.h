@@ -377,9 +377,12 @@ SLPError NetworkRqstRply(int sock,
 
 
 /*=========================================================================*/
-int KnownDAConnect(int scopelistlen,
+int KnownDAConnect(PSLPHandleInfo handle,
+                   int scopelistlen,
                    const char* scopelist,
                    struct sockaddr_in* peeraddr);
+/* handle           (IN) SLPHandle info  (caches connection info)          */
+/*                                                                         */
 /* Get a connected socket to a DA that supports the specified scope        */
 /*                                                                         */
 /* scopelistlen (IN) stringlen of the scopelist                            */

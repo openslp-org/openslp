@@ -73,9 +73,11 @@ time_t G_KnownDALastCacheRefresh = 0;
 
 
 /*-------------------------------------------------------------------------*/
-SLPBoolean KnownDAListFindByScope(int scopelistlen,
-                                   const char* scopelist,
-                                   struct in_addr* daaddr)
+SLPBoolean KnownDAListFind(int scopelistlen,
+                           const char* scopelist,
+                           int spistrlen,
+                           const char* spistr,
+                           struct in_addr* daaddr)
 /* Returns: non-zero on success, zero if DA can not be found               */
 /*-------------------------------------------------------------------------*/
 {
@@ -99,11 +101,20 @@ SLPBoolean KnownDAListFindByScope(int scopelistlen,
                                    scopelistlen,
                                    scopelist))
             {
-                memcpy(daaddr, 
-                       &(entry->msg->peer.sin_addr),
-                       sizeof(struct in_addr));
-
-                return SLP_TRUE;
+#ifdef ENABLE_AUTHENTICATION
+                if(SLPCompareString(entry->msg->body.daadvert.spilistlen,
+                                    entry->msg->body.daadvert.spilist,
+                                    spistrlen,
+                                    spistr) == 0)
+#endif
+                {
+                    
+                    memcpy(daaddr, 
+                           &(entry->msg->peer.sin_addr),
+                           sizeof(struct in_addr));
+    
+                    return SLP_TRUE;
+                }
             }
         }    
     }
@@ -426,8 +437,10 @@ int KnownDADiscoverFromIPC()
 
 /*-------------------------------------------------------------------------*/
 SLPBoolean KnownDAFromCache(int scopelistlen,
-                             const char* scopelist,
-                             struct in_addr* daaddr)
+                            const char* scopelist,
+                            int spistrlen,
+                            const char* spistr,
+                            struct in_addr* daaddr)
 /* Ask Slpd if it knows about a DA                                         */ 
 /*                                                                         */
 /* Returns: non-zero on success, zero if DA can not be found               */
@@ -435,7 +448,11 @@ SLPBoolean KnownDAFromCache(int scopelistlen,
 {
     time_t          curtime;
     
-    if(KnownDAListFindByScope(scopelistlen,scopelist,daaddr) == SLP_FALSE)
+    if(KnownDAListFind(scopelistlen,
+                       scopelist,
+                       spistrlen,
+                       spistr,
+                       daaddr) == SLP_FALSE)
     {
         curtime = time(&curtime);
         if(G_KnownDALastCacheRefresh == 0 ||
@@ -452,7 +469,11 @@ SLPBoolean KnownDAFromCache(int scopelistlen,
                                                      scopelist);
         }
 
-        return KnownDAListFindByScope(scopelistlen,scopelist,daaddr);
+        return KnownDAListFind(scopelistlen,
+                       scopelist,
+                       spistrlen,
+                       spistr,
+                       daaddr);
     }
 
     return SLP_TRUE; 
@@ -460,7 +481,8 @@ SLPBoolean KnownDAFromCache(int scopelistlen,
 
 
 /*=========================================================================*/
-int KnownDAConnect(int scopelistlen,
+int KnownDAConnect(PSLPHandleInfo handle,
+                   int scopelistlen,
                    const char* scopelist,
                    struct sockaddr_in* peeraddr)
 /* Get a connected socket to a DA that supports the specified scope        */
@@ -477,6 +499,18 @@ int KnownDAConnect(int scopelistlen,
 {
     struct timeval  timeout;
     int             sock = -1;
+#ifdef ENABLE_AUTHENTICATION
+    int                 spistrlen   = 0;
+    char*               spistr      = 0;
+
+    if(SLPPropertyAsBoolean(SLPGetProperty("net.slp.securityEnabled")))
+    {
+        SLPSpiGetDefaultSPI(handle->hspi,
+                            SLPSPI_KEY_TYPE_PUBLIC,
+                            &spistrlen,
+                            &spistr);
+    }
+#endif
 
     /* Set up connect timeout */
     timeout.tv_sec = SLPPropertyAsInteger(SLPGetProperty("net.slp.DADiscoveryMaximumWait"));
@@ -487,7 +521,11 @@ int KnownDAConnect(int scopelistlen,
     {
         memset(peeraddr,0,sizeof(peeraddr));
         
-        if(KnownDAFromCache(scopelistlen,scopelist,&(peeraddr->sin_addr)) == 0)
+        if(KnownDAFromCache(scopelistlen,
+                            scopelist,
+                            spistrlen,
+                            spistr,
+                            &(peeraddr->sin_addr)) == 0)
         {
             break;
         }
@@ -502,6 +540,11 @@ int KnownDAConnect(int scopelistlen,
 
         KnownDABadDA(&(peeraddr->sin_addr));
     }
+
+
+#ifdef ENABLE_AUTHENTICATION
+    if(spistr) free(spistr);
+#endif
 
     return sock;
 }

@@ -179,6 +179,16 @@ int SLPDDatabaseReg(SLPMessage msg, SLPBuffer buf)
                                           reg->scopelistlen,
                                           reg->scopelist) > 0)
                 {
+                    
+#ifdef ENABLE_AUTHENTICATION
+                    if(entryreg->urlentry.authcount &&
+                       entryreg->urlentry.authcount != reg->urlentry.authcount)
+                    {
+                        SLPDatabaseClose(dh);
+                        return SLP_ERROR_AUTHENTICATION_FAILED;
+                    }
+#endif
+                    
                     /* Remove the identical entry */
                     SLPDatabaseRemove(dh,entry);
                     break;
@@ -265,6 +275,15 @@ int SLPDDatabaseDeReg(SLPMessage msg)
                                           dereg->scopelistlen,
                                           dereg->scopelist) > 0)
                 {
+                    
+#ifdef ENABLE_AUTHENTICATION
+                    if(entryreg->urlentry.authcount &&
+                       entryreg->urlentry.authcount != dereg->urlentry.authcount)
+                    {
+                        SLPDatabaseClose(dh);
+                        return SLP_ERROR_AUTHENTICATION_FAILED;
+                    }
+#endif                    
                     /* remove the registration from the database */
                     SLPDatabaseRemove(dh,entry);                   
                     break;

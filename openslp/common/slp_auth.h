@@ -53,6 +53,8 @@
 #include "slp_message.h"
 #include "slp_spi.h"
 
+#define SLPAUTH_SHA1_DIGEST_SIZE    20
+
 /*=========================================================================*/
 int SLPAuthVerifyString(SLPSpiHandle hspi,
                         int emptyisfail,
@@ -170,7 +172,8 @@ int SLPAuthSignUrl(SLPSpiHandle hspi,
 
 
 /*=========================================================================*/
-int SLPAuthSignDAAdvert(unsigned short spistrlen,
+int SLPAuthSignDAAdvert(SLPSpiHandle hspi,
+                        unsigned short spistrlen,
                         const char* spistr,
                         unsigned long bootstamp,
                         unsigned short urllen,
@@ -185,7 +188,8 @@ int SLPAuthSignDAAdvert(unsigned short spistrlen,
                         unsigned char** authblock);
 /* Generate an authblock signature for a DAADVERT                          */
 /*                                                                         */
-/* Parameters: spistrlen (IN) length of the spi string                     */
+/* Parameters: hspi         (IN) open SPI handle                           */
+/*             spistrlen (IN) length of the spi string                     */
 /*             sprstr (IN) the spi string                                  */
 /*             bootstamp (IN) the statless DA boot timestamp               */
 /*             urllen (IN) the length of the URL to sign                   */
