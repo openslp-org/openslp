@@ -1,10 +1,9 @@
 #include <string.h>
-#include <fnmatch.h>  
+#include <stdio.h>
+#include <fnmatch.h> 
 
 #include "slp_predicate.h"
-#include "slp_filter.h"
 #include "slp_linkedlist.h"
-
 
 #ifndef FALSE
 #define FALSE   0
@@ -23,6 +22,107 @@
 #define SLP_MIN(a, b) ((a) < (b) ? (a) : (b))
 #define SLP_MAX(a, b) ((a) > (b) ? (a) : (b))
 
+#ifdef DEBUG
+void dumpAttrList(int level, const lslpAttrList *attrs)
+{
+    int i;
+    
+    if ( _LSLP_IS_EMPTY(attrs) )
+    {
+        return;
+    }
+
+    for ( i = 0; i <= level; i++ ) 
+    {
+        printf("\t");
+    }
+
+    attrs = attrs->next;
+    while ( ! _LSLP_IS_HEAD(attrs) )
+    {
+        switch ( attrs->type )
+        {
+            case string:
+                printf("%s = %s (string) \n", attrs->name, attrs->val.stringVal);
+                break;
+            case integer:
+                printf("%s = %lu (integer) \n", attrs->name, attrs->val.intVal);
+                break;
+            case boolean:
+                printf("%s = %s (boolean) \n", 
+                       attrs->name, 
+                       (attrs->val.boolVal ? " TRUE " : " FALSE "));
+                break;
+            case opaque:
+            case head:
+            default: 
+                printf("%s = %s\n", attrs->name, "illegal or unknown attribute type");
+                break;
+        }
+        attrs = attrs->next;
+    }
+    return;
+}
+
+void printOperator(int op)
+{
+    switch ( op )
+    {
+        case ldap_or: printf(" OR ");
+            break;
+        case ldap_and: printf( " AND " );
+            break;
+        case ldap_not: printf(" NOT ");
+            break;
+        case expr_eq: printf(" EQUAL ");
+            break;
+        case expr_gt: printf(" GREATER THAN ");
+            break;
+        case expr_lt: printf(" LESS THAN ");
+            break;
+        case expr_present: printf(" PRESENT ");
+            break;
+        case expr_approx: printf(" APPROX ");
+            break;
+        case -1: printf(" list head ");
+            break;
+        default:
+            printf(" unknown operator value %i ", op);
+            break;
+    }
+    return; 
+}
+
+void dumpFilterTree( const lslpLDAPFilter *filter )
+{
+    int i; 
+    
+    for ( i = 0; i < filter->nestingLevel; i++ )
+    {
+        printf("\t");
+    }
+    
+    printOperator(filter->operator);
+    
+    printf("%s (level %i) \n", 
+           (filter->logical_value ? " TRUE " : " FALSE "), 
+           filter->nestingLevel  );
+
+    dumpAttrList(filter->nestingLevel, &(filter->attrs));
+    
+    if ( ! _LSLP_IS_EMPTY( &(filter->children) ) )
+    {
+        dumpFilterTree((lslpLDAPFilter *)filter->children.next ) ;
+    }
+
+    if ( (! _LSLP_IS_HEAD(filter->next)) && (! _LSLP_IS_EMPTY(filter->next)) )
+    {
+        dumpFilterTree(filter->next);
+    }
+
+    return;
+}
+#endif /* DEBUG*/
 
 int lslpEvaluateOperation(int compare_result, int operation)
 {
