@@ -135,8 +135,8 @@ SLPError ProcessSrvDeReg(PSLPHandleInfo handle)
     sock = NetworkConnectToSlpd(&peeraddr);
     if(sock < 0)
     {
-        sock = NetworkConnectToDA(handle->params.findsrvs.scopelist,
-                                  handle->params.findsrvs.scopelistlen,
+        sock = NetworkConnectToDA(handle->params.dereg.scopelist,
+                                  handle->params.dereg.scopelistlen,
                                   &peeraddr);
 
         {

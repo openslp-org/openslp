@@ -133,8 +133,8 @@ SLPError ProcessAttrRqst(PSLPHandleInfo handle)
     /*---------------------------------------*/
     /* Connect to DA, multicast or broadcast */
     /*---------------------------------------*/
-    sock = NetworkConnectToDA(handle->params.findsrvs.scopelist,
-                              handle->params.findsrvs.scopelistlen,
+    sock = NetworkConnectToDA(handle->params.findattrs.scopelist,
+                              handle->params.findattrs.scopelistlen,
                               &peeraddr);
     if(sock < 0)
     {
