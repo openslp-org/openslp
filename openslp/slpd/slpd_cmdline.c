@@ -45,9 +45,9 @@ void SLPDPrintUsage()
 {
 
 #ifdef WIN32
-    		printf("USAGE: slpd -install|-remove|-debug [-d] [-c conf file] [-l log file] [-r reg file] [-v version]\n");
+    printf("USAGE: slpd -install|-remove|-debug [-d] [-c conf file] [-l log file] [-r reg file] [-v version]\n");
 #else
-    		printf("USAGE: slpd [-d] [-c conf file] [-l log file] [-r reg file] [-v version]\n");
+    printf("USAGE: slpd [-d] [-c conf file] [-l log file] [-r reg file] [-v version]\n");
 #endif
 
 }
@@ -76,99 +76,101 @@ int SLPDParseCommandLine(int argc,char* argv[])
     G_SlpdCommandLine.action = -1;
 #endif
 
-    #if(defined DEBUG)
+#if(defined DEBUG)
     G_SlpdCommandLine.detach = 0;
-    #else
+#else
     G_SlpdCommandLine.detach = 1;
-    #endif
-     
-    for(i=1; i<argc; i++)
+#endif
+
+    for (i=1; i<argc; i++)
     {
 #ifdef WIN32
-      if(strcmp(argv[i],"-install") == 0)
-      {
-        G_SlpdCommandLine.action = SLPD_INSTALL;
-      }
-      else if(strcmp(argv[i],"-remove") == 0)
-      {
-        G_SlpdCommandLine.action = SLPD_REMOVE;
-      }
-      else if(strcmp(argv[i],"-debug") == 0)
-      {
-        G_SlpdCommandLine.action = SLPD_DEBUG;
-      } else
+        if (strcmp(argv[i],"-install") == 0)
+        {
+            G_SlpdCommandLine.action = SLPD_INSTALL;
+        }
+        else if (strcmp(argv[i],"-remove") == 0)
+        {
+            G_SlpdCommandLine.action = SLPD_REMOVE;
+        }
+        else if (strcmp(argv[i],"-debug") == 0)
+        {
+            G_SlpdCommandLine.action = SLPD_DEBUG;
+        }
+        else
 #endif
-        if(strcmp(argv[i],"-l") == 0)
+            if (strcmp(argv[i],"-l") == 0)
         {
             i++;
-            if(i >= argc) goto USAGE;
+            if (i >= argc) goto USAGE;
             strncpy(G_SlpdCommandLine.logfile,argv[i],MAX_PATH);
         }
-        else if(strcmp(argv[i],"-r") == 0)
+        else if (strcmp(argv[i],"-r") == 0)
         {
             i++;
-            if(i >= argc) goto USAGE;
+            if (i >= argc) goto USAGE;
             strncpy(G_SlpdCommandLine.regfile,argv[i],MAX_PATH);
         }
-        else if(strcmp(argv[i],"-c") == 0)
+        else if (strcmp(argv[i],"-c") == 0)
         {
             i++;
-            if(i >= argc) goto USAGE;
+            if (i >= argc) goto USAGE;
             strncpy(G_SlpdCommandLine.cfgfile,argv[i],MAX_PATH);        
         }
-        else if(strcmp(argv[i],"-p") == 0)
+        else if (strcmp(argv[i],"-p") == 0)
         {
             i++;
-            if(i >= argc) goto USAGE;
+            if (i >= argc) goto USAGE;
             strncpy(G_SlpdCommandLine.pidfile,argv[i],MAX_PATH);        
         }
-        else if(strcmp(argv[i],"-d") == 0)
+        else if (strcmp(argv[i],"-d") == 0)
         {
             G_SlpdCommandLine.detach = 0;
         }
-		else if((strcmp(argv[i], "-v") == 0) 
-				|| (strcmp(argv[i], "-V") == 0)
-				|| (strcmp(argv[i], "--version") == 0)
-			   	|| (strcmp(argv[i], "-version") == 0))
-		{
+        else if ((strcmp(argv[i], "-v") == 0) 
+                 || (strcmp(argv[i], "-V") == 0)
+                 || (strcmp(argv[i], "--version") == 0)
+                 || (strcmp(argv[i], "-version") == 0))
+        {
 #ifdef WIN32
-                        printf("slpd version: %s\n", SLP_VERSION);
+            printf("slpd version: %s\n", SLP_VERSION);
 #else /* UNIX */
-			printf("slpd version: %s\n", VERSION);
+            printf("slpd version: %s\n", VERSION);
 #endif
-			/* Show options. */
-			printf("compile options:\n"
-						"            debugging     "
+
+            /* Show options. */
+            printf("compile options:\n"
+                   "            debugging     "
 #ifdef DEBUG
-						"enabled (--enable-debug) "
+                   "enabled (--enable-debug) "
 #else
-						"disabled"
+                   "disabled"
 #endif /* NDEBUG */
-						"\n"
-						"           predicates     "
+                   "\n"
+                   "           predicates     "
 #ifdef USE_PREDICATES
-						"enabled "
+                   "enabled "
 #else 
-						"disabled (--disable-predicates) "
+                   "disabled (--disable-predicates) "
 #endif /* USE_PREDICATES */
-						"\n"
-						"  slpv1 compatability     "
+                   "\n"
+                   "  slpv1 compatability     "
 #ifdef ENABLE_SLPv1
-						"enabled "
+                   "enabled "
 #else
-						"disabled (--enable-slpv1=no)"
+                   "disabled (--enable-slpv1=no)"
 #endif /* ENABLE_SLPv1 */
-						"\n"
-			);
-			exit(1);
-		}
-		else if((strcmp(argv[i], "-h") == 0) 
-			   	|| (strcmp(argv[i], "-help") == 0)
-			   	|| (strcmp(argv[i], "--help") == 0))
-		{
-    		printf("USAGE: slpd [-d] [-c conf file] [-l log file] [-r reg file] [-v version]\n");
-			exit(1);
-		}
+                   "\n"
+                  );
+            exit(1);
+        }
+        else if ((strcmp(argv[i], "-h") == 0) 
+                 || (strcmp(argv[i], "-help") == 0)
+                 || (strcmp(argv[i], "--help") == 0))
+        {
+            printf("USAGE: slpd [-d] [-c conf file] [-l log file] [-r reg file] [-v version]\n");
+            exit(1);
+        }
         else
         {
             goto USAGE;
