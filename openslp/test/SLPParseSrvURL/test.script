@@ -11,4 +11,4 @@ echo >> SLPParseSrvURL.actual.output
 ./slpparsesrvurl service:test://10.0.0.1:80/foo/goo >> SLPParseSrvURL.actual.output
 echo >> SLPParseSrvURL.actual.output
 ./slpparsesrvurl service:test://10.0.0.1/foo/goo >> SLPParseSrvURL.actual.output 
-diff --brief ${scriptdir}/SLPParseSrvURL.expected.output SLPParseSrvURL.actual.output
+diff -c ${scriptdir}/SLPParseSrvURL.expected.output SLPParseSrvURL.actual.output

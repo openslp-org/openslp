@@ -6,5 +6,5 @@ scriptdir=${srcdir}/SLPOpen
 
 ../slpd/slpd -r ${scriptdir}/slp.test.reg &
 ./slpopen > SLPOpen.actual.output
-killall slpd
-diff --brief ${scriptdir}/SLPOpen.expected.output SLPOpen.actual.output
+if test -f /var/run/slpd.pid; then kill `cat /var/run/slpd.pid`; fi
+diff -c ${scriptdir}/SLPOpen.expected.output SLPOpen.actual.output

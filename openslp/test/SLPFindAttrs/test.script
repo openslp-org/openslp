@@ -15,5 +15,5 @@ echo >> SLPFindAttrs.actual.output
 echo >> SLPFindAttrs.actual.output
 ./slpfindattrs service:test 10.0.0.1 foo=value1,value2 goo >> SLPFindAttrs.actual.output
 echo >> SLPFindAttrs.actual.output
-killall slpd
-diff --brief ${scriptdir}/SLPFindAttrs.expected.output SLPFindAttrs.actual.output
+if test -f /var/run/slpd.pid; then kill `cat /var/run/slpd.pid`; fi
+diff -c ${scriptdir}/SLPFindAttrs.expected.output SLPFindAttrs.actual.output

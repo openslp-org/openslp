@@ -12,4 +12,4 @@ echo >> SLPEscape.actual.output
 echo >> SLPEscape.actual.output
 ./slpescape \(\),\\!\<=\>\~ >> SLPEscape.actual.output
 echo >> SLPEscape.actual.output
-diff --brief ${scriptdir}/SLPEscape.expected.output SLPEscape.actual.output
+diff -c ${scriptdir}/SLPEscape.expected.output SLPEscape.actual.output
