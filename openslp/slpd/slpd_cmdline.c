@@ -136,6 +136,30 @@ int SLPDParseCommandLine(int argc,char* argv[])
 #else /* UNIX */
 			printf("slpd version: %s\n", VERSION);
 #endif
+			/* Show options. */
+			printf("compile options:\n"
+						"            debugging     "
+#ifdef DEBUG
+						"enabled (--enable-debug) "
+#else
+						"disabled"
+#endif /* NDEBUG */
+						"\n"
+						"           predicates     "
+#ifdef USE_PREDICATES
+						"enabled "
+#else 
+						"disabled (--disable-predicates) "
+#endif /* USE_PREDICATES */
+						"\n"
+						"  slpv1 compatability     "
+#ifdef ENABLE_SLPv1
+						"enabled "
+#else
+						"disabled (--enable-slpv1=no)"
+#endif /* ENABLE_SLPv1 */
+						"\n"
+			);
 			exit(1);
 		}
 		else if((strcmp(argv[i], "-h") == 0) 
