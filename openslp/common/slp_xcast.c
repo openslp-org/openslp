@@ -219,8 +219,8 @@ int SLPMulticastSend(const SLPIfaceInfo* ifaceinfo,
             if( setsockopt(socks->sock[socks->sock_count], 
                            IPPROTO_IP, 
                            IP_MULTICAST_IF, 
-                           (char*)&socks->peeraddr[socks->sock_count], 
-                           sizeof(struct sockaddr_storage)))
+                            (char *) (&(s4->sin_addr)),
+                            sizeof(struct in_addr)))
             {
                 /* error setting socket option */
                 return -1;
@@ -440,7 +440,7 @@ int SLPXcastRecvMessage(const SLPXcastSockets* sockets,
  * $ gcc -g -DDEBUG -DSLP_XMIT_TEST slp_xcast.c slp_iface.c slp_buffer.c 
  *   slp_linkedlist.c slp_compare.c slp_xmalloc.c
  *==========================================================================*/ 
-#define SLP_XMIT_TEST
+//#define SLP_XMIT_TEST
 #ifdef SLP_XMIT_TEST
 main()
 {
