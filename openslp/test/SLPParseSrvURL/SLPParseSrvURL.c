@@ -10,13 +10,12 @@ int
 main (int argc, char *argv[])
 {
 	SLPError	err;
-	char		srvurl[MAX_STRING_LENGTH];
 	SLPSrvURL	*parsedurl;
 
 	if (argc != 2)
 	{
 		printf("SLPParseSrvURL\n  This program tests the parsing of a service url.\n Usage:\n   SLPParseSrvURL <serivce url>\n");
-		return;
+		return(1);
 	} /* End If. */
 
 	err = SLPParseSrvURL(argv[1], &parsedurl); 
@@ -27,5 +26,6 @@ main (int argc, char *argv[])
 	printf("Port Number = %d\n", parsedurl->s_iPort);
 	printf("Family = %s\n", ((strlen(parsedurl->s_pcNetFamily)==0)?"IP":"Other"));
 	printf("URL Remainder = %s\n", parsedurl->s_pcSrvPart);
-	
+
+	return(0);
 }
