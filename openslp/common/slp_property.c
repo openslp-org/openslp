@@ -78,11 +78,9 @@ int SLPPropertySet(const char *pcName,
     int             pcValueSize;
     SLPProperty*    newProperty; 
     
-    
     newProperty = Find(pcName);
     pcNameSize = strlen(pcName) + 1;
     pcValueSize = strlen(pcValue) + 1;
-    
     
     if(newProperty == 0)
     {
@@ -164,6 +162,7 @@ int SLPPropertyReadFile(const char* conffile)
 /*=========================================================================*/
 {
     char*   line;
+	 char*	alloced;
     FILE*   fd;
     char*   namestart;
     char*   nameend;
@@ -176,7 +175,7 @@ int SLPPropertyReadFile(const char* conffile)
         return -1;
     }
     
-    line = malloc(4096);
+    alloced = line = malloc(4096);
     if(line == 0)
     {
         /* out of memory */
@@ -193,19 +192,28 @@ int SLPPropertyReadFile(const char* conffile)
     while(fgets(line,4096,fd))
     {
         /* trim whitespace */
-        while(*line && *line <= 0x20) line++;
-        if(*line == 0) continue;
+        while(*line && *line <= 0x20) 
+			  line++;
+
+        if(*line == 0) 
+			  continue;
 
         /* skip commented lines */
-        if(*line == '#' || *line == ';') continue;
-
+        if(*line == '#' || *line == ';') 
+			  continue;
         
         /* parse out the property name*/
         namestart = line;
         nameend = line;
-        while(*nameend && *nameend != '=') nameend++;
-        if(*nameend == 0) continue;
+
+        while(*nameend && *nameend != '=') 
+			  nameend++;
+
+        if(*nameend == 0) 
+			  continue;
+
         valuestart = nameend + 1;  /* start of value for later*/
+
         while(*nameend <= 0x20 || *nameend == '=')
         {
             *nameend = 0;
@@ -213,9 +221,14 @@ int SLPPropertyReadFile(const char* conffile)
         }
 
         /* parse out theproperty value */
-        while(*valuestart <= 0x20) valuestart ++;
+        while(*valuestart <= 0x20) 
+			  valuestart++;
+
         valueend = valuestart;
-        while(*valueend) valueend++;
+
+        while(*valueend) 
+			  valueend++;
+
         while(*valueend <= 0x20)
         {
             *valueend = 0;
@@ -223,13 +236,14 @@ int SLPPropertyReadFile(const char* conffile)
         }
 
         /* set the property */
-        SLPPropertySet(namestart,valuestart);
+        SLPPropertySet(namestart, valuestart);
     }   
 
 
     CLEANUP:
 
-    if(line) free(line);
+    if(line) 
+		 free(alloced);
 
     return 0;
 }
