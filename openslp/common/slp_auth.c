@@ -114,16 +114,19 @@ int SLPAuthDigestString(int spistrlen,
 }
 
 /*=========================================================================*/
-int SLPAuthVerifyString(unsigned short stringlen,
+int SLPAuthVerifyString(int emptyisfail,
+                        unsigned short stringlen,
                         const char* string,
                         int authcount,
                         const SLPAuthBlock* autharray)
 /* Verify authenticity of  the specified attribute list                    */
 /*                                                                         */
-/* Parameters: stringlen (IN) the length of string to verify               */
-/*             string (IN) the list to verify                              */
-/*             authcount (IN) the number of blocks in autharray            */
-/*             autharray (IN) array of authblocks                          */
+/* Parameters: emptyisfail (IN) if non-zero, messages without authblocks   */
+/*                              will fail                                  */
+/*             stringlen   (IN) the length of string to verify             */
+/*             string      (IN) the list to verify                         */
+/*             authcount   (IN) the number of blocks in autharray          */
+/*             autharray   (IN) array of authblocks                        */
 /*                                                                         */
 /* Returns: 0 on success or SLP_ERROR_xxx code on failure                  */
 /*=========================================================================*/
@@ -134,8 +137,17 @@ int SLPAuthVerifyString(unsigned short stringlen,
     SLPCryptoDSAKey*    key;
     unsigned char       digest[20];
     
-    /* Assume failure */
-    result = SLP_ERROR_AUTHENTICATION_FAILED;
+    /*-----------------------------------*/
+    /* Should we fail on emtpy authblock */
+    /*-----------------------------------*/
+    if(emptyisfail)
+    {
+        result = SLP_ERROR_AUTHENTICATION_FAILED;
+    }
+    else
+    {
+        result = SLP_ERROR_OK;
+    }  
     
     /*------------------------------------------------------*/
     /* Iterate and check all authentication blocks          */
@@ -189,15 +201,19 @@ int SLPAuthVerifyString(unsigned short stringlen,
 
 
 /*=========================================================================*/
-int SLPAuthVerifyUrl(const SLPUrlEntry* urlentry)
+int SLPAuthVerifyUrl(int emptyisfail,
+                     const SLPUrlEntry* urlentry)
 /* Verify authenticity of  the specified url entry                         */
 /*                                                                         */
-/* Parameters: urlentry (IN) the url entry to verify                       */
+/* Parameters: emptyisfail  (IN) if non-zero, messages without authblocks  */
+/*                               will fail                                 */
+/*             urlentry     (IN) the url entry to verify                   */
 /*                                                                         */
 /* Returns: 0 on success or SLP_ERROR_xxx code on failure                  */
 /*=========================================================================*/
 {
-    return SLPAuthVerifyString(urlentry->urllen,
+    return SLPAuthVerifyString(emptyisfail,
+                               urlentry->urllen,
                                urlentry->url,
                                urlentry->authcount,
                                urlentry->autharray);
@@ -205,12 +221,15 @@ int SLPAuthVerifyUrl(const SLPUrlEntry* urlentry)
 
 
 /*=========================================================================*/
-int SLPAuthVerifyDAAdvert(const SLPDAAdvert* daadvert)
+int SLPAuthVerifyDAAdvert(int emptyisfail,
+                          const SLPDAAdvert* daadvert)
 /* Verify authenticity of  the specified DAAdvert                          */
 /*                                                                         */
-/* Parameters: spistrlen (IN) length of the spi string                     */
-/*             sprstr (IN) the spi string                                  */
-/*             daadvert (IN) the DAAdvert to verify                        */
+/* Parameters: emptyisfail (IN) if non-zero, messages without authblocks   */
+/*                              will fail                                  */
+/*             spistrlen   (IN) length of the spi string                   */
+/*             sprstr      (IN) the spi string                             */
+/*             daadvert    (IN) the DAAdvert to verify                     */
 /*                                                                         */
 /* Returns: 0 on success or SLP_ERROR_xxx code on failure                  */
 /*=========================================================================*/
@@ -220,12 +239,15 @@ int SLPAuthVerifyDAAdvert(const SLPDAAdvert* daadvert)
 
 
 /*=========================================================================*/
-int SLPAuthVerifySAAdvert(const SLPSAAdvert* saadvert)
+int SLPAuthVerifySAAdvert(int emptyisfail,
+                          const SLPSAAdvert* saadvert)
 /* Verify authenticity of  the specified SAAdvert                          */
 /*                                                                         */
-/* Parameters: spistrlen (IN) length of the spi string                     */
-/*             sprstr (IN) the spi string                                  */
-/*             saadvert (IN) the SAADVERT to verify                        */
+/* Parameters: emptyisfail (IN) if non-zero, messages without authblocks   */
+/*                              will fail                                  */
+/*             spistrlen   (IN) length of the spi string                   */
+/*             sprstr      (IN) the spi string                             */
+/*             saadvert    (IN) the SAADVERT to verify                     */
 /*                                                                         */
 /* Returns: 0 on success or SLP_ERROR_xxx code on failure                  */
 /*=========================================================================*/

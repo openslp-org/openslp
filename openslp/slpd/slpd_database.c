@@ -159,9 +159,9 @@ int SLPDDatabaseReg(SLPSrvReg* srvreg, unsigned int regtype)
     int                result = -1; 
     SLPDDatabaseEntry* entry  = (SLPDDatabaseEntry*)G_DatabaseList.head;
     
-    #ifdef ENABLE_AUTHENTICATION
+#ifdef ENABLE_AUTHENTICATION
     int i;
-    #endif
+#endif
 
     /*-----------------------------------------------------*/
     /* Check to see if there is already an identical entry */
@@ -178,8 +178,14 @@ int SLPDDatabaseReg(SLPSrvReg* srvreg, unsigned int regtype)
                                       srvreg->scopelistlen,
                                       srvreg->scopelist) > 0)
             {
-                SLPListUnlink(&G_DatabaseList,(SLPListItem*)entry);
-                break;
+#ifdef ENABLE_AUTHENTICATION               
+                if(entry->authcount == srvreg->urlentry.authcount)
+#endif
+                {
+                    SLPListUnlink(&G_DatabaseList,(SLPListItem*)entry);
+                    break;
+                }
+                
             }
         }
 
@@ -388,10 +394,17 @@ int SLPDDatabaseDeReg(SLPSrvDeReg* srvdereg)
                                       srvdereg->scopelistlen,
                                       srvdereg->scopelist) > 0)
             {
-                /* Log deregistration registration */
-                SLPDLogTraceReg("Deregistered",entry);
-                SLPDDatabaseEntryFree((SLPDDatabaseEntry*)SLPListUnlink(&G_DatabaseList,(SLPListItem*)entry));
-                break;
+#ifdef ENABLE_AUTHENTICATION
+                if(entry->authcount == srvdereg->urlentry.authcount)
+#endif
+                {
+                    /* Log deregistration registration */
+                    SLPDLogTraceReg("Deregistered",entry);
+                    
+                    /* remove the registration from the database */
+                    SLPDDatabaseEntryFree((SLPDDatabaseEntry*)SLPListUnlink(&G_DatabaseList,(SLPListItem*)entry));
+                    break;
+                }
             }
         }
 
@@ -501,7 +514,6 @@ int SLPDDatabaseFindType(SLPSrvTypeRqst* srvtyperqst,
     SLPDDatabaseEntry*  entry;
     int                 found;
     int                 i;
-
 
     found = 0;
     entry = (SLPDDatabaseEntry*)G_DatabaseList.head;

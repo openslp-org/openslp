@@ -301,9 +301,9 @@ int ProcessSrvRqst(struct sockaddr_in* peeraddr,
     SLPDDatabaseSrvUrl*     srvarray    = 0;
     SLPBuffer               result      = *sendbuf;
 
-    #ifdef ENABLE_AUTHENTICATION
-    int                    authcount;
-    #endif
+#ifdef ENABLE_AUTHENTICATION
+    int                     authcount;
+#endif
     
     /*--------------------------------------------------------------*/
     /* If errorcode is set, we can not be sure that message is good */
@@ -330,15 +330,14 @@ int ProcessSrvRqst(struct sockaddr_in* peeraddr,
     /*------------------------------------*/
     /* Make sure that we handle the SPI   */
     /*------------------------------------*/
-    #ifdef ENABLE_AUTHENTICATION
+#ifdef ENABLE_AUTHENTICATION
     
     /* TODO: Check known SPIs */
     if(1)
-    #else
+#else
     if(message->body.srvrqst.spistrlen == 0)
-    #endif
+#endif
     {
-    
         /*------------------------------------------------*/
         /* Check to to see if a this is a special SrvRqst */
         /*------------------------------------------------*/
@@ -437,12 +436,16 @@ int ProcessSrvRqst(struct sockaddr_in* peeraddr,
                                             /*  2 bytes for lifetime */
                                             /*  2 bytes for urllen   */
                                             /*  1 byte for authcount */
-            #ifdef ENABLE_AUTHENTICATION
-            for(authcount=0;authcount<srvarray[i].authcount;authcount++)
+#ifdef ENABLE_AUTHENTICATION
+            /* include authblocks if they were asked for */
+            if(message->body.srvrqst.spistrlen)
             {
-                size += srvarray[i].autharray[authcount].length;
+                for(authcount=0;authcount<srvarray[i].authcount;authcount++)
+                {
+                    size += srvarray[i].autharray[authcount].length;
+                }
             }
-            #endif 
+#endif 
         } 
         result = SLPBufferRealloc(result,size);
         if(result == 0)
@@ -502,20 +505,24 @@ int ProcessSrvRqst(struct sockaddr_in* peeraddr,
         memcpy(result->curpos,srvarray[i].url,srvarray[i].urllen);
         result->curpos = result->curpos + srvarray[i].urllen;
         /* url-entry auths */
-        #ifdef ENABLE_AUTHENTICATION
-        *result->curpos = (char)srvarray[i].authcount;
-        result->curpos = result->curpos + 1;
-        for(authcount=0;authcount<srvarray[i].authcount;authcount++)
+#ifdef ENABLE_AUTHENTICATION
+        /* include authblocks if they were asked for */
+        if(message->body.srvrqst.spistrlen)
         {
-            memcpy(result->curpos,
-                   srvarray[i].autharray[authcount].opaque,
-                   srvarray[i].autharray[authcount].length);
-            result->curpos = result -> curpos + srvarray[i].autharray[authcount].length;
+            *result->curpos = (char)srvarray[i].authcount;
+            result->curpos = result->curpos + 1;
+            for(authcount=0;authcount<srvarray[i].authcount;authcount++)
+            {
+                memcpy(result->curpos,
+                       srvarray[i].autharray[authcount].opaque,
+                       srvarray[i].autharray[authcount].length);
+                result->curpos = result -> curpos + srvarray[i].autharray[authcount].length;
+            }
         }
-        #else
+#else
         *result->curpos = 0;
         result->curpos = result->curpos + 1;
-        #endif 
+#endif 
     }
 
     FINISHED:   
@@ -557,20 +564,21 @@ int ProcessSrvReg(struct sockaddr_in* peeraddr,
                               G_SlpdProperty.useScopes))
     {
 
+#ifdef ENABLE_AUTHENTICATION
         /*-------------------------------*/
         /* Validate the authblocks       */
         /*-------------------------------*/
-        #ifdef ENABLE_AUTHENTICATION
-        errorcode = SLPAuthVerifyUrl(&(message->body.srvreg.urlentry));
+        errorcode = SLPAuthVerifyUrl(0,&(message->body.srvreg.urlentry));
         if(errorcode == 0)
         {
-            errorcode = SLPAuthVerifyString(message->body.srvreg.attrlistlen,
+            errorcode = SLPAuthVerifyString(0,
+                                            message->body.srvreg.attrlistlen,
                                             message->body.srvreg.attrlist,
                                             message->body.srvreg.authcount,
                                             message->body.srvreg.autharray);
         }
         if(errorcode == 0)
-        #endif
+#endif
         {
             /*---------------------------------*/
             /* put the service in the database */
@@ -686,13 +694,14 @@ int ProcessSrvDeReg(struct sockaddr_in* peeraddr,
                               G_SlpdProperty.useScopesLen,
                               G_SlpdProperty.useScopes))
     {
+
+#ifdef ENABLE_AUTHENTICATION
         /*-------------------------------*/
         /* Validate the authblocks       */
         /*-------------------------------*/
-        #ifdef ENABLE_AUTHENTICATION
-        errorcode = SLPAuthVerifyUrl(&(message->body.srvdereg.urlentry));
+        errorcode = SLPAuthVerifyUrl(0,&(message->body.srvdereg.urlentry));
         if(errorcode == 0)
-        #endif
+#endif
         { 
             /*--------------------------------------*/
             /* remove the service from the database */
@@ -794,10 +803,10 @@ int ProcessAttrRqst(struct sockaddr_in* peeraddr,
     int                     found           = 0;
     SLPBuffer               result          = *sendbuf;
     
-    #ifdef ENABLE_AUTHENTICATION
+#ifdef ENABLE_AUTHENTICATION
     unsigned char*    attrauth       = 0;
     int               attrauthlen    = 0;
-    #endif
+#endif
 
     /*--------------------------------------------------------------*/
     /* If errorcode is set, we can not be sure that message is good */
@@ -832,13 +841,13 @@ int ProcessAttrRqst(struct sockaddr_in* peeraddr,
         /*------------------------------------*/
         /* Make sure that we handle the SPI   */
         /*------------------------------------*/
-        #ifdef ENABLE_AUTHENTICATION
+#ifdef ENABLE_AUTHENTICATION
         
         /* TODO: Check known SPIs */
         if(1)
-        #else
+#else
         if(message->body.attrrqst.spistrlen == 0)
-        #endif
+#endif
         {
             /*-------------------------------*/
             /* Find attributes in the database */
@@ -876,7 +885,7 @@ int ProcessAttrRqst(struct sockaddr_in* peeraddr,
         }
     }
 
-    #ifdef ENABLE_AUTHENTICATION
+#ifdef ENABLE_AUTHENTICATION
     /*--------------------*/
     /* Generate authblock */
     /*--------------------*/
@@ -886,7 +895,7 @@ int ProcessAttrRqst(struct sockaddr_in* peeraddr,
                                   attr.attrlist,
                                   &attrauthlen,
                                   &attrauth);
-    #endif                                    
+#endif                                    
 
     /*--------------------------------------------------------------*/
     /* ensure the buffer is big enough to handle the whole attrrply */
@@ -897,9 +906,9 @@ int ProcessAttrRqst(struct sockaddr_in* peeraddr,
                                             /*  2 bytes for the authcount */
     size += attr.attrlistlen;
     
-    #ifdef ENABLE_AUTHENTICATION
+#ifdef ENABLE_AUTHENTICATION
     size += attrauthlen;
-    #endif
+#endif
 
     /*-------------------*/
     /* Alloc the  buffer */
@@ -951,7 +960,7 @@ int ProcessAttrRqst(struct sockaddr_in* peeraddr,
     }
     result->curpos = result->curpos + attr.attrlistlen;
     /* authentication block */
-    #ifdef ENABLE_AUTHENTICATION
+#ifdef ENABLE_AUTHENTICATION
     if(attrauth)
     {
         ToUINT16(result->curpos, 1);
@@ -959,17 +968,17 @@ int ProcessAttrRqst(struct sockaddr_in* peeraddr,
         memcpy(result->curpos,attrauth,attrauthlen);
     }
     else
-    #endif
+#endif
     {
         ToUINT16(result->curpos, 0);
     }
 
     FINISHED:
     
-    #ifdef ENABLE_AUTHENTICATION    
+#ifdef ENABLE_AUTHENTICATION    
     /* free the authblock if any */
     if(attrauth) free(attrauth);
-    #endif
+#endif
     
     *sendbuf = result;
 
@@ -999,10 +1008,10 @@ int ProcessDAAdvert(struct sockaddr_in* peeraddr,
     /*-------------------------------*/
     /* Validate the authblocks       */
     /*-------------------------------*/
-    #ifdef ENABLE_AUTHENTICATION
-    errorcode = SLPAuthVerifyDAAdvert(&(message->body.daadvert));
+#ifdef ENABLE_AUTHENTICATION
+    errorcode = SLPAuthVerifyDAAdvert(0,&(message->body.daadvert));
     if(errorcode == 0);
-    #endif
+#endif
     {
         /* Only process if errorcode is not set */
         if(message->body.daadvert.errorcode == SLP_ERROR_OK)

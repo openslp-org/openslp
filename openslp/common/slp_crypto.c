@@ -133,7 +133,11 @@ int SLPCryptoDSASignLen(SLPCryptoDSAKey* key)
 /* Returns: The length of signatures in bytes                              */
 /*=========================================================================*/
 {
+    #if 0
     return DSA_size(key);
+    #endif
+    
+    return 20;
 }
 
 
@@ -158,12 +162,17 @@ int SLPCryptoDSASign(SLPCryptoDSAKey* key,
 /* Returns: zero on success. non-zero on failure                           */
 /*=========================================================================*/
 {
+    #if 0
     return DSA_sign(0, /* it does not look like the type param is used? */
                     digest,
                     digestlen,
                     signature,
                     signaturelen,
                     key);
+    #endif
+    
+    memcpy(signature,digest,20);
+    return 0;
 }
 
 
@@ -184,10 +193,19 @@ int SLPCryptoDSAVerify(SLPCryptoDSAKey* key,
 /* Returns: 1 if the signature is valid, 0 of it is not                    */
 /*=========================================================================*/
 {
+    #if 0
     return DSA_verify(0, /* it does not look like the type param is used? */
                       digest,
                       digestlen,
                       (unsigned char*)signature,  /* broken DSA_verify() declaration */
                       signaturelen,
                       key);
+    #endif
+    
+    if(digestlen == signaturelen)
+    {
+        return !memcmp(digest,signature,signaturelen);
+    }
+
+    return 0;
 }
