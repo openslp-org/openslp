@@ -27,10 +27,11 @@ files and documentation
 
 %Prep
 %setup -n %{name}-%{ver}
-%patch -p1
 
 %Build
-./configure --with-rpm-prefix=$RPM_BUILD_ROOT
+#./configure --with-RPM-prefix=$RPM_BUILD_ROOT
+./configure --prefix=$RPM_BUILD_ROOT
+./configure
 make
 
 %Install
@@ -43,7 +44,7 @@ DESCRIPTIVE="SLP Service Agent"
 ONBOOT="yes"
 EOD
 mkdir -p $DESTDIR/etc/rc.d/init.d
-install -m 755 /etc/slpd.all_init $DESTDIR/etc/rc.d/init.d/slpd
+install -m 755 etc/slpd.all_init $DESTDIR/etc/rc.d/init.d/slpd
 
 %Clean
 rm -rf $RPM_BUILD_ROOT
@@ -95,7 +96,7 @@ fi
 %config /etc/slp.reg
 %config /etc/sysconfig/daemons/slpd
 /etc/rc.d/init.d/slpd
-/usr/lib/libslp.so.%{ver}
+/usr/lib/libslp*
 /usr/include/slp.h
 /usr/sbin/slpd
 
