@@ -60,7 +60,7 @@
 #include <limits.h>
 
 #if(_WIN32_WINNT >= 0x0400) 
-#include <ws2tcpip.h> 
+    #include <ws2tcpip.h> 
 #endif
 
 
@@ -92,6 +92,7 @@ typedef enum _SLPDAction
 
 /* definition for inet_aton() since Microsoft does not have this yet */
 #define inet_aton(opt,bind) ((bind)->s_addr = inet_addr(opt))
+
 
 
 /*=========================================================================*/
