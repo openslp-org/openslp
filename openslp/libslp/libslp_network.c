@@ -129,7 +129,9 @@ void NetworkDisconnectDA(PSLPHandleInfo handle)
         close(handle->dasock);
         handle->dasock = -1;
     }
-    
+
+    /* Mark this DA as bad */
+    KnownDABadDA(&handle->daaddr);
 }
 
 
@@ -145,7 +147,6 @@ void NetworkDisconnectSA(PSLPHandleInfo handle)
         close(handle->sasock);
         handle->sasock = -1;
     }
-    
 }
 
 /*=========================================================================*/ 

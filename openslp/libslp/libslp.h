@@ -345,6 +345,17 @@ int KnownDAConnect(int scopelistlen,
 /* returns: valid socket file descriptor or -1 if no DA is found           */
 /*=========================================================================*/
 
+
+/*=========================================================================*/
+int KnownDABadDA(struct sockaddr_in* peeraddr);
+/* Mark a KnownDA as a Bad DA.                                             */
+/*                                                                         */
+/* peeraddr (IN) address of the bad DA                                     */
+/*                                                                         */
+/* Returns: zero on success.                                               */
+/*=========================================================================*/
+
+
 /*=========================================================================*/
 int KnownDAGetScopes(int* scopelistlen,
                      char** scopelist);

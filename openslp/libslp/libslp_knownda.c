@@ -499,6 +499,34 @@ int KnownDAConnect(int scopelistlen,
     return sock;
 }
     
+/*=========================================================================*/
+int KnownDABadDA(struct sockaddr_in* peeraddr)
+/* Mark a KnownDA as a Bad DA.                                             */
+/*                                                                         */
+/* peeraddr (IN) address of the bad DA                                     */
+/*                                                                         */
+/* Returns: zero on success.                                               */
+/*=========================================================================*/
+{
+    SLPDAEntry* entry;
+
+    entry = (SLPDAEntry*)G_KnownDACache.head;
+    while(entry)
+    {
+        if(memcmp(&(peeraddr->sin_addr),
+                  &(entry->daaddr),
+                  sizeof(struct in_addr)) == 0)
+        {
+            /* Remove entry from list and free it */
+            SLPDAEntryFree( (SLPDAEntry*)SLPListUnlink(&G_KnownDACache,
+						       (SLPListItem*)entry) );
+            break;
+        }
+        entry = (SLPDAEntry*) entry->listitem.next;
+    }
+
+    return 0;
+}
 
 /*=========================================================================*/
 int KnownDAGetScopes(int* scopelistlen,
