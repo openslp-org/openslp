@@ -35,7 +35,10 @@ paranoid:
 debug:
 	gcc -g -o $(BINARY) -Wall -DDEBUG -I$(COMMON_DIR) -I$(SLPD_DIR) $(SLPD_SRC) $(COMMON_SRC)
 	
-install: release
+clean:
+	rm -f slpd
+
+install: clean release
 	chmod a+x install.sh
 	./install.sh
 	

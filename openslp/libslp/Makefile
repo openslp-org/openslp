@@ -33,10 +33,13 @@ TEST_SRC   = $(TEST_DIR)/LIBSLP_test.c
 
 release: 
 	gcc -Wall -O3 -fPIC -shared -Wl,-soname,$(SONAME).so -o$(SONAME).so.$(MAJORVER).$(MINORVER) -I$(COMMON_DIR) -I$(LIBSLP_DIR) $(LIBSLP_SRC) $(COMMON_SRC)
-	
+
 debug:
 	gcc -Wall -g -shared -Wl,-soname,$(SONAME).so -o$(SONAME).so.$(MAJORVER).$(MINORVER) -DDEBUG -I$(COMMON_DIR) -I$(LIBSLP_DIR) $(LIBSLP_SRC) $(COMMON_SRC)
 
-install: release
+clean:
+	rm -f libslp.so*
+
+install: clean release
 	chmod a+x install.sh
 	./install.sh

@@ -16,16 +16,16 @@ debug: slpd libslp doc
 	cd libslp ; make $@
 	cd doc ; make $@
 	
+clean: slpd libslp doc
+	cd slpd ; make $@
+	cd libslp ; make $@
+	cd doc ; make $@
+
 install: slpd libslp doc
 	cd slpd ; make $@
 	cd libslp ; make $@
 	cd doc ; make $@
 	cd etc ; make $@
-
-clean: slpd libslp doc
-	cd slpd ; make $@
-	cd libslp ; make $@
-	cd doc ; make $@
 
 
 
