@@ -130,9 +130,10 @@ int SLPDOutgoingDeinit(int graceful);
 /* Returns  Zero on success non-zero when pending writes remain            */
 /*=========================================================================*/
 
+#ifdef DEBUG
 /*=========================================================================*/
 void SLPDOutgoingSocketDump();
 /*=========================================================================*/
-
+#endif
 
 #endif
