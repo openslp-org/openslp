@@ -58,19 +58,18 @@
    
 
 /*=========================================================================*/
-int SLPDProcessMessage(struct sockaddr_in* peeraddr,
+int SLPDProcessMessage(struct sockaddr_in* peerinfo,
                        SLPBuffer recvbuf,
-                       SLPBuffer* sendbuf);
+                       SLPBuffer* sendbuf) ;
 /* Processes the recvbuf and places the results in sendbuf                 */
 /*                                                                         */
-/* recvfd   - the socket the message was received on                       */
+/* peerinfo   - the socket the message was received on                     */
 /*                                                                         */
 /* recvbuf  - message to process                                           */
 /*                                                                         */
 /* sendbuf  - results of the processed message                             */
 /*                                                                         */
-/* Returns  - zero on success SLP_ERROR_PARSE_ERROR or                     */
-/*            SLP_ERROR_INTERNAL_ERROR on ENOMEM.                          */
+/* Returns  - SLP_ERROR errorcode                                          */
 /*=========================================================================*/
 
 
@@ -79,6 +78,15 @@ int SLPDProcessMessage(struct sockaddr_in* peeraddr,
 int SLPDv1ProcessMessage(struct sockaddr_in* peeraddr,
                          SLPBuffer recvbuf,
                          SLPBuffer* sendbuf);
+/* Processes the recvbuf and places the results in sendbuf                 */
+/*                                                                         */
+/* peerinfo   - the socket the message was received on                     */
+/*                                                                         */
+/* recvbuf  - message to process                                           */
+/*                                                                         */
+/* sendbuf  - results of the processed message                             */
+/*                                                                         */
+/* Returns  - SLP_ERROR errorcode                                          */
 /*=========================================================================*/
 #endif                                                                       
 

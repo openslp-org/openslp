@@ -89,10 +89,16 @@ void IncomingDatagramRead(SLPList* socklist, SLPDSocket* sock)
     {
         sock->recvbuf->end = sock->recvbuf->start + bytesread;
 
-        if(SLPDProcessMessage(&(sock->peeraddr),
+        switch(SLPDProcessMessage(&sock->peeraddr,
                               sock->recvbuf,
-                              &(sock->sendbuf)) == 0)
+                              &(sock->sendbuf)))
         {
+        case SLP_ERROR_PARSE_ERROR:
+        case SLP_ERROR_VER_NOT_SUPPORTED:
+        case SLP_ERROR_MESSAGE_NOT_SUPPORTED:
+            sock->state = SOCKET_CLOSE;
+            break;                    
+        default:
             /* check to see if we should send anything */
             bytestowrite = sock->sendbuf->end - sock->sendbuf->start;
             if(bytestowrite > 0)
@@ -233,6 +239,7 @@ void IncomingStreamRead(SLPList* socklist, SLPDSocket* sock)
                 {
                 case SLP_ERROR_PARSE_ERROR:
                 case SLP_ERROR_VER_NOT_SUPPORTED:
+                case SLP_ERROR_MESSAGE_NOT_SUPPORTED:
                     sock->state = SOCKET_CLOSE;
                     break;                    
                 default:

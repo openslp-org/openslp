@@ -157,6 +157,10 @@ int ProcessSASrvRqst(SLPMessage message,
         /* authblock count */
         *(result->curpos) = 0;
     }
+    else
+    {
+        errorcode = SLP_ERROR_SCOPE_NOT_SUPPORTED;
+    }
 
     FINISHED:
 
@@ -373,7 +377,15 @@ int ProcessSrvRqst(SLPMessage message,
                          SLP_DA_SERVICE_TYPE) == 0)
     {
         errorcode = ProcessDASrvRqst(message, sendbuf, errorcode);
-        return errorcode;
+        if (errorcode == 0)
+        {
+            // Since we have an errorcode of 0, we were successful,
+            // and have already formed a response packet; return now.
+            return errorcode;
+        }
+
+        goto RESPOND;
+
     }
     if (SLPCompareString(message->body.srvrqst.srvtypelen,
                          message->body.srvrqst.srvtype,
@@ -381,7 +393,14 @@ int ProcessSrvRqst(SLPMessage message,
                          SLP_SA_SERVICE_TYPE) == 0)
     {
         errorcode = ProcessSASrvRqst(message, sendbuf, errorcode);
-        return errorcode;
+        if (errorcode == 0)
+        {
+            // Since we have an errorcode of 0, we were successful,
+            // and have already formed a response packet; return now.
+            return errorcode;
+        }
+
+        goto RESPOND;
     }
 
     /*------------------------------------*/
@@ -536,6 +555,12 @@ int ProcessSrvRqst(SLPMessage message,
                 result->curpos = result->curpos + urlentry->opaquelen;
             }
         }
+    }
+    else
+    {
+        /* set urlentry count to 0*/
+        ToUINT16(result->curpos, 0);
+        result->curpos = result->curpos + 2;
     }
 
     FINISHED:   
@@ -1265,14 +1290,14 @@ int SLPDProcessMessage(struct sockaddr_in* peerinfo,
                        SLPBuffer* sendbuf)
 /* Processes the recvbuf and places the results in sendbuf                 */
 /*                                                                         */
-/* peerinfo   - the socket the message was received on                       */
+/* peerinfo   - the socket the message was received on                     */
 /*                                                                         */
 /* recvbuf  - message to process                                           */
 /*                                                                         */
 /* sendbuf  - results of the processed message                             */
 /*                                                                         */
-/* Returns  - zero on success SLP_ERROR_PARSE_ERROR or                     */
-/*            SLP_ERROR_INTERNAL_ERROR on ENOMEM.                          */
+/* Returns  - zero on success if sendbuf contains a response to send.      */
+/*           non-zero if sendbuf does not contain a response to send       */
 /*=========================================================================*/
 {
     SLPHeader   header;
@@ -1280,6 +1305,12 @@ int SLPDProcessMessage(struct sockaddr_in* peerinfo,
     int         errorcode   = 0;
 
     SLPDLogMessage(SLPDLOG_TRACEMSG_IN,peerinfo,recvbuf);
+
+    /* set the sendbuf empty */
+    if(*sendbuf)
+    {
+        (*sendbuf)->end = (*sendbuf)->start;
+    }
 
     /* zero out the header before parsing it */
     memset(&header,0,sizeof(header));
@@ -1294,7 +1325,6 @@ int SLPDProcessMessage(struct sockaddr_in* peerinfo,
     recvbuf->curpos = recvbuf->start;
 
 #if defined(ENABLE_SLPv1)   
-
     /* if version == 1 then parse message as a version 1 message */
     if (errorcode == SLP_ERROR_VER_NOT_SUPPORTED &&
         header.version == 1)
@@ -1305,7 +1335,7 @@ int SLPDProcessMessage(struct sockaddr_in* peerinfo,
     }
     else
 #endif
-        if (errorcode == 0)
+    if (errorcode == 0)
     {
         /* TRICKY: Duplicate SRVREG recvbufs *before* parsing them   */
         /*         it because we are going to keep them in the       */
@@ -1418,26 +1448,28 @@ int SLPDProcessMessage(struct sockaddr_in* peerinfo,
 
     FINISHED:
 
-    /* Log dropped messages */
+#ifdef DEBUG
     if (errorcode)
+    {
+        SLPDLog("\n*** DEBUG *** errorcode %i during processing of message from %s\n",
+                errorcode,
+                inet_ntoa(peerinfo->sin_addr));
+    }
+#endif
+
+    
+    /* Log messaged silently ignored because of an error */
+    if(errorcode)
     {
         if (*sendbuf == 0 ||
             (*sendbuf)->end == (*sendbuf)->start )
         {
             SLPDLogMessage(SLPDLOG_TRACEDROP,peerinfo,recvbuf);
         }
-    }
-
-#ifdef DEBUG
-    if (errorcode)
-    {
-        SLPDLog("\n*** DEBUG *** errorcode %i in talking to %s\n",
-                errorcode,
-                inet_ntoa(peerinfo->sin_addr));
-    }
-#endif
-
+    } 
+    
+    /* Log trace message */
     SLPDLogMessage(SLPDLOG_TRACEMSG_OUT, peerinfo, *sendbuf);
 
-    return errorcode;
+    return 0;
 }                
