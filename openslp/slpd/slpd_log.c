@@ -261,7 +261,7 @@ void SLPDLogTraceReg(const char* prefix, SLPDDatabaseEntry* entry)
         {/* Print attributes. */
     		char *str;
     		SLPError err;
-    		err = SLPAttrSerialize(entry->attr, NULL, &str, SLP_FALSE);
+    		//err = SLPAttrSerialize(entry->attr, NULL, &str, SLP_FALSE);
     		if (err != SLP_OK) 
     		{
         		SLPLog("\nerror %i when building attributes", err);
