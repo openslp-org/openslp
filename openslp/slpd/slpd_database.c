@@ -195,7 +195,8 @@ int SLPDDatabaseReg(SLPMessage msg, SLPBuffer buf)
                                           reg->scopelist) > 0)
                 {
 
-#ifdef ENABLE_SLPv2_SECURITY
+                    /* Check to ensure the source addr is the same */
+                    /* as the original */
                     if(G_SlpdProperty.checkSourceAddr &&
                        memcmp(&(entry->msg->peer.sin_addr),
                               &(msg->peer.sin_addr),
@@ -205,6 +206,7 @@ int SLPDDatabaseReg(SLPMessage msg, SLPBuffer buf)
                         return SLP_ERROR_AUTHENTICATION_FAILED;
                     }
 
+#ifdef ENABLE_SLPv2_SECURITY
                     if(entryreg->urlentry.authcount &&
                        entryreg->urlentry.authcount != reg->urlentry.authcount)
                     {
@@ -298,8 +300,9 @@ int SLPDDatabaseDeReg(SLPMessage msg)
                                           dereg->scopelistlen,
                                           dereg->scopelist) > 0)
                 {
-
-#ifdef ENABLE_SLPv2_SECURITY
+                        
+                    /* Check to ensure the source addr is the same as */
+                    /* the original */
                     if(G_SlpdProperty.checkSourceAddr &&
                        memcmp(&(entry->msg->peer.sin_addr),
                               &(msg->peer.sin_addr),
@@ -309,6 +312,7 @@ int SLPDDatabaseDeReg(SLPMessage msg)
                         return SLP_ERROR_AUTHENTICATION_FAILED;
                     }
 
+#ifdef ENABLE_SLPv2_SECURITY
                     if(entryreg->urlentry.authcount &&
                        entryreg->urlentry.authcount != dereg->urlentry.authcount)
                     {
@@ -322,8 +326,13 @@ int SLPDDatabaseDeReg(SLPMessage msg)
                 }
             }
         }
-
+        
         SLPDatabaseClose(dh);
+        
+        if(entry==NULL)
+        {
+            return SLP_ERROR_INVALID_REGISTRATION;
+        }
     }
 
     return 0;

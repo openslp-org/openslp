@@ -200,7 +200,7 @@ int SetDefaultValues()
     result |= SLPPropertySet("net.slp.traceDATraffic","false");
     result |= SLPPropertySet("net.slp.isDA","false");
     result |= SLPPropertySet("net.slp.securityEnabled","false");
-    result |= SLPPropertySet("net.slp.checkSourceAddr","false");
+    result |= SLPPropertySet("net.slp.checkSourceAddr","true");
 #ifdef WIN32
     result |= SLPPropertySet("net.slp.OpenSLPVersion", SLP_VERSION);
 #else /* UNIX */
