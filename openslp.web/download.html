@@ -2,7 +2,7 @@
 <html>
 <head>
    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-15">
-   <meta name="GENERATOR" content="Mozilla/4.75C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.2.14 i686) [Netscape]">
+   <meta name="GENERATOR" content="Mozilla/4.72C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.2.14 i686) [Netscape]">
    <title>OpenSLP - Download</title>
 </head>
 <body text="#000000" bgcolor="#FFFFFF" link="#0000EE" vlink="#551A8B" alink="#FF0000">
@@ -22,39 +22,28 @@
 
 <hr WIDTH="100%">
 <h3>
-README 0.7.4</h3>
-For several reasons, a public release of 0.7.3 will not be made available.
-Instead, all changes have been rolled into 0.7.4.&nbsp; Please be aware
-that in order to include the DA communication enhancements (detailed in
-the NEWS file) it was necessary to modify a good portion of the networking
-code.&nbsp; This new code is not as mature as the 0.7.2 code.&nbsp; Also,
-a fair amount of work was done to simplify internal data structures to
-make way for future enhancements.&nbsp; It is expected that some users
-may just want to stick with 0.7.2 release unless the new DA features are
-important.&nbsp; Be aware also that there are a few DA communication issues
-that are not fully resolved (like re-registration of existing services
-with a newly discovered DA)
+README 0.7.5</h3>
+For those of you that are interested in using OpenSLP on Windows.&nbsp;
+Please read the README.W32 file that is included in the distribution for
+extra Win32 build and install instructions.
+<p>Be aware that the libslp minor version was updated because of the code
+that was added to support SLPFindSrvTypes().&nbsp; The additional code
+should probably not cause any dynamic linking problems as the libslp interface
+has not changed.
+<br>&nbsp;
 <h3>
-NEWS 0.7.4</h3>
+NEWS 0.7.5</h3>
 
 <ul>
 <li>
-Finally added SA &lt;--> DA communication resulting in an slpd that now
-acts as a much better SA and DA.</li>
+OpenSLP ported to Win32.</li>
 
 <li>
-slpd (as a DA) responds to active DA discovery requests.</li>
+Added supporting code for SLPFindSrvTypes().&nbsp; SLPFindSrvTypes() is
+now functional</li>
 
 <li>
-slpd (as an SA) performs active DA discovery, supports passive DA discovery,&nbsp;
-supports static DA configuration, registers and de-registers services with&nbsp;
-DAs.</li>
-
-<li>
-libslp now has the ability to register services with to the local slpd
-(SA), or a discovered DA.&nbsp; This eliminates the need to have slpd running
-on all machines in certain cases. libslp can now request services from
-a DA or via multicast or broadcast.</li>
+Numerous bug fixes</li>
 </ul>
 
 <h3>
@@ -62,7 +51,7 @@ Source Code</h3>
 
 <table NOSAVE >
 <tr NOSAVE>
-<td NOSAVE><a href="ftp://www.openslp.org/pub/openslp/openslp-0.7.4/openslp-0.7.4.tar.gz">openslp-0.7.4.tar.gz</a></td>
+<td NOSAVE><a href="http://download.sourceforge.net/openslp/openslp-0.7.5.tar.gz">openslp-0.7.5.tar.gz</a></td>
 
 <td>
 <blockquote>OpenSLP source code tarball</blockquote>
@@ -70,7 +59,7 @@ Source Code</h3>
 </tr>
 
 <tr NOSAVE>
-<td NOSAVE><a href="ftp://www.openslp.org/pub/openslp/openslp-0.7.4/openslp-0.7.4-1.src.rpm">openslp-0.7.4-1.src.rpm</a></td>
+<td NOSAVE><a href="http://download.sourceforge.net/openslp/openslp-0.7.5-1.src.rpm">openslp-0.7.5-1.src.rpm</a></td>
 
 <td>
 <blockquote>OpenSLP source RPM</blockquote>
@@ -83,7 +72,7 @@ Binary Packages</h3>
 
 <table NOSAVE >
 <tr NOSAVE>
-<td NOSAVE><a href="ftp://www.openslp.org/pub/openslp/openslp-0.7.4/openslp-0.7.4-1.i386.rpm">openslp-0.7.4-1.i386.rpm</a></td>
+<td NOSAVE><a href="http://download.sourceforge.net/openslp/openslp-0.7.5-1.i386.rpm">openslp-0.7.5-1.i386.rpm</a></td>
 
 <td>
 <blockquote>OpenSLP binary RPM for Linux (Caldera OpenLinux, RedHat, SUSE,
