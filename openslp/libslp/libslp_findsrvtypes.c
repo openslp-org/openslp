@@ -111,10 +111,10 @@ SLPBoolean ColateSrvTypeCallback(SLPHandle hSLP,
     }
 
     /* Add the service types to the colation */
-    srvtypeslen = strlen(pcSrvTypes) + 1;
+    srvtypeslen = strlen(pcSrvTypes) + 1; /* +1 - terminator */
     if(handle->collatedsrvtypes)
     {
-        srvtypeslen += strlen(handle->collatedsrvtypes);
+        srvtypeslen += strlen(handle->collatedsrvtypes) + 1; /* +1 - comma */
     }
     
     srvtypes = xmalloc(srvtypeslen);
