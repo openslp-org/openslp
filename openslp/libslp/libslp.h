@@ -104,6 +104,10 @@
 #define MAX_PATH 256
 #endif
 
+#ifdef WIN32
+#define strncasecmp(String1, String2, Num) strnicmp(String1, String2, Num)
+#define strcasecmp(String1, String2, Num) stricmp(String1, String2, Num)
+#endif
 
 /*=========================================================================*/
 typedef enum _SLPCallType

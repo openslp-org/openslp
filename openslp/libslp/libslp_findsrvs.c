@@ -118,7 +118,7 @@ SLPBoolean ProcessSrvRplyCallback(SLPError errorcode,
     
                     result = handle->params.findsrvs.callback((SLPHandle)handle,
                                                               urlentry[i].url,
-                                                              urlentry[i].lifetime,
+                                                              (unsigned short)urlentry[i].lifetime,
                                                               SLP_OK,
                                                               handle->params.findsrvs.cookie);
                     if(result == SLP_FALSE)
