@@ -1,11 +1,7 @@
 #Makefile for openslp test suite
 
-#Set this to the root of the sopenslp source tree
-#################################################
-SLPROOT=../../openslp
-#################################################
+include SETUP.mk
 
-TESTROOT=.
 SUBDIRS=FINDATTRS FINDSRVS FINDSRVTYPES REG DEREG
 default: $(SUBDIRS)
 
@@ -71,7 +67,7 @@ test:
 	@echo 
 	@echo "****** Testing ParseSrvUrl ******************"
 	-@PSU=`./slp_parsesrvurl/slp_parsesrvurl < ./slp_parsesrvurl/test.in | diff ./slp_parsesrvurl/expected.out - | grep -c ".*"`; \
-	if [ $$PSU > 0 ]; then \
+	if [ $$PSU != 0 ]; then \
 		echo "Result:   **FAILED**"; \
 		echo "Differences: (see ./slp_parsesrvurl/README)"; \
 		./slp_parsesrvurl/slp_parsesrvurl < ./slp_parsesrvurl/test.in | diff ./slp_parsesrvurl/expected.out - ; \

@@ -12,62 +12,52 @@ and de-register the services.
 Installation and Setup
 ----------------------
 
-To build the test suite, you must edit the SETUP.mk file. Change the SLPROOT 
-variable to indicate the absolute path to the OpenSLP source tree. 
 
-Type 'make' from the distribution root to build all of the binaries.
+1 - Build the test suite.
+    To build the test suite, you must edit the SETUP.mk file. Change the SLPROOT 
+    variable to indicate the absolute path to the OpenSLP source tree. 
 
-To set up a test environment, copy the slp.reg and slp.conf files to /etc. 
-Make sure to back up the existing files.  The tests can be run as a DA, SA, or
-UA. 
+    Type 'make' from the distribution root to build all of the binaries.
 
-DA Mode :
+2 - Set up the test environment.
+    Back up the existing /etc/slp.conf and /etc/slp.reg files then copy the
+    slp.conf and slp.reg files from slptest to the /etc directory
+    
+3 - Set up the run mode.
+
+    DA Mode :
 	Set net.slp.isDA=true  in /etc/slp.conf
 	Start slpd.
 	Type 'make test' from the distribution root.
 
-SA Mode :
+    SA Mode :
 	Set net.slp.isDA=false in /etc/slp.conf
 	Start slpd.
 	Type 'make test' from the distribution root.
 
-UA Mode :
+    UA Mode :
 	Start a slpd as a DA (see above) on another machine in the local network
 	using the supplied slp.reg and slp.conf files.
 	Type 'make test' from the distribution root.
 
 
-Details for Static Tests
-------------------------
+Running the tests
+-----------------
+1 - Restart slpd.
+    Once the test environment is set up you will need to stop any current
+    execution of slpd and restart slpd so that it will read the new
+    configuration and static registration files you copied to the /etc directory
+    as part of the slptest setup described above
 
-The static test suite is made up of the following binaries:
-
-slp_findsrvtypes
-slp_findsrvs
-slp_findattrs
-
-These tests may be run as a DA or SA.  They may be run as a UA as long as the 
-static registration file has been loaded by an SA, or DA elsewhere on the 
-network.
-
-All tests should pass. If a test fails there is a bug somewhere that needs to 
-be fixed.
+2 - Run the test by executing 
+    $ make test
+    
+    
+Analysing the test results
+--------------------------
+All of the tests should pass.  If they do not pass, there is either a bug
+in the OpenSLP code or there is a problem with the slptest setup.  
 
 
-Details for Dynamic Tests
--------------------------
 
-The dynamic test suite is make up of the following binaries:
-
-slp_reg
-slp_dereg 
-
-Be sure that all static tests have passed before running the dynamic tests 
-since it will be easier to find bugs. slp_reg registers some hard-coded 
-services, then tries to locate those services in various ways.  slp_dereg 
-attempts to de-register the services.  These tests may be run as a DA, SA, or
-UA.
-
-All tests should pass. If a test fails there is a bug somewhere that needs to 
-be fixed.
 

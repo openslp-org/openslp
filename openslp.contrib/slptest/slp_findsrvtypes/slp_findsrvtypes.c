@@ -152,8 +152,8 @@ int main(int argc, char* argv[])
         setupResultCookie(&resultCookie, NUM_NA_STRS, na_string, SLP_OK);
         result = doTest(hslp, 
                         "TESTNA", 
-                        "DEFAULT", 
-                        "find by NA (DEFAULT scope)", // <-- Test id string 
+                        "testscope", 
+                        "find by NA (testscope scope)", // <-- Test id string 
                         &resultCookie);
 
         //Now find a service with odd characters in the name

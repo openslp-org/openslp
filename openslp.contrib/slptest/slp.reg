@@ -25,28 +25,23 @@
 
 ##Register a OpenSLP testing service 
 service:service1://192.168.100.1,en,65535 
-scopes=DEFAULT
 description=First service
 
 ##Register a OpenSLP testing service 
 service:service2://192.168.100.2,en,65535 
-scopes=DEFAULT
 description=Second service
 
 ##Register a OpenSLP testing service 
 service:service3://192.168.100.3,en,65535 
-scopes=DEFAULT
 description=Third service
 
 service:testservice:service1://192.168.100.11,en,65535
-scopes=DEFAULT
 description=First
 colors=blue,green,orange
 onlyfirst=here
 
 ##Register a OpenSLP testing service
 service:testservice:service2://192.168.100.12,en,65535
-scopes=DEFAULT
 description=Second
 name=John Doe
 
