@@ -244,6 +244,41 @@ int SLPNetIsLocal(const struct sockaddr_storage *addr) {
 	return(0);
 }
 
+/* returns the ipv6 scope of the address */
+/* v6Addr must be pointer to a 16 byte ipv6 address in binary form */
+int setScopeFromAddress(const unsigned char *v6Addr) {
+
+    if (IN6_IS_ADDR_MULTICAST((const struct in6_addr *) v6Addr)) {
+        if (IN6_IS_ADDR_MC_GLOBAL((const struct in6_addr *)v6Addr)) {
+            return(SLP_SCOPE_GLOBAL);
+        }
+        if (IN6_IS_ADDR_MC_ORGLOCAL((const struct in6_addr *)v6Addr)) {
+            return(SLP_SCOPE_ORG_LOCAL);
+        }
+        if (IN6_IS_ADDR_MC_SITELOCAL((const struct in6_addr *)v6Addr)) {
+            return(SLP_SCOPE_SITE_LOCAL);
+        }
+        if (IN6_IS_ADDR_MC_NODELOCAL((const struct in6_addr *)v6Addr)) {
+            return(SLP_SCOPE_NODE_LOCAL);
+        }
+        if (IN6_IS_ADDR_MC_LINKLOCAL((const struct in6_addr *)v6Addr)) {
+            return(SLP_SCOPE_LINK_LOCAL);
+        }
+    }
+    if (IN6_IS_ADDR_SITELOCAL((const struct in6_addr *)v6Addr)) {
+        return(SLP_SCOPE_SITE_LOCAL);
+    }
+    if (IN6_IS_ADDR_LOOPBACK((const struct in6_addr *)v6Addr)) {
+        return(SLP_SCOPE_NODE_LOCAL);
+    }
+    if (IN6_IS_ADDR_LINKLOCAL((const struct in6_addr *)v6Addr)) {
+        return(SLP_SCOPE_LINK_LOCAL);
+    }
+    return(0);
+}
+
+
+
 int SLPNetSetAddr(struct sockaddr_storage *addr, const int family, const short port, const unsigned char *address, const int addrLen) {
     int sts = 0;
     addr->ss_family = family;
@@ -258,7 +293,7 @@ int SLPNetSetAddr(struct sockaddr_storage *addr, const int family, const short p
         v6->sin6_family = family;
         v6->sin6_flowinfo = 0;
         v6->sin6_port = htons(port);
-        v6->sin6_scope_id = 0;
+        v6->sin6_scope_id = setScopeFromAddress(address);
         memcpy(&v6->sin6_addr, address, min(addrLen, sizeof(v6->sin6_addr)));
     }
     else {
@@ -279,7 +314,12 @@ int SLPNetSetSockAddrStorageFromAddrInfo(struct sockaddr_storage *dst, struct ad
         memcpy(dst, src->ai_addr, sizeof(struct sockaddr_in));
     }
     else if (src->ai_family == AF_INET6) {
-        memcpy(dst, src->ai_addr, sizeof(struct sockaddr_in6));
+        struct sockaddr_in6 *v6 = (struct sockaddr_in6 *) dst;
+        v6->sin6_family = AF_INET6;
+        v6->sin6_flowinfo = 0;
+        v6->sin6_port = 0;
+        v6->sin6_scope_id = 0;
+        memcpy(&v6->sin6_addr, src->ai_addr, sizeof(struct sockaddr_in6));
     }
     else {
         return(-1);

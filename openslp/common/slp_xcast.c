@@ -193,7 +193,6 @@ int SLPMulticastSend(const SLPIfaceInfo* ifaceinfo,
 {
     int             flags = 0;
     int             xferbytes;
-    struct sockaddr_storage  saddr;
     DWORD           ad = SLP_MCAST_ADDRESS;
 
 
@@ -205,32 +204,48 @@ int SLPMulticastSend(const SLPIfaceInfo* ifaceinfo,
          socks->sock_count < ifaceinfo->iface_count;
          socks->sock_count++)
     {
-        socks->sock[socks->sock_count] = socket(ifaceinfo[socks->sock_count].iface_addr->ss_family, SOCK_DGRAM, 0);
+        socks->sock[socks->sock_count] = socket(ifaceinfo->iface_addr[socks->sock_count].ss_family, SOCK_DGRAM, 0);
         if (socks->sock[socks->sock_count] < 0)
         {
             /* error creating socket */
             return -1;
         }
-        
-        if( setsockopt(socks->sock[socks->sock_count], 
-                       IPPROTO_IP, 
-                       IP_MULTICAST_IF, 
-                       (char*)&saddr, 
-                       sizeof(struct in_addr)))
-        {
-            /* error setting socket option */
-            return -1;
-        }
-        if (ifaceinfo[socks->sock_count].iface_addr->ss_family == AF_INET) {
+        SLPNetCopyAddr(&socks->peeraddr[socks->sock_count], &ifaceinfo->iface_addr[socks->sock_count]);
+        if(ifaceinfo->iface_addr[socks->sock_count].ss_family == AF_INET) {
             struct sockaddr_in *s4 = (struct sockaddr_in *) &socks->peeraddr[socks->sock_count];
+            if( setsockopt(socks->sock[socks->sock_count], 
+                           IPPROTO_IP, 
+                           IP_MULTICAST_IF, 
+                           (char*)&socks->peeraddr[socks->sock_count], 
+                           sizeof(struct sockaddr_storage)))
+            {
+                /* error setting socket option */
+                return -1;
+            }
             s4->sin_family = AF_INET;
             s4->sin_port = htons(SLP_RESERVED_PORT);
             s4->sin_addr.s_addr = htonl(SLP_MCAST_ADDRESS);
         }
-        else {
-            /* send via IPV6 multicast */
+        else if (ifaceinfo->iface_addr[socks->sock_count].ss_family == AF_INET6) {
             struct sockaddr_in6 *s6 = (struct sockaddr_in6 *) &socks->peeraddr[socks->sock_count];
-            /* first get the scope of the address */
+            /* send via IPV6 multicast */
+            if( setsockopt(socks->sock[socks->sock_count], 
+                           IPPROTO_IPV6, 
+                           IPV6_MULTICAST_IF, 
+                           (char*)&socks->peeraddr[socks->sock_count], 
+                           sizeof(struct sockaddr_storage)))
+            {
+                /* error setting socket option */
+                return -1;
+            }
+            s6->sin6_family = AF_INET6;
+            s6->sin6_port = htons(SLP_RESERVED_PORT);
+            /* assume address is set ?? */
+
+        }
+        else {
+            /* unknown family */
+            return -1;
         }
         xferbytes = sendto(socks->sock[socks->sock_count],
                            msg->start,
@@ -422,14 +437,16 @@ int SLPXcastRecvMessage(const SLPXcastSockets* sockets,
 main()
 {
     SLPIfaceInfo    ifaceinfo;
+    SLPIfaceInfo    ifaceinfo6;
     SLPXcastSockets      socks;
     SLPBuffer           buffer;
-
+    BYTE v6Addr[] = {0xFF, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x16};  // multicat srvloc address
     #ifdef _WIN32
     WSADATA wsadata;
     WSAStartup(MAKEWORD(2,2), &wsadata);
     #endif
 
+    //const struct in6_addr in6addr;
     buffer = SLPBufferAlloc(SLP_MAX_DATAGRAM_SIZE);
     if(buffer)
     {
@@ -437,13 +454,25 @@ main()
         strcpy(buffer->start,"testdata");
     
         SLPIfaceGetInfo(NULL,&ifaceinfo, AF_INET);
+        SLPIfaceGetInfo(NULL,&ifaceinfo6, AF_INET6);
     
         if (SLPBroadcastSend(&ifaceinfo, buffer,&socks) !=0)
             printf("\n SLPBroadcastSend failed \n");
         SLPXcastSocketsClose(&socks);
-    
+
+        /* for v6 */
+        if (SLPBroadcastSend(&ifaceinfo6, buffer,&socks) !=0)
+            printf("\n SLPBroadcastSend failed for ipv6\n");
+        SLPXcastSocketsClose(&socks);
+
         if (SLPMulticastSend(&ifaceinfo, buffer, &socks) !=0)
             printf("\n SLPMulticast failed \n");
+        SLPXcastSocketsClose(&socks);
+    
+        /* set up address and scope for v6 multicast */
+        SLPNetSetAddr(&ifaceinfo6.iface_addr[0], AF_INET6, 0, (BYTE *)v6Addr, sizeof(v6Addr));
+        if (SLPMulticastSend(&ifaceinfo6, buffer, &socks) !=0)
+            printf("\n SLPMulticast failed for ipv\n");
         SLPXcastSocketsClose(&socks);
 
         printf("Success\n");

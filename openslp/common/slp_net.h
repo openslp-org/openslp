@@ -92,6 +92,12 @@ extern const struct in6_addr in6addr_service_node_mask;
 extern const struct in6_addr in6addr_service_link_mask;
 extern const struct in6_addr in6addr_service_site_mask;
 
+/* Scope definitions */
+#define SLP_SCOPE_NODE_LOCAL                0x01
+#define SLP_SCOPE_LINK_LOCAL                0x02
+#define SLP_SCOPE_SITE_LOCAL                0x03
+#define SLP_SCOPE_ORG_LOCAL                 0x04
+#define SLP_SCOPE_GLOBAL                    0x05
 
 /*-------------------------------------------------------------------------*/
 int SLPNetGetThisHostname(char* hostfdn, unsigned int hostfdnLen, int numeric_only, int family);
