@@ -171,9 +171,10 @@ int KnownDADiscoveryByProperties(struct timeval* timeout)
 /*-------------------------------------------------------------------------*/
 {
     int                 result      = 0;
+    char*               temp;
+    char*               tempend;
     char*               slider1;
     char*               slider2;
-    char*               temp;
     int                 sock;
     struct hostent*     he;
     struct sockaddr_in  peeraddr;
@@ -183,29 +184,32 @@ int KnownDADiscoveryByProperties(struct timeval* timeout)
     peeraddr.sin_port = htons(SLP_RESERVED_PORT);
     
     slider1 = slider2 = temp = strdup(SLPGetProperty("net.slp.DAAddresses"));
-    while(slider1 != slider2)
+    if(temp)
     {
-        while(*slider2 && *slider2 != ',') slider2++;
-        *slider2 = 0;
-        
-        he = gethostbyname(slider1);
-        if(he)
+        tempend = temp + strlen(temp);
+        while(slider1 != tempend)
         {
-            peeraddr.sin_addr.s_addr = *((unsigned long*)(he->h_addr_list[0]));
-            sock = SLPNetworkConnectStream(&peeraddr,timeout);
-            if(sock >= 0)
+            while(*slider2 && *slider2 != ',') slider2++;
+            *slider2 = 0;
+            
+            he = gethostbyname(slider1);
+            if(he)
             {
-                result += KnownDADiscoveryRqstRply(sock, &peeraddr);
-                close(sock);
+                peeraddr.sin_addr.s_addr = *((unsigned long*)(he->h_addr_list[0]));
+                sock = SLPNetworkConnectStream(&peeraddr,timeout);
+                if(sock >= 0)
+                {
+                    result += KnownDADiscoveryRqstRply(sock, &peeraddr);
+                    close(sock);
+                }
             }
+            
+            slider1 = slider2;
+            slider2++;
         }
 
-        if(*slider2 == 0) break;
-        slider2++;
-        slider1 = slider2;
+        free(temp);
     }
-
-    free(temp);
 
     return result;
 }
