@@ -84,10 +84,10 @@ SLPDAEntry* KnownDAListFindByScope(SLPList* dalist,
     entry = (SLPDAEntry*)dalist->head;
     while(entry)
     {
-        if(SLPSubsetStringList(scopelistlen,
-                               scopelist,
-                               entry->scopelistlen,
-                               entry->scopelist))
+        if(SLPSubsetStringList(entry->scopelistlen,
+                               entry->scopelist,
+                               scopelistlen,
+                               scopelist))
         {
             break;
         }

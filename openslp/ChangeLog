@@ -6,6 +6,10 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 
+03/05/01 mpeterson@caldera.com
+Fixed problem where multicast was not being use when a DA can not be found
+that support all scopes of a given request.
+
 03/02/01 mpeterson@caldera.com
 Added --enable-async-api configure option
 
