@@ -33,7 +33,12 @@
 
 #include <slp.h>
 #include <string.h>
+#include <stdio.h>
+#include <malloc.h>
 
+#ifdef WIN32
+#define strcasecmp(str1,str2) stricmp(str1,str2)
+#endif
 
 /*=========================================================================*/
 typedef enum _SLPToolCommand
