@@ -1,4 +1,4 @@
-%define	ver 0.9.1pre1
+%define	ver 0.9.1
 %define	rel 1
 %define	name openslp
 %define libver 0.0.3
@@ -30,12 +30,26 @@ files and documentation
 %setup -n %{name}-%{ver}
 
 %Build
-./configure --prefix=$RPM_BUILD_ROOT/usr --sysconfdir=$RPM_BUILD_ROOT/etc
+%{mkDESTDIR}
+./configure
 make
 
 %Install
 %{mkDESTDIR}
-make install 
+mkdir -p $DESTDIR/etc
+cp etc/slp.conf $DESTDIR/etc
+cp etc/slp.reg $DESTDIR/etc
+mkdir -p $DESTDIR/usr/lib
+libtool install libslp/libslp.la $DESTDIR/usr/lib
+mkdir -p  $DESTDIR/usr/sbin
+libtool install slpd/slpd $DESTDIR/usr/sbin 
+mkdir -p $DESTDIR/usr/bin
+libtool install slptool/slptool $DESTDIR/usr/bin
+mkdir -p $DESTDIR/usr/include
+cp libslp/slp.h $DESTDIR/usr/include
+mkdir -p $DESTDIR/usr/doc/openslp-%{ver}
+cp -a doc/* $DESTDIR/usr/doc/openslp-%{ver}
+
 mkdir -p $DESTDIR/etc/sysconfig/daemons 
 cat <<EOD  > $DESTDIR/etc/sysconfig/daemons/slpd
 IDENT=slp
