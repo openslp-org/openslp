@@ -423,7 +423,8 @@ int SLPDDatabaseFindAttr(SLPAttrRqst* attrrqst,
 }
 
 
-
+/*=========================================================================*/
+int SLPDDatabaseInit(const char* regfile)
 /* Optionaly initialize the database with registrations from a regfile.    */
 /*                                                                         */
 /* regfile  (IN)    the regfile to register.                               */
