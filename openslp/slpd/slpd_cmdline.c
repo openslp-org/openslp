@@ -58,6 +58,7 @@ int SLPDParseCommandLine(int argc,char* argv[])
     strcpy(G_SlpdCommandLine.logfile,"/var/log/slpd.log");
     strcpy(G_SlpdCommandLine.regfile,"/etc/slp.reg");
     strcpy(G_SlpdCommandLine.pidfile,"/var/run/slpd.pid");
+    G_SlpdCommandLine.detach = 1;
     for(i=1; i<argc; i++)
     {
         if(strcmp(argv[i],"-l") == 0)
@@ -84,6 +85,10 @@ int SLPDParseCommandLine(int argc,char* argv[])
             if(i >= argc) goto USAGE;
             strncpy(G_SlpdCommandLine.pidfile,argv[i],MAX_PATH);        
         }
+        else if(strcmp(argv[i],"-d") == 0)
+        {
+            G_SlpdCommandLine.detach = 0;
+        }
         else
         {
             goto USAGE;
@@ -93,7 +98,7 @@ int SLPDParseCommandLine(int argc,char* argv[])
     return 0;
 
     USAGE:
-    printf("USAGE: slpd [-c conf file] [-l log file] [-r reg file] \n");
+    printf("USAGE: slpd [-d] [-c conf file] [-l log file] [-r reg file] \n");
     
     return 1;
 }

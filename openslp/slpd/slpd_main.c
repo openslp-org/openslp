@@ -98,30 +98,31 @@ int Daemonize(const char* pidfile)
     struct  passwd* pwent;
     char    pidstr[13];
     
-#if(0)
-    /*-------------------------------------------*/
-    /* Release the controlling tty and std files */
-    /*-------------------------------------------*/
-    switch(fork())
+    if(G_SlpdCommandLine.detach)
     {
-    case -1:
-        return -1;
-    case 0:
-        /* child livs */
-        break;
-
-    default:
-        /* parent dies */
-        exit(0);
-    }
-
-    close(0); 
-    close(1); 
-    close(2); 
-    setsid(); /* will only fail if we are already the process group leader */
-#endif    
     
-
+        /*-------------------------------------------*/
+        /* Release the controlling tty and std files */
+        /*-------------------------------------------*/
+        switch(fork())
+        {
+        case -1:
+            return -1;
+        case 0:
+            /* child livs */
+            break;
+    
+        default:
+            /* parent dies */
+            exit(0);
+        }
+    
+        close(0); 
+        close(1); 
+        close(2); 
+        setsid(); /* will only fail if we are already the process group leader */
+    }
+     
     /*------------------------------------------*/
     /* make sure that we're not running already */
     /*------------------------------------------*/

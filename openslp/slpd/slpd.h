@@ -77,6 +77,7 @@ typedef struct _SLPDCommandLine
     char   regfile[MAX_PATH];
     char   logfile[MAX_PATH];
     char   pidfile[MAX_PATH];
+    int    detach;
 }SLPDCommandLine;
 
 
@@ -176,8 +177,8 @@ typedef struct _SLPDDatabaseEntry
 /*=========================================================================*/
 { 
     ListItem            listitem;
-    int                 pid;        /* the pid that registered the entry */
-    int                 uid;        /* the uid that registered the entry */
+    pid_t               pid;        /* the pid that registered the entry */
+    uid_t               uid;        /* the uid that registered the entry */
     char*               langtag;
     int                 langtaglen;
     int                 lifetime;
@@ -216,8 +217,8 @@ void SLPDDatabaseAge(int seconds);
 /*=========================================================================*/
 int SLPDDatabaseReg(SLPSrvReg* srvreg,
                     int fresh,
-                    int pid,
-                    int uid);
+                    pid_t pid,
+                    uid_t uid);
 /* Add a service registration to the database                              */
 /*                                                                         */
 /* srvreg   -   (IN) pointer to the SLPSrvReg to be added to the database  */

@@ -149,8 +149,8 @@ void SLPDDatabaseAge(int seconds)
 /*=========================================================================*/
 int SLPDDatabaseReg(SLPSrvReg* srvreg,
                     int fresh,
-                    int pid,
-                    int uid)
+                    pid_t pid,
+                    uid_t uid)
 /* Add a service registration to the database                              */
 /*                                                                         */
 /* srvreg   -   (IN) pointer to the SLPSrvReg to be added to the database  */
