@@ -22,6 +22,8 @@ previous version consist of the following:
     - Addition of SLPv1 backwards compatibility support
     - TCP stream reusage in libslp and slpd
     - Correction of many active DA discovery problems in slpd
+    - Predicate features from 0.7.6 are not build by default because of a 
+      few problems that will be corrected for 0.7.8
 
 
 2 - Roadmap
