@@ -25,5 +25,3 @@ slptool.exe: slptool\slptool.bpr
 slpd.exe: slpd\slpd.bpr
   $(ROOT)\bin\bpr2mak $**
   $(ROOT)\bin\make -$(MAKEFLAGS) -f$*.mak
-
-

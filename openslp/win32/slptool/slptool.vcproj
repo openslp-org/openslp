@@ -13,7 +13,7 @@
 		<Configuration
 			Name="Debug|Win32"
 			OutputDirectory=".\Debug"
-			IntermediateDirectory=".\Debug"
+			IntermediateDirectory=".\Debug\obj"
 			ConfigurationType="1"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -22,22 +22,23 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="../../libslp,../../common"
-				PreprocessorDefinitions="_DEBUG;_CONSOLE;WIN32;SLP_VERSION=\&quot;1.0.9a\&quot;"
+				PreprocessorDefinitions="_CONSOLE;_DEBUG;WIN32;SLP_VERSION=\&quot;1.2.1\&quot;"
+				ExceptionHandling="FALSE"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="5"
-				PrecompiledHeaderFile=".\Debug/slptool.pch"
-				AssemblerListingLocation=".\Debug/"
-				ObjectFile=".\Debug/"
+				RuntimeLibrary="3"
+				PrecompiledHeaderFile=""
+				AssemblerListingLocation=".\Debug/obj/"
+				ObjectFile=".\Debug/obj/"
 				ProgramDataBaseFileName="Debug/slptool.pdb"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
-				DebugInformationFormat="4"
+				DebugInformationFormat="3"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="odbc32.lib odbccp32.lib slp.lib"
+				AdditionalDependencies="slp.lib"
 				OutputFile=".\Debug/slptool.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
@@ -46,6 +47,8 @@
 				ProgramDatabaseFile=".\Debug/slptool.pdb"
 				GenerateMapFile="TRUE"
 				MapFileName=".\Debug/slptool.map"
+				MapExports="TRUE"
+				MapLines="TRUE"
 				SubSystem="1"
 				TargetMachine="1"/>
 			<Tool
@@ -76,7 +79,7 @@
 		<Configuration
 			Name="Release|Win32"
 			OutputDirectory=".\Release"
-			IntermediateDirectory=".\Release"
+			IntermediateDirectory=".\Release\obj"
 			ConfigurationType="1"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -86,13 +89,14 @@
 				Optimization="2"
 				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories="../../libslp,../../common"
-				PreprocessorDefinitions="NDEBUG;_CONSOLE;WIN32;SLP_VERSION=\&quot;1.0.9a\&quot;"
+				PreprocessorDefinitions="_CONSOLE;NDEBUG;WIN32;SLP_VERSION=\&quot;1.2.1\&quot;"
 				StringPooling="TRUE"
-				RuntimeLibrary="4"
+				ExceptionHandling="FALSE"
+				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="TRUE"
-				PrecompiledHeaderFile=".\Release/slptool.pch"
-				AssemblerListingLocation=".\Release/"
-				ObjectFile=".\Release/"
+				PrecompiledHeaderFile=""
+				AssemblerListingLocation=".\Release/obj/"
+				ObjectFile=".\Release/obj/"
 				ProgramDataBaseFileName="Release/slptool.pdb"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
@@ -102,7 +106,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="odbc32.lib odbccp32.lib slp.lib"
+				AdditionalDependencies="slp.lib"
 				OutputFile=".\Release/slptool.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
@@ -111,6 +115,8 @@
 				ProgramDatabaseFile=".\Release/slptool.pdb"
 				GenerateMapFile="TRUE"
 				MapFileName=".\Release/slptool.map"
+				MapExports="TRUE"
+				MapLines="TRUE"
 				SubSystem="1"
 				TargetMachine="1"/>
 			<Tool

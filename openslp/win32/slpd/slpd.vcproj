@@ -13,7 +13,7 @@
 		<Configuration
 			Name="Debug|Win32"
 			OutputDirectory=".\Debug"
-			IntermediateDirectory=".\Debug"
+			IntermediateDirectory=".\Debug\obj"
 			ConfigurationType="1"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -22,22 +22,23 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="../../common"
-				PreprocessorDefinitions="ENABLE_SLPv1;_WINDOWS;i386;ENABLE_PREDICATES;DEBUG;_DEBUG;WIN32;SLP_VERSION=\&quot;1.1.1\&quot;"
+				PreprocessorDefinitions="_CONSOLE;ENABLE_SLPv1;_WINDOWS;i386;USE_PREDICATES;_DEBUG;WIN32;SLP_VERSION=\&quot;1.2.1\&quot;"
+				ExceptionHandling="FALSE"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="5"
-				PrecompiledHeaderFile=".\Debug/slpd.pch"
-				AssemblerListingLocation=".\Debug/"
-				ObjectFile=".\Debug/"
+				RuntimeLibrary="3"
+				PrecompiledHeaderFile=""
+				AssemblerListingLocation=".\Debug/obj/"
+				ObjectFile=".\Debug/obj/"
 				ProgramDataBaseFileName="Debug/slpd.pdb"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
-				DebugInformationFormat="4"
+				DebugInformationFormat="3"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="odbc32.lib odbccp32.lib ws2_32.lib iphlpapi.lib"
+				AdditionalDependencies="ws2_32.lib"
 				OutputFile=".\Debug/slpd.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
@@ -45,6 +46,8 @@
 				ProgramDatabaseFile=".\Debug/slpd.pdb"
 				GenerateMapFile="TRUE"
 				MapFileName=".\Debug/slpd.map"
+				MapExports="TRUE"
+				MapLines="TRUE"
 				SubSystem="1"
 				TargetMachine="1"/>
 			<Tool
@@ -79,7 +82,7 @@
 		<Configuration
 			Name="Release|Win32"
 			OutputDirectory=".\Release"
-			IntermediateDirectory=".\Release"
+			IntermediateDirectory=".\Release\obj"
 			ConfigurationType="1"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -89,13 +92,14 @@
 				Optimization="2"
 				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories="../../common"
-				PreprocessorDefinitions="ENABLE;ENABLE_SLPv1;_WINDOWS;i386;USE_PREDICATES;NDEBUG;WIN32;SLP_VERSION=\&quot;1.1.1\&quot;"
+				PreprocessorDefinitions="_CONSOLE;ENABLE_SLPv1;_WINDOWS;i386;USE_PREDICATES;NDEBUG;WIN32;SLP_VERSION=\&quot;1.2.1\&quot;"
 				StringPooling="TRUE"
-				RuntimeLibrary="4"
+				ExceptionHandling="FALSE"
+				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="TRUE"
-				PrecompiledHeaderFile=".\Release/slpd.pch"
-				AssemblerListingLocation=".\Release/"
-				ObjectFile=".\Release/"
+				PrecompiledHeaderFile=""
+				AssemblerListingLocation=".\Release/obj/"
+				ObjectFile=".\Release/obj/"
 				ProgramDataBaseFileName="Release/slpd.pdb"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
@@ -105,7 +109,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="odbc32.lib odbccp32.lib wsock32.lib"
+				AdditionalDependencies="ws2_32.lib"
 				OutputFile=".\Release/slpd.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
@@ -113,6 +117,8 @@
 				ProgramDatabaseFile=".\Release/slpd.pdb"
 				GenerateMapFile="TRUE"
 				MapFileName=".\Release/slpd.map"
+				MapExports="TRUE"
+				MapLines="TRUE"
 				SubSystem="1"
 				TargetMachine="1"/>
 			<Tool
@@ -132,72 +138,6 @@
 			<Tool
 				Name="VCResourceCompilerTool"
 				PreprocessorDefinitions="NDEBUG"
-				Culture="1033"/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"/>
-			<Tool
-				Name="VCXMLDataGeneratorTool"/>
-			<Tool
-				Name="VCWebDeploymentTool"/>
-			<Tool
-				Name="VCManagedWrapperGeneratorTool"/>
-			<Tool
-				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
-		</Configuration>
-		<Configuration
-			Name="UnitTest|Win32"
-			OutputDirectory="$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="1"
-			UseOfMFC="0"
-			ATLMinimizesCRunTimeLibraryUsage="FALSE"
-			CharacterSet="2">
-			<Tool
-				Name="VCCLCompilerTool"
-				Optimization="0"
-				AdditionalIncludeDirectories="../../common"
-				PreprocessorDefinitions="ENABLE_SLPv1;_WINDOWS;i386;ENABLE_PREDICATES;DEBUG;_DEBUG;WIN32;SLP_VERSION=\&quot;1.1.1\&quot;"
-				BasicRuntimeChecks="3"
-				RuntimeLibrary="5"
-				PrecompiledHeaderFile=".\Debug/slpd.pch"
-				AssemblerListingLocation=".\Debug/"
-				ObjectFile=".\Debug/"
-				ProgramDataBaseFileName="Debug/slpd.pdb"
-				WarningLevel="3"
-				SuppressStartupBanner="TRUE"
-				DebugInformationFormat="4"
-				CompileAs="0"/>
-			<Tool
-				Name="VCCustomBuildTool"/>
-			<Tool
-				Name="VCLinkerTool"
-				AdditionalDependencies="odbc32.lib odbccp32.lib ws2_32.lib"
-				OutputFile=".\Debug/slpd.exe"
-				LinkIncremental="1"
-				SuppressStartupBanner="TRUE"
-				GenerateDebugInformation="TRUE"
-				ProgramDatabaseFile=".\Debug/slpd.pdb"
-				GenerateMapFile="TRUE"
-				MapFileName=".\Debug/slpd.map"
-				SubSystem="1"
-				TargetMachine="1"/>
-			<Tool
-				Name="VCMIDLTool"
-				PreprocessorDefinitions="_DEBUG"
-				MkTypLibCompatible="TRUE"
-				SuppressStartupBanner="TRUE"
-				TargetEnvironment="1"
-				TypeLibraryName=".\Debug/slpd.tlb"
-				HeaderFileName=""/>
-			<Tool
-				Name="VCPostBuildEventTool"/>
-			<Tool
-				Name="VCPreBuildEventTool"/>
-			<Tool
-				Name="VCPreLinkEventTool"/>
-			<Tool
-				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="_DEBUG"
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
@@ -236,15 +176,6 @@
 						AdditionalIncludeDirectories=""
 						PreprocessorDefinitions=""/>
 				</FileConfiguration>
-				<FileConfiguration
-					Name="UnitTest|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BasicRuntimeChecks="3"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\common\slp_buffer.c">
@@ -264,15 +195,6 @@
 						Optimization="2"
 						AdditionalIncludeDirectories=""
 						PreprocessorDefinitions=""/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="UnitTest|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BasicRuntimeChecks="3"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -294,15 +216,6 @@
 						AdditionalIncludeDirectories=""
 						PreprocessorDefinitions=""/>
 				</FileConfiguration>
-				<FileConfiguration
-					Name="UnitTest|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BasicRuntimeChecks="3"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\common\slp_database.c">
@@ -322,15 +235,6 @@
 						Optimization="2"
 						AdditionalIncludeDirectories=""
 						PreprocessorDefinitions=""/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="UnitTest|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BasicRuntimeChecks="3"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -352,15 +256,6 @@
 						AdditionalIncludeDirectories=""
 						PreprocessorDefinitions=""/>
 				</FileConfiguration>
-				<FileConfiguration
-					Name="UnitTest|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BasicRuntimeChecks="3"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\common\slp_iface.c">
@@ -380,15 +275,6 @@
 						Optimization="2"
 						AdditionalIncludeDirectories=""
 						PreprocessorDefinitions=""/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="UnitTest|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BasicRuntimeChecks="3"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -410,15 +296,6 @@
 						AdditionalIncludeDirectories=""
 						PreprocessorDefinitions=""/>
 				</FileConfiguration>
-				<FileConfiguration
-					Name="UnitTest|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BasicRuntimeChecks="3"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\common\slp_message.c">
@@ -438,15 +315,6 @@
 						Optimization="2"
 						AdditionalIncludeDirectories=""
 						PreprocessorDefinitions=""/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="UnitTest|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BasicRuntimeChecks="3"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -468,15 +336,6 @@
 						AdditionalIncludeDirectories=""
 						PreprocessorDefinitions=""/>
 				</FileConfiguration>
-				<FileConfiguration
-					Name="UnitTest|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BasicRuntimeChecks="3"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\common\slp_parse.c">
@@ -496,15 +355,6 @@
 						Optimization="2"
 						AdditionalIncludeDirectories=""
 						PreprocessorDefinitions=""/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="UnitTest|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BasicRuntimeChecks="3"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -526,15 +376,6 @@
 						AdditionalIncludeDirectories=""
 						PreprocessorDefinitions=""/>
 				</FileConfiguration>
-				<FileConfiguration
-					Name="UnitTest|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BasicRuntimeChecks="3"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\common\slp_property.c">
@@ -554,15 +395,6 @@
 						Optimization="2"
 						AdditionalIncludeDirectories=""
 						PreprocessorDefinitions=""/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="UnitTest|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BasicRuntimeChecks="3"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -584,15 +416,6 @@
 						AdditionalIncludeDirectories=""
 						PreprocessorDefinitions=""/>
 				</FileConfiguration>
-				<FileConfiguration
-					Name="UnitTest|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BasicRuntimeChecks="3"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\common\slp_v1message.c">
@@ -613,18 +436,6 @@
 						AdditionalIncludeDirectories=""
 						PreprocessorDefinitions=""/>
 				</FileConfiguration>
-				<FileConfiguration
-					Name="UnitTest|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BasicRuntimeChecks="3"/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\common\slp_win32.c">
 			</File>
 			<File
 				RelativePath="..\..\common\slp_xid.c">
@@ -645,18 +456,6 @@
 						AdditionalIncludeDirectories=""
 						PreprocessorDefinitions=""/>
 				</FileConfiguration>
-				<FileConfiguration
-					Name="UnitTest|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BasicRuntimeChecks="3"/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\common\slp_xmalloc.c">
 			</File>
 			<File
 				RelativePath="..\..\slpd\slpd_cmdline.c">
@@ -676,15 +475,6 @@
 						Optimization="2"
 						AdditionalIncludeDirectories=""
 						PreprocessorDefinitions=""/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="UnitTest|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BasicRuntimeChecks="3"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -706,15 +496,6 @@
 						AdditionalIncludeDirectories=""
 						PreprocessorDefinitions=""/>
 				</FileConfiguration>
-				<FileConfiguration
-					Name="UnitTest|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BasicRuntimeChecks="3"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\slpd\slpd_incoming.c">
@@ -734,15 +515,6 @@
 						Optimization="2"
 						AdditionalIncludeDirectories=""
 						PreprocessorDefinitions=""/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="UnitTest|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BasicRuntimeChecks="3"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -764,15 +536,6 @@
 						AdditionalIncludeDirectories=""
 						PreprocessorDefinitions=""/>
 				</FileConfiguration>
-				<FileConfiguration
-					Name="UnitTest|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BasicRuntimeChecks="3"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\slpd\slpd_log.c">
@@ -792,15 +555,6 @@
 						Optimization="2"
 						AdditionalIncludeDirectories=""
 						PreprocessorDefinitions=""/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="UnitTest|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BasicRuntimeChecks="3"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -822,15 +576,6 @@
 						AdditionalIncludeDirectories=""
 						PreprocessorDefinitions=""/>
 				</FileConfiguration>
-				<FileConfiguration
-					Name="UnitTest|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BasicRuntimeChecks="3"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\slpd\slpd_outgoing.c">
@@ -850,15 +595,6 @@
 						Optimization="2"
 						AdditionalIncludeDirectories=""
 						PreprocessorDefinitions=""/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="UnitTest|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BasicRuntimeChecks="3"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -880,15 +616,6 @@
 						AdditionalIncludeDirectories=""
 						PreprocessorDefinitions=""/>
 				</FileConfiguration>
-				<FileConfiguration
-					Name="UnitTest|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BasicRuntimeChecks="3"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\slpd\slpd_process.c">
@@ -908,15 +635,6 @@
 						Optimization="2"
 						AdditionalIncludeDirectories=""
 						PreprocessorDefinitions=""/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="UnitTest|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BasicRuntimeChecks="3"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -938,15 +656,6 @@
 						AdditionalIncludeDirectories=""
 						PreprocessorDefinitions=""/>
 				</FileConfiguration>
-				<FileConfiguration
-					Name="UnitTest|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BasicRuntimeChecks="3"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\slpd\slpd_regfile.c">
@@ -966,15 +675,6 @@
 						Optimization="2"
 						AdditionalIncludeDirectories=""
 						PreprocessorDefinitions=""/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="UnitTest|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BasicRuntimeChecks="3"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -996,15 +696,6 @@
 						AdditionalIncludeDirectories=""
 						PreprocessorDefinitions=""/>
 				</FileConfiguration>
-				<FileConfiguration
-					Name="UnitTest|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BasicRuntimeChecks="3"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\slpd\slpd_v1process.c">
@@ -1024,15 +715,6 @@
 						Optimization="2"
 						AdditionalIncludeDirectories=""
 						PreprocessorDefinitions=""/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="UnitTest|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BasicRuntimeChecks="3"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -1054,15 +736,6 @@
 						AdditionalIncludeDirectories=""
 						PreprocessorDefinitions=""/>
 				</FileConfiguration>
-				<FileConfiguration
-					Name="UnitTest|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BasicRuntimeChecks="3"/>
-				</FileConfiguration>
 			</File>
 		</Filter>
 		<Filter
@@ -1078,9 +751,6 @@
 				RelativePath="..\..\libslp\slp.h">
 			</File>
 			<File
-				RelativePath="..\..\common\slp_attr.h">
-			</File>
-			<File
 				RelativePath="..\..\common\slp_buffer.h">
 			</File>
 			<File
@@ -1090,10 +760,16 @@
 				RelativePath="..\..\common\slp_database.h">
 			</File>
 			<File
+				RelativePath="..\..\..\..\..\..\mpeterson\cvs\openslp\common\slp_database.h">
+			</File>
+			<File
 				RelativePath="..\..\common\slp_iface.h">
 			</File>
 			<File
 				RelativePath="..\..\common\slp_linkedlist.h">
+			</File>
+			<File
+				RelativePath="..\..\common\slp_logfile.h">
 			</File>
 			<File
 				RelativePath="..\..\common\slp_message.h">
@@ -1120,9 +796,6 @@
 				RelativePath="..\..\common\slp_v1message.h">
 			</File>
 			<File
-				RelativePath="..\..\common\slp_win32.h">
-			</File>
-			<File
 				RelativePath="..\..\common\slp_xid.h">
 			</File>
 			<File
@@ -1135,7 +808,16 @@
 				RelativePath="..\..\slpd\slpd_cmdline.h">
 			</File>
 			<File
+				RelativePath="..\..\..\..\..\..\mpeterson\cvs\openslp\slpd\slpd_cmdline.h">
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\mpeterson\cvs\openslp\slpd\slpd_database.h">
+			</File>
+			<File
 				RelativePath="..\..\slpd\slpd_database.h">
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\mpeterson\cvs\openslp\slpd\slpd_incoming.h">
 			</File>
 			<File
 				RelativePath="..\..\slpd\slpd_incoming.h">
@@ -1144,7 +826,16 @@
 				RelativePath="..\..\slpd\slpd_knownda.h">
 			</File>
 			<File
+				RelativePath="..\..\..\..\..\..\mpeterson\cvs\openslp\slpd\slpd_knownda.h">
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\mpeterson\cvs\openslp\slpd\slpd_log.h">
+			</File>
+			<File
 				RelativePath="..\..\slpd\slpd_log.h">
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\mpeterson\cvs\openslp\slpd\slpd_outgoing.h">
 			</File>
 			<File
 				RelativePath="..\..\slpd\slpd_outgoing.h">
@@ -1153,7 +844,16 @@
 				RelativePath="..\..\slpd\slpd_predicate.h">
 			</File>
 			<File
+				RelativePath="..\..\..\..\..\..\mpeterson\cvs\openslp\slpd\slpd_predicate.h">
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\mpeterson\cvs\openslp\slpd\slpd_process.h">
+			</File>
+			<File
 				RelativePath="..\..\slpd\slpd_process.h">
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\mpeterson\cvs\openslp\slpd\slpd_property.h">
 			</File>
 			<File
 				RelativePath="..\..\slpd\slpd_property.h">
@@ -1162,10 +862,16 @@
 				RelativePath="..\..\slpd\slpd_regfile.h">
 			</File>
 			<File
+				RelativePath="..\..\..\..\..\..\mpeterson\cvs\openslp\slpd\slpd_regfile.h">
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\mpeterson\cvs\openslp\slpd\slpd_socket.h">
+			</File>
+			<File
 				RelativePath="..\..\slpd\slpd_socket.h">
 			</File>
 			<File
-				RelativePath="..\..\slpd\slpd_unistd.h">
+				RelativePath="..\..\..\..\..\..\mpeterson\cvs\openslp\slpd\slpd_unistd.h">
 			</File>
 			<File
 				RelativePath="..\..\slpd\slpd_win32.h">

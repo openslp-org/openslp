@@ -137,7 +137,7 @@ unitoutf(char *s, unsigned wc)
             {
                 c -= 6;
                 s++;
-                *s = 0x80 | (( l >> c) & 0x3F);
+                *s = (char)(0x80 | (( l >> c) & 0x3F));
             }
             return nc;
         }
