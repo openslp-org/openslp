@@ -131,7 +131,7 @@ int ProcessSASrvRqst(struct sockaddr_in* peeraddr,
         *(result->curpos) = 0;
     }
 
-    FINISHED:
+FINISHED:
 
     *sendbuf = result;
 
@@ -166,6 +166,7 @@ int ProcessDASrvRqst(struct sockaddr_in* peeraddr,
         if(*sendbuf == 0)
         {
             errorcode = SLP_ERROR_INTERNAL_ERROR;
+            goto FINISHED;
         }
         
         if(errorcode == 0)
@@ -354,7 +355,7 @@ int ProcessSrvRqst(struct sockaddr_in* peeraddr,
     }
 
 
-    RESPOND:
+RESPOND:
     /*----------------------------------------------------------------*/
     /* Do not send error codes or empty replies to multicast requests */
     /*----------------------------------------------------------------*/
@@ -391,6 +392,7 @@ int ProcessSrvRqst(struct sockaddr_in* peeraddr,
         {
             found = 0;
             errorcode = SLP_ERROR_INTERNAL_ERROR;
+            goto FINISHED;
         }
     }
 
@@ -449,7 +451,7 @@ int ProcessSrvRqst(struct sockaddr_in* peeraddr,
         /* TODO: put in authentication stuff too */
     }
 
-    FINISHED:   
+FINISHED:   
     if(srvarray) free(srvarray);
 
     *sendbuf = result;
@@ -511,7 +513,7 @@ int ProcessSrvReg(struct sockaddr_in* peeraddr,
         errorcode = SLP_ERROR_SCOPE_NOT_SUPPORTED;
     }
 
-    RESPOND:    
+RESPOND:    
     /*--------------------------------------------------------------------*/
     /* don't send back reply anything multicast SrvReg (set result empty) */
     /*--------------------------------------------------------------------*/
@@ -561,7 +563,7 @@ int ProcessSrvReg(struct sockaddr_in* peeraddr,
     /*-------------------*/
     ToUINT16(result->start + 14 + message->header.langtaglen, errorcode);
 
-    FINISHED:
+FINISHED:
     *sendbuf = result;
     return errorcode;
 }
@@ -618,7 +620,7 @@ int ProcessSrvDeReg(struct sockaddr_in* peeraddr,
         errorcode = SLP_ERROR_SCOPE_NOT_SUPPORTED;
     }
 
-    RESPOND:
+RESPOND:
     /*---------------------------------------------------------*/
     /* don't do anything multicast SrvDeReg (set result empty) */
     /*---------------------------------------------------------*/
@@ -667,7 +669,7 @@ int ProcessSrvDeReg(struct sockaddr_in* peeraddr,
     /*-------------------*/
     ToUINT16(result->start + 14 + message->header.langtaglen, errorcode);
 
-    FINISHED:
+FINISHED:
     *sendbuf = result;
     return errorcode;
 }
@@ -748,7 +750,7 @@ int ProcessAttrRqst(struct sockaddr_in* peeraddr,
     }
     
 
-    RESPOND:
+RESPOND:
     /*----------------------------------------------------------------*/
     /* Do not send error codes or empty replies to multicast requests */
     /*----------------------------------------------------------------*/
@@ -780,6 +782,7 @@ int ProcessAttrRqst(struct sockaddr_in* peeraddr,
     {
         found = 0;
         errorcode = SLP_ERROR_INTERNAL_ERROR;
+        goto FINISHED;
     }
 
     /*----------------*/
@@ -822,7 +825,7 @@ int ProcessAttrRqst(struct sockaddr_in* peeraddr,
     /* TODO: no auth block */
     ToUINT16(result->curpos, 0);
 
-    FINISHED:
+FINISHED:
     *sendbuf = result;
     
     return errorcode;
@@ -868,7 +871,7 @@ int ProcessDAAdvert(struct sockaddr_in* peeraddr,
         SLPDKnownDAAdd(&(peeraddr->sin_addr),&daentry);
     }
     
-    RESPOND:
+RESPOND:
     /* DAAdverts should never be replied to.  Set result buffer to empty*/
     result->end = result->start;
 
@@ -984,6 +987,7 @@ int ProcessSrvTypeRqst(struct sockaddr_in* peeraddr,
     {
         found = 0;
         errorcode = SLP_ERROR_INTERNAL_ERROR;
+        goto FINISHED;
     }
 
 
@@ -1035,7 +1039,7 @@ int ProcessSrvTypeRqst(struct sockaddr_in* peeraddr,
         }
     }
 
-    FINISHED:   
+FINISHED:   
     if(srvtypearray) free(srvtypearray);
     *sendbuf = result;
     return errorcode;

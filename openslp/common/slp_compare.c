@@ -284,7 +284,7 @@ int SLPIntersectStringList(int list1len,
         if(SLPContainsStringList(list2len,
                                  list2,
                                  itemend - itembegin,
-                                  itembegin))
+                                 itembegin))
         {
             result ++;
         }    
@@ -334,7 +334,6 @@ int SLPUnionStringList(int list1len,
 /*       returned) is list1len + list2len + 1                              */
 /*=========================================================================*/
 {
-    int result = 0;
     char* listend = (char*)list2 + list2len;
     char* itembegin = (char*)list2;
     char* itemend = itembegin;
