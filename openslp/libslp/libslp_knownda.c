@@ -810,9 +810,11 @@ void KnownDAFreeAll()
 
         SLPDatabaseClose(dh);
     }
-    G_KnownDAScopesLen = 0;
+    
     
     if(G_KnownDAScopes) xfree(G_KnownDAScopes);
-}
+    G_KnownDAScopesLen = 0;
+    G_KnownDALastCacheRefresh = 0;
 
+}
 #endif
