@@ -207,12 +207,13 @@ SLPError NetworkRecvMessage(int sockfd,
 int NetworkConnectToDA(struct sockaddr_in* peeraddr)
 /*=========================================================================*/ 
 {
-    char* begin;
-    char* end;
-    int   finished;
-    int   lowat;
-    int   result      = -1;
-    char* daaddresses = 0;
+    struct hostent* dahostent;
+    char*           begin;
+    char*           end;
+    int             finished;
+    int             lowat;
+    int             result      = -1;
+    char*           daaddresses = 0;
     
     /* First use net.slp.DAAddresses if they are available */
     daaddresses = strdup(SLPGetProperty("net.slp.DAAddresses"));
@@ -244,8 +245,17 @@ int NetworkConnectToDA(struct sockaddr_in* peeraddr)
          
         memset(peeraddr,0,sizeof(struct sockaddr_in));
         peeraddr->sin_family      = AF_INET;
-        peeraddr->sin_addr.s_addr = inet_addr(begin);
         peeraddr->sin_port = htons(SLP_RESERVED_PORT);
+        dahostent = gethostbyname(begin);
+        if(dahostent)
+        {
+            peeraddr->sin_addr.s_addr = *(unsigned long*)(dahostent->h_addr_list[0]);
+        }
+        else
+        {
+            peeraddr->sin_addr.s_addr = inet_addr(begin);
+        }
+                                         
         result = socket(AF_INET,SOCK_STREAM,0);
         if(result >= 0)
         {
