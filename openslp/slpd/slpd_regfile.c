@@ -305,7 +305,7 @@ int SLPDRegFileReadSrvReg(FILE* fd,
             result = -1;
             break;
         }
-        if(*slider1 == 0x0d || *line == 0x0a)
+        if(*slider1 == 0x0d || *slider == 0x0a)
         {
             break;
         }
