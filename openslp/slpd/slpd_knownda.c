@@ -358,7 +358,7 @@ void SLPDKnownDADeregisterAll(SLPMessage daadvert)
                 size += srvreg->scopelistlen;
                 /* taglistlen is always 0 */
 
-                sendbuf = SLPBufferRealloc(sendbuf, size);
+                sendbuf = SLPBufferAlloc(size);
                 if ( sendbuf )
                 {
                     /*----------------------*/
@@ -815,6 +815,7 @@ int SLPDKnownDAGenerateMyDAAdvert(int errorcode,
 
 
 
+
     /*-------------------------------------------------------------*/
     /* ensure the buffer is big enough to handle the whole srvrply */
     /*-------------------------------------------------------------*/
@@ -916,6 +917,7 @@ int SLPDKnownDAGenerateMyDAAdvert(int errorcode,
         result->curpos = result->curpos + 2;
 #endif
 
+
         /* authblock count */
 #ifdef ENABLE_SLPv2_SECURITY
         if ( daadvertauth )
@@ -989,14 +991,14 @@ int SLPDKnownDAGenerateMyV1DAAdvert(int errorcode,
         if ( !errorcode )
         {
             size += urllen;
-            #ifndef FAKE_UNSCOPED_DA
+#ifndef FAKE_UNSCOPED_DA
             errorcode = SLPv1ToEncoding(0, &scopelistlen,
                                         encoding,
                                         G_SlpdProperty.useScopes,
                                         G_SlpdProperty.useScopesLen);
-            #else
+#else
             scopelistlen = 0;   /* pretend that we're unscoped */
-            #endif
+#endif
             if ( !errorcode )
             {
                 size += scopelistlen;
@@ -1144,11 +1146,16 @@ void SLPDKnownDAEcho(SLPMessage msg, SLPBuffer buf)
                                         entrydaadvert->scopelist) )
             {
                 /* Do not echo to ourselves if we are a DA*/
-                if ( G_SlpdProperty.isDA &&
+                if ( G_SlpdProperty.isDA  &&
                      SLPCompareString(G_SlpdProperty.myUrlLen,
                                       G_SlpdProperty.myUrl,
                                       entrydaadvert->urllen,
-                                      entrydaadvert->url) )
+                                      entrydaadvert->url) == 0 )
+                {
+                    /* don't do anything because it makes no sense to echo */
+                    /* to myself                                           */
+                }
+                else
                 {
                     /*------------------------------------------*/
                     /* Load the socket with the message to send */
@@ -1253,6 +1260,7 @@ void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead)
 #ifdef ENABLE_SLPv1
     SLPDSocket*     v1sock;
 #endif
+
 
 
     /* Check to see if we should perform passive DA detection */
