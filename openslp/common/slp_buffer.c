@@ -44,7 +44,7 @@ SLPBuffer SLPBufferAlloc(int size)
    if(result)
    {
        result->allocated = size;
-       result->start = ((char*)result) + sizeof(struct _SLPBuffer);
+       result->start = result + 1;
        result->curpos = result->start;
        result->end = result->start + size; 
        
@@ -80,7 +80,7 @@ SLPBuffer SLPBufferRealloc(SLPBuffer buf, int size)
        
        if(result)
        {
-    	   result->start = ((char*)result) + sizeof(struct _SLPBuffer);
+    	   result->start = result + 1;
     	   result->curpos = result->start;
     	   result->end = result->start + size;
     	   
