@@ -76,7 +76,7 @@ time_t G_KnownDALastCacheRefresh = 0;
 SLPDAEntry* KnownDAListFindByScope(SLPList* dalist,
                                    int scopelistlen,
                                    const char* scopelist)
-/* Returns: pointer to found DA.                                           */
+/* Returns: pointer to a DA that supports the specified scopelist          */
 /*-------------------------------------------------------------------------*/
 {
     SLPDAEntry*     entry;
@@ -84,10 +84,10 @@ SLPDAEntry* KnownDAListFindByScope(SLPList* dalist,
     entry = (SLPDAEntry*)dalist->head;
     while(entry)
     {
-        if(SLPCompareString(scopelistlen,
-                            scopelist,
-                            entry->scopelistlen,
-                            entry->scopelist) == 0)
+        if(SLPSubsetStringList(scopelistlen,
+                               scopelist,
+                               entry->scopelistlen,
+                               entry->scopelist) == 0)
         {
             break;
         }

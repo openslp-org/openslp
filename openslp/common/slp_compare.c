@@ -344,7 +344,7 @@ int SLPSubsetStringList(int listlen,
     {
         if(sublist[curpos] == ',') 
         {
-            sublist ++;
+            sublistcount ++;
         }
         curpos ++;
     }
