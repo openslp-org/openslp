@@ -18,100 +18,6 @@
 /*                                                                         */
 /***************************************************************************/
 
-#include "slpd.h"
-
-
-
-/******************************************************************************
- *
- *                          PREDICATE STRUCTURE
- *
- *****************************************************************************/
-
-#include <ctype.h>
-
-/*=========================================================================*/
-SLPError SLPDPredicateAlloc(const char *predicate_str, size_t len, SLPDPredicate *pred) 
-/*                                                                         */
-/* Create a predicate structure.                                           */
-/*                                                                         */
-/* predicate    (IN) the predicate string                                  */
-/*                                                                         */
-/* len          (IN) the length of the predicate string                    */
-/*                                                                         */
-/* pred         (IN) the predicate struct to populate                      */
-/*                                                                         */
-/* Returns:                                                                */
-/*   SLP_OK if allocated properly.                                         */
-/*   SLP_PARSE_ERROR if there is an error in the predicate string.         */
-/*   SLP_MEMORY_ALLOC_FAILED if out of memory                              */
-/*                                                                         */
-/*=========================================================================*/
-{
-    const char *start_cur; /* Used to find first non-WS char in pred. */
-    const char *end_cur; /* Used to find last non-WS char in pred. */
-
-    char *new_pred; /* Temporary pointer for working with the under-construction predicate "object". */
-
-    size_t real_len; /* The length of the elided whitespace. */
-
-    /***** Elide start. *****/
-    start_cur = predicate_str;
-    while (((start_cur - predicate_str) < len) && (isspace(*start_cur)))
-    {
-        start_cur++;
-    }
-
-    /***** Elide end. *****/
-    end_cur = predicate_str + len;
-    while ((end_cur >= start_cur) && (isspace(*end_cur)))
-    {
-        end_cur--;
-    }
-
-    /***** Return if empty *****/
-    if (end_cur < start_cur)
-    {
-        *pred = NULL; /* Empty string. */
-        return SLP_OK;
-    }
-
-    /***** Copy *****/
-    real_len = end_cur - start_cur;
-    new_pred = (char *)malloc(real_len + 1);
-
-    if (new_pred == NULL)
-    {
-        return SLP_MEMORY_ALLOC_FAILED;
-    }
-
-    /* Copy. */
-    strncpy(new_pred, predicate_str, real_len);
-
-    /* Null terminate. */
-    new_pred[real_len] = 0;
-
-    /* Set value. */
-    *pred = (SLPDPredicate)new_pred;
-
-    return SLP_OK;
-}
-
-
-void SLPDPredicateFree(SLPDPredicate *victim) 
-{
-    if (victim != NULL)
-    {
-        free(victim);
-    }
-    return;
-}
-
-
-#ifdef USE_PREDICATES
-
-    #include <slp_logfile.h>
-
 /*********
  *
  * Assumptions:
@@ -134,40 +40,164 @@ void SLPDPredicateFree(SLPDPredicate *victim)
  *  - No operations can be performed on opaque data types. 
  *********/
 
-    #include <stdlib.h>
-    #include <stdio.h>
-    #include <string.h>
-    #include <assert.h>
-    #include <unistd.h>
 
-	#include "slpd_wildcard.h"
+#include "slpd.h"
 
-    #define BRACKET_OPEN '('
-    #define BRACKET_CLOSE ')'
+#ifdef USE_PREDICATES   
+
+/* The character that is a wildcard. */
+#define WILDCARD ('*')
+#define BRACKET_OPEN '('
+#define BRACKET_CLOSE ')'
 
 /************************* <Lifted from slp_attr.c> ***********************/
 
 /* Tests a character to see if it reserved (as defined in RFC 2608, p11). */
-    #define IS_RESERVED(x) \
-    (((x) == '(' || (x) == ')' || (x) == ',' || (x) == '\\' || (x) == '!' || (x) == '<' \
-    || (x) == '=' || (x) == '>' || (x) == '~') || \
-    ((((char)0x01 <= (x)) && ((char)0x1F >= (x))) || ((x) == (char)0x7F)))
+#define IS_RESERVED(x) (((x) == '(' || (x) == ')' || (x) == ',' || (x) == '\\' || (x) == '!' || (x) == '<' || (x) == '=' || (x) == '>' || (x) == '~') || ((((char)0x01 <= (x)) && ((char)0x1F >= (x))) || ((x) == (char)0x7F)))
 
 
-    #define IS_INVALID_VALUE_CHAR(x) \
-    IS_RESERVED(x)
+#define IS_INVALID_VALUE_CHAR(x) IS_RESERVED(x)
 
-    #define IS_INVALID_TAG_CHAR(x) \
-    (IS_RESERVED(x) \
-    || ((x) == '*') || \
-    ((x) == (char)0x0D) || ((x) == (char)0x0A) || ((x) == (char)0x09) || ((x) == '_'))
+#define IS_INVALID_TAG_CHAR(x) (IS_RESERVED(x) || ((x) == '*') || ((x) == (char)0x0D) || ((x) == (char)0x0A) || ((x) == (char)0x09) || ((x) == '_'))
 
-    #define IS_VALID_TAG_CHAR(x) !IS_INVALID_TAG_CHAR(x)
+#define IS_VALID_TAG_CHAR(x) (!IS_INVALID_TAG_CHAR(x))
 
 /************************* </Lifted from slp_attr.c> ***********************/
 
-/* Tests a string to see if it is a boolean. */
+
+/*--------------------------------------------------------------------------*/
+const char *substr(const char *haystack, 
+                   const char *needle, 
+                   size_t needle_len)
+/* Does a case insensitive substring match for needle in haystack.          */
+/*                                                                          */
+/* Returns pointer to the start of the substring. NULL if the substring is  */
+/* not found.                                                               */
+/* FIXME This implementation isn't exactly blazingly fast...                */
+/*--------------------------------------------------------------------------*/
+{
+    const char *hs_cur; 
+
+    for (hs_cur = haystack; *hs_cur != 0; hs_cur++)
+    {
+        if (strncasecmp(hs_cur, needle, needle_len) == 0)
+        {
+            return hs_cur;
+        }
+    }
+
+    return NULL;
+}
+
+
+/*--------------------------------------------------------------------------*/
+int wildcard(const char *pattern, const char *string)
+/* Returns: -1 error,  0 success,  1 failure                                */
+/*--------------------------------------------------------------------------*/
+{
+    const char *cur_pattern; /* current position in the pattern. */
+    const char *cur_string; /* Current position in the string. */
+
+    cur_pattern = pattern;
+    cur_string = string;
+
+    /***** Is first char in pattern a wildcard? *****/
+    if (*cur_pattern == WILDCARD)
+    {
+        /* Skip ahead. */
+        cur_pattern++;
+    }
+    else
+    {
+        const char *old_pattern; 
+
+        old_pattern = cur_pattern;
+        /* Find first WC. */
+        cur_pattern = strchr(cur_pattern, WILDCARD);
+
+        if (cur_pattern == NULL)
+        {
+            /* No WC. Do basic comparision. */
+            return strcasecmp(pattern, cur_string);
+        }
+
+        if (strncasecmp(cur_string, old_pattern, cur_pattern - old_pattern) != 0)
+        {
+            return 1; /* Initial anchored token does not match. */
+        }
+
+        /* Move string past its current position. */
+        cur_string = cur_string + (cur_pattern - old_pattern); 
+    }
+
+    /* We are now guarenteed that cur_pattern starts with a WC. */
+
+    /***** Process all wildcards up till end. *****/
+    while (1)
+    {
+        const char *old_pattern; 
+        const char *result;
+
+        /*** Spin past WCs. ***/
+        while (*cur_pattern == WILDCARD)
+        {
+            cur_pattern++;
+        }
+
+        if (*cur_pattern == 0)
+        {
+            /*** Pattern ends with WC. ***/
+            return 0;
+        }
+
+        old_pattern = cur_pattern;
+        /* Find first WC. */
+        cur_pattern = strchr(cur_pattern, WILDCARD);
+
+        if (cur_pattern == NULL)
+        {
+            /* No WC. Do basic comparision. */
+            /* Here we check for a rear-anchored string. */
+            const char  *end;
+            size_t len;
+
+            len = strlen(old_pattern);
+
+            end = cur_string;
+            while (*end != 0)
+            {
+                end++;
+            }
+
+            if ((end - cur_string) < len)
+            {
+                return 1; /* Too small to contain the anchored pattern. */
+            }
+
+            if (strcmp(end - len, old_pattern) == 0)
+            {
+                return 0;
+            }
+            return 1;
+
+        }
+
+        result = substr(cur_string, old_pattern, cur_pattern - old_pattern);
+        if (result == NULL)
+        {
+            return 1; /* Couldn't find the pattern. */
+        }
+
+        /* Move string past its current position. */
+        cur_string = result + (cur_pattern - old_pattern); 
+    }
+}
+
+
+/*--------------------------------------------------------------------------*/
 int is_bool_string(const char *str, SLPBoolean *val)
+/* Tests a string to see if it is a boolean. */
+/*--------------------------------------------------------------------------*/
 {
     if (strcmp(str, "true") == 0)
     {
@@ -183,13 +213,21 @@ int is_bool_string(const char *str, SLPBoolean *val)
 }
 
 
+/*--------------------------------------------------------------------------*/
 typedef enum
 {
     EQUAL, APPROX, GREATER, LESS, PRESENT, SUBSTRING
 } Operation;
+/*--------------------------------------------------------------------------*/
 
-/* Perform an integer operation. */
-SLPError int_op(SLPAttributes slp_attr, char *tag, char *rhs, Operation op, SLPBoolean *result)
+/*--------------------------------------------------------------------------*/
+SLPError int_op(SLPAttributes slp_attr, 
+                char *tag, 
+                char *rhs, 
+                Operation op, 
+                SLPBoolean *result)
+/* Perform an integer operation.                                            */
+/*--------------------------------------------------------------------------*/
 {
     long rhs_val; /* The converted value of rhs. */
     char *end; /* Pointer to the end of op. */
@@ -273,8 +311,14 @@ SLPError int_op(SLPAttributes slp_attr, char *tag, char *rhs, Operation op, SLPB
 }
 
 
-/* Perform a keyword operation. */
-SLPError keyw_op(SLPAttributes slp_attr, char *tag, char *rhs, Operation op, SLPBoolean *result)
+/*--------------------------------------------------------------------------*/
+SLPError keyw_op(SLPAttributes slp_attr, 
+                 char *tag, 
+                 char *rhs, 
+                 Operation op, 
+                 SLPBoolean *result)
+/* Perform a keyword operation.                                             */
+/*--------------------------------------------------------------------------*/
 {
     /* Note that the only test keywords are allowed to undergo is PRESENT, 
      * also note that PRESENT is handled by our calling function.
@@ -287,8 +331,15 @@ SLPError keyw_op(SLPAttributes slp_attr, char *tag, char *rhs, Operation op, SLP
 }
 
 
+
+/*--------------------------------------------------------------------------*/
+SLPError bool_op(SLPAttributes slp_attr, 
+                 char *tag, 
+                 char *rhs, 
+                 Operation op, 
+                 SLPBoolean *result)
 /* Perform a boolean operation. */
-SLPError bool_op(SLPAttributes slp_attr, char *tag, char *rhs, Operation op, SLPBoolean *result)
+/*--------------------------------------------------------------------------*/
 {
     SLPBoolean rhs_val; /* The value of the rhs. */
     SLPBoolean tag_val; /* The value associated with the tag. */
@@ -334,8 +385,14 @@ SLPError bool_op(SLPAttributes slp_attr, char *tag, char *rhs, Operation op, SLP
 
 
 
-/* Perform a string operation. */
-SLPError str_op(SLPAttributes slp_attr, char *tag, char *rhs, Operation op, SLPBoolean *result)
+/*--------------------------------------------------------------------------*/
+SLPError str_op(SLPAttributes slp_attr, 
+                char *tag, 
+                char *rhs, 
+                Operation op, 
+                SLPBoolean *result)
+/* Perform a string operation.                                              */
+/*--------------------------------------------------------------------------*/
 {
     char *rhs_val; /* Converted value of rhs. */
 
@@ -428,8 +485,10 @@ SLPError str_op(SLPAttributes slp_attr, char *tag, char *rhs, Operation op, SLPB
 }
 
 
-/* Tests a string to see if it consists wholly of numeric characters. */
+/*--------------------------------------------------------------------------*/
 int is_int_string(const char *str)
+/* Tests a string to see if it consists wholly of numeric characters.       */
+/*--------------------------------------------------------------------------*/
 {
     int i;
 
@@ -444,8 +503,11 @@ int is_int_string(const char *str)
     return 1;
 }
 
-/* Returns ptr to start of substring, or null. */
+
+/*--------------------------------------------------------------------------*/
 char *find_substr(char *src, int src_len, char *to_find)
+/* Returns ptr to start of substring, or null.                              */
+/*--------------------------------------------------------------------------*/
 {
     int i;
 
@@ -455,8 +517,7 @@ char *find_substr(char *src, int src_len, char *to_find)
         {
             int old_i = i; /* Save the old start. */
             int find_index;
-            for (find_index = 0; 
-                (to_find[find_index] != '\0') && (i < src_len) && (to_find[find_index] == src[i]); to_find++, i++)
+            for (find_index = 0; (to_find[find_index] != '\0') && (i < src_len) && (to_find[find_index] == src[i]); to_find++, i++)
             {
 
             }
@@ -469,20 +530,22 @@ char *find_substr(char *src, int src_len, char *to_find)
             i = old_i; /* Restor the old start. */
         }
     }
-    return NULL;
+    return 0;
 }
 
 
 
-/* Finds a bracket matched to this one. Returns NULL if there isn't one. */
+/*--------------------------------------------------------------------------*/
 char *find_bracket_end(const char *str)
+/* Finds a bracket matched to this one. Returns 0 if there isn't one.       */
+/*--------------------------------------------------------------------------*/
 {
     int open_count; 
     const char *cur;
 
     if (*str != BRACKET_OPEN)
     {
-        return NULL;
+        return 0;
     }
 
     open_count = 0;
@@ -509,25 +572,31 @@ char *find_bracket_end(const char *str)
         }
     }
 
-    return NULL;
+    return 0;
 }       
 
-/* Represents a string and its length. */
+
+/*--------------------------------------------------------------------------*/
 struct pair
+/* Represents a string and its length. */
 {
     char *start;
     char *end; /* Stop reading _BEFORE_ end. ie, at end-1. */
 };
+/*--------------------------------------------------------------------------*/
 
 
-/*
- * Returns: SLP_OK on successful search (ie, the search was do-able).
- *  0 on search error. 
- *
- *  The end of the expression is returned through end. 
- * 
- */
-SLPError filter(char *start, char **end, SLPAttributes slp_attr, SLPBoolean *return_value, int recursion_depth)
+/*--------------------------------------------------------------------------*/
+SLPError filter(char *start, 
+                char **end, 
+                SLPAttributes slp_attr, 
+                SLPBoolean *return_value, 
+                int recursion_depth)
+/*                                                                          */
+/* Returns: SLP_OK on successful search (ie, the search was do-able).       */
+/*          0 on search error.  The end of the expression is returned       */
+/*          through end.                                                    */
+/*--------------------------------------------------------------------------*/
 {
     char *operator; /* Pointer to the operator substring. */
     char *cur; /* Current working character. */
@@ -549,7 +618,7 @@ SLPError filter(char *start, char **end, SLPAttributes slp_attr, SLPBoolean *ret
 
     /***** Get the current expression. *****/
     last_char = *end = find_bracket_end(start);
-    if (*end == NULL)
+    if (*end == 0)
     {
         return SLP_PARSE_ERROR;
     }
@@ -653,14 +722,18 @@ SLPError filter(char *start, char **end, SLPAttributes slp_attr, SLPBoolean *ret
          * value. 
          */
         operator = (char *)memchr(cur, '=', last_char - cur);
-        if (operator == NULL)
+        if (operator == 0)
         {
             /**** No search operator. ****/
             return SLP_PARSE_ERROR;
         }
 
-        val_start = operator + 1; /* The rhs always follows the operator. (This doesn't really make sense for PRESENT ops, but ignore that). */
-        /**** Check for APPROX, GREATER, or LESS. Note that we shuffle the operator pointer back to point at the start of the op. ****/
+        /* The rhs always follows the operator. (This doesn't really make 
+        sense for PRESENT ops, but ignore that). */
+        val_start = operator + 1; 
+        
+        /* Check for APPROX, GREATER, or LESS. Note that we shuffle the 
+        operator pointer back to point at the start of the op. */
         if (operator == cur)
         {/* Check that we can poke back one char. */
             return SLP_PARSE_ERROR;
@@ -698,7 +771,7 @@ SLPError filter(char *start, char **end, SLPAttributes slp_attr, SLPBoolean *ret
         /**** Left. ****/
         len = operator - cur;
         lhs = (char *)malloc(len + 1);
-        if (lhs == NULL)
+        if (lhs == 0)
         {
             return SLP_MEMORY_ALLOC_FAILED;
         }
@@ -708,7 +781,7 @@ SLPError filter(char *start, char **end, SLPAttributes slp_attr, SLPBoolean *ret
         /**** Right ****/
         len = last_char - val_start;
         rhs = (char *)malloc(len + 1);
-        if (rhs == NULL)
+        if (rhs == 0)
         {
             return SLP_MEMORY_ALLOC_FAILED;
         }
@@ -728,7 +801,8 @@ SLPError filter(char *start, char **end, SLPAttributes slp_attr, SLPBoolean *ret
             /**** Do operation. *****/
             if (op == PRESENT)
             {
-                /*** Since the PRESENT operation is the same for all types, do that now. ***/
+                /*** Since the PRESENT operation is the same for all types, 
+                do that now. ***/
                 *return_value = SLP_TRUE;
                 err = SLP_OK;
             }
@@ -761,7 +835,7 @@ SLPError filter(char *start, char **end, SLPAttributes slp_attr, SLPBoolean *ret
 
         /***** Clean up. *****/
         free(lhs);
-        if (rhs != NULL)
+        if (rhs != 0)
         {
             free(rhs);
         }
@@ -774,33 +848,38 @@ SLPError filter(char *start, char **end, SLPAttributes slp_attr, SLPBoolean *ret
 }
 
 
-/* Test a predicate. 
- *
- * This is mostly a wrapper to filter(), but it does additional error 
- * checking,  and puts error codes in terms of something a wee bit more 
- * standard. 
- *
- * Parameters:
- * 
- *  recursion_depth -- dictates how many bracketed expressions are to be 
- *      explored. It is decremented to zero, at which point parsing stops and 
- *      a SLP_PARSE_ERROR is returned. 
- *
- * Returns:
- *  SLP_OK -- If test was performed, the result (true or false) is returned 
- *      through the parameter result.
- *  SLP_PARSE_ERROR -- If there was a syntax error in the predicate, no 
- *      result is returned through result.
- *  SLP_INTERNAL_SYSTEM_ERROR -- Something went wrong internally.
- *  
- */
-SLPError SLPAttrEvalPred(SLPAttributes slp_attr, SLPDPredicate predicate, SLPBoolean *result, int recursion_depth)
+/*--------------------------------------------------------------------------*/
+SLPError SLPAttrEvalPred(SLPAttributes slp_attr, 
+                         SLPDPredicate predicate, 
+                         SLPBoolean *result, 
+                         int recursion_depth)
+
+/* Test a predicate.                                                        */
+/*                                                                          */
+/* This is mostly a wrapper to filter(), but it does additional error       */
+/* checking,  and puts error codes in terms of something a wee bit more     */
+/* standard.                                                                */
+/*                                                                          */
+/* Parameters:                                                              */
+/*                                                                          */
+/*  recursion_depth -- dictates how many bracketed expressions are to be    */
+/*  explored. It is decremented to zero, at which point parsing stops and   */
+/*  a SLP_PARSE_ERROR is returned.                                          */
+/*                                                                          */
+/* Returns:                                                                 */
+/*  SLP_OK -- If test was performed, the result (true or false) is returned */
+/*      through the parameter result.                                       */
+/*  SLP_PARSE_ERROR -- If there was a syntax error in the predicate, no     */
+/*      result is returned through result.                                  */
+/*  SLP_INTERNAL_SYSTEM_ERROR -- Something went wrong internally.           */
+/*                                                                          */
+/*--------------------------------------------------------------------------*/
 {
     char *end; /* Pointer to the end of the parsed attribute string. */
     SLPError err;
 
     /***** An empty string is always true. *****/
-    if (predicate == NULL)
+    if (predicate == 0)
     {
         return SLP_OK;
     }
@@ -818,7 +897,7 @@ SLPError SLPAttrEvalPred(SLPAttributes slp_attr, SLPDPredicate predicate, SLPBoo
 
 
 /*=========================================================================*/
-int SLPTestPredicate(SLPDPredicate predicate, SLPAttributes attr) 
+int SLPDTestPredicate(SLPDPredicate predicate, SLPAttributes attr) 
 /*                                                                         */
 /* Determine whether the specified attribute list satisfies                */
 /* the specified predicate                                                 */
@@ -868,7 +947,7 @@ int SLPTestPredicate(SLPDPredicate predicate, SLPAttributes attr)
 //	/* TODO elide. */
 //	
 //	safe_pred = (char *)malloc(predicatelen + 1);
-//	if (safe_pred == NULL) {
+//	if (safe_pred == 0) {
 //		return -1;
 //	}
 //	memcpy(safe_pred, predicate, predicatelen);
@@ -888,7 +967,93 @@ int SLPTestPredicate(SLPDPredicate predicate, SLPAttributes attr)
 //	return -1;
 }
 
+/*=========================================================================*/
+SLPError SLPDPredicateAlloc(const char *predicate_str,
+                            size_t len,
+                            SLPDPredicate *pred) 
+/*                                                                         */
+/* Create a predicate structure.                                           */
+/*                                                                         */
+/* predicate    (IN) the predicate string                                  */
+/*                                                                         */
+/* len          (IN) the length of the predicate string                    */
+/*                                                                         */
+/* pred         (IN) the predicate struct to populate                      */
+/*                                                                         */
+/* Returns:                                                                */
+/*   SLP_OK if allocated properly.                                         */
+/*   SLP_PARSE_ERROR if there is an error in the predicate string.         */
+/*   SLP_MEMORY_ALLOC_FAILED if out of memory                              */
+/*                                                                         */
+/*=========================================================================*/
+{
+    const char *start_cur; /* Used to find first non-WS char in pred. */
+    const char *end_cur; /* Used to find last non-WS char in pred. */
 
+    /* Temporary pointer for working with the under-construction predicate */
+    /* "object".                                                           */
+    char *new_pred;
+
+    size_t real_len; /* The length of the elided whitespace. */
+
+    /***** Elide start. *****/
+    start_cur = predicate_str;
+    while (((start_cur - predicate_str) < len) && (isspace(*start_cur)))
+    {
+        start_cur++;
+    }
+
+    /***** Elide end. *****/
+    end_cur = predicate_str + len;
+    while ((end_cur >= start_cur) && (isspace(*end_cur)))
+    {
+        end_cur--;
+    }
+
+    /***** Return if empty *****/
+    if (end_cur < start_cur)
+    {
+        *pred = 0; /* Empty string. */
+        return SLP_OK;
+    }
+
+    /***** Copy *****/
+    real_len = end_cur - start_cur;
+    new_pred = (char *)malloc(real_len + 1);
+
+    if (new_pred == 0)
+    {
+        return SLP_MEMORY_ALLOC_FAILED;
+    }
+
+    /* Copy. */
+    strncpy(new_pred, predicate_str, real_len);
+
+    /* Null terminate. */
+    new_pred[real_len] = 0;
+
+    /* Set value. */
+    *pred = (SLPDPredicate)new_pred;
+
+    return SLP_OK;
+}
+
+
+/*=========================================================================*/
+void SLPDPredicateFree(SLPDPredicate *victim)
+/* Free memory associated with the specified predicate                     */
+/*                                                                         */
+/* victim (IN) The predicate to free                                       */
+/*                                                                         */
+/* Returns: none                                                           */
+/*=========================================================================*/
+{
+    if (victim != 0)
+    {
+        free(victim);
+    }
+    return;
+}
 
 #else /* USE_PREDICATES */
 
@@ -897,8 +1062,60 @@ int SLPTestPredicate(SLPDPredicate predicate, SLPAttributes attr)
  * disabled. I'm operating on the assumption that the compiler is smart 
  * enough to optimize this out. 
  */
-int SLPTestPredicate(SLPDPredicate predicate, SLPAttributes attr) 
+/*=========================================================================*/
+int SLPDTestPredicate(SLPDPredicate predicate, SLPAttributes attr) 
+/*                                                                         */
+/* Determine whether the specified attribute list satisfies                */
+/* the specified predicate                                                 */
+/*                                                                         */
+/* predicatelen (IN) the length of the predicate string                    */
+/*                                                                         */
+/* predicate    (IN) the predicate string                                  */
+/*                                                                         */
+/* attr         (IN) attribute list to test                                */
+/*                                                                         */
+/* Returns: Zero if there is a match, a positive value if there was not a  */
+/*          match, and a negative value if there was a parse error in the  */
+/*          predicate string.                                              */
+/*=========================================================================*/
 {
     return 0;
 }
+
+/*=========================================================================*/
+SLPError SLPDPredicateAlloc(const char *predicate_str,
+                            size_t len,
+                            SLPDPredicate *pred) 
+/*                                                                         */
+/* Create a predicate structure.                                           */
+/*                                                                         */
+/* predicate    (IN) the predicate string                                  */
+/*                                                                         */
+/* len          (IN) the length of the predicate string                    */
+/*                                                                         */
+/* pred         (IN) the predicate struct to populate                      */
+/*                                                                         */
+/* Returns:                                                                */
+/*   SLP_OK if allocated properly.                                         */
+/*   SLP_PARSE_ERROR if there is an error in the predicate string.         */
+/*   SLP_MEMORY_ALLOC_FAILED if out of memory                              */
+/*                                                                         */
+/*=========================================================================*/
+{
+    *pred = 0;
+    return SLP_OK;
+}
+
+
+/*=========================================================================*/
+void SLPDPredicateFree(SLPDPredicate *victim)
+/* Free memory associated with the specified predicate                     */
+/*                                                                         */
+/* victim (IN) The predicate to free                                       */
+/*                                                                         */
+/* Returns: none                                                           */
+/*=========================================================================*/
+{
+}
+
 #endif /* USE_PREDICATES */

@@ -38,12 +38,15 @@
 /* Include platform specific headers files */
 #ifdef WIN32
 #include "slpd_win32.h"
-#define strncasecmp(String1, String2, Num) strnicmp(String1, String2, Num)
 #else
 #include "slpd_unistd.h"
 #endif
 
-#include "slpd_predicate.h"
+#ifdef USE_PREDICATES
+#include "libslpattr.h"
+#include <assert.h>
+#endif
+
 
 /* common includes */
 #include "slp_compare.h"
@@ -53,7 +56,6 @@
 #include "slp_property.h"
 #include "slp_linkedlist.h"
 #include "slp_da.h"
-
 
 #if(!defined MAX_PATH)
 #define MAX_PATH    256
@@ -521,6 +523,7 @@ int SLPDIncomingInit();
 /* Returns  Zero on success non-zero on error                              */
 /*=========================================================================*/
 
+
 #if(defined DEBUG)
 /*=========================================================================*/
 int SLPDIncomingDeinit();
@@ -569,6 +572,7 @@ int SLPDOutgoingInit();
 /* Returns  Zero on success non-zero on error                              */
 /*=========================================================================*/
 
+
 #if(defined DEBUG)
 /*=========================================================================*/
 int SLPDOutgoingDeinit();
@@ -578,6 +582,7 @@ int SLPDOutgoingDeinit();
 /* Returns  Zero on success non-zero on error                              */
 /*=========================================================================*/
 #endif
+
 
 /*=========================================================================*/
 extern SLPList G_OutgoingSocketList;
@@ -674,6 +679,62 @@ void SLPDKnownDAActiveDiscovery();
 extern SLPList G_KnownDAList;                                         
 /* The list of DAs known to slpd.                                          */
 /*=========================================================================*/
+
+
+
+#if(defined USE_PREDICATES)
+
+/*=========================================================================*/
+typedef void* SLPDPredicate; 
+/* Opaque type representing an predicate                                   */
+/*=========================================================================*/
+
+/*=========================================================================*/
+int SLPDPredicateAlloc(const char *predicate_str,
+                       size_t len,
+                       SLPDPredicate *pred); 
+/*                                                                         */
+/* Create a predicate structure.                                           */
+/*                                                                         */
+/* predicate    (IN) the predicate string                                  */
+/*                                                                         */
+/* len          (IN) the length of the predicate string                    */
+/*                                                                         */
+/* pred         (IN) the predicate struct to populate                      */
+/*                                                                         */
+/* Returns:                                                                */
+/*   SLP_OK if allocated properly.                                         */
+/*   SLP_PARSE_ERROR if there is an error in the predicate string.         */
+/*   SLP_MEMORY_ALLOC_FAILED if out of memory                              */
+/*=========================================================================*/
+
+/*=========================================================================*/
+void SLPDPredicateFree(SLPDPredicate *victim);
+/* Free memory associated with the specified predicate                     */
+/*                                                                         */
+/* victim (IN) The predicate to free                                       */
+/*                                                                         */
+/* Returns: none                                                           */
+/*=========================================================================*/
+
+/*=========================================================================*/
+int SLPDTestPredicate(SLPDPredicate predicate, SLPAttributes attr);
+/* Determine whether the specified attribute list satisfies                */
+/* the specified predicate                                                 */
+/*                                                                         */
+/* predicatelen (IN) the length of the predicate string                    */
+/*                                                                         */
+/* predicate    (IN) the predicate string                                  */
+/*                                                                         */
+/* attr         (IN) attribute list to test                                */
+/*                                                                         */
+/* Returns: Zero if there is a match, a positive value if there was not a  */
+/*          match, and a negative value if there was a parse error in the  */
+/*          predicate string.                                              */
+/*=========================================================================*/
+
+#endif /* (defined USE_PREDICATES) */
+
 
 
 #endif /*(!defined SLPD_H_INCLUDED) */

@@ -292,7 +292,10 @@ int SLPDDatabaseFindSrv(SLPSrvRqst* srvrqst,
     /***** Create and verify predicate. *****/
     err = SLPDPredicateAlloc(srvrqst->predicate, srvrqst->predicatelen, &pred);
 
-    assert(err == SLP_OK || err == SLP_PARSE_ERROR || err == SLP_MEMORY_ALLOC_FAILED); /* Make sure a legal value was returned. */
+    /* Make sure a legal value was returned. */
+    assert(err == SLP_OK || 
+           err == SLP_PARSE_ERROR || 
+           err == SLP_MEMORY_ALLOC_FAILED); 
 
     if (err == SLP_INTERNAL_SYSTEM_ERROR || err == SLP_PARSE_ERROR)
     {
@@ -311,7 +314,7 @@ int SLPDDatabaseFindSrv(SLPSrvRqst* srvrqst,
                               entry->srvtypelen,
                               entry->srvtype) == 0)
         {
-            if (SLPTestPredicate(pred, entry->attr) == 0)
+            if (SLPDTestPredicate(pred, entry->attr) == 0)
             {
                 if (SLPIntersectStringList(srvrqst->scopelistlen,
                                            srvrqst->scopelist,
@@ -442,7 +445,9 @@ int SLPDDatabaseFindAttr(SLPAttrRqst* attrrqst,
             {
                 SLPError err;
 
-                err = SLPAttrSerialize(entry->attr, &result[found].attrlen, &result[found].attr, SLP_FALSE);
+                err = SLPAttrSerialize(entry->attr, 
+                                       &result[found].attrlen, 
+                                       &result[found].attr, SLP_FALSE);
                 if (err == SLP_OK)
                 {
                     /* FIXME TODO Should the entire function fail, or should 
@@ -452,8 +457,7 @@ int SLPDDatabaseFindAttr(SLPAttrRqst* attrrqst,
             }
         }
 
-        entry = (SLPDDatabaseEntry*)entry->listitem.next;
-
+        entry = (SLPDDatabaseEntry*)entry->listitem.next; 
     }
 
     return found;

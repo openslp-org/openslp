@@ -24,6 +24,6 @@ slpd_SOURCES	= slpd_socket.c \
     slpd_knownda.c  \
     slpd_incoming.c \
     slpd_outgoing.c \
-    slpd_predicate.c \
-	slpd_wildcard.c
+    slpd_predicate.c
+
 slpd_LDADD      =  ../common/libcommonslpd.la ../libslpattr/libslpattr.la
