@@ -6,6 +6,10 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 
+10/15/01 matt@caldera.com
+Fixed problem where empty message was sent when talking to more than
+one statically configured DA.  Patch from Timothy Zurcher.
+
 *** Tag OpenSLP-1.0.3 ***
 
 10/09/01 matt@caldera.com
