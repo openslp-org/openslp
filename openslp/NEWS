@@ -1,6 +1,28 @@
 NEWS - list of user-visible changes between releases of OpenSLP and other
 important events.
 
+New in openslp-0.9.1 (2001-05-??)
+---------------------------------
+* SLPv1 backward compatibility support is back!
+* Easy Package Manager (EPM) list file added (EPM is a software packager
+  that can generate different package formats from a single list file).
+
+New in openslp-0.9.0 (2001-04-10)
+---------------------------------
+* Full SLPv2 Authentication support.
+* Documentation for SLPv2 features.                                           
+* Completely new internal registration and knownDA database implementation.
+* Optional net.slp.checkSourceAddr security feature
+* Support for net.slp.OpenSLPVersion.
+* Support for special service-types "service:directory-agent" and
+  "service:service-agent" can now be used in calls to SLPFindSrvs().
+* Changes to libslp to prepare for collation in 0.9.1 
+* Fixes for several socket reconnect, reuse, and aging bugs.
+* Fixes for several slp.reg parsing errors.                                   
+* Fix for "invalid predicate" SEGV.
+* Debug logging of registrations and known DAs on receipt of SIGINT.
+* Debug malloc wrappers.
+
 New in openslp-0.8.3 (2001-03-13)
 ---------------------------------
 * Completely updated Win32 port

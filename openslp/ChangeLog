@@ -6,6 +6,21 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 
+05/10/01 rganesan@myrealbox.com
+Updated NEWS.
+
+05/10/01 rganesan@myrealbox.com
+Fixed up broken SLPv1 support.
+
+05/10/01 rganesan@myrealbox.com
+Changed includes of the form "../common/header.h" to "header.h" because of
+potential breakage for non source directory builds.
+
+05/10/01 rganesan@myrealbox.com
+Added a EPM slp.list.in file and updated configure.in. EPM is an Easy
+Package Manager (http://www.easysw.com/epm) that allows easy creation of
+different packaging formats.
+
 04/26/01 mpeterson@caldera.com
 Added more documentation to the usage output of slptool
 
