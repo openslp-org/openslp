@@ -182,7 +182,7 @@ SLPError SLPOpen(const char *pcLang, SLPBoolean isAsync, SLPHandle *phSLP)
         SLPXidSeed();
     }
 
-#ifdef ENABLE_AUTHENTICATION
+#ifdef ENABLE_SECURITY
     handle->hspi = SLPSpiOpen(LIBSLP_SPIFILE,0);
 #endif
 
@@ -260,7 +260,7 @@ void SLPClose(SLPHandle hSLP)
         free(handle->sascope);
     }
 
-#ifdef ENABLE_AUTHENTICATION
+#ifdef ENABLE_SECURITY
     if(handle->hspi) SLPSpiClose(handle->hspi);
 #endif
 

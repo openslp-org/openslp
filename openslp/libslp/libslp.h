@@ -79,7 +79,7 @@
 #include "../common/slp_network.h"
 #include "../common/slp_database.h"
 #include "../common/slp_compare.h"
-#ifdef ENABLE_AUTHENTICATION
+#ifdef ENABLE_SECURITY
 #include "../common/slp_auth.h"
 #include "../common/slp_spi.h"
 #endif
@@ -236,7 +236,7 @@ typedef struct _SLPHandleInfo
     int                 sascopelen;
     int                 langtaglen;
     char*               langtag;
-#ifdef ENABLE_AUTHENTICATION
+#ifdef ENABLE_SECURITY
     SLPSpiHandle        hspi;
 #endif
     SLPHandleCallParams params;

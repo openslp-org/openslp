@@ -101,7 +101,7 @@ SLPBoolean KnownDAListFind(int scopelistlen,
                                    scopelistlen,
                                    scopelist))
             {
-#ifdef ENABLE_AUTHENTICATION
+#ifdef ENABLE_SECURITY
                 if(SLPCompareString(entry->msg->body.daadvert.spilistlen,
                                     entry->msg->body.daadvert.spilist,
                                     spistrlen,
@@ -501,7 +501,7 @@ int KnownDAConnect(PSLPHandleInfo handle,
     int             sock = -1;
     int                 spistrlen   = 0;
     char*               spistr      = 0;
-#ifdef ENABLE_AUTHENTICATION
+#ifdef ENABLE_SECURITY
     if(SLPPropertyAsBoolean(SLPGetProperty("net.slp.securityEnabled")))
     {
         SLPSpiGetDefaultSPI(handle->hspi,
@@ -541,7 +541,7 @@ int KnownDAConnect(PSLPHandleInfo handle,
     }
 
 
-#ifdef ENABLE_AUTHENTICATION
+#ifdef ENABLE_SECURITY
     if(spistr) free(spistr);
 #endif
 

@@ -110,7 +110,7 @@ SLPError ProcessSrvDeReg(PSLPHandleInfo handle)
     char*               curpos      = 0;
     SLPError            result      = 0;
 
-#ifdef ENABLE_AUTHENTICATION
+#ifdef ENABLE_SECURITY
     int                 urlauthlen  = 0;
     unsigned char*      urlauth     = 0;
     if(SLPPropertyAsBoolean(SLPGetProperty("net.slp.securityEnabled")))
@@ -171,7 +171,7 @@ SLPError ProcessSrvDeReg(PSLPHandleInfo handle)
            handle->params.dereg.urllen);
     curpos = curpos + handle->params.dereg.urllen;
     /* url-entry authcount */
-#ifdef ENABLE_AUTHENTICATION
+#ifdef ENABLE_SECURITY
     if(urlauth)
     {
         /* authcount */
@@ -226,7 +226,7 @@ SLPError ProcessSrvDeReg(PSLPHandleInfo handle)
 
     FINISHED:
     if(buf) free(buf);
-#ifdef ENABLE_AUTHENTICATION
+#ifdef ENABLE_SECURITY
     if(urlauth) free(urlauth);
 #endif
 

@@ -86,20 +86,19 @@ if test "$asyncapi" = "yes"; then
 fi
 
 dnl ***********************************************************************
-dnl Enable authentication support 
+dnl Enable security support 
 dnl ***********************************************************************
-AC_ARG_ENABLE(authentication,
-[  --enable-authentication Turn on authentication support (default off)],
-authentication=$enableval,
-authentication=no)
+AC_ARG_ENABLE(security,
+[  --enable-security       Turn on security support (default off)],
+security=$enableval,
+security=no)
 
-dnl Conditional for optional asyncronous support in libslp SLP API library
-AM_CONDITIONAL(ENABLE_AUTHENTICATION, test "$authentication" = "yes")
-
-if test "$authentication" = "yes"; then
+dnl Conditional for optional security support in libslp SLP API library
+AM_CONDITIONAL(ENABLE_SECURITY, test "$security" = "yes")
+if test "$security" = "yes"; then
     AC_CHECK_LIB(crypto,DSA_sign) 
     AC_CHECK_FUNCS(DSA_verify DSA_size DSA_free SHA1)
-    AC_DEFINE(ENABLE_AUTHENTICATION)
+    AC_DEFINE(ENABLE_SECURITY)
 fi
 
 

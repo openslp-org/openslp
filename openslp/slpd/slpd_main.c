@@ -59,7 +59,7 @@
 #include "slpd_cmdline.h"
 #include "slpd_knownda.h"
 #include "slpd_property.h"
-#ifdef ENABLE_AUTHENTICATION
+#ifdef ENABLE_SECURITY
 #include "slpd_spi.h"
 #endif
 
@@ -193,7 +193,7 @@ void HandleSigTerm()
     SLPDLog("****************************************\n");
 
 #ifdef DEBUG
-    #ifdef ENABLE_AUTHENTICATION
+    #ifdef ENABLE_SECURITY
     SLPDSpiDeinit();
     #endif
     SLPDDatabaseDeinit();
@@ -515,7 +515,7 @@ int main(int argc, char* argv[])
     /* Initialize for the first time                    */
     /*--------------------------------------------------*/
     if(SLPDPropertyInit(G_SlpdCommandLine.cfgfile) ||
-#ifdef ENABLE_AUTHENTICATION
+#ifdef ENABLE_SECURITY
        SLPDSpiInit(G_SlpdCommandLine.spifile) ||
 #endif     
        SLPDDatabaseInit(G_SlpdCommandLine.regfile) ||

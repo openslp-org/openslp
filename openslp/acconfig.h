@@ -20,6 +20,6 @@
 #undef ENABLE_ASYNC_API
 
 /* defined if the SLPv2 authenticationsupport is enabled */
-#undef ENABLE_AUTHENTICATION
+#undef ENABLE_SECURITY
 
 #endif

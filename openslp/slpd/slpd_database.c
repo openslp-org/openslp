@@ -181,7 +181,7 @@ int SLPDDatabaseReg(SLPMessage msg, SLPBuffer buf)
                                           reg->scopelist) > 0)
                 {
 
-#ifdef ENABLE_AUTHENTICATION
+#ifdef ENABLE_SECURITY
                     if(G_SlpdProperty.checkSourceAddr &&
                        memcmp(&(entry->msg->peer.sin_addr),
                               &(msg->peer.sin_addr),
@@ -286,7 +286,7 @@ int SLPDDatabaseDeReg(SLPMessage msg)
                                           dereg->scopelist) > 0)
                 {
 
-#ifdef ENABLE_AUTHENTICATION
+#ifdef ENABLE_SECURITY
                     if(G_SlpdProperty.checkSourceAddr &&
                        memcmp(&(entry->msg->peer.sin_addr),
                               &(msg->peer.sin_addr),
@@ -334,7 +334,7 @@ int SLPDDatabaseSrvRqstStart(SLPMessage msg,
     SLPDatabaseEntry*           entry;
     SLPSrvReg*                  entryreg;
     SLPSrvRqst*                 srvrqst;
-#ifdef ENABLE_AUTHENTICATION
+#ifdef ENABLE_SECURITY
     int                         i;
 #endif
 
@@ -403,7 +403,7 @@ int SLPDDatabaseSrvRqstStart(SLPMessage msg,
 #endif
                     {
                         
-#ifdef ENABLE_AUTHENTICATION
+#ifdef ENABLE_SECURITY
                         if(srvrqst->spistrlen)
                         {
                             for(i=0; i< entryreg->urlentry.authcount;i++)
@@ -598,7 +598,7 @@ int SLPDDatabaseAttrRqstStart(SLPMessage msg,
     SLPDatabaseEntry*           entry;
     SLPSrvReg*                  entryreg;
     SLPAttrRqst*                attrrqst;
-#ifdef ENABLE_AUTHENTICATION
+#ifdef ENABLE_SECURITY
     int                         i;
 #endif
     
@@ -645,7 +645,7 @@ int SLPDDatabaseAttrRqstStart(SLPMessage msg,
                 {
                     if(attrrqst->taglistlen == 0)
                     {
-#ifdef ENABLE_AUTHENTICATION
+#ifdef ENABLE_SECURITY
                         if(attrrqst->spistrlen)
                         {
                             for(i=0; i< entryreg->authcount;i++)

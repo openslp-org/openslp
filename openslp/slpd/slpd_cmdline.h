@@ -86,7 +86,7 @@ typedef struct _SLPDCommandLine
     char   regfile[MAX_PATH];
     char   logfile[MAX_PATH];
     char   pidfile[MAX_PATH];
-#ifdef ENABLE_AUTHENTICATION
+#ifdef ENABLE_SECURITY
     char   spifile[MAX_PATH];
 #endif
     int    action;

@@ -54,7 +54,7 @@
 #include "slpd_regfile.h"
 #include "slpd_property.h"
 #include "slpd_log.h"
-#ifdef ENABLE_AUTHENTICATION
+#ifdef ENABLE_SECURITY
 #include "slpd_spi.h"
 #endif
 
@@ -62,7 +62,7 @@
 /* common code includes                                                    */
 /*=========================================================================*/
 #include "../common/slp_xmalloc.h"
-#ifdef ENABLE_AUTHENTICATION
+#ifdef ENABLE_SECURITY
 #include "../common/slp_auth.h"
 #endif
 
@@ -162,7 +162,7 @@ int SLPDRegFileReadSrvReg(FILE* fd,
     char*   srvtype         = 0;
     int     attrlistlen     = 0;
     char*   attrlist        = 0;
-#ifdef ENABLE_AUTHENTICATION
+#ifdef ENABLE_SECURITY
     unsigned char*  urlauth         = 0;
     int             urlauthlen      = 0;
     unsigned char*  attrauth        = 0;
@@ -378,7 +378,7 @@ int SLPDRegFileReadSrvReg(FILE* fd,
     }
 
  
-#ifdef ENABLE_AUTHENTICATION
+#ifdef ENABLE_SECURITY
     /*--------------------------------*/
     /* Generate authentication blocks */
     /*--------------------------------*/
@@ -416,7 +416,7 @@ int SLPDRegFileReadSrvReg(FILE* fd,
     bufsize += scopelistlen + 2;/*  2 bytes for len field */
     bufsize += attrlistlen + 2; /*  2 bytes for len field */
     bufsize += 1;               /*  1 byte for authcount  */
-    #ifdef ENABLE_AUTHENTICATION
+    #ifdef ENABLE_SECURITY
     bufsize += urlauthlen;
     bufsize += attrauthlen;
     #endif  
@@ -460,7 +460,7 @@ int SLPDRegFileReadSrvReg(FILE* fd,
     memcpy((*buf)->curpos,url,urllen);
     (*buf)->curpos = (*buf)->curpos + urllen;
     /* url-entry authblock */
-#ifdef ENABLE_AUTHENTICATION
+#ifdef ENABLE_SECURITY
     if(urlauth)
     {
         /* authcount */
@@ -493,7 +493,7 @@ int SLPDRegFileReadSrvReg(FILE* fd,
     memcpy((*buf)->curpos,attrlist,attrlistlen);
     (*buf)->curpos = (*buf)->curpos + attrlistlen;
     /* attribute auth block */
-#ifdef ENABLE_AUTHENTICATION
+#ifdef ENABLE_SECURITY
     if(attrauth)
     {
         /* authcount */
@@ -552,7 +552,7 @@ CLEANUP:
     if(url) xfree(url);
     if(srvtype) xfree(srvtype);
     if(attrlist)xfree(attrlist);
-#ifdef ENABLE_AUTHENTICATION
+#ifdef ENABLE_SECURITY
     if(urlauth) xfree(urlauth);
     if(attrauth) xfree(attrauth);
 #endif

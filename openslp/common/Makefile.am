@@ -5,8 +5,8 @@ if ENABLE_SLPv1
 slp_v1message_SRCS = slp_v1message.c slp_utf8.c
 endif
 
-if ENABLE_AUTHENTICATION
-slp_authentication_SRCS = slp_auth.c slp_crypto.c slp_spi.c
+if ENABLE_SECURITY
+slp_security_SRCS = slp_auth.c slp_crypto.c slp_spi.c
 endif
 
 libcommonlibslp_la_SOURCES = \
@@ -20,7 +20,7 @@ libcommonlibslp_la_SOURCES = \
 	slp_database.c \
 	slp_xmalloc.c \
 	$(slp_v1message_SRCS) \
-	$(slp_authentication_SRCS)
+	$(slp_security_SRCS)
 
 libcommonslpd_la_SOURCES = \
 	slp_compare.c \
@@ -32,7 +32,7 @@ libcommonslpd_la_SOURCES = \
 	slp_database.c \
 	slp_xmalloc.c \
 	$(slp_v1message_SRCS) \
-	$(slp_authentication_SRCS)
+	$(slp_security_SRCS)
 
 noinst_HEADERS = \
 	slp_buffer.h \
