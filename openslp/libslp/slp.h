@@ -911,7 +911,7 @@ SLPError SLPParseAttrs(const char* pcAttrList,
 /* pcAttrId (IN)   The string indicating which attribute value to return.  */
 /*                 MUST not be null.  MUST not be the empty string ("").   */
 /*                                                                         */
-/* ppcAttrVal (IN) A pointer to a pointer to the buffer to receive         */
+/* ppcAttrVal (OUT) A pointer to a pointer to the buffer to receive        */
 /*                 attribute value.  The memory should be freed by a call  */
 /*                 to SLPFree() when no longer needed.                     */
 /*                                                                         */
