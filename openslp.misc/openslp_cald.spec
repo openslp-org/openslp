@@ -1,5 +1,5 @@
 Name        	: openslp
-Version     	: 0.6.2
+Version     	: 0.6.7
 Release     	: 1
 Group       	: Server/Network
 Summary     	: OpenSLP implementation of Service Location Protocol V2 
@@ -9,7 +9,7 @@ URL         	: http://www.openslp.org/
 
 BuildRoot   	: /tmp/%{Name}-%{Version}
 
-Source0		: ftp://openslp.org/pub/openslp/openslp-0.6.2/openslp-0.6.2.tar.gz
+Source0		: ftp://openslp.org/pub/openslp/openslp-0.6.7/openslp-0.6.7.tar.gz
 
 
 %Description
