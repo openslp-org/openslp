@@ -28,8 +28,8 @@ previous version consist of the following:
     - slpd running as a DA now sends passive DAAdverts
     - slpd running as an SA now performs active DA discovery
     - slpd running as an SA now re-registers all services with new DAs
-    - Significant fixes were made to make slpd work properly on 
-    - multi-homed machines
+    - Significant fixes were made to make slpd work properly on multi-homed
+      machines
  
 
 2 - Roadmap

@@ -1,5 +1,17 @@
 NEWS - list of user-visible changes between releases of OpenSLP
 
+New in openslp-0.7.8 (2000-11-06)
+---------------------------------
+* slpd now does a graceful shutdown on SIGTERM to deregister serviced
+  with DAs
+* Considerable time spend using commercial debugging tools to remove
+  ALL memory leaks from slpd and libslp.  Code should very clean.
+* IPC (via loopback) is now used by libslp to obtain DA information
+  from slpd before multicasting
+* slpd running as a DA now sends passive DAAdverts
+* slpd running as an SA now performs active DA discovery
+* slpd running as an SA now re-registers all services with new DAs
+* Significant fixes were made to make slpd work properly on multi-homed machines  
 
 
 New in openslp-0.7.7: (2000-10-11)
