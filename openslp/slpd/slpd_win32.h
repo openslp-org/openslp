@@ -88,6 +88,10 @@ typedef enum _SLPDAction
 } SLPDAction;
 
 
+/* definition for inet_aton() since Microsoft does not have this yet */
+#define inet_aton(opt,bind) ((bind)->s_addr = inet_addr(opt))
+
+
 /*=========================================================================*/
 VOID WINAPI SLPDServiceMain(DWORD argc, LPTSTR *argv); 
 /* Performs actual initialization of the service                           */

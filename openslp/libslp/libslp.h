@@ -456,6 +456,7 @@ void KnownDAFreeAll();
 #ifdef WIN32
 #define strncasecmp(String1, String2, Num) strnicmp(String1, String2, Num)
 #define strcasecmp(String1, String2, Num) stricmp(String1, String2, Num)
+#define inet_aton(opt,bind) ((bind)->s_addr = inet_addr(opt))
 #else
 #ifndef HAVE_STRNCASECMP
 static int
