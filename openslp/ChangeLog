@@ -5,6 +5,16 @@ Please make entries to this log (in addition to the CVS log) that describe
 major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
+10/16/01 matt@caldera.com
+Added code to log parse errors and dump bad messages to the log
+
+10/16/01 matt@caldera.com
+Fixed parse error conditional in slpd message processing code where some bad
+messages could cause SEGV of slpd.
+
+10/16/01 matt@caldera.com
+Fixed problem where libslp.so would loop tightly if SLPReg() and SLPDereg()
+were called after previously contacted slpd had died.
 
 10/15/01 matt@caldera.com
 Fixed problem where empty message was sent when talking to more than

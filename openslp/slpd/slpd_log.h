@@ -152,4 +152,11 @@ void SLPDLogDAAdvertisement(const char* prefix,
 /*                                                                         */
 /* Returns: none                                                           */
 /*=========================================================================*/
+
+
+/*=========================================================================*/
+void SLPDLogParseWarning(struct sockaddr_in* peeraddr, SLPBuffer buf);
+/* Log a parsing error warning and dumps the invalid message.              */
+/*=========================================================================*/
+
 #endif

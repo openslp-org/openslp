@@ -252,16 +252,6 @@ int NetworkConnectToSA(PSLPHandleInfo handle,
         /* Attempt to connect to slpd via loopback */
         /*-----------------------------------------*/
         handle->sasock = NetworkConnectToSlpd(&(handle->saaddr));
-        if(handle->sasock < 0)
-        {
-            /*----------------------------*/
-            /* Attempt to connect to a DA */
-            /*----------------------------*/
-            handle->sasock = NetworkConnectToDA(handle,
-                                                scopelist,
-                                                scopelistlen,
-                                                &(handle->saaddr));
-        }
 
         /*----------------------------------------------------------*/
         /* if we connected to something, cache scope and addr info  */

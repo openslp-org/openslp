@@ -493,4 +493,38 @@ void SLPDLogDAAdvertisement(const char* prefix,
     }
 }
 
-
+/*=========================================================================*/
+void SLPDLogParseWarning(struct sockaddr_in* peeraddr, SLPBuffer buf)
+/* Log a parsing error warning and dumps the invalid message.              */
+/*=========================================================================*/  
+{
+    unsigned char* curpos;
+    int i = 0;
+   
+    SLPDLog("\n");
+    SLPDLogTime();
+    SLPDLog("*** WARNING Parse Error ***\n");
+    SLPDLogPeerAddr(peeraddr);
+    SLPDLog("message size = %i\n",buf->end - buf->start);
+    SLPDLog("message dump = ");    
+    for(curpos = buf->start; curpos < buf->end; curpos++)
+    {
+        SLPDLog("0x%2x",*curpos);
+        if(*curpos < 20) 
+	{
+	    SLPDLog("(' ') ");
+	}
+        else
+        {
+	    SLPDLog("('%c')",*curpos);
+	}
+        
+        /* newline every 75 columns */
+        i++;
+        if(i==15) 
+	{
+	    i=0;
+	    SLPDLog("\n");
+	}       
+    }    
+}

@@ -1264,10 +1264,20 @@ int SLPDProcessMessage(struct sockaddr_in* peerinfo,
     
     SLPDLogMessage("Trace message (IN)",peerinfo,recvbuf);
 
-    /* Parse just the message header the reset the buffer "curpos" pointer */
+    /* zero out the header before parsing it */
+    memset(&header,0,sizeof(header));
+   
+    /* Parse just the message header */
     recvbuf->curpos = recvbuf->start;
     errorcode = SLPMessageParseHeader(recvbuf,&header);
+    
+    /* Reset the buffer "curpos" pointer so that full message can be 
+     * parsed later
+     */
+    recvbuf->curpos = recvbuf->start;
+   
 #if defined(ENABLE_SLPv1)   
+    /* if version == 1 then parse message as a version 1 message */
     if(errorcode == SLP_ERROR_VER_NOT_SUPPORTED &&
        header.version == 1)
     {
@@ -1277,6 +1287,7 @@ int SLPDProcessMessage(struct sockaddr_in* peerinfo,
     }
     else
 #endif
+    if(errorcode == 0) 
     {
         /* TRICKY: Duplicate SRVREG recvbufs *before* parsing them   */
         /*         it because we are going to keep them in the       */
@@ -1334,7 +1345,7 @@ int SLPDProcessMessage(struct sockaddr_in* peerinfo,
 						recvbuf,
 						sendbuf,
 						errorcode);
-            break;
+                    break;
                 
 		case SLP_FUNCT_SRVTYPERQST:
 		    errorcode = ProcessSrvTypeRqst(message, sendbuf, errorcode);
@@ -1348,25 +1359,33 @@ int SLPDProcessMessage(struct sockaddr_in* peerinfo,
 		    /* Should never happen... but we're paranoid */
 		    errorcode = SLP_ERROR_PARSE_ERROR;
 		    break;
-                }   
-            }
-    
-            if(header.functionid == SLP_FUNCT_SRVREG ||
-               header.functionid == SLP_FUNCT_DAADVERT )
-            {
-                /* TRICKY: Do not free the message descriptor for SRVREGs */
-                /*         because we are keeping them in the database    */
-                /*         unless there is an error then we free memory   */
-                if(errorcode)
+                }
+	        
+	        if(header.functionid == SLP_FUNCT_SRVREG ||
+                   header.functionid == SLP_FUNCT_DAADVERT )
                 {
-                    SLPMessageFree(message);
-                    SLPBufferFree(recvbuf);
+                    /* TRICKY: If this is a reg or dereg message we do not
+		     * free the message descriptor or duplicated recvbuf 
+		     * because they are being kept in the database!
+		     *
+		     */
+		    if(errorcode == 0)
+                    {
+                        goto FINISHED;
+		    }
+		    
+		    /* TRICKY: If there is an error we need to free the 
+		     * duplicated recvbuf,
+		     */
+		    SLPBufferFree(recvbuf);                    
                 }
             }
-            else
+	    else
             {
-                SLPMessageFree(message);
-            }
+	        SLPDLogParseWarning(peerinfo, recvbuf);
+	    }
+	   
+	    SLPMessageFree(message);
         }
         else
         {
@@ -1374,7 +1393,13 @@ int SLPDProcessMessage(struct sockaddr_in* peerinfo,
             errorcode = SLP_ERROR_INTERNAL_ERROR;
         }
     }
+    else
+    {
+        SLPDLogParseWarning(peerinfo,recvbuf);
+    }
     
+    FINISHED:
+   
     /* Log dropped messages */
     if(errorcode &&
        (*sendbuf)->end == (*sendbuf)->start)
