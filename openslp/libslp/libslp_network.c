@@ -636,7 +636,8 @@ SLPError NetworkMcastRqstRply(const char* langtag,
     int						usebroadcast    = 0;
     int						timeouts[MAX_RETRANSMITS];
     SLPIfaceInfo			dstifaceinfo;
-	SLPIfaceInfo			outifaceinfo;
+	SLPIfaceInfo			v4outifaceinfo;
+	SLPIfaceInfo			v6outifaceinfo;
     SLPXcastSockets			xcastsocks;
 	int						currIntf		= 0;
 
@@ -676,15 +677,22 @@ SLPError NetworkMcastRqstRply(const char* langtag,
         #ifdef DEBUG
         fprintf(stderr, "McastIFList = %s\n", handle->McastIFList);
         #endif
-        SLPIfaceGetInfo(handle->McastIFList, &outifaceinfo, AF_INET);
+        SLPIfaceGetInfo(handle->McastIFList, &v4outifaceinfo, AF_INET);
+		SLPIfaceGetInfo(handle->McastIFList, &v6outifaceinfo, AF_INET6);
     }
-    else
+	else { 
 #endif /* MI_NOT_SUPPORTED */
-    if(SLPIfaceGetInfo(SLPGetProperty("net.slp.interfaces"),&outifaceinfo, AF_INET))
-    {
+	if (SLPNetIsIPV4())
+		SLPIfaceGetInfo(SLPGetProperty("net.slp.interfaces"),&v4outifaceinfo, AF_INET);
+	if (SLPNetIsIPV6())
+	   SLPIfaceGetInfo(SLPGetProperty("net.slp.interfaces"),&v6outifaceinfo, AF_INET6);
+	if (v4outifaceinfo.iface_count == 0 && v6outifaceinfo.iface_count == 0) {
         result = SLP_NETWORK_ERROR;
         goto FINISHED;
     }
+#ifndef MI_NOT_SUPPORTED
+	}
+#endif
     usebroadcast = SLPPropertyAsBoolean(SLPGetProperty("net.slp.useBroadcast"));
 
     /*-----------------------------------*/
@@ -819,11 +827,14 @@ SLPError NetworkMcastRqstRply(const char* langtag,
 			/*----------------------*/
 			if(usebroadcast)
 			{
-				result = SLPBroadcastSend(&outifaceinfo,sendbuf,&xcastsocks);
+				result = SLPBroadcastSend(&v4outifaceinfo,sendbuf,&xcastsocks);
 			}
 			else
 			{
-				result = SLPMulticastSend(&outifaceinfo,sendbuf,&xcastsocks, &dstifaceinfo.iface_addr[currIntf]);
+				if (dstifaceinfo.iface_addr[currIntf].ss_family == AF_INET)
+					result = SLPMulticastSend(&v4outifaceinfo,sendbuf,&xcastsocks, &dstifaceinfo.iface_addr[currIntf]);
+				else if (dstifaceinfo.iface_addr[currIntf].ss_family == AF_INET6)
+					result = SLPMulticastSend(&v6outifaceinfo,sendbuf,&xcastsocks, &dstifaceinfo.iface_addr[currIntf]);
 			}
 			if(result != 0)
 			{
@@ -1295,7 +1306,7 @@ int NetworkGetMcastAddrs(const char msgtype, const char *msg, SLPIfaceInfo *ifac
 			if (msg == NULL)
 				return SLP_PARAMETER_BAD;
 			if (SLPNetIsIPV6()) {
-				unsigned short srvtype_len = *(unsigned short *)&msg; 
+				unsigned short srvtype_len = (msg[0] << 8) | msg[1]; 
 				/* Add IPv6 multicast groups in order they should appear. */
 				SLPNetGetSrvMcastAddr(msg+2, (unsigned long)srvtype_len, SLP_SCOPE_NODE_LOCAL, &ifaceinfo->iface_addr[ifaceinfo->iface_count]);
 				SLPNetSetPort(&ifaceinfo->iface_addr[ifaceinfo->iface_count], SLP_RESERVED_PORT);
@@ -1308,7 +1319,9 @@ int NetworkGetMcastAddrs(const char msgtype, const char *msg, SLPIfaceInfo *ifac
 				ifaceinfo->iface_count++;
 			}
 			if (SLPNetIsIPV4()) {
-				SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count], AF_INET, SLP_RESERVED_PORT, (unsigned char *)SLP_MCAST_ADDRESS, sizeof(SLP_MCAST_ADDRESS));
+				struct in_addr mcastaddr;
+				mcastaddr.S_un.S_addr = SLP_MCAST_ADDRESS;
+				SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count], AF_INET, SLP_RESERVED_PORT, (unsigned char *)&mcastaddr, sizeof(mcastaddr));
 				ifaceinfo->iface_count++;
 			}
 			break;
@@ -1323,7 +1336,10 @@ int NetworkGetMcastAddrs(const char msgtype, const char *msg, SLPIfaceInfo *ifac
 				ifaceinfo->iface_count++;
 			}
 			if (SLPNetIsIPV4()) {
-				SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count], AF_INET, SLP_RESERVED_PORT, (unsigned char *)SLP_MCAST_ADDRESS, sizeof(SLP_MCAST_ADDRESS));
+				struct in_addr mcastaddr;
+				mcastaddr.S_un.S_addr = SLP_MCAST_ADDRESS;
+				SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count], AF_INET, SLP_RESERVED_PORT, (unsigned char *)&mcastaddr, sizeof(mcastaddr));
+
 				ifaceinfo->iface_count++;
 			}
 			break;
@@ -1338,7 +1354,9 @@ int NetworkGetMcastAddrs(const char msgtype, const char *msg, SLPIfaceInfo *ifac
 				ifaceinfo->iface_count++;
 			}
 			if (SLPNetIsIPV4()) {
-				SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count], AF_INET, SLP_RESERVED_PORT, (unsigned char *)SLP_MCAST_ADDRESS, sizeof(SLP_MCAST_ADDRESS));
+				struct in_addr mcastaddr;
+				mcastaddr.S_un.S_addr = SLP_MCAST_ADDRESS;
+				SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count], AF_INET, SLP_RESERVED_PORT, (unsigned char *)&mcastaddr, sizeof(mcastaddr));
 				ifaceinfo->iface_count++;
 			}
 			break;
@@ -1353,7 +1371,9 @@ if (SLPNetIsIPV6()) {
 				ifaceinfo->iface_count++;
 			}
 			if (SLPNetIsIPV4()) {
-				SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count], AF_INET, SLP_RESERVED_PORT, (unsigned char *)SLP_MCAST_ADDRESS, sizeof(SLP_MCAST_ADDRESS));
+				struct in_addr mcastaddr;
+				mcastaddr.S_un.S_addr = SLP_MCAST_ADDRESS;
+				SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count], AF_INET, SLP_RESERVED_PORT, (unsigned char *)&mcastaddr, sizeof(mcastaddr));
 				ifaceinfo->iface_count++;
 			}
 			break;
