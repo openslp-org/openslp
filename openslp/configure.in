@@ -153,7 +153,7 @@ dnl ***********************************************************************
 dnl Checks for header files.
 dnl ***********************************************************************
 AC_STDC_HEADERS
-AC_HAVE_HEADERS(string.h) 
+AC_HAVE_HEADERS(string.h sys/types.h stdint.h netinet/in.h)
 
 dnl ***********************************************************************
 dnl Checks for data types.

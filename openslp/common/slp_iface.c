@@ -228,7 +228,7 @@ int SLPIfaceGetInfo(const char* useifaces,
                         
                         /* There is no way to deterine the broadcast address */
                         /* Set it to global broadcast                        */
-                        ifaceinfo->bcast_addr[ifaceinfo->iface_count] = 0xffffffff;
+                        ifaceinfo->bcast_addr[ifaceinfo->iface_count].sin_addr.s_addr = INADDR_BROADCAST;
 
                         ifaceinfo->iface_count ++;
 
