@@ -59,28 +59,31 @@ SLPBoolean KnownDADiscoveryCallback(SLPError errorcode,
     struct hostent* he;
     int*            count   = (int*)cookie;
         
-    if(msg && msg->header.functionid == SLP_FUNCT_DAADVERT)
+    if(errorcode == 0)
     {
-        if(msg->body.srvrply.errorcode == 0)
-        {
-            /* NULL terminate scopelist */ 
-            *((char*)msg->body.daadvert.scopelist + msg->body.daadvert.scopelistlen) = 0;
-            if(SLPParseSrvURL(msg->body.daadvert.url, &srvurl) == 0)
-            {
-                he = gethostbyname(srvurl->s_pcHost);
-                if(he)
-                {
-                    entry = SLPDAEntryCreate((struct in_addr*)(he->h_addr_list[0]),
-                                             msg->body.daadvert.bootstamp,
-                                             msg->body.daadvert.scopelist,
-                                             msg->body.daadvert.scopelistlen);
-                    ListLink((PListItem*)&G_KnownDAListHead,(PListItem)entry);
-                    *count = *count + 1;
-                }
-                
-                SLPFree(srvurl);
-            }
-        }                
+	if(msg && msg->header.functionid == SLP_FUNCT_DAADVERT)
+	{
+	    if(msg->body.srvrply.errorcode == 0)
+	    {
+		/* NULL terminate scopelist */ 
+		*((char*)msg->body.daadvert.scopelist + msg->body.daadvert.scopelistlen) = 0;
+		if(SLPParseSrvURL(msg->body.daadvert.url, &srvurl) == 0)
+		{
+		    he = gethostbyname(srvurl->s_pcHost);
+		    if(he)
+		    {
+			entry = SLPDAEntryCreate((struct in_addr*)(he->h_addr_list[0]),
+						 msg->body.daadvert.bootstamp,
+						 msg->body.daadvert.scopelist,
+						 msg->body.daadvert.scopelistlen);
+			ListLink((PListItem*)&G_KnownDAListHead,(PListItem)entry);
+			*count = *count + 1;
+		    }
+		    
+		    SLPFree(srvurl);
+		}
+             }
+	}
     }
     
     return 1;
