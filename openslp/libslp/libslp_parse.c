@@ -177,7 +177,7 @@ SLPError SLPEscape(const char* pcInbuf,
     /* Allocate the string. */
     *ppcOutBuf = (char *) xmalloc(
                                 sizeof(char) * 
-                                (strlen(pcInbuf) + (amount_of_escape_characters * 3) + 1));
+                                (strlen(pcInbuf) + (amount_of_escape_characters * 2) + 1));
 
     if(ppcOutBuf == NULL)
         return(SLP_MEMORY_ALLOC_FAILED);
