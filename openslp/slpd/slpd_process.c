@@ -268,7 +268,7 @@ int ProcessDASrvRqst(struct sockaddr_in* peeraddr,
 	}
 
 	/* don't return errorcodes to multicast messages */
-	if(errorcode == 0)
+	if(errorcode != 0)
 	{
 		if(message->header.flags & SLP_FLAG_MCAST ||
 		   ISMCAST(peeraddr->sin_addr))
