@@ -406,6 +406,7 @@ int SLPDIncomingInit()
 /*=========================================================================*/
 {
     char*           begin = NULL;
+	char*			beginSave = NULL;
     char*           end;
     int             finished;
     struct in_addr  myaddr;
@@ -456,6 +457,7 @@ int SLPDIncomingInit()
     if (G_SlpdProperty.interfaces != NULL)
     {
         begin = strdup((char *) G_SlpdProperty.interfaces);
+		beginSave = begin;  /* save pointer for free() operation later */
         end = begin;
         finished = 0;
     }
@@ -538,7 +540,7 @@ int SLPDIncomingInit()
         begin = end + 1;
     }     
 
-    if (begin) free(begin);
+    if (beginSave) free(beginSave);
     
     
     /*--------------------------------------------------------*/
