@@ -52,8 +52,8 @@
 
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
-#include <windows.h>
 #include <Winsock2.h>
+#include <windows.h>
 
 #include <Ws2tcpip.h>
 
