@@ -516,6 +516,24 @@ int SLPDKnownDADeinit()
 /* returns  zero on success, Non-zero on failure                           */
 /*=========================================================================*/
 {
+    SLPDatabaseHandle   dh;
+    SLPDatabaseEntry*   entry;
+    
+    dh = SLPDatabaseOpen(&G_SlpdKnownDAs);
+    if(dh)
+    {
+        /*------------------------------------*/
+        /* Unregister all local registrations */
+        /*------------------------------------*/
+        while(1)
+        {
+            entry = SLPDatabaseEnum(dh);
+            if(entry == NULL) break;
+            
+            SLPDKnownDADeregisterAll(entry->msg);
+        }
+    }
+
     SLPDatabaseDeinit(&G_SlpdKnownDAs);
    
     return 0;
