@@ -1,9 +1,0 @@
-Service Types     = service:test.OPENSLP,service:test2,service:test1
-
-Service Types     = service:test2,service:test1
-
-Error getting service type with slp.
--19: SLP_NETWORK_TIMED_OUT
-When no reply can be obtained in the time specified by the configured timeout interval for a unicast request, this error is returned.
-
-Service Types     = service:test.OPENSLP
