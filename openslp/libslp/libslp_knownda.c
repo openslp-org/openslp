@@ -687,11 +687,11 @@ int KnownDAConnect(PSLPHandleInfo handle,
         }
 
 		if (peeraddr->ss_family == AF_INET6 && SLPNetIsIPV6()) {
-			SLPNetSetParams(peeraddr, AF_INET6, SLP_RESERVED_PORT);
+			SLPNetSetPort(peeraddr, SLP_RESERVED_PORT);
 			sock = SLPNetworkConnectStream(peeraddr,&timeout);
 		}
 		if (peeraddr->ss_family == AF_INET && SLPNetIsIPV4()) {
-			SLPNetSetParams(peeraddr, AF_INET, SLP_RESERVED_PORT);
+			SLPNetSetPort(peeraddr, SLP_RESERVED_PORT);
 			sock = SLPNetworkConnectStream(peeraddr,&timeout);
 		}
         
