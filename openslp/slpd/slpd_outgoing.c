@@ -534,7 +534,6 @@ void SLPDOutgoingAge(time_t seconds)
             sock->age = 0;
             break;
         
-        case STREAM_CONNECT_IDLE:
         case STREAM_CONNECT_BLOCK:
         case STREAM_READ:
         case STREAM_WRITE:
@@ -543,6 +542,7 @@ void SLPDOutgoingAge(time_t seconds)
                 /* Accelerate ageing cause we are low on sockets */
                 if ( sock->age > SLPD_CONFIG_BUSY_CLOSE_CONN )
                 {
+                    /* Remove peer from KnownDAs since it might be dead */
                     SLPDKnownDARemove(&(sock->peeraddr.sin_addr));
                     del = sock;
                 }
@@ -551,13 +551,33 @@ void SLPDOutgoingAge(time_t seconds)
             {
                 if ( sock->age > SLPD_CONFIG_CLOSE_CONN )
                 {
+                    /* Remove peer from KnownDAs since it might be dead */
                     SLPDKnownDARemove(&(sock->peeraddr.sin_addr));
                     del = sock;
                 }
             }
             sock->age = sock->age + seconds;
             break;
-            
+
+        case STREAM_CONNECT_IDLE:
+            if ( G_OutgoingSocketList.count > SLPD_COMFORT_SOCKETS )
+            {
+                /* Accelerate ageing cause we are low on sockets */
+                if ( sock->age > SLPD_CONFIG_BUSY_CLOSE_CONN )
+                {
+                    del = sock;
+                }
+            }
+            else
+            {
+                if ( sock->age > SLPD_CONFIG_CLOSE_CONN )
+                {
+                    del = sock;
+                }
+            }
+            sock->age = sock->age + seconds;
+            break;
+
         case STREAM_WRITE_WAIT:
             /* this when we are talking to a busy DA */
             sock->age = 0;
@@ -578,7 +598,6 @@ void SLPDOutgoingAge(time_t seconds)
         }
     }                                                 
 }
-
 
 /*=========================================================================*/
 int SLPDOutgoingInit()
