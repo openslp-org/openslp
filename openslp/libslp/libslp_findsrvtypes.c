@@ -280,7 +280,11 @@ SLPError ProcessSrvTypeRqst(PSLPHandleInfo handle)
                                      bufsize,
                                      ProcessSrvTypeRplyCallback,
                                      handle);
+            #ifdef WIN32
+            closesocket(sock);
+            #else
             close(sock);
+            #endif
             break;
         }
 

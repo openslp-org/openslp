@@ -76,6 +76,7 @@ typedef struct _SLPDProperty
     int             activeDiscoveryXmits;
     int             nextActiveDiscovery;
     int             nextPassiveDAAdvert;
+    const char*     multicastIF;
     int             multicastTTL;
     int             multicastMaximumWait;
     int             unicastMaximumWait;  

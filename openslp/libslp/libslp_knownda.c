@@ -362,7 +362,11 @@ int KnownDADiscoverFromMulticast(int scopelistlen, const char* scopelist)
                                           &peeraddr,
                                           scopelistlen,
                                           scopelist);
+        #ifdef WIN32
+        closesocket(sockfd);
+        #else
         close(sockfd);
+        #endif
     }
 
     return result;
@@ -434,7 +438,11 @@ int KnownDADiscoverFromProperties(int scopelistlen,
                                                       &peeraddr,
                                                       scopelistlen,
                                                       scopelist);
+                    #ifdef WIN32
+                    closesocket(sockfd);
+                    #else
                     close(sockfd);
+                    #endif
                     if(scopelistlen && result)
                     {
                         /* return if we found at least one DA */
@@ -469,7 +477,11 @@ int KnownDADiscoverFromIPC()
     if(sockfd >= 0)
     {
         result = KnownDADiscoveryRqstRply(sockfd, &peeraddr, 0, "");
+        #ifdef WIN32
+        closesocket(sockfd);
+        #else
         close(sockfd);
+        #endif
     }
 
     return result;

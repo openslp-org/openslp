@@ -5,6 +5,20 @@ Please make entries to this log (in addition to the CVS log) that describe
 major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
+
+01/25/02 matt@caldera.com
+Fixed all documentation to reflect use of the new net.slp.multicastIF setting
+
+01/24/02 matt@caldera.com
+Changed all instances of close() where socket descriptors are closed
+to closesocket() on WIN32
+
+01/24/02 matt@caldera.com
+Applied patch from Juergen Kreileder that provides the net.slp.multicastIF
+slp.conf setting.  net.slp.multicastIF is useful in setting up OpenSLP on
+multi-homed machines where it is desireable to configure which interface 
+should send multicast traffic.
+
 01/24/02 matt@caldera.com
 Applied patch from Garth Bushell that fixes a problem where not enough
 memory was being allocated to hold an escaped string in SLPEscape(). 
@@ -285,8 +299,6 @@ Added debug memory allocator
 
 04/18/01 matt@caldera.com
 Added support for net.slp.OpenSLPversion property
-
-
 
 *** Tag OpenSLP 0.8.3 ***
 

@@ -392,7 +392,11 @@ SLPError ProcessSrvRqst(PSLPHandleInfo handle)
                                      ProcessSrvRplyCallback,
                                      handle);
             /* close the socket */
+            #ifdef WIN32
+            closesocket(sock);
+            #else
             close(sock);
+            #endif
             break;
         }
 

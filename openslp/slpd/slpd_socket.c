@@ -90,9 +90,11 @@ int SetMulticastTTL(sockfd_t sockfd, int ttl)
 
 #if defined(linux)
     int         optarg = ttl;
+    struct in_addr in;
 #else
     /* Solaris and Tru64 expect a unsigned char parameter */
     unsigned char   optarg = (unsigned char)ttl;
+    struct in_addr in;
 #endif
 
 
@@ -126,6 +128,14 @@ int SetMulticastTTL(sockfd_t sockfd, int ttl)
     if(setsockopt(sockfd,IPPROTO_IP,IP_MULTICAST_TTL,&optarg,sizeof(optarg)))
     {
         return -1;
+    }
+    if(G_SlpdProperty.multicastIF)
+    {
+        if(!inet_aton(G_SlpdProperty.multicastIF, &in) ||
+           setsockopt(sockfd,IPPROTO_IP,IP_MULTICAST_IF,&in,sizeof(in)))
+        {
+            return -1;
+        }
     }
 #endif
 

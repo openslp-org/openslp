@@ -91,15 +91,19 @@ int SLPNetworkConnectStream(struct sockaddr_in* peeraddr,
 /*=========================================================================*/
 
 
-/*=========================================================================*/
-int SLPNetworkConnectToMulticast(struct sockaddr_in* peeraddr, int ttl); 
+/*=========================================================================*/ 
+int SLPNetworkConnectToMulticast(struct sockaddr_in* peeraddr, 
+                                 int ttl, 
+                                 struct in_addr *iface);
 /* Creates a socket and provides a peeraddr to send to                     */
 /*                                                                         */
-/* peeraddr         (OUT) pointer to receive the connected DA's address    */
+/* peeraddr  (OUT) pointer to receive the connected DA's address           */
 /*                                                                         */
-/* ttl              (IN)  ttl for the mcast socket                         */
+/* ttl       (IN) ttl for the mcast socket                                 */
 /*                                                                         */
-/* Returns          Valid socket or -1 if no DA connection can be made     */
+/* iface     (IN) pointer to the mcast interface                           */
+/*                                                                         */
+/* Returns   Valid socket or -1 if no DA connection can be made            */
 /*=========================================================================*/
 
 

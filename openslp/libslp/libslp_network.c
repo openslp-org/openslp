@@ -56,11 +56,26 @@ int NetworkConnectToMulticast(struct sockaddr_in* peeraddr)
 /*=========================================================================*/
 {
     int                 sock = -1;
+    struct in_addr      iface;
+    struct in_addr      *ifaceptr = NULL;
 
     if(SLPPropertyAsBoolean(SLPGetProperty("net.slp.isBroadcastOnly")) == 0)
     {
-        sock = SLPNetworkConnectToMulticast(peeraddr, 
-                                            atoi(SLPGetProperty("net.slp.multicastTTL")));
+        if (SLPGetProperty("net.slp.multicastIF"))
+        {
+            if (inet_aton(SLPGetProperty("net.slp.multicastIF"), &iface))
+            {
+                return -1;
+            } 
+            else 
+            {
+                ifaceptr = &iface;
+            }
+        }
+
+        sock = SLPNetworkConnectToMulticast(peeraddr,
+                                            atoi(SLPGetProperty("net.slp.multicastTTL")),
+                                            ifaceptr);
     }
 
     if(sock < 0)
@@ -109,7 +124,11 @@ int NetworkConnectToSlpd(struct sockaddr_in* peeraddr)
         else
         {
             /* Could not connect to the slpd through the loopback */
+            #ifdef WIN32
+            closesocket(result);
+            #else
             close(result);
+            #endif
             result = -1;
         }
     }
@@ -126,7 +145,12 @@ void NetworkDisconnectDA(PSLPHandleInfo handle)
 {
     if(handle->dasock)
     {
+        #ifdef WIN32
+        closesocket(handle->dasock);
+        #else
         close(handle->dasock);
+        #endif
+        
         handle->dasock = -1;
     }
 
@@ -144,7 +168,11 @@ void NetworkDisconnectSA(PSLPHandleInfo handle)
 {
     if(handle->sasock)
     {
+        #ifdef WIN32
+        closesocket(handle->sasock);
+        #else
         close(handle->sasock);
+        #endif
         handle->sasock = -1;
     }
 }
@@ -187,7 +215,12 @@ int NetworkConnectToDA(PSLPHandleInfo handle,
         /* close handle cause it can't support the scope */
         if(handle->dasock >= 0)
         {
+            #ifdef WIN32
+            closesocket(handle->dasock);
+            #else
             close(handle->dasock);
+            #endif
+            
         }
 
         /* Attempt to connect to DA that does support the scope */
@@ -245,7 +278,11 @@ int NetworkConnectToSA(PSLPHandleInfo handle,
         /* close handle cause it can't support the scope */
         if(handle->sasock >= 0)
         {
+            #ifdef WIN32
+            closesocket(handle->sasock);
+            #else
             close(handle->sasock);
+            #endif
         }
 
         /*-----------------------------------------*/

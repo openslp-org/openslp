@@ -232,7 +232,11 @@ SLPError ProcessAttrRqst(PSLPHandleInfo handle)
                                      bufsize,
                                      ProcessAttrRplyCallback,
                                      handle);
+            #ifdef WIN32
+            closesocket(sock)
+            #else
             close(sock);
+            #endif
 
             break;
         }

@@ -2,7 +2,7 @@
 <html>
 <head>
    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-   <meta name="GENERATOR" content="Mozilla/4.77C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.4.2 i686) [Netscape]">
+   <meta name="GENERATOR" content="Mozilla/4.77C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.4.13 i686) [Netscape]">
    <title>OpenSLP Users Guide - Installing OpenSLP on Linux</title>
 </head>
 <body text="#000000" bgcolor="#FFFFFF" link="#0000EE" vlink="#551A8B" alink="#FF0000">
@@ -133,8 +133,10 @@ Use Iface</tt>
 <p>With the routing table above all multicast and general broadcast will
 be sent on eth0&nbsp; (the 0.0.0.0 route is the default route.)
 <p>If you do not have a default route or you have a multi-homed host, you
-will have specify which interface should be used.&nbsp;&nbsp; The following
-is an example of a routing table from a multihomed host:
+will have specify which interface should be used.&nbsp;&nbsp; This can
+be done using the net.slp.multicastIF setting in the /etc/slp.conf file
+or by establishing a special route.
+<p>The following is an example of a routing table from a multihomed host:
 <p><tt># route -n</tt>
 <br><tt>Kernel IP routing table</tt>
 <br><tt>Destination&nbsp;&nbsp;&nbsp;&nbsp; Gateway&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
@@ -156,7 +158,10 @@ Use Iface</tt>
 0 eth0</tt>
 <p>Notice the default route?&nbsp; This means that multicast traffic will
 be sent to eth0.&nbsp;&nbsp; If I don't want multicast traffic to be sent
-to eth0 I will need to add a special route.
+to eth0 I will need to set the <b>net.slp.multicastIF </b>setting in the
+/etc/slp.conf or add a special route.
+<p>In this case the setting <b>for net.slp.multicastIF </b>would be the
+IP address bound to eth1 -- or you could add a special route as follows:
 <p><tt># route add -net 224.0.0.0 netmask 240.0.0.0 dev eth1</tt>
 <br><tt># route -n</tt>
 <br><tt>Kernel IP routing table</tt>
@@ -182,11 +187,14 @@ Use Iface</tt>
 1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 0 eth0</tt>
 <p>Now multicast will be sent on eth1 not eth0.
-<p>To my knowledge, there is no way to send&nbsp; multicast traffic both
-eth1 and eth0 (at least with Linux) without specialized routing software.&nbsp;&nbsp;&nbsp;
-Some multihomed machines have NICs that are attached to the same network.&nbsp;
-In this case, there is usually no need to send multicast on both NICs.&nbsp;&nbsp;
-If you need specialized routing software take a look at <i>mrouted</i>.
+<p>In OpenSLP 1.0.x there is no way to send&nbsp; multicast traffic both
+eth1 and eth0 (at least with Linux) without specialized routing software
+(If you need specialized routing software take a look at <i>mrouted</i>.).&nbsp;
+This problem is now fixed in development releases of OpenSLP (the 1.1.x
+releases).
+<p>Also, some multihomed machines have NICs that are attached to the same
+network.&nbsp; In this case, there is usually no need to send multicast
+on both NICs.
 <br>&nbsp;</ul>
 
 <li>
