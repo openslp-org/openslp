@@ -481,16 +481,13 @@ int SLPDIncomingInit()
                       /* don't even enter the parsing loop */
     }
 
-    while( finished == 0)
+    for (; (finished == 0); begin = ++end)
     {
         while(*end && *end != ',') end ++;
         if(*end == 0) finished = 1;
-        while(*end <=0x2f)
-        {
-            *end = 0;
-            end--;
-        }
-
+        *end = 0;                      /* Terminate string. */
+        if (end <= begin) continue;    /* Skip empty entries */
+		
         /* begin now points to a null terminated ip address string */
         myaddr.s_addr = inet_addr(begin);
 
@@ -550,8 +547,6 @@ int SLPDIncomingInit()
             SLPListLinkTail(&G_IncomingSocketList,(SLPListItem*)sock);
             SLPLog("Unicast socket on %s ready\n",inet_ntoa(myaddr));
         }
-
-        begin = end + 1;
     }     
 
     if(beginSave) free(beginSave);
