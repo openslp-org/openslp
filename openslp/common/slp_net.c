@@ -386,6 +386,27 @@ int SLPNetAddrInfoToString(struct addrinfo *src, char *dst, int dstLen) {
     return(0);
 }
 
+
+/*
+ * Description:
+ *    Returns the IPv6 multicast group for the specified Service Type.
+ *    
+ *
+ * Parameters:
+ *  (in) pSrvType   The Service Type String
+ *  (in) len		Length of pSrvType
+ *
+ * Returns: The group id for the specified Service Type.
+ *-------------------------------------------------------------------------*/
+unsigned long SLPNetGetSrvGroupId(const char *pSrvType, unsigned int len) {
+	unsigned long h = 0;
+	while (len-- != 0) {
+		h *= 33;
+		h += *pc++;
+	}
+	return (0x3FF & h);
+}
+
 //#define SLP_NET_TEST
 #ifdef SLP_NET_TEST
 int main(int argc, char* argv[]) {
