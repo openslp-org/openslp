@@ -931,7 +931,13 @@ var_t *attr_val_find_str(struct xx_SLPAttributes *slp_attr, const char *tag, int
     var = slp_attr->attrs;
     while(var)
     {
-        if(var->tag_len == tag_len && memcmp(var->tag, tag, tag_len) == 0)
+        /* Per RFC 2165 (Section 20.5 para 1), RFC 2608 (Section 6.4 para 3),
+         * attr-tags are supposed to be case insensitive.
+         * Using strncasecmp() so that comparision of tags are case-insensitive
+         * atleast inside the ASCII range.
+         */
+        if(var->tag_len == tag_len && strncasecmp(var->tag, tag, tag_len) == 0)
+
         {
             return var;
         }

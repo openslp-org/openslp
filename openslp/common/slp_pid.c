@@ -88,7 +88,7 @@ int SLPPidExists(uint32_t pid)
  *    Boolean value.  Zero if process does not exist, non-zero if it does
  *=========================================================================*/
 {
-    if(kill(pid,SIGUSR2))
+    if(kill(pid,0))
     {
         if(errno == ESRCH)
         {
