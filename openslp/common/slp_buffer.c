@@ -14,6 +14,12 @@
 
 #include <slp_buffer.h> 
 
+#ifdef DEBUG
+int G_Debug_SLPBufferAllocCount = 0;
+int G_Debug_SLPBufferFreeCount = 0;
+#endif
+
+
 /*=========================================================================*/
 void* memdup(const void* src, int srclen)
 /* Generic memdup analogous to strdup()                                    */
@@ -53,6 +59,7 @@ SLPBuffer SLPBufferAlloc(size_t size)
        
        #if(defined DEBUG)
        memset(result->start,0xff,size + 1);
+       G_Debug_SLPBufferAllocCount ++;
        #endif
    }
    
@@ -120,7 +127,7 @@ SLPBuffer SLPBufferDup(SLPBuffer buf)
     dup = SLPBufferAlloc(buf->end - buf->start);
     if(dup)
     {
-	memcpy(dup->start,buf->start,buf->end - buf->start);       
+	    memcpy(dup->start,buf->start,buf->end - buf->start);       
     }
     
     return dup;
@@ -139,5 +146,8 @@ void SLPBufferFree(SLPBuffer buf)
     if(buf)
     {
         free(buf);
+        #ifdef DEBUG
+        G_Debug_SLPBufferFreeCount ++;
+        #endif
     }
 }

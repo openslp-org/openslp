@@ -221,7 +221,7 @@ int SLPPropertyReadFile(const char* conffile)
     }
 
     fd = fopen(conffile,"r");
-    if(fd == 0)
+    if(fd < 0)
     {
         goto CLEANUP;
     }   
@@ -289,6 +289,10 @@ int SLPPropertyReadFile(const char* conffile)
 
 
     CLEANUP:
+    if(fd >=0)
+    {
+        fclose(fd);
+    }
 
     if(alloced)
     {

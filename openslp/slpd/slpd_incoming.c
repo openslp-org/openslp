@@ -512,5 +512,28 @@ int SLPDIncomingInit()
     return 0;
 }
 
+/*=========================================================================*/
+int SLPDIncomingDeinit()
+/* Deinitialize incoming socket list to have appropriate sockets for all   */
+/* network interfaces                                                      */
+/*                                                                         */
+/* Returns  Zero on success non-zero on error                              */
+/*=========================================================================*/
+{
+    SLPDSocket* del  = 0;
+    SLPDSocket* sock = (SLPDSocket*)G_IncomingSocketList.head;
+    while (sock)
+    {
+        del = sock;
+        sock = (SLPDSocket*)sock->listitem.next;
+        if (del)
+        {
+            SLPDSocketFree((SLPDSocket*)SLPListUnlink(&G_IncomingSocketList,(SLPListItem*)del));
+            del = 0;
+        }
+    } 
+
+    return 0;
+}
 
 

@@ -40,6 +40,12 @@
 
 #include <slp_linkedlist.h>
 
+#ifdef DEBUG
+extern int G_Debug_SLPBufferAllocCount;
+extern int G_Debug_SLPBufferFreeCount;
+#endif
+
+
 /*=========================================================================*/
 typedef struct _SLPBuffer                                                  
 /*=========================================================================*/

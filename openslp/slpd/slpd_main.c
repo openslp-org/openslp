@@ -420,6 +420,12 @@ HANDLE_SIGNAL:
 
     SLPLog("Got SIGTERM.  Going down\n");
 
+    #if(defined DEBUG)
+    SLPDIncomingDeinit();
+    SLPDOutgoingDeinit();
+    printf("Number of calls to SLPBufferAlloc() = %i\n",G_Debug_SLPBufferAllocCount);
+    printf("Number of calls to SLPBufferFree() = %i\n",G_Debug_SLPBufferFreeCount);
+    #endif
     return 0;
 }
 

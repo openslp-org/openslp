@@ -498,6 +498,16 @@ int SLPDIncomingInit();
 /* Returns  Zero on success non-zero on error                              */
 /*=========================================================================*/
 
+#if(defined DEBUG)
+/*=========================================================================*/
+int SLPDIncomingDeinit();
+/* Deinitialize incoming socket list to have appropriate sockets for all   */
+/* network interfaces                                                      */
+/*                                                                         */
+/* Returns  Zero on success non-zero on error                              */
+/*=========================================================================*/
+#endif
+
 
 /*=========================================================================*/
 extern SLPList G_IncomingSocketList;
@@ -536,6 +546,15 @@ int SLPDOutgoingInit();
 /* Returns  Zero on success non-zero on error                              */
 /*=========================================================================*/
 
+#if(defined DEBUG)
+/*=========================================================================*/
+int SLPDOutgoingDeinit();
+/* Deinitialize incoming socket list to have appropriate sockets for all   */
+/* network interfaces                                                      */
+/*                                                                         */
+/* Returns  Zero on success non-zero on error                              */
+/*=========================================================================*/
+#endif
 
 /*=========================================================================*/
 extern SLPList G_OutgoingSocketList;
@@ -625,12 +644,6 @@ void SLPDKnownDAActiveDiscovery();
 /* Set outgoing socket list to send an active DA discovery SrvRqst         */
 /*									                                       */
 /* Returns:  none                                                          */
-/*=========================================================================*/
-
-
-/*=========================================================================*/
-extern SLPList G_KnownDAList;                                         
-/* The list of DAs known to slpd.                                          */
 /*=========================================================================*/
 
 
