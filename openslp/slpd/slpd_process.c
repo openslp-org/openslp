@@ -250,6 +250,11 @@ int ProcessDASrvRqst(SLPMessage message,
     /*---------------------------------------------------------------------*/
     /* Normal case where a remote Agent asks for a DA                      */
     /*---------------------------------------------------------------------*/
+    *sendbuf = SLPBufferRealloc(*sendbuf, SLP_MAX_DATAGRAM_SIZE);
+    if(*sendbuf == 0)
+    {
+        return SLP_ERROR_INTERNAL_ERROR;
+    }
     if(G_SlpdProperty.isDA)
     {
         if(message->body.srvrqst.scopelistlen == 0 ||
