@@ -37,12 +37,17 @@
 
 #include <slp_buffer.h>
 
-
+#ifdef WIN32
+#include <windows.h>
+#endif
 
 typedef char            CHAR;
 typedef unsigned char   UINT8;
 typedef unsigned short  UINT16;
+
+#ifndef WIN32
 typedef unsigned long   UINT32;
+#endif
 
 typedef CHAR*           PCHAR;
 typedef UINT8*          PUINT8;

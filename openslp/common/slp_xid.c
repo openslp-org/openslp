@@ -35,8 +35,14 @@
 /*                                                                         */
 /***************************************************************************/
 
+#ifdef WIN32
+#include <windows.h>
+#include <stdlib.h>
+#else
 #include <stdlib.h>
 #include <unistd.h>
+#endif
+
 #include <slp_xid.h>
 
 /*=========================================================================*/
@@ -52,8 +58,13 @@ void SLPXidSeed()
 /*=========================================================================*/
 {
     /* Generate a random start*/
+#ifdef WIN32
+   srand(GetCurrentProcessId() | G_Xid);   
+   G_Xid = (unsigned short)rand();
+#else
     srandom(getpid() | G_Xid);   
     G_Xid = (unsigned short)random();
+#endif
 }
 
 

@@ -36,6 +36,9 @@
 
 #include <slp_compare.h>
 
+#ifdef WIN32
+#define strncasecmp(string1, string2, n) strnicmp(string1, string2, n)
+#endif
 
 /*=========================================================================*/
 int SLPCompareString(int str1len,
@@ -317,3 +320,4 @@ int SLPComparePredicate(int predicatelen,
 
     return 1;
 }
+

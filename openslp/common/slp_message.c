@@ -34,8 +34,10 @@
 
 #include <slp_message.h>
 
+#ifndef WIN32
 #include <malloc.h>
 #include <netinet/in.h>
+#endif
 
 /*-------------------------------------------------------------------------*/
 int ParseHeader(SLPBuffer buffer, SLPHeader* header)
