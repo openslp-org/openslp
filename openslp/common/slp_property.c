@@ -387,6 +387,7 @@ int SLPPropertyAsIntegerVector(const char* property,
     return i;
 }
 
+#ifdef DEBUG
 
 /*=========================================================================*/
 void SLPPropertyFreeAll()
@@ -407,3 +408,4 @@ void SLPPropertyFreeAll()
     memset(&G_SLPPropertyList,0,sizeof(G_SLPPropertyList));
 }
 
+#endif

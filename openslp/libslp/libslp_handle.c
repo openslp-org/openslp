@@ -275,6 +275,8 @@ void SLPClose(SLPHandle hSLP)
 
     G_OpenSLPHandleCount --;
     
+
+#ifdef DEBUG
     /* Free additional resources if this is the last handle open */
     if(G_OpenSLPHandleCount <= 0)
     {
@@ -284,11 +286,6 @@ void SLPClose(SLPHandle hSLP)
 
         KnownDAFreeAll();
 
-#ifdef WIN32
-        WSAShutdown();
-#endif  
-
-#ifdef DEBUG
         xmalloc_deinit();
 #endif
 

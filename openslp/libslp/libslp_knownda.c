@@ -694,7 +694,7 @@ int KnownDAGetScopes(int* scopelistlen,
     return 0;
 }
 
-
+#ifdef DEBUG
 /*=========================================================================*/
 void KnownDAFreeAll()
 /* Frees all (cached) resources associated with known DAs                  */
@@ -718,3 +718,5 @@ void KnownDAFreeAll()
         SLPDatabaseClose(dh);
     }       
 }
+
+#endif
