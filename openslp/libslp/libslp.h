@@ -117,13 +117,14 @@ typedef union _SLPHandleCallParams
     SLPFindAttrsParams  findattrs;
 }SLPHandleCallParams, *PSLPHandleCallParams;
 
-
+#define SLP_HANDLE_SIG 0xbeeffeed
 /*=========================================================================*/
 typedef struct _SLPHandleInfo
 /* The SLPHandle that is used internally in slplib is actually a pointer to*/
 /* a struct _SLPHandleInfo                                                 */
 /*=========================================================================*/
 {
+    unsigned long       sig;
     SLPBoolean          inUse;
     SLPBoolean          isAsync;
     int                 langtaglen;

@@ -256,6 +256,7 @@ SLPError SLPReg(SLPHandle   hSLP,
     /* check for invalid parameters */
     /*------------------------------*/
     if( hSLP        == 0 ||
+        *(unsigned long*)hSLP != SLP_HANDLE_SIG ||
         srvUrl      == 0 ||
         *srvUrl     == 0 ||  /* srvUrl can't be empty string */
         lifetime    == 0 ||  /* lifetime can not be zero */
@@ -277,8 +278,8 @@ SLPError SLPReg(SLPHandle   hSLP,
     /*-----------------------------------------*/
     /* cast the SLPHandle into a SLPHandleInfo */
     /*-----------------------------------------*/
-    handle = (PSLPHandleInfo)hSLP;               
-
+    handle = (PSLPHandleInfo)hSLP;
+    
     
     /*-----------------------------------------*/
     /* Check to see if the handle is in use    */

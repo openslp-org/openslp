@@ -109,6 +109,7 @@ SLPError SLPOpen(const char *pcLang, SLPBoolean isAsync, SLPHandle *phSLP)
         goto FINISHED;
     }
     memset(handle,0,sizeof(SLPHandleInfo));
+    handle->sig = SLP_HANDLE_SIG;
 
     
     /*-------------------------------*/
@@ -190,7 +191,8 @@ void SLPClose(SLPHandle hSLP)
     /*------------------------------*/
     /* check for invalid parameters */
     /*------------------------------*/
-    if(hSLP == 0)
+    if(hSLP == 0 ||
+       *(unsigned long*)hSLP != SLP_HANDLE_SIG)
     {
         return;
     }
