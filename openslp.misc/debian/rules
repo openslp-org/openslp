@@ -17,7 +17,7 @@ build-stamp:
 	dh_testdir
 
 	./configure --prefix=/usr --mandir=\$${prefix}/share/man --infodir=\$${prefix}/share/info
-	# Add here commands to compile the package.
+	# Compile the package.
 	$(MAKE)
 
 	touch build-stamp
@@ -27,7 +27,7 @@ clean:
 	dh_testroot
 	rm -f build-stamp
 
-	# Add here commands to clean up after the build process.
+	# Clean up after the build process.
 	-$(MAKE) distclean
 
 	dh_clean
@@ -35,10 +35,10 @@ clean:
 install: build
 	dh_testdir
 	dh_testroot
-#	dh_clean -k
+	dh_clean -k
 	dh_installdirs
 
-	# Add here commands to install the package into debian/tmp.
+	# Install the package into debian/tmp.
 	$(MAKE) install DESTDIR=`pwd`/debian/tmp
 
 
@@ -48,22 +48,18 @@ binary-indep: build install
 
 # Build architecture-dependent files here.
 binary-arch: build install
-	dh_testversion
 	dh_testdir
 	dh_testroot
 	dh_installinit
 	dh_installdocs
 
-        #
         # build libslp${major} package by moving files from slpd package
-        #
 	dh_movefiles -plibslp$(major)        \
                usr/lib/libslp.so.$(major)    \
                usr/lib/libslp.so.$(version)
 
-        #
+
         # build libslp-dev package by moving files from slpd package
-        #
 	dh_movefiles -plibslp-dev usr/include usr/lib usr/bin/slptool
 
 	# Remove the installed html documentation (we'll pull it in by 

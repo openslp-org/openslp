@@ -1,8 +1,9 @@
 Source: openslp
+Build-Depends-Indep: debhelper (>= 3.0.15)
 Section: net
 Priority: optional
 Maintainer: Ganesan Rajagopal <rganesan@myrealbox.com>
-Standards-Version: 3.0.1
+Standards-Version: 3.5.6.0
 
 Package: slpd
 Architecture: any
@@ -21,7 +22,7 @@ Description: OpenSLP documentation
 
 Package: libslp-dev
 Architecture: any
-Depends: libslp0 (= ${Source-Version}), libc6-dev
+Depends: libslp1 (= ${Source-Version}), libc6-dev
 Suggests: openslp-doc (= ${Source-Version})
 Description: OpenSLP development libraries
  This package allows development of SLP applications using the OpenSLP
