@@ -62,5 +62,5 @@ dist-hook:
             if test $$d != $(srcdir); then                        \
                 cp -pr $$d $(distdir)/`basename $$d`;             \
             fi;                                                   \
-        done;                                                      \
-	rm -rf `find $(distdir) -name CVS`
+        done
+

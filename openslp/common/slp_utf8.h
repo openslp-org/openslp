@@ -46,9 +46,12 @@
 /*                                                                         */
 /***************************************************************************/
 
-
 #ifndef SLP_UTF8_INCLUDED
 #define SLP_UTF8_INCLUDED
+
+#ifndef INT_MAX
+#include <limits.h>
+#endif
 
 /*=========================================================================*/
 int SLPv1ToEncoding(char *string, int *len, int encoding, 
