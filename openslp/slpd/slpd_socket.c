@@ -91,9 +91,6 @@ int SetMulticastTTL(sockfd_t sockfd, int ttl)
 #if defined(linux)
     int         optarg = ttl;
 #else
-
-
-
     /* Solaris and Tru64 expect a unsigned char parameter */
     unsigned char   optarg = (unsigned char)ttl;
 #endif

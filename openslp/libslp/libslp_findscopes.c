@@ -94,7 +94,6 @@ SLPError SLPFindScopes(SLPHandle hSLP,
     }
 
     return SLP_OK;
-
 }
 
 

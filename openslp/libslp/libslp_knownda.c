@@ -222,7 +222,7 @@ SLPBoolean KnownDADiscoveryCallback(SLPError errorcode,
                         {
                             he = gethostbyname(srvurl->s_pcHost);
                             SLPFree(srvurl);
-			    if(he)
+			                if(he)
                             {
                                 /* Reset the peer to the one in the URL */
                                 replymsg->peer.sin_addr.s_addr = *((unsigned int*)(he->h_addr_list[0]));
@@ -672,7 +672,6 @@ int KnownDAGetScopes(int* scopelistlen,
         }
     }
     G_KnownDAScopesLen = newlen;
-
 
     if(G_KnownDAScopesLen)
     {

@@ -50,6 +50,9 @@
 #include "slp.h"
 #include "libslp.h"
 
+
+/* TODO: do we need to add anything for collation here? */
+
 /*-------------------------------------------------------------------------*/
 SLPBoolean ProcessAttrRplyCallback(SLPError errorcode, 
                                    struct sockaddr_in* peerinfo,

@@ -50,6 +50,102 @@
 #include "libslp.h"
 
 /*-------------------------------------------------------------------------*/
+SLPBoolean ColateSLPSrvURLCallback(SLPHandle hSLP,
+                                   const char* pcSrvURL,
+                                   unsigned short sLifetime,
+                                   SLPError errCode,
+                                   void *pvCookie)
+/*-------------------------------------------------------------------------*/
+{
+    SLPSrvUrlColatedItem*   collateditem;
+    PSLPHandleInfo          handle;
+        
+    handle = (PSLPHandleInfo) hSLP;
+    handle->callbackcount ++;
+    
+#ifdef ENABLE_ASYNC_API
+    /* Do not colate for async calls */
+    if(handle->isAsync)
+    {
+        return handle->params.findsrvs.callback(hSLP,
+                                                pcSrvURL,
+                                                sLifetime,
+                                                errCode,
+                                                pvCookie);
+    }
+#endif
+    
+    if(errCode == SLP_LAST_CALL || 
+       handle->callbackcount > SLPPropertyAsInteger(SLPGetProperty("net.slp.maxResults")))
+    {
+        /* We are done so call the caller's callback for each      */
+        /* service URL colated item and clean up the colation list */
+        handle->params.findsrvs.callback((SLPHandle)handle,
+                                         NULL,
+                                         0,
+                                         SLP_LAST_CALL,
+                                         handle->params.findsrvs.cookie);
+        goto CLEANUP;
+    }
+    else if(errCode != SLP_OK)
+    {
+        return SLP_TRUE;
+    }
+
+    /* Add the service URL to the colation list */
+    collateditem = (SLPSrvUrlColatedItem*) handle->collatedsrvurls.head;
+    while(collateditem)
+    {
+        if(strcmp(collateditem->srvurl,pcSrvURL) == 0)
+        {
+            break;
+        }
+    }
+
+    /* create a new item if none was found */
+    if(collateditem == NULL)
+    {
+        collateditem = (SLPSrvUrlColatedItem*) xmalloc(sizeof(SLPSrvUrlColatedItem) + \
+                                                       strlen(pcSrvURL) + 1);
+        if(collateditem)
+        {
+            memset(collateditem,0,sizeof(SLPSrvUrlColatedItem));
+            collateditem->srvurl = (char*)(collateditem + 1);
+            strcpy(collateditem->srvurl,pcSrvURL);
+            collateditem->lifetime = sLifetime;
+
+            /* Add the new item to the collated list */
+            SLPListLinkTail(&(handle->collatedsrvurls),
+                            (SLPListItem*)collateditem);
+
+            /* Call the caller's callback */
+            if(handle->params.findsrvs.callback((SLPHandle)handle,
+                                                pcSrvURL,
+                                                sLifetime,
+                                                SLP_OK,
+                                                handle->params.findsrvs.cookie) == SLP_FALSE)
+            {
+                goto CLEANUP;
+            }
+        }
+    }
+    
+    return SLP_TRUE;
+
+CLEANUP:
+    /* free the collation list */
+    while(handle->collatedsrvurls.count)
+    {
+        collateditem = (SLPSrvUrlColatedItem*)SLPListUnlink(&(handle->collatedsrvurls),
+                                                            handle->collatedsrvurls.head);
+        xfree(collateditem);
+    }   
+    handle->callbackcount = 0;
+
+    return SLP_FALSE;
+}
+
+/*-------------------------------------------------------------------------*/
 SLPBoolean ProcessSrvRplyCallback(SLPError errorcode,
                                   struct sockaddr_in* peerinfo,
                                   SLPBuffer replybuf,
@@ -70,15 +166,13 @@ SLPBoolean ProcessSrvRplyCallback(SLPError errorcode,
     /*-------------------------------------------*/
     /* Check the errorcode and bail if it is set */
     /*-------------------------------------------*/
-    if(errorcode)
+    if(errorcode != SLP_OK)
     {
-        handle->params.findsrvs.callback((SLPHandle)handle,
-                                         0,
-                                         0,
-                                         errorcode,
-                                         handle->params.findsrvs.cookie);
-
-        return SLP_FALSE;
+        return ColateSLPSrvURLCallback((SLPHandle)handle,
+                                       0,
+                                       0,
+                                       errorcode,
+                                       handle->params.findsrvs.cookie);
     }
 
     /*--------------------*/
@@ -97,7 +191,7 @@ SLPBoolean ProcessSrvRplyCallback(SLPError errorcode,
                 for(i=0;i<replymsg->body.srvrply.urlcount;i++)
                 {
                     
-            #ifdef ENABLE_SLPv2_SECURITY
+#ifdef ENABLE_SLPv2_SECURITY
                     /*-------------------------------*/
                     /* Validate the authblocks       */
                     /*-------------------------------*/
@@ -109,18 +203,18 @@ SLPBoolean ProcessSrvRplyCallback(SLPError errorcode,
                         /* authentication failed skip this URLEntry */
                         continue;
                     }
-            #endif
+#endif
                     /*--------------------------------*/
                     /* Send the URL to the API caller */
                     /*--------------------------------*/
                     /* TRICKY: null terminate the url by setting the authcount to 0 */
                     ((char*)(urlentry[i].url))[urlentry[i].urllen] = 0;
     
-                    result = handle->params.findsrvs.callback((SLPHandle)handle,
-                                                              urlentry[i].url,
-                                                              (unsigned short)urlentry[i].lifetime,
-                                                              SLP_OK,
-                                                              handle->params.findsrvs.cookie);
+                    result = ColateSLPSrvURLCallback((SLPHandle)handle,
+                                                     urlentry[i].url,
+                                                     (unsigned short)urlentry[i].lifetime,
+                                                     SLP_OK,
+                                                     handle->params.findsrvs.cookie);
                     if(result == SLP_FALSE)
                     {
                         break;
@@ -143,14 +237,15 @@ SLPBoolean ProcessSrvRplyCallback(SLPError errorcode,
 #endif
 
                 ((char*)(replymsg->body.daadvert.url))[replymsg->body.daadvert.urllen] = 0;
-                result = handle->params.findsrvs.callback((SLPHandle)handle,
-                                                          replymsg->body.daadvert.url,
-                                                          SLP_LIFETIME_MAXIMUM,
-                                                          SLP_OK,
-                                                          handle->params.findsrvs.cookie);
+                result = ColateSLPSrvURLCallback((SLPHandle)handle,
+                                                 replymsg->body.daadvert.url,
+                                                 SLP_LIFETIME_MAXIMUM,
+                                                 SLP_OK,
+                                                 handle->params.findsrvs.cookie);
             }
             else if(replymsg->header.functionid == SLP_FUNCT_SAADVERT)
             {
+
 #ifdef ENABLE_SLPv2_SECURITY
                 if(securityenabled &&
                    SLPAuthVerifySAAdvert(handle->hspi,
@@ -161,15 +256,14 @@ SLPBoolean ProcessSrvRplyCallback(SLPError errorcode,
                     SLPMessageFree(replymsg);
                     return SLP_TRUE;
                 }
-
 #endif
 
                 ((char*)(replymsg->body.saadvert.url))[replymsg->body.saadvert.urllen] = 0;
-                result = handle->params.findsrvs.callback((SLPHandle)handle,
-                                                          replymsg->body.saadvert.url,
-                                                          SLP_LIFETIME_MAXIMUM,
-                                                          SLP_OK,
-                                                          handle->params.findsrvs.cookie);
+                result = ColateSLPSrvURLCallback((SLPHandle)handle,
+                                                 replymsg->body.saadvert.url,
+                                                 SLP_LIFETIME_MAXIMUM,
+                                                 SLP_OK,
+                                                 handle->params.findsrvs.cookie);
 
             }
         }

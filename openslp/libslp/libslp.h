@@ -121,6 +121,15 @@ typedef enum _SLPCallType
     SLPDELATTRS
 }SLPCallType;
 
+/*=========================================================================*/
+typedef struct _SLPSrvUrlColatedItem
+/* Used to colate Service URLS                                             */
+/*=========================================================================*/
+{
+    SLPListItem     listitem;
+    char*           srvurl;
+    unsigned short  lifetime;
+}SLPSrvUrlColatedItem;
 
 /*=========================================================================*/
 typedef struct _SLPRegParams
@@ -149,7 +158,7 @@ typedef struct _SLPDeRegParams
 /* API calls                                                               */
 /*=========================================================================*/
 {
-    int            scopelistlen;
+    int             scopelistlen;
     const char*     scopelist;
     int             urllen;
     const char*     url;
@@ -242,6 +251,9 @@ typedef struct _SLPHandleInfo
     int                 sascopelen;
     int                 langtaglen;
     char*               langtag;
+    int                 callbackcount;
+    SLPList             collatedsrvurls;
+    char*               collatedsrvtypes;
 #ifdef ENABLE_SLPv2_SECURITY
     SLPSpiHandle        hspi;
 #endif

@@ -49,6 +49,106 @@
 #include "libslp.h"
 
 /*----------------------------------------------------------------------------*/
+SLPBoolean ColateSrvTypeCallback(SLPHandle hSLP,
+                                 const char* pcSrvTypes,
+                                 SLPError errCode,
+                                 void *pvCookie)
+/*----------------------------------------------------------------------------*/
+{
+    PSLPHandleInfo          handle;
+    SLPBoolean              result;
+    size_t                  srvtypeslen;
+    char*                   srvtypes;
+    
+    handle = (PSLPHandleInfo) hSLP;
+    handle->callbackcount ++;
+
+#ifdef ENABLE_ASYNC_API
+    /* Do not colate for async calls */
+    if(handle->isAsync)
+    {
+        return handle->params.findsrvtypes.callback(hSLP,
+                                                    pcSrvTypes,
+                                                    errCode,
+                                                    pvCookie);
+    }
+#endif
+
+    if(errCode == SLP_LAST_CALL || 
+       handle->callbackcount > SLPPropertyAsInteger(SLPGetProperty("net.slp.maxResults")))
+    {
+        /* We're done.  Send back the colated srvtype string */
+        result = SLP_TRUE;
+        if(handle->collatedsrvtypes)
+        {
+            result = handle->params.findsrvtypes.callback((SLPHandle)handle,
+                                                          handle->collatedsrvtypes,
+                                                          SLP_OK,
+                                                          handle->params.findsrvtypes.cookie);
+            if(result == SLP_TRUE)
+            {
+                handle->params.findsrvtypes.callback((SLPHandle)handle,
+                                                     NULL,
+                                                     SLP_LAST_CALL,
+                                                     handle->params.findsrvtypes.cookie);
+            }
+        }
+        
+        /* Free the colatedsrvtype string */
+        if(handle->collatedsrvtypes)
+        {
+            xfree(handle->collatedsrvtypes);
+            handle->collatedsrvtypes = NULL;
+        }
+
+        handle->callbackcount = 0;
+        
+        return SLP_FALSE;
+    }
+    else if(errCode != SLP_OK)
+    {
+        return SLP_TRUE;
+    }
+
+    /* Add the service types to the colation */
+    srvtypeslen = strlen(pcSrvTypes) + 1;
+    if(handle->collatedsrvtypes)
+    {
+        srvtypeslen += strlen(handle->collatedsrvtypes);
+    }
+    
+    srvtypes = xmalloc(srvtypeslen);
+    if(srvtypes)
+    {
+        if(handle->collatedsrvtypes)
+        {
+            if(SLPUnionStringList(strlen(handle->collatedsrvtypes),
+                                  handle->collatedsrvtypes,
+                                  strlen(pcSrvTypes),
+                                  pcSrvTypes,
+                                  &srvtypeslen,
+                                  srvtypes) != srvtypeslen)
+            {
+                xfree(handle->collatedsrvtypes);
+                handle->collatedsrvtypes = srvtypes;
+            }
+            else
+            {
+                xfree(srvtypes);
+            }   
+        }
+        else
+        {
+            strcpy(srvtypes,pcSrvTypes);
+            handle->collatedsrvtypes = srvtypes;
+        }
+    }
+
+    return SLP_TRUE;
+}
+
+
+/*----------------------------------------------------------------------------*/
 SLPBoolean ProcessSrvTypeRplyCallback(SLPError errorcode, 
                                       struct sockaddr_in* peerinfo,
                                       SLPBuffer replybuf,
@@ -65,11 +165,10 @@ SLPBoolean ProcessSrvTypeRplyCallback(SLPError errorcode,
     /*-------------------------------------------*/
     if(errorcode)
     {
-        handle->params.findsrvtypes.callback((SLPHandle)handle,
-                                             0,
-                                             errorcode,
-                                             handle->params.findsrvtypes.cookie);
-        return SLP_FALSE;
+        return ColateSrvTypeCallback((SLPHandle)handle,
+                                     0,
+                                     errorcode,
+                                     handle->params.findsrvtypes.cookie);
     }
 
     /*--------------------*/
@@ -93,10 +192,10 @@ SLPBoolean ProcessSrvTypeRplyCallback(SLPError errorcode,
                 ((char*)(srvtyperply->srvtypelist))[srvtyperply->srvtypelistlen] = 0;
                 
                 /* Call the callback function */
-                result = handle->params.findsrvtypes.callback((SLPHandle)handle,
-                                                              srvtyperply->srvtypelist,
-                                                              srvtyperply->errorcode * - 1,
-                                                              handle->params.findsrvtypes.cookie);
+                result = ColateSrvTypeCallback((SLPHandle)handle,
+                                               srvtyperply->srvtypelist,
+                                               srvtyperply->errorcode * - 1,
+                                               handle->params.findsrvtypes.cookie);
             }
         }
         
