@@ -251,7 +251,7 @@ int Daemonize(const char* pidfile)
     fd = fopen(pidfile,"w");
     if(fd)
     {
-        sprintf(pidstr,"%i",getpid());
+        sprintf(pidstr,"%i",(int)getpid());
         fwrite(pidstr,strlen(pidstr),1,fd);
         fclose(fd);
     }

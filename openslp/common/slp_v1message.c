@@ -297,10 +297,10 @@ int v1ParseSrvReg(SLPBuffer buffer, SLPHeader* header, SLPSrvReg* srvreg)
 	(tmp = strstr(srvreg->attrlist, "scope")))
     {
 	tmp += 5;		/* go past the scope */
-	while (*tmp && (isspace(*tmp) || *tmp == '='))
+	while (*tmp && (isspace((unsigned char)*tmp) || *tmp == '='))
 	    tmp++;		/* go past = and white space */
 	srvreg->scopelist = tmp;
-	while (*tmp && !isspace(*tmp) && *tmp != ')')
+	while (*tmp && !isspace((unsigned char)*tmp) && *tmp != ')')
 	    tmp++;		/* find end of scope */
 	srvreg->scopelistlen = tmp - srvreg->scopelist;
     }

@@ -415,7 +415,7 @@ int SLPDIncomingInit()
 {
     char*           begin = NULL;
     char*           beginSave = NULL;
-    char*           end;
+    char*           end = NULL;
     int             finished;
     struct in_addr  myaddr;
     struct in_addr  mcastaddr;

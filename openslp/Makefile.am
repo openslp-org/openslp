@@ -8,8 +8,12 @@ DOC_DIR = $(prefix)/doc/openslp-$(VERSION)
 
 install-data-local:
 	mkdir -p $(DESTDIR)$(sysconfdir)
-	cp -fb $(srcdir)/etc/slp.reg $(DESTDIR)$(sysconfdir)
-	cp -fb $(srcdir)/etc/slp.conf $(DESTDIR)$(sysconfdir)
+	file=$(DESTDIR)$(sysconfdir)/slp.reg;\
+        if [ -f $$file ]; then cp -f $$file $$file.bak; else true; fi
+	cp -f $(srcdir)/etc/slp.reg $(DESTDIR)$(sysconfdir)
+	file=$(DESTDIR)$(sysconfdir)/slp.conf;\
+	if [ -f $$file ]; then cp -f $$file $$file.bak; else true; fi
+	cp -f $(srcdir)/etc/slp.conf $(DESTDIR)$(sysconfdir)
 	rm -rf $(DESTDIR)$(DOC_DIR)
 	mkdir -p $(DESTDIR)$(DOC_DIR)/IntroductionToSLP
 	mkdir -p $(DESTDIR)$(DOC_DIR)/UsersGuide
