@@ -57,64 +57,64 @@ int G_SIGHUP;
 
 /*-------------------------------------------------------------------------*/
 void LoadFdSets(SLPList* socklist, 
-				int* highfd, 
-				fd_set* readfds, 
-				fd_set* writefds)
+                int* highfd, 
+                fd_set* readfds, 
+                fd_set* writefds)
 /*-------------------------------------------------------------------------*/
 {
-	SLPDSocket* sock = 0;
-	SLPDSocket* del = 0;
+    SLPDSocket* sock = 0;
+    SLPDSocket* del = 0;
 
-	sock = (SLPDSocket*)socklist->head;
-	while(sock)
-	{
-		if(sock->fd > *highfd)
-		{
-			*highfd = sock->fd;
-		}
+    sock = (SLPDSocket*)socklist->head;
+    while(sock)
+    {
+        if(sock->fd > *highfd)
+        {
+            *highfd = sock->fd;
+        }
 
-		switch(sock->state)
-		{
-		case DATAGRAM_UNICAST:
-		case DATAGRAM_MULTICAST:
-		case DATAGRAM_BROADCAST:
-			FD_SET(sock->fd,readfds);
-			break;
+        switch(sock->state)
+        {
+        case DATAGRAM_UNICAST:
+        case DATAGRAM_MULTICAST:
+        case DATAGRAM_BROADCAST:
+            FD_SET(sock->fd,readfds);
+            break;
 
-		case SOCKET_LISTEN:
-			if(socklist->count < SLPD_MAX_SOCKETS)
-			{
-				FD_SET(sock->fd,readfds);
-			}
-			break;
+        case SOCKET_LISTEN:
+            if(socklist->count < SLPD_MAX_SOCKETS)
+            {
+                FD_SET(sock->fd,readfds);
+            }
+            break;
 
-		case STREAM_READ:
-		case STREAM_READ_FIRST:
-			FD_SET(sock->fd,readfds);
-			break;
+        case STREAM_READ:
+        case STREAM_READ_FIRST:
+            FD_SET(sock->fd,readfds);
+            break;
 
-		case STREAM_WRITE:
-		case STREAM_WRITE_FIRST:
-		case STREAM_CONNECT_BLOCK:
-			FD_SET(sock->fd,writefds);
-			break;
+        case STREAM_WRITE:
+        case STREAM_WRITE_FIRST:
+        case STREAM_CONNECT_BLOCK:
+            FD_SET(sock->fd,writefds);
+            break;
 
-		case SOCKET_CLOSE:
-			del = sock;
-			break;
+        case SOCKET_CLOSE:
+            del = sock;
+            break;
 
-		default:
-			break;
-		}
+        default:
+            break;
+        }
 
-		sock = (SLPDSocket*)sock->listitem.next;
+        sock = (SLPDSocket*)sock->listitem.next;
 
-		if(del)
-		{
-			SLPDSocketFree((SLPDSocket*)SLPListUnlink(socklist,(SLPListItem*)del));     
-			del = 0;
-		}
-	}
+        if(del)
+        {
+            SLPDSocketFree((SLPDSocket*)SLPListUnlink(socklist,(SLPListItem*)del));     
+            del = 0;
+        }
+    }
 }
 
 
@@ -122,50 +122,50 @@ void LoadFdSets(SLPList* socklist,
 void Shutdown()
 /*------------------------------------------------------------------------*/
 {
-	struct timeval  timeout;
-	fd_set          readfds;
-	fd_set          writefds;
-	int             highfd;
-	int             fdcount         = 0;
+    struct timeval  timeout;
+    fd_set          readfds;
+    fd_set          writefds;
+    int             highfd;
+    int             fdcount         = 0;
 
-	SLPLog("****************************************\n");
-	SLPLog("*** SLPD daemon stopped              ***\n");
-	SLPLog("****************************************\n");
+    SLPLog("****************************************\n");
+    SLPLog("*** SLPD daemon stopped              ***\n");
+    SLPLog("****************************************\n");
 
-	/* close all incoming sockets */
-	SLPDIncomingDeinit();
+    /* close all incoming sockets */
+    SLPDIncomingDeinit();
 
-	/* unregister with all DAs */
-	SLPDKnownDADeinit();
+    /* unregister with all DAs */
+    SLPDKnownDADeinit();
 
-	timeout.tv_sec  = 5;
-	timeout.tv_usec = 0; 
+    timeout.tv_sec  = 5;
+    timeout.tv_usec = 0; 
 
-	/* Do a dead DA passive advert to tell everyone we're goin' down */
-	SLPDKnownDAPassiveDAAdvert(0, 1);
+    /* Do a dead DA passive advert to tell everyone we're goin' down */
+    SLPDKnownDAPassiveDAAdvert(0, 1);
 
-	/* if possible wait until all outgoing socket are done and closed */
-	while(SLPDOutgoingDeinit(1))
-	{
-		FD_ZERO(&writefds);
-		FD_ZERO(&readfds);
-		LoadFdSets(&G_OutgoingSocketList, &highfd, &readfds,&writefds);
-		fdcount = select(highfd+1,&readfds,&writefds,0,&timeout);
-		if(fdcount == 0)
-		{
-			break;
-		}
+    /* if possible wait until all outgoing socket are done and closed */
+    while(SLPDOutgoingDeinit(1))
+    {
+        FD_ZERO(&writefds);
+        FD_ZERO(&readfds);
+        LoadFdSets(&G_OutgoingSocketList, &highfd, &readfds,&writefds);
+        fdcount = select(highfd+1,&readfds,&writefds,0,&timeout);
+        if(fdcount == 0)
+        {
+            break;
+        }
 
-		SLPDOutgoingHandler(&fdcount,&readfds,&writefds);
-	}
+        SLPDOutgoingHandler(&fdcount,&readfds,&writefds);
+    }
 
-	SLPDOutgoingDeinit(0);
+    SLPDOutgoingDeinit(0);
 
 #ifdef DEBUG
-	SLPDDatabaseDeinit();
-	SLPDPropertyDeinit();
-	printf("Number of calls to SLPBufferAlloc() = %i\n",G_Debug_SLPBufferAllocCount);
-	printf("Number of calls to SLPBufferFree() = %i\n",G_Debug_SLPBufferFreeCount);
+    SLPDDatabaseDeinit();
+    SLPDPropertyDeinit();
+    printf("Number of calls to SLPBufferAlloc() = %i\n",G_Debug_SLPBufferAllocCount);
+    printf("Number of calls to SLPBufferFree() = %i\n",G_Debug_SLPBufferFreeCount);
 #endif
 
 }
@@ -173,37 +173,37 @@ void Shutdown()
 #ifdef WIN32
 void __cdecl main(int argc, char **argv) 
 {
-	SERVICE_TABLE_ENTRY dispatchTable[] = 
-	{ 
-		{ G_SERVICENAME, (LPSERVICE_MAIN_FUNCTION)SLPDServiceMain}, 
-		{ NULL, NULL} 
-	}; 
+    SERVICE_TABLE_ENTRY dispatchTable[] = 
+    { 
+        { G_SERVICENAME, (LPSERVICE_MAIN_FUNCTION)SLPDServiceMain}, 
+        { NULL, NULL} 
+    }; 
 
-	/*------------------------*/
-	/* Parse the command line */
-	/*------------------------*/
-	if(SLPDParseCommandLine(argc,argv))
-	{
-		SLPFatal("Invalid command line\n");
-	}
+    /*------------------------*/
+    /* Parse the command line */
+    /*------------------------*/
+    if(SLPDParseCommandLine(argc,argv))
+    {
+        SLPFatal("Invalid command line\n");
+    }
 
-	switch(G_SlpdCommandLine.action)
-	{
-	case SLPD_DEBUG:
-		SLPDCmdDebugService(argc, argv);
-		break;
-	case SLPD_INSTALL:
-		SLPDCmdInstallService();
-		break;
-	case SLPD_REMOVE:
-		SLPDCmdRemoveService();
-		break;
-	default:
-		SLPDPrintUsage();
-		StartServiceCtrlDispatcher(dispatchTable);
+    switch(G_SlpdCommandLine.action)
+    {
+    case SLPD_DEBUG:
+        SLPDCmdDebugService(argc, argv);
+        break;
+    case SLPD_INSTALL:
+        SLPDCmdInstallService();
+        break;
+    case SLPD_REMOVE:
+        SLPDCmdRemoveService();
+        break;
+    default:
+        SLPDPrintUsage();
+        StartServiceCtrlDispatcher(dispatchTable);
 
-		break;
-	} 
+        break;
+    } 
 } 
 
 #else
@@ -212,24 +212,24 @@ void __cdecl main(int argc, char **argv)
 void SignalHandler(int signum)
 /*--------------------------------------------------------------------------*/
 {
-	switch(signum)
-	{
-	case SIGALRM:
-		G_SIGALRM = 1;
-		break;
+    switch(signum)
+    {
+    case SIGALRM:
+        G_SIGALRM = 1;
+        break;
 
-	case SIGTERM:
-		G_SIGTERM = 1;
-		break;
+    case SIGTERM:
+        G_SIGTERM = 1;
+        break;
 
-	case SIGHUP:
-		G_SIGHUP = 1;
-		break;
+    case SIGHUP:
+        G_SIGHUP = 1;
+        break;
 
-	case SIGPIPE:
-	default:
-		break;
-	}
+    case SIGPIPE:
+    default:
+        break;
+    }
 }
 
 
@@ -237,24 +237,24 @@ void SignalHandler(int signum)
 int SetUpSignalHandlers()
 /*-------------------------------------------------------------------------*/
 {
-	int result;
-	struct sigaction sa;
+    int result;
+    struct sigaction sa;
 
-	sa.sa_handler    = SignalHandler;
-	sigemptyset(&sa.sa_mask);
-	sa.sa_flags      = 0;//SA_ONESHOT;
+    sa.sa_handler    = SignalHandler;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags      = 0;//SA_ONESHOT;
 #if defined(HAVE_SA_RESTORER)
-	sa.sa_restorer   = 0;
+    sa.sa_restorer   = 0;
 #endif
 
-	result = sigaction(SIGALRM,&sa,0);
-	result |= sigaction(SIGTERM,&sa,0);
-	result |= sigaction(SIGPIPE,&sa,0);
+    result = sigaction(SIGALRM,&sa,0);
+    result |= sigaction(SIGTERM,&sa,0);
+    result |= sigaction(SIGPIPE,&sa,0);
 
-	signal(SIGHUP,SignalHandler);
-	//result |= sigaction(SIGHUP,&sa,0);
+    signal(SIGHUP,SignalHandler);
+    //result |= sigaction(SIGHUP,&sa,0);
 
-	return result;
+    return result;
 }
 
 
@@ -266,234 +266,234 @@ int Daemonize(const char* pidfile)
 /*          slpd is already running                             .          */
 /*-------------------------------------------------------------------------*/
 {
-	pid_t   pid;
-	FILE*   fd;
-	struct  passwd* pwent;
-	char    pidstr[14];
+    pid_t   pid;
+    FILE*   fd;
+    struct  passwd* pwent;
+    char    pidstr[14];
 
-	if(G_SlpdCommandLine.detach)
-	{
+    if(G_SlpdCommandLine.detach)
+    {
 
-		/*-------------------------------------------*/
-		/* Release the controlling tty and std files */
-		/*-------------------------------------------*/
-		switch(fork())
-		{
-		case -1:
-			return -1;
-		case 0:
-			/* child lives */
-			break;
+        /*-------------------------------------------*/
+        /* Release the controlling tty and std files */
+        /*-------------------------------------------*/
+        switch(fork())
+        {
+        case -1:
+            return -1;
+        case 0:
+            /* child lives */
+            break;
 
-		default:
-			/* parent dies */
-			exit(0);
-		}
+        default:
+            /* parent dies */
+            exit(0);
+        }
 
-		close(0); 
-		close(1); 
-		close(2); 
-		setsid(); /* will only fail if we are already the process group leader */
-	}
+        close(0); 
+        close(1); 
+        close(2); 
+        setsid(); /* will only fail if we are already the process group leader */
+    }
 
-	/*------------------------------------------*/
-	/* make sure that we're not running already */
-	/*------------------------------------------*/
-	/* read the pid from the file */
-	fd = fopen(pidfile,"r");
-	if(fd)
-	{
-		memset(pidstr,0,14);
-		fread(pidstr,13,1,fd);
-		fclose(fd);
-		pid = atoi(pidstr);
-		if(pid)
-		{
-			if(kill(pid,0) == 0)
-			{
-				/* we are already running */
-				SLPFatal("slpd daemon is already running\n");
-				return -1;
-			}
-		}
-	}
-	/* write my pid to the pidfile */
-	fd = fopen(pidfile,"w");
-	if(fd)
-	{
-		sprintf(pidstr,"%i",(int)getpid());
-		fwrite(pidstr,strlen(pidstr),1,fd);
-		fclose(fd);
-	}
+    /*------------------------------------------*/
+    /* make sure that we're not running already */
+    /*------------------------------------------*/
+    /* read the pid from the file */
+    fd = fopen(pidfile,"r");
+    if(fd)
+    {
+        memset(pidstr,0,14);
+        fread(pidstr,13,1,fd);
+        fclose(fd);
+        pid = atoi(pidstr);
+        if(pid)
+        {
+            if(kill(pid,0) == 0)
+            {
+                /* we are already running */
+                SLPFatal("slpd daemon is already running\n");
+                return -1;
+            }
+        }
+    }
+    /* write my pid to the pidfile */
+    fd = fopen(pidfile,"w");
+    if(fd)
+    {
+        sprintf(pidstr,"%i",(int)getpid());
+        fwrite(pidstr,strlen(pidstr),1,fd);
+        fclose(fd);
+    }
 
-	/*----------------*/
-	/* suid to daemon */
-	/*----------------*/
-	/* TODO: why do the following lines mess up my signal handlers? */
-	pwent = getpwnam("daemon"); 
-	if(pwent)
-	{
-		if(setgroups(1, &pwent->pw_gid) < 0 ||
-		   setgid(pwent->pw_gid) < 0 ||
-		   setuid(pwent->pw_uid) < 0)
-		{
-			/* TODO: should we log here and return fail */
-		}
-	}
+    /*----------------*/
+    /* suid to daemon */
+    /*----------------*/
+    /* TODO: why do the following lines mess up my signal handlers? */
+    pwent = getpwnam("daemon"); 
+    if(pwent)
+    {
+        if(setgroups(1, &pwent->pw_gid) < 0 ||
+           setgid(pwent->pw_gid) < 0 ||
+           setuid(pwent->pw_uid) < 0)
+        {
+            /* TODO: should we log here and return fail */
+        }
+    }
 
-	return 0;
+    return 0;
 }
 
 /*=========================================================================*/
 int main(int argc, char* argv[])
 /*=========================================================================*/
 {
-	fd_set          readfds;
-	fd_set          writefds;
-	int             highfd;
-	int             fdcount         = 0;
+    fd_set          readfds;
+    fd_set          writefds;
+    int             highfd;
+    int             fdcount         = 0;
 
-	/*------------------------*/
-	/* Parse the command line */
-	/*------------------------*/
-	if(SLPDParseCommandLine(argc,argv))
-	{
-		SLPFatal("Invalid command line\n");
-	}
+    /*------------------------*/
+    /* Parse the command line */
+    /*------------------------*/
+    if(SLPDParseCommandLine(argc,argv))
+    {
+        SLPFatal("Invalid command line\n");
+    }
 
-	/*------------------------------*/
-	/* Make sure we are root        */
-	/*------------------------------*/
-	if(getuid() != 0)
-	{
-		SLPFatal("slpd must be started by root\n");
-	}
+    /*------------------------------*/
+    /* Make sure we are root        */
+    /*------------------------------*/
+    if(getuid() != 0)
+    {
+        SLPFatal("slpd must be started by root\n");
+    }
 
-	/*------------------------------*/
-	/* Initialize the log file      */
-	/*------------------------------*/
-	if(SLPLogFileOpen(G_SlpdCommandLine.logfile, 0))
-	{
-		SLPFatal("Could not open logfile %s\n",G_SlpdCommandLine.logfile);
-	}
+    /*------------------------------*/
+    /* Initialize the log file      */
+    /*------------------------------*/
+    if(SLPLogFileOpen(G_SlpdCommandLine.logfile, 0))
+    {
+        SLPFatal("Could not open logfile %s\n",G_SlpdCommandLine.logfile);
+    }
 
-	/*---------------------*/
-	/* Log startup message */
-	/*---------------------*/
-	SLPLog("****************************************\n");
-	SLPLog("*** SLPD daemon started             ***\n");
-	SLPLog("****************************************\n");
-	SLPLog("Command line = %s\n",argv[0]);
-
-
-	/*--------------------------------------------------*/
-	/* Initialize for the first time                    */
-	/*--------------------------------------------------*/
-	SLPDPropertyInit(G_SlpdCommandLine.cfgfile);
-	SLPDDatabaseInit(G_SlpdCommandLine.regfile);
-	SLPDIncomingInit();
-	SLPDOutgoingInit();
-	SLPDKnownDAInit();
-	/* TODO: Check error codes on all init functions */
-
-	/*---------------------------*/
-	/* make slpd run as a daemon */
-	/*---------------------------*/
-	if(Daemonize(G_SlpdCommandLine.pidfile))
-	{
-		SLPFatal("Could not run as daemon\n");
-	}
-
-	/*-----------------------*/
-	/* Setup signal handlers */
-	/*-----------------------*/
-	if(SetUpSignalHandlers())
-	{
-		SLPFatal("Could not set up signal handlers.\n");
-	}
-
-	/*------------------------------*/
-	/* Set up alarm to age database */
-	/*------------------------------*/
-	alarm(SLPD_AGE_INTERVAL);
-
-	/*-----------*/
-	/* Main loop */
-	/*-----------*/
-	G_SIGALRM   = 0;
-	G_SIGTERM   = 0;
-	G_SIGHUP    = 0;    
-	while(G_SIGTERM == 0)
-	{
-		/*--------------------------------------------------------*/
-		/* Load the fdsets up with all valid sockets in the list  */
-		/*--------------------------------------------------------*/
-		highfd = 0;
-		FD_ZERO(&readfds);
-		FD_ZERO(&writefds);
-		LoadFdSets(&G_IncomingSocketList, &highfd, &readfds,&writefds);
-		LoadFdSets(&G_OutgoingSocketList, &highfd, &readfds,&writefds);
-
-		/*--------------------------------------------------*/
-		/* Before select(), check to see if we got a signal */
-		/*--------------------------------------------------*/
-		if(G_SIGALRM || G_SIGHUP)
-		{
-			goto HANDLE_SIGNAL;
-		}
-
-		/*-------------*/
-		/* Main select */
-		/*-------------*/
-		fdcount = select(highfd+1,&readfds,&writefds,0,0);
-		if(fdcount > 0)	/* fdcount will be < 0 when interrupted by a signal */
-		{
-			SLPDIncomingHandler(&fdcount,&readfds,&writefds);
-			SLPDOutgoingHandler(&fdcount,&readfds,&writefds);
-		}
-
-		/*----------------*/
-		/* Handle signals */
-		/*----------------*/
-		HANDLE_SIGNAL:
-		if(G_SIGHUP)
-		{
-			/* Reinitialize */
-			SLPLog("****************************************\n");
-			SLPLog("*** SLPD daemon restarted            ***\n");
-			SLPLog("****************************************\n");
-			SLPLog("Got SIGHUP reinitializing... \n");
-
-			/* re-read properties */
-			SLPDPropertyInit(G_SlpdCommandLine.cfgfile);
-
-			/* Re-read the static registration file (slp.reg)*/
-			SLPDDatabaseInit(G_SlpdCommandLine.regfile);
-
-			/* Rebuild Known DA database */
-			SLPDKnownDAInit();
+    /*---------------------*/
+    /* Log startup message */
+    /*---------------------*/
+    SLPLog("****************************************\n");
+    SLPLog("*** SLPD daemon started             ***\n");
+    SLPLog("****************************************\n");
+    SLPLog("Command line = %s\n",argv[0]);
 
 
-			G_SIGHUP = 0;     
-		}
-		if(G_SIGALRM)
-		{
-			SLPDIncomingAge(SLPD_AGE_INTERVAL);
-			SLPDOutgoingAge(SLPD_AGE_INTERVAL);
-			SLPDDatabaseAge(SLPD_AGE_INTERVAL,G_SlpdProperty.isDA);
-			SLPDKnownDAPassiveDAAdvert(SLPD_AGE_INTERVAL,0);
-			SLPDKnownDAActiveDiscovery(SLPD_AGE_INTERVAL);
-			SLPDKnownDAImmortalRefresh(SLPD_AGE_INTERVAL);
-			G_SIGALRM = 0;
-			alarm(SLPD_AGE_INTERVAL);
-		}
+    /*--------------------------------------------------*/
+    /* Initialize for the first time                    */
+    /*--------------------------------------------------*/
+    SLPDPropertyInit(G_SlpdCommandLine.cfgfile);
+    SLPDDatabaseInit(G_SlpdCommandLine.regfile);
+    SLPDIncomingInit();
+    SLPDOutgoingInit();
+    SLPDKnownDAInit();
+    /* TODO: Check error codes on all init functions */
 
-	} /* End of main loop */
+    /*---------------------------*/
+    /* make slpd run as a daemon */
+    /*---------------------------*/
+    if(Daemonize(G_SlpdCommandLine.pidfile))
+    {
+        SLPFatal("Could not run as daemon\n");
+    }
 
-	/* Got SIGTERM */
-	Shutdown();
+    /*-----------------------*/
+    /* Setup signal handlers */
+    /*-----------------------*/
+    if(SetUpSignalHandlers())
+    {
+        SLPFatal("Could not set up signal handlers.\n");
+    }
 
-	return 0;
+    /*------------------------------*/
+    /* Set up alarm to age database */
+    /*------------------------------*/
+    alarm(SLPD_AGE_INTERVAL);
+
+    /*-----------*/
+    /* Main loop */
+    /*-----------*/
+    G_SIGALRM   = 0;
+    G_SIGTERM   = 0;
+    G_SIGHUP    = 0;    
+    while(G_SIGTERM == 0)
+    {
+        /*--------------------------------------------------------*/
+        /* Load the fdsets up with all valid sockets in the list  */
+        /*--------------------------------------------------------*/
+        highfd = 0;
+        FD_ZERO(&readfds);
+        FD_ZERO(&writefds);
+        LoadFdSets(&G_IncomingSocketList, &highfd, &readfds,&writefds);
+        LoadFdSets(&G_OutgoingSocketList, &highfd, &readfds,&writefds);
+
+        /*--------------------------------------------------*/
+        /* Before select(), check to see if we got a signal */
+        /*--------------------------------------------------*/
+        if(G_SIGALRM || G_SIGHUP)
+        {
+            goto HANDLE_SIGNAL;
+        }
+
+        /*-------------*/
+        /* Main select */
+        /*-------------*/
+        fdcount = select(highfd+1,&readfds,&writefds,0,0);
+        if(fdcount > 0) /* fdcount will be < 0 when interrupted by a signal */
+        {
+            SLPDIncomingHandler(&fdcount,&readfds,&writefds);
+            SLPDOutgoingHandler(&fdcount,&readfds,&writefds);
+        }
+
+        /*----------------*/
+        /* Handle signals */
+        /*----------------*/
+        HANDLE_SIGNAL:
+        if(G_SIGHUP)
+        {
+            /* Reinitialize */
+            SLPLog("****************************************\n");
+            SLPLog("*** SLPD daemon restarted            ***\n");
+            SLPLog("****************************************\n");
+            SLPLog("Got SIGHUP reinitializing... \n");
+
+            /* re-read properties */
+            SLPDPropertyInit(G_SlpdCommandLine.cfgfile);
+
+            /* Re-read the static registration file (slp.reg)*/
+            SLPDDatabaseInit(G_SlpdCommandLine.regfile);
+
+            /* Rebuild Known DA database */
+            SLPDKnownDAInit();
+
+
+            G_SIGHUP = 0;     
+        }
+        if(G_SIGALRM)
+        {
+            SLPDIncomingAge(SLPD_AGE_INTERVAL);
+            SLPDOutgoingAge(SLPD_AGE_INTERVAL);
+            SLPDDatabaseAge(SLPD_AGE_INTERVAL,G_SlpdProperty.isDA);
+            SLPDKnownDAPassiveDAAdvert(SLPD_AGE_INTERVAL,0);
+            SLPDKnownDAActiveDiscovery(SLPD_AGE_INTERVAL);
+            SLPDKnownDAImmortalRefresh(SLPD_AGE_INTERVAL);
+            G_SIGALRM = 0;
+            alarm(SLPD_AGE_INTERVAL);
+        }
+
+    } /* End of main loop */
+
+    /* Got SIGTERM */
+    Shutdown();
+
+    return 0;
 }
 
 

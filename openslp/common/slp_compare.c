@@ -52,14 +52,14 @@
 #include <slp_compare.h>
 
 #ifdef WIN32
-	#define strncasecmp(string1, string2, n) strnicmp(string1, string2, n)
+    #define strncasecmp(string1, string2, n) strnicmp(string1, string2, n)
 #endif
 
 /*=========================================================================*/
 int SLPCompareString(int str1len,
-					 const char* str1,
-					 int str2len,
-					 const char* str2)
+                     const char* str1,
+                     int str2len,
+                     const char* str2)
 /* Does a lexical string compare as described in RFC 2608 section 6.4.     */
 /*                                                                         */
 /* TODO: Handle the whole utf8 spec                                        */
@@ -75,26 +75,26 @@ int SLPCompareString(int str1len,
 /* Returns -    zero if strings are equal. >0 if str1 is greater than str2 */
 /*              <0 if s1 is less than str2                                 */
 /*=========================================================================*/
-{     
-	/* TODO: fold whitespace and handle escapes*/
-	if(str1len == str2len)
-	{
-		return strncasecmp(str1,str2,str1len);
-	}
-	else if(str1len > str2len)
-	{
-		return -1;
-	}
+{
+    /* TODO: fold whitespace and handle escapes*/
+    if(str1len == str2len)
+    {
+        return strncasecmp(str1,str2,str1len);
+    }
+    else if(str1len > str2len)
+    {
+        return -1;
+    }
 
-	return 1;
+    return 1;
 }
 
 
 /*=========================================================================*/
 int SLPCompareNamingAuth(int srvtypelen,
-						 const char* srvtype,
-						 int namingauthlen,
-						 const char* namingauth)
+                         const char* srvtype,
+                         int namingauthlen,
+                         const char* namingauth)
 /* Does srvtype match namingauth                                           */
 /*                                                                         */
 /* TODO: Handle the whole utf8 spec                                        */
@@ -111,33 +111,33 @@ int SLPCompareNamingAuth(int srvtypelen,
 /*              it doesn't                                                 */
 /*=========================================================================*/
 {
-	const char *dot;
-	int srvtypenalen;
+    const char *dot;
+    int srvtypenalen;
 
-	if(namingauthlen == 0xffff)	/* match all naming authorities */
-		return 0;
+    if(namingauthlen == 0xffff) /* match all naming authorities */
+        return 0;
 
-	dot = memchr(srvtype,'.',srvtypelen);
+    dot = memchr(srvtype,'.',srvtypelen);
 
-	if(!namingauthlen)	   /* IANA naming authority */
-		return dot ? 1 : 0;
+    if(!namingauthlen)     /* IANA naming authority */
+        return dot ? 1 : 0;
 
-	srvtypenalen = srvtypelen - (dot + 1 - srvtype);
+    srvtypenalen = srvtypelen - (dot + 1 - srvtype);
 
-	if(srvtypenalen != namingauthlen)
-		return 1;
+    if(srvtypenalen != namingauthlen)
+        return 1;
 
-	if(strncasecmp(dot + 1, namingauth, namingauthlen) == 0)
-		return 0;
+    if(strncasecmp(dot + 1, namingauth, namingauthlen) == 0)
+        return 0;
 
-	return 1;
+    return 1;
 }
 
 
 int SLPCompareSrvType(int lsrvtypelen,
-					  const char* lsrvtype,
-					  int rsrvtypelen,
-					  const char* rsrvtype)
+                      const char* lsrvtype,
+                      int rsrvtypelen,
+                      const char* rsrvtype)
 /* Does lsrvtype = rsrvtype?                                               */
 /*                                                                         */
 /* TODO: Handle the whole utf8 spec                                        */
@@ -153,57 +153,57 @@ int SLPCompareSrvType(int lsrvtypelen,
 /* Returns -    zero if srvtypes are equal. Nonzero if they are not        */
 /*=========================================================================*/
 {
-	char* colon;
+    char* colon;
 
-	/* Skip "service:" */
-	if(strncasecmp(lsrvtype,"service:",lsrvtypelen > 8 ? 8 : lsrvtypelen) == 0)
-	{
-		lsrvtypelen = lsrvtypelen - 8;
-		lsrvtype = lsrvtype + 8;
-	}
-	if(strncasecmp(rsrvtype,"service:",rsrvtypelen > 8 ? 8 : rsrvtypelen) == 0)
-	{
-		rsrvtypelen = rsrvtypelen - 8;
-		rsrvtype = rsrvtype + 8;
-	}
+    /* Skip "service:" */
+    if(strncasecmp(lsrvtype,"service:",lsrvtypelen > 8 ? 8 : lsrvtypelen) == 0)
+    {
+        lsrvtypelen = lsrvtypelen - 8;
+        lsrvtype = lsrvtype + 8;
+    }
+    if(strncasecmp(rsrvtype,"service:",rsrvtypelen > 8 ? 8 : rsrvtypelen) == 0)
+    {
+        rsrvtypelen = rsrvtypelen - 8;
+        rsrvtype = rsrvtype + 8;
+    }
 
-	if(memchr(lsrvtype,':',lsrvtypelen))
-	{
-		/* lsrvtype is uses concrete type so strings must be identical */
-		if(lsrvtypelen == rsrvtypelen)
-		{
-			return strncasecmp(lsrvtype,rsrvtype,lsrvtypelen);
-		}
+    if(memchr(lsrvtype,':',lsrvtypelen))
+    {
+        /* lsrvtype is uses concrete type so strings must be identical */
+        if(lsrvtypelen == rsrvtypelen)
+        {
+            return strncasecmp(lsrvtype,rsrvtype,lsrvtypelen);
+        }
 
-		return 1;
-	}
+        return 1;
+    }
 
-	colon = memchr(rsrvtype,':',rsrvtypelen);
-	if(colon)
-	{
-		/* lsrvtype is abstract only and rsrvtype is concrete */
-		if(lsrvtypelen == (colon - rsrvtype))
-		{
-			return strncasecmp(lsrvtype,rsrvtype,lsrvtypelen);
-		}
-		return 1;
-	}
+    colon = memchr(rsrvtype,':',rsrvtypelen);
+    if(colon)
+    {
+        /* lsrvtype is abstract only and rsrvtype is concrete */
+        if(lsrvtypelen == (colon - rsrvtype))
+        {
+            return strncasecmp(lsrvtype,rsrvtype,lsrvtypelen);
+        }
+        return 1;
+    }
 
-	/* lsrvtype and rsrvtype are  abstract only */
-	if(lsrvtypelen == rsrvtypelen)
-	{
-		return strncasecmp(lsrvtype,rsrvtype,lsrvtypelen);
-	}
+    /* lsrvtype and rsrvtype are  abstract only */
+    if(lsrvtypelen == rsrvtypelen)
+    {
+        return strncasecmp(lsrvtype,rsrvtype,lsrvtypelen);
+    }
 
-	return 1;
+    return 1;
 }
 
 
 /*=========================================================================*/
 int SLPContainsStringList(int listlen, 
-						  const char* list,
-						  int stringlen,
-						  const char* string) 
+                          const char* list,
+                          int stringlen,
+                          const char* string) 
 /* Checks a string-list for the occurence of a string                      */
 /*                                                                         */
 /* list -       pointer to the string-list to be checked                   */
@@ -218,48 +218,48 @@ int SLPContainsStringList(int listlen,
 /*              is.                                                        */
 /*=========================================================================*/
 {
-	char* listend = (char*)list + listlen;
-	char* itembegin = (char*)list;
-	char* itemend = itembegin;
+    char* listend = (char*)list + listlen;
+    char* itembegin = (char*)list;
+    char* itemend = itembegin;
 
-	while(itemend < listend)
-	{
-		itembegin = itemend;
+    while(itemend < listend)
+    {
+        itembegin = itemend;
 
-		/* seek to the end of the next list item */
-		while(1)
-		{
-			if(itemend == listend || *itemend == ',')
-			{
-				if(*(itemend - 1) != '\\')
-				{
-					break;
-				}
-			}
+        /* seek to the end of the next list item */
+        while(1)
+        {
+            if(itemend == listend || *itemend == ',')
+            {
+                if(*(itemend - 1) != '\\')
+                {
+                    break;
+                }
+            }
 
-			itemend ++;
-		}
+            itemend ++;
+        }
 
-		if(SLPCompareString(itemend - itembegin,
-							itembegin,
-							stringlen,
-							string) == 0)
-		{
-			return 1;
-		}
+        if(SLPCompareString(itemend - itembegin,
+                            itembegin,
+                            stringlen,
+                            string) == 0)
+        {
+            return 1;
+        }
 
-		itemend ++;    
-	}
+        itemend ++;    
+    }
 
-	return 0;
+    return 0;
 }
 
 
 /*=========================================================================*/
 int SLPIntersectStringList(int list1len,
-						   const char* list1,
-						   int list2len,
-						   const char* list2)
+                           const char* list1,
+                           int list2len,
+                           const char* list2)
 /* Calculates the number of common entries between two string-lists        */
 /*                                                                         */
 /* list1 -      pointer to the string-list to be checked                   */
@@ -273,51 +273,51 @@ int SLPIntersectStringList(int list1len,
 /* Returns -    The number of common entries.                              */
 /*=========================================================================*/
 {
-	int result = 0;
-	char* listend = (char*)list1 + list1len;
-	char* itembegin = (char*)list1;
-	char* itemend = itembegin;
+    int result = 0;
+    char* listend = (char*)list1 + list1len;
+    char* itembegin = (char*)list1;
+    char* itemend = itembegin;
 
-	while(itemend < listend)
-	{
-		itembegin = itemend;
+    while(itemend < listend)
+    {
+        itembegin = itemend;
 
-		/* seek to the end of the next list item */
-		while(1)
-		{
-			if(itemend == listend || *itemend == ',')
-			{
-				if(*(itemend - 1) != '\\')
-				{
-					break;
-				}
-			}
+        /* seek to the end of the next list item */
+        while(1)
+        {
+            if(itemend == listend || *itemend == ',')
+            {
+                if(*(itemend - 1) != '\\')
+                {
+                    break;
+                }
+            }
 
-			itemend ++;
-		}
+            itemend ++;
+        }
 
-		if(SLPContainsStringList(list2len,
-								 list2,
-								 itemend - itembegin,
-								 itembegin))
-		{
-			result ++;
-		}
+        if(SLPContainsStringList(list2len,
+                                 list2,
+                                 itemend - itembegin,
+                                 itembegin))
+        {
+            result ++;
+        }
 
-		itemend ++;    
-	}
+        itemend ++;    
+    }
 
-	return result;
+    return result;
 }
 
 
 /*=========================================================================*/
 int SLPUnionStringList(int list1len,
-					   const char* list1,
-					   int list2len,
-					   const char* list2,
-					   int* unionlistlen,
-					   char * unionlist)
+                       const char* list1,
+                       int list2len,
+                       const char* list2,
+                       int* unionlistlen,
+                       char * unionlist)
 /* Generate a string list that is a union of two string lists              */
 /*                                                                         */
 /* list1len -   length in bytes of list1                                   */
@@ -350,71 +350,71 @@ int SLPUnionStringList(int list1len,
 /*       returned) is list1len + list2len + 1                              */
 /*=========================================================================*/
 {
-	char* listend = (char*)list2 + list2len;
-	char* itembegin = (char*)list2;
-	char* itemend = itembegin;
-	int   itemlen;
-	int   copiedlen;
+    char* listend = (char*)list2 + list2len;
+    char* itembegin = (char*)list2;
+    char* itemend = itembegin;
+    int   itemlen;
+    int   copiedlen;
 
-	if(unionlist == 0 ||
-	   *unionlistlen == 0 ||
-	   *unionlistlen < list1len)
-	{
-		*unionlistlen = list1len + list2len + 1;
-		return -1;
-	}
+    if(unionlist == 0 ||
+       *unionlistlen == 0 ||
+       *unionlistlen < list1len)
+    {
+        *unionlistlen = list1len + list2len + 1;
+        return -1;
+    }
 
-	/* Copy list1 into the unionlist since it should not have any duplicates */
-	memcpy(unionlist,list1,list1len);
-	copiedlen = list1len;
+    /* Copy list1 into the unionlist since it should not have any duplicates */
+    memcpy(unionlist,list1,list1len);
+    copiedlen = list1len;
 
-	while(itemend < listend)
-	{
-		itembegin = itemend;
+    while(itemend < listend)
+    {
+        itembegin = itemend;
 
-		/* seek to the end of the next list item */
-		while(1)
-		{
-			if(itemend == listend || *itemend == ',')
-			{
-				if(*(itemend - 1) != '\\')
-				{
-					break;
-				}
-			}
+        /* seek to the end of the next list item */
+        while(1)
+        {
+            if(itemend == listend || *itemend == ',')
+            {
+                if(*(itemend - 1) != '\\')
+                {
+                    break;
+                }
+            }
 
-			itemend ++;
-		}
+            itemend ++;
+        }
 
-		itemlen = itemend - itembegin;
-		if(SLPContainsStringList(list1len,
-								 list1,
-								 itemlen,
-								 itembegin) == 0)
-		{
-			if(copiedlen + itemlen + 1 > *unionlistlen)
-			{
+        itemlen = itemend - itembegin;
+        if(SLPContainsStringList(list1len,
+                                 list1,
+                                 itemlen,
+                                 itembegin) == 0)
+        {
+            if(copiedlen + itemlen + 1 > *unionlistlen)
+            {
 
-				*unionlistlen = list1len + list2len + 1;
-				return -1;
-			}
+                *unionlistlen = list1len + list2len + 1;
+                return -1;
+            }
 
-			/* append a comma if not the first entry*/
-			if(copiedlen)
-			{
-				unionlist[copiedlen] = ',';
-				copiedlen++;
-			}
-			memcpy(unionlist + copiedlen, itembegin, itemlen);
-			copiedlen += itemlen;
+            /* append a comma if not the first entry*/
+            if(copiedlen)
+            {
+                unionlist[copiedlen] = ',';
+                copiedlen++;
+            }
+            memcpy(unionlist + copiedlen, itembegin, itemlen);
+            copiedlen += itemlen;
 
-		}
+        }
 
-		itemend ++;    
-	}
+        itemend ++;    
+    }
 
-	*unionlistlen = copiedlen;
+    *unionlistlen = copiedlen;
 
-	return copiedlen;
+    return copiedlen;
 }
 

@@ -49,16 +49,17 @@
 /***************************************************************************/
 
 #if(!defined SLP_BUFFER_H_INCLUDED)
-	#define SLP_BUFFER_H_INCLUDED
+    #define SLP_BUFFER_H_INCLUDED
 
-	#include <stdlib.h>
+    #include <stdlib.h>
 
-	#include <slp_linkedlist.h>
+    #include <slp_linkedlist.h>
 
-	#ifdef DEBUG
+    #ifdef DEBUG
 extern int G_Debug_SLPBufferAllocCount;
 extern int G_Debug_SLPBufferFreeCount;
-	#endif
+    #endif
+
 
 
 
@@ -66,22 +67,22 @@ extern int G_Debug_SLPBufferFreeCount;
 typedef struct _SLPBuffer                                                  
 /*=========================================================================*/
 {
-	SLPListItem listitem;
-	/* SLPListItem so that SLPBuffers can be linked into a list*/
+    SLPListItem listitem;
+    /* SLPListItem so that SLPBuffers can be linked into a list*/
 
-	/* the allocated size of this buffer (the actual malloc'd size is
-	   one byte more than this to null terminate C strings) */
-	size_t  allocated;
+    /* the allocated size of this buffer (the actual malloc'd size is
+       one byte more than this to null terminate C strings) */
+    size_t  allocated;
 
-	unsigned char*   start;  
-	/* ALWAYS points to the start of the malloc() buffer  */
+    unsigned char*   start;  
+    /* ALWAYS points to the start of the malloc() buffer  */
 
-	unsigned char*   curpos;
-	/* "slider" pointer.  Range is ALWAYS (start < curpos < end) */
+    unsigned char*   curpos;
+    /* "slider" pointer.  Range is ALWAYS (start < curpos < end) */
 
-	unsigned char*   end;
-	/* ALWAYS set to point to the byte after the last meaningful byte */
-	/* Data beyond this index may not be valid */
+    unsigned char*   end;
+    /* ALWAYS set to point to the byte after the last meaningful byte */
+    /* Data beyond this index may not be valid */
 }*SLPBuffer;   
 
 

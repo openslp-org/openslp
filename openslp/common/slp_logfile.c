@@ -77,37 +77,37 @@ int SLPLogFileOpen(const char* path, int append)
 /* Returns  - zero on success. errno on failure.                           */
 /*=========================================================================*/
 {
-	if(G_LogFile)
-	{
-		/* logfile was already open close it */
-		fclose(G_LogFile);
-	}
+    if(G_LogFile)
+    {
+        /* logfile was already open close it */
+        fclose(G_LogFile);
+    }
 
-	if(*path == 0)
-	{
-		/* Log to console. */
-		G_LogFile = stdout;
-	}
-	else
-	{
-		/* Log to file. */
-		if(append)
-		{
-			G_LogFile = fopen(path,"a");
-		}
-		else
-		{
-			G_LogFile = fopen(path,"w");
-		}
+    if(*path == 0)
+    {
+        /* Log to console. */
+        G_LogFile = stdout;
+    }
+    else
+    {
+        /* Log to file. */
+        if(append)
+        {
+            G_LogFile = fopen(path,"a");
+        }
+        else
+        {
+            G_LogFile = fopen(path,"w");
+        }
 
-		if(G_LogFile == 0)
-		{
-			/* could not open the log file */
-			return -1;
-		}
-	}
+        if(G_LogFile == 0)
+        {
+            /* could not open the log file */
+            return -1;
+        }
+    }
 
-	return 0;
+    return 0;
 }
 
 
@@ -116,9 +116,9 @@ int SLPLogFileClose()
 /* Releases resources associated with the log file                         */
 /*=========================================================================*/
 {
-	fclose(G_LogFile);
+    fclose(G_LogFile);
 
-	return 0;
+    return 0;
 }
 
 
@@ -127,15 +127,15 @@ void SLPLog(const char* msg, ...)
 /* Logs a message                                                          */
 /*=========================================================================*/
 {
-	va_list ap;
+    va_list ap;
 
-	if(G_LogFile)
-	{
-		va_start(ap,msg);
-		vfprintf(G_LogFile,msg,ap); 
-		va_end(ap);
-		fflush(G_LogFile);
-	}
+    if(G_LogFile)
+    {
+        va_start(ap,msg);
+        vfprintf(G_LogFile,msg,ap); 
+        va_end(ap);
+        fflush(G_LogFile);
+    }
 }
 
 
@@ -144,25 +144,25 @@ void SLPFatal(const char* msg, ...)
 /* Logs a message and halts the process                                    */
 /*=========================================================================*/
 {
-	va_list ap;
+    va_list ap;
 
-	if(G_LogFile)
-	{
-		fprintf(G_LogFile,"A FATAL Error has occured:\n");
-		va_start(ap,msg);
-		vfprintf(G_LogFile,msg,ap); 
-		va_end(ap);
-		fflush(G_LogFile);
-	}
-	else
-	{
-		printf("A FATAL Error has occured:\n");
-		va_start(ap,msg);
-		vprintf(msg,ap);
-		va_end(ap);
-	}
+    if(G_LogFile)
+    {
+        fprintf(G_LogFile,"A FATAL Error has occured:\n");
+        va_start(ap,msg);
+        vfprintf(G_LogFile,msg,ap); 
+        va_end(ap);
+        fflush(G_LogFile);
+    }
+    else
+    {
+        printf("A FATAL Error has occured:\n");
+        va_start(ap,msg);
+        vprintf(msg,ap);
+        va_end(ap);
+    }
 
-	exit(1);
+    exit(1);
 }
 
 /*=========================================================================*/
@@ -170,10 +170,10 @@ void SLPLogBuffer(const char* buf, int bufsize)
 /* Writes a buffer to the logfile                                          */
 /*=========================================================================*/
 {
-	if(G_LogFile)
-	{
-		fwrite(buf,bufsize,1,G_LogFile);
-		fflush(G_LogFile);
-	}
+    if(G_LogFile)
+    {
+        fwrite(buf,bufsize,1,G_LogFile);
+        fflush(G_LogFile);
+    }
 }
 

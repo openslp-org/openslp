@@ -48,62 +48,62 @@
 /***************************************************************************/
 
 #if(!defined SLPD_H_INCLUDED)
-	#define SLPD_H_INCLUDED
+    #define SLPD_H_INCLUDED
 
 /* Include platform specific headers files */
-	#ifdef WIN32
-		#include "slpd_win32.h"
-	#else
-		#include "slpd_unistd.h"
-	#endif
+    #ifdef WIN32
+        #include "slpd_win32.h"
+    #else
+        #include "slpd_unistd.h"
+    #endif
 
-	#ifdef USE_PREDICATES
-		#include "libslpattr.h"
-		#include <assert.h>
-	#endif
+    #ifdef USE_PREDICATES
+        #include "libslpattr.h"
+        #include <assert.h>
+    #endif
 
 
 /* common includes */
-	#include "slp_compare.h"
-	#include "slp_buffer.h"
-	#include "slp_message.h"
-	#include "slp_logfile.h"
-	#include "slp_property.h"
-	#include "slp_linkedlist.h"
-	#include "slp_da.h"
+    #include "slp_compare.h"
+    #include "slp_buffer.h"
+    #include "slp_message.h"
+    #include "slp_logfile.h"
+    #include "slp_property.h"
+    #include "slp_linkedlist.h"
+    #include "slp_da.h"
 
-	#if(!defined MAX_PATH)
-		#define MAX_PATH    256
-	#endif
+    #if(!defined MAX_PATH)
+        #define MAX_PATH    256
+    #endif
 
 /*=========================================================================*/
 /* Misc constants                                                          */
 /*=========================================================================*/
-	#define SLPD_SMALLEST_MESSAGE       18   /* 18 bytes is smallest SLPv2 msg */
-	#define SLPD_MAX_SOCKETS            64   /* maximum number of sockets */
-	#define SLPD_COMFORT_SOCKETS        32   /* a comfortable number of sockets */
-	#define SLPD_CONFIG_CLOSE_CONN      900  /* max idle time of socket - 60 min*/
-	#define SLPD_AGE_INTERVAL           15   /* age every 15 seconds */
-	#define SLPD_ATTR_RECURSION_DEPTH   50
+    #define SLPD_SMALLEST_MESSAGE       18   /* 18 bytes is smallest SLPv2 msg */
+    #define SLPD_MAX_SOCKETS            64   /* maximum number of sockets */
+    #define SLPD_COMFORT_SOCKETS        32   /* a comfortable number of sockets */
+    #define SLPD_CONFIG_CLOSE_CONN      900  /* max idle time of socket - 60 min*/
+    #define SLPD_AGE_INTERVAL           15   /* age every 15 seconds */
+    #define SLPD_ATTR_RECURSION_DEPTH   50
 
 
 /*=========================================================================*/
 /* Values representing a type or state of a socket                         */
 /*=========================================================================*/
-	#define    SOCKET_PENDING_IO       100
-	#define    SOCKET_LISTEN           0
-	#define    SOCKET_CLOSE            1
-	#define    DATAGRAM_UNICAST        2
-	#define    DATAGRAM_MULTICAST      3
-	#define    DATAGRAM_BROADCAST      4
-	#define    STREAM_CONNECT_IDLE     5
-	#define    STREAM_CONNECT_BLOCK    6    + SOCKET_PENDING_IO
-	#define    STREAM_CONNECT_CLOSE    7    + SOCKET_PENDING_IO
-	#define    STREAM_READ             8    + SOCKET_PENDING_IO
-	#define    STREAM_READ_FIRST       9    + SOCKET_PENDING_IO
-	#define    STREAM_WRITE            10   + SOCKET_PENDING_IO
-	#define    STREAM_WRITE_FIRST      11   + SOCKET_PENDING_IO
-	#define    STREAM_WRITE_WAIT       12   + SOCKET_PENDING_IO
+    #define    SOCKET_PENDING_IO       100
+    #define    SOCKET_LISTEN           0
+    #define    SOCKET_CLOSE            1
+    #define    DATAGRAM_UNICAST        2
+    #define    DATAGRAM_MULTICAST      3
+    #define    DATAGRAM_BROADCAST      4
+    #define    STREAM_CONNECT_IDLE     5
+    #define    STREAM_CONNECT_BLOCK    6    + SOCKET_PENDING_IO
+    #define    STREAM_CONNECT_CLOSE    7    + SOCKET_PENDING_IO
+    #define    STREAM_READ             8    + SOCKET_PENDING_IO
+    #define    STREAM_READ_FIRST       9    + SOCKET_PENDING_IO
+    #define    STREAM_WRITE            10   + SOCKET_PENDING_IO
+    #define    STREAM_WRITE_FIRST      11   + SOCKET_PENDING_IO
+    #define    STREAM_WRITE_WAIT       12   + SOCKET_PENDING_IO
 
 
 /* Global variables representing signals */
@@ -117,12 +117,12 @@ typedef struct _SLPDCommandLine
 /* Holds  values of parameters read from the command line                  */
 /*=========================================================================*/
 {
-	char   cfgfile[MAX_PATH];
-	char   regfile[MAX_PATH];
-	char   logfile[MAX_PATH];
-	char   pidfile[MAX_PATH];
-	int    action;
-	int    detach;
+    char   cfgfile[MAX_PATH];
+    char   regfile[MAX_PATH];
+    char   logfile[MAX_PATH];
+    char   pidfile[MAX_PATH];
+    int    action;
+    int    detach;
 }SLPDCommandLine;
 
 
@@ -155,33 +155,33 @@ typedef struct _SLPDProperty
 /* structure that holds the value of all the properties slpd cares about   */
 /*=========================================================================*/
 {
-	int             myUrlLen;
-	const char*     myUrl;
-	int             useScopesLen;
-	const char*     useScopes; 
-	int             DAAddressesLen;
-	const char*     DAAddresses;
-	unsigned long   DATimestamp;  /* here for convenience */
-	int             interfacesLen;
-	const char*     interfaces; 
-	int             localeLen;
-	const char*     locale;
-	int             isBroadcastOnly;
-	int             passiveDADetection;
-	int             activeDADetection; 
-	int             activeDiscoveryXmits;
-	int             nextActiveDiscovery;
-	int             nextPassiveDAAdvert;
-	int             multicastTTL;
-	int             multicastMaximumWait;
-	int             unicastMaximumWait;  
-	int             randomWaitBound;
-	int             maxResults;
-	int             traceMsg;
-	int             traceReg;
-	int             traceDrop;
-	int             traceDATraffic;
-	int             isDA;
+    int             myUrlLen;
+    const char*     myUrl;
+    int             useScopesLen;
+    const char*     useScopes; 
+    int             DAAddressesLen;
+    const char*     DAAddresses;
+    unsigned long   DATimestamp;  /* here for convenience */
+    int             interfacesLen;
+    const char*     interfaces; 
+    int             localeLen;
+    const char*     locale;
+    int             isBroadcastOnly;
+    int             passiveDADetection;
+    int             activeDADetection; 
+    int             activeDiscoveryXmits;
+    int             nextActiveDiscovery;
+    int             nextPassiveDAAdvert;
+    int             multicastTTL;
+    int             multicastMaximumWait;
+    int             unicastMaximumWait;  
+    int             randomWaitBound;
+    int             maxResults;
+    int             traceMsg;
+    int             traceReg;
+    int             traceDrop;
+    int             traceDATraffic;
+    int             isDA;
 }SLPDProperty;
 
 
@@ -198,13 +198,15 @@ void SLPDPropertyInit(const char* conffile);
 /* conffile (IN) the path of the configuration file to use                 */
 /*=========================================================================*/
 
-	#ifdef DEBUG
+    #ifdef DEBUG
+
 
 
 /*=========================================================================*/
 void SLPDPropertyDeinit();
 /*=========================================================================*/
-	#endif
+    #endif
+
 
 
 
@@ -213,9 +215,9 @@ typedef struct _SLPDDatabaseAttr
 /* Structure representing the result of a database query for attributes    */
 /*=========================================================================*/
 {
-	int   attrlistlen;
-	const char* attrlist;
-	/* TODO: we might need some authblock storage here */
+    int   attrlistlen;
+    const char* attrlist;
+    /* TODO: we might need some authblock storage here */
 }SLPDDatabaseAttr;
 
 
@@ -224,10 +226,10 @@ typedef struct _SLPDDatabaseSrvUrl
 /* Structure representing the result of a database query for services      */
 /*=========================================================================*/
 {
-	int     lifetime;
-	int     urllen;
-	char*   url;
-	/* TODO: we might need some authblock storage here */
+    int     lifetime;
+    int     urllen;
+    char*   url;
+    /* TODO: we might need some authblock storage here */
 }SLPDDatabaseSrvUrl;
 
 
@@ -236,9 +238,9 @@ typedef struct _SLPDDatabaseSrvType
 /* Structure representing the result of a database query for type          */
 /*=========================================================================*/
 {
-	int     typelen;
-	char*   type;
-	/* TODO: we might need some authblock storage here */
+    int     typelen;
+    char*   type;
+    /* TODO: we might need some authblock storage here */
 }SLPDDatabaseSrvType;
 
 
@@ -247,26 +249,26 @@ typedef struct _SLPDDatabaseEntry
 /* Structure representing an entry in slpd database (linked list)          */
 /*=========================================================================*/
 {
-	SLPListItem         listitem;
-	char*               langtag;
-	unsigned int        langtaglen;
-	int                 lifetime;
-	int                 islocal;
-	unsigned int        urllen;
-	char*               url;
-	unsigned int        scopelistlen;
-	char*               scopelist;
-	unsigned int        srvtypelen;
-	char*               srvtype;
+    SLPListItem         listitem;
+    char*               langtag;
+    unsigned int        langtaglen;
+    int                 lifetime;
+    int                 islocal;
+    unsigned int        urllen;
+    char*               url;
+    unsigned int        scopelistlen;
+    char*               scopelist;
+    unsigned int        srvtypelen;
+    char*               srvtype;
 #ifdef USE_PREDICATES
-	SLPAttributes       attr;
+    SLPAttributes       attr;
 #endif
-	unsigned int        attrlistlen;
-	char*               attrlist;
-	unsigned int        partiallistlen;
-	char*               partiallist;
+    unsigned int        attrlistlen;
+    char*               attrlist;
+    unsigned int        partiallistlen;
+    char*               partiallist;
 
-	/* TODO: we might need some authblock storage here */
+    /* TODO: we might need some authblock storage here */
 }SLPDDatabaseEntry;
 
 
@@ -289,14 +291,16 @@ int SLPDKnownDADeinit();
 /*=========================================================================*/
 
 
-	#ifdef DEBUG
+    #ifdef DEBUG
+
 
 
 /*=========================================================================*/
 void SLPDDatabaseDeinit();
 /* De-initialize the database.  Free all resources taken by registrations  */
 /*=========================================================================*/
-	#endif
+    #endif
+
 
 
 
@@ -330,7 +334,7 @@ void SLPDDatabaseAge(int seconds, int ageall);
 
 /*=========================================================================*/
 int SLPDDatabaseEnum(void** handle,
-					 SLPDDatabaseEntry** entry);
+                     SLPDDatabaseEntry** entry);
 /* Enumerate through all entries of the database                           */
 /*                                                                         */
 /* handle (IN/OUT) pointer to opaque data that is used to maintain         */
@@ -346,8 +350,8 @@ int SLPDDatabaseEnum(void** handle,
 
 /*=========================================================================*/
 int SLPDDatabaseReg(SLPSrvReg* srvreg,
-					int fresh,
-					int islocal);
+                    int fresh,
+                    int islocal);
 /* Add a service registration to the database                              */
 /*                                                                         */
 /* srvreg   -   (IN) pointer to the SLPSrvReg to be added to the database  */
@@ -379,8 +383,8 @@ int SLPDDatabaseDeReg(SLPSrvDeReg* srvdereg);
 
 /*=========================================================================*/
 int SLPDDatabaseFindSrv(SLPSrvRqst* srvrqst, 
-						SLPDDatabaseSrvUrl* result,
-						int count);
+                        SLPDDatabaseSrvUrl* result,
+                        int count);
 /* Find services in the database                                           */
 /*                                                                         */
 /* srvrqst  (IN) the request to find.                                      */
@@ -398,8 +402,8 @@ int SLPDDatabaseFindSrv(SLPSrvRqst* srvrqst,
 
 /*=========================================================================*/
 int SLPDDatabaseFindType(SLPSrvTypeRqst* srvtyperqst, 
-						 SLPDDatabaseSrvType* result,
-						 int count);
+                         SLPDDatabaseSrvType* result,
+                         int count);
 /* Find service types                                                      */
 /*                                                                         */
 /* srvtyperqst  (IN) the request to find.                                  */
@@ -417,7 +421,7 @@ int SLPDDatabaseFindType(SLPSrvTypeRqst* srvtyperqst,
 
 /*=========================================================================*/
 int SLPDDatabaseFindAttr(SLPAttrRqst* attrrqst, 
-						 SLPDDatabaseAttr* result);
+                         SLPDDatabaseAttr* result);
 /* Find attributes                                                         */
 /*                                                                         */
 /* srvtyperqst  (IN) the request to find.                                  */
@@ -448,19 +452,19 @@ typedef struct _SLPDSocket
 /* Structure representing a socket                                         */
 /*=========================================================================*/
 {
-	SLPListItem         listitem;    
-	int                 fd;
-	time_t              age;	/* in seconds */
-	int                 state;
-	struct sockaddr_in  peeraddr;
+    SLPListItem         listitem;    
+    int                 fd;
+    time_t              age;    /* in seconds */
+    int                 state;
+    struct sockaddr_in  peeraddr;
 
-	/* Incoming socket stuff */
-	SLPBuffer           recvbuf;
-	SLPBuffer           sendbuf;
+    /* Incoming socket stuff */
+    SLPBuffer           recvbuf;
+    SLPBuffer           sendbuf;
 
-	/* Outgoing socket stuff */
-	SLPDAEntry*         daentry;
-	SLPList             sendlist;
+    /* Outgoing socket stuff */
+    SLPDAEntry*         daentry;
+    SLPList             sendlist;
 }SLPDSocket;
 
 
@@ -501,8 +505,8 @@ SLPDSocket* SLPDSocketCreateDatagram(struct in_addr* peeraddr, int type);
 
 /*==========================================================================*/
 SLPDSocket* SLPDSocketCreateBoundDatagram(struct in_addr* myaddr,
-										  struct in_addr* peeraddr,
-										  int type);                                                                          
+                                          struct in_addr* peeraddr,
+                                          int type);                                                                          
 /* myaddr - (IN) the address of the interface to join mcast on              */
 /*                                                                          */
 /* peeraddr - (IN) the address of the peer to connect to                    */
@@ -541,8 +545,8 @@ void SLPDIncomingAge(time_t seconds);
 
 /*=========================================================================*/
 void SLPDIncomingHandler(int* fdcount,
-						 fd_set* readfds,
-						 fd_set* writefds);
+                         fd_set* readfds,
+                         fd_set* writefds);
 /* Handles all outgoing requests that are pending on the specified file    */
 /* discriptors                                                             */
 /*                                                                         */
@@ -587,8 +591,8 @@ void SLPDOutgoingAge(time_t seconds);
 
 /*=========================================================================*/
 void SLPDOutgoingHandler(int* fdcount,
-						 fd_set* readfds,
-						 fd_set* writefds);
+                         fd_set* readfds,
+                         fd_set* writefds);
 
 /* Handles all incoming requests that are pending on the specified file    */
 /* discriptors                                                             */
@@ -651,8 +655,8 @@ extern SLPList G_OutgoingSocketList;
 
 /*=========================================================================*/
 int SLPDProcessMessage(struct sockaddr_in* peeraddr,
-					   SLPBuffer recvbuf,
-					   SLPBuffer* sendbuf);
+                       SLPBuffer recvbuf,
+                       SLPBuffer* sendbuf);
 /* Processes the recvbuf and places the results in sendbuf                 */
 /*                                                                         */
 /* recvfd   - the socket the message was received on                       */
@@ -668,8 +672,8 @@ int SLPDProcessMessage(struct sockaddr_in* peeraddr,
 
 /*=========================================================================*/
 void SLPDLogTraceMsg(const char* prefix,
-					 struct sockaddr_in* peerinfo,
-					 SLPBuffer buf);
+                     struct sockaddr_in* peerinfo,
+                     SLPBuffer buf);
 /*=========================================================================*/
 
 
@@ -680,14 +684,14 @@ void SLPDLogTraceReg(const char* prefix, SLPDDatabaseEntry* entry);
 
 /*=========================================================================*/
 void SLPDLogDATrafficMsg(const char* prefix,
-						 struct sockaddr_in* peerinfo,
-						 SLPMessage daadvert);
+                         struct sockaddr_in* peerinfo,
+                         SLPMessage daadvert);
 /*=========================================================================*/
 
 
 /*=========================================================================*/
 void SLPDLogKnownDA(const char* prefix,
-					SLPDAEntry* daentry);
+                    SLPDAEntry* daentry);
 /*=========================================================================*/
 
 
@@ -702,7 +706,7 @@ int SLPDKnownDAInit();
 
 /*=========================================================================*/
 SLPDAEntry* SLPDKnownDAAdd(struct in_addr* addr,
-						   const SLPDAEntry* daentry);
+                           const SLPDAEntry* daentry);
 /* Adds a DA to the known DA list if it is new, removes it if DA is going  */
 /* down or adjusts entry if DA changed.                                    */
 /*                                                                         */
@@ -716,9 +720,9 @@ SLPDAEntry* SLPDKnownDAAdd(struct in_addr* addr,
 
 /*=========================================================================*/
 int SLPDKnownDAEntryToDAAdvert(int errorcode,
-							   unsigned int xid,
-							   const SLPDAEntry* daentry,
-							   SLPBuffer* sendbuf);
+                               unsigned int xid,
+                               const SLPDAEntry* daentry,
+                               SLPBuffer* sendbuf);
 /* Pack a buffer with a DAAdvert using information from a SLPDAentry       */
 /*                                                                         */
 /* errorcode (IN) the errorcode for the DAAdvert                           */
@@ -734,15 +738,16 @@ int SLPDKnownDAEntryToDAAdvert(int errorcode,
 /* returns: zero on success, non-zero on error                             */
 /*=========================================================================*/
 
-	#if defined(ENABLE_SLPv1)
+    #if defined(ENABLE_SLPv1)
+
 
 
 /*=========================================================================*/
 int SLPDv1KnownDAEntryToDAAdvert(int errorcode,
-								 int encoding,
-								 unsigned int xid,
-								 const SLPDAEntry* daentry,
-								 SLPBuffer* sendbuf);
+                                 int encoding,
+                                 unsigned int xid,
+                                 const SLPDAEntry* daentry,
+                                 SLPBuffer* sendbuf);
 /* Pack a buffer with a v1 DAAdvert using information from a SLPDAentry    */
 /*                                                                         */
 /* errorcode (IN) the errorcode for the DAAdvert                           */
@@ -759,13 +764,14 @@ int SLPDv1KnownDAEntryToDAAdvert(int errorcode,
 /*                                                                         */
 /* returns: zero on success, non-zero on error                             */
 /*=========================================================================*/
-	#endif
+    #endif
+
 
 
 
 /*=========================================================================*/
 int SLPDKnownDAEnum(void** handle,
-					SLPDAEntry** entry);
+                    SLPDAEntry** entry);
 /* Enumerate through all entries of the database                           */
 /*                                                                         */
 /* handle (IN/OUT) pointer to opaque data that is used to maintain         */
@@ -791,8 +797,8 @@ void SLPDKnownDARemove(SLPDAEntry* daentry);
 
 /*=========================================================================*/
 void SLPDKnownDAEcho(struct sockaddr_in* peerinfo,
-					 SLPMessage msg,
-					 SLPBuffer buf);     
+                     SLPMessage msg,
+                     SLPBuffer buf);     
 /* Echo a srvreg message to a known DA                                     */
 /*									                                       */
 /* peerinfo (IN) the peer that the registration came from                  */
@@ -845,13 +851,14 @@ extern SLPList G_KnownDAList;
 /*=========================================================================*/
 
 
-	#if(defined USE_PREDICATES)
+    #if(defined USE_PREDICATES)
+
 
 
 
 /*=========================================================================*/
 int SLPDPredicateTest(int predicatever, const char* predicate,
-					  SLPAttributes attr); 
+                      SLPAttributes attr); 
 /* Determine whether the specified attribute list satisfies                */
 /* the specified predicate                                                 */
 /*                                                                         */
@@ -866,7 +873,7 @@ int SLPDPredicateTest(int predicatever, const char* predicate,
 /*          predicate string.                                              */
 /*=========================================================================*/
 
-	#endif /* (defined USE_PREDICATES) */ 
+    #endif /* (defined USE_PREDICATES) */ 
 
 
 #endif /*(!defined SLPD_H_INCLUDED) */

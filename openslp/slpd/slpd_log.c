@@ -53,87 +53,87 @@
 void SLPDLogSrvRqstMessage(SLPSrvRqst* srvrqst)
 /*-------------------------------------------------------------------------*/
 {
-	SLPLog("Message SRVRQST:\n");
-	SLPLog("   srvtype = \"%*s\"\n", srvrqst->srvtypelen, srvrqst->srvtype);
-	SLPLog("   scopelist = \"%*s\"\n", srvrqst->scopelistlen, srvrqst->scopelist);
-	SLPLog("   predicate = \"%*s\"\n", srvrqst->predicatelen, srvrqst->predicate);
+    SLPLog("Message SRVRQST:\n");
+    SLPLog("   srvtype = \"%*s\"\n", srvrqst->srvtypelen, srvrqst->srvtype);
+    SLPLog("   scopelist = \"%*s\"\n", srvrqst->scopelistlen, srvrqst->scopelist);
+    SLPLog("   predicate = \"%*s\"\n", srvrqst->predicatelen, srvrqst->predicate);
 }
 
 /*-------------------------------------------------------------------------*/
 void SLPDLogSrvRplyMessage(SLPSrvRply* srvrply)
 /*-------------------------------------------------------------------------*/
 {
-	SLPLog("Message SRVRPLY:\n");
-	SLPLog("   errorcode = %i\n",srvrply->errorcode);
+    SLPLog("Message SRVRPLY:\n");
+    SLPLog("   errorcode = %i\n",srvrply->errorcode);
 }
 
 /*-------------------------------------------------------------------------*/
 void SLPDLogSrvRegMessage(SLPSrvReg* srvreg)
 /*-------------------------------------------------------------------------*/
 {
-	SLPLog("Message SRVREG:\n");
-	SLPLog("   type = \"%*s\"\n", srvreg->srvtypelen, srvreg->srvtype);
-	SLPLog("   scope = \"%*s\"\n", srvreg->scopelistlen, srvreg->scopelist);
-	SLPLog("   attributes = \"%*s\"\n", srvreg->attrlistlen, srvreg->attrlist);
+    SLPLog("Message SRVREG:\n");
+    SLPLog("   type = \"%*s\"\n", srvreg->srvtypelen, srvreg->srvtype);
+    SLPLog("   scope = \"%*s\"\n", srvreg->scopelistlen, srvreg->scopelist);
+    SLPLog("   attributes = \"%*s\"\n", srvreg->attrlistlen, srvreg->attrlist);
 }
 
 /*-------------------------------------------------------------------------*/
 void SLPDLogSrvDeRegMessage(SLPSrvDeReg* srvdereg)
 /*-------------------------------------------------------------------------*/
 {
-	SLPLog("Message SRVDEREG:\n");
+    SLPLog("Message SRVDEREG:\n");
 }
 
 /*-------------------------------------------------------------------------*/
 void SLPDLogSrvAckMessage(SLPSrvAck* srvack)
 /*-------------------------------------------------------------------------*/
 {
-	SLPLog("Message SRVACK:\n");
-	SLPLog("   errorcode = %i\n",srvack->errorcode);
+    SLPLog("Message SRVACK:\n");
+    SLPLog("   errorcode = %i\n",srvack->errorcode);
 }
 
 /*-------------------------------------------------------------------------*/
 void SLPDLogAttrRqstMessage(SLPAttrRqst* attrrqst)
 /*-------------------------------------------------------------------------*/
 {
-	SLPLog("Message ATTRRQST:\n");
+    SLPLog("Message ATTRRQST:\n");
 }
 
 /*-------------------------------------------------------------------------*/
 void SLPDLogAttrRplyMessage(SLPAttrRply* attrrply)
 /*-------------------------------------------------------------------------*/
 {
-	SLPLog("Message ATTRRPLY:\n");
-	SLPLog("   errorcode = %i\n",attrrply->errorcode);
+    SLPLog("Message ATTRRPLY:\n");
+    SLPLog("   errorcode = %i\n",attrrply->errorcode);
 } 
 
 /*-------------------------------------------------------------------------*/
 void SLPDLogDAAdvertMessage(SLPDAAdvert* daadvert)
 /*-------------------------------------------------------------------------*/
 {
-	SLPLog("Message DAADVERT:\n");
+    SLPLog("Message DAADVERT:\n");
 }
 
 /*-------------------------------------------------------------------------*/
 void SLPDLogSrvTypeRqstMessage(SLPSrvTypeRqst* srvtyperqst)
 /*-------------------------------------------------------------------------*/
 {
-	SLPLog("Message SRVTYPERQST:\n");
+    SLPLog("Message SRVTYPERQST:\n");
 }
 
 /*-------------------------------------------------------------------------*/
 void SLPDLogSrvTypeRplyMessage(SLPSrvTypeRply* srvtyperply)
 /*-------------------------------------------------------------------------*/ 
 {
-	SLPLog("Message SRVTYPERPLY:\n");
-	SLPLog("   errorcode = %i\n",srvtyperply->errorcode);
+    SLPLog("Message SRVTYPERPLY:\n");
+    SLPLog("   errorcode = %i\n",srvtyperply->errorcode);
 }        
 
 /*-------------------------------------------------------------------------*/
 void SLPDLogSAAdvertMessage(SLPSAAdvert* saadvert)
 /*-------------------------------------------------------------------------*/
 {
-	SLPLog("Message SAADVERT:\n");
+    SLPLog("Message SAADVERT:\n");
 }
 
 
@@ -141,104 +141,104 @@ void SLPDLogSAAdvertMessage(SLPSAAdvert* saadvert)
 void SLPDLogPeerAddr(struct sockaddr_in* peeraddr)
 /*-------------------------------------------------------------------------*/
 {
-	SLPLog("Peer Information:\n");
-	SLPLog("   IP address: %s\n",inet_ntoa(peeraddr->sin_addr));
+    SLPLog("Peer Information:\n");
+    SLPLog("   IP address: %s\n",inet_ntoa(peeraddr->sin_addr));
 }
 
 /*-------------------------------------------------------------------------*/
 void SLPDLogMessage(SLPMessage message)
 /*-------------------------------------------------------------------------*/
 {
-	SLPLog("Header:\n");
-	SLPLog("   version = %i\n",message->header.version);
-	SLPLog("   functionid = %i\n",message->header.functionid);
-	SLPLog("   length = %i\n",message->header.length);
-	SLPLog("   flags = %i\n",message->header.flags);
-	SLPLog("   extoffset = %i\n",message->header.extoffset);
-	SLPLog("   xid = %i\n",message->header.xid);
-	SLPLog("   langtaglen = %i\n",message->header.langtaglen);
-	SLPLog("   langtag = "); 
-	SLPLogBuffer(message->header.langtag, message->header.langtaglen);
-	SLPLog("\n");
+    SLPLog("Header:\n");
+    SLPLog("   version = %i\n",message->header.version);
+    SLPLog("   functionid = %i\n",message->header.functionid);
+    SLPLog("   length = %i\n",message->header.length);
+    SLPLog("   flags = %i\n",message->header.flags);
+    SLPLog("   extoffset = %i\n",message->header.extoffset);
+    SLPLog("   xid = %i\n",message->header.xid);
+    SLPLog("   langtaglen = %i\n",message->header.langtaglen);
+    SLPLog("   langtag = "); 
+    SLPLogBuffer(message->header.langtag, message->header.langtaglen);
+    SLPLog("\n");
 
-	switch(message->header.functionid)
-	{
-	case SLP_FUNCT_SRVRQST:
-		SLPDLogSrvRqstMessage(&(message->body.srvrqst));
-		break;
+    switch(message->header.functionid)
+    {
+    case SLP_FUNCT_SRVRQST:
+        SLPDLogSrvRqstMessage(&(message->body.srvrqst));
+        break;
 
-	case SLP_FUNCT_SRVRPLY:
-		SLPDLogSrvRplyMessage(&(message->body.srvrply));
-		break;
+    case SLP_FUNCT_SRVRPLY:
+        SLPDLogSrvRplyMessage(&(message->body.srvrply));
+        break;
 
-	case SLP_FUNCT_SRVREG:
-		SLPDLogSrvRegMessage(&(message->body.srvreg));
-		break;
+    case SLP_FUNCT_SRVREG:
+        SLPDLogSrvRegMessage(&(message->body.srvreg));
+        break;
 
-	case SLP_FUNCT_SRVDEREG:
-		SLPDLogSrvDeRegMessage(&(message->body.srvdereg));
-		break;
+    case SLP_FUNCT_SRVDEREG:
+        SLPDLogSrvDeRegMessage(&(message->body.srvdereg));
+        break;
 
-	case SLP_FUNCT_SRVACK:
-		SLPDLogSrvAckMessage(&(message->body.srvack));
-		break;
+    case SLP_FUNCT_SRVACK:
+        SLPDLogSrvAckMessage(&(message->body.srvack));
+        break;
 
-	case SLP_FUNCT_ATTRRQST:
-		SLPDLogAttrRqstMessage(&(message->body.attrrqst));
-		break;
+    case SLP_FUNCT_ATTRRQST:
+        SLPDLogAttrRqstMessage(&(message->body.attrrqst));
+        break;
 
-	case SLP_FUNCT_ATTRRPLY:
-		SLPDLogAttrRplyMessage(&(message->body.attrrply));
-		break;
+    case SLP_FUNCT_ATTRRPLY:
+        SLPDLogAttrRplyMessage(&(message->body.attrrply));
+        break;
 
-	case SLP_FUNCT_DAADVERT:
-		SLPDLogDAAdvertMessage(&(message->body.daadvert));
-		break;
+    case SLP_FUNCT_DAADVERT:
+        SLPDLogDAAdvertMessage(&(message->body.daadvert));
+        break;
 
-	case SLP_FUNCT_SRVTYPERQST:
-		SLPDLogSrvTypeRqstMessage(&(message->body.srvtyperqst));
-		break;
+    case SLP_FUNCT_SRVTYPERQST:
+        SLPDLogSrvTypeRqstMessage(&(message->body.srvtyperqst));
+        break;
 
-	case SLP_FUNCT_SRVTYPERPLY:
-		SLPDLogSrvTypeRplyMessage(&(message->body.srvtyperply));
-		break;
+    case SLP_FUNCT_SRVTYPERPLY:
+        SLPDLogSrvTypeRplyMessage(&(message->body.srvtyperply));
+        break;
 
-	case SLP_FUNCT_SAADVERT:
-		SLPDLogSAAdvertMessage(&(message->body.saadvert));
-		break;
+    case SLP_FUNCT_SAADVERT:
+        SLPDLogSAAdvertMessage(&(message->body.saadvert));
+        break;
 
-	default:
-		SLPLog("Message UNKNOWN:\n");
-		SLPLog("   This is really bad\n");
-		break;
-	}
+    default:
+        SLPLog("Message UNKNOWN:\n");
+        SLPLog("   This is really bad\n");
+        break;
+    }
 }
 
 /*=========================================================================*/
 void SLPDLogTraceMsg(const char* prefix,
-					 struct sockaddr_in* peeraddr,
-					 SLPBuffer buf)
+                     struct sockaddr_in* peeraddr,
+                     SLPBuffer buf)
 /*=========================================================================*/
 {
-	SLPMessage msg;
-	if(G_SlpdProperty.traceMsg)
-	{
-		msg = SLPMessageAlloc();
-		if(msg)
-		{
-			if(SLPMessageParseBuffer(buf,msg) == 0)
-			{
-				SLPLog("----------------------------------------\n");
-				SLPLog("traceMsg %s:\n",prefix);
-				SLPLog("----------------------------------------\n");
-				SLPDLogPeerAddr(peeraddr);
-				SLPDLogMessage(msg);
-				SLPLog("\n");
-			}
-		}
+    SLPMessage msg;
+    if(G_SlpdProperty.traceMsg)
+    {
+        msg = SLPMessageAlloc();
+        if(msg)
+        {
+            if(SLPMessageParseBuffer(buf,msg) == 0)
+            {
+                SLPLog("----------------------------------------\n");
+                SLPLog("traceMsg %s:\n",prefix);
+                SLPLog("----------------------------------------\n");
+                SLPDLogPeerAddr(peeraddr);
+                SLPDLogMessage(msg);
+                SLPLog("\n");
+            }
+        }
 
-		SLPMessageFree(msg);
-	}
+        SLPMessageFree(msg);
+    }
 }
 
 
@@ -255,57 +255,57 @@ void SLPDLogTraceReg(const char* prefix, SLPDDatabaseEntry* entry)
 /* returns:  None                                                          */
 /*=========================================================================*/
 {
-	if(G_SlpdProperty.traceReg)
-	{
-		SLPLog("----------------------------------------\n");
-		SLPLog("traceReg %s:\n",prefix);
-		SLPLog("----------------------------------------\n");
-		SLPLog("language tag = ");
-		SLPLogBuffer(entry->langtag, entry->langtaglen);
-		SLPLog("\nlifetime = %i\n",entry->lifetime); 
-		SLPLog("url = ");
-		SLPLogBuffer(entry->url, entry->urllen);
-		SLPLog("\nscope = ");
-		SLPLogBuffer(entry->scopelist, entry->scopelistlen);
-		SLPLog("\nservice type = ");
-		SLPLogBuffer(entry->srvtype, entry->srvtypelen);
-		SLPLog("\nAttributes = ");
-		SLPLogBuffer(entry->attrlist, entry->attrlistlen);
-		SLPLog("\n\n");
-	}
+    if(G_SlpdProperty.traceReg)
+    {
+        SLPLog("----------------------------------------\n");
+        SLPLog("traceReg %s:\n",prefix);
+        SLPLog("----------------------------------------\n");
+        SLPLog("language tag = ");
+        SLPLogBuffer(entry->langtag, entry->langtaglen);
+        SLPLog("\nlifetime = %i\n",entry->lifetime); 
+        SLPLog("url = ");
+        SLPLogBuffer(entry->url, entry->urllen);
+        SLPLog("\nscope = ");
+        SLPLogBuffer(entry->scopelist, entry->scopelistlen);
+        SLPLog("\nservice type = ");
+        SLPLogBuffer(entry->srvtype, entry->srvtypelen);
+        SLPLog("\nAttributes = ");
+        SLPLogBuffer(entry->attrlist, entry->attrlistlen);
+        SLPLog("\n\n");
+    }
 }
 
 /*=========================================================================*/
 void SLPDLogDATrafficMsg(const char* prefix,
-						 struct sockaddr_in* peeraddr,
-						 SLPMessage daadvert)
+                         struct sockaddr_in* peeraddr,
+                         SLPMessage daadvert)
 /*=========================================================================*/
 {
-	if(G_SlpdProperty.traceDATraffic)
-	{
-		SLPLog("----------------------------------------\n");
-		SLPLog("traceDATraffic %s:\n",prefix);
-		SLPLog("----------------------------------------\n");
-		SLPDLogPeerAddr(peeraddr);
-		SLPDLogMessage(daadvert);
-		SLPLog("\n\n");
-	}
+    if(G_SlpdProperty.traceDATraffic)
+    {
+        SLPLog("----------------------------------------\n");
+        SLPLog("traceDATraffic %s:\n",prefix);
+        SLPLog("----------------------------------------\n");
+        SLPDLogPeerAddr(peeraddr);
+        SLPDLogMessage(daadvert);
+        SLPLog("\n\n");
+    }
 }
 
 
 /*=========================================================================*/
 void SLPDLogKnownDA(const char* prefix,
-					SLPDAEntry* daentry)
+                    SLPDAEntry* daentry)
 /*=========================================================================*/
 {
-	SLPLog("----------------------------------------\n");
-	SLPLog("Known DA %s:\n",prefix);
-	SLPLog("----------------------------------------\n");
-	SLPLog("   url = ");
-	SLPLogBuffer(daentry->url, daentry->urllen);
-	SLPLog("\n   scope = ");
-	SLPLogBuffer(daentry->scopelist, daentry->scopelistlen);
-	SLPLog("\n\n");
+    SLPLog("----------------------------------------\n");
+    SLPLog("Known DA %s:\n",prefix);
+    SLPLog("----------------------------------------\n");
+    SLPLog("   url = ");
+    SLPLogBuffer(daentry->url, daentry->urllen);
+    SLPLog("\n   scope = ");
+    SLPLogBuffer(daentry->scopelist, daentry->scopelistlen);
+    SLPLog("\n\n");
 }
 
 

@@ -49,9 +49,9 @@
 /***************************************************************************/
 
 #if(!defined SLP_H_INCLUDED)
-	#define SLP_H_INCLUDED
+    #define SLP_H_INCLUDED
 
-	#if(defined __cplusplus)
+    #if(defined __cplusplus)
 extern "C"
 {
 #endif
@@ -61,6 +61,7 @@ extern "C"
 #endif
 
 
+
 /*==========================================================================*/
 /* lifetime values, in  seconds, that are frequently used.                  */
 /*==========================================================================*/
@@ -68,151 +69,172 @@ extern "C"
 #define SLP_LIFETIME_MAXIMUM 65535   /* 18 hours */
 
 
+
 /*==========================================================================*/
 /* SLPError                                                                 */
 /* ---------                                                                */
 /* The SLPError type represents error codes that are returned from API      */
 /* functions.                                                               */
-	typedef int SLPError;
+    typedef int SLPError;
 
 #define  SLP_LAST_CALL              1
 
-	/* passed to callback functions when the API                            */
-	/* library has no more data for them and therefore no further calls     */
-	/* will be made to the callback on the currently outstanding operation. */
-	/* The callback can use this to signal the main body of the client code */
-	/* that no more data will be forthcoming on the operation, so that the  */
-	/* main body of the client code can break out of data collection loops. */
-	/* On * the last call of a callback during both a synchronous and       */
-	/* asynchronous call, the error code parameter has value SLP_LAST_CALL, */
-	/* and the other parameters are all NULL. If no results are returned by */
-	/* an API operation, then only one call is made, with the error         */
-	/* parameter set to SLP_LAST_CALL.                                      */
+
+    /* passed to callback functions when the API                            */
+    /* library has no more data for them and therefore no further calls     */
+    /* will be made to the callback on the currently outstanding operation. */
+    /* The callback can use this to signal the main body of the client code */
+    /* that no more data will be forthcoming on the operation, so that the  */
+    /* main body of the client code can break out of data collection loops. */
+    /* On * the last call of a callback during both a synchronous and       */
+    /* asynchronous call, the error code parameter has value SLP_LAST_CALL, */
+    /* and the other parameters are all NULL. If no results are returned by */
+    /* an API operation, then only one call is made, with the error         */
+    /* parameter set to SLP_LAST_CALL.                                      */
 
 #define SLP_OK                      0
 
-	/* indicates that the no error occurred during the operation.           */
+
+    /* indicates that the no error occurred during the operation.           */
 
 #define SLP_LANGUAGE_NOT_SUPPORTED  -1
 
-	/* No DA or SA has service advertisement or attribute information       */
-	/* in the language requested, but at least one DA or SA indicated,      */
-	/* via the LANGUAGE_NOT_SUPPORTED error code, that it might have        */
-	/* information for that service in another language                     */
+
+    /* No DA or SA has service advertisement or attribute information       */
+    /* in the language requested, but at least one DA or SA indicated,      */
+    /* via the LANGUAGE_NOT_SUPPORTED error code, that it might have        */
+    /* information for that service in another language                     */
 
 #define SLP_PARSE_ERROR             -2
 
-	/* The SLP message was rejected by a remote SLP agent.  The API         */
-	/* returns this error only when no information was retrieved, and       */
-	/* at least one SA or DA indicated a protocol error.  The data          */
-	/* supplied through the API may be malformed or a may have been         */
-	/* damaged in transit.                                                  */
+
+    /* The SLP message was rejected by a remote SLP agent.  The API         */
+    /* returns this error only when no information was retrieved, and       */
+    /* at least one SA or DA indicated a protocol error.  The data          */
+    /* supplied through the API may be malformed or a may have been         */
+    /* damaged in transit.                                                  */
 
 #define SLP_INVALID_REGISTRATION    -3
 
-	/* The API may return this error if an attempt to register a            */
-	/* service was rejected by all DAs because of a malformed URL or        */
-	/* attributes.  SLP does not return the error if at least one DA        */
-	/* accepted the registration.                                           */
+
+    /* The API may return this error if an attempt to register a            */
+    /* service was rejected by all DAs because of a malformed URL or        */
+    /* attributes.  SLP does not return the error if at least one DA        */
+    /* accepted the registration.                                           */
 
 #define SLP_SCOPE_NOT_SUPPORTED     -4
 
-	/* The API returns this error if the SA has been configured with        */
-	/* net.slp.useScopes value-list of scopes and the SA request did        */
-	/* not specify one or more of these allowable scopes, and no            */
-	/* others.  It may be returned by a DA or SA if the scope included      */
-	/* in a request is not supported by the DA or SA.                       */
+
+    /* The API returns this error if the SA has been configured with        */
+    /* net.slp.useScopes value-list of scopes and the SA request did        */
+    /* not specify one or more of these allowable scopes, and no            */
+    /* others.  It may be returned by a DA or SA if the scope included      */
+    /* in a request is not supported by the DA or SA.                       */
 
 #define SLP_AUTHENTICATION_ABSENT   -6
 
-	/* if the SLP framework supports authentication, this error arises      */
-	/* when the UA or SA failed to send an authenticator for requests       */
-	/* or registrations in a protected scope.                               */
+
+    /* if the SLP framework supports authentication, this error arises      */
+    /* when the UA or SA failed to send an authenticator for requests       */
+    /* or registrations in a protected scope.                               */
 
 #define SLP_AUTHENTICATION_FAILED   -7
 
-	/* If the SLP framework supports authentication, this error arises      */
-	/* when a authentication on an SLP message failed                       */
+
+    /* If the SLP framework supports authentication, this error arises      */
+    /* when a authentication on an SLP message failed                       */
 
 #define SLP_INVALID_UPDATE          -13
 
-	/* An update for a non-existing registration was issued, or the         */
-	/* update includes a service type or scope different than that in       */
-	/* the initial registration, etc.                                       */
+
+    /* An update for a non-existing registration was issued, or the         */
+    /* update includes a service type or scope different than that in       */
+    /* the initial registration, etc.                                       */
 
 #define SLP_REFRESH_REJECTED        -15
 
-	/* The SA attempted to refresh a registration more frequently           */
-	/* than the minimum refresh interval.  The SA should call the           */
-	/* appropriate API function to obtain the minimum refresh interval      */
-	/* to use.                                                              */
+
+    /* The SA attempted to refresh a registration more frequently           */
+    /* than the minimum refresh interval.  The SA should call the           */
+    /* appropriate API function to obtain the minimum refresh interval      */
+    /* to use.                                                              */
 
 #define SLP_NOT_IMPLEMENTED         -17
 
-	/* If an unimplemented feature is used, this error is returned.         */
+
+    /* If an unimplemented feature is used, this error is returned.         */
 
 #define SLP_BUFFER_OVERFLOW         -18
 
-	/* An outgoing request overflowed the maximum network MTU size.         */
-	/* The request should be reduced in size or broken into pieces and      */
-	/* tried again.                                                         */
+
+    /* An outgoing request overflowed the maximum network MTU size.         */
+    /* The request should be reduced in size or broken into pieces and      */
+    /* tried again.                                                         */
 
 #define SLP_NETWORK_TIMED_OUT       -19
 
-	/* When no reply can be obtained in the time specified by the           */
-	/* configured timeout interval for a unicast request, this error        */
-	/* is returned.                                                         */
+
+    /* When no reply can be obtained in the time specified by the           */
+    /* configured timeout interval for a unicast request, this error        */
+    /* is returned.                                                         */
 
 #define SLP_NETWORK_INIT_FAILED     -20
 
-	/* If the network cannot initialize properly, this error is             */
-	/* returned.  Will also be returned if an SA or DA agent (slpd)         */
-	/* can not be contacted. See SLPRegReport() callback.                   */
+
+    /* If the network cannot initialize properly, this error is             */
+    /* returned.  Will also be returned if an SA or DA agent (slpd)         */
+    /* can not be contacted. See SLPRegReport() callback.                   */
 
 #define SLP_MEMORY_ALLOC_FAILED     -21
-                                               
-	/* Out of memory error */
+
+
+    /* Out of memory error */
 
 #define SLP_PARAMETER_BAD           -22
 
-	/* If a parameter passed into an interface is bad, this error is        */
-	/* returned.                                                            */
+
+    /* If a parameter passed into an interface is bad, this error is        */
+    /* returned.                                                            */
 
 #define SLP_NETWORK_ERROR           -23
 
-	/* The failure of networking during normal operations causes this       */
-	/* error to be returned.                                                */
+
+    /* The failure of networking during normal operations causes this       */
+    /* error to be returned.                                                */
 
 #define SLP_INTERNAL_SYSTEM_ERROR   -24
 
-	/* A basic failure of the API causes this error to be returned.         */
-	/* This occurs when a system call or library fails.  The operation      */
-	/* could not recover.                                                   */
+
+    /* A basic failure of the API causes this error to be returned.         */
+    /* This occurs when a system call or library fails.  The operation      */
+    /* could not recover.                                                   */
 
 #define SLP_HANDLE_IN_USE           -25
 
-	/* In the C API, callback functions are not permitted to                */
-	/* recursively call into the API on the same SLPHandle, either          */
-	/* directly or indirectly.  If an attempt is made to do so, this        */
-	/* error is returned from the called API function.                      */
+
+    /* In the C API, callback functions are not permitted to                */
+    /* recursively call into the API on the same SLPHandle, either          */
+    /* directly or indirectly.  If an attempt is made to do so, this        */
+    /* error is returned from the called API function.                      */
 
 #define SLP_TYPE_ERROR              -26
- 
-	/* If the API supports type checking of registrations against           */
-	/* service type templates, this error can arise if the attributes       */
-	/* in a registration do not match the service type template for         */
-	/* the service.                                                         */
+
+
+    /* If the API supports type checking of registrations against           */
+    /* service type templates, this error can arise if the attributes       */
+    /* in a registration do not match the service type template for         */
+    /* the service.                                                         */
 
 
 /*==========================================================================*/
 /* SLPBoolean                                                               */
 /*------------                                                              */
 /* The SLPBoolean enum is used as a boolean flag.                           */
-	typedef enum 
-	{
-		SLP_FALSE = 0,
-		SLP_TRUE = 1
-	} SLPBoolean;
+    typedef enum 
+    {
+        SLP_FALSE = 0,
+        SLP_TRUE = 1
+    } SLPBoolean;
 
 
 
@@ -226,39 +248,40 @@ extern "C"
 /* struct servent, with the exception that the pointer to an array of       */
 /* characters for aliases (s_aliases field) is replaced by the pointer      */
 /* to host name (s_pcHost field).                                           */
-	typedef struct srvurl
-	{
-		char *s_pcSrvType;
-		/* A pointer to a character string containing the service              */
-		/* type name, including naming authority.  The service type            */
-		/* name includes the "service:" if the URL is of the service:          */
-		/* scheme.                                                             */
+    typedef struct srvurl
+    {
+        char *s_pcSrvType;
+        /* A pointer to a character string containing the service              */
+        /* type name, including naming authority.  The service type            */
+        /* name includes the "service:" if the URL is of the service:          */
+        /* scheme.                                                             */
 
-		char *s_pcHost;
-		/* A pointer to a character string containing the host                 */
-		/* identification information.                                         */
+        char *s_pcHost;
+        /* A pointer to a character string containing the host                 */
+        /* identification information.                                         */
 
-		int   s_iPort;
-		/* The port number, or zero if none.  The port is only available       */
-		/* if the transport is IP.                                             */
+        int   s_iPort;
+        /* The port number, or zero if none.  The port is only available       */
+        /* if the transport is IP.                                             */
 
-		char *s_pcNetFamily;
-		/* A pointer to a character string containing the network address      */
-		/* family identifier.  Possible values are "ipx" for the IPX           */
-		/* family, "at" for the Appletalk family, and "" (i.e.  the empty      */
-		/* string) for the IP address family.                                  */
+        char *s_pcNetFamily;
+        /* A pointer to a character string containing the network address      */
+        /* family identifier.  Possible values are "ipx" for the IPX           */
+        /* family, "at" for the Appletalk family, and "" (i.e.  the empty      */
+        /* string) for the IP address family.                                  */
 
-		char *s_pcSrvPart;
-		/* The remainder of the URL, after the host identification.            */
+        char *s_pcSrvPart;
+        /* The remainder of the URL, after the host identification.            */
 
-	} SLPSrvURL;
+    } SLPSrvURL;
 /*=========================================================================*/
 
 
 #if(!defined SLPHANDLE_INTERNAL)
 
+
 /*=========================================================================*/
-	typedef void* SLPHandle;
+    typedef void* SLPHandle;
 /*                                                                         */
 /* The SLPHandle type is returned by SLPOpen() and is a parameter to all   */
 /* SLP functions.  It serves as a handle for all resources allocated on    */
@@ -269,10 +292,11 @@ extern "C"
 
 
 
+
 /*=========================================================================*/
-	typedef void SLPRegReport(SLPHandle hSLP,
-							  SLPError errCode,
-							  void *pvCookie);                                 
+    typedef void SLPRegReport(SLPHandle hSLP,
+                              SLPError errCode,
+                              void *pvCookie);                                 
 /*                                                                         */
 /* The SLPRegReport callback type is the type of the callback function     */
 /* to the SLPReg(), SLPDereg(), and SLPDelAttrs() functions.               */
@@ -289,10 +313,10 @@ extern "C"
 
 
 /*=========================================================================*/
-	typedef SLPBoolean SLPSrvTypeCallback(SLPHandle hSLP,
-										  const char* pcSrvTypes,
-										  SLPError errCode,
-										  void *pvCookie);
+    typedef SLPBoolean SLPSrvTypeCallback(SLPHandle hSLP,
+                                          const char* pcSrvTypes,
+                                          SLPError errCode,
+                                          void *pvCookie);
 /*                                                                         */
 /* The SLPSrvTypeCallback type is the type of the callback function        */
 /* parameter to SLPFindSrvTypes() function.  If the hSLP handle            */
@@ -322,11 +346,11 @@ extern "C"
 
 
 /*=========================================================================*/
-	typedef SLPBoolean SLPSrvURLCallback(SLPHandle hSLP,
-										 const char* pcSrvURL,
-										 unsigned short sLifetime,
-										 SLPError errCode,
-										 void *pvCookie);
+    typedef SLPBoolean SLPSrvURLCallback(SLPHandle hSLP,
+                                         const char* pcSrvURL,
+                                         unsigned short sLifetime,
+                                         SLPError errCode,
+                                         void *pvCookie);
 /*                                                                         */
 /* The SLPSrvURLCallback type is the type of the callback function         */
 /* parameter to SLPFindSrvs() function.  If the hSLP handle parameter      */
@@ -363,10 +387,10 @@ extern "C"
 
 
 /*=========================================================================*/
-	typedef SLPBoolean SLPAttrCallback(SLPHandle hSLP,
-									   const char* pcAttrList,
-									   SLPError errCode,
-									   void *pvCookie); 
+    typedef SLPBoolean SLPAttrCallback(SLPHandle hSLP,
+                                       const char* pcAttrList,
+                                       SLPError errCode,
+                                       void *pvCookie); 
 /*                                                                         */
 /* The SLPAttrCallback type is the type of the callback function           */
 /* parameter to SLPFindAttrs() function.                                   */
@@ -412,7 +436,7 @@ extern "C"
 
 
 /*=========================================================================*/
-	SLPError SLPOpen(const char *pcLang, SLPBoolean isAsync, SLPHandle *phSLP);
+    SLPError SLPOpen(const char *pcLang, SLPBoolean isAsync, SLPHandle *phSLP);
 /*                                                                         */
 /* Returns a SLPHandle handle in the phSLP parameter for the language      */
 /* locale passed in as the pcLang parameter.  The client indicates if      */
@@ -451,7 +475,7 @@ extern "C"
 
 
 /*=========================================================================*/
-	void SLPClose(SLPHandle hSLP);                                             
+    void SLPClose(SLPHandle hSLP);                                             
 /*                                                                         */
 /* Frees all resources associated with the handle.  If the handle was      */
 /* invalid, the function returns silently.  Any outstanding synchronous    */
@@ -463,14 +487,14 @@ extern "C"
 
 
 /*=========================================================================*/
-	SLPError SLPReg(SLPHandle   hSLP,
-					const char  *pcSrvURL,
-					const unsigned short usLifetime,
-					const char  *pcSrvType,
-					const char  *pcAttrs,
-					SLPBoolean  fresh,
-					SLPRegReport callback,
-					void *pvCookie); 
+    SLPError SLPReg(SLPHandle   hSLP,
+                    const char  *pcSrvURL,
+                    const unsigned short usLifetime,
+                    const char  *pcSrvType,
+                    const char  *pcAttrs,
+                    SLPBoolean  fresh,
+                    SLPRegReport callback,
+                    void *pvCookie); 
 /*                                                                         */
 /* Registers the URL in pcSrvURL having the lifetime usLifetime with the   */
 /* attribute list in pcAttrs.  The pcAttrs list is a comma separated       */
@@ -525,10 +549,10 @@ extern "C"
 
 
 /*=========================================================================*/
-	SLPError SLPDereg(SLPHandle  hSLP,
-					  const char *pcSrvURL,
-					  SLPRegReport callback,
-					  void *pvCookie);   
+    SLPError SLPDereg(SLPHandle  hSLP,
+                      const char *pcSrvURL,
+                      SLPRegReport callback,
+                      void *pvCookie);   
 /*                                                                         */
 /* Deregisters the advertisement for URL pcURL in all scopes where the     */
 /* service is registered and all language locales.  The deregistration     */
@@ -554,11 +578,11 @@ extern "C"
 
 
 /*=========================================================================*/
-	SLPError SLPDelAttrs(SLPHandle   hSLP,
-						 const char  *pcSrvURL,
-						 const char  *pcAttrs,
-						 SLPRegReport callback,
-						 void *pvCookie); 
+    SLPError SLPDelAttrs(SLPHandle   hSLP,
+                         const char  *pcSrvURL,
+                         const char  *pcAttrs,
+                         SLPRegReport callback,
+                         void *pvCookie); 
 /*                                                                         */
 /* Delete the selected attributes in the locale of the SLPHandle.  The     */
 /* API library is required to perform the operation in all scopes          */
@@ -585,11 +609,11 @@ extern "C"
 
 
 /*=========================================================================*/
-	SLPError SLPFindSrvTypes(SLPHandle    hSLP,
-							 const char  *pcNamingAuthority,
-							 const char  *pcScopeList,
-							 SLPSrvTypeCallback callback,
-							 void *pvCookie);  
+    SLPError SLPFindSrvTypes(SLPHandle    hSLP,
+                             const char  *pcNamingAuthority,
+                             const char  *pcScopeList,
+                             SLPSrvTypeCallback callback,
+                             void *pvCookie);  
 /*                                                                         */
 /* The SLPFindSrvType() function issues an SLP service type request for    */
 /* service types in the scopes indicated by the pcScopeList.  The          */
@@ -633,12 +657,12 @@ extern "C"
 
 
 /*=========================================================================*/
-	SLPError SLPFindSrvs(SLPHandle  hSLP,
-						 const char *pcServiceType,
-						 const char *pcScopeList,
-						 const char *pcSearchFilter,
-						 SLPSrvURLCallback callback,
-						 void *pvCookie);
+    SLPError SLPFindSrvs(SLPHandle  hSLP,
+                         const char *pcServiceType,
+                         const char *pcScopeList,
+                         const char *pcSearchFilter,
+                         SLPSrvURLCallback callback,
+                         void *pvCookie);
 /*                                                                         */
 /* Issue the query for services on the language specific SLPHandle and     */
 /* return the results through the callback.  The parameters determine      */
@@ -679,12 +703,12 @@ extern "C"
 
 
 /*=========================================================================*/
-	SLPError SLPFindAttrs(SLPHandle   hSLP,
-						  const char *pcURLOrServiceType,
-						  const char *pcScopeList,
-						  const char *pcAttrIds,
-						  SLPAttrCallback callback,
-						  void *pvCookie);  
+    SLPError SLPFindAttrs(SLPHandle   hSLP,
+                          const char *pcURLOrServiceType,
+                          const char *pcScopeList,
+                          const char *pcAttrIds,
+                          SLPAttrCallback callback,
+                          void *pvCookie);  
 /*                                                                         */
 /* This function returns service attributes matching the attribute ids     */
 /* for the indicated service URL or service type.  If pcURLOrServiceType   */
@@ -729,7 +753,7 @@ extern "C"
 
 
 /*=========================================================================*/
-	unsigned short SLPGetRefreshInterval(); 
+    unsigned short SLPGetRefreshInterval(); 
 /*                                                                         */
 /* Returns the maximum across all DAs of the min-refresh-interval          */
 /* attribute.  This value satisfies the advertised refresh interval        */
@@ -747,8 +771,8 @@ extern "C"
 
 
 /*=========================================================================*/
-	SLPError SLPFindScopes(SLPHandle hSLP,
-						   char** ppcScopeList);
+    SLPError SLPFindScopes(SLPHandle hSLP,
+                           char** ppcScopeList);
 /*                                                                         */
 /* Sets ppcScopeList parameter to a pointer to a comma separated list      */
 /* including all available scope values.  The list of scopes comes from    */
@@ -772,8 +796,8 @@ extern "C"
 
 
 /*=========================================================================*/
-	SLPError SLPParseSrvURL(const char *pcSrvURL,
-							SLPSrvURL** ppSrvURL);
+    SLPError SLPParseSrvURL(const char *pcSrvURL,
+                            SLPSrvURL** ppSrvURL);
 /*                                                                         */
 /* Parses the URL passed in as the argument into a service URL structure   */
 /* and returns it in the ppSrvURL pointer.  If a parse error occurs,       */
@@ -802,9 +826,9 @@ extern "C"
 
 
 /*=========================================================================*/
-	SLPError SLPEscape(const char* pcInbuf,
-					   char** ppcOutBuf,
-					   SLPBoolean isTag); 
+    SLPError SLPEscape(const char* pcInbuf,
+                       char** ppcOutBuf,
+                       SLPBoolean isTag); 
 /*                                                                         */
 /* Process the input string in pcInbuf and escape any SLP reserved         */
 /* characters.  If the isTag parameter is SLPTrue, then look for bad tag   */
@@ -832,9 +856,9 @@ extern "C"
 
 
 /*=========================================================================*/
-	SLPError SLPUnescape(const char* pcInbuf,
-						 char** ppcOutBuf,
-						 SLPBoolean isTag);
+    SLPError SLPUnescape(const char* pcInbuf,
+                         char** ppcOutBuf,
+                         SLPBoolean isTag);
 /*                                                                         */
 /* Process the input string in pcInbuf and unescape any SLP reserved       */
 /* characters.  If the isTag parameter is SLPTrue, then look for bad tag   */
@@ -862,7 +886,7 @@ extern "C"
 
 
 /*=========================================================================*/
-	void SLPFree(void* pvMem);                                                 
+    void SLPFree(void* pvMem);                                                 
 /*                                                                         */
 /* Frees memory returned from SLPParseSrvURL(), SLPFindScopes(),           */
 /* SLPEscape(), and SLPUnescape().                                         */
@@ -874,7 +898,7 @@ extern "C"
 
 
 /*=========================================================================*/
-	const char* SLPGetProperty(const char* pcName); 
+    const char* SLPGetProperty(const char* pcName); 
 /*                                                                         */
 /* Returns the value of the corresponding SLP property name.  The returned */
 /* string is owned by the library and MUST NOT be freed.                   */
@@ -890,8 +914,8 @@ extern "C"
 
 
 /*=========================================================================*/
-	void SLPSetProperty(const char *pcName,
-						const char *pcValue);
+    void SLPSetProperty(const char *pcName,
+                        const char *pcValue);
 /*                                                                         */
 /* Sets the value of the SLP property to the new value.  The pcValue       */
 /* parameter should be the property value as a string.                     */
@@ -905,10 +929,10 @@ extern "C"
 
 
 /*=========================================================================*/
-	SLPError SLPParseAttrs(const char* attrstr, 
-						   const char* id,
-						   int* valsize,
-						   const char** val);
+    SLPError SLPParseAttrs(const char* attrstr, 
+                           const char* id,
+                           int* valsize,
+                           const char** val);
 /*                                                                         */
 /* Used to get individual attribute values from an attribute string that   */
 /* is passed to the SLPAttrCallback                                        */
@@ -933,6 +957,6 @@ extern "C"
 
 #if(defined __cplusplus)
 }
-	#endif
+    #endif
 
 #endif  /* (!defined SLP_H_INCLUDED) */

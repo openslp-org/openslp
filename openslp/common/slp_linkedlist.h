@@ -46,15 +46,15 @@
 /***************************************************************************/
 
 #if(!defined LINKEDLIST_H_INCLUDED)
-	#define LINKEDLIST_H_INCLUDED
+    #define LINKEDLIST_H_INCLUDED
 
 
 /*=========================================================================*/
 typedef struct _SLPListItem
 /*=========================================================================*/
 {
-	struct _SLPListItem*    previous;
-	struct _SLPListItem*    next;
+    struct _SLPListItem*    previous;
+    struct _SLPListItem*    next;
 
 }SLPListItem;
 
@@ -63,9 +63,9 @@ typedef struct _SLPListItem
 typedef struct _SLPList
 /*=========================================================================*/
 {
-	SLPListItem* head;
-	SLPListItem* tail;
-	int          count;
+    SLPListItem* head;
+    SLPListItem* tail;
+    int          count;
 }SLPList;
 
 

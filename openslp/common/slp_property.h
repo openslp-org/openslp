@@ -47,17 +47,17 @@
 /***************************************************************************/
 
 #if(!defined SLP_PROPERTY_H_INCLUDED)
-	#define SLP_PROPERTY_H_INCLUDED
+    #define SLP_PROPERTY_H_INCLUDED
 
-	#include <slp_linkedlist.h>
+    #include <slp_linkedlist.h>
 
 /*=========================================================================*/
 typedef struct _SLPProperty
 /*=========================================================================*/
 {
-	SLPListItem        listitem;
-	char*           propertyName;
-	char*           propertyValue;
+    SLPListItem        listitem;
+    char*           propertyName;
+    char*           propertyValue;
 }SLPProperty;
 
 
@@ -79,7 +79,7 @@ const char* SLPPropertyGet(const char* pcName);
 
 /*=========================================================================*/
 int SLPPropertySet(const char *pcName,                                     
-				   const char *pcValue);
+                   const char *pcValue);
 /*                                                                         */
 /* Sets the value of the SLP property to the new value.  The pcValue       */
 /* parameter should be the property value as a string.                     */
@@ -115,15 +115,16 @@ int SLPPropertyAsInteger(const char* property);
 
 /*=========================================================================*/
 int SLPPropertyAsIntegerVector(const char* property, 
-							   int* vector, 
-							   int vectorsize);
+                               int* vector, 
+                               int vectorsize);
 /*=========================================================================*/
 
-	#ifdef DEBUG
+    #ifdef DEBUG
+
 
 /*=========================================================================*/
 void SLPPropertyFreeAll();
 /*=========================================================================*/
-	#endif
+    #endif
 
 #endif 

@@ -48,14 +48,14 @@
 /***************************************************************************/
 
 #if(!defined SLP_STRING_H_INCLUDED)
-	#define SLP_STRING_H_INCLUDED
+    #define SLP_STRING_H_INCLUDED
 
 
 /*=========================================================================*/
 int SLPCompareString(int str1len,                                          
-					 const char* str1,
-					 int str2len,
-					 const char* str2);
+                     const char* str1,
+                     int str2len,
+                     const char* str2);
 /* Does a lexical string compare as described in RFC 2608 section 6.4.     */
 /*                                                                         */
 /* TODO: Handle the whole utf8 spec                                        */
@@ -75,9 +75,9 @@ int SLPCompareString(int str1len,
 
 /*=========================================================================*/
 int SLPCompareNamingAuth(int srvtypelen,
-						 const char* srvtype,
-						 int namingauthlen,
-						 const char* namingauth);
+                         const char* srvtype,
+                         int namingauthlen,
+                         const char* namingauth);
 /* Does srvtype match namingauth                                           */
 /*                                                                         */
 /* TODO: Handle the whole utf8 spec                                        */
@@ -95,9 +95,9 @@ int SLPCompareNamingAuth(int srvtypelen,
 /*=========================================================================*/
 
 int SLPCompareSrvType(int srvtype1len,
-					  const char* srvtype1,
-					  int srvtype2len,
-					  const char* srvtype2);
+                      const char* srvtype1,
+                      int srvtype2len,
+                      const char* srvtype2);
 /* Compares two service type strings                                       */
 /*                                                                         */
 /* TODO: Handle the whole utf8 spec                                        */
@@ -117,9 +117,9 @@ int SLPCompareSrvType(int srvtype1len,
 
 /*=========================================================================*/
 int SLPContainsStringList(int listlen,
-						  const char* list, 
-						  int stringlen,
-						  const char* string);
+                          const char* list, 
+                          int stringlen,
+                          const char* string);
 /* Checks a string-list for the occurence of a string                      */
 /*                                                                         */
 /* list -       pointer to the string-list to be checked                   */
@@ -137,9 +137,9 @@ int SLPContainsStringList(int listlen,
 
 /*=========================================================================*/
 int SLPIntersectStringList(int list1len,
-						   const char* list1,
-						   int list2len,
-						   const char* list2);
+                           const char* list1,
+                           int list2len,
+                           const char* list2);
 /* Calculates the number of common entries between two string-lists        */
 /*                                                                         */
 /* list1 -      pointer to the string-list to be checked                   */
@@ -156,11 +156,11 @@ int SLPIntersectStringList(int list1len,
 
 /*=========================================================================*/
 int SLPUnionStringList(int list1len,
-					   const char* list1,
-					   int list2len,
-					   const char* list2,
-					   int* unionlistlen,
-					   char* unionlist);
+                       const char* list1,
+                       int list2len,
+                       const char* list2,
+                       int* unionlistlen,
+                       char* unionlist);
 /* Generate a string list that is a union of two string lists              */
 /*                                                                         */
 /* list1len -   length in bytes of list1                                   */

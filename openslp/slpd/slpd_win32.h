@@ -65,7 +65,7 @@
 #define G_SERVICEDISPLAYNAME "Service Location Protocol"
 
 #if(!defined MAX_PATH)
-	#define MAX_PATH    256
+    #define MAX_PATH    256
 #endif
 
 #define strncasecmp(String1, String2, Num) strnicmp(String1, String2, Num)
@@ -81,9 +81,9 @@ typedef SOCKET              sockfd_t;
    run in the console for debug, install it as a service or uninstall it */
 typedef enum _SLPDAction
 {
-	SLPD_DEBUG   = 0,
-	SLPD_INSTALL = 1,
-	SLPD_REMOVE  = 2
+    SLPD_DEBUG   = 0,
+    SLPD_INSTALL = 1,
+    SLPD_REMOVE  = 2
 } SLPDAction;
 
 

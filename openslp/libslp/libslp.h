@@ -48,52 +48,52 @@
 
 
 #if(!defined LIBSLP_H_INCLUDED)
-	#define LIBSLP_H_INCLUDED
+    #define LIBSLP_H_INCLUDED
 
-	#ifdef WIN32
-		#include <windows.h>
-		#include  <sys/types.h>
-		#include <sys/stat.h>
-		#include <fcntl.h>
-		#include <time.h>
-	#else
-		#include <stdlib.h>
-		#include <unistd.h>
-		#include <string.h>
-		#include <sys/socket.h>
-		#include <sys/time.h>
-		#include <netinet/in.h>
-		#include <arpa/inet.h> 
-		#include <netdb.h> 
-		#include <fcntl.h> 
-		#include <errno.h>
-		#include <sys/types.h>
-		#include <sys/stat.h>
-		#include <fcntl.h> 
-	#endif
+    #ifdef WIN32
+        #include <windows.h>
+        #include  <sys/types.h>
+        #include <sys/stat.h>
+        #include <fcntl.h>
+        #include <time.h>
+    #else
+        #include <stdlib.h>
+        #include <unistd.h>
+        #include <string.h>
+        #include <sys/socket.h>
+        #include <sys/time.h>
+        #include <netinet/in.h>
+        #include <arpa/inet.h> 
+        #include <netdb.h> 
+        #include <fcntl.h> 
+        #include <errno.h>
+        #include <sys/types.h>
+        #include <sys/stat.h>
+        #include <fcntl.h> 
+    #endif
 
-	#include <slp_buffer.h>
-	#include <slp_message.h>
-	#include <slp_property.h>
-	#include <slp_xid.h>
-	#include <slp_network.h>
-	#include <slp_da.h>
-	#include <slp_compare.h>
+    #include <slp_buffer.h>
+    #include <slp_message.h>
+    #include <slp_property.h>
+    #include <slp_xid.h>
+    #include <slp_network.h>
+    #include <slp_da.h>
+    #include <slp_compare.h>
 
-	#define MINIMUM_DISCOVERY_INTERVAL  300    /* 5 minutes */
-	#define MAX_RETRANSMITS             5      /* we'll only re-xmit 5 times! */
-	#define SLP_FUNCT_DASRVRQST         0x7f   /* fake id used internally */
+    #define MINIMUM_DISCOVERY_INTERVAL  300    /* 5 minutes */
+    #define MAX_RETRANSMITS             5      /* we'll only re-xmit 5 times! */
+    #define SLP_FUNCT_DASRVRQST         0x7f   /* fake id used internally */
 
 /*=========================================================================*/
 typedef enum _SLPCallType
 /*=========================================================================*/
 {
-	SLPREG = 0,
-	SLPDEREG,
-	SLPFINDSRVS,
-	SLPFINDSRVTYPES,
-	SLPFINDATTRS,
-	SLPDELATTRS
+    SLPREG = 0,
+    SLPDEREG,
+    SLPFINDSRVS,
+    SLPFINDSRVTYPES,
+    SLPFINDATTRS,
+    SLPDELATTRS
 }SLPCallType;
 
 
@@ -103,18 +103,18 @@ typedef struct _SLPRegParams
 /* API calls                                                               */
 /*=========================================================================*/
 {
-	int             lifetime;
-	int             fresh;
-	int             urllen;
-	const char*     url;
-	int             srvtypelen;
-	const char*     srvtype;
-	int             scopelistlen;
-	const char*     scopelist;
-	int             attrlistlen;
-	const char*     attrlist;
-	SLPRegReport*   callback;
-	void*           cookie;
+    int             lifetime;
+    int             fresh;
+    int             urllen;
+    const char*     url;
+    int             srvtypelen;
+    const char*     srvtype;
+    int             scopelistlen;
+    const char*     scopelist;
+    int             attrlistlen;
+    const char*     attrlist;
+    SLPRegReport*   callback;
+    void*           cookie;
 }SLPRegParams,*PSLPRegParams;
 
 
@@ -124,12 +124,12 @@ typedef struct _SLPDeRegParams
 /* API calls                                                               */
 /*=========================================================================*/
 {
-	int             scopelistlen;
-	const char*     scopelist;
-	int             urllen;
-	const char*     url;
-	SLPRegReport*   callback;
-	void*           cookie;
+    int             scopelistlen;
+    const char*     scopelist;
+    int             urllen;
+    const char*     url;
+    SLPRegReport*   callback;
+    void*           cookie;
 }SLPDeRegParams,*PSLPDeRegParams;
 
 
@@ -139,12 +139,12 @@ typedef struct _SLPFindSrvTypesParams
 /* API calls                                                               */
 /*=========================================================================*/
 {
-	int                 namingauthlen;
-	const char*         namingauth;
-	int                 scopelistlen;
-	const char*         scopelist;
-	SLPSrvTypeCallback* callback;
-	void*               cookie;
+    int                 namingauthlen;
+    const char*         namingauth;
+    int                 scopelistlen;
+    const char*         scopelist;
+    SLPSrvTypeCallback* callback;
+    void*               cookie;
 }SLPFindSrvTypesParams,*PSLPFindSrvTypesParams;
 
 /*=========================================================================*/
@@ -153,14 +153,14 @@ typedef struct _SLPFindSrvsParams
 /* API calls                                                               */
 /*=========================================================================*/
 {
-	int                 srvtypelen;
-	const char*         srvtype;
-	int                 scopelistlen;
-	const char*         scopelist;
-	int                 predicatelen;
-	const char*         predicate;
-	SLPSrvURLCallback*  callback;
-	void*               cookie;
+    int                 srvtypelen;
+    const char*         srvtype;
+    int                 scopelistlen;
+    const char*         scopelist;
+    int                 predicatelen;
+    const char*         predicate;
+    SLPSrvURLCallback*  callback;
+    void*               cookie;
 }SLPFindSrvsParams,*PSLPFindSrvsParams;
 
 
@@ -170,14 +170,14 @@ typedef struct _SLPFindAttrsParams
 /* API calls                                                               */
 /*=========================================================================*/
 {
-	int                 urllen;
-	const char*         url;
-	int                 scopelistlen;
-	const char*         scopelist;
-	int                 taglistlen;
-	const char*         taglist;
-	SLPAttrCallback*    callback;
-	void*               cookie;
+    int                 urllen;
+    const char*         url;
+    int                 scopelistlen;
+    const char*         scopelist;
+    int                 taglistlen;
+    const char*         taglist;
+    SLPAttrCallback*    callback;
+    void*               cookie;
 }SLPFindAttrsParams,*PSLPFindAttrsParams;
 
 /*=========================================================================*/
@@ -186,14 +186,15 @@ typedef union _SLPHandleCallParams
 /* API calls                                                               */
 /*=========================================================================*/
 {
-	SLPRegParams          reg;
-	SLPDeRegParams        dereg;
-	SLPFindSrvTypesParams findsrvtypes;
-	SLPFindSrvsParams     findsrvs;
-	SLPFindAttrsParams    findattrs;
+    SLPRegParams          reg;
+    SLPDeRegParams        dereg;
+    SLPFindSrvTypesParams findsrvtypes;
+    SLPFindSrvsParams     findsrvs;
+    SLPFindAttrsParams    findattrs;
 }SLPHandleCallParams, *PSLPHandleCallParams;
 
-	#define SLP_HANDLE_SIG 0xbeeffeed
+    #define SLP_HANDLE_SIG 0xbeeffeed
+
 
 /*=========================================================================*/
 typedef struct _SLPHandleInfo
@@ -201,20 +202,20 @@ typedef struct _SLPHandleInfo
 /* a struct _SLPHandleInfo                                                 */
 /*=========================================================================*/
 {
-	unsigned int        sig;
-	SLPBoolean          inUse;
-	SLPBoolean          isAsync;
-	int                 dasock;
-	struct sockaddr_in  daaddr;
-	char*               dascope;
-	int                 dascopelen;
-	int                 sasock;
-	struct sockaddr_in  saaddr;
-	char*               sascope;
-	int                 sascopelen;
-	int                 langtaglen;
-	char*               langtag;
-	SLPHandleCallParams params;
+    unsigned int        sig;
+    SLPBoolean          inUse;
+    SLPBoolean          isAsync;
+    int                 dasock;
+    struct sockaddr_in  daaddr;
+    char*               dascope;
+    int                 dascopelen;
+    int                 sasock;
+    struct sockaddr_in  saaddr;
+    char*               sascope;
+    int                 sascopelen;
+    int                 langtaglen;
+    char*               langtag;
+    SLPHandleCallParams params;
 }SLPHandleInfo, *PSLPHandleInfo; 
 
 
@@ -225,8 +226,8 @@ typedef void* (*ThreadStartProc)(void *);
 
 /*=========================================================================*/
 typedef SLPBoolean NetworkRqstRplyCallback(SLPError error, 
-										   SLPMessage msg,
-										   void* cookie);  
+                                           SLPMessage msg,
+                                           void* cookie);  
 /*=========================================================================*/
 
 
@@ -275,9 +276,9 @@ void NetworkDisconnectSA(PSLPHandleInfo handle);
 
 /*=========================================================================*/
 int NetworkConnectToDA(PSLPHandleInfo handle,
-					   const char* scopelist,
-					   int scopelistlen,
-					   struct sockaddr_in* peeraddr); 
+                       const char* scopelist,
+                       int scopelistlen,
+                       struct sockaddr_in* peeraddr); 
 /* Connects to slpd and provides a peeraddr to send to                     */
 /*                                                                         */
 /* handle           (IN) SLPHandle info (caches connection reuse info)     */
@@ -296,9 +297,9 @@ int NetworkConnectToDA(PSLPHandleInfo handle,
 
 /*=========================================================================*/
 int NetworkConnectToSA(PSLPHandleInfo handle,
-					   const char* scopelist,
-					   int scopelistlen,
-					   struct sockaddr_in* peeraddr); 
+                       const char* scopelist,
+                       int scopelistlen,
+                       struct sockaddr_in* peeraddr); 
 /* Connects to slpd and provides a peeraddr to send to                     */
 /*                                                                         */
 /* handle           (IN) SLPHandle info  (caches connection info)          */
@@ -317,13 +318,13 @@ int NetworkConnectToSA(PSLPHandleInfo handle,
 
 /*=========================================================================*/
 SLPError NetworkRqstRply(int sock,
-						 struct sockaddr_in* peeraddr,
-						 const char* langtag,
-						 char* buf,
-						 char buftype,
-						 int bufsize,
-						 NetworkRqstRplyCallback callback,
-						 void * cookie); 
+                         struct sockaddr_in* peeraddr,
+                         const char* langtag,
+                         char* buf,
+                         char buftype,
+                         int bufsize,
+                         NetworkRqstRplyCallback callback,
+                         void * cookie); 
 /* Transmits and receives SLP messages via multicast convergence algorithm */
 /*                                                                         */
 /* Returns  -    SLP_OK on success                                         */
@@ -332,8 +333,8 @@ SLPError NetworkRqstRply(int sock,
 
 /*=========================================================================*/
 int KnownDAConnect(int scopelistlen,
-				   const char* scopelist,
-				   struct sockaddr_in* peeraddr);
+                   const char* scopelist,
+                   struct sockaddr_in* peeraddr);
 /* Get a connected socket to a DA that supports the specified scope        */
 /*                                                                         */
 /* scopelistlen (IN) stringlen of the scopelist                            */
@@ -359,7 +360,7 @@ int KnownDABadDA(struct sockaddr_in* peeraddr);
 
 /*=========================================================================*/
 int KnownDAGetScopes(int* scopelistlen,
-					 char** scopelist);
+                     char** scopelist);
 /* Gets a list of scopes from the known DA list                            */
 /*                                                                         */
 /* scopelistlen (OUT) stringlen of the scopelist                           */

@@ -52,7 +52,7 @@
 
 /*=========================================================================*/
 SLPError SLPFindScopes(SLPHandle hSLP,
-					   char** ppcScopeList)
+                       char** ppcScopeList)
 /*                                                                         */
 /* Sets ppcScopeList parameter to a pointer to a comma separated list      */
 /* including all available scope values.  The list of scopes comes from    */
@@ -73,27 +73,27 @@ SLPError SLPFindScopes(SLPHandle hSLP,
 /*              ppropriate error code.                                     */
 /*=========================================================================*/
 {
-	int scopelistlen;
+    int scopelistlen;
 
-	/*------------------------------*/
-	/* check for invalid parameters */
-	/*------------------------------*/
-	if(hSLP == 0 ||
-	   *(unsigned int*)hSLP != SLP_HANDLE_SIG ||
-	   ppcScopeList  == 0)
-	{
-		return SLP_PARAMETER_BAD;
-	}
+    /*------------------------------*/
+    /* check for invalid parameters */
+    /*------------------------------*/
+    if(hSLP == 0 ||
+       *(unsigned int*)hSLP != SLP_HANDLE_SIG ||
+       ppcScopeList  == 0)
+    {
+        return SLP_PARAMETER_BAD;
+    }
 
-	/* start with nothing */
-	*ppcScopeList = 0;
+    /* start with nothing */
+    *ppcScopeList = 0;
 
-	if(KnownDAGetScopes(&scopelistlen,ppcScopeList))
-	{
-		return SLP_MEMORY_ALLOC_FAILED;
-	}
+    if(KnownDAGetScopes(&scopelistlen,ppcScopeList))
+    {
+        return SLP_MEMORY_ALLOC_FAILED;
+    }
 
-	return SLP_OK;
+    return SLP_OK;
 
 }
 
@@ -113,6 +113,6 @@ unsigned short SLPGetRefreshInterval()
 /*          returns an SLP error code.                                     */
 /*=========================================================================*/
 {
-	return 0;
+    return 0;
 }
 

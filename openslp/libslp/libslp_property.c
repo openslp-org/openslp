@@ -70,26 +70,26 @@ const char* SLPGetProperty(const char* pcName)
 /*          string MUST NOT be freed.                                      */
 /*=========================================================================*/
 {
-	if(G_PropertyInit == 0)
-	{
-		if(SLPPropertyReadFile(LIBSLP_CONFFILE) == 0)
-		{
-			G_PropertyInit = 1;
-		}
-		else
-		{
-			return 0;
-		}
-	}
+    if(G_PropertyInit == 0)
+    {
+        if(SLPPropertyReadFile(LIBSLP_CONFFILE) == 0)
+        {
+            G_PropertyInit = 1;
+        }
+        else
+        {
+            return 0;
+        }
+    }
 
-	return SLPPropertyGet(pcName);
+    return SLPPropertyGet(pcName);
 }
 
 
 
 /*=========================================================================*/
 void SLPSetProperty(const char *pcName,
-					const char *pcValue)
+                    const char *pcValue)
 /*                                                                         */
 /* Sets the value of the SLP property to the new value.  The pcValue       */
 /* parameter should be the property value as a string.                     */
@@ -101,18 +101,18 @@ void SLPSetProperty(const char *pcName,
 /*          character encoding.                                            */
 /*=========================================================================*/
 {
-	/* Following commented out for threading reasons 
-	
-	if(G_PropertyInit == 0)
-	{
-		if(SLPPropertyReadFile(LIBSLP_CONFFILE) == 0)
-		{
-			G_PropertyInit = 1;
-		}
-	}
+    /* Following commented out for threading reasons 
+    
+    if(G_PropertyInit == 0)
+    {
+        if(SLPPropertyReadFile(LIBSLP_CONFFILE) == 0)
+        {
+            G_PropertyInit = 1;
+        }
+    }
 
-	SLPPropertySet(pcName,pcValue);
-	
-	*/
+    SLPPropertySet(pcName,pcValue);
+    
+    */
 }
 
