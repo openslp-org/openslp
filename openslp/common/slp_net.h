@@ -3,9 +3,9 @@
 /* Project:     OpenSLP - OpenSource implementation of Service Location    */
 /*              Protocol                                                   */
 /*                                                                         */
-/* File:        slp_iface.h                                                */
+/* File:        slp_net.h                                                  */
 /*                                                                         */
-/* Abstract:    Common code to obtain network interface information        */
+/* Abstract:    Network utility functions                                  */
 /*                                                                         */
 /*-------------------------------------------------------------------------*/
 /*                                                                         */
@@ -18,7 +18,7 @@
 /*                                                                         */
 /* Redistribution and use in source and binary forms, with or without      */
 /* modification, are permitted provided that the following conditions are  */
-/* met:                                                                    */
+/* met:                                                                    */ 
 /*                                                                         */
 /*      Redistributions of source code must retain the above copyright     */
 /*      notice, this list of conditions and the following disclaimer.      */
@@ -46,78 +46,58 @@
 /*                                                                         */
 /***************************************************************************/
 
-#ifndef SLP_IFACE_H_INCLUDED
-#define SLP_IFACE_H_INCLUDED
+#ifndef SLP_NET_H_INCLUDED
+#define SLP_NET_H_INCLUDED
 
+#ifdef WIN32
+#if(_WIN32_WINNT >= 0x0400) 
+#include <ws2tcpip.h> 
+#endif
+#include <windows.h>
+#include <io.h>
+#include <errno.h>
+#define ETIMEDOUT 110
+#define ENOTCONN  107
+#else
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <sys/time.h>
 #include <netinet/in.h>
+#include <arpa/inet.h> 
+#include <netdb.h> 
+#include <fcntl.h> 
+#include <errno.h>
+#endif
 
-#define SLP_MAX_IFACES 10
-
-/*=========================================================================*/
-typedef struct _SLPInterfaceInfo
-/*=========================================================================*/
-{
-    int iface_count;
-    struct sockaddr_in iface_addr[SLP_MAX_IFACES];
-    struct sockaddr_in bcast_addr[SLP_MAX_IFACES];
-}SLPIfaceInfo;
-
-
-/*=========================================================================*/
-int SLPIfaceGetInfo(const char* useifaces,
-                    SLPIfaceInfo* ifaces);
-/* Description:
- *    Get the network interface addresses for this host.  Exclude the
- *    loopback interface
+/*-------------------------------------------------------------------------*/
+int SLPNetGetThisHostname(char** hostfdn);
+/* 
+ * Description:
+ *    Returns a string represting this host (the FDN) or null. Caller must    
+ *    free returned string                                                    
  *
  * Parameters:
- *     useifaces (IN) Pointer to comma delimited string of interface IPv4
- *                    addresses to get interface information for.  Pass
- *                    NULL or empty string to get all interfaces (except 
- *                    loopback)
- *     ifaceinfo (OUT) Information about requested interfaces.
- *
- * Returns:
- *     zero on success, non-zero (with errno set) on error.
- *=========================================================================*/
+ *    hostfdn   (OUT) pointer to char pointer that is set to buffer 
+ *                    contining this machine's FDN.  Caller must free
+ *                    returned string with call to xfree()  
+ *-------------------------------------------------------------------------*/
 
 
-/*=========================================================================*/
-int SLPIfaceSockaddrsToString(const struct sockaddr_in* addrs,
-                              int addrcount,
-                              char** addrstr);
-/* Description:
- *    Get the comma delimited string of addresses from an array of sockaddrs
+/*-------------------------------------------------------------------------*/
+int SLPNetResolveHostToAddr(const char* host,
+                            struct in_addr* addr);
+/* 
+ * Description:
+ *    Returns a string represting this host (the FDN) or null. Caller must    
+ *    free returned string                                                    
  *
  * Parameters:
- *     addrs (IN) Pointer to array of sockaddrs to convert
- *     addrcount (IN) Number of sockaddrs in addrs.
- *     addrstr (OUT) pointer to receive xmalloc() allocated address string.
- *                   Caller must xfree() addrstr when no longer needed.
+ *    host  (IN)  pointer to hostname to resolve
+ *    addr  (OUT) pointer to in_addr that will be filled with address
  *
- * Returns:
- *     zero on success, non-zero (with errno set) on error.
- *=========================================================================*/
-
-
-
-/*=========================================================================*/
-int SLPIfaceStringToSockaddrs(const char* addrstr,
-                              struct sockaddr_in* addrs,
-                              int* addrcount);
-/* Description:
- *    Fill an array of struct sockaddrs from the comma delimited string of
- *    addresses.
- *
- * Parameters:
- *     addrstr (IN) Address string to convert.
- *     addrcount (OUT) sockaddr array to fill.
- *     addrcount (INOUT) The number of sockaddr stuctures in the addr array
- *                       on successful return will contain the number of
- *                       sockaddrs that were filled in the addr array
- *
- * Returns:
- *     zero on success, non-zero (with errno set) on error.
- *=========================================================================*/
+ * Returns: zero on success, non-zero on error;
+ *-------------------------------------------------------------------------*/
 
 #endif

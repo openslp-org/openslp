@@ -69,14 +69,14 @@
 #include "slp_message.h"
 
 /*========================================================================*/
-int SLPBroadcastSend(const SLPInterfaceInfo* ifaceinfo, 
+int SLPBroadcastSend(const SLPIfaceInfo* ifaceinfo, 
                      SLPBuffer msg,
                      SLPXcastSockets* socks)
 /* Description:
  *    Broadcast a message.
  *
  * Parameters:
- *    ifaceinfo (IN) Pointer to the SLPInterfaceInfo structure that contains
+ *    ifaceinfo (IN) Pointer to the SLPIfaceInfo structure that contains
  *                   information about the interfaces to send on
  *    msg       (IN) Buffer to send
  *
@@ -145,14 +145,14 @@ int SLPBroadcastSend(const SLPInterfaceInfo* ifaceinfo,
 
 
 /*========================================================================*/
-int SLPMulticastSend(const SLPInterfaceInfo* ifaceinfo, 
+int SLPMulticastSend(const SLPIfaceInfo* ifaceinfo, 
                      SLPBuffer msg,
                      SLPXcastSockets* socks)
 /* Description:
  *    Multicast a message.
  *
  * Parameters:
- *    ifaceinfo (IN) Pointer to the SLPInterfaceInfo structure that contains
+ *    ifaceinfo (IN) Pointer to the SLPIfaceInfo structure that contains
  *                   information about the interfaces to send on
  *    msg       (IN) Buffer to send
  *
@@ -363,7 +363,7 @@ int SLPXcastRecvMessage(const SLPXcastSockets* sockets,
 #ifdef SLP_XMIT_TEST
 main()
 {
-    SLPInterfaceInfo    ifaceinfo;
+    SLPIfaceInfo    ifaceinfo;
     SLPXcastSockets      socks;
     SLPBuffer           buffer;
 
@@ -373,7 +373,7 @@ main()
         
         strcpy(buffer->start,"testdata");
     
-        SLPInterfaceGetInformation(NULL,&ifaceinfo);
+        SLPIfaceGetInfo(NULL,&ifaceinfo);
     
         if (SLPBroadcastSend(&ifaceinfo, buffer,&socks) !=0)
             printf("\n SLPBroadcastSend failed \n");

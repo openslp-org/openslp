@@ -3,9 +3,9 @@
 /* Project:     OpenSLP - OpenSource implementation of Service Location    */
 /*              Protocol                                                   */
 /*                                                                         */
-/* File:        slp_iface.h                                                */
+/* File:        slp_parse.h                                                */
 /*                                                                         */
-/* Abstract:    Common code to obtain network interface information        */
+/* Abstract:    Common string parsing functionality                        */
 /*                                                                         */
 /*-------------------------------------------------------------------------*/
 /*                                                                         */
@@ -18,7 +18,7 @@
 /*                                                                         */
 /* Redistribution and use in source and binary forms, with or without      */
 /* modification, are permitted provided that the following conditions are  */
-/* met:                                                                    */
+/* met:                                                                    */ 
 /*                                                                         */
 /*      Redistributions of source code must retain the above copyright     */
 /*      notice, this list of conditions and the following disclaimer.      */
@@ -46,78 +46,61 @@
 /*                                                                         */
 /***************************************************************************/
 
-#ifndef SLP_IFACE_H_INCLUDED
-#define SLP_IFACE_H_INCLUDED
+#ifndef SLP_PARSE_H_INCLUDED
+#define SLP_PARSE_H_INCLUDED
 
-#include <netinet/in.h>
-
-#define SLP_MAX_IFACES 10
-
-/*=========================================================================*/
-typedef struct _SLPInterfaceInfo
-/*=========================================================================*/
+typedef struct _SLPParsedSrvURL
 {
-    int iface_count;
-    struct sockaddr_in iface_addr[SLP_MAX_IFACES];
-    struct sockaddr_in bcast_addr[SLP_MAX_IFACES];
-}SLPIfaceInfo;
+    char* srvtype ;
+    /* A pointer to a character string containing the service              
+     * type name, including naming authority.  The service type            
+     * name includes the "service:" if the URL is of the service:          
+     * scheme.                                                             
+     */
 
+    char* host;
+    /* A pointer to a character string containing the host                 
+     * identification information.                                         
+     */
+       
+
+    int port;
+    /* The port number, or zero if none.  The port is only available       
+     * if the transport is IP.                                             
+     */
+
+    char* family;
+    /* A pointer to a character string containing the network address      
+     * family identifier.  Possible values are "ipx" for the IPX           
+     * family, "at" for the Appletalk family, and "" (i.e.  the empty      
+     * string) for the IP address family.                                  
+     */
+
+    char* remainder;
+    /* The remainder of the URL, after the host identification.            
+     */
+
+} SLPParsedSrvURL;
 
 /*=========================================================================*/
-int SLPIfaceGetInfo(const char* useifaces,
-                    SLPIfaceInfo* ifaces);
-/* Description:
- *    Get the network interface addresses for this host.  Exclude the
- *    loopback interface
+int SLPParseSrvUrl(int srvurllen,
+                   const char* srvurl,
+                   SLPParsedSrvURL** parsedurl);
+/*                                            
+ * Description:
+ *    Parses a service URL into its parts                             
  *
  * Parameters:
- *     useifaces (IN) Pointer to comma delimited string of interface IPv4
- *                    addresses to get interface information for.  Pass
- *                    NULL or empty string to get all interfaces (except 
- *                    loopback)
- *     ifaceinfo (OUT) Information about requested interfaces.
- *
- * Returns:
- *     zero on success, non-zero (with errno set) on error.
+ *    srvurllen (IN) size of srvurl in bytes
+ *    srvurl    (IN) pointer to service URL to parse
+ *    parsedurl (OUT) pointer to SLPParsedSrvURL pointer that will be
+ *                    set to xmalloc()ed parsed url parts.  Returned
+ *                    pointer must be freed by caller with call to xfree() 
+ *                                                                         
+ * Returns: zero on success, errno on failure..                            
  *=========================================================================*/
 
 
-/*=========================================================================*/
-int SLPIfaceSockaddrsToString(const struct sockaddr_in* addrs,
-                              int addrcount,
-                              char** addrstr);
-/* Description:
- *    Get the comma delimited string of addresses from an array of sockaddrs
- *
- * Parameters:
- *     addrs (IN) Pointer to array of sockaddrs to convert
- *     addrcount (IN) Number of sockaddrs in addrs.
- *     addrstr (OUT) pointer to receive xmalloc() allocated address string.
- *                   Caller must xfree() addrstr when no longer needed.
- *
- * Returns:
- *     zero on success, non-zero (with errno set) on error.
- *=========================================================================*/
-
-
-
-/*=========================================================================*/
-int SLPIfaceStringToSockaddrs(const char* addrstr,
-                              struct sockaddr_in* addrs,
-                              int* addrcount);
-/* Description:
- *    Fill an array of struct sockaddrs from the comma delimited string of
- *    addresses.
- *
- * Parameters:
- *     addrstr (IN) Address string to convert.
- *     addrcount (OUT) sockaddr array to fill.
- *     addrcount (INOUT) The number of sockaddr stuctures in the addr array
- *                       on successful return will contain the number of
- *                       sockaddrs that were filled in the addr array
- *
- * Returns:
- *     zero on success, non-zero (with errno set) on error.
- *=========================================================================*/
 
 #endif
+

@@ -21,6 +21,7 @@ libcommonlibslp_la_SOURCES = \
 	slp_xmalloc.c \
 	slp_xcast.c \
 	slp_iface.c \
+	slp_parse.c \
 	$(slp_v1message_SRCS) \
 	$(slp_security_SRCS)
 
@@ -33,6 +34,9 @@ libcommonslpd_la_SOURCES = \
 	slp_xid.c \
 	slp_database.c \
 	slp_xmalloc.c \
+	slp_parse.c \
+	slp_iface.c \
+	slp_net.c \
 	$(slp_v1message_SRCS) \
 	$(slp_security_SRCS)
 
@@ -52,4 +56,6 @@ noinst_HEADERS = \
 	slp_xmalloc.h \
 	slp_utf8.h \
 	slp_xcast.h \
-	slp_iface.h
+	slp_iface.h \
+	slp_parse.h \
+	slp_net.h

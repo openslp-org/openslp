@@ -1,11 +1,12 @@
+
 /***************************************************************************/
 /*                                                                         */
 /* Project:     OpenSLP - OpenSource implementation of Service Location    */
 /*              Protocol                                                   */
 /*                                                                         */
-/* File:        slp_iface.h                                                */
+/* File:        slp_net.h                                                  */
 /*                                                                         */
-/* Abstract:    Common code to obtain network interface information        */
+/* Abstract:    Network utility functions                                  */
 /*                                                                         */
 /*-------------------------------------------------------------------------*/
 /*                                                                         */
@@ -18,7 +19,7 @@
 /*                                                                         */
 /* Redistribution and use in source and binary forms, with or without      */
 /* modification, are permitted provided that the following conditions are  */
-/* met:                                                                    */
+/* met:                                                                    */ 
 /*                                                                         */
 /*      Redistributions of source code must retain the above copyright     */
 /*      notice, this list of conditions and the following disclaimer.      */
@@ -46,78 +47,93 @@
 /*                                                                         */
 /***************************************************************************/
 
-#ifndef SLP_IFACE_H_INCLUDED
-#define SLP_IFACE_H_INCLUDED
+#include "slp_net.h"
+#include "slp_xmalloc.h"
 
-#include <netinet/in.h>
-
-#define SLP_MAX_IFACES 10
-
-/*=========================================================================*/
-typedef struct _SLPInterfaceInfo
-/*=========================================================================*/
+/*-------------------------------------------------------------------------*/
+int SLPNetGetThisHostname(char** hostfdn)
+/* 
+ * Description:
+ *    Returns a string represting this host (the FDN) or null. Caller must    
+ *    free returned string                                                    
+ *
+ * Parameters:
+ *    hostfdn   (OUT) pointer to char pointer that is set to buffer 
+ *                    contining this machine's FDN.  Caller must free
+ *                    returned string with call to xfree()  
+ *-------------------------------------------------------------------------*/
 {
-    int iface_count;
-    struct sockaddr_in iface_addr[SLP_MAX_IFACES];
-    struct sockaddr_in bcast_addr[SLP_MAX_IFACES];
-}SLPIfaceInfo;
+    /* TODO find a better constant for MAX_HOSTNAME */
+    #define MAX_HOST_NAME 256
 
+    char            host[MAX_HOST_NAME];
+    struct hostent* he;
+    struct in_addr  ifaddr;
 
-/*=========================================================================*/
-int SLPIfaceGetInfo(const char* useifaces,
-                    SLPIfaceInfo* ifaces);
-/* Description:
- *    Get the network interface addresses for this host.  Exclude the
- *    loopback interface
+    *hostfdn = 0;
+
+    if(gethostname(host, MAX_HOST_NAME) == 0)
+    {
+        he = gethostbyname(host);
+        if(he)
+        {
+            /* if the hostname has a '.' then it is probably a qualified 
+             * domain name.  If it is not then we better use the IP address
+             */
+            if(strchr(he->h_name,'.'))
+            {
+                *hostfdn = xstrdup(he->h_name);
+            }
+            else
+            {
+                ifaddr.s_addr = *((unsigned long*)he->h_addr);
+                *hostfdn = xstrdup(inet_ntoa(ifaddr));
+            }
+            
+        }
+    }
+
+    return 0;
+}
+
+/*-------------------------------------------------------------------------*/
+int SLPNetResolveHostToAddr(const char* host,
+                            struct in_addr* addr)
+/* 
+ * Description:
+ *    Returns a string represting this host (the FDN) or null. Caller must    
+ *    free returned string                                                    
  *
  * Parameters:
- *     useifaces (IN) Pointer to comma delimited string of interface IPv4
- *                    addresses to get interface information for.  Pass
- *                    NULL or empty string to get all interfaces (except 
- *                    loopback)
- *     ifaceinfo (OUT) Information about requested interfaces.
+ *    host  (IN)  pointer to hostname to resolve
+ *    addr  (OUT) pointer to in_addr that will be filled with address
  *
- * Returns:
- *     zero on success, non-zero (with errno set) on error.
- *=========================================================================*/
+ * Returns: zero on success, non-zero on error;
+ *-------------------------------------------------------------------------*/
+{
+    struct hostent* he;
+    
+    /* quick check for dotted quad IPv4 address */
+    if(inet_aton(host,addr))
+    {
+        return 0;
+    }
 
+    /* Use resolver */
+    he = gethostbyname(host);
+    if(he != 0)
+    {
+        if(he->h_addrtype == AF_INET)
+        {
+            memcpy(addr,he->h_addr_list[0],sizeof(struct in_addr));
+            return 0;
+        }
+        else
+        {
+            /* TODO: support other address types */
+        }
+    }
 
-/*=========================================================================*/
-int SLPIfaceSockaddrsToString(const struct sockaddr_in* addrs,
-                              int addrcount,
-                              char** addrstr);
-/* Description:
- *    Get the comma delimited string of addresses from an array of sockaddrs
- *
- * Parameters:
- *     addrs (IN) Pointer to array of sockaddrs to convert
- *     addrcount (IN) Number of sockaddrs in addrs.
- *     addrstr (OUT) pointer to receive xmalloc() allocated address string.
- *                   Caller must xfree() addrstr when no longer needed.
- *
- * Returns:
- *     zero on success, non-zero (with errno set) on error.
- *=========================================================================*/
+    return -1;
+}
 
-
-
-/*=========================================================================*/
-int SLPIfaceStringToSockaddrs(const char* addrstr,
-                              struct sockaddr_in* addrs,
-                              int* addrcount);
-/* Description:
- *    Fill an array of struct sockaddrs from the comma delimited string of
- *    addresses.
- *
- * Parameters:
- *     addrstr (IN) Address string to convert.
- *     addrcount (OUT) sockaddr array to fill.
- *     addrcount (INOUT) The number of sockaddr stuctures in the addr array
- *                       on successful return will contain the number of
- *                       sockaddrs that were filled in the addr array
- *
- * Returns:
- *     zero on success, non-zero (with errno set) on error.
- *=========================================================================*/
-
-#endif

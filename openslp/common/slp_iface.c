@@ -58,11 +58,9 @@
 #include <arpa/inet.h>
 
 
-
-
 /*=========================================================================*/
-int SLPInterfaceGetInformation(const char* useifaces,
-                               SLPInterfaceInfo* ifaceinfo)
+int SLPIfaceGetInfo(const char* useifaces,
+                    SLPIfaceInfo* ifaceinfo)
 /* Description:
  *    Get the network interface addresses for this host.  Exclude the
  *    loopback interface
@@ -116,12 +114,15 @@ int SLPInterfaceGetInformation(const char* useifaces,
         return 1;
     }
 
-    if(useifaces &&
-       *useifaces)
+    if(useifaces && *useifaces)
     {
         useifaceslen = strlen(useifaces);
     }
-    memset(ifaceinfo,0,sizeof(SLPInterfaceInfo));
+    else
+    {
+        useifaceslen = 0;
+    }
+    memset(ifaceinfo,0,sizeof(SLPIfaceInfo));
     for (i = 0; i < ifc.ifc_len/sizeof(struct ifreq); i++)
     {
         sa = (struct sockaddr *)&(ifrlist[i].ifr_addr);
@@ -166,9 +167,9 @@ int SLPInterfaceGetInformation(const char* useifaces,
 
 
 /*=========================================================================*/
-int SLPInterfaceSockaddrsToString(const struct sockaddr_in* addrs, 
-                                  int addrcount,
-                                  char** addrstr)
+int SLPIfaceSockaddrsToString(const struct sockaddr_in* addrs,
+                              int addrcount,
+                              char** addrstr)
 /* Description:
  *    Get the comma delimited string of addresses from an array of sockaddrs
  *
@@ -211,23 +212,22 @@ int SLPInterfaceSockaddrsToString(const struct sockaddr_in* addrs,
     }
 
     return 0;
-}
-
+}  
 
 
 /*=========================================================================*/
-int SLPInterfaceStringToSockaddrs(const char* addrstr,
-                                  struct sockaddr_in* addrs,
-                                  int* addrcount)
+int SLPIfaceStringToSockaddrs(const char* addrstr,
+                              struct sockaddr_in* addrs,
+                              int* addrcount)
 /* Description:
- *    Fill an array of struct sockaddrs from the comma delimited string of 
+ *    Fill an array of struct sockaddrs from the comma delimited string of
  *    addresses.
  *
  * Parameters:
  *     addrstr (IN) Address string to convert.
  *     addrcount (OUT) sockaddr array to fill.
  *     addrcount (INOUT) The number of sockaddr stuctures in the addr array
- *                       on successful return will contain the number of 
+ *                       on successful return will contain the number of
  *                       sockaddrs that were filled in the addr array
  *
  * Returns:
@@ -314,10 +314,10 @@ int main(int argc, char* argv[])
     int i;
     int addrscount =  10;
     struct sockaddr_in* addrs[10];
-    SLPInterfaceInfo ifaceinfo;
+    SLPIfaceInfo ifaceinfo;
     char* addrstr;
 
-    if(SLPInterfaceGetInformation(NULL,&ifaceinfo) == 0)
+    if(SLPIfaceGetInfo(NULL,&ifaceinfo) == 0)
     {
         for(i=0;i<ifaceinfo.iface_count;i++)
         {
@@ -326,11 +326,11 @@ int main(int argc, char* argv[])
         }
     }
 
-    if(SLPInterfaceStringToSockaddrs("192.168.100.1,192.168.101.1",
-                                     (struct sockaddr_in*)&addrs,
-                                     &addrscount) == 0)
+    if(SLPIfaceStringToSockaddrs("192.168.100.1,192.168.101.1",
+                                 (struct sockaddr_in*)&addrs,
+                                 &addrscount) == 0)
     {
-        if(SLPInterfaceSockaddrsToString((struct sockaddr_in*)&addrs, 
+        if(SLPIfaceSockaddrsToString((struct sockaddr_in*)&addrs, 
                                          addrscount,
                                          &addrstr) == 0)
         {

@@ -61,14 +61,14 @@ typedef struct _SLPXcastSockets
 
 
 /*========================================================================*/
-int SLPBroadcastSend(const SLPInterfaceInfo* ifaceinfo, 
+int SLPBroadcastSend(const SLPIfaceInfo* ifaceinfo, 
                      SLPBuffer msg,
                      SLPXcastSockets* socks);
 /* Description:
  *    Broadcast a message.
  *
  * Parameters:
- *    ifaceinfo (IN) Pointer to the SLPInterfaceInfo structure that contains
+ *    ifaceinfo (IN) Pointer to the SLPIfaceInfo structure that contains
  *                   information about the interfaces to send on
  *    msg       (IN) Buffer to send
  *
@@ -82,14 +82,14 @@ int SLPBroadcastSend(const SLPInterfaceInfo* ifaceinfo,
 
 
 /*========================================================================*/
-int SLPMulticastSend(const SLPInterfaceInfo* ifaceinfo, 
+int SLPMulticastSend(const SLPIfaceInfo* ifaceinfo, 
                      SLPBuffer msg,
                      SLPXcastSockets* socks);
 /* Description:
  *    Multicast a message.
  *
  * Parameters:
- *    ifaceinfo (IN) Pointer to the SLPInterfaceInfo structure that contains
+ *    ifaceinfo (IN) Pointer to the SLPIfaceInfo structure that contains
  *                   information about the interfaces to send on
  *    msg       (IN) Buffer to send
  *
