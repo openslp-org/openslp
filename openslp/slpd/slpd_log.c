@@ -218,22 +218,6 @@ void SLPDLogSrvRegMessage(SLPSrvReg* srvreg)
 /*-------------------------------------------------------------------------*/
 {
     SLPDLog("Message SRVREG:\n");
-    SLPDLog("   source type = ");
-    switch( srvreg->source)
-    {
-    case SLP_REG_SOURCE_REMOTE:
-        SLPDLog("REMOTE\n");
-        break;
-    case SLP_REG_SOURCE_LOCAL:
-        SLPDLog("LOCAL\n");
-        break;
-    case SLP_REG_SOURCE_STATIC:
-        SLPDLog("STATIC\n");
-        break;         
-    default:
-        SLPDLog("UNKNOWN\n");
-        break;         
-    }
     SLPDLogBuffer("   srvtype = ", srvreg->srvtypelen, srvreg->srvtype);
     SLPDLogBuffer("   scope = ", srvreg->scopelistlen, srvreg->scopelist);
     SLPDLogBuffer("   url = ", srvreg->urlentry.urllen, srvreg->urlentry.url);
@@ -450,7 +434,7 @@ void SLPDLogRegistration(const char* prefix, SLPDatabaseEntry* entry)
             SLPDLog("<unknown>\n");
             break;
         case SLP_REG_SOURCE_REMOTE:
-            SLPDLog("%s\n", inet_ntoa(entry->msg->peer.sin_addr));
+            SLPDLog("remote (%s)\n", inet_ntoa(entry->msg->peer.sin_addr));
             break;
         case SLP_REG_SOURCE_LOCAL:
             SLPDLog("IPC (libslp)\n");
