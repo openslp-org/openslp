@@ -63,7 +63,10 @@ int SLPDatabaseInit(SLPDatabase* database)
 /* Returns: zero on success. Non-zero on error                             */
 /*=========================================================================*/
 {
-    memset(database,0,sizeof(SLPDatabase));
+    if(database && database->head)
+    {
+        SLPDatabaseDeinit(database);
+    }
     return 0;
 }
 
