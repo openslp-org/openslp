@@ -22,6 +22,8 @@ DAEMON=/usr/sbin/$NAME
 # Source function library.
 . /etc/rc.d/init.d/functions
 
+# Change to root
+cd /
 
 # See how we were called.
 case "$1" in

@@ -24,6 +24,8 @@ SVIlock=/var/run/$NAME.pid
 
 SVIscript=$0
 
+cd /
+
 # See how we were called.
 case "$1" in
  start)
