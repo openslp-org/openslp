@@ -1366,7 +1366,10 @@ int SLPDFilterAttributes(int attrlistlen,
     }
 
     /* SLPAttrSerialize counts the NULL terminator which we don't care about*/
-    *resultlen -=1; 
+    if(*resultlen) 
+    {
+        *resultlen -= 1;
+    }
 
     /* Un null terminate */
     ((char*)taglist)[taglistlen] = tagnull;
