@@ -97,7 +97,7 @@ SLPBoolean SlpPerfTest1_srvtypecallback(SLPHandle hslp,
     
     if(errcode == SLP_OK)
     {
-        *found = *found + 1;
+        *found = (*found) + 1;
         printf("Found srvtypes: %s\n",srvtypes);
     }
     
