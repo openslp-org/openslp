@@ -3,9 +3,6 @@
  *
  *  Originated: 03-06-2000 
  *	Original Author: Mike Day - md@soft-hackle.net
- *  Project: 
- *
- *  $Header$
  *
  *  Copyright (C) Michael Day, 2000-2001 
  *
@@ -76,14 +73,16 @@
 #include "slp_attr_y.h"
 #include "slp_xmalloc.h"
 
-static int heapIndex;
-static char heap[2052];
 static char buf[2052];
 
 void slp_attr_error(char *, ...);
+
 int slp_attr_wrap(void);
+
 int slp_attr_lex(void);
+
 void slp_attr_close_lexer(unsigned int handle);
+
 uint slp_attr_init_lexer(char *s);
 
 %}
@@ -193,37 +192,22 @@ val				[^(),\\!<>~\x00-\x1f*_\r\n\t]
 
 %%
 
-void attr_close_lexer(uint handle)
+unsigned int slp_attr_init_lexer(char *s)
 {
- // assert(handle != 0);
-  yy_delete_buffer((YY_BUFFER_STATE)handle);
+    memset(&buf[0], 0x00, 2052);
+    strncpy(&buf[0], s, 2052);
+    return((uint)yy_scan_buffer(&buf[0], strlen(s) + 2));
 }
 
-unsigned int attr_init_lexer(char *s)
+void attr_close_lexer(uint handle)
 {
-  memset(&buf[0], 0x00, 2052);
-  memset(&heap[0], 0x00, 2052);
-  heapIndex = 0;
-  strncpy(&buf[0], s, 2052);
-  return((uint)yy_scan_buffer(&buf[0], strlen(s) + 2));
+    // assert(handle != 0);
+    yy_delete_buffer((YY_BUFFER_STATE)handle);
 }
 
 
 void yyerror(char *s, ...)
 {
-	
-#ifdef TEST_HARNESS
-	va_list va;
-	va_start(va, s);
-	printf(s, va);
-#endif
-	return;
-}	
+    return;
+}   
 
-/*
-int main(int argc, char *argv[])
-{
-
-}	
-
-*/

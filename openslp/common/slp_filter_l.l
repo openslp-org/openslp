@@ -3,9 +3,6 @@
  *
  *  Originated: 04-21-2001
  *	Original Author: Mike Day - md@soft-hackle.net
- *  Project: 
- *
- *  $Header$
  *
  *  Copyright (C) Michael Day, 2001 
  *
@@ -73,12 +70,13 @@
 #include "slp_filter.h"
 #include "slp_filter_y.h"
 #include "slp_xmalloc.h"
-#include <stdarg.h>
 
 static char buf[2052];
 
 void slp_filter_error(char *, ...);
+
 void slp_filter_close_lexer(unsigned int handle);
+
 uint slp_filter_init_lexer(char *s);
 
 %}
@@ -149,25 +147,22 @@ not_reserved            [^()\&|!=<>~\n]
                                     return(0L) ;
                             }
 
-
- 
 %%
 
 void filter_close_lexer(uint handle)
 {
-  //assert(handle != 0);
-  yy_delete_buffer((YY_BUFFER_STATE)handle);
+    //assert(handle != 0);
+    yy_delete_buffer((YY_BUFFER_STATE)handle);
 }
 
 unsigned int slp_filter_init_lexer(char *s)
 {
-  memset(&buf[0], 0x00, 2052);
-  strncpy(&buf[0], s, 2048);
-  return((uint)yy_scan_buffer(&buf[0], strlen(s) + 2));
+    memset(&buf[0], 0x00, 2052);
+    strncpy(&buf[0], s, 2048);
+    return((uint)yy_scan_buffer(&buf[0], strlen(s) + 2));
 }
 
 void slp_filter_error(char *s, ...)
 {
-	return;
-}	
-
+    return;
+}   

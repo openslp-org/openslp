@@ -3,9 +3,6 @@
  *
  *  Originated: 03-06-2000 
  *	Original Author: Mike Day - md@soft-hackle.net
- *  Project: 
- *
- *  $Header$
  *
  *  Copyright (C) Michael Day, 2000-2001 
  *
