@@ -496,7 +496,11 @@ SLPDSocket* SLPDSocketCreateBoundDatagram(struct sockaddr_storage* myaddr,
 
         if(sock->fd >=0)
         {
+#ifdef _WIN32
             if(BindSocketToInetAddr(peeraddr->ss_family, sock->fd, myaddr) == 0)
+#else
+            if(BindSocketToInetAddr(peeraddr->ss_family, sock->fd, peeraddr) == 0)
+#endif
             {
                 if(peeraddr != NULL)
                 {
