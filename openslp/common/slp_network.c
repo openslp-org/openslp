@@ -205,7 +205,7 @@ int SLPNetworkSendMessage(int sockfd,
         {
             /* timed out */
 #ifndef WIN32
-            errno = ETIME;
+            errno = ETIMEDOUT;
 #endif
             return -1;
         }
@@ -268,7 +268,7 @@ int SLPNetworkRecvMessage(int sockfd,
     else if(xferbytes == 0)
     {
 #ifndef WIN32
-        errno = ETIME;
+        errno = ETIMEDOUT;
 #endif
         return -1;
     }
@@ -316,7 +316,7 @@ int SLPNetworkRecvMessage(int sockfd,
                 else if(xferbytes == 0)
                 {
 #ifndef WIN32
-                    errno = ETIME;
+                    errno = ETIMEDOUT;
 #endif
                     return -1;
                 }
