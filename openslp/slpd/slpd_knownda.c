@@ -932,10 +932,10 @@ void SLPDKnownDAEcho(struct sockaddr_in* peeraddr,
         /*-----------------------------------------------------*/
         /* Do not echo to agents that do not support the scope */
         /*-----------------------------------------------------*/
-        if(SLPIntersectStringList(daentry->scopelistlen,
-                                  daentry->scopelist,
-                                  msgscopelen,
-                                  msgscope))
+        if(SLPIntersectStringList(msgscopelen,
+                                  msgscope,
+                                  daentry->scopelistlen,
+                                  daentry->scopelist))
         {
             /*------------------------------------------*/
             /* Load the socket with the message to send */
