@@ -368,7 +368,7 @@ int ParseCommandLine(int argc,char* argv[], SLPToolCommandLine* cmdline)
             {
                 cmdline->cmdparam2 = argv[i];
             }
-            
+
             break;
         }
         else if(strcasecmp(argv[i],"findattrs") == 0)
@@ -423,7 +423,7 @@ int ParseCommandLine(int argc,char* argv[], SLPToolCommandLine* cmdline)
                 return 1;
             }
             
-            /* attrids */
+            /* Optional attrids */
             i++;
             if(i < argc)
             {
@@ -431,9 +431,9 @@ int ParseCommandLine(int argc,char* argv[], SLPToolCommandLine* cmdline)
             }
 	    else
 	    {
-		return 1;
-	    }
-            
+	        cmdline->cmdparam2 = cmdline->cmdparam1 + strlen(cmdline->cmdparam1);
+            }
+	   
             break;
         }
         else if(strcasecmp(argv[i],"deregister") == 0)
@@ -475,9 +475,16 @@ void DisplayUsage()
     printf("      findattrs url [attrids]\n");
     printf("      findsrvtypes [authority]\n");
     printf("      findscopes\n");
-    printf("      register url attrs\n");
-    printf("      deregister url attrs\n");
+    printf("      register url [attrs]\n");
+    printf("      deregister url\n");
     printf("      getproperty propertyname\n");
+    printf("Examples:\n");
+    printf("   slptool register service:myserv.x://myhost.com \"(attr1=val1),(attr2=val2)\"\n");
+    printf("   slptool findsrvs service:myserv.x\n");
+    printf("   slptool findsrvs service:myserv.x \"(attr1=val1)\"\n");
+    printf("   slptool findattrs service:myserv.x://myhost.com\n");
+    printf("   slptool findattrs service:myserv.x://myhost.com attr1\n");
+    printf("   slptool deregister service:myserv.x://myhost.com\n");
 }
 
 

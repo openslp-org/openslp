@@ -6,6 +6,11 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 
+04/26/01 mpeterson@caldera.com
+Added more documentation to the usage output of slptool
+
+*** Tag OpenSLP 0.9.0 ***
+
 04/10/01 mpeterson@caldera.com
 Brought Win32 port up to date with 0.9.0 source code
 
