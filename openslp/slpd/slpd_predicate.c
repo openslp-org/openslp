@@ -587,8 +587,8 @@ struct pair
 
 
 /*--------------------------------------------------------------------------*/
-SLPError filter(char *start, 
-                char **end, 
+SLPError filter(const char *start, 
+                const char **end, 
                 SLPAttributes slp_attr, 
                 SLPBoolean *return_value, 
                 int recursion_depth)
@@ -607,16 +607,19 @@ SLPError filter(char *start,
 /*--------------------------------------------------------------------------*/
 {
     char *operator; /* Pointer to the operator substring. */
-    char *cur; /* Current working character. */
-    char *last_char; /* The last character in the working string. */
-    SLPError err = SLP_NETWORK_INIT_FAILED; /* Error code of a recursive call -- since nothing in here should ever go off-machine, the value is set to SLP_NETWORK_INIT_FAILED. The value of err must NOT be SLP_NETWORK_INIT_FAILED at exit. */
-    SLPBoolean result;
-
-
+    const char *cur; /* Current working character. */
+    const char *last_char; /* The last character in the working string. */
+    SLPError err = SLP_NETWORK_INIT_FAILED; 
+    /* Error code of a recursive call -- since nothing in here should ever  */
+    /* go off-machine, the value is set to SLP_NETWORK_INIT_FAILED. The     */
+    /* value of err must NOT be SLP_NETWORK_INIT_FAILED at exit.            */
+        SLPBoolean result;
+    
     if (recursion_depth <= 0)
     {
         return SLP_PARSE_ERROR;
     }
+
     recursion_depth--;
 
     if (*start != BRACKET_OPEN)
@@ -847,56 +850,8 @@ SLPError filter(char *start,
 }
 
 
-/*--------------------------------------------------------------------------*/
-SLPError SLPAttrEvalPred(SLPAttributes slp_attr, 
-                         SLPDPredicate predicate, 
-                         SLPBoolean *result, 
-                         int recursion_depth)
-
-/* Test a predicate.                                                        */
-/*                                                                          */
-/* This is mostly a wrapper to filter(), but it does additional error       */
-/* checking,  and puts error codes in terms of something a wee bit more     */
-/* standard.                                                                */
-/*                                                                          */
-/* Parameters:                                                              */
-/*                                                                          */
-/*  recursion_depth -- dictates how many bracketed expressions are to be    */
-/*  explored. It is decremented to zero, at which point parsing stops and   */
-/*  a SLP_PARSE_ERROR is returned.                                          */
-/*                                                                          */
-/* Returns:                                                                 */
-/*  SLP_OK -- If test was performed, the result (true or false) is returned */
-/*      through the parameter result.                                       */
-/*  SLP_PARSE_ERROR -- If there was a syntax error in the predicate, no     */
-/*      result is returned through result.                                  */
-/*  SLP_INTERNAL_SYSTEM_ERROR -- Something went wrong internally.           */
-/*                                                                          */
-/*--------------------------------------------------------------------------*/
-{
-    char *end; /* Pointer to the end of the parsed attribute string. */
-    SLPError err;
-
-    /***** An empty string is always true. *****/
-    if (predicate == 0)
-    {
-        return SLP_OK;
-    }
-
-    err = filter((char *)predicate, &end, slp_attr, result, recursion_depth);
-
-    /***** Check for trailing trash data. *****/
-    if (err == SLP_OK && *end != '\0')
-    {
-        return SLP_PARSE_ERROR;
-    }
-
-    return err;
-}
-
-
 /*=========================================================================*/
-int SLPDTestPredicate(SLPDPredicate predicate, SLPAttributes attr) 
+int SLPDTestPredicate(const char* predicate, SLPAttributes attr) 
 /*                                                                         */
 /* Determine whether the specified attribute list satisfies                */
 /* the specified predicate                                                 */
@@ -912,10 +867,25 @@ int SLPDTestPredicate(SLPDPredicate predicate, SLPAttributes attr)
 /*          predicate string.                                              */
 /*=========================================================================*/
 {
+    const char *end; /* Pointer to the end of the parsed attribute string. */
     SLPError err;
     SLPBoolean result = SLP_FALSE;
 
-    err = SLPAttrEvalPred(attr, predicate, &result, 50);
+    
+    /***** An NULL or empty string is always true. *****/
+    if (predicate == 0 || *(char *)predicate == 0)
+    {
+        return SLP_OK;
+    }
+
+    err = filter(predicate, &end, attr, &result, SLPD_ATTR_RECURSION_DEPTH);
+
+    /***** Check for trailing trash data. *****/
+    if (err == SLP_OK && *end != '\0')
+    {
+        return SLP_PARSE_ERROR;
+    }
+    
     switch (err)
     {
     case(SLP_OK):
@@ -935,123 +905,7 @@ int SLPDTestPredicate(SLPDPredicate predicate, SLPAttributes attr)
     }
 
     return -1;
-//	SLPBoolean result;
-//	SLPError err;
-//	char *safe_pred; /* FIXME Hack. We copy the contents of the predicate into a buffer and null-terminate it. */
-//
-//	/* Empty predicates are always true. */
-//	if (predicatelen == 0) {
-//		return 0;
-//	}
-//	/* TODO elide. */
-//	
-//	safe_pred = (char *)malloc(predicatelen + 1);
-//	if (safe_pred == 0) {
-//		return -1;
-//	}
-//	memcpy(safe_pred, predicate, predicatelen);
-//	safe_pred[predicatelen] = 0;
-//	
-//	err = SLPAttrEvalPred(attr, safe_pred, &result, 50);
-//
-//	free(safe_pred);
-//
-//	if (err == SLP_OK) {
-//		if (result == SLP_TRUE) {
-//			return 0;
-//		}
-//		return 1;
-//	}
-//	
-//	return -1;
 }
 
-/*=========================================================================*/
-SLPError SLPDPredicateAlloc(const char *predicate_str,
-                            size_t len,
-                            SLPDPredicate *pred) 
-/*                                                                         */
-/* Create a predicate structure.                                           */
-/*                                                                         */
-/* predicate    (IN) the predicate string                                  */
-/*                                                                         */
-/* len          (IN) the length of the predicate string                    */
-/*                                                                         */
-/* pred         (IN) the predicate struct to populate                      */
-/*                                                                         */
-/* Returns:                                                                */
-/*   SLP_OK if allocated properly.                                         */
-/*   SLP_PARSE_ERROR if there is an error in the predicate string.         */
-/*   SLP_MEMORY_ALLOC_FAILED if out of memory                              */
-/*                                                                         */
-/*=========================================================================*/
-{
-    const char *start_cur; /* Used to find first non-WS char in pred. */
-    const char *end_cur; /* Used to find last non-WS char in pred. */
-
-    /* Temporary pointer for working with the under-construction predicate */
-    /* "object".                                                           */
-    char *new_pred;
-
-    size_t real_len; /* The length of the elided whitespace. */
-
-    /***** Elide start. *****/
-    start_cur = predicate_str;
-    while (((start_cur - predicate_str) < len) && (isspace(*start_cur)))
-    {
-        start_cur++;
-    }
-
-    /***** Elide end. *****/
-    end_cur = predicate_str + len;
-    while ((end_cur >= start_cur) && (isspace(*end_cur)))
-    {
-        end_cur--;
-    }
-
-    /***** Return if empty *****/
-    if (end_cur < start_cur)
-    {
-        *pred = 0; /* Empty string. */
-        return SLP_OK;
-    }
-
-    /***** Copy *****/
-    real_len = end_cur - start_cur;
-    new_pred = (char *)malloc(real_len + 1);
-
-    if (new_pred == 0)
-    {
-        return SLP_MEMORY_ALLOC_FAILED;
-    }
-
-    /* Copy. */
-    strncpy(new_pred, predicate_str, real_len);
-
-    /* Null terminate. */
-    new_pred[real_len] = 0;
-
-    /* Set value. */
-    *pred = (SLPDPredicate)new_pred;
-
-    return SLP_OK;
-}
-
-
-/*=========================================================================*/
-void SLPDPredicateFree(SLPDPredicate *victim)
-/* Free memory associated with the specified predicate                     */
-/*                                                                         */
-/* victim (IN) The predicate to free                                       */
-/*                                                                         */
-/* Returns: none                                                           */
-/*=========================================================================*/
-{
-    if (victim != 0)
-    {
-        free(victim);
-    }
-    return;
-}
 
 #endif /* USE_PREDICATES */
