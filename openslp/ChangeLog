@@ -6,6 +6,13 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 
+*** TAG OpenSLP-1.1.5 ***
+08/20/2003 smhatre@cisco.com
+Fixes for the following 2 sourceforge bugs:-
+790719 - openslp initscript symlink vulnerability
+791210 - Multicast resposne overflow doesnt result in unicast query
+smhatre@cisco.com
+
 *** TAG OpenSLP-1.1.4 ***
 07/15/2003 smhatre@cisco.com
 Support for SLP queries on multiple network interfaces from
