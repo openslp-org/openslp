@@ -127,9 +127,9 @@ int SLPIfaceGetInfo(const char* useifaces,
     ifaceinfo->bcast_count = 0;
     networkInterface = addresses;
     while (networkInterface != NULL) {
-        ipaddress = networkInterface->FirstUnicastAddress;
-        while (ipaddress != NULL) {
-            if (!(SLPNetIsLoopback((struct sockaddr_storage *) ipaddress->Address.lpSockaddr))) {
+        if ((networkInterface->IfType != IF_TYPE_TUNNEL) && (networkInterface->IfType != IF_TYPE_SOFTWARE_LOOPBACK)) {
+            ipaddress = networkInterface->FirstUnicastAddress;
+            while (ipaddress != NULL) {
                 SLPNetSockAddrStorageToString((struct sockaddr_storage *) ipaddress->Address.lpSockaddr, hostName, sizeof(hostName));
                 if ((useifacesLen == 0) || SLPContainsStringList(useifacesLen, useifaces, strlen(hostName), hostName)) {
                         if ((ipaddress->Address.lpSockaddr->sa_family == AF_INET) || (ipaddress->Address.lpSockaddr->sa_family == AF_INET6)) {
@@ -146,8 +146,8 @@ int SLPIfaceGetInfo(const char* useifaces,
                         }
                     }
                 }
+                ipaddress = ipaddress->Next;
             }
-            ipaddress = ipaddress->Next;
         }
         networkInterface = networkInterface->Next;
     }
@@ -357,6 +357,10 @@ int main(int argc, char* argv[])
     }
 
 
+    if(SLPIfaceGetInfo("1:2:0:0:0:0:0:4,5:6::7", &ifaceinfo, AF_INET6) == 0)
+    {
+    
+    }
     if(SLPIfaceStringToSockaddrs("192.168.100.1,192.168.101.1",
                                  addrs,
                                  &addrscount) == 0)
@@ -370,7 +374,7 @@ int main(int argc, char* argv[])
         }
     }
 
-    if(SLPIfaceStringToSockaddrs("1:2::4,10::11",
+    if(SLPIfaceStringToSockaddrs("1:2:0:0:0::4,10:0:0:0:0:0:0:11",
                                  addrs,
                                  &addrscount) == 0)
     {
