@@ -66,6 +66,7 @@
 #define SLPDPROCESS_RESULT_COUNT    256 
 #define SLPD_MAX_SOCKETS            128  
 #define SLPD_AGE_TIMEOUT            15   /* age every 15 seconds */
+#define SLPD_MAX_SOCKET_AGE         60
 
 
 /*=========================================================================*/
@@ -214,7 +215,7 @@ int SLPDDatabaseInit(const char* regfile);
 
 /*=========================================================================*/
 void SLPDDatabaseAge(int seconds);
-/* Age the database entries                                                */
+/* Agea the database entries and clears new and deleted entry lists        */
 /*                                                                         */
 /* seconds  (IN) the number of seconds to age each entry by                */
 /*                                                                         */

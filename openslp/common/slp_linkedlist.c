@@ -30,12 +30,17 @@ PListItem ListUnlink(PListItem* head, PListItem item)
     {
         item->next->previous = item->previous;
     }
-
+    
     if(item == *head)
     {
         *head = item->next;
     }
 
+    #if(defined DEBUG)
+    item->previous = 0;
+    item->next = 0;
+    #endif
+    
     return item;
 }
 

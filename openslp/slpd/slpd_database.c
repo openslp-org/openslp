@@ -36,7 +36,10 @@
 
 /*=========================================================================*/
 SLPDDatabaseEntry*    G_DatabaseHead = 0;
+SLPDDatabaseEntry*    G_NewEntries = 0;
+SLPDDatabaseEntry*    G_DeletedEntries = 0;
 /*=========================================================================*/
+
 
 /*-------------------------------------------------------------------------*/
 void* memdup(const void* src, int srclen)
@@ -67,42 +70,69 @@ void FreeEntry(SLPDDatabaseEntry* entry)
 }
 
 /*-------------------------------------------------------------------------*/
-void RemoveAllEntries()
+void FreeAllEntries(SLPDDatabaseEntry** head)
 /*-------------------------------------------------------------------------*/
 {
-    SLPDDatabaseEntry*  entry   = G_DatabaseHead;
+    SLPDDatabaseEntry*  entry   = *head;
     SLPDDatabaseEntry*  del     = 0;
 
-    /*--------------------------*/
-    /* Remove all registrations */
-    /*--------------------------*/
     while(entry)
     {
         del = entry;
         entry = (SLPDDatabaseEntry*)entry->listitem.next;
-        ListUnlink((PListItem*)&G_DatabaseHead,(PListItem)del);               
+        ListUnlink((PListItem*)head,(PListItem)del);               
         FreeEntry(del);
     }
 }
 
+/*-------------------------------------------------------------------------*/
+void UnlinkAllEntries(SLPDDatabaseEntry** head)
+/*-------------------------------------------------------------------------*/
+{
+    SLPDDatabaseEntry*  entry   = *head;
+    SLPDDatabaseEntry*  del     = 0;
+
+    while(entry)
+    {
+        del = entry;
+        entry = (SLPDDatabaseEntry*)entry->listitem.next;
+        ListUnlink((PListItem*)head,(PListItem)del);               
+    }
+}  
+
 
 /*=========================================================================*/
-void SLPDDatabaseAge(int seconds)                                          
-/* Age the database entries                                                */
+void SLPDDatabaseAge(int seconds)
+/* Agea the database entries and clears new and deleted entry lists        */
 /*                                                                         */
 /* seconds  (IN) the number of seconds to age each entry by                */
 /*                                                                         */
 /* Returns  - None                                                         */
 /*=========================================================================*/
 {
-    SLPDDatabaseEntry* entry = G_DatabaseHead;
+    SLPDDatabaseEntry* entry;
     SLPDDatabaseEntry* del;
 
+    /* Free everything in the deleted list */
+    FreeAllEntries(&G_DeletedEntries);
+
+    /* Take everything from the new entries list and put it in the database */
+    entry = G_NewEntries;
+    while(entry)
+    {
+        del = entry;
+        entry = (SLPDDatabaseEntry*)entry->listitem.next;
+        ListUnlink((PListItem*)&G_NewEntries,(PListItem)del);
+        ListLink((PListItem*)&G_DatabaseHead,(PListItem)del); 
+    }
+    
+    /* Age the database */
+    entry = G_DatabaseHead;
     while(entry)
     {
         /* don't age services with lifetime > SLP_LIFETIME_MAXIMUM */
-        if(entry->lifetime < 0xffff)
-	{
+        if(entry->lifetime < SLP_LIFETIME_MAXIMUM)
+    	{
             entry->lifetime = entry->lifetime - seconds;
             if(entry->lifetime <= 0)
             {
@@ -112,7 +142,7 @@ void SLPDDatabaseAge(int seconds)
                 FreeEntry(del);
                 continue;
             }
-	}
+    	}
         entry = (SLPDDatabaseEntry*)entry->listitem.next;
     }
 }
@@ -163,7 +193,32 @@ int SLPDDatabaseReg(SLPSrvReg* srvreg,
         entry = (SLPDDatabaseEntry*) entry->listitem.next;
     }
     
-    /* if no identical entry is found, create a new one */
+    /* Check the new entries too */
+    if(entry == 0)
+    {
+        entry  = G_NewEntries;
+        while(entry)
+        {
+            if(SLPStringCompare(entry->urllen,
+                                entry->url,
+                                srvreg->urlentry.urllen,
+                                srvreg->urlentry.url) == 0)
+            {
+                if(SLPStringListIntersect(entry->scopelistlen,
+                                          entry->scopelist,
+                                          srvreg->scopelistlen,
+                                          srvreg->scopelist) > 0)
+                {
+                    ListUnlink((PListItem*)&G_NewEntries,(PListItem)entry);
+                    break;
+                } 
+            }             
+            
+            entry = (SLPDDatabaseEntry*) entry->listitem.next;
+        }
+    }
+    
+    /* if no identical entry are found, create a new one */
     if(entry == 0)
     {
         entry = (SLPDDatabaseEntry*)malloc(sizeof(SLPDDatabaseEntry));
@@ -198,7 +253,7 @@ int SLPDDatabaseReg(SLPSrvReg* srvreg,
     }
     
     /* link the new (or modified) entry into the list */
-    ListLink((PListItem*)&G_DatabaseHead,(PListItem)entry);
+    ListLink((PListItem*)&G_NewEntries,(PListItem)entry);
 
     /* traceReg if necessary */
     if(G_SlpdProperty.traceReg)
@@ -242,12 +297,43 @@ int SLPDDatabaseDeReg(SLPSrvDeReg* srvdereg)
                 }
                 
                 ListUnlink((PListItem*)&G_DatabaseHead,(PListItem)entry);                
-                FreeEntry(entry);
+                ListLink((PListItem*)&G_DeletedEntries,(PListItem)entry);                
                 break;
             } 
         }             
         
         entry = (SLPDDatabaseEntry*) entry->listitem.next;
+    }
+
+    /* Check the new entries too */
+    if(entry == 0)
+    {
+        entry = G_NewEntries;
+        while(entry)
+        {
+            if(SLPStringCompare(entry->urllen,
+                                entry->url,
+                                srvdereg->urlentry.urllen,
+                                srvdereg->urlentry.url) == 0)
+            {
+                if(SLPStringListIntersect(entry->scopelistlen,
+                                          entry->scopelist,
+                                          srvdereg->scopelistlen,
+                                          srvdereg->scopelist) > 0)
+                {
+                    if(G_SlpdProperty.traceReg)
+                    {
+                        SLPDLogTraceReg("SrvDeReg",entry);
+                    }
+                    
+                    ListUnlink((PListItem*)&G_NewEntries,(PListItem)entry);                
+                    ListLink((PListItem*)&G_DeletedEntries,(PListItem)entry);                
+                    break;
+                } 
+            }             
+            
+            entry = (SLPDDatabaseEntry*) entry->listitem.next;
+        }
     }
 
     return 0;
@@ -275,8 +361,8 @@ int SLPDDatabaseFindSrv(SLPSrvRqst* srvrqst,
     SLPDDatabaseEntry*  entry;
     int                 found;
 
-    entry = G_DatabaseHead;
     found = 0;
+    entry = G_DatabaseHead;
     while(entry)
     {
         if(SLPSrvTypeCompare(srvrqst->srvtypelen,
@@ -307,7 +393,40 @@ int SLPDDatabaseFindSrv(SLPSrvRqst* srvrqst,
 
         entry = (SLPDDatabaseEntry*)entry->listitem.next;
     }
-        
+
+    /* Check the new list */
+    entry = G_NewEntries;
+    while(entry)
+    {
+        if(SLPSrvTypeCompare(srvrqst->srvtypelen,
+                             srvrqst->srvtype,
+                             entry->srvtypelen,
+                             entry->srvtype) == 0)
+        {
+            /*---------------------------------------*/
+            /* TODO: Add predicate query stuff later */
+            /*---------------------------------------*/
+            
+            if(SLPStringListIntersect(srvrqst->scopelistlen,
+                                      srvrqst->scopelist,
+                                      entry->scopelistlen,
+                                      entry->scopelist))
+            {
+                result[found].lifetime = entry->lifetime;
+                result[found].urllen = entry->urllen;
+                result[found].url = entry->url;
+                found ++;
+                if(found >= count)
+                {
+                    break;
+                }
+            }
+
+        }
+
+        entry = (SLPDDatabaseEntry*)entry->listitem.next;
+    }
+
     return found;
 }
 
@@ -357,8 +476,8 @@ int SLPDDatabaseFindAttr(SLPAttrRqst* attrrqst,
     /* TODO: Do we ever want to handle passing back all of the attributes  */
     /*       for service types?                                            */
 
-    entry = G_DatabaseHead;
     found = 0;
+    entry = G_DatabaseHead;
     while(entry)
     {
         if(SLPStringCompare(attrrqst->urllen,
@@ -385,6 +504,36 @@ int SLPDDatabaseFindAttr(SLPAttrRqst* attrrqst,
         entry = (SLPDDatabaseEntry*)entry->listitem.next;
 
     }
+
+    /* Check the new entry list too */
+    entry = G_NewEntries;
+    while(entry)
+    {
+        if(SLPStringCompare(attrrqst->urllen,
+                            attrrqst->url,
+                            entry->urllen,
+                            entry->url) == 0 ||
+           SLPSrvTypeCompare(attrrqst->urllen,
+                             attrrqst->url,
+                             entry->srvtypelen,
+                             entry->srvtype) == 0 )
+        {
+            if(SLPStringListIntersect(attrrqst->scopelistlen,
+                                      attrrqst->scopelist,
+                                      entry->scopelistlen,
+                                      entry->scopelist))
+            {
+                result[found].attrlen = entry->attrlistlen;
+                result[found].attr = entry->attrlist;
+                found++;
+                break;
+            }       
+        }
+
+        entry = (SLPDDatabaseEntry*)entry->listitem.next;
+
+    }
+
     return found;
 }
 
@@ -403,7 +552,8 @@ int SLPDDatabaseInit(const char* regfile)
     SLPDDatabaseEntry*  entry;
 
     /* Remove all entries in the database if any */
-    RemoveAllEntries();
+    FreeAllEntries(&G_DatabaseHead);
+    FreeAllEntries(&G_DeletedEntries);
 
     /*--------------------------------------*/
     /* Read static registration file if any */

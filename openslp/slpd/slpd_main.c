@@ -40,6 +40,7 @@ int G_SIGTERM   = 0;
 int G_SIGHUP    = 0;
 /*==========================================================================*/                                                                                                 
 
+
 /*--------------------------------------------------------------------------*/
 void SignalHandler(int signum)
 /*--------------------------------------------------------------------------*/
@@ -215,6 +216,10 @@ void HandleSocketListen(SLPDSocketList* list, SLPDSocket* sock)
         {
             free(connsock);
         }
+    }
+    else
+    {
+        /* TODO: Marking some sockets as closed */
     }
 }
 
@@ -414,13 +419,14 @@ void HandleStreamWrite(SLPDSocketList* list, SLPDSocket* sock)
 int main(int argc, char* argv[])
 /*=========================================================================*/
 {
+    time_t          timestamp;
     fd_set          readfds;
     fd_set          writefds;
     int             highfd          = 0;
     int             fdcount         = 0;
     SLPDSocket*     sock            = 0;
     SLPDSocket*     del             = 0;
-    SLPDSocketList  uasockets       = {0,0};
+    SLPDSocketList  sockets       = {0,0};
     
     /*------------------------------*/
     /* Make sure we are root        */
@@ -449,11 +455,11 @@ int main(int argc, char* argv[])
     SLPLog("command line = %s\n",argv[0]);
     
     /*--------------------------------------------------*/
-    /* Initialize for the first time                    */
+    /* Initialize for the first timestamp                    */
     /*--------------------------------------------------*/
     SLPDPropertyInit(G_SlpdCommandLine.cfgfile);
     SLPDDatabaseInit(G_SlpdCommandLine.regfile);
-    SLPDSocketInit(&uasockets);
+    SLPDSocketInit(&sockets);
     
     /*---------------------------*/
     /* make slpd run as a daemon */
@@ -488,7 +494,7 @@ int main(int argc, char* argv[])
         highfd = 0;
         FD_ZERO(&readfds);
         FD_ZERO(&writefds);
-        sock = uasockets.head;
+        sock = sockets.head;
         while(sock)
         {
             if(sock->fd > highfd)
@@ -505,7 +511,7 @@ int main(int argc, char* argv[])
                 break;
                 
             case SOCKET_LISTEN:
-                if(uasockets.count < SLPD_MAX_SOCKETS)
+                if(sockets.count < SLPD_MAX_SOCKETS)
                 {
                     FD_SET(sock->fd,&readfds);
                 }
@@ -538,17 +544,17 @@ int main(int argc, char* argv[])
             SLPLog("Got SIGHUP reinitializing... \n");
             SLPDPropertyInit(G_SlpdCommandLine.cfgfile);
             SLPDDatabaseInit(G_SlpdCommandLine.regfile);
-            SLPDSocketInit(&uasockets);                
+            SLPDSocketInit(&sockets);                
             G_SIGHUP = 0;
         }
 
         /*-----------------------------------------------*/
-        /* Check to see if we we should age the database */
+        /* Check to see if we should age the database    */
         /*-----------------------------------------------*/
-        /* there is a reason this is here instead of somewhere else, but I */
-        /* can't remember what it was.                                     */
         if(G_SIGALRM)
         {
+            /* TODO: put call to echo net registrations here */
+            /* TODO: add call to do passive DAAdvert */
             SLPDDatabaseAge(SLPD_AGE_TIMEOUT);
             G_SIGALRM = 0;
             alarm(SLPD_AGE_TIMEOUT);
@@ -560,7 +566,8 @@ int main(int argc, char* argv[])
         fdcount = select(highfd+1,&readfds,&writefds,0,0);
         if(fdcount > 0)
         {
-            sock = uasockets.head;
+            time(&timestamp);
+            sock = sockets.head;
             while(sock && fdcount)
             {
                 if(FD_ISSET(sock->fd,&readfds))
@@ -569,18 +576,18 @@ int main(int argc, char* argv[])
                     {
                     
                     case SOCKET_LISTEN:
-                        HandleSocketListen(&uasockets,sock);
+                        HandleSocketListen(&sockets,sock);
                         break;
 
                     case DATAGRAM_UNICAST:
                     case DATAGRAM_MULTICAST:
                     case DATAGRAM_BROADCAST:
-                        HandleDatagramRead(&uasockets,sock);
+                        HandleDatagramRead(&sockets,sock);
                         break;                      
                 
                     case STREAM_READ:
                     case STREAM_FIRST_READ:
-                        HandleStreamRead(&uasockets,sock);
+                        HandleStreamRead(&sockets,sock);
                         break;
 
                     default:
@@ -592,18 +599,35 @@ int main(int argc, char* argv[])
 
                 if(FD_ISSET(sock->fd,&writefds))
                 {
-                    HandleStreamWrite(&uasockets,sock);
+                    HandleStreamWrite(&sockets,sock);
                     fdcount --;
                 }   
 
-                /* Should we close the socket */
-
-                /* TODO: Close aged sockets */
-                if(sock->state == SOCKET_CLOSE)
+                /* Mark old sockets/connections for close */
+                if(sock->timestamp)
+                {
+                    if(sock->timestamp > timestamp)
+                    {
+                        if(sock->timestamp - timestamp > SLPD_MAX_SOCKET_AGE)
+                        {
+                            sock->state = SOCKET_CLOSE;
+                        }
+                    }
+                    else
+                    {
+                        if(timestamp - sock->timestamp > SLPD_MAX_SOCKET_AGE)
+                        {
+                            sock->state = SOCKET_CLOSE;
+                        }
+                    }
+                }
+                
+                /* Close marked sockets */
+                if(sock->state == SOCKET_CLOSE )
                 {
                     del = sock;
                     sock = (SLPDSocket*)sock->listitem.next;
-                    HandleSocketClose(&uasockets,del);
+                    HandleSocketClose(&sockets,del);
                 }
                 else
                 {

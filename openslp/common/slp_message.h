@@ -38,6 +38,9 @@ typedef UINT32*         PUINT32;
 #define SLP_BCAST_ADDRESS       0xffffffff  /* 255.255.255.255 */
 #define LOOPBACK_ADDRESS        0x7f000001  /* 127.0.0.1 */
 #define SLP_MAX_DATAGRAM_SIZE   1400
+#if(!defined SLP_LIFETIME_MAXIMUM) 
+#define SLP_LIFETIME_MAXIMUM    0xffff
+#endif
 
 
 /*=========================================================================*/
