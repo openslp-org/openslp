@@ -157,7 +157,9 @@ typedef void* (*ThreadStartProc)(void *);
 
 
 /*=========================================================================*/ 
-typedef SLPBoolean NetworkRqstRplyCallback(SLPMessage msg, void* cookie);
+typedef SLPBoolean NetworkRqstRplyCallback(SLPError error, 
+					   SLPMessage msg,
+					   void* cookie);
 /*=========================================================================*/ 
 
 

@@ -35,12 +35,22 @@
 #include "libslp.h"
 
 /*-------------------------------------------------------------------------*/
-SLPBoolean CallbackSrvRqst(SLPMessage msg, void* cookie)
+SLPBoolean CallbackSrvRqst(SLPError errorcode, SLPMessage msg, void* cookie)
 /*-------------------------------------------------------------------------*/
 {
     int             i;
     PSLPHandleInfo  handle      = (PSLPHandleInfo) cookie;
-    
+     
+    if(errorcode == SLP_LAST_CALL)
+    {
+        handle->params.findsrvs.callback((SLPHandle)handle,
+                                         0,
+                                         0,
+                                         errorcode,
+                                         handle->params.findsrvs.cookie);
+        return 0; 
+    }
+
     if(msg->header.functionid == SLP_FUNCT_SRVRPLY)
     {
         if(msg->body.srvrply.errorcode == 0)
@@ -52,20 +62,16 @@ SLPBoolean CallbackSrvRqst(SLPMessage msg, void* cookie)
                 /* TRICKY: null terminate the url by setting the authcount to 0 */
                 *((char*)(msg->body.srvrply.urlarray[i].url)+msg->body.srvrply.urlarray[i].urllen) = 0;
                 
-                if(handle->params.findsrvs.callback((SLPHandle)handle,
-                                                    msg->body.srvrply.urlarray[i].url,
-                                                    msg->body.srvrply.urlarray[i].lifetime,
-                                                    0,
-                                                    handle->params.findsrvs.cookie) == 0)
-                {
-                    /* callback does not want any more data */
-                    return 0;
-                }
+                return handle->params.findsrvs.callback((SLPHandle)handle,
+                                                        msg->body.srvrply.urlarray[i].url,
+                                                        msg->body.srvrply.urlarray[i].lifetime,
+                                                        0,
+                                                        handle->params.findsrvs.cookie);
             }   
-        }                
+        }       
     }
-    
-    return 1;
+            
+    return 0;
 }
 
 /*-------------------------------------------------------------------------*/

@@ -37,21 +37,30 @@
 
 
 /*-------------------------------------------------------------------------*/
-SLPBoolean CallbackSrvDeReg(SLPMessage msg, void* cookie)
+SLPBoolean CallbackSrvDeReg(SLPError errorcode, SLPMessage msg, void* cookie)
 /*-------------------------------------------------------------------------*/
 {
     PSLPHandleInfo  handle      = (PSLPHandleInfo) cookie;
     
-    if(msg->header.functionid == SLP_FUNCT_SRVACK)
+    if(errorcode == 0)
     {
-        /* Call the callback function */
-        handle->params.reg.callback((SLPHandle)handle, 
-                                    msg->body.srvack.errorcode,
-                                    handle->params.dereg.cookie);
+        if(msg->header.functionid == SLP_FUNCT_SRVACK)
+        {
+            /* Call the callback function */
+            handle->params.reg.callback((SLPHandle)handle, 
+                                        msg->body.srvack.errorcode,
+                                        handle->params.dereg.cookie);
+        }
+        else
+        {
+            /* TODO: what should we do here? */
+        }
     }
     else
     {
-        /* TODO: what should we do here? */
+        handle->params.reg.callback((SLPHandle)handle, 
+                                    errorcode,
+                                    handle->params.dereg.cookie);  
     }
     
     return 0;

@@ -356,7 +356,7 @@ SLPError NetworkRqstRply(int sock,
                 if (msg->header.xid == xid)
                 {
                     rplycount = rplycount + 1;
-                    if(callback(msg, cookie) == 0)
+                    if(callback(result, msg, cookie) == 0)
                     {
                         goto CLEANUP;
                     }
@@ -386,7 +386,11 @@ SLPError NetworkRqstRply(int sock,
     {
         result = SLP_NETWORK_TIMED_OUT;
     }
-    
+
+    /*-------------------------------------*/
+    /* Notify the callback that we're done */
+    /*-------------------------------------*/
+    callback(SLP_LAST_CALL,msg,cookie);
     
     /*----------------*/
     /* Free resources */

@@ -36,11 +36,21 @@
 #include "libslp.h"
 
 /*-------------------------------------------------------------------------*/
-SLPBoolean CallbackAttrRqst(SLPMessage msg, void* cookie)
+SLPBoolean CallbackAttrRqst(SLPError errorcode, SLPMessage msg, void* cookie)
 /*-------------------------------------------------------------------------*/
 {
     PSLPHandleInfo  handle      = (PSLPHandleInfo) cookie;
     
+    if(errorcode == SLP_LAST_CALL)
+    {
+        handle->params.findattrs.callback((SLPHandle)handle, 
+                                          msg->body.attrrply.attrlist,
+                                          errorcode,
+                                          handle->params.findattrs.cookie);
+        return 0;    
+    }
+
+
     if(msg->header.functionid == SLP_FUNCT_ATTRRPLY)
     {
         if(msg->body.attrrply.errorcode == 0)
@@ -51,19 +61,15 @@ SLPBoolean CallbackAttrRqst(SLPMessage msg, void* cookie)
                 *((char*)(msg->body.attrrply.attrlist)+msg->body.attrrply.attrlistlen) = 0;
                 
                 /* Call the callback function */
-                if(handle->params.findattrs.callback((SLPHandle)handle, 
-                                                     msg->body.attrrply.attrlist,
-                                                     0,
-                                                     handle->params.findattrs.cookie) == 0)
-                {
-                    /* callback does not want any more data */
-                    return 0;
-                }   
+                return handle->params.findattrs.callback((SLPHandle)handle, 
+                                                         msg->body.attrrply.attrlist,
+                                                         0,
+                                                         handle->params.findattrs.cookie);
             }
-        }                
+        }
     }
     
-    return 1;
+    return 0;    
 }
 
 /*-------------------------------------------------------------------------*/

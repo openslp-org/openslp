@@ -49,7 +49,9 @@ SLPDAEntry* G_KnownDAListHead = 0;
 struct stat G_HintStat;
 
 /*-------------------------------------------------------------------------*/
-SLPBoolean KnownDADiscoveryCallback(SLPMessage msg, void* cookie)
+SLPBoolean KnownDADiscoveryCallback(SLPError errorcode, 
+                                    SLPMessage msg, 
+                                    void* cookie)
 /*-------------------------------------------------------------------------*/
 {
     SLPSrvURL*      srvurl;
