@@ -71,7 +71,6 @@ SLPDAEntry* SLPDAEntryCreate(struct in_addr* addr,
 /* returns  Pointer to the created SLPDAEntry.  Must be freed by caller.   */
 /*=========================================================================*/
 
-
 /*=========================================================================*/
 void SLPDAEntryFree(SLPDAEntry* entry);
 /* Frees a SLPDAEntry                                                      */

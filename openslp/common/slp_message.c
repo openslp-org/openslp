@@ -845,6 +845,7 @@ int SLPMessageParseBuffer(SLPBuffer buffer, SLPMessage message)
     buffer->curpos = buffer->start;
 
     /* parse the header first */
+    
     result = ParseHeader(buffer,&(message->header));
     if(result == 0)
     {
@@ -898,7 +899,7 @@ int SLPMessageParseBuffer(SLPBuffer buffer, SLPMessage message)
         default:
             result = SLP_ERROR_MESSAGE_NOT_SUPPORTED;
         }
-    }   
+    }
 
     return result;
 }

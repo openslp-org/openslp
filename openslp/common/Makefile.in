@@ -32,7 +32,7 @@ mandir = @mandir@
 includedir = @includedir@
 oldincludedir = /usr/include
 
-DESTDIR =
+# use 'DESTDIR' from environment!
 
 pkgdatadir = $(datadir)/@PACKAGE@
 pkglibdir = $(libdir)/@PACKAGE@
@@ -77,7 +77,7 @@ noinst_LTLIBRARIES = libcommonslpd.la libcommonlibslp.la
 libcommonlibslp_la_SOURCES =  	slp_buffer.c		slp_message.c		slp_property.c		slp_linkedlist.c 	slp_xid.c		slp_network.c		slp_da.c		slp_compare.c
 
 
-libcommonslpd_la_SOURCES =  	slp_compare.c		slp_logfile.c		slp_buffer.c		slp_message.c		slp_property.c		slp_linkedlist.c
+libcommonslpd_la_SOURCES =  	slp_compare.c		slp_logfile.c		slp_buffer.c		slp_message.c		slp_property.c		slp_linkedlist.c 	slp_da.c
 
 
 noinst_HEADERS =  	slp_buffer.h		slp_da.h		slp_logfile.h		slp_network.h		slp_xid.h		slp_compare.h		slp_linkedlist.h 	slp_message.h		slp_property.h
@@ -94,7 +94,7 @@ LIBS = @LIBS@
 libcommonslpd_la_LDFLAGS = 
 libcommonslpd_la_LIBADD = 
 libcommonslpd_la_OBJECTS =  slp_compare.lo slp_logfile.lo slp_buffer.lo \
-slp_message.lo slp_property.lo slp_linkedlist.lo
+slp_message.lo slp_property.lo slp_linkedlist.lo slp_da.lo
 libcommonlibslp_la_LDFLAGS = 
 libcommonlibslp_la_LIBADD = 
 libcommonlibslp_la_OBJECTS =  slp_buffer.lo slp_message.lo \
@@ -220,7 +220,7 @@ distdir: $(DISTFILES)
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
 	  if test -d $$d/$$file; then \
-	    cp -pr $$d/$$file $(distdir)/$$file; \
+	    cp -pr $$/$$file $(distdir)/$$file; \
 	  else \
 	    test -f $(distdir)/$$file \
 	    || ln $$d/$$file $(distdir)/$$file 2> /dev/null \
