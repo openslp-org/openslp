@@ -309,7 +309,7 @@ int SLPIfaceStringToSockaddrs(const char* addrstr,
  *
  * $ gcc -g -DDEBUG slp_iface.c slp_xmalloc.c slp_linkedlist.c slp_compare.c
  *==========================================================================*/
-#define SLP_IFACE_TEST
+/*#define SLP_IFACE_TEST */
 #ifdef SLP_IFACE_TEST 
 int main(int argc, char* argv[])
 {
