@@ -65,7 +65,7 @@ char* GetHostname()
     /* fix for hostname stupidity.  Looks like hostname is not FQDN on  */
     /* some systems */
 
-    if(strchr(host,'.'))
+    if(strchr(host,'.') == 0)
     {
         #ifdef HAVE_GETDOMAINNAME
         hostlen = strlen(host);
@@ -192,14 +192,17 @@ void SLPDPropertyInit(const char* conffile)
     G_SlpdProperty.isDA = SLPPropertyAsBoolean(SLPPropertyGet("net.slp.isDA"));
     if(G_SlpdProperty.isDA)
     {
-        /* do not do active DA Detection */
+        /* DAs do not do active DA Detection */
         G_SlpdProperty.activeDADetection = 0;
+        G_SlpdProperty.passiveDADetection = SLPPropertyAsBoolean(SLPPropertyGet("net.slp.passiveDADetection"));                   
     }
     else
     {
+        /* SAs do not do passiveDADetection */
+        G_SlpdProperty.passiveDADetection = 0;
         G_SlpdProperty.activeDADetection = SLPPropertyAsBoolean(SLPPropertyGet("net.slp.activeDADetection"));               
     }
-    G_SlpdProperty.passiveDADetection = SLPPropertyAsBoolean(SLPPropertyGet("net.slp.passiveDADetection"));               
+    
     G_SlpdProperty.isBroadcastOnly = SLPPropertyAsBoolean(SLPPropertyGet("net.slp.isBroadcastOnly"));
     G_SlpdProperty.multicastTTL = atoi(SLPPropertyGet("net.slp.multicastTTL"));
     G_SlpdProperty.multicastMaximumWait = atoi(SLPPropertyGet("net.slp.multicastMaximumWait"));
@@ -261,8 +264,9 @@ void SLPDPropertyInit(const char* conffile)
     /* Set other values used internally */
     /*----------------------------------*/     
     G_SlpdProperty.DATimestamp = 1;  /* DATimestamp must start at 1 */
-    G_SlpdProperty.activeDiscoveryAttempts = G_SlpdProperty.activeDADetection * 3;
-    G_SlpdProperty.randomWaitSeed = time(&G_SlpdProperty.randomWaitSeed);
+    G_SlpdProperty.activeDiscoveryXmits = 3;
+    G_SlpdProperty.nextPassiveDAAdvert = 0;
+    G_SlpdProperty.nextActiveDiscovery = 0;
 }
 
 

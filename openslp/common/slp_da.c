@@ -34,33 +34,54 @@
 
 /*=========================================================================*/
 SLPDAEntry* SLPDAEntryCreate(struct in_addr* addr,
-                             unsigned long bootstamp,
-                             const char* scopelist,
-                             int scopelistlen)
+                             const SLPDAEntry* daentry)
 /* Creates a SLPDAEntry                                                    */
 /*                                                                         */
 /* addr     (IN) pointer to in_addr of the DA to create                    */
 /*                                                                         */
-/* bootstamp (IN) the DA's bootstamp                                       */
-/*                                                                         */
-/* scopelist (IN) scope list of the DA to create                           */
-/*                                                                         */
-/* scopelistlen (IN) the length of the scope list                          */
+/* daentry (IN) pointer to daentry that will be duplicated in the new      */
+/*              daentry                                                    */
 /*                                                                         */
 /* returns  Pointer to the created SLPDAEntry.  Must be freed by caller.   */
 /*=========================================================================*/
 {
     SLPDAEntry* entry;
-    entry = (SLPDAEntry*)malloc(sizeof(SLPDAEntry)+scopelistlen);
+    char*       curpos;
+    size_t      size;
+
+    size = sizeof(SLPDAEntry);
+    size += daentry->langtaglen;
+    size += daentry->urllen;
+    size += daentry->scopelistlen;
+    size += daentry->attrlistlen;
+    size += daentry->spilistlen;
+
+    entry = (SLPDAEntry*)malloc(size);
     if(entry == 0) return 0;
-    memset(entry,0,sizeof(SLPDAEntry)+scopelistlen);
-
+    
     entry->daaddr = *addr;
-    entry->bootstamp = bootstamp;
-    entry->scopelist = (char*)(entry+1);
-    memcpy(entry->scopelist,scopelist,scopelistlen);
-    entry->scopelistlen = scopelistlen;
-
+    entry->bootstamp = daentry->bootstamp;
+    entry->langtaglen = daentry->langtaglen;
+    entry->urllen = daentry->urllen;
+    entry->scopelistlen = daentry->scopelistlen;
+    entry->attrlistlen = daentry->attrlistlen;
+    entry->spilistlen = daentry->spilistlen;
+    curpos = (char*)(entry + 1);
+    memcpy(curpos,daentry->langtag,daentry->langtaglen);
+    entry->langtag = curpos;
+    curpos = curpos + daentry->langtaglen; 
+    memcpy(curpos,daentry->url,daentry->urllen);
+    entry->url = curpos;
+    curpos = curpos + daentry->urllen;
+    memcpy(curpos,daentry->scopelist,daentry->scopelistlen);
+    entry->scopelist = curpos;
+    curpos = curpos + daentry->scopelistlen;
+    memcpy(curpos,daentry->attrlist,daentry->attrlistlen);
+    entry->attrlist = curpos;
+    curpos = curpos + daentry->attrlistlen;
+    memcpy(curpos,daentry->spilist,daentry->spilistlen);
+    entry->spilist = curpos;
+    
     return entry;
 }
 
@@ -97,6 +118,7 @@ SLPDAEntry* SLPDAEntryRead(int fd)
 {   
     int bytesread;
     int size;
+    char* curpos;
     SLPDAEntry* entry;
 
     bytesread = read(fd,&size,sizeof(size));
@@ -113,8 +135,17 @@ SLPDAEntry* SLPDAEntryRead(int fd)
         return 0;
     }
 
-    entry->scopelist = (char*)(entry+1);
-  
+    curpos = (char*)(entry + 1);
+    entry->langtag = curpos;
+    curpos = curpos + entry->langtaglen;
+    entry->url = curpos;
+    curpos = curpos + entry->urllen;
+    entry->scopelist = curpos;
+    curpos = curpos + entry->scopelistlen;
+    entry->attrlist = curpos;
+    curpos = curpos + entry->attrlistlen;
+    entry->spilist = curpos;
+    
     return entry;
 }
 

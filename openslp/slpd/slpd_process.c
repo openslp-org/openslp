@@ -146,142 +146,79 @@ int ProcessDASrvRqst(struct sockaddr_in* peeraddr,
                      int errorcode)
 /*-------------------------------------------------------------------------*/
 {
-    int size = 0;
-    SLPBuffer result = *sendbuf;
-
-    /*--------------------------------------------------------------*/
-    /* If errorcode is set, we can not be sure that message is good */
-    /* Go directly to send response code                            */
-    /*--------------------------------------------------------------*/
-    if(errorcode)
-    {
-        goto RESPOND;
-    }
-
-    /*----------------------------------------------*/
-    /* Do not send back DAAdvert unless we are a DA */
-    /*----------------------------------------------*/
-    if(G_SlpdProperty.isDA == 0)
-    {
-        errorcode = SLP_ERROR_MESSAGE_NOT_SUPPORTED;       
-    }
-    else if(message->body.srvrqst.scopelistlen != 0 &&
-            SLPIntersectStringList(message->body.srvrqst.scopelistlen,
-                                   message->body.srvrqst.scopelist,
-                                   G_SlpdProperty.useScopesLen,
-                                   G_SlpdProperty.useScopes) == 0 )
-    {
-        errorcode = SLP_ERROR_SCOPE_NOT_SUPPORTED;
-    }
-
-    RESPOND:
-    /*----------------------------------------------------------------*/
-    /* Do not send error codes or empty replies to multicast requests */
-    /*----------------------------------------------------------------*/
-    if(message->header.flags & SLP_FLAG_MCAST)
-    {
-        if(errorcode != 0)
-        {
-            errorcode = 0;  /* don't log these errors */
-            result->end = result->start;
-            goto FINISHED;   
-        }
-    }
-
-    /*-------------------------------------------------------------*/
-    /* ensure the buffer is big enough to handle the whole srvrply */
-    /*-------------------------------------------------------------*/
-    size = message->header.langtaglen + 29; /* 14 bytes for header     */
-                                            /*  2 errorcode  */
-                                            /*  4 bytes for timestamp */
-                                            /*  2 bytes for url len */
-                                            /*  2 bytes for scope list len */
-                                            /*  2 bytes for attr list len */
-                                            /*  2 bytes for spi str len */
-                                            /*  1 byte for authblock count */
-    size += G_SlpdProperty.myUrlLen;
-    size += G_SlpdProperty.useScopesLen;
-    /* TODO:  - we don't use attributes yet */
-    /* size += G_SlpdProperty.SAAttributes; */
-
-    result = SLPBufferRealloc(result,size);
-    if(result == 0)
-    {
-        /* TODO: out of memory, what should we do here! */
-        errorcode = SLP_ERROR_INTERNAL_ERROR;
-        goto FINISHED;                       
-    }
+    SLPDAEntry      daentry;
+    unsigned int    xid = 0;
+    SLPDAEntry*     entry   = 0;
+    
+    memset(&daentry,0,sizeof(daentry));
+    entry = &daentry;
 
     if(errorcode == 0)
     {
-        /* increment the value for DATimestamp */
-        G_SlpdProperty.DATimestamp += 1;
-        if(G_SlpdProperty.DATimestamp == 0)
+        if(ISLOCAL(peeraddr->sin_addr))
+        {        
+            /*---------------------------------------------------------------------*/
+            /* Special case for when libslp asks slpd (through the loopback) about */
+            /* a DA                                                                */
+            /*---------------------------------------------------------------------*/    
+            entry = SLPDKnownDAFindRandomEntry(message->body.srvrqst.scopelistlen,
+                                               message->body.srvrqst.scopelist); 
+            if(entry == 0)
+            {
+                errorcode =  SLP_ERROR_SCOPE_NOT_SUPPORTED;
+            }
+        }
+        else
         {
-            G_SlpdProperty.DATimestamp = 1;
+            if(G_SlpdProperty.isDA)
+            {
+                if(message->body.srvrqst.scopelistlen == 0 ||
+                   SLPIntersectStringList(message->body.srvrqst.scopelistlen, 
+                                          message->body.srvrqst.scopelist,
+                                          G_SlpdProperty.useScopesLen,
+                                          G_SlpdProperty.useScopes) )
+                {
+                    /* fill out real structure */
+                    xid = message->header.xid;
+                    daentry.bootstamp = G_SlpdProperty.DATimestamp;
+                    daentry.langtaglen = G_SlpdProperty.localeLen;
+                    daentry.langtag = (char*)G_SlpdProperty.locale;
+                    daentry.urllen = G_SlpdProperty.myUrlLen;
+                    daentry.url = (char*)G_SlpdProperty.myUrl;
+                    daentry.scopelistlen = G_SlpdProperty.useScopesLen;
+                    daentry.scopelist = (char*)G_SlpdProperty.useScopes;
+                    daentry.attrlistlen = 0;
+                    daentry.attrlist = 0;
+                    daentry.spilistlen = 0;
+                    daentry.spilist = 0;
+                }
+                else
+                {
+                    errorcode =  SLP_ERROR_SCOPE_NOT_SUPPORTED;
+                }
+            }
+            else
+            {
+                errorcode = SLP_ERROR_MESSAGE_NOT_SUPPORTED;       
+            }
         }
     } 
 
-    /*----------------*/
-    /* Add the header */
-    /*----------------*/
-    /*version*/
-    *(result->start)       = 2;
-    /*function id*/
-    *(result->start + 1)   = SLP_FUNCT_DAADVERT;
-    /*length*/
-    ToUINT24(result->start + 2, size);
-    /*flags*/
-    ToUINT16(result->start + 5,
-             size > SLP_MAX_DATAGRAM_SIZE ? SLP_FLAG_OVERFLOW : 0);
-    /*ext offset*/
-    ToUINT24(result->start + 7,0);
-    /*xid*/
-    ToUINT16(result->start + 10,message->header.xid);
-    /*lang tag len*/
-    ToUINT16(result->start + 12,message->header.langtaglen);
-    /*lang tag*/
-    memcpy(result->start + 14,
-           message->header.langtag,
-           message->header.langtaglen);
+    /* don't return errorcodes to multicast messages */
+    if(errorcode)
+    {
+        if(message->header.flags & SLP_FLAG_MCAST ||
+           ISMCAST(peeraddr->sin_addr) )
+        {
+            (*sendbuf)->end = (*sendbuf)->start;
+            return 0;  
+        }
+    }
 
-    /*--------------------------*/
-    /* Add rest of the DAAdvert */
-    /*--------------------------*/
-    result->curpos = result->start + 14 + message->header.langtaglen;
-    /* error code */
-    ToUINT16(result->curpos,errorcode);
-    result->curpos = result->curpos + 2;
-    /* timestamp */
-    ToUINT32(result->curpos,G_SlpdProperty.DATimestamp);
-    result->curpos = result->curpos + 4;                       
-    /* url len */
-    ToUINT16(result->curpos, G_SlpdProperty.myUrlLen);
-    result->curpos = result->curpos + 2;
-    /* url */
-    memcpy(result->curpos,G_SlpdProperty.myUrl,G_SlpdProperty.myUrlLen);
-    result->curpos = result->curpos + G_SlpdProperty.myUrlLen;
-    /* scope list len */
-    ToUINT16(result->curpos, G_SlpdProperty.useScopesLen);
-    result->curpos = result->curpos + 2;
-    /* scope list */
-    memcpy(result->curpos,G_SlpdProperty.useScopes,G_SlpdProperty.useScopesLen);
-    result->curpos = result->curpos + G_SlpdProperty.useScopesLen;
-    /* attr list len */
-    ToUINT16(result->curpos, 0);
-    result->curpos = result->curpos + 2;
-    /* attr list */
-    /* memcpy(result->start,G_SlpdProperty.DAAttributes,G_SlpdProperty.DAAttributesLen) */
-    /* result->curpos = result->curpos + G_SlpdProperty.DAAttributesLen */
-    /* SPI List */
-    ToUINT16(result->curpos,0);
-    result->curpos = result->curpos + 2;
-    /* authblock count */
-    *(result->curpos) = 0;
-    result->curpos = result->curpos + 1;
-
-    FINISHED:
-    *sendbuf = result;
+    errorcode = SLPDKnownDAEntryToDAAdvert(errorcode,
+                                           xid,
+                                           entry,
+                                           sendbuf);
 
     return errorcode;
 }
@@ -394,9 +331,11 @@ int ProcessSrvRqst(struct sockaddr_in* peeraddr,
     /*----------------------------------------------------------------*/
     /* Do not send error codes or empty replies to multicast requests */
     /*----------------------------------------------------------------*/
-    if(message->header.flags & SLP_FLAG_MCAST)
+    if(found == 0 ||
+       errorcode != 0)
     {
-        if(found == 0)
+        if(message->header.flags & SLP_FLAG_MCAST ||
+           ISMCAST(peeraddr->sin_addr) )
         {
             result->end = result->start;
             goto FINISHED;  
@@ -548,7 +487,8 @@ int ProcessSrvReg(struct sockaddr_in* peeraddr,
     /*--------------------------------------------------------------------*/
     /* don't send back reply anything multicast SrvReg (set result empty) */
     /*--------------------------------------------------------------------*/
-    if(message->header.flags & SLP_FLAG_MCAST)
+    if(message->header.flags & SLP_FLAG_MCAST ||
+       ISMCAST(peeraddr->sin_addr))
     {
         result->end = result->start;
         goto FINISHED;
@@ -654,7 +594,8 @@ int ProcessSrvDeReg(struct sockaddr_in* peeraddr,
     /*---------------------------------------------------------*/
     /* don't do anything multicast SrvDeReg (set result empty) */
     /*---------------------------------------------------------*/
-    if(message->header.flags & SLP_FLAG_MCAST)
+    if(message->header.flags & SLP_FLAG_MCAST ||
+       ISMCAST(peeraddr->sin_addr) )
     {
 
         result->end = result->start;
@@ -783,9 +724,11 @@ int ProcessAttrRqst(struct sockaddr_in* peeraddr,
     /*----------------------------------------------------------------*/
     /* Do not send error codes or empty replies to multicast requests */
     /*----------------------------------------------------------------*/
-    if(message->header.flags & SLP_FLAG_MCAST)
+    if(found == 0 ||
+       errorcode != 0)
     {
-        if(found == 0)
+        if(message->header.flags & SLP_FLAG_MCAST ||
+           ISMCAST(peeraddr->sin_addr) )
         {
             result->end = result->start;
             goto FINISHED;  
@@ -844,7 +787,7 @@ int ProcessAttrRqst(struct sockaddr_in* peeraddr,
     /* attr-list len */
     ToUINT16(result->curpos, attr.attrlistlen);
     result->curpos = result->curpos + 2;
-    memcpy(result->curpos, &attr.attrlist, attr.attrlistlen);
+    memcpy(result->curpos, attr.attrlist, attr.attrlistlen);
     result->curpos = result->curpos + attr.attrlistlen;
     
 
@@ -865,6 +808,7 @@ int ProcessDAAdvert(struct sockaddr_in* peeraddr,
                     int errorcode)
 /*-------------------------------------------------------------------------*/
 {
+    SLPDAEntry daentry;
     SLPBuffer result = *sendbuf;
 
     /* TODO: enable the following when we link to libslp and        */
@@ -899,37 +843,21 @@ int ProcessDAAdvert(struct sockaddr_in* peeraddr,
         {
             /* TODO: Authentication stuff here */
 
-            /* TODO: enable the following when we link to libslp and        */
-            /* have SLPParseSrvURL()                                        */
-#if(0)  
-            /* yes, we could just get the host addr from peer info. Looking */
-            /* it up is safer                                               */
-            if(SLPParseSrvURL(message->body.daadvert.url, &srvurl) == 0)
-            {
-                he = gethostbyname(srvurl->s_pcHost);
-                if(he)
-                {
-                    /* Add the DA to a list of known DAs (ignore return)*/
-                    SLPDKnownDAAdd((struct in_addr*)(he->h_addr_list[0]),
-                                   message->body.daadvert.bootstamp,
-                                   message->body.daadvert.scopelist,
-                                   message->body.daadvert.scopelistlen);
-                }
-
-                SLPFree(srvurl);
-            }
-#endif
-
-            /* TODO: the following is allows for easy DA masquarading (unsafe) */
-            /*       remove it when the above is fixed                         */
             
-            SLPDKnownDAEvaluate(&(peeraddr->sin_addr), 
-                                message->body.daadvert.bootstamp,
-                                message->body.daadvert.scopelist,
-                                message->body.daadvert.scopelistlen);
+            daentry.langtaglen = message->header.langtaglen;
+            daentry.langtag = message->header.langtag;
+            daentry.bootstamp = message->body.daadvert.bootstamp;
+            daentry.urllen = message->body.daadvert.urllen;
+            daentry.url = message->body.daadvert.url;
+            daentry.scopelistlen = message->body.daadvert.scopelistlen;
+            daentry.scopelist = message->body.daadvert.scopelist;
+            daentry.attrlistlen = message->body.daadvert.attrlistlen;
+            daentry.attrlist = message->body.daadvert.attrlist;
+            daentry.spilistlen = message->body.daadvert.spilistlen;
+            daentry.spilist = message->body.daadvert.spilist;
+            SLPDKnownDAAdd(&(peeraddr->sin_addr),&daentry);
         }
     }
-
 
     RESPOND:
     /* DAAdverts should never be replied to.  Set result buffer to empty*/
@@ -1019,15 +947,16 @@ int ProcessSrvTypeRqst(struct sockaddr_in* peeraddr,
     /*----------------------------------------------------------------*/
     /* Do not send error codes or empty replies to multicast requests */
     /*----------------------------------------------------------------*/
-    if(message->header.flags & SLP_FLAG_MCAST)
+    if(found == 0 ||
+       errorcode != 0)
     {
-        if(found == 0 || errorcode != 0)
+        if(message->header.flags & SLP_FLAG_MCAST ||
+           ISMCAST(peeraddr->sin_addr) )
         {
             result->end = result->start;
             goto FINISHED;  
         }
     }
-
 
     /*-----------------------------------------------------------------*/
     /* ensure the buffer is big enough to handle the whole srvtyperply */

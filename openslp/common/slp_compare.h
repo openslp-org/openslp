@@ -138,23 +138,4 @@ int SLPIntersectStringList(int list1len,
 /* Returns -    The number of common entries.                              */
 /*=========================================================================*/
 
-
-///*=========================================================================*/
-//int SLPComparePredicate(int predicatelen, 
-//                        const char* predicate, 
-//                        SLPAttributes attr);
-///*                                                                         */
-///* Determine whether the specified attribute list satisfies                */
-///* the specified predicate                                                 */
-///*                                                                         */
-///* predicatelen (IN) the length of the predicate string                    */
-///*                                                                         */
-///* predicate    (IN) the predicate string                                  */
-///*                                                                         */
-///* attr         (IN) attribute list to test                                */
-///*                                                                         */
-///* Returns: Zero if there is a match, a positive value if there was not a  */
-///*          match, and a negative value if there was a parse error in the  */
-///*          predicate string.                                              */
-///*=========================================================================*/
 #endif

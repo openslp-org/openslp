@@ -313,6 +313,10 @@ SLPDSocket* SLPDOutgoingConnect(struct in_addr* addr)
         {
             if(sock->peeraddr.sin_addr.s_addr == addr->s_addr)
             {
+                if(sock->state == STREAM_CONNECT_IDLE)
+                {
+                    sock->state = STREAM_WRITE_FIRST;
+                }
                 break;
             }
         }
@@ -444,10 +448,6 @@ void SLPDOutgoingAge(time_t seconds)
             {
                 if (sock->daentry)
                 {
-                    /* Log that the DA is not accepting connection */
-                    SLPDLogKnownDA("Removed (not accepting connections)",
-                                   &(sock->daentry->daaddr));
-
                     /* Remove the DA we were talking to from the list because */
                     /* it is not accepting connections                        */
                     SLPDKnownDARemove(sock->daentry);
@@ -465,14 +465,8 @@ void SLPDOutgoingAge(time_t seconds)
             {
                 if (sock->age > G_SlpdProperty.unicastMaximumWait / 1000)
                 {
-                    sock = del;
-                }
-            }
-            else
-            {
-                if (sock->age > SLPD_MAX_SOCKET_LIFETIME)
-                {
-                    sock = del;
+                    /* remove the socket cause someone is not responding */
+                    del = sock;
                 }
             }
             break;

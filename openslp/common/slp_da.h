@@ -52,30 +52,33 @@ typedef struct _SLPDAEntry
 {
     SLPListItem     listitem;
     struct in_addr  daaddr;
-    unsigned long   bootstamp;
-    char*           scopelist;
+    unsigned int    bootstamp;
+    int             langtaglen;
+    const char*     langtag;
+    int             urllen;
+    const char*     url;
     int             scopelistlen;
-    
+    const char*     scopelist;
+    int             attrlistlen;
+    const char*     attrlist;
+    int             spilistlen;
+    const char*     spilist;
 }SLPDAEntry;
 
 
 /*=========================================================================*/
 SLPDAEntry* SLPDAEntryCreate(struct in_addr* addr,
-                             unsigned long bootstamp,
-                             const char* scopelist,
-                             int scopelistlen);
+                             const SLPDAEntry* daentry);
 /* Creates a SLPDAEntry                                                    */
 /*                                                                         */
 /* addr     (IN) pointer to in_addr of the DA to create                    */
 /*                                                                         */
-/* bootstamp (IN) the DA's bootstamp                                       */
-/*                                                                         */
-/* scopelist (IN) scope list of the DA to create                           */
-/*                                                                         */
-/* scopelistlen (IN) the length of the scope list                          */
+/* daentry (IN) pointer to daentry that will be duplicated in the new      */
+/*              daentry                                                    */
 /*                                                                         */
 /* returns  Pointer to the created SLPDAEntry.  Must be freed by caller.   */
 /*=========================================================================*/
+
 
 /*=========================================================================*/
 void SLPDAEntryFree(SLPDAEntry* entry);

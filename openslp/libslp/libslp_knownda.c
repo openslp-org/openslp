@@ -77,6 +77,7 @@ SLPBoolean KnownDADiscoveryCallback(SLPError errorcode,
 {
     SLPSrvURL*      srvurl;
     SLPDAEntry*     entry;
+    SLPDAEntry      daentry;
     struct hostent* he;
     int*            count   = (int*)cookie;
 
@@ -93,12 +94,26 @@ SLPBoolean KnownDADiscoveryCallback(SLPError errorcode,
                     he = gethostbyname(srvurl->s_pcHost);
                     if (he)
                     {
+                        /* create a daentry and add it to the knownda list */
+                        daentry.langtaglen = msg->header.langtaglen;
+                        daentry.langtag = msg->header.langtag;
+                        daentry.bootstamp = msg->body.daadvert.bootstamp;
+                        daentry.urllen = msg->body.daadvert.urllen;
+                        daentry.url = msg->body.daadvert.url;
+                        daentry.scopelistlen = msg->body.daadvert.scopelistlen;
+                        daentry.scopelist = msg->body.daadvert.scopelist;
+                        daentry.attrlistlen = msg->body.daadvert.attrlistlen;
+                        daentry.attrlist = msg->body.daadvert.attrlist;
+                        daentry.spilistlen = msg->body.daadvert.spilistlen;
+                        daentry.spilist = msg->body.daadvert.spilist;
                         entry = SLPDAEntryCreate((struct in_addr*)(he->h_addr_list[0]),
-                                                 msg->body.daadvert.bootstamp,
-                                                 msg->body.daadvert.scopelist,
-                                                 msg->body.daadvert.scopelistlen);
-                        SLPListLinkTail(&G_KnownDAList,(SLPListItem*)entry);
-                        *count = *count + 1;
+                                                 &daentry);
+                        if(entry)
+                        {
+                            SLPListLinkTail(&G_KnownDAList,(SLPListItem*)entry);
+                            *count = *count + 1;
+    
+                        }
                     }
 
                     SLPFree(srvurl);

@@ -67,6 +67,9 @@ typedef UINT32*         PUINT32;
 #define SLPv1_DA_MCAST_ADDRESS  0xe0000123  /* 224.0.1.35 */
 #define LOOPBACK_ADDRESS        0x7f000001  /* 127.0.0.1 */
 #define SLP_MAX_DATAGRAM_SIZE   1400
+
+#define SLP_CONFIG_DA_BEAT      10800       /* 3 hours */
+
 #if(!defined SLP_LIFETIME_MAXIMUM) 
 #define SLP_LIFETIME_MAXIMUM    0xffff
 #endif
@@ -405,6 +408,14 @@ int SLPMessageParseBuffer(SLPBuffer buffer, SLPMessage message);
 #define ToUINT32(charptr,val)   ( *((PUINT32)(charptr)) =  htonl((val)) )
 /* Macros used to set buffers                                              */
 /*=========================================================================*/
+
+/*=========================================================================*/
+#define ISLOCAL(addr) ((ntohl((addr).s_addr) & 0xff000000) == 0x7f000000)
+#define ISMCAST(addr) ((ntohl((addr).s_addr) & 0xff000000) >= 0xef000000)
+//#define ISMCAST(addr) 1
+/* Macros to check in_addr                                                 */
+/*=========================================================================*/
+
 #else
 /*=========================================================================*/
 unsigned short AsUINT16(const char *charptr);
@@ -419,7 +430,14 @@ void ToUINT24(char *charptr, unsigned int val);
 void ToUINT32(char *charptr, unsigned int val);
 /* Functions used to set buffers                                           */
 /*=========================================================================*/
+
+/*=========================================================================*/
+#define ISLOCAL(addr) ((addr).s_addr & 0xff000000) == 0x7f000000)
+#define ISMCAST(addr) ((addr).s_addr & 0xff000000) >= 0xef000000)
+/* Macros to check in_addr                                                 */
+/*=========================================================================*/
 #endif
+
 
 #if defined(ENABLE_SLPv1)
 #include <slp_v1message.h>

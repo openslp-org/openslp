@@ -193,7 +193,7 @@ int SLPDDatabaseReg(SLPSrvReg* srvreg,
         /* TODO: Allocate the partiallist */
 
         #else
-        entry->attrlist = malloc(srvreg->attrlistlen);
+        entry->attrlist = malloc(srvreg->attrlistlen + 1);
         if(entry->attrlist == 0)
         {
             result = -1;

@@ -298,14 +298,16 @@ void SLPDLogDATrafficMsg(const char* prefix,
 
 /*=========================================================================*/
 void SLPDLogKnownDA(const char* prefix,
-                    struct in_addr* peeraddr)
+                    SLPDAEntry* daentry)
 /*=========================================================================*/
 {
     SLPLog("----------------------------------------\n");
     SLPLog("Known DA %s:\n",prefix);
     SLPLog("----------------------------------------\n");
-    SLPLog("DA Peer\n");
-    SLPLog("   IP address: %s\n",inet_ntoa(*peeraddr));
+    SLPLog("   url = ");
+    SLPLogBuffer(daentry->url, daentry->urllen);
+    SLPLog("\n   scope = ");
+    SLPLogBuffer(daentry->scopelist, daentry->scopelistlen);
     SLPLog("\n\n");
 }
 

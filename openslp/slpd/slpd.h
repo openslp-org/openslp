@@ -132,13 +132,14 @@ typedef struct _SLPDProperty
     int             isBroadcastOnly;
     int             passiveDADetection;
     int             activeDADetection; 
-    int             activeDiscoveryAttempts;
+    int             activeDiscoveryXmits;
+    int             nextActiveDiscovery;
+    int             nextPassiveDAAdvert;
     int             multicastTTL;
     int             multicastMaximumWait;
     int             unicastMaximumWait;  
     int             randomWaitBound;
     int             maxResults;
-    time_t          randomWaitSeed;
     int             traceMsg;
     int             traceReg;
     int             traceDrop;
@@ -634,7 +635,7 @@ void SLPDLogDATrafficMsg(const char* prefix,
 
 /*=========================================================================*/
 void SLPDLogKnownDA(const char* prefix,
-                    struct in_addr* peeraddr);
+                    SLPDAEntry* daentry);
 /*=========================================================================*/
 
 
@@ -648,20 +649,44 @@ int SLPDKnownDAInit();
 
 
 /*=========================================================================*/
-SLPDAEntry* SLPDKnownDAEvaluate(struct in_addr* addr,
-                                unsigned long bootstamp,
-                                const char* scopelist,
-                                int scopelistlen);
+SLPDAEntry* SLPDKnownDAAdd(struct in_addr* addr,
+                           const SLPDAEntry* daentry);
 /* Adds a DA to the known DA list if it is new, removes it if DA is going  */
 /* down or adjusts entry if DA changed.                                    */
 /*                                                                         */
 /* addr     (IN) pointer to in_addr of the DA to add                       */
 /*                                                                         */
-/* scopelist (IN) scope list of the DA to add                              */
-/*                                                                         */
-/* scopelistlen (IN) the length of the scope list                          */
+/* pointer (IN) pointer to a daentry to add                                */
 /*                                                                         */
 /* returns  Pointer to the added or updated entry                          */
+/*=========================================================================*/
+
+
+/*=========================================================================*/
+int SLPDKnownDAEntryToDAAdvert(int errorcode,
+                               unsigned int xid,
+                               const SLPDAEntry* daentry,
+                               SLPBuffer* sendbuf);
+/* Pack a buffer with a DAAdvert using information from a SLPDAentry       */
+/*                                                                         */
+/* errorcode (IN) the errorcode for the DAAdvert                           */
+/*                                                                         */
+/* xid (IN) the xid to for the DAAdvert                                    */
+/*                                                                         */
+/* daentry (IN) pointer to the daentry that contains the rest of the info  */
+/*              to make the DAAdvert                                       */
+/*                                                                         */
+/* sendbuf (OUT) pointer to the SLPBuffer that will be packed with a       */
+/*               DAAdvert                                                  */
+/*                                                                         */
+/* returns: zero on success, non-zero on error                             */
+/*=========================================================================*/
+
+
+/*=========================================================================*/
+SLPDAEntry* SLPDKnownDAFindRandomEntry(int scopelistlen,
+                                       const char* scopelist);
+/* Find a known DA that supports the specified scope list                  */
 /*=========================================================================*/
 
 
@@ -692,16 +717,19 @@ void SLPDKnownDAEcho(struct sockaddr_in* peerinfo,
 
 
 /*=========================================================================*/
-void SLPDKnownDAActiveDiscovery();
+void SLPDKnownDAActiveDiscovery(int seconds);
 /* Set outgoing socket list to send an active DA discovery SrvRqst         */
+/*									                                       */
+/* seconds (IN) number seconds that elapsed since the last call to this    */
+/*              function                                                   */
 /*									                                       */
 /* Returns:  none                                                          */
 /*=========================================================================*/
 
 
 /*=========================================================================*/
-void SLPDKnownDAPassiveDiscovery(int seconds);
-/* Send passive discovery packets if properly configured and running as    */
+void SLPDKnownDAPassiveDAAdvert(int seconds);
+/* Send passive daadvert messages if properly configured and running as    */
 /* a DA                                                                    */
 /*	                                                                       */
 /* seconds (IN) number seconds that elapsed since the last call to this    */
