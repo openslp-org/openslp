@@ -6,6 +6,9 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 
+03/05/02
+Added patch from Garth Bushell that fixes an SLP url parsing problem.
+
 *** Tag OpenSLP-1.0.8 ***
 
 02/25/02 matt@caldera.com

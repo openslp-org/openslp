@@ -157,8 +157,8 @@ SLPError SLPParseSrvURL(const char *pcSrvURL,
     /* parse out the port */
     if(*slider3 == ':')
     {
-        slider3 = slider2 = slider3 + 1; /* + 3 skips the ":" */
-        while(*slider3 && *slider3 != '/') slider3++;
+        slider3 = slider2 = slider3 + 1; /* + 1 skips the ":" */
+        while(*slider3 && (*slider3 != '/' && *slider3 != ';')) slider3++;
         memcpy(slider1,slider2,slider3-slider2);
         (*ppSrvURL)->s_iPort = atoi(slider1);
         slider1 += (slider3-slider2) + 1;
