@@ -8,6 +8,11 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 
+*** TAG OpenSLP 0.7.3 ****
+
+08/16/00 mpeterson@calderasystems.com
+Made significant changes that streamline main execution loop of slpd. 
+
 08/11/00 mpeterson@calderassystems.com
 Fixed several sneeky memory leaks and memory access bugs that delt with
 langtags in libslp. Fixes bug #111058 - Pointer issues in slpd.
