@@ -1,69 +1,62 @@
+%define	ver 0.7.1
+%define	rel	1
+%define	name openslp
+
 Name        	: openslp
-Version     	: 0.6.7
-Release     	: 1
+Version     	: %ver
+Release     	: %rel
 Group       	: Server/Network
 Summary     	: OpenSLP implementation of Service Location Protocol V2 
 Copyright   	: Caldera Systems (LGPL)
 Packager    	: Matthew Peterson <mpeterson@calderasystems.com>
 URL         	: http://www.openslp.org/
-
-BuildRoot   	: /tmp/%{Name}-%{Version}
-
-Source0		: ftp://openslp.org/pub/openslp/openslp-0.6.7/openslp-0.6.7.tar.gz
-
+BuildRoot   	: /tmp/%{name}-%{ver}
+Source0			: ftp://openslp.org/pub/openslp/%{name}-%{ver}/%{name}-%{ver}.tar.gz
 
 %Description
-Installs OpenSLP daemon, libraries, header files and documentation
+Service Location Protocol is an IETF standards track protocol that
+provides a framework to allow networking applications to discover the
+existence, location, and configuration of networked services in
+enterprise networks.
 
+OpenSLP is an open source implementation of the SLPv2 protocol as defined 
+by RFC 2608 and RFC 2614.  This package include the daemon, libraries, header 
+files and documentation
 
 %Prep
-%setup -n openslp-%{Version}
-
+%setup -n %{name}-%{ver}
 
 %Build
+./configure --with-rpm-prefix=$RPM_BUILD_ROOT
 make
-
 
 %Install
-%{mkDESTDIR}
-mkdir -p $DESTDIR/usr/{lib,include,doc,sbin}
-mkdir -p $DESTDIR/etc/rc.d/init.d
-make
-#We'll need these until I get the automake done
-mkdir -p $DESTDIR/usr/doc/openslp-%{Version}  
-cp AUTHORS $DESTDIR/usr/doc/openslp-%{Version}
-cp README $DESTDIR/usr/doc/openslp-%{Version}
-cp INSTALL $DESTDIR/usr/doc/openslp-%{Version}
-cp COPYING $DESTDIR/usr/doc/openslp-%{Version}
-cp -Rf doc/html $DESTDIR/usr/doc/openslp-%{Version}
-cp -Rf doc/rfc $DESTDIR/usr/doc/openslp-%{Version} 
-cp etc/slp.reg $DESTDIR/etc
-cp etc/slp.conf $DESTDIR/etc
-cp etc/slpd.caldera_init $DESTDIR/etc/rc.d/init.d/slpd
-cp libslp/libslp.so* $DESTDIR/usr/lib
-cp libslp/slp.h $DESTDIR/usr/include
-cp slpd/slpd $DESTDIR/usr/sbin
-
+make install 
 
 %Clean
-%{rmDESTDIR}
+rm -rf $RPM_BUILD_ROOT
 
+%Post
+rm -f /usr/lib/libslp.so
+ln -s /usr/lib/libslp.so.%{ver} /usr/lib/libslp.so
+/sbin/ldconfig
 
-%Post -p /sbin/ldconfig
-
-
-%PostUn -p /sbin/ldconfig
-
+%PostUn 
+rm -f /usr/lib/libslp.so
+/sbin/ldconfig
 
 %Files
 %defattr(-,root,root)
-/usr/include/*
-/usr/lib/*
-/usr/sbin/*
-/usr/doc/*
-/etc/*
-
+%doc /usr/doc/openslp-%{ver}
+%config /etc/slp.conf
+%config /etc/slp.reg
+/usr/lib/libslp.so.%{ver}
+/usr/include/slp.h
+/usr/sbin/slpd
 
 %ChangeLog
+* Thu Jul 7 2000 david.mccormack@ottawa.com
+	Made it work with the new autoconf/automake scripts.
+ 
 * Wed Apr 27 2000 mpeterson
 	started
