@@ -463,7 +463,6 @@ int SLPDKnownDAInit()
     /*--------------------------------------*/
     SLPDatabaseInit(&G_SlpdKnownDAs);
 
-
     /*-----------------------------------------------------------------*/
     /* Added statically configured DAs to the Known DA List by sending */
     /* active DA discovery requests directly to them                   */
@@ -481,11 +480,18 @@ int SLPDKnownDAInit()
                 while ( *slider2 && *slider2 != ',' ) slider2++;
                 *slider2++ = 0;
 
-                he = gethostbyname(slider1);
-                if ( he )
+                daaddr.s_addr = 0;
+                if(inet_aton(slider1, &daaddr) == 0)
                 {
-                    daaddr.s_addr = *((unsigned int*)(he->h_addr_list[0]));
-
+                    he = gethostbyname(slider1);
+                    if (he)
+                    {
+                        daaddr.s_addr = *((unsigned int*)(he->h_addr_list[0]));
+                    }
+                }
+                
+                if(daaddr.s_addr)
+                {
                     /*--------------------------------------------------------*/
                     /* Get an outgoing socket to the DA and set it up to make */
                     /* the service:directoryagent request                     */

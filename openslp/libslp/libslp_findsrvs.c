@@ -290,7 +290,20 @@ SLPError ProcessSrvRqst(PSLPHandleInfo handle)
 #ifdef ENABLE_SLPv2_SECURITY
     int                 spistrlen   = 0;
     char*               spistr      = 0;
+#endif
 
+    /*------------------------------------------*/
+    /* Is this a special attempt to locate DAs? */
+    /*------------------------------------------*/
+    if(strncasecmp(handle->params.findsrvs.srvtype,
+                   SLP_DA_SERVICE_TYPE,
+                   handle->params.findsrvs.srvtypelen) == 0)
+    {
+        KnownDAProcessSrvRqst(handle);
+        goto FINISHED;
+    }
+
+#ifdef ENABLE_SLPv2_SECURITY
     if(SLPPropertyAsBoolean(SLPGetProperty("net.slp.securityEnabled")))
     {
         SLPSpiGetDefaultSPI(handle->hspi,
@@ -357,9 +370,6 @@ SLPError ProcessSrvRqst(PSLPHandleInfo handle)
     do
     {
         if(strncasecmp(handle->params.findsrvs.srvtype,
-                       SLP_DA_SERVICE_TYPE,
-                       handle->params.findsrvs.srvtypelen) &&
-           strncasecmp(handle->params.findsrvs.srvtype,
                        SLP_SA_SERVICE_TYPE,
                        handle->params.findsrvs.srvtypelen))
         {

@@ -51,7 +51,7 @@
 #include "libslp.h"
 
 /*=========================================================================*/
-int G_PropertyInit  = 0;
+//int G_PropertyInit  = 0;
 /*=========================================================================*/
 
 
@@ -81,13 +81,9 @@ const char* SLPGetProperty(const char* pcName)
     strncpy(conffile,LIBSLP_CONFFILE,MAX_PATH-1);
     #endif
 
-    if(G_PropertyInit == 0)
+    if(G_SLPPropertyList.head == NULL)
     {
-        if(SLPPropertyReadFile(conffile) == 0)
-        {
-            G_PropertyInit = 1;
-        }
-        else
+        if(SLPPropertyReadFile(conffile) != 0)
         {
             return 0;
         }
@@ -115,7 +111,7 @@ void SLPSetProperty(const char *pcName,
 {
     /* Following commented out for threading reasons 
     
-    if(G_PropertyInit == 0)
+    if(G_PropertyInit.head == NULL)
     {
         if(SLPPropertyReadFile(LIBSLP_CONFFILE) == 0)
         {

@@ -434,11 +434,22 @@ int KnownDAGetScopes(int* scopelistlen,
 
 
 /*=========================================================================*/
+void KnownDAProcessSrvRqst(PSLPHandleInfo handle);
+/* Process a SrvRqst for service:directory-agent                           */
+/*                                                                         */
+/* handle (IN) the handle used to make the SrvRqst                         */
+/*                                                                         */
+/* returns: none                                                           */
+/*=========================================================================*/
+
+#ifdef DEBUG
+/*=========================================================================*/
 void KnownDAFreeAll();
 /* Frees all (cached) resources associated with known DAs                  */
 /*                                                                         */
 /* returns: none                                                           */
 /*=========================================================================*/
+#endif
 
 
 
