@@ -130,7 +130,7 @@ int MakeActiveDiscoveryRqst(int ismcast, SLPBuffer* buffer)
     /*ext offset*/
     ToUINT24(result->start + 7,0);
     /*xid*/
-    ToUINT16(result->start + 10, 0);  /* TODO: generate a real XID */
+    ToUINT16(result->start + 10, SLPXidGenerate());  /* TODO: generate a real XID */
     /*lang tag len*/
     ToUINT16(result->start + 12, G_SlpdProperty.localeLen);
     /*lang tag*/
@@ -484,7 +484,7 @@ void SLPDKnownDARegisterAll(SLPDAEntry* daentry, int immortalonly)
                         /*ext offset*/
                         ToUINT24(buf->start + 7,0);
                         /*xid*/
-                        ToUINT16(buf->start + 10,rand());
+                        ToUINT16(buf->start + 10,SLPXidGenerate());
                         /*lang tag len*/
                         ToUINT16(buf->start + 12,dbentry->langtaglen);
                         /*lang tag*/
@@ -602,7 +602,7 @@ void SLPDKnownDADeregisterAll(SLPDAEntry* daentry)
                     /*ext offset*/
                     ToUINT24(buf->start + 7,0);
                     /*xid*/
-                    ToUINT16(buf->start + 10,rand());
+                    ToUINT16(buf->start + 10,SLPXidGenerate());
                     /*lang tag len*/
                     ToUINT16(buf->start + 12,dbentry->langtaglen);
                     /*lang tag*/

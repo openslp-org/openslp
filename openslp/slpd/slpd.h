@@ -64,12 +64,13 @@
 
 
 /* common includes */
-#include "slp_compare.h"
+#include "slp_linkedlist.h"
 #include "slp_buffer.h"
 #include "slp_message.h"
 #include "slp_logfile.h"
+#include "slp_compare.h"
 #include "slp_property.h"
-#include "slp_linkedlist.h"
+#include "slp_xid.h"
 #include "slp_da.h"
 
 #if(!defined MAX_PATH)

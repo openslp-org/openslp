@@ -476,6 +476,11 @@ int main(int argc, char* argv[])
         SLPFatal("Could not open logfile %s\n",G_SlpdCommandLine.logfile);
     }
 
+    /*------------------------*/
+    /* Seed the XID generator */
+    /*------------------------*/
+    SLPXidSeed();
+
     /*---------------------*/
     /* Log startup message */
     /*---------------------*/

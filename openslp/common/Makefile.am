@@ -24,6 +24,7 @@ libcommonslpd_la_SOURCES = \
 	$(slp_v1message_SRCS) \
 	slp_property.c	\
 	slp_linkedlist.c \
+	slp_xid.c	 \
 	slp_da.c
 
 noinst_HEADERS = \

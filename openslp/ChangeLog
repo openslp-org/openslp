@@ -5,6 +5,11 @@ Please make entries to this log (in addition to the CVS log) that describe
 major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
+
+02/08/01 mpeterson@caldera.com
+Changes to use SLPXidGenerate() from common/slp_xid.c to generate Message 
+XIDs instead of rand()
+
 02/08/01 mpeterson@caldera.com
 Changes to allow reinitalized slpd (SIGHUP) properly represent changes
 made to static registration file (slp.reg)
