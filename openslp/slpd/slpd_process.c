@@ -214,7 +214,11 @@ int ProcessDASrvRqst(SLPMessage message,
                     {
                         break;
                     }
-    
+                    
+                    /* TRICKY: fix up the xid */
+                    tmp->curpos = tmp->start + 10;
+                    ToUINT16(tmp->curpos, message->header.xid);
+
                     memcpy((*sendbuf)->curpos, tmp->start, tmp->end - tmp->start);
                     (*sendbuf)->curpos = ((*sendbuf)->curpos) + (tmp->end - tmp->start);
                 }
@@ -503,7 +507,6 @@ int ProcessSrvRqst(SLPMessage message,
                urlentry->opaque)
             {
                 /* Use an opaque copy if available (and authentication is not being used)*/
-            
                 memcpy(result->curpos,urlentry->opaque,urlentry->opaquelen);
                 result->curpos = result->curpos + urlentry->opaquelen;
             }
