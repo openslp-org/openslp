@@ -19,8 +19,8 @@
 
 typedef struct xx_value_t {
 	struct xx_value_t *next;
-	int escaped_len;
-	int unescaped_len;
+	size_t escaped_len;
+	size_t unescaped_len;
 	union {
 		SLPBoolean va_bool;
 		long va_int;
