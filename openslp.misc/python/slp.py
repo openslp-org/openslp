@@ -59,8 +59,8 @@ def slpstr(data):
         datastr = str(data)
     return datastr
 
-def open(lang = "", async = 0):
-    return SLPHandle(lang, async)
+def open(lang = "", async = 0, cookie = None):
+    return SLPHandle(lang, async, cookie)
 
 class SLPHandle:
     """SLP Handle"""
@@ -73,56 +73,88 @@ class SLPHandle:
     def close(self):
         self.slph.close()
 
-    def register(self, srvurl, lifetime, attrs = ""):
+    def register(self, srvurl, lifetime, attrs = "", callback = None,
+                 cbdata = None):
         """register an SLP service"""
-        attrstr = slpstr(attrs)
-        cbdata = [ SLPError.SLP_OK ]
-        err = self.slph.register(srvurl, lifetime, attrstr,
-                                 self.__errcb, cbdata)
-        if err != SLPError.SLP_OK or cbdata[0] != SLPError.SLP_OK:
-            raise SLPError(err or cbdata[0])
+        cb = callback
+        if not callback:
+            cb = self.__errcb
+            cbdata = [ SLPError.SLP_OK ]
+        err = self.slph.register(srvurl, lifetime, slpstr(attrs), cb, cbdata)
+        if err != SLPError.SLP_OK:
+            raise SLPError(err)
+        if not callback:
+            if cbdata[0] != SLPError.SLP_OK:
+                raise SLPError(cbdata[0])
                  
-    def deregister(self, srvurl):
+    def deregister(self, srvurl, callback = None, cbdata = None):
         """deregister an SLP service"""
-        cbdata = [ SLPError.SLP_OK ]
-        err = self.slph.deregister(srvurl, self.__errcb, cbdata)
-        if err != SLPError.SLP_OK or cbdata[0] != SLPError.SLP_OK:
-            raise SLPError(err or cbdata[0])
+        cb = callback
+        if not callback:
+            cb = self.__errcb
+            cbdata = [ SLPError.SLP_OK ]
+        err = self.slph.deregister(srvurl, cb, cbdata)
+        if err != SLPError.SLP_OK:
+            raise SLPError(err)
+        if not callback:
+            if cbdata[0] != SLPError.SLP_OK:
+                raise SLPError(cbdata[0])
         
-    def delattrs(self, srvurl, attrs = ""):
+    def delattrs(self, srvurl, attrs = "", callback = None, cbdata = None):
         """delete attributes from a SLP service URL (deprecated)"""
-        attrstr = slpstr(attrs)
-        cbdata = [ SLPError.SLP_OK ]
-        err = self.slph.delattrs(srvurl, attrstr, self.__errcb, cbdata)
-        if err != SLPError.SLP_OK or cbdata[0] != SLPError.SLP_OK:
-            raise SLPError(err or cbdata[0])
+        cb = callback
+        if not callback:
+            cb = self.__errcb
+            cbdata = [ SLPError.SLP_OK ]
+        err = self.slph.delattrs(srvurl, slpstr(attrs), cb, cbdata)
+        if err != SLPError.SLP_OK:
+            raise SLPError(err)
+        if not callback:
+            if cbdata[0] != SLPError.SLP_OK:
+                raise SLPError(cbdata[0])
 
-    def findsrvtypes(self, na = "", scopelist = "default"):
+    def findsrvtypes(self, na = "", scopelist = "default",
+                     callback = None, cbdata = None):
         """find SLP service types"""
-        cbdata = [ SLPError.SLP_OK, [] ]
-        err = self.slph.findsrvtypes(na, slpstr(scopelist),
-                                     self.__srvtypecb, cbdata)
-        if err != SLPError.SLP_OK or cbdata[0] != SLPError.SLP_OK:
-            raise SLPError(err or cbdata[0])
-        return cbdata[1]
+        cb = callback
+        if not callback:
+            cb = self.__srvtypecb
+            cbdata = [ SLPError.SLP_OK, [] ]
+        err = self.slph.findsrvtypes(na, slpstr(scopelist), cb, cbdata)
+        if err != SLPError.SLP_OK:
+            raise SLPError(err)
+        if not callback:
+            if cbdata[0] != SLPError.SLP_OK:
+                raise SLPError(cbdata[0])
+            return cbdata[1]
 
-    def findsrvs(self, srvtype, searchfilter = "", scopelist = "default"):
+    def findsrvs(self, srvtype, searchfilter = "", scopelist = "default",
+                 callback = None, cbdata = None):
         """find SLP services matching the service type and searchfilter"""
-        cbdata = [ SLPError.SLP_OK, [] ]
+        cb = callback
+        if not callback:
+            cb = self.__srvcb
+            cbdata = [ SLPError.SLP_OK, [] ]
         err = self.slph.findsrvs(srvtype, slpstr(scopelist), searchfilter,
-                                 self.__srvcb, cbdata)
-        if err != SLPError.SLP_OK or cbdata[0] != SLPError.SLP_OK:
-            raise SLPError(err or cbdata[0])
-        return cbdata[1]
+                                 cb, cbdata)
+        if not callback:
+            if cbdata[0] != SLPError.SLP_OK:
+                raise SLPError(cbdata[0])
+            return cbdata[1]
 
-    def findattrs(self, srvurl, attrids = "", scopelist = "default"):
+    def findattrs(self, srvurl, attrids = "", scopelist = "default",
+                  callback = None, cbdata = None):
         """find attributes for the given SLP service URL or service type"""
-        cbdata = [ SLPError.SLP_OK, {} ]
+        cb = callback
+        if not callback:
+            cb = self.__attrcb
+            cbdata = [ SLPError.SLP_OK, {} ]
         err = self.slph.findattrs(srvurl, slpstr(scopelist),
-                                  slpstr(attrids), self.__attrcb, cbdata) 
-        if err != SLPError.SLP_OK or cbdata[0] != SLPError.SLP_OK:
-            raise SLPError(err or cbdata[0])
-        return cbdata[1]
+                                  slpstr(attrids), cb, cbdata) 
+        if not callback:
+            if cbdata[0] != SLPError.SLP_OK:
+                raise SLPError(cbdata[0])
+            return cbdata[1]
 
     def findscopes(self):
         """find supported SLP scopes"""
