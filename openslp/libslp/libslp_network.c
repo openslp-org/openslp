@@ -269,6 +269,7 @@ int NetworkConnectToSA(PSLPHandleInfo handle,
 }
 
 
+
 /*=========================================================================*/ 
 SLPError NetworkRqstRply(int sock,
                          struct sockaddr_in* destaddr,
@@ -590,4 +591,68 @@ SLPError NetworkRqstRply(int sock,
     SLPBufferFree(recvbuf);
     
     return result;
+}
+
+/*=========================================================================*/ 
+SLPError NetworkXcastRqstRply(const char* langtag,
+                              char* buf,
+                              char buftype,
+                              int bufsize,
+                              NetworkRplyCallback callback,
+                              void * cookie)
+/* Description:                                                            */
+/*                                                                         */
+/* Broadcasts/multicasts SLP messages via multicast convergence algorithm  */
+/*                                                                         */
+/* langtag  (IN) Language tag to use in SLP message header                 */
+/*                                                                         */
+/* buf      (IN) pointer to the portion of the SLP message to send. The    */
+/*               portion to that should be pointed to is everything after  */
+/*               the pr-list. NetworkXcastRqstRply() automatically         */
+/*               generates the header and the prlist.                      */
+/*                                                                         */
+/* buftype  (IN) the function-id to use in the SLPMessage header           */
+/*                                                                         */
+/* bufsize  (IN) the size of the buffer pointed to by buf                  */
+/*                                                                         */
+/* callback (IN) the callback to use for reporting results                 */
+/*                                                                         */
+/* cookie   (IN) the cookie to pass to the callback                        */
+/*                                                                         */
+/* Returns  -    SLP_OK on success. SLP_ERROR on failure                   */
+/*=========================================================================*/ 
+
+
+/*=========================================================================*/ 
+SLPError NetworkXcastRqstRply(const char* langtag,
+                              char* buf,
+                              char buftype,
+                              int bufsize,
+                              NetworkRplyCallback callback,
+                              void * cookie)
+/* Description:                                                            */
+/*                                                                         */
+/* Broadcasts/multicasts SLP messages via multicast convergence algorithm  */
+/*                                                                         */
+/* langtag  (IN) Language tag to use in SLP message header                 */
+/*                                                                         */
+/* buf      (IN) pointer to the portion of the SLP message to send. The    */
+/*               portion to that should be pointed to is everything after  */
+/*               the pr-list. NetworkXcastRqstRply() automatically         */
+/*               generates the header and the prlist.                      */
+/*                                                                         */
+/* buftype  (IN) the function-id to use in the SLPMessage header           */
+/*                                                                         */
+/* bufsize  (IN) the size of the buffer pointed to by buf                  */
+/*                                                                         */
+/* callback (IN) the callback to use for reporting results                 */
+/*                                                                         */
+/* cookie   (IN) the cookie to pass to the callback                        */
+/*                                                                         */
+/* Returns  -    SLP_OK on success. SLP_ERROR on failure                   */
+/*=========================================================================*/ 
+{
+    // To be completed by Venu and Satya.
+    
+    return SLP_OK;
 }
