@@ -84,6 +84,19 @@
 #define MAX_RETRANSMITS             5      /* we'll only re-xmit 5 times! */
 #define SLP_FUNCT_DASRVRQST         0x7f   /* fake id used internally */
 
+#if(!defined LIBSLP_CONFFILE)
+#ifdef WIN32
+#define LIBSLP_CONFFILE "%WINDIR%\\slp.conf"
+#else
+#define LIBSLP_CONFFILE "/etc/slp.conf"
+#endif
+#endif
+
+#if (!defined MAX_PATH)
+#define MAX_PATH 256
+#endif
+
+
 /*=========================================================================*/
 typedef enum _SLPCallType
 /*=========================================================================*/
@@ -124,7 +137,7 @@ typedef struct _SLPDeRegParams
 /* API calls                                                               */
 /*=========================================================================*/
 {
-     int			scopelistlen;
+    int            scopelistlen;
     const char*     scopelist;
     int             urllen;
     const char*     url;
@@ -194,6 +207,7 @@ typedef union _SLPHandleCallParams
 }SLPHandleCallParams, *PSLPHandleCallParams;
 
     #define SLP_HANDLE_SIG 0xbeeffeed
+
 
 
 /*=========================================================================*/

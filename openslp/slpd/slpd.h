@@ -88,6 +88,20 @@
 #define SLPD_AGE_INTERVAL           15   /* age every 15 seconds */
 #define SLPD_ATTR_RECURSION_DEPTH   50
 
+/*=========================================================================*/
+/* Filename constants                                                      */
+/*=========================================================================*/
+#ifndef WIN32
+#define SLPD_CONFFILE ETCDIR "/slp.conf"
+#define SLPD_LOGFILE  VARDIR "/log/slpd.log"
+#define SLPD_REGFILE  ETCDIR "/slp.reg"
+#define SLPD_PIDFILE  VARDIR "/run/slpd.pid"
+#else
+#define SLPD_CONFFILE "%WINDIR%\\slp.conf"
+#define SLPD_LOGFILE  "%WINDIR%\\slpd.log"
+#define SLPD_REGFILE  "%WINDIR%\\slp.reg"
+#define SLPD_PIDFILE  "%WINDIR%\\slpd.pid"
+#endif
 
 /*=========================================================================*/
 /* Values representing a type or state of a socket                         */
@@ -213,10 +227,12 @@ int SLPDPropertyInit(const char* conffile);
 #ifdef DEBUG
 
 
+
 /*=========================================================================*/
 void SLPDPropertyDeinit();
 /*=========================================================================*/
 #endif
+
 
 
 
@@ -315,11 +331,13 @@ int SLPDDatabaseReInit(const char* regfile);
 #ifdef DEBUG
 
 
+
 /*=========================================================================*/
 void SLPDDatabaseDeinit();
 /* De-initialize the database.  Free all resources taken by registrations  */
 /*=========================================================================*/
 #endif
+
 
 
 
@@ -760,6 +778,7 @@ int SLPDKnownDAEntryToDAAdvert(int errorcode,
 
 
 
+
 /*=========================================================================*/
 int SLPDv1KnownDAEntryToDAAdvert(int errorcode,
                                  int encoding,
@@ -783,6 +802,7 @@ int SLPDv1KnownDAEntryToDAAdvert(int errorcode,
 /* returns: zero on success, non-zero on error                             */
 /*=========================================================================*/
 #endif
+
 
 
 
@@ -872,6 +892,7 @@ extern SLPList G_KnownDAList;
 
 
 #if(defined USE_PREDICATES)
+
 
 
 /*=========================================================================*/

@@ -92,6 +92,7 @@ typedef UINT32*         PUINT32;
 
 
 
+
 /*=========================================================================*/
 /* SLP Function ID constants                                               */
 /*=========================================================================*/
@@ -106,6 +107,7 @@ typedef UINT32*         PUINT32;
 #define SLP_FUNCT_SRVTYPERQST     9
 #define SLP_FUNCT_SRVTYPERPLY     10
 #define SLP_FUNCT_SAADVERT        11
+
 
 
 
@@ -134,12 +136,14 @@ typedef UINT32*         PUINT32;
 
 
 
+
 /*=========================================================================*/
 /* SLP Flags                                                               */
 /*=========================================================================*/
 #define SLP_FLAG_OVERFLOW         0x8000
 #define SLP_FLAG_FRESH            0x4000
 #define SLP_FLAG_MCAST            0x2000
+
 
 
 
@@ -151,12 +155,15 @@ typedef UINT32*         PUINT32;
 #define CONFIG_MC_MAX             15    
 
 
+
 /* Wait interval to give up on a unicast request retransmission  */
 #define CONFIG_RETRY_MAX          15    
 
 
+
 /* Default wait between retransmits*/
 #define CONFIG_RETRY_INTERVAL      3    
+
 
 
 
@@ -436,13 +443,15 @@ int SLPMessageParseBuffer(SLPBuffer buffer, SLPMessage message);
 #define AsUINT32(charptr)   ( ntohl(*((PUINT32)(charptr))) )
 
 
+
 /* Macros used to parse buffers                                            */
 /*=========================================================================*/
 
 /*=========================================================================*/
-#define ToUINT16(charptr,val)   ( *((PUINT16)(charptr)) =  htons((val)) )
+#define ToUINT16(charptr,val)   ( *((PUINT16)(charptr)) =  htons(((UINT16)val)) )
 #define ToUINT24(charptr,val)   ( *((PUINT32)(charptr)) =  htonl((val)<<8) )
 #define ToUINT32(charptr,val)   ( *((PUINT32)(charptr)) =  htonl((val)) )
+
 
 
 /* Macros used to set buffers                                              */
@@ -453,11 +462,13 @@ int SLPMessageParseBuffer(SLPBuffer buffer, SLPMessage message);
 #define ISMCAST(addr) ((ntohl((addr).s_addr) & 0xff000000) >= 0xef000000)
 
 
+
 //#define ISMCAST(addr) 1
 /* Macros to check in_addr                                                 */
 /*=========================================================================*/
 
 #else
+
 
 
 
@@ -478,6 +489,7 @@ void ToUINT32(char *charptr, unsigned int val);
 /*=========================================================================*/
 #define ISLOCAL(addr) (((addr).s_addr & 0xff000000) == 0x7f000000)
 #define ISMCAST(addr) (((addr).s_addr & 0xff000000) >= 0xef000000)
+
 
 
 /* Macros to check in_addr                                                 */

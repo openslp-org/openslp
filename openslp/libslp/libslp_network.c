@@ -440,7 +440,7 @@ SLPError NetworkRqstRply(int sock,
         /*length*/
         ToUINT24(sendbuf->start + 2, size);
         /*flags*/
-        ToUINT16(sendbuf->start + 5, ISMCAST(destaddr->sin_addr) ? SLP_FLAG_MCAST : 0);
+        ToUINT16(sendbuf->start + 5, (ISMCAST(destaddr->sin_addr) ? SLP_FLAG_MCAST : 0));
         /*ext offset*/
         ToUINT24(sendbuf->start + 7,0);
         /*xid*/

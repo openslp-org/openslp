@@ -56,16 +56,13 @@ extern "C"
 {
 #endif
 
-#if(!defined LIBSLP_CONFFILE)
-#define LIBSLP_CONFFILE "/etc/slp.conf"
-#endif
-
 
 /*==========================================================================*/
 /* lifetime values, in  seconds, that are frequently used.                  */
 /*==========================================================================*/
 #define SLP_LIFETIME_DEFAULT 10800   /* 3 hours  */
 #define SLP_LIFETIME_MAXIMUM 65535   /* 18 hours */
+
 
 
 /*==========================================================================*/
@@ -76,6 +73,7 @@ extern "C"
 typedef int SLPError;
 
 #define  SLP_LAST_CALL              1
+
 /* passed to callback functions when the API                            */
 /* library has no more data for them and therefore no further calls     */
 /* will be made to the callback on the currently outstanding operation. */
@@ -89,15 +87,18 @@ typedef int SLPError;
 /* parameter set to SLP_LAST_CALL.                                      */
 
 #define SLP_OK                      0
+
 /* indicates that the no error occurred during the operation.           */
 
 #define SLP_LANGUAGE_NOT_SUPPORTED  -1
+
 /* No DA or SA has service advertisement or attribute information       */
 /* in the language requested, but at least one DA or SA indicated,      */
 /* via the LANGUAGE_NOT_SUPPORTED error code, that it might have        */
 /* information for that service in another language                     */
 
 #define SLP_PARSE_ERROR             -2
+
 /* The SLP message was rejected by a remote SLP agent.  The API         */
 /* returns this error only when no information was retrieved, and       */
 /* at least one SA or DA indicated a protocol error.  The data          */
@@ -105,12 +106,14 @@ typedef int SLPError;
 /* damaged in transit.                                                  */
 
 #define SLP_INVALID_REGISTRATION    -3
+
 /* The API may return this error if an attempt to register a            */
 /* service was rejected by all DAs because of a malformed URL or        */
 /* attributes.  SLP does not return the error if at least one DA        */
 /* accepted the registration.                                           */
 
 #define SLP_SCOPE_NOT_SUPPORTED     -4
+
 /* The API returns this error if the SA has been configured with        */
 /* net.slp.useScopes value-list of scopes and the SA request did        */
 /* not specify one or more of these allowable scopes, and no            */
@@ -118,66 +121,80 @@ typedef int SLPError;
 /* in a request is not supported by the DA or SA.                       */
 
 #define SLP_AUTHENTICATION_ABSENT   -6
+
 /* if the SLP framework supports authentication, this error arises      */
 /* when the UA or SA failed to send an authenticator for requests       */
 /* or registrations in a protected scope.                               */
 
 #define SLP_AUTHENTICATION_FAILED   -7
+
 /* If the SLP framework supports authentication, this error arises      */
 /* when a authentication on an SLP message failed                       */
 
 #define SLP_INVALID_UPDATE          -13
+
 /* An update for a non-existing registration was issued, or the         */
 /* update includes a service type or scope different than that in       */
 /* the initial registration, etc.                                       */
 
 #define SLP_REFRESH_REJECTED        -15
+
 /* The SA attempted to refresh a registration more frequently           */
 /* than the minimum refresh interval.  The SA should call the           */
 /* appropriate API function to obtain the minimum refresh interval      */
 /* to use.                                                              */
 
 #define SLP_NOT_IMPLEMENTED         -17
+
 /* If an unimplemented feature is used, this error is returned.         */
 
 #define SLP_BUFFER_OVERFLOW         -18
+
 /* An outgoing request overflowed the maximum network MTU size.         */
 /* The request should be reduced in size or broken into pieces and      */
 /* tried again.                                                         */
 
 #define SLP_NETWORK_TIMED_OUT       -19
+
 /* When no reply can be obtained in the time specified by the           */
 /* configured timeout interval for a unicast request, this error        */
 /* is returned.                                                         */
 
 #define SLP_NETWORK_INIT_FAILED     -20
+
 /* If the network cannot initialize properly, this error is             */
 /* returned.  Will also be returned if an SA or DA agent (slpd)         */
 /* can not be contacted. See SLPRegReport() callback.                   */
 
 #define SLP_MEMORY_ALLOC_FAILED     -21
+
 /* Out of memory error */
 
 #define SLP_PARAMETER_BAD           -22
+
 /* If a parameter passed into an interface is bad, this error is        */
 /* returned.                                                            */
 
 #define SLP_NETWORK_ERROR           -23
+
 /* The failure of networking during normal operations causes this       */
 /* error to be returned.                                                */
 
 #define SLP_INTERNAL_SYSTEM_ERROR   -24
+
 /* A basic failure of the API causes this error to be returned.         */
 /* This occurs when a system call or library fails.  The operation      */
 /* could not recover.                                                   */
 
 #define SLP_HANDLE_IN_USE           -25
+
 /* In the C API, callback functions are not permitted to                */
 /* recursively call into the API on the same SLPHandle, either          */
 /* directly or indirectly.  If an attempt is made to do so, this        */
 /* error is returned from the called API function.                      */
 
 #define SLP_TYPE_ERROR              -26
+
 /* If the API supports type checking of registrations against           */
 /* service type templates, this error can arise if the attributes       */
 /* in a registration do not match the service type template for         */
@@ -235,6 +252,7 @@ typedef struct srvurl
 
 
 #if(!defined SLPHANDLE_INTERNAL)
+
 /*=========================================================================*/
 typedef void* SLPHandle;
 /*                                                                         */
@@ -244,6 +262,7 @@ typedef void* SLPHandle;
 /* the exact nature differs depending on the implementation.               */
 /*=========================================================================*/
 #endif
+
 
 
 /*=========================================================================*/

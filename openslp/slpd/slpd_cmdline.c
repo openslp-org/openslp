@@ -91,17 +91,20 @@ int SLPDParseCommandLine(int argc,char* argv[])
 
     /* Set defaults */
     memset(&G_SlpdCommandLine,0,sizeof(SLPDCommandLine));
-    strcpy(G_SlpdCommandLine.cfgfile,ETCDIR "/slp.conf");
-    strcpy(G_SlpdCommandLine.logfile,VARDIR "/log/slpd.log");
-    strcpy(G_SlpdCommandLine.regfile,ETCDIR "/slp.reg");
-    strcpy(G_SlpdCommandLine.pidfile,VARDIR "/run/slpd.pid");
-    G_SlpdCommandLine.detach = 1;
-#ifdef WIN32
+#ifndef WIN32
+    strcpy(G_SlpdCommandLine.cfgfile,SLPD_CONFFILE);
+    strcpy(G_SlpdCommandLine.logfile,SLPD_LOGFILE);
+    strcpy(G_SlpdCommandLine.regfile,SLPD_REGFILE);
+    strcpy(G_SlpdCommandLine.pidfile,SLPD_PIDFILE);
+#else
+    ExpandEnvironmentStrings(SLPD_CONFFILE,G_SlpdCommandLine.cfgfile,MAX_PATH);
+    ExpandEnvironmentStrings(SLPD_LOGFILE,G_SlpdCommandLine.cfgfile,MAX_PATH);
+    ExpandEnvironmentStrings(SLPD_REGFILE,G_SlpdCommandLine.cfgfile,MAX_PATH);
+    ExpandEnvironmentStrings(SLPD_PIDFILE,G_SlpdCommandLine.cfgfile,MAX_PATH);
     G_SlpdCommandLine.action = -1;
 #endif
 
-
-
+    G_SlpdCommandLine.detach = 1;
 
     for(i=1; i<argc; i++)
     {
@@ -158,6 +161,7 @@ int SLPDParseCommandLine(int argc,char* argv[])
 #else /* UNIX */
             printf("slpd version: %s\n", VERSION);
 #endif
+
 
             /* Show options. */
             printf("compile options:\n"

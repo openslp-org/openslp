@@ -210,19 +210,20 @@ SLPBoolean KnownDADiscoveryCallback(SLPError errorcode,
                             (*result) = (*result) + 1;
                         }
 
-                        if(msg->header.flags & SLP_FLAG_MCAST)
-                        {
-                            return 0;
-                        }
                     }
 
                     SLPFree(srvurl);
+
+                    if(msg->header.flags & SLP_FLAG_MCAST)
+                    {
+                        return 0;
+                    }
                 }
             }
             else if(msg->body.daadvert.errorcode == SLP_ERROR_INTERNAL_ERROR)
             {
                 /* SLP_ERROR_INTERNAL_ERROR is a "end of stream marker for */
-                /* loobpack IPC                                            */
+                /* looppack IPC                                            */
                 return 0;
             }
         }

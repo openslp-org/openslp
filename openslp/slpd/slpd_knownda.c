@@ -126,7 +126,7 @@ int MakeActiveDiscoveryRqst(int ismcast, SLPBuffer* buffer)
     /*length*/
     ToUINT24(result->start + 2, size);
     /*flags*/
-    ToUINT16(result->start + 5,  ismcast ? SLP_FLAG_MCAST : 0);
+    ToUINT16(result->start + 5,  (ismcast ? SLP_FLAG_MCAST : 0));
     /*ext offset*/
     ToUINT24(result->start + 7,0);
     /*xid*/
@@ -230,7 +230,7 @@ int SLPDKnownDAEntryToDAAdvert(int errorcode,
     ToUINT24(result->start + 2, size);
     /*flags*/
     ToUINT16(result->start + 5,
-             size > SLP_MAX_DATAGRAM_SIZE ? SLP_FLAG_OVERFLOW : 0);
+             (size > SLP_MAX_DATAGRAM_SIZE ? SLP_FLAG_OVERFLOW : 0));
     /*ext offset*/
     ToUINT24(result->start + 7,0);
     /*xid*/
@@ -364,7 +364,7 @@ int SLPDv1KnownDAEntryToDAAdvert(int errorcode,
     ToUINT16(result->start + 2, size);
     /*flags - TODO we have to handle monoling and all that crap */
     ToUINT16(result->start + 4,
-             size > SLP_MAX_DATAGRAM_SIZE ? SLPv1_FLAG_OVERFLOW : 0);
+             (size > SLP_MAX_DATAGRAM_SIZE ? SLPv1_FLAG_OVERFLOW : 0));
     /*dialect*/
     *(result->start + 5) = 0;
     /*language code*/
@@ -480,7 +480,7 @@ void SLPDKnownDARegisterAll(SLPDAEntry* daentry, int immortalonly)
                         ToUINT24(buf->start + 2, size);
                         /*flags*/
                         ToUINT16(buf->start + 5,
-                                 size > SLP_MAX_DATAGRAM_SIZE ? SLP_FLAG_OVERFLOW : 0);
+                                 (size > SLP_MAX_DATAGRAM_SIZE ? SLP_FLAG_OVERFLOW : 0));
                         /*ext offset*/
                         ToUINT24(buf->start + 7,0);
                         /*xid*/
@@ -598,7 +598,7 @@ void SLPDKnownDADeregisterAll(SLPDAEntry* daentry)
                     ToUINT24(buf->start + 2, size);
                     /*flags*/
                     ToUINT16(buf->start + 5,
-                             size > SLP_MAX_DATAGRAM_SIZE ? SLP_FLAG_OVERFLOW : 0);
+                             (size > SLP_MAX_DATAGRAM_SIZE ? SLP_FLAG_OVERFLOW : 0));
                     /*ext offset*/
                     ToUINT24(buf->start + 7,0);
                     /*xid*/

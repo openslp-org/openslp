@@ -6,6 +6,9 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 
+03/01/01 mpeterson@caldera.com
+Patched up the MSVC build and tested libslp.dll to make sure it works
+
 *** Tag OpenSLP 0.8.2 ***
 
 02/14/01 rganesan@myrealbox.com

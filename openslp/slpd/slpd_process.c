@@ -56,6 +56,7 @@ extern int SLPDv1ProcessMessage(struct sockaddr_in* peeraddr,
                                 int errocode);
 #endif 
 
+
 /*-------------------------------------------------------------------------*/
 int ProcessSASrvRqst(struct sockaddr_in* peeraddr,
                      SLPMessage message,
@@ -107,7 +108,7 @@ int ProcessSASrvRqst(struct sockaddr_in* peeraddr,
         ToUINT24(result->start + 2, size);
         /*flags*/
         ToUINT16(result->start + 5,
-                 size > SLP_MAX_DATAGRAM_SIZE ? SLP_FLAG_OVERFLOW : 0);
+                 (size > SLP_MAX_DATAGRAM_SIZE ? SLP_FLAG_OVERFLOW : 0));
         /*ext offset*/
         ToUINT24(result->start + 7,0);
         /*xid*/
@@ -441,7 +442,7 @@ int ProcessSrvRqst(struct sockaddr_in* peeraddr,
     ToUINT24(result->start + 2, size);
     /*flags*/
     ToUINT16(result->start + 5,
-             size > SLP_MAX_DATAGRAM_SIZE ? SLP_FLAG_OVERFLOW : 0);
+             (size > SLP_MAX_DATAGRAM_SIZE ? SLP_FLAG_OVERFLOW : 0));
     /*ext offset*/
     ToUINT24(result->start + 7,0);
     /*xid*/
@@ -839,7 +840,7 @@ int ProcessAttrRqst(struct sockaddr_in* peeraddr,
     ToUINT24(result->start + 2,size);
     /*flags*/
     ToUINT16(result->start + 5,
-             size > SLP_MAX_DATAGRAM_SIZE ? SLP_FLAG_OVERFLOW : 0);
+             (size > SLP_MAX_DATAGRAM_SIZE ? SLP_FLAG_OVERFLOW : 0));
     /*ext offset*/
     ToUINT24(result->start + 7,0);
     /*xid*/
@@ -1045,7 +1046,7 @@ int ProcessSrvTypeRqst(struct sockaddr_in* peeraddr,
     ToUINT24(result->start + 2,size);
     /*flags*/
     ToUINT16(result->start + 5,
-             size > SLP_MAX_DATAGRAM_SIZE ? SLP_FLAG_OVERFLOW : 0);
+             (size > SLP_MAX_DATAGRAM_SIZE ? SLP_FLAG_OVERFLOW : 0));
     /*ext offset*/
     ToUINT24(result->start + 7,0);
     /*xid*/
@@ -1067,7 +1068,7 @@ int ProcessSrvTypeRqst(struct sockaddr_in* peeraddr,
     result->curpos += 2;
 
     /* length of srvtype-list */
-    ToUINT16(result->curpos, size - (message->header.langtaglen + 18));
+    ToUINT16(result->curpos, (size - (message->header.langtaglen + 18)));
     result->curpos += 2;
 
     if(errorcode == 0)
@@ -1131,6 +1132,7 @@ int SLPDProcessMessage(struct sockaddr_in* peerinfo,
         return SLPDv1ProcessMessage(peerinfo, recvbuf, sendbuf,
                                     message, errorcode);
 #endif
+
 
 
 

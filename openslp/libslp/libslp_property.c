@@ -70,6 +70,16 @@ const char* SLPGetProperty(const char* pcName)
 /*          string MUST NOT be freed.                                      */
 /*=========================================================================*/
 {
+    char conffile[MAX_PATH]; 
+
+    memset(conffile,0,MAX_PATH);
+
+    #ifdef WIN32
+    ExpandEnvironmentStrings(pcName,conffile,MAX_PATH);
+    #else
+    strncpy(conffile,pcName,MAX_PATH-1);
+    #endif
+
     if(G_PropertyInit == 0)
     {
         if(SLPPropertyReadFile(LIBSLP_CONFFILE) == 0)
@@ -83,8 +93,7 @@ const char* SLPGetProperty(const char* pcName)
     }
 
     return SLPPropertyGet(pcName);
-}
-
+} 
 
 
 /*=========================================================================*/
