@@ -162,12 +162,39 @@ int SLPNetIsIPV4() {
 }
 
 int SLPNetCompareAddrs(const struct sockaddr_storage *addr1, const struct sockaddr_storage *addr2) {
-    if (memcmp(addr1, addr2, sizeof(struct sockaddr_storage)) == 0) {
-        return(1);
+    int sts = -1;
+    if (addr1->ss_family == addr2->ss_family) {
+        if (addr1->ss_family == AF_INET) {
+            struct sockaddr_in *v41 = (struct sockaddr_in *) addr1;
+            struct sockaddr_in *v42 = (struct sockaddr_in *) addr2;
+            if (v41->sin_family == v42->sin_family) {
+                if (v41->sin_port == v42->sin_port) {
+                    sts = memcmp(&v41->sin_addr, &v42->sin_addr, sizeof(v41->sin_addr));
+                }
+            }
+        }
+        else if (addr1->ss_family == AF_INET6) {
+            struct sockaddr_in6 *v61 = (struct sockaddr_in6 *) addr1;
+            struct sockaddr_in6 *v62 = (struct sockaddr_in6 *) addr2;
+            if (v61->sin6_family == v62->sin6_family) {
+                if (v61->sin6_flowinfo == v62->sin6_flowinfo) {
+                    if (v61->sin6_port == v62->sin6_port) {
+                        if (v61->sin6_scope_id == v62->sin6_scope_id) {
+                            sts = memcmp(&v61->sin6_addr, &v62->sin6_addr, sizeof(v61->sin6_addr));
+                        }
+                    }
+                }
+            }
+        }
+        else {
+            // don't know how to decode - use memcmp for now
+            sts = memcmp(addr1, addr2, sizeof(struct sockaddr_storage));
+        }
     }
     else {
-	    return(0);
+        sts = -1;
     }
+    return(sts);
 }
 
 
@@ -359,17 +386,64 @@ int main(int argc, char* argv[]) {
         SLPNetSockAddrStorageToString(&addr, addrString, sizeof(addrString));
         printf("address = %s\r\n", addrString);
     }
-/*
-    int SLPNetIsIPV6();
-    int SLPNetIsIPV4();
-    int SLPNetCompareAddrs(const struct sockaddr_storage *addr1, const struct sockaddr_storage *addr2);
-    int SLPNetIsMCast(const struct sockaddr_storage *addr);
-    int SLPNetIsLocal(const struct sockaddr_storage *addr);
-    int SLPNetSetAddr(struct sockaddr_storage *addr, const int family, const short port, const unsigned char *address, const int addrLen);
-    int SLPNetCopyAddr(struct sockaddr_storage *dst, const struct sockaddr_storage *src);
-    int SLPNetSetSockAddrStorageFromAddrInfo(struct sockaddr_storage *dst, struct addrinfo *src);
-    int SLPNetAddrInfoToString(struct addrinfo *src, char *dst, int dstLen);
-*/
+
+
+    sts = SLPPropertyReadFile("e:\\source\\Hogwarts_ActiveX\\OpenSLP\\ipv6\\win32\\slpd\\slp.conf");
+    if (sts == 0) {
+        printf("Read config file\r\n");
+    }
+    else {
+        printf("No config file found - using defaults.\r\n");
+    }
+
+
+    sts = SLPNetIsIPV6();
+    if (sts == 0) {
+        printf("Not using ipv6\r\n");
+    }
+    else {
+        printf("Using ipv6\r\n");
+    }
+    sts = SLPNetIsIPV4();
+    if (sts == 0) {
+        printf("Not using ipv4\r\n");
+    }
+    else {
+        printf("Using ipv4\r\n");
+    }
+    {
+        struct sockaddr_storage a1;
+        struct sockaddr_storage a2;
+        char testaddr[] = "1:2:3:4:5::6";
+        struct sockaddr_in *p41 = (struct sockaddr_in *) &a1;
+        struct sockaddr_in6 *p61 = (struct sockaddr_in6 *) &a1;
+        struct sockaddr_in *p42 = (struct sockaddr_in *) &a2;
+        struct sockaddr_in6 *p62 = (struct sockaddr_in6 *) &a2;
+
+        memset(&a1, 0, sizeof(a1));
+        memset(&a2, 0, sizeof(a2));
+        SLPNetSetAddr(&a1, AF_INET6, 2, testaddr, sizeof(testaddr));
+        // first test with SLPNetCopyAddr
+        SLPNetCopyAddr(&a2, &a1);
+        sts = SLPNetCompareAddrs(&a1, &a2);
+        if (sts != 0) {
+            printf("Error, address a1 does not equal a2 - copy failed\r\n");
+        }
+        memset(&a2, 0, sizeof(a2));
+        a2.ss_family = AF_INET6;
+        memcpy(p62->sin6_addr.s6_addr, testaddr, sizeof(testaddr));
+        p62->sin6_family = AF_INET6;
+        p62->sin6_port = htons(2);
+        sts = SLPNetCompareAddrs(&a1, &a2);
+        if (sts != 0) {
+            printf("Error, address a1 does not equal a2\r\n");
+        }
+    }
+
+    /*
+        int SLPNetIsMCast(const struct sockaddr_storage *addr);
+        int SLPNetIsLocal(const struct sockaddr_storage *addr);
+    */
 
     #ifdef _WIN32
     WSACleanup();
