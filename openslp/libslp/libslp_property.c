@@ -92,10 +92,9 @@ const char* SLPGetProperty(const char* pcName)
             return 0;
         }
     }
+
     result = SLPPropertyGet(pcName);
 
-    if(result && *result == 0) return 0;
-    
     return result;
 } 
 
