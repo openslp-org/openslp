@@ -6,7 +6,11 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 
-12/20/11 matt@caldera.com
+01/17/02 matt@caldera.com
+Fixed some problems with multicast route handling code in the slpd 
+startup script
+
+12/20/01 matt@caldera.com
 Moved Win2000 specific defines inside #ifdef WIN32
 
 12/14/01 matt@caldera.com
