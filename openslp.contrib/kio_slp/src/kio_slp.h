@@ -26,43 +26,43 @@ using namespace KIO;
 //===========================================================================
 extern "C" 
 { 
-   int kdemain( int argc, char **argv ); 
+    int kdemain( int argc, char **argv ); 
 }
 
 
 //===========================================================================
 class SLP_KioProtocol: public KIO::SlaveBase
 {
-   
+
 private:
     SLPHandle  m_hslp;
-   
-   
+
+
 protected:
     void handleBadUrl(const QString& srvurl);
 
     void handleError(const char* message);
-    
+
     void handleFindSrvs(const char* srvtype);
-    
+
     void handleFindSrvTypes();
-    
+
     void handleSrvUrl(const char* srvurl);
-    
+
     int parseURL(const KURL& url, QCString& result);
-    
+
     void setUDSEntry(const QString& srvurl, UDSEntry& entry);
 
 
- public:
+public:
     SLP_KioProtocol(const QCString& pool, const QCString& app);
 
     virtual ~SLP_KioProtocol();
-   
+
     void handleListEntry(const char* srvurl, bool status);
-   
+
     virtual void listDir(const KURL& url);
-    
+
     virtual void stat(const KURL& url);
 };
 
