@@ -98,7 +98,7 @@ void OutgoingDatagramRead(SLPList* socklist, SLPDSocket* sock)
 void OutgoingStreamReconnect(SLPList* socklist, SLPDSocket* sock)
 /*-------------------------------------------------------------------------*/
 {
-    if(connect(sock->fd, 
+   if(connect(sock->fd, 
                (struct sockaddr *)&(sock->peeraddr), 
                sizeof(struct sockaddr_in)) == 0)
     {
@@ -110,7 +110,7 @@ void OutgoingStreamReconnect(SLPList* socklist, SLPDSocket* sock)
 #ifdef WIN32
         if(WSAEWOULDBLOCK == WSAGetLastError())
 #else
-        if(errno == EINPROGRESS)
+        if(errno == EINPROGRESS || errno == EWOULDBLOCK)
 #endif
         {
             /* Connect would have blocked */
@@ -176,7 +176,7 @@ void OutgoingStreamRead(SLPList* socklist, SLPDSocket* sock)
 #ifdef WIN32
             if(WSAEWOULDBLOCK != WSAGetLastError())
 #else
-            if(errno != EWOULDBLOCK)
+            if(errno != EWOULDBLOCK || errno != EINPROGRESS)
 #endif
             {
                 OutgoingStreamReconnect(socklist,sock);
@@ -230,7 +230,7 @@ void OutgoingStreamRead(SLPList* socklist, SLPDSocket* sock)
 #ifdef  WIN32
             if(WSAEWOULDBLOCK != WSAGetLastError())
 #else
-            if(errno != EWOULDBLOCK)
+            if(errno != EWOULDBLOCK || errno != EINPROGRESS)
 #endif
             {
                 OutgoingStreamReconnect(socklist,sock);
@@ -293,7 +293,7 @@ void OutgoingStreamWrite(SLPList* socklist, SLPDSocket* sock)
 #ifdef WIN32
             if(WSAEWOULDBLOCK != WSAGetLastError())
 #else
-            if(errno != EWOULDBLOCK)
+            if(errno != EWOULDBLOCK || errno != EINPROGRESS)
 #endif
             {
                 /* Error occured or connection was closed. Try to reconnect */
