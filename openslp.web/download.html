@@ -2,7 +2,7 @@
 <html>
 <head>
    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-15">
-   <meta name="GENERATOR" content="Mozilla/4.72C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.2.14 i686) [Netscape]">
+   <meta name="GENERATOR" content="Mozilla/4.73C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.2.14 i686) [Netscape]">
    <title>OpenSLP - Download</title>
 </head>
 <body text="#000000" bgcolor="#FFFFFF" link="#0000EE" vlink="#551A8B" alink="#FF0000">
@@ -22,31 +22,42 @@
 
 <hr WIDTH="100%">
 <h3>
-CHANGELOG OpenSLP-0.6.6</h3>
+README 0.7.0</h3>
+OpenSLP release 0.7.0 contains significant code changes from the original
+is based on the original Caldera Systems source code snapshot from April.&nbsp;
+Additional features (such as DA support in the library and configuration
+enhancements have been added, but most of the changes to the code were
+made to tighty things up in order to (hopefully) make OpenSLP easier to
+port and maintain.
+<p>The OpenSLP library is nearly complete (about 90%) which means that
+for a few exceptions, it will change very little in the next major releases
+(0.8.x, 0.9.x and 1.0.x).&nbsp; The OpenSLP daemon, on the other hand is
+only about 60% complete.&nbsp; Look for major feature enhancement to slpd
+in the future.
+<br>&nbsp;
+<h3>
+CHANGELOG 0.7.0</h3>
 
-<ul>
 <li>
-Fixed a nasty little bug in slp_property.c that caused a segfault</li>
+Added multicast DA discover support to the library</li>
 
 <li>
-Added support for slp.net.DAAddresses to libslp.</li>
+Centralized the request reply engine for the library to libslp_network.c</li>
 
 <li>
-Added support for slp.net.isBroadcastOnly property</li>
+Added support for net.slp.multicastTimeouts, net.slp.unicastTimeout, and
+net.slp.DADiscoveryTimeouts</li>
 
 <li>
-Fixed 107022 - Seg Fault when net.slp.interfaces specified in slp.conf</li>
-
-<li>
-Fixed make files so that a make clean is done before a make install</li>
-</ul>
+Added in SLPUnescape function, and changed the documentation to reflect
+it.</li>
 
 <h3>
 Source Code</h3>
 
 <table NOSAVE >
 <tr NOSAVE>
-<td NOSAVE><a href="http://download.sourceforge.net/openslp/openslp-0.6.7.tar.gz">openslp-0.6.7.tar.gz</a></td>
+<td NOSAVE><a href="http://download.sourceforge.net/openslp/openslp-0.7.0.tar.gz">openslp-0.7.0.tar.gz</a></td>
 
 <td>
 <blockquote>OpenSLP source code tarball</blockquote>
@@ -54,7 +65,7 @@ Source Code</h3>
 </tr>
 
 <tr NOSAVE>
-<td NOSAVE><a href="ftp://openslp.org/pub/openslp/openslp-0.6.7/openslp-0.6.7-1.src.rpm">openslp-0.6.7-1.src.rpm</a></td>
+<td NOSAVE><a href="ftp://openslp.org/pub/openslp/openslp-0.7.0/openslp-0.7.0-1.src.rpm">openslp-0.7.0-1.src.rpm</a></td>
 
 <td>
 <blockquote>OpenSLP source RPM</blockquote>
@@ -67,7 +78,7 @@ Binary Packages</h3>
 
 <table NOSAVE >
 <tr NOSAVE>
-<td NOSAVE><a href="ftp://openslp.org/pub/openslp/openslp-0.6.7/openslp-0.6.7-1.i386.rpm">openslp-0.6.7-1.i386.rpm</a></td>
+<td NOSAVE><a href="ftp://openslp.org/pub/openslp/openslp-0.7.0/openslp-0.0.7.0-1.i386.rpm">openslp-0.7.0-1.i386.rpm</a></td>
 
 <td>
 <blockquote>OpenSLP binary RPM for Caldera OpenLinux (should also work
