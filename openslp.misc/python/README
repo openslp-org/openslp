@@ -1,8 +1,0 @@
-This is a simple python wrapper for OpenSLP using Greg Erwing's Pyrex
-(http://www.cosc.canterbury.ac.nz/~greg/python/Pyrex/) extension tool.
-You'll need at least Python 2.2 and Pyrex 0.5.
-
-To try it out, run "make" in the current directory. If everything goes
-well you should be able to run python and "import slp". See slptest.py
-for usage examples.
-
