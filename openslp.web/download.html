@@ -95,17 +95,42 @@ Turbo)</blockquote>
 OpenSLP 1.1.x are a develper releases of the cutting edge OpenSLP code.&nbsp;
 If you are looking for a stable release, you should download the latest
 revision of the 1.0.x series (above):
-<p>This release is very similar to the openslp-1.1.1 release except that
-all security code (now deprecated in rfc2608-bis) has been removed.&nbsp;
-Some compilation problems have been fixed and some changes have been rolled
-in from the 1.0.x tree.&nbsp; See ChangeLog for details.
+<p>OpenSLP 1.1.1 is the first release of the 1.1.x series.&nbsp; Several
+significant changes have been made that are not part of the 1.0.x releases.&nbsp;
+A list of these changes as well as a list of known issues follows:
 <br>&nbsp;
+<blockquote>Changes:
+<ul>
+<li>
+Significant changes have been made in multicasting send code.&nbsp; These
+changes are highlighted by the addition of several new files and functions
+like those found in common/slp_iface.c common/slp_xcast.c, and libslp_network.c.</li>
+
+<li>
+Several changes have been made to consolidate common code.&nbsp; Please
+notice several new files in common directory</li>
+
+<li>
+Significant changes were made to provide a PID watching feature.&nbsp;
+In OpenSLP 1.1.x slpd will watch the "PIDs" of processes that register
+via the SLPReg() API.&nbsp; If the registering process dies unexpectedly,&nbsp;&nbsp;&nbsp;&nbsp;
+slpd will automatically deregister the registered services.</li>
+</ul>
+Known Issues:
+<ul>
+<li>
+Much of the new code is not ported to platforms other than Linux.&nbsp;
+Please feel free to send patches for your OS directly to me or to the <a href="mailto:openslp-devel@sourceforge.net">openslp-devel@sourceforge.net</a>
+mailing list.</li>
+</ul>
+</blockquote>
+
 <h3>
 Source Code</h3>
 
 <table NOSAVE >
 <tr NOSAVE>
-<td NOSAVE><a href="http://prdownloads.sourceforge.net/openslp/openslp-1.1.2.tar.gz">openslp-1.1.2.tar.gz</a></td>
+<td NOSAVE><a href="http://prdownloads.sourceforge.net/openslp/openslp-1.1.1.tar.gz">openslp-1.1.1.tar.gz</a></td>
 
 <td NOSAVE>
 <blockquote>OpenSLP source code tarball</blockquote>
@@ -113,7 +138,7 @@ Source Code</h3>
 </tr>
 
 <tr NOSAVE>
-<td NOSAVE>openslp-1.1.2-1.src.rpm</td>
+<td NOSAVE>openslp-1.1.1-1.src.rpm</td>
 
 <td>
 <blockquote>OpenSLP source RPM</blockquote>
@@ -121,7 +146,7 @@ Source Code</h3>
 </tr>
 
 <tr>
-<td>openslp-contrib-1.1.2.tar.gz</td>
+<td>openslp-contrib-1.1.1.tar.gz</td>
 
 <td>
 <blockquote>Collection of SLP related utilities and tools</blockquote>
@@ -134,7 +159,7 @@ Binary Packages</h3>
 
 <table NOSAVE >
 <tr NOSAVE>
-<td NOSAVE>openslp-1.1.1-2.i386.rpm</td>
+<td NOSAVE>openslp-1.1.1-1.i386.rpm</td>
 
 <td>
 <blockquote>OpenSLP binary RPM for Linux (Caldera OpenLinux, RedHat, SUSE,
@@ -148,10 +173,6 @@ Turbo)</blockquote>
 <hr WIDTH="100%"></h3>
 &nbsp;
 <p>&nbsp;
-<br>&nbsp;
-<br>&nbsp;
-<br>&nbsp;
-<br>&nbsp;
 <br>&nbsp;
 <br>&nbsp;
 <br>&nbsp;
