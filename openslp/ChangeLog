@@ -5,8 +5,12 @@ Please make entries to this log (in addition to the CVS log) that describe
 major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
+
+
+*** Tag OpenSLP 1.0.0 ****
+
 07/18/01 matt@caldera.com
-Fixed several very minor memory leaks in slpd
+Fixed couple very minor memory leaks in slpd
 
 07/13/01 matt@caldera.com
 Fixed slp.conf parsing problem when properties are set to empty string
