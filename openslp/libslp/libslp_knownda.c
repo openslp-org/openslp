@@ -377,10 +377,13 @@ typedef struct _dhcpContext
 } dhcpContext;
 
 /* The Novell (pre-rfc2610 or draft 3) format for the DHCP TAG_SLP_DA option
-	has the 'mandatory' flag containing other bits besides simply 'mandatory'.
-	These flags are important because if the D_FLAG is set, then we know we 
-	are parsing this format, otherwise it's the newer rfc2610 final format. */
-
+   has the 'mandatory' flag containing other bits besides bit 0x01.
+   These flags are important because if the DA_NAME_PRESENT flag is set, 
+   then we know we are parsing this format, otherwise it's the newer 
+   rfc2610 format. Luckily, the specification provides for these older 
+   deployments by disallowing the use of the high bit for anything in
+   future versions, or current deployments of DHCP. 
+ */
 #define DA_NAME_PRESENT		0x80	/* DA name present in option */
 #define DA_NAME_IS_DNS		0x40	/* DA name is host name or DNS name */
 #define DISABLE_DA_MCAST	0x20	/* Multicast for DA's is disabled */
@@ -394,11 +397,11 @@ typedef struct _dhcpContext
 /*-------------------------------------------------------------------------*/
 static int dhcpInfoCallback(int tag, 
 		void *optdata, size_t optdatasz, void *context)
-/* Callback routined tests each DA discovered from DHCP and add it to the	*/
-/*	DA cache.																					*/
-/*                                                                         */
-/* Returns: 0 on success, or nonzero to stop being called.						*/
-/*-------------------------------------------------------------------------*/
+/*  Callback routined tests each DA discovered from DHCP and add it to the
+    DA cache.
+
+    Returns: 0 on success, or nonzero to stop being called.
+  -------------------------------------------------------------------------*/
 {
 	int cpysz, bufsz;
 	dhcpContext *ctxp = (dhcpContext *)context;
@@ -541,7 +544,7 @@ int KnownDADiscoverFromDHCP()
    1		4		addr[0]		first DA address
    ...
    n*4+1	4		addr[n]		nth DA address
-/*-------------------------------------------------------------------------*/
+  -------------------------------------------------------------------------*/
 {
 	int count = 0;
 	int scopelistlen;

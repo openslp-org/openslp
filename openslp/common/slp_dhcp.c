@@ -3,7 +3,7 @@
 /* Project:     OpenSLP - OpenSource implementation of Service Location    */
 /*              Protocol                                                   */
 /*                                                                         */
-/* File:		slp_dhcp.h                                                 */
+/* File:	slp_dhcp.h                                                 */
 /*                                                                         */
 /* Abstract:    Implementation for functions that are related              */
 /*              to acquiring specific dhcp parameters.                     */
@@ -19,7 +19,7 @@
 /*                                                                         */
 /* Redistribution and use in source and binary forms, with or without      */
 /* modification, are permitted provided that the following conditions are  */
-/* met:                                                                    */ 
+/* met:                                                                    */
 /*                                                                         */
 /*      Redistributions of source code must retain the above copyright     */
 /*      notice, this list of conditions and the following disclaimer.      */
@@ -60,6 +60,13 @@
 #else
 /* non-win32 platforms close sockets with 'close' */
 #define closesocket close
+#include <unistd.h>
+#include <netdb.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/ioctl.h>
+#include <net/if_arp.h>
+#include <bits/ioctls.h>
 #endif
 
 #include <stdlib.h>
@@ -258,15 +265,15 @@ static int dhcpProcessOptions(unsigned char *data, size_t datasz,
 	{
 		if(tag != TAG_PAD) 
 		{
-			if(datasz-- > 0 && (taglen = *data++) > (int)datasz) 
+			if(!datasz-- || (taglen = *data++) > (int)datasz) 
 				return -1;	/* tag length greater than total data length */
 
-			if(err = dhcpInfoCB(tag, data, taglen, context))
+			if((err = dhcpInfoCB(tag, data, taglen, context)))
 				return err;
 
 			datasz -= taglen;
 			data += taglen;
-      }
+      		}
 	}
 	return 0;	
 }
@@ -310,7 +317,7 @@ static int dhcpGetAddressInfo(unsigned char *ipaddr, unsigned char *chaddr,
 						if(strcmp(ipastr, caddrp->IpAddress.String) == 0)
 						{
 							*hlen = pcur->AddressLength;
-							*htype = pcur->Type;
+							*htype = pcur->Type; /* win32 returns iana ARP values */
 							memcpy(chaddr, pcur->Address, pcur->AddressLength);
 							break;
 						}
@@ -328,16 +335,41 @@ static int dhcpGetAddressInfo(unsigned char *ipaddr, unsigned char *chaddr,
 		FreeLibrary(hmod);
 	}
 
-#else
+#elif defined(SIOCGARP)
 
-	/* how do you get a mac address in unix? */
+	/* Query the ARP cache for our hardware address */
+	
+	int sockfd;
+	struct arpreq arpreq;
+	struct sockaddr_in *sin;
+
+	if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
+		return -1;
 
 	*hlen = 0;
+	
+	sin = (struct sockaddr_in *)&arpreq.arp_pa;
+	memset(sin, 0, sizeof(struct sockaddr_in));
+	sin->sin_family = AF_INET;
+	memcpy(&sin->sin_addr, ipaddr, sizeof(struct in_addr));
+	
+	if (ioctl(sockfd, SIOCGARP, &arpreq) >= 0 
+			&& (arpreq.arp_flags & ATF_COM))
+	{
+		*hlen = 6;	/* assume IEEE802 compatible */
+		*htype = arpreq.arp_ha.sa_family;
+		memcpy(chaddr, arpreq.arp_ha.sa_data, 6);
+	}
+	closesocket(sockfd);
+
+#else
+	/* figure out another way ... */
 
 	(void)ipaddr;
 	(void)chaddr;
-	(void)hlen;
 	(void)htype;
+
+	*hlen = 0;
 
 #endif
 
@@ -421,7 +453,7 @@ int DHCPGetOptionInfo(unsigned char *dhcpOptCodes, int dhcpOptCodeCnt,
 	unsigned char rcvbuf[512];
 	struct hostent *hep;
 	unsigned char *p;
-	size_t rcvbufsz;
+	size_t rcvbufsz = 0;
 	char host[256];
 
 	/* Get our IP and MAC addresses */
@@ -513,6 +545,13 @@ int DHCPGetOptionInfo(unsigned char *dhcpOptCodes, int dhcpOptCodeCnt,
 		tv.tv_usec %= USECS_PER_SEC;
 	}
 	closesocket(sockfd);
-	return dhcpProcessOptions(rcvbuf + 236, rcvbufsz - 236, 
-			dhcpInfoCB, context);
+	return rcvbufsz? dhcpProcessOptions(rcvbuf + 236, rcvbufsz - 236, 
+			dhcpInfoCB, context): -1;
 }
+
+
+
+
+
+
+

@@ -23,6 +23,7 @@ libcommonlibslp_la_SOURCES = \
 	slp_iface.c \
 	slp_parse.c \
 	slp_pid.c \
+	slp_dhcp.c \
 	$(slp_v1message_SRCS) \
 	$(slp_security_SRCS)
 
@@ -67,6 +68,7 @@ noinst_HEADERS = \
 	slp_iface.h \
 	slp_parse.h \
 	slp_net.h \
-	slp_pid.h
+	slp_pid.h \
+	slp_dhcp.h
 	
 AM_YFLAGS = -d
