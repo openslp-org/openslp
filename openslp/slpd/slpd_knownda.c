@@ -1069,6 +1069,7 @@ void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead)
             }
             else
             {
+                G_SlpdProperty.DATimestamp += 1;
                 daentry.bootstamp = G_SlpdProperty.DATimestamp;
             }
 

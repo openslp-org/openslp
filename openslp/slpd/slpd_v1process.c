@@ -68,6 +68,7 @@ int v1ProcessDASrvRqst(struct sockaddr_in* peeraddr,
                               G_SlpdProperty.useScopes))
     {
         /* fill out real structure */
+        G_SlpdProperty.DATimestamp += 1;
         daentry.bootstamp = G_SlpdProperty.DATimestamp;
         daentry.langtaglen = G_SlpdProperty.localeLen;
         daentry.langtag = (char*)G_SlpdProperty.locale;
