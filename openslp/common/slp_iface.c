@@ -229,6 +229,10 @@ int SLPIfaceGetInfo(const char* useifaces,
 	#endif
 	#if defined (_WIN32) 
 	/* Windows implementation */
+
+//#define IPV6_WINXP
+		#ifdef IPV6_WINXP
+	/* this implementation is better than the generic windows implementation but is supported under XP only */
     char hostName[MAX_HOST_NAME];
     int sts = 0;
     int useifacesLen;
@@ -284,6 +288,127 @@ int SLPIfaceGetInfo(const char* useifaces,
         networkInterface = networkInterface->Next;
     }
     return(sts);
+		#else
+#define MAX_INTERFACE_TEST_INDEX 255
+    int             useifaceslen;
+    int             sts = 0;
+    struct addrinfo *hostnames = NULL;
+    struct addrinfo *currenthost = NULL;
+	char myhostname[256];
+	ADDRINFO hints;
+	unsigned int i;
+
+    /* first try ipv6 addrs */
+    ifaceinfo->iface_count = 0;
+    ifaceinfo->bcast_count = 0;
+	if (SLPNetIsIPV6() && (family == AF_INET6)) {
+		SLPNetGetThisHostname(myhostname, sizeof(myhostname), FALSE, AF_INET6);
+
+	    memset(&hints, 0, sizeof(hints));
+		hints.ai_family = family;
+
+
+		getaddrinfo(myhostname, 0, &hints, &hostnames);
+//		getaddrinfo(NULL, "5699", &hints, &hostnames);
+		if(hostnames != 0) {
+			if(useifaces && *useifaces)
+			{
+				useifaceslen = strlen(useifaces);
+			}
+			else
+			{
+				useifaceslen = 0;
+			}
+
+			currenthost = hostnames;
+			/* count the interfaces */
+			while(currenthost != NULL) {
+				char ifaddrs[MAX_HOST_NAME];
+				SLPNetAddrInfoToString(currenthost, ifaddrs, sizeof(ifaddrs));
+				if(useifaceslen == 0 ||
+				   SLPContainsStringList(useifaceslen,
+											 useifaces,
+											 strlen(ifaddrs),
+											 ifaddrs))
+				{
+					// doesn't work  if (currenthost->ai_socktype == SOCK_STREAM) {
+					if (currenthost->ai_family == AF_INET6) {
+						if ( (SLPNetIsLoopback((struct sockaddr_storage *) currenthost->ai_addr) == 0) && (SLPNetIsLocal((struct sockaddr_storage *) currenthost->ai_addr) == 0) ) {
+							SOCKET fd;
+							/* try and bind to verify the address is okay */
+						    fd = socket(currenthost->ai_family, SOCK_STREAM, IPPROTO_TCP);
+							if(fd != -1) {
+								for (i = 0; i < MAX_INTERFACE_TEST_INDEX; i++) {
+									/* a hack of all hacks - the stupid getaddrinfo call does not correctly set
+									   the scope id - try all and see if one works */
+									struct sockaddr_in6 *indexHack = (struct sockaddr_in6 *) currenthost->ai_addr;
+									indexHack->sin6_scope_id = i;
+									sts = bind(fd, currenthost->ai_addr, currenthost->ai_addrlen);
+									if (sts == 0) {
+										memcpy(&ifaceinfo->iface_addr[ifaceinfo->iface_count], currenthost->ai_addr, min(sizeof(ifaceinfo->iface_addr[ifaceinfo->iface_count]), currenthost->ai_addrlen));
+										ifaceinfo->iface_count++;
+										break;
+									}
+								}
+								closesocket(fd);
+							}
+						}
+					}
+				}
+				currenthost = currenthost->ai_next;
+			}
+			freeaddrinfo(hostnames);
+		}
+	}
+	if (SLPNetIsIPV4() && (family == AF_INET)) {
+		SLPNetGetThisHostname(myhostname, sizeof(myhostname), FALSE, AF_INET);
+		getaddrinfo(myhostname, 0, NULL, &hostnames);
+		if(hostnames != 0) {
+			if(useifaces && *useifaces)
+			{
+				useifaceslen = strlen(useifaces);
+			}
+			else
+			{
+				useifaceslen = 0;
+			}
+
+			currenthost = hostnames;
+			/* count the interfaces */
+			while(currenthost != NULL) {
+				char ifaddrs[MAX_HOST_NAME];
+				SLPNetAddrInfoToString(currenthost, ifaddrs, sizeof(ifaddrs));
+				if(useifaceslen == 0 ||
+				   SLPContainsStringList(useifaceslen,
+											 useifaces,
+											 strlen(ifaddrs),
+											 ifaddrs))
+				{
+					// doesn't work  if (currenthost->ai_socktype == SOCK_STREAM) {
+					if (currenthost->ai_family == AF_INET) {
+						if ( (SLPNetIsLoopback((struct sockaddr_storage *) currenthost->ai_addr) == 0) && (SLPNetIsLocal((struct sockaddr_storage *) currenthost->ai_addr) == 0) ) {
+							SOCKET fd;
+							/* try and bind to verify the address is okay */
+						    fd = socket(AF_INET,SOCK_STREAM,0);
+							if(fd != -1) {
+								if (bind(fd, currenthost->ai_addr, sizeof(struct sockaddr_storage)) == 0) {
+									memcpy(&ifaceinfo->iface_addr[ifaceinfo->iface_count], currenthost->ai_addr, min(sizeof(ifaceinfo->iface_addr[ifaceinfo->iface_count]), currenthost->ai_addrlen));
+									ifaceinfo->iface_count++;
+									memcpy(&ifaceinfo->bcast_addr[ifaceinfo->bcast_count], currenthost->ai_addr, min(sizeof(ifaceinfo->bcast_addr[ifaceinfo->bcast_count]), currenthost->ai_addrlen));
+									ifaceinfo->bcast_count++;
+								}
+								closesocket(fd);
+							}
+						}
+					}
+				}
+				currenthost = currenthost->ai_next;
+			}
+			freeaddrinfo(hostnames);
+		}
+    }
+    return(sts);
+        #endif
 	#endif /* end of windows implementations */
 }
 /*=========================================================================*/

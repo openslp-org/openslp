@@ -65,7 +65,7 @@ int NetworkConnectToSlpd(struct sockaddr_storage* peeraddr)
     int sock = -1;
 
 	if (SLPNetIsIPV6()) {
-		if (SLPNetSetAddr(peeraddr, AF_INET6, SLP_RESERVED_PORT, (unsigned char *)&in6addr_loopback, sizeof(struct in6_addr)) == 0)
+		if (SLPNetSetAddr(peeraddr, AF_INET6, SLP_RESERVED_PORT, (unsigned char *)&slp_in6addr_loopback, sizeof(struct in6_addr)) == 0)
 			sock = SLPNetworkConnectStream(peeraddr,NULL);
 	}
 	if (sock < 0 && SLPNetIsIPV4()) {

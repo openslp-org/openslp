@@ -587,7 +587,7 @@ int SLPDIncomingInit()
     lo6addr.ss_family = AF_INET6;
     ((struct sockaddr_in6*) &lo6addr)->sin6_family = AF_INET6;
     ((struct sockaddr_in6*) &lo6addr)->sin6_scope_id = 0;
-    memcpy(&(((struct sockaddr_in6*) &lo6addr)->sin6_addr), &in6addr_loopback, sizeof(struct in6_addr));
+    memcpy(&(((struct sockaddr_in6*) &lo6addr)->sin6_addr), &slp_in6addr_loopback, sizeof(struct in6_addr));
     srvloc6addr_node.ss_family = AF_INET6;
     ((struct sockaddr_in6*) &srvloc6addr_node)->sin6_family = AF_INET6;
     ((struct sockaddr_in6*) &lo6addr)->sin6_scope_id = 0;

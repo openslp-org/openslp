@@ -68,6 +68,9 @@ const struct in6_addr in6addr_service_node_mask = {{{ 0xFF,0x1,0x0,0x0,0x0,0x0,0
 const struct in6_addr in6addr_service_link_mask = {{{ 0xFF,0x2,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x1,0x10,0x00 }}};
 const struct in6_addr in6addr_service_site_mask = {{{ 0xFF,0x5,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x1,0x10,0x00 }}};
 
+const struct in6_addr slp_in6addr_any = SLP_IN6ADDR_ANY_INIT;
+const struct in6_addr slp_in6addr_loopback = SLP_IN6ADDR_LOOPBACK_INIT;
+
 // return 1 if successful, 0 if fails, and -1 if a:f argument is unknown
 int resolveHost(int af, const char *src, void *dst) {
     int sts = 0;
@@ -129,6 +132,57 @@ int resolveHost(int af, const char *src, void *dst) {
     return(sts);
 }
 
+
+int SLPNetGetThisHostname(char* hostfdn, unsigned int hostfdnLen, int numeric_only, int family)
+/* 
+ * Description:
+ *    Returns a string represting this host (the FDN) or null.                                                     
+ *
+ * Parameters:
+ *    hostfdn   (OUT) pointer to char pointer that is set to buffer 
+ *                    contining this machine's FDN.  Caller must free
+ *                    returned string with call to xfree()
+ *    numeric_only (IN) force return of numeric address.  
+ *
+ *     family    (IN) Hint family to get info for - can be AF_INET, AF_INET6, 
+ *                    or AF_UNSPEC for both
+ *     
+ *-------------------------------------------------------------------------*/
+{
+    char host[MAX_HOST_NAME];
+    struct addrinfo *ifaddr;
+    struct addrinfo hints;
+    int sts = 0;
+
+    *hostfdn = 0;
+
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_family = family;
+    if(gethostname(host, MAX_HOST_NAME) == 0)
+    {
+        sts = getaddrinfo(host, NULL, &hints, &ifaddr);
+        if (sts == 0) {
+            /* if the hostname has a '.' then it is probably a qualified 
+             * domain name.  If it is not then we better use the IP address
+            */ 
+            if(!numeric_only && strchr(host, '.'))
+            {
+                 strncpy(hostfdn, host, hostfdnLen);
+            }
+            else
+            {   
+                sts = SLPNetAddrInfoToString(ifaddr,  hostfdn, hostfdnLen);
+            }
+            freeaddrinfo(ifaddr);
+        }
+        else {
+            assert(1);
+        }
+    }
+
+    return(sts);
+}
 
 
 /*-------------------------------------------------------------------------*/
@@ -283,6 +337,11 @@ int SLPNetIsLocal(const struct sockaddr_storage *addr) {
 	return(sts);
 }
 
+int SLP_IN6_IS_ADDR_LOOPBACK(const struct in6_addr *a)
+{
+    return IN6_ADDR_EQUAL(a, &slp_in6addr_loopback);
+}
+
 int SLPNetIsLoopback(const struct sockaddr_storage *addr) {
     int sts = 0;
     if (addr->ss_family == AF_INET) {
@@ -296,7 +355,7 @@ int SLPNetIsLoopback(const struct sockaddr_storage *addr) {
     }
     else if (addr->ss_family == AF_INET6) {
         struct sockaddr_in6 *v6 = (struct sockaddr_in6 *) addr;
-        sts = IN6_IS_ADDR_LOOPBACK(&v6->sin6_addr);
+        sts = SLP_IN6_IS_ADDR_LOOPBACK(&v6->sin6_addr);
     }
 	return(sts);
 }
@@ -325,7 +384,7 @@ int setScopeFromAddress(const unsigned char *v6Addr) {
     if (IN6_IS_ADDR_SITELOCAL((const struct in6_addr *)v6Addr)) {
         return(SLP_SCOPE_SITE_LOCAL);
     }
-    if (IN6_IS_ADDR_LOOPBACK((const struct in6_addr *)v6Addr)) {
+    if (SLP_IN6_IS_ADDR_LOOPBACK((const struct in6_addr *)v6Addr)) {
         return(SLP_SCOPE_NODE_LOCAL);
     }
     if (IN6_IS_ADDR_LINKLOCAL((const struct in6_addr *)v6Addr)) {
@@ -355,7 +414,7 @@ int SLPNetSetAddr(struct sockaddr_storage *addr, const int family, const short p
         v6->sin6_port = htons(port);
         v6->sin6_scope_id = 0;
         if (address == NULL) {
-            memcpy(&v6->sin6_addr, &in6addr_any, sizeof(struct in6_addr));
+            memcpy(&v6->sin6_addr, &slp_in6addr_any, sizeof(struct in6_addr));
 		}
         else {
             memcpy(&v6->sin6_addr, address, min(addrLen, sizeof(v6->sin6_addr)));

@@ -278,7 +278,7 @@ int BindSocketToInetAddr(int family, int sock, struct sockaddr_storage* addr)
             addr = &temp_addr;
             addr->ss_family = AF_INET6;
             ((struct sockaddr_in6*) addr)->sin6_scope_id = 0;
-            memcpy(&(((struct sockaddr_in6*) addr)->sin6_addr), &in6addr_any, sizeof(struct in6_addr));
+            memcpy(&(((struct sockaddr_in6*) addr)->sin6_addr), &slp_in6addr_any, sizeof(struct in6_addr));
         }
         ((struct sockaddr_in6*) addr)->sin6_port = htons(SLP_RESERVED_PORT);
     }
@@ -325,7 +325,7 @@ int BindSocketToLoopback(int family, int sock)
     else if (SLPNetIsIPV6() && family == AF_INET6)
     {
         ((struct sockaddr_in6*) &loaddr)->sin6_family = AF_INET6;
-        memcpy(&(((struct sockaddr_in6*) &loaddr)->sin6_addr), &in6addr_loopback, sizeof(struct in6_addr));
+        memcpy(&(((struct sockaddr_in6*) &loaddr)->sin6_addr), &slp_in6addr_loopback, sizeof(struct in6_addr));
         ((struct sockaddr_in6*) &loaddr)->sin6_scope_id = 0;
         return BindSocketToInetAddr(AF_INET6, sock,&loaddr);
     }

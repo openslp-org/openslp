@@ -98,6 +98,12 @@ extern const struct in6_addr in6addr_service_node_mask;
 extern const struct in6_addr in6addr_service_link_mask;
 /* extern const struct in6_addr in6addr_service_site_mask; */
 
+#define SLP_IN6ADDR_ANY_INIT        { 0 }
+#define SLP_IN6ADDR_LOOPBACK_INIT   { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1 }
+
+extern const struct in6_addr slp_in6addr_any;
+extern const struct in6_addr slp_in6addr_loopback;
+
 /* Scope definitions */
 #define SLP_SCOPE_NODE_LOCAL                0x01
 #define SLP_SCOPE_LINK_LOCAL                0x02
@@ -105,7 +111,21 @@ extern const struct in6_addr in6addr_service_link_mask;
 #define SLP_SCOPE_ORG_LOCAL                 0x04
 #define SLP_SCOPE_GLOBAL                    0x05
 
-/*-------------------------------------------------------------------------*/
+int SLPNetGetThisHostname(char* hostfdn, unsigned int hostfdnLen, int numeric_only, int family);
+/* 
+ * Description:
+ *    Returns a string represting this host (the FDN) or null.                                                     
+ *
+ * Parameters:
+ *    hostfdn   (OUT) pointer to char pointer that is set to buffer 
+ *                    contining this machine's FDN.  Caller must free
+ *                    returned string with call to xfree()
+ *    numeric_only (IN) force return of numeric address.  
+ *
+ *     family    (IN) Hint family to get info for - can be AF_INET, AF_INET6, 
+ *                    or AF_UNSPEC for both
+ *-------------------------------------------------------------------------*/
+
 int SLPNetResolveHostToAddr(const char* host,
                             struct sockaddr_storage* addr);
 /*

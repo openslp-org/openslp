@@ -214,7 +214,7 @@ int SetDefaultValues()
     result |= SLPPropertySet("net.slp.OpenSLPVersion", VERSION);
 #endif
     result |= SLPPropertySet("net.slp.useIPV4", "true");
-    result |= SLPPropertySet("net.slp.useIPV6", "false");
+    result |= SLPPropertySet("net.slp.useIPV6", "true");
 
     return result;
 }

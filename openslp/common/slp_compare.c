@@ -49,7 +49,7 @@
 
 #include <string.h>
 #include <ctype.h>
-
+ 
 #include "slp_compare.h"
 #include "slp_net.h"
 #include "slp_iface.h"
