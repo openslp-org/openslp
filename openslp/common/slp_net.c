@@ -409,7 +409,9 @@ int handlePreArea(char *start, char *result) {
 
     end = strstr(start, "::");
     if (end == NULL) {
-        end = start + strlen(start);
+		end = strchr(start,',');
+		if (end == NULL)
+			end = start + strlen(start);
     }
 
     if ((start == NULL) || end == NULL) {
