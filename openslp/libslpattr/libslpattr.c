@@ -172,6 +172,14 @@ char *find_value_end(char *value) {
 int count_digits(long number) {
 	int count = 0;
 
+	/***** As far as I recall, log is undefined at one... *****/
+	if (number == 1) {
+		return 1;
+	}
+	if (number == -1) {
+		return 2;
+	}
+	
 	/***** Does it require a negative sign? *****/
 	if (number < 0) {
 		count += 1;
@@ -885,6 +893,7 @@ SLPError SLPAttrSet_int(
 	/**** Set ****/
 	value->data.va_int = val;
 	value->escaped_len = count_digits(value->data.va_int);
+	assert(value->escaped_len > 0);
 
 	return generic_set_val(slp_attr, tag, value, policy, SLP_INTEGER);
 }
@@ -1961,8 +1970,6 @@ void SLPAttrIteratorFree(SLPAttrIterator iter_h) {
 	free(iter->tags);
 	
 	free(iter); 
-	
-	return SLP_OK;
 }
 
 
