@@ -61,8 +61,8 @@
 /*=========================================================================*/
 /* common code includes                                                    */
 /*=========================================================================*/
-#include "../common/slp_xmalloc.h"
-#include "../common/slp_message.h"
+#include "slp_xmalloc.h"
+#include "slp_message.h"
 
 
 /*=========================================================================*/
@@ -169,7 +169,7 @@ void IncomingStreamWrite(SLPList* socklist, SLPDSocket* sock)
 void IncomingStreamRead(SLPList* socklist, SLPDSocket* sock)
 /*-------------------------------------------------------------------------*/
 {
-    int     bytesread;
+    int     bytesread, recvlen = 0;
     char    peek[16];
     int     peeraddrlen = sizeof(struct sockaddr_in);
 
@@ -187,8 +187,12 @@ void IncomingStreamRead(SLPList* socklist, SLPDSocket* sock)
         if(bytesread > 0)
         {
 
+	    if (*peek == 2)	
+		recvlen = AsUINT24(peek + 2);
+	    else if (*peek == 1) /* SLPv1 packet */
+		recvlen = AsUINT16(peek + 2);
              /* allocate the recvbuf big enough for the whole message */
-            sock->recvbuf = SLPBufferRealloc(sock->recvbuf,AsUINT24(peek+2));
+            sock->recvbuf = SLPBufferRealloc(sock->recvbuf,recvlen);
             if(sock->recvbuf)
             {
                 sock->state = STREAM_READ; 
@@ -513,7 +517,11 @@ int SLPDIncomingInit()
             SLPListLinkTail(&G_IncomingSocketList,(SLPListItem*)sock);
             SLPDLog("Multicast socket on %s ready\n",inet_ntoa(myaddr));
         }
-
+	else
+	{
+	    SLPDLog("Couldn't bind to multicast for interface %s (%s)\n",
+		    inet_ntoa(myaddr), strerror(errno));
+	}
 
 #if defined(ENABLE_SLPv1)
         if(G_SlpdProperty.isDA)
@@ -530,7 +538,7 @@ int SLPDIncomingInit()
             {
                 SLPListLinkTail(&G_IncomingSocketList,(SLPListItem*)sock);
                 SLPDLog("SLPv1 DA Discovery Multicast socket on %s ready\n",
-                       inet_ntoa(myaddr));
+			inet_ntoa(myaddr));
             }
         }
 #endif

@@ -60,10 +60,13 @@
 /*=========================================================================*/
 /* common code includes                                                    */
 /*=========================================================================*/
-#include "../common/slp_message.h"
-#include "../common/slp_v1message.h"
-#include "../common/slp_utf8.h"
-#include "../common/slp_compare.h"
+#include "slp_xmalloc.h"
+#include "slp_message.h"
+#include "slp_v1message.h"
+#include "slp_utf8.h"
+#include "slp_compare.h"
+
+#include <limits.h>
 
 
 /*-------------------------------------------------------------------------*/
@@ -186,11 +189,11 @@ int v1ProcessSrvRqst(struct sockaddr_in* peeraddr,
     /*-------------------------------------------------------------*/
     /* ensure the buffer is big enough to handle the whole srvrply */
     /*-------------------------------------------------------------*/
-    size = 16; /* 12 bytes for header,  2 bytes for error code,   2
-                  bytes for url count */
+    size = 16; /* 12 bytes for header, 2 bytes for error code, 2 bytes
+		  for url count */ 
     if(errorcode == 0)
     {
-        for(i=0;i<db->urlcount;i++)
+        for(i = 0; i < db->urlcount; i++)
         {
             urllen = INT_MAX;
             errorcode = SLPv1ToEncoding(0, 
@@ -200,8 +203,7 @@ int v1ProcessSrvRqst(struct sockaddr_in* peeraddr,
                                         db->urlarray[i]->urllen);
             if(errorcode)
                 break;
-            size += urllen + 4; /* 2 bytes for lifetime,
-                   2 bytes for urllen */
+            size += urllen + 4; /* 2 bytes for lifetime, 2 bytes for urllen */ 
         } 
         result = SLPBufferRealloc(result,size);
         if(result == 0)
@@ -221,7 +223,7 @@ int v1ProcessSrvRqst(struct sockaddr_in* peeraddr,
     ToUINT16(result->start + 2, size);
     /*flags - TODO set the flags correctly */
     *(result->start + 4) = message->header.flags |
-                           (size > SLP_MAX_DATAGRAM_SIZE ? SLPv1_FLAG_OVERFLOW : 0);  
+	(size > SLP_MAX_DATAGRAM_SIZE ? SLPv1_FLAG_OVERFLOW : 0);  
     /*dialect*/
     *(result->start + 5) = 0;
     /*language code*/
@@ -237,26 +239,32 @@ int v1ProcessSrvRqst(struct sockaddr_in* peeraddr,
     /* error code*/
     ToUINT16(result->curpos, errorcode);
     result->curpos = result->curpos + 2;
-    if(errorcode)
+    if (errorcode == 0)
     {
-        /* urlentry count */
-        ToUINT16(result->curpos, db->urlcount);
-        result->curpos = result->curpos + 2;
-        for(i=0;i<db->urlcount;i++)
-        {
-            /* url-entry lifetime */
-            ToUINT16(result->curpos, db->urlarray[i]->lifetime);
-            result->curpos = result->curpos + 2;
-            /* url-entry url and urllen */
-            urllen = size;      
-            errorcode = SLPv1ToEncoding(result->curpos + 2, 
-                                        &urllen,
-                                        message->header.encoding,  
-                                        db->urlarray[i]->url,
-                                        db->urlarray[i]->urllen);
-            ToUINT16(result->curpos, urllen);
-            result->curpos = result->curpos + 2 + urllen;
-        }
+	/* urlentry count */
+	ToUINT16(result->curpos, db->urlcount);
+	result->curpos = result->curpos + 2;
+	for(i = 0; i < db->urlcount; i++)
+	{
+	    /* url-entry lifetime */
+	    ToUINT16(result->curpos, db->urlarray[i]->lifetime);
+	    result->curpos = result->curpos + 2;
+	    /* url-entry url and urllen */
+	    urllen = size;      
+	    errorcode = SLPv1ToEncoding(result->curpos + 2, 
+					&urllen,
+					message->header.encoding,  
+					db->urlarray[i]->url,
+					db->urlarray[i]->urllen);
+	    ToUINT16(result->curpos, urllen);
+	    result->curpos = result->curpos + 2 + urllen;
+	}
+    }
+    else
+    {
+	/* urlentry count */
+	ToUINT16(result->curpos, 0);
+	result->curpos = result->curpos + 2;
     }
 
     FINISHED:   
@@ -782,15 +790,11 @@ int SLPDv1ProcessMessage(struct sockaddr_in* peeraddr,
                          SLPBuffer* sendbuf)
 /* Processes the SLPv1 message and places the results in sendbuf           */
 /*                                                                         */
-/* recvfd   - the socket the message was received on                       */
+/* peeraddr - the socket the message was received on                       */
 /*                                                                         */
 /* recvbuf  - message to process                                           */
 /*                                                                         */
 /* sendbuf  - results of the processed message                             */
-/*                                                                         */
-/* message  - the parsed message from recvbuf                              */
-/*                                                                         */
-/* errorcode - error code from parsing the SLPv1 packet                    */
 /*                                                                         */
 /* Returns  - zero on success SLP_ERROR_PARSE_ERROR or                     */
 /*            SLP_ERROR_INTERNAL_ERROR on ENOMEM.                          */
@@ -809,95 +813,96 @@ int SLPDv1ProcessMessage(struct sockaddr_in* peeraddr,
     /* Parse just the message header the reset the buffer "curpos" pointer */
     recvbuf->curpos = recvbuf->start;
     errorcode = SLPv1MessageParseHeader(recvbuf, &header);
-    if(errorcode)
+    
+    /* TRICKY: Duplicate SRVREG recvbufs *before* parsing them   */
+    /*         it because we are going to keep them in the       */
+    if(header.functionid == SLP_FUNCT_SRVREG)
     {
-        /* TRICKY: Duplicate SRVREG recvbufs *before* parsing them   */
-        /*         it because we are going to keep them in the       */
-        if(header.functionid == SLP_FUNCT_SRVREG )
-        {
-            recvbuf = SLPBufferDup(recvbuf);
-            if(recvbuf == NULL)
-            {
-                return SLP_ERROR_INTERNAL_ERROR;
-            }
-        }
+	recvbuf = SLPBufferDup(recvbuf);
+	if(recvbuf == NULL)
+	{
+	    return SLP_ERROR_INTERNAL_ERROR;
+	}
+    }
 
-        /* Allocate the message descriptor */
-        message = SLPMessageAlloc();
-        if(message)
-        {
-            /* Parse the message and fill out the message descriptor */
-            errorcode = SLPv1MessageParseBuffer(peeraddr,recvbuf, message);
-            if(errorcode == 0)
-            {
-                /* Process messages based on type */
-                switch(message->header.functionid)
-                {
-                case SLP_FUNCT_SRVRQST:
-                    errorcode = v1ProcessSrvRqst(peeraddr, message, sendbuf, errorcode);
-                    break;
+    /* Allocate the message descriptor */
+    message = SLPMessageAlloc();
+    if(message)
+    {
+	/* Parse the message and fill out the message descriptor */
+	errorcode = SLPv1MessageParseBuffer(peeraddr,recvbuf, message);
+	if(errorcode == 0)
+	{
+	    /* Process messages based on type */
+	    switch(message->header.functionid)
+	    {
+	    case SLP_FUNCT_SRVRQST:
+		errorcode = v1ProcessSrvRqst(peeraddr, message, sendbuf, errorcode);
+		break;
             
-                case SLP_FUNCT_SRVREG:
-                    errorcode = v1ProcessSrvReg(peeraddr,
-                                                message,
-                                                recvbuf,
-                                                sendbuf,
-                                                errorcode);
-                    if(errorcode == 0)
-                    {
-                        SLPDLogRegistration("Service (SLPv1) registration",message);
-                    }
-                    break;
+	    case SLP_FUNCT_SRVREG:
+		errorcode = v1ProcessSrvReg(peeraddr,
+					    message,
+					    recvbuf,
+					    sendbuf,
+					    errorcode);
+		if(errorcode == 0)
+		{
+		    SLPDKnownDAEcho(message, recvbuf);
+		    SLPDLogRegistration("Service (SLPv1) registration",message);
+		}
+		break;
             
-                case SLP_FUNCT_SRVDEREG:
-                    errorcode = v1ProcessSrvDeReg(peeraddr, message, sendbuf, errorcode);
-                    if(errorcode == 0)
-                    {
-                        SLPDLogRegistration("Service (SLPv1) Deregistration",message);
-                    } 
-                    break;
+	    case SLP_FUNCT_SRVDEREG:
+		errorcode = v1ProcessSrvDeReg(peeraddr, message, sendbuf, errorcode);
+		if(errorcode == 0)
+		{
+		    SLPDKnownDAEcho(message, recvbuf);
+		    SLPDLogRegistration("Service (SLPv1) Deregistration",message);
+		} 
+		break;
             
-                case SLP_FUNCT_ATTRRQST:
-                    errorcode = v1ProcessAttrRqst(peeraddr, message, sendbuf, errorcode);
-                    break;
+	    case SLP_FUNCT_ATTRRQST:
+		errorcode = v1ProcessAttrRqst(peeraddr, message, sendbuf, errorcode);
+		break;
             
-                case SLP_FUNCT_SRVTYPERQST:
-                    errorcode = v1ProcessSrvTypeRqst(peeraddr, message, sendbuf, errorcode);
-                    break;
+	    case SLP_FUNCT_SRVTYPERQST:
+		errorcode = v1ProcessSrvTypeRqst(peeraddr, message, sendbuf, errorcode);
+		break;
             
-                case SLP_FUNCT_DAADVERT:
-                    /* we are a SLPv2 DA, ignore other DAs */
-                    (*sendbuf)->end = (*sendbuf)->start;
-                    break;
+	    case SLP_FUNCT_DAADVERT:
+		/* we are a SLPv2 DA, ignore other v1 DAs */
+		(*sendbuf)->end = (*sendbuf)->start;
+		SLPDLogDAAdvertisement("SLPv1 DA Advertisement", message);
+		break;
             
-                default:
-                    /* Should never happen... but we're paranoid */
-                    errorcode = SLP_ERROR_PARSE_ERROR;
-                    break;
-                }   
-            }
-        }
+	    default:
+		/* Should never happen... but we're paranoid */
+		errorcode = SLP_ERROR_PARSE_ERROR;
+		break;
+	    }   
+	}
 
-        if(header.functionid == SLP_FUNCT_SRVREG)
-        {
-            /* TRICKY: Do not free the message descriptor for SRVREGs */
-            /*         because we are keeping them in the database    */
-            /*         unless there is an error then we free memory   */
-            if(errorcode)
-            {
-                SLPMessageFree(message);
-                SLPBufferFree(recvbuf);
-            }
-        }
-        else
-        {
-            SLPMessageFree(message);
-        }                           
+	if(header.functionid == SLP_FUNCT_SRVREG)
+	{
+	    /* TRICKY: Do not free the message descriptor for SRVREGs */
+	    /*         because we are keeping them in the database    */
+	    /*         unless there is an error then we free memory   */
+	    if(errorcode)
+	    {
+		SLPMessageFree(message);
+		SLPBufferFree(recvbuf);
+	    }
+	}
+	else
+	{
+	    SLPMessageFree(message);
+	}
     }
     else
     {
-        /* out of memory */
-        errorcode = SLP_ERROR_INTERNAL_ERROR;
+	/* out of memory */
+	errorcode = SLP_ERROR_INTERNAL_ERROR;
     }
 
     return errorcode;

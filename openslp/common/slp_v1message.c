@@ -60,6 +60,9 @@ int SLPv1MessageParseHeader(SLPBuffer buffer, SLPHeader* header)
 /*            SLP_ERROR_PARSE_ERROR.                                       */
 /*=========================================================================*/
 {
+    header->version     = *(buffer->curpos);
+    header->functionid  = *(buffer->curpos + 1);
+	
     header->length      = AsUINT16(buffer->curpos + 2);
     header->flags       = *(buffer->curpos + 4);
     header->encoding    = AsUINT16(buffer->curpos + 8);
@@ -111,12 +114,10 @@ int v1ParseUrlEntry(SLPBuffer buffer, SLPHeader* header, SLPUrlEntry* urlentry)
     int result;
 
     /* make sure that min size is met */
-#if(defined(PARANOID) || defined(DEBUG))
     if(buffer->end - buffer->curpos < 6)
     {
         return SLP_ERROR_PARSE_ERROR;
     }
-#endif
 
     /* no reserved stuff for SLPv1 */
     urlentry->reserved = 0;
@@ -128,12 +129,10 @@ int v1ParseUrlEntry(SLPBuffer buffer, SLPHeader* header, SLPUrlEntry* urlentry)
     /* parse out url */
     urlentry->urllen = AsUINT16(buffer->curpos);
     buffer->curpos = buffer->curpos + 2;
-#if(defined(PARANOID) || defined(DEBUG))
     if(urlentry->urllen > buffer->end - buffer->curpos)
     {
         return SLP_ERROR_PARSE_ERROR;
     }
-#endif
 
     urlentry->url = buffer->curpos;
     buffer->curpos = buffer->curpos + urlentry->urllen;
@@ -161,22 +160,19 @@ int v1ParseSrvRqst(SLPBuffer buffer, SLPHeader* header, SLPSrvRqst* srvrqst)
     int result;
 
     /* make sure that min size is met */
-#if(defined(PARANOID) || defined(DEBUG))
     if(buffer->end - buffer->curpos < 10)
     {
         return SLP_ERROR_PARSE_ERROR;
     }
-#endif
 
     /* parse the prlist */
     srvrqst->prlistlen = AsUINT16(buffer->curpos);
     buffer->curpos = buffer->curpos + 2;
-#if(defined(PARANOID) || defined(DEBUG))
     if(srvrqst->prlistlen > buffer->end - buffer->curpos)
     {
         return SLP_ERROR_PARSE_ERROR;
     }
-#endif
+
     srvrqst->prlist = buffer->curpos;
     buffer->curpos = buffer->curpos + srvrqst->prlistlen;
 
@@ -188,12 +184,10 @@ int v1ParseSrvRqst(SLPBuffer buffer, SLPHeader* header, SLPSrvRqst* srvrqst)
     /* parse the predicate string */
     srvrqst->predicatelen = AsUINT16(buffer->curpos);
     buffer->curpos = buffer->curpos + 2;
-#if(defined(PARANOID) || defined(DEBUG))
     if(srvrqst->predicatelen > buffer->end - buffer->curpos)
     {
         return SLP_ERROR_PARSE_ERROR;
     }
-#endif
     srvrqst->predicate = buffer->curpos;
     buffer->curpos = buffer->curpos + srvrqst->predicatelen;
 
@@ -241,6 +235,8 @@ int v1ParseSrvRqst(SLPBuffer buffer, SLPHeader* header, SLPSrvRqst* srvrqst)
         srvrqst->predicatelen -= srvrqst->scopelistlen + 1;
     }
 
+    /* We don't have SLPv1 predicate handling support yet, so
+       substitute a null predicate so that everything matches. */
     srvrqst->predicate = "";
     srvrqst->predicatelen = 1;
 
@@ -277,12 +273,10 @@ int v1ParseSrvReg(SLPBuffer buffer, SLPHeader* header, SLPSrvReg* srvreg)
     /* parse the attribute list */
     srvreg->attrlistlen = AsUINT16(buffer->curpos);
     buffer->curpos = buffer->curpos + 2;
-#if(defined(PARANOID) || defined(DEBUG))
     if(srvreg->attrlistlen > buffer->end - buffer->curpos)
     {
         return SLP_ERROR_PARSE_ERROR;
     }
-#endif
     srvreg->attrlist = buffer->curpos;
     buffer->curpos = buffer->curpos + srvreg->attrlistlen;
 
@@ -326,13 +320,10 @@ int v1ParseSrvDeReg(SLPBuffer buffer, SLPHeader* header, SLPSrvDeReg* srvdereg)
     int            result;
 
     /* make sure that min size is met */
-#if(defined(PARANOID) || defined(DEBUG))
     if(buffer->end - buffer->curpos < 4)
     {
         return SLP_ERROR_PARSE_ERROR;
     }
-#endif
-
 
     /* SLPv1 deregistrations do not have a separate scope list */
     srvdereg->scopelistlen = 0;
@@ -343,12 +334,10 @@ int v1ParseSrvDeReg(SLPBuffer buffer, SLPHeader* header, SLPSrvDeReg* srvdereg)
     srvdereg->urlentry.lifetime = 0; /* not present in SLPv1 */
     srvdereg->urlentry.urllen = AsUINT16(buffer->curpos);
     buffer->curpos += 2;
-#if(defined(PARANOID) || defined(DEBUG))
     if(srvdereg->urlentry.urllen > buffer->end - buffer->curpos)
     {
         return SLP_ERROR_PARSE_ERROR;
     }
-#endif
     srvdereg->urlentry.url = buffer->curpos;
     buffer->curpos += srvdereg->urlentry.urllen;
     result = SLPv1AsUTF8(header->encoding, (char *) srvdereg->urlentry.url,
@@ -361,12 +350,10 @@ int v1ParseSrvDeReg(SLPBuffer buffer, SLPHeader* header, SLPSrvDeReg* srvdereg)
     /* parse the tag list */
     srvdereg->taglistlen = AsUINT16(buffer->curpos);
     buffer->curpos = buffer->curpos + 2;
-#if(defined(PARANOID) || defined(DEBUG))
     if(srvdereg->taglistlen > buffer->end - buffer->curpos)
     {
         return SLP_ERROR_PARSE_ERROR;
     }
-#endif
     srvdereg->taglist = buffer->curpos;
     buffer->curpos = buffer->curpos + srvdereg->taglistlen;
 
@@ -385,22 +372,18 @@ int v1ParseAttrRqst(SLPBuffer buffer, SLPHeader* header, SLPAttrRqst* attrrqst)
     int result;
 
     /* make sure that min size is met */
-#if(defined(PARANOID) || defined(DEBUG))
     if(buffer->end - buffer->curpos < 10)
     {
         return SLP_ERROR_PARSE_ERROR;
     }
-#endif
 
     /* parse the prlist */
     attrrqst->prlistlen = AsUINT16(buffer->curpos);
     buffer->curpos = buffer->curpos + 2;
-#if(defined(PARANOID) || defined(DEBUG))
     if(attrrqst->prlistlen > buffer->end - buffer->curpos)
     {
         return SLP_ERROR_PARSE_ERROR;
     }
-#endif
     attrrqst->prlist = buffer->curpos;
     buffer->curpos = buffer->curpos + attrrqst->prlistlen;
 
@@ -412,12 +395,10 @@ int v1ParseAttrRqst(SLPBuffer buffer, SLPHeader* header, SLPAttrRqst* attrrqst)
     /* parse the url */
     attrrqst->urllen = AsUINT16(buffer->curpos);
     buffer->curpos = buffer->curpos + 2;
-#if(defined(PARANOID) || defined(DEBUG))
     if(attrrqst->urllen > buffer->end - buffer->curpos)
     {
         return SLP_ERROR_PARSE_ERROR;
     }
-#endif
     attrrqst->url = buffer->curpos;
     buffer->curpos = buffer->curpos + attrrqst->urllen;    
 
@@ -429,12 +410,10 @@ int v1ParseAttrRqst(SLPBuffer buffer, SLPHeader* header, SLPAttrRqst* attrrqst)
     /* parse the scope list */
     attrrqst->scopelistlen = AsUINT16(buffer->curpos);
     buffer->curpos = buffer->curpos + 2;
-#if(defined(PARANOID) || defined(DEBUG))
     if(attrrqst->scopelistlen > buffer->end - buffer->curpos)
     {
         return SLP_ERROR_PARSE_ERROR;
     }
-#endif
     if(attrrqst->scopelistlen)
     {
         attrrqst->scopelist = buffer->curpos;
@@ -453,12 +432,10 @@ int v1ParseAttrRqst(SLPBuffer buffer, SLPHeader* header, SLPAttrRqst* attrrqst)
     /* parse the taglist string */
     attrrqst->taglistlen = AsUINT16(buffer->curpos);
     buffer->curpos = buffer->curpos + 2;
-#if(defined(PARANOID) || defined(DEBUG))
     if(attrrqst->taglistlen > buffer->end - buffer->curpos)
     {
         return SLP_ERROR_PARSE_ERROR;
     }
-#endif
     attrrqst->taglist = buffer->curpos;
     buffer->curpos = buffer->curpos + attrrqst->taglistlen;
 
@@ -483,22 +460,18 @@ int v1ParseSrvTypeRqst(SLPBuffer buffer, SLPHeader* header,
     int result;
 
     /* make sure that min size is met */
-#if(defined(PARANOID) || defined(DEBUG))
     if(buffer->end - buffer->curpos < 6)
     {
         return SLP_ERROR_PARSE_ERROR;
     }
-#endif
 
     /* parse the prlist */
     srvtyperqst->prlistlen = AsUINT16(buffer->curpos);
     buffer->curpos += 2;
-#if(defined(PARANOID) || defined(DEBUG))
     if(srvtyperqst->prlistlen > buffer->end - buffer->curpos)
     {
         return SLP_ERROR_PARSE_ERROR;
     }
-#endif
     srvtyperqst->prlist = srvtyperqst->prlistlen ? buffer->curpos : 0;
     buffer->curpos += srvtyperqst->prlistlen;
 
@@ -516,12 +489,10 @@ int v1ParseSrvTypeRqst(SLPBuffer buffer, SLPHeader* header,
     }
     else
     {
-#if(defined(PARANOID) || defined(DEBUG))
         if(srvtyperqst->namingauthlen > buffer->end - buffer->curpos)
         {
             return SLP_ERROR_PARSE_ERROR;
         }
-#endif
         srvtyperqst->namingauth = buffer->curpos;
         buffer->curpos += srvtyperqst->namingauthlen;
         result = SLPv1AsUTF8(header->encoding,
@@ -534,12 +505,10 @@ int v1ParseSrvTypeRqst(SLPBuffer buffer, SLPHeader* header,
     /* parse the scope list */
     srvtyperqst->scopelistlen = AsUINT16(buffer->curpos);
     buffer->curpos += 2;
-#if(defined(PARANOID) || defined(DEBUG))
     if(srvtyperqst->scopelistlen > buffer->end - buffer->curpos)
     {
         return SLP_ERROR_PARSE_ERROR;
     }
-#endif
     if(srvtyperqst->scopelistlen)
     {
         srvtyperqst->scopelist = buffer->curpos;
@@ -593,9 +562,6 @@ int SLPv1MessageParseBuffer(struct sockaddr_in* peerinfo,
     result = SLPv1MessageParseHeader(buffer,&(message->header));
     if(result == 0)
     {
-        
-        
-        
         /* switch on the function id to parse the body */
         switch(message->header.functionid)
         {
@@ -623,6 +589,13 @@ int SLPv1MessageParseBuffer(struct sockaddr_in* peerinfo,
                                      &(message->body.attrrqst));
             break;
     
+	case SLP_FUNCT_DAADVERT:
+	    /* We are a SLPv2 DA, drop advertisements from other v1
+	       DAs (including ourselves). The message will be ignored
+	       by SLPDv1ProcessMessage(). */
+	    result = 0;
+	    break;
+
         case SLP_FUNCT_SRVTYPERQST:
             result = v1ParseSrvTypeRqst(buffer, 
                                         &(message->header),

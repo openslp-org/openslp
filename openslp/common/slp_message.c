@@ -51,9 +51,12 @@
 #include "slp_xmalloc.h"
 
 #ifndef WIN32
-#include <stdlib.h>
 #include <sys/types.h>
 #include <netinet/in.h>
+#endif
+
+#if defined(ENABLE_SLPv1)
+#include <slp_v1message.h>
 #endif
 
 /*=========================================================================*/
@@ -67,6 +70,7 @@ int SLPMessageParseHeader(SLPBuffer buffer, SLPHeader* header)
 {
     header->version     = *(buffer->curpos);
     header->functionid  = *(buffer->curpos + 1);
+	
     if(header->version != 2)
     {
         return SLP_ERROR_VER_NOT_SUPPORTED;

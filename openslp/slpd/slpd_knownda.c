@@ -64,16 +64,17 @@
 /*=========================================================================*/
 /* common code includes                                                    */
 /*=========================================================================*/
-#include "../common/slp_xmalloc.h"
-#include "../common/slp_v1message.h"
-#include "../common/slp_utf8.h"
-#include "../common/slp_compare.h"
-#include "../common/slp_xid.h"
+#include "slp_xmalloc.h"
+#include "slp_v1message.h"
+#include "slp_utf8.h"
+#include "slp_compare.h"
+#include "slp_xid.h"
 #ifdef ENABLE_SECURITY
-#include "../common/slp_auth.h"
-#include "../common/slp_spi.h"
+#include "slp_auth.h"
+#include "slp_spi.h"
 #endif
 
+#include <limits.h>
 
 /*=========================================================================*/
 SLPDatabase G_SlpdKnownDAs;
@@ -983,10 +984,14 @@ int SLPDKnownDAGenerateMyV1DAAdvert(int errorcode,
         if(!errorcode)
         {
             size += urllen;
+#ifndef FAKE_UNSCOPED_DA
             errorcode = SLPv1ToEncoding(0, &scopelistlen,
                                         encoding,
                                         G_SlpdProperty.useScopes,
                                         G_SlpdProperty.useScopesLen);
+#else
+			scopelistlen = 0;	/* pretend that we're unscoped */
+#endif
             if(!errorcode)
             {
                 size += scopelistlen;
@@ -1048,14 +1053,17 @@ int SLPDKnownDAGenerateMyV1DAAdvert(int errorcode,
                     G_SlpdProperty.myUrlLen);
     result->curpos = result->curpos + urllen;
     /* scope list len */
-    ToUINT16(result->curpos, G_SlpdProperty.useScopesLen);
+    ToUINT16(result->curpos, scopelistlen);
     result->curpos = result->curpos + 2;
     /* scope list */
+#ifndef FAKE_UNSCOPED_DA
     SLPv1ToEncoding(result->curpos, 
                     &scopelistlen,
                     encoding,  
                     G_SlpdProperty.useScopes,
                     G_SlpdProperty.useScopesLen);
+#endif
+
     result->curpos = result->curpos + scopelistlen;
 
     FINISHED:
