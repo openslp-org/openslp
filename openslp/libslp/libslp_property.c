@@ -75,14 +75,14 @@ const char* SLPGetProperty(const char* pcName)
     memset(conffile,0,MAX_PATH);
 
     #ifdef WIN32
-    ExpandEnvironmentStrings(pcName,conffile,MAX_PATH);
+    ExpandEnvironmentStrings(LIBSLP_CONFFILE,conffile,MAX_PATH);
     #else
-    strncpy(conffile,pcName,MAX_PATH-1);
+    strncpy(LIBSLP_CONFFILE,conffile,MAX_PATH-1);
     #endif
 
     if(G_PropertyInit == 0)
     {
-        if(SLPPropertyReadFile(LIBSLP_CONFFILE) == 0)
+        if(SLPPropertyReadFile(conffile) == 0)
         {
             G_PropertyInit = 1;
         }
