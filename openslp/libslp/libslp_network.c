@@ -837,8 +837,8 @@ SLPError NetworkMcastRqstRply(const char* langtag,
 			{
 				if (dstifaceinfo.iface_addr[currIntf].ss_family == AF_INET)
 					result = SLPMulticastSend(&v4outifaceinfo,sendbuf,&xcastsocks, &dstifaceinfo.iface_addr[currIntf]);
-//				else if (dstifaceinfo.iface_addr[currIntf].ss_family == AF_INET6)
-//					result = SLPMulticastSend(&v6outifaceinfo,sendbuf,&xcastsocks, &dstifaceinfo.iface_addr[currIntf]);
+				else if (dstifaceinfo.iface_addr[currIntf].ss_family == AF_INET6)
+					result = SLPMulticastSend(&v6outifaceinfo,sendbuf,&xcastsocks, &dstifaceinfo.iface_addr[currIntf]);
 			}
 			if(result != 0)
 			{
@@ -1310,7 +1310,7 @@ int NetworkGetMcastAddrs(const char msgtype, const char *msg, SLPIfaceInfo *ifac
 			if (msg == NULL)
 				return SLP_PARAMETER_BAD;
 			if (SLPNetIsIPV6()) {
-				unsigned short srvtype_len = (msg[0] << 8) | msg[1]; 
+				unsigned short srvtype_len = AsUINT16(msg);
 				/* Add IPv6 multicast groups in order they should appear. */
 				SLPNetGetSrvMcastAddr(msg+2, (unsigned long)srvtype_len, SLP_SCOPE_NODE_LOCAL, &ifaceinfo->iface_addr[ifaceinfo->iface_count]);
 				SLPNetSetPort(&ifaceinfo->iface_addr[ifaceinfo->iface_count], SLP_RESERVED_PORT);
