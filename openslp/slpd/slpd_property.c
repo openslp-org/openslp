@@ -67,7 +67,7 @@ SLPDProperty G_SlpdProperty;
 
 
 /*-------------------------------------------------------------------------*/
-char* GetHostname(char** hostfdn)
+char* GetHostname(char** hostfdn, int numeric_only)
 /* Returns a string represting this host (the FDN) or null. Caller must    */
 /* free returned string                                                    */
 /*-------------------------------------------------------------------------*/
@@ -89,7 +89,7 @@ char* GetHostname(char** hostfdn)
             /* if the hostname has a '.' then it is probably a qualified 
              * domain name.  If it is not then we better use the IP address
              */
-            if(strchr(he->h_name,'.'))
+            if(!numeric_only && strchr(he->h_name,'.'))
             {
                 *hostfdn = xstrdup(he->h_name);
             }
@@ -164,7 +164,7 @@ char* GetInterfaceList(char** result)
     struct in_addr ifaddr;
     int i;
 
-    myname = GetHostname(&myname);
+    myname = GetHostname(&myname, 0);
     if(myname)
     {
         myhostent = gethostbyname(myname);
@@ -278,7 +278,7 @@ int SLPDPropertyInit(const char* conffile)
     /* Set the value used internally as the url for this agent */
     /*---------------------------------------------------------*/
     /* 27 is the size of "service:directory-agent://(NULL)" */
-    myname = GetHostname(&myname);    
+    myname = GetHostname(&myname, 1);    
     if(myname)
     {
         myurl = (char*)xmalloc(27 + strlen(myname));

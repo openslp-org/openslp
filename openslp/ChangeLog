@@ -7,6 +7,9 @@ blank lines and include the date, developer's email, and change description.
 =============================================================================
 
 02/05/02 matt@caldera.com
+Force use of numeric IP addresses in all DAAdvert and SAAdvert messages.
+
+02/05/02 matt@caldera.com
 Fixed bug where idle connections to DAs were not being aged.
 
 02/05/02 matt@caldera.com
