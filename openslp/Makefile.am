@@ -2,6 +2,7 @@
 # Makefile 
 # Note the install script, it is not pretty, but it works.
 #
+
 SUBDIRS	= common slpd libslp
 DOC_DIR = $(prefix)/doc/openslp-$(VERSION)
 

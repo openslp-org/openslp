@@ -23,6 +23,17 @@ AC_SUBST(prefix)
 sysconfdir='${RPM_PREFIX}/etc'
 AC_SUBST(sysconfdir)
 
+dnl ***********************************************************************
+dnl Take care of the debug stuff
+dnl ***********************************************************************
+AC_ARG_ENABLE(debug,
+[  --enable-debug    Turn on debugging],
+[case "${enableval}" in
+  yes) CFLAGS='-g -ggdb -DDEBUG' ;;
+  no)  CFLAGS=;;
+  *) AC_MSG_ERROR(bad value ${enableval} for --enable-debug) ;;
+esac],[debug=false])
+AC_SUBST(CFLAGS)
 
 dnl ***********************************************************************
 dnl Checks for programs.
