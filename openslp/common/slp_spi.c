@@ -70,6 +70,7 @@ void SLPSpiEntryFree(SLPSpiEntry* victim)
 
 /*-------------------------------------------------------------------------*/
 SLPSpiEntry* SLPSpiEntryFind(SLPList* cache,
+                             int keytype,
                              int spistrlen,
                              const char* spistr)
 /* pass in null spistr to find the first PRIVATE entry                     */
@@ -81,7 +82,8 @@ SLPSpiEntry* SLPSpiEntryFind(SLPList* cache,
         if(spistr)
         {
             if (entry->spistrlen == spistrlen &&
-                strncmp(entry->spistr,spistr,spistrlen) == 0)
+                strncmp(entry->spistr,spistr,spistrlen) == 0 &&
+                        entry->keytype == keytype)
             {
                 return entry;
             }
@@ -117,7 +119,8 @@ SLPCryptoDSAKey* SLPSpiReadKeyFile(const char* keyfile, int keytype)
         {
             result =  PEM_read_DSAPrivateKey(fp, &result, NULL, NULL);
         }
-	fclose(fp);
+
+	    fclose(fp);
     }
 
     return result;
@@ -221,8 +224,19 @@ SLPSpiEntry* SLPSpiReadSpiFile(FILE* fp, int keytype)
            result->spistr &&
            result->key)
         {
-            /* Good entry. Let's return it */
-	    goto SUCCESS;
+            /* Check to see that keys are really of the type the SPI file */
+            /* says they are!                                             */
+	        if(result->keytype == SLPSPI_KEY_TYPE_PRIVATE &&
+               result->key->priv_key)
+            {
+                goto SUCCESS;
+            }
+
+            if(result->keytype == SLPSPI_KEY_TYPE_PUBLIC &&
+               result->key->pub_key)
+            {
+                goto SUCCESS;
+            }
         }
 
         if(result->spistr) free(result->spistr);
@@ -309,7 +323,10 @@ SLPCryptoDSAKey* SLPSpiFetchPublicDSAKey(SLPSpiHandle hspi,
 {
     SLPSpiEntry* result;
 
-    result = SLPSpiEntryFind(&(hspi->cache), spistrlen, spistr);
+    result = SLPSpiEntryFind(&(hspi->cache), 
+                             SLPSPI_KEY_TYPE_PUBLIC,
+                             spistrlen, 
+                             spistr);
     if(result)
     {
         return result->key;
@@ -321,17 +338,14 @@ SLPCryptoDSAKey* SLPSpiFetchPublicDSAKey(SLPSpiHandle hspi,
 
 /*=========================================================================*/
 SLPCryptoDSAKey* SLPSpiFetchPrivateDSAKey(SLPSpiHandle hspi,
-                                          int* spistrlen, 
-                                          char** spistr,
+                                          int spistrlen, 
+                                          const char* spistr,
                                           SLPCryptoDSAKey **key)
 /* Fetches a copy of the private key file used to sign SLP messages.       */
 /*                                                                         */
 /* Parameters: hspi      (IN)  handle obtained from call to SLPSpiOpen()   */
-/*             spistrlen (OUT) the length of *spistr                       */
-/*             spistr    (OUT) the SPI string associated with the key in   */
-/*                             returned file pointer.  The caller should   */
-/*                             free() to free spistr memory.               */
-/*                             responsible for freeing the returned memory */
+/*             spistrlen (IN)  the length of the spistr                    */
+/*             spistr    (IN)  the SPI string                              */
 /*             key       (OUT) the private key.  Caller should use         */
 /*                             SLPCryptoDSAKeyDestroy() to free key memory */
 /*                                                                         */
@@ -342,48 +356,68 @@ SLPCryptoDSAKey* SLPSpiFetchPrivateDSAKey(SLPSpiHandle hspi,
     FILE*           fp;
     SLPSpiEntry*    tmp;
     
+    /* For safety NULL out the key from the beginning */
+    *key = 0;
+
+    /*-------------------------------------------------------*/
+    /* check to see if private keys are cached in the handle */
+    /*-------------------------------------------------------*/
     if(hspi->cacheprivate)
     {
-        tmp = SLPSpiEntryFind(&(hspi->cache), 0, 0);
+        tmp = SLPSpiEntryFind(&(hspi->cache),
+                              SLPSPI_KEY_TYPE_PRIVATE,
+                              spistrlen,
+                              spistr);
         if(tmp == 0) return 0;
-        
+        *key =  SLPCryptoDSAKeyDup(tmp->key);
+        return *key;
     }
-    else
-    {
-        fp = fopen(hspi->spifile,"r");
-        if(!fp)
-        {
-            return 0;
-        }
-        tmp = SLPSpiReadSpiFile(fp, SLPSPI_KEY_TYPE_PRIVATE);
-        fclose(fp);
-	if(tmp == 0)
-        {
-            return 0;
-        }
-    }
-
-    *key =  SLPCryptoDSAKeyDup(tmp->key);
-    *spistr = strdup(tmp->spistr);
-    *spistrlen = tmp->spistrlen;
     
-    if(hspi->cacheprivate == 0)
+    /*-------------------------------------------------------*/
+    /* Private keys are not cached in the handle. We need to */
+    /* read them from the file                               */
+    /*-------------------------------------------------------*/
+    fp = fopen(hspi->spifile,"r");
+    if(fp)
     {
-        SLPSpiEntryFree(tmp);
+        /* iterate all entries in file */
+        while(1) 
+        {
+            tmp = SLPSpiReadSpiFile(fp, SLPSPI_KEY_TYPE_PRIVATE);
+            if (tmp == 0)
+            {
+                break;
+            }
+            
+            /* If spistr is not NULL then only return the private key      */
+            /* of the requested SPI otherwise return the first private key */                                  
+            if(spistr)
+            {
+                if (tmp->spistrlen == spistrlen &&
+                    strncmp(tmp->spistr,spistr,spistrlen) == 0)
+                {
+                    break;
+                }
+            }
+            else
+            {
+                if(tmp->keytype == SLPSPI_KEY_TYPE_PRIVATE)
+                {
+                    break;
+                }
+            }
+        }
+
+        fclose(fp);
+    }
+    
+    if(tmp)
+    {
+        *key =  SLPCryptoDSAKeyDup(tmp->key);
+        /* clean up the temporary entry */
+        SLPSpiEntryFree(tmp);        
     }
 
     return *key;
 }
-
-
-
-
-
-
-
-
-
-
-
-
 

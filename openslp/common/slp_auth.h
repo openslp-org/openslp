@@ -140,7 +140,7 @@ int SLPAuthSignString(SLPSpiHandle hspi,
 /*             attrlist     (IN) the url to sign                           */
 /*             authblocklen (OUT) the length of the authblock signature    */
 /*             authblock    (OUT) buffer containing authblock signature    */
-/*                                must be freed by the caller              */
+/*                                must be freed by the caller              */ 
 /*                                                                         */
 /* Returns: 0 on success or SLP_ERROR_xxx code on failure                  */
 /*=========================================================================*/

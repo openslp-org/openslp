@@ -137,6 +137,7 @@ int SLPAuthVerifyString(SLPSpiHandle hspi,
     int                 signaturelen;
     int                 result;
     SLPCryptoDSAKey*    key;
+    unsigned long       timestamp;
     unsigned char       digest[20];
     
     /*-----------------------------------*/
@@ -151,6 +152,11 @@ int SLPAuthVerifyString(SLPSpiHandle hspi,
         result = SLP_ERROR_OK;
     }  
     
+    /*-----------------*/
+    /* Get a timestamp */
+    /*-----------------*/
+    timestamp = time(NULL);
+
     /*------------------------------------------------------*/
     /* Iterate and check all authentication blocks          */
     /*------------------------------------------------------*/
@@ -158,43 +164,51 @@ int SLPAuthVerifyString(SLPSpiHandle hspi,
     /* accept it                                            */
     for(i=0;i<authcount;i++)
     {
-        /* TODO: actually lookup the key corresponds to the SPI */
-        key = 0;
+        /*-------------------------------*/
+        /* Get a public key for the SPI  */
+        /*-------------------------------*/
+        key = SLPSpiFetchPublicDSAKey(hspi,
+                                      autharray[i].spistrlen,
+                                      autharray[i].spistr);
         
-        /* TODO: what if the time stamp is expired? */
-        
-        /*--------------------------*/
-        /* Generate the SHA1 digest */
-        /*--------------------------*/
-        result = SLPAuthDigestString(autharray[i].spistrlen,
-                                     autharray[i].spistr,
-                                     stringlen,
-                                     string,
-                                     autharray[i].timestamp,
-                                     digest);
-        if(result == 0)
+        /* Continue if we have a key and if the authenticator is not */
+        /* timed out                                                 */
+        if(key && timestamp <= autharray[i].timestamp)
         {
-            /*------------------------------------------------------------*/
-            /* Calculate the size of the DSA signature from the authblock */
-            /*------------------------------------------------------------*/
-            /* we have to calculate the signature length since            */
-            /* autharray[i].length is (stupidly) the length of the entire */
-            /* authblock                                                  */
-            signaturelen = autharray[i].length - (autharray[i].spistrlen + 10);
-    
-            /*----------------------*/
-            /* Verify the signature */
-            /*----------------------*/
-            if(SLPCryptoDSAVerify(key,
-                                  digest,
-                                  sizeof(digest),
-                                  autharray[i].authstruct,
-                                  signaturelen))
+        
+            /*--------------------------*/
+            /* Generate the SHA1 digest */
+            /*--------------------------*/
+            result = SLPAuthDigestString(autharray[i].spistrlen,
+                                         autharray[i].spistr,
+                                         stringlen,
+                                         string,
+                                         autharray[i].timestamp,
+                                         digest);
+            if(result == 0)
             {
-                break;
+                /*------------------------------------------------------------*/
+                /* Calculate the size of the DSA signature from the authblock */
+                /*------------------------------------------------------------*/
+                /* we have to calculate the signature length since            */
+                /* autharray[i].length is (stupidly) the length of the entire */
+                /* authblock                                                  */
+                signaturelen = autharray[i].length - (autharray[i].spistrlen + 10);
+        
+                /*----------------------*/
+                /* Verify the signature */
+                /*----------------------*/
+                if(SLPCryptoDSAVerify(key,
+                                      digest,
+                                      sizeof(digest),
+                                      autharray[i].authstruct,
+                                      signaturelen))
+                {
+                    break;
+                }
+    
+                result = SLP_ERROR_AUTHENTICATION_FAILED;
             }
-
-            result = SLP_ERROR_AUTHENTICATION_FAILED;
         }
     }
     
@@ -294,10 +308,21 @@ int SLPAuthSignString(SLPSpiHandle hspi,
     unsigned char*      curpos;
     unsigned char       digest[20];
 
+    /* NULL out the authblock just to be safe */
+    *authblock = 0;
+    *authblocklen = 0;
 
-    /* Look up a key for the spi */
-    key = 0;
-
+    /*--------------------------------*/
+    /* Get a private key for the SPI  */
+    /*--------------------------------*/
+    key = SLPSpiFetchPrivateDSAKey(hspi,
+                                   spistrlen,
+                                   spistr,
+                                   &key);
+    if(key == 0)
+    {
+        return SLP_ERROR_AUTHENTICATION_UNKNOWN;
+    }
     
     /*----------------------------------------------*/
     /* Allocate memory for the authentication block */

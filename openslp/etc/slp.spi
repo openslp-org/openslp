@@ -25,17 +25,21 @@
 #--------------
 # PRIVATE key:
 #--------------
-# The PRIVATE key line specifies the location of a PEM encoded key file 
-# that contains a PEM encoded DSA private key.  This key is used for signing
-# SLP messages that are sent from this host. 
+# PRIVATE key lines specify the location of a key file for that contains
+# a PEM encoded DSA private key for a given SPI.  PRIVATE keys are used
+# for signing SLP messages that are sent from this host.
 #
-# Only one PRIVATE key is recognized by the implementation.  If two PRIVATE
-# key entries exist, only the first entry will be used.  
+# A PRIVATE key entries are not required.  However, if at least one PRIVATE 
+# entry does not exist, then SLP messages sent by this host will not be signed.
+# Since UAs do not have to sign any messages, it is often advantageous to
+# specifically omit PRIVATE entries on hosts that do not act as an SA or
+# DA.
 #
-# A PRIVATE key entry is not required.  If a PRIVATE entry does not exist,
-# then SLP messages send from by this host will not be signed.
-#
-# In most cases, the PUBLIC and PRIVATE key entries should be DSA key pairs
+# ***IMPORTANT***
+# The first PRIVATE is in an SPI file is special.  The implementation uses 
+# this SPI as the "master" SPI for signing DA and SA advertisement messages. 
+# The most important thing to remember about the "master" SPI of a DA is that
+# all agents (UAs and SAs) must have the corresponding PUBLIC key.
 #
 # The following is a commented example of a PRIVATE entry:
 #
@@ -49,14 +53,18 @@
 # contains a PEM encoded DSA public key.  This key is used for verifying 
 # messages sent by other SLP agents
 #
-# More than one PUBLIC key entry is recognized by the implementation.  However
-# it is not useful to have more than one PUBLIC key unless a DA is running 
-# on this host (see the OpenSLP Users Guide for more details)
+# At least one PUBLIC key entry on all hosts is usually required for proper 
+# operation of of secure OpenSLP.  It is possible that more than one entry
+# will be needed in order to verify signatures if for some reason (that I
+# can't imagin right now) you have configured SAs and DAs with a variety of
+# PRIVATE keys.
 #
-# In most cases, the PUBLIC and PRIVATE key entries should be DSA key pairs
-#
-# The following is a commented example of a PRIVATE entry:
+# The following is a commented example of a PUBLIC entry:
 #
 #   PUBLIC mypublicslpkey /etc/secure/mypublicslpkey.pem
 #
-#
+# 
+# Unless you really know what you're doing, you should probably read the 
+# more detailed documentation at http://www.openslp.org BEFORE setting up
+# SLP security
+
