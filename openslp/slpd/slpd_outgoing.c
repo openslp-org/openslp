@@ -144,8 +144,16 @@ void OutgoingStreamReconnect(SLPList* socklist, SLPDSocket* sock)
     /* socket                                                         */
     /*----------------------------------------------------------------*/
     CloseSocket(sock->fd);
-    //// will need to be redone for ipv6 too
-    sock->fd = socket(PF_INET,SOCK_STREAM,0);
+
+    if ( sock->peeraddr.ss_family == AF_INET )
+    {
+        sock->fd = socket(PF_INET,SOCK_STREAM,0);
+    }
+    else if (sock->peeraddr.ss_family == AF_INET6)
+    {
+        sock->fd = socket(PF_INET6,SOCK_STREAM,0);
+    }
+
     if ( sock->fd < 0 )
     {
         sock->state = SOCKET_CLOSE;

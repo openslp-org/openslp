@@ -78,6 +78,7 @@ int SLPDPropertyInit(const char* conffile)
     int                     myaddr_check;
     int                     myname_len;
     int                     i;
+    int                     family = AF_UNSPEC;
     
     SLPPropertyReadFile(conffile);
 
@@ -129,8 +130,13 @@ int SLPDPropertyInit(const char* conffile)
     /*-------------------------------------*/
     /* Set the net.slp.interfaces property */
     /*-------------------------------------*/
-    //// this will need to be done twice, once for ipv4 and once for ipv6
-    if(SLPIfaceGetInfo(SLPPropertyGet("net.slp.interfaces"),&G_SlpdProperty.ifaceInfo,AF_INET) == 0)
+    if (SLPNetIsIPV4() && SLPNetIsIPV6())
+        family = AF_UNSPEC;
+    else if (SLPNetIsIPV4())
+        family = AF_INET;
+    else if (SLPNetIsIPV6())
+        family = AF_INET6;
+    if(SLPIfaceGetInfo(SLPPropertyGet("net.slp.interfaces"),&G_SlpdProperty.ifaceInfo,family) == 0)
     {
         if(SLPPropertyGet("net.slp.interfaces"))
         {
@@ -154,8 +160,8 @@ int SLPDPropertyInit(const char* conffile)
     /* Set the value used internally as the url for this agent */
     /*---------------------------------------------------------*/
     /* 27 is the size of "service:directory-agent://(NULL)" */
-    //// ipv6 stuff needs to be done here too
-    if(SLPNetGetThisHostname(myname,sizeof(myname),1,AF_INET) == 0)
+    //// need to do this for v4 and v6... need a new property :(
+    if(SLPNetGetThisHostname(myname,sizeof(myname),1,family) == 0)
     {
         /* if myname is an IPv6 address, wrap it with '[' and ']' */
         myaddr_check = inet_pton(AF_INET6, myname, &myaddr);

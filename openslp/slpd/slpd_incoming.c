@@ -435,10 +435,16 @@ int SLPDIncomingInit()
     char*                   end = NULL;
     int                     finished;
     struct sockaddr_storage myaddr;
-    struct sockaddr_storage mcastaddr;
-    struct sockaddr_storage bcastaddr;
-    struct sockaddr_storage loaddr;
-    //// need these addresses for ipv6 too
+    struct sockaddr_storage mcast4addr;
+    struct sockaddr_storage bcast4addr;
+    struct sockaddr_storage lo4addr;
+    struct sockaddr_storage lo6addr;
+    struct sockaddr_storage srvloc6addr_node;
+    struct sockaddr_storage srvlocda6addr_node;
+    struct sockaddr_storage srvloc6addr_link;
+    struct sockaddr_storage srvlocda6addr_link;
+    struct sockaddr_storage srvloc6addr_site;
+    struct sockaddr_storage srvlocda6addr_site;
     SLPDSocket*             sock;
     char                    addr_str[INET6_ADDRSTRLEN];
 
@@ -451,31 +457,72 @@ int SLPDIncomingInit()
     }
 
 
-    /*--------------------------------------------------*/
-    /* set up address to use for loopback and broadcast */
-    /*--------------------------------------------------*/
-    //// need to do this for ipv6 too
-    loaddr.ss_family = AF_INET;
-    ((struct sockaddr_in*) &loaddr)->sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-    bcastaddr.ss_family = AF_INET;
-    ((struct sockaddr_in*) &bcastaddr)->sin_addr.s_addr = htonl(INADDR_BROADCAST);
-    mcastaddr.ss_family = AF_INET;
-    ((struct sockaddr_in*) &mcastaddr)->sin_addr.s_addr = htonl(SLP_MCAST_ADDRESS);
+    /*-------------------------------------------------------*/
+    /* set up address to use for ipv4 loopback and broadcast */
+    /*-------------------------------------------------------*/
+    lo4addr.ss_family = AF_INET;
+    ((struct sockaddr_in*) &lo4addr)->sin_family = AF_INET;
+    ((struct sockaddr_in*) &lo4addr)->sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    bcast4addr.ss_family = AF_INET;
+    ((struct sockaddr_in*) &bcast4addr)->sin_family = AF_INET;
+    ((struct sockaddr_in*) &bcast4addr)->sin_addr.s_addr = htonl(INADDR_BROADCAST);
+    mcast4addr.ss_family = AF_INET;
+    ((struct sockaddr_in*) &mcast4addr)->sin_family = AF_INET;
+    ((struct sockaddr_in*) &mcast4addr)->sin_addr.s_addr = htonl(SLP_MCAST_ADDRESS);
+
+    /*-------------------------------------------------------*/
+    /* set up address to use for ipv6 loopback and multicast */
+    /*-------------------------------------------------------*/
+    lo6addr.ss_family = AF_INET6;
+    ((struct sockaddr_in6*) &lo6addr)->sin6_family = AF_INET6;
+    memcpy(&(((struct sockaddr_in6*) &lo6addr)->sin6_addr), &in6addr_loopback, sizeof(struct in6_addr));
+    srvloc6addr_node.ss_family = AF_INET6;
+    ((struct sockaddr_in6*) &srvloc6addr_node)->sin6_family = AF_INET6;
+    memcpy(&(((struct sockaddr_in6*) &srvloc6addr_node)->sin6_addr), &in6addr_srvloc_node, sizeof(struct in6_addr));
+    srvloc6addr_link.ss_family = AF_INET6;
+    ((struct sockaddr_in6*) &srvloc6addr_link)->sin6_family = AF_INET6;
+    memcpy(&(((struct sockaddr_in6*) &srvloc6addr_link)->sin6_addr), &in6addr_srvloc_link, sizeof(struct in6_addr));
+    srvloc6addr_site.ss_family = AF_INET6;
+    ((struct sockaddr_in6*) &srvloc6addr_site)->sin6_family = AF_INET6;
+    memcpy(&(((struct sockaddr_in6*) &srvloc6addr_site)->sin6_addr), &in6addr_srvloc_site, sizeof(struct in6_addr));
+    srvlocda6addr_node.ss_family = AF_INET6;
+    ((struct sockaddr_in6*) &srvlocda6addr_node)->sin6_family = AF_INET6;
+    memcpy(&(((struct sockaddr_in6*) &srvlocda6addr_node)->sin6_addr), &in6addr_srvlocda_node, sizeof(struct in6_addr));
+    srvlocda6addr_link.ss_family = AF_INET6;
+    ((struct sockaddr_in6*) &srvlocda6addr_link)->sin6_family = AF_INET6;
+    memcpy(&(((struct sockaddr_in6*) &srvlocda6addr_link)->sin6_addr), &in6addr_srvlocda_link, sizeof(struct in6_addr));
+    srvlocda6addr_site.ss_family = AF_INET6;
+    ((struct sockaddr_in6*) &srvlocda6addr_site)->sin6_family = AF_INET6;
+    memcpy(&(((struct sockaddr_in6*) &srvlocda6addr_site)->sin6_addr), &in6addr_srvlocda_site, sizeof(struct in6_addr));
 
     /*--------------------------------------------------------------------*/
     /* Create SOCKET_LISTEN socket for LOOPBACK for the library to talk to*/
     /*--------------------------------------------------------------------*/
-    //// needs to be done for ipv6 too
-    sock = SLPDSocketCreateListen(&loaddr);
-    if (sock)
-    {
-        SLPListLinkTail(&G_IncomingSocketList,(SLPListItem*)sock);
-        SLPDLog("Listening on loopback...\n");
+    if (SLPNetIsIPV4()) {
+        sock = SLPDSocketCreateListen(&lo4addr);
+        if (sock)
+        {
+            SLPListLinkTail(&G_IncomingSocketList,(SLPListItem*)sock);
+            SLPDLog("Listening on loopback...\n");
+        }
+        else
+        {
+            SLPDLog("NETWORK_ERROR - Could not listen on IPv4 loopback\n");
+            SLPDLog("INTERNAL_ERROR - No SLPLIB support will be available\n");
+        }
     }
-    else
-    {
-        SLPDLog("NETWORK_ERROR - Could not listen on loopback\n");
-        SLPDLog("INTERNAL_ERROR - No SLPLIB support will be available\n");
+    if (SLPNetIsIPV6()) {
+        sock = SLPDSocketCreateListen(&lo6addr);
+        if (sock)
+        {
+            SLPListLinkTail(&G_IncomingSocketList,(SLPListItem*)sock);
+            SLPDLog("Listening on IPv6 loopback...\n");
+        }
+        else
+        {
+            SLPDLog("NETWORK_ERROR - Could not listen on IPv6 loopback\n");
+            SLPDLog("INTERNAL_ERROR - No SLPLIB support will be available\n");
+        }
     }
 
     /*---------------------------------------------------------------------*/
@@ -508,9 +555,13 @@ int SLPDIncomingInit()
         if (end <= begin) continue;    /* Skip empty entries */
 
         /* begin now points to a null terminated ip address string */
-        //// need to address the ipv6 case here
-        myaddr.ss_family = AF_INET;
-        ((struct sockaddr_in*) &myaddr)->sin_addr.s_addr = inet_addr(begin);
+        if (inet_pton(AF_INET6, begin, &(((struct sockaddr_in6*) &myaddr)->sin6_addr)) == 1) {
+            myaddr.ss_family = AF_INET6;
+        }
+        else {
+            myaddr.ss_family = AF_INET;
+            inet_pton(AF_INET, begin, &(((struct sockaddr_in*) &myaddr)->sin_addr));
+        }
 
         /*------------------------------------------------*/
         /* Create TCP_LISTEN that will handle unicast TCP */
@@ -526,19 +577,110 @@ int SLPDIncomingInit()
         /*----------------------------------------------------------------*/
         /* Create socket that will handle multicast UDP.                  */
         /*----------------------------------------------------------------*/
-
-        sock =  SLPDSocketCreateBoundDatagram(&myaddr,
-                                              &mcastaddr,
-                                              DATAGRAM_MULTICAST);
-        if (sock)
-        {
-            SLPListLinkTail(&G_IncomingSocketList,(SLPListItem*)sock);
-            SLPDLog("Multicast socket on %s ready\n",SLPNetSockAddrStorageToString(&myaddr, addr_str, sizeof(addr_str)));
+        if (SLPNetIsIPV4() && myaddr.ss_family == AF_INET) {
+            sock =  SLPDSocketCreateBoundDatagram(&myaddr,
+                                                  &mcast4addr,
+                                                  DATAGRAM_MULTICAST);
+            if (sock)
+            {
+                SLPListLinkTail(&G_IncomingSocketList,(SLPListItem*)sock);
+                SLPDLog("Multicast (IPv4) socket on %s ready\n",SLPNetSockAddrStorageToString(&myaddr, addr_str, sizeof(addr_str)));
+            }
+            else
+            {
+                SLPDLog("Couldn't bind to (IPv4) multicast for interface %s (%s)\n",
+                        SLPNetSockAddrStorageToString(&myaddr, addr_str, sizeof(addr_str)), strerror(errno));
+            }
         }
-        else
-        {
-            SLPDLog("Couldn't bind to multicast for interface %s (%s)\n",
-                    SLPNetSockAddrStorageToString(&myaddr, addr_str, sizeof(addr_str)), strerror(errno));
+        else if (SLPNetIsIPV6() && myaddr.ss_family == AF_INET6) {
+            /* node-local scope multicast */
+            sock =  SLPDSocketCreateBoundDatagram(&myaddr,
+                                                  &srvloc6addr_node,
+                                                  DATAGRAM_MULTICAST);
+            if (sock)
+            {
+                SLPListLinkTail(&G_IncomingSocketList,(SLPListItem*)sock);
+                SLPDLog("Multicast (IPv6 node scope) socket on %s ready\n",SLPNetSockAddrStorageToString(&myaddr, addr_str, sizeof(addr_str)));
+            }
+            else
+            {
+                SLPDLog("Couldn't bind to (IPv6 node scope) multicast for interface %s (%s)\n",
+                        SLPNetSockAddrStorageToString(&myaddr, addr_str, sizeof(addr_str)), strerror(errno));
+            }
+            /* node-local scope DA multicast */
+            sock =  SLPDSocketCreateBoundDatagram(&myaddr,
+                                                  &srvlocda6addr_node,
+                                                  DATAGRAM_MULTICAST);
+            if (sock)
+            {
+                SLPListLinkTail(&G_IncomingSocketList,(SLPListItem*)sock);
+                SLPDLog("Multicast DA (IPv6 node scope) socket on %s ready\n",SLPNetSockAddrStorageToString(&myaddr, addr_str, sizeof(addr_str)));
+            }
+            else
+            {
+                SLPDLog("Couldn't bind to (IPv6 node scope) DA multicast for interface %s (%s)\n",
+                        SLPNetSockAddrStorageToString(&myaddr, addr_str, sizeof(addr_str)), strerror(errno));
+            }
+
+            /* link-local scope multicast */
+            sock =  SLPDSocketCreateBoundDatagram(&myaddr,
+                                                  &srvloc6addr_link,
+                                                  DATAGRAM_MULTICAST);
+            if (sock)
+            {
+                SLPListLinkTail(&G_IncomingSocketList,(SLPListItem*)sock);
+                SLPDLog("Multicast (IPv6 link scope) socket on %s ready\n",SLPNetSockAddrStorageToString(&myaddr, addr_str, sizeof(addr_str)));
+            }
+            else
+            {
+                SLPDLog("Couldn't bind to (IPv6 link scope) multicast for interface %s (%s)\n",
+                        SLPNetSockAddrStorageToString(&myaddr, addr_str, sizeof(addr_str)), strerror(errno));
+            }
+            /* link-local scope DA multicast */
+            sock =  SLPDSocketCreateBoundDatagram(&myaddr,
+                                                  &srvlocda6addr_link,
+                                                  DATAGRAM_MULTICAST);
+            if (sock)
+            {
+                SLPListLinkTail(&G_IncomingSocketList,(SLPListItem*)sock);
+                SLPDLog("Multicast DA (IPv6 link scope) socket on %s ready\n",SLPNetSockAddrStorageToString(&myaddr, addr_str, sizeof(addr_str)));
+            }
+            else
+            {
+                SLPDLog("Couldn't bind to (IPv6 link scope) DA multicast for interface %s (%s)\n",
+                        SLPNetSockAddrStorageToString(&myaddr, addr_str, sizeof(addr_str)), strerror(errno));
+            }
+
+            if (!IN6_IS_ADDR_LINKLOCAL(&(((struct sockaddr_in6*) &myaddr)->sin6_addr))) {
+                /* site-local scope multicast */
+                sock =  SLPDSocketCreateBoundDatagram(&myaddr,
+                                                    &srvloc6addr_site,
+                                                    DATAGRAM_MULTICAST);
+                if (sock)
+                {
+                    SLPListLinkTail(&G_IncomingSocketList,(SLPListItem*)sock);
+                    SLPDLog("Multicast (IPv6 site scope) socket on %s ready\n",SLPNetSockAddrStorageToString(&myaddr, addr_str, sizeof(addr_str)));
+                }
+                else
+                {
+                    SLPDLog("Couldn't bind to (IPv6 site scope) multicast for interface %s (%s)\n",
+                            SLPNetSockAddrStorageToString(&myaddr, addr_str, sizeof(addr_str)), strerror(errno));
+                }
+                /* site-local scope DA multicast */
+                sock =  SLPDSocketCreateBoundDatagram(&myaddr,
+                                                    &srvlocda6addr_site,
+                                                    DATAGRAM_MULTICAST);
+                if (sock)
+                {
+                    SLPListLinkTail(&G_IncomingSocketList,(SLPListItem*)sock);
+                    SLPDLog("Multicast DA (IPv6 site scope) socket on %s ready\n",SLPNetSockAddrStorageToString(&myaddr, addr_str, sizeof(addr_str)));
+                }
+                else
+                {
+                    SLPDLog("Couldn't bind to (IPv6 site scope) DA multicast for interface %s (%s)\n",
+                            SLPNetSockAddrStorageToString(&myaddr, addr_str, sizeof(addr_str)), strerror(errno));
+                }
+            }
         }
 
 #if defined(ENABLE_SLPv1)
@@ -547,12 +689,12 @@ int SLPDIncomingInit()
             /*------------------------------------------------------------*/
             /* Create socket that will handle multicast UDP for SLPv1 DA  */
             /* Discovery.                                                 */
+            /* Don't need to do this for ipv6, SLPv1 is not supported.    */
             /*------------------------------------------------------------*/
-            //// need to do this for ipv6 as well
-            mcastaddr.ss_family = AF_INET;
-            ((struct sockaddr_in*) &mcastaddr)->sin_addr.s_addr = htonl(SLPv1_DA_MCAST_ADDRESS);
+            mcast4addr.ss_family = AF_INET;
+            ((struct sockaddr_in*) &mcast4addr)->sin_addr.s_addr = htonl(SLPv1_DA_MCAST_ADDRESS);
             sock =  SLPDSocketCreateBoundDatagram(&myaddr,
-                                                  &mcastaddr,
+                                                  &mcast4addr,
                                                   DATAGRAM_MULTICAST);
             if (sock)
             {
@@ -581,21 +723,26 @@ int SLPDIncomingInit()
 
     /*--------------------------------------------------------*/
     /* Create socket that will handle broadcast UDP           */
+    /* (Only if IPv4 is supported.  IPv6 does not use bcast.) */
     /*--------------------------------------------------------*/
-    sock =  SLPDSocketCreateBoundDatagram(&myaddr,
-                                          &bcastaddr,
-                                          DATAGRAM_BROADCAST);
-    if (sock)
-    {
-        SLPListLinkTail(&G_IncomingSocketList,(SLPListItem*)sock);
-        SLPDLog("Broadcast socket for %s ready\n", SLPNetSockAddrStorageToString(&bcastaddr, addr_str, sizeof(addr_str)));
-    }
+    /*//// this code doesn't seem to work... can't bind to the broadcast address.
+    if (SLPNetIsIPV4()) {
+        sock =  SLPDSocketCreateBoundDatagram(&myaddr,
+                                              &bcast4addr,
+                                              DATAGRAM_BROADCAST);
+        if (sock)
+        {
+            SLPListLinkTail(&G_IncomingSocketList,(SLPListItem*)sock);
+            SLPDLog("Broadcast socket for %s ready\n", SLPNetSockAddrStorageToString(&bcast4addr, addr_str, sizeof(addr_str)));
+        }
 
-    if (G_IncomingSocketList.count == 0)
-    {
-        SLPDLog("No usable interfaces\n");
-        return 1;
+        if (G_IncomingSocketList.count == 0)
+        {
+            SLPDLog("No usable interfaces\n");
+            return 1;
+        }
     }
+    */
 
     return 0;
 }

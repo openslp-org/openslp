@@ -186,7 +186,7 @@ void SLPDKnownDAEcho(SLPMessage msg, SLPBuffer buf);
 
 
 /*=========================================================================*/
-void SLPDKnownDAActiveDiscovery(int seconds);
+void SLPDKnownDAActiveDiscovery(int seconds, int scope);
 /* Add a socket to the outgoing list to do active DA discovery SrvRqst     */
 /*									                                       */
 /* Returns:  none                                                          */
@@ -194,7 +194,7 @@ void SLPDKnownDAActiveDiscovery(int seconds);
 
 
 /*=========================================================================*/
-void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead);
+void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead, int scope);
 /* Send passive daadvert messages if properly configured and running as    */
 /* a DA                                                                    */
 /*	                                                                       */

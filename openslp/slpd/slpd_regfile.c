@@ -551,7 +551,7 @@ int SLPDRegFileReadSrvReg(FILE* fd,
         result = SLP_ERROR_INTERNAL_ERROR;
         goto CLEANUP;
     }
-    //// this may need to be done for ipv6 too
+    /* this should be ok even if we are not supporting IPv4, since it's a static service */
     peer.ss_family = AF_INET;
     ((struct sockaddr_in*) &peer)->sin_addr.s_addr = htonl(INADDR_LOOPBACK);
     result = SLPMessageParseBuffer((struct sockaddr_storage*) &peer,*buf,*msg);
