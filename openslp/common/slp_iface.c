@@ -98,6 +98,7 @@ int SLPIfaceContainsAddr(int listlen,
     char* itemend = itembegin;
     struct sockaddr_storage addr;
     char buffer[INET6_ADDRSTRLEN]; /* must be at least 40 characters */
+    int buffer_len;
 
     while(itemend < listend)
     {
@@ -117,7 +118,11 @@ int SLPIfaceContainsAddr(int listlen,
             itemend ++;
         }
         
-        strncpy(buffer, itembegin, min(itemend-itembegin, sizeof(buffer)));
+        if (itemend-itembegin < sizeof(buffer))
+            buffer_len = itemend-itembegin;
+        else
+            buffer_len = sizeof(buffer);
+        strncpy(buffer, itembegin, buffer_len);
         buffer[itemend-itembegin] = '\0';
         if (SLPNetIsIPV6() && inet_pton(AF_INET6, buffer, &addr) == 1)
         {
