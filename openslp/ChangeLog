@@ -6,6 +6,13 @@ Please make entries to this log (in addition to the CVS log) that describe
 major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
+12/08/00 mpeterson@caldera.com
+Fixed DA / SA lookup code in libslp.  Fixes infinate loop under certain
+error producing situations 
+
+12/08/00 mpeterson@caldera.com
+Fixed errorcode stomping in slpd and libslp.  Now appropriate message should
+get passed to the API caller
 
 12/08/00 rganesan@myrealbox.com
 Second set of 64-bit cleanups - removed converted all size_t datatypes to
