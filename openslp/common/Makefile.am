@@ -1,6 +1,5 @@
 RANLIB				= @RANLIB@
 noinst_LIBRARIES	= libcommonslpd.a libcommonlibslp.a
-CFLAGS				+= -Wall -O3
 
 libcommonlibslp_a_SOURCES = \
 	slp_buffer.c		\

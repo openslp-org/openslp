@@ -61,6 +61,7 @@ host_alias = @host_alias@
 host_triplet = @host@
 AS = @AS@
 CC = @CC@
+CFLAGS = @CFLAGS@
 DLLTOOL = @DLLTOOL@
 LIBTOOL = @LIBTOOL@
 LIBTOOL_DEPS = @LIBTOOL_DEPS@
@@ -68,12 +69,13 @@ LN_S = @LN_S@
 MAKEINFO = @MAKEINFO@
 OBJDUMP = @OBJDUMP@
 PACKAGE = @PACKAGE@
+RPM_PREFIX = @RPM_PREFIX@
 VERSION = @VERSION@
 prefix = @prefix@
+sysconfdir = @sysconfdir@
 
 RANLIB = @RANLIB@
 noinst_LIBRARIES = libcommonslpd.a libcommonlibslp.a
-CFLAGS =  -Wall -O3
 
 libcommonlibslp_a_SOURCES =  	slp_buffer.c			slp_message.c			slp_property.c			slp_linkedlist.c		slp_xid.c				slp_network.c			slp_da.c				slp_compare.c
 

@@ -9,7 +9,6 @@ DIRS 			= common
 sbin_PROGRAMS	= slpd
 INCLUDES		= -I../common -I../slpd
 slpd_LDADD		=  $(top_srcdir)/common/libcommonslpd.a
-CFLAGS			+= -Wall -O3
 
 slpd_SOURCES	= slpd_socket.c \
     slpd_database.c \

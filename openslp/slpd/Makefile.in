@@ -68,6 +68,7 @@ host_alias = @host_alias@
 host_triplet = @host@
 AS = @AS@
 CC = @CC@
+CFLAGS = @CFLAGS@
 DLLTOOL = @DLLTOOL@
 LIBTOOL = @LIBTOOL@
 LIBTOOL_DEPS = @LIBTOOL_DEPS@
@@ -76,14 +77,15 @@ MAKEINFO = @MAKEINFO@
 OBJDUMP = @OBJDUMP@
 PACKAGE = @PACKAGE@
 RANLIB = @RANLIB@
+RPM_PREFIX = @RPM_PREFIX@
 VERSION = @VERSION@
 prefix = @prefix@
+sysconfdir = @sysconfdir@
 
 DIRS = common
 sbin_PROGRAMS = slpd
 INCLUDES = -I../common -I../slpd
 slpd_LDADD = $(top_srcdir)/common/libcommonslpd.a
-CFLAGS =  -Wall -O3
 
 slpd_SOURCES = slpd_socket.c     slpd_database.c     slpd_main.c         slpd_process.c      slpd_cmdline.c      slpd_property.c     slpd_regfile.c      slpd_log.c
 
