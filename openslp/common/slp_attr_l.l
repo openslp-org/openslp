@@ -68,6 +68,7 @@
 #define yycheck         slp_attr_yycheck
 #define yyname          slp_attr_yyname
 #define yyrule          slp_attr_yyrule
+#define YY_NO_UNPUT
 
 #include "slp_attr.h"
 #include "slp_attr_y.h"
@@ -84,6 +85,7 @@ int slp_attr_lex(void);
 void slp_attr_close_lexer(unsigned int handle);
 
 uint slp_attr_init_lexer(char *s);
+
 
 %}
 

@@ -70,6 +70,7 @@
 
 #include <unistd.h>
 #include <string.h>
+#include <stdlib.h>
 
 
 #ifndef FALSE
@@ -82,8 +83,8 @@
 
 /* prototypes and globals go here */
 
-void filter_close_lexer(unsigned int handle);
-unsigned int filter_init_lexer(char *s);
+void slp_filter_close_lexer(unsigned int handle);
+unsigned int slp_filter_init_lexer(const char *s);
 int slp_filter_parse(void);
 int slp_filter_parse(void);
 void slp_filter_error(char *, ...);
@@ -248,3 +249,125 @@ exp_operator: OP_EQU | OP_GT | OP_LT | OP_APPROX
 
 %% 
 
+
+
+lslpLDAPFilter *lslpAllocFilter(int operator)
+{
+    lslpLDAPFilter *filter = (lslpLDAPFilter *)calloc(1, sizeof(lslpLDAPFilter));
+    if ( filter  != NULL )
+    {
+        filter->next = filter->prev = filter;
+        if ( operator == head )
+        {
+            filter->isHead = TRUE;
+        }
+        else
+        {
+            filter->children.next = filter->children.prev = &(filter->children);
+            filter->children.isHead = 1;
+            filter->attrs.next = filter->attrs.prev = &(filter->attrs);
+            filter->attrs.isHead = 1;
+            filter->operator = operator;
+        }
+    }
+    return(filter);
+}
+
+
+void lslpFreeFilter(lslpLDAPFilter *filter)
+{
+    if ( filter->children.next != NULL )
+    {
+        while ( ! (_LSLP_IS_EMPTY((lslpLDAPFilter *)&(filter->children))) )
+        {
+            lslpLDAPFilter *child = (lslpLDAPFilter *)filter->children.next;
+            _LSLP_UNLINK(child);
+            lslpFreeFilter(child);
+        }
+    }
+    if ( filter->attrs.next != NULL )
+    {
+        while ( ! (_LSLP_IS_EMPTY(&(filter->attrs))) )
+        {
+            lslpAttrList *attrs = filter->attrs.next;
+            _LSLP_UNLINK(attrs);
+            lslpFreeAttr(attrs);
+        }
+    }
+}
+
+void lslpFreeFilterList(lslpLDAPFilter *head, int static_flag)
+{
+    while ( ! (_LSLP_IS_EMPTY(head)) )
+    {
+        lslpLDAPFilter *temp = head->next;
+        _LSLP_UNLINK(temp);
+        lslpFreeFilter(temp);
+    }
+
+    if ( static_flag == TRUE )
+        lslpFreeFilter(head);
+    return;
+}
+
+void lslpFreeFilterTree(lslpLDAPFilter *root)
+{
+    if ( ! _LSLP_IS_EMPTY( &(root->children) ) )
+    {
+        lslpFreeFilterTree((lslpLDAPFilter *)root->children.next);
+    }
+    if ( ! (_LSLP_IS_HEAD(root->next)) && (! _LSLP_IS_EMPTY(root->next)) )
+    {
+        lslpFreeFilterTree(root->next);
+    }
+
+    if ( root->attrs.next != NULL )
+    {
+        while ( ! (_LSLP_IS_EMPTY(&(root->attrs))) )
+        {
+            lslpAttrList *attrs = root->attrs.next;
+            _LSLP_UNLINK(attrs);
+            lslpFreeAttr(attrs);
+        }
+    }
+}
+
+void lslpInitFilterList(void )
+{
+    reducedFilters.next = reducedFilters.prev = &reducedFilters;
+    reducedFilters.isHead = TRUE;
+    return;
+}
+
+void lslpCleanUpFilterList(void)
+{
+    lslpFreeFilterList( (lslpLDAPFilter *)&reducedFilters, FALSE);
+}
+
+lslpLDAPFilter *lslpDecodeLDAPFilter(const char *filter)
+{
+    lslpLDAPFilter *temp = NULL;
+    unsigned int lexer = 0;
+
+    lslpInitFilterList();
+    nesting_level = 1;
+    if ( 0 != (lexer = slp_filter_init_lexer(filter)) )
+    {
+        if ( slp_filter_parse() )
+        {
+            lslpCleanUpFilterList();
+        }
+        slp_filter_close_lexer(lexer);
+    }
+    if ( ! _LSLP_IS_EMPTY(&reducedFilters) )
+    {
+        if ( NULL != (temp  = lslpAllocFilter(ldap_and)) )
+        {
+            _LSLP_LINK_HEAD(&(temp->children), &reducedFilters);
+        }
+    }
+    lslpCleanUpFilterList();
+
+
+    return(temp);
+}

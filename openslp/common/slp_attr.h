@@ -58,7 +58,8 @@ typedef struct lslp_attr_list
 lslpAttrList *lslpAllocAttr(char *name, lslpTypes type, void *val, int len);
 lslpAttrList *lslpAllocAttrList(void);
 void lslpFreeAttr(lslpAttrList *attr);
-void lslpFreeAttrList(lslpAttrList *list);
+void lslpFreeAttrList(lslpAttrList *list, int staticFlag);
+
 lslpAttrList *lslpDecodeAttrString(char *s);
 
 #endif /* SLP_ATTR_H_INCLUDED */

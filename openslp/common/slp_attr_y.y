@@ -23,6 +23,7 @@
 %{
 #include <unistd.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "slp_attr.h"
 #include "slp_linkedlist.h"
@@ -205,6 +206,105 @@ attr_val: _TRUE
        
 %%
 
+lslpAttrList *lslpAllocAttr(char *name, lslpTypes type, void *val, int len)
+{
+    lslpAttrList *attr;
+    if ( NULL != (attr = (lslpAttrList *)calloc(1, sizeof(lslpAttrList))) )
+    {
+        if ( name != NULL )
+        {
+            if ( NULL == (attr->name = strdup(name)) )
+            {
+                free(attr);
+                return(NULL);
+            }
+        }
+        attr->type = type;
+        if ( type == head ) /* listhead */
+            return(attr);
+        if ( val != NULL )
+        {
+            switch ( type )
+            {
+                case string:
+                    if ( NULL != (attr->val.stringVal = strdup((unsigned char *)val)) )
+                        return(attr);
+                    break;
+                case integer:
+                    attr->val.intVal = *(unsigned int *)val;
+                    break;
+                case boolean:
+                    attr->val.boolVal = *(int *)val;
+                    break;
+                case opaque:
+                    #if 0
+                    if ( len > 0 )
+                    {
+                        int encLen;
+                        opq_EncodeOpaque(val, len, (char **)&(attr->val.opaqueVal), &encLen);
+                        if ( NULL != attr->val.opaqueVal )
+                        {
+                            /* first two bytes contain length of attribute */
+                            _LSLP_SETSHORT(((char *)attr->val.opaqueVal), encLen, 0 );
+                        }
+                    }
+                    #endif
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+    return(attr);
+}   
+
+lslpAttrList *lslpAllocAttrList(void)
+{
+    lslpAttrList *temp;
+    if ( NULL != (temp = lslpAllocAttr(NULL, head, NULL, 0)) )
+    {
+        temp->next = temp->prev = temp;
+        temp->isHead = TRUE;  
+    }
+    return(temp);
+}   
+
+/* attr MUST be unlinked from its list ! */
+void lslpFreeAttr(lslpAttrList *attr)
+{
+    if ( attr->name != NULL )
+    {
+        free(attr->name);
+    }
+    if ( attr->type == string && attr->val.stringVal != NULL )
+    {
+        free(attr->val.stringVal);
+    }
+    else if ( attr->type == opaque && attr->val.opaqueVal != NULL )
+    {
+        free(attr->val.opaqueVal);
+    }
+    
+    free(attr);
+}   
+
+void lslpFreeAttrList(lslpAttrList *list, int staticFlag)
+{
+    lslpAttrList *temp;
+
+    while ( ! (_LSLP_IS_EMPTY(list)) )
+    {
+        temp = list->next;
+        _LSLP_UNLINK(temp);
+        lslpFreeAttr(temp);
+    }
+    if ( staticFlag == TRUE )
+    {
+        lslpFreeAttr(list);
+    }
+    
+    return;
+}       
 
 void _lslpInitInternalAttrList(void)
 {
@@ -229,7 +329,7 @@ lslpAttrList *_lslpDecodeAttrString(char *s)
         {
             if ((0 != (lexer = slp_attr_init_lexer(s))) &&  yyparse() )
             {
-                lslpFreeAttrList(temp);
+                lslpFreeAttrList(temp,0);
 
                 while ( ! _LSLP_IS_HEAD(inProcessTag.next) )
                 {
@@ -262,7 +362,7 @@ lslpAttrList *_lslpDecodeAttrString(char *s)
 
             if ( lexer != 0 )
             {
-                attr_close_lexer(lexer);
+                slp_attr_close_lexer(lexer);
             }
         }
     }

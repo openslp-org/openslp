@@ -64,10 +64,10 @@ typedef struct ldap_filter_struct
 lslpLDAPFilter *lslpAllocFilter(int operator);
 void lslpFreeFilter(lslpLDAPFilter *filter);
 void lslpFreeFilterList(lslpLDAPFilter *head, int static_flag);
-void lslpFreeFilterTree(lslpLDAPFilter *root) ;
+void lslpFreeFilterTree(lslpLDAPFilter *root);
 
 /*prototypes */
-lslpLDAPFilter *_lslpDecodeLDAPFilter(char *filter) ;
+lslpLDAPFilter *lslpDecodeLDAPFilter(const char *filter) ;
 
 #endif /* _LSLPDEFS_INCLUDE */
 

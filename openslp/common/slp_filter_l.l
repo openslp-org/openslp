@@ -66,6 +66,7 @@
 #define yycheck       slp_filter_yycheck
 #define yyname        slp_filter_yyname
 #define yyrule        slp_filter_yyrule
+#define YY_NO_UNPUT
 
 #include "slp_filter.h"
 #include "slp_filter_y.h"
@@ -77,7 +78,7 @@ void slp_filter_error(char *, ...);
 
 void slp_filter_close_lexer(unsigned int handle);
 
-uint slp_filter_init_lexer(char *s);
+unsigned int slp_filter_init_lexer(const char *s);
 
 %}
 
@@ -149,13 +150,12 @@ not_reserved            [^()\&|!=<>~\n]
 
 %%
 
-void filter_close_lexer(uint handle)
+void filter_close_lexer(unsigned int handle)
 {
-    //assert(handle != 0);
     yy_delete_buffer((YY_BUFFER_STATE)handle);
 }
 
-unsigned int slp_filter_init_lexer(char *s)
+unsigned int slp_filter_init_lexer(const char *s)
 {
     memset(&buf[0], 0x00, 2052);
     strncpy(&buf[0], s, 2048);
