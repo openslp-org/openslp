@@ -338,14 +338,10 @@ SLPCryptoDSAKey* SLPSpiFetchPublicDSAKey(SLPSpiHandle hspi,
 
 /*=========================================================================*/
 SLPCryptoDSAKey* SLPSpiFetchPrivateDSAKey(SLPSpiHandle hspi,
-                                          int spistrlen, 
-                                          const char* spistr,
                                           SLPCryptoDSAKey **key)
 /* Fetches a copy of the private key file used to sign SLP messages.       */
 /*                                                                         */
 /* Parameters: hspi      (IN)  handle obtained from call to SLPSpiOpen()   */
-/*             spistrlen (IN)  the length of the spistr                    */
-/*             spistr    (IN)  the SPI string                              */
 /*             key       (OUT) the private key.  Caller should use         */
 /*                             SLPCryptoDSAKeyDestroy() to free key memory */
 /*                                                                         */
@@ -364,13 +360,17 @@ SLPCryptoDSAKey* SLPSpiFetchPrivateDSAKey(SLPSpiHandle hspi,
     /*-------------------------------------------------------*/
     if(hspi->cacheprivate)
     {
-        tmp = SLPSpiEntryFind(&(hspi->cache),
-                              SLPSPI_KEY_TYPE_PRIVATE,
-                              spistrlen,
-                              spistr);
-        if(tmp == 0) return 0;
-        *key =  SLPCryptoDSAKeyDup(tmp->key);
-        return *key;
+        /* find the first private key entry */
+        tmp = SLPSpiEntryFind(&(hspi->cache),SLPSPI_KEY_TYPE_PRIVATE,0,0);
+        if(tmp)
+        {
+            *key =  SLPCryptoDSAKeyDup(tmp->key);
+            return *key;
+        }
+        else
+        {
+            return 0;
+        }   
     }
     
     /*-------------------------------------------------------*/

@@ -25,33 +25,33 @@
 #--------------
 # PRIVATE key:
 #--------------
-# PRIVATE key lines specify the location of a key file for that contains
-# a PEM encoded DSA private key for a given SPI.  PRIVATE keys are used
-# for signing SLP messages that are sent from this host.
+# The PRIVATE key line specifies the location of a key file for that contains
+# a PEM encoded DSA private key for the given SPI.  The PRIVATE key is used
+# for signing SLP messages that are sent the SA/DA on this host.
 #
-# A PRIVATE key entries are not required.  However, if at least one PRIVATE 
-# entry does not exist, then SLP messages sent by this host will not be signed.
-# Since UAs do not have to sign any messages, it is often advantageous to
-# specifically omit PRIVATE entries on hosts that do not act as an SA or
+# A PRIVATE key entry is not required.  If the PRIVATE key entry does not
+# exist, then SLP messages sent by this host will not be signed.  Since UAs 
+# do not have to sign any messages, it is often advantageous to
+# specifically omit the PRIVATE entry on hosts that do not act as an SA or
 # DA.
 #
 # ***IMPORTANT***
-# The first PRIVATE is in an SPI file is special.  The implementation uses 
+# Only one PRIVATE key is recognized by the implementation.  If there is 
+# more than one private key then only the key designated by the first PRIVATE
+# entry in this file will be used.
 # this SPI as the "master" SPI for signing DA and SA advertisement messages. 
-# The most important thing to remember about the "master" SPI of a DA is that
-# all agents (UAs and SAs) must have the corresponding PUBLIC key.
 #
 # The following is a commented example of a PRIVATE entry:
 #
 #    PRIVATE myprivateslpkey /etc/secure/myprivateslpkey.pem
 #
 #
-#-------------
+#--------------
 # PUBLIC keys:
-#-------------
-# The PUBLIC key line specifies the location of a PEM encoded key file that 
-# contains a PEM encoded DSA public key.  This key is used for verifying 
-# messages sent by other SLP agents
+#--------------
+# The PUBLIC key line specifies the location of a key file that contains a 
+# PEM encoded DSA public key.  This key is used for verifying messages sent 
+# by other SLP agents
 #
 # At least one PUBLIC key entry on all hosts is usually required for proper 
 # operation of of secure OpenSLP.  It is possible that more than one entry
@@ -63,7 +63,16 @@
 #
 #   PUBLIC mypublicslpkey /etc/secure/mypublicslpkey.pem
 #
-# 
+#-----------------------
+# PEM encoded key files
+#-----------------------
+# PEM encoded key files can be generated using OpenSSL or tools included with
+# OpenSLP.
+#
+#
+#------------
+# Final Note
+#------------
 # Unless you really know what you're doing, you should probably read the 
 # more detailed documentation at http://www.openslp.org BEFORE setting up
 # SLP security

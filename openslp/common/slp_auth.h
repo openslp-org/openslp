@@ -125,8 +125,6 @@ int SLPAuthVerifySAAdvert(SLPSpiHandle hspi,
 
 /*=========================================================================*/
 int SLPAuthSignString(SLPSpiHandle hspi,
-                      unsigned short spistrlen,
-                      const char* spistr,
                       unsigned short stringlen,
                       const char* string,
                       int* authblocklen,
@@ -134,8 +132,6 @@ int SLPAuthSignString(SLPSpiHandle hspi,
 /* Generate an authblock signature for an attribute list                   */
 /*                                                                         */
 /* Parameters: hspi         (IN) open SPI handle                           */
-/*             spistrlen    (IN) length of the spi string                  */
-/*             sprstr       (IN) the spi string                            */
 /*             attrlistlen  (IN) the length of the URL to sign             */
 /*             attrlist     (IN) the url to sign                           */
 /*             authblocklen (OUT) the length of the authblock signature    */
@@ -148,8 +144,6 @@ int SLPAuthSignString(SLPSpiHandle hspi,
 
 /*=========================================================================*/
 int SLPAuthSignUrl(SLPSpiHandle hspi,
-                   unsigned short spistrlen,
-                   const char* spistr,
                    unsigned short urllen,
                    const char* url,
                    int* authblocklen,
@@ -157,8 +151,6 @@ int SLPAuthSignUrl(SLPSpiHandle hspi,
 /* Generate an authblock signature for a Url                               */
 /*                                                                         */
 /* Parameters: hspi         (IN) open SPI handle                           */
-/*             spistrlen    (IN) length of the spi string                  */
-/*             sprstr       (IN) the spi string                            */
 /*             urllen       (IN) the length of the URL to sign             */
 /*             url          (IN) the url to sign                           */
 /*             authblocklen (OUT) the length of the authblock signature    */
