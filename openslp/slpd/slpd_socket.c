@@ -559,10 +559,7 @@ SLPDSocket* SLPDSocketCreateConnected(struct in_addr* addr)
 #else
     fdflags = fcntl(sock->fd, F_GETFL, 0);
     fcntl(sock->fd,F_SETFL, fdflags | O_NONBLOCK);
-#endif
-
-
-
+#endif  
 
     /* zero then set peeraddr to connect to */
     sock->peeraddr.sin_family = AF_INET;

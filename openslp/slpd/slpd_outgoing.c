@@ -98,30 +98,57 @@ void OutgoingDatagramRead(SLPList* socklist, SLPDSocket* sock)
 void OutgoingStreamReconnect(SLPList* socklist, SLPDSocket* sock)
 /*-------------------------------------------------------------------------*/
 {
-   if(connect(sock->fd, 
-               (struct sockaddr *)&(sock->peeraddr), 
-               sizeof(struct sockaddr_in)) == 0)
-    {
-        /* Connection occured immediately*/
-        sock->state = STREAM_WRITE_FIRST;
-    }
-    else
-    {
 #ifdef WIN32
-        if(WSAEWOULDBLOCK == WSAGetLastError())
-#else
-        if(errno == EINPROGRESS || errno == EWOULDBLOCK)
+    u_long              fdflags;
+#else    
+    int                 fdflags;
 #endif
+
+    /* Close the existing socket to clean the stream  and open an new socket */
+    close(sock->fd);
+    sock->fd = sock->fd = socket(PF_INET,SOCK_STREAM,0);
+    if(sock->fd > 0)
+    {
+        /* Set the socket to nonblocking IO */
+#ifdef WIN32
+        fdflags = 1;
+        ioctlsocket(sock->fd, FIONBIO, &fdflags);
+#else
+        fdflags = fcntl(sock->fd, F_GETFL, 0);
+        fcntl(sock->fd,F_SETFL, fdflags | O_NONBLOCK);
+#endif
+    
+        if(connect(sock->fd, 
+                   (struct sockaddr *)&(sock->peeraddr), 
+                   sizeof(struct sockaddr_in)) == 0)
         {
-            /* Connect would have blocked */
-            sock->state = STREAM_CONNECT_BLOCK;
+            /* Connection occured immediately*/
+            if(sock->state == STREAM_WRITE)
+            {
+                sock->state = STREAM_WRITE_FIRST;
+            }
+            else if(sock->state == STREAM_READ)
+            {
+                sock->state = STREAM_READ_FIRST;
+            }
+            return;
         }
         else
         {
-            /* Could not connect for some error */
-            sock->state = SOCKET_CLOSE;
-        }                                
-    } 
+#ifdef WIN32
+            if(WSAEWOULDBLOCK == WSAGetLastError())
+#else
+            if(errno == EINPROGRESS || errno == EWOULDBLOCK)
+#endif
+            {
+                /* Connect would have blocked */
+                sock->state = STREAM_CONNECT_BLOCK;
+                return;
+            }
+        }
+    }
+    
+    sock->state = SOCKET_CLOSE;
 }
 
 /*-------------------------------------------------------------------------*/
