@@ -697,11 +697,11 @@ SLPError NetworkMcastRqstRply(const char* langtag,
         #ifdef DEBUG
         fprintf(stderr, "McastIFList = %s\n", handle->McastIFList);
         #endif
-        SLPIfaceGetInfo(handle->McastIFList, &ifaceinfo);
+        SLPIfaceGetInfo(handle->McastIFList, &ifaceinfo, AF_INET);
     }
     else
     #endif /* MI_NOT_SUPPORTED */
-    if(SLPIfaceGetInfo(SLPGetProperty("net.slp.interfaces"),&ifaceinfo))
+    if(SLPIfaceGetInfo(SLPGetProperty("net.slp.interfaces"),&ifaceinfo, AF_INET))
     {
         result = SLP_NETWORK_ERROR;
         goto FINISHED;
