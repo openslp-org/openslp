@@ -127,6 +127,7 @@ SLPError SLPOpen(const char *pcLang, SLPBoolean isAsync, SLPHandle *phSLP)
             result =  SLP_PARAMETER_BAD;
             goto FINISHED;
         }
+        memcpy(handle->langtag,pcLang,handle->langtaglen + 1); 
     }
     else
     {
