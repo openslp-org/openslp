@@ -22,7 +22,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="../../common"
-				PreprocessorDefinitions="ENABLE_SLPv1;_WINDOWS;i386;USE_PREDICATES;_DEBUG;WIN32;SLP_VERSION=\&quot;1.1.1\&quot;"
+				PreprocessorDefinitions="ENABLE_SLPv1;_WINDOWS;i386;ENABLE_PREDICATES;DEBUG;_DEBUG;WIN32;SLP_VERSION=\&quot;1.1.1\&quot;"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="5"
 				PrecompiledHeaderFile=".\Debug/slpd.pch"
@@ -37,7 +37,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="odbc32.lib odbccp32.lib wsock32.lib"
+				AdditionalDependencies="odbc32.lib odbccp32.lib ws2_32.lib"
 				OutputFile=".\Debug/slpd.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
@@ -453,6 +453,9 @@
 						AdditionalIncludeDirectories=""
 						PreprocessorDefinitions=""/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\common\slp_xmalloc.c">
 			</File>
 			<File
 				RelativePath="..\..\slpd\slpd_cmdline.c">
