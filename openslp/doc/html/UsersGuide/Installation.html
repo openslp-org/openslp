@@ -2,7 +2,7 @@
 <html>
 <head>
    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-   <meta name="GENERATOR" content="Mozilla/4.76C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.4.2 i686) [Netscape]">
+   <meta name="GENERATOR" content="Mozilla/4.77C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.4.2 i686) [Netscape]">
    <title>OpenSLP Users Guide - Installing OpenSLP on Linux</title>
 </head>
 <body text="#000000" bgcolor="#FFFFFF" link="#0000EE" vlink="#551A8B" alink="#FF0000">
@@ -16,8 +16,7 @@ Installation</h3>
 Installing the latest distribution of OpenSLP is easy.&nbsp; Pay attention
 to the following steps and you should not have any problems.
 <br>&nbsp;
-<br>&nbsp;
-<ol>
+<ul>
 <li>
 RPM Installation</li>
 
@@ -88,27 +87,33 @@ Start the OpenSLP daemon.</li>
 
 <ul><tt>/usr/sbin/slpd</tt></ul>
 </ul>
-# Make slpd start on boot:
-<ol>You may want to make a few changes to your Linux initialization scripts
+
+<li>
+Make slpd start on boot:</li>
+
+<ul>You may want to make a few changes to your Linux initialization scripts
 so that slpd will start when your machine is booted.&nbsp; Since it is
 not always necessary to have slpd running, <b>you should probably read
 about when (and why) the OpenSLP daemon has to run in the <a href="index.html">Advanced
-Topics</a> section before deciding to changing your init scripts</b>.</ol>
+Topics</a> section before deciding to changing your init scripts</b>.</ul>
 
-<p><br># Remove the distribution directory from your system.
-<ol>Unless you will be doing OpenSLP development work, you will probably
+<li>
+Remove the distribution directory from your system.</li>
+
+<ul>Unless you will be doing OpenSLP development work, you will probably
 want to remove the distribution directory from your system after OpenSLP
 is installed.&nbsp; The distribution directory is the one that was created
 by the tar -zxf openslp-x.x.x.tar.gz command.&nbsp; During installation,
 all of the important files were copied out of this directory to the appropriate
 places on you machines file system so it can be deleted with out breaking
-your installation of OpenSLP.</ol>
+your installation of OpenSLP.</ul>
 
-<p><br># Add multicast or broadcast routes if necessary.
-<ol>Some operating systems (like Linux)&nbsp;require a route to be set
-so that the host knows which interface should be used to send multicast
-and general broadcast traffic.&nbsp; Most of the time, the default route
-will be sufficient.
+<li>
+Add multicast or broadcast routes if necessary.</li>
+
+<ul>Some operating systems (like Linux) require a route to be set so that
+the host knows which interface should be used to send multicast and general
+broadcast traffic.&nbsp; Most of the time, the default route will be sufficient.
 <p><tt># route -n</tt>
 <br><tt>Kernel IP routing table</tt>
 <br><tt>Destination&nbsp;&nbsp;&nbsp;&nbsp; Gateway&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
@@ -151,7 +156,7 @@ Use Iface</tt>
 0 eth0</tt>
 <p>Notice the default route?&nbsp; This means that multicast traffic will
 be sent to eth0.&nbsp;&nbsp; If I don't want multicast traffic to be sent
-to eth0 I&nbsp;will need to add a special route.
+to eth0 I will need to add a special route.
 <p><tt># route add -net 224.0.0.0 netmask 240.0.0.0 dev eth1</tt>
 <br><tt># route -n</tt>
 <br><tt>Kernel IP routing table</tt>
@@ -182,8 +187,27 @@ eth1 and eth0 (at least with Linux) without specialized routing software.&nbsp;&
 Some multihomed machines have NICs that are attached to the same network.&nbsp;
 In this case, there is usually no need to send multicast on both NICs.&nbsp;&nbsp;
 If you need specialized routing software take a look at <i>mrouted</i>.
-<br>&nbsp;</ol>
-</ol>
+<br>&nbsp;</ul>
+
+<li>
+Testing to see if your installation of OpenSLP works.</li>
+
+<ul>The OpenSLP distribution contains a handy command line tool that allows
+you to perform most SLP functions from the command line.&nbsp; The tool
+is called <tt>slptool</tt> and is built and installed by the OpenSLP make
+files.&nbsp; Look for SLP tool in /usr/bin, /usr/local/bin, or &lt;openslp_source_dir>/slptool/.&nbsp;&nbsp;
+After you have started slpd, you should be able to issue a query for SLP
+service agents using the following command line.
+<p><tt>$ slptool findsrvs service:service-agent</tt>
+<p>The results of this command should be a list of the hosts that are running
+slpd.&nbsp; This indicates that OpenSLP is successfully installed and working.&nbsp;
+If you do not get any output, then OpenSLP is not installed correctly or
+is not working.&nbsp;&nbsp; If this happens, please double check that you
+followed build and installation instructions, and read the
+<a href="http://www.openslp.org/doc/html/faq.html">FAQ</a>.&nbsp;
+If this does not help, post to the <a href="mailto:openslp-users.lists.sourceforge.net">openslp-users</a>
+mailing list with as much detail as you can provide.</ul>
+</ul>
 
 </body>
 </html>
