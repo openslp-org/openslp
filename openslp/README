@@ -1,3 +1,17 @@
+README OpenSLP release 0.7.4
+----------------------------
+For several reasons, a public release of 0.7.3 will not be made available.
+Instead, all changes have been rolled into 0.7.4.  Please be aware that 
+in order to include the DA communication enhancements (detailed in the NEWS 
+file) it was necessary to modify a good portion of the networking code.
+This new code is not as mature as the 0.7.2 code.  Also, a fair amount of
+work was done to simplify internal data structures to make way for future
+enhancements.  It is expected that some users may just want to stick with
+0.7.2 release unless the new DA features are important.  Be aware also that
+there are a few DA communication issues that are not fully resolved (like
+re-registration of existing services with a newly discovered DA)
+
+
 README OpenSLP release 0.7.3
 ----------------------------
 
