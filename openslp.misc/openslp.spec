@@ -1,6 +1,7 @@
-%define	ver 0.7.3
-%define	rel 1
+%define	ver 0.7.2
+%define	rel 2
 %define	name openslp
+%define libver 0.0.1
 
 Name        	: openslp
 Version     	: %ver
@@ -51,7 +52,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %Post
 rm -f /usr/lib/libslp.so
-ln -s /usr/lib/libslp.so.%{ver} /usr/lib/libslp.so
+ln -s /usr/lib/libslp.so.%{libver} /usr/lib/libslp.so
 /sbin/ldconfig
 if [ -x /bin/lisa ]; then 
   lisa --SysV-init install slpd S13 2:3:4:5 K87 0:1:6  
