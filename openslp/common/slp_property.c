@@ -227,7 +227,7 @@ int SLPPropertyReadFile(const char* conffile)
         nameend = line;
         nameend = strchr(nameend,'=');
         
-        if(*nameend == 0)
+        if(nameend == 0)
         {
             continue;
         }

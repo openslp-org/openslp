@@ -56,41 +56,13 @@ void* memdup(const void* src, int srclen)
 void FreeEntry(SLPDDatabaseEntry* entry)
 /*-------------------------------------------------------------------------*/
 {
-    free(entry->scopelist);
-    free(entry->srvtype);
-    free(entry->url);
-    free(entry->attrlist);
-    free(entry);
-}
-
-/*-------------------------------------------------------------------------*/
-void RemoveEntry(int urllen, 
-                 const char* url, 
-                 int scopelistlen,
-                 const char* scopelist)
-/*-------------------------------------------------------------------------*/
-{
-    SLPDDatabaseEntry* entry = G_DatabaseHead;
-
-    while(entry)
+    if(entry)
     {
-        if(SLPStringCompare(entry->urllen,
-                            entry->url,
-                            urllen,
-                            url) == 0)
-        {
-            if(SLPStringListIntersect(entry->scopelistlen,
-                                      entry->scopelist,
-                                      scopelistlen,
-                                      scopelist) > 0)
-            {
-                ListUnlink((PListItem*)&G_DatabaseHead,(PListItem)entry);                
-                FreeEntry(entry);                                 
-                break;
-            } 
-        }             
-        
-        entry = (SLPDDatabaseEntry*) entry->listitem.next;
+        if(entry->scopelist) free(entry->scopelist);
+        if(entry->srvtype) free(entry->srvtype);
+        if(entry->url) free(entry->url);
+        if(entry->attrlist) free(entry->attrlist);
+        free(entry);
     }
 }
 
@@ -167,21 +139,42 @@ int SLPDDatabaseReg(SLPSrvReg* srvreg,
 /*              setting of the fresh parameter                             */
 /*=========================================================================*/
 {
-    int                  result = 0;
-    SLPDDatabaseEntry*   entry  = 0;
+    int                result = 0;
+    SLPDDatabaseEntry* entry  = G_DatabaseHead;
 
-    RemoveEntry(srvreg->urlentry.urllen,
-                srvreg->urlentry.url,
-                srvreg->scopelistlen,
-                srvreg->scopelist);
-
-    entry = (SLPDDatabaseEntry*)malloc(sizeof(SLPDDatabaseEntry));
+    /* Check to see if there is already an identical entry */
+    while(entry)
+    {
+        if(SLPStringCompare(entry->urllen,
+                            entry->url,
+                            srvreg->urlentry.urllen,
+                            srvreg->urlentry.url) == 0)
+        {
+            if(SLPStringListIntersect(entry->scopelistlen,
+                                      entry->scopelist,
+                                      srvreg->scopelistlen,
+                                      srvreg->scopelist) > 0)
+            {
+                ListUnlink((PListItem*)&G_DatabaseHead,(PListItem)entry);
+                break;
+            } 
+        }             
+        
+        entry = (SLPDDatabaseEntry*) entry->listitem.next;
+    }
+    
+    /* if no identical entry is found, create a new one */
     if(entry == 0)
     {
-        return -1;
+        entry = (SLPDDatabaseEntry*)malloc(sizeof(SLPDDatabaseEntry));
+        if(entry == 0)
+        {
+            return -1;
+        }
+        memset(entry,0,sizeof(SLPDDatabaseEntry));
     }
-    memset(entry,0,sizeof(SLPDDatabaseEntry));
     
+    /* copy info from the message from the wire to the database entry */
     entry->pid          = pid;
     entry->uid          = uid;
     entry->scopelistlen = srvreg->scopelistlen;
@@ -194,7 +187,7 @@ int SLPDDatabaseReg(SLPSrvReg* srvreg,
     entry->attrlistlen  = srvreg->attrlistlen;
     entry->attrlist     = (char*)memdup(srvreg->attrlist,srvreg->attrlistlen);
     
-    
+    /* check for malloc() failures */
     if(entry->scopelist == 0 ||
        entry->url == 0 ||
        entry->srvtype == 0 ||
@@ -204,8 +197,15 @@ int SLPDDatabaseReg(SLPSrvReg* srvreg,
         return -1;
     }
     
+    /* link the new (or modified) entry into the list */
     ListLink((PListItem*)&G_DatabaseHead,(PListItem)entry);
-    
+
+    /* traceReg if necessary */
+    if(G_SlpdProperty.traceReg)
+    {
+        SLPDLogTraceReg("SrvReg", entry);
+    }
+
     return result;
 }
 
@@ -220,11 +220,35 @@ int SLPDDatabaseDeReg(SLPSrvDeReg* srvdereg)
 /* Returns  -   Zero on success.  Non-zero if syntax error in registration */
 /*              file.                                                      */
 /*=========================================================================*/
+
 {
-    RemoveEntry(srvdereg->urlentry.urllen,
-                srvdereg->urlentry.url,
-                srvdereg->scopelistlen,
-                srvdereg->scopelist);
+    SLPDDatabaseEntry* entry = G_DatabaseHead;
+
+    while(entry)
+    {
+        if(SLPStringCompare(entry->urllen,
+                            entry->url,
+                            srvdereg->urlentry.urllen,
+                            srvdereg->urlentry.url) == 0)
+        {
+            if(SLPStringListIntersect(entry->scopelistlen,
+                                      entry->scopelist,
+                                      srvdereg->scopelistlen,
+                                      srvdereg->scopelist) > 0)
+            {
+                if(G_SlpdProperty.traceReg)
+                {
+                    SLPDLogTraceReg("SrvDeReg",entry);
+                }
+                
+                ListUnlink((PListItem*)&G_DatabaseHead,(PListItem)entry);                
+                FreeEntry(entry);
+                break;
+            } 
+        }             
+        
+        entry = (SLPDDatabaseEntry*) entry->listitem.next;
+    }
 
     return 0;
 }
@@ -396,6 +420,12 @@ int SLPDDatabaseInit(const char* regfile)
             {
                 entry->pid              = mypid;
                 entry->uid              = myuid;
+
+                if(G_SlpdProperty.traceReg)
+                {
+                    SLPDLogTraceReg("SrvReg (static)",entry);
+                }
+
                 ListLink((PListItem*)&G_DatabaseHead,(PListItem)entry);
             }
 

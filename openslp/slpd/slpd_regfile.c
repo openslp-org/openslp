@@ -39,19 +39,25 @@
 char* TrimWhitespace(char* str)
 /*-------------------------------------------------------------------------*/
 {
-    int i;
+    char* end;
+
+    end=str+strlen(str)-1;
 
     while(*str && *str <= 0x20)
     {
         str++;
     }
 
-    for(i=strlen(str)-1;i>=0;i--)
+    while(end >= str)
     {
-        if(str[i] <= 0x20)
+        if(*end > 0x20)
         {
-            str[i]=0;
+            break;
         }
+        
+        *end = 0;
+
+        end--;
     }
     
     return str;
@@ -270,6 +276,7 @@ SLPDDatabaseEntry* SLPDRegFileReadEntry(FILE* fd, SLPDDatabaseEntry** entry)
             TrimWhitespace(line); 
             (*entry)->attrlistlen += strlen(line) + 2;
             (*entry)->attrlist = realloc((*entry)->attrlist,(*entry)->attrlistlen + 1);
+            *(*entry)->attrlist = 0;
             strcat((*entry)->attrlist,"(");
             strcat((*entry)->attrlist,line);
             strcat((*entry)->attrlist,")");

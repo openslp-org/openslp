@@ -58,7 +58,9 @@ by the <tt><a href="http://www.openslp.org/doc/html/UsersGuide/SlpConf.html">slp
 file.</blockquote>
 <b><tt>attrs</tt></b>
 <blockquote>(Optional) The attributes to register along with the service.&nbsp;
-Any string but "scopes" or "SCOPES" can be used as an attrid.</blockquote>
+Any string but "scopes" or "SCOPES" can be used as an attrid.&nbsp; Note
+that '"' character has no real significance.&nbsp; Strings should not be
+quoted!</blockquote>
 
 <h3>
 Examples</h3>
@@ -72,7 +74,7 @@ Several examples of registration entries are provided below:
 <p><tt>#Register ssh service</tt>
 <br><tt>service:ssh.openslp://192.168.100.1,en,65535</tt>
 <br><tt>#use default scopes</tt>
-<br><tt>description="Secure Shell"</tt>
+<br><tt>description=Secure Shell</tt>
 <p><tt>#Register telnet service with not attributes</tt>
 <br><tt>service:telnet.myorg://192.168.100.1,en,65535</tt>
 <br><tt>#use default scopes</tt></blockquote>

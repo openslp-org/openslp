@@ -563,7 +563,12 @@ int SLPDProcessMessage(SLPDPeerInfo* peerinfo,
     result = SLPMessageParseBuffer(recvbuf, message);
     if(result == 0)
     {
-        switch(message->header.functionid)
+       if(G_SlpdProperty.traceMsg)
+       {
+	  SLPDLogTraceMsg("IN",peerinfo,recvbuf);
+       }
+
+       switch(message->header.functionid)
         {
         case SLP_FUNCT_SRVRQST:
             ProcessSrvRqst(peerinfo,message,sendbuf);
@@ -605,12 +610,12 @@ int SLPDProcessMessage(SLPDPeerInfo* peerinfo,
         /* Log traceMsg of message was received and the one that will be sent */
         if(G_SlpdProperty.traceMsg)
         {
-            SLPDLogTraceMsg(peerinfo,recvbuf,sendbuf);
+            SLPDLogTraceMsg("OUT",peerinfo,sendbuf);
         }
     }
     else
     {
-        /* TODO: Log here? */
+        /* TODO: Log drop here? */
     }
     
     SLPMessageFree(message);

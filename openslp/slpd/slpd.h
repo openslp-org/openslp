@@ -448,10 +448,14 @@ int SLPDProcessMessage(SLPDPeerInfo* peerinfo,
 /*=========================================================================*/
 
 /*=========================================================================*/
-void SLPDLogTraceMsg(SLPDPeerInfo* peerinfo,
-                     SLPBuffer recvbuf,
-                     SLPBuffer sendbuf);
+void SLPDLogTraceMsg(const char* prefix,
+		     SLPDPeerInfo* peerinfo,
+                     SLPBuffer buf);
 /*=========================================================================*/
 
+
+/*=========================================================================*/
+void SLPDLogTraceReg(const char* prefix, SLPDDatabaseEntry* entry);
+/*=========================================================================*/
 
 #endif /* (!defined SLPD_H_INCLUDED) */

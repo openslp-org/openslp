@@ -8,6 +8,14 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 
 =============================================================================
+05/18/00 mpeterson@calderasystems.com
+Added the traceReg feature
+
+05/18/00 mpeterson@calderasystems.com
+Fixed #106044 - Quoted strings in slp.reg cause seg fault in slpd
+
+05/17/00 mpeterson@calderasystems.com
+Fixed #105904 - SLPOpen does not return SLP_NOT_IMPLEMENTED
 
 05/15/00 mpeterson@calderasystems.com
 Fixed a major bug that caused the library to freeze when slp.conf was changed

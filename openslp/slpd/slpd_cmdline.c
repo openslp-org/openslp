@@ -58,7 +58,12 @@ int SLPDParseCommandLine(int argc,char* argv[])
     strcpy(G_SlpdCommandLine.logfile,"/var/log/slpd.log");
     strcpy(G_SlpdCommandLine.regfile,"/etc/slp.reg");
     strcpy(G_SlpdCommandLine.pidfile,"/var/run/slpd.pid");
+    #if(defined DEBUG)
+    G_SlpdCommandLine.detach = 0;
+    #else
     G_SlpdCommandLine.detach = 1;
+    #endif
+     
     for(i=1; i<argc; i++)
     {
         if(strcmp(argv[i],"-l") == 0)
