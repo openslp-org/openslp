@@ -44,27 +44,7 @@
 SLPList G_KnownDACache = {0,0,0};
 /* The cache list of known DAs.                                            */
 /*=========================================================================*/
-
-/*-------------------------------------------------------------------------*/
-void KnownDASaveHints()
-/*-------------------------------------------------------------------------*/
-{
-    int         fd;
-#ifdef WIN32
-    fd = creat(SLPGetProperty("net.slp.HintsFile"),
-               _S_IREAD | _S_IWRITE);
-#else  /* UNIX */
-    fd = creat(SLPGetProperty("net.slp.HintsFile"),
-               S_IROTH | S_IWOTH | S_IRGRP| S_IWGRP | S_IRUSR | S_IWUSR);
-#endif
-              
-    if (fd >= 0)
-    {
-        SLPDAEntryListWrite(fd, &G_KnownDACache);
-        close(fd);
-    }
-
-}
+ 
 
 /*-------------------------------------------------------------------------*/
 SLPBoolean KnownDADiscoveryCallback(SLPError errorcode, 
@@ -73,11 +53,12 @@ SLPBoolean KnownDADiscoveryCallback(SLPError errorcode,
 /*-------------------------------------------------------------------------*/
 {
     SLPSrvURL*      srvurl;
-    SLPDAEntry*     daentry;
+    SLPDAEntry      daentry;
+    SLPDAEntry**    result;
+    struct in_addr  addr;
     struct hostent* he;
     
-    daentry = (SLPDAEntry*)cookie;
-    memset(daentry,0,sizeof(SLPDAEntry));
+    result = (SLPDAEntry**)cookie;
     
     if (errorcode == 0)
     {
@@ -93,18 +74,20 @@ SLPBoolean KnownDADiscoveryCallback(SLPError errorcode,
                     if (he)
                     {
                         /* create a daentry and add it to the knownda list */
-                        daentry->langtaglen = msg->header.langtaglen;
-                        daentry->langtag = msg->header.langtag;
-                        daentry->bootstamp = msg->body.daadvert.bootstamp;
-                        daentry->urllen = msg->body.daadvert.urllen;
-                        daentry->url = msg->body.daadvert.url;
-                        daentry->scopelistlen = msg->body.daadvert.scopelistlen;
-                        daentry->scopelist = msg->body.daadvert.scopelist;
-                        daentry->attrlistlen = msg->body.daadvert.attrlistlen;
-                        daentry->attrlist = msg->body.daadvert.attrlist;
-                        daentry->spilistlen = msg->body.daadvert.spilistlen;
-                        daentry->spilist = msg->body.daadvert.spilist;
-                        daentry->daaddr.s_addr = *((unsigned long*)(he->h_addr_list[0]));
+                        daentry.langtaglen = msg->header.langtaglen;
+                        daentry.langtag = msg->header.langtag;
+                        daentry.bootstamp = msg->body.daadvert.bootstamp;
+                        daentry.urllen = msg->body.daadvert.urllen;
+                        daentry.url = msg->body.daadvert.url;
+                        daentry.scopelistlen = msg->body.daadvert.scopelistlen;
+                        daentry.scopelist = msg->body.daadvert.scopelist;
+                        daentry.attrlistlen = msg->body.daadvert.attrlistlen;
+                        daentry.attrlist = msg->body.daadvert.attrlist;
+                        daentry.spilistlen = msg->body.daadvert.spilistlen;
+                        daentry.spilist = msg->body.daadvert.spilist;
+                        addr.s_addr = *((unsigned long*)(he->h_addr_list[0]));
+                        *result = SLPDAEntryCreate(&addr,
+                                                   &daentry);
                         SLPFree(srvurl);
                         return 0;
                     }
@@ -120,17 +103,17 @@ SLPBoolean KnownDADiscoveryCallback(SLPError errorcode,
 
 
 /*-------------------------------------------------------------------------*/
-int KnownDADiscoveryRqstRply(int sock, 
-                             struct sockaddr_in* peeraddr,
-                             int scopelistlen,
-                             const char* scopelist,
-                             SLPDAEntry* daentry)
-/* Returns: number of DAs discovered                                       */
+SLPDAEntry* KnownDADiscoveryRqstRply(int sock, 
+                                     struct sockaddr_in* peeraddr,
+                                     int scopelistlen,
+                                     const char* scopelist)
+/* Returns: pointer to a new DA entry. Caller must free()                  */
 /*-------------------------------------------------------------------------*/
 {
     char*   buf;
     char*   curpos;
     int     bufsize;
+    SLPDAEntry* result;
            
     /*-------------------------------------------------------------------*/
     /* determine the size of the fixed portion of the SRVRQST            */
@@ -172,31 +155,25 @@ int KnownDADiscoveryRqstRply(int sock,
                     SLP_FUNCT_DASRVRQST,
                     bufsize,
                     KnownDADiscoveryCallback,
-                    daentry);
+                    &result);
     
     free(buf);
 
-    if(daentry->urllen)
-    {
-        return 1;
-    }
-
-    return 0;
+    return result;
 }
 
 
 /*-------------------------------------------------------------------------*/
-int KnownDADiscoverFromMulticast(int scopelistlen,
-                                 const char* scopelist,
-                                 SLPDAEntry* daentry)
+SLPDAEntry* KnownDADiscoverFromMulticast(int scopelistlen,
+                                         const char* scopelist)
 /* Locates  DAs via multicast convergence                                  */
 /*                                                                         */
-/* Returns: number of DAs discovered                                       */
+/* Returns: pointer to a new DA entry. Caller must free()                  */
 /*-------------------------------------------------------------------------*/
 {
     struct sockaddr_in peeraddr;
     int sockfd; 
-    int result = 0;
+    SLPDAEntry* result = 0;
 
     if (SLPPropertyAsBoolean(SLPGetProperty("net.slp.activeDADetection")) &&
         SLPPropertyAsInteger(SLPGetProperty("net.slp.DAActiveDiscoveryInterval")))
@@ -207,8 +184,7 @@ int KnownDADiscoverFromMulticast(int scopelistlen,
             result = KnownDADiscoveryRqstRply(sockfd, 
                                               &peeraddr,
                                               scopelistlen,
-                                              scopelist,
-                                              daentry);
+                                              scopelist);
             close(sockfd);
         }               
     }
@@ -218,12 +194,11 @@ int KnownDADiscoverFromMulticast(int scopelistlen,
 
 
 /*-------------------------------------------------------------------------*/
-int KnownDADiscoverFromDHCP(int scopelistlen,
-                            const char* scopelist,
-                            SLPDAEntry* daentry)
+SLPDAEntry* KnownDADiscoverFromDHCP(int scopelistlen,
+                                    const char* scopelist)
 /* Locates  DAs via DHCP                                                   */
 /*                                                                         */
-/* Returns: number of DAs discovered                                       */
+/* Returns: pointer to a new DA entry. Caller must free()                  */
 /*-------------------------------------------------------------------------*/
 {
     return 0;
@@ -231,12 +206,11 @@ int KnownDADiscoverFromDHCP(int scopelistlen,
  
 
 /*-------------------------------------------------------------------------*/
-int KnownDADiscoverFromProperties(int scopelistlen,
-                                  const char* scopelist,
-                                  SLPDAEntry* daentry)
+SLPDAEntry* KnownDADiscoverFromProperties(int scopelistlen,
+                                          const char* scopelist)
 /* Locates DAs from a list of DA hostnames                                 */
 /*                                                                         */
-/* Returns: number of DAs discovered                                       */
+/* Returns: pointer to a new DA entry. Caller must free()                  */
 /*-------------------------------------------------------------------------*/
 {
     char*               temp;
@@ -247,7 +221,7 @@ int KnownDADiscoverFromProperties(int scopelistlen,
     struct hostent*     he;
     struct sockaddr_in  peeraddr;
     struct timeval      timeout;
-    int                 result      = 0;
+    SLPDAEntry*         result      = 0;
     
     memset(&peeraddr,0,sizeof(peeraddr));
     peeraddr.sin_family = AF_INET;
@@ -273,12 +247,15 @@ int KnownDADiscoverFromProperties(int scopelistlen,
                 sockfd = SLPNetworkConnectStream(&peeraddr,&timeout);
                 if (sockfd >= 0)
                 {
-                    result += KnownDADiscoveryRqstRply(sockfd, 
-                                                       &peeraddr,
-                                                       scopelistlen,
-                                                       scopelist,
-                                                       daentry);
+                    result = KnownDADiscoveryRqstRply(sockfd, 
+                                                      &peeraddr,
+                                                      scopelistlen,
+                                                      scopelist);
                     close(sockfd);
+                    if(result)
+                    {
+                        break;
+                    }
                 }
             } 
 
@@ -293,38 +270,29 @@ int KnownDADiscoverFromProperties(int scopelistlen,
 }
 
 /*-------------------------------------------------------------------------*/
-int KnownDADiscoverFromCache(int scopelistlen,
-                             const char* scopelist,
-                             SLPDAEntry* daentry)
+SLPDAEntry* KnownDADiscoverFromCache(int scopelistlen,
+                                     const char* scopelist)
 /* Ask Slpd if it knows about a DA                                         */ 
 /*                                                                         */
-/* Returns: number of DAs found.                                           */
+/* Returns: pointer to a new DA entry. Caller must NOT free()              */
 /*-------------------------------------------------------------------------*/
 {
-    SLPDAEntry* entry = KnownDAListFindByScope(&G_KnownDACache,
-                                               scopelistlen,
-                                               scopelist);
-    if(entry)
-    {
-        memcpy(daentry,entry,sizeof(SLPDAEntry));
-        return 1;
-    }
-
-    return 0;
+    return KnownDAListFindByScope(&G_KnownDACache,
+                                  scopelistlen,
+                                  scopelist);
 }
 
 /*-------------------------------------------------------------------------*/
-int KnownDADiscoverFromIPC(int scopelistlen,
-                           const char* scopelist,
-                           SLPDAEntry* daentry)
+SLPDAEntry* KnownDADiscoverFromIPC(int scopelistlen,
+                                   const char* scopelist)
 /* Ask Slpd if it knows about a DA                                         */ 
 /*                                                                         */
-/* Returns: number of DAs found.                                           */
+/* Returns: pointer to a new DA entry. Caller must free()                  */
 /*-------------------------------------------------------------------------*/
 {
     struct sockaddr_in peeraddr;
     int sockfd; 
-    int result = 0;
+    SLPDAEntry* result = 0;
 
     sockfd = NetworkConnectToSlpd(&peeraddr);
     if (sockfd >= 0)
@@ -332,8 +300,7 @@ int KnownDADiscoverFromIPC(int scopelistlen,
         result = KnownDADiscoveryRqstRply(sockfd, 
                                           &peeraddr,
                                           scopelistlen,
-                                          scopelist,
-                                          daentry);
+                                          scopelist);
         close(sockfd);
     }               
 
@@ -359,33 +326,48 @@ int KnownDAConnect(int scopelistlen,
 {
     int             sock;
     struct timeval  timeout;
-    SLPDAEntry      daentry;
+    SLPDAEntry*     daentry;
+    int             cached = 0;
     
     timeout.tv_sec = SLPPropertyAsInteger(SLPGetProperty("net.slp.DADiscoveryMaximumWait"));
     timeout.tv_usec = (timeout.tv_sec % 1000) * 1000;
     timeout.tv_sec = timeout.tv_sec / 1000;
 
     /* Weird way of nesting many if()s */
-    if(KnownDADiscoverFromIPC(scopelistlen,scopelist,&daentry) == 0)
-    if(KnownDADiscoverFromCache(scopelistlen,scopelist,&daentry) == 0)
-    if(KnownDADiscoverFromProperties(scopelistlen,scopelist,&daentry) == 0)
-    if(KnownDADiscoverFromDHCP(scopelistlen,scopelist,&daentry) == 0)
-    KnownDADiscoverFromMulticast(scopelistlen,scopelist,&daentry);
+    daentry = KnownDADiscoverFromIPC(scopelistlen,scopelist);
+    if(daentry) goto CONNECT;
+    daentry = KnownDADiscoverFromCache(scopelistlen,scopelist);
+    if(daentry) cached = 1; goto CONNECT;
+    daentry = KnownDADiscoverFromProperties(scopelistlen,scopelist);
+    if(daentry) goto CONNECT;
+    daentry = KnownDADiscoverFromDHCP(scopelistlen,scopelist);
+    if(daentry) goto CONNECT;
+    daentry = KnownDADiscoverFromMulticast(scopelistlen,scopelist);
     
-    memset(peeraddr,0,sizeof(peeraddr));
-    peeraddr->sin_family = AF_INET;
-    peeraddr->sin_port = htons(SLP_RESERVED_PORT);
-    peeraddr->sin_addr   = daentry.daaddr;
+CONNECT:
+    if(daentry)
+    {
+        memset(peeraddr,0,sizeof(peeraddr));
+        peeraddr->sin_family = AF_INET;
+        peeraddr->sin_port = htons(SLP_RESERVED_PORT);
+        peeraddr->sin_addr   = daentry->daaddr;
+    
+        sock = SLPNetworkConnectStream(peeraddr,&timeout);
+        if (sock >= 0)
+        {
+            KnownDAListAdd(&G_KnownDACache,daentry);
+        }
+        else
+        {
+            KnownDAListRemove(&G_KnownDACache,daentry);
+        }
 
-    sock = SLPNetworkConnectStream(peeraddr,&timeout);
-    if (sock >= 0)
-    {
-        KnownDAListAdd(&G_KnownDACache,&daentry);
+        /* Do not free cached entries because they are in the cache list */
+        if(cached == 0)
+        {
+            free(daentry);
+        }
     }
-    else
-    {
-        KnownDAListRemove(&G_KnownDACache,&daentry);
-    }
-       
+
     return sock;
 }
