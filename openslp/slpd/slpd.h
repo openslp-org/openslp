@@ -35,11 +35,6 @@
 #if(!defined SLPD_H_INCLUDED)
 #define SLPD_H_INCLUDED
 
-/* TODO: the following relies on gcc and should be done by autoconf! */
-#ifdef linux 
-#define LINUX
-#endif
-
 /* Include platform specific headers files */
 #ifdef WIN32
 #include "slpd_win32.h"

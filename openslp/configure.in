@@ -29,6 +29,17 @@ case "$debug" in
   *) AC_MSG_ERROR(bad value ${debug} for --enable-debug) ;;
 esac
 
+
+dnl ***********************************************************************
+dnl System type macros
+dnl ***********************************************************************
+AC_CANONICAL_HOST
+case "$host_os" in
+  *linux*) CFLAGS="$CFLAGS -DLINUX" ;;
+  *solaris*) CFLAGS="$CFLAGS -DSOLARIS";;
+esac
+
+
 dnl ***********************************************************************
 dnl SLPv1 support can be turned off
 dnl ***********************************************************************
@@ -115,6 +126,5 @@ dnl ***********************************************************************
 AC_CHECK_LIB(socket, main)
 AC_CHECK_LIB(nsl, gethostbyname)
 AC_CHECK_LIB(m, main)
-AC_CHECK_FUNCS(ceil log10)
-
+AC_CHECK_FUNCS(ceil log10 getdomainname)
 AC_OUTPUT(Makefile common/Makefile libslpattr/Makefile libslp/Makefile slpd/Makefile test/Makefile)
