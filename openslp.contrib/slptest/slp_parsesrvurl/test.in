@@ -1,8 +1,0 @@
-service:printer://test.com:1234/directory
-service:printer://test.com:1234/
-service:printer://test.com:1234
-service:printer://test.com/
-service:printer://test.com
-http://test.com
-http://
-www.test.com
