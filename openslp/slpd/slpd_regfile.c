@@ -106,11 +106,17 @@ char* RegFileReadLine(FILE* fd, char* line, int linesize)
         {
             return 0;
         }
-        if(*line == 0x0d || *line == 0x0a)
+        
+        while(*line && 
+              *line <= 0x20 &&
+              *line != 0x0d &&
+              *line != 0x0a) line++;
+        
+        if(*line == 0x0d || 
+           *line == 0x0a)
         {
             break;    
         }
-        while(*line && *line <= 0x20) line++;
 
         if(*line != 0 && *line != '#' && *line != ';')
         {
@@ -147,7 +153,7 @@ int SLPDRegFileReadSrvReg(FILE* fd,
     char*   slider1;
     char*   slider2;
     char    line[4096];
-
+    
     struct  sockaddr_in     peer;
     int     result          = 0;
     int     bufsize         = 0;
@@ -292,13 +298,14 @@ int SLPDRegFileReadSrvReg(FILE* fd,
     *line=0;
     while(1)
     {
-        if(RegFileReadLine(fd,line,4096) == 0)
+        slider1 = RegFileReadLine(fd,line,4096);
+        if(slider1 == 0)
         {
             /* Breath a sigh of relief.  We're done */
             result = -1;
             break;
         }
-        if(*line == 0x0d || *line == 0x0a)
+        if(*slider1 == 0x0d || *line == 0x0a)
         {
             break;
         }
@@ -308,10 +315,9 @@ int SLPDRegFileReadSrvReg(FILE* fd,
          * just make it a special case (do strcmp on the tag as opposed to the 
          * line) of attribute getting. 
          */
-        if(strncasecmp(line,"scopes",6) == 0)
+        if(strncasecmp(slider1,"scopes",6) == 0)
         {
             /* found scopes line */
-            slider1 = line;
             slider2 = strchr(slider1,'=');
             if(slider2)
             {
@@ -338,17 +344,17 @@ int SLPDRegFileReadSrvReg(FILE* fd,
         {
             /* line contains an attribute (slow but it works)*/
             /* TODO Fix this so we do not have to realloc memory each time! */
-            TrimWhitespace(line); 
+            TrimWhitespace(slider1); 
             
             if(attrlist == 0)
             {
-                attrlistlen += strlen(line) + 2;
+                attrlistlen += strlen(slider1) + 2;
                 attrlist = xmalloc(attrlistlen + 1);
                 *attrlist = 0;
             }
             else
             {
-                attrlistlen += strlen(line) + 3;
+                attrlistlen += strlen(slider1) + 3;
                 attrlist = xrealloc(attrlist,
                                    attrlistlen + 1);
                 strcat(attrlist,",");
@@ -360,7 +366,7 @@ int SLPDRegFileReadSrvReg(FILE* fd,
                 goto CLEANUP;
             }
             strcat(attrlist,"(");
-            strcat(attrlist,line);
+            strcat(attrlist,slider1);
             strcat(attrlist,")");
         }
     }

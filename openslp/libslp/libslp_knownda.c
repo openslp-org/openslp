@@ -717,7 +717,10 @@ void KnownDAFreeAll()
         }
 
         SLPDatabaseClose(dh);
-    }       
+    }
+    G_KnownDAScopesLen = 0;
+    
+    if(G_KnownDAScopes) xfree(G_KnownDAScopes);
 }
 
 #endif
