@@ -104,21 +104,24 @@ SLPBoolean ProcessAttrRplyCallback(SLPError errorcode,
                                        attrrply->attrlistlen,
                                        attrrply->attrlist,
                                        attrrply->authcount,
-                                       attrrply->autharray) == 0)
-#endif
+                                       attrrply->autharray))
                 {
-                    /*---------------------------------------*/
-                    /* Send the attribute list to the caller */
-                    /*---------------------------------------*/
-                    /* TRICKY: null terminate the attrlist by setting the authcount to 0 */
-                    ((char*)(attrrply->attrlist))[attrrply->attrlistlen] = 0;
-                    
-                    /* Call the callback function */
-                    result = handle->params.findattrs.callback((SLPHandle)handle,
-                                                               attrrply->attrlist,
-                                                               attrrply->errorcode * -1,
-                                                               handle->params.findattrs.cookie);
+                    /* Could not verify the attr auth block */
+                    SLPMessageFree(replymsg);
+                    return result;
                 }
+#endif
+                /*---------------------------------------*/
+                /* Send the attribute list to the caller */
+                /*---------------------------------------*/
+                /* TRICKY: null terminate the attrlist by setting the authcount to 0 */
+                ((char*)(attrrply->attrlist))[attrrply->attrlistlen] = 0;
+                
+                /* Call the callback function */
+                result = handle->params.findattrs.callback((SLPHandle)handle,
+                                                           attrrply->attrlist,
+                                                           attrrply->errorcode * -1,
+                                                           handle->params.findattrs.cookie);
             }
         }
         

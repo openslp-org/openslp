@@ -135,16 +135,19 @@ SLPBoolean ProcessSrvRplyCallback(SLPError errorcode,
                    SLPAuthVerifyDAAdvert(handle->hspi,
                                          1,
                                          &(replymsg->body.daadvert)))
-#endif
                 {
-                    ((char*)(replymsg->body.daadvert.url))[replymsg->body.daadvert.urllen] = 0;
-                    result = handle->params.findsrvs.callback((SLPHandle)handle,
-                                                              replymsg->body.daadvert.url,
-                                                              SLP_LIFETIME_MAXIMUM,
-                                                              SLP_OK,
-                                                              handle->params.findsrvs.cookie);
+                    /* Verification failed. Ignore message */
+                    SLPMessageFree(replymsg);
+                    return SLP_TRUE;
                 }
+#endif
 
+                ((char*)(replymsg->body.daadvert.url))[replymsg->body.daadvert.urllen] = 0;
+                result = handle->params.findsrvs.callback((SLPHandle)handle,
+                                                          replymsg->body.daadvert.url,
+                                                          SLP_LIFETIME_MAXIMUM,
+                                                          SLP_OK,
+                                                          handle->params.findsrvs.cookie);
             }
             else if(replymsg->header.functionid == SLP_FUNCT_SAADVERT)
             {
@@ -153,15 +156,21 @@ SLPBoolean ProcessSrvRplyCallback(SLPError errorcode,
                    SLPAuthVerifySAAdvert(handle->hspi,
                                          1,
                                          &(replymsg->body.saadvert)))
-#endif
                 {
-                    ((char*)(replymsg->body.saadvert.url))[replymsg->body.saadvert.urllen] = 0;
-                    result = handle->params.findsrvs.callback((SLPHandle)handle,
-                                                              replymsg->body.saadvert.url,
-                                                              SLP_LIFETIME_MAXIMUM,
-                                                              SLP_OK,
-                                                              handle->params.findsrvs.cookie);
+                    /* Verification failed. Ignore message */
+                    SLPMessageFree(replymsg);
+                    return SLP_TRUE;
                 }
+
+#endif
+
+                ((char*)(replymsg->body.saadvert.url))[replymsg->body.saadvert.urllen] = 0;
+                result = handle->params.findsrvs.callback((SLPHandle)handle,
+                                                          replymsg->body.saadvert.url,
+                                                          SLP_LIFETIME_MAXIMUM,
+                                                          SLP_OK,
+                                                          handle->params.findsrvs.cookie);
+
             }
         }
         
