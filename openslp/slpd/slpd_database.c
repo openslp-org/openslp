@@ -155,6 +155,7 @@ int SLPDDatabaseReg(SLPSrvReg* srvreg,
         entry = SLPDDatabaseEntryAlloc();
         if (entry == 0)
         {
+            /* Out of memory */
             return -1;
         }
     }
@@ -278,33 +279,31 @@ int SLPDDatabaseFindSrv(SLPSrvRqst* srvrqst,
 /*                                                                         */
 /* count    (IN)  number of elements in the result array                   */
 /*                                                                         */
-/* Returns  - The number of services found or <0 on error.  If the number  */
+/* Returns  - The number of services found or < 0 on error.  If the number */
 /*            of services found is exactly equal to the number of elements */
 /*            in the array, the call may be repeated with a larger array.  */
 /*=========================================================================*/
 {
     SLPDDatabaseEntry*  entry;
     int                 found;
+    SLPDPredicate       pred; /* The predicate object. */
+    
 
-    SLPDPredicate pred; /* The predicate object. */
-    SLPError err; /* Error code for checking return vals. */
-
-    /***** Create and verify predicate. *****/
-    err = SLPDPredicateAlloc(srvrqst->predicate, srvrqst->predicatelen, &pred);
-
-    /* Make sure a legal value was returned. */
-    assert(err == SLP_OK || 
-           err == SLP_PARSE_ERROR || 
-           err == SLP_MEMORY_ALLOC_FAILED); 
-
-    if (err == SLP_INTERNAL_SYSTEM_ERROR || err == SLP_PARSE_ERROR)
+    /*------------------------------*/
+    /* Create and verify predicate. */
+    /*------------------------------*/
+    /* TODO: handle parse error by returning SLP_ERROR_PARSE_ERROR to  */
+    /* requester                                                       */
+    if (SLPDPredicateAlloc(srvrqst->predicate,
+                           srvrqst->predicatelen,
+                           &pred))
     {
         return -1;
     }
-    assert(err == SLP_OK);
-
-
-    /***** Test services. *****/
+    
+    /*---------------*/
+    /* Test services.*/
+    /*---------------*/
     found = 0;
     entry = (SLPDDatabaseEntry*)G_DatabaseList.head;
     while (entry)
@@ -337,6 +336,7 @@ int SLPDDatabaseFindSrv(SLPSrvRqst* srvrqst,
     }
 
     SLPDPredicateFree(pred);
+
     return found;
 }
 
@@ -443,12 +443,9 @@ int SLPDDatabaseFindAttr(SLPAttrRqst* attrrqst,
                                        entry->scopelistlen,
                                        entry->scopelist))
             {
-                SLPError err;
-
-                err = SLPAttrSerialize(entry->attr, 
-                                       &result[found].attrlen, 
-                                       &result[found].attr, SLP_FALSE);
-                if (err == SLP_OK)
+                if (SLPAttrSerialize(entry->attr,
+                                     &(result[found].attrlen), 
+                                     &(result[found].attr), SLP_FALSE) == SLP_OK)
                 {
                     /* FIXME TODO Should the entire function fail, or should 
                      * we just ignore this one? */
