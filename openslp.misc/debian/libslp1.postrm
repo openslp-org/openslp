@@ -1,0 +1,13 @@
+#!/bin/sh
+
+# Source debconf library.
+. /usr/share/debconf/confmodule
+
+if [ "$1" = "remove" ]
+then
+    ldconfig /usr/lib/libslp.so.1
+fi
+
+#DEBHELPER#
+
+exit 0
