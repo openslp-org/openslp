@@ -754,9 +754,6 @@
 				RelativePath="..\..\common\slp_database.h">
 			</File>
 			<File
-				RelativePath="..\..\common\slp_database.h">
-			</File>
-			<File
 				RelativePath="..\..\common\slp_iface.h">
 			</File>
 			<File
@@ -802,16 +799,7 @@
 				RelativePath="..\..\slpd\slpd_cmdline.h">
 			</File>
 			<File
-				RelativePath="..\..\slpd\slpd_cmdline.h">
-			</File>
-			<File
 				RelativePath="..\..\slpd\slpd_database.h">
-			</File>
-			<File
-				RelativePath="..\..\slpd\slpd_database.h">
-			</File>
-			<File
-				RelativePath="..\..\slpd\slpd_incoming.h">
 			</File>
 			<File
 				RelativePath="..\..\slpd\slpd_incoming.h">
@@ -820,16 +808,7 @@
 				RelativePath="..\..\slpd\slpd_knownda.h">
 			</File>
 			<File
-				RelativePath="..\..\slpd\slpd_knownda.h">
-			</File>
-			<File
 				RelativePath="..\..\slpd\slpd_log.h">
-			</File>
-			<File
-				RelativePath="..\..\slpd\slpd_log.h">
-			</File>
-			<File
-				RelativePath="..\..\slpd\slpd_outgoing.h">
 			</File>
 			<File
 				RelativePath="..\..\slpd\slpd_outgoing.h">
@@ -838,28 +817,13 @@
 				RelativePath="..\..\slpd\slpd_predicate.h">
 			</File>
 			<File
-				RelativePath="..\..\slpd\slpd_predicate.h">
-			</File>
-			<File
-				RelativePath="..\..\slpd\slpd_process.h">
-			</File>
-			<File
 				RelativePath="..\..\slpd\slpd_process.h">
 			</File>
 			<File
 				RelativePath="..\..\slpd\slpd_property.h">
 			</File>
 			<File
-				RelativePath="..\..\slpd\slpd_property.h">
-			</File>
-			<File
 				RelativePath="..\..\slpd\slpd_regfile.h">
-			</File>
-			<File
-				RelativePath="..\..\slpd\slpd_regfile.h">
-			</File>
-			<File
-				RelativePath="..\..\slpd\slpd_socket.h">
 			</File>
 			<File
 				RelativePath="..\..\slpd\slpd_socket.h">
