@@ -631,7 +631,7 @@ int SLPAuthVerifySAAdvert(SLPSpiHandle hspi,
 /* Returns: 0 on success or SLP_ERROR_xxx code on failure                  */
 /*=========================================================================*/
 {
-    return SLP_ERROR_AUTHENTICATION_FAILED;
+    return 0;
 }
 
 

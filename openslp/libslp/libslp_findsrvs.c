@@ -50,10 +50,10 @@
 #include "libslp.h"
 
 /*-------------------------------------------------------------------------*/
-SLPBoolean CallbackSrvRqst(SLPError errorcode,
-                           struct sockaddr_in* peerinfo,
-                           SLPBuffer replybuf,
-                           void* cookie)
+SLPBoolean ProcessSrvRplyCallback(SLPError errorcode,
+                                  struct sockaddr_in* peerinfo,
+                                  SLPBuffer replybuf,
+                                  void* cookie)
 /*-------------------------------------------------------------------------*/
 {
     int             i;
@@ -62,8 +62,7 @@ SLPBoolean CallbackSrvRqst(SLPError errorcode,
     PSLPHandleInfo  handle      = (PSLPHandleInfo) cookie;
     SLPBoolean      result      = SLP_TRUE;
 
-#ifdef ENABLE_AUTHENTICATION
-    
+#ifdef ENABLE_AUTHENTICATION  
     int             securityenabled;
     securityenabled = SLPPropertyAsBoolean(SLPGetProperty("net.slp.securityEnabled"));
 #endif
@@ -88,44 +87,82 @@ SLPBoolean CallbackSrvRqst(SLPError errorcode,
     replymsg = SLPMessageAlloc();
     if(replymsg)
     {
-        if(SLPMessageParseBuffer(peerinfo,replybuf,replymsg) == 0 &&
-           replymsg->header.functionid == SLP_FUNCT_SRVRPLY &&
-           replymsg->body.srvrply.errorcode == 0)
+        if(SLPMessageParseBuffer(peerinfo,replybuf,replymsg) == 0)
         {
-            urlentry = replymsg->body.srvrply.urlarray;
-        
-            for(i=0;i<replymsg->body.srvrply.urlcount;i++)
+            if(replymsg->header.functionid == SLP_FUNCT_SRVRPLY &&
+               replymsg->body.srvrply.errorcode == 0)
             {
-                
-        #ifdef ENABLE_AUTHENTICATION
-                /*-------------------------------*/
-                /* Validate the authblocks       */
-                /*-------------------------------*/
+                urlentry = replymsg->body.srvrply.urlarray;
+            
+                for(i=0;i<replymsg->body.srvrply.urlcount;i++)
+                {
+                    
+            #ifdef ENABLE_AUTHENTICATION
+                    /*-------------------------------*/
+                    /* Validate the authblocks       */
+                    /*-------------------------------*/
+                    if(securityenabled &&
+                       SLPAuthVerifyUrl(handle->hspi,
+                                        1,
+                                        &(urlentry[i])))
+                    {
+                        /* authentication failed skip this URLEntry */
+                        continue;
+                    }
+            #endif
+                    /*--------------------------------*/
+                    /* Send the URL to the API caller */
+                    /*--------------------------------*/
+                    /* TRICKY: null terminate the url by setting the authcount to 0 */
+                    ((char*)(urlentry[i].url))[urlentry[i].urllen] = 0;
+    
+                    result = handle->params.findsrvs.callback((SLPHandle)handle,
+                                                              urlentry[i].url,
+                                                              urlentry[i].lifetime,
+                                                              SLP_OK,
+                                                              handle->params.findsrvs.cookie);
+                    if(result == SLP_FALSE)
+                    {
+                        break;
+                    }
+                } 
+            }
+            else if(replymsg->header.functionid == SLP_FUNCT_DAADVERT &&
+                    replymsg->body.daadvert.errorcode == 0)
+            {
+#ifdef ENABLE_AUTHENTICATION
                 if(securityenabled &&
-                   SLPAuthVerifyUrl(handle->hspi,
-                                    1,
-                                    &(urlentry[i])))
+                   SLPAuthVerifyDAAdvert(handle->hspi,
+                                         1,
+                                         &(replymsg->body.daadvert)))
+#endif
                 {
-                    /* authentication failed skip this URLEntry */
-                    continue;
+                    ((char*)(replymsg->body.daadvert.url))[replymsg->body.daadvert.urllen] = 0;
+                    result = handle->params.findsrvs.callback((SLPHandle)handle,
+                                                              replymsg->body.daadvert.url,
+                                                              SLP_LIFETIME_MAXIMUM,
+                                                              SLP_OK,
+                                                              handle->params.findsrvs.cookie);
                 }
-        #endif
-                /*--------------------------------*/
-                /* Send the URL to the API caller */
-                /*--------------------------------*/
-                /* TRICKY: null terminate the url by setting the authcount to 0 */
-                ((char*)(urlentry[i].url))[urlentry[i].urllen] = 0;
 
-                result = handle->params.findsrvs.callback((SLPHandle)handle,
-                                                          urlentry[i].url,
-                                                          urlentry[i].lifetime,
-                                                          SLP_OK,
-                                                          handle->params.findsrvs.cookie);
-                if(result == SLP_FALSE)
+            }
+            else if(replymsg->header.functionid == SLP_FUNCT_SAADVERT)
+            {
+#ifdef ENABLE_AUTHENTICATION
+                if(securityenabled &&
+                   SLPAuthVerifySAAdvert(handle->hspi,
+                                         1,
+                                         &(replymsg->body.saadvert)))
+#endif
                 {
-                    break;
+                    ((char*)(replymsg->body.saadvert.url))[replymsg->body.saadvert.urllen] = 0;
+                    result = handle->params.findsrvs.callback((SLPHandle)handle,
+                                                              replymsg->body.saadvert.url,
+                                                              SLP_LIFETIME_MAXIMUM,
+                                                              SLP_OK,
+                                                              handle->params.findsrvs.cookie);
                 }
-            } 
+            }
         }
         
         SLPMessageFree(replymsg);
@@ -229,7 +266,7 @@ SLPError ProcessSrvRqst(PSLPHandleInfo handle)
                                      buf,
                                      SLP_FUNCT_SRVRQST,
                                      bufsize,
-                                     CallbackSrvRqst,
+                                     ProcessSrvRplyCallback,
                                      handle);
             close(sock);
             break;
@@ -241,7 +278,7 @@ SLPError ProcessSrvRqst(PSLPHandleInfo handle)
                                  buf,
                                  SLP_FUNCT_SRVRQST,
                                  bufsize,
-                                 CallbackSrvRqst,
+                                 ProcessSrvRplyCallback,
                                  handle);
         if(result)
         {

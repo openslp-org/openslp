@@ -360,7 +360,7 @@ typedef struct _SLPSAAdvert
     int             attrlistlen;
     const char*     attrlist;
     int             authcount;
-    SLPAuthBlock*   authblock;
+    SLPAuthBlock*   autharray;
 }SLPSAAdvert;
 
 

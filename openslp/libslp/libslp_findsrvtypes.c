@@ -49,10 +49,10 @@
 #include "libslp.h"
 
 /*----------------------------------------------------------------------------*/
-SLPBoolean CallbackSrvTypeRqst(SLPError errorcode, 
-                               struct sockaddr_in* peerinfo,
-                               SLPBuffer replybuf,
-                               void* cookie)
+SLPBoolean ProcessSrvTypeRplyCallback(SLPError errorcode, 
+                                      struct sockaddr_in* peerinfo,
+                                      SLPBuffer replybuf,
+                                      void* cookie)
 /*----------------------------------------------------------------------------*/
 {
     SLPMessage      replymsg;
@@ -179,7 +179,7 @@ SLPError ProcessSrvTypeRqst(PSLPHandleInfo handle)
                                      buf,
                                      SLP_FUNCT_SRVTYPERQST,
                                      bufsize,
-                                     CallbackSrvTypeRqst,
+                                     ProcessSrvTypeRplyCallback,
                                      handle);
             close(sock);
             break;
@@ -191,7 +191,7 @@ SLPError ProcessSrvTypeRqst(PSLPHandleInfo handle)
                                  buf,
                                  SLP_FUNCT_SRVTYPERQST,
                                  bufsize,
-                                 CallbackSrvTypeRqst,
+                                 ProcessSrvTypeRplyCallback,
                                  handle);
         if(result)
         {

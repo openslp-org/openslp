@@ -683,6 +683,75 @@ int ParseDAAdvert(SLPBuffer buffer, SLPDAAdvert* daadvert)
     return 0;
 }
 
+
+/*-------------------------------------------------------------------------*/
+int ParseSAAdvert(SLPBuffer buffer, SLPSAAdvert* saadvert)
+/*-------------------------------------------------------------------------*/
+{
+    int             result;
+    int             i;
+
+    /* make sure that min size is met */
+    if(buffer->end - buffer->curpos < 4)
+    {
+        return SLP_ERROR_PARSE_ERROR;
+    }
+
+    /* parse out the url */
+    saadvert->urllen = AsUINT16(buffer->curpos);
+    buffer->curpos = buffer->curpos + 2;
+    if(saadvert->urllen > buffer->end - buffer->curpos)
+    {
+        return SLP_ERROR_PARSE_ERROR;
+    }
+    saadvert->url = buffer->curpos;
+    buffer->curpos = buffer->curpos + saadvert->urllen;
+
+    /* parse the scope list */
+    saadvert->scopelistlen = AsUINT16(buffer->curpos);
+    buffer->curpos = buffer->curpos + 2;
+    if(saadvert->scopelistlen > buffer->end - buffer->curpos)
+    {
+        return SLP_ERROR_PARSE_ERROR;
+    }
+    saadvert->scopelist = buffer->curpos;
+    buffer->curpos = buffer->curpos + saadvert->scopelistlen;  
+
+    /* parse the attr list */
+    saadvert->attrlistlen = AsUINT16(buffer->curpos);
+    buffer->curpos = buffer->curpos + 2;
+    if(saadvert->attrlistlen > buffer->end - buffer->curpos)
+    {
+        return SLP_ERROR_PARSE_ERROR;
+    }
+    saadvert->attrlist = buffer->curpos;
+    buffer->curpos = buffer->curpos + saadvert->attrlistlen;
+
+    /* parse out auth block count */
+    saadvert->authcount = *(buffer->curpos);
+    buffer->curpos = buffer->curpos + 1;
+
+    /* parse out the auth block (if any) */
+    if(saadvert->authcount)
+    {
+        saadvert->autharray = (SLPAuthBlock*)xmalloc(sizeof(SLPAuthBlock) * saadvert->authcount);
+        if(saadvert->autharray == 0)
+        {
+            return SLP_ERROR_INTERNAL_ERROR;
+        }
+        memset(saadvert->autharray,0,sizeof(SLPAuthBlock) * saadvert->authcount);
+
+        for(i=0;i<saadvert->authcount;i++)
+        {
+            result = ParseAuthBlock(buffer,&(saadvert->autharray[i]));
+            if(result) return result;
+        }
+    }
+
+    return 0;
+}
+
+
 /*--------------------------------------------------------------------------*/
 int ParseSrvTypeRqst(SLPBuffer buffer, SLPSrvTypeRqst* srvtyperqst)
 /*--------------------------------------------------------------------------*/
@@ -832,6 +901,14 @@ void SLPMessageFreeInternals(SLPMessage message)
         }
         break; 
 
+    case SLP_FUNCT_SAADVERT:
+        if(message->body.saadvert.autharray)
+        {
+            xfree(message->body.saadvert.autharray);
+            message->body.saadvert.autharray = 0;
+        }
+        break; 
+
     case SLP_FUNCT_ATTRRQST:
     case SLP_FUNCT_SRVACK:
     case SLP_FUNCT_SRVRQST:
@@ -974,11 +1051,10 @@ int SLPMessageParseBuffer(struct sockaddr_in* peerinfo,
         case SLP_FUNCT_SRVTYPERPLY:
             result = ParseSrvTypeRply(buffer,&(message->body.srvtyperply));
             break;
-#if 0    
+
         case SLP_FUNCT_SAADVERT:
             result = ParseSAAdvert(buffer,&(message->body.saadvert));
             break;
-#endif
         default:
             result = SLP_ERROR_MESSAGE_NOT_SUPPORTED;
         }
