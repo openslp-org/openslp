@@ -298,3 +298,22 @@ int SLPPropertyReadFile(const char* conffile)
     return 0;
 }
 
+/*=========================================================================*/
+int SLPPropertyAsBoolean(const char* property)
+/*=========================================================================*/
+{
+    if(property)
+    {
+        if(*property == 't' ||
+           *property == 'T' ||
+           *property == 'y' ||
+           *property == 'Y' ||
+           *property == '1' )
+        {
+            return 1;
+        }            
+    }
+
+    return 0;
+}
+

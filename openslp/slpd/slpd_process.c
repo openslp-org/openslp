@@ -308,7 +308,8 @@ void ProcessDASrvRqst(SLPDPeerInfo* peerinfo,
         result->curpos = result->curpos + 2;
         /* timestamp */
         ToUINT32(result->curpos,G_SlpdProperty.DATimestamp);
-        /* url len */
+        result->curpos = result->curpos + 4;
+        /* url len */                       
         ToUINT16(result->curpos, G_SlpdProperty.myUrlLen);
         result->curpos = result->curpos + 2;
         /* url */

@@ -39,21 +39,6 @@ SLPDProperty G_SlpdProperty;
 /*=========================================================================*/
 
 
-/*-------------------------------------------------------------------------*/
-int AsBoolean(const char* str)
-/*-------------------------------------------------------------------------*/
-{
-    if(*str == 'T' ||
-       *str == 't' ||
-       *str == 'Y' ||
-       *str == 'y')
-    {
-        return 1;
-    }
-
-    return 0;
-}
-
 /*=========================================================================*/
 void SLPDPropertyInit(const char* conffile)
 /*=========================================================================*/
@@ -70,22 +55,22 @@ void SLPDPropertyInit(const char* conffile)
     /*-------------------------------------------------------------*/
     /* Set the properties with out hard defaults                   */
     /*-------------------------------------------------------------*/
-    G_SlpdProperty.isBroadcastOnly = AsBoolean(SLPPropertyGet("net.slp.isBroadcastOnly"));
-    G_SlpdProperty.passiveDADetection = AsBoolean(SLPPropertyGet("net.slp.passiveDADetection"));               
-    G_SlpdProperty.activeDADetection = AsBoolean(SLPPropertyGet("net.slp.activeDADetection"));               
+    G_SlpdProperty.isBroadcastOnly = SLPPropertyAsBoolean(SLPPropertyGet("net.slp.isBroadcastOnly"));
+    G_SlpdProperty.passiveDADetection = SLPPropertyAsBoolean(SLPPropertyGet("net.slp.passiveDADetection"));               
+    G_SlpdProperty.activeDADetection = SLPPropertyAsBoolean(SLPPropertyGet("net.slp.activeDADetection"));               
     G_SlpdProperty.multicastTTL = atoi(SLPPropertyGet("net.slp.multicastTTL"));
     G_SlpdProperty.multicastMaximumWait = atoi(SLPPropertyGet("net.slp.multicastMaximumWait"));
     G_SlpdProperty.unicastMaximumWait = atoi(SLPPropertyGet("net.slp.unicastMaximumWait"));
     G_SlpdProperty.randomWaitBound = atoi(SLPPropertyGet("net.slp.randomWaitBound"));
-    G_SlpdProperty.traceMsg = AsBoolean(SLPPropertyGet("net.slp.traceMsg"));
-    G_SlpdProperty.traceReg = AsBoolean(SLPPropertyGet("net.slp.traceReg"));
-    G_SlpdProperty.traceDrop = AsBoolean(SLPPropertyGet("net.slp.traceDrop"));
-    G_SlpdProperty.traceDATraffic = AsBoolean(SLPPropertyGet("net.slp.traceDATraffic"));
+    G_SlpdProperty.traceMsg = SLPPropertyAsBoolean(SLPPropertyGet("net.slp.traceMsg"));
+    G_SlpdProperty.traceReg = SLPPropertyAsBoolean(SLPPropertyGet("net.slp.traceReg"));
+    G_SlpdProperty.traceDrop = SLPPropertyAsBoolean(SLPPropertyGet("net.slp.traceDrop"));
+    G_SlpdProperty.traceDATraffic = SLPPropertyAsBoolean(SLPPropertyGet("net.slp.traceDATraffic"));
     G_SlpdProperty.DAAddresses = SLPPropertyGet("net.slp.DAAddresses");
     G_SlpdProperty.DAAddressesLen = strlen(G_SlpdProperty.DAAddresses);
     G_SlpdProperty.useScopes = SLPPropertyGet("net.slp.useScopes");
     G_SlpdProperty.useScopesLen = strlen(G_SlpdProperty.useScopes);
-    G_SlpdProperty.isDA = AsBoolean(SLPPropertyGet("net.slp.isDA"));
+    G_SlpdProperty.isDA = SLPPropertyAsBoolean(SLPPropertyGet("net.slp.isDA"));
 
 
     /*-------------------------------------*/

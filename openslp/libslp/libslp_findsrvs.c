@@ -70,7 +70,7 @@ SLPError ProcessSrvRqst(PSLPHandleInfo handle)
         ismcast = 1;
         maxwait = atoi(SLPGetProperty("net.slp.multicastMaximumWait")) / 1000;
         wait    = 1;
-        bcastonly = SLPPropertyGet("net.slp.isBroadcastOnly"); 
+        bcastonly = SLPGetProperty("net.slp.isBroadcastOnly"); 
         if(*bcastonly == 'T' ||
            *bcastonly == 't' ||
            *bcastonly == 'Y' ||

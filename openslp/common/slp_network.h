@@ -50,6 +50,22 @@
 #include <slp_buffer.h>
 #include <slp_property.h>
 #include <slp_message.h>
+#include <slp_xid.h>
+
+
+#define MAX_RETRANSMITS     8
+
+
+/*=========================================================================*/ 
+typedef struct _SLPNetworkMcastInfo
+/*=========================================================================*/ 
+{
+    int broadcast;
+    int ttl;
+    int maxwait;
+    int timeouts[MAX_RETRANSMITS];
+    int mtu;
+}SLPNetworkMcastInfo;
 
 /*=========================================================================*/ 
 int SLPNetworkConnectStream(struct sockaddr_in* peeraddr,
@@ -115,6 +131,24 @@ int SLPNetworkRecvMessage(int sockfd,
 /*               ETIME read timed out                                      */
 /*               ENOMEM out of memory                                      */
 /*               EINVAL parse error                                        */
+/*=========================================================================*/ 
+
+
+/*=========================================================================*/ 
+int SLPNetworkMcastConverge(const SLPNetworkMcastInfo *mcastinfo,
+                            const char* langtag,
+                            char buftype,
+                            const void* buf,
+                            int* bufsize,
+                            SLPBuffer* replybufs,
+                            int* replybufcount);
+/* Receives a message                                                      */
+/*                                                                         */
+/* Returns  -    zero on success, non-zero on failure                      */
+/*                                                                         */
+/*               EPIPE error during write                                  */
+/*               ETIME read timed out                                      */
+/*               ENOMEM out of memory                                      */
 /*=========================================================================*/ 
 
 #endif
