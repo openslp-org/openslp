@@ -36,6 +36,8 @@
 #if(!defined SLP_BUFFER_H_INCLUDED)
 #define SLP_BUFFER_H_INCLUDED
 
+#include <malloc.h>
+
 #include <slp_linkedlist.h>
 
 /*=========================================================================*/
@@ -45,6 +47,9 @@ typedef struct _SLPBuffer
     ListItem listitem;
     /* ListItem so that SLPBuffers can be linked into a list*/
     
+    /* the allocated size of this buffer */
+    size_t  allocated;
+
     char*   start;  
     /* ALWAYS points to the start of the malloc() buffer  */
 
@@ -95,6 +100,31 @@ void SLPBufferFree(SLPBuffer buf);
 /*                                                                         */
 /* returns  - none                                                         */
 /*=========================================================================*/
+
+
+/*=========================================================================*/
+SLPBuffer SLPBufferListRemove(SLPBuffer* list, SLPBuffer buf);
+/* Removed the specified SLPBuffer from a SLPBuffer list                   */
+/*                                                                         */
+/* list (IN/OUT) pointer to the list                                       */
+/*                                                                         */
+/* buf  (IN) buffer to remove                                              */
+/*                                                                         */
+/* Returns the previous item in the list (may be NULL)                     */
+/*=========================================================================*/
+
+
+/*=========================================================================*/
+SLPBuffer SLPBufferListAdd(SLPBuffer* list, SLPBuffer buf);
+/* Add the specified SLPBuffer from a SLPBuffer list                       */
+/*                                                                         */
+/* list (IN/OUT) pointer to the list                                       */
+/*                                                                         */
+/* buf  (IN) buffer to add                                                 */
+/*                                                                         */
+/* Returns the added item in the list.                                     */
+/*=========================================================================*/
+
 
 /*=========================================================================*/
 void* memdup(const void* src, int srclen);

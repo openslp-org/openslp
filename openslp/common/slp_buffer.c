@@ -18,7 +18,7 @@
 
 /*=========================================================================*/
 void* memdup(const void* src, int srclen)
-/* Generic memdup analogous to strdup()
+/* Generic memdup analogous to strdup()                                    */
 /*=========================================================================*/
 {
     char* result;
@@ -45,9 +45,10 @@ SLPBuffer SLPBufferAlloc(int size)
    result = (SLPBuffer)malloc(sizeof(struct _SLPBuffer) + size);
    if(result)
    {
+       result->allocated = size;
        result->start = ((char*)result) + sizeof(struct _SLPBuffer);
        result->curpos = result->start;
-       result->end = result->start + size;
+       result->end = result->start + size; 
        
        #if(defined DEBUG)
        memset(result->start,0xff,size);
@@ -66,26 +67,36 @@ SLPBuffer SLPBufferRealloc(SLPBuffer buf, int size)
 /* returns  - a newly allocated SLPBuffer or NULL on ENOMEM                */
 /*=========================================================================*/
 {
+   SLPBuffer result;
    if(buf)
    {
-       buf = (SLPBuffer)realloc(buf,sizof(struct _SLPBuffer) + size);
-       if(buf)
+       if(buf->allocated >= size)
        {
-	   result->start = ((char*)result) + sizeof(struct _SLPBuffer);
-	   result->curpos = result->start;
-	   result->end = result->start + size;
-	   
-	   #if(defined DEBUG)
-	   memset(result->start,0xff,size);
-	   #endif
+           result = buf;
+       }
+       else
+       {
+           result = (SLPBuffer)realloc(buf,sizeof(struct _SLPBuffer) + size);
+           result->allocated = size;
+       }
+       
+       if(result)
+       {
+    	   result->start = ((char*)result) + sizeof(struct _SLPBuffer);
+    	   result->curpos = result->start;
+    	   result->end = result->start + size;
+    	   
+    	   #if(defined DEBUG)
+    	   memset(result->start,0xff,size);
+    	   #endif
        }
    }
    else
    {
-       buf = SLPBufferAlloc(size);
+       result = SLPBufferAlloc(size);
    }
 
-   return buf;
+   return result;
 }
 
 
@@ -104,7 +115,7 @@ SLPBuffer SLPBufferDup(SLPBuffer buf)
     dup = SLPBufferAlloc(buf->end - buf->start);
     if(dup)
     {
-	memcpy(dup->start,buf->start,buf->end - buf->start);       
+	    memcpy(dup->start,buf->start,buf->end - buf->start);       
     }
     
     return dup;
@@ -124,4 +135,43 @@ void SLPBufferFree(SLPBuffer buf)
     {
         free(buf);
     }
+}
+
+
+/*=========================================================================*/
+SLPBuffer SLPBufferListRemove(SLPBuffer* list, SLPBuffer buf)
+/* Removes and frees the specified SLPBuffer from a SLPBuffer list         */
+/*                                                                         */
+/* list (IN/OUT) pointer to the list                                       */
+/*                                                                         */
+/* buf  (IN) buffer to remove                                              */
+/*                                                                         */
+/* Returns the previous item in the list (may be NULL)                     */
+/*=========================================================================*/
+{
+    SLPBuffer del = buf;
+    buf = (SLPBuffer)buf->listitem.previous;
+    ListUnlink((PListItem*)list,(PListItem)del);
+    if(buf == 0)
+    {
+        buf = *list;
+    }                   
+    SLPBufferFree(del);
+    return buf;
+}
+
+
+/*=========================================================================*/
+SLPBuffer SLPBufferListAdd(SLPBuffer* list, SLPBuffer buf)
+/* Add the specified SLPBuffer from a SLPBuffer list                       */
+/*                                                                         */
+/* list (IN/OUT) pointer to the list                                       */
+/*                                                                         */
+/* buf  (IN) buffer to add                                                 */
+/*                                                                         */
+/* Returns the added item in the list.                                     */
+/*=========================================================================*/
+{
+    ListLink((PListItem*)list,(PListItem)buf);
+    return buf;
 }
