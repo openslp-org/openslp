@@ -36,10 +36,15 @@
 #if(!defined SLP_BUFFER_H_INCLUDED)
 #define SLP_BUFFER_H_INCLUDED
 
+#include <slp_linkedlist.h>
+
 /*=========================================================================*/
 typedef struct _SLPBuffer                                                  
 /*=========================================================================*/
 {
+    ListItem listitem;
+    /* ListItem so that SLPBuffers can be linked into a list*/
+    
     char*   start;  
     /* ALWAYS points to the start of the malloc() buffer  */
 
@@ -65,6 +70,16 @@ SLPBuffer SLPBufferAlloc(int size);
 /*=========================================================================*/
 SLPBuffer SLPBufferRealloc(SLPBuffer buf, int size);
 /* Must be called to initially allocate a SLPBuffer                        */ 
+/*                                                                         */
+/* size     - (IN) number of bytes to allocate                             */
+/*                                                                         */
+/* returns  - a newly allocated SLPBuffer or NULL on ENOMEM                */
+/*=========================================================================*/
+
+/*=========================================================================*/
+SLPBuffer SLPBufferDup(SLPBuffer buf);
+/* Returns a duplicate buffer.  Duplicate buffer must be freed by a call   */
+/* to SLPBufferFree()                                                      */
 /*                                                                         */
 /* size     - (IN) number of bytes to allocate                             */
 /*                                                                         */
