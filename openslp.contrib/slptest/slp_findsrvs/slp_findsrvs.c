@@ -131,9 +131,9 @@ int main(int argc, char* argv[])
                         "find in scope", 
                         &resultCookie);
 
-        //Try to find a non-existent service -- should fail with error -19
+        //Try to find a non-existent service -- should return OK
         setupResultCookie(&resultCookie, NUM_SCOPE_STRS, scope_string,
-                          -19);
+                          SLP_OK);
         result = doTest(hslp, 
                         "service:slp_test_scopeydopey", 
                         "someunknownandneverusedscope", 

@@ -15,7 +15,9 @@
 #define SLP_TEST_NORESULTS      -1001
 #define SLP_TEST_INVALIDARGS    -1002
 #define SLP_TEST_UNINITIALIZED  -1003
-
+#define SLP_TEST_NOCALLBACK     -1004
+ 
+const char* SLP_TEST_NOCALLBACK_STR = "Not set. [Callback function was not invoked.]";
 const int TEST_TYPE_PADDING  =  58;
 
 //The result cookie is used to pass around
@@ -110,6 +112,9 @@ char* errcodeToStr(int errcode)
         break;
     case -1003:
         retval="SLP_TEST_UNINITIALIZED";
+        break;
+    case -1004:
+        retval="SLP_TEST_NOCALLBACK";
         break;
     default:
         snprintf(retval,80,"Unknown SLP error Code %d",errcode);
@@ -310,7 +315,7 @@ void setupResultCookie(PSLPResultCookie rc, int numTestStrings, const char** tes
     rc->retval = -1003; //Set up an inital fail state
     rc->expectedRetval = expectedRetval;
     memset(rc->msg, 0, MAX_RESULT_MSG_SIZE );
-    strcpy(rc->msg, "Not set. [Callback function was not invoked.]");
+    strcpy(rc->msg, SLP_TEST_NOCALLBACK_STR);
     memset(rc->resultString, 0, MAX_RESULT_MSG_SIZE);
 }
 
