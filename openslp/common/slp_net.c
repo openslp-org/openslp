@@ -399,7 +399,7 @@ int SLPNetAddrInfoToString(struct addrinfo *src, char *dst, int dstLen) {
  *
  * Returns: zero on success, non-zero on error;
  *-------------------------------------------------------------------------*/
-unsigned long SLPNetSetSrvMcastAddr(const char *pSrvType, unsigned int len, int scope, struct sockaddr_storage *addr) {
+unsigned long SLPNetGetSrvMcastAddr(const char *pSrvType, unsigned int len, int scope, struct sockaddr_storage *addr) {
 	unsigned long group_id = 0;
 	struct in6_addr *v6;
 
