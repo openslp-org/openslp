@@ -17,6 +17,12 @@ endif
 #libcommonlibslp_a_SOURCES = \
 #
 libcommonlibslp_la_SOURCES = \
+	slp_dhcp.c\
+	slp_iface.c\
+	slp_net.c\
+	slp_parse.c\
+	slp_pid.c\
+	slp_xcast.c\
         slp_compare.c \
 	slp_buffer.c \
 	slp_message.c \
@@ -34,6 +40,11 @@ libcommonlibslp_la_SOURCES = \
 #
 libcommonslpd_la_SOURCES = \
         slp_compare.c \
+	slp_dhcp.c\
+	slp_iface.c\
+	slp_net.c\
+	slp_parse.c\
+	slp_pid.c\
 	slp_buffer.c \
 	slp_message.c \
 	slp_property.c \
@@ -45,6 +56,16 @@ libcommonslpd_la_SOURCES = \
 	$(slp_security_SRCS)
 
 noinst_HEADERS = \
+	slp_attr.h\
+	slp_dhcp.h\
+	slp_filter.h\
+	slp_iface.h\
+	slp_net.h\
+	slp_parse.h\
+	slp_pid.h\
+	slp_predicate.h\
+	slp_win32.h\
+	slp_xcast.h\
 	slp_buffer.h \
 	slp_network.h \
 	slp_xid.h \
