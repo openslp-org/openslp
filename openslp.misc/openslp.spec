@@ -1,5 +1,5 @@
-%define	ver 0.7.2
-%define	rel 2
+%define	ver 0.7.3
+%define	rel 1
 %define	name openslp
 %define libver 0.0.1
 
@@ -31,6 +31,7 @@ files and documentation
 
 %Build
 #./configure --with-RPM-prefix=$RPM_BUILD_ROOT
+./autogen.sh
 ./configure --prefix=$RPM_BUILD_ROOT
 ./configure
 make
