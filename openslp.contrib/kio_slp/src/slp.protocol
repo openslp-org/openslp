@@ -1,0 +1,11 @@
+[Protocol]
+exec=kio_slp
+protocol=service
+input=none
+output=filesystem
+listing=Name
+reading=true
+writing=false
+makedir=false
+deleting=false
+moving=false
