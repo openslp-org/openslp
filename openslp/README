@@ -1,4 +1,4 @@
-OpenSLP README
+Openslp README
 ===============
 
 1 - Introduction
@@ -19,9 +19,8 @@ application.
 The latest stable version of OpenSLP is 1.0.0  Release notes for this version 
 follow:
 
-OpenSLP 1.0.0 is the first "stable/complete" release of OpenSLP.  It does 
-offer one new feature and several bug fixes.  It is highly recommended
-that all OpenSLP users upgrade to this release.
+OpenSLP 1.0.0 is the first "stable/complete" release of OpenSLP.  It is highly
+recommended that all OpenSLP users upgrade to this release.
 
 The following is a shortened list changes for 1.0.0:
 - Fixes all known bugs (SourceForge bug tracker 
