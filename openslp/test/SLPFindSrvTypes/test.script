@@ -4,7 +4,7 @@ echo "SLPFindSrvTypes"
 rm -f SLPFindSrvTypes.actual.output
 scriptdir=${srcdir}/SLPFindSrvTypes
 
-../slpd/slpd -r ${scriptdir}/slp.test.reg &
+../slpd/slpd -r ${scriptdir}/slp.test.reg 
 ./slpfindsrvtypes "*" >> SLPFindSrvTypes.actual.output
 echo >> SLPFindSrvTypes.actual.output
 ./slpfindsrvtypes "" >> SLPFindSrvTypes.actual.output

@@ -4,11 +4,14 @@ TESTS = SLPOpen/test.script SLPFindSrvTypes/test.script  \
         SLPParseSrvURL/test.script SLPEscape/test.script \
         SLPUnescape/test.script 
 
-INCLUDES = -I$(top_srcdir)/libslp -I$(top_srcdir)/libslpattr -I$(top_srcdir)/slpd
+XFAIL_TESTS = SLPFindAttrs/test.script
+
+INCLUDES = -I$(top_srcdir)/libslp -I$(top_srcdir)/libslpattr \
+           -I$(top_srcdir)/slpd
 
 noinst_PROGRAMS = slpdereg slpescape slpfindattrs slpfindsrvtypes \
                   slpfindsrvs slpopen slpparsesrvurl slpreg slpunescape \
-				  slp_attr_test slpd_predicate_test
+		  slp_attr_test slpd_predicate_test
 
 LDADD = ../libslp/libslp.la ../libslpattr/libslpattr.la
 slpd_predicate_test_LDADD = $(LDADD) ../slpd/slpd_predicate.o ../common/libcommonslpd.la

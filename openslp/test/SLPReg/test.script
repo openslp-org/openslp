@@ -4,7 +4,7 @@ echo "SLPReg"
 rm -f SLPReg.actual.output
 scriptdir=${srcdir}/SLPReg
 
-../slpd/slpd &
+../slpd/slpd 
 ./slpreg service:valid 10.0.0.1 service:valid >>  SLPReg.actual.output
 echo >> SLPReg.actual.output
 ./slpreg service:valid 10.0.0.1 service:invalid >> SLPReg.actual.output

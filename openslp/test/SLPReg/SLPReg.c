@@ -54,7 +54,7 @@ int main(int argc, char* argv[])
 		reg_string,
 		SLP_LIFETIME_MAXIMUM, 
 		0, 
-		"(public_key=......my_pgp_key.......)", 
+		"(public-key=......my_pgp_key.......)", 
 		SLP_TRUE, 
 		MySLPRegReport, 
 		&callbackerr ); 
