@@ -448,7 +448,9 @@ int SLPDProcessMessage(SLPDPeerInfo* peerinfo,
 /*=========================================================================*/
 
 /*=========================================================================*/
-void SLPDLogMessage(SLPDPeerInfo* peerinfo, SLPMessage message);
+void SLPDLogTraceMsg(SLPDPeerInfo* peerinfo,
+                     SLPBuffer recvbuf,
+                     SLPBuffer sendbuf);
 /*=========================================================================*/
 
 
