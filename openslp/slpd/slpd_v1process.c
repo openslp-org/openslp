@@ -828,48 +828,55 @@ int SLPDv1ProcessMessage(struct sockaddr_in* peeraddr,
         {
             /* Parse the message and fill out the message descriptor */
             errorcode = SLPv1MessageParseBuffer(peeraddr,recvbuf, message);
-            
-            switch(message->header.functionid)
+            if(errorcode == 0)
             {
-            case SLP_FUNCT_SRVRQST:
-                errorcode = v1ProcessSrvRqst(peeraddr, message, sendbuf, errorcode);
-                break;
-        
-            case SLP_FUNCT_SRVREG:
-                errorcode = v1ProcessSrvReg(peeraddr,
-                                            message,
-                                            recvbuf,
-                                            sendbuf,
-                                            errorcode);
-                /* We are a DA so there is no need to register with known DAs */
-                break;
-        
-            case SLP_FUNCT_SRVDEREG:
-                errorcode = v1ProcessSrvDeReg(peeraddr, message, sendbuf, errorcode);
-                /* We are a DA so there is no need to deregister with known DAs */
-                break;
-        
-            case SLP_FUNCT_ATTRRQST:
-                errorcode = v1ProcessAttrRqst(peeraddr, message, sendbuf, errorcode);
-                break;
-        
-            case SLP_FUNCT_SRVTYPERQST:
-                errorcode = v1ProcessSrvTypeRqst(peeraddr, message, sendbuf, errorcode);
-                break;
-        
-            case SLP_FUNCT_DAADVERT:
-                errorcode = 0;      /* we are a SLPv2 DA, ignore other DAs */
-                (*sendbuf)->end = (*sendbuf)->start;
-                break;
-        
-            default:
-                /* Should never happen... but we're paranoid */
-                errorcode = SLP_ERROR_PARSE_ERROR;
-                break;
-                /* Log traceMsg of message will be sent */
-                /* that will be sent                    */
-                /*SLPDLogMessage("Outgoing",peerinfo,*sendbuf);*/
-            }   
+                /* Process messages based on type */
+                switch(message->header.functionid)
+                {
+                case SLP_FUNCT_SRVRQST:
+                    errorcode = v1ProcessSrvRqst(peeraddr, message, sendbuf, errorcode);
+                    break;
+            
+                case SLP_FUNCT_SRVREG:
+                    errorcode = v1ProcessSrvReg(peeraddr,
+                                                message,
+                                                recvbuf,
+                                                sendbuf,
+                                                errorcode);
+                    if(errorcode == 0)
+                    {
+                        SLPDLogRegistration("Service (SLPv1) registration",message);
+                    }
+                    break;
+            
+                case SLP_FUNCT_SRVDEREG:
+                    errorcode = v1ProcessSrvDeReg(peeraddr, message, sendbuf, errorcode);
+                    if(errorcode == 0)
+                    {
+                        SLPDLogRegistration("Service (SLPv1) Deregistration",message);
+                    } 
+                    break;
+            
+                case SLP_FUNCT_ATTRRQST:
+                    errorcode = v1ProcessAttrRqst(peeraddr, message, sendbuf, errorcode);
+                    break;
+            
+                case SLP_FUNCT_SRVTYPERQST:
+                    errorcode = v1ProcessSrvTypeRqst(peeraddr, message, sendbuf, errorcode);
+                    break;
+            
+                case SLP_FUNCT_DAADVERT:
+                    /* we are a SLPv2 DA, ignore other DAs */
+                    errorcode = SLP_ERROR_MESSAGE_DROPPED;     
+                    (*sendbuf)->end = (*sendbuf)->start;
+                    break;
+            
+                default:
+                    /* Should never happen... but we're paranoid */
+                    errorcode = SLP_ERROR_PARSE_ERROR;
+                    break;
+                }   
+            }
         }
 
         if(header.functionid == SLP_FUNCT_SRVREG)
