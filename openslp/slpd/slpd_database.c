@@ -425,12 +425,15 @@ int SLPDDatabaseFindType(SLPSrvTypeRqst* srvtyperqst,
             {
                 for(i = 0; i < found; i++)
                 {
-                    if(strncasecmp(result[i].type, entry->srvtype,
-                                   entry->srvtypelen) == 0)
+                    if(SLPCompareString(result[i].typelen,
+					result[i].type,
+					entry->srvtype,
+					entry->srvtypelen) == 0)
                     {
                         break;
                     }
                 }
+	       
                 if(i == found)
                 {
                     result[found].type = entry->srvtype;
