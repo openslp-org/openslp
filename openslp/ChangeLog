@@ -5,6 +5,14 @@ Please make entries to this log (in addition to the CVS log) that describe
 major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
+07/13/01 mpeterson@caldera.com
+Fixed slp.conf parsing problem when properties are set to empty string
+
+07/13/01 mpeterson@caldera.com
+Fixed possible SEGV when an unset property is accessed
+
+07/13/01 mpeterson@caldera.com
+Added the getproperty feature to slptool
 
 07/11/01 mpeterson@caldera.com
 Applied Todd Poynor's patches to slpd_knownda.c

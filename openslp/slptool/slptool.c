@@ -292,6 +292,17 @@ void PrintVersion(SLPToolCommandLine* cmdline)
 	   SLPGetProperty("net.slp.OpenSLPVersion"));
 }
 
+/*=========================================================================*/
+void GetProperty(SLPToolCommandLine* cmdline)
+/*=========================================================================*/  
+{
+    const char* propertyValue;
+    
+    propertyValue = SLPGetProperty(cmdline->cmdparam1);
+    printf("%s = %s\n", 
+	   cmdline->cmdparam1,
+	   propertyValue == 0 ? "" : propertyValue);
+}
 
 /*=========================================================================*/
 int ParseCommandLine(int argc,char* argv[], SLPToolCommandLine* cmdline)
@@ -451,6 +462,19 @@ int ParseCommandLine(int argc,char* argv[], SLPToolCommandLine* cmdline)
 		return 1;
 	    }
         }
+        else if(strcasecmp(argv[i],"getproperty") == 0)
+        {
+	    cmdline->cmd = GETPROPERTY;
+	    i++;
+	    if(i < argc)
+	    {
+	        cmdline->cmdparam1 = argv[i];
+	    }
+	    else
+	    {
+	        return 1;
+	    }
+	}
         else
         {
             return 1;
@@ -485,6 +509,7 @@ void DisplayUsage()
     printf("   slptool findattrs service:myserv.x://myhost.com\n");
     printf("   slptool findattrs service:myserv.x://myhost.com attr1\n");
     printf("   slptool deregister service:myserv.x://myhost.com\n");
+    printf("   slptool getproperty net.slp.useScopes\n");
 }
 
 
@@ -518,16 +543,19 @@ int main(int argc, char* argv[])
 	case FINDSCOPES:
 	    FindScopes(&cmdline);
 	    break;
-        
+	   
         case GETPROPERTY:
-//            GetProperty(&cmdline);
+            GetProperty(&cmdline);
             break;
-        case REGISTER:
+
+	 case REGISTER:
             Register(&cmdline);
             break;
-        case DEREGISTER:
+
+	 case DEREGISTER:
             Deregister(&cmdline);
             break;
+
 	 case PRINT_VERSION:
 	    PrintVersion(&cmdline);
         }

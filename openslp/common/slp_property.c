@@ -97,9 +97,7 @@ const char* SLPPropertyGet(const char* pcName)
         return existingProperty->propertyValue;
     }
 
-    existingProperty = Find("notfound");
-
-    return existingProperty->propertyValue;
+    return 0;
 }
 
 
@@ -112,6 +110,15 @@ int SLPPropertySet(const char *pcName,
     int             pcValueSize;
     SLPProperty*    newProperty; 
 
+    /* TODO: Fix this when we support SLPSetProperty() so that setting a */
+    /*       value to the empty string will revert to default in         */
+    /*       cases (like net.slp.useScopes, and others)                  */
+    if(pcValue == 0 || *pcValue == 0)
+    {
+       /* Bail for right now */
+       return 0;
+    }
+   
     newProperty = Find(pcName);
     pcNameSize = strlen(pcName) + 1;
     pcValueSize = strlen(pcValue) + 1;
@@ -206,7 +213,6 @@ int SetDefaultValues()
 #else /* UNIX */
     result |= SLPPropertySet("net.slp.OpenSLPVersion", VERSION);
 #endif
-    result |= SLPPropertySet("notfound","");
 
     return result;
 }
@@ -288,19 +294,21 @@ int SLPPropertyReadFile(const char* conffile)
         }
 
         /* parse out the property value */
-        while(*valuestart <= 0x20)
+        while(*valuestart && *valuestart <= 0x20)
         {
             valuestart++;
         }
 
         valueend = valuestart;
 
+        /* Seek to the end of the value */
         while(*valueend)
         {
             valueend++;
         }
-
-        while(*valueend <= 0x20)
+        
+        /* Remove any whitespace that might be present */
+        while(valueend != valuestart && *valueend <= 0x20)
         {
             *valueend = 0;
             valueend --;
