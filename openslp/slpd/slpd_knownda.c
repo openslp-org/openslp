@@ -570,7 +570,7 @@ int SLPDKnownDAAdd(SLPMessage msg, SLPBuffer buf)
                    daadvert->bootstamp <= entrydaadvert->bootstamp)
                 {
                     /* Advertising DA must have went down then came back up */
-                    SLPDKnownDARegisterAll(entry->msg,0);
+                    SLPDKnownDARegisterAll(msg,0);
                 }
                 
                 SLPDatabaseRemove(dh,entry);
@@ -580,7 +580,7 @@ int SLPDKnownDAAdd(SLPMessage msg, SLPBuffer buf)
         if(entry == 0)
         {
             /* Advertising DA is new to us */
-            SLPDKnownDARegisterAll(entry->msg,0);
+            SLPDKnownDARegisterAll(msg,0);
         }
 
         /* Make sure the DA is not dying */
