@@ -1,9 +1,9 @@
-all: slp.so
+all: _slp.so
 
-slp.so: slp.pyx
+_slp.so: _slp.pyx
 	python2.2 setup.py build_ext --inplace
 
 clean:
-	rm -rf build slp.so slp.c *~
+	rm -rf build _slp.so _slp.c *~
 
 .PHONY: all clean

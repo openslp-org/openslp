@@ -1,4 +1,5 @@
 README
 setup.py
-slp.pyx
+_slp.pyx
+slp.py
 slptest.py

@@ -12,12 +12,13 @@ scopes = slph.findscopes()
 print "scopes =", scopes
 
 slph.register(url, 65535, attrs)
+print "registered", url
 
 srvtypes = slph.findsrvtypes()
 print "srvtypes =", srvtypes
 
 for type in srvtypes:
-    print type + ":"
+    print "service", type + ":"
     services = slph.findsrvs(type, "")
     for srv in services:
         attrs = slph.findattrs(srv[0])
