@@ -374,7 +374,7 @@ int SLPNetworkRecvMessage(int sockfd,
     if(*peek == 2)
     {
         /* Check the buffer size to make sure it is sane */
-        if(AsUINT24(peek + 2) > 0xffff)
+        if(AsUINT24(peek + 2) < 0xffff)
         {
             /* allocate the recvmsg big enough for the whole message */
             *buf = SLPBufferRealloc(*buf, AsUINT24(peek + 2));

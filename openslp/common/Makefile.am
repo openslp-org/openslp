@@ -15,6 +15,7 @@ endif
 
 #if you're building on Irix, exchange commented and uncommented lines
 #libcommonlibslp_a_SOURCES = \
+#
 libcommonlibslp_la_SOURCES = \
         slp_compare.c \
 	slp_buffer.c \
@@ -30,6 +31,7 @@ libcommonlibslp_la_SOURCES = \
 
 #if you're building on Irix, exchange commented and uncommented lines
 #libcommonslpd_a_SOURCES = \
+#
 libcommonslpd_la_SOURCES = \
         slp_compare.c \
 	slp_buffer.c \
