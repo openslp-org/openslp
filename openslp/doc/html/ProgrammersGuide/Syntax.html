@@ -1,7 +1,7 @@
 <!doctype html public "-//w3c//dtd html 4.0 transitional//en">
 <html>
 <head>
-   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-15">
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
    <meta name="GENERATOR" content="Mozilla/4.72C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.2.14 i686) [Netscape]">
    <title>OpenSLP Programmers Guide - Syntax</title>
 </head>
@@ -17,12 +17,12 @@ The official definition of Service Type strings can be found in <a href="../../r
 2609</a>, "Service Templates and Service Schemes".&nbsp; If you will be
 working with "well known" (IANA) service types, you should read it.&nbsp;
 If you are developing applications for "proprietary" services then you
-will probably be satisfied with the following explaination:
-<blockquote><b>Service-Type = &lt;abstract-type.naming-authority>":"&lt;concrete-type></b></blockquote>
+will probably be satisfied with the following explanation:
+<blockquote><b>Service-Type = "service:"&lt;abstract-type.naming-authority>":"&lt;concrete-type></b></blockquote>
 The abstract-type is simple (hopefully short) descriptive string that describes
 the type of service.&nbsp; The naming-authority is the name (hopefully
 unique) name of the organization that named the service.&nbsp; The naming-authority
-is optional, but if it is ommitted then IANA is assumed to be the naming
+is optional, but if it is omitted then IANA is assumed to be the naming
 authority and IANA requires service-types to be registered (see RFC 2609).&nbsp;
 The concrete-type is also optional.&nbsp; Think of a concrete-type as a
 kind of sub-type of the abstract-type.&nbsp; For example, "printer" is
@@ -30,10 +30,10 @@ an abstract type (owned by IANA) and "printer:lpr" is a concrete type (owned
 by IANA).
 <h4>
 Service Type Examples</h4>
-"weather.nasa:wtp"&nbsp; - A (ficticious) weather service type owned by
-NASA that uses Weather Transfer protocol
-<br>"weather.nasa:swtp" - A (ficticious) wether service type owned by NASA
-tha uses Simple Weather Transfer protocol.
+"weather.nasa:wtp"&nbsp; - A (fictitious) weather service type owned by
+NASA that uses WTP protocol
+<br>"weather.nasa:swtp" - A (fictitious) weather service type owned by NASA
+that uses SWTP protocol.
 <br>"chat.superchat" - A chat service type owned by SuperChat
 <br>"printer.samba" - A samba printer service type
 <br>"ftp" - An IANA ftp service type
@@ -46,11 +46,11 @@ understand how OpenSLP compares services.&nbsp; Suppose that three services
 were registered with <tt><a href="SLPReg.html">SLPReg()</a></tt> using
 a <tt>srvtype</tt> of "printer:lpr", "printer" and "printer.acme".&nbsp;
 If a client program calls <tt><a href="SLPFindSrvs.html">SLPFindSrvs()</a></tt>
-with a <tt>srvtype</tt> of "printer" the urls for both "printer:lpr" and
-"printer" are returned ("printer.acme" is not).&nbsp; However, if <tt><a href="SLPFindSrvs.html">SLPFindSrvs()</a></tt>
+with a <tt>srvtype</tt> of "service:printer" the urls for both "printer:lpr"
+and "printer" are returned ("printer.acme" is not).&nbsp; However, if <tt><a href="SLPFindSrvs.html">SLPFindSrvs()</a></tt>
 is called with <tt>srvtype </tt>of "printer:lpr" or "printer.acme" then
 the urls for "printer:lpr" or "printer.acme" would be returned.&nbsp; In
-otherwords, if a concrete type is used, only services with same abstract
+other words, if a concrete type is used, only services with same abstract
 and concrete type are returned.&nbsp; If only the abstract type is used
 then all services of that abstract type (and naming authority) are returned.
 <h4>
@@ -62,7 +62,7 @@ IANA service template they must use it correctly.
 <h3>
 <a NAME="Service Url"></a>SLP Service Url Syntax</h3>
 URL strings passed as parameters to<tt> <a href="SLPReg.html">SLPReg()</a></tt>,
-<tt><a href="SLPDeReg.html">SLPDeReg()</a></tt>,
+<tt><a href="SLPDereg.html">SLPDeReg()</a></tt>,
 <tt><a href="SLPDelAttrs.html">SLPDelAttrs()</a></tt>,
 <tt><a href="SLPFindSrvs.html">SLPFindSrvs()</a></tt>,
 <tt><a href="SLPParseSrvURL.html">SLPParseSrvURL()</a></tt>
@@ -71,7 +71,7 @@ callback function.&nbsp; SLP defines a special type of URL called a Service
 URL that MUST be used when calling OpenSLP API functions.&nbsp; If you
 decide to use Service URLs extensively, you should probably read <a href="rfc/rfc2609.txt">RFC
 2609</a>, but if you just want to know what they look like, the following
-explaination should be good enough:
+explanation should be good enough:
 <blockquote><b><tt>SLP Service URL = "service:"&lt;service-type>"://"&lt;addrspec></tt></b></blockquote>
 The <tt>service-type</tt> is a service type as explained above. <tt>addrspec</tt>
 can be just about anything you want that fits URL syntax (&nbsp;&nbsp;&nbsp;
@@ -95,7 +95,7 @@ URL.
 <h3>
 <a NAME="LDAPv3 Filter"></a>LDAPv3 Search Filter Syntax</h3>
 An LDAP Search Filter string is passed parameter to the <a href="SLPFindSrvs.html">SLPFindSrvs()</a>
-function.&nbsp; If you want the definitive explaination of LDAP3 search
+function.&nbsp; If you want the definitive explanation of LDAP3 search
 filters you can read <a href="../../rfc/rfc2254.txt">RFC 2254</a>, "String
 Representation of LDAP Search Filters", or you can read the following definition
 that should be good enough for most applications.

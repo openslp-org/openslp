@@ -1,8 +1,8 @@
 <!doctype html public "-//w3c//dtd html 4.0 transitional//en">
 <html>
 <head>
-   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-15">
-   <meta name="GENERATOR" content="Mozilla/4.72C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.2.14 i686) [Netscape]">
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+   <meta name="GENERATOR" content="Mozilla/4.73C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.2.14 i686) [Netscape]">
    <title>OpenSLP Users Guide - Installing OpenSLP on Linux</title>
 </head>
 <body text="#000000" bgcolor="#FFFFFF" link="#0000EE" vlink="#551A8B" alink="#FF0000">
@@ -12,76 +12,99 @@ Installing OpenSLP on Linux</h2>
 
 <hr WIDTH="100%">
 <h3>
-Simple Installation</h3>
+Installation</h3>
 Installing the latest distribution of OpenSLP is easy.&nbsp; Pay attention
-to the following step and you should not have any problems:
+to the following step and you should not have any problems.
+<br>&nbsp;
+<br>&nbsp;
+<ol>
+<li>
+RPM Installation</li>
+
+<ul>
+<li>
+Download the latest RPM file from <a href="http://www.openslp.org">www.openslp.org</a>.
+Select the appropriate distribution.</li>
+
+<li>
+Become root (root is usually the only user that can install packages).</li>
+
+<li>
+Install the package. This is typically done with:</li>
+
+<ul><tt>rpm -Uvh openslp-x.x.x.rpm</tt></ul>
+
+<li>
+Make any configuration changes to the <tt>/etc/slp.conf</tt> file that
+you think you need. (see <a href="SlpConf.html">Configuration</a> for details)</li>
+
+<li>
+Set up static registrations in the <tt>/etc/slp.reg</tt> file if you need
+them. (see <a href="SlpReg.html">Static Registrations</a> for details)</li>
+
+<li>
+Start the OpenSLP daemon.</li>
+
+<ul><tt>/usr/sbin/slpd</tt></ul>
+</ul>
+
+<li>
+Tarball Installation</li>
+
 <ul>
 <li>
 Download the latest tarball(.tar.gz) file from <a href="http://www.openslp.org">www.openslp.org</a></li>
-</ul>
 
-<ul>
 <li>
 Unzip and untar the file into an appropriate directory.</li>
-</ul>
 
-<ul>
-<ul><tt>tar -zxf openslp-x.x.x.tar.gz</tt>
-<br><tt></tt>&nbsp;</ul>
+<ul><tt>tar -zxf openslp-x.x.x.tar.gz</tt></ul>
 
 <li>
 Become root (root is usually the only user that can install daemons and
 libraries).</li>
 
-<ul>&nbsp;
-<br>su root
-<br>&nbsp;</ul>
+<ul>su root</ul>
 
 <li>
-Enter the extracted openslp directory build and install the OpenSLP binaries
-using the top level make file.</li>
-</ul>
+Enter the extracted openslp directory build and install the OpenSLP binaries:</li>
 
-<ul>
+<ul><tt>./configure</tt></ul>
+
+<ul><tt>make</tt></ul>
+
 <ul><tt>make install</tt></ul>
-</ul>
 
-<ul>
 <li>
-Make any configuration changes to the <tt>/etc/slp.conf</tt> file that
-you think you need. (see <a href="SlpConf.html">Configuration</a> for details)</li>
-</ul>
+<tt>Make any configuration changes to the /etc/slp.conf file that you think
+you need. (see <a href="SlpConf.html">Configuration</a> for details)</tt></li>
 
-<ul>
 <li>
-Set up static registrations in the <tt>/etc/slp.reg</tt> file if you need
-them. (see <a href="SlpReg.html">Static Registrations</a> for details)</li>
-</ul>
+<tt>Set up static registrations in the /etc/slp.reg file if you need them.
+(see <a href="SlpReg.html">Static Registrations</a> for details)</tt></li>
 
-<ul>
 <li>
-Start the OpenSLP daemon.</li>
-</ul>
+<tt>Start the OpenSLP daemon.</tt></li>
 
-<ul>
 <ul><tt>/usr/sbin/slpd</tt></ul>
 </ul>
+</ol>
 
 <h3>
-Making slpd start on boot</h3>
-You may want to make a few changes to your Linux initialization scripts
+<tt>Making slpd start on boot</tt></h3>
+<tt>You may want to make a few changes to your Linux initialization scripts
 so that slpd will start when your machine is booted.&nbsp; Since it is
 not always necessary have slpd running, <b>you should probably read about
 when (and why) the OpenSLP daemon has to run in the <a href="index.html">Advanced
-Topics</a> section before deciding to changing your init scripts</b>.
+Topics</a> section before deciding to changing your init scripts</b>.</tt>
 <h3>
-Removing the distribution directory from your system</h3>
-Unless you will be doing OpenSLP development work, you will probably want
-to remove the distribution directory from your system after OpenSLP is
-installed.&nbsp; The distribution directory is the one that was created
-by the <tt>tar -zxf openslp-x.x.x.tar.gz</tt> command.&nbsp; During installation,
+<tt>Removing the distribution directory from your system</tt></h3>
+<tt>Unless you will be doing OpenSLP development work, you will probably
+want to remove the distribution directory from your system after OpenSLP
+is installed.&nbsp; The distribution directory is the one that was created
+by the tar -zxf openslp-x.x.x.tar.gz command.&nbsp; During installation,
 all of the important files were copied out of this directory to the appropriate
 places on you machines file system so it can be deleted with out ruining
-OpenSLP.
+OpenSLP.</tt>
 </body>
 </html>

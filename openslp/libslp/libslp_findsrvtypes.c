@@ -1,11 +1,11 @@
 /***************************************************************************/
-/* Project:     OpenSLP - OpenSource implementation of Service Location
-/*              Protocol Version 2
-/*          
-/* File:        slplib_findsrvtypes.c
-/*
-/* Abstract:    Implementation for SLPFindSrvType() call.
-/*
+/* Project:     OpenSLP - OpenSource implementation of Service Location    */
+/*              Protocol Version 2                                         */
+/*                                                                         */
+/* File:        slplib_findsrvtypes.c                                      */
+/*                                                                         */
+/* Abstract:    Implementation for SLPFindSrvType() call.                  */
+/*                                                                         */
 /*-------------------------------------------------------------------------*/
 /*                                                                         */
 /* Copyright (c) 1995, 1999  Caldera Systems, Inc.                         */

@@ -5,11 +5,8 @@
 #     containing exacts functions which are required.
 #
 
-DIRS 			= common
 sbin_PROGRAMS	= slpd
-INCLUDES		= -I../common -I../slpd
-slpd_LDADD		=  $(top_srcdir)/common/libcommonslpd.a
-CFLAGS			+= -Wall -O3
+INCLUDES	= -I$(top_srcdir)/common -I$(srcdir)
 
 slpd_SOURCES	= slpd_socket.c \
     slpd_database.c \
@@ -18,6 +15,11 @@ slpd_SOURCES	= slpd_socket.c \
     slpd_cmdline.c  \
     slpd_property.c \
     slpd_regfile.c  \
-    slpd_log.c
+    slpd_log.c      \
+    slpd_knownda.c  \
+    slpd_incoming.c \
+    slpd_outgoing.c 
+slpd_LDADD	=  ../common/libcommonslpd.la
 
-../common/libcommon.a:
+
+

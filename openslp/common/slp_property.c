@@ -7,7 +7,27 @@
 /*                                                                         */
 /* Abstract:    Implementation for SLPGetProperty() and SLPSetProperty()   */
 /*                                                                         */
-/* Author(s):   Matthew Peterson                                           */
+/*-------------------------------------------------------------------------*/
+/*                                                                         */
+/* Copyright (c) 1995, 1999  Caldera Systems, Inc.                         */
+/*                                                                         */
+/* This program is free software; you can redistribute it and/or modify it */
+/* under the terms of the GNU Lesser General Public License as published   */
+/* by the Free Software Foundation; either version 2.1 of the License, or  */
+/* (at your option) any later version.                                     */
+/*                                                                         */
+/*     This program is distributed in the hope that it will be useful,     */
+/*     but WITHOUT ANY WARRANTY; without even the implied warranty of      */
+/*     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the       */
+/*     GNU Lesser General Public License for more details.                 */
+/*                                                                         */
+/*     You should have received a copy of the GNU Lesser General Public    */
+/*     License along with this program; see the file COPYING.  If not,     */
+/*     please obtain a copy from http://www.gnu.org/copyleft/lesser.html   */
+/*                                                                         */
+/*-------------------------------------------------------------------------*/
+/*                                                                         */
+/*     Please submit patches to http://www.openslp.org                     */
 /*                                                                         */
 /***************************************************************************/
 
@@ -21,7 +41,7 @@
 /*=========================================================================*/
 /* Global Variables                                                        */
 /*=========================================================================*/
-SLPProperty*    G_SLPPropertyListHead  = 0;
+SLPList G_SLPPropertyList = {0,0,0};
 
 
 /*-------------------------------------------------------------------------*/
@@ -36,16 +56,14 @@ SLPProperty* Find(const char* pcName)
 {
     SLPProperty*  curProperty;
 
-    curProperty = G_SLPPropertyListHead;
-    
+    curProperty = (SLPProperty*)G_SLPPropertyList.head;
     while(curProperty != 0)
     {
         if(strcmp(curProperty->propertyName,pcName) == 0)
         {
             break;
         }
-
-        curProperty = curProperty->next;
+        curProperty = (SLPProperty*)curProperty->listitem.next;
     }
 
     return curProperty;
@@ -63,7 +81,9 @@ const char* SLPPropertyGet(const char* pcName)
         return existingProperty->propertyValue;
     }
 
-    return 0;
+    existingProperty = Find("notfound");
+
+    return existingProperty->propertyValue;
 }
 
 
@@ -76,11 +96,9 @@ int SLPPropertySet(const char *pcName,
     int             pcValueSize;
     SLPProperty*    newProperty; 
     
-    
     newProperty = Find(pcName);
     pcNameSize = strlen(pcName) + 1;
     pcValueSize = strlen(pcValue) + 1;
-    
     
     if(newProperty == 0)
     {
@@ -92,19 +110,23 @@ int SLPPropertySet(const char *pcName,
             errno = ENOMEM;
             return -1;
         }
-        
-        newProperty->previous = 0;
-        newProperty->next = G_SLPPropertyListHead;
-        if(G_SLPPropertyListHead)
-        {
-            G_SLPPropertyListHead->previous = newProperty;
-        }
-        
-        G_SLPPropertyListHead = newProperty;
-        
+
+        /* set the pointers in the SLPProperty structure to point to areas of    */
+        /* the previously allocated block of memory                              */
+        newProperty->propertyName   = ((char*)newProperty) + sizeof(SLPProperty); 
+        newProperty->propertyValue  = newProperty->propertyName + pcNameSize;
+    
+        /* copy the passed in name and value */
+        memcpy(newProperty->propertyName,pcName,pcNameSize);
+        memcpy(newProperty->propertyValue,pcValue,pcValueSize);
+    
+        /* Link the new property into the list */
+        SLPListLinkHead(&G_SLPPropertyList,(SLPListItem*)newProperty);
     }
     else
     {    
+        SLPListUnlink(&G_SLPPropertyList,(SLPListItem*)newProperty);
+        
         /* property already exists in the list */
         newProperty = (SLPProperty*)realloc(newProperty,sizeof(SLPProperty) + pcNameSize + pcValueSize);    
         if(newProperty == 0)
@@ -113,32 +135,19 @@ int SLPPropertySet(const char *pcName,
             errno = ENOMEM;
             return -1;
         }
+       
+        /* set the pointers in the SLPProperty structure to point to areas of    */
+        /* the previously allocated block of memory                              */
+        newProperty->propertyName   = ((char*)newProperty) + sizeof(SLPProperty); 
+        newProperty->propertyValue  = newProperty->propertyName + pcNameSize;
+    
+        /* copy the passed in name and value */
+        memcpy(newProperty->propertyName,pcName,pcNameSize);
+        memcpy(newProperty->propertyValue,pcValue,pcValueSize);
         
-        if(newProperty->previous)
-        {
-            newProperty->previous->next = newProperty;
-        }
-        else
-        {
-            G_SLPPropertyListHead = newProperty;
-        }
-
-        if(newProperty->next)
-        {
-            newProperty->next->previous = newProperty;
-        }
-        
+        SLPListLinkHead(&G_SLPPropertyList,(SLPListItem*)newProperty);
     }
     
-    /* set the pointers in the SLPProperty structure to point to areas of    */
-    /* the previously allocated block of memory                              */
-    newProperty->propertyName   = ((char*)newProperty) + sizeof(SLPProperty); 
-    newProperty->propertyValue  = newProperty->propertyName + pcNameSize;
-
-    /* copy the passed in name and value */
-    memcpy(newProperty->propertyName,pcName,pcNameSize);
-    memcpy(newProperty->propertyValue,pcValue,pcValueSize);
-
     return 0;
 }
 
@@ -147,23 +156,33 @@ int SLPPropertySet(const char *pcName,
 int SetDefaultValues()
 /*-------------------------------------------------------------------------*/
 {
-    int result = 0;
+    int result = 0;                                
 
     result |= SLPPropertySet("net.slp.isBroadcastOnly","false");
-    result |= SLPPropertySet("net.slp.passiveDADetection","false");
-    result |= SLPPropertySet("net.slp.activeDADetection","false");
-    result |= SLPPropertySet("net.slp.multicastTTL","255");
-    result |= SLPPropertySet("net.slp.multicastMaximumWait","15000");
-    result |= SLPPropertySet("net.slp.multicastTimeouts","");
-    result |= SLPPropertySet("net.slp.DADiscoveryTimeouts","");
-    result |= SLPPropertySet("net.slp.unicastMaximumWait","15000");
+    result |= SLPPropertySet("net.slp.multicastTimeouts","500,750,1000,1500,2000,3000");
+    result |= SLPPropertySet("net.slp.multicastMaximumWait","5000");
+    result |= SLPPropertySet("net.slp.unicastTimeouts","500,750,1000,1500,2000,3000");
+    result |= SLPPropertySet("net.slp.unicastMaximumWait","5000");
     result |= SLPPropertySet("net.slp.datagramTimeouts","");
+    result |= SLPPropertySet("net.slp.DADiscoveryTimeouts","500,750,1000,1500,2000,3000");
+    result |= SLPPropertySet("net.slp.DADiscoveryMaximumWait","2000");
+    result |= SLPPropertySet("net.slp.DAActiveDiscoveryInterval","900");
+    result |= SLPPropertySet("net.slp.DAAddresses","");
+    result |= SLPPropertySet("net.slp.HintsFile","/tmp/slp.hints");
+    result |= SLPPropertySet("net.slp.activeDADetection","true");
+    result |= SLPPropertySet("net.slp.passiveDADetection","true");
+    result |= SLPPropertySet("net.slp.useScopes","DEFAULT");
+    result |= SLPPropertySet("net.slp.locale","en");
     result |= SLPPropertySet("net.slp.randomWaitBound","1000");
-    result |= SLPPropertySet("net.slp.MTU","1400");
     result |= SLPPropertySet("net.slp.interfaces","");
     result |= SLPPropertySet("net.slp.securityEnabled","false");
-    result |= SLPPropertySet("net.slp.DAAddresses","");
-    result |= SLPPropertySet("net.slp.useScopes","DEFAULT");
+    result |= SLPPropertySet("net.slp.multicastTTL","8");
+    result |= SLPPropertySet("net.slp.MTU","1400");
+    result |= SLPPropertySet("net.slp.traceMsg","false");
+    result |= SLPPropertySet("net.slp.traceReg","false");
+    result |= SLPPropertySet("net.slp.traceDrop","false");
+    result |= SLPPropertySet("net.slp.traceDATraffic","false");
+    result |= SLPPropertySet("net.slp.isDA","false");
     result |= SLPPropertySet("notfound","");
 
     return result;
@@ -181,20 +200,20 @@ int SLPPropertyReadFile(const char* conffile)
 /*=========================================================================*/
 {
     char*   line;
+    char*   alloced;
     FILE*   fd;
     char*   namestart;
     char*   nameend;
     char*   valuestart;
-    char*   valueend;
-
+    char*   valueend; 
     
     if(SetDefaultValues())
     {
         return -1;
     }
     
-    line = malloc(4096);
-    if(line == 0)
+    alloced = malloc(4096);
+    if(alloced == 0)
     {
         /* out of memory */
         errno = ENOMEM;
@@ -207,47 +226,141 @@ int SLPPropertyReadFile(const char* conffile)
         goto CLEANUP;
     }   
 
-    while(fgets(line,4096,fd))
+    while(fgets(alloced,4096,fd))
     {
-        /* trim whitespace */
-        while(*line && *line <= 0x20) line++;
-        if(*line == 0) continue;
-
+        line = alloced;
+	
+    	/* trim whitespace */
+        while(*line && *line <= 0x20)
+    	{       	
+    	    line++;
+    	}
+    
+        if(*line == 0)
+    	{	
+            continue;
+    	}
+    
         /* skip commented lines */
-        if(*line == '#' || *line == ';') continue;
-
-        
+        if(*line == '#' || *line == ';') 
+    	{
+            continue;
+    	}
+            
         /* parse out the property name*/
         namestart = line;
         nameend = line;
-        while(*nameend && *nameend != '=') nameend++;
-        if(*nameend == 0) continue;
-        valuestart = nameend + 1;  /* start of value for later*/
+        nameend = strchr(nameend,'=');
+        
+        if(nameend == 0)
+        {
+            continue;
+        }
+    	valuestart = nameend + 1;  /* start of value for later*/
+    
         while(*nameend <= 0x20 || *nameend == '=')
         {
             *nameend = 0;
             nameend --;
         }
-
-        /* parse out theproperty value */
-        while(*valuestart <= 0x20) valuestart ++;
+    
+        /* parse out the property value */
+        while(*valuestart <= 0x20) 
+    	{
+            valuestart++;
+    	}
+    
         valueend = valuestart;
-        while(*valueend) valueend++;
+    
+        while(*valueend)
+    	{
+    	    valueend++;
+    	}
+    
         while(*valueend <= 0x20)
         {
             *valueend = 0;
             valueend --;
         }
-
+    
         /* set the property */
-        SLPPropertySet(namestart,valuestart);
+        SLPPropertySet(namestart, valuestart);
     }   
 
 
     CLEANUP:
 
-    if(line) free(line);
+    if(alloced)
+    {
+        free(alloced);
+    }
 
     return 0;
 }
 
+/*=========================================================================*/
+int SLPPropertyAsBoolean(const char* property)
+/*=========================================================================*/
+{
+    if(property)
+    {
+        if(*property == 't' ||
+           *property == 'T' ||
+           *property == 'y' ||
+           *property == 'Y' ||
+           *property == '1' )
+        {
+            return 1;
+        }            
+    }
+
+    return 0;
+}
+
+/*=========================================================================*/
+int SLPPropertyAsInteger(const char* property)
+/*=========================================================================*/
+{
+    return atoi(property);
+}
+
+
+/*=========================================================================*/
+int SLPPropertyAsIntegerVector(const char* property, 
+                               int* vector, 
+                               int vectorsize)
+/*=========================================================================*/
+{
+    int         i;
+    char*       slider1;
+    char*       slider2;
+    char*       temp;
+    char*       end;
+
+    memset(vector,0,sizeof(int)*vectorsize);
+    temp = strdup(property);
+    if(temp == 0)
+    {
+        return 0;
+    }    
+
+    end = temp + strlen(property);
+    slider1 = slider2 = temp;
+
+    for(i=0;i<vectorsize;i++)
+    {
+        while(*slider2 && *slider2 != ',') slider2++;
+        *slider2 = 0;
+        vector[i] = SLPPropertyAsInteger(slider1);
+        slider2++;
+        if(slider2 >= end)
+        {
+            break;
+        }
+        slider1 = slider2;
+    }
+
+    free(temp);
+    
+    return i;
+}

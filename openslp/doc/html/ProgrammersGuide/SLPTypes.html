@@ -1,7 +1,7 @@
 <!doctype html public "-//w3c//dtd html 4.0 transitional//en">
 <html>
 <head>
-   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-15">
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
    <meta name="GENERATOR" content="Mozilla/4.72C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.2.14 i686) [Netscape]">
    <title>OpenSLP Programmers Guide - SLP Data Types</title>
 </head>
@@ -39,13 +39,13 @@ The structure contains the following members.
 name, including naming authority.&nbsp; The service type name includes
 the "service:" if the URL is of the service: scheme.</blockquote>
 <tt>char* s_pcHost</tt>
-<blockquote>A pointer to a character string containing the hose identification
+<blockquote>A pointer to a character string containing the host identification
 information.</blockquote>
-<tt>char* s_iPort</tt>
+<tt>int s_iPort</tt>
 <blockquote>The port number, or zero if none.&nbsp; The port is only available
 if the transport is IP</blockquote>
 <tt>char* s_pcNetFamily</tt>
-<blockquote>A pointer to a character string containing the netwrok address
+<blockquote>A pointer to a character string containing the network address
 family identifier.&nbsp; Possible values are "ipx" for the IPX family,
 "at" for the Appletalk family, and "" (the empty string) for IP address
 family.&nbsp; OpenSLP only supports the IP address family.</blockquote>

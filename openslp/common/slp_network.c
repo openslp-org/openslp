@@ -34,6 +34,51 @@
 
 #include <slp_network.h>
 
+/*=========================================================================*/ 
+int SLPNetworkConnectStream(struct sockaddr_in* peeraddr, 
+                            struct timeval* timeout)
+/* Connect a TCP stream to the specified peer                              */
+/*                                                                         */
+/* peeraddr (IN) pointer to the peer to connect to                         */
+/*                                                                         */
+/* timeout  (IN) pointer to the maximum time to spend connecting           */
+/*                                                                         */
+/* returns: a connected socket or -1                                       */
+/*=========================================================================*/ 
+{
+#ifdef WIN32
+  char lowat;
+#else
+    int lowat;
+#endif
+    int result;
+
+    /* TODO: Make this connect non-blocking so that it will timeout */
+    
+    result = socket(AF_INET,SOCK_STREAM,0);
+    if(result >= 0)
+    {
+        if(connect(result,
+                   (struct sockaddr*)peeraddr,
+                   sizeof(struct sockaddr_in)) == 0)
+        {
+            /* set the receive and send buffer low water mark to 18 bytes 
+            (the length of the smallest slpv2 message) */
+            lowat = 18;
+            setsockopt(result,SOL_SOCKET,SO_RCVLOWAT,&lowat,sizeof(lowat));
+            setsockopt(result,SOL_SOCKET,SO_SNDLOWAT,&lowat,sizeof(lowat));
+            return result;;
+        }            
+        else
+        {
+            close(result);
+            result = -1;
+        }
+    }
+    
+    return result;
+}
+
 
 /*=========================================================================*/ 
 int SLPNetworkConnectToMulticast(struct sockaddr_in* peeraddr, int ttl)
@@ -47,6 +92,12 @@ int SLPNetworkConnectToMulticast(struct sockaddr_in* peeraddr, int ttl)
 /*=========================================================================*/
 {
     int                 sockfd;
+#if defined(linux)
+    int 		optarg;
+#else
+    /* Solaris and Tru64 expect a unsigned char parameter */
+    unsigned char	optarg;
+#endif
     
     /* setup multicast socket */
     sockfd = socket(AF_INET,SOCK_DGRAM,0);
@@ -55,8 +106,9 @@ int SLPNetworkConnectToMulticast(struct sockaddr_in* peeraddr, int ttl)
         peeraddr->sin_family = AF_INET;
         peeraddr->sin_port = htons(SLP_RESERVED_PORT);
         peeraddr->sin_addr.s_addr = htonl(SLP_MCAST_ADDRESS);
+	optarg = ttl;
         
-        if(setsockopt(sockfd,IPPROTO_IP,IP_MULTICAST_TTL,&ttl,sizeof(ttl)))
+        if(setsockopt(sockfd,IPPROTO_IP,IP_MULTICAST_TTL,&optarg,sizeof(optarg)))
         {
             return -1;
         }
@@ -71,13 +123,15 @@ int SLPNetworkConnectToBroadcast(struct sockaddr_in* peeraddr)
 /*                                                                         */
 /* peeraddr         (OUT) pointer to receive the connected DA's address    */                                                       
 /*                                                                         */
-/* peeraddrlen      (IN/OUT) Size of the peeraddr structure                */
-/*                                                                         */
 /* Returns          Valid socket or -1 if no DA connection can be made     */
 /*=========================================================================*/
 {
     int                 sockfd;
+#ifdef WIN32
+    char on = 1;
+#else
     int                 on = 1;
+#endif
 
     /* setup broadcast */
     sockfd = socket(AF_INET, SOCK_DGRAM, 0);
@@ -100,8 +154,8 @@ int SLPNetworkConnectToBroadcast(struct sockaddr_in* peeraddr)
 /*=========================================================================*/ 
 int SLPNetworkSendMessage(int sockfd,
                           SLPBuffer buf,
-                          struct timeval* timeout,
-                          struct sockaddr_in* peeraddr)
+                          struct sockaddr_in* peeraddr,
+                          struct timeval* timeout)
 /* Sends a message                                                         */
 /*                                                                         */
 /* Returns  -  zero on success non-zero on failure                         */
@@ -112,6 +166,13 @@ int SLPNetworkSendMessage(int sockfd,
 {
     fd_set      writefds;
     int         xferbytes;
+    int         flags = 0;
+
+#if defined(MSG_NOSIGNAL)
+    flags = MSG_NOSIGNAL;
+#endif
+    
+    buf->curpos = buf->start;
     
     while(buf->curpos < buf->end)
     {
@@ -124,28 +185,35 @@ int SLPNetworkSendMessage(int sockfd,
             xferbytes = sendto(sockfd,
                                buf->curpos, 
                                buf->end - buf->curpos, 
-                               MSG_NOSIGNAL,
-                               peeraddr,
+                               flags,
+                               (struct sockaddr *)peeraddr,
                                sizeof(struct sockaddr_in));
+            
             if(xferbytes > 0)
             {
                 buf->curpos = buf->curpos + xferbytes;
             }
             else
             {
+#ifndef WIN32
                 errno = EPIPE;
+#endif
                 return -1;
             }
         }
         else if(xferbytes == 0)
         {
             /* timed out */
+#ifndef WIN32
             errno = ETIME;
+#endif
             return -1;
         }
         else
         {
+#ifndef WIN32
             errno = EPIPE;
+#endif
             return -1;
         }
     }
@@ -157,9 +225,9 @@ int SLPNetworkSendMessage(int sockfd,
 
 /*=========================================================================*/ 
 int SLPNetworkRecvMessage(int sockfd,
-                          SLPBuffer buf,
-                          struct timeval* timeout,
-                          struct sockaddr_in* peeraddr)
+                          SLPBuffer* buf,
+                          struct sockaddr_in* peeraddr,
+                          struct timeval* timeout)
 /* Receives a message                                                      */
 /*                                                                         */
 /* Returns  -    zero on success, non-zero on failure                      */
@@ -187,22 +255,28 @@ int SLPNetworkRecvMessage(int sockfd,
                              peek,
                              16,
                              MSG_PEEK,
-                             peeraddr,
+                             (struct sockaddr *)peeraddr,
                              &peeraddrlen);
         if(xferbytes <= 0)
         {
+#ifndef WIN32
             errno = ENOTCONN;
+#endif
             return -1;
         } 
     }
     else if(xferbytes == 0)
     {
+#ifndef WIN32
         errno = ETIME;
+#endif
         return -1;
     }
     else
     {
+#ifndef WIN32
         errno = ENOTCONN;
+#endif
         return -1;
     }
 
@@ -213,9 +287,10 @@ int SLPNetworkRecvMessage(int sockfd,
     if(*peek == 2)
     {
         /* allocate the recvmsg big enough for the whole message */
-        if(SLPBufferRealloc(buf, AsUINT24(peek + 2)))
+        *buf = SLPBufferRealloc(*buf, AsUINT24(peek + 2));
+        if(*buf)
         {
-            while(buf->curpos < buf->end)
+            while((*buf)->curpos < (*buf)->end)
             {
                 FD_ZERO(&readfds);
                 FD_SET(sockfd, &readfds);
@@ -223,27 +298,33 @@ int SLPNetworkRecvMessage(int sockfd,
                 if(xferbytes > 0)
                 {
                      xferbytes = recv(sockfd,
-                                   buf->curpos, 
-                                   buf->end - buf->curpos, 
+                                   (*buf)->curpos, 
+                                   (*buf)->end - (*buf)->curpos, 
                                    0);
                     if(xferbytes > 0)
                     {
-                        buf->curpos = buf->curpos + xferbytes;
+                        (*buf)->curpos = (*buf)->curpos + xferbytes;
                     }
                     else
                     {
+#ifndef WIN32
                         errno = ENOTCONN;
+#endif
                         return -1;
                     }
                 }
                 else if(xferbytes == 0)
                 {
+#ifndef WIN32
                     errno = ETIME;
+#endif
                     return -1;
                 }
                 else
                 {
+#ifndef WIN32
                     errno =  ENOTCONN;
+#endif
                     return -1;
                 }
             } /* end of main read while. */  

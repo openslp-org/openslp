@@ -35,6 +35,11 @@
 #if(!defined SLP_NETWORK_H_INCLUDED)
 #define SLP_NETWORK_H_INCLUDED
 
+#ifdef WIN32
+#include <windows.h>
+#include <io.h>
+#include <errno.h>
+#else
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
@@ -45,11 +50,26 @@
 #include <netdb.h> 
 #include <fcntl.h> 
 #include <errno.h>
-
+#endif
 
 #include <slp_buffer.h>
 #include <slp_property.h>
 #include <slp_message.h>
+#include <slp_xid.h>
+
+
+/*=========================================================================*/ 
+int SLPNetworkConnectStream(struct sockaddr_in* peeraddr,
+                            struct timeval* timeout);
+/* Connect a TCP stream to the specified peer                              */
+/*                                                                         */
+/* peeraddr (IN) pointer to the peer to connect to                         */
+/*                                                                         */
+/* timeout  (IN) pointer to the maximum time to spend connecting           */
+/*                                                                         */
+/* returns: a connected socket or -1                                       */
+/*=========================================================================*/ 
+
 
 /*=========================================================================*/ 
 int SLPNetworkConnectToMulticast(struct sockaddr_in* peeraddr, int ttl);
@@ -78,8 +98,8 @@ int SLPNetworkConnectToBroadcast(struct sockaddr_in* peeraddr);
 /*=========================================================================*/ 
 int SLPNetworkSendMessage(int sockfd,
                           SLPBuffer buf,
-                          struct timeval* timeout,
-                          struct sockaddr_in* peeraddr);
+                          struct sockaddr_in* peeraddr,
+                          struct timeval* timeout);
 /* Sends a message                                                         */
 /*                                                                         */
 /* Returns  -  zero on success non-zero on failure                         */
@@ -91,9 +111,9 @@ int SLPNetworkSendMessage(int sockfd,
 
 /*=========================================================================*/ 
 int SLPNetworkRecvMessage(int sockfd,
-                          SLPBuffer buf,
-                          struct timeval* timeout,
-                          struct sockaddr_in* peeraddr);
+                          SLPBuffer* buf,
+                          struct sockaddr_in* peeraddr,
+                          struct timeval* timeout);
 /* Receives a message                                                      */
 /*                                                                         */
 /* Returns  -    zero on success, non-zero on failure                      */

@@ -1,7 +1,7 @@
 <!doctype html public "-//w3c//dtd html 4.0 transitional//en">
 <html>
 <head>
-   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-15">
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
    <meta name="GENERATOR" content="Mozilla/4.72C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.2.14 i686) [Netscape]">
    <title>OpenSLP Users Guide - Security</title>
 </head>
@@ -17,9 +17,9 @@ The following measures have been taken to protect the OpenSLP daemon from
 attacks:
 <ul>
 <li>
-The OpenSLP daemon (slpd) must run as root initally in order to bind to
+The OpenSLP daemon (slpd) must run as root initially in order to bind to
 the well known SLP port.&nbsp; However, if the source is compiled with
-the <tt>PARANOID</tt> defined, slpd will relinquish root priveledges and
+the <tt>PARANOID</tt> defined, slpd will relinquish root privileges and
 suid() to the daemon user (if it exists).</li>
 
 <li>

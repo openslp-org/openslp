@@ -1,7 +1,6 @@
 Registering     = service:valid://10.0.0.1
 Querying        = service:valid
 Service Found   = service:valid://10.0.0.1
-Service Found   = service:valid://10.0.0.1
 
 Registering     = service:valid://10.0.0.1
 Querying        = service:invalid

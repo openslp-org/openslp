@@ -1,11 +1,11 @@
 ===============================================================================
-David McCormack & Evan Hughes                      Thu May 25 09:21:35 EDT 2000
+David McCormack & Evan Hughes                      Thu Jul  6 09:33:28 EDT 2000
 slp_project@nexus.carleton.ca
 ===============================================================================
 
 Setup
   Perform these steps to setup the program for testing.
-    0.  Ensure OpenSLP v0.6.5 source tree is installed
+    0.  Ensure OpenSLP source tree is installed
     1.  `tar xvfz test-suite.tar.gz' into the openslp directory.
     2.  Perform a root make of Openslp to ensure all libraries are created
     3.  Ensure that libslp.so.0.*.* is sym linked to libslp.so in the libslp 
@@ -27,12 +27,12 @@ Functionality Tested
     [20000525] - SLPFindAttrs()
     [20000525] - SLPOpen()
     [20000525] - SLPReg()
+    [20000605] - SLPEscape()
+    [20000605] - SLPUnescape()
 
   The following SLP function as defined in RFC 2614 were not tested:
     - SLPDelAttrs()
     - SLPFindSrvTypes()
-    - SLPEscape() 
-    - SLPUnescape() 
     - SLPFree()
     - SLPGetRefreshInterval() 
     - SLPFindScopes() 

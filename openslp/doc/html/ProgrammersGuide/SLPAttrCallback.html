@@ -1,7 +1,7 @@
 <!doctype html public "-//w3c//dtd html 4.0 transitional//en">
 <html>
 <head>
-   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-15">
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
    <meta name="GENERATOR" content="Mozilla/4.72C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.2.14 i686) [Netscape]">
    <title>OpenSLP Programmers Guide - SLPAttrCallback</title>
 </head>
@@ -14,7 +14,7 @@ SLPAttrCallback</h2>
 <h3>
 Declaration</h3>
 <tt>typedef <a href="SLPTypes.html#SLPBoolean">SLPBoolean</a> SLPAttrCallback(
-<a href="SLPTypes.html#SLPHandle">SLPHandle</a><a href="#hslp">hslp</a>,</tt>
+<a href="SLPTypes.html#SLPHandle">SLPHandle</a> <a href="#hslp">hslp</a>,</tt>
 <br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 const char* attrlist,</tt>
 <br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
@@ -34,10 +34,10 @@ The <tt>attrlist</tt> parameter will contain a comma separated list of
 attributes.
 <p>If the <tt><a href="SLPFindAttrs.html">SLPFindAttrs()</a></tt> function
 was called with a service type, then the callback called is until no more
-results are available.&nbsp; The <tt>attrlist</tt> parameter will conatin
-a comma separated list of attributes. Returns will be colated to remove
+results are available.&nbsp; The <tt>attrlist</tt> parameter will contain
+a comma separated list of attributes. Returns will be collated to remove
 duplicates if <tt><a href="SLPFindAttrs.html">SLPFindAttrs()</a></tt> was
-called synchronously.&nbsp; If it was called asynchronoulsy the <tt>attrlist</tt>
+called synchronously.&nbsp; If it was called asynchronously the <tt>attrlist</tt>
 may return duplicates.
 <h3>
 Parameters</h3>
@@ -60,7 +60,7 @@ list of attribute id/value assignments in SLP wire format "(attr-id=attr-value-l
 <tr VALIGN=TOP NOSAVE>
 <td><a NAME="errcode"></a><tt>errcode</tt></td>
 
-<td NOSAVE>An error code indicating if an error occured during the operation.&nbsp;
+<td NOSAVE>An error code indicating if an error occurred during the operation.&nbsp;
 The callback should check this error code before processing the parameters.&nbsp;</td>
 </tr>
 

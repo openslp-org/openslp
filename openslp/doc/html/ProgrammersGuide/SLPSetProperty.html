@@ -1,7 +1,7 @@
 <!doctype html public "-//w3c//dtd html 4.0 transitional//en">
 <html>
 <head>
-   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-15">
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
    <meta name="GENERATOR" content="Mozilla/4.72C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.2.14 i686) [Netscape]">
 </head>
 <body text="#000000" bgcolor="#FFFFFF" link="#0000EE" vlink="#551A8B" alink="#FF0000">
@@ -12,7 +12,8 @@ SLPSetProperty</h2>
 <hr WIDTH="100%">
 <h3>
 Declaration</h3>
-<tt>void SLPSetProperty( const char* name,</tt>
+<tt>#include &lt;slp.h></tt>
+<p><tt>void SLPSetProperty( const char* name,</tt>
 <br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 const char* value )</tt>
 <br>&nbsp;
@@ -32,7 +33,7 @@ Parameters</h3>
 <tr VALIGN=TOP NOSAVE>
 <td NOSAVE><a NAME="name"></a><tt>name</tt></td>
 
-<td NOSAVE>Pointer to tht name of a net.slp property to set.&nbsp; See
+<td NOSAVE>Pointer to the name of a net.slp property to set.&nbsp; See
 <a href="/broken">OpenSLP
 Users Guide</a> for a list of supported properties</td>
 </tr>

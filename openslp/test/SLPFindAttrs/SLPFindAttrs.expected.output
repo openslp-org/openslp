@@ -1,27 +1,27 @@
 Querying                      = service:test
 Service URL                   = service:test://10.0.0.1
-Querying Attributes           = service:test://10.0.0.1
+Querying Attributes           = foo
 Service Attributes            = (foo=value1,value2)
 
 Querying                      = service:test
 Service URL                   = service:test://10.0.0.1
-Querying Attributes           = service:test://10.0.0.1
+Querying Attributes           = goo
 Service Attributes            = (goo=value3,value4)
 
 Querying                      = service:test
 Service URL                   = service:test://10.0.0.1
-Querying Attributes           = service:test://10.0.0.1
+Querying Attributes           = description
 Service Attributes            = (description=Test Service 1)
 
 Registering                   = service:test://10.0.0.1
 Querying                      = service:test
 Service URL                   = service:test://10.0.0.1
-Querying Attributes           = service:test://10.0.0.1
+Querying Attributes           = foo
 Service Attributes            = foo=value1,value2
 
 Registering                   = service:test://10.0.0.1
 Querying                      = service:test
 Service URL                   = service:test://10.0.0.1
-Querying Attributes           = service:test://10.0.0.1
+Querying Attributes           = goo
 Service Attributes            = 
 

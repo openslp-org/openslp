@@ -34,40 +34,61 @@
 
 #include "slpd.h"
 
+#ifdef WIN32
+#define CloseSocket(Arg) closesocket(Arg)
+#else
+#define CloseSocket(Arg) close(Arg)
+#endif
+
 /*-------------------------------------------------------------------------*/
-int AddMulticastMembership(int sockfd, struct in_addr* addr)
+int EnableBroadcast(sockfd_t sockfd)
+/* Sets the socket options to receive broadcast traffic                    */
+/*                                                                         */
+/* sockfd   - the socket file descriptor to set option on                  */
+/*                                                                         */
+/* returns  - zero on success                                              */
+/*-------------------------------------------------------------------------*/
+{
+#ifdef WIN32
+  const char on = 1;
+#else
+    const int on = 1;                                                
+#endif
+    return setsockopt(sockfd,SOL_SOCKET,SO_BROADCAST,&on,sizeof(on));
+}
+
+/*-------------------------------------------------------------------------*/
+int JoinSLPMulticastGroup(sockfd_t sockfd, struct in_addr* addr)
 /* Sets the socket options to receive multicast traffic from the specified */
 /* interface.                                                              */
 /*                                                                         */
 /* sockfd   - the socket file descriptor to set the options on.            */
 /*                                                                         */
-/* addr     - pointer to the multicast address                             */
+/* addr     - pointer to address of the interface to join on               */
+/*                                                                         */
+/* returns  - zero on success                                              */
 /*-------------------------------------------------------------------------*/
 {
-    int             result;
     struct ip_mreq	mreq;
     struct in_addr  mcast_addr;
-
+    
     /* join using the reserved SLP_MCAST_ADDRESS */
     mcast_addr.s_addr = htonl(SLP_MCAST_ADDRESS);
     mreq.imr_multiaddr = mcast_addr;
     
     /* join with specified interface */
-    memcpy(&mreq.imr_interface,addr,sizeof(addr));
-
+    memcpy(&mreq.imr_interface,addr,sizeof(struct in_addr));
     
-    result = setsockopt(sockfd,
-                        IPPROTO_IP,
-                        IP_ADD_MEMBERSHIP,
-                        (char*)&mreq,
-                        sizeof(mreq));               
-  
-    return result;
+    return setsockopt(sockfd,
+                      IPPROTO_IP,
+                      IP_ADD_MEMBERSHIP,
+                      (char*)&mreq,
+                      sizeof(mreq));               
 }
 
 
 /*-------------------------------------------------------------------------*/
-int DropMulticastMembership(int sockfd, struct in_addr* addr)
+int DropSLPMulticastGroup(sockfd_t sockfd, struct in_addr* addr)
 /* Sets the socket options to not receive multicast traffic from the       */
 /* specified interface.                                                    */
 /*                                                                         */
@@ -102,20 +123,42 @@ int BindSocketToInetAddr(int sock, struct in_addr* addr)
 /*-------------------------------------------------------------------------*/
 {
     int                 result;
+#ifdef WIN32
+    char                lowat;
+    BOOL Reuse = TRUE;
+#else
     int                 lowat;
+#endif
     struct sockaddr_in	mysockaddr;
-    
+
+    memset(&mysockaddr, 0, sizeof(mysockaddr));
     mysockaddr.sin_family = AF_INET;
     mysockaddr.sin_port = htons(SLP_RESERVED_PORT);
-    mysockaddr.sin_addr = *addr;
-    result = bind(sock,&mysockaddr,sizeof(mysockaddr));
 
-    /* set the receive and send buffer low water mark to 18 bytes 
-    (the length of the smallest slpv2 message) */
-    lowat = 18;
-    setsockopt(sock,SOL_SOCKET,SO_RCVLOWAT,&lowat,sizeof(lowat));
-    setsockopt(sock,SOL_SOCKET,SO_SNDLOWAT,&lowat,sizeof(lowat));
-    
+#ifdef WIN32
+    setsockopt(sock,SOL_SOCKET,SO_REUSEADDR,(const char *)&Reuse,sizeof(Reuse));
+#endif
+
+    if (addr != NULL)
+    {
+      
+      mysockaddr.sin_addr = *addr;
+    }
+    else
+    {
+      mysockaddr.sin_addr.s_addr = INADDR_ANY;
+    }
+
+    result = bind(sock, (struct sockaddr *) &mysockaddr,sizeof(mysockaddr));
+    if(result == 0)
+    {
+        /* set the receive and send buffer low water mark to 18 bytes 
+        (the length of the smallest slpv2 message) */
+        lowat = 18;
+        setsockopt(sock,SOL_SOCKET,SO_RCVLOWAT,&lowat,sizeof(lowat));
+        setsockopt(sock,SOL_SOCKET,SO_SNDLOWAT,&lowat,sizeof(lowat));
+    }
+        
     return result;
 }
 
@@ -131,309 +174,302 @@ int BindSocketToLoopback(int sock)
 /*-------------------------------------------------------------------------*/
 {
     struct in_addr  loaddr;
-
     loaddr.s_addr = htonl(LOOPBACK_ADDRESS);
     return BindSocketToInetAddr(sock,&loaddr);
 }
 
 /*=========================================================================*/
-SLPDSocket* SLPDSocketListLink(SLPDSocketList* list, SLPDSocket* sock)
-/* Links the specified socket to the specified list                        */
+SLPDSocket* SLPDSocketAlloc()
+/* Allocate memory for a new SLPDSocket.                                   */
 /*                                                                         */
-/* list     - pointer to the SLPSocketList to link the socket to.          */
-/*                                                                         */
-/* sock     - pointer to the SLPSocket to link to the list                 */
-/*                                                                         */
-/* Returns  - pointer to the linked socket                                 */
+/* Returns: pointer to a newly allocated SLPDSocket, or NULL if out of     */
+/*          memory.                                                        */
 /*=========================================================================*/
-
 {
-    sock->previous = 0;
-    sock->next = list->head;
-    if(list->head)
+    SLPDSocket* sock;
+     
+    sock = (SLPDSocket*)malloc(sizeof(SLPDSocket));
+    if(sock)
     {
-        list->head->previous = sock;
+        memset(sock,0,sizeof(SLPDSocket));
+        sock->fd = -1;
     }
-    
-    list->head = sock;
-    
-    list->count++;
 
     return sock;
 }
 
-
-/*=========================================================================*/
-SLPDSocket* SLPDSocketListUnlink(SLPDSocketList* list, SLPDSocket* sock)
-/* Unlinks the specified socket from the specified list                    */
-/*                                                                         */
-/* list     - pointer to the SLPSocketList to unlink the socket from.      */
-/*                                                                         */
-/* sock     - pointer to the SLPSocket to unlink to the list               */
-/*                                                                         */
-/* Returns  - pointer to the unlinked socket                               */
-/*=========================================================================*/
+/*-------------------------------------------------------------------------*/
+void SLPDSocketFree(SLPDSocket* sock)
+/*-------------------------------------------------------------------------*/
 {
-    if(sock->previous)
+    CloseSocket(sock->fd);
+    /* free receive buffer */
+    if(sock->recvbuf)
     {
-        sock->previous->next = sock->next;
+        SLPBufferFree(sock->recvbuf);
     }
 
-    if(sock->next)
+    /* free send buffer(s) */
+    if(sock->sendlist.count)
     {
-        sock->next->previous = sock->previous;
-    }
-
-    if(sock == list->head)
-    {
-        list->head = sock->next;
-    }
-
-    list->count--;
-
-    return sock;
-}
-
-/*=========================================================================*/
-SLPDSocket* SLPDSocketListDestroy(SLPDSocketList* list, SLPDSocket* sock)
-/* Unlinks and free()s the specified socket from the specified list        */
-/*                                                                         */
-/* list     - pointer to the SLPSocketList to unlink the socket from.      */
-/*                                                                         */
-/* sock     - pointer to the SLPSocket to unlink to the list               */
-/*                                                                         */
-/* Returns  - pointer to the unlinked socket                               */
-/*=========================================================================*/
-{
-    SLPDSocket* del = sock;
-    
-    sock=sock->next;
-
-    close(del->fd);
-    SLPBufferFree(del->recvbuf);
-    SLPBufferFree(del->sendbuf);
-    free(SLPDSocketListUnlink(list,del));
-    
-    return sock;
-}
-
-/*=========================================================================*/
-void SLPDSocketListDestroyAll(SLPDSocketList* list)
-/* Destroys all of the sockets from the specified list                     */
-/*                                                                         */
-/* list     - pointer to the SLPSocketList to destroy                      */
-/*                                                                         */
-/* Returns  - none                                                         */
-/*=========================================================================*/
-{
-    SLPDSocket* sock = list->head;
-    while(sock) 
-    {
-        sock = SLPDSocketListDestroy(list,sock);
-    }
-    
-    list->head = 0;
-}
-
-
-/*=========================================================================*/
-void SLPDSocketInit(SLPDSocketList* list)
-/* Adds SLPSockets (UDP and TCP) for all the interfaces and the loopback   */
-/*                                                                         */
-/* list     - pointer to SLPSocketList to which the SLPSockets will be     */
-/*            added                                                        */
-/*                                                                         */
-/* Returns  - zero on success, -1 on failure.                              */
-/*=========================================================================*/
-{
-    char*           begin;
-    char*           end;
-    int             finished;
-    struct in_addr  myaddr;
-    struct in_addr  mcastaddr;
-    SLPDSocket*      slpsocket;
-    
-    SLPDSocketListDestroyAll(list);
-
-    mcastaddr.s_addr = htonl(SLP_MCAST_ADDRESS);
-
-    /*-----------------------------------------------------------------*/
-    /* Create TCP_LISTEN socket for LOOPBACK for the library to talk to*/
-    /*-----------------------------------------------------------------*/
-    slpsocket = (SLPDSocket*) malloc(sizeof(SLPDSocket));
-    if(slpsocket == 0)
-    {
-        /* out of memory */
-        errno = ENOMEM;
-        SLPFatal("Out of memory\n");
-    }
-    memset(slpsocket,0,sizeof(SLPDSocket));
-    slpsocket->fd = socket(PF_INET, SOCK_STREAM, 0);
-    if(slpsocket->fd >= 0)
-    {          
-        if(BindSocketToLoopback(slpsocket->fd) >= 0)
+        while(sock->sendlist.count)
         {
-            if(listen(slpsocket->fd,5) == 0)
-            {
-                slpsocket->type = TCP_LISTEN;
-                SLPDSocketListLink(list,slpsocket);
-                SLPLog("SLPLIB API socket listening\n");
-            }
-            else
-            {
-                /* could not listen(), close the socket*/
-                close(slpsocket->fd);
-                free(slpsocket);                
-                SLPError("Could not listen on loopback\n");
-                SLPError("No SLPLIB support will be available\n");
-            }
+            SLPBufferFree((SLPBuffer)SLPListUnlink(&(sock->sendlist), sock->sendlist.head));
+        }
+    }
+    else if(sock->sendbuf)
+    {
+        SLPBufferFree(sock->sendbuf);                        
+    }
+
+    /* free the actual socket structure */
+    free(sock);
+}
+
+
+/*==========================================================================*/
+SLPDSocket* SLPDSocketCreateDatagram(struct in_addr* peeraddr,
+                                     int type)
+/* myaddr - (IN) the address of the interface to join mcast on              */                                                                          
+/*                                                                          */
+/* peeraddr - (IN) the address of the peer to connect to                    */
+/*                                                                          */
+/* type (IN) DATAGRAM_UNICAST, DATAGRAM_MULTICAST, DATAGRAM_BROADCAST       */
+/*                                                                          */
+/* Returns: A datagram socket SLPDSocket->state will be set to              */
+/*          DATAGRAM_UNICAST, DATAGRAM_MULTICAST, or DATAGRAM_BROADCAST     */
+/*==========================================================================*/
+{
+    SLPDSocket*     sock;  
+    sock = SLPDSocketAlloc();
+    if(sock)
+    {
+        sock->fd = socket(PF_INET, SOCK_DGRAM, 0);
+        if(sock->fd >=0)
+        {
+            sock->recvbuf = SLPBufferAlloc(SLP_MAX_DATAGRAM_SIZE);  
+            sock->sendbuf = SLPBufferAlloc(SLP_MAX_DATAGRAM_SIZE);
+            sock->peerinfo.peeraddr.sin_family = AF_INET;
+            sock->peerinfo.peeraddr.sin_addr = *peeraddr;
+            sock->peerinfo.peeraddr.sin_port = htons(SLP_RESERVED_PORT);
+            sock->peerinfo.peeraddrlen = sizeof(sock->peerinfo.peeraddr);
+            sock->state = type;
         }
         else
         {
-            /* could not bind, close the socket*/
-            close(slpsocket->fd);
-            free(slpsocket);
-            SLPError("Could not bind to loopback. \n");
-            SLPError("No SLPLIB support will be available\n");
+            SLPDSocketFree(sock);
+            sock = 0;
         }
+    }
+    return sock;
+}
+
+/*==========================================================================*/
+SLPDSocket* SLPDSocketCreateBoundDatagram(struct in_addr* myaddr,
+                                          struct in_addr* peeraddr,
+                                          int type)
+/* myaddr - (IN) the address of the interface to join mcast on              */
+/*                                                                          */
+/* peeraddr - (IN) the address of the peer to connect to                    */
+/*                                                                          */
+/* type (IN) DATAGRAM_UNICAST, DATAGRAM_MULTICAST, DATAGRAM_BROADCAST       */
+/*                                                                          */
+/* Returns: A datagram socket SLPDSocket->state will be set to              */
+/*          DATAGRAM_UNICAST, DATAGRAM_MULTICAST, or DATAGRAM_BROADCAST     */
+/*==========================================================================*/
+{
+    SLPDSocket*     sock;  
+
+    sock = SLPDSocketAlloc();
+    if(sock)
+    {
+        sock->fd = socket(PF_INET, SOCK_DGRAM, 0);
+        if(sock->fd >=0)
+        {
+            if(BindSocketToInetAddr(sock->fd, peeraddr) == 0)
+            {
+                sock->recvbuf = SLPBufferAlloc(SLP_MAX_DATAGRAM_SIZE);  
+                sock->sendbuf = SLPBufferAlloc(SLP_MAX_DATAGRAM_SIZE);
+                if (peeraddr != NULL)
+                {
+               sock->peerinfo.peeraddr.sin_addr = *peeraddr;
+                sock->peerinfo.peeraddrlen = sizeof(sock->peerinfo.peeraddr);
+               }
+                else
+                {
+                sock->peerinfo.peeraddrlen = sizeof(struct sockaddr);
+                }
+                
+                sock->peerinfo.peertype = SLPD_PEER_ACCEPTED;     
+                
+                switch(type)
+                {
+                case DATAGRAM_MULTICAST:
+                    if(JoinSLPMulticastGroup(sock->fd, myaddr) == 0)
+                    {
+                        sock->state = DATAGRAM_MULTICAST;
+                        goto SUCCESS;
+                    }
+                    break;
+    
+                case DATAGRAM_BROADCAST:
+                    if(EnableBroadcast(sock->fd) == 0)
+                    {
+                        sock->state = DATAGRAM_BROADCAST;
+                        goto SUCCESS;
+                    }
+                    break;
+    
+                case DATAGRAM_UNICAST:
+                default:
+                    sock->state = DATAGRAM_UNICAST;
+                    goto SUCCESS;
+                    break;
+    
+                }
+            }
+        }
+    }
+
+    if(sock)
+    {
+        SLPDSocketFree(sock);
+    }
+    sock = 0;
+
+
+SUCCESS:    
+    return sock;    
+}
+
+/*==========================================================================*/
+SLPDSocket* SLPDSocketCreateListen(struct in_addr* peeraddr)
+/*                                                                          */
+/* peeraddr - (IN) the address of the peer to connect to                    */
+/*                                                                          */
+/* type (IN) DATAGRAM_UNICAST, DATAGRAM_MULTICAST, DATAGRAM_BROADCAST       */
+/*                                                                          */
+/* Returns: A listening socket. SLPDSocket->state will be set to            */
+/*          SOCKET_LISTEN.   Returns NULL on error                          */
+/*==========================================================================*/
+{
+    SLPDSocket* sock;
+
+    sock = SLPDSocketAlloc();
+    if(sock)
+    {
+        sock->fd = socket(PF_INET, SOCK_STREAM, 0);
+        if(sock->fd >= 0)
+        {          
+            if(BindSocketToInetAddr(sock->fd, peeraddr) >= 0)
+            {
+                if(listen(sock->fd,5) == 0)
+                {
+                    sock->state = SOCKET_LISTEN;
+                    
+                    return sock;
+                }            
+            }
+        }
+    }
+
+    if(sock)
+    {
+        SLPDSocketFree(sock);
+    }
+    
+    return 0;
+}
+
+
+/*==========================================================================*/
+SLPDSocket* SLPDSocketCreateConnected(struct in_addr* addr)
+/*                                                                          */
+/* addr - (IN) the address of the peer to connect to                        */
+/*                                                                          */
+/* Returns: A connected socket or a socket in the process of being connected*/
+/*          if the socket was connected the SLPDSocket->state will be set   */
+/*          to writable.  If the connect would block, SLPDSocket->state will*/
+/*          be set to connect.  Return NULL on error                        */
+/*==========================================================================*/
+{
+#ifdef WIN32
+    char                lowat;
+    u_long              fdflags;
+#else
+    int                 lowat;
+    int                 fdflags;
+#endif
+    SLPDSocket*         sock = 0;
+    
+    sock = SLPDSocketAlloc();
+    if(sock == 0)
+    {
+        goto FAILURE;
+    }
+    
+    /* create the stream socket */
+    sock->fd = socket(PF_INET,SOCK_DGRAM,0);
+    if(sock->fd < 0)
+    {
+        goto FAILURE;                        
+    }
+
+    /* set the socket to non-blocking */
+#ifdef WIN32
+    fdflags = 1;
+    ioctlsocket(sock->fd, FIONBIO, &fdflags);
+#else
+    fdflags = fcntl(sock->fd, F_GETFL, 0);
+    fcntl(sock->fd,F_SETFL, fdflags | O_NONBLOCK);
+#endif
+    /* zero then set peeraddr to connect to */
+    sock->peerinfo.peeraddr.sin_family = AF_INET;
+    sock->peerinfo.peeraddr.sin_port = htons(SLP_RESERVED_PORT);
+    sock->peerinfo.peeraddr.sin_addr = *addr;
+
+    /* set the receive and send buffer low water mark to 18 bytes 
+    (the length of the smallest slpv2 message) */
+    lowat = 18;
+    setsockopt(sock->fd,SOL_SOCKET,SO_RCVLOWAT,&lowat,sizeof(lowat));
+    setsockopt(sock->fd,SOL_SOCKET,SO_SNDLOWAT,&lowat,sizeof(lowat));
+        
+    /* non-blocking connect */
+    if(connect(sock->fd, 
+               (struct sockaddr *) &(sock->peerinfo.peeraddr), 
+               sizeof(sock->peerinfo.peeraddr)) == 0)   
+    {
+        /* Connection occured immediately */
+        sock->state = STREAM_CONNECT_IDLE;
     }
     else
     {
-        /* could not create the socket */
-        SLPError("Could not create socket for loopback.\n");
-        SLPError("No SLPLIB support will be available\n");
-        free(slpsocket);
-    }
+#ifdef WIN32
+      if (WSAEWOULDBLOCK == WSAGetLastError())
+#else
+        if(errno == EINPROGRESS)
+#endif
+        {
+            /* Connect would have blocked */
+            sock->state = STREAM_CONNECT_BLOCK;
+        }
+        else
+        {
+            goto FAILURE;
+        }                                
+    }                   
 
-                                                                                   
-    /*--------------------------------------------------------------------*/
-    /* Create UDP and TCP_LISTEN sockets for all of the interfaces in the */
-    /* interfaces property                                                */
-    /*--------------------------------------------------------------------*/
-    begin = (char*)G_SlpdProperty.interfaces;
-    end = begin;
-    finished = 0;
-    while(finished == 0)
+    return sock;
+
+    /* cleanup on failure */
+    FAILURE:
+    if (sock)
     {
-        while(*end && *end != ',') end ++;
-        if(*end == 0) finished = 1;
-        while(*end <=0x2f) 
-        {
-            *end = 0;
-            end--;
-        }
-
-        /* begin now points to a null terminated ip address string */
-        myaddr.s_addr = inet_addr(begin);
-
-        /*----------------------------------------------*/
-        /* Create socket that will handle multicast UDP */
-        /*----------------------------------------------*/
-        slpsocket = (SLPDSocket*)malloc(sizeof(SLPDSocket));
-        if(slpsocket == 0)
-        {
-            /* out of memory */
-            SLPFatal("Out of memory\n");
-        }
-        slpsocket->fd = socket(PF_INET, SOCK_DGRAM, 0);
-        if(BindSocketToInetAddr(slpsocket->fd, &mcastaddr) >= 0)
-        {
-            if(AddMulticastMembership(slpsocket->fd, &myaddr) == 0)
-            {
-                slpsocket->type = UDP_MCAST;
-                slpsocket->recvbuf = SLPBufferAlloc(SLP_MAX_DATAGRAM_SIZE);
-                slpsocket->sendbuf = SLPBufferAlloc(SLP_MAX_DATAGRAM_SIZE);
-                SLPDSocketListLink(list,slpsocket);
-                SLPLog("Multicast socket on %s ready\n",inet_ntoa(myaddr));
-            }
-        }
-        else
-        {
-            /* could not bind(), close the socket*/
-            close(slpsocket->fd);
-            free(slpsocket);
-        }
-
-        /*--------------------------------------------*/
-        /* Create socket that will handle unicast UDP */
-        /*--------------------------------------------*/
-        slpsocket = (SLPDSocket*)malloc(sizeof(SLPDSocket));
-        if(slpsocket == 0)
-        {
-            /* out of memory */
-            /* out of memory */
-            SLPFatal("Out of memory\n");
-        }
-        memset(slpsocket,0,sizeof(SLPDSocket)); 
-        slpsocket->fd = socket(PF_INET, SOCK_DGRAM, 0);
-        if(slpsocket->fd >= 0)
-        {          
-            if(BindSocketToInetAddr(slpsocket->fd, &myaddr) >= 0)
-            {
-                slpsocket->type = UDP; 
-                slpsocket->recvbuf = SLPBufferAlloc(SLP_MAX_DATAGRAM_SIZE);
-                slpsocket->sendbuf = SLPBufferAlloc(SLP_MAX_DATAGRAM_SIZE);
-                SLPDSocketListLink(list,slpsocket);
-                SLPLog("UDP socket on %s ready\n",inet_ntoa(myaddr));
-            }
-            else
-            {
-                /* could not bind(), close the socket*/
-                close(slpsocket->fd);
-                free(slpsocket);
-            }
-        }
-        else
-        {
-            /* could not create the socket */
-            free(slpsocket);
-        }
-
-        /*------------------------------------------------*/
-        /* Create TCP_LISTEN that will handle unicast TCP */
-        /*------------------------------------------------*/
-        slpsocket = (SLPDSocket*)malloc(sizeof(SLPDSocket));
-        if(slpsocket == 0)
-        {
-            /* out of memory */
-            SLPFatal("Out of memory\n");
-        }
-        memset(slpsocket,0,sizeof(SLPDSocket));
-        slpsocket->fd = socket(PF_INET, SOCK_STREAM, 0);
-        if(slpsocket->fd >= 0)
-        {          
-            if(BindSocketToInetAddr(slpsocket->fd, &myaddr) >= 0)
-            {
-                if(listen(slpsocket->fd,2) == 0)
-                {
-                    slpsocket->type = TCP_LISTEN;
-                    SLPDSocketListLink(list,slpsocket);
-                    SLPLog("TCP socket on %s listening\n",inet_ntoa(myaddr));
-                }
-                else
-                {
-                    /* could not listen(), close the socket*/
-                    close(slpsocket->fd);
-                    free(slpsocket);                
-                }
-            }
-            else
-            {
-                /* could not bind, close the socket*/
-                close(slpsocket->fd);
-                free(slpsocket);
-            }
-        }
-        else
-        {
-            /* could not create the socket */
-            free(slpsocket);
-        }   
-
-        begin = end + 1;
-    }
-   
+        CloseSocket(sock->fd);
+        free(sock);
+        sock = 0;
+    }                   
+    
+    return sock;
 }
-
-
 

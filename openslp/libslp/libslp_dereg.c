@@ -35,166 +35,131 @@
 #include "slp.h"
 #include "libslp.h"
 
+
+/*-------------------------------------------------------------------------*/
+SLPBoolean CallbackSrvDeReg(SLPError errorcode, SLPMessage msg, void* cookie)
+/*-------------------------------------------------------------------------*/
+{
+    PSLPHandleInfo  handle      = (PSLPHandleInfo) cookie;
+    
+    if(errorcode == 0)
+    {
+        if(msg->header.functionid == SLP_FUNCT_SRVACK)
+        {
+            /* Call the callback function */
+            handle->params.dereg.callback((SLPHandle)handle,
+					  msg->body.srvack.errorcode,
+					  handle->params.dereg.cookie);
+        }
+        else
+        {
+            /* TODO: what should we do here? */
+        }
+    }
+    else
+    {
+        handle->params.dereg.callback((SLPHandle)handle,
+				      errorcode,
+				      handle->params.dereg.cookie);  
+    }
+    
+    return 0;
+}
+
 /*-------------------------------------------------------------------------*/ 
 SLPError ProcessSrvDeReg(PSLPHandleInfo handle)
 /*-------------------------------------------------------------------------*/
 {
-    struct timeval      timeout;
-    struct sockaddr     peeraddr;
-    int                 peeraddrlen = sizeof(peeraddr);
-    int                 size        = 0;
-    SLPError            error       = 0;
-    SLPBuffer           buf         = 0;
-    SLPMessage          msg         = 0;
-    int                 xid         = XidGenerate();
+    struct sockaddr_in  peeraddr;
+    int                 sock        = 0;
+    int                 bufsize     = 0;
+    char*               buf         = 0;
+    char*               curpos      = 0;
+    SLPError            result      = 0;
     
-    
-    /*-----------------------*/
-    /* allocate a SLPMessage */
-    /*-----------------------*/
-    msg = SLPMessageAlloc();
-    if(msg == 0)
-    {
-        error = SLP_MEMORY_ALLOC_FAILED;
-        goto FINISHED;
-    }
-
-
-    /*-------------------------------------------------------------*/
-    /* ensure the buffer is big enough to handle the whole srvreg  */
-    /*-------------------------------------------------------------*/
-    size = handle->langtaglen + 14;                 /* 14 bytes for header  */
-
-    size += handle->params.dereg.scopelistlen + 2; /*  2 bytes for len field*/
-    size += handle->params.dereg.urllen + 8;       /*  1 byte for reserved  */
-                                                   /*  2 bytes for lifetime */
-                                                   /*  2 bytes for urllen   */
-                                                   /*  1 byte for authcount */
-    size += 2;                                     /*  2 bytes for taglistlen*/
-    
-    
+    /*-------------------------------------------------------------------*/
+    /* determine the size of the fixed portion of the SRVREG             */
+    /*-------------------------------------------------------------------*/
+    bufsize += handle->params.dereg.scopelistlen + 2; /*  2 bytes for len field*/
+    bufsize += handle->params.dereg.urllen + 8;       /*  1 byte for reserved  */
+                                                      /*  2 bytes for lifetime */
+                                                      /*  2 bytes for urllen   */
+                                                      /*  1 byte for authcount */
+    bufsize += 2;                                     /*  2 bytes for taglistlen*/
     
     /* TODO: Fix this for authentication */
     
-    buf = SLPBufferAlloc(size);
+    buf = curpos = (char*)malloc(bufsize);
     if(buf == 0)
     {
-        error = SLP_MEMORY_ALLOC_FAILED;
+        result = SLP_MEMORY_ALLOC_FAILED;
         goto FINISHED;
     }
-
-    /*----------------*/
-    /* Add the header */
-    /*----------------*/
-    /*version*/
-    *(buf->start)       = 2;
-    /*function id*/
-    *(buf->start + 1)   = SLP_FUNCT_SRVDEREG;
-    /*length*/
-    ToUINT24(buf->start + 2,size);
-    /*flags*/
-    ToUINT16(buf->start + 5, 0);
-    /*ext offset*/
-    ToUINT24(buf->start + 7,0);
-    /*xid*/
-    ToUINT16(buf->start + 10,xid);
-    /*lang tag len*/
-    ToUINT16(buf->start + 12,handle->langtaglen);
-    /*lang tag*/
-    memcpy(buf->start + 14,
-           handle->langtag,
-           handle->langtaglen);
-
-
-    /*--------------------------*/
-    /* Add rest of the SrvDeReg */
-    /*--------------------------*/
-    buf->curpos = buf->curpos + handle->langtaglen + 14;
     
+    /*------------------------------------------------------------*/
+    /* Build a buffer containing the fixed portion of the SRVDEREG*/
+    /*------------------------------------------------------------*/
     /* scope list */
-    ToUINT16(buf->curpos,handle->params.dereg.scopelistlen);
-    buf->curpos = buf->curpos + 2;
-    memcpy(buf->curpos,
+    ToUINT16(curpos,handle->params.dereg.scopelistlen);
+    curpos = curpos + 2;
+    memcpy(curpos,
            handle->params.dereg.scopelist,
            handle->params.dereg.scopelistlen);
-    buf->curpos = buf->curpos + handle->params.dereg.scopelistlen;
-
+    curpos = curpos + handle->params.dereg.scopelistlen;
     /* url-entry reserved */
-    *buf->curpos = 0;        
-    buf->curpos = buf->curpos + 1;
+    *curpos = 0;        
+    curpos = curpos + 1;
     /* url-entry lifetime */
-    ToUINT16(buf->curpos, 0);
-    buf->curpos = buf->curpos + 2;
+    ToUINT16(curpos, 0);
+    curpos = curpos + 2;
     /* url-entry urllen */
-    ToUINT16(buf->curpos,handle->params.dereg.urllen);
-    buf->curpos = buf->curpos + 2;
+    ToUINT16(curpos,handle->params.dereg.urllen);
+    curpos = curpos + 2;
     /* url-entry url */
-    memcpy(buf->curpos,
+    memcpy(curpos,
            handle->params.dereg.url,
            handle->params.dereg.urllen);
-    buf->curpos = buf->curpos + handle->params.dereg.urllen;
+    curpos = curpos + handle->params.dereg.urllen;
     /* url-entry authcount */
-    *buf->curpos = 0;        
-    buf->curpos = buf->curpos + 1;
-    /* TODO: put in urlentry authentication stuff too */
-    
-    /* TODO: put tag list stuff in*/
-    ToUINT16(buf->curpos,0);
+    *curpos = 0;        
+    curpos = curpos + 1;
+    /* TODO: put in urlentry authentication stuff */
+    /* tag list */
+    /* TODO: put in taglist stuff */
+    ToUINT16(curpos,0);
 
     
-    /*------------------------*/
-    /* Send the SrvDeReg      */
-    /*------------------------*/
-    timeout.tv_sec = atoi(SLPGetProperty("net.slp.unicastMaximumWait")) / 1000;  
-    timeout.tv_usec = 0;        
-    buf->curpos = buf->start;
-    error = NetworkSendMessage(handle->slpdsock,
-                              buf,
-                              &timeout,
-                              &(handle->slpdaddr),
-                              sizeof(handle->slpdaddr));
-    if(error == SLP_OK)
+    /*---------------------------------------*/
+    /* Connect to slpd or a DA               */
+    /*---------------------------------------*/
+    sock = NetworkConnectToSlpd(&peeraddr);
+    if(sock < 0)
     {
-        /* Recv the SrvAck */
-        error = NetworkRecvMessage(handle->slpdsock,
-                                  buf,
-                                  &timeout,
-                                  &peeraddr,
-                                  &peeraddrlen);
-        if(error == SLP_OK)
+        sock = NetworkConnectToDA(handle->params.dereg.scopelist,
+                                  handle->params.dereg.scopelistlen,
+                                  &peeraddr);
+        if(sock <0)
         {
-            /* parse the SrvAck message */
-            error = SLPMessageParseBuffer(buf,msg);
-            if(error == SLP_OK)
-            {
-                if(msg->header.xid == xid && 
-                   msg->header.functionid == SLP_FUNCT_SRVACK)
-                {
-                    /* map and use errorcode from message */
-                    error = -(msg->body.srvack.errorcode);
-                }
-                else
-                {
-                    error = SLP_NETWORK_ERROR;
-                }
-            }
+            result = SLP_NETWORK_INIT_FAILED;
+            goto FINISHED;
         }
     }
-    
 
+    result = NetworkRqstRply(sock,
+                             &peeraddr,
+                             handle->langtag,
+                             buf,
+                             SLP_FUNCT_SRVDEREG,
+                             bufsize,
+                             CallbackSrvDeReg,
+                             handle);
+    
     FINISHED:
+    if(buf) free(buf);
 
-    /* call callback function */
-    handle->params.dereg.callback((SLPHandle)handle,
-                                     error,
-                                     handle->params.dereg.cookie);
-    
-    /* free resources */
-    SLPBufferFree(buf);
-    SLPMessageFree(msg);
-        
-    return 0;
+    return result;
 }
+
 
 /*-------------------------------------------------------------------------*/ 
 SLPError AsyncProcessSrvDeReg(PSLPHandleInfo handle)
@@ -225,6 +190,7 @@ SLPError SLPDereg(SLPHandle  hSLP,
     /* check for invalid parameters */
     /*------------------------------*/
     if( hSLP        == 0 ||
+        *(unsigned long*)hSLP != SLP_HANDLE_SIG ||
         srvUrl      == 0 ||
         *srvUrl     == 0 ||  /* url can't be empty string */
         callback    == 0) 
@@ -247,17 +213,6 @@ SLPError SLPDereg(SLPHandle  hSLP,
     handle->inUse = SLP_TRUE;
 
 
-    /*---------------------------------------------*/
-    /* Check to see if we can talk to a slpd       */
-    /*---------------------------------------------*/
-    if(handle->slpdsock < 0)
-    {
-        /* slpd is not running locally and no DA's are configured */
-        handle->inUse = SLP_FALSE;
-        return SLP_NETWORK_INIT_FAILED;
-    }   
-
-    
     /*------------------*/
     /* Parse the srvurl */
     /*------------------*/

@@ -1,8 +1,8 @@
 <!doctype html public "-//w3c//dtd html 4.0 transitional//en">
 <html>
 <head>
-   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-15">
-   <meta name="GENERATOR" content="Mozilla/4.72C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.2.14 i686) [Netscape]">
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+   <meta name="GENERATOR" content="Mozilla/4.73C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.2.14 i686) [Netscape]">
    <title>OpenSLP Programmers Guide - SLPFindScopes()</title>
 </head>
 <body text="#000000" bgcolor="#FFFFFF" link="#0000EF" vlink="#51188E" alink="#FF0000">
@@ -13,7 +13,8 @@ SLPFindScopes</h2>
 <hr WIDTH="100%">
 <h3>
 Declaration</h3>
-<tt><a href="/SLPError.html">SLPError</a> SLPFindScopes( <a href="SLPTypes.html#SLPHandle">SLPHandle</a><a href="#hslp">hslp</a>,</tt>
+<tt>#include &lt;slp.h></tt>
+<p><tt><a href="/SLPError.html">SLPError</a> SLPFindScopes( SLPHandle <a href="#hslp">hslp</a>,</tt>
 <br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 char** <a href="#scopelist">scopelist</a> )</tt>
 <br>&nbsp;
@@ -47,7 +48,7 @@ when no longer needed.</td>
 
 <h3>
 Returns</h3>
-<a href="/SLPError.html#INVALID_REGISTRATION">SLPError</a> Code
+<a href="SLPError.html#INVALID_REGISTRATION">SLPError</a> Code
 <br>&nbsp;
 <br>&nbsp;
 <h3>
@@ -64,6 +65,6 @@ parameter.&nbsp; DHCP and DAAdverts are not yet supported.</td>
 
 <h3>
 See Also</h3>
-<a href="broken">Open SLP Users Guide</a>
+<a href="doc/html/UsersGuide/index.html">Open SLP Users Guide</a>
 </body>
 </html>

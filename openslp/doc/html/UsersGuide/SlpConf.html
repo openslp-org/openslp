@@ -1,7 +1,7 @@
 <!doctype html public "-//w3c//dtd html 4.0 transitional//en">
 <html>
 <head>
-   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-15">
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
    <meta name="GENERATOR" content="Mozilla/4.72C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.2.14 i686) [Netscape]">
    <title>OpenSLP Users Guide - The slp.conf File</title>
 </head>
@@ -17,10 +17,10 @@ OpenSLP library.&nbsp;&nbsp;&nbsp; The master slp.conf file is located
 at <tt>/etc/slp.conf</tt>.&nbsp; There is <a href="CommandLine.html">command
 line option</a> that forces slpd to read a different configuration file,
 but the SLP library is hard coded to read from <tt>/etc/slp.conf</tt> and
-can only be changed by re-compiline the library.
+can only be changed by re-compiling the library.
 <p>The OpenSLP slp.conf file diverges <i>slightly</i> from the <a href="../../rfc/rfc2614.txt">RFC
 2614</a> specification for the slp configuration file, so you should probably
-<a href="#Divergance from RFC 2614">Divergance
+<a href="#Divergence from RFC 2614">Divergence
 from RFC 2614</a> even if you are familiar with the RFC spec.
 <br>&nbsp;
 <h3>
@@ -50,11 +50,12 @@ is unavailable. Default is false.</blockquote>
 <b>net.slp.passiveDADetection</b>
 <blockquote>A boolean indicating whether passive DA detection should be
 use. Default is true.</blockquote>
-<b>net.slp.activeDADetection</b>
-<blockquote>A boolean indicating whether active DA dection should be used.
-Note that if both passive and active DA detection are disabled, DAs will
-not be used unless they are statically configured using the net.slp.DAAddresses
-property. Default is true.</blockquote>
+<b>net.slp.DAActiveDiscoveryInterval</b>
+<blockquote>A 16 bit positive integer giving the number of seconds between
+DA active discovery queries.&nbsp; Default is 900 seconds (15 minutes).&nbsp;
+If the property is set to zero, active discovery is turned off.&nbsp; This
+is useful when the DAs available are explicitly restricted to those obtained
+from DHCP or the net.slp.DAAddresses property.</blockquote>
 <b>net.slp.multicastTTL</b>
 <blockquote>A positive integer that is less than or equal to 255.&nbsp;
 The default is&nbsp; 255.</blockquote>
@@ -103,31 +104,23 @@ characters. [7]</blockquote>
 OpenSLP does not support all of the settings that are specified by RFC
 2614.&nbsp; The reasons for not supporting some of the settings range from
 the implementors' opinions that they are either not useful or very difficult
-to implement with regard to their usefullness.&nbsp; The following is a
+to implement with regard to their usefulness.&nbsp; The following is a
 list of options that OpenSLP has no plans to support.
-<p><b>Tracing and logging options</b>
-<blockquote>The tracing and logging options specified in the RFC are really
-only useful as debugging tools.&nbsp; Most of the logging options from
-the RFC would require possibly lengthy configuration file checks in very
-critical code paths. Therefore, the decision for now has been to make loging
-a compile time option in OpenSLP.&nbsp; The default log level should display
-enough information for the average SLP configuration. See the make file
-for details on log levels.</blockquote>
-<b>net.slp.serializedRegURL</b>
+<p><b>net.slp.serializedRegURL</b>
 <blockquote>slpd accepts the [-r] command line parameter that specifies
 the serialized registration file to use.</blockquote>
-<b>net.slp.DAActiveDiscoveryInterval</b>
-<blockquote>OpenSLP does not honor this parameter unless it is set to zero.&nbsp;
-When set to zero active discovery is turned off.&nbsp; See net.slp.activeDADetection</blockquote>
 <b>net.slp.multicastTimeouts</b>
-<blockquote>OpenSLP does not honor this parameter.&nbsp; Multicast timeouts
-are generated internally based on the .net.slp.multicastMaximumWait parameter.</blockquote>
+<blockquote>OpenSLP does not honor this parameter.&nbsp; Currently multicast
+timeouts are generated internally based on the net.slp.multicastMaximumWait
+parameter.</blockquote>
 <b>net.slp.DADiscoveryTimeouts</b>
-<blockquote>OpenSLP does not honor this parameter.&nbsp; Multicast timeouts
-are generated internally based on the .net.slp.multicastMaximumWait parameter.</blockquote>
+<blockquote>OpenSLP does not honor this parameter.&nbsp; Currently multicast
+timeouts are generated internally based on the net.slp.multicastMaximumWait
+parameter.</blockquote>
 <b>net.slp.datagramTimeouts</b>
-<blockquote>OpenSLP does not honor this parameter.&nbsp; Unicast timeouts
-are generated internal based on the net.slp.unicastMaximumWait parameter.</blockquote>
+<blockquote>OpenSLP does not honor this parameter.&nbsp; Currently unicast
+timeouts are generated internal based on the net.slp.unicastMaximumWait
+parameter.</blockquote>
 
 <br>&nbsp;
 </body>

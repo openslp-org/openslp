@@ -117,24 +117,23 @@ void SLPDLogSAAdvertMessage(SLPSAAdvert* saadvert)
 
 
 /*-------------------------------------------------------------------------*/
-void SLPDLogSLPHeader(SLPHeader* header)
-/*-------------------------------------------------------------------------*/
-{
- }
-
-/*-------------------------------------------------------------------------*/
 void SLPDLogPeerInfo(SLPDPeerInfo* peerinfo)
 /*-------------------------------------------------------------------------*/
 {
     switch(peerinfo->peertype)
     {
-    case SLPD_PEER_REMOTE:
-        SLPLog("Peer Remote:\n");
+    case SLPD_PEER_ACCEPTED:
+        SLPLog("Peer UA:\n");
         SLPLog("   IP address: %s\n",inet_ntoa(peerinfo->peeraddr.sin_addr));
         break;
-        
-    case SLPD_PEER_LOCAL:
-        SLPLog("Peer Local:\n");
+    
+    case SLPD_PEER_CONNECTED:
+        SLPLog("Peer DA:\n");
+        SLPLog("   IP address: %s\n",inet_ntoa(peerinfo->peeraddr.sin_addr));
+        break;
+
+    case SLPD_PEER_LIBSLP:
+        SLPLog("Peer libslp:\n");
         SLPLog("   pid = %i\n",peerinfo->peerpid);
         SLPLog("   uid = %i\n",peerinfo->peeruid);
         SLPLog("   gid = %i\n",peerinfo->peergid);
@@ -146,7 +145,9 @@ void SLPDLogPeerInfo(SLPDPeerInfo* peerinfo)
     }
 }
 
+/*-------------------------------------------------------------------------*/
 void SLPDLogMessage(SLPMessage message)
+/*-------------------------------------------------------------------------*/
 {
     SLPLog("Header:\n");
     SLPLog("   version = %i\n",message->header.version);
@@ -214,37 +215,74 @@ void SLPDLogMessage(SLPMessage message)
 }
 
 /*=========================================================================*/
-void SLPDLogTraceMsg(SLPDPeerInfo* peerinfo,
-                     SLPBuffer recvbuf,
-                     SLPBuffer sendbuf)
+void SLPDLogTraceMsg(const char* prefix,
+                     SLPDPeerInfo* peerinfo,
+                     SLPBuffer buf)
 /*=========================================================================*/
 {
-    SLPMessage recvmsg;
-    SLPMessage sendmsg;                
-    
-    recvmsg = SLPMessageAlloc();
-    sendmsg = SLPMessageAlloc();
-    if(recvmsg && sendmsg)
+    SLPMessage msg;
+        
+    msg = SLPMessageAlloc();
+    if(msg)
     {
-        if(SLPMessageParseBuffer(recvbuf, recvmsg) == 0)
+        if(SLPMessageParseBuffer(buf,msg) == 0)
         {
             SLPLog("----------------------------------------\n");
-            SLPLog("TRACEMSG IN:\n");
+            SLPLog("traceMsg %s:\n",prefix);
+            SLPLog("----------------------------------------\n");
             SLPDLogPeerInfo(peerinfo);
-            SLPDLogMessage(recvmsg);
-            SLPLog("----------------------------------------\n");
-        }
-
-        if(SLPMessageParseBuffer(sendbuf, sendmsg) == 0)
-        {
-            SLPLog("----------------------------------------\n");
-            SLPLog("TRACEMSG OUT:\n");
-            SLPDLogPeerInfo(peerinfo);
-            SLPDLogMessage(sendmsg);
-            SLPLog("----------------------------------------\n");
+            SLPDLogMessage(msg);
+            SLPLog("\n");
         }
     }
 
-    SLPMessageFree(recvmsg);
-    SLPMessageFree(sendmsg);
+    SLPMessageFree(msg);
 }
+
+
+
+/*=========================================================================*/
+void SLPDLogTraceReg(const char* prefix, SLPDDatabaseEntry* entry)
+/* Logs at traceReg message to indicate that a service registration (or    */
+/* service de-registration has occured.                                    */
+/*                                                                         */
+/* prefix (IN) an appropriate prefix string like "reg" or "dereg"          */
+/*                                                                         */
+/* entry  (IN) the database entry of the service                           */
+/*                                                                         */
+/* returns:  None                                                          */
+/*=========================================================================*/
+{
+    SLPLog("----------------------------------------\n");
+    SLPLog("traceReg %s:\n",prefix);
+    SLPLog("----------------------------------------\n");
+    SLPLog("pid = %i\n",entry->pid);
+    SLPLog("uid = %i\n",entry->uid); 
+    SLPLog("language tag = ");
+    SLPLogBuffer(entry->langtag, entry->langtaglen);
+    SLPLog("\nlifetime = %i\n",entry->lifetime); 
+    SLPLog("url = ");
+    SLPLogBuffer(entry->url, entry->urllen);
+    SLPLog("\nscope = ");
+    SLPLogBuffer(entry->scopelist, entry->scopelistlen);
+    SLPLog("\nservice type = ");
+    SLPLogBuffer(entry->srvtype, entry->srvtypelen);
+    SLPLog("\nattributes = ");
+    SLPLogBuffer(entry->attrlist, entry->attrlistlen);
+    SLPLog("\n\n");
+}
+
+/*=========================================================================*/
+void SLPDLogDATrafficMsg(const char* prefix,
+                         SLPDPeerInfo* peerinfo,
+                         SLPMessage daadvert)
+/*=========================================================================*/
+{
+    SLPLog("----------------------------------------\n");
+    SLPLog("traceDATraffic %s:\n",prefix);
+    SLPLog("----------------------------------------\n");
+    SLPDLogPeerInfo(peerinfo);
+    SLPDLogMessage(daadvert);
+    SLPLog("\n")    ;
+}
+

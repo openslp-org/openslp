@@ -12,17 +12,40 @@
 #if(!defined LIBSLP_H_INCLUDED)
 #define LIBSLP_H_INCLUDED
 
-#include <string.h>
+#ifdef WIN32
+#include <windows.h>
+#include  <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <time.h>
+#else
 #include <stdlib.h>
 #include <unistd.h>
+#include <string.h>
 #include <sys/socket.h>
 #include <sys/time.h>
 #include <netinet/in.h>
-#include <arpa/inet.h>   
+#include <arpa/inet.h> 
+#include <netdb.h> 
+#include <fcntl.h> 
+#include <errno.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h> 
+#endif
 
 #include <slp_buffer.h>
 #include <slp_message.h>
 #include <slp_property.h>
+#include <slp_xid.h>
+#include <slp_network.h>
+#include <slp_da.h>
+#include <slp_compare.h>
+
+
+#define MINIMUM_DISCOVERY_INTERVAL  600    /* 5 minutes */
+#define MAX_RETRANSMITS             5      /* we'll only re-xmit 5 times! */
+#define SLP_FUNCT_DASRVRQST         0x7f   /* fake id used internally */
 
 /*=========================================================================*/
 typedef enum _SLPCallType
@@ -35,6 +58,8 @@ typedef enum _SLPCallType
     SLPFINDATTRS,
     SLPDELATTRS
 }SLPCallType;
+
+
 
 /*=========================================================================*/
 typedef struct _SLPRegParams
@@ -117,19 +142,18 @@ typedef union _SLPHandleCallParams
     SLPFindAttrsParams  findattrs;
 }SLPHandleCallParams, *PSLPHandleCallParams;
 
-
+#define SLP_HANDLE_SIG 0xbeeffeed
 /*=========================================================================*/
 typedef struct _SLPHandleInfo
 /* The SLPHandle that is used internally in slplib is actually a pointer to*/
 /* a struct _SLPHandleInfo                                                 */
 /*=========================================================================*/
 {
+    unsigned long       sig;
     SLPBoolean          inUse;
     SLPBoolean          isAsync;
     int                 langtaglen;
     char*               langtag;
-    int                 slpdsock;
-    struct sockaddr     slpdaddr;
     SLPHandleCallParams params;
 }SLPHandleInfo, *PSLPHandleInfo;
 
@@ -137,6 +161,14 @@ typedef struct _SLPHandleInfo
 /*=========================================================================*/ 
 typedef void* (*ThreadStartProc)(void *);
 /*=========================================================================*/ 
+
+
+/*=========================================================================*/ 
+typedef SLPBoolean NetworkRqstRplyCallback(SLPError error, 
+					   SLPMessage msg,
+					   void* cookie);
+/*=========================================================================*/ 
+
 
 /*=========================================================================*/ 
 SLPError ThreadCreate(ThreadStartProc startproc, void *arg);
@@ -150,83 +182,64 @@ SLPError ThreadCreate(ThreadStartProc startproc, void *arg);
 /*=========================================================================*/
 
 
+/*=========================================================================*/
+int NetworkConnectToMulticast(struct sockaddr_in* peeraddr);
+/*=========================================================================*/
+
+
 /*=========================================================================*/ 
-int NetworkGetSlpdSocket(struct sockaddr* peeraddr, int peeraddrlen);
-/* Connects to slpd.  Will not block.                                      */
+int NetworkConnectToDA(const char* scopelist,
+                       int scopelistlen,
+                       struct sockaddr_in* peeradd);
+/* Connects to slpd and provides a peeraddr to send to                     */
 /*                                                                         */
-/* peeraddr     (OUT) receives the address of the socket                   */
+/* scopelist        (IN) Scope that must be supported by DA. Pass in NULL  */
+/*                       for any scope                                     */
 /*                                                                         */
-/* peeraddrlen  (OUT) receives the length of the socket address            */
+/* scopelistlen     (IN) Length of the scope list in bytes.  Ignored if    */
+/*                       scopelist is NULL                                 */
 /*                                                                         */
-/* Returns  -   -1 if connection can not be made                           */
-/*=========================================================================*/ 
-
-
-/*=========================================================================*/ 
-void NetworkCloseSlpdSocket();
-/*=========================================================================*/ 
-
-
-/*=========================================================================*/ 
-SLPError NetworkSendMessage(int sockfd,
-                            SLPBuffer buf,
-                            struct timeval* timeout,
-                            struct sockaddr* peeraddr,
-                            int peeraddrlen);
-/* Sends a message                                                         */
+/* peeraddr         (OUT) pointer to receive the connected DA's address    */
 /*                                                                         */
-/* Returns  -    SLP_OK, SLP_NETWORK_TIMEOUT, SLP_NETWORK_ERROR, or        */
-/*               SLP_PARSE_ERROR.                                          */
-/*=========================================================================*/ 
-
+/* Returns          Connected socket or -1 if no DA connection can be made */
+/*=========================================================================*/
 
 
 /*=========================================================================*/ 
-SLPError NetworkRecvMessage(int sockfd,
-                            SLPBuffer buf,
-                            struct timeval* timeout,
-                            struct sockaddr* peeraddr,
-                            int* peeraddrlen);
-/* Receives a message                                                      */
+int NetworkConnectToSlpd(struct sockaddr_in* peeraddr);       
+/* Connects to slpd and provides a peeraddr to send to                     */
 /*                                                                         */
-/* Returns  -    SLP_OK, SLP_NETWORK_TIMEOUT, SLP_NETWORK_ERROR, or        */
-/*               SLP_PARSE_ERROR.                                          */
-/*=========================================================================*/ 
-
-
-
-/*=========================================================================*/ 
-int NetworkConnectToDA(struct sockaddr_in* peeraddr);
-/*=========================================================================*/ 
-
-
-/*=========================================================================*/ 
-int NetworkConnectToSlpMulticast(struct sockaddr_in* peeraddr);
-/* Creates a socket and connects it to the SLP multicast address           */
+/* peeraddr         (OUT) pointer to receive the connected DA's address    */
 /*                                                                         */
-/* Returns  - Valid file descriptor on success, -1 on failure w/ errno set.*/
-/*=========================================================================*/ 
+/* Returns          Connected socket or -1 if no DA connection can be made */
+/*=========================================================================*/
 
 
 /*=========================================================================*/ 
-int NetworkConnectToSlpBroadcast(struct sockaddr_in* peeraddr);
-/* Creates a socket and connects it to the SLP multicast address           */
+SLPError NetworkRqstRply(int sock,
+                         struct sockaddr_in* peeraddr,
+                         const char* langtag,
+                         char* buf,
+                         char buftype,
+                         int bufsize,
+                         NetworkRqstRplyCallback callback,
+                         void * cookie);
+/* Transmits and receives SLP messages via multicast convergence algorithm */
 /*                                                                         */
-/* Returns  - Valid file descriptor on success, -1 on failure w/ errno set.*/
+/* Returns  -    SLP_OK on success                                         */
 /*=========================================================================*/ 
 
 
 /*=========================================================================*/
-void XidSeed();
-/* Seeds the XID generator.  Should only be called 1 time per process!     */
-/* currently called when the first handle is opened.                       */
+int KnownDADiscover(struct timeval* timeout);
 /*=========================================================================*/
 
 
 /*=========================================================================*/
-unsigned short XidGenerate();
-/*                                                                         */
-/* Returns: A hopefully unique 16-bit value                                */
+int KnownDAConnect(const char* scopelist, 
+                   int scopelistlen,
+                   struct sockaddr_in* peeraddr,
+                   struct timeval* timeout);
 /*=========================================================================*/
 
 #endif

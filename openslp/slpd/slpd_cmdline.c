@@ -38,6 +38,20 @@ SLPDCommandLine G_SlpdCommandLine;
 /* Global variable containing command line options                         */
 /*=========================================================================*/
 
+/*=========================================================================*/
+void SLPDPrintUsage()
+/* Displays available command line options of SLPD                         */
+/*=========================================================================*/
+{
+
+#ifdef WIN32
+    		printf("USAGE: slpd -install|-remove|-debug [-d] [-c conf file] [-l log file] [-r reg file] [-v version]\n");
+#else
+    		printf("USAGE: slpd [-d] [-c conf file] [-l log file] [-r reg file] [-v version]\n");
+#endif
+
+}
+
 
 /*=========================================================================*/
 int SLPDParseCommandLine(int argc,char* argv[])
@@ -58,8 +72,32 @@ int SLPDParseCommandLine(int argc,char* argv[])
     strcpy(G_SlpdCommandLine.logfile,"/var/log/slpd.log");
     strcpy(G_SlpdCommandLine.regfile,"/etc/slp.reg");
     strcpy(G_SlpdCommandLine.pidfile,"/var/run/slpd.pid");
+#ifdef WIN32
+    G_SlpdCommandLine.action = -1;
+#endif
+
+    #if(defined DEBUG)
+    G_SlpdCommandLine.detach = 0;
+    #else
+    G_SlpdCommandLine.detach = 1;
+    #endif
+     
     for(i=1; i<argc; i++)
     {
+#ifdef WIN32
+      if(strcmp(argv[i],"-install") == 0)
+      {
+        G_SlpdCommandLine.action = SLPD_INSTALL;
+      }
+      else if(strcmp(argv[i],"-remove") == 0)
+      {
+        G_SlpdCommandLine.action = SLPD_REMOVE;
+      }
+      else if(strcmp(argv[i],"-debug") == 0)
+      {
+        G_SlpdCommandLine.action = SLPD_DEBUG;
+      } else
+#endif
         if(strcmp(argv[i],"-l") == 0)
         {
             i++;
@@ -84,6 +122,25 @@ int SLPDParseCommandLine(int argc,char* argv[])
             if(i >= argc) goto USAGE;
             strncpy(G_SlpdCommandLine.pidfile,argv[i],MAX_PATH);        
         }
+        else if(strcmp(argv[i],"-d") == 0)
+        {
+            G_SlpdCommandLine.detach = 0;
+        }
+		else if((strcmp(argv[i], "-v") == 0) 
+				|| (strcmp(argv[i], "-V") == 0)
+				|| (strcmp(argv[i], "--version") == 0)
+			   	|| (strcmp(argv[i], "-version") == 0))
+		{
+			printf("slpd version: %s\n", VERSION);
+			exit(1);
+		}
+		else if((strcmp(argv[i], "-h") == 0) 
+			   	|| (strcmp(argv[i], "-help") == 0)
+			   	|| (strcmp(argv[i], "--help") == 0))
+		{
+      SLPDPrintUsage();
+			exit(1);
+		}
         else
         {
             goto USAGE;
@@ -93,7 +150,6 @@ int SLPDParseCommandLine(int argc,char* argv[])
     return 0;
 
     USAGE:
-    printf("USAGE: slpd [-c conf file] [-l log file] [-r reg file] \n");
-    
+    SLPDPrintUsage();
     return 1;
 }

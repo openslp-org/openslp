@@ -7,7 +7,7 @@
 #
 # Format and contents conform to specification in IETF RFC 2614 so the
 # comments use the language of the RFC.  In OpenSLP, SLPD operates as an SA
-# and a DA.  The SLP UA functionality is encapsulated by SLPLIB.
+# and a DA.  The SLP UA functionality is encapsulated by the libslp library.
 #
 #############################################################################
 
