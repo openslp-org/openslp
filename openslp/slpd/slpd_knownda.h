@@ -56,7 +56,6 @@
 /*=========================================================================*/
 #include "../common/slp_buffer.h"
 #include "../common/slp_message.h"
-#include "../common/slp_da.h"
 
 
 /*=========================================================================*/
@@ -69,24 +68,73 @@ int SLPDKnownDAInit();
 
 
 /*=========================================================================*/
-SLPDAEntry* SLPDKnownDAAdd(struct in_addr* addr,
-                           const SLPDAEntry* daentry);
+int SLPDKnownDADeinit();
+/* Deinitializes the KnownDA list.  Removes all entries and deregisters    */
+/* all services.                                                           */
+/*                                                                         */
+/* returns  zero on success, Non-zero on failure                           */
+/*=========================================================================*/
+
+
+/*=========================================================================*/
+int SLPDKnownDAAdd(SLPMessage msg, SLPBuffer buf);
 /* Adds a DA to the known DA list if it is new, removes it if DA is going  */
 /* down or adjusts entry if DA changed.                                    */
 /*                                                                         */
-/* addr     (IN) pointer to in_addr of the DA to add                       */
+/* msg     (IN) DAAdvert Message descriptor                                */
 /*                                                                         */
-/* pointer (IN) pointer to a daentry to add                                */
+/* buf     (IN) The DAAdvert message buffer                                */
 /*                                                                         */
-/* returns  Pointer to the added or updated entry                          */
+/* returns  Zero on success, Non-zero on error                             */
 /*=========================================================================*/
 
 
 /*=========================================================================*/
-int SLPDKnownDAEntryToDAAdvert(int errorcode,
-                               unsigned int xid,
-                               const SLPDAEntry* daentry,
-                               SLPBuffer* sendbuf);
+void SLPDKnownDARemove(struct in_addr* addr);
+/* Removes known DAs that sent DAAdverts from the specified in_addr        */
+/*=========================================================================*/
+
+/*=========================================================================*/
+void* SLPDKnownDAEnumStart();
+/* Start an enumeration of all Known DAs                                   */
+/*                                                                         */
+/* Returns: An enumeration handle that is passed to subsequent calls to    */
+/*          SLPDKnownDAEnum().  Returns NULL on failure.  Returned         */
+/*          enumeration handle (if not NULL) must be passed to             */
+/*          SLPDKnownDAEnumEnd() when you are done with it.                */
+/*=========================================================================*/
+
+
+/*=========================================================================*/
+SLPMessage SLPDKnownDAEnum(void* eh, SLPMessage* msg, SLPBuffer* buf);
+/* Enumerate through all Known DAs                                         */
+/*                                                                         */
+/* eh (IN) pointer to opaque data that is used to maintain                 */
+/*         enumerate entries.  Pass in a pointer to NULL to start          */
+/*         enumeration.                                                    */
+/*                                                                         */
+/* msg (OUT) pointer to the DAAdvert message descriptor                    */
+/*                                                                         */
+/* buf (OUT) pointer to the DAAdvert message buffer                        */
+/*                                                                         */
+/* returns: Pointer to enumerated entry or NULL if end of enumeration      */
+/*=========================================================================*/
+
+
+/*=========================================================================*/
+void SLPDKnownDAEnumEnd(void* eh);
+/* End an enumeration started by SLPDKnownDAEnumStart()                    */
+/*                                                                         */
+/* Parameters:  eh (IN) The enumeration handle returned by                 */
+/*              SLPDKnownDAEnumStart()                                     */
+/*=========================================================================*/
+
+
+/*=========================================================================*/
+int SLPDKnownDAGenerateMyDAAdvert(int errorcode,
+                                  int deadda,
+                                  int xid,
+                                  SLPBuffer* sendbuf);
 /* Pack a buffer with a DAAdvert using information from a SLPDAentry       */
 /*                                                                         */
 /* errorcode (IN) the errorcode for the DAAdvert                           */
@@ -105,11 +153,10 @@ int SLPDKnownDAEntryToDAAdvert(int errorcode,
 
 #if defined(ENABLE_SLPv1)
 /*=========================================================================*/
-int SLPDv1KnownDAEntryToDAAdvert(int errorcode,
-                                 int encoding,
-                                 unsigned int xid,
-                                 const SLPDAEntry* daentry,
-                                 SLPBuffer* sendbuf);
+int SLPDKnownDAGenerateMyV1DAAdvert(int errorcode,
+                                    int encoding,
+                                    unsigned int xid,
+                                    SLPBuffer* sendbuf);
 /* Pack a buffer with a v1 DAAdvert using information from a SLPDAentry    */
 /*                                                                         */
 /* errorcode (IN) the errorcode for the DAAdvert                           */
@@ -117,9 +164,6 @@ int SLPDv1KnownDAEntryToDAAdvert(int errorcode,
 /* encoding (IN) the SLPv1 language encoding for the DAAdvert              */
 /*                                                                         */
 /* xid (IN) the xid to for the DAAdvert                                    */
-/*                                                                         */
-/* daentry (IN) pointer to the daentry that contains the rest of the info  */
-/*              to make the DAAdvert                                       */
 /*                                                                         */
 /* sendbuf (OUT) pointer to the SLPBuffer that will be packed with a       */
 /*               DAAdvert                                                  */
@@ -130,54 +174,21 @@ int SLPDv1KnownDAEntryToDAAdvert(int errorcode,
 
 
 /*=========================================================================*/
-int SLPDKnownDAEnum(void** handle,
-                    SLPDAEntry** entry);
-/* Enumerate through all entries of the database                           */
-/*                                                                         */
-/* handle (IN/OUT) pointer to opaque data that is used to maintain         */
-/*                 enumerate entries.  Pass in a pointer to NULL to start  */
-/*                 enumeration.                                            */
-/*                                                                         */
-/* entry (OUT) pointer to an entry structure pointer that will point to    */
-/*             the next entry on valid return                              */
-/*                                                                         */
-/* returns: >0 if end of enumeration, 0 on success, <0 on error            */
-/*=========================================================================*/
-
-
-/*=========================================================================*/
-void SLPDKnownDARemove(SLPDAEntry* daentry);
-/* Remove the specified entry from the list of KnownDAs                    */
-/*                                                                         */
-/* daentry (IN) the entry to remove.                                       */
-/*                                                                         */
-/* Warning! memory pointed to by daentry will be freed                     */
-/*=========================================================================*/
-
-
-/*=========================================================================*/
-void SLPDKnownDAEcho(struct sockaddr_in* peerinfo,
-                     SLPMessage msg,
-                     SLPBuffer buf);     
+void SLPDKnownDAEcho(SLPMessage msg, SLPBuffer buf);
 /* Echo a srvreg message to a known DA                                     */
-/*									   */
-/* peerinfo (IN) the peer that the registration came from                  */
+/*									                                       */
+/* msg (IN) the SrvReg message descriptor                                  */
 /*                                                                         */
-/* msg (IN) the translated message to echo                                 */
+/* buf (IN) the SrvReg message buffer to echo                              */
 /*                                                                         */
-/* buf (IN) the message buffer to echo                                     */
-/*                                                                         */
-/* Returns:  Zero on success, non-zero on error                            */
+/* Returns:  none                                                          */
 /*=========================================================================*/
 
 
 /*=========================================================================*/
 void SLPDKnownDAActiveDiscovery(int seconds);
-/* Set outgoing socket list to send an active DA discovery SrvRqst         */
-/*									   */
-/* seconds (IN) number seconds that elapsed since the last call to this    */
-/*              function                                                   */
-/*									   */
+/* Add a socket to the outgoing list to do active DA discovery SrvRqst     */
+/*									                                       */
 /* Returns:  none                                                          */
 /*=========================================================================*/
 
@@ -186,7 +197,7 @@ void SLPDKnownDAActiveDiscovery(int seconds);
 void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead);
 /* Send passive daadvert messages if properly configured and running as    */
 /* a DA                                                                    */
-/*	                                                                   */
+/*	                                                                       */
 /* seconds (IN) number seconds that elapsed since the last call to this    */
 /*              function                                                   */
 /*                                                                         */
@@ -202,20 +213,6 @@ void SLPDKnownDAImmortalRefresh(int seconds);
 /* Refresh all SLP_LIFETIME_MAXIMUM services                               */
 /* 																		   */
 /* seconds (IN) time in seconds since last call                            */
-/*=========================================================================*/
-
-/*=========================================================================*/
-int SLPDKnownDADeinit();
-/* Deinitializes the KnownDA list.  Removes all entries and deregisters    */
-/* all services.                                                           */
-/*                                                                         */
-/* returns  zero on success, Non-zero on failure                           */
-/*=========================================================================*/
-
-
-/*=========================================================================*/
-extern SLPList G_KnownDAList;                                           
-/* The list of DAs known to slpd.                                          */
 /*=========================================================================*/
 
 #endif 

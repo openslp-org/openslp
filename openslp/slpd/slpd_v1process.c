@@ -63,9 +63,7 @@
 #include "../common/slp_message.h"
 #include "../common/slp_v1message.h"
 #include "../common/slp_utf8.h"
-#include "../common/slp_da.h"
 #include "../common/slp_compare.h"
-
 
 
 /*-------------------------------------------------------------------------*/
@@ -75,11 +73,6 @@ int v1ProcessDASrvRqst(struct sockaddr_in* peeraddr,
                        int errorcode)
 /*-------------------------------------------------------------------------*/
 {
-    SLPDAEntry      daentry;
-
-    /* set up local data */
-    memset(&daentry,0,sizeof(daentry));
-
     if(message->body.srvrqst.scopelistlen == 0 ||
        SLPIntersectStringList(message->body.srvrqst.scopelistlen,
                               message->body.srvrqst.scopelist,
@@ -87,18 +80,10 @@ int v1ProcessDASrvRqst(struct sockaddr_in* peeraddr,
                               G_SlpdProperty.useScopes))
     {
         /* fill out real structure */
-        G_SlpdProperty.DATimestamp += 1;
-        daentry.bootstamp = G_SlpdProperty.DATimestamp;
-        daentry.langtaglen = G_SlpdProperty.localeLen;
-        daentry.langtag = (char*)G_SlpdProperty.locale;
-        daentry.urllen = G_SlpdProperty.myUrlLen;
-        daentry.url = (char*)G_SlpdProperty.myUrl;
-        daentry.scopelistlen = G_SlpdProperty.useScopesLen;
-        daentry.scopelist = (char*)G_SlpdProperty.useScopes;
-        daentry.attrlistlen = 0;
-        daentry.attrlist = 0;
-        daentry.spilistlen = 0;
-        daentry.spilist = 0;
+        errorcode = SLPDKnownDAGenerateMyV1DAAdvert(errorcode,
+                                                SLP_CHAR_UTF8,
+                                                message->header.xid,
+                                                sendbuf);
     }
     else
     {
@@ -116,11 +101,6 @@ int v1ProcessDASrvRqst(struct sockaddr_in* peeraddr,
         }
     }
 
-    errorcode = SLPDv1KnownDAEntryToDAAdvert(errorcode,
-                                             message->header.encoding,
-                                             message->header.xid,
-                                             &daentry,
-                                             sendbuf);
     return errorcode;
 }
 
@@ -833,7 +813,7 @@ int SLPDv1ProcessMessage(struct sockaddr_in* peeraddr,
     {
         /* TRICKY: Duplicate SRVREG recvbufs *before* parsing them   */
         /*         it because we are going to keep them in the       */
-        if(header.functionid == SLP_FUNCT_SRVREG)
+        if(header.functionid == SLP_FUNCT_SRVREG )
         {
             recvbuf = SLPBufferDup(recvbuf);
             if(recvbuf == NULL)

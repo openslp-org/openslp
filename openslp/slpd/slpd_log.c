@@ -426,15 +426,17 @@ void SLPDLogDAAdvertisement(const char* prefix,
 
 /*=========================================================================*/
 void SLPDLogKnownDA(const char* prefix,
-                    SLPDAEntry* daentry)
+                    SLPMessage daadvert)
 /*=========================================================================*/
 {
     SLPDLogTime();
     SLPDLog("Known DA %s:\n",prefix);
     SLPDLog("   url = ");
-    SLPDLogBuffer(daentry->url, daentry->urllen);
+    SLPDLogBuffer(daadvert->body.daadvert.url,
+                  daadvert->body.daadvert.urllen);
     SLPDLog("\n   scope = ");
-    SLPDLogBuffer(daentry->scopelist, daentry->scopelistlen);
+    SLPDLogBuffer(daadvert->body.daadvert.scopelist, 
+                  daadvert->body.daadvert.scopelistlen);
     SLPDLog("\n\n");
 }
 

@@ -173,13 +173,9 @@ int ProcessDASrvRqst(SLPMessage message,
                      int errorcode)
 /*-------------------------------------------------------------------------*/
 {
-    SLPDAEntry      daentry;
     SLPBuffer       tmp     = 0;
-    SLPDAEntry*     entry   = 0;
-    void*           i       = 0;
-
-    /* set up local data */
-    memset(&daentry,0,sizeof(daentry));    
+    SLPMessage      msg     = 0;
+    void*           eh      = 0;
 
     /*---------------------------------------------------------------------*/
     /* Special case for when libslp asks slpd (through the loopback) about */
@@ -197,33 +193,40 @@ int ProcessDASrvRqst(SLPMessage message,
 
         if(errorcode == 0)
         {
-
             /* Note: The weird *sendbuf code is making a single SLPBuffer */
             /*       that contains multiple DAAdverts.  This is a special */
             /*       process that only happens for the DA SrvRqst through */
             /*       loopback to the SLPAPI                               */
-            while(SLPDKnownDAEnum(&i,&entry) == 0)
+            
+            eh = SLPDKnownDAEnumStart();
+            if(eh)
             {
-                if(SLPDKnownDAEntryToDAAdvert(errorcode,
-                                              message->header.xid,
-                                              entry,
-                                              &tmp) == 0)
+                while(1)
                 {
+                
+                    if(SLPDKnownDAEnum(eh, &msg, &tmp) == 0)
+                    {
+                        break;
+                    }
+                    
+                    
                     if(((*sendbuf)->curpos) + (tmp->end - tmp->start) > (*sendbuf)->end)
                     {
                         break;
                     }
-
+    
                     memcpy((*sendbuf)->curpos, tmp->start, tmp->end - tmp->start);
                     (*sendbuf)->curpos = ((*sendbuf)->curpos) + (tmp->end - tmp->start);
                 }
+
+                SLPDKnownDAEnumEnd(eh);
             }
 
             /* Tack on a "terminator" DAAdvert */
-            SLPDKnownDAEntryToDAAdvert(SLP_ERROR_INTERNAL_ERROR,
-                                       message->header.xid,
-                                       &daentry,
-                                       &tmp);
+            SLPDKnownDAGenerateMyDAAdvert(SLP_ERROR_INTERNAL_ERROR,
+                                          0,
+                                          message->header.xid,
+                                          &tmp);
             if(((*sendbuf)->curpos) + (tmp->end - tmp->start) <= (*sendbuf)->end)
             {
                 memcpy((*sendbuf)->curpos, tmp->start, tmp->end - tmp->start);
@@ -232,7 +235,6 @@ int ProcessDASrvRqst(SLPMessage message,
 
             /* mark the end of the sendbuf */
             (*sendbuf)->end = (*sendbuf)->curpos;
-
 
             if(tmp)
             {
@@ -255,19 +257,10 @@ int ProcessDASrvRqst(SLPMessage message,
                                   G_SlpdProperty.useScopesLen,
                                   G_SlpdProperty.useScopes))
         {
-            /* fill out real structure */
-            G_SlpdProperty.DATimestamp += 1;
-            daentry.bootstamp = G_SlpdProperty.DATimestamp;
-            daentry.langtaglen = G_SlpdProperty.localeLen;
-            daentry.langtag = (char*)G_SlpdProperty.locale;
-            daentry.urllen = G_SlpdProperty.myUrlLen;
-            daentry.url = (char*)G_SlpdProperty.myUrl;
-            daentry.scopelistlen = G_SlpdProperty.useScopesLen;
-            daentry.scopelist = (char*)G_SlpdProperty.useScopes;
-            daentry.attrlistlen = 0;
-            daentry.attrlist = 0;
-            daentry.spilistlen = 0;
-            daentry.spilist = 0;
+            errorcode = SLPDKnownDAGenerateMyDAAdvert(errorcode,
+                                                      0,
+                                                      message->header.xid,
+                                                      sendbuf);           
         }
         else
         {
@@ -279,21 +272,17 @@ int ProcessDASrvRqst(SLPMessage message,
         errorcode = SLP_ERROR_MESSAGE_NOT_SUPPORTED;       
     }
 
+    /*-----------------------------------------------*/
     /* don't return errorcodes to multicast messages */
+    /*-----------------------------------------------*/
     if(errorcode != 0)
     {
         if(message->header.flags & SLP_FLAG_MCAST ||
            ISMCAST(message->peer.sin_addr))
         {
             (*sendbuf)->end = (*sendbuf)->start;
-            return errorcode;
         }
     }
-
-    errorcode = SLPDKnownDAEntryToDAAdvert(errorcode,
-                                           message->header.xid,
-                                           &daentry,
-                                           sendbuf);
 
     return errorcode;
 }
@@ -1087,11 +1076,11 @@ int ProcessAttrRqst(SLPMessage message,
 
 /*-------------------------------------------------------------------------*/
 int ProcessDAAdvert(SLPMessage message,
+                    SLPBuffer recvbuf,
                     SLPBuffer* sendbuf,
                     int errorcode)
 /*-------------------------------------------------------------------------*/
 {
-    SLPDAEntry daentry;
     SLPBuffer result = *sendbuf;
 
     /*--------------------------------------------------------------*/
@@ -1117,20 +1106,11 @@ int ProcessDAAdvert(SLPMessage message,
         if(message->body.daadvert.errorcode == SLP_ERROR_OK)
         {
             /* TODO: Authentication stuff here */
-    
-    
-            daentry.langtaglen = message->header.langtaglen;
-            daentry.langtag = message->header.langtag;
-            daentry.bootstamp = message->body.daadvert.bootstamp;
-            daentry.urllen = message->body.daadvert.urllen;
-            daentry.url = message->body.daadvert.url;
-            daentry.scopelistlen = message->body.daadvert.scopelistlen;
-            daentry.scopelist = message->body.daadvert.scopelist;
-            daentry.attrlistlen = message->body.daadvert.attrlistlen;
-            daentry.attrlist = message->body.daadvert.attrlist;
-            daentry.spilistlen = message->body.daadvert.spilistlen;
-            daentry.spilist = message->body.daadvert.spilist;
-            SLPDKnownDAAdd(&(message->peer.sin_addr),&daentry);
+            
+            if(SLPDKnownDAAdd(message,recvbuf))
+            {
+                errorcode = SLP_ERROR_INTERNAL_ERROR;
+            }
         }
     }
 
@@ -1139,6 +1119,7 @@ int ProcessDAAdvert(SLPMessage message,
     result->end = result->start;
 
     *sendbuf = result;
+
     return errorcode;
 }
 
@@ -1318,7 +1299,8 @@ int SLPDProcessMessage(struct sockaddr_in* peerinfo,
     {
         /* TRICKY: Duplicate SRVREG recvbufs *before* parsing them   */
         /*         it because we are going to keep them in the       */
-        if(header.functionid == SLP_FUNCT_SRVREG)
+        if(header.functionid == SLP_FUNCT_SRVREG ||
+           header.functionid == SLP_FUNCT_DAADVERT )
         {
             recvbuf = SLPBufferDup(recvbuf);
             if(recvbuf == NULL)
@@ -1348,7 +1330,7 @@ int SLPDProcessMessage(struct sockaddr_in* peerinfo,
                         errorcode = ProcessSrvReg(message,recvbuf,sendbuf,errorcode);
                         if(errorcode == 0)
                         {
-                            SLPDKnownDAEcho(&(message->peer),message, recvbuf);
+                            SLPDKnownDAEcho(message, recvbuf);
                         }
                         break;
                 
@@ -1356,7 +1338,7 @@ int SLPDProcessMessage(struct sockaddr_in* peerinfo,
                         errorcode = ProcessSrvDeReg(message,sendbuf,errorcode);
                         if(errorcode == 0)
                         {
-                            SLPDKnownDAEcho(&(message->peer),message, recvbuf);
+                            SLPDKnownDAEcho(message, recvbuf);
                         }
                         break;
                 
@@ -1369,8 +1351,10 @@ int SLPDProcessMessage(struct sockaddr_in* peerinfo,
                         break;
                 
                     case SLP_FUNCT_DAADVERT:
-                        errorcode = ProcessDAAdvert(message, sendbuf, errorcode);
-                        /* If necessary log that we received a DAAdvert */
+                        errorcode = ProcessDAAdvert(message,
+                                                    recvbuf,
+                                                    sendbuf,
+                                                    errorcode);
                         SLPDLogDAAdvertisement("IN", message);
                         break;
                 
@@ -1394,7 +1378,8 @@ int SLPDProcessMessage(struct sockaddr_in* peerinfo,
                 }   
             }
     
-            if(header.functionid == SLP_FUNCT_SRVREG)
+            if(header.functionid == SLP_FUNCT_SRVREG ||
+               header.functionid == SLP_FUNCT_DAADVERT )
             {
                 /* TRICKY: Do not free the message descriptor for SRVREGs */
                 /*         because we are keeping them in the database    */

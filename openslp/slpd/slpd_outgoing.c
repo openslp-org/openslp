@@ -453,12 +453,9 @@ void SLPDOutgoingAge(time_t seconds)
             sock->age = sock->age + seconds;
             if(sock->age > G_SlpdProperty.unicastMaximumWait / 1000)
             {
-                if(sock->daentry)
-                {
-                    /* Remove the DA we were talking to from the list because */
-                    /* it is not accepting connections                        */
-                    SLPDKnownDARemove(sock->daentry);
-                }
+                /* Remove the DA we might have been talking to because */
+                /* it is not accepting connections                     */
+                SLPDKnownDARemove(&(sock->peeraddr.sin_addr));
                 del = sock;
             }
             break;

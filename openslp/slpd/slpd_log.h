@@ -57,7 +57,6 @@
 /* common code includes                                                    */
 /*=========================================================================*/
 #include "../common/slp_message.h"
-#include "../common/slp_da.h"
 
 
 /*=========================================================================*/
@@ -148,7 +147,7 @@ void SLPDLogDAAdvertisement(const char* prefix,
 
 /*=========================================================================*/
 void SLPDLogKnownDA(const char* prefix,
-                    SLPDAEntry* daentry);
+                    SLPMessage daadvert);
 /*=========================================================================*/
 
 #endif
