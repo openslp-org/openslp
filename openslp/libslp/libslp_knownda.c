@@ -53,9 +53,14 @@ void KnownDASaveHints()
 /*-------------------------------------------------------------------------*/
 {
     int         fd;
-
+#ifdef WIN32
+    fd = creat(SLPGetProperty("net.slp.HintsFile"),
+               _S_IREAD | _S_IWRITE);
+#else  /* UNIX */
     fd = creat(SLPGetProperty("net.slp.HintsFile"),
                S_IROTH | S_IWOTH | S_IRGRP| S_IWGRP | S_IRUSR | S_IWUSR);
+#endif
+              
     if (fd >= 0)
     {
         SLPDAEntryListWrite(fd, &G_KnownDAList);
