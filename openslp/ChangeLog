@@ -1,11 +1,13 @@
 ============================================================================
-OpenSLP Change Log
-------------------
+OpenSLP Change Log (stable-1-0)
+-------------------------------
 Please make entries to this log (in addition to the CVS log) that describe 
 major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 
+07/23/01 matt@caldera.com
+Branched CVS into HEAD and stable-1.0.  This is the stable branch.
 
 *** Tag OpenSLP 1.0.0 ****
 
