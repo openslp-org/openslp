@@ -405,7 +405,7 @@ int SLPDIncomingInit()
 /* Returns  Zero on success non-zero on error                              */
 /*=========================================================================*/
 {
-    char*           begin;
+    char*           begin = NULL;
     char*           end;
     int             finished;
     struct in_addr  myaddr;
@@ -447,9 +447,24 @@ int SLPDIncomingInit()
     /*---------------------------------------------------------------------*/
     /* Create sockets for all of the interfaces in the interfaces property */
     /*---------------------------------------------------------------------*/
-    begin = (char*)G_SlpdProperty.interfaces;
-    end = begin;
-    finished = 0;
+
+    /*---------------------------------------------------------------------*/
+    /* Copy G_SlpdProperty.interfaces to a temporary buffer to parse the   */
+    /*   string in a safety way                                            */
+    /*---------------------------------------------------------------------*/
+       
+    if (G_SlpdProperty.interfaces != NULL)
+    {
+        begin = strdup((char *) G_SlpdProperty.interfaces);
+        end = begin;
+        finished = 0;
+    }
+    else
+    {
+        finished = 1; /* if no interface is defined,       */
+                      /* don't even enter the parsing loop */
+    }
+    
     while ( finished == 0)
     {
         while (*end && *end != ',') end ++;
@@ -523,6 +538,9 @@ int SLPDIncomingInit()
         begin = end + 1;
     }     
 
+    if (begin) free(begin);
+    
+    
     /*--------------------------------------------------------*/
     /* Create socket that will handle broadcast UDP           */
     /*--------------------------------------------------------*/
