@@ -7,6 +7,9 @@ blank lines and include the date, developer's email, and change description.
 =============================================================================
 
 07/11/01 mpeterson@caldera.com
+Applied Todd Poynor's patches to slpd_knownda.c
+
+07/11/01 mpeterson@caldera.com
 Added collation feature for SrvRqst and SrvTypeRqst
 
 06/27/01 mpeterson@caldera.com

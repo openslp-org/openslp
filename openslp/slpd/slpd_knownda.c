@@ -145,7 +145,7 @@ int MakeActiveDiscoveryRqst(int ismcast, SLPBuffer* buffer)
 
     /* Allocate the send buffer */
     size += G_SlpdProperty.localeLen + prlistlen;
-    result = SLPBufferRealloc(*buffer,size);
+    result = SLPBufferAlloc(size);
     if(result == 0)
     {
         /* out of memory */
@@ -470,14 +470,16 @@ int SLPDKnownDAInit()
     /*-----------------------------------------------------------------*/
     if(G_SlpdProperty.DAAddresses && *G_SlpdProperty.DAAddresses)
     {
-        temp = slider1 = slider2 = xstrdup(G_SlpdProperty.DAAddresses);
+        temp = slider1 = xstrdup(G_SlpdProperty.DAAddresses);
         if(temp)
         {
             tempend = temp + strlen(temp);
-            while(slider1 != tempend)
+            while(slider1 < tempend)
             {
+                while(*slider1 && *slider1 == ' ') slider1++;
+                slider2 = slider1;
                 while(*slider2 && *slider2 != ',') slider2++;
-                *slider2 = 0;
+                *slider2++ = 0;
 
                 he = gethostbyname(slider1);
                 if(he)
@@ -507,7 +509,6 @@ int SLPDKnownDAInit()
                 }
 
                 slider1 = slider2;
-                slider2++;
             }
 
             xfree(temp);
@@ -831,7 +832,7 @@ int SLPDKnownDAGenerateMyDAAdvert(int errorcode,
     size += daadvertauthlen; 
 #endif
 
-    result = SLPBufferRealloc(result,size);
+    result = SLPBufferAlloc(size);
     if(result == 0)
     {
         /* Out of memory, what should we do here! */
@@ -1006,7 +1007,7 @@ int SLPDKnownDAGenerateMyV1DAAdvert(int errorcode,
         urllen = scopelistlen = 0;
     }
 
-    result = SLPBufferRealloc(result,size);
+    result = SLPBufferAlloc(size);
     if(result == 0)
     {
         /* TODO: out of memory, what should we do here! */
