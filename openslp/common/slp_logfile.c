@@ -53,6 +53,8 @@
 #include <stdarg.h>
 #include <errno.h>
 #include <time.h> 
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #include "slp_logfile.h"
 
@@ -92,6 +94,10 @@ int SLPLogFileOpen(const char* path, int append)
     else
     {
         /* Log to file. */
+        
+        /* only owner can read/write */
+        umask(0077); 
+        
         if(append)
         {
             G_LogFile = fopen(path,"a");
