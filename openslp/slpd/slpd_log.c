@@ -493,7 +493,7 @@ void SLPDLogDAAdvertisement(const char* prefix,
         SLPDLogBuffer("    directory-agent-url = ",
                       entry->msg->body.daadvert.urllen,
                       entry->msg->body.daadvert.url);
-        SLPDLog("    bootstamp = %x",entry->msg->body.daadvert.bootstamp);
+        SLPDLog("    bootstamp = %x\n",entry->msg->body.daadvert.bootstamp);
         SLPDLogBuffer("    scope = ",
                       entry->msg->body.daadvert.scopelistlen,
                       entry->msg->body.daadvert.scopelist);

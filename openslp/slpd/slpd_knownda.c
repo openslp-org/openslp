@@ -1102,7 +1102,7 @@ void SLPDKnownDAEcho(SLPMessage msg, SLPBuffer buf)
     {
         return;
     }
-
+    
     if(msg->header.functionid == SLP_FUNCT_SRVREG)
     {
         msgscope = msg->body.srvreg.scopelist;
@@ -1134,35 +1134,42 @@ void SLPDKnownDAEcho(SLPMessage msg, SLPBuffer buf)
             /* entrydaadvert is the DAAdvert message from the database */
             entrydaadvert = &(entry->msg->body.daadvert);
 
-            /* Assume DAs are identical if their URLs match */
+            /* Send to all DAs that have matching scope */
             if(SLPIntersectStringList(msgscopelen,
                                       msgscope,
                                       entrydaadvert->scopelistlen,
                                       entrydaadvert->scopelist))
             {
-                /*------------------------------------------*/
-                /* Load the socket with the message to send */
-                /*------------------------------------------*/
-                sock = SLPDOutgoingConnect(&(entry->msg->peer.sin_addr));
-                if(sock)
+                /* Do not echo to ourselves if we are a DA*/
+                if(G_SlpdProperty.isDA &&
+                   SLPCompareString(G_SlpdProperty.myUrlLen,
+                                    G_SlpdProperty.myUrl,
+                                    entrydaadvert->urllen,
+                                    entrydaadvert->url))
                 {
-                    dup = SLPBufferDup(buf);
-                    if(dup)
+                    /*------------------------------------------*/
+                    /* Load the socket with the message to send */
+                    /*------------------------------------------*/
+                    sock = SLPDOutgoingConnect(&(entry->msg->peer.sin_addr));
+                    if(sock)
                     {
-                        SLPListLinkTail(&(sock->sendlist),(SLPListItem*)dup);
-                        if(sock->state == STREAM_CONNECT_IDLE)
+                        dup = SLPBufferDup(buf);
+                        if(dup)
                         {
-                            sock->state = STREAM_WRITE_FIRST;
+                            SLPListLinkTail(&(sock->sendlist),(SLPListItem*)dup);
+                            if(sock->state == STREAM_CONNECT_IDLE)
+                            {
+                                sock->state = STREAM_WRITE_FIRST;
+                            }
                         }
-                    }
-                    else
-                    {
-                        SLPDSocketFree(sock);
+                        else
+                        {
+                            SLPDSocketFree(sock);
+                        }
                     }
                 }
             }
         }
-
         SLPDatabaseClose(dh);
     }
 }

@@ -1370,12 +1370,9 @@ int SLPDProcessMessage(struct sockaddr_in* peerinfo,
         }
     }
     
-    /* Log reception of important errors */
-    if(errorcode == 0)
-    {
-        /* do nothing at all */
-    }
-    else if((*sendbuf)->end == (*sendbuf)->start)
+    /* Log dropped messages */
+    if(errorcode &&
+       (*sendbuf)->end == (*sendbuf)->start)
     {
         if(G_SlpdProperty.traceDrop)
     	{
@@ -1383,12 +1380,15 @@ int SLPDProcessMessage(struct sockaddr_in* peerinfo,
                           peerinfo,recvbuf);
     	}
     }
-    else
+    
+    #ifdef DEBUG
+    if(errorcode)
     {
-        SLPDLog("\n*** ERROR *** code %i in talking to %s",
-		errorcode,
-		inet_ntoa(peerinfo->sin_addr));
+        SLPDLog("\n*** DEBUG *** errorcode %i in talking to %s",
+                errorcode,
+                inet_ntoa(peerinfo->sin_addr));
     }
+    #endif
     
     SLPDLogMessage("Trace message (OUT)", peerinfo, *sendbuf);
       
