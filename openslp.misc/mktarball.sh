@@ -10,6 +10,7 @@ then
    cvs -z3 -dmpeterson@cvs.openslp.sourceforge.net:/cvsroot/openslp checkout openslp
    cvs -z3 -dmpeterson@cvs.openslp.sourceforge.net:/cvsroot/openslp checkout openslp.contrib
    rm -rf $(find -name CVS)
+   openslp/autogen.sh
    
    #Tar up openslp
    mv openslp openslp-$1
