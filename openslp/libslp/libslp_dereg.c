@@ -47,9 +47,9 @@ SLPBoolean CallbackSrvDeReg(SLPError errorcode, SLPMessage msg, void* cookie)
         if(msg->header.functionid == SLP_FUNCT_SRVACK)
         {
             /* Call the callback function */
-            handle->params.reg.callback((SLPHandle)handle, 
-                                        msg->body.srvack.errorcode,
-                                        handle->params.dereg.cookie);
+            handle->params.dereg.callback((SLPHandle)handle,
+					  msg->body.srvack.errorcode,
+					  handle->params.dereg.cookie);
         }
         else
         {
@@ -58,9 +58,9 @@ SLPBoolean CallbackSrvDeReg(SLPError errorcode, SLPMessage msg, void* cookie)
     }
     else
     {
-        handle->params.reg.callback((SLPHandle)handle, 
-                                    errorcode,
-                                    handle->params.dereg.cookie);  
+        handle->params.dereg.callback((SLPHandle)handle,
+				      errorcode,
+				      handle->params.dereg.cookie);  
     }
     
     return 0;
