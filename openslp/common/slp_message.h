@@ -380,6 +380,7 @@ int SLPMessageParseBuffer(SLPBuffer buffer, SLPMessage message);
 /*            pointers in SLPMessage will be invalidated.                  */
 /*=========================================================================*/
 
+#ifdef i386
 /*=========================================================================*/
 #define AsUINT16(charptr)   ( ntohs(*((PUINT16)(charptr))) )
 #define AsUINT24(charptr)   ( ntohl(*((PUINT32)(charptr)))>>8 )
@@ -387,12 +388,25 @@ int SLPMessageParseBuffer(SLPBuffer buffer, SLPMessage message);
 /* Macros used to parse buffers                                            */
 /*=========================================================================*/
 
-
 /*=========================================================================*/
 #define ToUINT16(charptr,val)   ( *((PUINT16)(charptr)) =  htons((val)) )
 #define ToUINT24(charptr,val)   ( *((PUINT32)(charptr)) =  htonl((val)<<8) )
 #define ToUINT32(charptr,val)   ( *((PUINT32)(charptr)) =  htonl((val)) )
 /* Macros used to set buffers                                              */
 /*=========================================================================*/
+#else
+/*=========================================================================*/
+unsigned short AsUINT16(const char *charptr);
+unsigned int AsUINT24(const char *charptr);
+unsigned int AsUINT32(const char *charptr);
+/* Functions used to parse buffers                                         */
+/*=========================================================================*/
 
+/*=========================================================================*/
+void ToUINT16(char *charptr, unsigned int val);
+void ToUINT24(char *charptr, unsigned int val);
+void ToUINT32(char *charptr, unsigned int val);
+/* Functions used to set buffers                                           */
+/*=========================================================================*/
+#endif
 #endif

@@ -88,6 +88,12 @@ int SLPNetworkConnectToMulticast(struct sockaddr_in* peeraddr, int ttl)
 /*=========================================================================*/
 {
     int                 sockfd;
+#if defined(linux)
+    int 		optarg;
+#else
+    /* Solaris and Tru64 expect a unsigned char parameter */
+    unsigned char	optarg;
+#endif
     
     /* setup multicast socket */
     sockfd = socket(AF_INET,SOCK_DGRAM,0);
@@ -96,8 +102,9 @@ int SLPNetworkConnectToMulticast(struct sockaddr_in* peeraddr, int ttl)
         peeraddr->sin_family = AF_INET;
         peeraddr->sin_port = htons(SLP_RESERVED_PORT);
         peeraddr->sin_addr.s_addr = htonl(SLP_MCAST_ADDRESS);
+	optarg = ttl;
         
-        if(setsockopt(sockfd,IPPROTO_IP,IP_MULTICAST_TTL,&ttl,sizeof(ttl)))
+        if(setsockopt(sockfd,IPPROTO_IP,IP_MULTICAST_TTL,&optarg,sizeof(optarg)))
         {
             return -1;
         }
@@ -151,6 +158,11 @@ int SLPNetworkSendMessage(int sockfd,
 {
     fd_set      writefds;
     int         xferbytes;
+    int         flags = 0;
+
+#if defined(MSG_NOSIGNAL)
+    flags = MSG_NOSIGNAL;
+#endif
     
     buf->curpos = buf->start;
     
@@ -165,7 +177,7 @@ int SLPNetworkSendMessage(int sockfd,
             xferbytes = sendto(sockfd,
                                buf->curpos, 
                                buf->end - buf->curpos, 
-                               MSG_NOSIGNAL,
+                               flags,
                                peeraddr,
                                sizeof(struct sockaddr_in));
             if(xferbytes > 0)

@@ -115,7 +115,8 @@ int BindSocketToInetAddr(int sock, struct in_addr* addr)
     int                 result;
     int                 lowat;
     struct sockaddr_in	mysockaddr;
-    
+
+    memset(&mysockaddr, 0, sizeof(mysockaddr));
     mysockaddr.sin_family = AF_INET;
     mysockaddr.sin_port = htons(SLP_RESERVED_PORT);
     mysockaddr.sin_addr = *addr;
@@ -286,6 +287,7 @@ void SLPDSocketInit(SLPDSocketList* list)
         {
             break;
         }
+	memset(sock,0,sizeof(SLPDSocket));
         sock->fd = socket(PF_INET, SOCK_DGRAM, 0);
         if(sock->fd >=0)
         {
@@ -328,6 +330,7 @@ void SLPDSocketInit(SLPDSocketList* list)
         {
             break;
         }
+	memset(sock,0,sizeof(SLPDSocket));
         sock->fd = socket(PF_INET, SOCK_DGRAM, 0);
         if(sock->fd >= 0)
         {          
@@ -360,6 +363,7 @@ void SLPDSocketInit(SLPDSocketList* list)
         {
             break;
         }
+	memset(sock,0,sizeof(SLPDSocket));
         sock->fd = socket(PF_INET, SOCK_STREAM, 0);
         if(sock->fd >= 0)
         {          
@@ -449,7 +453,7 @@ void SLPDSocketDeInit(SLPDSocketList* list)
 /*=========================================================================*/
 {
     /* TODO remove and free all socket list resources */
-};
+}
 
 
 

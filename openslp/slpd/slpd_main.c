@@ -73,7 +73,9 @@ int SetUpSignalHandlers()
     sa.sa_handler    = SignalHandler;
     sigemptyset(&sa.sa_mask);
     sa.sa_flags      = 0;//SA_ONESHOT;
+#if defined(HAVE_SA_RESTORER)
     sa.sa_restorer   = 0;
+#endif
     
     result = sigaction(SIGALRM,&sa,0);
     result |= sigaction(SIGTERM,&sa,0);
@@ -369,8 +371,11 @@ void HandleStreamRead(SLPDSocketList* list, SLPDSocket* sock)
 void HandleStreamWrite(SLPDSocketList* list, SLPDSocket* sock)
 /*-------------------------------------------------------------------------*/
 {
-    int byteswritten;
+    int byteswritten, flags = 0;
     
+#if defined(MSG_DONTWAIT)
+    flags = MSG_DONTWAIT;
+#endif
     if(sock->state == STREAM_FIRST_WRITE)
     {
         /* make sure that the start and curpos pointers are the same */
@@ -383,7 +388,7 @@ void HandleStreamWrite(SLPDSocketList* list, SLPDSocket* sock)
         byteswritten = send(sock->fd,
                             sock->sendbuf->curpos,
                             sock->sendbuf->end - sock->sendbuf->start,
-                            MSG_DONTWAIT);
+                            flags);
         if(byteswritten > 0)
         {
             time(&(sock->timestamp)); /* Reset the timestamp */

@@ -120,10 +120,8 @@ void ProcessSASrvRqst(SLPDPeerInfo* peerinfo,
             return;
         }   
 
-        return ProcessSrvRqstError(message, 
-                                   result, 
-                                   SLP_ERROR_MESSAGE_NOT_SUPPORTED);
-
+	ProcessSrvRqstError(message, result, SLP_ERROR_MESSAGE_NOT_SUPPORTED);
+	return;
     }
    
     if(message->body.srvrqst.scopelistlen == 0 ||
@@ -229,10 +227,8 @@ void ProcessDASrvRqst(SLPDPeerInfo* peerinfo,
             return;
         }   
 
-        return ProcessSrvRqstError(message, 
-                                   result, 
-                                   SLP_ERROR_MESSAGE_NOT_SUPPORTED);
-
+	ProcessSrvRqstError(message, result, SLP_ERROR_MESSAGE_NOT_SUPPORTED);
+	return;
     }
 
     if(message->body.srvrqst.scopelistlen == 0 ||

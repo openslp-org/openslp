@@ -38,14 +38,6 @@
 #include <netinet/in.h>
 
 /*-------------------------------------------------------------------------*/
-#define AsUINT16(charptr)   ( ntohs(*((PUINT16)(charptr))) )
-#define AsUINT24(charptr)   ( ntohl(*((PUINT32)(charptr)))>>8 )
-#define AsUINT32(charptr)   ( ntohl(*((PUINT32)(charptr))) )
-/* Macros used to parse SLPBuffers                                         */
-/*-------------------------------------------------------------------------*/
-
-
-/*-------------------------------------------------------------------------*/
 int ParseHeader(SLPBuffer buffer, SLPHeader* header)
 /*                                                                         */
 /* Returns  - Zero on success, SLP_ERROR_VER_NOT_SUPPORTED, or             */
@@ -911,9 +903,59 @@ int SLPMessageParseBuffer(SLPBuffer buffer, SLPMessage message)
     return result;
 }
 
+#if !defined(i386)
+/* Functions used to parse buffers                                         */
+/*-------------------------------------------------------------------------*/
+unsigned short AsUINT16(const char *charptr)
+/*-------------------------------------------------------------------------*/
+{
+    unsigned char *ucp = (unsigned char *) charptr;
+    return (ucp[0] << 8) | ucp[1];
+}
 
+/*-------------------------------------------------------------------------*/
+unsigned int AsUINT24(const char *charptr)
+/*-------------------------------------------------------------------------*/
+{
+    unsigned char *ucp = (unsigned char *) charptr;
+    return (ucp[0] << 16) | (ucp[1] << 8) |  ucp[2];
+}
 
+/*-------------------------------------------------------------------------*/
+unsigned int AsUINT32(const char *charptr)
+/*-------------------------------------------------------------------------*/
+{
+    unsigned char *ucp = (unsigned char *) charptr;
+    return (ucp[0] << 24) | (ucp[1] << 16) | (ucp[2] << 8) | ucp[3]; 
+}
+/*=========================================================================*/
 
+/*=========================================================================*/
+/* Functions used to set buffers                                           */
+/*-------------------------------------------------------------------------*/
+void ToUINT16(char *charptr, unsigned int val)
+/*-------------------------------------------------------------------------*/
+{
+    charptr[0] = (val >> 8) & 0xff;
+    charptr[1] = val & 0xff;
+}
 
+/*-------------------------------------------------------------------------*/
+void ToUINT24(char *charptr, unsigned int val)
+/*-------------------------------------------------------------------------*/
+{
+    charptr[0] = (val >> 16) & 0xff;
+    charptr[1] = (val >> 8) & 0xff;
+    charptr[2] = val & 0xff;
+}
 
- 
+/*-------------------------------------------------------------------------*/
+void ToUINT32(char *charptr, unsigned int val)
+/*-------------------------------------------------------------------------*/
+{
+    charptr[0] = (val >> 24) & 0xff;
+    charptr[1] = (val >> 16) & 0xff;
+    charptr[2] = (val >> 8) & 0xff;
+    charptr[3] = val & 0xff;
+}
+#endif

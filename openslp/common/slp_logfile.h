@@ -69,15 +69,6 @@ void SLPLogBuffer(const char* buf, int bufsize);
 /* Writes a buffer to the logfile                                          */
 /*=========================================================================*/
 
-
-/*=========================================================================*/
-#ifdef DEBUG
-#define TRACE(fmt, args...) SLPLog(fmt, ##args)
-#else
-#define TRACE(fmt, args...)
-#endif
-/*=========================================================================*/
-
 #endif
 
 

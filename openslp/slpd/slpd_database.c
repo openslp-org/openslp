@@ -226,13 +226,14 @@ int SLPDDatabaseReg(SLPSrvReg* srvreg,
     entry->srvtypelen   = srvreg->srvtypelen;
     entry->srvtype      = (char*)memdup(srvreg->srvtype,srvreg->srvtypelen);
     entry->attrlistlen  = srvreg->attrlistlen;
-    entry->attrlist     = (char*)memdup(srvreg->attrlist,srvreg->attrlistlen);
+    if (entry->attrlistlen)
+	entry->attrlist = (char*)memdup(srvreg->attrlist,srvreg->attrlistlen);
     
     /* check for malloc() failures */
     if(entry->scopelist == 0 ||
        entry->url == 0 ||
        entry->srvtype == 0 ||
-       entry->attrlist == 0)
+       (entry->attrlistlen && entry->attrlist == 0))
     {
         FreeEntry(entry);
         return -1;
