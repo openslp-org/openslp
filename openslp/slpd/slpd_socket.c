@@ -54,7 +54,7 @@ int JoinSLPMulticastGroup(int sockfd, struct in_addr* addr)
 /*                                                                         */
 /* sockfd   - the socket file descriptor to set the options on.            */
 /*                                                                         */
-/* addr     - pointer to the multicast address                             */
+/* addr     - pointer to address of the interface to join on               */
 /*                                                                         */
 /* returns  - zero on success                                              */
 /*-------------------------------------------------------------------------*/
