@@ -108,7 +108,7 @@ void IncomingDatagramRead(SLPList* socklist, SLPDSocket* sock)
                                       sock->sendbuf->start,
                                       bytestowrite,
                                       0,
-                                      (struct sockaddr*)&(sock->peeraddr),
+                                      (struct sockaddr*) &(sock->peeraddr),
                                       sizeof(struct sockaddr_storage));
                 if (byteswritten != bytestowrite)
                 {

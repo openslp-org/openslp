@@ -130,7 +130,7 @@ void SLPDDatabaseAge(int seconds, int ageall)
             if ( srvreg->urlentry.lifetime <= 0 )
             {
                 SLPDLogRegistration("Timeout",entry);
-		SLPDatabaseRemove(dh,entry);
+                SLPDatabaseRemove(dh,entry);
             }
         }
 
