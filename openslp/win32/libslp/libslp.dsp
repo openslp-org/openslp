@@ -43,7 +43,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "LIBSLP_EXPORTS" /YX /FD /c
-# ADD CPP /nologo /MT /W3 /GX- /Zi /O2 /I "../../common" /D "_USRDLL" /D "LIBSLP_EXPORTS" /D "ENABLE" /D "_WINDOWS" /D "i386" /D "NDEBUG" /D "__WIN32__" /D "WIN32" /D "_MBCS" /D SLP_VERSION=\"1.0.5\" /Fd"Release\obj/slp.pdb" /FD /c
+# ADD CPP /nologo /MT /W3 /Zi /O2 /I "../../common" /D "_USRDLL" /D "LIBSLP_EXPORTS" /D "ENABLE" /D "_WINDOWS" /D "i386" /D "NDEBUG" /D "__WIN32__" /D "WIN32" /D "_MBCS" /D SLP_VERSION=\"1.0.5\" /Fd"Release\obj/slp.pdb" /FD /c
 # SUBTRACT CPP /YX
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
@@ -74,7 +74,7 @@ PostBuild_Cmds=copy ..\..\libslp\slp.h release
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "LIBSLP_EXPORTS" /YX /FD /GZ /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX- /ZI /Od /I "../../common" /D "_USRDLL" /D "LIBSLP_EXPORTS" /D "_WINDOWS" /D "i386" /D "_DEBUG" /D "__WIN32__" /D "WIN32" /D "_MBCS" /D SLP_VERSION=\"1.0.5\" /Fd"Debug\obj/slp.pdb" /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /Gm /ZI /Od /I "../../common" /D "_USRDLL" /D "LIBSLP_EXPORTS" /D "_WINDOWS" /D "i386" /D "_DEBUG" /D "__WIN32__" /D "WIN32" /D "_MBCS" /D SLP_VERSION=\"1.0.5\" /Fd"Debug\obj/slp.pdb" /FD /GZ /c
 # SUBTRACT CPP /YX
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
@@ -86,7 +86,6 @@ BSC32=bscmake.exe
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /debug /machine:I386 /pdbtype:sept
 # ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib wsock32.lib /nologo /dll /map /debug /machine:I386 /out:"Debug/slp.dll"
-# SUBTRACT LINK32 /pdbtype:<none>
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
 PostBuild_Desc=Copy slp.h ...
@@ -102,10 +101,6 @@ PostBuild_Cmds=copy ..\..\libslp\slp.h debug
 # Begin Group "Source Files"
 
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
-# Begin Source File
-
-SOURCE=.\libslp.def
-# End Source File
 # Begin Source File
 
 SOURCE=..\..\libslp\libslp_delattrs.c
@@ -244,11 +239,11 @@ SOURCE=..\..\common\slp_database.h
 # End Source File
 # Begin Source File
 
-SOURCE=\mpeterson\cvs\openslp\openslp.HEAD\common\slp_iface.h
+SOURCE=..\..\common\slp_iface.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\common\slp_iface.h
+SOURCE=\mpeterson\cvs\openslp\openslp.HEAD\common\slp_iface.h
 # End Source File
 # Begin Source File
 
@@ -288,11 +283,11 @@ SOURCE=..\..\common\slp_v1message.h
 # End Source File
 # Begin Source File
 
-SOURCE=\mpeterson\cvs\openslp\openslp.HEAD\common\slp_xcast.h
+SOURCE=..\..\common\slp_xcast.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\common\slp_xcast.h
+SOURCE=\mpeterson\cvs\openslp\openslp.HEAD\common\slp_xcast.h
 # End Source File
 # Begin Source File
 
