@@ -42,6 +42,7 @@ typedef enum _SLPToolCommand
     FINDSRVS = 1,
     FINDATTRS,
     FINDSRVTYPES,
+    FINDSCOPES,
     GETPROPERTY
 }SLPToolCommand;
 
