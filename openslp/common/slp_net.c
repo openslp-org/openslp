@@ -238,18 +238,10 @@ int SLPNetCopyAddr(struct sockaddr_storage *dst, const struct sockaddr_storage *
 int SLPNetSetSockAddrStorageFromAddrInfo(struct sockaddr_storage *dst, struct addrinfo *src) {
     dst->ss_family = src->ai_family;
     if (src->ai_family == AF_INET) {
-        struct sockaddr_in *v4 = (struct sockaddr_in *) dst;
-        v4->sin_family = src->ai_family;
-        v4->sin_port = 0;
-        memcpy(&v4->sin_addr, src->ai_addr, min(src->ai_addrlen, sizeof(v4->sin_addr)));
+        memcpy(dst, src->ai_addr, sizeof(struct sockaddr_in));
     }
     else if (src->ai_family == AF_INET6) {
-        struct sockaddr_in6 *v6 = (struct sockaddr_in6 *) dst;
-        v6->sin6_family = src->ai_family;
-        v6->sin6_flowinfo = 0;
-        v6->sin6_port = 0;
-        v6->sin6_scope_id = 0;
-        memcpy(&v6->sin6_addr, src->ai_addr, min(src->ai_addrlen, sizeof(v6->sin6_addr)));
+        memcpy(dst, src->ai_addr, sizeof(struct sockaddr_in6));
     }
     else {
         return(-1);
@@ -271,12 +263,12 @@ int SLPNetSetSockAddrStorageFromAddrInfo(struct sockaddr_storage *dst, struct ad
  * Returns: dst if address set correctly, NULL if there were errors setting dst
  *-------------------------------------------------------------------------*/
 char * SLPNetSockAddrStorageToString(struct sockaddr_storage *src, char *dst, int dstLen) {
-    if (src->ss_family = AF_INET) {
+    if (src->ss_family == AF_INET) {
         struct sockaddr_in *v4 = (struct sockaddr_in *) src;
 
         inet_ntop(v4->sin_family, &v4->sin_addr, dst, dstLen);
     }
-    else if (src->ss_family = AF_INET6) {
+    else if (src->ss_family == AF_INET6) {
         struct sockaddr_in6 *v6 = (struct sockaddr_in6 *) src;
 
         inet_ntop(v6->sin6_family, &v6->sin6_addr, dst, dstLen);

@@ -70,124 +70,7 @@ typedef unsigned int uint32_t;
 #endif
 #endif
 
-#if defined(LINUX) || defined(AIX) || defined(SOLARIS) || defined(HPUX)
-/*=========================================================================*/
-int SLPIfaceGetInfo(const char* useifaces,
-                    SLPIfaceInfo* ifaceinfo, int family)
-/* Description:
- *    Get the network interface addresses for this host.  Exclude the
- *    loopback interface
- *
- * Parameters:
- *     useifaces (IN) Pointer to comma delimited string of interface IPv4
- *                    addresses to get interface information for.  Pass
- *                    NULL or empty string to get all interfaces (except 
- *                    loopback)
- *     ifaceinfo (OUT) Information about requested interfaces.
- *     family    (IN) Hint family to get info for - can be AF_INET, AF_INET6, 
- *                    or AF_UNSPEC for both
- *
- * Returns:
- *     zero on success, non-zero (with errno set) on error.
- *=========================================================================*/
-{
-    struct sockaddr_storage* sa;
-    struct sockaddr_storage* sin;
-    struct ifreq ifrlist[SLP_MAX_IFACES];
-    struct ifreq ifrflags;
-    struct ifconf ifc;
-    int fd;
-    int i;
-    int useifaceslen;
 
-    #ifdef DEBUG
-    if(ifaceinfo == NULL )
-    {
-        errno = EINVAL;
-        /* bad parameters */
-        return 1;
-    }
-    #endif
-
-
-    ifc.ifc_len = sizeof(struct ifreq) * SLP_MAX_IFACES ;
-    ifc.ifc_req = ifrlist;
-    
-    fd = socket(AF_INET,SOCK_STREAM,0);
-    if(fd == -1)
-    {
-        /* failed to create socket */
-        #ifdef DEBUG
-        fprintf(stderr,"%s:%i Failed to created socket\n",__FILE__,__LINE__);
-        #endif
-        return 1;
-    }
-
-    #ifdef AIX
-    if (ioctl(fd,OSIOCGIFCONF,&ifc) == -1)
-    #else
-    if (ioctl(fd,SIOCGIFCONF,&ifc) == -1)
-    #endif
-    {
-        perror("ioctl failed");
-        return 1;
-    }
-
-    if(useifaces && *useifaces)
-    {
-        useifaceslen = strlen(useifaces);
-    }
-    else
-    {
-        useifaceslen = 0;
-    }
-    memset(ifaceinfo,0,sizeof(SLPIfaceInfo));
-    for (i = 0; i < ifc.ifc_len/sizeof(struct ifreq); i++)
-    {
-        sa = (struct sockaddr_storage *)&(ifrlist[i].ifr_addr);
-        if(sa->sa_family == AF_INET)
-        {
-            /* Get interface flags */
-            memcpy(&ifrflags,&(ifrlist[i]),sizeof(struct ifreq));
-            if(ioctl(fd,SIOCGIFFLAGS, &ifrflags) == 0)
-            {
-                /* skip the loopback interfaces */
-                if((ifrflags.ifr_flags & IFF_LOOPBACK) == 0)
-                {
-                    /* Only include those interfaces in the requested list */
-                    sin = (struct sockaddr_storage*)sa;
-                    if(useifaceslen == 0 ||
-                       SLPContainsStringList(useifaceslen,
-                                             useifaces,
-                                             strlen(inet_ntoa(sin->sin_addr)),
-                                             inet_ntoa(sin->sin_addr)))
-                    {
-                        memcpy(&(ifaceinfo->iface_addr[ifaceinfo->iface_count]),
-                               sin,
-                               sizeof(struct sockaddr_storage));
-                    
-                        #ifdef AIX
-                        if(ioctl(fd,OSIOCGIFBRDADDR,&(ifrlist[i])) == 0)
-                        #else
-                        if(ioctl(fd,SIOCGIFBRDADDR,&(ifrlist[i])) == 0)
-                        #endif
-                        {
-                            sin = (struct sockaddr_storage *)&(ifrlist[i].ifr_broadaddr);
-                            memcpy(&(ifaceinfo->bcast_addr[ifaceinfo->iface_count]),
-                                   sin,
-                                   sizeof(struct sockaddr_storage));
-                        }
-        
-                        ifaceinfo->iface_count ++;
-                    }
-                }
-            }
-        }
-    }
-
-    return 0;
-}
-#else
 /*=========================================================================*/
 int SLPIfaceGetInfo(const char* useifaces,
                     SLPIfaceInfo* ifaceinfo, int family)
@@ -249,12 +132,20 @@ int SLPIfaceGetInfo(const char* useifaces,
                     // doesn't work  if (currenthost->ai_socktype == SOCK_STREAM) {
                     if ((currenthost->ai_family == AF_INET) || (currenthost->ai_family == AF_INET6)) {
                         // map the addrinfo into a sockaddr_storage
-                        //SLPNetSetSockAddrStorageFromAddrInfo(&ifaceinfo->iface_addr[ifaceinfo->iface_count], currenthost);
-                        memcpy(&ifaceinfo->iface_addr[ifaceinfo->iface_count], currenthost->ai_addr, min(sizeof(ifaceinfo->iface_addr[ifaceinfo->iface_count]), currenthost->ai_addrlen));
+                        //memcpy(&ifaceinfo->iface_addr[ifaceinfo->iface_count], currenthost->ai_addr, min(sizeof(ifaceinfo->iface_addr[ifaceinfo->iface_count]), currenthost->ai_addrlen));
+                        SLPNetSetSockAddrStorageFromAddrInfo(&ifaceinfo->iface_addr[ifaceinfo->iface_count], currenthost);
                         ifaceinfo->iface_count++;
-                        memcpy(&ifaceinfo->bcast_addr[ifaceinfo->bcast_count], currenthost->ai_addr, min(sizeof(ifaceinfo->bcast_addr[ifaceinfo->bcast_count]), currenthost->ai_addrlen));
-                        //SLPNetSetSockAddrStorageFromAddrInfo(&ifaceinfo->bcast_addr[ifaceinfo->bcast_count], currenthost);
-                        ifaceinfo->bcast_count++;
+                        if (currenthost->ai_family == AF_INET) {  // no broadcast in ipv6
+                            struct sockaddr_in *d4Src;
+                            DWORD bcastaddr = INADDR_BROADCAST;
+
+                            //memcpy(&ifaceinfo->bcast_addr[ifaceinfo->bcast_count], currenthost->ai_addr, min(sizeof(ifaceinfo->bcast_addr[ifaceinfo->bcast_count]), currenthost->ai_addrlen));
+                            SLPNetSetSockAddrStorageFromAddrInfo(&ifaceinfo->bcast_addr[ifaceinfo->bcast_count], currenthost);
+
+                            d4Src = (struct sockaddr_in *)&ifaceinfo->bcast_addr[ifaceinfo->bcast_count];
+                            memcpy(&d4Src->sin_addr, &bcastaddr, 4);
+                            ifaceinfo->bcast_count++;
+                        }
                     }
                 }
                 currenthost = currenthost->ai_next;
@@ -267,10 +158,6 @@ int SLPIfaceGetInfo(const char* useifaces,
     }
     return(sts);
 }
-#endif
-
-
-
 
 /*=========================================================================*/
 int SLPIfaceSockaddrsToString(const struct sockaddr_storage* addrs,
@@ -465,6 +352,10 @@ int main(int argc, char* argv[])
 
             SLPNetSockAddrStorageToString(&ifaceinfo.iface_addr[i], myname, sizeof(myname));
             printf("v6 found iface = %s\n", myname);
+        }
+        for(i=0;i<ifaceinfo.bcast_count;i++)
+        {
+            char myname[MAX_HOST_NAME];
             SLPNetSockAddrStorageToString(&ifaceinfo.bcast_addr[i], myname, sizeof(myname));
             printf("v6 bcast addr = %s\n", myname);
         }

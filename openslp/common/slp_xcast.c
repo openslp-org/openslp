@@ -75,6 +75,23 @@
 #include "slp_xcast.h"
 #include "slp_message.h"
 #include "slp_net.h"
+
+LPSTR DecodeError(int ErrorCode)
+{
+    static char Message[1024];
+
+    // If this program was multi-threaded, we'd want to use
+    // FORMAT_MESSAGE_ALLOCATE_BUFFER instead of a static buffer here.
+    // (And of course, free the buffer when we were done with it)
+
+    FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS |
+                  FORMAT_MESSAGE_MAX_WIDTH_MASK,
+                  NULL, ErrorCode, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+                  (LPSTR)Message, 1024, NULL);
+    return Message;
+}
+
+
 /*========================================================================*/
 int SLPBroadcastSend(const SLPIfaceInfo* ifaceinfo, 
                      SLPBuffer msg,
@@ -110,11 +127,11 @@ int SLPBroadcastSend(const SLPIfaceInfo* ifaceinfo,
 #endif
 
     for (socks->sock_count = 0; 
-         socks->sock_count < ifaceinfo->iface_count; 
+         socks->sock_count < ifaceinfo->bcast_count; 
          socks->sock_count++)
     {
-        if (ifaceinfo[socks->sock_count].iface_addr->ss_family == AF_INET) {
-            socks->sock[socks->sock_count] = socket(ifaceinfo[socks->sock_count].iface_addr->ss_family, SOCK_DGRAM, 0);
+        if (ifaceinfo[socks->sock_count].bcast_addr->ss_family == AF_INET) {
+            socks->sock[socks->sock_count] = socket(ifaceinfo[socks->sock_count].bcast_addr->ss_family, SOCK_DGRAM, 0);
 
             if (socks->sock[socks->sock_count] < 0)
             {
@@ -195,7 +212,6 @@ int SLPMulticastSend(const SLPIfaceInfo* ifaceinfo,
             return -1;
         }
         
-        SLPNetCopyAddr(&saddr, &(ifaceinfo->iface_addr[socks->sock_count]));
         if( setsockopt(socks->sock[socks->sock_count], 
                        IPPROTO_IP, 
                        IP_MULTICAST_IF, 
@@ -205,7 +221,15 @@ int SLPMulticastSend(const SLPIfaceInfo* ifaceinfo,
             /* error setting socket option */
             return -1;
         }
-//        SLPNetSetAddr(&(socks->peeraddr[socks->sock_count]), ifaceinfo[socks->sock_count].iface_addr->ss_family, SLP_RESERVED_PORT, saddr, sizeof(saddr));
+        if (ifaceinfo[socks->sock_count].iface_addr->ss_family == AF_INET) {
+            struct sockaddr_in *s4 = (struct sockaddr_in *) &socks->peeraddr[socks->sock_count];
+            s4->sin_family = AF_INET;
+            s4->sin_port = htons(SLP_RESERVED_PORT);
+            s4->sin_addr.s_addr = htonl(SLP_MCAST_ADDRESS);
+        }
+        else {
+            // send via IPV6 multicast
+        }
         xferbytes = sendto(socks->sock[socks->sock_count],
                            msg->start,
                            msg->end - msg->start,
