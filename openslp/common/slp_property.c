@@ -199,6 +199,8 @@ int SetDefaultValues()
     result |= SLPPropertySet("net.slp.traceDrop","false");
     result |= SLPPropertySet("net.slp.traceDATraffic","false");
     result |= SLPPropertySet("net.slp.isDA","false");
+    result |= SLPPropertySet("net.slp.securityEnabled","false");
+    result |= SLPPropertySet("net.slp.checkSourceAddr","false");
     result |= SLPPropertySet("notfound","");
 
     return result;

@@ -55,6 +55,7 @@
 #include "slpd_database.h"
 #include "slpd_log.h"
 #include "slpd_regfile.h"
+#include "slpd_property.h"
 #ifdef ENABLE_PREDICATES
 #include "slpd_predicate.h"
 #endif
@@ -179,7 +180,15 @@ int SLPDDatabaseReg(SLPMessage msg, SLPBuffer buf)
                                           reg->scopelistlen,
                                           reg->scopelist) > 0)
                 {
-                    
+                    if(G_SlpdProperty.checkSourceAddr &&
+                       memcmp(&(entry->msg->peer.sin_addr),
+                              &(msg->peer.sin_addr),
+                              sizeof(struct in_addr)))
+                    {
+                        SLPDatabaseClose(dh);
+                        return SLP_ERROR_AUTHENTICATION_FAILED;
+                    }
+
 #ifdef ENABLE_AUTHENTICATION
                     if(entryreg->urlentry.authcount &&
                        entryreg->urlentry.authcount != reg->urlentry.authcount)
@@ -275,7 +284,15 @@ int SLPDDatabaseDeReg(SLPMessage msg)
                                           dereg->scopelistlen,
                                           dereg->scopelist) > 0)
                 {
-                    
+                    if(G_SlpdProperty.checkSourceAddr &&
+                       memcmp(&(entry->msg->peer.sin_addr),
+                              &(msg->peer.sin_addr),
+                              sizeof(struct in_addr)))
+                    {
+                        SLPDatabaseClose(dh);
+                        return SLP_ERROR_AUTHENTICATION_FAILED;
+                    }
+
 #ifdef ENABLE_AUTHENTICATION
                     if(entryreg->urlentry.authcount &&
                        entryreg->urlentry.authcount != dereg->urlentry.authcount)

@@ -86,6 +86,7 @@ typedef struct _SLPDProperty
     int             traceDATraffic;
     int             isDA;
     int             securityEnabled;
+    int             checkSourceAddr;
 }SLPDProperty;
 
 
