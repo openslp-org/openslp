@@ -1,0 +1,3 @@
+This is a simple python wrapper for OpenSLP using Greg Erwing's Pyrex
+(http://www.cosc.canterbury.ac.nz/~greg/python/Pyrex/) extension tool.
+You'll need at least Python 2.2 and Pyrex 0.5.
