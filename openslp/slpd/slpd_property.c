@@ -56,9 +56,9 @@
 /*=========================================================================*/
 /* Common code code includes                                               */
 /*=========================================================================*/
-#include "../common/slp_message.h"
-#include "../common/slp_property.h"  
-#include "../common/slp_xmalloc.h"
+#include "slp_message.h"
+#include "slp_property.h"  
+#include "slp_xmalloc.h"
 
 
 /*=========================================================================*/

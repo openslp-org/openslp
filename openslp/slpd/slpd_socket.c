@@ -57,8 +57,8 @@
 /*=========================================================================*/
 /* common code includes                                                    */
 /*=========================================================================*/
-#include "../common/slp_message.h"
-#include "../common/slp_xmalloc.h"
+#include "slp_message.h"
+#include "slp_xmalloc.h"
 
 
 /*-------------------------------------------------------------------------*/
@@ -400,10 +400,6 @@ SLPDSocket* SLPDSocketCreateBoundDatagram(struct in_addr* myaddr,
     else
         bindaddr = peeraddr;  
 #endif
-
-
-
-
 
     /*------------------------*/
     /* Create and bind socket */

@@ -56,7 +56,7 @@
 /*=========================================================================*/
 /* Common code includes                                                    */
 /*=========================================================================*/
-#include "../common/slp_database.h"
+#include "slp_database.h"
 
 
 #define SLPDDATABASE_INITIAL_URLCOUNT           256

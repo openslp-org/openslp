@@ -65,8 +65,8 @@
 /*=========================================================================*/
 /* common code includes                                                    */
 /*=========================================================================*/
-#include "../common/slp_linkedlist.h"
-#include "../common/slp_xid.h"
+#include "slp_linkedlist.h"
+#include "slp_xid.h"
 
 SERVICE_STATUS          ssStatus;       /* current status of the service  */
 SERVICE_STATUS_HANDLE   sshStatusHandle; 

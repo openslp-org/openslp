@@ -64,8 +64,8 @@
 /*=========================================================================*/
 /* common code includes                                                    */
 /*=========================================================================*/
-#include "../common/slp_compare.h"
-#include "../common/slp_xmalloc.h"
+#include "slp_compare.h"
+#include "slp_xmalloc.h"
 
 /*=========================================================================*/
 SLPDDatabase G_SlpdDatabase;

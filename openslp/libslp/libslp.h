@@ -73,17 +73,17 @@
 #include <fcntl.h> 
 #endif
 
-#include "../common/slp_buffer.h"
-#include "../common/slp_message.h"
-#include "../common/slp_property.h"
-#include "../common/slp_xid.h"
-#include "../common/slp_network.h"
-#include "../common/slp_database.h"
-#include "../common/slp_compare.h"
-#include "../common/slp_xmalloc.h"
+#include "slp_buffer.h"
+#include "slp_message.h"
+#include "slp_property.h"
+#include "slp_xid.h"
+#include "slp_network.h"
+#include "slp_database.h"
+#include "slp_compare.h"
+#include "slp_xmalloc.h"
 #ifdef ENABLE_SECURITY
-#include "../common/slp_auth.h"
-#include "../common/slp_spi.h"
+#include "slp_auth.h"
+#include "slp_spi.h"
 #endif
 
 #define MINIMUM_DISCOVERY_INTERVAL  300    /* 5 minutes */

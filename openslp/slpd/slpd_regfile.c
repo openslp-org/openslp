@@ -61,9 +61,9 @@
 /*=========================================================================*/
 /* common code includes                                                    */
 /*=========================================================================*/
-#include "../common/slp_xmalloc.h"
+#include "slp_xmalloc.h"
 #ifdef ENABLE_SECURITY
-#include "../common/slp_auth.h"
+#include "slp_auth.h"
 #endif
 
 
