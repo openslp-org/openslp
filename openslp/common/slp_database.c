@@ -53,24 +53,25 @@
  */
 int SLPDatabaseInit(SLPDatabase* database)
 {
-    if(database && database->head)
-    {
-        SLPDatabaseDeinit(database);
-    }
-    return 0;
+   if (database && database->head)
+   {
+      SLPDatabaseDeinit(database);
+   }
+   return 0;
 }
 
 /** Deinitialize an SLPDatabase.
  *
  * @param[in] database - The database to be deinitialized.
  */
-void SLPDatabaseDeinit(SLPDatabase* database)
+void SLPDatabaseDeinit(SLPDatabase * database)
 {
-    while(database->count)
-    {
-        SLPDatabaseEntryDestroy((SLPDatabaseEntry*)SLPListUnlink(database,database->head));
-    }
-    memset(database,0,sizeof(SLPDatabase));
+   while (database->count)
+   {
+      SLPDatabaseEntryDestroy((SLPDatabaseEntry*)
+            SLPListUnlink(database, database->head));
+   }
+   memset(database, 0, sizeof(SLPDatabase));
 }
 
 /** Create a new SLP database entry.
@@ -86,29 +87,28 @@ void SLPDatabaseDeinit(SLPDatabase* database)
  *    use SLPDatabaseEntryDestroy only to free memory.
  */
 SLPDatabaseEntry* SLPDatabaseEntryCreate(SLPMessage msg,
-                                         SLPBuffer buf)
+      SLPBuffer buf)
 {
-    SLPDatabaseEntry* result;
+   SLPDatabaseEntry* result;
 
-    result = (SLPDatabaseEntry*)xmalloc(sizeof(SLPDatabaseEntry));
-    if(result)
-    {
-        result->msg = msg;
-        result->buf = buf;
-    }
-
-    return result;
+   result = (SLPDatabaseEntry *)xmalloc(sizeof(SLPDatabaseEntry));
+   if (result)
+   {
+      result->msg = msg;
+      result->buf = buf;
+   }
+   return result;
 }
 
 /** Frees resources associated with the specified entry.
  *
  * @param[in] entry - The entry to be destroyed.
  */
-void SLPDatabaseEntryDestroy(SLPDatabaseEntry* entry)
+void SLPDatabaseEntryDestroy(SLPDatabaseEntry * entry)
 {
-    SLPMessageFree(entry->msg);
-    SLPBufferFree(entry->buf);
-    xfree(entry);
+   SLPMessageFree(entry->msg);
+   SLPBufferFree(entry->buf);
+   xfree(entry);
 }
 
 /** Open a datbase handle.
@@ -127,15 +127,14 @@ void SLPDatabaseEntryDestroy(SLPDatabaseEntry* entry)
  */
 SLPDatabaseHandle SLPDatabaseOpen(SLPDatabase* database)
 {
-    SLPDatabaseHandle result;
-    result = (SLPDatabaseHandle) xmalloc(sizeof(struct _SLPDatabaseHandle));
-    if(result)
-    {
-        result->database = database;
-        result->current = (SLPDatabaseEntry*)database->head;
-    }
-    
-    return result;
+   SLPDatabaseHandle result;
+   result = (SLPDatabaseHandle)xmalloc(sizeof(struct _SLPDatabaseHandle));
+   if (result)
+   {
+      result->database = database;
+      result->current = (SLPDatabaseEntry*)database->head;
+   }
+   return result;
 }
 
 /** Enumerates entries of an SLP database object.
@@ -147,15 +146,14 @@ SLPDatabaseHandle SLPDatabaseOpen(SLPDatabase* database)
  */
 SLPDatabaseEntry* SLPDatabaseEnum(SLPDatabaseHandle dh)
 {
-    SLPDatabaseEntry* result;    
+   SLPDatabaseEntry* result;
 
-    result = dh->current;
-    if(result)
-    {
-        dh->current = (SLPDatabaseEntry*)((SLPListItem*)(dh->current))->next;
-    }
-
-    return result;
+   result = dh->current;
+   if (result)
+   {
+      dh->current = (SLPDatabaseEntry*)((SLPListItem*)(dh->current))->next;
+   }
+   return result;
 }
 
 /** Reset handle so SLPDatabaseEnum starts at the beginning again.
@@ -164,7 +162,7 @@ SLPDatabaseEntry* SLPDatabaseEnum(SLPDatabaseHandle dh)
  */
 void SLPDatabaseRewind(SLPDatabaseHandle dh)
 {
-    dh->current = (SLPDatabaseEntry*) dh->database->head;    
+   dh->current = (SLPDatabaseEntry*)dh->database->head;
 }
 
 /** Closes an SLP database handle.
@@ -173,8 +171,8 @@ void SLPDatabaseRewind(SLPDatabaseHandle dh)
  */
 void SLPDatabaseClose(SLPDatabaseHandle dh)
 {
-    xfree(dh);
-    dh = 0;
+   xfree(dh);
+   dh = 0;
 }
 
 /** Removes the specified entry.
@@ -187,9 +185,10 @@ void SLPDatabaseClose(SLPDatabaseHandle dh)
  *    been removed.
  */
 void SLPDatabaseRemove(SLPDatabaseHandle dh, 
-                       SLPDatabaseEntry* entry)
+      SLPDatabaseEntry* entry)
 {
-    SLPDatabaseEntryDestroy((SLPDatabaseEntry*)(SLPListUnlink(dh->database,(SLPListItem*)entry)));
+   SLPDatabaseEntryDestroy((SLPDatabaseEntry*)
+         SLPListUnlink(dh->database, (SLPListItem*)entry));
 }
 
 /** Add the specified entry
@@ -202,9 +201,9 @@ void SLPDatabaseRemove(SLPDatabaseHandle dh,
  *    SLPDatabaseRemove to free resources associated with an added entry.
  */
 void SLPDatabaseAdd(SLPDatabaseHandle dh,
-                    SLPDatabaseEntry* entry)
+      SLPDatabaseEntry* entry)
 {
-    SLPListLinkTail(dh->database, (SLPListItem*)entry);
+   SLPListLinkTail(dh->database, (SLPListItem*)entry);
 }
 
 /** Count the number of entries in an SLP database.
@@ -215,18 +214,18 @@ void SLPDatabaseAdd(SLPDatabaseHandle dh,
  */
 int SLPDatabaseCount(SLPDatabaseHandle dh)
 {
-    return dh->database->count;
+   return dh->database->count;
 }
 
 #ifdef TEST_SLP_DATABASE_TEST
 int main(int argc, char* argv[])
 {
-    SLPDatabase         testdb;
-    SLPDatabaseEntry*   testentry;
-    
-    memset(&testdb, 0, sizeof(testdb));
-    SLPDatabaseInit(&testdb);
-    SLPDatabaseDeinit(&testdb);
+   SLPDatabase         testdb;
+   SLPDatabaseEntry*   testentry;
+
+   memset(&testdb, 0, sizeof(testdb));
+   SLPDatabaseInit(&testdb);
+   SLPDatabaseDeinit(&testdb);
 }
 #endif
 

@@ -43,20 +43,21 @@
 #include <slp_debug.h>
 #include <string.h>
 
-void MySLPRegReport(SLPHandle hslp, SLPError errcode, void* cookie) 
-{ 
-   /* return the error code in the cookie */ 
-   *(SLPError*)cookie = errcode; 
-} 
+void MySLPRegReport(SLPHandle hslp, SLPError errcode, void* cookie)
+{
+   /* return the error code in the cookie */
+   *(SLPError*)cookie = errcode;
+}
 
 SLPBoolean
-MySLPSrvURLCallback (SLPHandle hslp,
-           const char *srvurl,
-           unsigned short lifetime, SLPError errcode, void *cookie)
+MySLPSrvURLCallback(SLPHandle hslp,
+      const char *srvurl,
+      unsigned short lifetime, SLPError errcode, void *cookie)
 {
-   switch(errcode) {
+   switch (errcode)
+   {
       case SLP_OK:
-         printf ("Service Found   = %s\n", srvurl);
+         printf("Service Found   = %s\n", srvurl);
          *(SLPError *) cookie = SLP_OK;
          break;
       case SLP_LAST_CALL:
@@ -71,18 +72,18 @@ MySLPSrvURLCallback (SLPHandle hslp,
    return SLP_TRUE;
 }
 
-int main(int argc, char* argv[]) 
-{ 
+int main(int argc, char* argv[])
+{
    /*
-	 * This test works by:
-	 *	1.  Register a service.
-	 *	2.  Query the service to make sure it is there.
-	 *	3.  Remove the service.
-	 *	4.  Query the service to ensure it is not there.
-	 */
-   SLPError	err; 
-   SLPError	callbackerr; 
-   SLPHandle	hslp; 
+   * This test works by:
+   *	1.  Register a service.
+   *	2.  Query the service to make sure it is there.
+   *	3.  Remove the service.
+   *	4.  Query the service to ensure it is not there.
+   */
+   SLPError	err;
+   SLPError	callbackerr;
+   SLPHandle	hslp;
    char		reg_string[4096];
    char		dereg_string[4096];
 
@@ -97,17 +98,17 @@ int main(int argc, char* argv[])
 
    /* Register a service with SLP */
    if (argc == 5)
-   { 
+   {
       sprintf(reg_string,"%s://%s",argv[1], argv[2]);
       printf("Registering     = %s\n",reg_string);
-      err = SLPReg( hslp, 
-         reg_string,
-         SLP_LIFETIME_MAXIMUM, 
-         "", 
-         "", 
-         SLP_TRUE, 
-         MySLPRegReport, 
-         &callbackerr ); 
+      err = SLPReg(hslp, 
+            reg_string,
+            SLP_LIFETIME_MAXIMUM, 
+            "", 
+            "", 
+            SLP_TRUE, 
+            MySLPRegReport, 
+            &callbackerr);
       check_error_state(err, "Error registering service with slp");
       printf("Srv. Registered = %s\n",reg_string);
    } /* End If. */
@@ -115,7 +116,7 @@ int main(int argc, char* argv[])
 
    /* Now make sure that the service is there. */
    printf("Querying        = %s\n",(argc == 5)?argv[3]:argv[1]);
-   err = SLPFindSrvs (
+   err = SLPFindSrvs(
          hslp, 
          (argc==5)?argv[3]:argv[1],
          "",		/* use configured scopes */
@@ -132,17 +133,17 @@ int main(int argc, char* argv[])
 
    printf("Deregistering   = %s\n",dereg_string);
    err = SLPDereg(
-      hslp,
-      dereg_string, 
-      MySLPRegReport,
-      &callbackerr);
+         hslp,
+         dereg_string, 
+         MySLPRegReport,
+         &callbackerr);
    check_error_state(err, "Error deregistering service with slp.");
    printf("Deregistered    = %s\n",dereg_string);
 
-   /* Now that we're done using slp, close the slp handle */ 
-   SLPClose(hslp); 
+   /* Now that we're done using slp, close the slp handle */
+   SLPClose(hslp);
 
-   return(0);
+   return (0);
 }
 
-/*=========================================================================*/ 
+/*=========================================================================*/

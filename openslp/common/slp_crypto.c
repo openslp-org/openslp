@@ -43,7 +43,7 @@
 
 #include "slp_crypto.h"
 #include "slp_message.h"
-  
+
 /** Generate a SHA1 digest for the specified block data.
  *
  * @param[in] data - The data block to be hashed.
@@ -56,15 +56,15 @@
  *    20 bytes.
  */
 int SLPCryptoSHA1Digest(const unsigned char* data,
-                        int datalen,
-                        unsigned char* digest)
+      int datalen,
+      unsigned char* digest)
 {
-    if(SHA1(data,datalen,digest))
-    {
-        return 0;
-    }
+   if (SHA1(data,datalen,digest))
+   {
+      return 0;
+   }
 
-    return -1;
+   return -1;
 }
 
 /** Duplicates a key.
@@ -78,19 +78,19 @@ int SLPCryptoSHA1Digest(const unsigned char* data,
  */
 SLPCryptoDSAKey* SLPCryptoDSAKeyDup(SLPCryptoDSAKey* dsa)
 {
-    SLPCryptoDSAKey* result;
-    
-    result =  DSA_new();
-    if(result)
-    {
-        result->p = BN_dup(dsa->p);
-        result->q = BN_dup(dsa->q);
-        result->g = BN_dup(dsa->g);
-        result->priv_key = BN_dup(dsa->priv_key);
-        result->pub_key = BN_dup(dsa->pub_key);
-    }
+   SLPCryptoDSAKey* result;
 
-    return result;
+   result =  DSA_new();
+   if (result)
+   {
+      result->p = BN_dup(dsa->p);
+      result->q = BN_dup(dsa->q);
+      result->g = BN_dup(dsa->g);
+      result->priv_key = BN_dup(dsa->priv_key);
+      result->pub_key = BN_dup(dsa->pub_key);
+   }
+
+   return result;
 }
 
 /** Destroy a key that was created by SLPCryptoDSAKeyCreate.
@@ -102,7 +102,7 @@ SLPCryptoDSAKey* SLPCryptoDSAKeyDup(SLPCryptoDSAKey* dsa)
  */
 void SLPCryptoDSAKeyDestroy(SLPCryptoDSAKey* dsa)
 {
-    DSA_free(dsa);
+   DSA_free(dsa);
 }
 
 /** Determine the length of a signatures produced with specified key.
@@ -113,7 +113,7 @@ void SLPCryptoDSAKeyDestroy(SLPCryptoDSAKey* dsa)
  */
 int SLPCryptoDSASignLen(SLPCryptoDSAKey* key)
 {
-    return DSA_size(key);
+   return DSA_size(key);
 }
 
 /** Signs the specified digest with the specified DSA key.
@@ -130,17 +130,17 @@ int SLPCryptoDSASignLen(SLPCryptoDSAKey* key)
  *    how large signature should be.
  */
 int SLPCryptoDSASign(SLPCryptoDSAKey* key,
-                     const unsigned char* digest,
-                     int digestlen,
-                     unsigned char* signature,
-                     int* signaturelen)
+      const unsigned char* digest,
+      int digestlen,
+      unsigned char* signature,
+      int* signaturelen)
 {
-    return DSA_sign(0, /* it does not look like the type param is used? */
-                    digest,
-                    digestlen,
-                    signature,
-                    signaturelen,
-                    key) == 0;
+   return DSA_sign(0, /* it does not look like the type param is used? */
+         digest,
+         digestlen,
+         signature,
+         signaturelen,
+         key) == 0;
 }
 
 /** Verifies a DSA signature to ensure it matches the specified digest.
@@ -154,17 +154,17 @@ int SLPCryptoDSASign(SLPCryptoDSAKey* key,
  * @return True (1) if the signature is value; False (0) if not.
  */
 int SLPCryptoDSAVerify(SLPCryptoDSAKey* key,
-                       const unsigned char* digest,
-                       int digestlen,
-                       const unsigned char* signature,
-                       int signaturelen)
+      const unsigned char* digest,
+      int digestlen,
+      const unsigned char* signature,
+      int signaturelen)
 {
-    return DSA_verify(0, /* it does not look like the type param is used? */
-                      digest,
-                      digestlen,
-                      (unsigned char*)signature,  /* broken DSA_verify() declaration */
-                      signaturelen,
-                      key);
+   return DSA_verify(0, /* it does not look like the type param is used? */
+         digest,
+         digestlen,
+         (unsigned char*)signature,  /* broken DSA_verify() declaration */
+         signaturelen,
+         key);
 }
 
 /*=========================================================================*/

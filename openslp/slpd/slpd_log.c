@@ -61,45 +61,45 @@ static FILE * G_SlpdLogFile = 0;
  *
  * @return Zero on success, or a non-zero value on failure with errno set.
  */
-int SLPDLogFileOpen(const char* path, int append)                           
+int SLPDLogFileOpen(const char* path, int append)
 {
-    if (G_SlpdLogFile)
-    {
-        /* logfile was already open close it */
-        fclose(G_SlpdLogFile);
-    }
+   if (G_SlpdLogFile)
+   {
+      /* logfile was already open close it */
+      fclose(G_SlpdLogFile);
+   }
 
-    if (*path == 0)
-    {
-        /* Log to console. */
-        G_SlpdLogFile = stdout;
-    }
-    else
-    {
-        /* Log to file. */
+   if (*path == 0)
+   {
+      /* Log to console. */
+      G_SlpdLogFile = stdout;
+   }
+   else
+   {
+      /* Log to file. */
 #ifndef _WIN32
 
 
-        /* only owner can read/write */
-        umask(0077); 
+      /* only owner can read/write */
+      umask(0077);
 #endif        
-        if (append)
-        {
-            G_SlpdLogFile = fopen(path,"a");
-        }
-        else
-        {
-            G_SlpdLogFile = fopen(path,"w");
-        }
+      if (append)
+      {
+         G_SlpdLogFile = fopen(path,"a");
+      }
+      else
+      {
+         G_SlpdLogFile = fopen(path,"w");
+      }
 
-        if (G_SlpdLogFile == 0)
-        {
-            /* could not open the log file */
-            return -1;
-        }
-    }
+      if (G_SlpdLogFile == 0)
+      {
+         /* could not open the log file */
+         return -1;
+      }
+   }
 
-    return 0;
+   return 0;
 }
 
 #ifdef DEBUG
@@ -109,9 +109,9 @@ int SLPDLogFileOpen(const char* path, int append)
  */
 int SLPDLogFileClose()
 {
-    fclose(G_SlpdLogFile);
+   fclose(G_SlpdLogFile);
 
-    return 0;
+   return 0;
 }
 #endif
 
@@ -124,15 +124,15 @@ int SLPDLogFileClose()
  */
 void SLPDLog(const char* msg, ...)
 {
-    va_list ap;
+   va_list ap;
 
-    if (G_SlpdLogFile)
-    {
-        va_start(ap,msg);
-        vfprintf(G_SlpdLogFile,msg,ap); 
-        va_end(ap);
-        fflush(G_SlpdLogFile);
-    }
+   if (G_SlpdLogFile)
+   {
+      va_start(ap,msg);
+      vfprintf(G_SlpdLogFile,msg,ap);
+      va_end(ap);
+      fflush(G_SlpdLogFile);
+   }
 }
 
 /** Logs a message and halts the process.
@@ -144,25 +144,25 @@ void SLPDLog(const char* msg, ...)
  */
 void SLPDFatal(const char* msg, ...)
 {
-    va_list ap;
+   va_list ap;
 
-    if (G_SlpdLogFile)
-    {
-        fprintf(G_SlpdLogFile,"A FATAL Error has occured:\n");
-        va_start(ap,msg);
-        vfprintf(G_SlpdLogFile,msg,ap);
-        va_end(ap);
-        fflush(G_SlpdLogFile);
-    }
-    else
-    {
-        fprintf(stderr,"A FATAL Error has occured:\n");
-        va_start(ap,msg);
-        vprintf(msg,ap);
-        va_end(ap);
-    }
+   if (G_SlpdLogFile)
+   {
+      fprintf(G_SlpdLogFile,"A FATAL Error has occured:\n");
+      va_start(ap,msg);
+      vfprintf(G_SlpdLogFile,msg,ap);
+      va_end(ap);
+      fflush(G_SlpdLogFile);
+   }
+   else
+   {
+      fprintf(stderr,"A FATAL Error has occured:\n");
+      va_start(ap,msg);
+      vprintf(msg,ap);
+      va_end(ap);
+   }
 
-    exit(1);
+   exit(1);
 }
 
 /** Writes a buffer to the log file.
@@ -173,21 +173,21 @@ void SLPDFatal(const char* msg, ...)
  */
 void SLPDLogBuffer(const char* prefix, int bufsize, const char* buf)
 {
-    if (G_SlpdLogFile)
-    {
-        fprintf(G_SlpdLogFile,"%s",prefix);
-        fwrite(buf,bufsize,1,G_SlpdLogFile);
-        fprintf(G_SlpdLogFile,"\n");
-        fflush(G_SlpdLogFile);
-    }
+   if (G_SlpdLogFile)
+   {
+      fprintf(G_SlpdLogFile,"%s",prefix);
+      fwrite(buf,bufsize,1,G_SlpdLogFile);
+      fprintf(G_SlpdLogFile,"\n");
+      fflush(G_SlpdLogFile);
+   }
 }
 
 /** Logs the current time and date to the log file.
  */
 void SLPDLogTime()
 {
-    time_t curtime = time(NULL);
-    SLPDLog("%s",ctime(&curtime)); 
+   time_t curtime = time(NULL);
+   SLPDLog("%s",ctime(&curtime));
 }
 
 /** Logs information about a SrvRequest message to the log file.
@@ -198,10 +198,10 @@ void SLPDLogTime()
  */
 void SLPDLogSrvRqstMessage(SLPSrvRqst* srvrqst)
 {
-    SLPDLog("Message SRVRQST:\n");
-    SLPDLogBuffer("   srvtype = ", srvrqst->srvtypelen, srvrqst->srvtype);
-    SLPDLogBuffer("   scopelist = ", srvrqst->scopelistlen, srvrqst->scopelist);
-    SLPDLogBuffer("   predicate = ", srvrqst->predicatelen, srvrqst->predicate);
+   SLPDLog("Message SRVRQST:\n");
+   SLPDLogBuffer("   srvtype = ", srvrqst->srvtypelen, srvrqst->srvtype);
+   SLPDLogBuffer("   scopelist = ", srvrqst->scopelistlen, srvrqst->scopelist);
+   SLPDLogBuffer("   predicate = ", srvrqst->predicatelen, srvrqst->predicate);
 }
 
 /** Logs information about a SrvReply message to the log file.
@@ -212,8 +212,8 @@ void SLPDLogSrvRqstMessage(SLPSrvRqst* srvrqst)
  */
 void SLPDLogSrvRplyMessage(SLPSrvRply* srvrply)
 {
-    SLPDLog("Message SRVRPLY:\n");
-    SLPDLog("   errorcode = %i\n",srvrply->errorcode);
+   SLPDLog("Message SRVRPLY:\n");
+   SLPDLog("   errorcode = %i\n",srvrply->errorcode);
 }
 
 /** Logs information about a SrvReg message to the log file.
@@ -224,11 +224,11 @@ void SLPDLogSrvRplyMessage(SLPSrvRply* srvrply)
  */
 void SLPDLogSrvRegMessage(SLPSrvReg* srvreg)
 {
-    SLPDLog("Message SRVREG:\n");
-    SLPDLogBuffer("   srvtype = ", srvreg->srvtypelen, srvreg->srvtype);
-    SLPDLogBuffer("   scope = ", srvreg->scopelistlen, srvreg->scopelist);
-    SLPDLogBuffer("   url = ", srvreg->urlentry.urllen, srvreg->urlentry.url);
-    SLPDLogBuffer("   attributes = ", srvreg->attrlistlen, srvreg->attrlist);
+   SLPDLog("Message SRVREG:\n");
+   SLPDLogBuffer("   srvtype = ", srvreg->srvtypelen, srvreg->srvtype);
+   SLPDLogBuffer("   scope = ", srvreg->scopelistlen, srvreg->scopelist);
+   SLPDLogBuffer("   url = ", srvreg->urlentry.urllen, srvreg->urlentry.url);
+   SLPDLogBuffer("   attributes = ", srvreg->attrlistlen, srvreg->attrlist);
 }
 
 /** Logs information about a SrvDereg message to the log file.
@@ -239,9 +239,9 @@ void SLPDLogSrvRegMessage(SLPSrvReg* srvreg)
  */
 void SLPDLogSrvDeRegMessage(SLPSrvDeReg* srvdereg)
 {
-    SLPDLog("Message SRVDEREG:\n");
-    SLPDLogBuffer("   scope = ", srvdereg->scopelistlen, srvdereg->scopelist);
-    SLPDLogBuffer("   url = ", srvdereg->urlentry.urllen, srvdereg->urlentry.url);
+   SLPDLog("Message SRVDEREG:\n");
+   SLPDLogBuffer("   scope = ", srvdereg->scopelistlen, srvdereg->scopelist);
+   SLPDLogBuffer("   url = ", srvdereg->urlentry.urllen, srvdereg->urlentry.url);
 }
 
 /** Logs information about a SrvAck message to the log file.
@@ -252,8 +252,8 @@ void SLPDLogSrvDeRegMessage(SLPSrvDeReg* srvdereg)
  */
 void SLPDLogSrvAckMessage(SLPSrvAck* srvack)
 {
-    SLPDLog("Message SRVACK:\n");
-    SLPDLog("   errorcode = %i\n",srvack->errorcode);
+   SLPDLog("Message SRVACK:\n");
+   SLPDLog("   errorcode = %i\n",srvack->errorcode);
 }
 
 /** Logs information about an AttrReq message to the log file.
@@ -264,9 +264,9 @@ void SLPDLogSrvAckMessage(SLPSrvAck* srvack)
  */
 void SLPDLogAttrRqstMessage(SLPAttrRqst* attrrqst)
 {
-    SLPDLog("Message ATTRRQST:\n");
-    SLPDLogBuffer("   scope = ", attrrqst->scopelistlen, attrrqst->scopelist);
-    SLPDLogBuffer("   url = ", attrrqst->urllen, attrrqst->url);
+   SLPDLog("Message ATTRRQST:\n");
+   SLPDLogBuffer("   scope = ", attrrqst->scopelistlen, attrrqst->scopelist);
+   SLPDLogBuffer("   url = ", attrrqst->urllen, attrrqst->url);
 }
 
 /** Logs information about an AttrReply message to the log file.
@@ -277,9 +277,9 @@ void SLPDLogAttrRqstMessage(SLPAttrRqst* attrrqst)
  */
 void SLPDLogAttrRplyMessage(SLPAttrRply* attrrply)
 {
-    SLPDLog("Message ATTRRPLY:\n");
-    SLPDLog("   errorcode = %i\n",attrrply->errorcode);
-} 
+   SLPDLog("Message ATTRRPLY:\n");
+   SLPDLog("   errorcode = %i\n",attrrply->errorcode);
+}
 
 /** Logs information about a DAAdvert message to the log file.
  *
@@ -289,10 +289,10 @@ void SLPDLogAttrRplyMessage(SLPAttrRply* attrrply)
  */
 void SLPDLogDAAdvertMessage(SLPDAAdvert* daadvert)
 {
-    SLPDLog("Message DAADVERT:\n");
-    SLPDLogBuffer("   scope = ", daadvert->scopelistlen, daadvert->scopelist);
-    SLPDLogBuffer("   url = ", daadvert->urllen, daadvert->url);
-    SLPDLogBuffer("   attributes = ", daadvert->attrlistlen, daadvert->attrlist);
+   SLPDLog("Message DAADVERT:\n");
+   SLPDLogBuffer("   scope = ", daadvert->scopelistlen, daadvert->scopelist);
+   SLPDLogBuffer("   url = ", daadvert->urllen, daadvert->url);
+   SLPDLogBuffer("   attributes = ", daadvert->attrlistlen, daadvert->attrlist);
 }
 
 /** Logs information about a SrvTypeReq message to the log file.
@@ -303,9 +303,9 @@ void SLPDLogDAAdvertMessage(SLPDAAdvert* daadvert)
  */
 void SLPDLogSrvTypeRqstMessage(SLPSrvTypeRqst* srvtyperqst)
 {
-    SLPDLog("Message SRVTYPERQST:\n");
-    SLPDLogBuffer("   namingauth = ", srvtyperqst->namingauthlen, srvtyperqst->namingauth);
-    SLPDLogBuffer("   scope = ", srvtyperqst->scopelistlen, srvtyperqst->scopelist);
+   SLPDLog("Message SRVTYPERQST:\n");
+   SLPDLogBuffer("   namingauth = ", srvtyperqst->namingauthlen, srvtyperqst->namingauth);
+   SLPDLogBuffer("   scope = ", srvtyperqst->scopelistlen, srvtyperqst->scopelist);
 }
 
 /** Logs information about a SrvTypeReply message to the log file.
@@ -316,9 +316,9 @@ void SLPDLogSrvTypeRqstMessage(SLPSrvTypeRqst* srvtyperqst)
  */
 void SLPDLogSrvTypeRplyMessage(SLPSrvTypeRply* srvtyperply)
 {
-    SLPDLog("Message SRVTYPERPLY:\n");
-    SLPDLog("   errorcode = %i\n",srvtyperply->errorcode);
-}        
+   SLPDLog("Message SRVTYPERPLY:\n");
+   SLPDLog("   errorcode = %i\n",srvtyperply->errorcode);
+}
 
 /** Logs information about an SAAdvert message to the log file.
  *
@@ -328,10 +328,10 @@ void SLPDLogSrvTypeRplyMessage(SLPSrvTypeRply* srvtyperply)
  */
 void SLPDLogSAAdvertMessage(SLPSAAdvert* saadvert)
 {
-    SLPDLog("Message SAADVERT:\n");
-    SLPDLogBuffer("   scope = ", saadvert->scopelistlen, saadvert->scopelist);
-    SLPDLogBuffer("   url = ", saadvert->urllen, saadvert->url);
-    SLPDLogBuffer("   attributes = ", saadvert->attrlistlen, saadvert->attrlist);
+   SLPDLog("Message SAADVERT:\n");
+   SLPDLogBuffer("   scope = ", saadvert->scopelistlen, saadvert->scopelist);
+   SLPDLogBuffer("   url = ", saadvert->urllen, saadvert->url);
+   SLPDLogBuffer("   attributes = ", saadvert->attrlistlen, saadvert->attrlist);
 }
 
 /** Logs a peer address to the log file.
@@ -342,9 +342,9 @@ void SLPDLogSAAdvertMessage(SLPSAAdvert* saadvert)
  */
 void SLPDLogPeerAddr(struct sockaddr_storage* peeraddr)
 {
-    char    addr_str[INET6_ADDRSTRLEN];
+   char    addr_str[INET6_ADDRSTRLEN];
 
-    SLPDLog("Peer IP address: %s\n", SLPNetSockAddrStorageToString(peeraddr, addr_str, sizeof(addr_str)));
+   SLPDLog("Peer IP address: %s\n", SLPNetSockAddrStorageToString(peeraddr, addr_str, sizeof(addr_str)));
 }
 
 /** Logs common message information to the log file.
@@ -353,70 +353,70 @@ void SLPDLogPeerAddr(struct sockaddr_storage* peeraddr)
  */
 void SLPDLogMessageInternals(SLPMessage message)
 {
-    char    addr_str[INET6_ADDRSTRLEN];
+   char    addr_str[INET6_ADDRSTRLEN];
 
-    SLPDLog("Peer: \n");
-    SLPDLog("   IP address: %s\n", SLPNetSockAddrStorageToString(&(message->peer), addr_str, sizeof(addr_str)));
-    SLPDLog("Header:\n");
-    SLPDLog("   version = %i\n",message->header.version);
-    SLPDLog("   functionid = %i\n",message->header.functionid);
-    SLPDLog("   length = %i\n",message->header.length);
-    SLPDLog("   flags = %i\n",message->header.flags);
-    SLPDLog("   extoffset = %i\n",message->header.extoffset);
-    SLPDLog("   xid = %i\n",message->header.xid);
-    SLPDLogBuffer("   langtag = ", message->header.langtaglen, message->header.langtag); 
+   SLPDLog("Peer: \n");
+   SLPDLog("   IP address: %s\n", SLPNetSockAddrStorageToString(&(message->peer), addr_str, sizeof(addr_str)));
+   SLPDLog("Header:\n");
+   SLPDLog("   version = %i\n",message->header.version);
+   SLPDLog("   functionid = %i\n",message->header.functionid);
+   SLPDLog("   length = %i\n",message->header.length);
+   SLPDLog("   flags = %i\n",message->header.flags);
+   SLPDLog("   extoffset = %i\n",message->header.extoffset);
+   SLPDLog("   xid = %i\n",message->header.xid);
+   SLPDLogBuffer("   langtag = ", message->header.langtaglen, message->header.langtag);
 
-    switch (message->header.functionid)
-    {
-    case SLP_FUNCT_SRVRQST:
-        SLPDLogSrvRqstMessage(&(message->body.srvrqst));
-        break;
+   switch (message->header.functionid)
+   {
+      case SLP_FUNCT_SRVRQST:
+         SLPDLogSrvRqstMessage(&(message->body.srvrqst));
+         break;
 
-    case SLP_FUNCT_SRVRPLY:
-        SLPDLogSrvRplyMessage(&(message->body.srvrply));
-        break;
+      case SLP_FUNCT_SRVRPLY:
+         SLPDLogSrvRplyMessage(&(message->body.srvrply));
+         break;
 
-    case SLP_FUNCT_SRVREG:
-        SLPDLogSrvRegMessage(&(message->body.srvreg));
-        break;
+      case SLP_FUNCT_SRVREG:
+         SLPDLogSrvRegMessage(&(message->body.srvreg));
+         break;
 
-    case SLP_FUNCT_SRVDEREG:
-        SLPDLogSrvDeRegMessage(&(message->body.srvdereg));
-        break;
+      case SLP_FUNCT_SRVDEREG:
+         SLPDLogSrvDeRegMessage(&(message->body.srvdereg));
+         break;
 
-    case SLP_FUNCT_SRVACK:
-        SLPDLogSrvAckMessage(&(message->body.srvack));
-        break;
+      case SLP_FUNCT_SRVACK:
+         SLPDLogSrvAckMessage(&(message->body.srvack));
+         break;
 
-    case SLP_FUNCT_ATTRRQST:
-        SLPDLogAttrRqstMessage(&(message->body.attrrqst));
-        break;
+      case SLP_FUNCT_ATTRRQST:
+         SLPDLogAttrRqstMessage(&(message->body.attrrqst));
+         break;
 
-    case SLP_FUNCT_ATTRRPLY:
-        SLPDLogAttrRplyMessage(&(message->body.attrrply));
-        break;
+      case SLP_FUNCT_ATTRRPLY:
+         SLPDLogAttrRplyMessage(&(message->body.attrrply));
+         break;
 
-    case SLP_FUNCT_DAADVERT:
-        SLPDLogDAAdvertMessage(&(message->body.daadvert));
-        break;
+      case SLP_FUNCT_DAADVERT:
+         SLPDLogDAAdvertMessage(&(message->body.daadvert));
+         break;
 
-    case SLP_FUNCT_SRVTYPERQST:
-        SLPDLogSrvTypeRqstMessage(&(message->body.srvtyperqst));
-        break;
+      case SLP_FUNCT_SRVTYPERQST:
+         SLPDLogSrvTypeRqstMessage(&(message->body.srvtyperqst));
+         break;
 
-    case SLP_FUNCT_SRVTYPERPLY:
-        SLPDLogSrvTypeRplyMessage(&(message->body.srvtyperply));
-        break;
+      case SLP_FUNCT_SRVTYPERPLY:
+         SLPDLogSrvTypeRplyMessage(&(message->body.srvtyperply));
+         break;
 
-    case SLP_FUNCT_SAADVERT:
-        SLPDLogSAAdvertMessage(&(message->body.saadvert));
-        break;
+      case SLP_FUNCT_SAADVERT:
+         SLPDLogSAAdvertMessage(&(message->body.saadvert));
+         break;
 
-    default:
-        SLPDLog("Message %i UNKNOWN:\n",message->header.functionid);
-        SLPDLog("   This is really bad\n");
-        break;
-    }
+      default:
+         SLPDLog("Message %i UNKNOWN:\n",message->header.functionid);
+         SLPDLog("   This is really bad\n");
+         break;
+   }
 }
 
 /** Log record of receiving or sending an SLP message.
@@ -429,64 +429,64 @@ void SLPDLogMessageInternals(SLPMessage message)
  * @note Logging will only occur if message logging is enabled.
  */
 void SLPDLogMessage(int msglogflags,
-                    struct sockaddr_storage* peerinfo,
-                    struct sockaddr_storage* localaddr,
-                    SLPBuffer buf)
+      struct sockaddr_storage* peerinfo,
+      struct sockaddr_storage* localaddr,
+      SLPBuffer buf)
 {
-    SLPMessage msg;
-    char addr_str[INET6_ADDRSTRLEN];
+   SLPMessage msg;
+   char addr_str[INET6_ADDRSTRLEN];
 
-    if (peerinfo == NULL ||
-        buf == NULL)
-    {
-        return;
-    }
+   if (peerinfo == NULL ||
+         buf == NULL)
+   {
+      return;
+   }
 
-    if ((G_SlpdProperty.traceMsg && (msglogflags & SLPDLOG_TRACEMSG)) ||
-        (G_SlpdProperty.traceDrop && (msglogflags & SLPDLOG_TRACEDROP)) )
-    {
-        /* Don't log localhost traffic since it is probably IPC */
-        /* and don't log empty messages                         */
-        if (!SLPNetIsLocal(peerinfo) && buf->end != buf->start)
-        {
-            msg = SLPMessageAlloc();
-            if (msg)
+   if ((G_SlpdProperty.traceMsg && (msglogflags & SLPDLOG_TRACEMSG)) ||
+         (G_SlpdProperty.traceDrop && (msglogflags & SLPDLOG_TRACEDROP)))
+   {
+      /* Don't log localhost traffic since it is probably IPC */
+      /* and don't log empty messages                         */
+      if (!SLPNetIsLocal(peerinfo) && buf->end != buf->start)
+      {
+         msg = SLPMessageAlloc();
+         if (msg)
+         {
+            SLPDLog("\n");
+            SLPDLogTime();
+            SLPDLog("MESSAGE - ");
+            if (msglogflags == SLPDLOG_TRACEMSG_OUT)
             {
-                SLPDLog("\n");
-                SLPDLogTime();
-                SLPDLog("MESSAGE - ");
-                if (msglogflags == SLPDLOG_TRACEMSG_OUT)
-                {
-                    SLPDLog("Trace message (OUT)\n");
-                }
-                else if (msglogflags == SLPDLOG_TRACEMSG_IN)
-                {
-                    SLPDLog("Trace message (IN)\n");
-                }
-                else if (msglogflags == SLPDLOG_TRACEDROP)
-                {
-                    SLPDLog("Dropped message (following message silently ignored)\n");
-                }
-                else
-                {
-                    SLPDLog("\n");
-                }
-
-                if (SLPMessageParseBuffer(peerinfo,localaddr,buf,msg) == 0)
-                {
-                    SLPDLogMessageInternals(msg);
-                }
-                else
-                {
-                    SLPDLog("Message parsing failed\n");
-                    SLPDLog("Peer: \n");
-                    SLPDLog("   IP address: %s\n", SLPNetSockAddrStorageToString(&(msg->peer), addr_str, sizeof(addr_str)));
-                }
-
-                SLPMessageFree(msg);
+               SLPDLog("Trace message (OUT)\n");
             }
-        }
-    }
+            else if (msglogflags == SLPDLOG_TRACEMSG_IN)
+            {
+               SLPDLog("Trace message (IN)\n");
+            }
+            else if (msglogflags == SLPDLOG_TRACEDROP)
+            {
+               SLPDLog("Dropped message (following message silently ignored)\n");
+            }
+            else
+            {
+               SLPDLog("\n");
+            }
+
+            if (SLPMessageParseBuffer(peerinfo,localaddr,buf,msg) == 0)
+            {
+               SLPDLogMessageInternals(msg);
+            }
+            else
+            {
+               SLPDLog("Message parsing failed\n");
+               SLPDLog("Peer: \n");
+               SLPDLog("   IP address: %s\n", SLPNetSockAddrStorageToString(&(msg->peer), addr_str, sizeof(addr_str)));
+            }
+
+            SLPMessageFree(msg);
+         }
+      }
+   }
 }
 
 /** Log record of having added a registration to the database.  
@@ -499,45 +499,45 @@ void SLPDLogMessage(int msglogflags,
  */
 void SLPDLogRegistration(const char* prefix, SLPDatabaseEntry* entry)
 {
-    char    addr_str[INET6_ADDRSTRLEN];
+   char    addr_str[INET6_ADDRSTRLEN];
 
-    if (prefix == NULL ||
-        entry == NULL)
-    {
-        return;
-    }
+   if (prefix == NULL ||
+         entry == NULL)
+   {
+      return;
+   }
 
-    if (G_SlpdProperty.traceReg)
-    {
-        SLPDLog("\n");
-        SLPDLogTime();
-        SLPDLog("DATABASE - %s:\n",prefix);
-        SLPDLog("    SA address = ");
-        switch (entry->msg->body.srvreg.source)
-        {
-        case SLP_REG_SOURCE_UNKNOWN:
+   if (G_SlpdProperty.traceReg)
+   {
+      SLPDLog("\n");
+      SLPDLogTime();
+      SLPDLog("DATABASE - %s:\n",prefix);
+      SLPDLog("    SA address = ");
+      switch (entry->msg->body.srvreg.source)
+      {
+         case SLP_REG_SOURCE_UNKNOWN:
             SLPDLog("<unknown>\n");
             break;
-        case SLP_REG_SOURCE_REMOTE:
+         case SLP_REG_SOURCE_REMOTE:
             SLPDLog("remote (%s)\n", SLPNetSockAddrStorageToString(&(entry->msg->peer), addr_str, sizeof(addr_str)));
             break;
-        case SLP_REG_SOURCE_LOCAL:
+         case SLP_REG_SOURCE_LOCAL:
             SLPDLog("IPC (libslp)\n");
             break;
-        case SLP_REG_SOURCE_STATIC:
+         case SLP_REG_SOURCE_STATIC:
             SLPDLog("static (slp.reg)\n");
             break;
-        }
-        SLPDLogBuffer("    service-url = ",
-                      entry->msg->body.srvreg.urlentry.urllen,
-                      entry->msg->body.srvreg.urlentry.url);
-        SLPDLogBuffer("    scope = ",
-                      entry->msg->body.srvreg.scopelistlen,
-                      entry->msg->body.srvreg.scopelist);
-        SLPDLogBuffer("    attributes = ",
-                      entry->msg->body.srvreg.attrlistlen,
-                      entry->msg->body.srvreg.attrlist);
-    }
+      }
+      SLPDLogBuffer("    service-url = ",
+            entry->msg->body.srvreg.urlentry.urllen,
+            entry->msg->body.srvreg.urlentry.url);
+      SLPDLogBuffer("    scope = ",
+            entry->msg->body.srvreg.scopelistlen,
+            entry->msg->body.srvreg.scopelist);
+      SLPDLogBuffer("    attributes = ",
+            entry->msg->body.srvreg.attrlistlen,
+            entry->msg->body.srvreg.attrlist);
+   }
 }
 
 /** Log record of addition or removal of a DA to the store of known DAs.
@@ -549,38 +549,38 @@ void SLPDLogRegistration(const char* prefix, SLPDatabaseEntry* entry)
  *    message logging is enabled.
  */
 void SLPDLogDAAdvertisement(const char* prefix,
-                            SLPDatabaseEntry* entry)
+      SLPDatabaseEntry* entry)
 {
-    char    addr_str[INET6_ADDRSTRLEN];
+   char    addr_str[INET6_ADDRSTRLEN];
 
-    if (prefix == NULL ||
-        entry == NULL)
-    {
-        return;
-    }
+   if (prefix == NULL ||
+         entry == NULL)
+   {
+      return;
+   }
 
-    if (G_SlpdProperty.traceDATraffic)
-    {
-        SLPDLog("\n");
-        SLPDLogTime();
-        SLPDLog("KNOWNDA - %s:\n",prefix);
-        SLPDLog("    DA address = %s\n",SLPNetSockAddrStorageToString(&(entry->msg->peer), addr_str, sizeof(addr_str)));
-        SLPDLogBuffer("    directory-agent-url = ",
-                      entry->msg->body.daadvert.urllen,
-                      entry->msg->body.daadvert.url);
-        SLPDLog("    bootstamp = %x\n",entry->msg->body.daadvert.bootstamp);
-        SLPDLogBuffer("    scope = ",
-                      entry->msg->body.daadvert.scopelistlen,
-                      entry->msg->body.daadvert.scopelist);
-        SLPDLogBuffer("    attributes = ",
-                      entry->msg->body.daadvert.attrlistlen,
-                      entry->msg->body.daadvert.attrlist);
+   if (G_SlpdProperty.traceDATraffic)
+   {
+      SLPDLog("\n");
+      SLPDLogTime();
+      SLPDLog("KNOWNDA - %s:\n",prefix);
+      SLPDLog("    DA address = %s\n",SLPNetSockAddrStorageToString(&(entry->msg->peer), addr_str, sizeof(addr_str)));
+      SLPDLogBuffer("    directory-agent-url = ",
+            entry->msg->body.daadvert.urllen,
+            entry->msg->body.daadvert.url);
+      SLPDLog("    bootstamp = %x\n",entry->msg->body.daadvert.bootstamp);
+      SLPDLogBuffer("    scope = ",
+            entry->msg->body.daadvert.scopelistlen,
+            entry->msg->body.daadvert.scopelist);
+      SLPDLogBuffer("    attributes = ",
+            entry->msg->body.daadvert.attrlistlen,
+            entry->msg->body.daadvert.attrlist);
 #ifdef ENABLE_SLPV2_SECURITY
-        SLPDLogBuffer("    SPI list = ",
-                      entry->msg->body.daadvert.spilistlen,
-                      entry->msg->body.daadvert.spilist);
+      SLPDLogBuffer("    SPI list = ",
+            entry->msg->body.daadvert.spilistlen,
+            entry->msg->body.daadvert.spilist);
 #endif /*ENABLE_SLPV2_SECURITY*/
-    }
+   }
 }
 
 /** Log a parse warning and dump the invalid message.
@@ -590,42 +590,42 @@ void SLPDLogDAAdvertisement(const char* prefix,
  */
 void SLPDLogParseWarning(struct sockaddr_storage* peeraddr, SLPBuffer buf)
 {
-    unsigned char* curpos;
-    int i = 0;
+   unsigned char* curpos;
+   int i = 0;
 
-    if (peeraddr == NULL ||
-        buf == NULL)
-    {
-        return;
-    }
+   if (peeraddr == NULL ||
+         buf == NULL)
+   {
+      return;
+   }
 
-    SLPDLog("\n");
-    SLPDLogTime();
-    SLPDLog("*** WARNING Parse Error ***\n");
-    SLPDLogPeerAddr(peeraddr);
-    SLPDLog("message size = %i\n",buf->end - buf->start);
-    SLPDLog("message dump follows:\n");    
-    for (curpos = buf->start; curpos < buf->end; curpos++)
-    {
-        SLPDLog("0x%02x",*curpos);
-        if (*curpos < 0x20 || *curpos > 0x7f)
-        {
-            SLPDLog("(' ') ");
-        }
-        else
-        {
-            SLPDLog("('%c') ",*curpos);
-        }
+   SLPDLog("\n");
+   SLPDLogTime();
+   SLPDLog("*** WARNING Parse Error ***\n");
+   SLPDLogPeerAddr(peeraddr);
+   SLPDLog("message size = %i\n",buf->end - buf->start);
+   SLPDLog("message dump follows:\n");
+   for (curpos = buf->start; curpos < buf->end; curpos++)
+   {
+      SLPDLog("0x%02x",*curpos);
+      if (*curpos < 0x20 || *curpos > 0x7f)
+      {
+         SLPDLog("(' ') ");
+      }
+      else
+      {
+         SLPDLog("('%c') ",*curpos);
+      }
 
-        /* newline every 70 columns */
-        i++;
-        if (i==10)
-        {
-            i=0;
-            SLPDLog("\n");
-        }
-    }    
-    SLPDLog("\n");
+      /* newline every 70 columns */
+      i++;
+      if (i==10)
+      {
+         i=0;
+         SLPDLog("\n");
+      }
+   }
+   SLPDLog("\n");
 }
 
 /*=========================================================================*/

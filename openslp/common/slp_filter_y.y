@@ -406,3 +406,5 @@ SLPLDAPFilter *SLPDecodeLDAPFilter(const char *filter)
 
     return(temp);
 }
+
+/*=========================================================================*/

@@ -50,14 +50,14 @@ SLPSpiHandle G_SlpdSpiHandle = 0;
  */
 int SLPDSpiInit(const char* spifile)
 {
-    if(G_SlpdSpiHandle)
-    {
-        SLPSpiClose(G_SlpdSpiHandle);
-        G_SlpdSpiHandle = 0;
-    }
-   
-    G_SlpdSpiHandle = SLPSpiOpen(spifile,1);
-    return (G_SlpdSpiHandle == 0);
+   if (G_SlpdSpiHandle)
+   {
+      SLPSpiClose(G_SlpdSpiHandle);
+      G_SlpdSpiHandle = 0;
+   }
+
+   G_SlpdSpiHandle = SLPSpiOpen(spifile,1);
+   return (G_SlpdSpiHandle == 0);
 }
 
 #ifdef DEBUG
@@ -65,7 +65,7 @@ int SLPDSpiInit(const char* spifile)
  */
 void SLPDSpiDeinit()
 {
-    SLPSpiClose(G_SlpdSpiHandle);
+   SLPSpiClose(G_SlpdSpiHandle);
 }
 #endif
 

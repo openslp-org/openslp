@@ -83,7 +83,7 @@ SLPEXP SLPError SLPAPI SLPDelAttrs(
 
    /* Check for invalid parameters. */
    if (handle == 0 || handle->sig != SLP_HANDLE_SIG
-         || pcURL == 0 || *pcURL == 0 
+         || pcURL == 0 || *pcURL == 0
          || pcAttrs == 0 || *pcAttrs == 0
          || callback == 0)
       return SLP_PARAMETER_BAD;

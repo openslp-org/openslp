@@ -47,17 +47,17 @@
 
 /*=========================================================================*/
 void* memdup(const void* src, int srclen)
-/* Generic memdup analogous to strdup()                                    */
-/*=========================================================================*/
+      /* Generic memdup analogous to strdup()                                    */
+      /*=========================================================================*/
 {
-    char* result;
-    result = (unsigned char*)xmalloc(srclen);
-    if(result)
-    {
-        memcpy(result,src,srclen);
-    }
+   char* result;
+   result = (unsigned char*)xmalloc(srclen);
+   if (result)
+   {
+      memcpy(result,src,srclen);
+   }
 
-    return result;
+   return result;
 }
 
 /** Allocates an SLP message buffer.
@@ -73,25 +73,25 @@ void* memdup(const void* src, int srclen)
  *    strings stored in the buffer. This extra byte is not counted in the 
  *    buffer size.
  */
-SLPBuffer SLPBufferAlloc(size_t size)                                         
+SLPBuffer SLPBufferAlloc(size_t size)
 {
-    SLPBuffer result;
+   SLPBuffer result;
 
-    /* allocate an extra byte for null terminating strings */
-    result = (SLPBuffer)xmalloc(sizeof(struct _SLPBuffer) + size + 1);
-    if(result)
-    {
-        result->allocated = size;
-        result->start = (unsigned char*)(result + 1);
-        result->curpos = result->start;
-        result->end = result->start + size; 
+   /* allocate an extra byte for null terminating strings */
+   result = (SLPBuffer)xmalloc(sizeof(struct _SLPBuffer) + size + 1);
+   if (result)
+   {
+      result->allocated = size;
+      result->start = (unsigned char*)(result + 1);
+      result->curpos = result->start;
+      result->end = result->start + size;
 
 #if(defined DEBUG)
-        memset(result->start,0x4d,size + 1);
+      memset(result->start,0x4d,size + 1);
 #endif
-    }
+   }
 
-    return result;
+   return result;
 }
 
 /** Resizes an SLP message buffer.
@@ -109,38 +109,38 @@ SLPBuffer SLPBufferAlloc(size_t size)
  */
 SLPBuffer SLPBufferRealloc(SLPBuffer buf, size_t size)
 {
-    SLPBuffer result;
-    if(buf)
-    {
-        if(buf->allocated >= size)
-        {
-            result = buf;
-        }
-        else
-        {
-            /* allocate an extra byte for null terminating strings */
-            result = (SLPBuffer)xrealloc(buf, sizeof(struct _SLPBuffer) +
-                                        size + 1);
-            result->allocated = size;
-        }
+   SLPBuffer result;
+   if (buf)
+   {
+      if (buf->allocated >= size)
+      {
+         result = buf;
+      }
+      else
+      {
+         /* allocate an extra byte for null terminating strings */
+         result = (SLPBuffer)xrealloc(buf, sizeof(struct _SLPBuffer) +
+               size + 1);
+         result->allocated = size;
+      }
 
-        if(result)
-        {
-            result->start = (unsigned char*)(result + 1);
-            result->curpos = result->start;
-            result->end = result->start + size;
+      if (result)
+      {
+         result->start = (unsigned char*)(result + 1);
+         result->curpos = result->start;
+         result->end = result->start + size;
 
 #if(defined DEBUG)
-            memset(result->start,0x4d,size + 1);
+         memset(result->start,0x4d,size + 1);
 #endif
-        }
-    }
-    else
-    {
-        result = SLPBufferAlloc(size);
-    }
+      }
+   }
+   else
+   {
+      result = SLPBufferAlloc(size);
+   }
 
-    return result;
+   return result;
 }
 
 /** Returns a duplicate buffer.  
@@ -154,15 +154,15 @@ SLPBuffer SLPBufferRealloc(SLPBuffer buf, size_t size)
  */
 SLPBuffer SLPBufferDup(SLPBuffer buf)
 {
-    SLPBuffer dup;
+   SLPBuffer dup;
 
-    dup = SLPBufferAlloc(buf->end - buf->start);
-    if(dup)
-    {
-        memcpy(dup->start,buf->start,buf->end - buf->start);       
-    }
+   dup = SLPBufferAlloc(buf->end - buf->start);
+   if (dup)
+   {
+      memcpy(dup->start,buf->start,buf->end - buf->start);
+   }
 
-    return dup;
+   return dup;
 }
 
 /** Free an SLPBuffer.
@@ -174,9 +174,10 @@ SLPBuffer SLPBufferDup(SLPBuffer buf)
  */
 void SLPBufferFree(SLPBuffer buf)
 {
-    if(buf)
-    {
-        xfree(buf);
-    }
+   if (buf)
+   {
+      xfree(buf);
+   }
 }
+
 /*=========================================================================*/

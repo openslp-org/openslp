@@ -52,8 +52,8 @@
 #include "slp_xid.h"
 
 SERVICE_STATUS ssStatus;       /* current status of the service  */
-SERVICE_STATUS_HANDLE sshStatusHandle; 
-BOOL bDebug = FALSE; 
+SERVICE_STATUS_HANDLE sshStatusHandle;
+BOOL bDebug = FALSE;
 TCHAR szErr[256];
 
 /* externals (variables) from slpd_main.c */
@@ -61,9 +61,9 @@ extern int G_SIGTERM;
 
 /* externals (functions) from slpd_main.c */
 void LoadFdSets(SLPList* socklist, 
-                int* highfd, 
-                fd_set* readfds, 
-                fd_set* writefds);
+      int* highfd, 
+      fd_set* readfds, 
+      fd_set* writefds);
 void HandleSigTerm();
 void HandleSigAlrm();
 
@@ -78,47 +78,47 @@ void HandleSigAlrm();
  * @internal
  */
 BOOL ReportStatusToSCMgr(DWORD dwCurrentState, 
-                         DWORD dwWin32ExitCode, 
-                         DWORD dwWaitHint) 
+      DWORD dwWin32ExitCode, 
+      DWORD dwWaitHint)
 {
-    static DWORD dwCheckPoint = 1; 
-    BOOL fResult = TRUE; 
+   static DWORD dwCheckPoint = 1;
+   BOOL fResult = TRUE;
 
-    /* when debugging we don't report to the SCM    */
-    if(G_SlpdCommandLine.action != SLPD_DEBUG)
-    {
-        if(dwCurrentState == SERVICE_START_PENDING)
-        {
-            ssStatus.dwControlsAccepted = 0;
-        }
-        else
-        {
-            ssStatus.dwControlsAccepted = SERVICE_ACCEPT_STOP; 
-        }
+   /* when debugging we don't report to the SCM    */
+   if (G_SlpdCommandLine.action != SLPD_DEBUG)
+   {
+      if (dwCurrentState == SERVICE_START_PENDING)
+      {
+         ssStatus.dwControlsAccepted = 0;
+      }
+      else
+      {
+         ssStatus.dwControlsAccepted = SERVICE_ACCEPT_STOP;
+      }
 
-        ssStatus.dwCurrentState = dwCurrentState; 
-        ssStatus.dwWin32ExitCode = dwWin32ExitCode; 
-        ssStatus.dwWaitHint = dwWaitHint; 
+      ssStatus.dwCurrentState = dwCurrentState;
+      ssStatus.dwWin32ExitCode = dwWin32ExitCode;
+      ssStatus.dwWaitHint = dwWaitHint;
 
-        if(( dwCurrentState == SERVICE_RUNNING ) || 
-           ( dwCurrentState == SERVICE_STOPPED ))
-        {
-            ssStatus.dwCheckPoint = 0;
-        }
-        else
-        {
-            ssStatus.dwCheckPoint = dwCheckPoint++; 
-        }   
+      if (( dwCurrentState == SERVICE_RUNNING ) ||
+            ( dwCurrentState == SERVICE_STOPPED ))
+      {
+         ssStatus.dwCheckPoint = 0;
+      }
+      else
+      {
+         ssStatus.dwCheckPoint = dwCheckPoint++;
+      }
 
-        /* Report the status of the service to the service control manager.*/
+      /* Report the status of the service to the service control manager.*/
 
-        if(!(fResult = SetServiceStatus( sshStatusHandle, &ssStatus)))
-        {
-            SLPDLog("SetServiceStatus failed"); 
-        }
-    }
-    return fResult; 
-} 
+      if (!(fResult = SetServiceStatus(sshStatusHandle, &ssStatus)))
+      {
+         SLPDLog("SetServiceStatus failed");
+      }
+   }
+   return fResult;
+}
 
 /** Copies error message text to a string.
  *
@@ -129,49 +129,49 @@ BOOL ReportStatusToSCMgr(DWORD dwCurrentState,
  *
  * @internal
  */
-LPTSTR GetLastErrorText( LPTSTR lpszBuf, DWORD dwSize ) 
+LPTSTR GetLastErrorText(LPTSTR lpszBuf, DWORD dwSize)
 {
-    DWORD dwRet; 
-    LPTSTR lpszTemp = NULL; 
+   DWORD dwRet;
+   LPTSTR lpszTemp = NULL;
 
-    dwRet = FormatMessage( FORMAT_MESSAGE_ALLOCATE_BUFFER | 
-                           FORMAT_MESSAGE_FROM_SYSTEM |
-                           FORMAT_MESSAGE_ARGUMENT_ARRAY, 
-                           NULL, 
-                           GetLastError(), 
-                           LANG_NEUTRAL, 
-                           (LPTSTR)&lpszTemp, 
-                           0, 
-                           NULL ); 
+   dwRet = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER |
+         FORMAT_MESSAGE_FROM_SYSTEM |
+         FORMAT_MESSAGE_ARGUMENT_ARRAY, 
+         NULL, 
+         GetLastError(), 
+         LANG_NEUTRAL, 
+         (LPTSTR)&lpszTemp, 
+         0, 
+         NULL);
 
-    /* supplied buffer is not long enough    */
-    if(!dwRet || ( (long)dwSize < (long)dwRet+14 ))
-    {
-        lpszBuf[0] = TEXT('\0');
-    }
-    else
-    {
-        lpszTemp[lstrlen(lpszTemp)-2] = TEXT('\0');  
-        sprintf( lpszBuf, "%s (0x%x)", lpszTemp, GetLastError() ); 
-    } 
+   /* supplied buffer is not long enough    */
+   if (!dwRet || ( (long)dwSize < (long)dwRet+14 ))
+   {
+      lpszBuf[0] = TEXT('\0');
+   }
+   else
+   {
+      lpszTemp[lstrlen(lpszTemp)-2] = TEXT('\0');
+      sprintf(lpszBuf, "%s (0x%x)", lpszTemp, GetLastError());
+   }
 
-    if(lpszTemp)
-    {
-        LocalFree((HLOCAL) lpszTemp );
-    }
+   if (lpszTemp)
+   {
+      LocalFree((HLOCAL) lpszTemp);
+   }
 
-    return lpszBuf; 
-} 
+   return lpszBuf;
+}
 
 /** Signal the service to stop, and then report it.
  */
-void ServiceStop() 
+void ServiceStop()
 {
-    G_SIGTERM = 1;
-    ReportStatusToSCMgr(SERVICE_STOPPED,       /* service state */
-                        NO_ERROR,              /* exit code    */
-                        3000);                 /* wait hint    */
-} 
+   G_SIGTERM = 1;
+   ReportStatusToSCMgr(SERVICE_STOPPED,       /* service state */
+         NO_ERROR,              /* exit code    */
+         3000);                 /* wait hint    */
+}
 
 /** Start the service and report it.
  *
@@ -180,170 +180,170 @@ void ServiceStop()
  *
  * @internal
  */
-void ServiceStart (int argc, char **argv) 
+void ServiceStart(int argc, char **argv)
 {
-    fd_set          readfds;
-    fd_set          writefds;
-    int             highfd;
-    int             fdcount         = 0;
-    time_t          curtime;
-    time_t          alarmtime;
-    struct timeval  timeout;
-    WSADATA         wsaData; 
-    WORD            wVersionRequested = MAKEWORD(1,1); 
+   fd_set          readfds;
+   fd_set          writefds;
+   int             highfd;
+   int             fdcount         = 0;
+   time_t          curtime;
+   time_t          alarmtime;
+   struct timeval  timeout;
+   WSADATA         wsaData;
+   WORD            wVersionRequested = MAKEWORD(1,1);
 
-    /*------------------------*/
-    /* Service initialization */
-    /*------------------------*/
-    if(!ReportStatusToSCMgr(SERVICE_START_PENDING, /* service state*/
-                            NO_ERROR,              /* exit code    */
-                            3000))                 /* wait hint    */
-    {
-        goto cleanup;
-    }
+   /*------------------------*/
+   /* Service initialization */
+   /*------------------------*/
+   if (!ReportStatusToSCMgr(SERVICE_START_PENDING, /* service state*/
+         NO_ERROR,              /* exit code    */
+         3000))                 /* wait hint    */
+   {
+      goto cleanup;
+   }
 
-    if(WSAStartup(wVersionRequested, &wsaData) != 0)
-    {
-        (void)ReportStatusToSCMgr(SERVICE_STOP_PENDING, 
-                                  NO_ERROR, 
-                                  0); 
-        goto cleanup;
-    }
+   if (WSAStartup(wVersionRequested, &wsaData) != 0)
+   {
+      (void)ReportStatusToSCMgr(SERVICE_STOP_PENDING, 
+            NO_ERROR, 
+            0);
+      goto cleanup;
+   }
 
-    /*------------------------*/
-    /* Parse the command line */
-    /*------------------------*/
-    if(SLPDParseCommandLine(argc,argv))
-    {
-        ReportStatusToSCMgr(SERVICE_STOP_PENDING, /* service state    */
-                            NO_ERROR,             /* exit code    */
-                            0);                   /* wait hint    */
-        goto cleanup_winsock;
-    }
-    if(!ReportStatusToSCMgr(SERVICE_START_PENDING, /* service state    */
-                            NO_ERROR,              /* exit code    */
-                            3000))                 /* wait hint    */
-    {
-        goto cleanup_winsock;
-    }
+   /*------------------------*/
+   /* Parse the command line */
+   /*------------------------*/
+   if (SLPDParseCommandLine(argc,argv))
+   {
+      ReportStatusToSCMgr(SERVICE_STOP_PENDING, /* service state    */
+            NO_ERROR,             /* exit code    */
+      0);                   /* wait hint    */
+      goto cleanup_winsock;
+   }
+   if (!ReportStatusToSCMgr(SERVICE_START_PENDING, /* service state    */
+         NO_ERROR,              /* exit code    */
+         3000))                 /* wait hint    */
+   {
+      goto cleanup_winsock;
+   }
 
-    /*------------------------------*/
-    /* Initialize the log file      */
-    /*------------------------------*/
-    if(SLPDLogFileOpen(G_SlpdCommandLine.logfile, 1))
-    {
-        SLPDLog("Could not open logfile %s\n",G_SlpdCommandLine.logfile);
-        goto cleanup_winsock;
-    }
+   /*------------------------------*/
+   /* Initialize the log file      */
+   /*------------------------------*/
+   if (SLPDLogFileOpen(G_SlpdCommandLine.logfile, 1))
+   {
+      SLPDLog("Could not open logfile %s\n",G_SlpdCommandLine.logfile);
+      goto cleanup_winsock;
+   }
 
-    /*------------------------*/
-    /* Seed the XID generator */
-    /*------------------------*/
-    SLPXidSeed();
+   /*------------------------*/
+   /* Seed the XID generator */
+   /*------------------------*/
+   SLPXidSeed();
 
-    /*---------------------*/
-    /* Log startup message */
-    /*---------------------*/
-    SLPDLog("****************************************\n");
-    SLPDLogTime();
-    SLPDLog("SLPD daemon started\n");
-    SLPDLog("****************************************\n");
-    SLPDLog("Command line = %s\n",argv[0]);
-    SLPDLog("Using configuration file = %s\n",G_SlpdCommandLine.cfgfile);
-    SLPDLog("Using registration file = %s\n",G_SlpdCommandLine.regfile);
-    if(!ReportStatusToSCMgr(SERVICE_START_PENDING, /* service state    */
-                            NO_ERROR,              /* exit code    */
-                            3000))                 /* wait hint    */
-    {
-        goto cleanup_winsock;
-    }
-
-
-    /*--------------------------------------------------*/
-    /* Initialize for the first time                    */
-    /*--------------------------------------------------*/
-    if(SLPDPropertyInit(G_SlpdCommandLine.cfgfile) ||
-       SLPDDatabaseInit(G_SlpdCommandLine.regfile) ||
-       SLPDIncomingInit() ||
-       SLPDOutgoingInit() ||
-       SLPDKnownDAInit())
-    {
-        SLPDLog("slpd initialization failed\n");
-        goto cleanup_winsock;
-    }
-    SLPDLog("Agent Interfaces = %s\n",G_SlpdProperty.interfaces);
-    SLPDLog("Agent URL = %s\n",G_SlpdProperty.myUrl);
-
-    /* Service is now running, perform work until shutdown    */
-
-    if(!ReportStatusToSCMgr(SERVICE_RUNNING,       /* service state    */
-                            NO_ERROR,              /* exit code    */
-                            0))                    /* wait hint    */
-    {
-        goto cleanup_winsock;
-    }
+   /*---------------------*/
+   /* Log startup message */
+   /*---------------------*/
+   SLPDLog("****************************************\n");
+   SLPDLogTime();
+   SLPDLog("SLPD daemon started\n");
+   SLPDLog("****************************************\n");
+   SLPDLog("Command line = %s\n",argv[0]);
+   SLPDLog("Using configuration file = %s\n",G_SlpdCommandLine.cfgfile);
+   SLPDLog("Using registration file = %s\n",G_SlpdCommandLine.regfile);
+   if (!ReportStatusToSCMgr(SERVICE_START_PENDING, /* service state    */
+         NO_ERROR,              /* exit code    */
+         3000))                 /* wait hint    */
+   {
+      goto cleanup_winsock;
+   }
 
 
-    /*-----------*/
-    /* Main loop */
-    /*-----------*/
-    SLPDLog("Startup complete entering main run loop ...\n\n");
-    G_SIGTERM   = 0;
-    curtime = time(&alarmtime);
-    alarmtime = curtime + SLPD_AGE_INTERVAL;
-    while(G_SIGTERM == 0)
-    {
-        /*--------------------------------------------------------*/
-        /* Load the fdsets up with all valid sockets in the list  */
-        /*--------------------------------------------------------*/
-        highfd = 0;
-        FD_ZERO(&readfds);
-        FD_ZERO(&writefds);
-        LoadFdSets(&G_IncomingSocketList, &highfd, &readfds,&writefds);
-        LoadFdSets(&G_OutgoingSocketList, &highfd, &readfds,&writefds);
+   /*--------------------------------------------------*/
+   /* Initialize for the first time                    */
+   /*--------------------------------------------------*/
+   if (SLPDPropertyInit(G_SlpdCommandLine.cfgfile) ||
+         SLPDDatabaseInit(G_SlpdCommandLine.regfile) ||
+         SLPDIncomingInit() ||
+         SLPDOutgoingInit() ||
+         SLPDKnownDAInit())
+   {
+      SLPDLog("slpd initialization failed\n");
+      goto cleanup_winsock;
+   }
+   SLPDLog("Agent Interfaces = %s\n",G_SlpdProperty.interfaces);
+   SLPDLog("Agent URL = %s\n",G_SlpdProperty.myUrl);
 
-        /*--------------------------------------------------*/
-        /* Before select(), check to see if we got a signal */
-        /*--------------------------------------------------*/
-        if(G_SIGALRM)
-        {
-            goto HANDLE_SIGNAL;
-        }
+   /* Service is now running, perform work until shutdown    */
 
-        /*-------------*/
-        /* Main select */
-        /*-------------*/
-        timeout.tv_sec = SLPD_AGE_INTERVAL;
-        timeout.tv_usec = 0;
-        fdcount = select(highfd+1,&readfds,&writefds,0,&timeout);
-        if(fdcount > 0) /* fdcount will be < 0 when timed out */
-        {
-            SLPDIncomingHandler(&fdcount,&readfds,&writefds);
-            SLPDOutgoingHandler(&fdcount,&readfds,&writefds);
-        }
+   if (!ReportStatusToSCMgr(SERVICE_RUNNING,       /* service state    */
+         NO_ERROR,              /* exit code    */
+         0))                    /* wait hint    */
+   {
+      goto cleanup_winsock;
+   }
 
-        /*----------------*/
-        /* Handle signals */
-        /*----------------*/
-        HANDLE_SIGNAL:
-        curtime = time(&curtime);
-        if(curtime >= alarmtime)
-        {
-            HandleSigAlrm();
-            alarmtime = curtime + SLPD_AGE_INTERVAL;
-        }
 
-    } /* End of main loop */
+   /*-----------*/
+   /* Main loop */
+   /*-----------*/
+   SLPDLog("Startup complete entering main run loop ...\n\n");
+   G_SIGTERM   = 0;
+   curtime = time(&alarmtime);
+   alarmtime = curtime + SLPD_AGE_INTERVAL;
+   while (G_SIGTERM == 0)
+   {
+      /*--------------------------------------------------------*/
+      /* Load the fdsets up with all valid sockets in the list  */
+      /*--------------------------------------------------------*/
+      highfd = 0;
+      FD_ZERO(&readfds);
+      FD_ZERO(&writefds);
+      LoadFdSets(&G_IncomingSocketList, &highfd, &readfds,&writefds);
+      LoadFdSets(&G_OutgoingSocketList, &highfd, &readfds,&writefds);
 
-    /* Got SIGTERM */
-    HandleSigTerm();
+      /*--------------------------------------------------*/
+      /* Before select(), check to see if we got a signal */
+      /*--------------------------------------------------*/
+      if (G_SIGALRM)
+      {
+         goto HANDLE_SIGNAL;
+      }
 
-    cleanup_winsock:
-    WSACleanup();
+      /*-------------*/
+      /* Main select */
+      /*-------------*/
+      timeout.tv_sec = SLPD_AGE_INTERVAL;
+      timeout.tv_usec = 0;
+      fdcount = select(highfd+1,&readfds,&writefds,0,&timeout);
+      if (fdcount > 0) /* fdcount will be < 0 when timed out */
+      {
+         SLPDIncomingHandler(&fdcount,&readfds,&writefds);
+         SLPDOutgoingHandler(&fdcount,&readfds,&writefds);
+      }
 
-    cleanup: 
-    ;
-} 
+      /*----------------*/
+      /* Handle signals */
+      /*----------------*/
+HANDLE_SIGNAL:
+      curtime = time(&curtime);
+      if (curtime >= alarmtime)
+      {
+         HandleSigAlrm();
+         alarmtime = curtime + SLPD_AGE_INTERVAL;
+      }
+
+   } /* End of main loop */
+
+   /* Got SIGTERM */
+   HandleSigTerm();
+
+cleanup_winsock:
+   WSACleanup();
+
+cleanup:
+   ;
+}
 
 /** Handles console control events.
  *
@@ -353,20 +353,20 @@ void ServiceStart (int argc, char **argv)
  *
  * @internal
  */
-BOOL WINAPI ControlHandler ( DWORD dwCtrlType ) 
+BOOL WINAPI ControlHandler(DWORD dwCtrlType)
 {
-    switch(dwCtrlType)
-    {
-    case CTRL_BREAK_EVENT:  /* use Ctrl+C or Ctrl+Break to simulate    */
-    case CTRL_C_EVENT:      /* SERVICE_CONTROL_STOP in debug mode    */
-        printf("Stopping %s.\n", G_SERVICEDISPLAYNAME); 
-        ServiceStop(); 
-        return TRUE; 
-        break; 
+   switch (dwCtrlType)
+   {
+      case CTRL_BREAK_EVENT:  /* use Ctrl+C or Ctrl+Break to simulate    */
+      case CTRL_C_EVENT:      /* SERVICE_CONTROL_STOP in debug mode    */
+         printf("Stopping %s.\n", G_SERVICEDISPLAYNAME);
+         ServiceStop();
+         return TRUE;
+         break;
 
-    } 
-    return FALSE; 
-} 
+   }
+   return FALSE;
+}
 
 /** Called by the SCM whenever ControlService is called on this service.
  *
@@ -374,31 +374,31 @@ BOOL WINAPI ControlHandler ( DWORD dwCtrlType )
  *
  * @internal
  */
-VOID WINAPI ServiceCtrl(DWORD dwCtrlCode) 
+VOID WINAPI ServiceCtrl(DWORD dwCtrlCode)
 {
-    /* Handle the requested control code.    */
-    /*    */
+   /* Handle the requested control code.    */
+   /*    */
 
-    switch(dwCtrlCode)
-    {
-    /* Stop the service.    */
-    case SERVICE_CONTROL_STOP: 
-        ReportStatusToSCMgr(SERVICE_STOP_PENDING, NO_ERROR, 0); 
-        ServiceStop(); 
-        return; 
+   switch (dwCtrlCode)
+   {
+      /* Stop the service.    */
+      case SERVICE_CONTROL_STOP:
+         ReportStatusToSCMgr(SERVICE_STOP_PENDING, NO_ERROR, 0);
+         ServiceStop();
+         return;
 
-        /* Update the service status.    */
-    case SERVICE_CONTROL_INTERROGATE: 
-        break; 
+         /* Update the service status.    */
+      case SERVICE_CONTROL_INTERROGATE:
+         break;
 
-        /* invalid control code    */
-    default: 
-        break; 
+      /* invalid control code    */
+      default:
+         break;
 
-    } 
+   }
 
-    ReportStatusToSCMgr(ssStatus.dwCurrentState, NO_ERROR, 0); 
-} 
+   ReportStatusToSCMgr(ssStatus.dwCurrentState, NO_ERROR, 0);
+}
 
 /** Win32 service main entry point.
  *
@@ -408,36 +408,36 @@ VOID WINAPI ServiceCtrl(DWORD dwCtrlCode)
  *
  * @internal
  */
-void WINAPI SLPDServiceMain(DWORD argc, LPTSTR *argv) 
+void WINAPI SLPDServiceMain(DWORD argc, LPTSTR *argv)
 {
 
-    /* register our service control handler:    */
-    sshStatusHandle = RegisterServiceCtrlHandler( G_SERVICENAME, ServiceCtrl); 
+   /* register our service control handler:    */
+   sshStatusHandle = RegisterServiceCtrlHandler(G_SERVICENAME, ServiceCtrl);
 
-    if(sshStatusHandle != 0)
-    {
-        /* SERVICE_STATUS members that don't change    */
-        ssStatus.dwServiceType = SERVICE_WIN32_OWN_PROCESS; 
-        ssStatus.dwServiceSpecificExitCode = 0; 
-
-
-        /* report the status to the service control manager.    */
-        if(ReportStatusToSCMgr(SERVICE_START_PENDING, /* service state    */
-                               NO_ERROR,              /* exit code    */
-                               3000))                 /* wait hint    */
-        {
-            ServiceStart(argc, argv); 
-        }
-    }
+   if (sshStatusHandle != 0)
+   {
+      /* SERVICE_STATUS members that don't change    */
+      ssStatus.dwServiceType = SERVICE_WIN32_OWN_PROCESS;
+      ssStatus.dwServiceSpecificExitCode = 0;
 
 
-    /* try to report the stopped status to the service control manager.    */
+      /* report the status to the service control manager.    */
+      if (ReportStatusToSCMgr(SERVICE_START_PENDING, /* service state    */
+            NO_ERROR,              /* exit code    */
+            3000))                 /* wait hint    */
+      {
+         ServiceStart(argc, argv);
+      }
+   }
 
-    if(sshStatusHandle)
-        (void)ReportStatusToSCMgr(SERVICE_STOPPED, 
-                                  0, 
-                                  0);
-} 
+
+   /* try to report the stopped status to the service control manager.    */
+
+   if (sshStatusHandle)
+      (void)ReportStatusToSCMgr(SERVICE_STOPPED, 
+            0, 
+            0);
+}
 
 /** Install the service.
  *
@@ -446,68 +446,68 @@ void WINAPI SLPDServiceMain(DWORD argc, LPTSTR *argv)
  *
  * @internal
  */
-void SLPDCmdInstallService(int automatic) 
+void SLPDCmdInstallService(int automatic)
 {
-    SC_HANDLE   schService; 
-    SC_HANDLE   schSCManager; 
+   SC_HANDLE   schService;
+   SC_HANDLE   schSCManager;
 
-    DWORD start_type;
-    TCHAR szPath[512]; 
+   DWORD start_type;
+   TCHAR szPath[512];
 
-    if(GetModuleFileName( NULL, szPath, 512 ) == 0)
-    {
-        printf("Unable to install %s - %s\n", 
-               G_SERVICEDISPLAYNAME, 
-               GetLastErrorText(szErr, 256)); 
-        return; 
-    }
+   if (GetModuleFileName(NULL, szPath, 512) == 0)
+   {
+      printf("Unable to install %s - %s\n", 
+            G_SERVICEDISPLAYNAME, 
+            GetLastErrorText(szErr, 256));
+      return;
+   }
 
-    if(automatic)
-    {
+   if (automatic)
+   {
       start_type = SERVICE_AUTO_START;
-    }
-    else
-    {
+   }
+   else
+   {
       start_type = SERVICE_DEMAND_START;
-    } 
+   }
 
-    schSCManager = OpenSCManager(
-                                NULL,                   /* machine (NULL == local)    */
-                                NULL,                   /* database (NULL == default)    */
-                                SC_MANAGER_ALL_ACCESS); /* access required    */
+   schSCManager = OpenSCManager(
+         NULL,                   /* machine (NULL == local)    */
+         NULL,                   /* database (NULL == default)    */
+   SC_MANAGER_ALL_ACCESS); /* access required    */
 
-    if(schSCManager)
-    {
-        schService = CreateService(
-                                  schSCManager,               /* SCManager database    */
-                                  G_SERVICENAME,        /* name of service    */
-                                  G_SERVICEDISPLAYNAME, /* name to display    */
-                                  SERVICE_ALL_ACCESS,         /* desired access    */
-                                  SERVICE_WIN32_OWN_PROCESS,  /* service type    */
-                                  start_type,       			  /* start type    */
-                                  SERVICE_ERROR_NORMAL,       /* error control type    */
-                                  szPath,                     /* service's binary    */
-                                  NULL,                       /* no load ordering group    */
-                                  NULL,                       /* no tag identifier    */
-                                  "",       /* dependencies    */
-                                  NULL,                       /* LocalSystem account    */
-                                  NULL);                      /* no password    */
+   if (schSCManager)
+   {
+      schService = CreateService(
+            schSCManager,               /* SCManager database    */
+            G_SERVICENAME,        /* name of service    */
+            G_SERVICEDISPLAYNAME, /* name to display    */
+            SERVICE_ALL_ACCESS,         /* desired access    */
+            SERVICE_WIN32_OWN_PROCESS,  /* service type    */
+            start_type,       			  /* start type    */
+            SERVICE_ERROR_NORMAL,       /* error control type    */
+            szPath,                     /* service's binary    */
+            NULL,                       /* no load ordering group    */
+            NULL,                       /* no tag identifier    */
+            "",       /* dependencies    */
+            NULL,                       /* LocalSystem account    */
+      NULL);                      /* no password    */
 
-        if(schService)
-        {
-            printf("%s installed.\n", G_SERVICEDISPLAYNAME ); 
-            CloseServiceHandle(schService); 
-        }
-        else
-        {
-            printf("CreateService failed - %s\n", GetLastErrorText(szErr, 256)); 
-        } 
+      if (schService)
+      {
+         printf("%s installed.\n", G_SERVICEDISPLAYNAME);
+         CloseServiceHandle(schService);
+      }
+      else
+      {
+         printf("CreateService failed - %s\n", GetLastErrorText(szErr, 256));
+      }
 
-        CloseServiceHandle(schSCManager); 
-    }
-    else
-        printf("OpenSCManager failed - %s\n", GetLastErrorText(szErr,256)); 
-} 
+      CloseServiceHandle(schSCManager);
+   }
+   else
+      printf("OpenSCManager failed - %s\n", GetLastErrorText(szErr,256));
+}
 
 /** Stop a service by service handle.
  *
@@ -518,67 +518,67 @@ void SLPDCmdInstallService(int automatic)
 static void SLPDHlpStopService(SC_HANDLE schService)
 {
    /* try to stop the service    */
-   if(ControlService(schService, SERVICE_CONTROL_STOP, &ssStatus))
+   if (ControlService(schService, SERVICE_CONTROL_STOP, &ssStatus))
    {
       printf("Stopping %s.", G_SERVICEDISPLAYNAME);
       Sleep(1000);
-      
-      while(QueryServiceStatus(schService, &ssStatus))
+
+      while (QueryServiceStatus(schService, &ssStatus))
       {
-         if(ssStatus.dwCurrentState == SERVICE_STOP_PENDING)
+         if (ssStatus.dwCurrentState == SERVICE_STOP_PENDING)
          {
             printf(".");
             Sleep(1000);
          }
          else
-            break; 
-      } 
-      
-      if(ssStatus.dwCurrentState == SERVICE_STOPPED)
+            break;
+      }
+
+      if (ssStatus.dwCurrentState == SERVICE_STOPPED)
          printf("\n%s stopped.\n", G_SERVICEDISPLAYNAME);
       else
-         printf("\n%s failed to stop.\n", G_SERVICEDISPLAYNAME); 
+         printf("\n%s failed to stop.\n", G_SERVICEDISPLAYNAME);
    }
 }
- 
+
 /** Uninstall the service.
  *
  * @internal
  */
-void SLPDCmdRemoveService() 
+void SLPDCmdRemoveService()
 {
-    SC_HANDLE schService; 
-    SC_HANDLE schSCManager; 
+   SC_HANDLE schService;
+   SC_HANDLE schSCManager;
 
-    schSCManager = OpenSCManager(
-                                NULL,                   /* machine (NULL == local)    */
-                                NULL,                   /* database (NULL == default)    */
-                                SC_MANAGER_ALL_ACCESS); /* access required    */
-    if(schSCManager)
-    {
-        schService = OpenService(schSCManager, G_SERVICENAME, SERVICE_ALL_ACCESS); 
+   schSCManager = OpenSCManager(
+         NULL,                   /* machine (NULL == local)    */
+         NULL,                   /* database (NULL == default)    */
+   SC_MANAGER_ALL_ACCESS); /* access required    */
+   if (schSCManager)
+   {
+      schService = OpenService(schSCManager, G_SERVICENAME, SERVICE_ALL_ACCESS);
 
-        if(schService)
-        {
-            SLPDHlpStopService(schService);
+      if (schService)
+      {
+         SLPDHlpStopService(schService);
 
-            /* now remove the service    */
-            if(DeleteService(schService))
-                printf("%s removed.\n", G_SERVICEDISPLAYNAME );
-            else
-                printf("DeleteService failed - %s\n", GetLastErrorText(szErr,256)); 
+         /* now remove the service    */
+         if (DeleteService(schService))
+            printf("%s removed.\n", G_SERVICEDISPLAYNAME);
+         else
+            printf("DeleteService failed - %s\n", GetLastErrorText(szErr,256));
 
 
-            CloseServiceHandle(schService); 
-        }
-        else
-            printf("OpenService failed - %s\n", GetLastErrorText(szErr,256)); 
+         CloseServiceHandle(schService);
+      }
+      else
+         printf("OpenService failed - %s\n", GetLastErrorText(szErr,256));
 
-        CloseServiceHandle(schSCManager); 
-    }
-    else
-        printf("OpenSCManager failed - %s\n", GetLastErrorText(szErr,256)); 
-} 
+      CloseServiceHandle(schSCManager);
+   }
+   else
+      printf("OpenSCManager failed - %s\n", GetLastErrorText(szErr,256));
+}
 
 /** Start the service.
  *
@@ -586,35 +586,35 @@ void SLPDCmdRemoveService()
  */
 void SLPDCmdStartService()
 {
-    SC_HANDLE schService; 
-    SC_HANDLE schSCManager; 
+   SC_HANDLE schService;
+   SC_HANDLE schSCManager;
 
-    schSCManager = OpenSCManager(
-                                NULL,                   /* machine (NULL == local)    */
-                                NULL,                   /* database (NULL == default) */
-                                SC_MANAGER_ALL_ACCESS); /* access required    		  */
-    if(schSCManager)
-    {
-        schService = OpenService(schSCManager, G_SERVICENAME, SERVICE_ALL_ACCESS); 
+   schSCManager = OpenSCManager(
+         NULL,                   /* machine (NULL == local)    */
+         NULL,                   /* database (NULL == default) */
+   SC_MANAGER_ALL_ACCESS); /* access required    		  */
+   if (schSCManager)
+   {
+      schService = OpenService(schSCManager, G_SERVICENAME, SERVICE_ALL_ACCESS);
 
-        if(schService)
-        {
-            if( !StartService(schService, 0, NULL))
-            {
-                printf("OpenService failed - %s\n", GetLastErrorText(szErr,256)); 
-            }
-            CloseServiceHandle(schService); 
-        }
-        else
-        {
-            printf("OpenService failed - %s\n", GetLastErrorText(szErr,256)); 
-        }
-        CloseServiceHandle(schSCManager); 
-    }
-    else
-    {
-        printf("OpenSCManager failed - %s\n", GetLastErrorText(szErr,256)); 
-    }
+      if (schService)
+      {
+         if (!StartService(schService, 0, NULL))
+         {
+            printf("OpenService failed - %s\n", GetLastErrorText(szErr,256));
+         }
+         CloseServiceHandle(schService);
+      }
+      else
+      {
+         printf("OpenService failed - %s\n", GetLastErrorText(szErr,256));
+      }
+      CloseServiceHandle(schSCManager);
+   }
+   else
+   {
+      printf("OpenSCManager failed - %s\n", GetLastErrorText(szErr,256));
+   }
 }
 
 /** Stop the service.
@@ -623,32 +623,32 @@ void SLPDCmdStartService()
  */
 void SLPDCmdStopService()
 {
-    SC_HANDLE schService; 
-    SC_HANDLE schSCManager; 
+   SC_HANDLE schService;
+   SC_HANDLE schSCManager;
 
-    schSCManager = OpenSCManager(
-                                NULL,                   /* machine (NULL == local)    */
-                                NULL,                   /* database (NULL == default) */
-                                SC_MANAGER_ALL_ACCESS); /* access required    		  */
-    if(schSCManager)
-    {
-        schService = OpenService(schSCManager, G_SERVICENAME, SERVICE_ALL_ACCESS); 
+   schSCManager = OpenSCManager(
+         NULL,                   /* machine (NULL == local)    */
+         NULL,                   /* database (NULL == default) */
+   SC_MANAGER_ALL_ACCESS); /* access required    		  */
+   if (schSCManager)
+   {
+      schService = OpenService(schSCManager, G_SERVICENAME, SERVICE_ALL_ACCESS);
 
-        if(schService)
-        {
-            SLPDHlpStopService(schService);
-            CloseServiceHandle(schService); 
-        }
-        else
-        {
-            printf("OpenService failed - %s\n", GetLastErrorText(szErr,256)); 
-        }
-        CloseServiceHandle(schSCManager); 
-    }
-    else
-    {
-        printf("OpenSCManager failed - %s\n", GetLastErrorText(szErr,256)); 
-    }
+      if (schService)
+      {
+         SLPDHlpStopService(schService);
+         CloseServiceHandle(schService);
+      }
+      else
+      {
+         printf("OpenService failed - %s\n", GetLastErrorText(szErr,256));
+      }
+      CloseServiceHandle(schSCManager);
+   }
+   else
+   {
+      printf("OpenSCManager failed - %s\n", GetLastErrorText(szErr,256));
+   }
 }
 
 /** Debug the service.
@@ -659,12 +659,12 @@ void SLPDCmdStopService()
  *
  * @internal
  */
-void SLPDCmdDebugService(int argc, char ** argv) 
+void SLPDCmdDebugService(int argc, char ** argv)
 {
-    printf("Debugging %s.\n", G_SERVICEDISPLAYNAME); 
+   printf("Debugging %s.\n", G_SERVICEDISPLAYNAME);
 
-    SetConsoleCtrlHandler( ControlHandler, TRUE ); 
-    ServiceStart( argc, argv ); 
+   SetConsoleCtrlHandler(ControlHandler, TRUE);
+   ServiceStart(argc, argv);
 }
 
 /** The main program entry point (when not executed as a service). 
@@ -673,45 +673,45 @@ void SLPDCmdDebugService(int argc, char ** argv)
  *
  * @param[in] argv - An array of argument string pointers.
  */
-void __cdecl main(int argc, char **argv) 
+void __cdecl main(int argc, char **argv)
 {
-    SERVICE_TABLE_ENTRY dispatchTable[] = 
+   SERVICE_TABLE_ENTRY dispatchTable[] = 
     { 
         { G_SERVICENAME, (LPSERVICE_MAIN_FUNCTION)SLPDServiceMain}, 
         { NULL, NULL} 
-    }; 
+    };
 
-    /*------------------------*/
-    /* Parse the command line */
-    /*------------------------*/
-    if(SLPDParseCommandLine(argc,argv))
-    {
-        SLPDFatal("Invalid command line\n");
-    }
+   /*------------------------*/
+   /* Parse the command line */
+   /*------------------------*/
+   if (SLPDParseCommandLine(argc,argv))
+   {
+      SLPDFatal("Invalid command line\n");
+   }
 
-    switch(G_SlpdCommandLine.action)
-    {
-    case SLPD_DEBUG:
-        SLPDCmdDebugService(argc, argv);
-        break;
-    case SLPD_INSTALL:
-        SLPDCmdInstallService(G_SlpdCommandLine.autostart);
-        break;
-    case SLPD_REMOVE:
-        SLPDCmdRemoveService();
-        break;
-    case SLPD_START:
-        SLPDCmdStartService();
-        break;
-    case SLPD_STOP:
-        SLPDCmdStopService();
-        break;
-    default:
-        SLPDPrintUsage();
-        StartServiceCtrlDispatcher(dispatchTable);
+   switch (G_SlpdCommandLine.action)
+   {
+      case SLPD_DEBUG:
+         SLPDCmdDebugService(argc, argv);
+         break;
+      case SLPD_INSTALL:
+         SLPDCmdInstallService(G_SlpdCommandLine.autostart);
+         break;
+      case SLPD_REMOVE:
+         SLPDCmdRemoveService();
+         break;
+      case SLPD_START:
+         SLPDCmdStartService();
+         break;
+      case SLPD_STOP:
+         SLPDCmdStopService();
+         break;
+      default:
+         SLPDPrintUsage();
+         StartServiceCtrlDispatcher(dispatchTable);
 
-        break;
-    } 
-} 
+         break;
+   }
+}
 
 /*=========================================================================*/

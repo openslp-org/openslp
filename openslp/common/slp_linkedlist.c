@@ -55,28 +55,28 @@
  */
 SLPListItem* SLPListUnlink(SLPList* list, SLPListItem* item)
 {
-    if(item->previous)
-    {
-        item->previous->next = item->next;
-    }
+   if (item->previous)
+   {
+      item->previous->next = item->next;
+   }
 
-    if(item->next)
-    {
-        item->next->previous = item->previous;
-    }
+   if (item->next)
+   {
+      item->next->previous = item->previous;
+   }
 
-    if(item == list->head)
-    {
-        list->head = item->next;
-    }
+   if (item == list->head)
+   {
+      list->head = item->next;
+   }
 
-    if(item == list->tail)
-    {
-        list->tail = item->previous;
-    }
+   if (item == list->tail)
+   {
+      list->tail = item->previous;
+   }
 
-    list->count = list->count - 1;
-    return item;
+   list->count = list->count - 1;
+   return item;
 }
 
 /** Links an item into a list.
@@ -88,24 +88,24 @@ SLPListItem* SLPListUnlink(SLPList* list, SLPListItem* item)
  */
 SLPListItem* SLPListLinkHead(SLPList* list, SLPListItem* item)
 {
-    item->previous = 0;
-    item->next = list->head;
+   item->previous = 0;
+   item->next = list->head;
 
-    if(list->head)
-    {
-        list->head->previous = item;
-    }
+   if (list->head)
+   {
+      list->head->previous = item;
+   }
 
-    list->head = item;
+   list->head = item;
 
-    if(list->tail == 0)
-    {
-        list->tail = item;
-    }
+   if (list->tail == 0)
+   {
+      list->tail = item;
+   }
 
-    list->count = list->count + 1;
+   list->count = list->count + 1;
 
-    return item;
+   return item;
 }
 
 /** Links an item to the tail of a list.
@@ -117,24 +117,24 @@ SLPListItem* SLPListLinkHead(SLPList* list, SLPListItem* item)
  */
 SLPListItem* SLPListLinkTail(SLPList* list, SLPListItem* item)
 {
-    item->previous = list->tail;
-    item->next = 0;
+   item->previous = list->tail;
+   item->next = 0;
 
-    if(list->tail)
-    {
-        list->tail->next = item;
-    }
+   if (list->tail)
+   {
+      list->tail->next = item;
+   }
 
-    list->tail = item;
+   list->tail = item;
 
-    if(list->head == 0)
-    {
-        list->head = item;
-    }
+   if (list->head == 0)
+   {
+      list->head = item;
+   }
 
-    list->count = list->count + 1;
+   list->count = list->count + 1;
 
-    return item;
+   return item;
 }
 
 /*=========================================================================*/

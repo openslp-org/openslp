@@ -64,13 +64,13 @@ static int G_Xid = 0;
  */
 void SLPXidSeed(void)
 {
-/* Generate a random start */
+   /* Generate a random start */
 #ifdef _WIN32
-srand(SLPPidGet() | G_Xid);   
-G_Xid = (unsigned short)rand();
+   srand(SLPPidGet() | G_Xid);
+   G_Xid = (unsigned short)rand();
 #else
-srandom(SLPPidGet() | G_Xid);   
-G_Xid = (unsigned short)random();
+   srandom(SLPPidGet() | G_Xid);
+   G_Xid = (unsigned short)random();
 #endif
 }
 
@@ -82,8 +82,8 @@ G_Xid = (unsigned short)random();
  */
 unsigned short SLPXidGenerate()
 {
-    G_Xid++;
-    return G_Xid;
+   G_Xid++;
+   return G_Xid;
 }
 
 /*=========================================================================*/

@@ -46,7 +46,7 @@
 /** SLPFindAttrs callback routine for NetworkRqstRply.
  *
  * @param[in] errorcode - The network operation error code.
- * @param[in] peeraddr - The network address of the responder.
+ * @param[in] peerinfo - The network address of the responder.
  * @param[in] replybuf - The response buffer from the network request.
  * @param[in] cookie - Callback context data from ProcessSrvReg.
  *
@@ -57,82 +57,82 @@
  * @internal
  */
 SLPBoolean ProcessAttrRplyCallback(SLPError errorcode, 
-                                   struct sockaddr_storage* peerinfo,
-                                   SLPBuffer replybuf,
-                                   void* cookie)
+      struct sockaddr_storage* peerinfo,
+      SLPBuffer replybuf,
+      void* cookie)
 {
-    SLPMessage      replymsg;
-    SLPAttrRply*    attrrply;
-    PSLPHandleInfo  handle      = (PSLPHandleInfo) cookie;
-    SLPBoolean      result      = SLP_TRUE;
+   SLPMessage      replymsg;
+   SLPAttrRply*    attrrply;
+   PSLPHandleInfo  handle      = (PSLPHandleInfo) cookie;
+   SLPBoolean      result      = SLP_TRUE;
 
 #ifdef ENABLE_SLPv2_SECURITY 
-    int             securityenabled;
-    securityenabled = SLPPropertyAsBoolean(SLPGetProperty("net.slp.securityEnabled"));
+   int             securityenabled;
+   securityenabled = SLPPropertyAsBoolean(SLPGetProperty("net.slp.securityEnabled"));
 #endif
 
-    /*-------------------------------------------*/
-    /* Check the errorcode and bail if it is set */
-    /*-------------------------------------------*/
-    if(errorcode)
-    {
-        handle->params.findattrs.callback((SLPHandle)handle,
-                                          0,
-                                          errorcode,
-                                          handle->params.findattrs.cookie);
-        return SLP_FALSE;
-    }
+   /*-------------------------------------------*/
+   /* Check the errorcode and bail if it is set */
+   /*-------------------------------------------*/
+   if (errorcode)
+   {
+      handle->params.findattrs.callback((SLPHandle)handle,
+            0,
+            errorcode,
+            handle->params.findattrs.cookie);
+      return SLP_FALSE;
+   }
 
-    /*--------------------*/
-    /* Parse the replybuf */
-    /*--------------------*/
-    replymsg = SLPMessageAlloc();
-    if(replymsg)
-    {
-        if(SLPMessageParseBuffer(peerinfo,NULL,replybuf,replymsg) == 0 &&
-           replymsg->header.functionid == SLP_FUNCT_ATTRRPLY &&
-           replymsg->body.attrrply.errorcode == 0)
-        {
-            attrrply = &(replymsg->body.attrrply);
-            
-            if(attrrply->attrlistlen)
-            {
-     
+   /*--------------------*/
+   /* Parse the replybuf */
+   /*--------------------*/
+   replymsg = SLPMessageAlloc();
+   if (replymsg)
+   {
+      if (SLPMessageParseBuffer(peerinfo,NULL,replybuf,replymsg) == 0 &&
+            replymsg->header.functionid == SLP_FUNCT_ATTRRPLY &&
+            replymsg->body.attrrply.errorcode == 0)
+      {
+         attrrply = &(replymsg->body.attrrply);
+
+         if (attrrply->attrlistlen)
+         {
+
 #ifdef ENABLE_SLPv2_SECURITY
-                /*-------------------------------*/
-                /* Validate the authblocks       */
-                /*-------------------------------*/
-                if(SLPPropertyAsBoolean(SLPGetProperty("net.slp.securityEnabled")) &&
-                   SLPAuthVerifyString(handle->hspi,
-                                       1,
-                                       attrrply->attrlistlen,
-                                       attrrply->attrlist,
-                                       attrrply->authcount,
-                                       attrrply->autharray))
-                {
-                    /* Could not verify the attr auth block */
-                    SLPMessageFree(replymsg);
-                    return result;
-                }
-#endif
-                /*---------------------------------------*/
-                /* Send the attribute list to the caller */
-                /*---------------------------------------*/
-                /* TRICKY: null terminate the attrlist by setting the authcount to 0 */
-                ((char*)(attrrply->attrlist))[attrrply->attrlistlen] = 0;
-                
-                /* Call the callback function */
-                result = handle->params.findattrs.callback((SLPHandle)handle,
-                                                           attrrply->attrlist,
-                                                           attrrply->errorcode * -1,
-                                                           handle->params.findattrs.cookie);
+            /*-------------------------------*/
+            /* Validate the authblocks       */
+            /*-------------------------------*/
+            if (SLPPropertyAsBoolean(SLPGetProperty("net.slp.securityEnabled")) &&
+                  SLPAuthVerifyString(handle->hspi,
+                  1,
+                  attrrply->attrlistlen,
+                  attrrply->attrlist,
+                  attrrply->authcount,
+                  attrrply->autharray))
+            {
+               /* Could not verify the attr auth block */
+               SLPMessageFree(replymsg);
+               return result;
             }
-        }
-        
-        SLPMessageFree(replymsg);
-    }
-    
-    return result;
+#endif
+            /*---------------------------------------*/
+            /* Send the attribute list to the caller */
+            /*---------------------------------------*/
+            /* TRICKY: null terminate the attrlist by setting the authcount to 0 */
+            ((char*)(attrrply->attrlist))[attrrply->attrlistlen] = 0;
+
+            /* Call the callback function */
+            result = handle->params.findattrs.callback((SLPHandle)handle,
+                  attrrply->attrlist,
+                  attrrply->errorcode * -1,
+                  handle->params.findattrs.cookie);
+         }
+      }
+
+      SLPMessageFree(replymsg);
+   }
+
+   return result;
 }
 
 /** Formats and sends an SLPFindAttrs wire buffer request.
@@ -144,148 +144,148 @@ SLPBoolean ProcessAttrRplyCallback(SLPError errorcode,
  */
 SLPError ProcessAttrRqst(PSLPHandleInfo handle)
 {
-    int						sock;
-    struct sockaddr_storage peeraddr;
-    int						bufsize     = 0;
-    char*					buf         = 0;
-    char*					curpos      = 0;
-    SLPError				result      = 0;
+   int						sock;
+   struct sockaddr_storage peeraddr;
+   int						bufsize     = 0;
+   char*					buf         = 0;
+   char*					curpos      = 0;
+   SLPError				result      = 0;
 
 #ifdef ENABLE_SLPv2_SECURITY
-    int                 spistrlen   = 0;
-    char*               spistr      = 0;
+   int                 spistrlen   = 0;
+   char*               spistr      = 0;
 
-    if(SLPPropertyAsBoolean(SLPGetProperty("net.slp.securityEnabled")))
-    {
-        SLPSpiGetDefaultSPI(handle->hspi,
-                            SLPSPI_KEY_TYPE_PUBLIC,
-                            &spistrlen,
-                            &spistr);
-    }
+   if (SLPPropertyAsBoolean(SLPGetProperty("net.slp.securityEnabled")))
+   {
+      SLPSpiGetDefaultSPI(handle->hspi,
+            SLPSPI_KEY_TYPE_PUBLIC,
+            &spistrlen,
+            &spistr);
+   }
 #endif
 
-    /*-------------------------------------------------------------------*/
-    /* determine the size of the fixed portion of the ATTRRQST           */
-    /*-------------------------------------------------------------------*/
-    bufsize  = handle->params.findattrs.urllen + 2;       /*  2 bytes for len field */
-    bufsize += handle->params.findattrs.scopelistlen + 2; /*  2 bytes for len field */
-    bufsize += handle->params.findattrs.taglistlen + 2;   /*  2 bytes for len field */
-    bufsize += 2;    /*  2 bytes for spistr len*/
+   /*-------------------------------------------------------------------*/
+   /* determine the size of the fixed portion of the ATTRRQST           */
+   /*-------------------------------------------------------------------*/
+   bufsize  = handle->params.findattrs.urllen + 2;       /*  2 bytes for len field */
+   bufsize += handle->params.findattrs.scopelistlen + 2; /*  2 bytes for len field */
+   bufsize += handle->params.findattrs.taglistlen + 2;   /*  2 bytes for len field */
+   bufsize += 2;    /*  2 bytes for spistr len*/
 #ifdef ENABLE_SLPv2_SECURITY
-    bufsize += spistrlen;
+   bufsize += spistrlen;
 #endif
 
-    buf = curpos = (char*)xmalloc(bufsize);
-    if(buf == 0)
-    {
-        result = SLP_MEMORY_ALLOC_FAILED;
-        goto FINISHED;
-    }
+   buf = curpos = (char*)xmalloc(bufsize);
+   if (buf == 0)
+   {
+      result = SLP_MEMORY_ALLOC_FAILED;
+      goto FINISHED;
+   }
 
-    /*------------------------------------------------------------*/
-    /* Build a buffer containing the fixed portion of the ATTRRQST*/
-    /*------------------------------------------------------------*/
-    /* url */
-    ToUINT16(curpos,handle->params.findattrs.urllen);
-    curpos = curpos + 2;
-    memcpy(curpos,
-           handle->params.findattrs.url,
-           handle->params.findattrs.urllen);
-    curpos = curpos + handle->params.findattrs.urllen;
-    /* scope list */
-    ToUINT16(curpos,handle->params.findattrs.scopelistlen);
-    curpos = curpos + 2;
-    memcpy(curpos,
-           handle->params.findattrs.scopelist,
-           handle->params.findattrs.scopelistlen);
-    curpos = curpos + handle->params.findattrs.scopelistlen;
-    /* taglist  */
-    ToUINT16(curpos,handle->params.findattrs.taglistlen);
-    curpos = curpos + 2;
-    memcpy(curpos,
-           handle->params.findattrs.taglist,
-           handle->params.findattrs.taglistlen);
-    curpos = curpos + handle->params.findattrs.taglistlen;
+   /*------------------------------------------------------------*/
+   /* Build a buffer containing the fixed portion of the ATTRRQST*/
+   /*------------------------------------------------------------*/
+   /* url */
+   ToUINT16(curpos,handle->params.findattrs.urllen);
+   curpos = curpos + 2;
+   memcpy(curpos,
+         handle->params.findattrs.url,
+         handle->params.findattrs.urllen);
+   curpos = curpos + handle->params.findattrs.urllen;
+   /* scope list */
+   ToUINT16(curpos,handle->params.findattrs.scopelistlen);
+   curpos = curpos + 2;
+   memcpy(curpos,
+         handle->params.findattrs.scopelist,
+         handle->params.findattrs.scopelistlen);
+   curpos = curpos + handle->params.findattrs.scopelistlen;
+   /* taglist  */
+   ToUINT16(curpos,handle->params.findattrs.taglistlen);
+   curpos = curpos + 2;
+   memcpy(curpos,
+         handle->params.findattrs.taglist,
+         handle->params.findattrs.taglistlen);
+   curpos = curpos + handle->params.findattrs.taglistlen;
 #ifdef ENABLE_SLPv2_SECURITY
-    ToUINT16(curpos,spistrlen);
-    curpos = curpos + 2;
-    memcpy(curpos,spistr,spistrlen);
-    curpos = curpos + spistrlen;
+   ToUINT16(curpos,spistrlen);
+   curpos = curpos + 2;
+   memcpy(curpos,spistr,spistrlen);
+   curpos = curpos + spistrlen;
 #else
-    ToUINT16(curpos,0);
+   ToUINT16(curpos,0);
 #endif
 
 
-    /*--------------------------*/
-    /* Call the RqstRply engine */
-    /*--------------------------*/
-    do
-    {
+   /*--------------------------*/
+   /* Call the RqstRply engine */
+   /*--------------------------*/
+   do
+   {
 
         #ifndef UNICAST_NOT_SUPPORTED
-   if ( handle->dounicast == 1 ) 
-   {
-       void *cookie = (PSLPHandleInfo) handle;
-       result = NetworkUcastRqstRply(handle,
-                                          buf,
-                                          SLP_FUNCT_ATTRRQST,
-                 bufsize,
-                                          ProcessAttrRplyCallback,
-                 cookie);
-       break;
-   }
-   else
+      if (handle->dounicast == 1)
+      {
+         void *cookie = (PSLPHandleInfo) handle;
+         result = NetworkUcastRqstRply(handle,
+               buf,
+               SLP_FUNCT_ATTRRQST,
+               bufsize,
+               ProcessAttrRplyCallback,
+               cookie);
+         break;
+      }
+      else
    #endif
-   sock = NetworkConnectToDA(handle,
-                                  handle->params.findattrs.scopelist,
-                                  handle->params.findattrs.scopelistlen,
-                                  &peeraddr);
-        if(sock == -1)
-        {
-            /* use multicast as a last resort */
-            
+         sock = NetworkConnectToDA(handle,
+               handle->params.findattrs.scopelist,
+               handle->params.findattrs.scopelistlen,
+               &peeraddr);
+      if (sock == -1)
+      {
+         /* use multicast as a last resort */
+
             #ifndef MI_NOT_SUPPORTED
-            result = NetworkMcastRqstRply(handle,
-                                          buf,
-                                          SLP_FUNCT_ATTRRQST,
-                                          bufsize,
-                                          ProcessAttrRplyCallback,
-                                          NULL);
-            #else	
-       result = NetworkMcastRqstRply(handle->langtag,
-                                          buf,
-                                          SLP_FUNCT_ATTRRQST,
-                                          bufsize,
-                                          ProcessAttrRplyCallback,
-                                          handle);
-            #endif /* MI_NOT_SUPPORTED */			
-            break;
-        }
+         result = NetworkMcastRqstRply(handle,
+               buf,
+               SLP_FUNCT_ATTRRQST,
+               bufsize,
+               ProcessAttrRplyCallback,
+               NULL);
+#else	
+         result = NetworkMcastRqstRply(handle->langtag,
+               buf,
+               SLP_FUNCT_ATTRRQST,
+               bufsize,
+               ProcessAttrRplyCallback,
+               handle);
+#endif /* MI_NOT_SUPPORTED */			
+         break;
+      }
 
-        result = NetworkRqstRply(sock,
-                                 &peeraddr,
-                                 handle->langtag,
-                                 0,
-                                 buf,
-                                 SLP_FUNCT_ATTRRQST,
-                                 bufsize,
-                                 ProcessAttrRplyCallback,
-                                 handle);
-        if(result)
-        {
-            NetworkDisconnectDA(handle);
-        }
+      result = NetworkRqstRply(sock,
+            &peeraddr,
+            handle->langtag,
+            0,
+            buf,
+            SLP_FUNCT_ATTRRQST,
+            bufsize,
+            ProcessAttrRplyCallback,
+            handle);
+      if (result)
+      {
+         NetworkDisconnectDA(handle);
+      }
 
-    }while(result == SLP_NETWORK_ERROR);
+   }while (result == SLP_NETWORK_ERROR);
 
 
-    FINISHED:
-    if(buf) xfree(buf);
+FINISHED:
+   if (buf) xfree(buf);
 #ifdef ENABLE_SLPv2_SECURITY
-    if(spistr) xfree(spistr);
+   if (spistr) xfree(spistr);
 #endif
 
-    return result;
+   return result;
 }
 
 #ifdef ENABLE_ASYNC_API
@@ -300,12 +300,12 @@ SLPError ProcessAttrRqst(PSLPHandleInfo handle)
  */
 SLPError AsyncProcessAttrRqst(PSLPHandleInfo handle)
 {
-    SLPError result = ProcessAttrRqst(handle);
-    xfree((void*)handle->params.findattrs.url);
-    xfree((void*)handle->params.findattrs.scopelist);
-    xfree((void*)handle->params.findattrs.taglist);
-    handle->inUse = SLP_FALSE;
-    return result;
+   SLPError result = ProcessAttrRqst(handle);
+   xfree((void*)handle->params.findattrs.url);
+   xfree((void*)handle->params.findattrs.scopelist);
+   xfree((void*)handle->params.findattrs.taglist);
+   handle->inUse = SLP_FALSE;
+   return result;
 }
 #endif
 
@@ -351,113 +351,113 @@ SLPError AsyncProcessAttrRqst(PSLPHandleInfo handle)
  *    SLPError codes is returned.
  */
 SLPError SLPAPI SLPFindAttrs(SLPHandle   hSLP,
-                      const char *pcURLOrServiceType,
-                      const char *pcScopeList,
-                      const char *pcAttrIds,
-                      SLPAttrCallback callback,
-                      void *pvCookie)
+      const char *pcURLOrServiceType,
+      const char *pcScopeList,
+      const char *pcAttrIds,
+      SLPAttrCallback callback,
+      void *pvCookie)
 {
-    PSLPHandleInfo      handle;
-    SLPError            result;
+   PSLPHandleInfo      handle;
+   SLPError            result;
 
-    /*------------------------------*/
-    /* check for invalid parameters */
-    /*------------------------------*/
-    if(hSLP == 0 ||
-       *(unsigned int*)hSLP != SLP_HANDLE_SIG ||
-       pcURLOrServiceType == 0 ||
-       *pcURLOrServiceType == 0 || 
-       callback == 0)
-    {
-        return SLP_PARAMETER_BAD;
-    }
+   /*------------------------------*/
+   /* check for invalid parameters */
+   /*------------------------------*/
+   if (hSLP == 0 ||
+         *(unsigned int*)hSLP != SLP_HANDLE_SIG ||
+         pcURLOrServiceType == 0 ||
+         *pcURLOrServiceType == 0 ||
+         callback == 0)
+   {
+      return SLP_PARAMETER_BAD;
+   }
 
-    /*-----------------------------------------*/
-    /* cast the SLPHandle into a SLPHandleInfo */
-    /*-----------------------------------------*/
-    handle = (PSLPHandleInfo)hSLP; 
+   /*-----------------------------------------*/
+   /* cast the SLPHandle into a SLPHandleInfo */
+   /*-----------------------------------------*/
+   handle = (PSLPHandleInfo)hSLP;
 
-    /*-----------------------------------------*/
-    /* Check to see if the handle is in use    */
-    /*-----------------------------------------*/
-    if(handle->inUse == SLP_TRUE)
-    {
-        return SLP_HANDLE_IN_USE;
-    }
-    handle->inUse = SLP_TRUE;
-
-
-    /*-------------------------------------------*/
-    /* Set the handle up to reference parameters */
-    /*-------------------------------------------*/
-    handle->params.findattrs.urllen   = strlen(pcURLOrServiceType);
-    handle->params.findattrs.url      = pcURLOrServiceType;
-    if(pcScopeList && *pcScopeList)
-    {
-        handle->params.findattrs.scopelistlen = strlen(pcScopeList);
-        handle->params.findattrs.scopelist    = pcScopeList;
-    }
-    else
-    {
-        handle->params.findattrs.scopelist    = SLPGetProperty("net.slp.useScopes");
-        handle->params.findattrs.scopelistlen = strlen(handle->params.findattrs.scopelist);
-    }
-    if(pcAttrIds && *pcAttrIds)
-    {
-        handle->params.findattrs.taglistlen = strlen(pcAttrIds);
-        handle->params.findattrs.taglist    = pcAttrIds;
-    }
-    else
-    {
-        handle->params.findattrs.taglistlen = 0;
-        handle->params.findattrs.taglist    = (char*)&handle->params.findattrs.taglistlen;
-    }
-    handle->params.findattrs.callback   = callback;
-    handle->params.findattrs.cookie     = pvCookie; 
+   /*-----------------------------------------*/
+   /* Check to see if the handle is in use    */
+   /*-----------------------------------------*/
+   if (handle->inUse == SLP_TRUE)
+   {
+      return SLP_HANDLE_IN_USE;
+   }
+   handle->inUse = SLP_TRUE;
 
 
-    /*----------------------------------------------*/
-    /* Check to see if we should be async or sync   */
-    /*----------------------------------------------*/
+   /*-------------------------------------------*/
+   /* Set the handle up to reference parameters */
+   /*-------------------------------------------*/
+   handle->params.findattrs.urllen   = strlen(pcURLOrServiceType);
+   handle->params.findattrs.url      = pcURLOrServiceType;
+   if (pcScopeList && *pcScopeList)
+   {
+      handle->params.findattrs.scopelistlen = strlen(pcScopeList);
+      handle->params.findattrs.scopelist    = pcScopeList;
+   }
+   else
+   {
+      handle->params.findattrs.scopelist    = SLPGetProperty("net.slp.useScopes");
+      handle->params.findattrs.scopelistlen = strlen(handle->params.findattrs.scopelist);
+   }
+   if (pcAttrIds && *pcAttrIds)
+   {
+      handle->params.findattrs.taglistlen = strlen(pcAttrIds);
+      handle->params.findattrs.taglist    = pcAttrIds;
+   }
+   else
+   {
+      handle->params.findattrs.taglistlen = 0;
+      handle->params.findattrs.taglist    = (char*)&handle->params.findattrs.taglistlen;
+   }
+   handle->params.findattrs.callback   = callback;
+   handle->params.findattrs.cookie     = pvCookie;
+
+
+   /*----------------------------------------------*/
+   /* Check to see if we should be async or sync   */
+   /*----------------------------------------------*/
 #ifdef ENABLE_ASYNC_API
-    if(handle->isAsync)
-    {
-        /* COPY all the referenced parameters */
-        handle->params.findattrs.url = xstrdup(handle->params.findattrs.url);
-        handle->params.findattrs.scopelist = xstrdup(handle->params.findattrs.scopelist);
-        handle->params.findattrs.taglist = xstrdup(handle->params.findattrs.taglist);
+   if (handle->isAsync)
+   {
+      /* COPY all the referenced parameters */
+      handle->params.findattrs.url = xstrdup(handle->params.findattrs.url);
+      handle->params.findattrs.scopelist = xstrdup(handle->params.findattrs.scopelist);
+      handle->params.findattrs.taglist = xstrdup(handle->params.findattrs.taglist);
 
-        /* make sure strdups did not fail */
-        if(handle->params.findattrs.url &&
-           handle->params.findattrs.scopelist &&
-           handle->params.findattrs.taglist)
-        {
-            result = ThreadCreate((ThreadStartProc)AsyncProcessAttrRqst,handle);
-        }
-        else
-        {
-            result = SLP_MEMORY_ALLOC_FAILED;    
-        }
+      /* make sure strdups did not fail */
+      if (handle->params.findattrs.url &&
+            handle->params.findattrs.scopelist &&
+            handle->params.findattrs.taglist)
+      {
+         result = ThreadCreate((ThreadStartProc)AsyncProcessAttrRqst,handle);
+      }
+      else
+      {
+         result = SLP_MEMORY_ALLOC_FAILED;
+      }
 
-        if(result)
-        {
-            if(handle->params.findattrs.url) xfree((void*)handle->params.findattrs.url);
-            if(handle->params.findattrs.scopelist) xfree((void*)handle->params.findattrs.scopelist);
-            if(handle->params.findattrs.taglist) xfree((void*)handle->params.findattrs.taglist);
-            handle->inUse = SLP_FALSE;
-        }
-    }
-    else
+      if (result)
+      {
+         if (handle->params.findattrs.url) xfree((void*)handle->params.findattrs.url);
+         if (handle->params.findattrs.scopelist) xfree((void*)handle->params.findattrs.scopelist);
+         if (handle->params.findattrs.taglist) xfree((void*)handle->params.findattrs.taglist);
+         handle->inUse = SLP_FALSE;
+      }
+   }
+   else
 #endif /* ifdef ENABLE_ASYNC_API */
-    {
-        /* Leave all parameters REFERENCED */
+   {
+      /* Leave all parameters REFERENCED */
 
-        result = ProcessAttrRqst(handle);
+      result = ProcessAttrRqst(handle);
 
-        handle->inUse = SLP_FALSE;
-    }
+      handle->inUse = SLP_FALSE;
+   }
 
-    return result;
+   return result;
 }
 
 /*=========================================================================*/

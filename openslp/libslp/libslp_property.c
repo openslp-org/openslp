@@ -58,29 +58,29 @@
  */
 const char* SLPAPI SLPGetProperty(const char* pcName)
 {
-    char conffile[MAX_PATH]; 
-    const char* result;
+   char conffile[MAX_PATH];
+   const char* result;
 
-    memset(conffile,0,MAX_PATH);
+   memset(conffile,0,MAX_PATH);
 
     #ifdef _WIN32
-    ExpandEnvironmentStrings(LIBSLP_CONFFILE,conffile,MAX_PATH);
-    #else
-    strncpy(conffile,LIBSLP_CONFFILE,MAX_PATH-1);
+   ExpandEnvironmentStrings(LIBSLP_CONFFILE,conffile,MAX_PATH);
+#else
+   strncpy(conffile,LIBSLP_CONFFILE,MAX_PATH-1);
     #endif
 
-    if(G_SLPPropertyList.head == NULL)
-    {
-        if(SLPPropertyReadFile(conffile) != 0)
-        {
-            return 0;
-        }
-    }
+   if (G_SLPPropertyList.head == NULL)
+   {
+      if (SLPPropertyReadFile(conffile) != 0)
+      {
+         return 0;
+      }
+   }
 
-    result = SLPPropertyGet(pcName);
+   result = SLPPropertyGet(pcName);
 
-    return result;
-} 
+   return result;
+}
 
 /** Set a property value by name. 
  *
@@ -105,21 +105,21 @@ const char* SLPAPI SLPGetProperty(const char* pcName)
  *    application using this library.
  */
 void SLPAPI SLPSetProperty(const char *pcName,
-                    const char *pcValue)
+      const char *pcValue)
 {
-    /* Following commented out for threading reasons 
-    
-    if(G_PropertyInit.head == NULL)
-    {
-        if(SLPPropertyReadFile(LIBSLP_CONFFILE) == 0)
-        {
-            G_PropertyInit = 1;
-        }
-    }
+   /* Following commented out for threading reasons 
 
-    SLPPropertySet(pcName,pcValue);
-    
-    */
+   if(G_PropertyInit.head == NULL)
+   {
+   if(SLPPropertyReadFile(LIBSLP_CONFFILE) == 0)
+   {
+   G_PropertyInit = 1;
+   }
+   }
+
+   SLPPropertySet(pcName,pcValue);
+
+   */
 }
 
 /*=========================================================================*/

@@ -44,14 +44,15 @@
 #include <stdio.h>
 
 SLPBoolean
-MySLPSrvURLCallback (SLPHandle hslp,
-           const char *srvurl,
-           unsigned short lifetime, SLPError errcode, void *cookie)
+MySLPSrvURLCallback(SLPHandle hslp,
+      const char *srvurl,
+      unsigned short lifetime, SLPError errcode, void *cookie)
 {
-   switch(errcode) {
+   switch (errcode)
+   {
       case SLP_OK:
-         printf ("Service URL     = %s\n", srvurl);
-         printf ("Service Timeout = %i\n", lifetime);
+         printf("Service URL     = %s\n", srvurl);
+         printf("Service Timeout = %i\n", lifetime);
          *(SLPError *) cookie = SLP_OK;
          break;
       case SLP_LAST_CALL:
@@ -65,7 +66,7 @@ MySLPSrvURLCallback (SLPHandle hslp,
 }
 
 int
-main (int argc, char *argv[])
+main(int argc, char *argv[])
 {
    SLPError err;
    SLPError callbackerr;
@@ -77,10 +78,10 @@ main (int argc, char *argv[])
       return (0);
    } /* End If. */
 
-   err = SLPOpen ("en", SLP_FALSE, &hslp);
+   err = SLPOpen("en", SLP_FALSE, &hslp);
    check_error_state(err,"Error opening slp handle.");
 
-   err = SLPFindSrvs (
+   err = SLPFindSrvs(
          hslp, 
          argv[1],
          0,		/* use configured scopes */
@@ -90,9 +91,9 @@ main (int argc, char *argv[])
    check_error_state(err, "Error registering service with slp.");
 
    /* Now that we're done using slp, close the slp handle */
-   SLPClose (hslp);
+   SLPClose(hslp);
 
-   return(0);
+   return (0);
 }
 
-/*=========================================================================*/ 
+/*=========================================================================*/

@@ -41,6 +41,13 @@
 #ifndef SLP_WIN32_H_INCLUDED
 #define SLP_WIN32_H_INCLUDED
 
+/*!@defgroup CommonCodeWin32 Platform Specific */
+
+/*!@addtogroup CommonCodeWin32
+ * @ingroup CommonCodePlatform
+ * @{
+ */
+
 #ifndef strncasecmp
 # define strncasecmp(String1, String2, Num) strnicmp(String1, String2, Num)
 #endif

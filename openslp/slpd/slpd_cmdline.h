@@ -41,6 +41,13 @@
 #ifndef SLPD_CMDLINE_H_INCLUDED
 #define SLPD_CMDLINE_H_INCLUDED
 
+/*!@defgroup SlpdCodeCmdLine Command Line */
+
+/*!@addtogroup SlpdCodeCmdLine
+ * @ingroup SlpdCode
+ * @{
+ */
+
 #include "slpd.h"
 
 #ifndef _WIN32

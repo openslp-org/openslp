@@ -63,34 +63,34 @@
  *    error code.
  */
 SLPError SLPAPI SLPFindScopes(SLPHandle hSLP,
-                       char** ppcScopeList)
+      char** ppcScopeList)
 {
-    int scopelistlen;
+   int scopelistlen;
 
-    /*------------------------------*/
-    /* check for invalid parameters */
-    /*------------------------------*/
-    if(hSLP == 0 ||
-       *(unsigned int*)hSLP != SLP_HANDLE_SIG ||
-       ppcScopeList  == 0)
-    {
-        return SLP_PARAMETER_BAD;
-    }
+   /*------------------------------*/
+   /* check for invalid parameters */
+   /*------------------------------*/
+   if (hSLP == 0 ||
+         *(unsigned int*)hSLP != SLP_HANDLE_SIG ||
+         ppcScopeList  == 0)
+   {
+      return SLP_PARAMETER_BAD;
+   }
 
-    /* start with nothing */
-    *ppcScopeList = 0;
+   /* start with nothing */
+   *ppcScopeList = 0;
 
 
 #ifndef MI_NOT_SUPPORTED
-    if(KnownDAGetScopes(&scopelistlen,ppcScopeList, hSLP))
+   if (KnownDAGetScopes(&scopelistlen,ppcScopeList, hSLP))
 #else
-    if(KnownDAGetScopes(&scopelistlen,ppcScopeList))
+      if (KnownDAGetScopes(&scopelistlen,ppcScopeList))
 #endif /* MI_NOT_SUPPORTED */
-    {
-        return SLP_MEMORY_ALLOC_FAILED;
-    }
+      {
+         return SLP_MEMORY_ALLOC_FAILED;
+      }
 
-    return SLP_OK;
+   return SLP_OK;
 }
 
 /** Returns the refresh intervals configured on the server.
