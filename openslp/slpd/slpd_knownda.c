@@ -364,7 +364,7 @@ void SLPDKnownDAActiveDiscovery()
                sock->sendbuf->start,
                sock->sendbuf->end - sock->sendbuf->start,
                0,
-               &(sock->peerinfo.peeraddr),
+               (struct sockaddr *) &(sock->peerinfo.peeraddr),
                sock->peerinfo.peeraddrlen);
     }
 
