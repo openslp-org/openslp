@@ -137,8 +137,6 @@ void SLPDPredicateFree(SLPDPredicate *victim) {
 #include <ctype.h>
 #include <unistd.h>
 
-#include "slp_attr.h"
-
 #define BRACKET_OPEN '('
 #define BRACKET_CLOSE ')'
 
