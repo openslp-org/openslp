@@ -35,6 +35,11 @@
 #if(!defined SLPD_H_INCLUDED)
 #define SLPD_H_INCLUDED
 
+/* TODO: the following relies on gcc and should be done by autoconf! */
+#ifdef linux 
+#define LINUX
+#endif
+
 /* Include platform specific headers files */
 #ifdef WIN32
 #include "slpd_win32.h"
@@ -692,7 +697,7 @@ extern SLPList G_KnownDAList;
 #if(defined USE_PREDICATES)
 
 /*=========================================================================*/
-int SLPDTestPredicate(const char* predicate, SLPAttributes attr);
+int SLPDPredicateTest(const char* predicate, SLPAttributes attr);
 /* Determine whether the specified attribute list satisfies                */
 /* the specified predicate                                                 */
 /*                                                                         */

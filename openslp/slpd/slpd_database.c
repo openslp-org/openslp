@@ -152,7 +152,6 @@ int SLPDDatabaseReg(SLPSrvReg* srvreg,
         entry = (SLPDDatabaseEntry*) entry->listitem.next;
     }
 
-
     /* if no identical entry are found, create a new one */
     if(entry == 0)
     {
@@ -173,51 +172,50 @@ int SLPDDatabaseReg(SLPSrvReg* srvreg,
     entry->srvtypelen   = srvreg->srvtypelen;
     entry->srvtype      = (char*)memdup(srvreg->srvtype,srvreg->srvtypelen);
     entry->attrlistlen  = srvreg->attrlistlen;
-    
 
-    #ifdef USE_PREDICATES
-    if(srvreg->attrlist)
-    {
-        /* Tricky: perform an in place null termination of the attrlist */
-        /*         Remember this squishes the authblock count           */
-
-        ((char*)srvreg->attrlist)[srvreg->attrlistlen] = 0;
-        if( SLPAttrFreshen(entry->attr, srvreg->attrlist) != SLP_OK)
-        {
-            FreeEntry(entry);
-            return -1;
-        } 
-
-        /* TODO: We need to serialize here !!*/
-
-    }
-    #endif
-//    #else
-    if (entry->attrlistlen)
-    {
-        entry->attrlist = malloc(srvreg->attrlistlen);
-        if(entry->attrlist)
-        {
-            memcpy(entry->attrlist,srvreg->attrlist,srvreg->attrlistlen);
-            entry->attrlist[srvreg->attrlistlen] = 0;
-        }
-    }
-//    #endif 
-    
     /* check for malloc() failures */
     if(entry->scopelist == 0 ||
        entry->url == 0 ||
        entry->srvtype == 0)
     {
-        FreeEntry(entry);
-        return -1;
+        result = -1;
+        goto CLEANUP;
     }
+    
+    if(srvreg->attrlistlen)
+    {
+        #ifdef USE_PREDICATES
+        /* Tricky: perform an in place null termination of the attrlist */
+        /*         Remember this squishes the authblock count           */ 
+        ((char*)srvreg->attrlist)[srvreg->attrlistlen] = 0;
+        if( SLPAttrFreshen(entry->attr, srvreg->attrlist) != SLP_OK)
+        {
+            result = -1;
+            goto CLEANUP;
+        }
 
+        /* TODO: Serialize all attributes into entry->attrlist */
+        /* TODO: Allocate the partiallist */
+
+        #else
+        entry->attrlist = malloc(srvreg->attrlistlen);
+        if(entry->attrlist == 0)
+        {
+            result = -1;
+            goto CLEANUP;
+        }
+        memcpy(entry->attrlist,srvreg->attrlist,srvreg->attrlistlen);
+        entry->attrlist[srvreg->attrlistlen] = 0;
+        #endif 
+    }
+    
     /* link the new (or modified) entry into the list */
     SLPListLinkHead(&G_DatabaseList,(SLPListItem*)entry);
 
     /* traceReg if necessary */
     SLPDLogTraceReg("Registered", entry);
+
+    CLEANUP:
 
     return result;
 }
@@ -295,7 +293,8 @@ int SLPDDatabaseFindSrv(SLPSrvRqst* srvrqst,
     
     #ifdef USE_PREDICATES
     /* Tricky: perform an in place null termination of the predicate string */
-    /*         Remember this squishes the high byte of spilistlen           */
+    /*         Remember this squishes the high byte of spilistlen which is  */
+    /*         not a problem because it was already copied                  */
     if(srvrqst->predicate)
     {
         ((char*)srvrqst->predicate)[srvrqst->predicatelen] = 0;
@@ -320,7 +319,9 @@ int SLPDDatabaseFindSrv(SLPSrvRqst* srvrqst,
                                       entry->scopelist))
             {
                 #ifdef USE_PREDICATES
-                if(srvrqst->predicate && SLPDTestPredicate(srvrqst->predicate,entry->attr) == 0)
+                if(srvrqst->predicate && 
+                   entry->attr &&
+                   SLPDPredicateTest(srvrqst->predicate,entry->attr) == 0)
                 #endif
                 {
                     result[found].lifetime = entry->lifetime;
@@ -445,14 +446,52 @@ int SLPDDatabaseFindAttr(SLPAttrRqst* attrrqst,
                                       entry->scopelist))
             {
                 #ifdef USE_PREDICATES
-                result[found].attrlen = entry->attrlistlen;
-                result[found].attr = entry->attrlist;
-                found++;
-                break;
+                if(attrrqst->taglistlen && entry->attr)
+                {
+                    /* serialize into entry->partiallist and return partiallist */
+                    size_t count;
+                    SLPError err;
+                    
+                    /* TRICKY: null terminate the taglist. This is squishes the spistrlen */
+                    /*         which is not a problem because it was already copied       */
+                    ((char*)attrrqst->taglist)[attrrqst->taglistlen] = 0
+                    err = SLPAttrSerialize(entry->attr,
+                                           attrrqst->taglist,
+                                           &entry->partiallist,
+                                           entry->partiallistlen,
+                                           &count,
+                                           SLP_FALSE);
+                    if(err == SLP_BUFFER_OVERFLOW)
+                    {
+                        /* free previously allocated memory */
+                        free(entry->partiallist);
+                        entry->partiallist = 0;
+                        entry->partiallistlen = 0;
+                        /* SLPAttrSerialize will allocate memory for us */
+                        err = SLPAttrSerialize(entry->attr,
+                                               attrrqst->taglist,
+                                               &entry->partiallist,
+                                               entry->partiallistlen,
+                                               &count,
+                                               SLP_FALSE);
+                        entry->partiallistlen = count;
+		            }
+
+                    if(err == SLP_OK)
+                    {
+                        result[found].attrlen = entry->partiallist;
+                        result[found].attr = entry->partiallistlen;
+                        found++;
+                    }
+                }
+                else
                 #else
-                result[found].attrlen = entry->attrlistlen;
-                result[found].attr = entry->attrlist;
-                found++;
+                if(entry->attrlistlen)
+                {
+                    result[found].attrlen = entry->attrlistlen;
+                    result[found].attr = entry->attrlist;
+                    found++;
+                }
                 break;
                 #endif
             }
@@ -516,22 +555,22 @@ SLPDDatabaseEntry *SLPDDatabaseEntryAlloc()
 {
     SLPDDatabaseEntry *entry;
     
-
     /* Allocate the entry. */
-    entry = (SLPDDatabaseEntry *)calloc(1, sizeof(SLPDDatabaseEntry));
+    entry = (SLPDDatabaseEntry *)malloc(sizeof(SLPDDatabaseEntry));
     if(entry == NULL)
     {
         return NULL;
     }
+    memset(entry,0,sizeof(SLPDDatabaseEntry));
 
     /* Initialize the entry. */
-    #ifdef USE_PREDICATES
-    
+    #ifdef USE_PREDICATES 
     if(SLPAttrAlloc("en", NULL, SLP_FALSE, &entry->attr))
     {
         FreeEntry(entry);
+        entry = 0;
     }
-    #endif 
+    #endif  
     
     return entry;
 }

@@ -874,7 +874,7 @@ FilterResult filter(const char *start,
 
 
 /*=========================================================================*/
-int SLPDTestPredicate(const char* predicate, SLPAttributes attr) 
+int SLPDPredicateTest(const char* predicate, SLPAttributes attr) 
 /*                                                                         */
 /* Determine whether the specified attribute list satisfies                */
 /* the specified predicate                                                 */

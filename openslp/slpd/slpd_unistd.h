@@ -40,7 +40,7 @@
 #include <netdb.h>
 #include <string.h>
 #include <errno.h>
-#include <fcntl.h> 
+#include <fcntl.h>
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/utsname.h>
@@ -48,6 +48,11 @@
 #include <netinet/in.h>
 #include <arpa/inet.h> 
 #include <ctype.h>
+
+#ifdef LINUX
+#include <net/if.h> 
+#include <sys/ioctl.h>
+#endif
 
 #if(!defined MAX_PATH)
 #define MAX_PATH    256
