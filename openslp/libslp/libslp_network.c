@@ -743,12 +743,13 @@ SLPError NetworkMcastRqstRply(const char* langtag,
 
 #ifndef MI_NOT_SUPPORTED
 	/* Iterate through each multicast scope until we found a provider. */
-	while (currIntf < dstifaceinfo.iface_count && totaltimeout < maxwait) {
+	while (currIntf < dstifaceinfo.iface_count) {
 #endif
 		/*--------------------------*/
 		/* Main retransmission loop */
 		/*--------------------------*/
 		xmitcount = 0;
+		totaltimeout = 0;
 		while(xmitcount <= MAX_RETRANSMITS)
 		{
 			xmitcount++;
