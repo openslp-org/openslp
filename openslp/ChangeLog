@@ -6,6 +6,9 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 
+03/12/01 mpeterson@caldera.com
+Fixed sending of a weird 1400 byte datagram when slpd is configured as a DA
+
 03/12/01 rganesan@myrealbox.com
 Fixed many documentation bugs and re-worded in some places for clarity based
 on excellent and detailed review feedback from Susan G. Kleinmann 

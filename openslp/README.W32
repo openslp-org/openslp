@@ -42,12 +42,14 @@ slpd is a little harder to install.  The easy part is copying it to
 c:\windows\system (or where every you keep services).  The hard part is making
 the correct registry entry entries to install it as a service.  To help you
 out installation functionality has been built right into slpd.  Run slpd
-with out any command line parameters and follow the directions.  Good Luck.
+with out any command line parameters and follow the directions.  Also, it is
+important to note that slpd.log, slp.reg and slp.conf must currently reside
+in c:\windows.  Good Luck.
 
 Credits
 -------
 The work currently being done on the Win32 port in no way invalidates the 
-tremendous contribution of Matthieu Desmons and Rick Brady who did the 
-original port of the 0.7.x codebase.  Most of the actual code changes can 
-still be attributed to them -- not to mention the initive to to show that the
-port was actually possible.
+tremendous contribution of Matthieu Desmons who did the original port of the
+0.7.x codebase.  Most of the actual code changes can still be attributed to 
+him -- not to mention the initive to to show that the port was actually 
+possible.

@@ -16,14 +16,20 @@ The OpenSLP project is an effort to develop an open-source implementation of
 Service Location Protocol suitable for commercial and non-commercial 
 application.
 
-The latest version of OpenSLP is 0.8.2  Changes for this version consist of
+The latest version of OpenSLP is 0.8.3  Changes for this version consist of
 the following:
 
-    - Bug fixes (including "slpd tight loop" problem)
-    - Logging changes (no log file truncation and log timestamps)
-    - Corrections in the usage of DAAdvert bootstamps, scopelists, and XIDs 
-    - Several documentation corrections
-    - Massive Win32 specific changes.  Please read README.WIN32 !
+    - Completely updated Win32 port.  See README.W32.
+    - Addition of SLPParseAttr() that complies with what will be in RFC2614bis
+      (Note: the libslp.so library version is not 0.0.3)
+    - Preliminary support for asyncronous API calls is now a compile time 
+      option.  Async calls still not fully supported.
+    - Many fixes to documentation based on review feedback from debian
+      developer Susan G. Kleinmann (sgk@debian.org)
+    - Fixed "DAs with multiple scopes" bug.
+    - Fixed "Local service time out on DA" bug.
+    - Fixed "Bad 1400 byte message" bug.
+
 
 2 - Roadmap
 ------------
