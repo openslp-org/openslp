@@ -37,3 +37,4 @@ install-data-local:
 	ln -f -s $(libdir)/libslp.so.$(VERSION) $(libdir)/libslp.so
 
 ../common/libcommon.a:
+

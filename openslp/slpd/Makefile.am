@@ -20,3 +20,4 @@ slpd_SOURCES	= slpd_socket.c \
     slpd_log.c
 
 ../common/libcommon.a:
+
