@@ -199,6 +199,8 @@ int KnownDADiscoveryByProperties(struct timeval* timeout)
             if(he)
             {
                 peeraddr.sin_addr.s_addr = *((unsigned long*)(he->h_addr_list[0]));
+                result += 1;
+                
                 sock = SLPNetworkConnectStream(&peeraddr,timeout);
                 if(sock >= 0)
                 {
