@@ -16,24 +16,18 @@ The OpenSLP project is an effort to develop an open-source implementation of
 Service Location Protocol suitable for commercial and non-commercial 
 application.
 
-The latest version of OpenSLP is 0.8.0  Changes for this version and the
+The latest version of OpenSLP is 0.8.1  Changes for this version and the
 previous version consist of the following:
 
-    - New OpenSLP License.  OpenSLP is now licensed under the BSD license.
-    - OpenSLP contrib tarball is now available.  OpenSLP Contrib is a collection
-      of SLP related utilities and tools.
-    - Predicate support now enabled by default.
-    - SLPFindScopes() is now implemented to RFC spec.
-    - Implemented SLPFindScopes() in libslp.
-    - Send dead DAAdvert as part of graceful shutdown.
-    - DAs now echo local registrations to other DAs (slpd as a DA also acts like
-      an SA for local API callers).
-    - Added code to ensure we respond correctly (with AUTHENICATION_UNKNONW)
-      when a request with a SPI is received.
-    - Changed SLPD behaviour to be less destructive on SIGHUP.  SIGHUP no
-      longer dumps the entire registration database on SIGHUP.  SIGHUP only
-      causes slpd to re-read configuration and static registration as well as 
-      perform DA discovery.     
+    - SLPv1 Passive DAAdvert support
+    - Significant 64-bit cleanup work
+    - Bugs related to unreturned errorcodes (-19 was being returned for
+      almost everything)
+    - autoconf/automake changes to do things "The Right Way"
+    - SLP_MAX_LIFETIME services should now age and refreshed correctly
+    - Library code hardened more against bad DAs
+    - Code changes to the way "my host and domain hame" is determined
+    - Changes as suggested by a Security Audit from Olaf Kirch
       
 
 2 - Roadmap
