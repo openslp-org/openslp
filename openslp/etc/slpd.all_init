@@ -26,7 +26,7 @@
 multicast_route_set() 
 {
     PING_OPTIONS_1='-c1 -w1'
-    PING_OPTIONS_2='-c1 -w1'
+    PING_OPTIONS_2='-c1 -i1'
     MULTICAST_ADDRESS='239.255.255.253'
     TMP_FILE=/tmp/route.check
     PING_ERROR_NO_ROUTE='unreachable'
