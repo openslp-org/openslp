@@ -166,7 +166,7 @@ SLPBoolean KnownDADiscoveryCallback(SLPError errorcode,
     {
         if (msg && msg->header.functionid == SLP_FUNCT_DAADVERT)
         {
-            if (msg->body.srvrply.errorcode == 0)
+            if (msg->body.daadvert.errorcode == 0)
             { 
                 /* NULL terminate scopelist */
                 *((char*)msg->body.daadvert.scopelist + msg->body.daadvert.scopelistlen) = 0;
@@ -195,13 +195,25 @@ SLPBoolean KnownDADiscoveryCallback(SLPError errorcode,
                                        entry);
                             (*result) = (*result) + 1;
                         }
+		        
+		        if(msg->header.flags & SLP_FLAG_MCAST)
+		        {
+			    return 0;
+			}
                     }
 
                     SLPFree(srvurl);
                 }
             }
-        }
+	    else if(msg->body.daadvert.errorcode == SLP_ERROR_INTERNAL_ERROR)
+	    {
+                /* SLP_ERROR_INTERNAL_ERROR is a "end of stream marker for */
+                /* loobpack IPC                                            */
+                return 0;
+	    }
+	}
     }
+
 
     return 1;
 }
@@ -269,7 +281,7 @@ int KnownDADiscoveryRqstRply(int sock,
 
 
 /*-------------------------------------------------------------------------*/
-int KnownDADiscoverFromMulticast()
+int KnownDADiscoverFromMulticast(int scopelistlen, const char* scopelist)
 /* Locates  DAs via multicast convergence                                  */
 /*                                                                         */
 /* Returns: number of *new* DAs found                                      */
@@ -282,7 +294,10 @@ int KnownDADiscoverFromMulticast()
     sockfd = NetworkConnectToMulticast(&peeraddr);
     if (sockfd >= 0)
     {
-        result = KnownDADiscoveryRqstRply(sockfd,&peeraddr,0,"");
+        result = KnownDADiscoveryRqstRply(sockfd,
+					  &peeraddr,
+					  scopelistlen,
+					  scopelist);
         close(sockfd);
     }               
 
@@ -393,7 +408,7 @@ SLPDAEntry* KnownDAFromCache(int scopelistlen,
 {
     time_t      curtime;
     SLPDAEntry* entry;
-    
+        
     entry = KnownDAListFindByScope(&G_KnownDACache,scopelistlen,scopelist);
     if(entry == 0)
     {
@@ -404,12 +419,12 @@ SLPDAEntry* KnownDAFromCache(int scopelistlen,
             G_KnownDALastCacheRefresh = curtime;
 
             /* discover DAs */
+	    
             if(KnownDADiscoverFromIPC() == 0)
-            {
-                KnownDADiscoverFromProperties();
-                KnownDADiscoverFromDHCP();
-                KnownDADiscoverFromMulticast();
-            }
+                if(KnownDADiscoverFromProperties() == 0)
+	            if(KnownDADiscoverFromDHCP() == 0)
+	                KnownDADiscoverFromMulticast(scopelistlen,
+						     scopelist);
         }
 
         entry = KnownDAListFindByScope(&G_KnownDACache,scopelistlen,scopelist);
@@ -493,10 +508,10 @@ int KnownDAGetScopes(int* scopelistlen,
 
         /* discover DAs */
         if(KnownDADiscoverFromIPC() == 0)
-        {
-            KnownDADiscoverFromProperties();
+	{
+	    KnownDADiscoverFromProperties();
             KnownDADiscoverFromDHCP();
-            KnownDADiscoverFromMulticast();
+            KnownDADiscoverFromMulticast(0,"");
         }
 
         /* TODO: */

@@ -170,7 +170,12 @@ int ProcessDASrvRqst(struct sockaddr_in* peeraddr,
         
         if(errorcode == 0)
         {
-            while(SLPDKnownDAEnum(&i,&entry) == 0)
+            
+	    /* Note: The weird *sendbuf code is making a single SLPBuffer */
+	    /*       that contains multiple DAAdverts.  This is a special */
+	    /*       process that only happens for the DA SrvRqst through */
+	    /*       loopback to the SLPAPI                               */
+	    while(SLPDKnownDAEnum(&i,&entry) == 0)
             {
                   if(SLPDKnownDAEntryToDAAdvert(errorcode,
                                                 message->header.xid,
@@ -186,6 +191,21 @@ int ProcessDASrvRqst(struct sockaddr_in* peeraddr,
                       (*sendbuf)->curpos = ((*sendbuf)->curpos) + (tmp->end - tmp->start);
                   }
             }
+	   
+	    /* Tack on a "terminator" DAAdvert */
+	    SLPDKnownDAEntryToDAAdvert(SLP_ERROR_INTERNAL_ERROR,
+				       message->header.xid,
+				       &daentry,
+				       &tmp);
+	    if(((*sendbuf)->curpos) + (tmp->end - tmp->start) <= (*sendbuf)->end)
+	    {
+	        memcpy((*sendbuf)->curpos, tmp->start, tmp->end - tmp->start);
+                (*sendbuf)->curpos = ((*sendbuf)->curpos) + (tmp->end - tmp->start);
+	    }
+
+	    /* mark the end of the sendbuf */
+	    (*sendbuf)->end = (*sendbuf)->curpos;
+	    
     
             if(tmp)
             {
