@@ -356,11 +356,22 @@ SLPDSocket* SLPDSocketCreateBoundDatagram(struct in_addr* myaddr,
     SLPDSocket*     sock;
     struct in_addr*  bindaddr;
 
+    /*------------------------------------------*/
+    /* Adjust for multicast binding differences */
+    /*------------------------------------------*/
+    #if(defined LINUX)
+    bindaddr = peeraddr;  
+    #else
     if(type == DATAGRAM_MULTICAST)
         bindaddr = NULL;    /* must bind to INADDR_ANY for multicast */
     else
-        bindaddr = peeraddr;
+        bindaddr = peeraddr;  
+    #endif
+    
 
+    /*------------------------*/
+    /* Create and bind socket */
+    /*------------------------*/
     sock = SLPDSocketAlloc();
     if(sock)
     {
