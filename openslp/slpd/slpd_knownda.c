@@ -65,10 +65,10 @@ int MakeActiveDiscoveryRqst(int ismcast, SLPBuffer* buffer)
 {
     size_t          size;
     SLPDAEntry*     daentry;
-    SLPBuffer       result;
-    char*           prlist     = 0;
-    size_t          prlistlen  = 0;
-    int             errorcode = 0;
+    SLPBuffer       result      = 0;
+    char*           prlist      = 0;
+    size_t          prlistlen   = 0;
+    int             errorcode   = 0;
 
     /*-------------------------------------------------*/
     /* Generate a DA service request buffer to be sent */
@@ -415,8 +415,8 @@ void SLPDKnownDARegisterAll(SLPDAEntry* daentry, int immortalonly)
 {
     SLPDDatabaseEntry*  dbentry;
     SLPDSocket*         sock;
-    SLPBuffer           buf;
     size_t              size;
+    SLPBuffer           buf         = 0;
     void*               handle      = 0;
 
     /* do not attempt to establish a connection if the database is empty */
@@ -550,8 +550,8 @@ void SLPDKnownDADeregisterAll(SLPDAEntry* daentry)
 {
     SLPDDatabaseEntry*  dbentry;
     SLPDSocket*         sock;
-    SLPBuffer           buf;
     size_t              size;
+    SLPBuffer           buf         = 0;
     void*               handle      = 0;
 
     /* do not attempt to establish a connection if the database is empty */
@@ -663,8 +663,8 @@ int SLPDKnownDAInit()
     char*               slider2;
     struct hostent*     he;
     struct in_addr      daaddr;
-    SLPBuffer           buf;
     SLPDSocket*         sock;
+    SLPBuffer           buf     = 0;
 
     /*---------------------------------------*/
     /* Skip static DA parsing if we are a DA */
@@ -899,9 +899,9 @@ void SLPDKnownDAEcho(struct sockaddr_in* peeraddr,
 {
     SLPDAEntry* daentry;
     SLPDSocket* sock;
-    SLPBuffer   dup;
     const char* msgscope;
     int         msgscopelen;
+    SLPBuffer   dup = 0;
 
     /* Do not echo registrations if we are a DA unless they were made  */
     /* local through the API!                                          */
