@@ -157,7 +157,11 @@ int SLPDDatabaseReg(SLPSrvReg* srvreg,
         }
     }
 
+    /*----------------------------------------------------------------*/
     /* copy info from the message from the wire to the database entry */
+    /*----------------------------------------------------------------*/
+
+    /* scope */
     if(entry->scopelistlen >= srvreg->scopelistlen)
     {
         memcpy(entry->scopelist,srvreg->scopelist,srvreg->scopelistlen);
@@ -169,10 +173,25 @@ int SLPDDatabaseReg(SLPSrvReg* srvreg,
         if(entry->scopelist == 0) goto FAILURE;
     }
     entry->scopelistlen = srvreg->scopelistlen;
+    
+    /* URL */
+    entry->url = (char*)memdup(srvreg->urlentry.url, srvreg->urlentry.urllen);
+    entry->urllen = srvreg->urlentry.urllen;
+    if(entry->urllen >= srvreg->urlentry.urllen)
+    {
+        memcpy(entry->url,srvreg->urlentry.url,srvreg->urlentry.urllen);
+    }
+    else
+    {
+        if(entry->url) free(entry->url);
+        entry->url = (char*)memdup(srvreg->urlentry.url,srvreg->urlentry.urllen);
+        if(entry->url == 0) goto FAILURE;
+    }
+    
+    /* lifetime */
     entry->lifetime     = srvreg->urlentry.lifetime;
-    /* do not worry about url it will be the same */
-    //entry->url = (char*)memdup(srvreg->urlentry.url, srvreg->urlentry.urllen);
-    //entry->urllen = srvreg->urlentry.urllen;
+    
+    /* SrvType */
     if(entry->srvtypelen >= srvreg->srvtypelen)
     {
         memcpy(entry->srvtype,srvreg->srvtype,srvreg->srvtypelen);
@@ -185,6 +204,7 @@ int SLPDDatabaseReg(SLPSrvReg* srvreg,
     }
     entry->srvtypelen = srvreg->srvtypelen;
     
+    /* Attributes */
     if(srvreg->attrlistlen)
     {
         #ifdef USE_PREDICATES
