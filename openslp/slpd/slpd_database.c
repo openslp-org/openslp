@@ -390,9 +390,6 @@ int SLPDDatabaseFindAttr(SLPAttrRqst* attrrqst,
     SLPDDatabaseEntry*  entry   = 0;
     int                 found   = 0;
 
-    /* TODO: Do we ever want to handle passing back all of the attributes  */
-    /*       for service types?                                            */
-
     found = 0;
     entry = (SLPDDatabaseEntry*)G_DatabaseList.head;
     while(entry)
@@ -426,8 +423,7 @@ int SLPDDatabaseFindAttr(SLPAttrRqst* attrrqst,
 }
 
 
-/*=========================================================================*/
-int SLPDDatabaseInit(const char* regfile)
+
 /* Optionaly initialize the database with registrations from a regfile.    */
 /*                                                                         */
 /* regfile  (IN)    the regfile to register.                               */
