@@ -5,6 +5,12 @@ Please make entries to this log (in addition to the CVS log) that describe
 major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
+
+03/18/03 matt@sco.com
+Fixed segv during deregistration logging
+
+*** Tag OpenSLP-1.0.11 ***
+
 03/05/03 matt@sco.com
 Fixed socket file descriptor leak.  Thans to Richard Trembecki
 reporting this problem
