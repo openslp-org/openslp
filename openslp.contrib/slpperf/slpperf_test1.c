@@ -34,7 +34,7 @@ TestService_T* CreateTestService(const char* serviceurl,
     servicetypesize =  strlen(servicetype) + 1;
     attributessize = strlen(attributes) + 1;
     
-    result = (TestService_T*)malloc(sizeof(TestService_T) + serviceurlsize + servicetypesize + attributessize);
+    result = (TestService_T*) malloc(sizeof(TestService_T) + serviceurlsize + servicetypesize + attributessize);
     if(result)
     {
         result->serviceurl = (char*) (result + 1);
@@ -276,7 +276,7 @@ int SlpPerfTest1_slpdereg (SLPHandle hslp,
 }
 
 /*-------------------------------------------------------------------------*/
-int SlpPerfTest1_slpderegall (SLPHandle hslp, 
+void SlpPerfTest1_slpderegall (SLPHandle hslp, 
                            SLPList* service_list,
                            double* ave_slpdereg,
                            int* count_slpdereg)
@@ -504,7 +504,7 @@ int SlpPerfTest1(int min_services,
     }
 
     printf("----------------------------------------------------------\n");
-    printf("Cleaning up registered services... \n", min_services);
+    printf("Cleaning up %i registered services... \n", min_services);
     result = SlpPerfTest1_slpderegall(hslp,
                                       &service_list,
                                       &ave_slpdereg,
