@@ -44,11 +44,11 @@ SLPList G_DatabaseList = {0,0,0};
 void FreeEntry(SLPDDatabaseEntry* entry)
 /*-------------------------------------------------------------------------*/
 {
-    if(entry)
+    if (entry)
     {
-        if(entry->scopelist) free(entry->scopelist);
-        if(entry->srvtype) free(entry->srvtype);
-        if(entry->url) free(entry->url);
+        if (entry->scopelist) free(entry->scopelist);
+        if (entry->srvtype) free(entry->srvtype);
+        if (entry->url) free(entry->url);
         SLPAttrFree(entry->attr);
         free(entry);
     }
@@ -59,7 +59,7 @@ void FreeEntry(SLPDDatabaseEntry* entry)
 void FreeAllEntries(SLPList* list)
 /*-------------------------------------------------------------------------*/
 {
-    while(list->count)
+    while (list->count)
     {
         FreeEntry((SLPDDatabaseEntry*)SLPListUnlink(list,list->head));
     }
@@ -80,25 +80,25 @@ void SLPDDatabaseAge(int seconds)
 
     /* Age the database */
     entry = (SLPDDatabaseEntry*)G_DatabaseList.head;
-    while(entry)
+    while (entry)
     {
         /* don't age services with lifetime > SLP_LIFETIME_MAXIMUM */
-        if(entry->lifetime < SLP_LIFETIME_MAXIMUM)
-    	{
+        if (entry->lifetime < SLP_LIFETIME_MAXIMUM)
+        {
             entry->lifetime = entry->lifetime - seconds;
-            if(entry->lifetime <= 0)
+            if (entry->lifetime <= 0)
             {
                 del = entry;
             }
-    	}
-        
+        }
+
         entry = (SLPDDatabaseEntry*)entry->listitem.next;
 
-        if(del)
+        if (del)
         {
             FreeEntry((SLPDDatabaseEntry*)SLPListUnlink(&G_DatabaseList,(SLPListItem*)del));
             del = 0;
-        }                                                               
+        }
     }
 }
 
@@ -128,37 +128,37 @@ int SLPDDatabaseReg(SLPSrvReg* srvreg,
     SLPDDatabaseEntry* entry  = (SLPDDatabaseEntry*)G_DatabaseList.head;
 
     /* Check to see if there is already an identical entry */
-    while(entry)
+    while (entry)
     {
-        if(SLPCompareString(entry->urllen,
-                            entry->url,
-                            srvreg->urlentry.urllen,
-                            srvreg->urlentry.url) == 0)
+        if (SLPCompareString(entry->urllen,
+                             entry->url,
+                             srvreg->urlentry.urllen,
+                             srvreg->urlentry.url) == 0)
         {
-            if(SLPIntersectStringList(entry->scopelistlen,
-                                      entry->scopelist,
-                                      srvreg->scopelistlen,
-                                      srvreg->scopelist) > 0)
+            if (SLPIntersectStringList(entry->scopelistlen,
+                                       entry->scopelist,
+                                       srvreg->scopelistlen,
+                                       srvreg->scopelist) > 0)
             {
                 SLPListUnlink(&G_DatabaseList,(SLPListItem*)entry);
                 break;
-            } 
-        }             
-        
+            }
+        }
+
         entry = (SLPDDatabaseEntry*) entry->listitem.next;
     }
-    
+
 
     /* if no identical entry are found, create a new one */
-    if(entry == 0)
+    if (entry == 0)
     {
         entry = SLPDDatabaseEntryAlloc();
-        if(entry == 0)
+        if (entry == 0)
         {
             return -1;
         }
     }
-    
+
     /* copy info from the message from the wire to the database entry */
     entry->pid          = pid;
     entry->uid          = uid;
@@ -171,37 +171,38 @@ int SLPDDatabaseReg(SLPSrvReg* srvreg,
     entry->srvtype      = (char*)memdup(srvreg->srvtype,srvreg->srvtypelen);
     if (srvreg->attrlistlen)
     {
-		char *str;
-		SLPError err;
-		
-		/* FIXME The following is a hack to give SLPAttrAllocStr() a 
-		 * null-terminated string. */
-		str = (char *)malloc(srvreg->attrlistlen+1);
-		memcpy(str, srvreg->attrlist, srvreg->attrlistlen);
-		str[srvreg->attrlistlen] = '\0';
-		/* end of hack. */
-		
-		err = SLPAttrFreshen(entry->attr, str);
-		if (err != SLP_OK) {
-			FreeEntry(entry);
-			return -1;
-		}
-	}
-    
-	/* check for malloc() failures */
-    if(entry->scopelist == 0 ||
-       entry->url == 0 ||
-       entry->srvtype == 0)
+        char *str;
+        SLPError err;
+
+        /* FIXME The following is a hack to give SLPAttrAllocStr() a 
+         * null-terminated string. */
+        str = (char *)malloc(srvreg->attrlistlen+1);
+        memcpy(str, srvreg->attrlist, srvreg->attrlistlen);
+        str[srvreg->attrlistlen] = '\0';
+        /* end of hack. */
+
+        err = SLPAttrFreshen(entry->attr, str);
+        if (err != SLP_OK)
+        {
+            FreeEntry(entry);
+            return -1;
+        }
+    }
+
+    /* check for malloc() failures */
+    if (entry->scopelist == 0 ||
+        entry->url == 0 ||
+        entry->srvtype == 0)
     {
         FreeEntry(entry);
         return -1;
     }
-    
+
     /* link the new (or modified) entry into the list */
     SLPListLinkHead(&G_DatabaseList,(SLPListItem*)entry);
 
     /* traceReg if necessary */
-    if(G_SlpdProperty.traceReg)
+    if (G_SlpdProperty.traceReg)
     {
         SLPDLogTraceReg("SrvReg", entry);
     }
@@ -220,38 +221,37 @@ int SLPDDatabaseDeReg(SLPSrvDeReg* srvdereg)
 /* Returns  -   Zero on success.  Non-zero if syntax error in registration */
 /*              file.                                                      */
 /*=========================================================================*/
-
 {
     SLPDDatabaseEntry* del = 0;
     SLPDDatabaseEntry* entry = (SLPDDatabaseEntry*)G_DatabaseList.head;
 
 
-    while(entry)
+    while (entry)
     {
-        if(SLPCompareString(entry->urllen,
-                            entry->url,
-                            srvdereg->urlentry.urllen,
-                            srvdereg->urlentry.url) == 0)
+        if (SLPCompareString(entry->urllen,
+                             entry->url,
+                             srvdereg->urlentry.urllen,
+                             srvdereg->urlentry.url) == 0)
         {
-            if(SLPIntersectStringList(entry->scopelistlen,
-                                      entry->scopelist,
-                                      srvdereg->scopelistlen,
-                                      srvdereg->scopelist) > 0)
+            if (SLPIntersectStringList(entry->scopelistlen,
+                                       entry->scopelist,
+                                       srvdereg->scopelistlen,
+                                       srvdereg->scopelist) > 0)
             {
-                if(G_SlpdProperty.traceReg)
+                if (G_SlpdProperty.traceReg)
                 {
                     SLPDLogTraceReg("SrvDeReg",entry);
                 }
-                
+
                 del = entry;
-                
+
                 break;
-            } 
-        }             
-        
+            }
+        }
+
         entry = (SLPDDatabaseEntry*) entry->listitem.next;
 
-        if(del)
+        if (del)
         {
             FreeEntry((SLPDDatabaseEntry*)SLPListUnlink(&G_DatabaseList,(SLPListItem*)del));
             del = 0;
@@ -282,54 +282,55 @@ int SLPDDatabaseFindSrv(SLPSrvRqst* srvrqst,
 {
     SLPDDatabaseEntry*  entry;
     int                 found;
-	
-	SLPDPredicate pred; /* The predicate object. */
-	SLPError err; /* Error code for checking return vals. */
 
-	/***** Create and verify predicate. *****/
-	err = SLPDPredicateAlloc(srvrqst->predicate, srvrqst->predicatelen, &pred);
-	
-	assert(err == SLP_OK || err == SLP_PARSE_ERROR || err == SLP_MEMORY_ALLOC_FAILED); /* Make sure a legal value was returned. */
-	
-	if (err == SLP_INTERNAL_SYSTEM_ERROR || err == SLP_PARSE_ERROR) {
-		return -1;
-	}
-	assert(err == SLP_OK);
+    SLPDPredicate pred; /* The predicate object. */
+    SLPError err; /* Error code for checking return vals. */
+
+    /***** Create and verify predicate. *****/
+    err = SLPDPredicateAlloc(srvrqst->predicate, srvrqst->predicatelen, &pred);
+
+    assert(err == SLP_OK || err == SLP_PARSE_ERROR || err == SLP_MEMORY_ALLOC_FAILED); /* Make sure a legal value was returned. */
+
+    if (err == SLP_INTERNAL_SYSTEM_ERROR || err == SLP_PARSE_ERROR)
+    {
+        return -1;
+    }
+    assert(err == SLP_OK);
 
 
-	/***** Test services. *****/
+    /***** Test services. *****/
     found = 0;
     entry = (SLPDDatabaseEntry*)G_DatabaseList.head;
-    while(entry)
+    while (entry)
     {
-        if(SLPCompareSrvType(srvrqst->srvtypelen,
-                             srvrqst->srvtype,
-                             entry->srvtypelen,
-                             entry->srvtype) == 0)
+        if (SLPCompareSrvType(srvrqst->srvtypelen,
+                              srvrqst->srvtype,
+                              entry->srvtypelen,
+                              entry->srvtype) == 0)
         {
-			if(SLPTestPredicate(pred, entry->attr) == 0)
+            if (SLPTestPredicate(pred, entry->attr) == 0)
             {
-                if(SLPIntersectStringList(srvrqst->scopelistlen,
-                                          srvrqst->scopelist,
-                                          entry->scopelistlen,
-                                          entry->scopelist))
+                if (SLPIntersectStringList(srvrqst->scopelistlen,
+                                           srvrqst->scopelist,
+                                           entry->scopelistlen,
+                                           entry->scopelist))
                 {
                     result[found].lifetime = entry->lifetime;
                     result[found].urllen = entry->urllen;
                     result[found].url = entry->url;
                     found ++;
-                    if(found >= count)
+                    if (found >= count)
                     {
                         break;
                     }
                 }
-            } 
+            }
         }
 
         entry = (SLPDDatabaseEntry*)entry->listitem.next;
     }
 
-	SLPDPredicateFree(pred);
+    SLPDPredicateFree(pred);
     return found;
 }
 
@@ -359,37 +360,37 @@ int SLPDDatabaseFindType(SLPSrvTypeRqst* srvtyperqst,
 
     found = 0;
     entry = (SLPDDatabaseEntry*)G_DatabaseList.head;
-    while(entry)
+    while (entry)
     {
-	if(SLPCompareNamingAuth(entry->srvtypelen, entry->srvtype,
-				srvtyperqst->namingauthlen,
-				srvtyperqst->namingauth) == 0)
-	{
-	    if(SLPIntersectStringList(srvtyperqst->scopelistlen,
-				      srvtyperqst->scopelist,
-				      entry->scopelistlen,
-				      entry->scopelist))
-	    {
-		for (i = 0; i < found; i++)
-		{
-		    if (strncasecmp(result[i].type, entry->srvtype,
-				    entry->srvtypelen) == 0) 
-		    {
-			break;
-		    }
-		}
-		if(i == found)
-		{
-		    result[found].type = entry->srvtype;
-		    result[found].typelen = entry->srvtypelen;
-		    found++;
-		    if(found >= count)
-		    {
-			break;
-		    }
-		}
-	    }
-	}
+        if (SLPCompareNamingAuth(entry->srvtypelen, entry->srvtype,
+                                 srvtyperqst->namingauthlen,
+                                 srvtyperqst->namingauth) == 0)
+        {
+            if (SLPIntersectStringList(srvtyperqst->scopelistlen,
+                                       srvtyperqst->scopelist,
+                                       entry->scopelistlen,
+                                       entry->scopelist))
+            {
+                for (i = 0; i < found; i++)
+                {
+                    if (strncasecmp(result[i].type, entry->srvtype,
+                                    entry->srvtypelen) == 0)
+                    {
+                        break;
+                    }
+                }
+                if (i == found)
+                {
+                    result[found].type = entry->srvtype;
+                    result[found].typelen = entry->srvtypelen;
+                    found++;
+                    if (found >= count)
+                    {
+                        break;
+                    }
+                }
+            }
+        }
 
         entry = (SLPDDatabaseEntry*)entry->listitem.next;
     }
@@ -420,32 +421,32 @@ int SLPDDatabaseFindAttr(SLPAttrRqst* attrrqst,
 
     found = 0;
     entry = (SLPDDatabaseEntry*)G_DatabaseList.head;
-    while(entry)
+    while (entry)
     {
-        if(SLPCompareString(attrrqst->urllen,
-                            attrrqst->url,
-                            entry->urllen,
-                            entry->url) == 0 ||
-           SLPCompareSrvType(attrrqst->urllen,
+        if (SLPCompareString(attrrqst->urllen,
                              attrrqst->url,
-                             entry->srvtypelen,
-                             entry->srvtype) == 0 )
+                             entry->urllen,
+                             entry->url) == 0 ||
+            SLPCompareSrvType(attrrqst->urllen,
+                              attrrqst->url,
+                              entry->srvtypelen,
+                              entry->srvtype) == 0 )
         {
-            if(SLPIntersectStringList(attrrqst->scopelistlen,
-                                      attrrqst->scopelist,
-                                      entry->scopelistlen,
-                                      entry->scopelist))
+            if (SLPIntersectStringList(attrrqst->scopelistlen,
+                                       attrrqst->scopelist,
+                                       entry->scopelistlen,
+                                       entry->scopelist))
             {
-				SLPError err;
+                SLPError err;
 
                 err = SLPAttrSerialize(entry->attr, &result[found].attrlen, &result[found].attr, SLP_FALSE);
-				if (err == SLP_OK) 
-				{
-					/* FIXME TODO Should the entire function fail, or should 
-					 * we just ignore this one? */
-	                found++;
-				}
-            }       
+                if (err == SLP_OK)
+                {
+                    /* FIXME TODO Should the entire function fail, or should 
+                     * we just ignore this one? */
+                    found++;
+                }
+            }
         }
 
         entry = (SLPDDatabaseEntry*)entry->listitem.next;
@@ -482,20 +483,20 @@ int SLPDDatabaseInit(const char* regfile)
     /*--------------------------------------*/
     /* Read static registration file if any */
     /*--------------------------------------*/
-    if(regfile)
+    if (regfile)
     {
         fd = fopen(regfile,"rb");
-        if(fd)
+        if (fd)
         {
-            
+
             SLPLog("Reading registration file %s\n",regfile);
 
-            while(SLPDRegFileReadEntry(fd,&entry) != 0)
+            while (SLPDRegFileReadEntry(fd,&entry) != 0)
             {
                 entry->pid              = mypid;
                 entry->uid              = myuid;
 
-                if(G_SlpdProperty.traceReg)
+                if (G_SlpdProperty.traceReg)
                 {
                     SLPDLogTraceReg("SrvReg (static)",entry);
                 }
@@ -506,7 +507,7 @@ int SLPDDatabaseInit(const char* regfile)
             fclose(fd);
         }
     }
-    
+
     return 0;
 }
 
@@ -518,21 +519,22 @@ SLPDDatabaseEntry *SLPDDatabaseEntryAlloc()
 /* Returns  - zero on success or non-zero on error.                        */
 /*=========================================================================*/
 {
-	SLPDDatabaseEntry *entry;
-	SLPError err;
+    SLPDDatabaseEntry *entry;
+    SLPError err;
 
-	/* Allocate the entry. */
-	entry = (SLPDDatabaseEntry *)calloc(1, sizeof(SLPDDatabaseEntry));
-	if (entry == NULL) 
-	{
-		return NULL;
-	}
+    /* Allocate the entry. */
+    entry = (SLPDDatabaseEntry *)calloc(1, sizeof(SLPDDatabaseEntry));
+    if (entry == NULL)
+    {
+        return NULL;
+    }
 
-	/* Initialize the entry. */
-	err = SLPAttrAlloc("en", NULL, SLP_FALSE, &entry->attr);
-	if (err != SLP_OK) {
-		FreeEntry(entry);
-	}
+    /* Initialize the entry. */
+    err = SLPAttrAlloc("en", NULL, SLP_FALSE, &entry->attr);
+    if (err != SLP_OK)
+    {
+        FreeEntry(entry);
+    }
 
-	return entry;
+    return entry;
 }
