@@ -85,11 +85,10 @@ typedef SOCKET              sockfd_t;
 typedef enum SLPDAction
 {
     SLPD_DEBUG = 0,
-    SLPD_INSTALL_AUTO = 1,
-    SLPD_INSTALL_MANUAL = 2,
-    SLPD_REMOVE = 3,
-    SLPD_START = 4,
-    SLPD_STOP = 5
+    SLPD_INSTALL	= 1,
+    SLPD_REMOVE 	= 2,
+    SLPD_START 	= 3,
+    SLPD_STOP		= 4
 } SLPDAction;
 
 
