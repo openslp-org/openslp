@@ -1,9 +1,0 @@
-Registering     = service:valid://10.0.0.1
-Querying        = service:valid
-Service Found   = service:valid://10.0.0.1
-
-Registering     = service:valid://10.0.0.1
-Querying        = service:invalid
-Error registering service with slp.
--19: SLP_NETWORK_TIMED_OUT
-When no reply can be obtained in the time specified by the configured timeout interval for a unicast request, this error is returned.
