@@ -680,7 +680,94 @@ int ParseDAAdvert(SLPBuffer buffer, SLPDAAdvert* daadvert)
     return 0;
 }
 
+/*--------------------------------------------------------------------------*/
+int ParseSrvTypeRqst(SLPBuffer buffer, SLPSrvTypeRqst* srvtyperqst)
+/*--------------------------------------------------------------------------*/
+{
+    /* make sure that min size is met */
+    #if(defined(PARANOID) || defined(DEBUG))
+    if(buffer->end - buffer->curpos < 10)
+    {
+        return SLP_ERROR_PARSE_ERROR;
+    }
+    #endif
+    
+    /* parse the prlist */
+    srvtyperqst->prlistlen = AsUINT16(buffer->curpos);
+    buffer->curpos += 2;
+    #if(defined(PARANOID) || defined(DEBUG))
+    if(srvtyperqst->prlistlen > buffer->end - buffer->curpos)
+    {
+        return SLP_ERROR_PARSE_ERROR;
+    }
+    #endif
+    srvtyperqst->prlist = srvtyperqst->prlistlen ? buffer->curpos : 0;
+    buffer->curpos += srvtyperqst->prlistlen;
+    
+    /* parse the naming authority if present */
+    srvtyperqst->namingauthlen = AsUINT16(buffer->curpos);
+    buffer->curpos += 2;
+    if (!srvtyperqst->namingauthlen || srvtyperqst->namingauthlen == 0xffff)
+    {
+	srvtyperqst->namingauth = 0;
+    } else
+    {
+        #if(defined(PARANOID) || defined(DEBUG))
+        if(srvtyperqst->namingauthlen > buffer->end - buffer->curpos)
+        {
+            return SLP_ERROR_PARSE_ERROR;
+        }
+        #endif
+	srvtyperqst->namingauth = buffer->curpos;
+	buffer->curpos += srvtyperqst->namingauthlen;
+    }
+    
+    /* parse the scope list */
+    srvtyperqst->scopelistlen = AsUINT16(buffer->curpos);
+    buffer->curpos += 2;
+    #if(defined(PARANOID) || defined(DEBUG))
+    if(srvtyperqst->scopelistlen > buffer->end - buffer->curpos)
+    {
+        return SLP_ERROR_PARSE_ERROR;
+    }
+    #endif
+    srvtyperqst->scopelist = buffer->curpos;
+    buffer->curpos += srvtyperqst->scopelistlen;    
 
+    return 0;
+}
+
+
+/*--------------------------------------------------------------------------*/
+int ParseSrvTypeRply(SLPBuffer buffer, SLPSrvTypeRply* srvtyperply)
+/*--------------------------------------------------------------------------*/
+{
+    /* make sure that min size is met */
+    #if(defined(PARANOID) || defined(DEBUG))
+    if(buffer->end - buffer->curpos < 4)
+    {
+        return SLP_ERROR_PARSE_ERROR;
+    }
+    #endif
+
+    /* parse out the error code */
+    srvtyperply->errorcode = AsUINT16(buffer->curpos);
+    buffer->curpos += 2;
+
+    /* parse out the error srvtype-list length */
+    srvtyperply->srvtypelistlen = AsUINT16(buffer->curpos);
+    buffer->curpos += 2;
+
+    #if(defined(PARANOID) || defined(DEBUG))
+    if(srvtyperply->srvtypelistlen > buffer->end - buffer->curpos)
+    {
+        return SLP_ERROR_PARSE_ERROR;
+    }
+    #endif
+    srvtyperply->srvtypelist = buffer->curpos;
+    
+    return 0;
+}
 
 /*-------------------------------------------------------------------------*/
 void SLPMessageFreeInternals(SLPMessage message)
@@ -740,23 +827,17 @@ void SLPMessageFreeInternals(SLPMessage message)
         }
         break; 
 
-    /*
-    case SLP_FUNCT_SRVTYPERQST:
-        result = ParseSrvTypeRqst(start,end,&xlator->body.srvtyperqst);
-        break;
-        
-    case SLP_FUNCT_SRVTYPERPLY:
-        result = ParseSrvTypeRply(start,end,&xlator->body.srvtyperply);
-        break;
-        
+#if 0        
     case SLP_FUNCT_SAADVERT:
         result = ParseSAAdvert(start,end,&xlator->body.saadvert);
         break;
-        */
+#endif
     
     case SLP_FUNCT_ATTRRQST:
     case SLP_FUNCT_SRVACK:
     case SLP_FUNCT_SRVRQST:
+    case SLP_FUNCT_SRVTYPERQST:
+    case SLP_FUNCT_SRVTYPERPLY:
     default:
         /* don't do anything */
         break;
@@ -883,7 +964,7 @@ int SLPMessageParseBuffer(SLPBuffer buffer, SLPMessage message)
         case SLP_FUNCT_DAADVERT:
             result = ParseDAAdvert(buffer,&(message->body.daadvert));
             break;
-/*    
+    
         case SLP_FUNCT_SRVTYPERQST:
             result = ParseSrvTypeRqst(buffer,&(message->body.srvtyperqst));
             break;
@@ -891,11 +972,11 @@ int SLPMessageParseBuffer(SLPBuffer buffer, SLPMessage message)
         case SLP_FUNCT_SRVTYPERPLY:
             result = ParseSrvTypeRply(buffer,&(message->body.srvtyperply));
             break;
-    
+#if 0    
         case SLP_FUNCT_SAADVERT:
             result = ParseSAAdvert(buffer,&(message->body.saadvert));
             break;
-*/
+#endif
         default:
             result = SLP_ERROR_MESSAGE_NOT_SUPPORTED;
         }

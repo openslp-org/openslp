@@ -73,6 +73,49 @@ int SLPCompareString(int str1len,
 
 
 /*=========================================================================*/
+int SLPCompareNamingAuth(int srvtypelen,
+			 const char* srvtype,
+			 int namingauthlen,
+			 const char* namingauth)
+/* Does srvtype match namingauth                                           */
+/*                                                                         */
+/* TODO: Handle the whole utf8 spec                                        */
+/*                                                                         */
+/* srvtype -        pointer to service type to be compared                 */
+/*                                                                         */
+/* srvtypelen -     length of srvtype in bytes                             */
+/*                                                                         */
+/* namingauth -     pointer to naming authority to be matched              */
+/*                                                                         */
+/* namingauthlen -  length of naming authority in bytes                    */
+/*                                                                         */
+/* Returns -    zero if srvtype matches the naming authority. Nonzero if   */
+/*              it doesn't                                                 */
+/*=========================================================================*/
+{
+    const char *dot;
+    int srvtypenalen;
+    
+    if (namingauthlen == 0xffff) /* match all naming authorities */ 
+	return 0;		
+    
+    dot = memchr(srvtype,'.',srvtypelen);
+
+    if (!namingauthlen)		/* IANA naming authority */
+	return dot ? 1 : 0;	
+
+    srvtypenalen = srvtypelen - (dot + 1 - srvtype);
+
+    if (srvtypenalen != namingauthlen)
+	return 1;
+    
+    if (strncasecmp(dot + 1, namingauth, namingauthlen) == 0)
+	return 0;
+    
+    return 1;
+}
+
+
 int SLPCompareSrvType(int lsrvtypelen,
                       const char* lsrvtype,
                       int rsrvtypelen,

@@ -91,6 +91,20 @@ typedef struct _SLPDeRegParams
 
 
 /*=========================================================================*/
+typedef struct _SLPFindSrvTypesParams
+/* Used to pass parameters to functions that deals with handle based SLP   */
+/* API calls                                                               */
+/*=========================================================================*/
+{
+    int                 namingauthlen;
+    const char*         namingauth;
+    int                 scopelistlen;
+    const char*         scopelist;
+    SLPSrvTypeCallback* callback;
+    void*               cookie;
+}SLPFindSrvTypesParams,*PSLPFindSrvTypesParams;
+
+/*=========================================================================*/
 typedef struct _SLPFindSrvsParams
 /* Used to pass parameters to functions that deals with handle based SLP   */
 /* API calls                                                               */
@@ -129,10 +143,11 @@ typedef union _SLPHandleCallParams
 /* API calls                                                               */
 /*=========================================================================*/
 {
-    SLPRegParams        reg;
-    SLPDeRegParams      dereg;
-    SLPFindSrvsParams   findsrvs;
-    SLPFindAttrsParams  findattrs;
+    SLPRegParams          reg;
+    SLPDeRegParams        dereg;
+    SLPFindSrvTypesParams findsrvtypes;
+    SLPFindSrvsParams     findsrvs;
+    SLPFindAttrsParams    findattrs;
 }SLPHandleCallParams, *PSLPHandleCallParams;
 
 #define SLP_HANDLE_SIG 0xbeeffeed

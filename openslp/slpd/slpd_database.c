@@ -319,12 +319,53 @@ int SLPDDatabaseFindType(SLPSrvTypeRqst* srvtyperqst,
 /*                                                                         */
 /* count    (IN)  number of elements in the result array                   */
 /*                                                                         */
-/* Returns  - The number of services found or <0 on error.  If the number  */
-/*            of services found is exactly equal to the number of elements */
+/* Returns  - The number of srvtypes found or <0 on error.  If the number  */
+/*            of srvtypes found is exactly equal to the number of elements */
 /*            in the array, the call may be repeated with a larger array.  */
 /*=========================================================================*/
 {
-    return 0;
+    SLPDDatabaseEntry*  entry;
+    int                 found;
+    int                 i;
+
+
+    found = 0;
+    entry = (SLPDDatabaseEntry*)G_DatabaseList.head;
+    while(entry)
+    {
+	if(SLPCompareNamingAuth(entry->srvtypelen, entry->srvtype,
+				srvtyperqst->namingauthlen,
+				srvtyperqst->namingauth) == 0)
+	{
+	    if(SLPIntersectStringList(srvtyperqst->scopelistlen,
+				      srvtyperqst->scopelist,
+				      entry->scopelistlen,
+				      entry->scopelist))
+	    {
+		for (i = 0; i < found; i++)
+		{
+		    if (strcmp(result[i].type, entry->srvtype) == 0)
+		    {
+			break;
+		    }
+		}
+		if(i == found)
+		{
+		    result[found].type = entry->srvtype;
+		    result[found].typelen = entry->srvtypelen;
+		    found ++;
+		    if(found >= count)
+		    {
+			break;
+		    }
+		}
+	    }
+	}
+
+        entry = (SLPDDatabaseEntry*)entry->listitem.next;
+    }
+
+    return found;
 }
 
 

@@ -59,6 +59,26 @@ int SLPCompareString(int str1len,
 
 
 /*=========================================================================*/
+int SLPCompareNamingAuth(int srvtypelen,
+			 const char* srvtype,
+			 int namingauthlen,
+			 const char* namingauth);
+/* Does srvtype match namingauth                                           */
+/*                                                                         */
+/* TODO: Handle the whole utf8 spec                                        */
+/*                                                                         */
+/* srvtype -        pointer to service type to be compared                 */
+/*                                                                         */
+/* srvtypelen -     length of srvtype in bytes                             */
+/*                                                                         */
+/* namingauth -     pointer to naming authority to be matched              */
+/*                                                                         */
+/* namingauthlen -  length of naming authority in bytes                    */
+/*                                                                         */
+/* Returns -    zero if srvtype matches the naming authority. Nonzero if   */
+/*              it doesn't                                                 */
+/*=========================================================================*/
+
 int SLPCompareSrvType(int srvtype1len,
                       const char* srvtype1,
                       int srvtype2len,

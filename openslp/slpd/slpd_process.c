@@ -5,7 +5,7 @@
 /*                                                                         */
 /* File:        slpd_process.c                                             */
 /*                                                                         */
-/* Abstract:    Processes incomming SLP messages                           */
+/* Abstract:    Processes incoming SLP messages                            */
 /*                                                                         */
 /*-------------------------------------------------------------------------*/
 /*                                                                         */
@@ -914,6 +914,143 @@ int ProcessSrvTypeRqst(SLPDPeerInfo* peerinfo,
                        int errorcode)
 /*-------------------------------------------------------------------------*/
 {
+    int                     i;
+    int                     size         = 0;
+    int                     count        = 0;
+    int                     found        = 0;
+    SLPDDatabaseSrvType*    srvtypearray = 0;
+    
+
+    /*-------------------------------------------------*/
+    /* Check for one of our IP addresses in the prlist */
+    /*-------------------------------------------------*/
+    if(SLPIntersectStringList(message->body.srvtyperqst.prlistlen,
+                              message->body.srvtyperqst.prlist,
+                              G_SlpdProperty.interfacesLen,
+                              G_SlpdProperty.interfaces))
+    {
+        result->end = result->start;
+        goto FINISHED;
+    }
+
+    /*------------------------------------*/
+    /* Make sure that we handle the scope */
+    /*------ -----------------------------*/
+    if(SLPIntersectStringList(message->body.srvtyperqst.scopelistlen,
+                              message->body.srvtyperqst.scopelist,
+                              G_SlpdProperty.useScopesLen,
+                              G_SlpdProperty.useScopes) != 0)
+    {
+        /*------------------------------------*/
+        /* Find service types in the database */
+        /*------------------------------------*/
+        while(found == count)
+        {
+            count += SLPDPROCESS_RESULT_COUNT;
+        
+            if(srvtypearray) free(srvtypearray);
+            srvtypearray = (SLPDDatabaseSrvType*)malloc(sizeof(SLPDDatabaseSrvType) * count);
+            if(srvtypearray == 0)
+            {
+                found       = 0;
+                errorcode   = SLP_ERROR_INTERNAL_ERROR;
+                break;
+            }
+        
+            found = SLPDDatabaseFindType(&(message->body.srvtyperqst), srvtypearray, count);
+            if(found < 0)
+            {
+                found = 0;
+                errorcode   = SLP_ERROR_INTERNAL_ERROR;
+                break;
+            }
+        }
+    }
+    else
+    { 
+        errorcode = SLP_ERROR_SCOPE_NOT_SUPPORTED;
+    }
+   
+    /*----------------------------------------------------------------*/
+    /* Do not send error codes or empty replies to multicast requests */
+    /*----------------------------------------------------------------*/
+    if (message->header.flags & SLP_FLAG_MCAST)
+    {
+        if (found == 0 || errorcode != 0)
+        {
+            result->end = result->start;
+            goto FINISHED;  
+        }
+    }   
+
+
+    /*-----------------------------------------------------------------*/
+    /* ensure the buffer is big enough to handle the whole srvtyperply */
+    /*-----------------------------------------------------------------*/
+    size = message->header.langtaglen + 18; /* 14 bytes for header     */
+                                            /*  2 bytes for error code */
+                                            /*  2 bytes for srvtype
+                                                list length  */
+    for(i=0;i<found;i++)
+    {
+        size += srvtypearray[i].typelen + 1; /*  1 byte for comma  */
+    }
+    size--;                     /* remove the extra comma */
+    result = SLPBufferRealloc(result,size);
+    if(result == 0)
+    {
+        found = 0;
+        errorcode = SLP_ERROR_INTERNAL_ERROR;
+    }
+
+
+    /*----------------*/
+    /* Add the header */
+    /*----------------*/
+    /*version*/
+    *(result->start)       = 2;
+    /*function id*/
+    *(result->start + 1)   = SLP_FUNCT_SRVTYPERPLY;
+    /*length*/
+    ToUINT24(result->start + 2,size);
+    /*flags*/
+    ToUINT16(result->start + 5,
+             size > SLP_MAX_DATAGRAM_SIZE ? SLP_FLAG_OVERFLOW : 0);
+    /*ext offset*/
+    ToUINT24(result->start + 7,0);
+    /*xid*/
+    ToUINT16(result->start + 10,message->header.xid);
+    /*lang tag len*/
+    ToUINT16(result->start + 12,message->header.langtaglen);
+    /*lang tag*/
+    memcpy(result->start + 14,
+           message->header.langtag,
+           message->header.langtaglen);
+
+    /*-----------------------------*/
+    /* Add rest of the SrvTypeRply */
+    /*-----------------------------*/
+    result->curpos = result->start + 14 + message->header.langtaglen;
+
+    /* error code*/
+    ToUINT16(result->curpos, errorcode);
+    result->curpos += 2;
+    
+    /* length of srvtype-list */
+    ToUINT16(result->curpos, size - (message->header.langtaglen + 18));
+    result->curpos += 2;
+
+    for(i=0;i<found;i++)
+    {
+        memcpy(result->curpos, srvtypearray[i].type,
+               srvtypearray[i].typelen);
+        result->curpos += srvtypearray[i].typelen;
+        if (i < found - 1)
+            *result->curpos++ = ',';
+    }
+    FINISHED:   
+    if(srvtypearray) free(srvtypearray);
+
     return errorcode;
 }
 

@@ -35,12 +35,15 @@ SLPBuffer SLPBufferAlloc(size_t size)
 /*                                                                         */
 /* size     - (IN) number of bytes to reallocate                           */ 
 /*                                                                         */
-/* returns  - newly allocated SLPBuffer or NULL on ENOMEM                  */
+/* returns  - newly allocated SLPBuffer or NULL on ENOMEM. An extra byte   */
+/*            is allocated to null terminating strings. This extra byte    */
+/*			  is not counted in the buffer size                            */
 /*=========================================================================*/
 {
    SLPBuffer result;
 
-   result = (SLPBuffer)malloc(sizeof(struct _SLPBuffer) + size);
+   /* allocate an extra byte for null terminating strings */
+   result = (SLPBuffer)malloc(sizeof(struct _SLPBuffer) + size + 1);
    if(result)
    {
        result->allocated = size;
@@ -49,7 +52,7 @@ SLPBuffer SLPBufferAlloc(size_t size)
        result->end = result->start + size; 
        
        #if(defined DEBUG)
-       memset(result->start,0xff,size);
+       memset(result->start,0xff,size + 1);
        #endif
    }
    
@@ -62,7 +65,9 @@ SLPBuffer SLPBufferRealloc(SLPBuffer buf, size_t size)
 /*                                                                         */
 /* size     - (IN) number of bytes to allocate                             */
 /*                                                                         */
-/* returns  - a newly allocated SLPBuffer or NULL on ENOMEM                */
+/* returns  - newly (re)allocated SLPBuffer or NULL on ENOMEM. An extra    */
+/*            byte is allocated to null terminating strings. This extra    */
+/*			  byte is not counted in the buffer size                       */
 /*=========================================================================*/
 {
    SLPBuffer result;
@@ -74,7 +79,9 @@ SLPBuffer SLPBufferRealloc(SLPBuffer buf, size_t size)
        }
        else
        {
-           result = (SLPBuffer)realloc(buf,sizeof(struct _SLPBuffer) + size);
+           /* allocate an extra byte for null terminating strings */
+           result = (SLPBuffer)realloc(buf, sizeof(struct _SLPBuffer) +
+				       size + 1);
            result->allocated = size;
        }
        
@@ -85,7 +92,7 @@ SLPBuffer SLPBufferRealloc(SLPBuffer buf, size_t size)
     	   result->end = result->start + size;
     	   
     	   #if(defined DEBUG)
-    	   memset(result->start,0xff,size);
+    	   memset(result->start,0xff,size + 1);
     	   #endif
        }
    }

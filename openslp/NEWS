@@ -1,7 +1,12 @@
 NEWS - list of user-visible changes between releases of OpenSLP
 
-New in openslp-0.7.4
----------------------
+New in openslp-0.7.5: (2000-??-??)
+----------------------------------
+* SLPFindSrvTypes() now works!
+* libslp minor version updated.
+
+New in openslp-0.7.4: (2000-09-01)
+----------------------------------
 * Finally added SA <--> DA communication resulting in an slpd that now acts as
   a much better SA and DA.  
 * slpd (as a DA) responds to active DA discovery requests.
@@ -20,6 +25,7 @@ New in openslp-0.7.3:
 
 
 New in openslp-0.7.2: (2000-08-17)
+----------------------------------
 * Revamped build system.
   Takes advantage of libtool/automake integration.
   libslp versioning changed to be compatible with libtool.
