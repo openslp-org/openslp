@@ -1,2 +1,11 @@
-.cvsignore
+Makefile
 Makefile.in
+.libs
+*.la
+*.lo
+slp_attr_l.c
+slp_attr_y.c
+slp_attr_y.h
+slp_filter_l.c
+slp_filter_y.c
+slp_filter_y.h
