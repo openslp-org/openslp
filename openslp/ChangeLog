@@ -6,6 +6,9 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 
+1/15/01 matt@caldera.com
+Added Timothy Zurcher to the THANKS file.  He deserves it!
+
 11/13/01 matt@caldera.com
 Minor changes to the way that settings from /etc/slp.conf affect active and 
 passive discovery.
