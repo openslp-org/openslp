@@ -66,7 +66,7 @@ SLPDProperty G_SlpdProperty;
 
 
 /*-------------------------------------------------------------------------*/
-char* GetHostname()
+char* GetHostname(char** hostfdn)
 /* Returns a string represting this host (the FDN) or null. Caller must    */
 /* free returned string                                                    */
 /*-------------------------------------------------------------------------*/
@@ -75,30 +75,29 @@ char* GetHostname()
 #define MAX_HOST_NAME 256
 
     char            host[MAX_HOST_NAME];
-    char*           hostfdn = 0;
     struct hostent* he;
+
+    *hostfdn = 0;
 
     if(gethostname(host, MAX_HOST_NAME) == 0)
     {
         he = gethostbyname(host);
         if(he)
         {
-            hostfdn = xstrdup(he->h_name);
+            *hostfdn = xstrdup(he->h_name);
         }
     }
 
-    return hostfdn;
+    return *hostfdn;
 }
 
 
 /*-------------------------------------------------------------------------*/
-char* GetInterfaceList()
+char* GetInterfaceList(char** result)
 /* Returns a comma delimited string of interface addresses or null. Caller */
 /* is responsible for freeing buffer returned buffer                       */
 /*-------------------------------------------------------------------------*/
 {
-    char*               result = 0;
-
 #ifdef LINUX
     /*------------------------------------------------------------------*/
     /* Use Linux ioctl. We will return only list of up to 10 interfaces */
@@ -111,16 +110,18 @@ char* GetInterfaceList()
     int                 i;
     int                 fd;
 
+    *result = 0;
+
     ifc.ifc_len = sizeof(struct ifreq) * 10;
     ifc.ifc_req = iflist;
     fd = socket(PF_INET,SOCK_STREAM,0);
     if(ioctl(fd,SIOCGIFCONF,&ifc) == 0)
     {
         /* allocate 16 bytes per interface */
-        result = (char*)xmalloc((MAX_INTERFACE * 16) + 1);
-        if(result)
+        *result = (char*)xmalloc((MAX_INTERFACE * 16) + 1);
+        if(*result)
         {
-            result[0] = 0; /* null terminate for strcat */
+            (*result)[0] = 0; /* null terminate for strcat */
             for(i = 0; i < ifc.ifc_len/sizeof(struct ifreq); i++)
             {
                 sa = (struct sockaddr *)&(iflist[i].ifr_addr);
@@ -130,11 +131,11 @@ char* GetInterfaceList()
                     /* exclude localhost */
                     if((ntohl(sin->sin_addr.s_addr) & 0xff000000) != 0x7f000000)
                     {
-                        if(*result)
+                        if(**result)
                         {
-                            strcat(result,",");
+                            strcat(*result,",");
                         }
-                        strcat(result,inet_ntoa(sin->sin_addr)); 
+                        strcat(*result,inet_ntoa(sin->sin_addr)); 
                     }
                 }
             }
@@ -161,18 +162,18 @@ char* GetInterfaceList()
                 for(i=0; myhostent->h_addr_list[i];i++);
 
                 /* allocate memory 16 bytes per interface*/
-                result = (char*)xmalloc((i * 16) + 1);
-                if(result)
+                *result = (char*)xmalloc((i * 16) + 1);
+                if(*result)
                 {
-                    result[0] = 0; /* null terminate */
+                    (*result)[0] = 0; /* null terminate */
                     for(i=0; myhostent->h_addr_list[i];i++)
                     {
                         memcpy(&ifaddr,myhostent->h_addr_list[i],sizeof(ifaddr));
-                        if(*result)
+                        if(**result)
                         {
-                            strcat(result,",");
+                            strcat(*result,",");
                         }
-                        strcat(result,inet_ntoa(ifaddr));
+                        strcat(*result,inet_ntoa(ifaddr));
                     }    
                 }
             }
@@ -182,7 +183,7 @@ char* GetInterfaceList()
     }
 #endif
 
-    return result;
+    return *result;
 }
 
 
@@ -191,6 +192,8 @@ int SLPDPropertyInit(const char* conffile)
 /*=========================================================================*/
 {
     char* myname = 0;
+    char* myinterfaces = 0;
+    char* myurl = 0;
 
     SLPPropertyReadFile(conffile);
 
@@ -238,7 +241,13 @@ int SLPDPropertyInit(const char* conffile)
     G_SlpdProperty.interfaces = SLPPropertyGet("net.slp.interfaces");
     if(*G_SlpdProperty.interfaces == 0)
     {
-        SLPPropertySet("net.slp.interfaces", GetInterfaceList());
+        myinterfaces = GetInterfaceList(&myinterfaces);
+        if(myinterfaces)
+        {
+            SLPPropertySet("net.slp.interfaces", myinterfaces);
+            xfree(myinterfaces);
+        }   
+
         G_SlpdProperty.interfaces = SLPPropertyGet("net.slp.interfaces");
     }
     G_SlpdProperty.interfacesLen = strlen(G_SlpdProperty.interfaces);
@@ -248,22 +257,25 @@ int SLPDPropertyInit(const char* conffile)
     /* Set the value used internally as the url for this agent */
     /*---------------------------------------------------------*/
     /* 27 is the size of "service:directory-agent://(NULL)" */
-    myname = GetHostname();    
+    myname = GetHostname(&myname);    
     if(myname)
     {
-        G_SlpdProperty.myUrl = (const char*)xmalloc(27 + strlen(myname));
+        myurl = (char*)xmalloc(27 + strlen(myname));
         if(G_SlpdProperty.isDA)
         {
-            strcpy((char*)G_SlpdProperty.myUrl,"service:directory-agent://");
+            strcpy(myurl,"service:directory-agent://");
         }
         else
         {
-            strcpy((char*)G_SlpdProperty.myUrl,"service:service-agent://");
+            strcpy(myurl,"service:service-agent://");
         }
+        strcat(myurl,myname);
+        SLPPropertySet("net.slp.agentUrl",myurl);
 
-        strcat((char*)G_SlpdProperty.myUrl,myname);
+        G_SlpdProperty.myUrl = SLPPropertyGet("net.slp.agentUrl");
         G_SlpdProperty.myUrlLen = strlen(G_SlpdProperty.myUrl);
 
+        xfree(myurl);
         xfree(myname);
     }
 

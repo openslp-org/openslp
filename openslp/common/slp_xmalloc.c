@@ -90,6 +90,7 @@ xallocation_t* _xmalloc_find(void* buf)
         {
             break;
         }
+        x = (xallocation_t*)(x->listitem.next);
     }
 
     return x;

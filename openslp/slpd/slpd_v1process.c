@@ -894,15 +894,21 @@ int SLPDv1ProcessMessage(struct sockaddr_in* peeraddr,
             }   
         }
 
-        /* TRICKY: Do not free the message descriptor for SRVREGs */
-        /*         because we are keeping them in the database    */
-        /*         UNLESS there is an error, then free memory     */
-        if(header.functionid != SLP_FUNCT_SRVREG && errorcode != 0)
+        if(header.functionid == SLP_FUNCT_SRVREG)
         {
-            SLPBufferFree(recvbuf);
-            SLPMessageFree(message);
+            /* TRICKY: Do not free the message descriptor for SRVREGs */
+            /*         because we are keeping them in the database    */
+            /*         unless there is an error then we free memory   */
+            if(errorcode)
+            {
+                SLPMessageFree(message);
+                SLPBufferFree(recvbuf);
+            }
         }
-        
+        else
+        {
+            SLPMessageFree(message);
+        }                           
     }
     else
     {
