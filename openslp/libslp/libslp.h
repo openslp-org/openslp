@@ -29,6 +29,7 @@
 #include <slp_xid.h>
 #include <slp_network.h>
 #include <slp_da.h>
+#include <slp_compare.h>
 
 /*=========================================================================*/
 typedef enum _SLPCallType
@@ -160,10 +161,12 @@ SLPError ThreadCreate(ThreadStartProc startproc, void *arg);
 /* Returns      SLPError code                                              */
 /*=========================================================================*/
 
+
 /*=========================================================================*/ 
 int NetworkConnectToDA(const char* scopelist,
                        int scopelistlen,
-                       struct sockaddr_in* peeraddr);
+                       struct sockaddr_in* peeraddr,
+                       struct timeval* timeout);
 /* Connects to slpd and provides a peeraddr to send to                     */
 /*                                                                         */
 /* scopelist        (IN) Scope that must be supported by DA. Pass in NULL  */
@@ -201,5 +204,17 @@ SLPError NetworkRqstRply(int sock,
 /*                                                                         */
 /* Returns  -    SLP_OK on success                                         */
 /*=========================================================================*/ 
+
+
+/*=========================================================================*/
+void KnownDADiscover(); 
+/*=========================================================================*/
+
+/*=========================================================================*/
+int KnownDAConnect(const char* scopelist, 
+                   int scopelistlen,
+                   struct sockaddr_in* peeraddr,
+                   struct timeval* timeout);
+/*=========================================================================*/
 
 #endif

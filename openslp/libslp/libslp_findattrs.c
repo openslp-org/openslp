@@ -71,6 +71,7 @@ SLPError ProcessAttrRqst(PSLPHandleInfo handle)
 /*-------------------------------------------------------------------------*/
 {
     struct sockaddr_in  peeraddr;
+    struct timeval      timeout;
     int                 sock        = 0;
     int                 bufsize     = 0;
     char*               buf         = 0;
@@ -123,9 +124,13 @@ SLPError ProcessAttrRqst(PSLPHandleInfo handle)
     /*---------------------------------------*/
     /* Connect to DA, multicast or broadcast */
     /*---------------------------------------*/
+    timeout.tv_sec = atoi(SLPGetProperty("net.slp.unicastMaximumWait"));
+    timeout.tv_usec = (timeout.tv_sec % 1000) * 1000;
+    timeout.tv_sec = timeout.tv_sec / 1000;
     sock = NetworkConnectToDA(handle->params.findsrvs.scopelist,
                               handle->params.findsrvs.scopelistlen,
-                              &peeraddr);
+                              &peeraddr,
+                              &timeout);
     if(sock >= 0)
     {
         /* Use Unicast */

@@ -36,9 +36,14 @@
 #include "libslp.h"
 
 /*=========================================================================*/ 
+time_t      G_LastDADiscovery = 0;
+/*=========================================================================*/ 
+
+/*=========================================================================*/ 
 int NetworkConnectToDA(const char* scopelist,
                        int scopelistlen,
-                       struct sockaddr_in* peeraddr)
+                       struct sockaddr_in* peeraddr,
+                       struct timeval* timeout)
 /* Connects to slpd and provides a peeraddr to send to                     */
 /*                                                                         */
 /* scopelist        (IN) Scope that must be supported by DA. Pass in NULL  */
@@ -52,7 +57,24 @@ int NetworkConnectToDA(const char* scopelist,
 /* Returns          Connected socket or -1 if no DA connection can be made */
 /*=========================================================================*/
 {
-    return -1;
+    time_t      curtime;
+    int         dinterval;
+    int         sock;
+
+    sock = KnownDAConnect(scopelist,scopelistlen,peeraddr,timeout);
+    if(sock < 0)
+    {
+        time(&curtime);
+        dinterval = atoi(SLPGetProperty("net.slp.DAActiveDiscoveryInterval"));
+        if(curtime - G_LastDADiscovery > dinterval)
+        {
+            KnownDADiscover();
+
+            sock = KnownDAConnect(scopelist,scopelistlen,peeraddr,timeout);
+        }   
+    }       
+
+    return sock;
 }
 
 /*=========================================================================*/ 

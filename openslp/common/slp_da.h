@@ -33,22 +33,36 @@
 #if(!defined SLP_DA_H_INCLUDED)
 #define SLP_DA_H_INCLUDED
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
 #include <netinet/in.h>
 
-#include <slp_buffer.h>
-#include <slp_message.h>
 #include <slp_linkedlist.h>
-#include <slp_network.h>
-#include <slp_xid.h>
 
 /*=========================================================================*/
 typedef struct _SLPDAEntry
 /*=========================================================================*/
 {
     ListItem        listitem;
-    SLPDAAdvert     daadvert;
     struct in_addr  daaddr;
+    char*           scopelist;
+    int             scopelistlen;
 }SLPDAEntry;
+
+/*=========================================================================*/
+SLPDAEntry* SLPDAEntryCreate(struct in_addr* addr,
+                             const char* scopelist,
+                             int scopelistlen);
+/* Creates a SLPDAEntry                                                    */
+/*                                                                         */
+/* addr     (IN) pointer to in_addr of the DA                              */
+/*                                                                         */
+/* daadvert (IN) pointer to a daadvert of the DA                           */
+/*                                                                         */
+/* returns  Pointer to new SLPDAEntry.                                     */
+/*=========================================================================*/
+
 
 /*=========================================================================*/
 void SLPDAEntryFree(SLPDAEntry* entry);
@@ -61,47 +75,12 @@ void SLPDAEntryFree(SLPDAEntry* entry);
 
 
 /*=========================================================================*/
-SLPDAEntry* SLPDAEntryCreate(struct in_addr* addr, SLPDAAdvert* daadvert);
-/* Creates a SLPDAEntry                                                    */
-/*                                                                         */
-/* addr     (IN) pointer to in_addr of the DA                              */
-/*                                                                         */
-/* daadvert (IN) pointer to a daadvert of the DA                           */
-/*                                                                         */
-/* returns  Pointer to new SLPDAEntry.                                     */
+int SLPDAEntryWrite(int fd, SLPDAEntry* entry);
 /*=========================================================================*/
 
 
 /*=========================================================================*/
-int SLPDiscoverDAs(SLPDAEntry** dalisthead,
-                   int scopelistlen,
-                   const char* scopelist,
-                   unsigned long flags,
-                   const char* daaddresses,
-                   struct timeval* timeout);
-/* Discover all known DAs.  Use the net.slp.DAAddresses property, DHCP,    */
-/* IPC with slpd, and finally active DA discovery via multicast.  The      */
-/* list is NOT emptied before the newly discovered SLPDAEntrys are added.  */
-/* Duplicate are discarded.                                                */
-/*                                                                         */
-/* dalisthead   (IN/OUT) pointer to the head of the list to add to         */
-/*                                                                         */
-/* scopelistlen (IN) length in bytes of scopelist                          */
-/*                                                                         */
-/* scopelist    (IN) find DAs of the specified scope.  NULL means find     */
-/*                   DAs in all scopes                                     */
-/*                                                                         */
-/* flags        (IN) Discovery flags:                                      */
-/*                   0x000000001 = First DA sufficient                     */
-/*                   0x000000002 = First discovery method sufficient       */
-/*                                                                         */
-/* daaddresses  (IN) value of net.slp.DAAddresses                          */
-/*                                                                         */
-/* timeout      (IN) Maximum time to wait for discovery                    */
-/*                                                                         */
-/* Returns:     number of DAs found. -1 on error.                          */
-/*                                                                         */
-/* WARNING:     This function may block for a *long* time                  */
+SLPDAEntry* SLPDAEntryRead(int fd);
 /*=========================================================================*/
 
 #endif

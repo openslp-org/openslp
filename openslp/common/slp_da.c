@@ -32,6 +32,30 @@
 
 #include <slp_da.h>
 
+/*=========================================================================*/
+SLPDAEntry* SLPDAEntryCreate(struct in_addr* addr,
+                             const char* scopelist,
+                             int scopelistlen)
+/* Creates a SLPDAEntry                                                    */
+/*                                                                         */
+/* addr     (IN) pointer to in_addr of the DA                              */
+/*                                                                         */
+/* daadvert (IN) pointer to a daadvert of the DA                           */
+/*                                                                         */
+/* returns  Pointer to new SLPDAEntry.                                     */
+/*=========================================================================*/
+{
+    SLPDAEntry* entry;
+    entry = (SLPDAEntry*)malloc(sizeof(SLPDAEntry)+scopelistlen);
+    if(entry == 0) return 0;
+
+    entry->daaddr = *addr;
+    entry->scopelist = (char*)(entry+1);
+    memcpy(entry->scopelist,scopelist,scopelistlen);
+    entry->scopelistlen = scopelistlen;
+
+    return entry;
+}
 
 /*=========================================================================*/
 void SLPDAEntryFree(SLPDAEntry* entry)
@@ -42,56 +66,47 @@ void SLPDAEntryFree(SLPDAEntry* entry)
 /* returns  none                                                           */
 /*=========================================================================*/
 {
-    if(entry->daadvert.url) free((void*)entry->daadvert.url);    
-    if(entry->daadvert.scopelist) free((void*)entry->daadvert.scopelist);
-    if(entry->daadvert.attrlist) free((void*)entry->daadvert.attrlist);
-    if(entry->daadvert.spilist) free((void*)entry->daadvert.spilist);
-    free((void*)entry);
+    if(entry)
+    {
+        free(entry);
+    }
 }
 
-
 /*=========================================================================*/
-SLPDAEntry* SLPDAEntryCreate(struct in_addr* addr, SLPDAAdvert* daadvert)
-/* Creates a SLPDAEntry                                                    */
-/*                                                                         */
-/* addr     (IN) pointer to in_addr of the DA                              */
-/*                                                                         */
-/* daadvert (IN) pointer to a daadvert of the DA                           */
-/*                                                                         */
-/* returns  Pointer to new SLPDAEntry.                                     */
+int SLPDAEntryWrite(int fd, SLPDAEntry* entry)
 /*=========================================================================*/
 {
-    SLPDAEntry* result;
-     
-    result = (SLPDAEntry*)malloc(sizeof(SLPDAEntry));
-    if(result == 0)
-    {
-        return 0;
-    }
-    memset(result,0,sizeof(SLPDAEntry));
-    
-    result->daaddr = *addr;
-    memcpy(&(result->daadvert),daadvert,sizeof(SLPDAAdvert));
-    result->daadvert.url = memdup(result->daadvert.url,
-                                  result->daadvert.urllen);
-    result->daadvert.scopelist = memdup(result->daadvert.scopelist,
-                                        result->daadvert.scopelistlen);
-    result->daadvert.attrlist = memdup(result->daadvert.attrlist,
-                                       result->daadvert.attrlistlen);
-    result->daadvert.spilist = memdup(result->daadvert.spilist,
-                                      result->daadvert.spilistlen);
-    result->daadvert.authcount = 0;
-    result->daadvert.autharray = 0;
-    /* IGNORE DUPLICATION OF AUTHBLOCK BECAUSE IT WON'T BE USED*/
+    int byteswritten;
+    int size = entry->scopelistlen + sizeof(SLPDAEntry);
+    byteswritten = write(fd,&size,sizeof(size));
+    if(byteswritten == 0) return 0;
+    byteswritten = write(fd,entry,size);
+    return byteswritten;
+}
 
-    if(result->daadvert.url == 0 ||
-       result->daadvert.scopelist == 0  ||
-       result->daadvert.attrlist == 0 ||
-       result->daadvert.spilist == 0)
+/*=========================================================================*/
+SLPDAEntry* SLPDAEntryRead(int fd)
+/*=========================================================================*/
+{   
+    int bytesread;
+    int size;
+    SLPDAEntry* entry;
+
+    bytesread = read(fd,&size,sizeof(size));
+    if(bytesread == 0) return 0;
+    if(size > 4096) return 0;  /* paranoia */
+
+    entry = malloc(size + sizeof(SLPDAEntry));
+    if(entry == 0) return 0;
+
+    bytesread = read(fd,entry,size);
+    if(bytesread < size)
     {
-        SLPDAEntryFree(result);
+        free(entry);
         return 0;
     }
-    
-    return result;
+
+    entry->scopelist = (char*)(entry+1);
+  
+    return entry;
 }
