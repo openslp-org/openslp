@@ -185,6 +185,7 @@ int SLPNetworkConnectToBroadcast(struct sockaddr_in* peeraddr)
 
 /*=========================================================================*/ 
 int SLPNetworkSendMessage(int sockfd,
+                          int socktype,
                           SLPBuffer buf,
                           struct sockaddr_in* peeraddr,
                           struct timeval* timeout)
@@ -214,13 +215,23 @@ int SLPNetworkSendMessage(int sockfd,
         xferbytes = select(sockfd + 1, 0, &writefds, 0, timeout);
         if(xferbytes > 0)
         {
-            xferbytes = sendto(sockfd,
-                               buf->curpos, 
-                               buf->end - buf->curpos, 
-                               flags,
-                               (struct sockaddr *)peeraddr,
-                               sizeof(struct sockaddr_in));
-            
+            if(socktype == SOCK_DGRAM)
+            {
+               xferbytes = sendto(sockfd,
+                                  buf->curpos, 
+                                  buf->end - buf->curpos, 
+                                  flags,
+                                  (struct sockaddr *)peeraddr,
+                                  sizeof(struct sockaddr_in));
+            }
+            else
+            {
+                xferbytes = send(sockfd,
+                                 buf->curpos, 
+                                 buf->end - buf->curpos, 
+                                 flags);
+            }
+
             if(xferbytes > 0)
             {
                 buf->curpos = buf->curpos + xferbytes;
@@ -257,6 +268,7 @@ int SLPNetworkSendMessage(int sockfd,
 
 /*=========================================================================*/ 
 int SLPNetworkRecvMessage(int sockfd,
+                          int socktype,
                           SLPBuffer* buf,
                           struct sockaddr_in* peeraddr,
                           struct timeval* timeout)
@@ -283,12 +295,23 @@ int SLPNetworkRecvMessage(int sockfd,
     xferbytes = select(sockfd + 1, &readfds, 0 , 0, timeout);
     if(xferbytes > 0)
     {
-        xferbytes = recvfrom(sockfd,
+        if(socktype == SOCK_DGRAM) 
+        {
+               xferbytes = recvfrom(sockfd,
+                                    peek,
+                                    16,
+                                    MSG_PEEK,
+                                    (struct sockaddr *)peeraddr,
+                                    &peeraddrlen);
+        }
+        else
+        {
+            xferbytes = recv(sockfd,
                              peek,
                              16,
-                             MSG_PEEK,
-                             (struct sockaddr *)peeraddr,
-                             &peeraddrlen);
+                             MSG_PEEK);
+        }
+
         if(xferbytes <= 0)
         {
 #ifdef WIN32

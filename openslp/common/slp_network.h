@@ -97,6 +97,7 @@ int SLPNetworkConnectToBroadcast(struct sockaddr_in* peeraddr);
 
 /*=========================================================================*/ 
 int SLPNetworkSendMessage(int sockfd,
+                          int socktype,
                           SLPBuffer buf,
                           struct sockaddr_in* peeraddr,
                           struct timeval* timeout);
@@ -111,6 +112,7 @@ int SLPNetworkSendMessage(int sockfd,
 
 /*=========================================================================*/ 
 int SLPNetworkRecvMessage(int sockfd,
+                          int socktype,
                           SLPBuffer* buf,
                           struct sockaddr_in* peeraddr,
                           struct timeval* timeout);

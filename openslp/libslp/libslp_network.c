@@ -240,10 +240,8 @@ SLPError NetworkRqstRply(int sock,
                                    MAX_RETRANSMITS );
         size = sizeof(socktype);
         getsockopt(sock,SOL_SOCKET,SO_TYPE,&socktype,&size);
-        socktype = SOCK_STREAM;
         xmitcount = MAX_RETRANSMITS;
     }
-    
     
     
     /*--------------------------------*/
@@ -335,6 +333,7 @@ SLPError NetworkRqstRply(int sock,
         /* send the send buffer */
         /*----------------------*/
         result = SLPNetworkSendMessage(sock,
+                                       socktype,
                                        sendbuf,
                                        destaddr,
                                        &timeout);
@@ -354,6 +353,7 @@ SLPError NetworkRqstRply(int sock,
         {
             
             if(SLPNetworkRecvMessage(sock,
+                                     socktype,
                                      &recvbuf,
                                      &peeraddr,
                                      &timeout) != 0)
