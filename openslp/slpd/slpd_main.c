@@ -153,13 +153,15 @@ void SignalHandler(int signum)
 
     case SIGTERM:
         G_SIGTERM = 1;
+        break;
 
     case SIGHUP:
         G_SIGHUP = 1;
+        break;
 
     case SIGPIPE:
     default:
-        return;
+        break;
     }
 }
 
@@ -299,6 +301,8 @@ void Shutdown()
     /* if possible wait until all outgoing socket are done and closed */
     while(SLPDOutgoingDeinit(1))
     {
+        FD_ZERO(&writefds);
+        FD_ZERO(&readfds);
         LoadFdSets(&G_OutgoingSocketList, &highfd, &readfds,&writefds);
         fdcount = select(highfd+1,&readfds,&writefds,0,&timeout);
         if(fdcount == 0)
@@ -310,7 +314,7 @@ void Shutdown()
     }
 
     SLPDOutgoingDeinit(0);
-
+    
 #ifdef DEBUG
     SLPDPropertyDeinit();
     printf("Number of calls to SLPBufferAlloc() = %i\n",G_Debug_SLPBufferAllocCount);

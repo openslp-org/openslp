@@ -215,9 +215,9 @@ void OutgoingStreamRead(SLPList* socklist, SLPDSocket* sock)
         else
         {
 #ifdef  WIN32
-            if (WSAEWOULDBLOCK != WSAGetLastError())
+            if (WSAEWOULDBLOCK == WSAGetLastError())
 #else
-            if(errno != EWOULDBLOCK)
+            if(errno == EWOULDBLOCK)
 #endif
             {
                 /* Error occured or connection was closed. Try to reconnect */
@@ -526,8 +526,11 @@ int SLPDOutgoingDeinit(int graceful)
     while (sock)
     {
         /* graceful only closes sockets without pending I/O */
-        if(graceful && 
-           sock->state < SOCKET_PENDING_IO)
+        if(graceful == 0)
+        {
+            del = sock;
+        }
+        else if(sock->state < SOCKET_PENDING_IO)
         {
             del = sock;
         }

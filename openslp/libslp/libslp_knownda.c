@@ -422,7 +422,7 @@ int KnownDAConnect(int scopelistlen,
     daentry = KnownDADiscoverFromIPC(scopelistlen,scopelist);
     if(daentry) goto CONNECT;
     daentry = KnownDADiscoverFromCache(scopelistlen,scopelist);
-    if(daentry) cached = 1; goto CONNECT;
+    if(daentry) { cached = 1; goto CONNECT; }
     daentry = KnownDADiscoverFromProperties(scopelistlen,scopelist);
     if(daentry) goto CONNECT;
     daentry = KnownDADiscoverFromDHCP(scopelistlen,scopelist);
