@@ -1,3 +1,4 @@
+@echo off
 setlocal
 if not "%DevEnvDir%"=="" goto vc7x
 
@@ -13,8 +14,17 @@ goto done
 
 :vc7x
 set SolutionConfig=Release
-if "%1"=="Debug" set SolutionConfig=%1
-"%DevEnvDir%\devenv.exe" openslp.sln /build %SolutionConfig%
+set Target=build
+
+:nextparam
+shift
+if "%0"=="debug" set SolutionConfig=%0
+if "%0"=="clean" set Target=clean
+if "%0"=="" goto dobuild
+goto nextparam
+
+:dobuild
+"%DevEnvDir%\devenv.exe" openslp.sln /%Target% %SolutionConfig%
 
 :done
 endlocal
