@@ -25,7 +25,7 @@
 #--------------
 # PRIVATE key:
 #--------------
-# The PRIVATE key line specifies the location of a key file for that contains
+# The PRIVATE key line specifies the location of a key file that contains
 # a PEM encoded DSA private key for the given SPI.  The PRIVATE key is used
 # for signing SLP messages that are sent the SA/DA on this host.
 #
@@ -39,7 +39,6 @@
 # Only one PRIVATE key is recognized by the implementation.  If there is 
 # more than one private key then only the key designated by the first PRIVATE
 # entry in this file will be used.
-# this SPI as the "master" SPI for signing DA and SA advertisement messages. 
 #
 # The following is a commented example of a PRIVATE entry:
 #
@@ -53,10 +52,10 @@
 # PEM encoded DSA public key.  This key is used for verifying messages sent 
 # by other SLP agents
 #
-# At least one PUBLIC key entry on all hosts is usually required for proper 
+# At least one PUBLIC key entry on all hosts is required for proper 
 # operation of of secure OpenSLP.  It is possible that more than one entry
 # will be needed in order to verify signatures if for some reason (that I
-# can't imagin right now) you have configured SAs and DAs with a variety of
+# can't imagine right now) you have configured SAs and DAs with a variety of
 # PRIVATE keys.
 #
 # The following is a commented example of a PUBLIC entry:
