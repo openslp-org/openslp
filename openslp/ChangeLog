@@ -6,6 +6,9 @@ Please make entries to this log (in addition to the CVS log) that describe
 major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
+11/27/00 mpeterson@caldera.com
+Implemented SLPFindScopes() in libslp
+
 11/21/00 mpeterson@caldera.com
 Send dead DAAdvert as part of graceful shutdown
 

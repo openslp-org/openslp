@@ -34,6 +34,70 @@
 #include "slp.h"
 #include "libslp.h"
 
+/*-------------------------------------------------------------------------*/
+SLPBoolean FindScopesCallback(SLPError errorcode, 
+                              SLPMessage msg, 
+                              void* cookie)
+/*-------------------------------------------------------------------------*/
+{
+    SLPSrvURL*      srvurl;
+    char**          scopelist;
+    int             scopelistlen;
+    int             allocatedlen;
+    struct hostent* he;
+    
+    scopelist = (char**)cookie;
+    scopelistlen = 0;
+    
+    if (errorcode == 0)
+    {
+        if (msg && msg->header.functionid == SLP_FUNCT_DAADVERT)
+        {
+            if (msg->body.srvrply.errorcode == 0)
+            { 
+                /* allocate a sizable initial buffer */
+                allocatedlen = SLP_MAX_DATAGRAM_SIZE;
+                *scopelist = malloc(allocatedlen);
+                if(*scopelist == 0) 
+                {
+                    /* Yikes, out of memory */
+                    return 0;
+                }
+                
+                if (SLPParseSrvURL(msg->body.daadvert.url, &srvurl) == 0)
+                {
+                    he = gethostbyname(srvurl->s_pcHost);
+                    if (he)
+                    {
+                        /* Add the scope to the scope list if it is not already there */
+                        /* (the following loop will execute 2 times max)              */
+                        while(SLPUnionStringList(scopelistlen,
+                                                 *scopelist,
+                                                 msg->body.daadvert.scopelistlen,
+                                                 msg->body.daadvert.scopelist,
+                                                 &allocatedlen,
+                                                 *scopelist) < 0)
+                        {
+                            *scopelist = realloc(*scopelist,allocatedlen);
+                            if(*scopelist == 0)
+                            {
+                                return 0;
+                            }
+                        }
+                        
+                        scopelistlen = allocatedlen;
+                    }
+
+                    SLPFree(srvurl);
+                }
+            }
+        }
+    }
+
+    return 1;
+}                 
+                     
+                     
 
 /*=========================================================================*/
 SLPError SLPFindScopes(SLPHandle hSLP,
@@ -58,14 +122,96 @@ SLPError SLPFindScopes(SLPHandle hSLP,
 /*              ppropriate error code.                                     */
 /*=========================================================================*/
 {
-     
-    /* TODO: Check DAs and DHCP */
+    SLPError            result;
+    char*               buf;
+    char*               curpos;
+    int                 bufsize;
+    int                 sockfd;
+    struct sockaddr_in  peeraddr;
+
+    /*------------------------------*/
+    /* check for invalid parameters */
+    /*------------------------------*/
+    if( hSLP == 0 ||
+        *(unsigned long*)hSLP != SLP_HANDLE_SIG ||
+        ppcScopeList  == 0 )
+    {
+        return SLP_PARAMETER_BAD;
+    }
+
+    /* start with nothing */
+    *ppcScopeList = 0;
+
+
+    /*-------------------------------------------------------------------*/
+    /* determine the size of the fixed portion of the SRVRQST            */
+    /*-------------------------------------------------------------------*/
+    bufsize  = 31; /*  2 bytes for the srvtype length */
+                   /* 23 bytes for "service:directory-agent" srvtype */
+                   /*  2 bytes for scopelistlen */
+                   /*  2 bytes for predicatelen */
+                   /*  2 bytes for sprstrlen */
     
-    *ppcScopeList = (char*)strdup(SLPGetProperty("net.slp.useScopes"));
-    if(*ppcScopeList == 0)
+    /* TODO: make sure that we don't exceed the MTU */
+    buf = curpos = (char*)malloc(bufsize);
+    if (buf == 0)
     {
         return SLP_MEMORY_ALLOC_FAILED;
     }
-    
-     return SLP_OK;
+    memset(buf,0,bufsize);
+
+    /*------------------------------------------------------------*/
+    /* Build a buffer containing the fixed portion of the SRVRQST */
+    /*------------------------------------------------------------*/
+    /* service type */
+    ToUINT16(curpos,23);
+    curpos = curpos + 2;
+    memcpy(curpos,"service:directory-agent",23);
+    curpos += 23;
+    /* scope list zero length */
+    /* predicate zero length */
+    /* spi list zero length */
+
+
+    /* TODO: Add connect to local slpd when functionality is there */
+    sockfd = NetworkConnectToMulticast(&peeraddr);
+    if(sockfd >=0 )
+    {
+        result = NetworkRqstRply(sockfd,
+                                 &peeraddr,
+                                 "en",
+                                 buf,
+                                 SLP_FUNCT_DASRVRQST,
+                                 bufsize,
+                                 FindScopesCallback,
+                                 ppcScopeList);
+        close(sockfd);
+    }
+
+    free(buf);
+
+    /* Finally, add scopes from properties */
+
+
+    return result;
 }
+
+
+/*=========================================================================*/
+unsigned short SLPGetRefreshInterval()
+/*                                                                         */
+/* Returns the maximum across all DAs of the min-refresh-interval          */
+/* attribute.  This value satisfies the advertised refresh interval        */
+/* bounds for all DAs, and, if used by the SA, assures that no refresh     */
+/* registration will be rejected.  If no DA advertises a min-refresh-      */
+/* interval attribute, a value of 0 is returned.                           */
+/*                                                                         */
+/* Returns: If no error, the maximum refresh interval value allowed by all */
+/*          DAs (a positive integer).  If no DA advertises a               */
+/*          min-refresh-interval attribute, returns 0.  If an error occurs,*/ 
+/*          returns an SLP error code.                                     */
+/*=========================================================================*/
+{
+    return 0;
+}
+
