@@ -198,7 +198,7 @@ SLPDAEntry* KnownDADiscoveryRqstRply(int sock,
     char*   buf;
     char*   curpos;
     int     bufsize;
-    SLPDAEntry* result;
+    SLPDAEntry* result = 0;
            
     /*-------------------------------------------------------------------*/
     /* determine the size of the fixed portion of the SRVRQST            */

@@ -148,10 +148,10 @@ int ProcessDASrvRqst(struct sockaddr_in* peeraddr,
 {
     SLPDAEntry      daentry;
     SLPDAEntry*     entry   = 0;
-    
+
     memset(&daentry,0,sizeof(daentry));
     entry = &daentry;
-
+    
     if(errorcode == 0)
     {
         if(ISLOCAL(peeraddr->sin_addr))
@@ -164,7 +164,7 @@ int ProcessDASrvRqst(struct sockaddr_in* peeraddr,
                                                message->body.srvrqst.scopelist); 
             if(entry == 0)
             {
-                errorcode =  SLP_ERROR_SCOPE_NOT_SUPPORTED;
+                entry = &daentry;
             }
         }
         else
