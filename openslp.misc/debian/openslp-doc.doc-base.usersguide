@@ -1,9 +1,0 @@
-Document: openslp-userguide
-Title: OpenSLP User's Guide
-Author: Matt Peterson
-Abstract: This the user guide for OpenSLP.
-Section: Apps/Programming
-
-Format: HTML                                     
-Index: /usr/share/doc/openslp-doc/html/UsersGuide/index.html
-Files: /usr/share/doc/openslp-doc/html/UsersGuide/*.html
