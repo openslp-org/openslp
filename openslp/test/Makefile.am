@@ -29,9 +29,7 @@ slpparsesrvurl_SOURCES = SLPParseSrvURL.c
 slpreg_SOURCES = SLPReg.c
 slpunescape_SOURCES = SLPUnescape.c
 slp_attr_test_SOURCES = slp_attr_test.c
-If DISABLE_PREDICATES = 0
 slpd_predicate_test_SOURCES = slpd_predicate_test.c
-endif 
 
 
 # Remove all lines from VPATH (inclusive) to this line and uncomment
