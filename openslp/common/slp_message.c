@@ -1131,8 +1131,9 @@ int SLPMessageParseBuffer(struct sockaddr_in* peerinfo,
     return result;
 }
 
-#if !defined(i386)
+/*=========================================================================*/
 /* Functions used to parse buffers                                         */
+
 /*-------------------------------------------------------------------------*/
 unsigned short AsUINT16(const char *charptr)
 /*-------------------------------------------------------------------------*/
@@ -1156,10 +1157,10 @@ unsigned int AsUINT32(const char *charptr)
     unsigned char *ucp = (unsigned char *) charptr;
     return(ucp[0] << 24) | (ucp[1] << 16) | (ucp[2] << 8) | ucp[3]; 
 }
-/*=========================================================================*/
 
 /*=========================================================================*/
 /* Functions used to set buffers                                           */
+
 /*-------------------------------------------------------------------------*/
 void ToUINT16(char *charptr, unsigned int val)
 /*-------------------------------------------------------------------------*/
@@ -1186,4 +1187,3 @@ void ToUINT32(char *charptr, unsigned int val)
     charptr[2] = (val >> 8) & 0xff;
     charptr[3] = val & 0xff;
 }
-#endif
