@@ -235,6 +235,21 @@ int KnownDADiscover(struct timeval* timeout)
     /* communication with DAs and multicast                                */
     /*---------------------------------------------------------------------*/
     
+    /*----------------------------------------------------*/
+    /* Check values from the net.slp.DAAddresses property */
+    /*----------------------------------------------------*/
+    result = KnownDADiscoveryByProperties(timeout);
+    if(result)
+    {
+        goto SAVEHINTS;
+    }
+        
+    
+    /* Check data from DHCP Options */
+    /*------------------------------*/ 
+    /* TODO put code here when you can */
+
+    
     /*-----------------------------------*/
     /* Load G_KnownDAListhead from hints */
     /*-----------------------------------*/
@@ -257,22 +272,8 @@ int KnownDADiscover(struct timeval* timeout)
         result = 1;
         goto SAVEHINTS;
     }
-    
 
-    /*----------------------------------------------------*/
-    /* Check values from the net.slp.DAAddresses property */
-    /*----------------------------------------------------*/
-    result = KnownDADiscoveryByProperties(timeout);
-    if(result)
-    {
-        goto SAVEHINTS;
-    }
-        
-    /*------------------------------*/
-    /* Check data from DHCP Options */
-    /*------------------------------*/ 
     
-
     /*-------------------*/
     /* Multicast for DAs */
     /*-------------------*/ 
@@ -292,9 +293,8 @@ SAVEHINTS:
     /*---------------------*/
     /* Save the hints file */
     /*---------------------*/
-    fd = open(hintfile,
-              O_RDONLY | O_CREAT,
-              S_IROTH | S_IWOTH | S_IRGRP| S_IWGRP | S_IRUSR, S_IWUSR);
+    fd = creat(hintfile,
+               S_IROTH | S_IWOTH | S_IRGRP| S_IWGRP | S_IRUSR | S_IWUSR);
     if(fd >= 0)
     {
         SLPDAEntryListWrite(fd, &G_KnownDAListHead);
