@@ -45,7 +45,7 @@ autoconf
 echo "autoconf done"
 automake --add-missing $am_opt
 echo "automake done"
-libtoolize
+libtoolize --force
 echo "libtoolize done"
 cd $ORIGDIR
 
