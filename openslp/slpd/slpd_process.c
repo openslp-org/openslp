@@ -1095,6 +1095,7 @@ int ProcessDAAdvert(SLPMessage message,
     RESPOND:
     /* DAAdverts should never be replied to.  Set result buffer to empty*/
     result->end = result->start;
+    errorcode = SLP_ERROR_MESSAGE_DROPPED;
 
     *sendbuf = result;
 
