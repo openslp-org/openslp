@@ -171,17 +171,20 @@ int SLPDDatabaseReg(SLPSrvReg* srvreg,
     entry->srvtype      = (char*)memdup(srvreg->srvtype,srvreg->srvtypelen);
     if (srvreg->attrlistlen)
     {
-        char *str;
+        char temp;
         SLPError err;
-
-        /* FIXME The following is a hack to give SLPAttrAllocStr() a 
-         * null-terminated string. */
-        str = (char *)malloc(srvreg->attrlistlen+1);
-        memcpy(str, srvreg->attrlist, srvreg->attrlistlen);
-        str[srvreg->attrlistlen] = '\0';
-        /* end of hack. */
-
-        err = SLPAttrFreshen(entry->attr, str);
+        
+        /* temporary null termination of attrlist.  This is very sneeky and */
+        /* not "const correct"  but it's the only way without allocating a  */
+        /* temporary buffer                                                 */ 
+        temp = srvreg->attrlist[srvreg->attrlistlen];
+        ((char*)srvreg->attrlist)[srvreg->attrlistlen] = 0;
+        
+        err = SLPAttrFreshen(entry->attr, srvreg->attrlist);
+        
+        /* undo null termination */
+        ((char*)srvreg->attrlist)[srvreg->attrlistlen] = temp;
+        
         if (err != SLP_OK)
         {
             FreeEntry(entry);
