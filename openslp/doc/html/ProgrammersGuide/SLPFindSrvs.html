@@ -147,7 +147,7 @@ again */</tt>
 <br><tt>&nbsp;&nbsp;&nbsp; SLPError err;</tt>
 <br><tt>&nbsp;&nbsp;&nbsp; SLPError callbackerr;</tt>
 <br><tt>&nbsp;&nbsp;&nbsp; SLPHandle hslp;</tt>
-<p><tt>&nbsp;&nbsp;&nbsp; err = SLPOpen("en",SLP_FALSE,&amp;hslp)</tt>
+<p><tt>&nbsp;&nbsp;&nbsp; err = SLPOpen("en",SLP_FALSE,&amp;hslp);</tt>
 <br><tt>&nbsp;&nbsp;&nbsp; if(err != SLP_OK)</tt>
 <br><tt>&nbsp;&nbsp;&nbsp; {</tt>
 <br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; printf("Error opening
@@ -165,29 +165,29 @@ slp handle %i\n",err);</tt>
 0,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 /* no attr filter&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; */</tt>
 <br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-mySLPSrvURLCallback,</tt>
+MySLPSrvURLCallback,</tt>
 <br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 &amp;callbackerr );</tt>
 <p><tt>&nbsp;&nbsp;&nbsp; /* err may contain an error code that occured
 as the slp library&nbsp;&nbsp;&nbsp; */</tt>
 <br><tt>&nbsp;&nbsp;&nbsp; /* _prepared_ to make the call.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 */</tt>
-<br><tt>&nbsp;&nbsp;&nbsp; if( err != SLP_OK) || callbackerr != SLP_OK)</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; if((err != SLP_OK) || (callbackerr != SLP_OK))</tt>
 <br><tt>&nbsp;&nbsp;&nbsp; {</tt>
 <br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; printf("Error registering
 service with slp %i\n",err);</tt>
-<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return err</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return err;</tt>
 <br><tt>&nbsp;&nbsp;&nbsp; }</tt>
 <p><tt>&nbsp;&nbsp;&nbsp; /* callbackerr may contain an error code (that
 was assigned through */</tt>
 <br><tt>&nbsp;&nbsp;&nbsp; /* the callback cookie) that occured as slp
 packets were sent on&nbsp;&nbsp;&nbsp; */</tt>
 <br><tt>&nbsp;&nbsp;&nbsp; /* the wire */</tt>
-<br><tt>&nbsp;&nbsp;&nbsp; if( calbackerr != SLP_OK)</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; if( callbackerr != SLP_OK)</tt>
 <br><tt>&nbsp;&nbsp;&nbsp; {</tt>
 <br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; printf("Error registering
 service with slp %i\n",callbackerr);</tt>
-<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return callbackerr</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return callbackerr;</tt>
 <br><tt>&nbsp;&nbsp;&nbsp; }</tt>
 <p><tt>&nbsp;&nbsp;&nbsp; /* Now that we're done using slp, close the slp
 handle */</tt>
