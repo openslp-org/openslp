@@ -316,6 +316,7 @@ void Shutdown()
     SLPDOutgoingDeinit(0);
     
 #ifdef DEBUG
+    SLPDDatabaseDeinit();
     SLPDPropertyDeinit();
     printf("Number of calls to SLPBufferAlloc() = %i\n",G_Debug_SLPBufferAllocCount);
     printf("Number of calls to SLPBufferFree() = %i\n",G_Debug_SLPBufferFreeCount);

@@ -269,6 +269,13 @@ int SLPDKnownDADeinit();
 /*=========================================================================*/
 
 
+#ifdef DEBUG
+/*=========================================================================*/
+void SLPDDatabaseDeinit();
+/* De-initialize the database.  Free all resources taken by registrations  */
+/*=========================================================================*/
+#endif
+
 /*=========================================================================*/
 SLPDDatabaseEntry *SLPDDatabaseEntryAlloc();
 /* Allocates and initializes a database entry.                             */

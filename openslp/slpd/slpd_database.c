@@ -550,6 +550,15 @@ int SLPDDatabaseInit(const char* regfile)
     return 0;
 }
 
+#ifdef DEBUG
+/*=========================================================================*/
+void SLPDDatabaseDeinit()
+/* De-initialize the database.  Free all resources taken by registrations  */
+/*=========================================================================*/
+{
+    FreeAllEntries(&G_DatabaseList);
+}
+#endif
 
 /*=========================================================================*/
 SLPDDatabaseEntry *SLPDDatabaseEntryAlloc()
