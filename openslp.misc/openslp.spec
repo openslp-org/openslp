@@ -1,5 +1,5 @@
 Name            : openslp
-Version         : 0.9.0
+Version         : 1.0.1
 Release         : 1
 Group           : Server/Network
 Summary     	: Open source implementation of Service Location Protocol V2.
@@ -58,7 +58,7 @@ duma empresa.
 %setup 
 
 %Build
-./configure --disable-predicates
+./configure
 make
 
 %Install
