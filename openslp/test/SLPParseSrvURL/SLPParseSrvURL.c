@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <slp.h>
 #include <slp_debug.h>
+#include <string.h>
 
 int
 main (int argc, char *argv[])

@@ -3,6 +3,7 @@
 /* Creation Date: Wed May 24 14:26:50 EDT 2000                              */
 /****************************************************************************/
 #include <stdio.h>
+#include<stdlib.h>
 #define MAX_STRING_LENGTH		4096
 
 typedef struct {

@@ -413,7 +413,7 @@ void SLPDKnownDADeregisterAll(SLPMessage daadvert)
                         sendbuf->curpos = sendbuf->curpos + 1;
                     }
 		    else
-#endif ENABLE_SLPv1
+#endif /* ENABLE_SLPv1 */
                     {
                         memcpy(sendbuf->curpos,
                                srvreg->urlentry.opaque,
