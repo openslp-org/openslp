@@ -1,5 +1,5 @@
 Name            : openslp
-Version         : 0.8.2
+Version         : 0.8.3
 Release         : 1
 Group           : Server/Network
 Summary     	: Open source implementation of Service Location Protocol V2.
@@ -16,7 +16,6 @@ BuildRoot       : /tmp/%{Name}-%{Version}
 Requires	: SysVinit-scripts >= 1.07 
 
 Source0: openslp/openslp-%{Version}.tar.gz
-Source1: openslp/slptool-%{Version}.tar.gz
 
 %Description
 Service Location Protocol is an IETF standards track protocol that
@@ -55,22 +54,17 @@ a existência, localização e a configuração dos serviços de rede nas redes
 duma empresa.
 
 %Prep
-%setup -b 1
+%setup 
 
 %Build
 ./configure --disable-predicates
 make
-cd ../slptool-%{Version}
-make LIBS=-L../openslp-%{Version}/libslp/.libs INCS=-I../openslp-%{Version}/libslp
-
 
 %Install
 %{mkDESTDIR}
 make install DOC_DIR=$DESTDIR/%{_defaultdocdir}/openslp-%{Version}
 mkdir -p $DESTDIR/etc/rc.d/init.d
 install -m 755 etc/slpd.caldera_init $DESTDIR%{SVIdir}/slpd
-mkdir -p $DESTDIR/usr/bin
-install -m 755 ../slptool-%{Version}/slptool $DESTDIR/usr/bin/slptool
 
 if [ -d '/usr/lib/OpenLinux' ]; then 
 mkdir -p $DESTDIR/etc/sysconfig/daemons
