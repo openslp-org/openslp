@@ -23,17 +23,15 @@ const char* <a href="#scopelist">scopelist</a>,</tt>
 <br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 const char* attrids,</tt>
 <br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-
 <a href="SLPAttrCallback.html">SLPAttrCallback</a> <a href="#callback">callback</a>,</tt>
 <br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 void* <a href="#cookie">cookie</a>)</tt>
 <h3>
 Description</h3>
 This function returns service attributes matching the <tt>attrids</tt>
-for the indicated Service URL or service type.&nbsp; If <tt>srvurlorsrvtype</tt>
-is a service type name, then the attributes for all the registrations of
-that service type are returned.
-<br>&nbsp;
+for the indicated Service URL or service type.&nbsp;&nbsp; OpenSLP&nbsp;does
+not support location of attributes by service type or wiht <tt>attrids</tt>
+containing wildcards (see status below).
 <h3>
 Parameters</h3>
 
