@@ -25,6 +25,10 @@ NULL=
 NULL=nul
 !ENDIF 
 
+CPP=cl.exe
+MTL=midl.exe
+RSC=rc.exe
+
 !IF  "$(CFG)" == "slpd - Win32 Release"
 
 OUTDIR=.\Release
@@ -41,17 +45,14 @@ CLEAN :
 	-@erase "$(INTDIR)\slp_buffer.obj"
 	-@erase "$(INTDIR)\slp_compare.obj"
 	-@erase "$(INTDIR)\slp_database.obj"
-	-@erase "$(INTDIR)\slp_iface.obj"
 	-@erase "$(INTDIR)\slp_linkedlist.obj"
 	-@erase "$(INTDIR)\slp_message.obj"
-	-@erase "$(INTDIR)\slp_net.obj"
-	-@erase "$(INTDIR)\slp_parse.obj"
-	-@erase "$(INTDIR)\slp_pid.obj"
 	-@erase "$(INTDIR)\slp_property.obj"
 	-@erase "$(INTDIR)\slp_utf8.obj"
 	-@erase "$(INTDIR)\slp_v1message.obj"
 	-@erase "$(INTDIR)\slp_xid.obj"
 	-@erase "$(INTDIR)\slpd.idb"
+	-@erase "$(INTDIR)\slpd.pdb"
 	-@erase "$(INTDIR)\slpd_cmdline.obj"
 	-@erase "$(INTDIR)\slpd_database.obj"
 	-@erase "$(INTDIR)\slpd_incoming.obj"
@@ -68,47 +69,12 @@ CLEAN :
 	-@erase "$(INTDIR)\slpd_win32.obj"
 	-@erase "$(OUTDIR)\slpd.exe"
 	-@erase "$(OUTDIR)\slpd.map"
-	-@erase "$(OUTDIR)\slpd.pdb"
 
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
-CPP=cl.exe
-CPP_PROJ=/nologo /ML /W3 /Zi /O2 /I "../../common" /D "ENABLE" /D "ENABLE_SLPv1" /D "_WINDOWS" /D "i386" /D "USE_PREDICATES" /D "NDEBUG" /D "__WIN32__" /D "WIN32" /D "_MBCS" /D SLP_VERSION=\"1.0.5\" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\slpd.pdb" /FD /c 
-
-.c{$(INTDIR)}.obj::
-   $(CPP) @<<
-   $(CPP_PROJ) $< 
-<<
-
-.cpp{$(INTDIR)}.obj::
-   $(CPP) @<<
-   $(CPP_PROJ) $< 
-<<
-
-.cxx{$(INTDIR)}.obj::
-   $(CPP) @<<
-   $(CPP_PROJ) $< 
-<<
-
-.c{$(INTDIR)}.sbr::
-   $(CPP) @<<
-   $(CPP_PROJ) $< 
-<<
-
-.cpp{$(INTDIR)}.sbr::
-   $(CPP) @<<
-   $(CPP_PROJ) $< 
-<<
-
-.cxx{$(INTDIR)}.sbr::
-   $(CPP) @<<
-   $(CPP_PROJ) $< 
-<<
-
-MTL=midl.exe
+CPP_PROJ=/nologo /ML /W3 /Zi /O2 /I "../../common" /D "ENABLE" /D "NDEBUG" /D "ENABLE_SLPv1" /D "_WINDOWS" /D "i386" /D "ENABLE_PREDICATES" /D "WIN32" /D "_MBCS" /D SLP_VERSION=\"1.0.9a\" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\slpd.pdb" /FD /c 
 MTL_PROJ=/nologo /D "NDEBUG" /mktyplib203 /win32 
-RSC=rc.exe
 BSC32=bscmake.exe
 BSC32_FLAGS=/nologo /o"$(OUTDIR)\slpd.bsc" 
 BSC32_SBRS= \
@@ -120,12 +86,8 @@ LINK32_OBJS= \
 	"$(INTDIR)\slp_buffer.obj" \
 	"$(INTDIR)\slp_compare.obj" \
 	"$(INTDIR)\slp_database.obj" \
-	"$(INTDIR)\slp_iface.obj" \
 	"$(INTDIR)\slp_linkedlist.obj" \
 	"$(INTDIR)\slp_message.obj" \
-	"$(INTDIR)\slp_net.obj" \
-	"$(INTDIR)\slp_parse.obj" \
-	"$(INTDIR)\slp_pid.obj" \
 	"$(INTDIR)\slp_property.obj" \
 	"$(INTDIR)\slp_utf8.obj" \
 	"$(INTDIR)\slp_v1message.obj" \
@@ -166,17 +128,14 @@ CLEAN :
 	-@erase "$(INTDIR)\slp_buffer.obj"
 	-@erase "$(INTDIR)\slp_compare.obj"
 	-@erase "$(INTDIR)\slp_database.obj"
-	-@erase "$(INTDIR)\slp_iface.obj"
 	-@erase "$(INTDIR)\slp_linkedlist.obj"
 	-@erase "$(INTDIR)\slp_message.obj"
-	-@erase "$(INTDIR)\slp_net.obj"
-	-@erase "$(INTDIR)\slp_parse.obj"
-	-@erase "$(INTDIR)\slp_pid.obj"
 	-@erase "$(INTDIR)\slp_property.obj"
 	-@erase "$(INTDIR)\slp_utf8.obj"
 	-@erase "$(INTDIR)\slp_v1message.obj"
 	-@erase "$(INTDIR)\slp_xid.obj"
 	-@erase "$(INTDIR)\slpd.idb"
+	-@erase "$(INTDIR)\slpd.pdb"
 	-@erase "$(INTDIR)\slpd_cmdline.obj"
 	-@erase "$(INTDIR)\slpd_database.obj"
 	-@erase "$(INTDIR)\slpd_incoming.obj"
@@ -194,13 +153,50 @@ CLEAN :
 	-@erase "$(OUTDIR)\slpd.exe"
 	-@erase "$(OUTDIR)\slpd.ilk"
 	-@erase "$(OUTDIR)\slpd.map"
-	-@erase "$(OUTDIR)\slpd.pdb"
 
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
-CPP=cl.exe
-CPP_PROJ=/nologo /MLd /W3 /Gm /ZI /Od /I "../../common" /D "ENABLE_SLPv1" /D "_WINDOWS" /D "i386" /D "USE_PREDICATES" /D "_DEBUG" /D "__WIN32__" /D "WIN32" /D "_MBCS" /D SLP_VERSION=\"1.0.5\" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\slpd.pdb" /FD /GZ /c 
+CPP_PROJ=/nologo /MLd /W3 /Gm /ZI /Od /I "../../common" /D "_DEBUG" /D "ENABLE_SLPv1" /D "_WINDOWS" /D "i386" /D "ENABLE_PREDICATES" /D "WIN32" /D "_MBCS" /D SLP_VERSION=\"1.0.9a\" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\slpd.pdb" /FD /GZ /c 
+MTL_PROJ=/nologo /D "_DEBUG" /mktyplib203 /win32 
+BSC32=bscmake.exe
+BSC32_FLAGS=/nologo /o"$(OUTDIR)\slpd.bsc" 
+BSC32_SBRS= \
+	
+LINK32=link.exe
+LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib wsock32.lib /nologo /subsystem:console /incremental:yes /pdb:"$(OUTDIR)\slpd.pdb" /map:"$(INTDIR)\slpd.map" /debug /machine:I386 /out:"$(OUTDIR)\slpd.exe" 
+LINK32_OBJS= \
+	"$(INTDIR)\libslpattr.obj" \
+	"$(INTDIR)\slp_buffer.obj" \
+	"$(INTDIR)\slp_compare.obj" \
+	"$(INTDIR)\slp_database.obj" \
+	"$(INTDIR)\slp_linkedlist.obj" \
+	"$(INTDIR)\slp_message.obj" \
+	"$(INTDIR)\slp_property.obj" \
+	"$(INTDIR)\slp_utf8.obj" \
+	"$(INTDIR)\slp_v1message.obj" \
+	"$(INTDIR)\slp_xid.obj" \
+	"$(INTDIR)\slpd_cmdline.obj" \
+	"$(INTDIR)\slpd_database.obj" \
+	"$(INTDIR)\slpd_incoming.obj" \
+	"$(INTDIR)\slpd_knownda.obj" \
+	"$(INTDIR)\slpd_log.obj" \
+	"$(INTDIR)\slpd_main.obj" \
+	"$(INTDIR)\slpd_outgoing.obj" \
+	"$(INTDIR)\slpd_predicate.obj" \
+	"$(INTDIR)\slpd_process.obj" \
+	"$(INTDIR)\slpd_property.obj" \
+	"$(INTDIR)\slpd_regfile.obj" \
+	"$(INTDIR)\slpd_socket.obj" \
+	"$(INTDIR)\slpd_v1process.obj" \
+	"$(INTDIR)\slpd_win32.obj"
+
+"$(OUTDIR)\slpd.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
+    $(LINK32) @<<
+  $(LINK32_FLAGS) $(LINK32_OBJS)
+<<
+
+!ENDIF 
 
 .c{$(INTDIR)}.obj::
    $(CPP) @<<
@@ -231,52 +227,6 @@ CPP_PROJ=/nologo /MLd /W3 /Gm /ZI /Od /I "../../common" /D "ENABLE_SLPv1" /D "_W
    $(CPP) @<<
    $(CPP_PROJ) $< 
 <<
-
-MTL=midl.exe
-MTL_PROJ=/nologo /D "_DEBUG" /mktyplib203 /win32 
-RSC=rc.exe
-BSC32=bscmake.exe
-BSC32_FLAGS=/nologo /o"$(OUTDIR)\slpd.bsc" 
-BSC32_SBRS= \
-	
-LINK32=link.exe
-LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib wsock32.lib /nologo /subsystem:console /incremental:yes /pdb:"$(OUTDIR)\slpd.pdb" /map:"$(INTDIR)\slpd.map" /debug /machine:I386 /out:"$(OUTDIR)\slpd.exe" 
-LINK32_OBJS= \
-	"$(INTDIR)\libslpattr.obj" \
-	"$(INTDIR)\slp_buffer.obj" \
-	"$(INTDIR)\slp_compare.obj" \
-	"$(INTDIR)\slp_database.obj" \
-	"$(INTDIR)\slp_iface.obj" \
-	"$(INTDIR)\slp_linkedlist.obj" \
-	"$(INTDIR)\slp_message.obj" \
-	"$(INTDIR)\slp_net.obj" \
-	"$(INTDIR)\slp_parse.obj" \
-	"$(INTDIR)\slp_pid.obj" \
-	"$(INTDIR)\slp_property.obj" \
-	"$(INTDIR)\slp_utf8.obj" \
-	"$(INTDIR)\slp_v1message.obj" \
-	"$(INTDIR)\slp_xid.obj" \
-	"$(INTDIR)\slpd_cmdline.obj" \
-	"$(INTDIR)\slpd_database.obj" \
-	"$(INTDIR)\slpd_incoming.obj" \
-	"$(INTDIR)\slpd_knownda.obj" \
-	"$(INTDIR)\slpd_log.obj" \
-	"$(INTDIR)\slpd_main.obj" \
-	"$(INTDIR)\slpd_outgoing.obj" \
-	"$(INTDIR)\slpd_predicate.obj" \
-	"$(INTDIR)\slpd_process.obj" \
-	"$(INTDIR)\slpd_property.obj" \
-	"$(INTDIR)\slpd_regfile.obj" \
-	"$(INTDIR)\slpd_socket.obj" \
-	"$(INTDIR)\slpd_v1process.obj" \
-	"$(INTDIR)\slpd_win32.obj"
-
-"$(OUTDIR)\slpd.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
-    $(LINK32) @<<
-  $(LINK32_FLAGS) $(LINK32_OBJS)
-<<
-
-!ENDIF 
 
 
 !IF "$(NO_EXTERNAL_DEPS)" != "1"
@@ -313,12 +263,6 @@ SOURCE=..\..\common\slp_database.c
 	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 
-SOURCE=..\..\common\slp_iface.c
-
-"$(INTDIR)\slp_iface.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
-
-
 SOURCE=..\..\common\slp_linkedlist.c
 
 "$(INTDIR)\slp_linkedlist.obj" : $(SOURCE) "$(INTDIR)"
@@ -328,24 +272,6 @@ SOURCE=..\..\common\slp_linkedlist.c
 SOURCE=..\..\common\slp_message.c
 
 "$(INTDIR)\slp_message.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
-
-
-SOURCE=..\..\common\slp_net.c
-
-"$(INTDIR)\slp_net.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
-
-
-SOURCE=..\..\common\slp_parse.c
-
-"$(INTDIR)\slp_parse.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
-
-
-SOURCE=..\..\common\slp_pid.c
-
-"$(INTDIR)\slp_pid.obj" : $(SOURCE) "$(INTDIR)"
 	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 
