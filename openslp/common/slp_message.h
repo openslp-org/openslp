@@ -451,33 +451,6 @@ int SLPMessageParseBuffer(struct sockaddr_in* peerinfo,
 /*            pointers in SLPMessage will be invalidated.                  */
 /*=========================================================================*/
 
-#ifdef i386
-
-
-/*=========================================================================*/
-/* Macros used to parse buffers                                            */
-#define AsUINT16(charptr)   ( ntohs(*((PUINT16)(charptr))) )
-#define AsUINT24(charptr)   ( ntohl(*((PUINT32)(charptr)))>>8 )
-#define AsUINT32(charptr)   ( ntohl(*((PUINT32)(charptr))) )
-/*=========================================================================*/
-
-
-/*=========================================================================*/
-/* Macros used to set buffers                                              */
-#define ToUINT16(charptr,val)   ( *((PUINT16)(charptr)) =  htons(((UINT16)val)) )
-#define ToUINT24(charptr,val)   ( *((PUINT32)(charptr)) =  htonl((val)<<8) )
-#define ToUINT32(charptr,val)   ( *((PUINT32)(charptr)) =  htonl((val)) )
-/*=========================================================================*/
-
-
-/*=========================================================================*/
-/* Macros to check in_addr                                                 */
-#define ISLOCAL(addr) ((ntohl((addr).s_addr) & 0xff000000) == 0x7f000000)
-#define ISMCAST(addr) ((ntohl((addr).s_addr) & 0xff000000) >= 0xef000000)
-/*=========================================================================*/
-
-#else 
-
 /*=========================================================================*/
 /* Functions used to parse buffers                                         */
 unsigned short AsUINT16(const char *charptr);
@@ -491,6 +464,17 @@ void ToUINT16(char *charptr, unsigned int val);
 void ToUINT24(char *charptr, unsigned int val);
 void ToUINT32(char *charptr, unsigned int val);
 /*=========================================================================*/
+
+
+#ifdef i386
+
+/*=========================================================================*/
+/* Macros to check in_addr                                                 */
+#define ISLOCAL(addr) ((ntohl((addr).s_addr) & 0xff000000) == 0x7f000000)
+#define ISMCAST(addr) ((ntohl((addr).s_addr) & 0xff000000) >= 0xef000000)
+/*=========================================================================*/
+
+#else 
 
 /*=========================================================================*/
 /* Macros to check in_addr                                                 */

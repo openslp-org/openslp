@@ -5,6 +5,9 @@ Please make entries to this log (in addition to the CVS log) that describe
 major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
+02/13/03 matt@sco.com
+Allow strict aliasing.  Fix involves using existing endian routines
+rather than macros that use htonx() and ntohx() 
 
 11/11/02 matt@sco.com
 Fixed SA->DA registration logic that excluded some mortal registrations.
