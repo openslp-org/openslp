@@ -48,7 +48,7 @@
 
 #ifndef SLPD_PROCESS_H_INCLUDED
 #define SLPD_PROCESS_H_INCLUDED
-     
+
 #include "slpd.h"  
 
 /*=========================================================================*/

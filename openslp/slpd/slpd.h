@@ -54,9 +54,12 @@
 /* Include platform specific headers files                                 */
 /*=========================================================================*/
 #ifdef _WIN32
-#include "slpd_win32.h"
+# include "slpd_win32.h"
 #else
-#include "slpd_unistd.h"
+# ifdef HAVE_CONFIG_H
+#  include "config.h"
+# endif
+# include "slpd_unistd.h"
 #endif
 
 

@@ -280,6 +280,7 @@ int SLPXcastRecvMessage(const SLPXcastSockets* sockets,
     int     result;
 
     /* recv loop */
+    result = -1;
     recvloop = 1;
     while(recvloop)
     {
