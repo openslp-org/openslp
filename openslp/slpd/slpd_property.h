@@ -1,12 +1,14 @@
+
 /***************************************************************************/
 /*                                                                         */
 /* Project:     OpenSLP - OpenSource implementation of Service Location    */
-/*              Protocol                                                   */
+/*              Protocol Version 2                                         */
 /*                                                                         */
-/* File:        slp_v1message.h                                            */
+/* File:        slpd_property.c                                            */
 /*                                                                         */
-/* Abstract:    Header file that defines prototypes for SLPv1 messages     */
+/* Abstract:    Defines the data structures for global SLP properties      */
 /*                                                                         */
+/* WARNING:     NOT thread safe!                                           */
 /*-------------------------------------------------------------------------*/
 /*                                                                         */
 /*     Please submit patches to http://www.openslp.org                     */
@@ -46,59 +48,65 @@
 /*                                                                         */
 /***************************************************************************/
 
-#if(!defined SLP_V1MESSAGE_H_INCLUDED)
-#define SLP_V1MESSAGE_H_INCLUDED
-
-#include "slp_message.h"
+#ifndef SLPD_PROPERTY_H_INCLUDED
+#define SLPD_PROPERTY_H_INCLUDED
 
 /*=========================================================================*/
-/* SLP language encodings for SLPv1 compatibility                          */
+typedef struct _SLPDProperty
+/* structure that holds the value of all the properties slpd cares about   */
 /*=========================================================================*/
-#define SLP_CHAR_ASCII          3
-#define SLP_CHAR_UTF8           106
-#define SLP_CHAR_UNICODE16      1000
-#define SLP_CHAR_UNICODE32      1001
+{
+    int             myUrlLen;
+    const char*     myUrl;
+    int             useScopesLen;
+    const char*     useScopes; 
+    int             DAAddressesLen;
+    const char*     DAAddresses;
+    unsigned long   DATimestamp;  /* here for convenience */
+    int             interfacesLen;
+    const char*     interfaces; 
+    int             localeLen;
+    const char*     locale;
+    int             isBroadcastOnly;
+    int             passiveDADetection;
+    int             activeDADetection; 
+    int             activeDiscoveryXmits;
+    int             nextActiveDiscovery;
+    int             nextPassiveDAAdvert;
+    int             multicastTTL;
+    int             multicastMaximumWait;
+    int             unicastMaximumWait;  
+    int             randomWaitBound;
+    int             maxResults;
+    int             traceMsg;
+    int             traceReg;
+    int             traceDrop;
+    int             traceDATraffic;
+    int             isDA;
+    int             securityEnabled;
+}SLPDProperty;
+
 
 /*=========================================================================*/
-/* SLPv1 Flags                                                             */
-/*=========================================================================*/
-#define SLPv1_FLAG_OVERFLOW         0x80
-#define SLPv1_FLAG_MONOLING         0x40
-#define SLPv1_FLAG_URLAUTH          0x20
-#define SLPv1_FLAG_ATTRAUTH         0x10
-#define SLPv1_FLAG_FRESH            0x08
-
-/*=========================================================================*/
-/* Prototypes for SLPv1 functions                                          */
+extern SLPDProperty G_SlpdProperty;
+/* Global variable that holds all of the properties that slpd cares about  */
 /*=========================================================================*/
 
+
 /*=========================================================================*/
-extern int SLPv1MessageParseBuffer(struct sockaddr_in* peerinfo,
-                                   SLPBuffer buffer, 
-                                   SLPMessage message); 
-/* Initializes a SLPv1 message descriptor by parsing the specified buffer. */
+int SLPDPropertyInit(const char* conffile); 
+/* Called to initialize slp properties.  Reads .conf file, etc.            */
 /*                                                                         */
-/* peerinfo - (IN pointer to information about where buffer came from      */
-/*                                                                         */
-/* buffer   - (IN) pointer the SLPBuffer to parse                          */
-/*                                                                         */
-/* message  - (OUT) set to describe the message from the buffer            */
-/*                                                                         */
-/* Returns  - Zero on success, SLP_ERROR_PARSE_ERROR, or                   */
-/*            SLP_ERROR_INTERNAL_ERROR if out of memory.  SLPMessage is    */
-/*            invalid return is not successful.                            */
-/*                                                                         */
-/* WARNING  - If successful, pointers in the SLPMessage reference memory in*/ 
-/*            the parsed SLPBuffer.  If SLPBufferFree() is called then the */
-/*            pointers in SLPMessage will be invalidated.                  */
+/* conffile (IN) the path of the configuration file to use                 */
 /*=========================================================================*/
 
 
+#ifdef DEBUG
 /*=========================================================================*/
-extern int SLPv1MessageParseHeader(SLPBuffer buffer, SLPHeader* header);
-/*                                                                         */
-/* Returns  - Zero on success, SLP_ERROR_VER_NOT_SUPPORTED, or             */
-/*            SLP_ERROR_PARSE_ERROR.                                       */
+void SLPDPropertyDeinit();
+/* Release all resources used by the properties                            */
 /*=========================================================================*/
+#endif
+
 
 #endif

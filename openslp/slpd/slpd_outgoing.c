@@ -48,11 +48,27 @@
 /*                                                                         */
 /***************************************************************************/
 
-#include "slpd.h"
+
+/*=========================================================================*/
+/* slpd includes                                                           */
+/*=========================================================================*/
+#include "slpd_outgoing.h"
+#include "slpd_property.h"
+#include "slpd_process.h"
+#include "slpd_log.h"
+#include "slpd_knownda.h"
+
+
+/*=========================================================================*/
+/* common code includes                                                    */
+/*=========================================================================*/
+#include "../common/slp_message.h"
+
 
 /*=========================================================================*/
 SLPList G_OutgoingSocketList = {0,0,0};
 /*=========================================================================*/
+
 
 /*-------------------------------------------------------------------------*/
 void OutgoingDatagramRead(SLPList* socklist, SLPDSocket* sock)
@@ -144,13 +160,13 @@ void OutgoingStreamRead(SLPList* socklist, SLPDSocket* sock)
                 }
                 else
                 {
-                    SLPLog("INTERNAL_ERROR - out of memory!\n");
+                    SLPDLog("INTERNAL_ERROR - out of memory!\n");
                     sock->state = SOCKET_CLOSE;
                 }
             }
             else
             {
-                SLPLog("VER_NOT_SUPPORTED from %s\n",
+                SLPDLog("VER_NOT_SUPPORTED from %s\n",
                        inet_ntoa(sock->peeraddr.sin_addr));
                 sock->state = SOCKET_CLOSE;
             }

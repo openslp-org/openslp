@@ -47,7 +47,26 @@
 /***************************************************************************/
 
 #include "slpd.h"
-#include <limits.h>
+
+/*=========================================================================*/
+/* slpd includes                                                           */
+/*=========================================================================*/
+#include "slpd_knownda.h"
+#include "slpd_property.h"
+#include "slpd_database.h"
+#include "slpd_socket.h"
+#include "slpd_outgoing.h"
+#include "slpd_log.h"
+
+
+/*=========================================================================*/
+/* common code includes                                                    */
+/*=========================================================================*/
+#include "../common/slp_v1message.h"
+#include "../common/slp_utf8.h"
+#include "../common/slp_compare.h"
+#include "../common/slp_xid.h"
+
 
 /*=========================================================================*/
 SLPList G_KnownDAList = {0,0,0};                                         
@@ -413,124 +432,63 @@ void SLPDKnownDARegisterAll(SLPDAEntry* daentry, int immortalonly)
 /* registers all services with specified DA                                */
 /*-------------------------------------------------------------------------*/
 {
-    SLPDDatabaseEntry*  dbentry;
+    SLPBuffer           buf;
+    SLPMessage          msg;
+    SLPSrvReg*          srvreg;
     SLPDSocket*         sock;
-    size_t              size;
-    SLPBuffer           buf         = 0;
+    SLPBuffer           sendbuf     = 0;
     void*               handle      = 0;
 
-    /* do not attempt to establish a connection if the database is empty */
-    if(SLPDDatabaseEnum(&handle,&dbentry) == 0)
+    /*---------------------------------------------------------------*/
+    /* Check to see if the database is empty and open an enumeration */
+    /* handle if it is not empty                                     */
+    /*---------------------------------------------------------------*/
+    if(SLPDDatabaseIsEmpty())
     {
-        handle = 0;
+        return;
     }
-    else
+    handle = SLPDDatabaseEnumStart();
+    if(handle == 0)
     {
         return;
     }
 
+    /*----------------------------------------------*/
     /* Establish a new connection with the known DA */
+    /*----------------------------------------------*/
     sock = SLPDOutgoingConnect(&daentry->daaddr);
     if(sock)
     {
-        while(SLPDDatabaseEnum(&handle,&dbentry) == 0)
+        while(1)
         {
+            msg = SLPDDatabaseEnum(handle, &msg, &buf);
+            if(msg == NULL) break;
+            srvreg = &(msg->body.srvreg);
+
             /*-----------------------------------------------*/
             /* If so instructed, skip immortal registrations */
             /*-----------------------------------------------*/
-            if(!(immortalonly && dbentry->lifetime < SLP_LIFETIME_MAXIMUM))
+            if(!(immortalonly && 
+                 srvreg->urlentry.lifetime < SLP_LIFETIME_MAXIMUM))
             {
                 /*---------------------------------------------------------*/
-                /* Only pass on local registrations of scopes supported by */
-                /* peer DA   											   */
+                /* Only pass on local (or static) registrations of scopes  */
+                /* supported by peer DA                     			   */
                 /*---------------------------------------------------------*/
-                if((dbentry->regtype & SLPDDATABASE_REG_LOCAL) &&
-                   SLPIntersectStringList(daentry->scopelistlen,
-                                          daentry->scopelist,
-                                          dbentry->scopelistlen,
-                                          dbentry->scopelist))
+                if((srvreg->source == SLP_REG_SOURCE_LOCAL || 
+                   srvreg->source == SLP_REG_SOURCE_STATIC) &&
+                   SLPIntersectStringList(srvreg->scopelistlen,
+                                          srvreg->scopelist,
+                                          srvreg->scopelistlen,
+                                          srvreg->scopelist) )
                 {
-                    /*-------------------------------------------------------------*/
-                    /* ensure the buffer is big enough to handle the whole srvrply */
-                    /*-------------------------------------------------------------*/
-                    size = dbentry->langtaglen + 27; /* 14 bytes for header     */
-                                                     /*  6 for static portions of urlentry  */
-                                                     /*  2 bytes for srvtypelen */
-                                                     /*  2 bytes for scopelen */
-                                                     /*  2 bytes for attr list len */
-                                                     /*  1 byte for authblock count */
-                    size += dbentry->urllen;
-                    size += dbentry->srvtypelen;
-                    size += dbentry->scopelistlen;
-                    size += dbentry->attrlistlen;
-
-                    /* TODO: room for authstuff */
-
-                    buf = SLPBufferAlloc(size);
-                    if(buf)
+                    sendbuf = SLPBufferDup(buf);
+                    if(sendbuf)
                     {
-                        /*--------------------*/
-                        /* Construct a SrvReg */
-                        /*--------------------*/
-                        /*version*/
-                        *(buf->start)       = 2;
-                        /*function id*/
-                        *(buf->start + 1)   = SLP_FUNCT_SRVREG;
-                        /*length*/
-                        ToUINT24(buf->start + 2, size);
-                        /*flags*/
-                        ToUINT16(buf->start + 5,
-                                 (size > SLP_MAX_DATAGRAM_SIZE ? SLP_FLAG_OVERFLOW : 0));
-                        /*ext offset*/
-                        ToUINT24(buf->start + 7,0);
-                        /*xid*/
-                        ToUINT16(buf->start + 10,SLPXidGenerate());
-                        /*lang tag len*/
-                        ToUINT16(buf->start + 12,dbentry->langtaglen);
-                        /*lang tag*/
-                        memcpy(buf->start + 14,
-                               dbentry->langtag,
-                               dbentry->langtaglen);
-                        buf->curpos = buf->start + 14 + dbentry->langtaglen;
-
-                        /* url-entry reserved */
-                        *buf->curpos = 0;        
-                        buf->curpos = buf->curpos + 1;
-                        /* url-entry lifetime */
-                        ToUINT16(buf->curpos,dbentry->lifetime);
-                        buf->curpos = buf->curpos + 2;
-                        /* url-entry urllen */
-                        ToUINT16(buf->curpos,dbentry->urllen);
-                        buf->curpos = buf->curpos + 2;
-                        /* url-entry url */
-                        memcpy(buf->curpos,dbentry->url,dbentry->urllen);
-                        buf->curpos = buf->curpos + dbentry->urllen;
-                        /* url-entry authcount */
-                        *buf->curpos = 0;        
-                        buf->curpos = buf->curpos + 1;
-                        /* srvtype */
-                        ToUINT16(buf->curpos,dbentry->srvtypelen);
-                        buf->curpos = buf->curpos + 2;
-                        memcpy(buf->curpos,dbentry->srvtype,dbentry->srvtypelen);
-                        buf->curpos = buf->curpos + dbentry->srvtypelen;
-                        /* scope list */
-                        ToUINT16(buf->curpos, dbentry->scopelistlen);
-                        buf->curpos = buf->curpos + 2;
-                        memcpy(buf->curpos,dbentry->scopelist,dbentry->scopelistlen);
-                        buf->curpos = buf->curpos + dbentry->scopelistlen;
-                        /* attr list */
-                        ToUINT16(buf->curpos, dbentry->attrlistlen);
-                        buf->curpos = buf->curpos + 2;
-                        memcpy(buf->curpos,dbentry->attrlist,dbentry->attrlistlen);
-                        buf->curpos = buf->curpos + dbentry->attrlistlen;;
-                        /* authblock count */
-                        *(buf->curpos) = 0;
-                        buf->curpos = buf->curpos + 1;
-
                         /*--------------------------------------------------*/
                         /* link newly constructed buffer to socket sendlist */
                         /*--------------------------------------------------*/
-                        SLPListLinkTail(&(sock->sendlist),(SLPListItem*)buf);
+                        SLPListLinkTail(&(sock->sendlist),(SLPListItem*)sendbuf);
                         if(sock->state == STREAM_CONNECT_IDLE)
                         {
                             sock->state = STREAM_WRITE_FIRST;
@@ -540,6 +498,8 @@ void SLPDKnownDARegisterAll(SLPDAEntry* daentry, int immortalonly)
             }
         }
     }
+
+    SLPDDatabaseEnumEnd(handle);
 }  
 
 
@@ -548,18 +508,24 @@ void SLPDKnownDADeregisterAll(SLPDAEntry* daentry)
 /* de-registers all services with specified DA                             */
 /*-------------------------------------------------------------------------*/
 {
-    SLPDDatabaseEntry*  dbentry;
+    SLPBuffer           buf;
+    SLPMessage          msg;
+    SLPSrvReg*          srvreg;
     SLPDSocket*         sock;
     size_t              size;
-    SLPBuffer           buf         = 0;
+    SLPBuffer           sendbuf     = 0;
     void*               handle      = 0;
 
-    /* do not attempt to establish a connection if the database is empty */
-    if(SLPDDatabaseEnum(&handle,&dbentry) == 0)
+    /*---------------------------------------------------------------*/
+    /* Check to see if the database is empty and open an enumeration */
+    /* handle if it is not empty                                     */
+    /*---------------------------------------------------------------*/
+    if(SLPDDatabaseIsEmpty())
     {
-        handle = 0;
+        return;
     }
-    else
+    handle = SLPDDatabaseEnumStart();
+    if(handle == 0)
     {
         return;
     }
@@ -568,76 +534,97 @@ void SLPDKnownDADeregisterAll(SLPDAEntry* daentry)
     sock = SLPDOutgoingConnect(&daentry->daaddr);
     if(sock)
     {
-        while(SLPDDatabaseEnum(&handle,&dbentry) == 0)
+        while(1)
         {
-            if(dbentry->regtype & SLPDDATABASE_REG_LOCAL)
+            msg = SLPDDatabaseEnum(handle, &msg, &buf);
+            if(msg == NULL) break;
+            srvreg = &(msg->body.srvreg);
+
+            /*-------------------------------------------------*/
+            /* Deregister all local (and static) registrations */
+            /*-------------------------------------------------*/
+            if(srvreg->source == SLP_REG_SOURCE_LOCAL || 
+               srvreg->source == SLP_REG_SOURCE_STATIC )
             {
                 /*-------------------------------------------------------------*/
                 /* ensure the buffer is big enough to handle the whole srvrply */
                 /*-------------------------------------------------------------*/
-                size = dbentry->langtaglen + 24; /* 14 bytes for header     */
-                                                 /*  2 bytes for scopelen */
-                                                 /*  6 for static portions of urlentry  */
-                                                 /*  2 bytes for taglist len */
+                size = msg->header.langtaglen + 24; /* 14 bytes for header     */
+                                                    /*  2 bytes for scopelen */
+                                                    /*  6 for static portions of urlentry  */
+                                                    /*  2 bytes for taglist len */
 
-                size += dbentry->urllen;
-                size += dbentry->scopelistlen;
+                size += srvreg->urlentry.urllen;
+                size += srvreg->scopelistlen;
                 /* taglistlen is always 0 */
 
-                buf = SLPBufferAlloc(size);
-                if(buf)
+                sendbuf = SLPBufferAlloc(size);
+                if(sendbuf)
                 {
                     /*----------------------*/
                     /* Construct a SrvDereg */
                     /*----------------------*/
                     /*version*/
-                    *(buf->start)       = 2;
+                    *(sendbuf->start)       = 2;
                     /*function id*/
-                    *(buf->start + 1)   = SLP_FUNCT_SRVDEREG;
+                    *(sendbuf->start + 1)   = SLP_FUNCT_SRVDEREG;
                     /*length*/
-                    ToUINT24(buf->start + 2, size);
+                    ToUINT24(sendbuf->start + 2, size);
                     /*flags*/
-                    ToUINT16(buf->start + 5,
+                    ToUINT16(sendbuf->start + 5,
                              (size > SLP_MAX_DATAGRAM_SIZE ? SLP_FLAG_OVERFLOW : 0));
                     /*ext offset*/
-                    ToUINT24(buf->start + 7,0);
+                    ToUINT24(sendbuf->start + 7,0);
                     /*xid*/
-                    ToUINT16(buf->start + 10,SLPXidGenerate());
+                    ToUINT16(sendbuf->start + 10,SLPXidGenerate());
                     /*lang tag len*/
-                    ToUINT16(buf->start + 12,dbentry->langtaglen);
+                    ToUINT16(sendbuf->start + 12,msg->header.langtaglen);
                     /*lang tag*/
-                    memcpy(buf->start + 14,
-                           dbentry->langtag,
-                           dbentry->langtaglen);
-                    buf->curpos = buf->start + 14 + dbentry->langtaglen;
+                    memcpy(sendbuf->start + 14,
+                           msg->header.langtag,
+                           msg->header.langtaglen);
+                    sendbuf->curpos = sendbuf->start + 14 + msg->header.langtaglen;
 
                     /* scope list */
-                    ToUINT16(buf->curpos, dbentry->scopelistlen);
-                    buf->curpos = buf->curpos + 2;
-                    memcpy(buf->curpos,dbentry->scopelist,dbentry->scopelistlen);
-                    buf->curpos = buf->curpos + dbentry->scopelistlen;
-                    /* url-entry reserved */
-                    *buf->curpos = 0;        
-                    buf->curpos = buf->curpos + 1;
-                    /* url-entry lifetime */
-                    ToUINT16(buf->curpos,dbentry->lifetime);
-                    buf->curpos = buf->curpos + 2;
-                    /* url-entry urllen */
-                    ToUINT16(buf->curpos,dbentry->urllen);
-                    buf->curpos = buf->curpos + 2;
-                    /* url-entry url */
-                    memcpy(buf->curpos,dbentry->url,dbentry->urllen);
-                    buf->curpos = buf->curpos + dbentry->urllen;
-                    /* url-entry authcount */
-                    *buf->curpos = 0;        
-                    buf->curpos = buf->curpos + 1;
+                    ToUINT16(sendbuf->curpos, srvreg->scopelistlen);
+                    sendbuf->curpos = sendbuf->curpos + 2;
+                    memcpy(sendbuf->curpos,srvreg->scopelist,srvreg->scopelistlen);
+                    sendbuf->curpos = sendbuf->curpos + srvreg->scopelistlen;
+                    /* the urlentry */
+                    if(srvreg->urlentry.opaque)
+                    {
+                        memcpy(sendbuf->curpos,
+                               srvreg->urlentry.opaque,
+                               srvreg->urlentry.opaquelen);
+                        sendbuf->curpos = sendbuf->curpos + srvreg->urlentry.opaquelen;
+                    }
+                    else
+                    {
+                        /* url-entry reserved */
+                        *sendbuf->curpos = 0;        
+                        sendbuf->curpos = sendbuf->curpos + 1;
+                        /* url-entry lifetime */
+                        ToUINT16(sendbuf->curpos,srvreg->urlentry.lifetime);
+                        sendbuf->curpos = sendbuf->curpos + 2;
+                        /* url-entry urllen */
+                        ToUINT16(sendbuf->curpos,srvreg->urlentry.urllen);
+                        sendbuf->curpos = sendbuf->curpos + 2;
+                        /* url-entry url */
+                        memcpy(sendbuf->curpos,
+                               srvreg->urlentry.url,
+                               srvreg->urlentry.urllen);
+                        sendbuf->curpos = sendbuf->curpos + srvreg->urlentry.urllen;
+                        /* url-entry authcount */
+                        *sendbuf->curpos = 0;        
+                        sendbuf->curpos = sendbuf->curpos + 1;
+                    }
                     /* taglist (always 0) */
-                    ToUINT16(buf->curpos,0);
-
+                    ToUINT16(sendbuf->curpos,0);
+                    
                     /*--------------------------------------------------*/
                     /* link newly constructed buffer to socket sendlist */
                     /*--------------------------------------------------*/
-                    SLPListLinkTail(&(sock->sendlist),(SLPListItem*)buf);
+                    SLPListLinkTail(&(sock->sendlist),(SLPListItem*)sendbuf);
                     if(sock->state == STREAM_CONNECT_IDLE)
                     {
                         sock->state = STREAM_WRITE_FIRST;
@@ -646,6 +633,8 @@ void SLPDKnownDADeregisterAll(SLPDAEntry* daentry)
             }
         }
     }
+
+    SLPDDatabaseEnumEnd(handle);
 }
 
 

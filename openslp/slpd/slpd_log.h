@@ -1,11 +1,13 @@
 /***************************************************************************/
 /*                                                                         */
 /* Project:     OpenSLP - OpenSource implementation of Service Location    */
-/*              Protocol                                                   */
+/*              Protocol Version 2                                         */
 /*                                                                         */
-/* File:        slp_v1message.h                                            */
+/* File:        slpd_log.h                                                 */
 /*                                                                         */
-/* Abstract:    Header file that defines prototypes for SLPv1 messages     */
+/* Abstract:    slpd logging functions                                     */
+/*                                                                         */
+/* WARNING:     NOT thread safe!                                           */
 /*                                                                         */
 /*-------------------------------------------------------------------------*/
 /*                                                                         */
@@ -46,59 +48,107 @@
 /*                                                                         */
 /***************************************************************************/
 
-#if(!defined SLP_V1MESSAGE_H_INCLUDED)
-#define SLP_V1MESSAGE_H_INCLUDED
+#ifndef SLPD_LOG_H_INCLUDED
+#define SLPD_LOG_H_INCLUDED
 
-#include "slp_message.h"
-
-/*=========================================================================*/
-/* SLP language encodings for SLPv1 compatibility                          */
-/*=========================================================================*/
-#define SLP_CHAR_ASCII          3
-#define SLP_CHAR_UTF8           106
-#define SLP_CHAR_UNICODE16      1000
-#define SLP_CHAR_UNICODE32      1001
+#include "slpd.h"
 
 /*=========================================================================*/
-/* SLPv1 Flags                                                             */
+/* common code includes                                                    */
 /*=========================================================================*/
-#define SLPv1_FLAG_OVERFLOW         0x80
-#define SLPv1_FLAG_MONOLING         0x40
-#define SLPv1_FLAG_URLAUTH          0x20
-#define SLPv1_FLAG_ATTRAUTH         0x10
-#define SLPv1_FLAG_FRESH            0x08
+#include "../common/slp_message.h"
+#include "../common/slp_da.h"
+
 
 /*=========================================================================*/
-/* Prototypes for SLPv1 functions                                          */
-/*=========================================================================*/
-
-/*=========================================================================*/
-extern int SLPv1MessageParseBuffer(struct sockaddr_in* peerinfo,
-                                   SLPBuffer buffer, 
-                                   SLPMessage message); 
-/* Initializes a SLPv1 message descriptor by parsing the specified buffer. */
+int SLPDLogFileOpen(const char* path, int append);
+/* Prepares the file at the specified path as the log file.                */
 /*                                                                         */
-/* peerinfo - (IN pointer to information about where buffer came from      */
+/* path     - (IN) the path to the log file. If path is the empty string   */
+/*            (""), then we log to stdout.                                 */
 /*                                                                         */
-/* buffer   - (IN) pointer the SLPBuffer to parse                          */
+/* append   - (IN) if zero log file will be truncated.                     */
 /*                                                                         */
-/* message  - (OUT) set to describe the message from the buffer            */
-/*                                                                         */
-/* Returns  - Zero on success, SLP_ERROR_PARSE_ERROR, or                   */
-/*            SLP_ERROR_INTERNAL_ERROR if out of memory.  SLPMessage is    */
-/*            invalid return is not successful.                            */
-/*                                                                         */
-/* WARNING  - If successful, pointers in the SLPMessage reference memory in*/ 
-/*            the parsed SLPBuffer.  If SLPBufferFree() is called then the */
-/*            pointers in SLPMessage will be invalidated.                  */
+/* Returns  - zero on success. errno on failure.                           */
 /*=========================================================================*/
 
 
 /*=========================================================================*/
-extern int SLPv1MessageParseHeader(SLPBuffer buffer, SLPHeader* header);
+int SLPDLogFileClose();
+/* Releases resources associated with the log file                         */
+/*=========================================================================*/
+
+
+/*=========================================================================*/
+void SLPDLogBuffer(const char* buf, int bufsize);
+/* Writes a buffer to the logfile                                          */
+/*=========================================================================*/
+
+
+/*=========================================================================*/
+void SLPDLog(const char* msg, ...);
+/* Logs a message                                                          */
+/*=========================================================================*/
+
+
+/*=========================================================================*/
+void SLPDFatal(const char* msg, ...);
+/* Logs a message and halts the process                                    */
+/*=========================================================================*/
+
+
+/*=========================================================================*/
+void SLPDLogTime();
+/* Logs a timestamp                                                        */
+/*=========================================================================*/
+
+
+/*=========================================================================*/
+void SLPDLogMessage(const char* prefix, SLPMessage msg);
+/* Log record of receiving or sending an SLP Message.  Logging will only   */
+/* occur if message logging is enabled G_SlpProperty.traceMsg != 0         */
 /*                                                                         */
-/* Returns  - Zero on success, SLP_ERROR_VER_NOT_SUPPORTED, or             */
-/*            SLP_ERROR_PARSE_ERROR.                                       */
+/* prefix   (IN) an informative prefix for the log entry                   */
+/*                                                                         */
+/* msg      (IN) the message to log                                        */
+/*                                                                         */
+/* Returns: none                                                           */
+/*=========================================================================*/
+
+
+/*=========================================================================*/
+void SLPDLogRegistration(const char* prefix, SLPMessage srvreg);
+/* Log record of receiving an SLP Registration Message.  Logging will only */
+/* occur if registration message logging is enabled                        */
+/* G_SlpProperty.traceReg != 0                                             */
+/*                                                                         */
+/* prefix   (IN) an informative prefix for the log entry                   */
+/*                                                                         */
+/* msg      (IN) the SrvReg message to log                                 */
+/*                                                                         */
+/* Returns: none                                                           */
+/*=========================================================================*/
+
+
+/*=========================================================================*/
+void SLPDLogDAAdvertisement(const char* prefix,
+                            SLPMessage daadvert);
+/* Log record of receiving an SLP DA Advertisement Message.  Logging will  */
+/* only occur if DA Advertisment message logging is enabled                */
+/* G_SlpProperty.traceDATraffic != 0                                       */
+/*                                                                         */
+/* prefix   (IN) an informative prefix for the log entry                   */
+/*                                                                         */
+/* msg      (IN) the SrvReg message to log                                 */
+/*                                                                         */
+/* Returns: none                                                           */
+/*=========================================================================*/
+
+
+
+/*=========================================================================*/
+void SLPDLogKnownDA(const char* prefix,
+                    SLPDAEntry* daentry);
 /*=========================================================================*/
 
 #endif

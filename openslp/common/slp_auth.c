@@ -499,15 +499,15 @@ int SLPAuthSignSAAdvert(unsigned short spistrlen,
     return 0;
 }
 
+#ifdef TEST_SLP_AUTH_TEST
 
+#include "slp_buffer.h"
 
 /*--------------------------------------------------------------------------*/
 int ParseAuthBlock(SLPBuffer buffer, SLPAuthBlock* authblock);
 /* Returns  - Zero on success, SLP_ERROR_INTERNAL_ERROR (out of memory) or  */
 /*            SLP_ERROR_PARSE_ERROR.                                        */
 /*--------------------------------------------------------------------------*/
-
-#include "slp_buffer.h"
 
 int main(int argc, char* argv[])
 {
@@ -550,6 +550,4 @@ int main(int argc, char* argv[])
     free(authblock);
     SLPSpiClose(hspi);
 }
-
-
-
+#endif

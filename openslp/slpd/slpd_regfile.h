@@ -1,11 +1,13 @@
 /***************************************************************************/
 /*                                                                         */
 /* Project:     OpenSLP - OpenSource implementation of Service Location    */
-/*              Protocol                                                   */
+/*              Protocol Version 2                                         */
 /*                                                                         */
-/* File:        slp_v1message.h                                            */
+/* File:        slpd_regfile.c                                             */
 /*                                                                         */
-/* Abstract:    Header file that defines prototypes for SLPv1 messages     */
+/* Abstract:    Reads service registrations from a file                    */
+/*                                                                         */
+/* WARNING:     NOT thread safe!                                           */
 /*                                                                         */
 /*-------------------------------------------------------------------------*/
 /*                                                                         */
@@ -46,59 +48,40 @@
 /*                                                                         */
 /***************************************************************************/
 
-#if(!defined SLP_V1MESSAGE_H_INCLUDED)
-#define SLP_V1MESSAGE_H_INCLUDED
+#ifndef SLP_REGFILE_H_INCLUDE
+#define SLP_REGFILE_H_INCLUDE
 
-#include "slp_message.h"
-
-/*=========================================================================*/
-/* SLP language encodings for SLPv1 compatibility                          */
-/*=========================================================================*/
-#define SLP_CHAR_ASCII          3
-#define SLP_CHAR_UTF8           106
-#define SLP_CHAR_UNICODE16      1000
-#define SLP_CHAR_UNICODE32      1001
+#include "slpd.h"
 
 /*=========================================================================*/
-/* SLPv1 Flags                                                             */
+/* common code includes                                                    */
 /*=========================================================================*/
-#define SLPv1_FLAG_OVERFLOW         0x80
-#define SLPv1_FLAG_MONOLING         0x40
-#define SLPv1_FLAG_URLAUTH          0x20
-#define SLPv1_FLAG_ATTRAUTH         0x10
-#define SLPv1_FLAG_FRESH            0x08
+#include "../common/slp_buffer.h"
+#include "../common/slp_message.h"
+
 
 /*=========================================================================*/
-/* Prototypes for SLPv1 functions                                          */
-/*=========================================================================*/
-
-/*=========================================================================*/
-extern int SLPv1MessageParseBuffer(struct sockaddr_in* peerinfo,
-                                   SLPBuffer buffer, 
-                                   SLPMessage message); 
-/* Initializes a SLPv1 message descriptor by parsing the specified buffer. */
+int SLPDRegFileReadSrvReg(FILE* fd,
+                          SLPMessage* msg,
+                          SLPBuffer* buf);
+/* A really big and nasty function that reads an service registration from */
+/* from a file. Don't look at this too hard or you'll be sick.  This is by */
+/* the most horrible code in OpenSLP.  Please volunteer to rewrite it!     */
 /*                                                                         */
-/* peerinfo - (IN pointer to information about where buffer came from      */
+/*  "THANK GOODNESS this function is only called at startup" -- Matt       */
 /*                                                                         */
-/* buffer   - (IN) pointer the SLPBuffer to parse                          */
 /*                                                                         */
-/* message  - (OUT) set to describe the message from the buffer            */
+/* fd       (IN) file to read from                                         */
 /*                                                                         */
-/* Returns  - Zero on success, SLP_ERROR_PARSE_ERROR, or                   */
-/*            SLP_ERROR_INTERNAL_ERROR if out of memory.  SLPMessage is    */
-/*            invalid return is not successful.                            */
+/* msg      (OUT) message describing the SrvReg in buf                     */
 /*                                                                         */
-/* WARNING  - If successful, pointers in the SLPMessage reference memory in*/ 
-/*            the parsed SLPBuffer.  If SLPBufferFree() is called then the */
-/*            pointers in SLPMessage will be invalidated.                  */
+/* buf      (OUT) buffer containing the SrvReg                             */
+/*                                                                         */
+/* Returns:  zero on success. > 0 on error.  < 0 if EOF                    */
+/*                                                                         */
+/* Note:    Eventually the caller needs to call SLPBufferFree() and        */
+/*          SLPMessageFree() to free memory                                */
 /*=========================================================================*/
 
-
-/*=========================================================================*/
-extern int SLPv1MessageParseHeader(SLPBuffer buffer, SLPHeader* header);
-/*                                                                         */
-/* Returns  - Zero on success, SLP_ERROR_VER_NOT_SUPPORTED, or             */
-/*            SLP_ERROR_PARSE_ERROR.                                       */
-/*=========================================================================*/
 
 #endif

@@ -60,9 +60,11 @@
 #include <sys/types.h>
 #include <sys/utsname.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
 #include <netinet/in.h>
 #include <arpa/inet.h> 
-#include <ctype.h>
+#include <ctype.h>   
+#include <stdarg.h> 
 
 #ifdef LINUX
 #include <net/if.h> 

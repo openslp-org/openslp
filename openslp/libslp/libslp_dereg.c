@@ -208,7 +208,9 @@ SLPError ProcessSrvDeReg(PSLPHandleInfo handle)
 
     FINISHED:
     if(buf) free(buf);
+#ifdef ENABLE_AUTHENTICATION
     if(urlauth) free(urlauth);
+#endif
 
     return result;
 }

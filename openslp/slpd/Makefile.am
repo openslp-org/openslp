@@ -15,21 +15,33 @@ if ENABLE_SLPv1
 slpd_v1process_SRCS = slpd_v1process.c
 endif
 
-slpd_SOURCES	= slpd_socket.c \
-    slpd_database.c \
-    slpd_main.c     \
-    slpd_process.c  \
-    $(slpd_v1process_SRCS) \
-    slpd_cmdline.c  \
-    slpd_property.c \
-    slpd_regfile.c  \
-    slpd_log.c      \
-    slpd_knownda.c  \
-    slpd_incoming.c \
-    slpd_outgoing.c \
-    slpd_predicate.c \
-    slpd.h \
-    slpd_unistd.h
-
+slpd_SOURCES	= \
+slpd_log.c \
+slpd_socket.c \
+slpd_database.c \
+slpd_main.c \
+slpd_process.c \
+$(slpd_v1process_SRCS) \
+slpd_cmdline.c \
+slpd_property.c \
+slpd_regfile.c \
+slpd_knownda.c \
+slpd_incoming.c \
+slpd_outgoing.c \
+slpd_predicate.c \
+slpd.h \
+slpd_knownda.h \
+slpd_process.h \
+slpd_unistd.h \
+slpd_cmdline.h \
+slpd_log.h \
+slpd_property.h \
+slpd_database.h \
+slpd_outgoing.h \
+slpd_regfile.h \
+slpd_incoming.h \
+slpd_predicate.h \
+slpd_socket.h
+    
 slpd_LDADD      =  ../common/libcommonslpd.la \
              	   ../libslpattr/libslpattr.la

@@ -1,11 +1,13 @@
 /***************************************************************************/
 /*                                                                         */
 /* Project:     OpenSLP - OpenSource implementation of Service Location    */
-/*              Protocol                                                   */
+/*              Protocol Version 2                                         */
 /*                                                                         */
-/* File:        slp_v1message.h                                            */
+/* File:        slpd_incoming.c                                            */
 /*                                                                         */
-/* Abstract:    Header file that defines prototypes for SLPv1 messages     */
+/* Abstract:    Handles "incoming" network conversations requests made by  */
+/*              other agents to slpd. (slpd_outgoing.c handles reqests     */
+/*              made by slpd to other agents)                              */
 /*                                                                         */
 /*-------------------------------------------------------------------------*/
 /*                                                                         */
@@ -46,59 +48,61 @@
 /*                                                                         */
 /***************************************************************************/
 
-#if(!defined SLP_V1MESSAGE_H_INCLUDED)
-#define SLP_V1MESSAGE_H_INCLUDED
+#ifndef SLPD_INCOMING_H_INCLUDE
+#define SLPD_INCOMING_H_INCLUDE
 
-#include "slp_message.h"
-
-/*=========================================================================*/
-/* SLP language encodings for SLPv1 compatibility                          */
-/*=========================================================================*/
-#define SLP_CHAR_ASCII          3
-#define SLP_CHAR_UTF8           106
-#define SLP_CHAR_UNICODE16      1000
-#define SLP_CHAR_UNICODE32      1001
+#include "slpd.h"
 
 /*=========================================================================*/
-/* SLPv1 Flags                                                             */
+/* common code includes                                                    */
 /*=========================================================================*/
-#define SLPv1_FLAG_OVERFLOW         0x80
-#define SLPv1_FLAG_MONOLING         0x40
-#define SLPv1_FLAG_URLAUTH          0x20
-#define SLPv1_FLAG_ATTRAUTH         0x10
-#define SLPv1_FLAG_FRESH            0x08
+#include "../common/slp_linkedlist.h"
+
 
 /*=========================================================================*/
-/* Prototypes for SLPv1 functions                                          */
-/*=========================================================================*/
-
-/*=========================================================================*/
-extern int SLPv1MessageParseBuffer(struct sockaddr_in* peerinfo,
-                                   SLPBuffer buffer, 
-                                   SLPMessage message); 
-/* Initializes a SLPv1 message descriptor by parsing the specified buffer. */
+void SLPDIncomingAge(time_t seconds);
+/* Age the sockets in the incoming list by the specified number of seconds.*/
 /*                                                                         */
-/* peerinfo - (IN pointer to information about where buffer came from      */
-/*                                                                         */
-/* buffer   - (IN) pointer the SLPBuffer to parse                          */
-/*                                                                         */
-/* message  - (OUT) set to describe the message from the buffer            */
-/*                                                                         */
-/* Returns  - Zero on success, SLP_ERROR_PARSE_ERROR, or                   */
-/*            SLP_ERROR_INTERNAL_ERROR if out of memory.  SLPMessage is    */
-/*            invalid return is not successful.                            */
-/*                                                                         */
-/* WARNING  - If successful, pointers in the SLPMessage reference memory in*/ 
-/*            the parsed SLPBuffer.  If SLPBufferFree() is called then the */
-/*            pointers in SLPMessage will be invalidated.                  */
+/* seconds (IN) seconds to age each entry of the list                      */
 /*=========================================================================*/
 
 
 /*=========================================================================*/
-extern int SLPv1MessageParseHeader(SLPBuffer buffer, SLPHeader* header);
+void SLPDIncomingHandler(int* fdcount,
+                         fd_set* readfds,
+                         fd_set* writefds);
+/* Handles all outgoing requests that are pending on the specified file    */
+/* discriptors                                                             */
 /*                                                                         */
-/* Returns  - Zero on success, SLP_ERROR_VER_NOT_SUPPORTED, or             */
-/*            SLP_ERROR_PARSE_ERROR.                                       */
+/* fdcount  (IN/OUT) number of file descriptors marked in fd_sets          */
+/*                                                                         */
+/* readfds  (IN) file descriptors with pending read IO                     */
+/*                                                                         */
+/* writefds  (IN) file descriptors with pending read IO                    */
 /*=========================================================================*/
+
+
+/*=========================================================================*/
+int SLPDIncomingInit();
+/* Initialize incoming socket list to have appropriate sockets for all     */
+/* network interfaces                                                      */
+/*                                                                         */
+/* Returns  Zero on success non-zero on error                              */
+/*=========================================================================*/
+
+
+/*=========================================================================*/
+int SLPDIncomingDeinit();
+/* Deinitialize incoming socket list to have appropriate sockets for all   */
+/* network interfaces                                                      */
+/*                                                                         */
+/* Returns  Zero on success non-zero on error                              */
+/*=========================================================================*/
+
+
+/*=========================================================================*/
+extern SLPList G_IncomingSocketList;
+/*=========================================================================*/
+
 
 #endif

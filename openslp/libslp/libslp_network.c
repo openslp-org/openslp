@@ -522,7 +522,7 @@ SLPError NetworkRqstRply(int sock,
                 goto FINISHED;
             }
 
-            if(SLPMessageParseBuffer(recvbuf, msg) == 0)
+            if(SLPMessageParseBuffer(&peeraddr,recvbuf, msg) == 0)
             {
                 if(msg->header.xid == xid)
                 {

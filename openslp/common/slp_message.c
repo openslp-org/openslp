@@ -55,28 +55,21 @@
 #include <netinet/in.h>
 #endif
 
-/*-------------------------------------------------------------------------*/
-int ParseHeader(SLPBuffer buffer, SLPHeader* header)
+/*=========================================================================*/
+int SLPMessageParseHeader(SLPBuffer buffer, SLPHeader* header)
+/* Fill out a header structure with what ever is in the buffer             */
 /*                                                                         */
-/* Returns  - Zero on success, SLP_ERROR_VER_NOT_SUPPORTED, or             */
-/*            SLP_ERROR_PARSE_ERROR.                                       */
-/*-------------------------------------------------------------------------*/
+/* buffer (IN) the buffer to be parsed                                     */
+/*                                                                         */
+/* header (IN/OUT) pointer to the header structure to fill out             */
+/*=========================================================================*/
 {
     header->version     = *(buffer->curpos);
     header->functionid  = *(buffer->curpos + 1);
-
-#if defined(ENABLE_SLPv1)
-    if(header->version == 1)
-    {
-        return v1ParseHeader(buffer, header);
-    }
-#endif
-
     if(header->version != 2)
     {
         return SLP_ERROR_VER_NOT_SUPPORTED;
     }
-
     header->length      = AsUINT24(buffer->curpos + 2);
     header->flags       = AsUINT16(buffer->curpos + 5);
     header->encoding    = 0; /* not used for SLPv2 */
@@ -132,7 +125,8 @@ int ParseAuthBlock(SLPBuffer buffer, SLPAuthBlock* authblock)
         return SLP_ERROR_PARSE_ERROR;
     }
 
-    authblock->opaque       = buffer->curpos;
+    authblock->opaque = buffer->curpos;
+    
     authblock->bsd          = AsUINT16(buffer->curpos);
     authblock->length       = AsUINT16(buffer->curpos + 2);
     
@@ -151,6 +145,8 @@ int ParseAuthBlock(SLPBuffer buffer, SLPAuthBlock* authblock)
     }
 
     authblock->authstruct   = buffer->curpos + authblock->spistrlen + 10;
+    
+    authblock->opaquelen = authblock->length;
 
     buffer->curpos = buffer->curpos + authblock->length;
 
@@ -172,6 +168,8 @@ int ParseUrlEntry(SLPBuffer buffer, SLPUrlEntry* urlentry)
     {
         return SLP_ERROR_PARSE_ERROR;
     }
+
+    urlentry->opaque = buffer->curpos;
 
     /* parse out reserved */
     urlentry->reserved = *(buffer->curpos);
@@ -212,6 +210,8 @@ int ParseUrlEntry(SLPBuffer buffer, SLPUrlEntry* urlentry)
             if(result) return result;
         }
     }
+
+    urlentry->opaquelen = (char*)buffer->curpos - urlentry->opaque;
 
     return 0;
 }
@@ -301,6 +301,13 @@ int ParseSrvRply(SLPBuffer buffer, SLPSrvRply* srvrply)
 
     /* parse out the error code */
     srvrply->errorcode = AsUINT16(buffer->curpos);
+    if(srvrply->errorcode)
+    {
+        /* We better not trust the rest of the packet */
+        memset( srvrply, 0, sizeof(SLPSrvRply)); 
+        srvrply->errorcode = AsUINT16(buffer->curpos);
+        return 0;
+    }
     buffer->curpos = buffer->curpos + 2;
 
     /* parse out the url entry count */
@@ -345,7 +352,6 @@ int ParseSrvReg(SLPBuffer buffer, SLPSrvReg* srvreg)
     {
         return result;
     }
-
 
     /* parse the service type */
     srvreg->srvtypelen = AsUINT16(buffer->curpos);
@@ -540,6 +546,13 @@ int ParseAttrRply(SLPBuffer buffer, SLPAttrRply* attrrply)
 
     /* parse out the error code */
     attrrply->errorcode = AsUINT16(buffer->curpos);
+    if(attrrply->errorcode)
+    {
+        /* We better not trust the rest of the packet */
+        memset(attrrply,0,sizeof(SLPAttrRply));
+        attrrply->errorcode = AsUINT16(buffer->curpos);
+        return 0;
+    }
     buffer->curpos = buffer->curpos + 2;
 
     /* parse out the attrlist */
@@ -591,6 +604,13 @@ int ParseDAAdvert(SLPBuffer buffer, SLPDAAdvert* daadvert)
 
     /* parse out the error code */
     daadvert->errorcode = AsUINT16(buffer->curpos);
+    if(daadvert->errorcode)
+    {
+        /* We better not trust the rest of the packet */
+        memset(daadvert,0,sizeof(SLPDAAdvert));
+        daadvert->errorcode = AsUINT16(buffer->curpos);
+        return 0;
+    }
     buffer->curpos = buffer->curpos + 2;
 
     /* parse out the bootstamp */
@@ -725,6 +745,13 @@ int ParseSrvTypeRply(SLPBuffer buffer, SLPSrvTypeRply* srvtyperply)
 
     /* parse out the error code */
     srvtyperply->errorcode = AsUINT16(buffer->curpos);
+    if(srvtyperply->errorcode)
+    {
+        /* We better not trust the rest of the packet */
+        memset(srvtyperply,0,sizeof(SLPSrvTypeRply));
+        srvtyperply->errorcode = AsUINT16(buffer->curpos);
+        return 0;
+    }
     buffer->curpos += 2;
 
     /* parse out the error srvtype-list length */
@@ -813,7 +840,6 @@ void SLPMessageFreeInternals(SLPMessage message)
         /* don't do anything */
         break;
     }
-
 }
 
 /*=========================================================================*/
@@ -874,7 +900,9 @@ void SLPMessageFree(SLPMessage message)
 
 
 /*=========================================================================*/
-int SLPMessageParseBuffer(SLPBuffer buffer, SLPMessage message)
+int SLPMessageParseBuffer(struct sockaddr_in* peerinfo,
+                          SLPBuffer buffer, 
+                          SLPMessage message)
 /* Initializes a message descriptor by parsing the specified buffer.       */
 /*                                                                         */
 /* buffer   - (IN) pointer the SLPBuffer to parse                          */
@@ -892,24 +920,17 @@ int SLPMessageParseBuffer(SLPBuffer buffer, SLPMessage message)
 {
     int result;
 
+    /* Copy in the peer info */
+    memcpy(&message->peer,peerinfo,sizeof(message->peer));
+
     /* Get ready to parse */
     SLPMessageFreeInternals(message);
     buffer->curpos = buffer->start;
 
     /* parse the header first */
-
-    result = ParseHeader(buffer,&(message->header));
+    result = SLPMessageParseHeader(buffer,&(message->header));
     if(result == 0)
     {
-#if defined(ENABLE_SLPv1)
-        if(message->header.version == 1)
-            return SLPv1MessageParseBuffer(buffer, &(message->header),
-                                           message);
-#endif
-
-
-
-
         /* switch on the function id to parse the body */
         switch(message->header.functionid)
         {

@@ -38,8 +38,8 @@
 #include <netinet/in.h>
 #endif
 
-#include "slp_message.h"
 #include "slp_v1message.h"
+#include "slp_utf8.h"
 
 /* Implementation Note:
  * 
@@ -53,12 +53,12 @@
  * assumption is not always correct 16-bit unicode encoding.
  */
 
-/*-------------------------------------------------------------------------*/
-int v1ParseHeader(SLPBuffer buffer, SLPHeader* header)
+/*=========================================================================*/
+int SLPv1MessageParseHeader(SLPBuffer buffer, SLPHeader* header)
 /*                                                                         */
 /* Returns  - Zero on success, SLP_ERROR_VER_NOT_SUPPORTED, or             */
 /*            SLP_ERROR_PARSE_ERROR.                                       */
-/*-------------------------------------------------------------------------*/
+/*=========================================================================*/
 {
     header->length      = AsUINT16(buffer->curpos + 2);
     header->flags       = *(buffer->curpos + 4);
@@ -560,13 +560,14 @@ int v1ParseSrvTypeRqst(SLPBuffer buffer, SLPHeader* header,
 }
 
 /*=========================================================================*/
-int SLPv1MessageParseBuffer(SLPBuffer buffer, SLPHeader* header,
+int SLPv1MessageParseBuffer(struct sockaddr_in* peerinfo,
+                            SLPBuffer buffer, 
                             SLPMessage message) 
 /* Initializes a SLPv1 message descriptor by parsing the specified buffer. */
 /*                                                                         */
-/* buffer   - (IN) pointer the SLPBuffer to parse                          */
+/* peerinfo - (IN pointer to information about where buffer came from      */
 /*                                                                         */
-/* header   - (IN) pointer to the SLPv1 Header                             */
+/* buffer   - (IN) pointer the SLPBuffer to parse                          */
 /*                                                                         */
 /* message  - (OUT) set to describe the message from the buffer            */
 /*                                                                         */
@@ -581,32 +582,49 @@ int SLPv1MessageParseBuffer(SLPBuffer buffer, SLPHeader* header,
 {
     int result;
 
-    /* switch on the function id to parse the body */
-    switch(message->header.functionid)
+    /* Copy in the peer info */
+    memcpy(&message->peer,peerinfo,sizeof(message->peer)); 
+  
+    /* parse the header first */
+    result = SLPv1MessageParseHeader(buffer,&(message->header));
+    if(result == 0)
     {
-    case SLP_FUNCT_SRVRQST:
-        result = v1ParseSrvRqst(buffer, header, &(message->body.srvrqst));
-        break;
-
-    case SLP_FUNCT_SRVREG:
-        result = v1ParseSrvReg(buffer, header, &(message->body.srvreg));
-        break;
-
-    case SLP_FUNCT_SRVDEREG:
-        result = v1ParseSrvDeReg(buffer, header, &(message->body.srvdereg));
-        break;
-
-    case SLP_FUNCT_ATTRRQST:
-        result = v1ParseAttrRqst(buffer, header, &(message->body.attrrqst));
-        break;
-
-    case SLP_FUNCT_SRVTYPERQST:
-        result = v1ParseSrvTypeRqst(buffer, header,
-                                    &(message->body.srvtyperqst));
-        break;
-
-    default:
-        result = SLP_ERROR_MESSAGE_NOT_SUPPORTED;
+        /* switch on the function id to parse the body */
+        switch(message->header.functionid)
+        {
+        case SLP_FUNCT_SRVRQST:
+            result = v1ParseSrvRqst(buffer, 
+                                    &(message->header), 
+                                    &(message->body.srvrqst));
+            break;
+    
+        case SLP_FUNCT_SRVREG:
+            result = v1ParseSrvReg(buffer,
+                                   &(message->header),
+                                   &(message->body.srvreg));
+            break;
+    
+        case SLP_FUNCT_SRVDEREG:
+            result = v1ParseSrvDeReg(buffer,
+                                     &(message->header),
+                                     &(message->body.srvdereg));
+            break;
+    
+        case SLP_FUNCT_ATTRRQST:
+            result = v1ParseAttrRqst(buffer, 
+                                     &(message->header),
+                                     &(message->body.attrrqst));
+            break;
+    
+        case SLP_FUNCT_SRVTYPERQST:
+            result = v1ParseSrvTypeRqst(buffer, 
+                                        &(message->header),
+                                        &(message->body.srvtyperqst));
+            break;
+    
+        default:
+            result = SLP_ERROR_MESSAGE_NOT_SUPPORTED;
+        }
     }
 
     return result;

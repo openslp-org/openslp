@@ -56,6 +56,7 @@
 #include <process.h>
 #include <ctype.h>
 #include <time.h>
+#include <stdarg.h> 
 
 #define SLP_VERSION "0.8.2"
 

@@ -1,11 +1,11 @@
 /***************************************************************************/
 /*                                                                         */
 /* Project:     OpenSLP - OpenSource implementation of Service Location    */
-/*              Protocol                                                   */
+/*              Protocol Version 2                                         */
 /*                                                                         */
-/* File:        slp_v1message.h                                            */
+/* File:        slpd_process.h                                             */
 /*                                                                         */
-/* Abstract:    Header file that defines prototypes for SLPv1 messages     */
+/* Abstract:    Processes incoming SLP messages                            */
 /*                                                                         */
 /*-------------------------------------------------------------------------*/
 /*                                                                         */
@@ -46,59 +46,61 @@
 /*                                                                         */
 /***************************************************************************/
 
-#if(!defined SLP_V1MESSAGE_H_INCLUDED)
-#define SLP_V1MESSAGE_H_INCLUDED
-
-#include "slp_message.h"
-
-/*=========================================================================*/
-/* SLP language encodings for SLPv1 compatibility                          */
-/*=========================================================================*/
-#define SLP_CHAR_ASCII          3
-#define SLP_CHAR_UTF8           106
-#define SLP_CHAR_UNICODE16      1000
-#define SLP_CHAR_UNICODE32      1001
+#ifndef SLPD_PROCESS_H_INCLUDED
+#define SLPD_PROCESS_H_INCLUDED
+     
+#include "slpd.h"  
 
 /*=========================================================================*/
-/* SLPv1 Flags                                                             */
+/* Common code includes                                                    */
 /*=========================================================================*/
-#define SLPv1_FLAG_OVERFLOW         0x80
-#define SLPv1_FLAG_MONOLING         0x40
-#define SLPv1_FLAG_URLAUTH          0x20
-#define SLPv1_FLAG_ATTRAUTH         0x10
-#define SLPv1_FLAG_FRESH            0x08
+#include "../common/slp_buffer.h"
+   
 
 /*=========================================================================*/
-/* Prototypes for SLPv1 functions                                          */
-/*=========================================================================*/
-
-/*=========================================================================*/
-extern int SLPv1MessageParseBuffer(struct sockaddr_in* peerinfo,
-                                   SLPBuffer buffer, 
-                                   SLPMessage message); 
-/* Initializes a SLPv1 message descriptor by parsing the specified buffer. */
+int SLPDProcessMessage(struct sockaddr_in* peeraddr,
+                       SLPBuffer recvbuf,
+                       SLPBuffer* sendbuf);
+/* Processes the recvbuf and places the results in sendbuf                 */
 /*                                                                         */
-/* peerinfo - (IN pointer to information about where buffer came from      */
+/* recvfd   - the socket the message was received on                       */
 /*                                                                         */
-/* buffer   - (IN) pointer the SLPBuffer to parse                          */
+/* recvbuf  - message to process                                           */
 /*                                                                         */
-/* message  - (OUT) set to describe the message from the buffer            */
+/* sendbuf  - results of the processed message                             */
 /*                                                                         */
-/* Returns  - Zero on success, SLP_ERROR_PARSE_ERROR, or                   */
-/*            SLP_ERROR_INTERNAL_ERROR if out of memory.  SLPMessage is    */
-/*            invalid return is not successful.                            */
-/*                                                                         */
-/* WARNING  - If successful, pointers in the SLPMessage reference memory in*/ 
-/*            the parsed SLPBuffer.  If SLPBufferFree() is called then the */
-/*            pointers in SLPMessage will be invalidated.                  */
+/* Returns  - zero on success SLP_ERROR_PARSE_ERROR or                     */
+/*            SLP_ERROR_INTERNAL_ERROR on ENOMEM.                          */
 /*=========================================================================*/
 
 
+#if defined(ENABLE_SLPv1)
 /*=========================================================================*/
-extern int SLPv1MessageParseHeader(SLPBuffer buffer, SLPHeader* header);
+int SLPDv1ProcessMessage(struct sockaddr_in* peeraddr,
+                         SLPBuffer recvbuf,
+                         SLPBuffer* sendbuf);
+/*=========================================================================*/
+#endif                                                                       
+
+
+#if(defined USE_PREDICATES)
+/*=========================================================================*/
+int SLPDPredicateTest(int predicatever,
+                      const char* predicate,
+                      SLPAttributes attr); 
+/* Determine whether the specified attribute list satisfies                */
+/* the specified predicate                                                 */
 /*                                                                         */
-/* Returns  - Zero on success, SLP_ERROR_VER_NOT_SUPPORTED, or             */
-/*            SLP_ERROR_PARSE_ERROR.                                       */
+/* predicatever (IN) SLP version of the predicate string                   */
+/*                                                                         */
+/* predicate    (IN) the predicate string                                  */
+/*                                                                         */
+/* attr         (IN) attribute list to test                                */
+/*                                                                         */
+/* Returns: Zero if there is a match, a positive value if there was not a  */
+/*          match, and a negative value if there was a parse error in the  */
+/*          predicate string.                                              */
 /*=========================================================================*/
+#endif /* (defined USE_PREDICATES) */ 
 
 #endif

@@ -48,7 +48,20 @@
 /*                                                                         */
 /***************************************************************************/
 
-#include "slpd.h"
+/*=========================================================================*/
+/* slpd includes                                                           */
+/*=========================================================================*/
+#include "slpd_incoming.h"
+#include "slpd_socket.h"
+#include "slpd_process.h"
+#include "slpd_property.h"
+#include "slpd_log.h"
+
+
+/*=========================================================================*/
+/* common code includes                                                    */
+/*=========================================================================*/
+#include "../common/slp_message.h"
 
 
 /*=========================================================================*/
@@ -91,7 +104,7 @@ void IncomingDatagramRead(SLPList* socklist, SLPDSocket* sock)
                                       sizeof(struct sockaddr_in));
                 if(byteswritten != bytestowrite)
                 {
-                    SLPLog("NETWORK_ERROR - %d replying %s\n",
+                    SLPDLog("NETWORK_ERROR - %d replying %s\n",
                            errno,
                            inet_ntoa(sock->peeraddr.sin_addr));
                 }
@@ -188,13 +201,13 @@ void IncomingStreamRead(SLPList* socklist, SLPDSocket* sock)
                 }
                 else
                 {
-                    SLPLog("INTERNAL_ERROR - out of memory!\n");
+                    SLPDLog("INTERNAL_ERROR - out of memory!\n");
                     sock->state = SOCKET_CLOSE;
                 }
             }
             else
             {
-                SLPLog("VER_NOT_SUPPORTED from %s\n",
+                SLPDLog("VER_NOT_SUPPORTED from %s\n",
                        inet_ntoa(sock->peeraddr.sin_addr));
                 sock->state = SOCKET_CLOSE;
             }
@@ -455,12 +468,12 @@ int SLPDIncomingInit()
     if(sock)
     {
         SLPListLinkTail(&G_IncomingSocketList,(SLPListItem*)sock);
-        SLPLog("Listening on loopback...\n");
+        SLPDLog("Listening on loopback...\n");
     }
     else
     {
-        SLPLog("NETWORK_ERROR - Could not listen on loopback\n");
-        SLPLog("INTERNAL_ERROR - No SLPLIB support will be available\n");
+        SLPDLog("NETWORK_ERROR - Could not listen on loopback\n");
+        SLPDLog("INTERNAL_ERROR - No SLPLIB support will be available\n");
     }
 
     /*---------------------------------------------------------------------*/
@@ -502,7 +515,7 @@ int SLPDIncomingInit()
         if(sock)
         {
             SLPListLinkTail(&G_IncomingSocketList,(SLPListItem*)sock);
-            SLPLog("Listening on %s ...\n",inet_ntoa(myaddr));
+            SLPDLog("Listening on %s ...\n",inet_ntoa(myaddr));
         }
 
 
@@ -516,7 +529,7 @@ int SLPDIncomingInit()
         if(sock)
         {
             SLPListLinkTail(&G_IncomingSocketList,(SLPListItem*)sock);
-            SLPLog("Multicast socket on %s ready\n",inet_ntoa(myaddr));
+            SLPDLog("Multicast socket on %s ready\n",inet_ntoa(myaddr));
         }
 
 
@@ -534,7 +547,7 @@ int SLPDIncomingInit()
             if(sock)
             {
                 SLPListLinkTail(&G_IncomingSocketList,(SLPListItem*)sock);
-                SLPLog("SLPv1 DA Discovery Multicast socket on %s ready\n",
+                SLPDLog("SLPv1 DA Discovery Multicast socket on %s ready\n",
                        inet_ntoa(myaddr));
             }
         }
@@ -549,7 +562,7 @@ int SLPDIncomingInit()
         if(sock)
         {
             SLPListLinkTail(&G_IncomingSocketList,(SLPListItem*)sock);
-            SLPLog("Unicast socket on %s ready\n",inet_ntoa(myaddr));
+            SLPDLog("Unicast socket on %s ready\n",inet_ntoa(myaddr));
         }
     }     
 
@@ -565,12 +578,12 @@ int SLPDIncomingInit()
     if(sock)
     {
         SLPListLinkTail(&G_IncomingSocketList,(SLPListItem*)sock);
-        SLPLog("Broadcast socket for %s ready\n", inet_ntoa(bcastaddr));
+        SLPDLog("Broadcast socket for %s ready\n", inet_ntoa(bcastaddr));
     }
 
     if(G_IncomingSocketList.count == 0)
     {
-        SLPLog("No usable interfaces\n");
+        SLPDLog("No usable interfaces\n");
         return 1;
     }
 

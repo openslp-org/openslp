@@ -56,9 +56,6 @@ int G_Debug_SLPBufferFreeCount = 0;
 #endif
 
 
-
-
-
 /*=========================================================================*/
 void* memdup(const void* src, int srclen)
 /* Generic memdup analogous to strdup()                                    */

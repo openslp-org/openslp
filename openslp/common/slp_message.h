@@ -81,10 +81,8 @@ typedef UINT32*         PUINT32;
 #define SLP_BCAST_ADDRESS       0xffffffff  /* 255.255.255.255 */
 #define SLPv1_DA_MCAST_ADDRESS  0xe0000123  /* 224.0.1.35 */
 #define LOOPBACK_ADDRESS        0x7f000001  /* 127.0.0.1 */
-#define SLP_MAX_DATAGRAM_SIZE   1400
-
+#define SLP_MAX_DATAGRAM_SIZE   1400 
 #define SLP_CONFIG_DA_BEAT      10800       /* 3 hours */
-
 #if(!defined SLP_LIFETIME_MAXIMUM) 
 #define SLP_LIFETIME_MAXIMUM    0xffff
 #endif
@@ -148,6 +146,15 @@ typedef UINT32*         PUINT32;
 
 
 /*=========================================================================*/
+/* SLP Registration Source Flags                                           */
+/*=========================================================================*/
+#define SLP_REG_SOURCE_UNKNOWN  0
+#define SLP_REG_SOURCE_REMOTE   1  /* from a remote host    */
+#define SLP_REG_SOURCE_LOCAL    2  /* from localhost or IPC */
+#define SLP_REG_SOURCE_STATIC   3  /* from the slp.reg file */
+
+
+/*=========================================================================*/
 /* SLPHeader structure and associated functions                            */
 /*=========================================================================*/
 typedef struct _SLPHeader
@@ -169,17 +176,16 @@ typedef struct _SLPHeader
 /*=========================================================================*/
 typedef struct _SLPAuthBlock
 {
-    void*                   opaque;      /* opaque is a pointer to the     */
-                                         /* authblock as a contiguous      */
-                                         /* buffer in wire format. length  */
-                                         /* can be used as the size of the */
-                                         /* contiguous opaque buffer       */
     unsigned int            bsd;
     int                     length;
     unsigned int            timestamp;
     int                     spistrlen;
     const char*             spistr;
     const unsigned char*    authstruct;
+    /* The following are not part of the RFC protocol.  They are used by   */
+    /* the OpenSLP implementation for convenience                          */
+    int                     opaquelen;
+    char*                   opaque;
 }SLPAuthBlock;
 
 
@@ -193,7 +199,11 @@ typedef struct _SLPUrlEntry
     int                     urllen;
     const char*             url;
     int                     authcount;
-    SLPAuthBlock*           autharray;
+    SLPAuthBlock*           autharray; 
+    /* The following are not part of the RFC protocol.  They are used by   */
+    /* the OpenSLP implementation for convenience                          */
+    int                     opaquelen;
+    char*                   opaque;
 }SLPUrlEntry;
 
 
@@ -239,6 +249,9 @@ typedef struct _SLPSrvReg
     const char*         attrlist;
     int                 authcount;
     SLPAuthBlock*       autharray;
+    /* The following are not part of the RFC protocol.  They are used by   */
+    /* the OpenSLP implementation for convenience                          */
+    int                 source;
 }SLPSrvReg;
 
 
@@ -355,8 +368,8 @@ typedef struct _SLPSAAdvert
 typedef struct _SLPMessage
 /*=========================================================================*/
 {
+    struct sockaddr_in    peer;
     SLPHeader             header;
-
     union _body
     {
         SLPSrvRqst        srvrqst;
@@ -401,8 +414,23 @@ void SLPMessageFree(SLPMessage message);
 
 
 /*=========================================================================*/
-int SLPMessageParseBuffer(SLPBuffer buffer, SLPMessage message); 
+int SLPMessageParseHeader(SLPBuffer buffer, SLPHeader* header);
+/* Fill out a header structure with what ever is in the buffer             */
+/*                                                                         */
+/* buffer (IN) the buffer to be parsed                                     */
+/*                                                                         */
+/* header (IN/OUT) pointer to the header structure to fill out             */
+/*=========================================================================*/
+
+
+/*=========================================================================*/
+int SLPMessageParseBuffer(struct sockaddr_in* peerinfo,
+                          SLPBuffer buffer, 
+                          SLPMessage message);
 /* Initializes a message descriptor by parsing the specified buffer.       */
+/*                                                                         */
+/* peerinfo - (IN) pointer to the network address information that sent    */ 
+/*                 buffer                                                  */
 /*                                                                         */
 /* buffer   - (IN) pointer the SLPBuffer to parse                          */
 /*                                                                         */
@@ -412,7 +440,7 @@ int SLPMessageParseBuffer(SLPBuffer buffer, SLPMessage message);
 /*            SLP_ERROR_INTERNAL_ERROR if out of memory.  SLPMessage is    */
 /*            invalid return is not successful.                            */
 /*                                                                         */
-/* WARNING  - If successful, pointers in the SLPMessage reference memory in*/
+/* WARNING  - If successful, pointers in the SLPMessage reference memory in*/ 
 /*            the parsed SLPBuffer.  If SLPBufferFree() is called then the */
 /*            pointers in SLPMessage will be invalidated.                  */
 /*=========================================================================*/
@@ -421,67 +449,49 @@ int SLPMessageParseBuffer(SLPBuffer buffer, SLPMessage message);
 
 
 /*=========================================================================*/
+/* Macros used to parse buffers                                            */
 #define AsUINT16(charptr)   ( ntohs(*((PUINT16)(charptr))) )
 #define AsUINT24(charptr)   ( ntohl(*((PUINT32)(charptr)))>>8 )
 #define AsUINT32(charptr)   ( ntohl(*((PUINT32)(charptr))) )
-
-
-
-/* Macros used to parse buffers                                            */
 /*=========================================================================*/
 
+
 /*=========================================================================*/
+/* Macros used to set buffers                                              */
 #define ToUINT16(charptr,val)   ( *((PUINT16)(charptr)) =  htons(((UINT16)val)) )
 #define ToUINT24(charptr,val)   ( *((PUINT32)(charptr)) =  htonl((val)<<8) )
 #define ToUINT32(charptr,val)   ( *((PUINT32)(charptr)) =  htonl((val)) )
-
-
-
-/* Macros used to set buffers                                              */
 /*=========================================================================*/
 
+
 /*=========================================================================*/
+/* Macros to check in_addr                                                 */
 #define ISLOCAL(addr) ((ntohl((addr).s_addr) & 0xff000000) == 0x7f000000)
 #define ISMCAST(addr) ((ntohl((addr).s_addr) & 0xff000000) >= 0xef000000)
-
-
-
-//#define ISMCAST(addr) 1
-/* Macros to check in_addr                                                 */
 /*=========================================================================*/
 
-#else
-
-
-
+#else 
 
 /*=========================================================================*/
+/* Functions used to parse buffers                                         */
 unsigned short AsUINT16(const char *charptr);
 unsigned int AsUINT24(const char *charptr);
 unsigned int AsUINT32(const char *charptr);
-/* Functions used to parse buffers                                         */
 /*=========================================================================*/
 
 /*=========================================================================*/
+/* Functions used to set buffers                                           */
 void ToUINT16(char *charptr, unsigned int val);
 void ToUINT24(char *charptr, unsigned int val);
 void ToUINT32(char *charptr, unsigned int val);
-/* Functions used to set buffers                                           */
 /*=========================================================================*/
 
 /*=========================================================================*/
+/* Macros to check in_addr                                                 */
 #define ISLOCAL(addr) (((addr).s_addr & 0xff000000) == 0x7f000000)
 #define ISMCAST(addr) (((addr).s_addr & 0xff000000) >= 0xef000000)
-
-
-
-/* Macros to check in_addr                                                 */
 /*=========================================================================*/
 #endif
 
-
-#if defined(ENABLE_SLPv1)
-#include "slp_v1message.h"
-#endif
 
 #endif

@@ -1,11 +1,11 @@
 /***************************************************************************/
 /*                                                                         */
 /* Project:     OpenSLP - OpenSource implementation of Service Location    */
-/*              Protocol                                                   */
+/*              Protocol Version 2                                         */
 /*                                                                         */
-/* File:        slp_v1message.h                                            */
+/* File:        slpd_cmdline.h                                             */
 /*                                                                         */
-/* Abstract:    Header file that defines prototypes for SLPv1 messages     */
+/* Abstract:    Simple command line processor                              */
 /*                                                                         */
 /*-------------------------------------------------------------------------*/
 /*                                                                         */
@@ -46,59 +46,70 @@
 /*                                                                         */
 /***************************************************************************/
 
-#if(!defined SLP_V1MESSAGE_H_INCLUDED)
-#define SLP_V1MESSAGE_H_INCLUDED
+#ifndef SLPD_CMDLINE_H_INCLUDED
+#define SLPD_CMDLINE_H_INCLUDED
 
-#include "slp_message.h"
-
-/*=========================================================================*/
-/* SLP language encodings for SLPv1 compatibility                          */
-/*=========================================================================*/
-#define SLP_CHAR_ASCII          3
-#define SLP_CHAR_UTF8           106
-#define SLP_CHAR_UNICODE16      1000
-#define SLP_CHAR_UNICODE32      1001
+#include "slpd.h"
 
 /*=========================================================================*/
-/* SLPv1 Flags                                                             */
+/* Filename constants                                                      */
 /*=========================================================================*/
-#define SLPv1_FLAG_OVERFLOW         0x80
-#define SLPv1_FLAG_MONOLING         0x40
-#define SLPv1_FLAG_URLAUTH          0x20
-#define SLPv1_FLAG_ATTRAUTH         0x10
-#define SLPv1_FLAG_FRESH            0x08
+#ifndef WIN32
+#define SLPD_CONFFILE ETCDIR "/slp.conf"
+#define SLPD_LOGFILE  VARDIR "/log/slpd.log"
+#define SLPD_REGFILE  ETCDIR "/slp.reg"
+#define SLPD_PIDFILE  VARDIR "/run/slpd.pid"
+#else
+#define SLPD_CONFFILE "%WINDIR%\\slp.conf"
+#define SLPD_LOGFILE  "%WINDIR%\\slpd.log"
+#define SLPD_REGFILE  "%WINDIR%\\slp.reg"
+#define SLPD_PIDFILE  "%WINDIR%\\slpd.pid"
+#endif
+
 
 /*=========================================================================*/
-/* Prototypes for SLPv1 functions                                          */
+/* Make sure MAX_PATH is defined                                           */
 /*=========================================================================*/
+#if(!defined MAX_PATH)
+#define MAX_PATH                    256
+#endif
+
 
 /*=========================================================================*/
-extern int SLPv1MessageParseBuffer(struct sockaddr_in* peerinfo,
-                                   SLPBuffer buffer, 
-                                   SLPMessage message); 
-/* Initializes a SLPv1 message descriptor by parsing the specified buffer. */
+typedef struct _SLPDCommandLine
+/* Holds  values of parameters read from the command line                  */
+/*=========================================================================*/
+{
+    char   cfgfile[MAX_PATH];
+    char   regfile[MAX_PATH];
+    char   logfile[MAX_PATH];
+    char   pidfile[MAX_PATH];
+    int    action;
+    int    detach;
+}SLPDCommandLine;
+
+
+/*=========================================================================*/
+extern SLPDCommandLine G_SlpdCommandLine;
+/* Global variable containing command line options                         */
+/*=========================================================================*/
+
+
+/*=========================================================================*/
+void SLPDPrintUsage();
+/* Displays available command line options of SLPD                         */
+/*=========================================================================*/
+
+
+/*=========================================================================*/
+int SLPDParseCommandLine(int argc,char* argv[]);
+/* Must be called to initialize the command line                           */
 /*                                                                         */
-/* peerinfo - (IN pointer to information about where buffer came from      */
+/* argc (IN) the argc as passed to main()                                  */
 /*                                                                         */
-/* buffer   - (IN) pointer the SLPBuffer to parse                          */
+/* argv (IN) the argv as passed to main()                                  */
 /*                                                                         */
-/* message  - (OUT) set to describe the message from the buffer            */
-/*                                                                         */
-/* Returns  - Zero on success, SLP_ERROR_PARSE_ERROR, or                   */
-/*            SLP_ERROR_INTERNAL_ERROR if out of memory.  SLPMessage is    */
-/*            invalid return is not successful.                            */
-/*                                                                         */
-/* WARNING  - If successful, pointers in the SLPMessage reference memory in*/ 
-/*            the parsed SLPBuffer.  If SLPBufferFree() is called then the */
-/*            pointers in SLPMessage will be invalidated.                  */
-/*=========================================================================*/
-
-
-/*=========================================================================*/
-extern int SLPv1MessageParseHeader(SLPBuffer buffer, SLPHeader* header);
-/*                                                                         */
-/* Returns  - Zero on success, SLP_ERROR_VER_NOT_SUPPORTED, or             */
-/*            SLP_ERROR_PARSE_ERROR.                                       */
+/* Returns  - zero on success.  non-zero on usage error                    */
 /*=========================================================================*/
 
 #endif

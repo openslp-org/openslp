@@ -48,14 +48,32 @@
 
 #include "slpd.h"
 
+/*=========================================================================*/
+/* slpd includes                                                           */
+/*=========================================================================*/
+#include "slpd_log.h"
+#include "slpd_socket.h"
+#include "slpd_incoming.h"
+#include "slpd_outgoing.h"
+#include "slpd_database.h"
+#include "slpd_cmdline.h"
+#include "slpd_knownda.h"
+#include "slpd_property.h"
+
+
+/*=========================================================================*/
+/* common code includes                                                    */
+/*=========================================================================*/
+#include "../common/slp_xid.c"
+
+
 /*==========================================================================*/
 int G_SIGALRM;
 int G_SIGTERM;
 int G_SIGHUP;                                                                                                 
 #ifdef DEBUG
 int G_SIGINT;		/* Signal being used for dumping registrations */
-#endif
-
+#endif 
 /*==========================================================================*/
 
 
@@ -132,10 +150,10 @@ void HandleSigTerm()
     int             highfd;
     int             fdcount         = 0;
 
-    SLPLog("****************************************\n");
-    SLPLogTime();
-    SLPLog("SLPD daemon shutting down\n");
-    SLPLog("****************************************\n");
+    SLPDLog("****************************************\n");
+    SLPDLogTime();
+    SLPDLog("SLPD daemon shutting down\n");
+    SLPDLog("****************************************\n");
 
     /* close all incoming sockets */
     SLPDIncomingDeinit();
@@ -166,10 +184,10 @@ void HandleSigTerm()
 
     SLPDOutgoingDeinit(0);
 
-    SLPLog("****************************************\n");
-    SLPLogTime();
-    SLPLog("SLPD daemon shut down\n");
-    SLPLog("****************************************\n");
+    SLPDLog("****************************************\n");
+    SLPDLogTime();
+    SLPDLog("SLPD daemon shut down\n");
+    SLPDLog("****************************************\n");
 
 #ifdef DEBUG
     SLPDDatabaseDeinit();
@@ -185,10 +203,10 @@ void HandleSigHup()
 /*------------------------------------------------------------------------*/
 {
     /* Reinitialize */
-    SLPLog("****************************************\n");
-    SLPLogTime();
-    SLPLog("SLPD daemon reset by SIGHUP\n");
-    SLPLog("****************************************\n\n");
+    SLPDLog("****************************************\n");
+    SLPDLogTime();
+    SLPDLog("SLPD daemon reset by SIGHUP\n");
+    SLPDLog("****************************************\n\n");
 
     /* unregister with all DAs */
     SLPDKnownDADeinit();
@@ -202,10 +220,10 @@ void HandleSigHup()
     /* Rebuild Known DA database */
     SLPDKnownDAInit();
 
-    SLPLog("****************************************\n");
-    SLPLogTime();
-    SLPLog("SLPD daemon reset finished\n");
-    SLPLog("****************************************\n\n");
+    SLPDLog("****************************************\n");
+    SLPDLogTime();
+    SLPDLog("SLPD daemon reset finished\n");
+    SLPDLog("****************************************\n\n");
 }
 
 /*------------------------------------------------------------------------*/
@@ -437,7 +455,7 @@ int main(int argc, char* argv[])
     /*------------------------*/
     if(SLPDParseCommandLine(argc,argv))
     {
-        SLPFatal("Invalid command line\n");
+        SLPDFatal("Invalid command line\n");
     }
 
     /*------------------------------*/
@@ -445,7 +463,7 @@ int main(int argc, char* argv[])
     /*------------------------------*/
     if(getuid() != 0)
     {
-        SLPFatal("slpd must be started by root\n");
+        SLPDFatal("slpd must be started by root\n");
     }
 
     /*--------------------------------------*/
@@ -453,16 +471,16 @@ int main(int argc, char* argv[])
     /*--------------------------------------*/
     if(CheckPid(G_SlpdCommandLine.pidfile))
     {
-        SLPFatal("slpd is already running. Check %s\n",
+        SLPDFatal("slpd is already running. Check %s\n",
                  G_SlpdCommandLine.pidfile);
     }
 
     /*------------------------------*/
     /* Initialize the log file      */
     /*------------------------------*/
-    if(SLPLogFileOpen(G_SlpdCommandLine.logfile, 1))
+    if(SLPDLogFileOpen(G_SlpdCommandLine.logfile, 1))
     {
-        SLPFatal("Could not open logfile %s\n",G_SlpdCommandLine.logfile);
+        SLPDFatal("Could not open logfile %s\n",G_SlpdCommandLine.logfile);
     }
 
     /*------------------------*/
@@ -473,13 +491,13 @@ int main(int argc, char* argv[])
     /*---------------------*/
     /* Log startup message */
     /*---------------------*/
-    SLPLog("****************************************\n");
-    SLPLogTime();
-    SLPLog("SLPD daemon started\n");
-    SLPLog("****************************************\n");
-    SLPLog("Command line = %s\n",argv[0]);
-    SLPLog("Using configuration file = %s\n",G_SlpdCommandLine.cfgfile);
-    SLPLog("Using registration file = %s\n",G_SlpdCommandLine.regfile);
+    SLPDLog("****************************************\n");
+    SLPDLogTime();
+    SLPDLog("SLPD daemon started\n");
+    SLPDLog("****************************************\n");
+    SLPDLog("Command line = %s\n",argv[0]);
+    SLPDLog("Using configuration file = %s\n",G_SlpdCommandLine.cfgfile);
+    SLPDLog("Using registration file = %s\n",G_SlpdCommandLine.regfile);
 
     /*--------------------------------------------------*/
     /* Initialize for the first time                    */
@@ -490,17 +508,17 @@ int main(int argc, char* argv[])
        SLPDOutgoingInit() ||
        SLPDKnownDAInit())
     {
-        SLPFatal("slpd initialization failed\n");
+        SLPDFatal("slpd initialization failed\n");
     }
-    SLPLog("Agent Interfaces = %s\n",G_SlpdProperty.interfaces);
-    SLPLog("Agent URL = %s\n",G_SlpdProperty.myUrl);
+    SLPDLog("Agent Interfaces = %s\n",G_SlpdProperty.interfaces);
+    SLPDLog("Agent URL = %s\n",G_SlpdProperty.myUrl);
 
     /*---------------------------*/
     /* make slpd run as a daemon */
     /*---------------------------*/
     if(Daemonize(G_SlpdCommandLine.pidfile))
     {
-        SLPFatal("Could not daemonize\n");
+        SLPDFatal("Could not daemonize\n");
     }
 
     /*-----------------------*/
@@ -508,7 +526,7 @@ int main(int argc, char* argv[])
     /*-----------------------*/
     if(SetUpSignalHandlers())
     {
-        SLPFatal("Error setting up signal handlers.\n");
+        SLPDFatal("Error setting up signal handlers.\n");
     }
 
     /*------------------------------*/
@@ -519,7 +537,7 @@ int main(int argc, char* argv[])
     /*-----------*/
     /* Main loop */
     /*-----------*/
-    SLPLog("Startup complete entering main run loop ...\n\n");
+    SLPDLog("Startup complete entering main run loop ...\n\n");
     G_SIGALRM   = 0;
     G_SIGTERM   = 0;
     G_SIGHUP    = 0;    

@@ -135,6 +135,22 @@ SLPCryptoDSAKey* SLPSpiFetchPrivateDSAKey(SLPSpiHandle hspi,
 /* Returns: A valid pointer. NULL on failure. Caller should use            */
 /*          SLPCryptoDSAKeyDestroy() to free key memory                    */ 
 /*=========================================================================*/
+
+
+/*=========================================================================*/
+int SLPSpiHaveSpi(SLPSpiHandle hspi,
+                  int spistrlen,
+                  const char* spistr);
+/* Determine if we understand the specified SPI.  No SPI is always         */
+/* understood                                                              */
+/*                                                                         */
+/* Parameters: hspi      (IN)  handle obtained from call to SLPSpiOpen()   */
+/*             spistrlen (IN)  the length of the spistr                    */
+/*             spistr    (IN)  the SPI string                              */
+/*                                                                         */
+/* Returns     Non-zero if we handle the SPI                               */
+/*=========================================================================*/
+
 #endif
 
 

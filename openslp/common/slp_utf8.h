@@ -1,11 +1,11 @@
 /***************************************************************************/
 /*                                                                         */
 /* Project:     OpenSLP - OpenSource implementation of Service Location    */
-/*              Protocol                                                   */
+/*              Protocol Version 2                                         */
 /*                                                                         */
-/* File:        slp_v1message.h                                            */
+/* File:        slp_utf8.h                                                 */
 /*                                                                         */
-/* Abstract:    Header file that defines prototypes for SLPv1 messages     */
+/* Abstract:    Do conversions between UTF-8 and other character encodings */
 /*                                                                         */
 /*-------------------------------------------------------------------------*/
 /*                                                                         */
@@ -46,59 +46,53 @@
 /*                                                                         */
 /***************************************************************************/
 
-#if(!defined SLP_V1MESSAGE_H_INCLUDED)
-#define SLP_V1MESSAGE_H_INCLUDED
 
-#include "slp_message.h"
-
-/*=========================================================================*/
-/* SLP language encodings for SLPv1 compatibility                          */
-/*=========================================================================*/
-#define SLP_CHAR_ASCII          3
-#define SLP_CHAR_UTF8           106
-#define SLP_CHAR_UNICODE16      1000
-#define SLP_CHAR_UNICODE32      1001
+#ifndef SLP_UTF8_INCLUDED
+#define SLP_UTF8_INCLUDED
 
 /*=========================================================================*/
-/* SLPv1 Flags                                                             */
-/*=========================================================================*/
-#define SLPv1_FLAG_OVERFLOW         0x80
-#define SLPv1_FLAG_MONOLING         0x40
-#define SLPv1_FLAG_URLAUTH          0x20
-#define SLPv1_FLAG_ATTRAUTH         0x10
-#define SLPv1_FLAG_FRESH            0x08
-
-/*=========================================================================*/
-/* Prototypes for SLPv1 functions                                          */
-/*=========================================================================*/
-
-/*=========================================================================*/
-extern int SLPv1MessageParseBuffer(struct sockaddr_in* peerinfo,
-                                   SLPBuffer buffer, 
-                                   SLPMessage message); 
-/* Initializes a SLPv1 message descriptor by parsing the specified buffer. */
+int SLPv1ToEncoding(char *string, int *len, int encoding, 
+                    const char *utfstring, int utflen); 
+/* Converts a UTF-8 character string to a SLPv1 encoded string.            */
+/* When called with string set to null returns number of bytes needed      */
+/* in string.                                                              */
 /*                                                                         */
-/* peerinfo - (IN pointer to information about where buffer came from      */
+/* string - (OUT) SLPv1 encoded string.                                    */
 /*                                                                         */
-/* buffer   - (IN) pointer the SLPBuffer to parse                          */
+/* len    - (INOUT) IN - bytes available in string                         */
+/*                  OUT - bytes used up in string                          */
 /*                                                                         */
-/* message  - (OUT) set to describe the message from the buffer            */
+/* encoding  - (IN) encoding of the string passed in                       */
+/*                                                                         */
+/* utfstring - (IN) pointer to UTF-8 string                                */
+/*                                                                         */
+/* utflen    - (IN) length of UTF-8 string                                 */
 /*                                                                         */
 /* Returns  - Zero on success, SLP_ERROR_PARSE_ERROR, or                   */
-/*            SLP_ERROR_INTERNAL_ERROR if out of memory.  SLPMessage is    */
-/*            invalid return is not successful.                            */
+/*            SLP_ERROR_INTERNAL_ERROR if out of memory.  string and len   */
+/*            invalid if return is not successful.                         */
 /*                                                                         */
-/* WARNING  - If successful, pointers in the SLPMessage reference memory in*/ 
-/*            the parsed SLPBuffer.  If SLPBufferFree() is called then the */
-/*            pointers in SLPMessage will be invalidated.                  */
 /*=========================================================================*/
 
 
 /*=========================================================================*/
-extern int SLPv1MessageParseHeader(SLPBuffer buffer, SLPHeader* header);
+int SLPv1AsUTF8(int encoding, char *string, int *len);
+/* Converts a SLPv1 encoded string to a UTF-8 character string in          */
+/* place. If string does not have enough space to hold the encoded string  */
+/* we are dead.                                                            */
 /*                                                                         */
-/* Returns  - Zero on success, SLP_ERROR_VER_NOT_SUPPORTED, or             */
-/*            SLP_ERROR_PARSE_ERROR.                                       */
+/* encoding - (IN) unicode encoding of the string passed in                */
+/*                                                                         */
+/* string   - (INOUT) IN - pointer to SLPv1 encoded string                 */
+/*                    OUT - pointer to converted UTF-8 string.             */
+/*                                                                         */
+/* len      - (INOUT) IN - length of SLPv1 encoded string (in bytes)       */
+/*                    OUT - length of UTF-8 string (in bytes)              */
+/*                                                                         */
+/* Returns  - Zero on success, SLP_ERROR_PARSE_ERROR, or                   */
+/*            SLP_ERROR_INTERNAL_ERROR if out of memory.  string and len   */
+/*            invalid if return is not successful.                         */
+/*                                                                         */
 /*=========================================================================*/
 
 #endif
