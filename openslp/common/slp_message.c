@@ -782,16 +782,17 @@ void SLPMessageFreeInternals(SLPMessage message)
     case SLP_FUNCT_SRVRPLY:
         if(message->body.srvrply.urlarray)
         {
-        
             for(i=0;i<message->body.srvrply.urlcount;i++)
             {
                 if(message->body.srvrply.urlarray[i].autharray)
                 {
                     free(message->body.srvrply.urlarray[i].autharray);
+                    message->body.srvrply.urlarray[i].autharray = 0;
                 }
             }
 
             free(message->body.srvrply.urlarray);
+            message->body.srvrply.urlarray = 0;
         }
         break;
     
@@ -799,10 +800,12 @@ void SLPMessageFreeInternals(SLPMessage message)
         if(message->body.srvreg.urlentry.autharray)
         {
             free(message->body.srvreg.urlentry.autharray);
+            message->body.srvreg.urlentry.autharray = 0;
         }                                        
         if(message->body.srvreg.autharray)
         {
             free(message->body.srvreg.autharray);
+            message->body.srvreg.autharray = 0;
         }                                        
         break;
     
@@ -811,6 +814,7 @@ void SLPMessageFreeInternals(SLPMessage message)
         if(message->body.srvdereg.urlentry.autharray)
         {
             free(message->body.srvdereg.urlentry.autharray);
+            message->body.srvdereg.urlentry.autharray = 0;
         }
         break;
           
@@ -818,6 +822,7 @@ void SLPMessageFreeInternals(SLPMessage message)
         if(message->body.attrrply.autharray)
         {
             free(message->body.attrrply.autharray);
+            message->body.attrrply.autharray = 0;
         }
         break;
         
@@ -826,15 +831,10 @@ void SLPMessageFreeInternals(SLPMessage message)
         if(message->body.daadvert.autharray)
         {
             free(message->body.daadvert.autharray);
+            message->body.daadvert.autharray = 0;
         }
         break; 
 
-#if 0        
-    case SLP_FUNCT_SAADVERT:
-        result = ParseSAAdvert(start,end,&xlator->body.saadvert);
-        break;
-#endif
-    
     case SLP_FUNCT_ATTRRQST:
     case SLP_FUNCT_SRVACK:
     case SLP_FUNCT_SRVRQST:

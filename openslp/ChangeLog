@@ -9,6 +9,11 @@ blank lines and include the date, developer's email, and change description.
 =============================================================================
 
 09/05/00 mpeterson@calderasystems.com
+Finally was able to reproduce (thanks to Jon) and fix bugs 109358 and 109359
+
+*** TAG OpenSLP 0.7.5 ***
+
+09/05/00 mpeterson@calderasystems.com
 Merged Mattieu Desmons's Win32 port of OpenSLP
 
 09/05/00 rganesan@myrealbox.com
