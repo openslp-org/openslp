@@ -202,6 +202,7 @@ typedef struct _SLPSrvRqst
     const char* srvtype;
     int         scopelistlen;
     const char* scopelist;
+    int         predicatever;
     int         predicatelen;
     const char* predicate;
     int         spistrlen;

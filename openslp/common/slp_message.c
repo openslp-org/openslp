@@ -266,6 +266,7 @@ int ParseSrvRqst(SLPBuffer buffer, SLPSrvRqst* srvrqst)
 
 
     /* parse the predicate string */
+    srvrqst->predicatever = 2;	/* SLPv2 predicate (LDAPv3) */
     srvrqst->predicatelen = AsUINT16(buffer->curpos);
     buffer->curpos = buffer->curpos + 2;
     #if(defined(PARANOID) || defined(DEBUG))

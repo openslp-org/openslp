@@ -7,6 +7,12 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 
+12/13/00 rganesan@myrealbox.com
+Introduced predicate version field in srvrqst structure. Passed predicate 
+version (v1 or v2) all the way down to SLPDPredicateTest(). 
+SLPDPredicateTest() does not handle v1 predicates yet, so it still returns
+success without looking at the predicate.
+
 12/12/00 mpeterson@caldera.com
 Added code to refresh SLP_LIFETIME_MAXIMUM services
 
@@ -14,7 +20,7 @@ Added code to refresh SLP_LIFETIME_MAXIMUM services
 Fixed bug where non-responsive DAs were used repeatedly
 
 12/08/00 mpeterson@caldera.com
-Fixed DA / SA lookup code in libslp.  Fixes infinate loop under certain
+Fixed DA / SA lookup code in libslp.  Fixes infinite loop under certain
 error producing situations 
 
 12/08/00 mpeterson@caldera.com

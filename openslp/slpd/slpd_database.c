@@ -381,7 +381,8 @@ int SLPDDatabaseFindSrv(SLPSrvRqst* srvrqst,
                 #ifdef USE_PREDICATES
                 if(srvrqst->predicate && 
                    entry->attr &&
-                   SLPDPredicateTest(srvrqst->predicate,entry->attr) == 0)
+                   SLPDPredicateTest(srvrqst->predicatever,
+				     srvrqst->predicate, entry->attr) == 0) 
                 #endif
                 {
                     result[found].lifetime = entry->lifetime;

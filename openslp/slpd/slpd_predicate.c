@@ -111,7 +111,7 @@
 /*--------------------------------------------------------------------------*/
 const char *substr(const char *haystack, 
                    const char *needle, 
-                   size_t needle_len)
+                   int needle_len)
 /* Does a case insensitive substring match for needle in haystack.          */
 /*                                                                          */
 /* Returns pointer to the start of the substring. NULL if the substring is  */
@@ -136,17 +136,17 @@ const char *substr(const char *haystack,
 /*--------------------------------------------------------------------------*/
 typedef enum
 {
-	FR_UNSET /* Placeholder. Used to detect errors. */, 
-	FR_INTERNAL_SYSTEM_ERROR /* Internal error. */,
-	FR_PARSE_ERROR /* Parse error detected. */, 
-	FR_MEMORY_ALLOC_FAILED /* Ran out of memory. */, 
-	FR_EVAL_TRUE /* Expression successfully evaluated to true. */, 
-	FR_EVAL_FALSE /* Expression successfully evaluated to false. */
+    FR_UNSET /* Placeholder. Used to detect errors. */, 
+    FR_INTERNAL_SYSTEM_ERROR /* Internal error. */,
+    FR_PARSE_ERROR /* Parse error detected. */, 
+    FR_MEMORY_ALLOC_FAILED /* Ran out of memory. */, 
+    FR_EVAL_TRUE /* Expression successfully evaluated to true. */, 
+    FR_EVAL_FALSE /* Expression successfully evaluated to false. */
 } FilterResult;
 /*--------------------------------------------------------------------------*/
 
 /*--------------------------------------------------------------------------*/
-int escaped_verify(char *escaped, size_t len, size_t *punescaped_len) 
+int escaped_verify(char *escaped, int len, int *punescaped_len) 
 /* Verifies and finds the length of an escaped string                       */
 /*                                                                          */
 /* Params:                                                                  */
@@ -160,42 +160,42 @@ int escaped_verify(char *escaped, size_t len, size_t *punescaped_len)
 /*  be set                                                                  */
 /*--------------------------------------------------------------------------*/
 {
-	size_t i;
-	size_t unescaped_len;
-	int seq_pos; /* Position in the current escape sequence. Set to zero when not in escape seq.*/
+    int i;
+    int unescaped_len;
+    int seq_pos; /* Position in the current escape sequence. Set to zero when not in escape seq.*/
 
-	seq_pos = 0;
+    seq_pos = 0;
 
-	for (i = unescaped_len = 0; i < len; i++) {
-		/* Verify escape sequences. */
-		if (seq_pos == 1 || seq_pos == 2) {
-			if (!isxdigit(escaped[i])) {
-				return 0;
-			}
+    for (i = unescaped_len = 0; i < len; i++) {
+        /* Verify escape sequences. */
+        if (seq_pos == 1 || seq_pos == 2) {
+            if (!isxdigit(escaped[i])) {
+                return 0;
+            }
 
-			if (seq_pos == 2) {
-				seq_pos = 0;
-			}
-			else {
-				seq_pos++;
-			}
-		}
-		else {
-			unescaped_len++;
-		}
-	
+            if (seq_pos == 2) {
+                seq_pos = 0;
+            }
+            else {
+                seq_pos++;
+            }
+        }
+        else {
+            unescaped_len++;
+        }
+    
 
-		/* Check for escape sequences. */
-		if (escaped[i] == '\\') {
-			seq_pos = 1;
-		}
-	}
+        /* Check for escape sequences. */
+        if (escaped[i] == '\\') {
+            seq_pos = 1;
+        }
+    }
 
-	if (punescaped_len) {
-		*punescaped_len = unescaped_len;
-	}
+    if (punescaped_len) {
+        *punescaped_len = unescaped_len;
+    }
 
-	return 1;
+    return 1;
 }
 
 /*--------------------------------------------------------------------------*/
@@ -212,14 +212,14 @@ int unescape_check(char d1, char d2, char *val)
 /*  invalid                                                                 */
 /*--------------------------------------------------------------------------*/
 {
-	if (!isxdigit(d1) || !isxdigit(d2)) {
-		return 0;
-	}
+    if (!isxdigit(d1) || !isxdigit(d2)) {
+        return 0;
+    }
 
-	if ((d1 >= 'A') && (d1 <= 'F')) 
-		d1 = d1 - 'A' + 0x0A;
-	else 
-    	d1 = d1 - '0';
+    if ((d1 >= 'A') && (d1 <= 'F')) 
+        d1 = d1 - 'A' + 0x0A;
+    else 
+        d1 = d1 - '0';
 
     if ((d2 >= 'A') && (d2 <= 'F'))
         d2 = d2 - 'A' + 0x0A;
@@ -227,12 +227,12 @@ int unescape_check(char d1, char d2, char *val)
         d2 = d2 - '0';
 
     *val = d2 + (d1 * 0x10);
-	return 1;
+    return 1;
 }
 
 
 /*--------------------------------------------------------------------------*/
-FilterResult unescape_cmp(const char *escaped, size_t escaped_len, const char *verbatim, size_t verbatim_len, SLPBoolean strict_len, size_t *punescaped_count)
+FilterResult unescape_cmp(const char *escaped, int escaped_len, const char *verbatim, int verbatim_len, SLPBoolean strict_len, int *punescaped_count)
 /* Compares two strings that (potentially) contain escaped characters       */
 /*                                                                          */
 /* Params:                                                                  */
@@ -248,67 +248,67 @@ FilterResult unescape_cmp(const char *escaped, size_t escaped_len, const char *v
 /*                                                                          */
 /*--------------------------------------------------------------------------*/
 {
-	char unesc; /* Holder for unescaped characters. */
+    char unesc; /* Holder for unescaped characters. */
 
-	size_t esc_i; /* Index into escaped. */
-	size_t ver_i; /* Index into verbatim. */
+    int esc_i; /* Index into escaped. */
+    int ver_i; /* Index into verbatim. */
 
-	size_t unescaped_count;
+    int unescaped_count;
 
-	unescaped_count = esc_i = ver_i = 0;
-	
-	/***** Compare every pair of characters. *****/
-	while (1) {
-		/**** Check for string end. ****/
-		if (esc_i >= escaped_len) {
-			if (punescaped_count != NULL) {
-				*punescaped_count = unescaped_count;
-			}
+    unescaped_count = esc_i = ver_i = 0;
+    
+    /***** Compare every pair of characters. *****/
+    while (1) {
+        /**** Check for string end. ****/
+        if (esc_i >= escaped_len) {
+            if (punescaped_count != NULL) {
+                *punescaped_count = unescaped_count;
+            }
 
-			if (strict_len == SLP_TRUE) {
-				if (ver_i >= verbatim_len) {
-					return FR_EVAL_TRUE;
-				}
-				else {
-					return FR_EVAL_FALSE;
-				}
-			}
+            if (strict_len == SLP_TRUE) {
+                if (ver_i >= verbatim_len) {
+                    return FR_EVAL_TRUE;
+                }
+                else {
+                    return FR_EVAL_FALSE;
+                }
+            }
 
-			return FR_EVAL_TRUE;
-		}
-		
-		/**** Check for escaping ****/
-		if (escaped[esc_i] == '\\') {
-			/*** Check for truncated escape values. ***/
-			if (esc_i + 2 >= escaped_len) {
-				return FR_PARSE_ERROR;
-			}
-			/*** Unescape. ***/
-			if (!unescape_check(escaped[esc_i+1], escaped[esc_i+2], &unesc)) {
-				return FR_PARSE_ERROR;
-			}
+            return FR_EVAL_TRUE;
+        }
+        
+        /**** Check for escaping ****/
+        if (escaped[esc_i] == '\\') {
+            /*** Check for truncated escape values. ***/
+            if (esc_i + 2 >= escaped_len) {
+                return FR_PARSE_ERROR;
+            }
+            /*** Unescape. ***/
+            if (!unescape_check(escaped[esc_i+1], escaped[esc_i+2], &unesc)) {
+                return FR_PARSE_ERROR;
+            }
 
-			/*** Increment. ***/
-			esc_i += 2;
-		} 
-		else {
-			unesc = escaped[esc_i];
-		}
-		
-		if (unesc != verbatim[ver_i]) {
-			return FR_EVAL_FALSE;
-		}
-		
-		unescaped_count++;
-		esc_i++;
-		ver_i++;
-	}
+            /*** Increment. ***/
+            esc_i += 2;
+        } 
+        else {
+            unesc = escaped[esc_i];
+        }
+        
+        if (unesc != verbatim[ver_i]) {
+            return FR_EVAL_FALSE;
+        }
+        
+        unescaped_count++;
+        esc_i++;
+        ver_i++;
+    }
 }
 
 
 
 /*--------------------------------------------------------------------------*/
-void *my_memmem(char *haystack, size_t haystack_len, char *needle, size_t needle_len, size_t *punescaped_len) 
+void *my_memmem(char *haystack, int haystack_len, char *needle, int needle_len, int *punescaped_len) 
 /* locate an (escaped) substring                                            */
 /*                                                                          */
 /* Params:                                                                  */
@@ -323,32 +323,32 @@ void *my_memmem(char *haystack, size_t haystack_len, char *needle, size_t needle
 /*  pointer to substring. NULL if there is no substring                     */
 /*--------------------------------------------------------------------------*/
 {
-	size_t offset;
-	size_t search_len;
+    int offset;
+    int search_len;
 
-	if (escaped_verify(haystack, haystack_len, &search_len) == 0) {
-		return NULL;
-	}
-	
-	for (offset = 0; offset <= search_len; offset++) {
-		FilterResult err;
-		
-		err = unescape_cmp(needle, needle_len, haystack + offset, haystack_len - offset, SLP_FALSE, punescaped_len);
-		if (err == FR_EVAL_TRUE) {
-			return (void *)(haystack + offset);
-		}
-		else if (err != FR_EVAL_FALSE) {
-			return NULL;
-		}
-	}
+    if (escaped_verify(haystack, haystack_len, &search_len) == 0) {
+        return NULL;
+    }
+    
+    for (offset = 0; offset <= search_len; offset++) {
+        FilterResult err;
+        
+        err = unescape_cmp(needle, needle_len, haystack + offset, haystack_len - offset, SLP_FALSE, punescaped_len);
+        if (err == FR_EVAL_TRUE) {
+            return (void *)(haystack + offset);
+        }
+        else if (err != FR_EVAL_FALSE) {
+            return NULL;
+        }
+    }
 
-	return NULL;
+    return NULL;
 }
 
 
 
 /*--------------------------------------------------------------------------*/
-FilterResult wildcard_wc_str(char *pattern, size_t pattern_len, char *str, size_t str_len)
+FilterResult wildcard_wc_str(char *pattern, int pattern_len, char *str, int str_len)
 /*                                                                          */
 /* Params:                                                                  */
 /*  pattern -- the pattern to evaluate                                      */
@@ -360,73 +360,73 @@ FilterResult wildcard_wc_str(char *pattern, size_t pattern_len, char *str, size_
 /*   -1 error,  0 success,  1 failure                                       */
 /*--------------------------------------------------------------------------*/
 {
-	char *text_start; /* Pointer to the text following the WC(s) */
-	size_t text_len; /* Length of the text. */
-	char *found; /* The start of a string found in a search. */
+    char *text_start; /* Pointer to the text following the WC(s) */
+    int text_len; /* Length of the text. */
+    char *found; /* The start of a string found in a search. */
 
-	char *rem_start; /* Start of the remaining characters being searched for. */
-	size_t rem_len; /* Length of the remaining charcters being searched for. */
-					   
-	if (pattern_len == 0 && str_len == 0) {
-		return FR_EVAL_TRUE;
-	}
+    char *rem_start; /* Start of the remaining characters being searched for. */
+    int rem_len; /* Length of the remaining charcters being searched for. */
+                       
+    if (pattern_len == 0 && str_len == 0) {
+        return FR_EVAL_TRUE;
+    }
 
-	if (pattern_len == 0) {
-		return FR_EVAL_FALSE;
-	}
-	
-	/***** Find text following wildcard *****/
-	/**** Find end of WCs ****/
-	text_start = pattern;
-	text_len = 0;
-	while (*text_start == WILDCARD) {
-		text_start++;
-		if (text_start == pattern + pattern_len) {
-			/* No following text. Therefore we match. */
-			return FR_EVAL_TRUE;
-		}
-	}
+    if (pattern_len == 0) {
+        return FR_EVAL_FALSE;
+    }
+    
+    /***** Find text following wildcard *****/
+    /**** Find end of WCs ****/
+    text_start = pattern;
+    text_len = 0;
+    while (*text_start == WILDCARD) {
+        text_start++;
+        if (text_start == pattern + pattern_len) {
+            /* No following text. Therefore we match. */
+            return FR_EVAL_TRUE;
+        }
+    }
 
-	/**** Find end of text. ****/
-	found = memchr(text_start, WILDCARD, pattern_len - text_len);
-	if (found == NULL) {
-		/* No trailing WC. Set to end. */
-		found = pattern + pattern_len;
-	}
-	text_len = found - text_start;
-	
-	/***** Look for the text in the source string *****/
-	rem_start = str;
-	rem_len = str_len;
-	while (1) {
-		int result;
-		size_t match_len;
+    /**** Find end of text. ****/
+    found = memchr(text_start, WILDCARD, pattern_len - text_len);
+    if (found == NULL) {
+        /* No trailing WC. Set to end. */
+        found = pattern + pattern_len;
+    }
+    text_len = found - text_start;
+    
+    /***** Look for the text in the source string *****/
+    rem_start = str;
+    rem_len = str_len;
+    while (1) {
+        int result;
+        int match_len;
 
-		found = my_memmem(rem_start, rem_len, text_start, text_len, &match_len);
-		assert(found == NULL || ((found >= rem_start) && (found <= rem_start + rem_len)));
+        found = my_memmem(rem_start, rem_len, text_start, text_len, &match_len);
+        assert(found == NULL || ((found >= rem_start) && (found <= rem_start + rem_len)));
 
-		if (found == NULL) {
-			/* Desired text is not in the string. */
-			return FR_EVAL_FALSE;
-		}
-		
-		rem_len = str_len - (found - str);
-		rem_start = found + 1;
-	
-		/**** Make recursive call. ****/
-		result = wildcard_wc_str(text_start + text_len, (pattern + pattern_len) - (text_start + text_len), found + text_len, rem_len - match_len);
+        if (found == NULL) {
+            /* Desired text is not in the string. */
+            return FR_EVAL_FALSE;
+        }
+        
+        rem_len = str_len - (found - str);
+        rem_start = found + 1;
+    
+        /**** Make recursive call. ****/
+        result = wildcard_wc_str(text_start + text_len, (pattern + pattern_len) - (text_start + text_len), found + text_len, rem_len - match_len);
 
-		if (result != FR_EVAL_FALSE) {
-			return result;
-		}
-	}
-	/*NOTREACHED*/
-	assert(0);
+        if (result != FR_EVAL_FALSE) {
+            return result;
+        }
+    }
+    /*NOTREACHED*/
+    assert(0);
 }
 
 
 /*--------------------------------------------------------------------------*/
-FilterResult wildcard(const char *pattern, size_t pattern_len, const char *str, size_t str_len)
+FilterResult wildcard(const char *pattern, int pattern_len, const char *str, int str_len)
 /* Check the pattern against the given string. Public interface to wildcard */
 /* functionality.                                                           */
 /*                                                                          */
@@ -444,39 +444,39 @@ FilterResult wildcard(const char *pattern, size_t pattern_len, const char *str, 
 /*  for repeated calls to wildcard_wc_str()                                 */
 /*--------------------------------------------------------------------------*/
 {
-	char *first_wc; /* Position of the first WC in the pattern. */
-	size_t first_wc_len; /* Position of first_wc in pattern. */
-	size_t unescaped_first_wc_len; /* Position of first_wc in unescaped version of pattern. */
-					   
-	/***** Check text up to first WC *****/
-	/**** Get text ****/
-	first_wc = memchr(pattern, WILDCARD, pattern_len);
-	if (first_wc == NULL) {
-		/* No wc */
-		return unescape_cmp(pattern, pattern_len, str, str_len, SLP_TRUE, NULL);
-	}
-	else {
-		first_wc_len = first_wc - pattern;
-	}
+    char *first_wc; /* Position of the first WC in the pattern. */
+    int first_wc_len; /* Position of first_wc in pattern. */
+    int unescaped_first_wc_len; /* Position of first_wc in unescaped version of pattern. */
+                       
+    /***** Check text up to first WC *****/
+    /**** Get text ****/
+    first_wc = memchr(pattern, WILDCARD, pattern_len);
+    if (first_wc == NULL) {
+        /* No wc */
+        return unescape_cmp(pattern, pattern_len, str, str_len, SLP_TRUE, NULL);
+    }
+    else {
+        first_wc_len = first_wc - pattern;
+    }
 
-	/**** Compare. ****/
-	unescaped_first_wc_len = first_wc_len;
-	if (first_wc_len > 0) {
-		FilterResult err;
-		err = unescape_cmp(pattern, first_wc_len, str, str_len, SLP_FALSE, &unescaped_first_wc_len);
-		if (err != FR_EVAL_TRUE) {
-			/* The leading text is different. */
-			return err;
-		}
-	}
-	
-	/***** Start recursive call. *****/
-	return wildcard_wc_str(first_wc, pattern_len - first_wc_len, (char *)str + unescaped_first_wc_len, str_len - unescaped_first_wc_len);
+    /**** Compare. ****/
+    unescaped_first_wc_len = first_wc_len;
+    if (first_wc_len > 0) {
+        FilterResult err;
+        err = unescape_cmp(pattern, first_wc_len, str, str_len, SLP_FALSE, &unescaped_first_wc_len);
+        if (err != FR_EVAL_TRUE) {
+            /* The leading text is different. */
+            return err;
+        }
+    }
+    
+    /***** Start recursive call. *****/
+    return wildcard_wc_str(first_wc, pattern_len - first_wc_len, (char *)str + unescaped_first_wc_len, str_len - unescaped_first_wc_len);
 }
-		
+        
 
 /*--------------------------------------------------------------------------*/
-int is_bool_string(const char *str, size_t str_len, SLPBoolean *val)
+int is_bool_string(const char *str, int str_len, SLPBoolean *val)
 /* Tests a string to see if it is a boolean. */
 /*--------------------------------------------------------------------------*/
 {
@@ -504,7 +504,7 @@ typedef enum
 /*--------------------------------------------------------------------------*/
 FilterResult int_op(SLPAttributes slp_attr, 
                 char *tag, 
-				size_t tag_len,
+                int tag_len,
                 char *rhs, 
                 Operation op)
 /* Perform an integer operation.                                            */
@@ -512,15 +512,15 @@ FilterResult int_op(SLPAttributes slp_attr,
 {
     int rhs_val; /* The converted value of rhs. */
     char *end; /* Pointer to the end of op. */
-	var_t *var; /* Pointer to the variable named by tag. */
-	value_t *value; /* A value in var. */
+    var_t *var; /* Pointer to the variable named by tag. */
+    value_t *value; /* A value in var. */
 
-	FilterResult result; /* Value to return. */
+    FilterResult result; /* Value to return. */
 
     assert(op != PRESENT);
 
-	result = FR_UNSET; /* For verification. */ /* TODO Only do this in debug. */
-	
+    result = FR_UNSET; /* For verification. */ /* TODO Only do this in debug. */
+    
     /***** Verify and convert rhs. *****/
     rhs_val = strtol(rhs, &end, 10);
 
@@ -531,64 +531,64 @@ FilterResult int_op(SLPAttributes slp_attr,
     }
 
     /***** Get variable. *****/
-	var = attr_val_find_str((struct xx_SLPAttributes *)slp_attr, tag, tag_len);
-	if (var == NULL) {
-		return FR_EVAL_FALSE;
-	}
-	/**** Check type. ****/
-	if (var->type != SLP_INTEGER) {
-		return FR_EVAL_FALSE;
-	}
+    var = attr_val_find_str((struct xx_SLPAttributes *)slp_attr, tag, tag_len);
+    if (var == NULL) {
+        return FR_EVAL_FALSE;
+    }
+    /**** Check type. ****/
+    if (var->type != SLP_INTEGER) {
+        return FR_EVAL_FALSE;
+    }
 
 
     /***** Compare. *****/
-	value = var->list;
-	assert(value != NULL);
-	assert(op != PRESENT); 
+    value = var->list;
+    assert(value != NULL);
+    assert(op != PRESENT); 
     switch (op)
-	{
+    {
     case(EQUAL):
-		result = FR_EVAL_FALSE;
-	    for (; value; value = value->next)
-    	{
+        result = FR_EVAL_FALSE;
+        for (; value; value = value->next)
+        {
             if (value->data.va_int == rhs_val)
-	        {
-    	        result = FR_EVAL_TRUE;
-        	    break;
+            {
+                result = FR_EVAL_TRUE;
+                break;
             }
-	    }
-    	break;
+        }
+        break;
     case(APPROX):
-	    assert(0); /* TODO: Figure out how this works later. */
-		result = FR_EVAL_FALSE; 
-		break;
+        assert(0); /* TODO: Figure out how this works later. */
+        result = FR_EVAL_FALSE; 
+        break;
     case(GREATER):
-		result = FR_EVAL_FALSE;
-	    for (; value; value = value->next)
-    	{
+        result = FR_EVAL_FALSE;
+        for (; value; value = value->next)
+        {
             if (value->data.va_int >= rhs_val)
-	        {
-    	        result = FR_EVAL_TRUE;
-        	    break;
+            {
+                result = FR_EVAL_TRUE;
+                break;
             }
-	    }
-    	break;
+        }
+        break;
     case(LESS):
-		result = FR_EVAL_FALSE;
-	    for (; value; value = value->next)
-    	{
+        result = FR_EVAL_FALSE;
+        for (; value; value = value->next)
+        {
             if (value->data.va_int <= rhs_val)
-	        {
-    	        result = FR_EVAL_TRUE;
-        	    break;
+            {
+                result = FR_EVAL_TRUE;
+                break;
             }
-	    }
-    	break;
+        }
+        break;
     default:
-	    assert(0);
+        assert(0);
     }
 
-	assert(result != FR_UNSET);
+    assert(result != FR_UNSET);
     return result;
 }
 
@@ -607,7 +607,7 @@ FilterResult keyw_op(SLPAttributes slp_attr,
      * We are therefore quite justified in saying:
      */
     assert(op != PRESENT);
-	return FR_EVAL_FALSE;
+    return FR_EVAL_FALSE;
 }
 
 
@@ -615,26 +615,26 @@ FilterResult keyw_op(SLPAttributes slp_attr,
 /*--------------------------------------------------------------------------*/
 FilterResult bool_op(SLPAttributes slp_attr, 
                  char *tag, 
-				 size_t tag_len,
+                 int tag_len,
                  char *rhs, 
-				 size_t rhs_len,
+                 int rhs_len,
                  Operation op)
 /* Perform a boolean operation. */
 /*--------------------------------------------------------------------------*/
 {
     SLPBoolean rhs_val; /* The value of the rhs. */
-	var_t *var;
+    var_t *var;
 
-	FilterResult result;
+    FilterResult result;
 
     assert(op != PRESENT);
 
-	result = FR_UNSET;
-	
+    result = FR_UNSET;
+    
     /* Note that the only valid non-PRESENT operator is EQUAL. */
     if (op != EQUAL)
     {
-		return FR_EVAL_FALSE;
+        return FR_EVAL_FALSE;
     }
 
     /***** Get and check the rhs value. *****/
@@ -644,26 +644,26 @@ FilterResult bool_op(SLPAttributes slp_attr,
     }
 
     /***** Get the tag value. *****/
-	var = attr_val_find_str((struct xx_SLPAttributes *)slp_attr, tag, tag_len);
-	if (var == NULL) {
-		return FR_EVAL_FALSE;
-	}
-	/**** Check type. ****/
-	if (var->type != SLP_BOOLEAN) {
-		return FR_EVAL_FALSE;
-	}
+    var = attr_val_find_str((struct xx_SLPAttributes *)slp_attr, tag, tag_len);
+    if (var == NULL) {
+        return FR_EVAL_FALSE;
+    }
+    /**** Check type. ****/
+    if (var->type != SLP_BOOLEAN) {
+        return FR_EVAL_FALSE;
+    }
 
     /***** Compare. *****/
-	if (var->list->data.va_bool == rhs_val)
+    if (var->list->data.va_bool == rhs_val)
     {
-	    result = FR_EVAL_TRUE; 
+        result = FR_EVAL_TRUE; 
     }
-	else
+    else
     {
-	    result = FR_EVAL_FALSE;
+        result = FR_EVAL_FALSE;
     }
-	
-	assert(result != FR_UNSET);
+    
+    assert(result != FR_UNSET);
     return result;
 }
 
@@ -672,73 +672,73 @@ FilterResult bool_op(SLPAttributes slp_attr,
 /*--------------------------------------------------------------------------*/
 FilterResult str_op(SLPAttributes slp_attr, 
                 char *tag, 
-				size_t tag_len,
+                int tag_len,
                 char *rhs, 
-				size_t rhs_len,
+                int rhs_len,
                 Operation op)
 /* Perform a string operation.                                              */
 /*--------------------------------------------------------------------------*/
 {
     char *str_val; /* Converted value of rhs. */
-	size_t str_len; /* Length of converted value. */
+    int str_len; /* Length of converted value. */
 
-	var_t *var;
-	
+    var_t *var;
+    
     assert(op != PRESENT);
 
     /***** Verify rhs. *****/
-	str_val = rhs;
-	str_len = rhs_len;
-	
+    str_val = rhs;
+    str_len = rhs_len;
+    
     /***** Get tag value. *****/
-	var = attr_val_find_str((struct xx_SLPAttributes *)slp_attr, tag, tag_len);
-	if (var == NULL) {
-		return FR_EVAL_FALSE;
-	}
-	/**** Check type. ****/
-	if (var->type != SLP_STRING) {
-		return FR_EVAL_FALSE;
-	}
+    var = attr_val_find_str((struct xx_SLPAttributes *)slp_attr, tag, tag_len);
+    if (var == NULL) {
+        return FR_EVAL_FALSE;
+    }
+    /**** Check type. ****/
+    if (var->type != SLP_STRING) {
+        return FR_EVAL_FALSE;
+    }
 
     
-	/***** Compare. *****/
+    /***** Compare. *****/
     assert(op != PRESENT); 
 
-	if (op == APPROX) {
+    if (op == APPROX) {
         assert(0); /* TODO: Figure out how this works later. */
-	}
-	else if (op == EQUAL) {
-		int result;
-		value_t *value;
+    }
+    else if (op == EQUAL) {
+        int result;
+        value_t *value;
 
-	    for (value = var->list; value; value = value->next)
-		{
-			result = wildcard(str_val, str_len, value->data.va_str, value->unescaped_len);
-			/* We only keep going if the test fails. Let caller handle other problems. */
-			if (result != FR_EVAL_FALSE) {
-				return result;
-			}
-	    }
-	}
-	else {
-		value_t *value;
-		/* We know that the op must be comparative. */
-		assert(op == LESS || op == GREATER);
-
-	    for (value = var->list; value; value = value->next)
-		{
-			int result;
-
-			result = memcmp(value->data.va_str, str_val, MIN(str_len, value->unescaped_len));
-            if (
-					(result <= 0 && op == LESS) 
-					|| (result >= 0 && op == GREATER) 
-			) {
-				return FR_EVAL_TRUE;
+        for (value = var->list; value; value = value->next)
+        {
+            result = wildcard(str_val, str_len, value->data.va_str, value->unescaped_len);
+            /* We only keep going if the test fails. Let caller handle other problems. */
+            if (result != FR_EVAL_FALSE) {
+                return result;
             }
-	    }
-	}
-			
+        }
+    }
+    else {
+        value_t *value;
+        /* We know that the op must be comparative. */
+        assert(op == LESS || op == GREATER);
+
+        for (value = var->list; value; value = value->next)
+        {
+            int result;
+
+            result = memcmp(value->data.va_str, str_val, MIN(str_len, value->unescaped_len));
+            if (
+                    (result <= 0 && op == LESS) 
+                    || (result >= 0 && op == GREATER) 
+            ) {
+                return FR_EVAL_TRUE;
+            }
+        }
+    }
+            
     return FR_EVAL_FALSE;
 }
 
@@ -746,73 +746,73 @@ FilterResult str_op(SLPAttributes slp_attr,
 /*--------------------------------------------------------------------------*/
 FilterResult opaque_op(SLPAttributes slp_attr, 
                 char *tag, 
-				size_t tag_len,
+                int tag_len,
                 char *rhs, 
-				size_t rhs_len,
+                int rhs_len,
                 Operation op)
 /* Perform an opaque operation.                                              */
 /*--------------------------------------------------------------------------*/
 {
     char *str_val; /* Converted value of rhs. */
-	size_t str_len; /* Length of converted value. */
+    int str_len; /* Length of converted value. */
 
-	var_t *var;
-	
+    var_t *var;
+    
     assert(op != PRESENT);
 
     /***** Verify and convert rhs. *****/
-	str_val = rhs;
-	str_len = rhs_len;
-	
+    str_val = rhs;
+    str_len = rhs_len;
+    
     /***** Get tag value. *****/
-	var = attr_val_find_str((struct xx_SLPAttributes *)slp_attr, tag, tag_len);
-	if (var == NULL) {
-		return FR_EVAL_FALSE;
-	}
-	/**** Check type. ****/
-	if (var->type != SLP_OPAQUE) {
-		return FR_EVAL_FALSE;
-	}
+    var = attr_val_find_str((struct xx_SLPAttributes *)slp_attr, tag, tag_len);
+    if (var == NULL) {
+        return FR_EVAL_FALSE;
+    }
+    /**** Check type. ****/
+    if (var->type != SLP_OPAQUE) {
+        return FR_EVAL_FALSE;
+    }
 
     
-	/***** Compare. *****/
+    /***** Compare. *****/
     assert(op != PRESENT); 
 
-	if (op == APPROX) {
+    if (op == APPROX) {
         assert(0); /* TODO: Figure out how this works later. */
-	}
-	else if (op == EQUAL) {
-		int result;
-		value_t *value;
+    }
+    else if (op == EQUAL) {
+        int result;
+        value_t *value;
 
-	    for (value = var->list; value; value = value->next)
-		{
-			result = wildcard(str_val, str_len, value->data.va_str, value->unescaped_len);
-			/* We only keep going if the test fails. Let caller handle other problems. */
-			if (result != FR_EVAL_FALSE) {
-				return result;
-			}
-	    }
-	}
-	else {
-		value_t *value;
-		/* We know that the op must be comparative. */
-		assert(op == LESS || op == GREATER);
-
-	    for (value = var->list; value; value = value->next)
-		{
-			int result;
-
-			result = memcmp(value->data.va_str, str_val, MIN(str_len, value->unescaped_len));
-            if (
-					(result <= 0 && op == LESS) 
-					|| (result >= 0 && op == GREATER) 
-			) {
-				return FR_EVAL_TRUE;
+        for (value = var->list; value; value = value->next)
+        {
+            result = wildcard(str_val, str_len, value->data.va_str, value->unescaped_len);
+            /* We only keep going if the test fails. Let caller handle other problems. */
+            if (result != FR_EVAL_FALSE) {
+                return result;
             }
-	    }
-	}
-			
+        }
+    }
+    else {
+        value_t *value;
+        /* We know that the op must be comparative. */
+        assert(op == LESS || op == GREATER);
+
+        for (value = var->list; value; value = value->next)
+        {
+            int result;
+
+            result = memcmp(value->data.va_str, str_val, MIN(str_len, value->unescaped_len));
+            if (
+                    (result <= 0 && op == LESS) 
+                    || (result >= 0 && op == GREATER) 
+            ) {
+                return FR_EVAL_TRUE;
+            }
+        }
+    }
+            
     return FR_EVAL_FALSE;
 }
 
@@ -979,67 +979,67 @@ FilterResult filter(const char *start,
     switch (*cur)
     {
     case('&'): /***** And. *****/
-	case('|'): /***** Or. *****/
-		{
-			FilterResult stop_condition; /* Stop when this value is received. Used for short circuiting. */
-	
-			if (*cur == '&') 
-			{
-				stop_condition = FR_EVAL_FALSE;
-			}
-			else if (*cur == '|')
-			{
-				stop_condition = FR_EVAL_TRUE;
-			}
-			
-			cur++; /* Move past operator. */
+    case('|'): /***** Or. *****/
+        {
+            FilterResult stop_condition; /* Stop when this value is received. Used for short circuiting. */
+    
+            if (*cur == '&') 
+            {
+                stop_condition = FR_EVAL_FALSE;
+            }
+            else if (*cur == '|')
+            {
+                stop_condition = FR_EVAL_TRUE;
+            }
+            
+            cur++; /* Move past operator. */
 
-			/*** Ensure that we have at least one operator. ***/
-			if (*cur != BRACKET_OPEN || cur >= last_char) 
-			{
-				return FR_PARSE_ERROR;
-			}
-			
-			/*** Evaluate each operand. ***/
-			/* NOTE: Due to the condition on the above "if", we are guarenteed that the first iteration of the loop is valid. */
-			do 
-			{
-	    	    err = filter(cur, &cur, slp_attr, recursion_depth);
-				/*** Propagate errors. ***/
-	    	    if (err != FR_EVAL_TRUE && err != FR_EVAL_FALSE)
-    	    	{
-	    	        return err;
-	    	    }
+            /*** Ensure that we have at least one operator. ***/
+            if (*cur != BRACKET_OPEN || cur >= last_char) 
+            {
+                return FR_PARSE_ERROR;
+            }
+            
+            /*** Evaluate each operand. ***/
+            /* NOTE: Due to the condition on the above "if", we are guarenteed that the first iteration of the loop is valid. */
+            do 
+            {
+                err = filter(cur, &cur, slp_attr, recursion_depth);
+                /*** Propagate errors. ***/
+                if (err != FR_EVAL_TRUE && err != FR_EVAL_FALSE)
+                {
+                    return err;
+                }
 
-				/*** Short circuit. ***/
-				if (err == stop_condition) 
-				{
-					return stop_condition;
-				}
-			} while(*cur == BRACKET_OPEN && cur < last_char); 
-			
-			
-			/*** If we ever get here, it means we've evaluated every operand without short circuiting -- meaning that the operation failed. ***/
-			return (stop_condition == FR_EVAL_TRUE ? FR_EVAL_FALSE : FR_EVAL_TRUE);
-		}
-		
+                /*** Short circuit. ***/
+                if (err == stop_condition) 
+                {
+                    return stop_condition;
+                }
+            } while(*cur == BRACKET_OPEN && cur < last_char); 
+            
+            
+            /*** If we ever get here, it means we've evaluated every operand without short circuiting -- meaning that the operation failed. ***/
+            return (stop_condition == FR_EVAL_TRUE ? FR_EVAL_FALSE : FR_EVAL_TRUE);
+        }
+        
 
     case('!'): /***** Not. *****/
         /**** Child. ****/
         cur++;
         err = filter(cur, &cur, slp_attr, recursion_depth);
-		/*** Return errors. ***/
+        /*** Return errors. ***/
         if (err != FR_EVAL_TRUE && err != FR_EVAL_FALSE)
         {
             return err;
         }
 
-		/*** Perform "not". ***/
+        /*** Perform "not". ***/
         return (err == FR_EVAL_TRUE ? FR_EVAL_FALSE : FR_EVAL_TRUE);
 
     default: /***** Unknown operator. *****/
-		;
-		/* We don't do anything here because this will catch the first character of every leaf predicate. */
+        ;
+        /* We don't do anything here because this will catch the first character of every leaf predicate. */
     }
 
     /***** Check for leaf operator. *****/
@@ -1048,11 +1048,11 @@ FilterResult filter(const char *start,
         Operation op;
         char *lhs, *rhs; /* The two operands. */
         char *val_start; /* The character after the operator. ie, the start of the rhs. */
-		size_t lhs_len, rhs_len; /* Length of the lhs/rhs. */
+        int lhs_len, rhs_len; /* Length of the lhs/rhs. */
         SLPType type;
         SLPError slp_err;
 
-		/**** Demux leaf op. ****/
+        /**** Demux leaf op. ****/
         /* Since all search operators contain a "=", we look for the equals 
          * sign, and then poke around on either side of that for the real 
          * value. 
@@ -1106,19 +1106,19 @@ FilterResult filter(const char *start,
         /***** Get operands. *****/
         /**** Left. ****/
         lhs_len = operator - cur;
-		lhs = (char *)cur;
-		
+        lhs = (char *)cur;
+        
         /**** Right ****/
         rhs_len = last_char - val_start;
-		rhs = val_start;
-		
+        rhs = val_start;
+        
         /***** Do leaf operation. *****/
         /**** Check that tag exists. ****/
         slp_err = SLPAttrGetType_len(slp_attr, lhs, lhs_len, &type);
         if (slp_err == SLP_TAG_ERROR)
         { /* Tag  doesn't exist. */
-        	return FR_EVAL_FALSE;
-		}
+            return FR_EVAL_FALSE;
+        }
         else if (slp_err == SLP_OK)
         { /* Tag exists. */
             /**** Do operation. *****/
@@ -1165,12 +1165,13 @@ FilterResult filter(const char *start,
 
 
 /*=========================================================================*/
-int SLPDPredicateTest(const char* predicate, SLPAttributes attr) 
+int SLPDPredicateTest(int predicatever, const char* predicate,
+                      SLPAttributes attr)  
 /*                                                                         */
 /* Determine whether the specified attribute list satisfies                */
 /* the specified predicate                                                 */
 /*                                                                         */
-/* predicatelen (IN) the length of the predicate string                    */
+/* predicatever (IN) SLP version of the predicate string                   */
 /*                                                                         */
 /* predicate    (IN) the predicate string                                  */
 /*                                                                         */
@@ -1191,8 +1192,14 @@ int SLPDPredicateTest(const char* predicate, SLPAttributes attr)
         return 0;
     }
 
+    /*  We don't handle SLPv1 predicates yet */
+    if (predicatever == 1)
+    {
+        return 0;
+    }
+
     err = filter(predicate, &end, attr, SLPD_ATTR_RECURSION_DEPTH);
-	assert(err != FR_UNSET);
+    assert(err != FR_UNSET);
 
     /***** Check for trailing trash data. *****/
     if ((err == FR_EVAL_TRUE || err == FR_EVAL_FALSE)&& *end != 0)
@@ -1203,14 +1210,14 @@ int SLPDPredicateTest(const char* predicate, SLPAttributes attr)
     switch (err)
     {
     case(FR_EVAL_TRUE):
-		return 0;
+        return 0;
     case(FR_EVAL_FALSE):
-		return 1;
+        return 1;
     case(FR_INTERNAL_SYSTEM_ERROR):
         SLPLog("The predicate string \"%s\" caused an internal error\n", (char *)predicate);
-	case(FR_PARSE_ERROR):
-	case(FR_MEMORY_ALLOC_FAILED):
-		return -1;
+    case(FR_PARSE_ERROR):
+    case(FR_MEMORY_ALLOC_FAILED):
+        return -1;
 
     default:
         SLPLog("SLPAttrEvalPred() returned an out of range value (%d) when evaluating \"%s\"\n", err, (char *)predicate);

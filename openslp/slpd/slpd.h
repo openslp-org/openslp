@@ -836,11 +836,12 @@ extern SLPList G_KnownDAList;
 #if(defined USE_PREDICATES)
 
 /*=========================================================================*/
-int SLPDPredicateTest(const char* predicate, SLPAttributes attr);
+int SLPDPredicateTest(int predicatever, const char* predicate,
+		      SLPAttributes attr); 
 /* Determine whether the specified attribute list satisfies                */
 /* the specified predicate                                                 */
 /*                                                                         */
-/* predicatelen (IN) the length of the predicate string                    */
+/* predicatever (IN) SLP version of the predicate string                   */
 /*                                                                         */
 /* predicate    (IN) the predicate string                                  */
 /*                                                                         */

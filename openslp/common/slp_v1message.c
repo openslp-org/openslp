@@ -213,8 +213,11 @@ int v1ParseSrvRqst(SLPBuffer buffer, SLPHeader* header, SLPSrvRqst* srvrqst)
 	return SLP_ERROR_PARSE_ERROR;
     *tmp = 0;			/* null terminate service type */
     srvrqst->srvtypelen = tmp - srvrqst->srvtype;
-    srvrqst->predicate += srvrqst->srvtypelen + 1;
+
+    /* Parse out the predicate */
+    srvrqst->predicatever = 1;	/* SLPv1 predicate (a bit messy) */
     srvrqst->predicatelen -= srvrqst->srvtypelen + 1;
+    srvrqst->predicate += srvrqst->srvtypelen + 1;
 
     /* Now split out the scope (if any) */
     if (*srvrqst->predicate == '/')
@@ -237,11 +240,8 @@ int v1ParseSrvRqst(SLPBuffer buffer, SLPHeader* header, SLPSrvRqst* srvrqst)
 	srvrqst->predicatelen -= srvrqst->scopelistlen + 1;
     }
 
-#if 1				/* TODO */
     srvrqst->predicate = "";
     srvrqst->predicatelen = 1;
-    
-#endif
     
     /* SLPv1 service requests don't have SPI strings */
     srvrqst->spistrlen = 0;
