@@ -6,6 +6,37 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 
+04/18/01 mpeterson@caldera.com
+Fixed several socket re-connect, re-usage and aging bugs
+
+04/18/01 mpeterson@caldera.com
+Finalized SLPv2 authentication support
+
+04/18/01 mpeterson@caldera.com
+Changed registration database debug dump to use new database interface, and
+added debug dump of known DA database
+
+04/18/01 mpeterson@caldera.com
+Cleaned logging code
+
+04/18/01 mpeterson@caldera.com
+Prepared libslp for colation by internal callback interface
+
+04/18/01 mpeterson@caldera.com
+Libslp now handles SrvRqsts made with the reserved agent types
+"service:directory-agent" and "service:service-agent"
+
+04/18/01 mpeterson@caldera.com
+Added checkSourceAddr security feature
+
+04/18/01 mpeterson@caldera.com
+Added debug memory allocator
+
+04/18/01 mpeterson@caldera.com
+Added support for net.slp.OpenSLPversion property
+
+
+
 *** Tag OpenSLP 0.8.3 ***
 
 03/12/01 mpeterson@caldera.com

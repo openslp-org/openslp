@@ -280,6 +280,16 @@ void Deregister(SLPToolCommandLine* cmdline)
 }
 
 /*=========================================================================*/
+void PrintVersion(SLPToolCommandLine* cmdline)
+/*=========================================================================*/
+{
+    printf("slptool version = %s\n",VERSION);
+    printf("OpenSLP version = %s\n", 
+	   SLPGetProperty("net.slp.OpenSLPVersion"));
+}
+
+
+/*=========================================================================*/
 int ParseCommandLine(int argc,char* argv[], SLPToolCommandLine* cmdline)
 /* Returns  Zero on success.  Non-zero on error.                           */
 /*=========================================================================*/
@@ -294,8 +304,21 @@ int ParseCommandLine(int argc,char* argv[], SLPToolCommandLine* cmdline)
 
     for (i=1;i<argc;i++)
     {
-        if( strcasecmp(argv[i],"-s") == 0 ||
-            strcasecmp(argv[i],"--scopes") == 0 )
+        if( strcasecmp(argv[i],"-v") == 0 ||
+            strcasecmp(argv[i],"--version") == 0 )
+        {
+            if(i < argc)
+            {
+                cmdline->cmd = PRINT_VERSION;
+		return 0;
+            }
+            else
+            {
+                return 1;
+            }
+        }
+        else if( strcasecmp(argv[i],"-s") == 0 ||
+		 strcasecmp(argv[i],"--scopes") == 0 )
         {
             i++;
             if(i < argc)
@@ -440,6 +463,7 @@ void DisplayUsage()
 {
     printf("Usage: slptool [options] command-and-arguments \n");
     printf("   options may be:\n");
+    printf("      -v (or --version) displays version of slptool and OpenSLP\n");
     printf("      -s (or --scope) followed by a comma separated list of scopes\n");
     printf("      -l (or --language) followed by a language tag\n");
     printf("   command-and-arguments may be:\n");
@@ -449,6 +473,7 @@ void DisplayUsage()
     printf("      findscopes\n");
     printf("      register url attrs\n");
     printf("      deregister url attrs\n");
+    printf("      getproperty propertyname\n");
 }
 
 
@@ -492,6 +517,8 @@ int main(int argc, char* argv[])
         case DEREGISTER:
             Deregister(&cmdline);
             break;
+	 case PRINT_VERSION:
+	    PrintVersion(&cmdline);
         }
     }
     else

@@ -57,7 +57,8 @@ typedef enum _SLPToolCommand
     FINDSCOPES,
     GETPROPERTY,
     REGISTER,
-    DEREGISTER
+    DEREGISTER,
+    PRINT_VERSION
 }SLPToolCommand;
 
 

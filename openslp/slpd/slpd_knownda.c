@@ -461,18 +461,7 @@ int SLPDKnownDAInit()
     /*--------------------------------------*/
     SLPDatabaseInit(&G_SlpdKnownDAs);
 
-    /*---------------------------------------*/
-    /* Skip static DA parsing if we are a DA */
-    /*---------------------------------------*/
-    if(G_SlpdProperty.isDA)
-    {
-        /* TODO: some day we may put something here for DA to DA communication */
-
-        /* Perform first passive DAAdvert */
-        SLPDKnownDAPassiveDAAdvert(0,0);
-        return 0;
-    }
-
+    
     /*-----------------------------------------------------------------*/
     /* Added statically configured DAs to the Known DA List by sending */
     /* active DA discovery requests directly to them                   */

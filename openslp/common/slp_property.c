@@ -201,6 +201,11 @@ int SetDefaultValues()
     result |= SLPPropertySet("net.slp.isDA","false");
     result |= SLPPropertySet("net.slp.securityEnabled","false");
     result |= SLPPropertySet("net.slp.checkSourceAddr","false");
+#ifdef WIN32
+    result |= SLPPropertySet("net.slp.OpenSLPVersion", SLP_VERSION);
+#else /* UNIX */
+    result |= SLPPropertySet("net.slp.OpenSLPVersion", VERSION);
+#endif
     result |= SLPPropertySet("notfound","");
 
     return result;
