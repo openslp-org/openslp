@@ -111,4 +111,30 @@ int SLPDAEntryListRead(int fd, SLPList* dalist);
 /* Returns: zero on success, -1 on error                                   */
 /*=========================================================================*/
 
+
+/*=========================================================================*/
+SLPDAEntry* KnownDAListFindByScope(SLPList* dalist,
+                                   int scopelistlen,
+                                   const char* scopelist);
+/* Returns: number of DAs found.                                           */
+/*=========================================================================*/
+
+
+/*=========================================================================*/
+int KnownDAListAdd(SLPList* dalist, SLPDAEntry* addition);
+/* Add an entry to the KnownDA cache                                       */
+/*=========================================================================*/
+
+
+/*=========================================================================*/
+int KnownDAListRemove(SLPList* dalist, SLPDAEntry* entry);
+/* Add an entry to the KnownDA cache                                       */
+/*=========================================================================*/
+
+
+/*=========================================================================*/
+int KnownDAListRemoveAll(SLPList* dalist);
+/* Remove all the entries of the given list                                */
+/*=========================================================================*/
+
 #endif

@@ -35,10 +35,6 @@
 #include "slp.h"
 #include "libslp.h"
 
-/*=========================================================================*/ 
-time_t      G_LastDADiscovery = 0;
-/*=========================================================================*/ 
-
 
 /*=========================================================================*/
 int NetworkConnectToMulticast(struct sockaddr_in* peeraddr)
@@ -78,33 +74,7 @@ int NetworkConnectToDA(const char* scopelist,
 /* Returns          Connected socket or -1 if no DA connection can be made */
 /*=========================================================================*/
 {
-    time_t          curtime;
-    int             dinterval;
-    int             sock;
-    struct timeval  timeout;
-
-    timeout.tv_sec = SLPPropertyAsInteger(SLPGetProperty("net.slp.DADiscoveryMaximumWait"));
-    timeout.tv_usec = (timeout.tv_sec % 1000) * 1000;
-    timeout.tv_sec = timeout.tv_sec / 1000;
-
-    sock = KnownDAConnect(scopelist,scopelistlen,peeraddr,&timeout);
-    if(sock < 0)
-    {
-        time(&curtime);
-        dinterval = atoi(SLPGetProperty("net.slp.DAActiveDiscoveryInterval"));
-        if(dinterval < MINIMUM_DISCOVERY_INTERVAL)
-        {
-            dinterval = MINIMUM_DISCOVERY_INTERVAL;
-        }
-        if(curtime - G_LastDADiscovery > dinterval)
-        {
-            KnownDADiscover(&timeout);
-            sock = KnownDAConnect(scopelist,scopelistlen,peeraddr,&timeout);
-            time(&G_LastDADiscovery);
-        }   
-    }       
-
-    return sock;
+    return KnownDAConnect(scopelistlen,scopelist,peeraddr);
 }
 
 /*=========================================================================*/ 

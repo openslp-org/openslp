@@ -31,6 +31,163 @@
 /***************************************************************************/
 
 #include <slp_da.h>
+#include <slp_compare.h>
+
+/*=========================================================================*/
+int SLPDAEntryListWrite(int fd, SLPList* dalist)
+/* Returns: Number of entries written                                      */
+/*=========================================================================*/
+{
+    int         result = 0;
+    SLPDAEntry* entry = (SLPDAEntry*)dalist->head;
+    
+    while(entry)
+    {
+        if(SLPDAEntryWrite(fd, entry) == 0)
+        {
+            break;
+        } 
+        result += 1;
+        entry = (SLPDAEntry*)entry->listitem.next;
+    }
+
+    return result;
+}
+
+/*=========================================================================*/
+int SLPDAEntryListRead(int fd, SLPList* dalist)
+/* Returns: zero on success, -1 on error                                   */
+/*=========================================================================*/
+{
+    int         result = 0;
+    SLPDAEntry* entry;
+
+    while(1)
+    {
+        entry = SLPDAEntryRead(fd);
+        if(entry == 0)
+        {
+            break;
+        }
+        result += 1;
+        SLPListLinkHead(dalist,(SLPListItem*)entry);
+    }
+
+    return result;
+}
+
+/*=========================================================================*/
+SLPDAEntry* KnownDAListFindByScope(SLPList* dalist,
+                                   int scopelistlen,
+                                   const char* scopelist)
+/* Returns: pointer to found DA.                                           */
+/*=========================================================================*/
+{
+    SLPDAEntry*     entry;
+    
+    entry = (SLPDAEntry*)dalist->head;
+    while(entry)
+    {
+        if(SLPCompareString(scopelistlen,
+                            scopelist,
+                            entry->scopelistlen,
+                            entry->scopelist) == 0)
+        {
+            break;
+        }   
+        
+        entry = (SLPDAEntry*) entry->listitem.next;
+    }
+
+    return entry;
+}
+
+
+/*=========================================================================*/
+int KnownDAListAdd(SLPList* dalist, SLPDAEntry* addition)
+/* Add an entry to the KnownDA cache                                       */
+/*=========================================================================*/
+{
+    SLPDAEntry*     entry;
+    
+    entry = (SLPDAEntry*)dalist->head;
+    while(entry)
+    {
+        if(SLPCompareString(addition->urllen,
+                            addition->url,
+                            entry->urllen,
+                            entry->url) == 0)
+        {
+            /* entry already in the list */
+            break;
+        }   
+
+        entry = (SLPDAEntry*) entry->listitem.next;
+    }
+
+    if(entry == 0)
+    {
+        entry = SLPDAEntryCreate(&(addition->daaddr),
+                                 addition);
+        if(entry == 0)
+        {
+            return -1;
+        }   
+        
+        SLPListLinkHead(dalist,(SLPListItem*)entry);
+    }
+
+    return 0;
+}
+
+
+/*=========================================================================*/
+int KnownDAListRemove(SLPList* dalist, SLPDAEntry* remove)
+/* Remove an entry to the KnownDA cach                                     */
+/*=========================================================================*/
+{
+    SLPDAEntry*     entry;
+    
+    entry = (SLPDAEntry*)dalist->head;
+    while(entry)
+    {
+        if(SLPCompareString(remove->urllen,
+                            remove->url,
+                            entry->urllen,
+                            entry->url) == 0)
+        {
+            /* Remove entry from list and free it */
+            SLPDAEntryFree( (SLPDAEntry*)SLPListUnlink(dalist, (SLPListItem*)entry) );
+            break;
+        }
+
+        entry = (SLPDAEntry*) entry->listitem.next;
+    }
+
+    return 0;
+}
+
+/*=========================================================================*/
+int KnownDAListRemoveAll(SLPList* dalist)
+/* Remove all the entries of the given list                                */
+/*=========================================================================*/
+{
+    SLPDAEntry*     del;
+    SLPDAEntry*     entry = (SLPDAEntry*)dalist->head;
+    while(entry)
+    {
+        del = entry;
+        entry = (SLPDAEntry*) entry->listitem.next;
+        SLPDAEntryFree( (SLPDAEntry*)SLPListUnlink(dalist, (SLPListItem*)del) );
+    }
+
+    dalist->head = 0;
+    dalist->tail = 0;
+    dalist->count = 0;
+
+    return 0;
+}
+
 
 /*=========================================================================*/
 SLPDAEntry* SLPDAEntryCreate(struct in_addr* addr,
@@ -147,47 +304,4 @@ SLPDAEntry* SLPDAEntryRead(int fd)
     entry->spilist = curpos;
     
     return entry;
-}
-
-/*=========================================================================*/
-int SLPDAEntryListWrite(int fd, SLPList* dalist)
-/* Returns: Number of entries written                                      */
-/*=========================================================================*/
-{
-    int         result = 0;
-    SLPDAEntry* entry = (SLPDAEntry*)dalist->head;
-    
-    while(entry)
-    {
-        if(SLPDAEntryWrite(fd, entry) == 0)
-        {
-            break;
-        } 
-        result += 1;
-        entry = (SLPDAEntry*)entry->listitem.next;
-    }
-
-    return result;
-}
-
-/*=========================================================================*/
-int SLPDAEntryListRead(int fd, SLPList* dalist)
-/* Returns: zero on success, -1 on error                                   */
-/*=========================================================================*/
-{
-    int         result = 0;
-    SLPDAEntry* entry;
-
-    while(1)
-    {
-        entry = SLPDAEntryRead(fd);
-        if(entry == 0)
-        {
-            break;
-        }
-        result += 1;
-        SLPListLinkHead(dalist,(SLPListItem*)entry);
-    }
-
-    return result;
 }

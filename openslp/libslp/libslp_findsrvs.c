@@ -140,7 +140,7 @@ SLPError ProcessSrvRqst(PSLPHandleInfo handle)
                              CallbackSrvRqst,
                              handle);
     
-    /* Connect / Re-connect and try again on error*/
+    /* Connect / Re-connect and try again on error */
     if(result)
     {
         if(handle->dasock >= 0) 

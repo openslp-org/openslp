@@ -42,8 +42,7 @@
 #include <slp_da.h>
 #include <slp_compare.h>
 
-
-#define MINIMUM_DISCOVERY_INTERVAL  600    /* 5 minutes */
+#define MINIMUM_DISCOVERY_INTERVAL  300    /* 5 minutes */
 #define MAX_RETRANSMITS             5      /* we'll only re-xmit 5 times! */
 #define SLP_FUNCT_DASRVRQST         0x7f   /* fake id used internally */
 
@@ -58,7 +57,6 @@ typedef enum _SLPCallType
     SLPFINDATTRS,
     SLPDELATTRS
 }SLPCallType;
-
 
 
 /*=========================================================================*/
@@ -248,15 +246,19 @@ SLPError NetworkRqstRply(int sock,
 
 
 /*=========================================================================*/
-int KnownDADiscover(struct timeval* timeout);
-/*=========================================================================*/
-
-
-/*=========================================================================*/
-int KnownDAConnect(const char* scopelist, 
-                   int scopelistlen,
-                   struct sockaddr_in* peeraddr,
-                   struct timeval* timeout);
+int KnownDAConnect(int scopelistlen,
+                   const char* scopelist,
+                   struct sockaddr_in* peeraddr);
+/* Get a connected socket to a DA that supports the specified scope        */
+/*                                                                         */
+/* scopelistlen (IN) stringlen of the scopelist                            */
+/*                                                                         */
+/* scopelist (IN) DA must support this scope                               */
+/*                                                                         */
+/* peeraddr (OUT) the peer that was connected to                           */
+/*                                                                         */
+/*                                                                         */
+/* returns: valid socket file descriptor or -1 if no DA is found           */
 /*=========================================================================*/
 
 #endif

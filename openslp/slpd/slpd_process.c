@@ -147,7 +147,6 @@ int ProcessDASrvRqst(struct sockaddr_in* peeraddr,
 /*-------------------------------------------------------------------------*/
 {
     SLPDAEntry      daentry;
-    unsigned int    xid = 0;
     SLPDAEntry*     entry   = 0;
     
     memset(&daentry,0,sizeof(daentry));
@@ -179,7 +178,6 @@ int ProcessDASrvRqst(struct sockaddr_in* peeraddr,
                                           G_SlpdProperty.useScopes) )
                 {
                     /* fill out real structure */
-                    xid = message->header.xid;
                     daentry.bootstamp = G_SlpdProperty.DATimestamp;
                     daentry.langtaglen = G_SlpdProperty.localeLen;
                     daentry.langtag = (char*)G_SlpdProperty.locale;
@@ -216,7 +214,7 @@ int ProcessDASrvRqst(struct sockaddr_in* peeraddr,
     }
 
     errorcode = SLPDKnownDAEntryToDAAdvert(errorcode,
-                                           xid,
+                                           message->header.xid,
                                            entry,
                                            sendbuf);
 
