@@ -192,7 +192,7 @@ typedef struct _SLPAuthBlock
 typedef struct _SLPUrlEntry
 {
     char                    reserved;       /* This will always be 0 */
-    unsigned int            lifetime;
+    unsigned short          lifetime;
     int                     urllen;
     const char*             url;
     int                     authcount;
