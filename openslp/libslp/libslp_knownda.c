@@ -608,7 +608,7 @@ int KnownDAGetScopes(int* scopelistlen,
     SLPDatabaseHandle   dh;
     SLPDatabaseEntry*   entry;
     
-    /* discover DAs */
+    /* discover all DAs */
     if(KnownDADiscoverFromIPC() == 0)
     {
         KnownDADiscoverFromDHCP();
@@ -692,6 +692,73 @@ int KnownDAGetScopes(int* scopelistlen,
 
     return 0;
 }
+
+/*=========================================================================*/
+void KnownDAProcessSrvRqst(PSLPHandleInfo handle)
+/* Process a SrvRqst for service:directory-agent                           */
+/*                                                                         */
+/* handle (IN) the handle used to make the SrvRqst                         */
+/*                                                                         */
+/* returns: none                                                           */
+/*=========================================================================*/
+{
+    SLPDatabaseHandle   dh;
+    SLPDatabaseEntry*   entry;
+    SLPBoolean          cb_result;
+    char                tmp;
+
+    /* discover all DAs */
+    if(KnownDADiscoverFromIPC() == 0)
+    {
+        KnownDADiscoverFromDHCP();
+        KnownDADiscoverFromProperties();
+        KnownDADiscoverFromMulticast(0,"");
+    }
+
+    /* Enumerate through knownDA database */
+    dh = SLPDatabaseOpen(&G_KnownDACache);
+    if(dh)
+    {
+        /* Check to see if there a matching entry */
+        while(1)
+        {
+            entry = SLPDatabaseEnum(dh);
+            
+            /* is there anything left? */
+            if(entry == NULL) break;
+            
+            /* TRICKY temporary null termination of DA url */
+            tmp = entry->msg->body.daadvert.url[entry->msg->body.daadvert.urllen];
+            ((char*)(entry->msg->body.daadvert.url))[entry->msg->body.daadvert.urllen] = 0;
+
+            /* Call the SrvURLCallback */
+            cb_result = handle->params.findsrvs.callback((SLPHandle)handle,
+                                                         entry->msg->body.daadvert.url,
+                                                         SLP_LIFETIME_MAXIMUM,
+                                                         SLP_OK,
+                                                         handle->params.findsrvs.cookie);
+
+            /* TRICKY: undo temporary null termination of DA url */
+            ((char*)(entry->msg->body.daadvert.url))[entry->msg->body.daadvert.urllen] = tmp;
+            
+            /* does the caller want more? */
+            if(cb_result == SLP_FALSE)
+            {
+                break;
+            }
+        }
+
+        SLPDatabaseClose(dh);
+    }
+    
+    /* Make SLP_LAST_CALL */
+    handle->params.findsrvs.callback((SLPHandle)handle,
+                                     NULL,
+                                     0,
+                                     SLP_LAST_CALL,
+                                     handle->params.findsrvs.cookie);
+}
+
 
 #ifdef DEBUG
 /*=========================================================================*/
