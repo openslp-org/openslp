@@ -1378,7 +1378,7 @@ SLPError NetworkUcastRqstRply(PSLPHandleInfo handle,
 int NetworkGetMcastAddrs(const char msgtype, const char *msg, SLPIfaceInfo *ifaceinfo)
 /* Returns all the multicast addresses the msgtype can be sent out to. If  */
 /* there is more than one address returned, the address will be in the     */
-/* order that they should be sent to.
+/* order that they should be sent to.                                      */
 /*                                                                         */
 /* msgtype   (IN)  The function-id to use in the SLPMessage header         */
 /* msg       (IN)  Pointer to the portion of the SLP message to send. The  */
