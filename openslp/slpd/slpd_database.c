@@ -97,7 +97,7 @@ void SLPDDatabaseAge(int seconds, int ageall)
 		/* OK, if an entry is local and has a lifetime of 			 */
 		/* SLP_LIFETIME_MAXIMUM then it must never ever ever be aged */
         /*-----------------------------------------------------------*/
-		if(!(entry->local && entry->lifetime == SLP_LIFETIME_MAXIMUM))
+		if(!(entry->islocal && entry->lifetime == SLP_LIFETIME_MAXIMUM))
         {
             /*---------------------------------------------------------*/
 			/* don't age services with lifetime > SLP_LIFETIME_MAXIMUM */
