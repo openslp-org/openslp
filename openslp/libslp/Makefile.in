@@ -68,6 +68,7 @@ host_alias = @host_alias@
 host_triplet = @host@
 AS = @AS@
 CC = @CC@
+CFLAGS = @CFLAGS@
 DLLTOOL = @DLLTOOL@
 LIBTOOL = @LIBTOOL@
 LN_S = @LN_S@
@@ -84,8 +85,8 @@ lib_LTLIBRARIES = libslp.so
 INCLUDES = -I../common 
 libslp_so_LIBADD = $(top_srcdir)/common/libcommonlibslp.a
 AR = gcc
-CFLAGS =  -shared -Wall -O3 
 LIBTOOL_DEPS = @LIBTOOL_DEPS@
+libslp_so_LDFLAGS =  -shared
 
 libslp_so_SOURCES = libslp_dereg.c   	libslp_findscopes.c 	libslp_reg.c 	libslp_findsrvs.c 	libslp_parse.c 	libslp_property.c  	libslp_handle.c  	libslp_thread.c 	libslp_network.c 	libslp_findattrs.c 	libslp_delattrs.c 	libslp_findsrvtypes.c 	libslp_knownda.c
 
@@ -98,7 +99,6 @@ DEFS = @DEFS@ -I. -I$(srcdir)
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
-libslp_so_LDFLAGS = 
 libslp_so_DEPENDENCIES =  $(top_srcdir)/common/libcommonlibslp.a
 libslp_so_OBJECTS =  libslp_dereg.o libslp_findscopes.o libslp_reg.o \
 libslp_findsrvs.o libslp_parse.o libslp_property.o libslp_handle.o \
