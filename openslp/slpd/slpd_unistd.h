@@ -54,7 +54,7 @@
 
 /* we do a kind of abstraction layer for socket descriptors, since on NT
    they're of type "SOCKET" */
-typedef int                 sockfd_t;
+typedef int sockfd_t;
 
 
 

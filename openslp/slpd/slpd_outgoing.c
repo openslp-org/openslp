@@ -48,7 +48,7 @@ void OutgoingStreamReconnect(SLPList* socklist, SLPDSocket* sock)
                (struct sockaddr *)&(sock->peerinfo.peeraddr), 
                sizeof(sock->peerinfo.peeraddr)) == 0)   
     {
-        /* Connection occured immediately */
+        /* Connection occured immediately*/
         sock->state = STREAM_WRITE_FIRST;
     }
     else
@@ -73,20 +73,11 @@ void OutgoingStreamReconnect(SLPList* socklist, SLPDSocket* sock)
 void OutgoingStreamRead(SLPList* socklist, SLPDSocket* sock)
 /*-------------------------------------------------------------------------*/
 {
-    int     fdflags;
     int     bytesread;
     char    peek[16];
 
     if (sock->state == STREAM_READ_FIRST)
     {
-#ifdef WIN32
-      fdflags = 1;
-      ioctlsocket(sock->fd, FIONBIO, &fdflags);
-#else
-      fdflags = fcntl(sock->fd, F_GETFL, 0);
-      fcntl(sock->fd,F_SETFL, fdflags | O_NONBLOCK);
-#endif        
-
         /*---------------------------------------------------------------*/
         /* take a peek at the packet to get version and size information */
         /*---------------------------------------------------------------*/
