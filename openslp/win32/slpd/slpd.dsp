@@ -106,7 +106,7 @@ SOURCE=..\..\common\slp_compare.c
 # End Source File
 # Begin Source File
 
-SOURCE=\mpeterson\cvs\openslp\common\slp_database.c
+SOURCE=..\..\common\slp_database.c
 # End Source File
 # Begin Source File
 
@@ -182,7 +182,7 @@ SOURCE=..\..\slpd\slpd_socket.c
 # End Source File
 # Begin Source File
 
-SOURCE=\mpeterson\cvs\openslp\slpd\slpd_v1process.c
+SOURCE=..\..\\slpd\slpd_v1process.c
 # End Source File
 # Begin Source File
 
