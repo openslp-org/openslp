@@ -389,19 +389,21 @@ int main(int argc, char* argv[])
     /*--------------------------------------------------*/
     /* Initialize for the first time                    */
     /*--------------------------------------------------*/
-    SLPDPropertyInit(G_SlpdCommandLine.cfgfile);
-    SLPDDatabaseInit(G_SlpdCommandLine.regfile);
-    SLPDIncomingInit();
-    SLPDOutgoingInit();
-    SLPDKnownDAInit();
-    /* TODO: Check error codes on all init functions */
+    if(SLPDPropertyInit(G_SlpdCommandLine.cfgfile) ||
+       SLPDDatabaseInit(G_SlpdCommandLine.regfile) ||
+       SLPDIncomingInit() ||
+       SLPDOutgoingInit() ||
+       SLPDKnownDAInit())
+    {
+        SLPFatal("slpd initialization failed\n");
+    }
 
     /*---------------------------*/
     /* make slpd run as a daemon */
     /*---------------------------*/
     if(Daemonize(G_SlpdCommandLine.pidfile))
     {
-        SLPFatal("Could not run as daemon\n");
+        SLPFatal("Could not daemonize\n");
     }
 
     /*-----------------------*/
@@ -409,7 +411,7 @@ int main(int argc, char* argv[])
     /*-----------------------*/
     if(SetUpSignalHandlers())
     {
-        SLPFatal("Could not set up signal handlers.\n");
+        SLPFatal("Error setting up signal handlers.\n");
     }
 
     /*------------------------------*/

@@ -178,7 +178,7 @@ char* GetInterfaceList()
 
 
 /*=========================================================================*/
-void SLPDPropertyInit(const char* conffile)
+int SLPDPropertyInit(const char* conffile)
 /*=========================================================================*/
 {
     char* myname = 0;
@@ -266,6 +266,8 @@ void SLPDPropertyInit(const char* conffile)
     G_SlpdProperty.activeDiscoveryXmits = 3;
     G_SlpdProperty.nextPassiveDAAdvert = 0;
     G_SlpdProperty.nextActiveDiscovery = 0;
+   
+    return 0;
 }
 
 

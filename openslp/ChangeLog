@@ -6,6 +6,8 @@ Please make entries to this log (in addition to the CVS log) that describe
 major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
+01/04/01 mpeterson@caldera.com
+Fixed bug where slpd looped tightly when no network interfaces are available
 
 12/25/00 rganesan@myrealbox.com
 Fully support dist target. You can now run "make dist" to make a release.

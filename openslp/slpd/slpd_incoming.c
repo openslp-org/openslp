@@ -440,9 +440,9 @@ int SLPDIncomingInit()
     }
 
 
-    /*-----------------------------------------------*/
-    /* set up address to use for loopback/broadcast  */
-    /*-----------------------------------------------*/
+    /*--------------------------------------------------*/
+    /* set up address to use for loopback and broadcast */
+    /*--------------------------------------------------*/
     loaddr.s_addr = htonl(LOOPBACK_ADDRESS);
     bcastaddr.s_addr = htonl(SLP_BCAST_ADDRESS);
     mcastaddr.s_addr = htonl(SLP_MCAST_ADDRESS);
@@ -567,6 +567,12 @@ int SLPDIncomingInit()
         SLPLog("Broadcast socket for %s ready\n", inet_ntoa(bcastaddr));
     }
 
+    if(G_IncomingSocketList.count == 0)
+    {
+        SLPLog("No usable interfaces\n");
+        return 1;
+    }
+   
     return 0;
 }
 

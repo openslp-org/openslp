@@ -192,22 +192,17 @@ extern SLPDProperty G_SlpdProperty;
 
 
 /*=========================================================================*/
-void SLPDPropertyInit(const char* conffile); 
+int SLPDPropertyInit(const char* conffile); 
 /* Called to initialize slp properties.  Reads .conf file, etc.            */
 /*                                                                         */
 /* conffile (IN) the path of the configuration file to use                 */
 /*=========================================================================*/
 
-    #ifdef DEBUG
-
-
-
+# ifdef DEBUG
 /*=========================================================================*/
 void SLPDPropertyDeinit();
 /*=========================================================================*/
-    #endif
-
-
+#endif
 
 
 /*=========================================================================*/
@@ -291,17 +286,12 @@ int SLPDKnownDADeinit();
 /*=========================================================================*/
 
 
-    #ifdef DEBUG
-
-
-
+#ifdef DEBUG
 /*=========================================================================*/
 void SLPDDatabaseDeinit();
 /* De-initialize the database.  Free all resources taken by registrations  */
 /*=========================================================================*/
-    #endif
-
-
+#endif
 
 
 /*=========================================================================*/
@@ -329,7 +319,6 @@ void SLPDDatabaseAge(int seconds, int ageall);
 /*                                                                         */
 /* Returns  - None                                                         */
 /*=========================================================================*/
-
 
 
 /*=========================================================================*/
@@ -738,7 +727,7 @@ int SLPDKnownDAEntryToDAAdvert(int errorcode,
 /* returns: zero on success, non-zero on error                             */
 /*=========================================================================*/
 
-    #if defined(ENABLE_SLPv1)
+#if defined(ENABLE_SLPv1)
 
 
 
@@ -764,7 +753,7 @@ int SLPDv1KnownDAEntryToDAAdvert(int errorcode,
 /*                                                                         */
 /* returns: zero on success, non-zero on error                             */
 /*=========================================================================*/
-    #endif
+#endif
 
 
 
@@ -851,11 +840,7 @@ extern SLPList G_KnownDAList;
 /*=========================================================================*/
 
 
-    #if(defined USE_PREDICATES)
-
-
-
-
+#if(defined USE_PREDICATES)
 /*=========================================================================*/
 int SLPDPredicateTest(int predicatever, const char* predicate,
                       SLPAttributes attr); 
@@ -872,8 +857,7 @@ int SLPDPredicateTest(int predicatever, const char* predicate,
 /*          match, and a negative value if there was a parse error in the  */
 /*          predicate string.                                              */
 /*=========================================================================*/
-
-    #endif /* (defined USE_PREDICATES) */ 
+#endif /* (defined USE_PREDICATES) */ 
 
 
 #endif /*(!defined SLPD_H_INCLUDED) */
