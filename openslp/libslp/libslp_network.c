@@ -61,43 +61,17 @@ int NetworkConnectToSlpd(struct sockaddr_storage* peeraddr)
 /* Returns          Connected socket or -1 if no DA connection can be made */
 /*=========================================================================*/
 {
-#ifdef _WIN32 /* on WIN32 setsockopt takes a const char * argument */
-    char lowat;
-#else
-    int lowat;
-#endif
-    int result;
+    int sock = -1;
 
-    result = socket(AF_INET,SOCK_STREAM,0);
-    if(result >= 0)
-    {
-		memset(peeraddr, 0, sizeof(struct sockaddr_storage));
-		((struct sockaddr_in *)peeraddr)->sin_family = AF_INET;
-		((struct sockaddr_in *)peeraddr)->sin_port =  htons(SLP_RESERVED_PORT);
-		((struct sockaddr_in *)peeraddr)->sin_addr.S_un.S_addr = htonl(INADDR_LOOPBACK);
-		
-
-		/* TODO: the following connect() could block for a long time.  */
-
-        if(connect(result,
-                   (struct sockaddr *)peeraddr,
-                   sizeof(struct sockaddr_storage)) == 0)
-        {
-            /* set the receive and send buffer low water mark to 18 bytes
-           (the length of the smallest slpv2 message) */
-            lowat = 18;
-            setsockopt(result,SOL_SOCKET,SO_RCVLOWAT,&lowat,sizeof(lowat));
-            setsockopt(result,SOL_SOCKET,SO_SNDLOWAT,&lowat,sizeof(lowat));
-        }
-        else
-        {
-            /* Could not connect to the slpd through the loopback */
-            close(result);
-            result = -1;
-        }
-    }
-
-    return result;
+	if (SLPNetIsIPV6()) {
+		if (SLPNetSetAddr(peeraddr, AF_INET6, htons(SLP_RESERVED_PORT), NULL, 0) == 0)
+			sock = SLPNetworkConnectStream(peeraddr,NULL);
+	}
+	if (sock < 0 && SLPNetIsIPV4()) {
+		if (SLPNetSetAddr(peeraddr, AF_INET, htons(SLP_RESERVED_PORT), NULL, 0) == 0)
+			sock = SLPNetworkConnectStream(peeraddr,NULL);
+	}
+	return sock;
 }
 
 /*=========================================================================*/ 

@@ -360,6 +360,7 @@ SLPError SLPAssociateIP( SLPHandle hSLP, const char* unicast_ip)
 {
 
     PSLPHandleInfo				handle;
+	int							result=-1;
 
     /*------------------------------*/
     /* check for invalid parameters */
@@ -379,13 +380,9 @@ SLPError SLPAssociateIP( SLPHandle hSLP, const char* unicast_ip)
 #endif
     handle->dounicast = 1;
 
-	handle->unicastaddr.ss_family = AF_INET;
-	if (inet_pton(AF_INET, unicast_ip, &(((struct sockaddr_in *)&handle->unicastaddr)->sin_addr)) == 0)
-    {
-        return SLP_PARAMETER_BAD;
-    }
-	((struct sockaddr_in *)&handle->unicastaddr)->sin_port = htons(SLP_RESERVED_PORT);
-	((struct sockaddr_in *)&handle->unicastaddr)->sin_family = AF_INET;
+	result = SLPNetResolveHostToAddr(unicast_ip, &handle->unicastaddr);
+	if (SLPNetSetPort(&handle->unicastaddr, SLP_RESERVED_PORT) != 0)
+		return SLP_PARAMETER_BAD;
     return SLP_OK;
 }
 #endif
