@@ -155,40 +155,21 @@ int SLPIntersectStringList(int list1len,
 
 
 /*=========================================================================*/
-int SLPUnionStringList(int list1len,
-                       const char* list1,
-                       int list2len,
-                       const char* list2,
-                       int* unionlistlen,
-                       char* unionlist);
-/* Generate a string list that is a union of two string lists              */
+int SLPSubsetStringList(int listlen,
+                         const char* list,
+                         int sublistlen,
+                         const char* sublist);
+/* Test if sublist is a set of list                                        */
 /*                                                                         */
-/* list1len -   length in bytes of list1                                   */
+/* list  -      pointer to the string-list to be checked                   */
 /*                                                                         */
-/* list1 -      pointer to a string-list                                   */
+/* listlen -    length in bytes of the list to be checked                  */
 /*                                                                         */
-/* list2len -   length in bytes of list2                                   */
+/* sublistlistlen -   pointer to the string-list to be checked             */
 /*                                                                         */
-/* list2 -      pointer to a string-list                                   */
+/* sublist -   length in bytes of the list to be checked                   */
 /*                                                                         */
-/* unionlistlen - pointer to the size in bytes of the unionlist buffer.    */
-/*                also receives the size in bytes of the unionlist buffer  */
-/*                on successful return                                     */
-/*                                                                         */
-/* unionlist -  pointer to buffer that will receive the union list         */
-/*                                                                         */
-/* Returns -    Length of the resulting union list or negative if          */
-/*              unionlist is not big enough. If negative is returned       */
-/*              *unionlist will be changed indicate the size of unionlist  */
-/*              buffer needed                                              */
-/*                                                                         */
-/* Important: In order ensure that unionlist does not contain any          */
-/*            duplicates, at least list1 must not have any duplicates.     */
-/*            Also, for speed optimization if list1 and list2 are both     */
-/*            with out duplicates, the larger list should be passed in     */
-/*            as list1.                                                    */
-/*                                                                         */
-/* Note: A good size for unionlist (so that non-zero will never be         */
-/*       returned) is list1len + list2len + 1                              */
+/* Returns -    non-zero is sublist is a subset of list.  Zero otherwise   */
 /*=========================================================================*/
+
 #endif
