@@ -332,7 +332,11 @@ int ParseSrvRply(SLPBuffer buffer, SLPSrvRply* srvrply)
             result = ParseUrlEntry(buffer,&(srvrply->urlarray[i]));   
             if (result) return result;
         }
-    }       
+    }
+    else
+    {
+	srvrply->urlarray = 0;
+    }
 
     return 0;
 }
