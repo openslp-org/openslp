@@ -1,5 +1,5 @@
-%define	ver 1.0.5
-%define	rel 1
+%define	ver 1.0.6
+%define	rel 2
 %define	name openslp
 %define libver 1.0.0
 
@@ -84,6 +84,19 @@ else
   done
 fi
 
+# Except SUSE who needs to do this a little differently
+if [ -d /etc/init.d ] && [ -d /etc/init.d/rc3.d ]; then
+  ln -s /etc/rc.d/init.d/slpd /etc/init.d/slpd
+  for i in 0 1 6
+  do
+    ln -sf ../slpd /etc/init.d/rc$i.d/K87slpd
+  done
+  for i in 2 3 4 5
+  do
+    ln -sf ../slpd /etc/init.d/rc$i.d/S13slpd
+  done
+fi
+
 %PreUn 
 if [ "$1" = "0" ]; then
   if [ -x /sbin/chkconfig ]; then
@@ -96,6 +109,17 @@ if [ "$1" = "0" ]; then
     done
     for i in 0 1 6; do
       rm -f /etc/rc.d/rc$i.d/K87slpd
+    done
+  fi
+  if [ -d /etc/init.d ] && [ -d /etc/init.d/rc3.d ]; then
+    rm /etc/init.d/slpd
+    for i in 0 1 6
+    do
+      rm -f /etc/init.d/rc$i.d/K87slpd
+    done
+    for i in 2 3 4 5
+    do
+      rm -f /etc/init.d/rc$i.d/S13slpd
     done
   fi
   /etc/rc.d/init.d/slpd stop
