@@ -141,4 +141,3 @@ VOID SLPDCmdDebugService(int argc, char **argv);
 /*=========================================================================*/
 #endif /* SLPD_WIN32_H_INCLUDED */
 
-
