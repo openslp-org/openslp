@@ -1,0 +1,207 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+   <meta name="GENERATOR" content="Mozilla/4.76C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.4.2 i686) [Netscape]">
+</head>
+<body>
+
+<h3>
+SLP Security Attacks</h3>
+The following is a list of attacks that could affect SLP enabled software
+that does not implement any of the (optional) RFC 2608&nbsp; SLPv2 security
+specification.
+<br>&nbsp;
+<table BORDER WIDTH="100%" NOSAVE >
+<tr NOSAVE>
+<td NOSAVE><b>Attack</b></td>
+
+<td><b>Description</b></td>
+</tr>
+
+<tr>
+<td>Unauthorized Directory Agent</td>
+
+<td>An unauthorized directory agent could be installed on the network with
+the intention of sending incorrect information to UAs.&nbsp;&nbsp; A malicious
+DA could disrupt the operation of SLP&nbsp;enabled applications by returning
+unauthorized service URLs, by returning unauthorized attributes, or by
+simply not returning any results at all.&nbsp; Since UAs are required to
+use a DA&nbsp;if it exists, it is possible that it might attach to the
+unauthorized DA and receive service URLs that point to rogue services,&nbsp;
+receive attributes that disrupt normal operation, or&nbsp; not receive
+any service location information at all</td>
+</tr>
+
+<tr>
+<td>Unauthorized Service Agent</td>
+
+<td>An unauthorized service agent could be installed on the network with
+the intention of duplicating a registrations made by authorized SAs.&nbsp;
+In environments involving DAs, unauthorized SA&nbsp;would cause the unauthorized
+registration, deregistration, and registration problems described below.&nbsp;&nbsp;
+In a multicast environments an unauthorized SA could&nbsp; cause duplicate
+replies to be sent to service, attribute and service type requests.&nbsp;
+&nbsp;Duplicate replies may cause problems when several differing attributes
+lists are returned for the same service URL.&nbsp;&nbsp; UAs would be unable
+to tell which attributes are really valid.</td>
+</tr>
+
+<tr>
+<td>Unauthorized Registrations with DA</td>
+
+<td>Contacting the DA to register many bogus services of the same service-type
+as a valid service.&nbsp;&nbsp; SLP enabled applications that rely on service
+specific security protocols (SSL, etc) would take a long time to connect
+to a valid service as&nbsp; it would probably have to iterate through a&nbsp;
+lot of bogus services before it found a valid one.</td>
+</tr>
+
+<tr>
+<td>Unauthorized Deregistration with DA</td>
+
+<td>Contacting the DA to de-registering valid registrations so that they
+can not be found by UAs</td>
+</tr>
+
+<tr>
+<td>Unauthorized Reregistration with DA</td>
+
+<td>Contacting the DA to replacing an existing registration with a new
+registration with modified attributes.&nbsp;</td>
+</tr>
+
+<tr>
+<td>Man-in-the-middle Modification&nbsp;</td>
+
+<td>"transport-time" modification of SLP registration, request,&nbsp; and
+/ or reply messages.</td>
+</tr>
+
+<tr>
+<td>Man-in-the-middle Replay</td>
+
+<td>"transport-time" retransmission of SLP registration, or reply messages
+that were previously "sniffed"&nbsp;from the network.</td>
+</tr>
+
+<tr>
+<td>Man-in-the-middle Scrambling</td>
+
+<td>Blind "transport-time" modification of messages that makes them invalid
+so that they will be rejected by the valid SLP&nbsp;implementations.</td>
+</tr>
+</table>
+
+<h3>
+Vulnerablility</h3>
+Though provisions for security have been designed into the SLPv2 protocol,
+security is not a mandatory feature.&nbsp;&nbsp; The following table presents
+the vulnerability of SLPv2 to attack:
+<br>&nbsp;
+<table BORDER WIDTH="100%" NOSAVE >
+<tr>
+<td><b>Attack</b></td>
+
+<td><b>SLPv2 with RFC2608 security</b></td>
+
+<td><b>SLPv2 with SSRTI-SLPv2</b></td>
+
+<td><b>SLPv2 with out security</b></td>
+</tr>
+
+<tr>
+<td>Unauthorized Directory Agent</td>
+
+<td><b><font color="#33CC00">PREVENTABLE</font></b></td>
+
+<td><b><font color="#FFFF00">DETECTABLE</font></b></td>
+
+<td><b><font color="#FFFF00">DETECTABLE</font></b></td>
+</tr>
+
+<tr>
+<td>Unauthorized Service Agent</td>
+
+<td><b><font color="#33CC00">PREVENTABLE</font></b></td>
+
+<td><b><font color="#FFFF00">DETECTABLE</font></b></td>
+
+<td><b><font color="#FFFF00">DETECTABLE</font></b></td>
+</tr>
+
+<tr>
+<td>Unauthorized Registrations with DA</td>
+
+<td><b><font color="#33CC00">PREVENTABLE</font></b></td>
+
+<td><b><font color="#33CC00">PREVENTABLE</font></b></td>
+
+<td><b><font color="#FFFF00">DETECTABLE</font></b></td>
+</tr>
+
+<tr>
+<td>Unauthorized Deregistration with DA</td>
+
+<td><b><font color="#33CC00">PREVENTABLE</font></b></td>
+
+<td><b><font color="#33CC00">PREVENTABLE</font></b></td>
+
+<td><b><font color="#CC0000">VULNERABLE</font></b></td>
+</tr>
+
+<tr>
+<td>Unauthorized Reregistration with DA</td>
+
+<td><b><font color="#33CC00">PREVENTABLE</font></b></td>
+
+<td><b><font color="#33CC00">PREVENTABLE</font></b></td>
+
+<td><b><font color="#CC0000">VULNERABLE</font></b></td>
+</tr>
+
+<tr>
+<td>Man-in-the-middle Modification</td>
+
+<td><b><font color="#33CC00">PREVENTABLE</font></b></td>
+
+<td><b><font color="#CC0000">VULNERABLE</font></b></td>
+
+<td><b><font color="#CC0000">VULNERABLE</font></b></td>
+</tr>
+
+<tr>
+<td>Man-in-the-middle Replay</td>
+
+<td><b><font color="#FFFF00">DETERRABLE</font></b></td>
+
+<td><b><font color="#33CC00">PREVENTABLE</font></b></td>
+
+<td><b><font color="#CC0000">VULNERABLE</font></b></td>
+</tr>
+
+<tr>
+<td>Man-in-the-middle Scrambling</td>
+
+<td><b><font color="#CC0000">VULNERABLE</font><font color="#FFFF00">&nbsp;</font></b></td>
+
+<td><b><font color="#CC0000">VULNERABLE</font></b></td>
+
+<td><b><font color="#CC0000">VULNERABLE</font></b></td>
+</tr>
+</table>
+
+<p><b><font color="#33CC00">PREVENTABLE </font></b><font color="#000000">-
+Attack can be prevented entirely.</font>
+<br><b><font color="#FFFF00">DETECTABLE</font></b><font color="#000000">
+- Attack can not be prevented, but can be detected by appropriately written
+SLP software</font>
+<br><b><font color="#FFFF00">DETERRABLE</font></b><font color="#000000">
+- Attack can not be prevented entirely, but can be deterred</font>
+<br><b><font color="#CC0000">VULNERABLE</font></b><font color="#000000">
+- Attack can not be prevented, deterred or detected</font>
+<br><font color="#000000"></font>&nbsp;
+<br><font color="#000000"></font>&nbsp;
+<br><font color="#000000"></font>&nbsp;
+</body>
+</html>
