@@ -6,9 +6,10 @@ Summary         : OpenSLP implementation of Service Location Protocol V2
 Copyright       : Caldera Systems, Inc (BSD)
 Packager        : Matthew Peterson <mpeterson@caldera.com>
 URL             : http://www.openslp.org
- 
 BuildRoot       : /tmp/%{Name}-%{Version}
-  
+
+Requires	: SysVinit-scripts >= 1.07 
+
 Source0: openslp/openslp-%{Version}.tar.gz
 Source1: openslp/slptool-%{Version}.tar.gz
 
