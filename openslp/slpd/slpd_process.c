@@ -257,6 +257,15 @@ int ProcessSrvRqst(struct sockaddr_in* peeraddr,
         goto FINISHED;
     }
 
+    /*---------------------------------------------------------------------*/
+    /* We do not handle any authentication. Send errorcode  if spi is used */
+    /*---------------------------------------------------------------------*/
+    if(message->body.srvrqst.spistrlen)
+    {
+        errorcode = SLP_ERROR_AUTHENTICATION_UNKNOWN;
+        goto RESPOND;
+    }
+
     /*------------------------------------------------*/
     /* Check to to see if a this is a special SrvRqst */
     /*------------------------------------------------*/
@@ -691,8 +700,14 @@ int ProcessAttrRqst(struct sockaddr_in* peeraddr,
         goto FINISHED;
     }
     
-    /* TODO: check the spi list of the message and return                  */
-    /*       AUTHENTICATION_UNKNOWN since we do not do authentication yet  */ 
+    /*---------------------------------------------------------------------*/
+    /* We do not handle any authentication. Send errorcode  if spi is used */
+    /*---------------------------------------------------------------------*/
+    if(message->body.attrrqst.spistrlen)
+    {
+        errorcode = SLP_ERROR_AUTHENTICATION_UNKNOWN;
+        goto RESPOND;
+    } 
     
     /*------------------------------------*/
     /* Make sure that we handle the scope */
@@ -826,16 +841,19 @@ int ProcessDAAdvert(struct sockaddr_in* peeraddr,
         goto RESPOND;
     }
 
-    if(errorcode)
-    {
-        /* TODO: log something here? */
-        goto FINISHED;
-    }
-
-    /* Do not look at DAAdverts if we are a DA */
+    /* Do not look at DAAdverts unless we are not a DA */
     if(G_SlpdProperty.isDA == 0)
     {
 
+        /*----------------------------------------------------------*/
+        /* We do not handle any authentication. Bail if spi is used */
+        /*----------------------------------------------------------*/
+        if(message->body.daadvert.spilistlen)
+        {
+            errorcode = SLP_ERROR_AUTHENTICATION_UNKNOWN;
+            goto RESPOND;
+        }
+        
         /* Only process if errorcode is not set */
         if(message->body.daadvert.errorcode == SLP_ERROR_OK)
         {
@@ -860,10 +878,8 @@ int ProcessDAAdvert(struct sockaddr_in* peeraddr,
     RESPOND:
     /* DAAdverts should never be replied to.  Set result buffer to empty*/
     result->end = result->start;
-
-
-    FINISHED:
     *sendbuf = result;
+    
     return errorcode;
 }
 
@@ -895,8 +911,6 @@ int ProcessSrvTypeRqst(struct sockaddr_in* peeraddr,
         goto FINISHED;
     }
 
-    /* TODO: check the spi list of the message and return                  */
-    /*       AUTHENTICATION_UNKNOWN since we do not do authentication yet  */ 
     
     /*------------------------------------*/
     /* Make sure that we handle the scope */
@@ -942,6 +956,7 @@ int ProcessSrvTypeRqst(struct sockaddr_in* peeraddr,
         errorcode = SLP_ERROR_SCOPE_NOT_SUPPORTED;
     }
 
+    
     /*----------------------------------------------------------------*/
     /* Do not send error codes or empty replies to multicast requests */
     /*----------------------------------------------------------------*/

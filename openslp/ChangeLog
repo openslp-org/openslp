@@ -6,8 +6,11 @@ Please make entries to this log (in addition to the CVS log) that describe
 major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
+11/20/00 mpeterson@caldera.com
+Added code to ensure we respond correctly (with AUTHENICATION_UNKNONW) when\
+a request with a SPI is received
+
 11/16/00 mpeterson@caldera.com
-------------------------------
 Changed SLPD behaviour to be less destructive on SIGHUP.  SIGHUP no longer
 dumps the entire registration database on SIGHUP.  SIGHUP only causes slpd
 to re-read configuration and static registration as well as perform DA
