@@ -1293,7 +1293,7 @@ void SLPDKnownDAEcho(SLPMessage msg, SLPBuffer buf)
                         }
                         else
                         {
-                            SLPDSocketFree(sock);
+                            sock->state = SOCKET_CLOSE;
                         }
                     }
                 }
