@@ -853,12 +853,18 @@ SLPError NetworkMcastRqstRply(const char* langtag,
         {
             #ifndef UNICAST_NOT_SUPPORTED
             int retval = 0;
-            #endif
+	    if((retval = SLPXcastRecvMessage(&xcastsocks,
+                                   &recvbuf,
+                                   &peeraddr,
+                                   &timeout)) != 0)
+            #else
 			
 	    if(SLPXcastRecvMessage(&xcastsocks,
                                    &recvbuf,
                                    &peeraddr,
                                    &timeout) != 0)
+            #endif
+
             {
                 /* An error occured while receiving the message        */
                 /* probably a just time out error. break for re-send.  */
