@@ -1,0 +1,12 @@
+Input Tag = asdfasdf
+Output Tag = asdfasdf
+
+Input Tag = \28abc
+Output Tag = (abc
+
+Input Tag = abc\7E
+Output Tag = abc~
+
+Input Tag = \28\29\2C\5C\21\3C\3D\3E\7E
+Output Tag = (),\!<=>~
+
