@@ -49,11 +49,11 @@ void FreeEntry(SLPDDatabaseEntry* entry)
         if(entry->scopelist) free(entry->scopelist);
         if(entry->srvtype) free(entry->srvtype);
         if(entry->url) free(entry->url);
-        #ifdef USE_PREDICATES
-        SLPAttrFree(entry->attr);
-        #else
         if(entry->attrlist) free(entry->attrlist);
-        #endif
+        if(entry->partiallist) free(entry->partiallist);
+        #ifdef USE_PREDICATES
+        if(entry->attr) SLPAttrFree(entry->attr);
+        #endif 
         free(entry);
     }
 }
@@ -174,36 +174,28 @@ int SLPDDatabaseReg(SLPSrvReg* srvreg,
     entry->url          = (char*)memdup(srvreg->urlentry.url, srvreg->urlentry.urllen);
     entry->srvtypelen   = srvreg->srvtypelen;
     entry->srvtype      = (char*)memdup(srvreg->srvtype,srvreg->srvtypelen);
+    entry->attrlistlen  = srvreg->attrlistlen;
+    if (entry->attrlistlen)
+    {
+        entry->attrlist = malloc(srvreg->attrlistlen);
+        if(entry->attrlist)
+        {
+            memcpy(entry->attrlist,srvreg->attrlist,srvreg->attrlistlen);
+            entry->attrlist[srvreg->attrlistlen] = 0;
+        }
+    }
 
     #ifdef USE_PREDICATES
-    if(srvreg->attrlistlen)
+    if(srvreg->attrlist)
     {
-        char temp;
-        SLPError err; 
-
-        /* temporary null termination of attrlist.  This is very sneeky and */
-        /* not "const correct"  but it's the only way without allocating a  */
-        /* temporary buffer                                                 */
-        temp = srvreg->attrlist[srvreg->attrlistlen];
-        ((char*)srvreg->attrlist)[srvreg->attrlistlen] = 0;
-
-        err = SLPAttrFreshen(entry->attr, srvreg->attrlist);
-
-        /* undo null termination */
-        ((char*)srvreg->attrlist)[srvreg->attrlistlen] = temp;
-
-        if(err != SLP_OK)
+        if( SLPAttrFreshen(entry->attr, srvreg->attrlist) != SLP_OK)
         {
             FreeEntry(entry);
             return -1;
         }
     }
-    #else
-    entry->attrlistlen  = srvreg->attrlistlen;
-    if (entry->attrlistlen)
-        entry->attrlist = (char*)memdup(srvreg->attrlist,srvreg->attrlistlen);
-    #endif
-    
+    #endif USE_PREDICATES
+
     /* check for malloc() failures */
     if(entry->scopelist == 0 ||
        entry->url == 0 ||
@@ -294,26 +286,16 @@ int SLPDDatabaseFindSrv(SLPSrvRqst* srvrqst,
     int                 found;
     
     #ifdef USE_PREDICATES
-    SLPDPredicate       pred = 0; /* The predicate object. */
-    
-    /*------------------------------*/
-    /* Create and verify predicate. */
-    /*------------------------------*/
-    /* TODO: handle parse error by returning SLP_ERROR_PARSE_ERROR to  */
-    /* requester                                                       */
-    if(srvrqst->predicatelen)
+    /* Tricky: perform an in place null termination of the predicate string */
+    /*         Remember this squishes the high byte of spilistlen           */
+    if(srvrqst->predicate)
     {
-        if(SLPDPredicateAlloc(srvrqst->predicate,
-                              srvrqst->predicatelen,
-                              &pred))
-        {
-            return -1;
-        }
+        ((char*)srvrqst->predicate)[srvrqst->predicatelen] = 0;
     }
     #endif
     
     /*---------------*/
-    /* Test services.*/
+    /* Test services */
     /*---------------*/
     found = 0;
     entry = (SLPDDatabaseEntry*)G_DatabaseList.head;
@@ -330,7 +312,7 @@ int SLPDDatabaseFindSrv(SLPSrvRqst* srvrqst,
                                       entry->scopelist))
             {
                 #ifdef USE_PREDICATES
-                if(pred && SLPDTestPredicate(pred, entry->attr) == 0)
+                if(srvrqst->predicate && SLPDTestPredicate(srvrqst->predicate,entry->attr) == 0)
                 #endif
                 {
                     result[found].lifetime = entry->lifetime;
@@ -347,10 +329,6 @@ int SLPDDatabaseFindSrv(SLPSrvRqst* srvrqst,
 
         entry = (SLPDDatabaseEntry*)entry->listitem.next;
     }
-
-    #ifdef USE_PREDICATES
-    if(pred) SLPDPredicateFree(pred);
-    #endif
     
     return found;
 }
@@ -459,16 +437,16 @@ int SLPDDatabaseFindAttr(SLPAttrRqst* attrrqst,
                                       entry->scopelist))
             {
                 #ifdef USE_PREDICATES
-                if(SLPAttrSerialize(entry->attr,
-                                    &(result[found].attrlen), 
-                                    &(result[found].attr), 
-                                    SLP_FALSE) == SLP_OK)
-                {
+                //if(SLPAttrSerialize(entry->attr,
+                //                    &(result[found].attrlen), 
+                //                    &(result[found].attr), 
+                //                    SLP_FALSE) == SLP_OK)
+                //{
                     /* FIXME TODO Should the entire function fail, or should 
                      * we just ignore this one? */
-                    found++;
-                    break;
-                }
+                //    found++;
+                //    break;
+                //}
                 #else
                 result[found].attrlen = entry->attrlistlen;
                 result[found].attr = entry->attrlist;
