@@ -41,14 +41,25 @@ SLPError ProcessSrvReg(PSLPHandleInfo handle)
 /*-------------------------------------------------------------------------*/
 {
     struct timeval      timeout;
-    struct sockaddr     peeraddr;
-    int                 peeraddrlen = sizeof(peeraddr);
+    struct sockaddr_in  slpdaddr;
+    struct sockaddr_in  peeraddr;
+    int                 slpdsock    = -1; 
     int                 size        = 0;
     SLPError            error       = 0;
     SLPBuffer           buf         = 0;
     SLPMessage          msg         = 0;
     int                 xid         = SLPXidGenerate();
     
+    /*-----------------------*/
+    /* Connect to slpd       */
+    /*-----------------------*/
+    slpdsock = NetworkConnectToSlpd(&slpdaddr);
+    if(slpdsock < 0)
+    {
+        error = SLP_NETWORK_INIT_FAILED;
+        goto FINISHED;
+    }
+
     /*-----------------------*/
     /* allocate a SLPMessage */
     /*-----------------------*/
@@ -58,7 +69,6 @@ SLPError ProcessSrvReg(PSLPHandleInfo handle)
         error = SLP_MEMORY_ALLOC_FAILED;
         goto FINISHED;
     }
-
 
     /*-------------------------------------------------------------*/
     /* ensure the buffer is big enough to handle the whole srvreg  */
@@ -166,19 +176,17 @@ SLPError ProcessSrvReg(PSLPHandleInfo handle)
     timeout.tv_sec = atoi(SLPGetProperty("net.slp.unicastMaximumWait")) / 1000; 
     timeout.tv_usec = 0;        
     buf->curpos = buf->start;
-    error = NetworkSendMessage(handle->slpdsock,
+    error = NetworkSendMessage(slpdsock,
                                buf,
                                &timeout,
-                               &(handle->slpdaddr),
-                               sizeof(handle->slpdaddr));
+                               &slpdaddr);
     if(error == SLP_OK)
     {
         /* Recv the SrvAck */
-        error = NetworkRecvMessage(handle->slpdsock,
+        error = NetworkRecvMessage(slpdsock,
                                    buf,
                                    &timeout,
-                                   &peeraddr,
-                                   &peeraddrlen);
+                                   &peeraddr);
         if(error == SLP_OK)
         {
             /* parse the SrvAck message */
@@ -209,8 +217,8 @@ SLPError ProcessSrvReg(PSLPHandleInfo handle)
     
     /* free resources */
     SLPBufferFree(buf);
-    SLPMessageFree(msg);     
-
+    SLPMessageFree(msg);
+    close(slpdsock);
 
     return 0;
 }
@@ -289,17 +297,6 @@ SLPError SLPReg(SLPHandle   hSLP,
         return SLP_HANDLE_IN_USE;
     }
     handle->inUse = SLP_TRUE;
-
-    
-    /*---------------------------------------------*/
-    /* Check to see if we can talk to a slpd       */
-    /*---------------------------------------------*/
-    if(handle->slpdsock < 0)
-    {
-        /* slpd is not running locally and no DA's are configured */
-        handle->inUse = SLP_FALSE;
-        return SLP_NETWORK_INIT_FAILED;
-    }   
 
     /*------------------*/
     /* Parse the srvurl */

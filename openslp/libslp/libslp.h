@@ -19,7 +19,9 @@
 #include <sys/time.h>
 #include <netinet/in.h>
 #include <arpa/inet.h> 
-#include <netdb.h>  
+#include <netdb.h> 
+#include <fcntl.h> 
+#include <errno.h>
 
 #include <slp_buffer.h>
 #include <slp_message.h>
@@ -131,8 +133,6 @@ typedef struct _SLPHandleInfo
     SLPBoolean          isAsync;
     int                 langtaglen;
     char*               langtag;
-    int                 slpdsock;
-    struct sockaddr     slpdaddr;
     SLPHandleCallParams params;
 }SLPHandleInfo, *PSLPHandleInfo;
 
@@ -140,6 +140,7 @@ typedef struct _SLPHandleInfo
 /*=========================================================================*/ 
 typedef void* (*ThreadStartProc)(void *);
 /*=========================================================================*/ 
+
 
 /*=========================================================================*/ 
 SLPError ThreadCreate(ThreadStartProc startproc, void *arg);
@@ -154,28 +155,66 @@ SLPError ThreadCreate(ThreadStartProc startproc, void *arg);
 
 
 /*=========================================================================*/ 
-int NetworkGetSlpdSocket(struct sockaddr* peeraddr, int peeraddrlen);
-/* Connects to slpd.  Will not block.                                      */
+int NetworkConnectToSlpd(struct sockaddr_in* peeraddr);      
+/* Connects to slpd and provides a peeraddr to send to                     */
 /*                                                                         */
-/* peeraddr     (OUT) receives the address of the socket                   */
+/* peeraddr         (OUT) pointer to receive the connected DA's address    */
 /*                                                                         */
-/* peeraddrlen  (OUT) receives the length of the socket address            */
+/* peeraddrlen      (IN/OUT) Size of the peeraddr structure                */
 /*                                                                         */
-/* Returns  -   -1 if connection can not be made                           */
-/*=========================================================================*/ 
+/* Returns          Connected socket or -1 if no DA connection can be made */
+/*=========================================================================*/
 
 
 /*=========================================================================*/ 
-void NetworkCloseSlpdSocket();
+int NetworkConnectToDA(const char* scopelist,
+                       int scopelistlen,
+                       struct sockaddr_in* peeraddr);
+/* Connects to slpd and provides a peeraddr to send to                     */
+/*                                                                         */
+/* scopelist        (IN) Scope that must be supported by DA. Pass in NULL  */
+/*                       for any scope                                     */
+/*                                                                         */
+/* scopelistlen     (IN) Length of the scope list in bytes.  Ignored if    */
+/*                       scopelist is NULL                                 */
+/*                                                                         */
+/* peeraddr         (OUT) pointer to receive the connected DA's address    */                                                       
+/*                                                                         */
+/* peeraddrlen      (IN/OUT) Size of the peeraddr structure                */
+/*                                                                         */
+/* Returns          Connected socket or -1 if no DA connection can be made */
+/*=========================================================================*/
+
+
 /*=========================================================================*/ 
+int NetworkConnectToSlpMulticast(struct sockaddr_in* peeraddr);
+/* Creates a socket and provides a peeraddr to send to                     */
+/*                                                                         */
+/* peeraddr         (OUT) pointer to receive the connected DA's address    */                                                       
+/*                                                                         */
+/* peeraddrlen      (IN/OUT) Size of the peeraddr structure                */
+/*                                                                         */
+/* Returns          Valid socket or -1 if no DA connection can be made     */
+/*=========================================================================*/
+
+
+/*=========================================================================*/ 
+int NetworkConnectToSlpBroadcast(struct sockaddr_in* peeraddr);
+/* Creates a socket and provides a peeraddr to send to                     */
+/*                                                                         */
+/* peeraddr         (OUT) pointer to receive the connected DA's address    */                                                       
+/*                                                                         */
+/* peeraddrlen      (IN/OUT) Size of the peeraddr structure                */
+/*                                                                         */
+/* Returns          Valid socket or -1 if no DA connection can be made     */
+/*=========================================================================*/
 
 
 /*=========================================================================*/ 
 SLPError NetworkSendMessage(int sockfd,
                             SLPBuffer buf,
                             struct timeval* timeout,
-                            struct sockaddr* peeraddr,
-                            int peeraddrlen);
+                            struct sockaddr_in* peeraddr);
 /* Sends a message                                                         */
 /*                                                                         */
 /* Returns  -    SLP_OK, SLP_NETWORK_TIMEOUT, SLP_NETWORK_ERROR, or        */
@@ -183,39 +222,15 @@ SLPError NetworkSendMessage(int sockfd,
 /*=========================================================================*/ 
 
 
-
 /*=========================================================================*/ 
 SLPError NetworkRecvMessage(int sockfd,
                             SLPBuffer buf,
                             struct timeval* timeout,
-                            struct sockaddr* peeraddr,
-                            int* peeraddrlen);
+                            struct sockaddr_in* peeraddr);
 /* Receives a message                                                      */
 /*                                                                         */
 /* Returns  -    SLP_OK, SLP_NETWORK_TIMEOUT, SLP_NETWORK_ERROR, or        */
 /*               SLP_PARSE_ERROR.                                          */
-/*=========================================================================*/ 
-
-
-
-/*=========================================================================*/ 
-int NetworkConnectToDA(struct sockaddr_in* peeraddr);
-/*=========================================================================*/ 
-
-
-/*=========================================================================*/ 
-int NetworkConnectToSlpMulticast(struct sockaddr_in* peeraddr);
-/* Creates a socket and connects it to the SLP multicast address           */
-/*                                                                         */
-/* Returns  - Valid file descriptor on success, -1 on failure w/ errno set.*/
-/*=========================================================================*/ 
-
-
-/*=========================================================================*/ 
-int NetworkConnectToSlpBroadcast(struct sockaddr_in* peeraddr);
-/* Creates a socket and connects it to the SLP multicast address           */
-/*                                                                         */
-/* Returns  - Valid file descriptor on success, -1 on failure w/ errno set.*/
 /*=========================================================================*/ 
 
 #endif

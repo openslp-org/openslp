@@ -140,14 +140,6 @@ SLPError SLPOpen(const char *pcLang, SLPBoolean isAsync, SLPHandle *phSLP)
         memcpy(handle->langtag,SLPGetProperty("net.slp.locale"),handle->langtaglen);       
     }
 
-    
-    /*---------------------------------------*/
-    /* Get a the socket to talk to SLPD with */
-    /*---------------------------------------*/
-    handle->slpdsock = NetworkGetSlpdSocket(&(handle->slpdaddr),
-                                            sizeof(handle->slpdaddr));
-    
-    
     /*---------------------------------------------------------*/
     /* Seed the XID generator if this is the first open handle */
     /*---------------------------------------------------------*/
@@ -156,7 +148,6 @@ SLPError SLPOpen(const char *pcLang, SLPBoolean isAsync, SLPHandle *phSLP)
         SLPXidSeed();
     }
      
-
     handle->inUse = SLP_FALSE;
     handle->isAsync = isAsync;
     G_OpenSLPHandleCount ++;  
@@ -202,12 +193,6 @@ void SLPClose(SLPHandle hSLP)
     if(handle->isAsync)
     {
         /* TODO: stop the usage of this handle (kill threads, etc) */
-    }
-
-    G_OpenSLPHandleCount --;
-    if(G_OpenSLPHandleCount <= 0)
-    {
-        NetworkCloseSlpdSocket();
     }
 
     handle->sig = 0;		/* If they give it to us again, it won't be valid */

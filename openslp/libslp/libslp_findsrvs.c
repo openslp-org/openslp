@@ -55,23 +55,24 @@ SLPError ProcessSrvRqst(PSLPHandleInfo handle)
     int                 sock        = -1;
     int                 mtu         = atoi(SLPGetProperty("net.slp.MTU"));
     int                 xid         = SLPXidGenerate();   
-    int                 peeraddrlen = sizeof(peeraddr);
-
+    
 
     /*---------------------------------------*/
     /* Connect to DA, multicast or broadcast */
     /*---------------------------------------*/
-    sock = NetworkConnectToDA((struct sockaddr_in*)&peeraddr);
+    sock = NetworkConnectToDA(handle->params.findsrvs.scopelist,
+                              handle->params.findsrvs.scopelistlen,
+                              &peeraddr);
     if(sock < 0)
     {
         ismcast = 1;
         maxwait = atoi(SLPGetProperty("net.slp.multicastMaximumWait")) / 1000;
         wait    = 1;
 
-        sock = NetworkConnectToSlpMulticast((struct sockaddr_in*)&peeraddr);
+        sock = NetworkConnectToSlpMulticast(&peeraddr);
         if(sock < 0)
         {
-            sock = NetworkConnectToSlpBroadcast((struct sockaddr_in*)&peeraddr);
+            sock = NetworkConnectToSlpBroadcast(&peeraddr);
             if(sock < 0)
             {
                 result = SLP_NETWORK_INIT_FAILED;
@@ -216,8 +217,7 @@ SLPError ProcessSrvRqst(PSLPHandleInfo handle)
         result = NetworkSendMessage(sock,
                                     buf,
                                     &timeout,
-                                    (struct sockaddr*)&peeraddr,
-                                    sizeof(peeraddr));
+                                    &peeraddr);
         if(result != SLP_OK)
         {
             /* we could not send the message for some reason */
@@ -232,8 +232,7 @@ SLPError ProcessSrvRqst(PSLPHandleInfo handle)
             result = NetworkRecvMessage(sock,
                                         buf,
                                         &timeout,
-                                        (struct sockaddr*)&peeraddr,
-                                        &peeraddrlen);
+                                        &peeraddr);
             if(result != SLP_OK)
             {
                 /* An error occured while receiving the message */
@@ -339,6 +338,7 @@ SLPError ProcessSrvRqst(PSLPHandleInfo handle)
     if(prlist) free(prlist);
     SLPBufferFree(buf);
     SLPMessageFree(msg);
+    close(sock);
 
     return result;
 }
