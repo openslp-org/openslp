@@ -52,160 +52,161 @@
 SLPBoolean CallbackSrvTypeRqst(SLPError errorcode, SLPMessage msg, void* cookie)
 /*----------------------------------------------------------------------------*/
 {
-    PSLPHandleInfo  handle      = (PSLPHandleInfo) cookie;
-     
-    
-    
-    if(errorcode)
-    {
-        handle->params.findsrvtypes.callback((SLPHandle)handle,
-                                             0,
-                                             errorcode,
-                                             handle->params.findsrvtypes.cookie);
-        return 0; 
-    }
+	PSLPHandleInfo  handle      = (PSLPHandleInfo) cookie;
 
-    if(msg->header.functionid != SLP_FUNCT_SRVTYPERPLY)
-    {
-        return 1;
-    }
 
-    if(msg->body.srvtyperply.errorcode == 0)
-    {
-        if(msg->body.srvtyperply.srvtypelistlen == 0)
-        {
-            /* Skip blank replies */
-            return 1; 
-        }
 
-        /* TRICKY: null terminate the srvtypelist, an extra byte
-           is already allocated in the receive buffer */
-        *((char*)(msg->body.srvtyperply.srvtypelist) + msg->body.srvtyperply.srvtypelistlen) = 0; 
-    }
+	if(errorcode)
+	{
+		handle->params.findsrvtypes.callback((SLPHandle)handle,
+											 0,
+											 errorcode,
+											 handle->params.findsrvtypes.cookie);
+		return 0; 
+	}
 
-    return handle->params.findsrvtypes.callback((SLPHandle)handle,
-                                                msg->body.srvtyperply.srvtypelist,
-                                                msg->body.srvtyperply.errorcode * -1,
-                                                handle->params.findsrvtypes.cookie);
+	if(msg->header.functionid != SLP_FUNCT_SRVTYPERPLY)
+	{
+		return 1;
+	}
+
+	if(msg->body.srvtyperply.errorcode == 0)
+	{
+		if(msg->body.srvtyperply.srvtypelistlen == 0)
+		{
+			/* Skip blank replies */
+			return 1; 
+		}
+
+		/* TRICKY: null terminate the srvtypelist, an extra byte
+		   is already allocated in the receive buffer */
+		*((char*)(msg->body.srvtyperply.srvtypelist) + msg->body.srvtyperply.srvtypelistlen) = 0; 
+	}
+
+	return handle->params.findsrvtypes.callback((SLPHandle)handle,
+												msg->body.srvtyperply.srvtypelist,
+												msg->body.srvtyperply.errorcode * -1,
+												handle->params.findsrvtypes.cookie);
 }
 
 /*-------------------------------------------------------------------------*/
 SLPError ProcessSrvTypeRqst(PSLPHandleInfo handle)
 /*-------------------------------------------------------------------------*/
 {
-    int                 sock;
-    struct sockaddr_in  peeraddr;
-    int                 bufsize     = 0;
-    char*               buf         = 0;
-    char*               curpos      = 0;
-    SLPError            result      = 0;
-    
-    /*-------------------------------------------------------------------*/
-    /* determine the size of the fixed portion of the SRVTYPERQST            */
-    /*-------------------------------------------------------------------*/
-    bufsize  = handle->params.findsrvtypes.namingauthlen + 2;   /*  2 bytes for len field */
-    bufsize += handle->params.findsrvtypes.scopelistlen + 2; /*  2 bytes for len field */
-    
-    /* TODO: make sure that we don't exceed the MTU */
-    buf = curpos = (char*)malloc(bufsize);
-    if(buf == 0)
-    {
-        result = SLP_MEMORY_ALLOC_FAILED;
-        goto FINISHED;
-    }
-    
-    /*----------------------------------------------------------------*/
-    /* Build a buffer containing the fixed portion of the SRVTYPERQST */
-    /*----------------------------------------------------------------*/
-    /* naming authority */
-    if (strcmp(handle->params.findsrvtypes.namingauth, "*") == 0)
-    {
-        ToUINT16(curpos,0xffff); /* 0xffff indicates all service types */
-        curpos += 2;
-	bufsize--;		/* '*' is not put on the wire */
-    } else
-    {
-	ToUINT16(curpos,handle->params.findsrvtypes.namingauthlen);
-	curpos += 2;
+	int                 sock;
+	struct sockaddr_in  peeraddr;
+	int                 bufsize     = 0;
+	char*               buf         = 0;
+	char*               curpos      = 0;
+	SLPError            result      = 0;
+
+	/*-------------------------------------------------------------------*/
+	/* determine the size of the fixed portion of the SRVTYPERQST            */
+	/*-------------------------------------------------------------------*/
+	bufsize  = handle->params.findsrvtypes.namingauthlen + 2;	/*  2 bytes for len field */
+	bufsize += handle->params.findsrvtypes.scopelistlen + 2; /*  2 bytes for len field */
+
+	/* TODO: make sure that we don't exceed the MTU */
+	buf = curpos = (char*)malloc(bufsize);
+	if(buf == 0)
+	{
+		result = SLP_MEMORY_ALLOC_FAILED;
+		goto FINISHED;
+	}
+
+	/*----------------------------------------------------------------*/
+	/* Build a buffer containing the fixed portion of the SRVTYPERQST */
+	/*----------------------------------------------------------------*/
+	/* naming authority */
+	if(strcmp(handle->params.findsrvtypes.namingauth, "*") == 0)
+	{
+		ToUINT16(curpos,0xffff); /* 0xffff indicates all service types */
+		curpos += 2;
+		bufsize--;		/* '*' is not put on the wire */
+	}
+	else
+	{
+		ToUINT16(curpos,handle->params.findsrvtypes.namingauthlen);
+		curpos += 2;
+		memcpy(curpos,
+			   handle->params.findsrvtypes.namingauth,
+			   handle->params.findsrvtypes.namingauthlen);
+		curpos += handle->params.findsrvtypes.namingauthlen;
+	}
+	/* scope list */
+	ToUINT16(curpos,handle->params.findsrvtypes.scopelistlen);
+	curpos = curpos + 2;
 	memcpy(curpos,
-	       handle->params.findsrvtypes.namingauth,
-	       handle->params.findsrvtypes.namingauthlen);
-	curpos += handle->params.findsrvtypes.namingauthlen;
-    }
-    /* scope list */
-    ToUINT16(curpos,handle->params.findsrvtypes.scopelistlen);
-    curpos = curpos + 2;
-    memcpy(curpos,
-           handle->params.findsrvtypes.scopelist,
-           handle->params.findsrvtypes.scopelistlen);
-    curpos = curpos + handle->params.findsrvtypes.scopelistlen;
-    
-    
-    /*--------------------------*/
-    /* Call the RqstRply engine */
-    /*--------------------------*/
-    do
-    {
-        sock = NetworkConnectToDA(handle,
-                                  handle->params.findsrvtypes.scopelist,
-                                  handle->params.findsrvtypes.scopelistlen,
-                                  &peeraddr);
-        if(sock == -1)
-        {
-            /* use multicast as a last resort */
-            sock = NetworkConnectToMulticast(&peeraddr);
-            result = NetworkRqstRply(sock,
-                                 &peeraddr,
-                                 handle->langtag,
-                                 buf,
-                                 SLP_FUNCT_SRVTYPERQST,
-                                 bufsize,
-                                 CallbackSrvTypeRqst,
-                                 handle);
-            close(sock);
-            break;
-        }
+		   handle->params.findsrvtypes.scopelist,
+		   handle->params.findsrvtypes.scopelistlen);
+	curpos = curpos + handle->params.findsrvtypes.scopelistlen;
 
-        result = NetworkRqstRply(sock,
-                                 &peeraddr,
-                                 handle->langtag,
-                                 buf,
-                                 SLP_FUNCT_SRVTYPERQST,
-                                 bufsize,
-                                 CallbackSrvTypeRqst,
-                                 handle);
-        if(result)
-        {
-            NetworkDisconnectDA(handle);
-        }
 
-    }while(result == SLP_NETWORK_ERROR);
+	/*--------------------------*/
+	/* Call the RqstRply engine */
+	/*--------------------------*/
+	do
+	{
+		sock = NetworkConnectToDA(handle,
+								  handle->params.findsrvtypes.scopelist,
+								  handle->params.findsrvtypes.scopelistlen,
+								  &peeraddr);
+		if(sock == -1)
+		{
+			/* use multicast as a last resort */
+			sock = NetworkConnectToMulticast(&peeraddr);
+			result = NetworkRqstRply(sock,
+									 &peeraddr,
+									 handle->langtag,
+									 buf,
+									 SLP_FUNCT_SRVTYPERQST,
+									 bufsize,
+									 CallbackSrvTypeRqst,
+									 handle);
+			close(sock);
+			break;
+		}
 
-    
-    FINISHED:
-    if(buf) free(buf);
+		result = NetworkRqstRply(sock,
+								 &peeraddr,
+								 handle->langtag,
+								 buf,
+								 SLP_FUNCT_SRVTYPERQST,
+								 bufsize,
+								 CallbackSrvTypeRqst,
+								 handle);
+		if(result)
+		{
+			NetworkDisconnectDA(handle);
+		}
 
-    return result;
+	}while(result == SLP_NETWORK_ERROR);
+
+
+	FINISHED:
+	if(buf)	free(buf);
+
+	return result;
 }                                   
-                                      
+
 
 /*-------------------------------------------------------------------------*/ 
 SLPError AsyncProcessSrvTypeRqst(PSLPHandleInfo handle)
 /*-------------------------------------------------------------------------*/
 {
-    SLPError result = ProcessSrvTypeRqst(handle);
-    free((void*)handle->params.findsrvtypes.namingauth);
-    free((void*)handle->params.findsrvtypes.scopelist);
-    handle->inUse = SLP_FALSE;
-    return result;
+	SLPError result = ProcessSrvTypeRqst(handle);
+	free((void*)handle->params.findsrvtypes.namingauth);
+	free((void*)handle->params.findsrvtypes.scopelist);
+	handle->inUse = SLP_FALSE;
+	return result;
 }
 
 /*=========================================================================*/
 SLPError SLPFindSrvTypes(SLPHandle    hSLP,
-                         const char  *pcNamingAuthority,
-                         const char  *pcScopeList,
-                         SLPSrvTypeCallback callback,
-                         void *pvCookie)
+						 const char  *pcNamingAuthority,
+						 const char  *pcScopeList,
+						 SLPSrvTypeCallback callback,
+						 void *pvCookie)
 /*                                                                         */
 /* Issue the query for service types on the language specific SLPHandle    */
 /* and return the results through the callback.  The parameters determine  */
@@ -233,91 +234,91 @@ SLPError SLPFindSrvTypes(SLPHandle    hSLP,
 /*                                                                         */
 /*=========================================================================*/
 {
-    PSLPHandleInfo      handle;
-    SLPError            result;
+	PSLPHandleInfo      handle;
+	SLPError            result;
 
-    /*------------------------------*/
-    /* check for invalid parameters */
-    /*------------------------------*/
-    if( hSLP == 0 ||
-        *(unsigned int*)hSLP != SLP_HANDLE_SIG ||
-        !pcNamingAuthority ||
-        strcmp(pcNamingAuthority, "IANA") == 0 ||
-        callback == 0) 
-    {
-        return SLP_PARAMETER_BAD;
-    }
+	/*------------------------------*/
+	/* check for invalid parameters */
+	/*------------------------------*/
+	if(hSLP == 0 ||
+	   *(unsigned int*)hSLP != SLP_HANDLE_SIG ||
+	   !pcNamingAuthority ||
+	   strcmp(pcNamingAuthority, "IANA") == 0 ||
+	   callback == 0)
+	{
+		return SLP_PARAMETER_BAD;
+	}
 
-    /*-----------------------------------------*/
-    /* cast the SLPHandle into a SLPHandleInfo */
-    /*-----------------------------------------*/
-    handle = (PSLPHandleInfo)hSLP; 
+	/*-----------------------------------------*/
+	/* cast the SLPHandle into a SLPHandleInfo */
+	/*-----------------------------------------*/
+	handle = (PSLPHandleInfo)hSLP; 
 
-    /*-----------------------------------------*/
-    /* Check to see if the handle is in use    */
-    /*-----------------------------------------*/
-    if(handle->inUse == SLP_TRUE)
-    {
-        return SLP_HANDLE_IN_USE;
-    }
-    handle->inUse = SLP_TRUE;
+	/*-----------------------------------------*/
+	/* Check to see if the handle is in use    */
+	/*-----------------------------------------*/
+	if(handle->inUse == SLP_TRUE)
+	{
+		return SLP_HANDLE_IN_USE;
+	}
+	handle->inUse = SLP_TRUE;
 
-    /*-------------------------------------------*/
-    /* Set the handle up to reference parameters */
-    /*-------------------------------------------*/
-    handle->params.findsrvtypes.namingauthlen = strlen(pcNamingAuthority);
-    handle->params.findsrvtypes.namingauth = pcNamingAuthority;
-    if(pcScopeList && *pcScopeList)
-    {   
-        handle->params.findsrvtypes.scopelist = pcScopeList;
-    }
-    else
-    {
-        handle->params.findsrvtypes.scopelist =
-                        SLPGetProperty("net.slp.useScopes"); 
-    }
-    handle->params.findsrvtypes.scopelistlen =
+	/*-------------------------------------------*/
+	/* Set the handle up to reference parameters */
+	/*-------------------------------------------*/
+	handle->params.findsrvtypes.namingauthlen = strlen(pcNamingAuthority);
+	handle->params.findsrvtypes.namingauth = pcNamingAuthority;
+	if(pcScopeList && *pcScopeList)
+	{
+		handle->params.findsrvtypes.scopelist = pcScopeList;
+	}
+	else
+	{
+		handle->params.findsrvtypes.scopelist =
+		SLPGetProperty("net.slp.useScopes"); 
+	}
+	handle->params.findsrvtypes.scopelistlen =
 	strlen(handle->params.findsrvtypes.scopelist); 
-    handle->params.findsrvtypes.callback     = callback;
-    handle->params.findsrvtypes.cookie       = pvCookie; 
+	handle->params.findsrvtypes.callback     = callback;
+	handle->params.findsrvtypes.cookie       = pvCookie; 
 
-    /*----------------------------------------------*/
-    /* Check to see if we should be async or sync   */
-    /*----------------------------------------------*/
-    if(handle->isAsync)
-    {
-        /* COPY all the referenced parameters */
-        handle->params.findsrvtypes.namingauth = strdup(handle->params.findsrvtypes.namingauth);
-        handle->params.findsrvtypes.scopelist = strdup(handle->params.findsrvtypes.scopelist);
-        
-        /* make sure strdups did not fail */
-        if(handle->params.findsrvtypes.namingauth &&
-           handle->params.findsrvtypes.scopelist)
-        {
-            result = ThreadCreate((ThreadStartProc)AsyncProcessSrvTypeRqst,handle);
-        }
-        else
-        {
-            result = SLP_MEMORY_ALLOC_FAILED;    
-        }
-    
-        if(result)
-        {
-            if(handle->params.findsrvtypes.namingauth) free((void*)handle->params.findsrvtypes.namingauth);
-            if(handle->params.findsrvtypes.scopelist) free((void*)handle->params.findsrvtypes.scopelist);
-            handle->inUse = SLP_FALSE;
-        }
-    }
-    else
-    {
-        /* Leave all parameters REFERENCED */
-        
-        result = ProcessSrvTypeRqst(handle);
-        
-        handle->inUse = SLP_FALSE;
-    }
+	/*----------------------------------------------*/
+	/* Check to see if we should be async or sync   */
+	/*----------------------------------------------*/
+	if(handle->isAsync)
+	{
+		/* COPY all the referenced parameters */
+		handle->params.findsrvtypes.namingauth = strdup(handle->params.findsrvtypes.namingauth);
+		handle->params.findsrvtypes.scopelist = strdup(handle->params.findsrvtypes.scopelist);
 
-    return result;
+		/* make sure strdups did not fail */
+		if(handle->params.findsrvtypes.namingauth &&
+		   handle->params.findsrvtypes.scopelist)
+		{
+			result = ThreadCreate((ThreadStartProc)AsyncProcessSrvTypeRqst,handle);
+		}
+		else
+		{
+			result = SLP_MEMORY_ALLOC_FAILED;    
+		}
+
+		if(result)
+		{
+			if(handle->params.findsrvtypes.namingauth) free((void*)handle->params.findsrvtypes.namingauth);
+			if(handle->params.findsrvtypes.scopelist) free((void*)handle->params.findsrvtypes.scopelist);
+			handle->inUse = SLP_FALSE;
+		}
+	}
+	else
+	{
+		/* Leave all parameters REFERENCED */
+
+		result = ProcessSrvTypeRqst(handle);
+
+		handle->inUse = SLP_FALSE;
+	}
+
+	return result;
 }
 
 

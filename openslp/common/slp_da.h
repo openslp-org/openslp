@@ -46,44 +46,44 @@
 /***************************************************************************/
 
 #if(!defined SLP_DA_H_INCLUDED)
-#define SLP_DA_H_INCLUDED
+	#define SLP_DA_H_INCLUDED
 
-#ifdef WIN32
-#include <windows.h>
-#include <io.h>
-#else
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <netinet/in.h>
-#endif
+	#ifdef WIN32
+		#include <windows.h>
+		#include <io.h>
+	#else
+		#include <stdio.h>
+		#include <stdlib.h>
+		#include <unistd.h>
+		#include <netinet/in.h>
+	#endif
 
-#include <slp_linkedlist.h>
+	#include <slp_linkedlist.h>
 
 
 /*=========================================================================*/
 typedef struct _SLPDAEntry
 /*=========================================================================*/
 {
-    SLPListItem     listitem;
-    struct in_addr  daaddr;
-    unsigned int    bootstamp;
-    int             langtaglen;
-    const char*     langtag;
-    int             urllen;
-    const char*     url;
-    int             scopelistlen;
-    const char*     scopelist;
-    int             attrlistlen;
-    const char*     attrlist;
-    int             spilistlen;
-    const char*     spilist;
+	SLPListItem     listitem;
+	struct in_addr  daaddr;
+	unsigned int    bootstamp;
+	int             langtaglen;
+	const char*     langtag;
+	int             urllen;
+	const char*     url;
+	int             scopelistlen;
+	const char*     scopelist;
+	int             attrlistlen;
+	const char*     attrlist;
+	int             spilistlen;
+	const char*     spilist;
 }SLPDAEntry;
 
 
 /*=========================================================================*/
 SLPDAEntry* SLPDAEntryCreate(struct in_addr* addr,
-                             const SLPDAEntry* daentry);
+							 const SLPDAEntry* daentry);
 /* Creates a SLPDAEntry                                                    */
 /*                                                                         */
 /* addr     (IN) pointer to in_addr of the DA to create                    */

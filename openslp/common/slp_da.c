@@ -50,7 +50,7 @@
 
 /*=========================================================================*/
 SLPDAEntry* SLPDAEntryCreate(struct in_addr* addr,
-                             const SLPDAEntry* daentry)
+							 const SLPDAEntry* daentry)
 /* Creates a SLPDAEntry                                                    */
 /*                                                                         */
 /* addr     (IN) pointer to in_addr of the DA to create                    */
@@ -61,44 +61,44 @@ SLPDAEntry* SLPDAEntryCreate(struct in_addr* addr,
 /* returns  Pointer to the created SLPDAEntry.  Must be freed by caller.   */
 /*=========================================================================*/
 {
-    SLPDAEntry* entry;
-    char*       curpos;
-    size_t      size;
+	SLPDAEntry* entry;
+	char*       curpos;
+	size_t      size;
 
-    size = sizeof(SLPDAEntry);
-    size += daentry->langtaglen;
-    size += daentry->urllen;
-    size += daentry->scopelistlen;
-    size += daentry->attrlistlen;
-    size += daentry->spilistlen;
+	size = sizeof(SLPDAEntry);
+	size += daentry->langtaglen;
+	size += daentry->urllen;
+	size += daentry->scopelistlen;
+	size += daentry->attrlistlen;
+	size += daentry->spilistlen;
 
-    entry = (SLPDAEntry*)malloc(size);
-    if(entry == 0) return 0;
-    
-    entry->daaddr = *addr;
-    entry->bootstamp = daentry->bootstamp;
-    entry->langtaglen = daentry->langtaglen;
-    entry->urllen = daentry->urllen;
-    entry->scopelistlen = daentry->scopelistlen;
-    entry->attrlistlen = daentry->attrlistlen;
-    entry->spilistlen = daentry->spilistlen;
-    curpos = (char*)(entry + 1);
-    memcpy(curpos,daentry->langtag,daentry->langtaglen);
-    entry->langtag = curpos;
-    curpos = curpos + daentry->langtaglen; 
-    memcpy(curpos,daentry->url,daentry->urllen);
-    entry->url = curpos;
-    curpos = curpos + daentry->urllen;
-    memcpy(curpos,daentry->scopelist,daentry->scopelistlen);
-    entry->scopelist = curpos;
-    curpos = curpos + daentry->scopelistlen;
-    memcpy(curpos,daentry->attrlist,daentry->attrlistlen);
-    entry->attrlist = curpos;
-    curpos = curpos + daentry->attrlistlen;
-    memcpy(curpos,daentry->spilist,daentry->spilistlen);
-    entry->spilist = curpos;
-    
-    return entry;
+	entry = (SLPDAEntry*)malloc(size);
+	if(entry == 0) return 0;
+
+	entry->daaddr = *addr;
+	entry->bootstamp = daentry->bootstamp;
+	entry->langtaglen = daentry->langtaglen;
+	entry->urllen = daentry->urllen;
+	entry->scopelistlen = daentry->scopelistlen;
+	entry->attrlistlen = daentry->attrlistlen;
+	entry->spilistlen = daentry->spilistlen;
+	curpos = (char*)(entry + 1);
+	memcpy(curpos,daentry->langtag,daentry->langtaglen);
+	entry->langtag = curpos;
+	curpos = curpos + daentry->langtaglen; 
+	memcpy(curpos,daentry->url,daentry->urllen);
+	entry->url = curpos;
+	curpos = curpos + daentry->urllen;
+	memcpy(curpos,daentry->scopelist,daentry->scopelistlen);
+	entry->scopelist = curpos;
+	curpos = curpos + daentry->scopelistlen;
+	memcpy(curpos,daentry->attrlist,daentry->attrlistlen);
+	entry->attrlist = curpos;
+	curpos = curpos + daentry->attrlistlen;
+	memcpy(curpos,daentry->spilist,daentry->spilistlen);
+	entry->spilist = curpos;
+
+	return entry;
 }
 
 /*=========================================================================*/
@@ -110,9 +110,9 @@ void SLPDAEntryFree(SLPDAEntry* entry)
 /* returns  none                                                           */
 /*=========================================================================*/
 {
-    if(entry)
-    {
-        free(entry);
-    }
+	if(entry)
+	{
+		free(entry);
+	}
 }
 

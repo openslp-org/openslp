@@ -47,24 +47,24 @@
 /***************************************************************************/
 
 #if(!defined SLP_V1MESSAGE_H_INCLUDED)
-#define SLP_V1MESSAGE_H_INCLUDED
+	#define SLP_V1MESSAGE_H_INCLUDED
 
 /*=========================================================================*/
 /* SLP language encodings for SLPv1 compatibility                          */
 /*=========================================================================*/
-#define SLP_CHAR_ASCII          3
-#define SLP_CHAR_UTF8           106
-#define SLP_CHAR_UNICODE16      1000
-#define SLP_CHAR_UNICODE32      1001
+	#define SLP_CHAR_ASCII          3
+	#define SLP_CHAR_UTF8           106
+	#define SLP_CHAR_UNICODE16      1000
+	#define SLP_CHAR_UNICODE32      1001
 
 /*=========================================================================*/
 /* SLPv1 Flags                                                             */
 /*=========================================================================*/
-#define SLPv1_FLAG_OVERFLOW         0x80
-#define SLPv1_FLAG_MONOLING         0x40
-#define SLPv1_FLAG_URLAUTH          0x20
-#define SLPv1_FLAG_ATTRAUTH         0x10
-#define SLPv1_FLAG_FRESH            0x08
+	#define SLPv1_FLAG_OVERFLOW         0x80
+	#define SLPv1_FLAG_MONOLING         0x40
+	#define SLPv1_FLAG_URLAUTH          0x20
+	#define SLPv1_FLAG_ATTRAUTH         0x10
+	#define SLPv1_FLAG_FRESH            0x08
 
 /*=========================================================================*/
 /* Prototypes for SLPv1 functions                                          */
@@ -73,7 +73,7 @@
 extern int v1ParseHeader(SLPBuffer buffer, SLPHeader* header);
 
 extern int SLPv1MessageParseBuffer(SLPBuffer buffer, SLPHeader *header,
-				   SLPMessage message);
+								   SLPMessage message);
 
 extern int SLPv1AsUTF8(int encoding, char *string, int *len);
 

@@ -49,44 +49,45 @@
 /***************************************************************************/
 
 #if(!defined SLP_BUFFER_H_INCLUDED)
-#define SLP_BUFFER_H_INCLUDED
+	#define SLP_BUFFER_H_INCLUDED
 
-#include <stdlib.h>
+	#include <stdlib.h>
 
-#include <slp_linkedlist.h>
+	#include <slp_linkedlist.h>
 
-#ifdef DEBUG
+	#ifdef DEBUG
 extern int G_Debug_SLPBufferAllocCount;
 extern int G_Debug_SLPBufferFreeCount;
-#endif
+	#endif
+
 
 
 /*=========================================================================*/
 typedef struct _SLPBuffer                                                  
 /*=========================================================================*/
 {
-    SLPListItem listitem;
-    /* SLPListItem so that SLPBuffers can be linked into a list*/
-    
-    /* the allocated size of this buffer (the actual malloc'd size is
-       one byte more than this to null terminate C strings) */
-    size_t  allocated;
+	SLPListItem listitem;
+	/* SLPListItem so that SLPBuffers can be linked into a list*/
 
-    unsigned char*   start;  
-    /* ALWAYS points to the start of the malloc() buffer  */
+	/* the allocated size of this buffer (the actual malloc'd size is
+	   one byte more than this to null terminate C strings) */
+	size_t  allocated;
 
-    unsigned char*   curpos;
-    /* "slider" pointer.  Range is ALWAYS (start < curpos < end) */
+	unsigned char*   start;  
+	/* ALWAYS points to the start of the malloc() buffer  */
 
-    unsigned char*   end;
-    /* ALWAYS set to point to the byte after the last meaningful byte */
-    /* Data beyond this index may not be valid */
+	unsigned char*   curpos;
+	/* "slider" pointer.  Range is ALWAYS (start < curpos < end) */
+
+	unsigned char*   end;
+	/* ALWAYS set to point to the byte after the last meaningful byte */
+	/* Data beyond this index may not be valid */
 }*SLPBuffer;   
-                                  
+
 
 /*=========================================================================*/
-SLPBuffer SLPBufferAlloc(size_t size);
-/* Must be called to initially allocate a SLPBuffer                        */ 
+SLPBuffer SLPBufferAlloc(size_t size); 
+/* Must be called to initially allocate a SLPBuffer                        */
 /*                                                                         */
 /* size     - (IN) number of bytes to allocate                             */
 /*                                                                         */
@@ -97,8 +98,8 @@ SLPBuffer SLPBufferAlloc(size_t size);
 
 
 /*=========================================================================*/
-SLPBuffer SLPBufferRealloc(SLPBuffer buf, size_t size);
-/* Must be called to initially allocate a SLPBuffer                        */ 
+SLPBuffer SLPBufferRealloc(SLPBuffer buf, size_t size); 
+/* Must be called to initially allocate a SLPBuffer                        */
 /*                                                                         */
 /* size     - (IN) number of bytes to allocate                             */
 /*                                                                         */

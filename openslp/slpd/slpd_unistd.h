@@ -65,12 +65,12 @@
 #include <ctype.h>
 
 #ifdef LINUX
-#include <net/if.h> 
-#include <sys/ioctl.h>
+	#include <net/if.h> 
+	#include <sys/ioctl.h>
 #endif
 
 #if(!defined MAX_PATH)
-#define MAX_PATH    256
+	#define MAX_PATH    256
 #endif
 
 /* we do a kind of abstraction layer for socket descriptors, since on NT

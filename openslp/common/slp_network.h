@@ -48,34 +48,34 @@
 /***************************************************************************/
 
 #if(!defined SLP_NETWORK_H_INCLUDED)
-#define SLP_NETWORK_H_INCLUDED
+	#define SLP_NETWORK_H_INCLUDED
 
-#ifdef WIN32
-#include <windows.h>
-#include <io.h>
-#include <errno.h>
-#else
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <sys/socket.h>
-#include <sys/time.h>
-#include <netinet/in.h>
-#include <arpa/inet.h> 
-#include <netdb.h> 
-#include <fcntl.h> 
-#include <errno.h>
-#endif
+	#ifdef WIN32
+		#include <windows.h>
+		#include <io.h>
+		#include <errno.h>
+	#else
+		#include <stdlib.h>
+		#include <unistd.h>
+		#include <string.h>
+		#include <sys/socket.h>
+		#include <sys/time.h>
+		#include <netinet/in.h>
+		#include <arpa/inet.h> 
+		#include <netdb.h> 
+		#include <fcntl.h> 
+		#include <errno.h>
+	#endif
 
-#include <slp_buffer.h>
-#include <slp_property.h>
-#include <slp_message.h>
-#include <slp_xid.h>
+	#include <slp_buffer.h>
+	#include <slp_property.h>
+	#include <slp_message.h>
+	#include <slp_xid.h>
 
 
 /*=========================================================================*/ 
 int SLPNetworkConnectStream(struct sockaddr_in* peeraddr,
-                            struct timeval* timeout);
+							struct timeval* timeout);  
 /* Connect a TCP stream to the specified peer                              */
 /*                                                                         */
 /* peeraddr (IN) pointer to the peer to connect to                         */
@@ -83,11 +83,11 @@ int SLPNetworkConnectStream(struct sockaddr_in* peeraddr,
 /* timeout  (IN) pointer to the maximum time to spend connecting           */
 /*                                                                         */
 /* returns: a connected socket or -1                                       */
-/*=========================================================================*/ 
+/*=========================================================================*/
 
 
-/*=========================================================================*/ 
-int SLPNetworkConnectToMulticast(struct sockaddr_in* peeraddr, int ttl);
+/*=========================================================================*/
+int SLPNetworkConnectToMulticast(struct sockaddr_in* peeraddr, int ttl); 
 /* Creates a socket and provides a peeraddr to send to                     */
 /*                                                                         */
 /* peeraddr         (OUT) pointer to receive the connected DA's address    */
@@ -98,11 +98,11 @@ int SLPNetworkConnectToMulticast(struct sockaddr_in* peeraddr, int ttl);
 /*=========================================================================*/
 
 
-/*=========================================================================*/ 
-int SLPNetworkConnectToBroadcast(struct sockaddr_in* peeraddr);
+/*=========================================================================*/
+int SLPNetworkConnectToBroadcast(struct sockaddr_in* peeraddr);                                                        
 /* Creates a socket and provides a peeraddr to send to                     */
 /*                                                                         */
-/* peeraddr         (OUT) pointer to receive the connected DA's address    */                                                       
+/* peeraddr         (OUT) pointer to receive the connected DA's address    */
 /*                                                                         */
 /* peeraddrlen      (IN/OUT) Size of the peeraddr structure                */
 /*                                                                         */
@@ -110,27 +110,27 @@ int SLPNetworkConnectToBroadcast(struct sockaddr_in* peeraddr);
 /*=========================================================================*/
 
 
-/*=========================================================================*/ 
+/*=========================================================================*/
 int SLPNetworkSendMessage(int sockfd,
-                          int socktype,
-                          SLPBuffer buf,
-                          struct sockaddr_in* peeraddr,
-                          struct timeval* timeout);
+						  int socktype,
+						  SLPBuffer buf,
+						  struct sockaddr_in* peeraddr,
+						  struct timeval* timeout);  
 /* Sends a message                                                         */
 /*                                                                         */
 /* Returns  -  zero on success non-zero on failure                         */
 /*                                                                         */
 /* errno         EPIPE error during write                                  */
 /*               ETIME read timed out                                      */
-/*=========================================================================*/ 
+/*=========================================================================*/
 
 
-/*=========================================================================*/ 
+/*=========================================================================*/
 int SLPNetworkRecvMessage(int sockfd,
-                          int socktype,
-                          SLPBuffer* buf,
-                          struct sockaddr_in* peeraddr,
-                          struct timeval* timeout);
+						  int socktype,
+						  SLPBuffer* buf,
+						  struct sockaddr_in* peeraddr,
+						  struct timeval* timeout); 
 /* Receives a message                                                      */
 /*                                                                         */
 /* Returns  -    zero on success, non-zero on failure                      */
@@ -139,6 +139,6 @@ int SLPNetworkRecvMessage(int sockfd,
 /*               ETIME read timed out                                      */
 /*               ENOMEM out of memory                                      */
 /*               EINVAL parse error                                        */
-/*=========================================================================*/ 
+/*=========================================================================*/
 
 #endif

@@ -55,53 +55,53 @@
 char* TrimWhitespace(char* str)
 /*-------------------------------------------------------------------------*/
 {
-    char* end;
+	char* end;
 
-    end=str+strlen(str)-1;
+	end=str+strlen(str)-1;
 
-    while(*str && *str <= 0x20)
-    {
-        str++;
-    }
+	while(*str && *str <= 0x20)
+	{
+		str++;
+	}
 
-    while(end >= str)
-    {
-        if(*end > 0x20)
-        {
-            break;
-        }
-        
-        *end = 0;
+	while(end >= str)
+	{
+		if(*end > 0x20)
+		{
+			break;
+		}
 
-        end--;
-    }
-    
-    return str;
+		*end = 0;
+
+		end--;
+	}
+
+	return str;
 }
 
 /*-------------------------------------------------------------------------*/
 char* RegFileReadLine(FILE* fd, char* line, int linesize)
 /*-------------------------------------------------------------------------*/
 {
-    while(1)
-    {
-        if(fgets(line,linesize,fd) == 0)
-        {
-            return 0;
-        }
-        if(*line == 0x0d || *line == 0x0a)
-        {
-            break;    
-        }
-        while(*line && *line <= 0x20) line++;
+	while(1)
+	{
+		if(fgets(line,linesize,fd) == 0)
+		{
+			return 0;
+		}
+		if(*line == 0x0d || *line == 0x0a)
+		{
+			break;    
+		}
+		while(*line && *line <= 0x20) line++;
 
-        if(*line != 0 && *line != '#' && *line != ';')
-        {
-            break;
-        }
-    }
+		if(*line != 0 && *line != '#' && *line != ';')
+		{
+			break;
+		}
+	}
 
-    return line;
+	return line;
 }
 
 /*=========================================================================*/
@@ -118,196 +118,198 @@ SLPDDatabaseEntry* SLPDRegFileReadEntry(FILE* fd, SLPDDatabaseEntry** entry)
 /* Returns  *entry or null on error.                                       */
 /*=========================================================================*/
 {
-    char*   slider1;
-    char*   slider2;
-    char    line[4096];
+	char*   slider1;
+	char*   slider2;
+	char    line[4096];
 
-    /* give the out param a value */
-    *entry = 0;
+	/* give the out param a value */
+	*entry = 0;
 
-    /*----------------------------------------------------------*/
-    /* read the next non-white non-comment line from the stream */
-    /*----------------------------------------------------------*/
-    do
-    {
-        slider1 = RegFileReadLine(fd,line,4096);
-        if(slider1 == 0)
-        {
-            /* read through the whole file and found no entries */
-            return 0;
-        }
-    }while(*slider1 == 0x0d ||  *slider1 == 0x0a);
+	/*----------------------------------------------------------*/
+	/* read the next non-white non-comment line from the stream */
+	/*----------------------------------------------------------*/
+	do
+	{
+		slider1 = RegFileReadLine(fd,line,4096);
+		if(slider1 == 0)
+		{
+			/* read through the whole file and found no entries */
+			return 0;
+		}
+	}while(*slider1 == 0x0d ||  *slider1 == 0x0a);
 
-    /*---------------------------*/
-    /* Allocate a database entry */
-    /*---------------------------*/
-    *entry = SLPDDatabaseEntryAlloc();
-    if(entry == 0)
-    {
-        SLPFatal("Out of memory!\n");
-        return 0;
-    }
+	/*---------------------------*/
+	/* Allocate a database entry */
+	/*---------------------------*/
+	*entry = SLPDDatabaseEntryAlloc();
+	if(entry == 0)
+	{
+		SLPFatal("Out of memory!\n");
+		return 0;
+	}
 
-    /* entries read from the .reg file are always local */
-    (*entry)->islocal = 1;
+	/* entries read from the .reg file are always local */
+	(*entry)->islocal = 1;
 
-    /*---------------------*/
-    /* Parse the url-props */
-    /*---------------------*/
-    slider2 = strchr(slider1,',');
-    if(slider2) 
-    {
-        /* srvurl */
-        *slider2 = 0; /* squash comma to null terminate srvurl */
-        (*entry)->url = strdup(TrimWhitespace(slider1));
-        if((*entry)->url == 0)
-        {
-            SLPLog("Out of memory reading srvurl from regfile line ->%s",line);
-            goto SLPD_ERROR;
-        }
-        (*entry)->urllen = strlen((*entry)->url);
-        
-        /* derive srvtype from srvurl */
-        (*entry)->srvtype = strstr(slider1,"://");
-        if((*entry)->srvtype == 0)
-        {
-            SLPLog("Looks like a bad url on regfile line ->%s",line);
-            goto SLPD_ERROR;   
-        }
-        *(*entry)->srvtype = 0;
-        (*entry)->srvtype=strdup(TrimWhitespace(slider1));
-        (*entry)->srvtypelen = strlen((*entry)->srvtype);
-        slider1 = slider2 + 1;
+	/*---------------------*/
+	/* Parse the url-props */
+	/*---------------------*/
+	slider2 = strchr(slider1,',');
+	if(slider2)
+	{
+		/* srvurl */
+		*slider2 = 0; /* squash comma to null terminate srvurl */
+		(*entry)->url = strdup(TrimWhitespace(slider1));
+		if((*entry)->url == 0)
+		{
+			SLPLog("Out of memory reading srvurl from regfile line ->%s",line);
+			goto SLPD_ERROR;
+		}
+		(*entry)->urllen = strlen((*entry)->url);
 
-        /*lang*/
-        slider2 = strchr(slider1,',');
-        if(slider2)
-        {
-            *slider2 = 0; /* squash comma to null terminate lang */
-            (*entry)->langtag = strdup(TrimWhitespace(slider1)); 
-            if((*entry)->langtag == 0)
-            {
-                SLPLog("Out of memory reading langtag from regfile line ->%s",line);
-                goto SLPD_ERROR;
-            }            (*entry)->langtaglen = strlen((*entry)->langtag);     
-            slider1 = slider2 + 1;                                  
-        }
-        else
-        {
-            SLPLog("Expected language tag near regfile line ->%s\n",line);
-            goto SLPD_ERROR;
-        }
-             
-        /* ltime */
-        slider2 = strchr(slider1,',');
-        if(slider2)                      
-        {
-            *slider2 = 0; /* squash comma to null terminate ltime */
-            (*entry)->lifetime = atoi(slider1);
-            slider1 = slider2 + 1;
-        }                                  
-        else
-        {
-            (*entry)->lifetime = atoi(slider1);
-            slider1 = slider2;
-        }
-        if((*entry)->lifetime < 1 || (*entry)->lifetime > 0xffff)
-        {
-            SLPLog("Invalid lifetime near regfile line ->%s\n",line);
-            goto SLPD_ERROR;
-        }
-        
-        /* get the srvtype if one was not derived by the srvurl*/
-        if((*entry)->srvtype == 0)
-        {
-            (*entry)->srvtype = strdup(TrimWhitespace(slider1));
-            if((*entry)->srvtype == 0)
-            {
-                SLPLog("Out of memory reading srvtype from regfile line ->%s",line);
-                goto SLPD_ERROR;
-            }
-            (*entry)->srvtypelen = strlen((*entry)->srvtype);
-            if((*entry)->srvtypelen == 0)
-            {
-                SLPLog("Expected to derive service-type near regfile line -> %s\n",line);
-                goto SLPD_ERROR;
-            }
-        }   
-    }
-    else
-    {
-        SLPLog("Expected to find srv-url near regfile line -> %s\n",line);
-        goto SLPD_ERROR;
-    }
-    
-    /*-------------------------------------------------*/
-    /* Read all the attributes including the scopelist */
-    /*-------------------------------------------------*/
-    *line=0;
-    while(1)
-    {
-        if(RegFileReadLine(fd,line,4096) == 0)
-        {
-            break;
-        }         
-        if(*line == 0x0d || *line == 0x0a)
-        {
-            break;
-        }
+		/* derive srvtype from srvurl */
+		(*entry)->srvtype = strstr(slider1,"://");
+		if((*entry)->srvtype == 0)
+		{
+			SLPLog("Looks like a bad url on regfile line ->%s",line);
+			goto SLPD_ERROR;   
+		}
+		*(*entry)->srvtype = 0;
+		(*entry)->srvtype=strdup(TrimWhitespace(slider1));
+		(*entry)->srvtypelen = strlen((*entry)->srvtype);
+		slider1 = slider2 + 1;
 
-        /* Check to see if it is the scopes line */
+		/*lang*/
+		slider2 = strchr(slider1,',');
+		if(slider2)
+		{
+			*slider2 = 0; /* squash comma to null terminate lang */
+			(*entry)->langtag = strdup(TrimWhitespace(slider1)); 
+			if((*entry)->langtag == 0)
+			{
+				SLPLog("Out of memory reading langtag from regfile line ->%s",line);
+				goto SLPD_ERROR;
+			}(*entry)->langtaglen = strlen((*entry)->langtag);     
+			slider1 = slider2 + 1;                                  
+		}
+		else
+		{
+			SLPLog("Expected language tag near regfile line ->%s\n",line);
+			goto SLPD_ERROR;
+		}
+
+		/* ltime */
+		slider2 = strchr(slider1,',');
+		if(slider2)
+		{
+			*slider2 = 0; /* squash comma to null terminate ltime */
+			(*entry)->lifetime = atoi(slider1);
+			slider1 = slider2 + 1;
+		}
+		else
+		{
+			(*entry)->lifetime = atoi(slider1);
+			slider1 = slider2;
+		}
+		if((*entry)->lifetime < 1 || (*entry)->lifetime > 0xffff)
+		{
+			SLPLog("Invalid lifetime near regfile line ->%s\n",line);
+			goto SLPD_ERROR;
+		}
+
+		/* get the srvtype if one was not derived by the srvurl*/
+		if((*entry)->srvtype == 0)
+		{
+			(*entry)->srvtype = strdup(TrimWhitespace(slider1));
+			if((*entry)->srvtype == 0)
+			{
+				SLPLog("Out of memory reading srvtype from regfile line ->%s",line);
+				goto SLPD_ERROR;
+			}
+			(*entry)->srvtypelen = strlen((*entry)->srvtype);
+			if((*entry)->srvtypelen == 0)
+			{
+				SLPLog("Expected to derive service-type near regfile line -> %s\n",line);
+				goto SLPD_ERROR;
+			}
+		}
+	}
+	else
+	{
+		SLPLog("Expected to find srv-url near regfile line -> %s\n",line);
+		goto SLPD_ERROR;
+	}
+
+	/*-------------------------------------------------*/
+	/* Read all the attributes including the scopelist */
+	/*-------------------------------------------------*/
+	*line=0;
+	while(1)
+	{
+		if(RegFileReadLine(fd,line,4096) == 0)
+		{
+			break;
+		}
+		if(*line == 0x0d || *line == 0x0a)
+		{
+			break;
+		}
+
+		/* Check to see if it is the scopes line */
 		/* FIXME We can collapse the scope stuff into the value getting and 
 		 * just make it a special case (do strcmp on the tag as opposed to the 
 		 * line) of attribute getting. 
 		 */
-        if(strncasecmp(line,"scopes",6) == 0)
-        {
-            /* found scopes line */
-            slider1 = line;
-            slider2 = strchr(slider1,'=');
-            if(slider2)
-            {
-                slider2++;
-                if(*slider2)
-                {
-                    /* just in case some idiot puts multiple scopes lines */
-                    if((*entry)->scopelist)
-                    {
-                        SLPLog("scopes already defined previous to regfile line ->%s",line);
-                        goto SLPD_ERROR;
-                    }
+		if(strncasecmp(line,"scopes",6) == 0)
+		{
+			/* found scopes line */
+			slider1 = line;
+			slider2 = strchr(slider1,'=');
+			if(slider2)
+			{
+				slider2++;
+				if(*slider2)
+				{
+					/* just in case some idiot puts multiple scopes lines */
+					if((*entry)->scopelist)
+					{
+						SLPLog("scopes already defined previous to regfile line ->%s",line);
+						goto SLPD_ERROR;
+					}
 
-                    (*entry)->scopelist=strdup(TrimWhitespace(slider2));
-                    if((*entry)->scopelist == 0)
-                    {
-                        SLPLog("Out of memory adding scopes from regfile line ->%s",line);
-                        goto SLPD_ERROR;
-                    }
-                    (*entry)->scopelistlen = strlen((*entry)->scopelist);
-                }
-            }
-        }
-        else
-        {
-            #ifdef USE_PREDICATES
-            char *tag; /* Will point to the start of the tag. */
+					(*entry)->scopelist=strdup(TrimWhitespace(slider2));
+					if((*entry)->scopelist == 0)
+					{
+						SLPLog("Out of memory adding scopes from regfile line ->%s",line);
+						goto SLPD_ERROR;
+					}
+					(*entry)->scopelistlen = strlen((*entry)->scopelist);
+				}
+			}
+		}
+		else
+		{
+#ifdef USE_PREDICATES
+			char *tag; /* Will point to the start of the tag. */
 			char *val; /* Will point to the start of the value. */
 			char *end;
 			char *tag_end;
 
 			tag = line;
 			/*** Elide ws. ***/
-			while (isspace(*tag)) 
+			while(isspace(*tag))
 			{
 				tag++;
 			}
 			tag_end = tag;
 
 			/*** Find tag end. ***/
-			while (*tag_end && (!isspace(*tag_end)) && (*tag_end != '=')) {
+			while(*tag_end && (!isspace(*tag_end)) && (*tag_end != '='))
+			{
 				tag_end++;
 			}
-			while (*tag_end && *tag_end != '=') {
+			while(*tag_end && *tag_end != '=')
+			{
 				tag_end++;
 			}
 			*tag_end = 0;
@@ -315,7 +317,7 @@ SLPDDatabaseEntry* SLPDRegFileReadEntry(FILE* fd, SLPDDatabaseEntry** entry)
 			/*** Find value start. ***/
 			val = tag_end + 1;
 			/*** Elide ws. ***/
-			while (isspace(*val)) 
+			while(isspace(*val))
 			{
 				val++;
 			}
@@ -324,72 +326,75 @@ SLPDDatabaseEntry* SLPDRegFileReadEntry(FILE* fd, SLPDDatabaseEntry** entry)
 			end = val;
 
 			/** Find tag end. **/
-			while (*end != 0) {
+			while(*end != 0)
+			{
 				end++;
 			}
 
 			/*** Back up over trailing whitespace. ***/
 			end--;
-			while(isspace(*end)) {
+			while(isspace(*end))
+			{
 				*end = 0; /* Overwrite ws. */
 				end--;
 			}           
-			
-            SLPAttrSet_guess((*entry)->attr, tag, val, SLP_ADD);
 
-            #else
-            
-            /* line contains an attribute (slow but it works)*/
-            /* TODO Fix this so we do not have to realloc memory each time! */
-            TrimWhitespace(line); 
-            (*entry)->attrlistlen += strlen(line) + 2;
-            
-            if((*entry)->attrlist == 0)
-            {
-                (*entry)->attrlist = malloc((*entry)->attrlistlen + 1);
-                *(*entry)->attrlist = 0;
-            }
-            else
-            {
-                (*entry)->attrlist = realloc((*entry)->attrlist,
-                                             (*entry)->attrlistlen + 2);
+			SLPAttrSet_guess((*entry)->attr, tag, val, SLP_ADD);
+
+#else
+
+
+			/* line contains an attribute (slow but it works)*/
+			/* TODO Fix this so we do not have to realloc memory each time! */
+			TrimWhitespace(line); 
+			(*entry)->attrlistlen += strlen(line) + 2;
+
+			if((*entry)->attrlist == 0)
+			{
+				(*entry)->attrlist = malloc((*entry)->attrlistlen + 1);
+				*(*entry)->attrlist = 0;
+			}
+			else
+			{
+				(*entry)->attrlist = realloc((*entry)->attrlist,
+											 (*entry)->attrlistlen + 2);
 				strcat((*entry)->attrlist,",");
-            }
-            
-            if((*entry)->attrlist == 0)
-            {
-                SLPLog("Out of memory adding DEFAULT scope\n");
-                goto SLPD_ERROR;
-            }
+			}
 
-            strcat((*entry)->attrlist,"(");
-            strcat((*entry)->attrlist,line);
-            strcat((*entry)->attrlist,")");
+			if((*entry)->attrlist == 0)
+			{
+				SLPLog("Out of memory adding DEFAULT scope\n");
+				goto SLPD_ERROR;
+			}
 
-            #endif
-        }
-    }
+			strcat((*entry)->attrlist,"(");
+			strcat((*entry)->attrlist,line);
+			strcat((*entry)->attrlist,")");
 
-    /* Set the scope set in properties if not is set */
-    if((*entry)->scopelist == 0)
-    {
-        (*entry)->scopelist=strdup(G_SlpdProperty.useScopes);
-        if((*entry)->scopelist == 0)
-        {
-            SLPLog("Out of memory adding DEFAULT scope\n");
-            goto SLPD_ERROR;
-        }
-        (*entry)->scopelistlen = G_SlpdProperty.useScopesLen;
-    }
+#endif
+		}
+	}
 
-    return *entry;
+	/* Set the scope set in properties if not is set */
+	if((*entry)->scopelist == 0)
+	{
+		(*entry)->scopelist=strdup(G_SlpdProperty.useScopes);
+		if((*entry)->scopelist == 0)
+		{
+			SLPLog("Out of memory adding DEFAULT scope\n");
+			goto SLPD_ERROR;
+		}
+		(*entry)->scopelistlen = G_SlpdProperty.useScopesLen;
+	}
 
-SLPD_ERROR:
-    if(*entry)
-    {
-        SLPDDatabaseEntryFree(*entry);
+	return *entry;
+
+	SLPD_ERROR:
+	if(*entry)
+	{
+		SLPDDatabaseEntryFree(*entry);
 		*entry = 0;
-    }
+	}
 
-    return 0;
+	return 0;
 }

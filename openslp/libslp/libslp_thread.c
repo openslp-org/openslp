@@ -61,6 +61,6 @@ SLPError ThreadCreate(ThreadStartProc startproc, void *arg)
 /* Returns      SLPError code                                              */
 /*=========================================================================*/
 {
-    return SLP_NOT_IMPLEMENTED;
+	return SLP_NOT_IMPLEMENTED;
 }
 

@@ -51,11 +51,11 @@
 /***************************************************************************/
 
 #ifdef WIN32
-#include <windows.h>
-#include <stdlib.h>
+	#include <windows.h>
+	#include <stdlib.h>
 #else
-#include <stdlib.h>
-#include <unistd.h>
+	#include <stdlib.h>
+	#include <unistd.h>
 #endif
 
 #include <slp_xid.h>
@@ -72,13 +72,13 @@ void SLPXidSeed()
 /* currently called when the first handle is opened.                       */
 /*=========================================================================*/
 {
-    /* Generate a random start*/
+	/* Generate a random start*/
 #ifdef WIN32
-   srand(GetCurrentProcessId() | G_Xid);   
-   G_Xid = (unsigned short)rand();
+	srand(GetCurrentProcessId() | G_Xid);   
+	G_Xid = (unsigned short)rand();
 #else
-    srandom(getpid() | G_Xid);   
-    G_Xid = (unsigned short)random();
+	srandom(getpid() | G_Xid);   
+	G_Xid = (unsigned short)random();
 #endif
 }
 
@@ -89,8 +89,8 @@ unsigned short SLPXidGenerate()
 /* Returns: A 16-bit value                                                 */
 /*=========================================================================*/
 {
-    G_Xid++;
-    return G_Xid;
+	G_Xid++;
+	return G_Xid;
 }
 
 

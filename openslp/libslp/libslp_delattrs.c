@@ -51,12 +51,12 @@
 
 /*=========================================================================*/
 SLPError SLPDelAttrs(SLPHandle   hSLP,
-                     const char  *pcURL,
-                     const char  *pcAttrs,
-                     SLPRegReport callback,
-                     void *pvCookie)
+					 const char  *pcURL,
+					 const char  *pcAttrs,
+					 SLPRegReport callback,
+					 void *pvCookie)
 /*========================================================================*/
 {
-    return SLP_NOT_IMPLEMENTED;
+	return SLP_NOT_IMPLEMENTED;
 }
 

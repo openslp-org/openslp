@@ -93,107 +93,107 @@ SLPError SLPOpen(const char *pcLang, SLPBoolean isAsync, SLPHandle *phSLP)
 /* Returns  SLPError code                                                  */
 /*=========================================================================*/
 {
-    SLPError        result = SLP_OK;
-    PSLPHandleInfo  handle = 0;
-    
-    /*------------------------------*/
-    /* check for invalid parameters */
-    /*------------------------------*/
-    if(phSLP == 0)
-    {
-        result =  SLP_PARAMETER_BAD;
-        goto FINISHED;
-    }
-    
-    /* assign out param to zero in just for paranoia */
-    *phSLP = 0;
-    
+	SLPError        result = SLP_OK;
+	PSLPHandleInfo  handle = 0;
 
-    /*-------------------------------------------------------*/
-    /* TODO: remove this line when you implement async calls */
-    /*-------------------------------------------------------*/
-    if(isAsync == SLP_TRUE)
-    {
-        result =  SLP_NOT_IMPLEMENTED;
-        goto FINISHED;
-    }
+	/*------------------------------*/
+	/* check for invalid parameters */
+	/*------------------------------*/
+	if(phSLP == 0)
+	{
+		result =  SLP_PARAMETER_BAD;
+		goto FINISHED;
+	}
 
-    /*------------------------------------*/
-    /* allocate a SLPHandleInfo structure */
-    /*------------------------------------*/
-    handle = (PSLPHandleInfo)malloc(sizeof(SLPHandleInfo));
-    if(handle == 0)
-    {
-        result =  SLP_PARAMETER_BAD;
-        goto FINISHED;
-    }
-    memset(handle,0,sizeof(SLPHandleInfo));
-    
-    /*-------------------------------*/
-    /* Set the language tag          */
-    /*-------------------------------*/
-    if(pcLang && *pcLang)
-    {
-        handle->langtaglen = strlen(pcLang);
-        handle->langtag = (char*)malloc(handle->langtaglen + 1);
-        if(handle->langtag == 0)
-        {
-            free(handle);
-            result =  SLP_PARAMETER_BAD;
-            goto FINISHED;
-        }
-        memcpy(handle->langtag,pcLang,handle->langtaglen + 1); 
-    }
-    else
-    {
-        handle->langtaglen = strlen(SLPGetProperty("net.slp.locale"));
-        handle->langtag = (char*)malloc(handle->langtaglen + 1);
-        if(handle->langtag == 0)
-        {
-            free(handle);
-            result =  SLP_PARAMETER_BAD;
-            goto FINISHED;
-        }
-        memcpy(handle->langtag,SLPGetProperty("net.slp.locale"),handle->langtaglen + 1);       
-    }
+	/* assign out param to zero in just for paranoia */
+	*phSLP = 0;
 
-    /*---------------------------------------------------------*/
-    /* Seed the XID generator if this is the first open handle */
-    /*---------------------------------------------------------*/
-    if(G_OpenSLPHandleCount == 0)
-    {
+
+	/*-------------------------------------------------------*/
+	/* TODO: remove this line when you implement async calls */
+	/*-------------------------------------------------------*/
+	if(isAsync == SLP_TRUE)
+	{
+		result =  SLP_NOT_IMPLEMENTED;
+		goto FINISHED;
+	}
+
+	/*------------------------------------*/
+	/* allocate a SLPHandleInfo structure */
+	/*------------------------------------*/
+	handle = (PSLPHandleInfo)malloc(sizeof(SLPHandleInfo));
+	if(handle == 0)
+	{
+		result =  SLP_PARAMETER_BAD;
+		goto FINISHED;
+	}
+	memset(handle,0,sizeof(SLPHandleInfo));
+
+	/*-------------------------------*/
+	/* Set the language tag          */
+	/*-------------------------------*/
+	if(pcLang && *pcLang)
+	{
+		handle->langtaglen = strlen(pcLang);
+		handle->langtag = (char*)malloc(handle->langtaglen + 1);
+		if(handle->langtag == 0)
+		{
+			free(handle);
+			result =  SLP_PARAMETER_BAD;
+			goto FINISHED;
+		}
+		memcpy(handle->langtag,pcLang,handle->langtaglen + 1); 
+	}
+	else
+	{
+		handle->langtaglen = strlen(SLPGetProperty("net.slp.locale"));
+		handle->langtag = (char*)malloc(handle->langtaglen + 1);
+		if(handle->langtag == 0)
+		{
+			free(handle);
+			result =  SLP_PARAMETER_BAD;
+			goto FINISHED;
+		}
+		memcpy(handle->langtag,SLPGetProperty("net.slp.locale"),handle->langtaglen + 1);       
+	}
+
+	/*---------------------------------------------------------*/
+	/* Seed the XID generator if this is the first open handle */
+	/*---------------------------------------------------------*/
+	if(G_OpenSLPHandleCount == 0)
+	{
 #ifdef WIN32
-          WSADATA wsaData; 
-          WORD    wVersionRequested = MAKEWORD(1,1); 
-          if (0 != WSAStartup(wVersionRequested, &wsaData))
-          {
-            result = SLP_NETWORK_INIT_FAILED;
-            goto FINISHED;
-          }
+		WSADATA wsaData; 
+		WORD    wVersionRequested = MAKEWORD(1,1); 
+		if(0 != WSAStartup(wVersionRequested, &wsaData))
+		{
+			result = SLP_NETWORK_INIT_FAILED;
+			goto FINISHED;
+		}
 #endif
-        SLPXidSeed();
-    }
-     
-    handle->sig = SLP_HANDLE_SIG;
-    handle->inUse = SLP_FALSE;
-    handle->isAsync = isAsync;
-    handle->dasock = -1;
-    handle->sasock = -1;
+		SLPXidSeed();
+	}
 
-    G_OpenSLPHandleCount ++;  
-    
-    *phSLP = (SLPHandle)handle; 
-    
-    FINISHED:                  
-    
-    if(result)
-    {
-        *phSLP = 0;
-    }
-    
-    return result;
+	handle->sig = SLP_HANDLE_SIG;
+	handle->inUse = SLP_FALSE;
+	handle->isAsync = isAsync;
+	handle->dasock = -1;
+	handle->sasock = -1;
+
+	G_OpenSLPHandleCount ++;  
+
+	*phSLP = (SLPHandle)handle; 
+
+	FINISHED:                  
+
+	if(result)
+	{
+		*phSLP = 0;
+	}
+
+	return result;
 }
-         
+
 
 /*=========================================================================*/
 void SLPClose(SLPHandle hSLP)                                             
@@ -206,49 +206,49 @@ void SLPClose(SLPHandle hSLP)
 /* SLPHandle    A SLPHandle handle returned from a call to SLPOpen().      */
 /*=========================================================================*/
 {
-    PSLPHandleInfo   handle;
-    
-    /*------------------------------*/
-    /* check for invalid parameters */
-    /*------------------------------*/
-    if(hSLP == 0 || *(unsigned int*)hSLP != SLP_HANDLE_SIG)
-    {
-        return;
-    }
-    
-    handle = (PSLPHandleInfo)hSLP;
+	PSLPHandleInfo   handle;
 
-    if(handle->isAsync)
-    {
-        /* TODO: stop the usage of this handle (kill threads, etc) */
-    }
+	/*------------------------------*/
+	/* check for invalid parameters */
+	/*------------------------------*/
+	if(hSLP == 0 || *(unsigned int*)hSLP != SLP_HANDLE_SIG)
+	{
+		return;
+	}
 
-    if(handle->langtag)
-    {
-        free(handle->langtag);
-    }
+	handle = (PSLPHandleInfo)hSLP;
 
-    if(handle->dasock >=0)
-    {
-        close(handle->dasock);
-    }
+	if(handle->isAsync)
+	{
+		/* TODO: stop the usage of this handle (kill threads, etc) */
+	}
 
-    if(handle->dascope)
-    {
-        free(handle->dascope);
-    }
+	if(handle->langtag)
+	{
+		free(handle->langtag);
+	}
 
-    if(handle->sasock >=0)
-    {
-        close(handle->sasock);
-    }
+	if(handle->dasock >=0)
+	{
+		close(handle->dasock);
+	}
 
-    if(handle->sascope)
-    {
-        free(handle->sascope);
-    }
+	if(handle->dascope)
+	{
+		free(handle->dascope);
+	}
 
-    handle->sig = 0;  /* If they use the handle again, it won't be valid */
+	if(handle->sasock >=0)
+	{
+		close(handle->sasock);
+	}
 
-    free(hSLP);
+	if(handle->sascope)
+	{
+		free(handle->sascope);
+	}
+
+	handle->sig = 0;  /* If they use the handle again, it won't be valid */
+
+	free(hSLP);
 }

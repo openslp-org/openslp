@@ -48,24 +48,24 @@
 /***************************************************************************/
 
 #if(!defined SLP_MESSAGE_H_INCLUDED)
-#define SLP_MESSAGE_H_INCLUDED
+	#define SLP_MESSAGE_H_INCLUDED
 
-#include <slp_buffer.h>
+	#include <slp_buffer.h>
 
-#ifdef WIN32
-#include <windows.h>
-#else
-#include <sys/types.h>
-#include <netinet/in.h>			/* for htonl() routines */
-#endif
+	#ifdef WIN32
+		#include <windows.h>
+	#else
+		#include <sys/types.h>
+		#include <netinet/in.h>			/* for htonl() routines */
+	#endif
 
 typedef char            CHAR;
 typedef unsigned char   UINT8;
 typedef unsigned short  UINT16;
 
-#ifndef WIN32
+	#ifndef WIN32
 typedef unsigned long   UINT32;
-#endif
+	#endif
 
 typedef CHAR*           PCHAR;
 typedef UINT8*          PUINT8;
@@ -76,89 +76,96 @@ typedef UINT32*         PUINT32;
 /*=========================================================================*/
 /* SLP Important constants                                                 */
 /*=========================================================================*/
-#define SLP_RESERVED_PORT       427
-#define SLP_MCAST_ADDRESS       0xeffffffd  /* 239.255.255.253 */
-#define SLP_BCAST_ADDRESS       0xffffffff  /* 255.255.255.255 */
-#define SLPv1_DA_MCAST_ADDRESS  0xe0000123  /* 224.0.1.35 */
-#define LOOPBACK_ADDRESS        0x7f000001  /* 127.0.0.1 */
-#define SLP_MAX_DATAGRAM_SIZE   1400
+	#define SLP_RESERVED_PORT       427
+	#define SLP_MCAST_ADDRESS       0xeffffffd  /* 239.255.255.253 */
+	#define SLP_BCAST_ADDRESS       0xffffffff  /* 255.255.255.255 */
+	#define SLPv1_DA_MCAST_ADDRESS  0xe0000123  /* 224.0.1.35 */
+	#define LOOPBACK_ADDRESS        0x7f000001  /* 127.0.0.1 */
+	#define SLP_MAX_DATAGRAM_SIZE   1400
 
-#define SLP_CONFIG_DA_BEAT      10800       /* 3 hours */
+	#define SLP_CONFIG_DA_BEAT      10800       /* 3 hours */
 
-#if(!defined SLP_LIFETIME_MAXIMUM) 
-#define SLP_LIFETIME_MAXIMUM    0xffff
-#endif
+	#if(!defined SLP_LIFETIME_MAXIMUM) 
+		#define SLP_LIFETIME_MAXIMUM    0xffff
+	#endif
+
 
 /*=========================================================================*/
 /* SLP Function ID constants                                               */
 /*=========================================================================*/
-#define SLP_FUNCT_SRVRQST         1
-#define SLP_FUNCT_SRVRPLY         2
-#define SLP_FUNCT_SRVREG          3
-#define SLP_FUNCT_SRVDEREG        4
-#define SLP_FUNCT_SRVACK          5
-#define SLP_FUNCT_ATTRRQST        6
-#define SLP_FUNCT_ATTRRPLY        7
-#define SLP_FUNCT_DAADVERT        8
-#define SLP_FUNCT_SRVTYPERQST     9
-#define SLP_FUNCT_SRVTYPERPLY     10
-#define SLP_FUNCT_SAADVERT        11
+	#define SLP_FUNCT_SRVRQST         1
+	#define SLP_FUNCT_SRVRPLY         2
+	#define SLP_FUNCT_SRVREG          3
+	#define SLP_FUNCT_SRVDEREG        4
+	#define SLP_FUNCT_SRVACK          5
+	#define SLP_FUNCT_ATTRRQST        6
+	#define SLP_FUNCT_ATTRRPLY        7
+	#define SLP_FUNCT_DAADVERT        8
+	#define SLP_FUNCT_SRVTYPERQST     9
+	#define SLP_FUNCT_SRVTYPERPLY     10
+	#define SLP_FUNCT_SAADVERT        11
+
 
 
 
 /*=========================================================================*/
 /* SLP Protocol Error codes                                                */
 /*=========================================================================*/
-#define SLP_ERROR_OK                       0
-#define SLP_ERROR_LANGUAGE_NOT_SUPPORTED   1
-#define SLP_ERROR_PARSE_ERROR              2
-#define SLP_ERROR_INVALID_REGISTRATION     3
-#define SLP_ERROR_SCOPE_NOT_SUPPORTED      4
-#define SLP_ERROR_CHARSET_NOT_UNDERSTOOD   5 /* valid only for SLPv1 */
-#define SLP_ERROR_AUTHENTICATION_UNKNOWN   5
-#define SLP_ERROR_AUTHENTICATION_ABSENT    6
-#define SLP_ERROR_AUTHENTICATION_FAILED    7
-#define SLP_ERROR_VER_NOT_SUPPORTED        9
-#define SLP_ERROR_INTERNAL_ERROR           10
-#define SLP_ERROR_DA_BUSY_NOW              11
-#define SLP_ERROR_INVALID_UPDATE           13
-#define SLP_ERROR_MESSAGE_NOT_SUPPORTED    14
-#define SLP_ERROR_REFRESH_REJECTED         15
+	#define SLP_ERROR_OK                       0
+	#define SLP_ERROR_LANGUAGE_NOT_SUPPORTED   1
+	#define SLP_ERROR_PARSE_ERROR              2
+	#define SLP_ERROR_INVALID_REGISTRATION     3
+	#define SLP_ERROR_SCOPE_NOT_SUPPORTED      4
+	#define SLP_ERROR_CHARSET_NOT_UNDERSTOOD   5 /* valid only for SLPv1 */
+	#define SLP_ERROR_AUTHENTICATION_UNKNOWN   5
+	#define SLP_ERROR_AUTHENTICATION_ABSENT    6
+	#define SLP_ERROR_AUTHENTICATION_FAILED    7
+	#define SLP_ERROR_VER_NOT_SUPPORTED        9
+	#define SLP_ERROR_INTERNAL_ERROR           10
+	#define SLP_ERROR_DA_BUSY_NOW              11
+	#define SLP_ERROR_INVALID_UPDATE           13
+	#define SLP_ERROR_MESSAGE_NOT_SUPPORTED    14
+	#define SLP_ERROR_REFRESH_REJECTED         15
+
 
 
 /*=========================================================================*/
 /* SLP Flags                                                               */
 /*=========================================================================*/
-#define SLP_FLAG_OVERFLOW         0x8000
-#define SLP_FLAG_FRESH            0x4000
-#define SLP_FLAG_MCAST            0x2000
+	#define SLP_FLAG_OVERFLOW         0x8000
+	#define SLP_FLAG_FRESH            0x4000
+	#define SLP_FLAG_MCAST            0x2000
+
 
 
 /*=========================================================================*/
 /* SLP Constants                                                           */
 /*=========================================================================*/
-#define CONFIG_MC_MAX             15    /* Max time to wait for a complete */
-                                        /* multicast query response        */
+	#define CONFIG_MC_MAX             15    /* Max time to wait for a complete */
 
-#define CONFIG_RETRY_MAX          15    /* Wait interval to give up on a   */
-                                        /* unicast request retransmission  */
+/* multicast query response        */
 
-#define CONFIG_RETRY_INTERVAL      3    /* Default wait between retransmits*/
+	#define CONFIG_RETRY_MAX          15    /* Wait interval to give up on a   */
+
+/* unicast request retransmission  */
+
+	#define CONFIG_RETRY_INTERVAL      3    /* Default wait between retransmits*/
+
 
 /*=========================================================================*/
 /* SLPHeader structure and associated functions                            */
 /*=========================================================================*/
 typedef struct _SLPHeader
 {
-    int         	version;
-    int         	functionid;
-    unsigned int    length;       
-    int         	flags;
-    int         	encoding;	/* language encoding, valid only for SLPv1 */
-    int         	extoffset;    
-    int         	xid;
-    unsigned int   	langtaglen;
-    const char* 	langtag; /* points into the translated message */
+	int             version;
+	int             functionid;
+	unsigned int    length;       
+	int             flags;
+	int             encoding;	/* language encoding, valid only for SLPv1 */
+	int             extoffset;    
+	int             xid;
+	unsigned int    langtaglen;
+	const char*     langtag; /* points into the translated message */
 }SLPHeader;
 
 
@@ -167,13 +174,13 @@ typedef struct _SLPHeader
 /*=========================================================================*/
 typedef struct _SLPAuthBlock
 {
-    struct _SLPAuthBlock*   next;  /* The next authblock in a list or NULL */
-    int                     bsd;
-    unsigned int            length;
-    unsigned int            timestamp;
-    int                     spistrlen;
-    const char*             spistr;
-    const char*             authstruct;
+	struct _SLPAuthBlock*   next;  /* The next authblock in a list or NULL */
+	int                     bsd;
+	unsigned int            length;
+	unsigned int            timestamp;
+	int                     spistrlen;
+	const char*             spistr;
+	const char*             authstruct;
 }SLPAuthBlock;
 
 
@@ -182,12 +189,12 @@ typedef struct _SLPAuthBlock
 /*=========================================================================*/
 typedef struct _SLPUrlEntry
 {
-    char                    reserved;       /* This will always be 0 */
-    int                     lifetime;
-    unsigned int            urllen;
-    const char*             url;
-    unsigned int            authcount;
-    SLPAuthBlock*           autharray;
+	char                    reserved;		/* This will always be 0 */
+	int                     lifetime;
+	unsigned int            urllen;
+	const char*             url;
+	unsigned int            authcount;
+	SLPAuthBlock*           autharray;
 }SLPUrlEntry;
 
 
@@ -196,17 +203,17 @@ typedef struct _SLPUrlEntry
 /*=========================================================================*/
 typedef struct _SLPSrvRqst
 {
-    unsigned int	prlistlen;
-    const char* 	prlist;
-    unsigned int	srvtypelen;
-    const char* 	srvtype;
-    unsigned int	scopelistlen;
-    const char* 	scopelist;
-    unsigned int	predicatever;
-    unsigned int	predicatelen;
-    const char* 	predicate;
-    unsigned int	spistrlen;
-    const char* 	spistr;
+	unsigned int    prlistlen;
+	const char*     prlist;
+	unsigned int    srvtypelen;
+	const char*     srvtype;
+	unsigned int    scopelistlen;
+	const char*     scopelist;
+	unsigned int    predicatever;
+	unsigned int    predicatelen;
+	const char*     predicate;
+	unsigned int    spistrlen;
+	const char*     spistr;
 }SLPSrvRqst;
 
 
@@ -214,9 +221,9 @@ typedef struct _SLPSrvRqst
 typedef struct _SLPSrvRply                                                 
 /*=========================================================================*/
 {
-    int             errorcode;
-    unsigned int    urlcount;
-    SLPUrlEntry*    urlarray;
+	int             errorcode;
+	unsigned int    urlcount;
+	SLPUrlEntry*    urlarray;
 }SLPSrvRply;
 
 
@@ -224,27 +231,27 @@ typedef struct _SLPSrvRply
 typedef struct _SLPSrvReg
 /*=========================================================================*/
 {
-    SLPUrlEntry         urlentry;
-    unsigned int        srvtypelen;
-    const char*         srvtype;
-    unsigned int        scopelistlen;
-    const char*         scopelist;
-    unsigned int        attrlistlen;
-    const char*         attrlist;
-    unsigned int        authcount;
-    SLPAuthBlock*       autharray;
+	SLPUrlEntry         urlentry;
+	unsigned int        srvtypelen;
+	const char*         srvtype;
+	unsigned int        scopelistlen;
+	const char*         scopelist;
+	unsigned int        attrlistlen;
+	const char*         attrlist;
+	unsigned int        authcount;
+	SLPAuthBlock*       autharray;
 }SLPSrvReg;
-                                                                             
+
 
 /*=========================================================================*/
 typedef struct _SLPSrvDeReg
 /*=========================================================================*/
 {
-    unsigned int        scopelistlen;
-    const char*         scopelist;
-    SLPUrlEntry         urlentry;
-    unsigned int        taglistlen;
-    const char*         taglist;
+	unsigned int        scopelistlen;
+	const char*         scopelist;
+	SLPUrlEntry         urlentry;
+	unsigned int        taglistlen;
+	const char*         taglist;
 }SLPSrvDeReg;
 
 
@@ -252,7 +259,7 @@ typedef struct _SLPSrvDeReg
 typedef struct _SLPSrvAck
 /*=========================================================================*/
 {
-    int errorcode;
+	int errorcode;
 }SLPSrvAck;
 
 
@@ -261,18 +268,18 @@ typedef struct _SLPSrvAck
 typedef struct _SLPDAAdvert
 /*=========================================================================*/
 {
-    int                 errorcode;
-    unsigned int        bootstamp;
-    unsigned int        urllen;
-    const char*         url;
-    unsigned int        scopelistlen;
-    const char*         scopelist;
-    unsigned int        attrlistlen;
-    const char*         attrlist;
-    unsigned int        spilistlen;
-    const char*         spilist;
-    unsigned int        authcount;
-    SLPAuthBlock*       autharray;
+	int                 errorcode;
+	unsigned int        bootstamp;
+	unsigned int        urllen;
+	const char*         url;
+	unsigned int        scopelistlen;
+	const char*         scopelist;
+	unsigned int        attrlistlen;
+	const char*         attrlist;
+	unsigned int        spilistlen;
+	const char*         spilist;
+	unsigned int        authcount;
+	SLPAuthBlock*       autharray;
 }SLPDAAdvert;
 
 
@@ -280,16 +287,16 @@ typedef struct _SLPDAAdvert
 typedef struct _SLPAttrRqst
 /*=========================================================================*/
 {
-    unsigned int	prlistlen;
-    const char* 	prlist;
-    unsigned int    urllen;
-    const char* 	url;
-    unsigned int    scopelistlen;
-    const char* 	scopelist;
-    unsigned int    taglistlen;
-    const char* 	taglist;
-    unsigned int    spistrlen;
-    const char* 	spistr;
+	unsigned int    prlistlen;
+	const char*     prlist;
+	unsigned int    urllen;
+	const char*     url;
+	unsigned int    scopelistlen;
+	const char*     scopelist;
+	unsigned int    taglistlen;
+	const char*     taglist;
+	unsigned int    spistrlen;
+	const char*     spistr;
 }SLPAttrRqst;
 
 
@@ -297,11 +304,11 @@ typedef struct _SLPAttrRqst
 typedef struct _SLPAttrRply
 /*=========================================================================*/
 {
-    int             errorcode;
-    unsigned int    attrlistlen;
-    const char*     attrlist;
-    unsigned int    authcount;
-    SLPAuthBlock*   autharray;
+	int             errorcode;
+	unsigned int    attrlistlen;
+	const char*     attrlist;
+	unsigned int    authcount;
+	SLPAuthBlock*   autharray;
 }SLPAttrRply;
 
 
@@ -309,12 +316,12 @@ typedef struct _SLPAttrRply
 typedef struct _SLPSrvTypeRqst
 /*=========================================================================*/
 {
-    unsigned int	prlistlen;
-    const char*		prlist;
-    unsigned int	namingauthlen;
-    const char*		namingauth;
-    unsigned int	scopelistlen;
-    const char*		scopelist;
+	unsigned int    prlistlen;
+	const char*     prlist;
+	unsigned int    namingauthlen;
+	const char*     namingauth;
+	unsigned int    scopelistlen;
+	const char*     scopelist;
 }SLPSrvTypeRqst;
 
 
@@ -323,9 +330,9 @@ typedef struct _SLPSrvTypeRqst
 typedef struct _SLPSrvTypeRply
 /*=========================================================================*/
 {
-    int 			errorcode;
-    unsigned int	srvtypelistlen;
-    const char*		srvtypelist;
+	int             errorcode;
+	unsigned int    srvtypelistlen;
+	const char*     srvtypelist;
 }SLPSrvTypeRply;
 
 
@@ -334,14 +341,14 @@ typedef struct _SLPSrvTypeRply
 typedef struct _SLPSAAdvert
 /*=========================================================================*/
 {
-    unsigned int	urllen;
-    const char*		url;
-    unsigned int	scopelistlen;
-    const char*		scopelist;
-    unsigned int	attrlistlen;
-    const char*		attrlist;
-    unsigned int	authcount;
-    SLPAuthBlock*	authblock;
+	unsigned int    urllen;
+	const char*     url;
+	unsigned int    scopelistlen;
+	const char*     scopelist;
+	unsigned int    attrlistlen;
+	const char*     attrlist;
+	unsigned int    authcount;
+	SLPAuthBlock*   authblock;
 }SLPSAAdvert;
 
 
@@ -349,22 +356,22 @@ typedef struct _SLPSAAdvert
 typedef struct _SLPMessage
 /*=========================================================================*/
 {
-    SLPHeader             header;
-    
-    union _body
-    {
-        SLPSrvRqst        srvrqst;
-        SLPSrvRply        srvrply;
-        SLPSrvReg         srvreg;
-        SLPSrvDeReg       srvdereg;
-        SLPSrvAck         srvack;
-        SLPDAAdvert       daadvert;
-        SLPAttrRqst       attrrqst;
-        SLPAttrRply       attrrply;
-        SLPSrvTypeRqst    srvtyperqst;
-        SLPSrvTypeRply    srvtyperply;
-        SLPSAAdvert       saadvert;
-    }body; 
+	SLPHeader             header;
+
+	union _body
+	{
+		SLPSrvRqst        srvrqst;
+		SLPSrvRply        srvrply;
+		SLPSrvReg         srvreg;
+		SLPSrvDeReg       srvdereg;
+		SLPSrvAck         srvack;
+		SLPDAAdvert       daadvert;
+		SLPAttrRqst       attrrqst;
+		SLPAttrRply       attrrply;
+		SLPSrvTypeRqst    srvtyperqst;
+		SLPSrvTypeRply    srvtyperply;
+		SLPSAAdvert       saadvert;
+	}body; 
 
 }*SLPMessage;
 
@@ -395,7 +402,7 @@ void SLPMessageFree(SLPMessage message);
 
 
 /*=========================================================================*/
-int SLPMessageParseBuffer(SLPBuffer buffer, SLPMessage message);
+int SLPMessageParseBuffer(SLPBuffer buffer, SLPMessage message); 
 /* Initializes a message descriptor by parsing the specified buffer.       */
 /*                                                                         */
 /* buffer   - (IN) pointer the SLPBuffer to parse                          */
@@ -406,34 +413,39 @@ int SLPMessageParseBuffer(SLPBuffer buffer, SLPMessage message);
 /*            SLP_ERROR_INTERNAL_ERROR if out of memory.  SLPMessage is    */
 /*            invalid return is not successful.                            */
 /*                                                                         */
-/* WARNING  - If successful, pointers in the SLPMessage reference memory in*/ 
+/* WARNING  - If successful, pointers in the SLPMessage reference memory in*/
 /*            the parsed SLPBuffer.  If SLPBufferFree() is called then the */
 /*            pointers in SLPMessage will be invalidated.                  */
 /*=========================================================================*/
 
-#ifdef i386
+	#ifdef i386
+
 /*=========================================================================*/
-#define AsUINT16(charptr)   ( ntohs(*((PUINT16)(charptr))) )
-#define AsUINT24(charptr)   ( ntohl(*((PUINT32)(charptr)))>>8 )
-#define AsUINT32(charptr)   ( ntohl(*((PUINT32)(charptr))) )
+		#define AsUINT16(charptr)   ( ntohs(*((PUINT16)(charptr))) )
+		#define AsUINT24(charptr)   ( ntohl(*((PUINT32)(charptr)))>>8 )
+		#define AsUINT32(charptr)   ( ntohl(*((PUINT32)(charptr))) )
+
 /* Macros used to parse buffers                                            */
 /*=========================================================================*/
 
 /*=========================================================================*/
-#define ToUINT16(charptr,val)   ( *((PUINT16)(charptr)) =  htons((val)) )
-#define ToUINT24(charptr,val)   ( *((PUINT32)(charptr)) =  htonl((val)<<8) )
-#define ToUINT32(charptr,val)   ( *((PUINT32)(charptr)) =  htonl((val)) )
+		#define ToUINT16(charptr,val)   ( *((PUINT16)(charptr)) =  htons((val)) )
+		#define ToUINT24(charptr,val)   ( *((PUINT32)(charptr)) =  htonl((val)<<8) )
+		#define ToUINT32(charptr,val)   ( *((PUINT32)(charptr)) =  htonl((val)) )
+
 /* Macros used to set buffers                                              */
 /*=========================================================================*/
 
 /*=========================================================================*/
-#define ISLOCAL(addr) ((ntohl((addr).s_addr) & 0xff000000) == 0x7f000000)
-#define ISMCAST(addr) ((ntohl((addr).s_addr) & 0xff000000) >= 0xef000000)
+		#define ISLOCAL(addr) ((ntohl((addr).s_addr) & 0xff000000) == 0x7f000000)
+		#define ISMCAST(addr) ((ntohl((addr).s_addr) & 0xff000000) >= 0xef000000)
+
 //#define ISMCAST(addr) 1
 /* Macros to check in_addr                                                 */
 /*=========================================================================*/
 
-#else
+	#else
+
 /*=========================================================================*/
 unsigned short AsUINT16(const char *charptr);
 unsigned int AsUINT24(const char *charptr);
@@ -449,14 +461,15 @@ void ToUINT32(char *charptr, unsigned int val);
 /*=========================================================================*/
 
 /*=========================================================================*/
-#define ISLOCAL(addr) (((addr).s_addr & 0xff000000) == 0x7f000000)
-#define ISMCAST(addr) (((addr).s_addr & 0xff000000) >= 0xef000000)
+		#define ISLOCAL(addr) (((addr).s_addr & 0xff000000) == 0x7f000000)
+		#define ISMCAST(addr) (((addr).s_addr & 0xff000000) >= 0xef000000)
+
 /* Macros to check in_addr                                                 */
 /*=========================================================================*/
-#endif
+	#endif
 
 
-#if defined(ENABLE_SLPv1)
-#include <slp_v1message.h>
-#endif
+	#if defined(ENABLE_SLPv1)
+		#include <slp_v1message.h>
+	#endif
 #endif

@@ -49,7 +49,7 @@
 /***************************************************************************/
 
 #if(!defined SLP_LOGFILE_H_INCLUDED)
-#define SLP_LOGFILE_H_INCLUDED
+	#define SLP_LOGFILE_H_INCLUDED
 
 /*=========================================================================*/
 int SLPLogFileOpen(const char* path, int append);                          
