@@ -124,25 +124,25 @@ int SLPDParseCommandLine(int argc,char* argv[])
         {
             i++;
             if (i >= argc) goto USAGE;
-            strncpy(G_SlpdCommandLine.logfile,argv[i],MAX_PATH);
+            strncpy(G_SlpdCommandLine.logfile,argv[i],MAX_PATH-1);
         }
         else if (strcmp(argv[i],"-r") == 0)
         {
             i++;
             if (i >= argc) goto USAGE;
-            strncpy(G_SlpdCommandLine.regfile,argv[i],MAX_PATH);
+            strncpy(G_SlpdCommandLine.regfile,argv[i],MAX_PATH-1);
         }
         else if (strcmp(argv[i],"-c") == 0)
         {
             i++;
             if (i >= argc) goto USAGE;
-            strncpy(G_SlpdCommandLine.cfgfile,argv[i],MAX_PATH);        
+            strncpy(G_SlpdCommandLine.cfgfile,argv[i],MAX_PATH-1);        
         }
         else if (strcmp(argv[i],"-p") == 0)
         {
             i++;
             if (i >= argc) goto USAGE;
-            strncpy(G_SlpdCommandLine.pidfile,argv[i],MAX_PATH);        
+            strncpy(G_SlpdCommandLine.pidfile,argv[i],MAX_PATH-1);        
         }
         else if (strcmp(argv[i],"-d") == 0)
         {

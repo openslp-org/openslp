@@ -72,13 +72,13 @@ typedef struct _SLPBuffer
        one byte more than this to null terminate C strings) */
     size_t  allocated;
 
-    char*   start;  
+    unsigned char*   start;  
     /* ALWAYS points to the start of the malloc() buffer  */
 
-    char*   curpos;
+    unsigned char*   curpos;
     /* "slider" pointer.  Range is ALWAYS (start < curpos < end) */
 
-    char*   end;
+    unsigned char*   end;
     /* ALWAYS set to point to the byte after the last meaningful byte */
     /* Data beyond this index may not be valid */
 }*SLPBuffer;   

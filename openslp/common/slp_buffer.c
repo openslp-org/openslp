@@ -62,7 +62,7 @@ void* memdup(const void* src, int srclen)
 /*=========================================================================*/
 {
     char* result;
-    result = (char*)malloc(srclen);
+    result = (unsigned char*)malloc(srclen);
     if(result)
     {
         memcpy(result,src,srclen);
@@ -89,7 +89,7 @@ SLPBuffer SLPBufferAlloc(size_t size)
    if(result)
    {
        result->allocated = size;
-       result->start = (char*)(result + 1);
+       result->start = (unsigned char*)(result + 1);
        result->curpos = result->start;
        result->end = result->start + size; 
        
@@ -130,7 +130,7 @@ SLPBuffer SLPBufferRealloc(SLPBuffer buf, size_t size)
        
        if(result)
        {
-    	   result->start = (char*)(result + 1);
+    	   result->start = (unsigned char*)(result + 1);
     	   result->curpos = result->start;
     	   result->end = result->start + size;
     	   

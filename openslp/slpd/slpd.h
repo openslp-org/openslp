@@ -245,22 +245,22 @@ typedef struct _SLPDDatabaseEntry
 { 
     SLPListItem         listitem;
     char*               langtag;
-    int                 langtaglen;
+    unsigned int        langtaglen;
     int                 lifetime;
     int                 islocal;
-    int                 urllen;
+    unsigned int		urllen;
     char*               url;
-    int                 scopelistlen;
+    unsigned int		scopelistlen;
     char*               scopelist;
-    int                 srvtypelen;
+    unsigned int		srvtypelen;
     char*               srvtype;
     #ifdef USE_PREDICATES
     SLPAttributes		attr;
     #endif
-    int                 attrlistlen;
-    char*               attrlist;
-    int                 partiallistlen;
-    char*               partiallist;
+    unsigned int		attrlistlen;
+    char*				attrlist;
+    unsigned int		partiallistlen;
+    char*				partiallist;
 
     /* TODO: we might need some authblock storage here */
 }SLPDDatabaseEntry;

@@ -150,15 +150,15 @@ typedef UINT32*         PUINT32;
 /*=========================================================================*/
 typedef struct _SLPHeader
 {
-    int         version;
-    int         functionid;
-    int         length;       
-    int         flags;
-    int         encoding;	/* language encoding, valid only for SLPv1 */
-    int         extoffset;    
-    int         xid;
-    int         langtaglen;
-    const char* langtag; /* points into the translated message */
+    int         	version;
+    int         	functionid;
+    unsigned int    length;       
+    int         	flags;
+    int         	encoding;	/* language encoding, valid only for SLPv1 */
+    int         	extoffset;    
+    int         	xid;
+    unsigned int   	langtaglen;
+    const char* 	langtag; /* points into the translated message */
 }SLPHeader;
 
 
@@ -169,7 +169,7 @@ typedef struct _SLPAuthBlock
 {
     struct _SLPAuthBlock*   next;  /* The next authblock in a list or NULL */
     int                     bsd;
-    int                     length;
+    unsigned int            length;
     unsigned int            timestamp;
     int                     spistrlen;
     const char*             spistr;
@@ -184,9 +184,9 @@ typedef struct _SLPUrlEntry
 {
     char                    reserved;       /* This will always be 0 */
     int                     lifetime;
-    int                     urllen;
+    unsigned int            urllen;
     const char*             url;
-    char                    authcount;
+    unsigned int            authcount;
     SLPAuthBlock*           autharray;
 }SLPUrlEntry;
 
@@ -196,17 +196,17 @@ typedef struct _SLPUrlEntry
 /*=========================================================================*/
 typedef struct _SLPSrvRqst
 {
-    int         prlistlen;
-    const char* prlist;
-    int         srvtypelen;
-    const char* srvtype;
-    int         scopelistlen;
-    const char* scopelist;
-    int         predicatever;
-    int         predicatelen;
-    const char* predicate;
-    int         spistrlen;
-    const char* spistr;
+    unsigned int	prlistlen;
+    const char* 	prlist;
+    unsigned int	srvtypelen;
+    const char* 	srvtype;
+    unsigned int	scopelistlen;
+    const char* 	scopelist;
+    unsigned int	predicatever;
+    unsigned int	predicatelen;
+    const char* 	predicate;
+    unsigned int	spistrlen;
+    const char* 	spistr;
 }SLPSrvRqst;
 
 
@@ -215,7 +215,7 @@ typedef struct _SLPSrvRply
 /*=========================================================================*/
 {
     int             errorcode;
-    int             urlcount;
+    unsigned int    urlcount;
     SLPUrlEntry*    urlarray;
 }SLPSrvRply;
 
@@ -225,13 +225,13 @@ typedef struct _SLPSrvReg
 /*=========================================================================*/
 {
     SLPUrlEntry         urlentry;
-    int                 srvtypelen;
+    unsigned int        srvtypelen;
     const char*         srvtype;
-    int                 scopelistlen;
+    unsigned int        scopelistlen;
     const char*         scopelist;
-    int                 attrlistlen;
+    unsigned int        attrlistlen;
     const char*         attrlist;
-    char                authcount;
+    unsigned int        authcount;
     SLPAuthBlock*       autharray;
 }SLPSrvReg;
                                                                              
@@ -240,10 +240,10 @@ typedef struct _SLPSrvReg
 typedef struct _SLPSrvDeReg
 /*=========================================================================*/
 {
-    int                 scopelistlen;
+    unsigned int        scopelistlen;
     const char*         scopelist;
     SLPUrlEntry         urlentry;
-    int                 taglistlen;
+    unsigned int        taglistlen;
     const char*         taglist;
 }SLPSrvDeReg;
 
@@ -263,15 +263,15 @@ typedef struct _SLPDAAdvert
 {
     int                 errorcode;
     unsigned int        bootstamp;
-    int                 urllen;
+    unsigned int        urllen;
     const char*         url;
-    int                 scopelistlen;
+    unsigned int        scopelistlen;
     const char*         scopelist;
-    int                 attrlistlen;
+    unsigned int        attrlistlen;
     const char*         attrlist;
-    int                 spilistlen;
+    unsigned int        spilistlen;
     const char*         spilist;
-    char                authcount;
+    unsigned int        authcount;
     SLPAuthBlock*       autharray;
 }SLPDAAdvert;
 
@@ -280,16 +280,16 @@ typedef struct _SLPDAAdvert
 typedef struct _SLPAttrRqst
 /*=========================================================================*/
 {
-    int         prlistlen;
-    const char* prlist;
-    int         urllen;
-    const char* url;
-    int         scopelistlen;
-    const char* scopelist;
-    int         taglistlen;
-    const char* taglist;
-    int         spistrlen;
-    const char* spistr;
+    unsigned int	prlistlen;
+    const char* 	prlist;
+    unsigned int    urllen;
+    const char* 	url;
+    unsigned int    scopelistlen;
+    const char* 	scopelist;
+    unsigned int    taglistlen;
+    const char* 	taglist;
+    unsigned int    spistrlen;
+    const char* 	spistr;
 }SLPAttrRqst;
 
 
@@ -298,9 +298,9 @@ typedef struct _SLPAttrRply
 /*=========================================================================*/
 {
     int             errorcode;
-    int             attrlistlen;
+    unsigned int    attrlistlen;
     const char*     attrlist;
-    char            authcount;
+    unsigned int    authcount;
     SLPAuthBlock*   autharray;
 }SLPAttrRply;
 
@@ -309,12 +309,12 @@ typedef struct _SLPAttrRply
 typedef struct _SLPSrvTypeRqst
 /*=========================================================================*/
 {
-    int         prlistlen;
-    const char* prlist;
-    int         namingauthlen;
-    const char* namingauth;
-    int         scopelistlen;
-    const char* scopelist;
+    unsigned int	prlistlen;
+    const char*		prlist;
+    unsigned int	namingauthlen;
+    const char*		namingauth;
+    unsigned int	scopelistlen;
+    const char*		scopelist;
 }SLPSrvTypeRqst;
 
 
@@ -323,9 +323,9 @@ typedef struct _SLPSrvTypeRqst
 typedef struct _SLPSrvTypeRply
 /*=========================================================================*/
 {
-    int         errorcode;
-    int         srvtypelistlen;
-    const char* srvtypelist;
+    int 			errorcode;
+    unsigned int	srvtypelistlen;
+    const char*		srvtypelist;
 }SLPSrvTypeRply;
 
 
@@ -334,14 +334,14 @@ typedef struct _SLPSrvTypeRply
 typedef struct _SLPSAAdvert
 /*=========================================================================*/
 {
-    int             urllen;
-    const char*     url;
-    int             scopelistlen;
-    const char*     scopelist;
-    int             attrlistlen;
-    const char*     attrlist;
-    char            authcount;
-    SLPAuthBlock*   authblock;
+    unsigned int	urllen;
+    const char*		url;
+    unsigned int	scopelistlen;
+    const char*		scopelist;
+    unsigned int	attrlistlen;
+    const char*		attrlist;
+    unsigned int	authcount;
+    SLPAuthBlock*	authblock;
 }SLPSAAdvert;
 
 

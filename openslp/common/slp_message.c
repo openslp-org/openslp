@@ -85,27 +85,39 @@ int ParseHeader(SLPBuffer buffer, SLPHeader* header)
     header->langtaglen  = AsUINT16(buffer->curpos + 12);
     header->langtag     = buffer->curpos + 14;
 
+	/* check for invalid function id */
     if(header->functionid > SLP_FUNCT_SAADVERT)
     {
-	/* invalid function id */
-	return SLP_ERROR_PARSE_ERROR;
-    }
-
-    if(header->length != buffer->end - buffer->start ||
-       header->length < 18)
-    {
-	/* invalid length 18 bytes is the smallest v2 message*/
         return SLP_ERROR_PARSE_ERROR;
     }
 
+	/* check for invalid length 18 bytes is the smallest v2 message*/
+    if(header->length != buffer->end - buffer->start ||
+       header->length < 18)
+    {
+        return SLP_ERROR_PARSE_ERROR;
+    }
+
+	/* check for invalid flags */
     if(header->flags & 0x1fff)
     {
-	/* invalid flags */
-	return SLP_ERROR_PARSE_ERROR;
+        return SLP_ERROR_PARSE_ERROR;
     }
     buffer->curpos = buffer->curpos + header->langtaglen + 14;
+    
+	/* check for invalid langtaglen */
+	if((void*)(header->langtag + header->langtaglen) > (void*)buffer->end)
+	{
+		return SLP_ERROR_PARSE_ERROR;
+	}
+    
+	/* check for invalid ext offset */
+    if(buffer->start + header->extoffset > buffer->end)
+	{
+		return SLP_ERROR_PARSE_ERROR;
+	}
 
-    return 0;
+	return 0;
 }
 
 /*--------------------------------------------------------------------------*/
@@ -137,7 +149,7 @@ int ParseAuthBlock(SLPBuffer buffer, SLPAuthBlock* authblock)
         return SLP_ERROR_PARSE_ERROR;
     }
     
-    authblock->authstruct   = buffer->curpos + authblock->spistrlen + 10;
+	authblock->authstruct   = buffer->curpos + authblock->spistrlen + 10;
     
     buffer->curpos = buffer->curpos + authblock->length;
     
