@@ -11,7 +11,7 @@ int inet_pton(int af, const char *src, void *dst) {
     if (af == AF_INET) {
         struct in_addr *d4Dst = (struct in_addr *) dst;
         struct in_addr *d4Src;
-        hints.ai_protocol = AF_INET;
+        hints.ai_family = PF_INET;
         sts = getaddrinfo(src, NULL, &hints, &res);
         if (sts == 0) {
             struct addrinfo * aicheck = res;
@@ -35,7 +35,7 @@ int inet_pton(int af, const char *src, void *dst) {
     else if (af == AF_INET6) {
         struct in6_addr *d6Dst = (struct in6_addr *) dst;
         struct in6_addr *d6Src;
-        hints.ai_protocol = AF_INET6;
+        hints.ai_family = PF_INET6;
         sts = getaddrinfo(src, NULL, &hints, &res);
         if (sts == 0) {
             struct addrinfo * aicheck = res;

@@ -274,9 +274,9 @@ int SLPIfaceStringToSockaddrs(const char* addrstr,
         }
         // if it has a dot - try v4
         if (strchr(slider1, '.')) {
-            struct sockaddr *d4 = (struct sockaddr *) &addrs[i];
-            inet_pton(AF_INET, slider1, &d4->sa_data[2]);
-            d4->sa_family = AF_INET;
+            struct sockaddr_in *d4 = (struct sockaddr_in *) &addrs[i];
+            inet_pton(AF_INET, slider1, &d4->sin_addr);
+            d4->sin_family = AF_INET;
         }
         else if (strchr(slider1, ':')) {
             struct sockaddr_in6 *d6 = (struct sockaddr_in6 *) &addrs[i];

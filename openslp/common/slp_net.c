@@ -100,7 +100,11 @@ int SLPNetGetThisHostname(char* hostfdn, unsigned int hostfdnLen, int numeric_on
             assert(1);
         }
     }
-
+    else {
+        /* problable cause - not calling wsastartup in windows */
+        assert(1);
+        sts = -1;
+    }
     return(sts);
 }
 
@@ -118,30 +122,23 @@ int SLPNetResolveHostToAddr(const char* host,
  * Returns: zero on success, non-zero on error;
  *-------------------------------------------------------------------------*/
 {
-    struct hostent* he;
-    
+    int sts = 0;
+    struct sockaddr_in6 *a6 = (struct sockaddr_in6 *) addr;
+    struct sockaddr_in *a4 = (struct sockaddr_in *) addr;
     /* quick check for dotted quad IPv4 address */
-    if(inet_pton(AF_INET, host, addr) != 1) {
+    if(inet_pton(AF_INET, host, &a4->sin_addr) == 1) {
+        addr->ss_family = AF_INET;
+    }
+    else {
         // try a IPv6 address
-        if(inet_pton(AF_INET6, host, addr) != 1) {
-            return -1;
+        if(inet_pton(AF_INET6, host, &a6->sin6_addr) == 1) {
+            addr->ss_family = AF_INET6;
+        }
+        else {
+            sts = -1;
         }
     }
-    /* Use resolver */
-    he = gethostbyname(host);
-    if(he != 0)
-    {
-        if(he->h_addrtype == AF_INET)
-        {
-            SLPNetSetAddr(addr, AF_INET, 0, he->h_addr_list[0], sizeof(struct in_addr));
-            return 0;
-        }
-        else if (he->h_addrtype == AF_INET6) {
-            SLPNetSetAddr(addr, AF_INET6, 0, he->h_addr_list[0], sizeof(struct in_addr6));
-            return 0;
-        }
-    }
-    return -1;
+    return(sts);
 }
 
 int SLPNetIsIPV6() {
@@ -294,4 +291,93 @@ int SLPNetAddrInfoToString(struct addrinfo *src, char *dst, int dstLen) {
     }
     return(0);
 }
+
+#define SLP_NET_TEST
+#ifdef SLP_NET_TEST
+int main(int argc, char* argv[]) {
+    char hostfdn[1024];
+    char addrString[1024];
+    int sts;
+    int errorCount = 0;
+    struct sockaddr_storage addr;
+    #ifdef _WIN32
+    WSADATA wsadata;
+    WSAStartup(MAKEWORD(2,2), &wsadata);
+    #endif
+
+    sts = SLPNetGetThisHostname(hostfdn, sizeof(hostfdn), 0, AF_INET);
+    if (sts != 0) {
+        printf("error %d with SLPNetGetThisHostname.\r\n", sts);
+        errorCount++;
+    }
+    else {
+        printf("hostfdn = %s\r\n", hostfdn);
+    }
+    sts = SLPNetGetThisHostname(hostfdn, sizeof(hostfdn), 1, AF_INET);
+    if (sts != 0) {
+        printf("error %d with SLPNetGetThisHostname.\r\n", sts);
+        errorCount++;
+    }
+    else {
+        printf("hostfdn = %s\r\n", hostfdn);
+    }
+    sts = SLPNetGetThisHostname(hostfdn, sizeof(hostfdn), 0, AF_INET6);
+    if (sts != 0) {
+        printf("error %d with SLPNetGetThisHostname.\r\n", sts);
+        errorCount++;
+    }
+    else {
+        printf("hostfdn = %s\r\n", hostfdn);
+    }
+    sts = SLPNetGetThisHostname(hostfdn, sizeof(hostfdn), 1, AF_INET6);
+    if (sts != 0) {
+        printf("error %d with SLPNetGetThisHostname.\r\n", sts);
+        errorCount++;
+    }
+    else {
+        printf("hostfdn = %s\r\n", hostfdn);
+    }
+
+    sts = SLPNetResolveHostToAddr("localhost", &addr);
+    if (sts != 0) {
+        printf("error %d with SLPNetResolveHostToAddr.\r\n", sts);
+        errorCount++;
+    }
+    else {
+        printf("addr family = %d\r\n", addr.ss_family);
+        SLPNetSockAddrStorageToString(&addr, addrString, sizeof(addrString));
+        printf("address = %s\r\n", addrString);
+    }
+
+    sts = SLPNetResolveHostToAddr("::1", &addr);
+    if (sts != 0) {
+        printf("error %d with SLPNetResolveHostToAddr.\r\n", sts);
+        errorCount++;
+    }
+    else {
+        printf("addr family = %d\r\n", addr.ss_family);
+        SLPNetSockAddrStorageToString(&addr, addrString, sizeof(addrString));
+        printf("address = %s\r\n", addrString);
+    }
+/*
+    int SLPNetIsIPV6();
+    int SLPNetIsIPV4();
+    int SLPNetCompareAddrs(const struct sockaddr_storage *addr1, const struct sockaddr_storage *addr2);
+    int SLPNetIsMCast(const struct sockaddr_storage *addr);
+    int SLPNetIsLocal(const struct sockaddr_storage *addr);
+    int SLPNetSetAddr(struct sockaddr_storage *addr, const int family, const short port, const unsigned char *address, const int addrLen);
+    int SLPNetCopyAddr(struct sockaddr_storage *dst, const struct sockaddr_storage *src);
+    int SLPNetSetSockAddrStorageFromAddrInfo(struct sockaddr_storage *dst, struct addrinfo *src);
+    int SLPNetAddrInfoToString(struct addrinfo *src, char *dst, int dstLen);
+*/
+
+    #ifdef _WIN32
+    WSACleanup();
+    #endif
+
+}
+#endif
+
+
+
 

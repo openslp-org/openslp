@@ -228,7 +228,9 @@ int SLPMulticastSend(const SLPIfaceInfo* ifaceinfo,
             s4->sin_addr.s_addr = htonl(SLP_MCAST_ADDRESS);
         }
         else {
-            // send via IPV6 multicast
+            /* send via IPV6 multicast */
+            struct sockaddr_in6 *s6 = (struct sockaddr_in6 *) &socks->peeraddr[socks->sock_count];
+            /* first get the scope of the address */
         }
         xferbytes = sendto(socks->sock[socks->sock_count],
                            msg->start,
