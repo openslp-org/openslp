@@ -1,6 +1,11 @@
 NEWS - list of user-visible changes between releases of OpenSLP and other
 important events.
 
+New in openslp-0.8.3 (2001-03-??)
+---------------------------------
+* Many fixes to documentation based on review feedback from debian 
+  developer Susan G. Kleinmann (sgk@debian.org).
+
 New in openslp-0.8.2 (2001-02-14)
 ---------------------------------
 * Minor fixes in the html documentation.

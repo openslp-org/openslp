@@ -27,7 +27,7 @@ from RFC 2614</a> even if you are familiar with the RFC spec.
 File Syntax</h3>
 The slp.conf file syntax is very simple.&nbsp; OpenSLP follows the syntax
 specified in <a href="../../rfc/rfc2614.txt">RFC 2614</a> which is simply
-a list of key/value pares separate by newlines; Comment lines
+a list of key/value pairs separated by newlines; comment lines
 begin with a '#' or a ';'.&nbsp; A good example file is copied to <tt>/etc/slp.conf</tt>
 with the OpenSLP distribution. Take a look at it or <a href="../../rfc/rfc2614.txt">read
 the RFC if you need more details</a>.
@@ -49,7 +49,7 @@ is seldom necessary since OpenSLP will automatically use broadcast if multicast
 is unavailable. Default is false.</blockquote>
 <b>net.slp.passiveDADetection</b>
 <blockquote>A boolean indicating whether passive DA detection should be
-use. Default is true.</blockquote>
+used. Default is true.</blockquote>
 <b>net.slp.DAActiveDiscoveryInterval</b>
 <blockquote>A 16 bit positive integer giving the number of seconds between
 DA active discovery queries.&nbsp; Default is 900 seconds (15 minutes).&nbsp;
@@ -92,7 +92,7 @@ reported asynchronously.</blockquote>
 false, not run as a DA. Default is false.</blockquote>
 <b>net.slp.DAHeartBeat (currently ignored)</b>
 <blockquote>A 32 bit integer giving the number of seconds for the DA heartbeat.&nbsp;
-Default is 3 hours (10800 seconds).&nbsp; Ignored if isDA is false.</blockquote>
+Default is 3 hours (10800 seconds).&nbsp; Ignored if net.slp.isDA is false.</blockquote>
 <b>net.slp.DAAttributes (currently ignored)</b>
 <blockquote>A comma-separated list of parenthesized attribute/value list
 pairs that the DA must advertise in DAAdverts.&nbsp; The property must
@@ -119,7 +119,7 @@ timeouts are generated internally based on the net.slp.multicastMaximumWait
 parameter.</blockquote>
 <b>net.slp.datagramTimeouts</b>
 <blockquote>OpenSLP does not honor this parameter.&nbsp; Currently unicast
-timeouts are generated internal based on the net.slp.unicastMaximumWait
+timeouts are generated internally based on the net.slp.unicastMaximumWait
 parameter.</blockquote>
 
 <br>&nbsp;

@@ -16,26 +16,24 @@ options.
 <br>&nbsp;
 <h3>
 Command Line</h3>
-<tt>slpd [-d] [-c config file] [-r registration file] [-l log file] [-p
-pid file]</tt>
+<tt>slpd [-d] [-c <i>configfile</i>] [-r <i>registrationfile</i>] [-l <i>logfile</i>] [-p
+<i>pidfile</i>]</tt>
 <h3>
 Options</h3>
-[-d]
-<blockquote>Don't detach from the controlling tty</blockquote>
-[-c config file]
-<blockquote>Option to change the file the slpd uses to read configuration
-information. Defaults to <tt>/etc/slp.conf.&nbsp; See </tt><a href="SlpConf.html">Modifying
-the slp.conf configuration file</a> for details</blockquote>
-<tt>[-r registration file]</tt>
-<blockquote><tt>Option to change the file that slpd reads to obtain static
-registrations.&nbsp; Defaults to /etc/slp.conf. See <a href="SlpReg.html">Creating
-a registration file</a></tt> for details.</blockquote>
-[-l log file]
-<blockquote>Option to change the file that receives slpd log messages.&nbsp;
-Defaults to <tt>/var/log/slpd.log</tt></blockquote>
-<tt>[-p pid file]</tt>
-<blockquote><tt>Option to change the file that holds the slpd process id.&nbsp;
-Defaults to /var/run/slpd.pid</tt></blockquote>
+<tt>[-d]</tt>
+<blockquote>Don't detach from the controlling tty.</blockquote>
+<tt>[-c <i>configfile</i>]</tt>
+<blockquote>Use <tt><i>configfile</i></tt> as the file slpd reads to obtain configuration
+information, rather than the default, <tt>/etc/slp.conf</tt>.&nbsp; See <a href="SlpConf.html">Modifying
+the slp.conf configuration file</a> for details.</blockquote>
+<tt>[-r <i>registrationfile</i>]</tt>
+<blockquote>Use <tt><i>registrationfile</i></tt> as the file that slpd reads to obtain static
+registrations, rather than the default, <tt>/etc/slp.reg</tt>.&nbsp; See <a href="SlpReg.html">Creating
+a registration file</a> for details.</blockquote>
+<tt>[-l <i>logfile</i>]</tt>
+<blockquote>Use <tt><i>logfile</i></tt> as the file that slpd reads to write log messages, rather than the default, <tt>/var/log/slpd.log</tt>.</blockquote>
+<tt>[-p <i>pidfile</i>]</tt>
+<blockquote>Use <tt><i>pidfile</i></tt> as the file that holds the slpd process id, rather than the default, <tt>/var/run/slpd.pid</tt>.</blockquote>
 
 <blockquote>&nbsp;</blockquote>
 

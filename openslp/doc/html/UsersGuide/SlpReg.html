@@ -21,7 +21,7 @@ is alive.&nbsp; The default location for the registration can be changed
 from <tt>/etc/slp.reg
 </tt>to another location using the <a href="CommandLine.html">-r
 command line option</a><tt>.&nbsp; slpd reads the slp.reg </tt>file on
-startup and re-reads when ever the SIGHUP signal is received.
+startup and re-reads it when ever the SIGHUP signal is received.
 <h3>
 <tt>Syntax</tt></h3>
 The registration file format is pretty easy to understand.&nbsp; It can
@@ -59,7 +59,7 @@ file.</blockquote>
 <b><tt>attrs</tt></b>
 <blockquote>(Optional) The attributes to register along with the service.&nbsp;
 Any string but "scopes" or "SCOPES" can be used as an attrid.&nbsp; Note
-that '"' character has no real significance.&nbsp; Strings should not be
+that the '"' character has no real significance.&nbsp; Strings should not be
 quoted!</blockquote>
 
 <h3>
@@ -75,7 +75,7 @@ Several examples of registration entries are provided below:
 <br><tt>service:ssh.openslp://192.168.100.1,en,65535</tt>
 <br><tt>#use default scopes</tt>
 <br><tt>description=Secure Shell</tt>
-<p><tt>#Register telnet service with not attributes</tt>
+<p><tt>#Register telnet service with no attributes</tt>
 <br><tt>service:telnet.myorg://192.168.100.1,en,65535</tt>
 <br><tt>#use default scopes</tt></blockquote>
 

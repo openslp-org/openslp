@@ -14,12 +14,11 @@ Installing OpenSLP on Linux</h2>
 <h3>
 Installation</h3>
 Installing the latest distribution of OpenSLP is easy.&nbsp; Pay attention
-to the following step and you should not have any problems.
+to the following steps and you should not have any problems.
 <br>&nbsp;
 <br>&nbsp;
 <ol>
-<li>
-RPM Installation</li>
+<li>RPM Installation
 
 <ul>
 <li>
@@ -47,9 +46,9 @@ Start the OpenSLP daemon.</li>
 
 <ul><tt>/usr/sbin/slpd</tt></ul>
 </ul>
+</li>
 
-<li>
-Tarball Installation</li>
+<li>Tarball Installation
 
 <ul>
 <li>
@@ -76,25 +75,26 @@ Enter the extracted openslp directory build and install the OpenSLP binaries:</l
 <ul><tt>make install</tt></ul>
 
 <li>
-<tt>Make any configuration changes to the /etc/slp.conf file that you think
-you need. (see <a href="SlpConf.html">Configuration</a> for details)</tt></li>
+Make any configuration changes to the <tt>/etc/slp.conf</tt> file that you think
+you need. (see <a href="SlpConf.html">Configuration</a> for details).</li>
 
 <li>
-<tt>Set up static registrations in the /etc/slp.reg file if you need them.
-(see <a href="SlpReg.html">Static Registrations</a> for details)</tt></li>
+Set up static registrations in the <tt>/etc/slp.reg</tt> file if you need them.
+(see <a href="SlpReg.html">Static Registrations</a> for details).</li>
 
 <li>
-<tt>Start the OpenSLP daemon.</tt></li>
+Start the OpenSLP daemon.</li>
 
 <ul><tt>/usr/sbin/slpd</tt></ul>
 </ul>
+</li>
 </ol>
 
 <h3>
 <tt>Making slpd start on boot</tt></h3>
 <tt>You may want to make a few changes to your Linux initialization scripts
 so that slpd will start when your machine is booted.&nbsp; Since it is
-not always necessary have slpd running, <b>you should probably read about
+not always necessary to have slpd running, <b>you should probably read about
 when (and why) the OpenSLP daemon has to run in the <a href="index.html">Advanced
 Topics</a> section before deciding to changing your init scripts</b>.</tt>
 <h3>
@@ -104,7 +104,7 @@ want to remove the distribution directory from your system after OpenSLP
 is installed.&nbsp; The distribution directory is the one that was created
 by the tar -zxf openslp-x.x.x.tar.gz command.&nbsp; During installation,
 all of the important files were copied out of this directory to the appropriate
-places on you machines file system so it can be deleted with out ruining
-OpenSLP.</tt>
+places on you machines file system so it can be deleted with out breaking your
+installation of OpenSLP.</tt>
 </body>
 </html>

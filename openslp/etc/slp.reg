@@ -34,6 +34,6 @@
 #use default scopes 
 #description="Secure Shell" 
 
-##Register telnet service with not attributes 
+##Register telnet service with no attributes 
 #service:telnet.myorg://192.168.100.1,en,65535 
 #use default scopes

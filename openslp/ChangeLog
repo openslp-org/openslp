@@ -5,6 +5,12 @@ Please make entries to this log (in addition to the CVS log) that describe
 major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
+
+03/12/01 rganesan@myrealbox.com
+Fixed many documentation bugs and re-worded in some places for clarity based
+on excellent and detailed review feedback from Susan G. Kleinmann 
+(sgk@debian.org). 
+
 03/05/01 mpeterson@caldera.com
 Fixed a very very hard to find problem where regtypes were being cleared by
 local re-registration (.reg registration re-registered when we discovered
