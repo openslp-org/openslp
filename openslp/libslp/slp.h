@@ -57,30 +57,19 @@ extern "C"
 {
 #endif
 
-/*
-	It's not a good idea to export __stdcall - export signatures are 
-	currently incompatible between IAPx86 and IA64 - microsoft 
-	has a workaround to this, but it's undocumented and requires
-	hand-rolled tools to post-process the product files. __declspec
-	(dllexport) has it's own set of problems - better for now just to 
-	use a .def file. -- jmc
-
 #ifdef __WIN32__
-# define SLPCALLBACK __stdcall
-# ifdef LIBSLP_EXPORTS
-#  define SLPAPI __declspec(dllexport) __stdcall
-# else
-#  define SLPAPI __declspec(dllimport) __stdcall
-# endif
-#else
-*/
-
 # define SLPCALLBACK
+# ifdef LIBSLP_EXPORTS
+#  define SLPEXP __declspec(dllexport)
+# else
+#  define SLPEXP __declspec(dllimport)
+# endif
 # define SLPAPI
-
-/*
+#else
+# define SLPCALLBACK
+# define SLPEXP
+# define SLPAPI
 #endif
-*/
 
 /*==========================================================================*/
 /* lifetime values, in  seconds, that are frequently used.                  */
@@ -428,7 +417,7 @@ typedef SLPBoolean SLPCALLBACK SLPAttrCallback(SLPHandle hSLP,
 
 
 /*=========================================================================*/
-SLPError SLPAPI SLPOpen(const char *pcLang,
+SLPEXP SLPError SLPAPI SLPOpen(const char *pcLang,
                              SLPBoolean isAsync,
                              SLPHandle *phSLP);
 /*                                                                         */
@@ -469,7 +458,7 @@ SLPError SLPAPI SLPOpen(const char *pcLang,
 
 
 /*=========================================================================*/
-void SLPAPI SLPClose(SLPHandle hSLP);
+SLPEXP void SLPAPI SLPClose(SLPHandle hSLP);
 /*                                                                         */
 /* Frees all resources associated with the handle.  If the handle was      */
 /* invalid, the function returns silently.  Any outstanding synchronous    */
@@ -483,7 +472,7 @@ void SLPAPI SLPClose(SLPHandle hSLP);
 #define SLP_REG_FLAG_WATCH_PID  (1 << 1)
 
 /*=========================================================================*/
-SLPError SLPAPI SLPReg(SLPHandle   hSLP,
+SLPEXP SLPError SLPAPI SLPReg(SLPHandle   hSLP,
                 const char  *pcSrvURL,
                 const unsigned short usLifetime,
                 const char  *pcSrvType,
@@ -546,7 +535,7 @@ SLPError SLPAPI SLPReg(SLPHandle   hSLP,
 
 
 /*=========================================================================*/
-SLPError SLPAPI SLPDereg(SLPHandle  hSLP,
+SLPEXP SLPError SLPAPI SLPDereg(SLPHandle  hSLP,
                   const char *pcSrvURL,
                   SLPRegReport callback,
                   void *pvCookie);   
@@ -574,7 +563,7 @@ SLPError SLPAPI SLPDereg(SLPHandle  hSLP,
 
 
 /*=========================================================================*/
-SLPError SLPAPI SLPDelAttrs(SLPHandle   hSLP,
+SLPEXP SLPError SLPAPI SLPDelAttrs(SLPHandle   hSLP,
                      const char  *pcSrvURL,
                      const char  *pcAttrs,
                      SLPRegReport callback,
@@ -605,7 +594,7 @@ SLPError SLPAPI SLPDelAttrs(SLPHandle   hSLP,
 
 
 /*=========================================================================*/
-SLPError SLPAPI SLPFindSrvTypes(SLPHandle    hSLP,
+SLPEXP SLPError SLPAPI SLPFindSrvTypes(SLPHandle    hSLP,
                          const char  *pcNamingAuthority,
                          const char  *pcScopeList,
                          SLPSrvTypeCallback callback,
@@ -652,7 +641,7 @@ SLPError SLPAPI SLPFindSrvTypes(SLPHandle    hSLP,
 
 
 /*=========================================================================*/
-SLPError SLPAPI SLPFindSrvs(SLPHandle  hSLP,
+SLPEXP SLPError SLPAPI SLPFindSrvs(SLPHandle  hSLP,
                      const char *pcServiceType,
                      const char *pcScopeList,
                      const char *pcSearchFilter,
@@ -698,7 +687,7 @@ SLPError SLPAPI SLPFindSrvs(SLPHandle  hSLP,
 
 
 /*=========================================================================*/
-SLPError SLPAPI SLPFindAttrs(SLPHandle   hSLP,
+SLPEXP SLPError SLPAPI SLPFindAttrs(SLPHandle   hSLP,
                       const char *pcURLOrServiceType,
                       const char *pcScopeList,
                       const char *pcAttrIds,
@@ -748,7 +737,7 @@ SLPError SLPAPI SLPFindAttrs(SLPHandle   hSLP,
 
 
 /*=========================================================================*/
-unsigned short SLPAPI SLPGetRefreshInterval();
+SLPEXP unsigned short SLPAPI SLPGetRefreshInterval();
 /*                                                                         */
 /* Returns the maximum across all DAs of the min-refresh-interval          */
 /* attribute.  This value satisfies the advertised refresh interval        */
@@ -765,7 +754,7 @@ unsigned short SLPAPI SLPGetRefreshInterval();
 
 
 /*=========================================================================*/
-SLPError SLPAPI SLPFindScopes(SLPHandle hSLP,
+SLPEXP SLPError SLPAPI SLPFindScopes(SLPHandle hSLP,
                        char** ppcScopeList);
 /*                                                                         */
 /* Sets ppcScopeList parameter to a pointer to a comma separated list      */
@@ -790,7 +779,7 @@ SLPError SLPAPI SLPFindScopes(SLPHandle hSLP,
 
 
 /*=========================================================================*/
-SLPError SLPAPI SLPParseSrvURL(const char *pcSrvURL,
+SLPEXP SLPError SLPAPI SLPParseSrvURL(const char *pcSrvURL,
                         SLPSrvURL** ppSrvURL);
 /*                                                                         */
 /* Parses the URL passed in as the argument into a service URL structure   */
@@ -820,7 +809,7 @@ SLPError SLPAPI SLPParseSrvURL(const char *pcSrvURL,
 
 
 /*=========================================================================*/
-SLPError SLPAPI SLPEscape(const char* pcInbuf,
+SLPEXP SLPError SLPAPI SLPEscape(const char* pcInbuf,
                    char** ppcOutBuf,
                    SLPBoolean isTag); 
 /*                                                                         */
@@ -850,7 +839,7 @@ SLPError SLPAPI SLPEscape(const char* pcInbuf,
 
 
 /*=========================================================================*/
-SLPError SLPAPI SLPUnescape(const char* pcInbuf,
+SLPEXP SLPError SLPAPI SLPUnescape(const char* pcInbuf,
                      char** ppcOutBuf,
                      SLPBoolean isTag);
 /*                                                                         */
@@ -880,7 +869,7 @@ SLPError SLPAPI SLPUnescape(const char* pcInbuf,
 
 
 /*=========================================================================*/
-void SLPAPI SLPFree(void* pvMem);
+SLPEXP void SLPAPI SLPFree(void* pvMem);
 /*                                                                         */
 /* Frees memory returned from SLPParseSrvURL(), SLPFindScopes(),           */
 /* SLPEscape(), and SLPUnescape().                                         */
@@ -892,7 +881,7 @@ void SLPAPI SLPFree(void* pvMem);
 
 
 /*=========================================================================*/
-const char* SLPAPI SLPGetProperty(const char* pcName);
+SLPEXP const char* SLPAPI SLPGetProperty(const char* pcName);
 /*                                                                         */
 /* Returns the value of the corresponding SLP property name.  The returned */
 /* string is owned by the library and MUST NOT be freed.                   */
@@ -908,7 +897,7 @@ const char* SLPAPI SLPGetProperty(const char* pcName);
 
 
 /*=========================================================================*/
-void SLPAPI SLPSetProperty(const char *pcName,
+SLPEXP void SLPAPI SLPSetProperty(const char *pcName,
                     const char *pcValue);
 /*                                                                         */
 /* Sets the value of the SLP property to the new value.  The pcValue       */
@@ -923,7 +912,7 @@ void SLPAPI SLPSetProperty(const char *pcName,
 
 
 /*=========================================================================*/
-SLPError SLPAPI SLPParseAttrs(const char* pcAttrList,
+SLPEXP SLPError SLPAPI SLPParseAttrs(const char* pcAttrList,
                        const char *pcAttrId,
                        char** ppcAttrVal);
 /*                                                                         */
