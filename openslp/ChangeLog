@@ -9,6 +9,10 @@ blank lines and include the date, developer's email, and change description.
 
 =============================================================================
 
+07/11/00 david.mccormack@ottawa.com
+Added a --enable-debug parameter to the configure script.  This option 
+when activated allows for all the debug parameters to be set.
+
 07/10/00 david.mccormack@ottawa.com
 Fixxed a short coming of SLPEscape, it did not handle CTL, which it now 
 does.
