@@ -17,30 +17,25 @@ Service Location Protocol suitable for commercial and non-commercial
 application.
 
 The latest stable version of OpenSLP is 1.0.3.  OpenSLP-1.0.3 fixes a few
-minor bugs.. The following is a shortened list changes for 1.0.3:
+important bugs.  The following is a shortened list changes for 1.0.4:
 
-- Fixed several bugs that were resulting in messagage being send that
-  contained 2-6 bytes of trailing garbage.  The garbage was disrupting
-  interoperability with other implementations most notably the Netware 6 DA
-  Special thanks to Timothy Zurcher for debugging this problem.
-
-- Changed install script so that it does not erase existing configuration files
+- Use IP address in agent url for those operating systems where gethostname()
+  does not return a fully qualified domain name (FQDN).
   
-- Fixed reconnect code to be able to interoperate with inefficient DAs that
-  close the stream after each srvreg/srvack exchange.  This change fixes
-  interoperability with the Mac OS/X DA which is reported to make inefficient
-  use of TCP.  Special thanks to Timothy Zurcher for debugging this problem.
-  
-- Applied patch that fixes compile problems related to inet_aton() on Win32
+- Applied patch from Tim Zurcher to fix memory realloc problems when messages 
+  exceed the SLP MTU of 1400 bytes.
 
-- Fixed configure scripts so that -lresolv is used on Solaris
-      
-- Removed calls that (sort of) enforce service-url checking.  This is for the
-  benefit of AFP's usage of SRVLOC.  Developers are now trusted not to register
-  ambiguous service-urls.
- 
--  Applied Tomasz K?oczko patch for automake 1.5
- 
+- Fixed SEGV when operating with Mac OS/x which insists on sending corrupt SLP
+  messages.  Thanks to Ernie Stepson for reporting this problem.
+  
+- Added code to log parse errors and dump bad messages to the log
+
+- Fixed problem where libslp.so would loop tightly if SLPReg() and SLPDereg()
+  were called after previously contacted slpd had died.
+  
+- Fixed problem where empty message was sent when talking to more than one 
+  statically configured DA.  Patch from Timothy Zurcher.
+
        
 2 - Roadmap
 ------------
