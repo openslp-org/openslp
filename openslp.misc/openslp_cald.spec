@@ -12,14 +12,17 @@ BuildRoot       : /tmp/%{Name}-%{Version}
 Source0: openslp/openslp-%{Version}.tar.gz
 Source1: openslp/slptool-%{Version}.tar.gz
 
+
 %Description
 Service Location Protocol is an IETF standards track protocol that
 provides a framework to allow networking applications to discover the
 existence, location, and configuration of networked services in
 enterprise networks.
     
+
 %Prep
 %setup -b 1
+
 
 %Build
 ./configure --disable-predicates
@@ -27,22 +30,28 @@ make
 cd ../slptool-%{Version}
 LIBDIR=../openslp-%{Version}/libslp/.lib make
 
+
 %Install
 %{mkDESTDIR}
 make install 
 mkdir -p $DESTDIR/etc/rc.d/init.d
-install -m 755 etc/slpd.all_init $DESTDIR/etc/rc.d/init.d/slpd
+install -m 755 etc/slpd.caldera_init $DESTDIR%{SVIdir}/slpd
 mkdir -p $DESTDIR/usr/bin
 install -m 755 ../slptool-%{Version}/slptool $DESTDIR/usr/bin/slptool
 
+
 %{fixManPages}
+%{fixInfoPages}
+%{fixUP} -T $DESTDIR/%{SVIdir} -e 's:\@SVIdir\@:%{SVIdir}:' 
+
 
 %Clean
 %{rmDESTDIR}
 
+
 %Post
 /sbin/ldconfig
-
+/usr/lib/LSB/init-install slpd
 if [ -d '/usr/lib/OpenLinux' ]; then 
 cat <<EOD  > /etc/sysconfig/daemons/slpd
 IDENT=slp
@@ -51,36 +60,12 @@ ONBOOT="yes"
 EOD
 fi
 
-if [ -x /sbin/chkconfig ]; then
-  chkconfig --add slpd
-else 
-  for i in 2 3 4 5; do
-    ln -sf /etc/rc.d/init.d/slpd /etc/rc.d/rc$i.d/S13slpd
-  done
-  for i in 0 1 6; do
-    ln -sf /etc/rc.d/init.d/slpd /etc/rc.d/rc$i.d/K87slpd
-  done
-fi
 
 %PreUn
-rm -f /etc/sysconfig/daemons/slpd
-if [ "$1" = "0" ]; then
-  if [ -x /sbin/chkconfig ]; then
-    /sbin/chkconfig --del slpd
-  else
-    for i in 2 3 4 5; do
-      rm -f /etc/rc.d/rc$i.d/S13slpd
-    done
-    for i in 0 1 6; do
-      rm -f /etc/rc.d/rc$i.d/K87slpd
-    done
-  fi
-fi
+/usr/lib/LSB/init-remove slpd
+
 
 %PostUn 
-if [ "$1" = "0" ]; then
-  rm -f /usr/lib/libslp.so
-fi
 /sbin/ldconfig
 
 
@@ -95,7 +80,11 @@ fi
 /usr/sbin/slpd
 /usr/bin/slptool
 
+
 %ChangeLog
+* Mon Dec 18 2000 mpeterson@caldera.com
+        Added LSB init stuff
+	
 * Wed Nov 28 2000 mpeterson@caldera.com
         Removed lisa stuff and RPM_BUILD_ROOT
 	
