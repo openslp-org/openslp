@@ -60,17 +60,6 @@ void SLPDDatabaseEntryFree(SLPDDatabaseEntry* entry)
 }
 
 
-/*-------------------------------------------------------------------------*/
-void FreeAllEntries(SLPList* list)
-/*-------------------------------------------------------------------------*/
-{
-    while(list->count)
-    {
-        SLPDDatabaseEntryFree((SLPDDatabaseEntry*)SLPListUnlink(list,list->head));
-    }
-}
-
-
 /*=========================================================================*/
 void SLPDDatabaseAge(int seconds)
 /* Agea the database entries and clears new and deleted entry lists        */
@@ -530,9 +519,6 @@ int SLPDDatabaseInit(const char* regfile)
     FILE*               fd;
     SLPDDatabaseEntry*  entry;
 
-    /* Remove all entries in the database if any */
-    FreeAllEntries(&G_DatabaseList);
-
     /*--------------------------------------*/
     /* Read static registration file if any */
     /*--------------------------------------*/
@@ -565,7 +551,10 @@ void SLPDDatabaseDeinit()
 /* De-initialize the database.  Free all resources taken by registrations  */
 /*=========================================================================*/
 {
-    FreeAllEntries(&G_DatabaseList);
+    while(list->count)
+    {
+        SLPDDatabaseEntryFree((SLPDDatabaseEntry*)SLPListUnlink(list,list->head));
+    }
 }
 #endif
 

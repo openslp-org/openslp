@@ -440,13 +440,16 @@ int main(int argc, char* argv[])
             SLPLog("****************************************\n");
             SLPLog("Got SIGHUP reinitializing... \n");
 
+            /* re-read properties */
             SLPDPropertyInit(G_SlpdCommandLine.cfgfile);
+                       
+            /* Re-read the static registration file (slp.reg)*/
             SLPDDatabaseInit(G_SlpdCommandLine.regfile);
-            /* Don't reinitialize Incoming because we can't rebind to */
-            /* slp reserved port because we are not root now          */
-            /* SLPDIncomingInit(); */
-            SLPDOutgoingInit();
+
+            /* Rebuild Known DA database */
             SLPDKnownDAInit();
+
+            
             G_SIGHUP = 0;     
         }
         if(G_SIGALRM)
