@@ -1,0 +1,10 @@
+#!/bin/bash
+echo "SLPParseSrvURL"
+./SLPParseSrvURL service:test://10.0.0.1 > SLPParseSrvURL.actual.output
+echo >> SLPParseSrvURL.actual.output
+./SLPParseSrvURL service:test1:test2://10.0.0.1:80 >> SLPParseSrvURL.actual.output
+echo >> SLPParseSrvURL.actual.output
+./SLPParseSrvURL service:test://10.0.0.1:80/foo/goo >> SLPParseSrvURL.actual.output
+echo >> SLPParseSrvURL.actual.output
+./SLPParseSrvURL service:test://10.0.0.1/foo/goo >> SLPParseSrvURL.actual.output 
+diff --brief SLPParseSrvURL.expected.output SLPParseSrvURL.actual.output

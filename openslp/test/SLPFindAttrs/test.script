@@ -1,0 +1,16 @@
+#!/bin/bash
+echo "SLPFindAttrs"
+rm SLPFindAttrs.actual.output -f
+../../slpd/slpd -r slp.test.reg 
+./SLPFindAttrs service:test 10.0.0.1 foo >> SLPFindAttrs.actual.output
+echo >> SLPFindAttrs.actual.output
+./SLPFindAttrs service:test 10.0.0.1 goo >> SLPFindAttrs.actual.output
+echo >> SLPFindAttrs.actual.output
+./SLPFindAttrs service:test 10.0.0.1 description >> SLPFindAttrs.actual.output
+echo >> SLPFindAttrs.actual.output
+./SLPFindAttrs service:test 10.0.0.1 foo=value1,value2 foo >> SLPFindAttrs.actual.output
+echo >> SLPFindAttrs.actual.output
+./SLPFindAttrs service:test 10.0.0.1 foo=value1,value2 goo >> SLPFindAttrs.actual.output
+echo >> SLPFindAttrs.actual.output
+killall slpd
+diff --brief SLPFindAttrs.expected.output SLPFindAttrs.actual.output

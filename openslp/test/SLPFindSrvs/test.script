@@ -1,0 +1,7 @@
+#!/bin/bash
+echo "SLPFindSrvs"
+rm -f SLPFindSrvs.actual.output
+../../slpd/slpd -r slp.test.reg 
+./SLPFindSrvs service:test >> SLPFindSrvs.actual.output
+killall slpd
+diff --brief SLPFindSrvs.expected.output SLPFindSrvs.actual.output

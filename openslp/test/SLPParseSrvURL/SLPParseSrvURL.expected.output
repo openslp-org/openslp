@@ -1,0 +1,23 @@
+Service Type = service:test
+Host Identification = 10.0.0.1
+Port Number = 0
+Family = IP
+URL Remainder = 
+
+Service Type = service:test1:test2
+Host Identification = 10.0.0.1
+Port Number = 80
+Family = IP
+URL Remainder = 
+
+Service Type = service:test
+Host Identification = 10.0.0.1
+Port Number = 80
+Family = IP
+URL Remainder = /foo/goo
+
+Service Type = service:test
+Host Identification = 10.0.0.1
+Port Number = 0
+Family = IP
+URL Remainder = /foo/goo

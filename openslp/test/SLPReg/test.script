@@ -1,0 +1,9 @@
+#!/bin/bash
+echo "SLPReg"
+rm -f SLPReg.actual.output
+../../slpd/slpd -r slp.test.reg -c slp.test.conf
+./SLPReg service:valid 10.0.0.1 service:valid >>  SLPReg.actual.output
+echo >> SLPReg.actual.output
+./SLPReg service:valid 10.0.0.1 service:invalid >> SLPReg.actual.output
+killall slpd
+diff --brief SLPReg.expected.output SLPReg.actual.output
