@@ -165,6 +165,10 @@ SOURCE=..\..\common\slp_database.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\common\slp_dhcp.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\common\slp_iface.c
 # End Source File
 # Begin Source File
@@ -234,6 +238,10 @@ SOURCE=..\..\common\slp_compare.h
 # Begin Source File
 
 SOURCE=..\..\common\slp_database.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\common\slp_dhcp.h
 # End Source File
 # Begin Source File
 
