@@ -10,14 +10,14 @@ slp_authentication_SRCS = slp_auth.c slp_crypto.c slp_spi.c
 endif
 
 libcommonlibslp_la_SOURCES = \
+	slp_compare.c \
 	slp_buffer.c \
 	slp_message.c \
 	slp_property.c \
 	slp_linkedlist.c \
 	slp_xid.c \
 	slp_network.c \
-	slp_da.c \
-	slp_compare.c \
+	slp_database.c \
 	slp_xmalloc.c \
 	$(slp_v1message_SRCS) \
 	$(slp_authentication_SRCS)
@@ -30,14 +30,12 @@ libcommonslpd_la_SOURCES = \
 	slp_linkedlist.c \
 	slp_xid.c \
 	slp_database.c \
-	slp_da.c \
 	slp_xmalloc.c \
 	$(slp_v1message_SRCS) \
 	$(slp_authentication_SRCS)
 
 noinst_HEADERS = \
 	slp_buffer.h \
-	slp_da.h \
 	slp_network.h \
 	slp_xid.h \
 	slp_compare.h \

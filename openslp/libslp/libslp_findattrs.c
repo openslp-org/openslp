@@ -51,61 +51,83 @@
 #include "libslp.h"
 
 /*-------------------------------------------------------------------------*/
-SLPBoolean CallbackAttrRqst(SLPError errorcode, SLPMessage msg, void* cookie)
+SLPBoolean CallbackAttrRqst(SLPError errorcode, 
+                            struct sockaddr_in* peerinfo,
+                            SLPBuffer replybuf,
+                            void* cookie)
 /*-------------------------------------------------------------------------*/
 {
+    SLPMessage      replymsg;
+    SLPAttrRply*    attrrply;
     PSLPHandleInfo  handle      = (PSLPHandleInfo) cookie;
+    SLPBoolean      result      = SLP_TRUE;
 
+#ifdef ENABLE_AUTHENTICATION 
+    int             securityenabled;
+    securityenabled = SLPPropertyAsBoolean(SLPGetProperty("net.slp.securityEnabled"));
+#endif
+
+    /*-------------------------------------------*/
+    /* Check the errorcode and bail if it is set */
+    /*-------------------------------------------*/
     if(errorcode)
     {
         handle->params.findattrs.callback((SLPHandle)handle,
                                           0,
                                           errorcode,
                                           handle->params.findattrs.cookie);
-        return 0;    
+        return SLP_FALSE;
     }
 
-    if(msg->header.functionid != SLP_FUNCT_ATTRRPLY)
+    /*--------------------*/
+    /* Parse the replybuf */
+    /*--------------------*/
+    replymsg = SLPMessageAlloc();
+    if(replymsg)
     {
-        return 1;   
-    }
-
-    if(msg->body.attrrply.errorcode == 0)
-    {
-        
+        if(SLPMessageParseBuffer(peerinfo,replybuf,replymsg) == 0 &&
+           replymsg->header.functionid == SLP_FUNCT_ATTRRPLY &&
+           replymsg->body.attrrply.errorcode == 0)
+        {
+            attrrply = &(replymsg->body.attrrply);
+            
+            if(attrrply->attrlistlen)
+            {
+     
 #ifdef ENABLE_AUTHENTICATION
-        /*-------------------------------*/
-        /* Validate the authblocks       */
-        /*-------------------------------*/
-        if(SLPPropertyAsBoolean(SLPGetProperty("net.slp.securityEnabled")) &&
-           SLPAuthVerifyString(handle->hspi,
-                               1,
-                               msg->body.attrrply.attrlistlen,
-                               msg->body.attrrply.attrlist,
-                               msg->body.attrrply.authcount,
-                               msg->body.attrrply.autharray))
-        {
-            /* authentication failed, skip it */
-            return 1;
-        }
+                /*-------------------------------*/
+                /* Validate the authblocks       */
+                /*-------------------------------*/
+                if(SLPPropertyAsBoolean(SLPGetProperty("net.slp.securityEnabled")) &&
+                   SLPAuthVerifyString(handle->hspi,
+                                       1,
+                                       attrrply->attrlistlen,
+                                       attrrply->attrlist,
+                                       attrrply->authcount,
+                                       attrrply->autharray) == 0)
 #endif
-        
-        if(msg->body.attrrply.attrlistlen == 0)
-        {
-            /* Skip blank replies */
-            return 1;
+                {
+                    /*---------------------------------------*/
+                    /* Send the attribute list to the caller */
+                    /*---------------------------------------*/
+                    /* TRICKY: null terminate the attrlist by setting the authcount to 0 */
+                    ((char*)(attrrply->attrlist))[attrrply->attrlistlen] = 0;
+                    
+                    /* Call the callback function */
+                    result = handle->params.findattrs.callback((SLPHandle)handle,
+                                                               attrrply->attrlist,
+                                                               attrrply->errorcode * -1,
+                                                               handle->params.findattrs.cookie);
+                }
+            }
         }
-
-        /* TRICKY: null terminate the attrlist by setting the authcount to 0 */
-        *((char*)(msg->body.attrrply.attrlist)+msg->body.attrrply.attrlistlen) = 0;
+        
+        SLPMessageFree(replymsg);
     }
-
-    /* Call the callback function */
-    return handle->params.findattrs.callback((SLPHandle)handle,
-                                             msg->body.attrrply.attrlist,
-                                             msg->body.attrrply.errorcode * -1,
-                                             handle->params.findattrs.cookie);
+    
+    return result;
 }
+
 
 /*-------------------------------------------------------------------------*/
 SLPError ProcessAttrRqst(PSLPHandleInfo handle)

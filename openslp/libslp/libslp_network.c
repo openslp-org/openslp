@@ -131,7 +131,7 @@ void NetworkDisconnectDA(PSLPHandleInfo handle)
     }
 
     /* Mark this DA as bad */
-    KnownDABadDA(&handle->daaddr);
+    KnownDABadDA(&(handle->daaddr.sin_addr));
 }
 
 
@@ -283,7 +283,7 @@ SLPError NetworkRqstRply(int sock,
                          char* buf,
                          char buftype,
                          int bufsize,
-                         NetworkRqstRplyCallback callback,
+                         NetworkRplyCallback callback,
                          void * cookie)
 /* Transmits and receives SLP messages via multicast convergence algorithm */
 /*                                                                         */
@@ -294,7 +294,6 @@ SLPError NetworkRqstRply(int sock,
     struct sockaddr_in  peeraddr;
     SLPBuffer           sendbuf         = 0;
     SLPBuffer           recvbuf         = 0;
-    SLPMessage          msg             = 0;
     SLPError            result          = 0;
     int                 looprecv        = 0;
     int                 langtaglen      = 0;
@@ -374,7 +373,6 @@ SLPError NetworkRqstRply(int sock,
         looprecv = 1;
     }
 
-
     /*--------------------------------*/
     /* Allocate memory for the prlist */
     /*--------------------------------*/
@@ -391,7 +389,6 @@ SLPError NetworkRqstRply(int sock,
         *prlist = 0;
         prlistlen = 0;
     }
-
 
     /*--------------------------*/
     /* Main retransmission loop */
@@ -510,37 +507,37 @@ SLPError NetworkRqstRply(int sock,
                 else
                 {
                     result = SLP_NETWORK_ERROR;
-                }        
+                }
+
                 break;
             }
-
-            /* Parse the message and call callback */
-            msg = SLPMessageRealloc(msg);
-            if(msg == 0)
+            else
             {
-                result = SLP_MEMORY_ALLOC_FAILED;
-                goto FINISHED;
-            }
-
-            if(SLPMessageParseBuffer(&peeraddr,recvbuf, msg) == 0)
-            {
-                if(msg->header.xid == xid)
+                /* Sneek in and check the XID */
+                if(AsUINT16(recvbuf->start+10) == xid)
                 {
-                    rplycount = rplycount + 1;
-                    if(callback(result, msg, cookie) == 0)
+                    rplycount += 1;
+
+                    /* Call the callback with the result and recvbuf */
+                    if(callback(result,&peeraddr,recvbuf,cookie) == SLP_FALSE)
                     {
+                        /* Caller does not want any more info */
+                        /* We are done!                       */
                         goto CLEANUP;
+                    }
+                    
+                    /* add the peer to the previous responder list */
+                    if(prlist && socktype == SOCK_DGRAM)
+                    {
+                        if(prlistlen != 0)
+                        {
+                            strcat(prlist,",");
+                        }
+                        strcat(prlist,inet_ntoa(peeraddr.sin_addr));
+                        prlistlen =  strlen(prlist);
                     }
                 }
             }
-
-            /* add the peer to the previous responder list */
-            if(prlistlen != 0)
-            {
-                strcat(prlist,",");
-            }
-            strcat(prlist,inet_ntoa(peeraddr.sin_addr));
-            prlistlen =  strlen(prlist);
 
         }while(looprecv);
     }
@@ -559,9 +556,9 @@ SLPError NetworkRqstRply(int sock,
     {
         result = SLP_NETWORK_TIMED_OUT;
     }
-
-    callback(result,msg,cookie);
-
+     
+    callback(result, &peeraddr, recvbuf, cookie);
+    
     if(result == SLP_LAST_CALL)
     {
         result = 0;
@@ -574,7 +571,6 @@ SLPError NetworkRqstRply(int sock,
     if(prlist) free(prlist);
     SLPBufferFree(sendbuf);
     SLPBufferFree(recvbuf);
-    SLPMessageFree(msg);
-
+    
     return result;
 }

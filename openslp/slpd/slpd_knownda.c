@@ -639,11 +639,7 @@ void SLPDKnownDARemove(struct in_addr* addr)
 {
     SLPDatabaseHandle   dh;
     SLPDatabaseEntry*   entry;
-    SLPDAAdvert*        entrydaadvert;
-    int                 result;
-
-    result = 0;
-
+    
     dh = SLPDatabaseOpen(&G_SlpdKnownDAs);
     if(dh)
     {
@@ -655,10 +651,7 @@ void SLPDKnownDARemove(struct in_addr* addr)
             entry = SLPDatabaseEnum(dh);
             if(entry == NULL) break;
             
-            /* entrydaadvert is the DAAdvert message from the database */
-            entrydaadvert = &(entry->msg->body.daadvert);
-
-            /* Assume DAs are identical if their URLs match */
+            /* Assume DAs are identical if their peer match */
             if(memcmp(addr,&(entry->msg->peer.sin_addr),sizeof(*addr)) == 0)
             {
                 SLPDatabaseRemove(dh,entry);

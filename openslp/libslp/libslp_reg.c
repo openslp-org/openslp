@@ -52,29 +52,51 @@
 #include "libslp.h"
 
 /*-------------------------------------------------------------------------*/
-SLPBoolean CallbackSrvReg(SLPError errorcode, SLPMessage msg, void* cookie)
+SLPBoolean CallbackSrvReg(SLPError errorcode,
+                          struct sockaddr_in* peerinfo,
+                          SLPBuffer replybuf, 
+                          void* cookie)
 /*-------------------------------------------------------------------------*/
 {
+    SLPMessage      replymsg;
     PSLPHandleInfo  handle      = (PSLPHandleInfo) cookie;
 
-    if(errorcode)
+    /*-------------------------------------------*/
+    /* Check the errorcode and bail if it is set */
+    /*-------------------------------------------*/
+    if(errorcode == 0)
     {
-        handle->params.reg.callback((SLPHandle)handle,
-                                    errorcode,
-                                    handle->params.reg.cookie);
-        return 0;
+        /*--------------------*/
+        /* Parse the replybuf */
+        /*--------------------*/
+        replymsg = SLPMessageAlloc();
+        if(replymsg)
+        {
+            errorcode = SLPMessageParseBuffer(peerinfo,replybuf,replymsg);
+            if(errorcode == 0)
+            {
+                if(replymsg->header.functionid == SLP_FUNCT_SRVACK)
+                {
+                    errorcode = replymsg->body.srvack.errorcode * - 1;
+                }
+            }
+    
+            SLPMessageFree(replymsg);
+        }
+        else
+        {
+            errorcode = SLP_MEMORY_ALLOC_FAILED;
+        }
     }
 
-    if(msg->header.functionid != SLP_FUNCT_SRVACK)
-    {
-        return 0;
-    }
-
+    /*----------------------------*/
     /* Call the callback function */
+    /*----------------------------*/
     handle->params.reg.callback((SLPHandle)handle,
-                                msg->body.srvack.errorcode * -1,
+                                errorcode,
                                 handle->params.reg.cookie);
-    return 0;
+    
+    return SLP_FALSE;
 }
 
 

@@ -64,7 +64,6 @@
 /*=========================================================================*/
 #include "../common/slp_xmalloc.h"
 #include "../common/slp_message.h"
-#include "../common/slp_da.h"
 #include "../common/slp_compare.h"
 #ifdef ENABLE_AUTHENTICATION
 #include "../common/slp_auth.h"

@@ -55,8 +55,8 @@
 #include "libslp.h"
 
 /*=========================================================================*/
-SLPList G_KnownDACache = {0,0,0};
-/* The cache list of known DAs.                                            */
+SLPDatabase G_KnownDACache ={0,0,0};
+/* The cache DAAdvert messages from known DAs.                             */
 /*=========================================================================*/
 
 /*=========================================================================*/
@@ -73,166 +73,177 @@ time_t G_KnownDALastCacheRefresh = 0;
 
 
 /*-------------------------------------------------------------------------*/
-SLPDAEntry* KnownDAListFindByScope(SLPList* dalist,
-                                   int scopelistlen,
-                                   const char* scopelist)
-/* Returns: pointer to a DA that supports the specified scopelist          */
+SLPBoolean KnownDAListFindByScope(int scopelistlen,
+                                   const char* scopelist,
+                                   struct in_addr* daaddr)
+/* Returns: non-zero on success, zero if DA can not be found               */
 /*-------------------------------------------------------------------------*/
 {
-    SLPDAEntry*     entry;
+    SLPDatabaseHandle   dh;
+    SLPDatabaseEntry*   entry;
 
-    entry = (SLPDAEntry*)dalist->head;
-    while(entry)
+    dh = SLPDatabaseOpen(&G_KnownDACache);
+    if(dh)
     {
-        if(SLPSubsetStringList(entry->scopelistlen,
-                               entry->scopelist,
-                               scopelistlen,
-                               scopelist))
+        /*----------------------------------------*/
+        /* Check to see if there a matching entry */
+        /*----------------------------------------*/
+        while(1)
         {
-            break;
-        }
+            entry = SLPDatabaseEnum(dh);
+            if(entry == NULL) break;
+            
+            /* Check scopes */
+            if(SLPSubsetStringList(entry->msg->body.daadvert.scopelistlen,
+                                   entry->msg->body.daadvert.scopelist,
+                                   scopelistlen,
+                                   scopelist))
+            {
+                memcpy(daaddr, 
+                       &(entry->msg->peer.sin_addr),
+                       sizeof(struct in_addr));
 
-        entry = (SLPDAEntry*) entry->listitem.next;
+                return SLP_TRUE;
+            }
+        }    
     }
 
-    return entry;
+    return SLP_FALSE;
 }
 
 
 /*-------------------------------------------------------------------------*/
-int KnownDAListAdd(SLPList* dalist, SLPDAEntry* addition)
+int KnownDAAdd(SLPMessage msg, SLPBuffer buf)
 /* Add an entry to the KnownDA cache                                       */
 /*                                                                         */
-/* Returns: zero if DA was already in the list. >0 if DA was new           */
+/* Returns: zero on success, non-zero on error                             */
 /*-------------------------------------------------------------------------*/
 {
-    SLPDAEntry*     entry;
+    SLPDatabaseHandle   dh;
+    SLPDatabaseEntry*   entry;
+    SLPDAAdvert*        entrydaadvert;
+    SLPDAAdvert*        daadvert;
+    int                 result;
 
-    entry = (SLPDAEntry*)dalist->head;
-    while(entry)
+    result = 0;
+
+    dh = SLPDatabaseOpen(&G_KnownDACache);
+    if(dh)
     {
-        if(SLPCompareString(addition->urllen,
-                            addition->url,
-                            entry->urllen,
-                            entry->url) == 0)
+        /* daadvert is the DAAdvert message being added */
+        daadvert = &(msg->body.daadvert);
+    
+        /*-----------------------------------------------------*/
+        /* Check to see if there is already an identical entry */
+        /*-----------------------------------------------------*/
+        while(1)
         {
-            /* entry already in the list */
-            break;
+            entry = SLPDatabaseEnum(dh);
+            if(entry == NULL) break;
+            
+            /* entrydaadvert is the DAAdvert message from the database */
+            entrydaadvert = &(entry->msg->body.daadvert);
+
+            /* Assume DAs are identical if their URLs match */
+            if(SLPCompareString(entrydaadvert->urllen,
+                                entrydaadvert->url,
+                                daadvert->urllen,
+                                daadvert->url) == 0)
+            {
+                SLPDatabaseRemove(dh,entry);
+                break;
+            }
         }
 
-        entry = (SLPDAEntry*) entry->listitem.next;
-    }
-
-    if(entry == 0)
-    {
-        /* Add the entry if it does not exist */
-        SLPListLinkHead(dalist,(SLPListItem*)addition);
-        return 1;
-    }
-
-    /* entry already in the list */
-    return 0;
-}
-
-
-/*-------------------------------------------------------------------------*/
-int KnownDAListRemove(SLPList* dalist, SLPDAEntry* remove)
-/* Remove an entry to the KnownDA cach                                     */
-/*-------------------------------------------------------------------------*/
-{
-    SLPDAEntry*     entry;
-
-    entry = (SLPDAEntry*)dalist->head;
-    while(entry)
-    {
-        if(SLPCompareString(remove->urllen,
-                            remove->url,
-                            entry->urllen,
-                            entry->url) == 0)
+        /* Create and link in a new entry */
+        entry = SLPDatabaseEntryCreate(msg,buf);
+        if(entry)
         {
-            /* Remove entry from list and free it */
-            SLPDAEntryFree( (SLPDAEntry*)SLPListUnlink(dalist, (SLPListItem*)entry) );
-            break;
+            SLPDatabaseAdd(dh, entry);
         }
-
-        entry = (SLPDAEntry*) entry->listitem.next;
+        else
+        {
+            result = SLP_MEMORY_ALLOC_FAILED;
+        }
+        
+        SLPDatabaseClose(dh);
     }
-
-    return 0;
+        
+    return result;
 }
 
 /*-------------------------------------------------------------------------*/
-SLPBoolean KnownDADiscoveryCallback(SLPError errorcode, 
-                                    SLPMessage msg, 
+SLPBoolean KnownDADiscoveryCallback(SLPError errorcode,
+                                    struct sockaddr_in* peerinfo,
+                                    SLPBuffer rplybuf, 
                                     void* cookie)
 /*-------------------------------------------------------------------------*/
 {
-    SLPSrvURL*      srvurl;
-    SLPDAEntry      daentry;
-    SLPDAEntry*     entry;
-    int*            result;
-    struct in_addr  addr;
+    SLPMessage      replymsg;
+    SLPBuffer       dupbuf;
     struct hostent* he;
-
-    result = (int*)cookie;
+    SLPSrvURL*      srvurl;
+    int*            count;
+    SLPBoolean      result = SLP_TRUE;
+    
+    count = (int*)cookie;
 
     if(errorcode == 0)
     {
-        if(msg && msg->header.functionid == SLP_FUNCT_DAADVERT)
+        dupbuf = SLPBufferDup(rplybuf);
+        if(dupbuf)
         {
-            if(msg->body.daadvert.errorcode == 0)
+            replymsg = SLPMessageAlloc();
+            if(replymsg)
             {
-                /* NULL terminate scopelist */
-                *((char*)msg->body.daadvert.scopelist + msg->body.daadvert.scopelistlen) = 0;
-                if(SLPParseSrvURL(msg->body.daadvert.url, &srvurl) == 0)
-                {
-                    he = gethostbyname(srvurl->s_pcHost);
-                    if(he)
+                 if(SLPMessageParseBuffer(peerinfo,dupbuf,replymsg) == 0 &&
+                    replymsg->header.functionid == SLP_FUNCT_DAADVERT)
+                 {
+                    if(replymsg->body.daadvert.errorcode == 0)
                     {
-                        /* create a daentry and add it to the knownda list */
-                        daentry.langtaglen = msg->header.langtaglen;
-                        daentry.langtag = msg->header.langtag;
-                        daentry.bootstamp = msg->body.daadvert.bootstamp;
-                        daentry.urllen = msg->body.daadvert.urllen;
-                        daentry.url = msg->body.daadvert.url;
-                        daentry.scopelistlen = msg->body.daadvert.scopelistlen;
-                        daentry.scopelist = msg->body.daadvert.scopelist;
-                        daentry.attrlistlen = msg->body.daadvert.attrlistlen;
-                        daentry.attrlist = msg->body.daadvert.attrlist;
-                        daentry.spilistlen = msg->body.daadvert.spilistlen;
-                        daentry.spilist = msg->body.daadvert.spilist;
-                        addr.s_addr = *((unsigned int*)(he->h_addr_list[0]));
-                        entry = SLPDAEntryCreate(&addr, &daentry);
-                        if(entry)
+                        /* TRICKY: NULL terminate the DA url */
+                        ((char*)(replymsg->body.daadvert.url))[replymsg->body.daadvert.urllen] = 0;
+                        if(SLPParseSrvURL(replymsg->body.daadvert.url, &srvurl) == 0)
                         {
-                            KnownDAListAdd(&G_KnownDACache,
-                                           entry);
-                            (*result) = (*result) + 1;
+                            he = gethostbyname(srvurl->s_pcHost);
+                            if(he)
+                            {
+                                /* Reset the peer to the one in the URL */
+                                replymsg->peer.sin_addr.s_addr = *((unsigned int*)(he->h_addr_list[0]));
+                                
+                                (*count) += 1;
+                         
+                                KnownDAAdd(replymsg,dupbuf);
+                                 if(replymsg->header.flags & SLP_FLAG_MCAST)
+                                 {
+                                     return SLP_FALSE;
+                                 }
+                                 
+                                 return SLP_TRUE;
+                            }
+
+                            SLPFree(srvurl);
                         }
-
-                    }
-
-                    SLPFree(srvurl);
-
-                    if(msg->header.flags & SLP_FLAG_MCAST)
-                    {
-                        return 0;
-                    }
-                }
+                         
+                     }
+                     else if(replymsg->body.daadvert.errorcode == SLP_ERROR_INTERNAL_ERROR)
+                     {
+                        /* SLP_ERROR_INTERNAL_ERROR is a "end of stream" */
+                        /* marker for looppack IPC                       */
+                        result = SLP_FALSE;
+                     }
+                 }
+                 
+                 SLPMessageFree(replymsg);
             }
-            else if(msg->body.daadvert.errorcode == SLP_ERROR_INTERNAL_ERROR)
-            {
-                /* SLP_ERROR_INTERNAL_ERROR is a "end of stream marker for */
-                /* looppack IPC                                            */
-                return 0;
-            }
+
+            SLPBufferFree(dupbuf);
         }
     }
-
-
-    return 1;
+            
+    return result;
 }
-
+               
 
 /*-------------------------------------------------------------------------*/
 int KnownDADiscoveryRqstRply(int sock, 
@@ -414,18 +425,17 @@ int KnownDADiscoverFromIPC()
 }
 
 /*-------------------------------------------------------------------------*/
-SLPDAEntry* KnownDAFromCache(int scopelistlen,
-                             const char* scopelist)
+SLPBoolean KnownDAFromCache(int scopelistlen,
+                             const char* scopelist,
+                             struct in_addr* daaddr)
 /* Ask Slpd if it knows about a DA                                         */ 
 /*                                                                         */
-/* Returns: pointer to a new DA entry. Caller must NOT free()              */
+/* Returns: non-zero on success, zero if DA can not be found               */
 /*-------------------------------------------------------------------------*/
 {
-    time_t      curtime;
-    SLPDAEntry* entry;
-
-    entry = KnownDAListFindByScope(&G_KnownDACache,scopelistlen,scopelist);
-    if(entry == 0)
+    time_t          curtime;
+    
+    if(KnownDAListFindByScope(scopelistlen,scopelist,daaddr) == SLP_FALSE)
     {
         curtime = time(&curtime);
         if(G_KnownDALastCacheRefresh == 0 ||
@@ -442,10 +452,10 @@ SLPDAEntry* KnownDAFromCache(int scopelistlen,
                                                      scopelist);
         }
 
-        entry = KnownDAListFindByScope(&G_KnownDACache,scopelistlen,scopelist);
+        return KnownDAListFindByScope(scopelistlen,scopelist,daaddr);
     }
 
-    return entry; 
+    return SLP_TRUE; 
 }
 
 
@@ -466,7 +476,6 @@ int KnownDAConnect(int scopelistlen,
 /*=========================================================================*/
 {
     struct timeval  timeout;
-    SLPDAEntry*     daentry;
     int             sock = -1;
 
     /* Set up connect timeout */
@@ -476,57 +485,62 @@ int KnownDAConnect(int scopelistlen,
 
     while(1)
     {
-        daentry = KnownDAFromCache(scopelistlen,scopelist);
-        if(daentry == 0)
+        memset(peeraddr,0,sizeof(peeraddr));
+        
+        if(KnownDAFromCache(scopelistlen,scopelist,&(peeraddr->sin_addr)) == 0)
         {
             break;
         }
-
-        memset(peeraddr,0,sizeof(peeraddr));
-        peeraddr->sin_family = AF_INET;
+        peeraddr->sin_family = PF_INET;
         peeraddr->sin_port = htons(SLP_RESERVED_PORT);
-        peeraddr->sin_addr   = daentry->daaddr;
-
+        
         sock = SLPNetworkConnectStream(peeraddr,&timeout);
         if(sock >= 0)
         {
             break;
         }
 
-        KnownDAListRemove(&G_KnownDACache,daentry);
+        KnownDABadDA(&(peeraddr->sin_addr));
     }
 
     return sock;
 }
 
 /*=========================================================================*/
-int KnownDABadDA(struct sockaddr_in* peeraddr)
+void KnownDABadDA(struct in_addr* daaddr)
 /* Mark a KnownDA as a Bad DA.                                             */
 /*                                                                         */
-/* peeraddr (IN) address of the bad DA                                     */
+/* daaddr (IN) address of the bad DA                                       */
 /*                                                                         */
-/* Returns: zero on success.                                               */
+/* Returns: none                                                           */
 /*=========================================================================*/
 {
-    SLPDAEntry* entry;
-
-    entry = (SLPDAEntry*)G_KnownDACache.head;
-    while(entry)
+    SLPDatabaseHandle   dh;
+    SLPDatabaseEntry*   entry;
+    
+    dh = SLPDatabaseOpen(&G_KnownDACache);
+    if(dh)
     {
-        if(memcmp(&(peeraddr->sin_addr),
-                  &(entry->daaddr),
-                  sizeof(struct in_addr)) == 0)
+        /*-----------------------------------*/
+        /* Check to find the requested entry */
+        /*-----------------------------------*/
+        while(1)
         {
-            /* Remove entry from list and free it */
-            SLPDAEntryFree( (SLPDAEntry*)SLPListUnlink(&G_KnownDACache,
-                                                       (SLPListItem*)entry) );
-            break;
+            entry = SLPDatabaseEnum(dh);
+            if(entry == NULL) break;
+            
+            /* Assume DAs are identical if their in_addrs match */
+            if(memcmp(daaddr,&(entry->msg->peer.sin_addr),sizeof(struct in_addr)) == 0)
+            {
+                SLPDatabaseRemove(dh,entry);
+                break;            
+            }
         }
-        entry = (SLPDAEntry*) entry->listitem.next;
-    }
 
-    return 0;
+        SLPDatabaseClose(dh);
+    }
 }
+
 
 /*=========================================================================*/
 int KnownDAGetScopes(int* scopelistlen,
@@ -540,10 +554,11 @@ int KnownDAGetScopes(int* scopelistlen,
 /* returns: zero on success, non-zero on failure                           */
 /*=========================================================================*/
 {
-    time_t      curtime;
-    SLPDAEntry* entry; 
-    int         newlen;
-
+    int                 newlen;
+    time_t              curtime;
+    SLPDatabaseHandle   dh;
+    SLPDatabaseEntry*   entry;
+    
     /* Refresh the cache if necessary */
     curtime = time(&curtime);
     if(G_KnownDALastCacheRefresh == 0 ||
@@ -559,30 +574,38 @@ int KnownDAGetScopes(int* scopelistlen,
             KnownDADiscoverFromMulticast(0,"");
         }
 
-        /* TODO: */
         /* enumerate through all the knownda entries and generate a */
         /* scopelist                                                */
-        entry = (SLPDAEntry*)G_KnownDACache.head;
-        while(entry)
+        dh = SLPDatabaseOpen(&G_KnownDACache);
+        if(dh)
         {
-            newlen = G_KnownDAScopesLen;
-            while(SLPUnionStringList(G_KnownDAScopesLen,
-                                     G_KnownDAScopes,
-                                     entry->scopelistlen,
-                                     entry->scopelist,
-                                     &newlen,
-                                     G_KnownDAScopes) < 0)
+            /*-----------------------------------*/
+            /* Check to find the requested entry */
+            /*-----------------------------------*/
+            while(1)
             {
-                G_KnownDAScopes = realloc(G_KnownDAScopes,newlen);
-                if(G_KnownDAScopes == 0)
+                entry = SLPDatabaseEnum(dh);
+                if(entry == NULL) break;
+                newlen = G_KnownDAScopesLen;
+                while(SLPUnionStringList(G_KnownDAScopesLen,
+                                         G_KnownDAScopes,
+                                         entry->msg->body.daadvert.scopelistlen,
+                                         entry->msg->body.daadvert.scopelist,
+                                         &newlen,
+                                         G_KnownDAScopes) < 0)
                 {
-                    G_KnownDAScopesLen = 0;
-                    break;
+                    G_KnownDAScopes = realloc(G_KnownDAScopes,newlen);
+                    if(G_KnownDAScopes == 0)
+                    {
+                        G_KnownDAScopesLen = 0;
+                        break;
+                    }
                 }
+                G_KnownDAScopesLen = newlen;
+    
             }
-            G_KnownDAScopesLen = newlen;
 
-            entry = (SLPDAEntry*) entry->listitem.next;
+            SLPDatabaseClose(dh);
         }
 
         /* Explicitly add in the useScopes property */
@@ -603,7 +626,6 @@ int KnownDAGetScopes(int* scopelistlen,
         }
         G_KnownDAScopesLen = newlen;
     }
-
 
     if(G_KnownDAScopesLen)
     {

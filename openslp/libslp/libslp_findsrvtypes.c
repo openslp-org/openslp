@@ -49,45 +49,63 @@
 #include "libslp.h"
 
 /*----------------------------------------------------------------------------*/
-SLPBoolean CallbackSrvTypeRqst(SLPError errorcode, SLPMessage msg, void* cookie)
+SLPBoolean CallbackSrvTypeRqst(SLPError errorcode, 
+                               struct sockaddr_in* peerinfo,
+                               SLPBuffer replybuf,
+                               void* cookie)
 /*----------------------------------------------------------------------------*/
 {
+    SLPMessage      replymsg;
+    SLPSrvTypeRply* srvtyperply;
     PSLPHandleInfo  handle      = (PSLPHandleInfo) cookie;
+    SLPBoolean      result      = SLP_TRUE;
 
-
-
+    /*-------------------------------------------*/
+    /* Check the errorcode and bail if it is set */
+    /*-------------------------------------------*/
     if(errorcode)
     {
         handle->params.findsrvtypes.callback((SLPHandle)handle,
                                              0,
                                              errorcode,
                                              handle->params.findsrvtypes.cookie);
-        return 0; 
+        return SLP_FALSE;
     }
 
-    if(msg->header.functionid != SLP_FUNCT_SRVTYPERPLY)
+    /*--------------------*/
+    /* Parse the replybuf */
+    /*--------------------*/
+    replymsg = SLPMessageAlloc();
+    if(replymsg)
     {
-        return 1;
-    }
-
-    if(msg->body.srvtyperply.errorcode == 0)
-    {
-        if(msg->body.srvtyperply.srvtypelistlen == 0)
+        if(SLPMessageParseBuffer(peerinfo,replybuf,replymsg) == 0 &&
+           replymsg->header.functionid == SLP_FUNCT_SRVTYPERPLY &&
+           replymsg->body.srvtyperply.errorcode == 0)
         {
-            /* Skip blank replies */
-            return 1; 
+
+            srvtyperply = &(replymsg->body.srvtyperply);
+            if(srvtyperply->srvtypelistlen)
+            {
+                /*------------------------------------------*/
+                /* Send the service type list to the caller */
+                /*------------------------------------------*/
+                /* TRICKY: null terminate the srvtypelist by setting the last byte 0 */
+                ((char*)(srvtyperply->srvtypelist))[srvtyperply->srvtypelistlen] = 0;
+                
+                /* Call the callback function */
+                result = handle->params.findsrvtypes.callback((SLPHandle)handle,
+                                                              srvtyperply->srvtypelist,
+                                                              srvtyperply->errorcode * - 1,
+                                                              handle->params.findsrvtypes.cookie);
+            }
         }
-
-        /* TRICKY: null terminate the srvtypelist, an extra byte
-           is already allocated in the receive buffer */
-        *((char*)(msg->body.srvtyperply.srvtypelist) + msg->body.srvtyperply.srvtypelistlen) = 0; 
+        
+        SLPMessageFree(replymsg);
     }
-
-    return handle->params.findsrvtypes.callback((SLPHandle)handle,
-                                                msg->body.srvtyperply.srvtypelist,
-                                                msg->body.srvtyperply.errorcode * -1,
-                                                handle->params.findsrvtypes.cookie);
+    
+    return result;
 }
+
 
 /*-------------------------------------------------------------------------*/
 SLPError ProcessSrvTypeRqst(PSLPHandleInfo handle)

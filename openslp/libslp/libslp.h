@@ -77,7 +77,7 @@
 #include "../common/slp_property.h"
 #include "../common/slp_xid.h"
 #include "../common/slp_network.h"
-#include "../common/slp_da.h"
+#include "../common/slp_database.h"
 #include "../common/slp_compare.h"
 #ifdef ENABLE_AUTHENTICATION
 #include "../common/slp_auth.h"
@@ -166,6 +166,7 @@ typedef struct _SLPFindSrvTypesParams
     void*               cookie;
 }SLPFindSrvTypesParams,*PSLPFindSrvTypesParams;
 
+
 /*=========================================================================*/
 typedef struct _SLPFindSrvsParams
 /* Used to pass parameters to functions that deals with handle based SLP   */
@@ -199,6 +200,7 @@ typedef struct _SLPFindAttrsParams
     void*               cookie;
 }SLPFindAttrsParams,*PSLPFindAttrsParams;
 
+
 /*=========================================================================*/
 typedef union _SLPHandleCallParams
 /* Used to pass parameters to functions that deals with handle based SLP   */
@@ -212,8 +214,7 @@ typedef union _SLPHandleCallParams
     SLPFindAttrsParams    findattrs;
 }SLPHandleCallParams, *PSLPHandleCallParams;
 
-    #define SLP_HANDLE_SIG 0xbeeffeed
-
+#define SLP_HANDLE_SIG 0xbeeffeed
 
 
 /*=========================================================================*/
@@ -258,13 +259,6 @@ SLPError ThreadCreate(ThreadStartProc startproc, void *arg);
 /* Returns      SLPError code                                              */
 /*=========================================================================*/
 #endif
-
-
-/*=========================================================================*/
-typedef SLPBoolean NetworkRqstRplyCallback(SLPError error, 
-                                           SLPMessage msg,
-                                           void* cookie);  
-/*=========================================================================*/
 
 
 /*=========================================================================*/
@@ -341,13 +335,40 @@ int NetworkConnectToSA(PSLPHandleInfo handle,
 
 
 /*=========================================================================*/
+typedef SLPBoolean NetworkRplyCallback(SLPError errorcode,
+                                       struct sockaddr_in* peerinfo,
+                                       SLPBuffer replybuf,
+                                       void* cookie);  
+/* Function called by NetworkRqstRply to notify caller of the replies      */
+/* received.  Callback returns 0 when no more replies are desired          */
+/*                                                                         */
+/* errorcode       (IN) errorcode that may have occured during the         */
+/*                      Request process.  May be set by the callback       */
+/*                      to indicate an error in processing the replybuf    */
+/*                      If errorcode is set then replybuf is probably not  */
+/*                      valid                                              */
+/*                                                                         */
+/* peerinfo        (IN) the peer that sent replybuf                        */
+/*                                                                         */
+/* replybuf        (IN) Buffer containing the reply                        */
+/*                                                                         */
+/*                                                                         */
+/* cookie          (IN) Pointer to opaque data from the caller of          */
+/*                      NetworkRqstRply()                                  */
+/*                                                                         */
+/* Returns:         Callback should return SLP_TRUE if it wants to be      */
+/*                  called  again, or SLP_FALSE if it is finished          */
+/*=========================================================================*/
+
+
+/*=========================================================================*/
 SLPError NetworkRqstRply(int sock,
                          struct sockaddr_in* peeraddr,
                          const char* langtag,
                          char* buf,
                          char buftype,
                          int bufsize,
-                         NetworkRqstRplyCallback callback,
+                         NetworkRplyCallback callback,
                          void * cookie); 
 /* Transmits and receives SLP messages via multicast convergence algorithm */
 /*                                                                         */
@@ -373,7 +394,7 @@ int KnownDAConnect(int scopelistlen,
 
 
 /*=========================================================================*/
-int KnownDABadDA(struct sockaddr_in* peeraddr);
+void KnownDABadDA(struct in_addr* daaddr);
 /* Mark a KnownDA as a Bad DA.                                             */
 /*                                                                         */
 /* peeraddr (IN) address of the bad DA                                     */
