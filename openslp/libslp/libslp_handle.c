@@ -120,26 +120,25 @@ SLPError SLPOpen(const char *pcLang, SLPBoolean isAsync, SLPHandle *phSLP)
     if(pcLang && *pcLang)
     {
         handle->langtaglen = strlen(pcLang);
-        handle->langtag = (char*)malloc(handle->langtaglen);
+        handle->langtag = (char*)malloc(handle->langtaglen + 1);
         if(handle->langtag == 0)
         {
             free(handle);
             result =  SLP_PARAMETER_BAD;
             goto FINISHED;
         }
-        memcpy(handle->langtag,pcLang,handle->langtaglen);
     }
     else
     {
         handle->langtaglen = strlen(SLPGetProperty("net.slp.locale"));
-        handle->langtag = (char*)malloc(handle->langtaglen);
+        handle->langtag = (char*)malloc(handle->langtaglen + 1);
         if(handle->langtag == 0)
         {
             free(handle);
             result =  SLP_PARAMETER_BAD;
             goto FINISHED;
         }
-        memcpy(handle->langtag,SLPGetProperty("net.slp.locale"),handle->langtaglen);       
+        memcpy(handle->langtag,SLPGetProperty("net.slp.locale"),handle->langtaglen + 1);       
     }
 
     /*---------------------------------------------------------*/
