@@ -171,9 +171,11 @@ SLPError SLPParseSrvURL(const char *pcSrvURL,
         while(*slider3 && *slider3 != '/') slider3++;
         if(*slider3)
         {
-            *slider3 = 0;
-            (*ppSrvURL)->s_iPort = atoi(slider2);
-            *slider3 = '/';
+            memcpy(slider1,slider2,slider3-slider2);
+            (*ppSrvURL)->s_iPort = atoi(slider1);
+            slider1 = slider1 + (slider3 - slider2);
+            *slider1 = 0;  /* null terminate */
+            slider1 = slider1 + 1;
         }
         else
         {

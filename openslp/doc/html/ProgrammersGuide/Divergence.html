@@ -2,7 +2,7 @@
 <html>
 <head>
    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-   <meta name="GENERATOR" content="Mozilla/4.76C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.4.0 i686) [Netscape]">
+   <meta name="GENERATOR" content="Mozilla/4.76C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.4.2 i686) [Netscape]">
    <title>OpenSLP Programmers Guide - Divergence from RFC 2614</title>
 </head>
 <body text="#000000" bgcolor="#FFFFFF" link="#0000EE" vlink="#551A8B" alink="#FF0000">
@@ -102,11 +102,25 @@ is to be represented, it is best do do it via a specialized protocol optimized
 for the given service.&nbsp; OpenSLP does not support incremental registrations
 and de-registrations via SLPReg() and SLPDelAttrs() because we have found
 that when developers really learn what happens "under the SLP covers" they
-are very carefull *not* to call then very often.
+are very careful *not* to call then very often.
 <p>In addition to poor usage of network resources, incremental registrations
 and de-registrations require additional code that decreases the efficiency
 of and increases the size, and complexity of API and agent implementations.
-<br>&nbsp;
+<p>The work around for this behavior involves the following:
+<ul>
+<li>
+Design application usage of SLP&nbsp;such that SLP&nbsp;is not used to
+store great quantities of data</li>
+
+<li>
+Design application usage of SLP such that SLP&nbsp;is not used to store
+dynamic data</li>
+
+<li>
+If the need does arise to add or remove an attribute from an existing registration
+simply re-register the service with new attributes as "fresh" registration.</li>
+</ul>
+
 <h3>
 Addition of a very simple attribute parsing function</h3>
 The following function is secretly included with OpenSLP and has proven
