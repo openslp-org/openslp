@@ -8,6 +8,14 @@ blank lines and include the date, developer's email, and change description.
 
 *** Tag OpenSLP 1.0.1 ***
 
+08/01/01 matt@caldera.com
+Applied change from solehmai@cc.helsinki.fi that fixes broadcast problem on
+Win32
+
+08/01/01 matt@caldera.com
+Fixed bug in libslp that resulted in net.slp.activeDADetection and
+net.slp.DADiscoveryMaximumWait being ignored in the known DA discovery code
+
 07/25/01 matt@caldera.com
 Fixed minor KnownDAEcho problem that resulted in some DAs not getting
 registrations.
