@@ -234,6 +234,18 @@ int SLPNetSetSockAddrStorageFromAddrInfo(struct sockaddr_storage *dst, struct ad
  * Returns: 0 if address set correctly, non-zero there were errors setting fields of dst
  *-------------------------------------------------------------------------*/
 
+int SLPNetSetPort(struct sockaddr_storage *addr, const short port);
+/*
+ * Description:
+ *    Used to copy an addrinfo struct to a sockaddr_storage struct
+ *    
+ *
+ * Parameters:
+ *  (in/out) addr   Destination address whose port is being set
+ *  (in) port        Port to be set
+ *
+ * Returns: 0 if port was set correctly, non-zero there were errors setting fields of dst
+ *-------------------------------------------------------------------------*/
 
 char * SLPNetSockAddrStorageToString(struct sockaddr_storage *src, char *dst, int dstLen);
 /*

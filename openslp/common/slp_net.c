@@ -287,6 +287,19 @@ int SLPNetSetSockAddrStorageFromAddrInfo(struct sockaddr_storage *dst, struct ad
     return(0);
 }
 
+int SLPNetSetPort(struct sockaddr_storage *addr, const short port) {
+	if (addr->ss_family == AF_INET) {
+		((struct sockaddr_in *)addr)->sin_port = htons(port);
+    }
+	else if (addr->ss_family == AF_INET6) {
+		((struct sockaddr_in6 *)addr)->sin6_port = htons(port);
+    }
+    else {
+        return -1;
+    }
+	return 0;
+}
+
 /*
  * Description:
  *    Used to obtain a string representation of the network portion of a sockaddr_storage struct
