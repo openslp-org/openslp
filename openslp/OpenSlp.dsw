@@ -3,7 +3,7 @@ Microsoft Developer Studio Workspace File, Format Version 6.00
 
 ###############################################################################
 
-Project: "SLPFindSrvs"=".\test\SLPFindSrvs\SLPFindSrvs.dsp" - Package Owner=<4>
+Project: "SLPFindSrvs"=.\test\SLPFindSrvs\SLPFindSrvs.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -15,7 +15,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "common"=".\common\common.dsp" - Package Owner=<4>
+Project: "common"=.\common\common.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -27,7 +27,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "libslp"=".\libslp\libslp.dsp" - Package Owner=<4>
+Project: "libslp"=.\libslp\libslp.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -39,7 +39,19 @@ Package=<4>
 
 ###############################################################################
 
-Project: "slpd"=".\slpd\slpd.dsp" - Package Owner=<4>
+Project: "libslpattr"=.\libslpattr\libslpattr.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "slpd"=.\slpd\slpd.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
