@@ -7,6 +7,9 @@ blank lines and include the date, developer's email, and change description.
 =============================================================================
 
 10/09/01 matt@caldera.com
+Fixed "srvdereg too long bug" discovered by Timothy Zurcher 
+
+10/09/01 matt@caldera.com
 Changed install script so that it does not erase existing configuration files
 
 10/08/01 matt@caldera.com

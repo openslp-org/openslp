@@ -130,7 +130,7 @@ SLPError ProcessSrvDeReg(PSLPHandleInfo handle)
     /* determine the size of the fixed portion of the SRVDEREG           */
     /*-------------------------------------------------------------------*/
     bufsize += handle->params.dereg.scopelistlen + 2; /*  2 bytes for len field*/
-    bufsize += handle->params.dereg.urllen + 8;       /*  1 byte for reserved  */
+    bufsize += handle->params.dereg.urllen + 6;       /*  1 byte for reserved  */
                                                       /*  2 bytes for lifetime */
                                                       /*  2 bytes for urllen   */
                                                       /*  1 byte for authcount */
