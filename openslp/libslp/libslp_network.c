@@ -444,7 +444,14 @@ SLPError NetworkRqstRply(int sock,
          * including the header.  We need to fix up the offset so
          * that it is from the beginning of the SLP message
          */
-        ToUINT24(sendbuf->start + 7,extoffset + langtaglen + 14);
+        if(extoffset != 0)
+	{
+            ToUINT24(sendbuf->start + 7,extoffset + langtaglen + 14);
+	}
+        else
+        {
+	    toUINT24(sendbuf->start + 7, 0);
+	}
         /*xid*/
         ToUINT16(sendbuf->start + 10,xid);
         /*lang tag len*/
