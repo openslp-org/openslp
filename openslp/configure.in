@@ -162,6 +162,7 @@ OPENSLP_STRUCT_SA_RESTORER
 dnl ***********************************************************************
 dnl Checks for libraries.
 dnl ***********************************************************************
+AC_CHECK_LIB(resolv, inet_aton)
 AC_CHECK_LIB(socket, main)
 AC_CHECK_LIB(nsl, gethostbyname)
 AC_CHECK_LIB(m, main)
