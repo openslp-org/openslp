@@ -1,96 +1,103 @@
-<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<!DOCTYPE html PUBLIC "-//w3c//dtd html 4.0 transitional//en">
 <html>
 <head>
-   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-   <meta name="GENERATOR" content="Mozilla/4.72C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.2.14 i686) [Netscape]">
-   <title>OpenSLP Programmers Guide - Index</title>
+  <meta http-equiv="Content-Type"
+ content="text/html; charset=iso-8859-1">
+  <meta name="GENERATOR"
+ content="Mozilla/4.72C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.2.14 i686) [Netscape]">
+  <title>OpenSLP Programmers Guide - Index</title>
 </head>
-<body text="#000000" bgcolor="#FFFFFF" link="#0000EF" vlink="#51188E" alink="#FF0000">
+<body alink="#ff0000" bgcolor="#ffffff" link="#0000ef" text="#000000"
+ vlink="#51188e">
 &nbsp;
-<table NOSAVE >
-<tr VALIGN=CENTER NOSAVE>
-<td NOSAVE>
-<h1>
-<img SRC="smalllogo.jpg" height=106 width=317></h1>
-</td>
-
-<td NOSAVE>
-<h1>
-<hr WIDTH="100%">
-Programmers Guide
-<hr WIDTH="100%">
-</h1>
-</td>
-</tr>
+<table nosave="">
+  <tbody>
+    <tr nosave="" valign="CENTER">
+      <td nosave="">
+      <h1><img src="smalllogo.jpg" height="106" width="317"></h1>
+      </td>
+      <td nosave="">
+      <h1>
+      <hr width="100%">Programmers Guide
+      <hr width="100%"></h1>
+      </td>
+    </tr>
+  </tbody>
 </table>
-
-<table BORDER CELLPADDING=5 COLS=2 WIDTH="100%" NOSAVE >
-<tr VALIGN=TOP NOSAVE>
-<td NOSAVE>
-<h3>
-SLP Handle Functions</h3>
+<table nosave="" border="1" cellpadding="5" cols="2" width="100%">
+  <tbody>
+    <tr nosave="" valign="top">
+      <td nosave="">
+      <h3>SLP Handle Functions</h3>
 Functions used to open and close SLPHandles:
-<p><b><a href="SLPOpen.html">SLPOpen()</a></b>
-<br><b><a href="SLPClose.html">SLPClose()</a></b></td>
-
-<td>
-<h3>
-Parsing Functions</h3>
+      <p><b><a href="SLPOpen.html">SLPOpen()</a></b>
+      <br>
+      <b><a href="SLPClose.html">SLPClose()</a></b></p>
+      </td>
+      <td>
+      <h3>Parsing Functions</h3>
 Useful parsing functions:
-<p><b><a href="SLPParseSrvURL.html">SLPParseSrvURL()</a></b>
-<br><b><a href="SLPEscape.html">SLPEscape()</a></b>
-<br><b><a href="SLPUnescape.html">SLPUnescape()</a></b>
-<br><b><a href="SLPFree.html">SLPFree()</a></b></td>
-</tr>
-
-<tr VALIGN=TOP NOSAVE>
-<td NOSAVE>
-<h3>
-Service Registration Functions</h3>
+      <p><b><a href="SLPParseSrvURL.html">SLPParseSrvURL()</a></b>
+      <br>
+      <b><a href="SLPEscape.html">SLPEscape()</a></b>
+      <br>
+      <b><a href="SLPUnescape.html">SLPUnescape()</a></b>
+      <br>
+      <b><a href="SLPFree.html">SLPFree()</a></b></p>
+      </td>
+    </tr>
+    <tr nosave="" valign="top">
+      <td nosave="">
+      <h3>Service Registration Functions</h3>
 Functions that should be called by applications that provide a service:
-<p><b><a href="SLPReg.html">SLPReg()</a></b>
-<br><b><a href="SLPDereg.html">SLPDereg()</a></b>
-<br><b><a href="SLPDelAttrs.html">SLPDelAttrs()</a></b></td>
-
-<td>
-<h3>
-Configuration Functions</h3>
+      <p><b><a href="SLPReg.html">SLPReg()</a></b>
+      <br>
+      <b><a href="SLPDereg.html">SLPDereg()</a></b>
+      <br>
+      <b><a href="SLPDelAttrs.html">SLPDelAttrs()</a></b></p>
+      </td>
+      <td>
+      <h3>Configuration Functions</h3>
 Functions that may be called to determine the configuration of the SLP
 on the local machine and on the network:
-<p><b><a href="SLPGetRefreshInterval.html">SLPGetRefreshInterval()</a></b>
-<br><b><a href="SLPFindScopes.html">SLPFindScopes()</a></b>
-<br><b><a href="SLPGetProperty.html">SLPGetProperty()</a></b>
-<br><b><a href="SLPSetProperty.html">SLPSetProperty()</a></b></td>
-</tr>
-
-<tr VALIGN=TOP NOSAVE>
-<td NOSAVE>
-<h3>
-Service Location Functions</h3>
+      <p><b><a href="SLPGetRefreshInterval.html">SLPGetRefreshInterval()</a></b>
+      <br>
+      <b><a href="SLPFindScopes.html">SLPFindScopes()</a></b>
+      <br>
+      <b><a href="SLPGetProperty.html">SLPGetProperty()</a></b>
+      <br>
+      <b><a href="SLPSetProperty.html">SLPSetProperty()</a></b></p>
+      </td>
+    </tr>
+    <tr nosave="" valign="top">
+      <td nosave="">
+      <h3>Service Location Functions</h3>
 Functions that may be called by applications that use services:
-<p><b><a href="SLPFindSrvs.html">SLPFindSrvs()</a></b>
-<br><b><a href="SLPFindSrvTypes.html">SLPFindSrvTypes()</a></b>
-<br><b><a href="SLPFindAttrs.html">SLPFindAttrs()</a></b></td>
-
-<td NOSAVE>
-<h3>
-Misc Information</h3>
+      <p><b><a href="SLPFindSrvs.html">SLPFindSrvs()</a></b>
+      <br>
+      <b><a href="SLPFindSrvTypes.html">SLPFindSrvTypes()</a></b>
+      <br>
+      <b><a href="SLPFindAttrs.html">SLPFindAttrs()</a></b></p>
+      </td>
+      <td nosave="">
+      <h3>Misc Information</h3>
 Quick links to useful information:
-<p><b><a href="Callbacks.html">Callbacks</a></b>
-<br><b><a href="Syntax.html">Syntax</a></b>
-<br><b><a href="SLPError.html">Error Codes</a></b>
-<br><b><a href="Divergence.html">Divergence from RFC 2614</a></b></td>
-</tr>
+      <p><b><a href="Callbacks.html">Callbacks</a></b>
+      <br>
+      <b><a href="Syntax.html">Syntax</a></b>
+      <br>
+      <b><a href="SLPError.html">Error Codes</a></b>
+      <br>
+      <b><a href="Divergence.html">Divergence from RFC 2614</a></b></p>
+      </td>
+    </tr>
+  </tbody>
 </table>
-
-<p><font size=-1>Prepared by <a href="http://www.calderasystems.com">Caldera
+<p><font size="-1">Originally Prepared by <a
+ href="http://www.calderasystems.com">Caldera
 Systems, Inc</a></font>
-<br>&nbsp;
-<br>&nbsp;
-<br>&nbsp;
-<br>&nbsp;
-<br>&nbsp;
-<br>&nbsp;
-<br>&nbsp;
+<font size="-1"><br>
+Currently Maintained by <a href="http://www.novell.com">Novell, Inc</a></font><br>
+</p>
 </body>
 </html>

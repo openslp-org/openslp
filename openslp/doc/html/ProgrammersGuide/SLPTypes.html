@@ -1,62 +1,87 @@
-<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<!DOCTYPE html PUBLIC "-//w3c//dtd html 4.0 transitional//en">
 <html>
 <head>
-   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-   <meta name="GENERATOR" content="Mozilla/4.72C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.2.14 i686) [Netscape]">
-   <title>OpenSLP Programmers Guide - SLP Data Types</title>
+  <meta http-equiv="Content-Type"
+ content="text/html; charset=iso-8859-1">
+  <meta name="GENERATOR"
+ content="Mozilla/4.72C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.2.14 i686) [Netscape]">
+  <title>OpenSLP Programmers Guide - SLP Data Types</title>
 </head>
-<body text="#000000" bgcolor="#FFFFFF" link="#0000EF" vlink="#51188E" alink="#FF0000">
-
+<body alink="#ff0000" bgcolor="#ffffff" link="#0000ef" text="#000000"
+ vlink="#51188e">
 <h2>
 SLP Data Types</h2>
-
-<hr WIDTH="100%">
-<h3>
-<a NAME="SLPURLLifetime"></a>SLPURLLifetime</h3>
-An enumerated type with a range of 0 - 65535.&nbsp; There are two defined
+<hr width="100%">
+<h3><a name="SLPEXP"></a>SLPEXP</h3>
+An API function declaration modifier, which allows various linkage
+specifications to be applied to API functions in a portable manner, as
+required by platforms and compilation tools. Many platforms simply
+define this to be nothing. Win32 platform linkers define this to be
+__declspec(dllimport), which notifies Win32 compilation tools that this
+function should be imported from a Win32 dynamic
+link library.
+<h3><a name="SLPAPI"></a>SLPAPI <br>
+</h3>
+An API function address modifier, which allows various linkage
+attributes to be applied to API functions in a portable manner, as
+required by platforms and compilation tools. Many platforms simply
+define this macro to be nothing.<br>
+<h3><a name="SLPCALLBACK"></a>SLPCALLBACK </h3>
+An API function address modifier, which allows various linkage
+attributes to be applied to API functions in a portable manner, as
+required by platforms and compilation tools. Many platforms simply
+define this macro to be nothing.<br>
+<h3><a name="SLPURLLifetime"></a>SLPURLLifetime</h3>
+An enumerated type with a range of 0 - 65535.&nbsp; There are two
+defined
 values <tt>of:</tt>
 <blockquote><tt>SLP_LIFETIME_DEFAULT&nbsp;&nbsp;&nbsp; 10800</tt>
-<br><tt>SLP_LIFETIME_MAXIMUM&nbsp;&nbsp;&nbsp; 65535</tt></blockquote>
-
+  <br>
+  <tt>SLP_LIFETIME_MAXIMUM&nbsp;&nbsp;&nbsp; 65535</tt></blockquote>
 <h3>
-<a NAME="SLPError"></a>SLPError</h3>
-An enumerated type with a range of -26 - 1.&nbsp; See <a href="SLPError.html">SLPError
+<a name="SLPError"></a>SLPError</h3>
+An enumerated type with a range of -26 - 1.&nbsp; See <a
+ href="SLPError.html">SLPError
 Codes </a>for more detail.
-<br>&nbsp;
-<h3>
-<a NAME="SLPBoolean"></a>SLPBoolean</h3>
+<br>
+&nbsp;
+<h3><a name="SLPBoolean"></a>SLPBoolean</h3>
 A boolean value with one of the following values:
 <blockquote><tt>SLP_FALSE&nbsp;&nbsp;&nbsp; 0</tt>
-<br><tt>SLP_TRUE&nbsp;&nbsp;&nbsp;&nbsp; 1</tt></blockquote>
-
+  <br>
+  <tt>SLP_TRUE&nbsp;&nbsp;&nbsp;&nbsp; 1</tt></blockquote>
 <h3>
-<a NAME="SLPSrvURL"></a>SLPSrvURL</h3>
+<a name="SLPSrvURL"></a>SLPSrvURL</h3>
 Structure that is used to index the parts of a parsed Service URL that
 is returned by <a href="SLPParseSrvURL.html">SLPParseSrvURL()</a>.&nbsp;
 The structure contains the following members.
 <blockquote><tt>char* s_pcSrvType</tt>
-<blockquote>A pointer to a character string containing the service type
+  <blockquote>A pointer to a character string containing the service
+type
 name, including naming authority.&nbsp; The service type name includes
 the "service:" if the URL is of the service: scheme.</blockquote>
-<tt>char* s_pcHost</tt>
-<blockquote>A pointer to a character string containing the host identification
+  <tt>char* s_pcHost</tt>
+  <blockquote>A pointer to a character string containing the host
+identification
 information.</blockquote>
-<tt>int s_iPort</tt>
-<blockquote>The port number, or zero if none.&nbsp; The port is only available
+  <tt>int s_iPort</tt>
+  <blockquote>The port number, or zero if none.&nbsp; The port is only
+available
 if the transport is IP</blockquote>
-<tt>char* s_pcNetFamily</tt>
-<blockquote>A pointer to a character string containing the network address
+  <tt>char* s_pcNetFamily</tt>
+  <blockquote>A pointer to a character string containing the network
+address
 family identifier.&nbsp; Possible values are "ipx" for the IPX family,
 "at" for the Appletalk family, and "" (the empty string) for IP address
 family.&nbsp; OpenSLP only supports the IP address family.</blockquote>
-<tt>char* s_pcSrvPart</tt>
-<blockquote>The remainder of the URL.</blockquote>
+  <tt>char* s_pcSrvPart</tt>
+  <blockquote>The remainder of the URL.</blockquote>
 </blockquote>
-
 <h3>
-<a NAME="SLPHandle"></a>SLPHandle</h3>
+<a name="SLPHandle"></a>SLPHandle</h3>
 The SLPHandle type is returned by <a href="SLPOpen.html">SLPOpen()</a>
-and is a parameter to all SLP Functions.&nbsp; The type is opaque to the
+and is a parameter to all SLP Functions.&nbsp; The type is opaque to
+the
 caller.
 </body>
 </html>
