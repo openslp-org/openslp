@@ -872,6 +872,7 @@ int SLPDv1ProcessMessage(struct sockaddr_in* peeraddr,
 
     case SLP_FUNCT_DAADVERT:
         errorcode = 0;      /* we are a SLPv2 DA, ignore other DAs */
+        (*sendbuf)->end = (*sendbuf)->start;
         break;
 
     default:
