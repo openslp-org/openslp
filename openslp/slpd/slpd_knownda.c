@@ -701,7 +701,7 @@ int SLPDKnownDAAdd(SLPMessage msg, SLPBuffer buf)
         result = SLP_ERROR_PARSE_ERROR;
         goto CLEANUP;
     }
-    if (SLPNetResolveHostToAddr(parsedurl->host,&daaddr)) ////// change to ipv6 compat
+    if (SLPNetResolveHostToAddr(parsedurl->host,&daaddr))
     {
         /* Unable to resolve the host in the DA advert to an address */
         xfree(parsedurl);

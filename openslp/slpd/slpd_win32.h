@@ -60,11 +60,6 @@
 #include <stdarg.h> 
 #include <limits.h>
 
-//// now included above
-//#if(_WIN32_WINNT >= 0x0400 && _WIN32_WINNT < 0x0500)
-//#include <ws2tcpip.h> 
-//#endif
-
 
 /*  internal name of the service  */
 #define G_SERVICENAME        "slpd"    

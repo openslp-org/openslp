@@ -102,7 +102,6 @@ int SetMulticastTTL(sockfd_t sockfd, int ttl)
     struct sockaddr_storage mysockaddr;
 
     memset(&mysockaddr, 0, sizeof(mysockaddr));
-    //// this code may need to be duped for ipv6 too
     mysockaddr.ss_family = AF_INET;
     ((struct sockaddr_in*) &mysockaddr)->sin_port = 0;
 
@@ -213,7 +212,7 @@ int BindSocketToInetAddr(int sock, struct sockaddr_storage* addr)
     int                     reuse = 1;
 #endif
 
-    //// this probably needs to be checked for ipv6... only does v4 inaddr_any right now
+    //// this call is ipv4 only right now
     if (addr == NULL) {
         addr = &temp_addr;
         addr->ss_family = AF_INET;
@@ -221,9 +220,6 @@ int BindSocketToInetAddr(int sock, struct sockaddr_storage* addr)
     }
     if (addr->ss_family == AF_INET) {
         ((struct sockaddr_in*) addr)->sin_port = htons(SLP_RESERVED_PORT);
-    }
-    else if (addr->ss_family == AF_INET6) {
-        ((struct sockaddr_in6*) addr)->sin6_port = htons(SLP_RESERVED_PORT);
     }
 
     setsockopt(sock,SOL_SOCKET,SO_REUSEADDR,(const char *)&reuse,sizeof(reuse));
@@ -326,6 +322,7 @@ SLPDSocket* SLPDSocketCreateDatagram(struct sockaddr_storage* peeraddr,
 /*          DATAGRAM_UNICAST, DATAGRAM_MULTICAST, or DATAGRAM_BROADCAST     */
 /*==========================================================================*/
 {
+    //// this call needs to be made ipv4 and ipv6 compatible at the same time
     SLPDSocket*     sock;  
     sock = SLPDSocketAlloc();
     if(sock)
@@ -336,9 +333,14 @@ SLPDSocket* SLPDSocketCreateDatagram(struct sockaddr_storage* peeraddr,
         sock->sendbuf = SLPBufferAlloc(SLP_MAX_DATAGRAM_SIZE);
         if(sock->recvbuf && sock->sendbuf)
         {
-            //// only ipv4 at the moment
-            sock->fd = socket(PF_INET, SOCK_DGRAM, 0);
-            if(sock->fd >=0)
+            if (peeraddr->ss_family == AF_INET)
+                sock->fd = socket(PF_INET, SOCK_DGRAM, 0);
+            else if (peeraddr->ss_family == AF_INET6)
+                sock->fd = socket(PF_INET6, SOCK_DGRAM, 0);
+            else
+                sock->fd = INVALID_SOCKET;  /* only IPv4 (and soon IPv6) are supported */
+
+            if(sock->fd >= 0)
             {
                 switch(type)
                 {
@@ -357,14 +359,16 @@ SLPDSocket* SLPDSocketCreateDatagram(struct sockaddr_storage* peeraddr,
                 memcpy(&sock->peeraddr, peeraddr, sizeof(struct sockaddr_storage));
                 if (peeraddr->ss_family == AF_INET) {
                     ((struct sockaddr_in*) &(sock->peeraddr))->sin_port = htons(SLP_RESERVED_PORT);
+                    sock->state = type;
                 }
                 else if (peeraddr->ss_family == AF_INET6) {
                     ((struct sockaddr_in6*) &(sock->peeraddr))->sin6_port = htons(SLP_RESERVED_PORT);
+                    sock->state = type;
                 }
                 else {
-                    //// error
+                    SLPDSocketFree(sock);
+                    sock = 0;
                 }
-                sock->state = type;
 
             }
             else
@@ -397,6 +401,7 @@ SLPDSocket* SLPDSocketCreateBoundDatagram(struct sockaddr_storage* myaddr,
 /*          DATAGRAM_UNICAST, DATAGRAM_MULTICAST, or DATAGRAM_BROADCAST     */
 /*==========================================================================*/
 {
+    //// this call needs to be made ipv6 compatible as well
     SLPDSocket*                 sock;
     struct sockaddr_storage*    bindaddr;
 
@@ -420,8 +425,11 @@ SLPDSocket* SLPDSocketCreateBoundDatagram(struct sockaddr_storage* myaddr,
     {
         sock->recvbuf = SLPBufferAlloc(SLP_MAX_DATAGRAM_SIZE);
         sock->sendbuf = SLPBufferAlloc(SLP_MAX_DATAGRAM_SIZE);
-        //// this appears to be v4 only right now
-        sock->fd = socket(PF_INET, SOCK_DGRAM, 0);
+        if (peeraddr->ss_family == AF_INET)
+            sock->fd = socket(PF_INET, SOCK_DGRAM, 0);
+        else
+            sock->fd = INVALID_SOCKET;  /* only ipv4 (and soon ipv6) are supported */
+
         if(sock->fd >=0)
         {
             if(BindSocketToInetAddr(sock->fd, bindaddr) == 0)
@@ -482,14 +490,18 @@ SLPDSocket* SLPDSocketCreateListen(struct sockaddr_storage* peeraddr)
 /*          SOCKET_LISTEN.   Returns NULL on error                          */
 /*==========================================================================*/
 {
+    //// this will need to be made ipv6 compatible too.
     int fdflags;
     SLPDSocket* sock;
 
     sock = SLPDSocketAlloc();
     if(sock)
     {
-        //// this appears to be ipv4 only currently
-        sock->fd = socket(PF_INET, SOCK_STREAM, 0);
+        if (peeraddr->ss_family == AF_INET)
+            sock->fd = socket(PF_INET, SOCK_STREAM, 0);
+        else
+            sock->fd = INVALID_SOCKET;  /* only ipv4 (and soon ipv6) are supported */
+
         if(sock->fd >= 0)
         {
             if(BindSocketToInetAddr(sock->fd, peeraddr) >= 0)
@@ -549,8 +561,13 @@ SLPDSocket* SLPDSocketCreateConnected(struct sockaddr_storage* addr)
     }
 
     /* create the stream socket */
-    //// this will need to be checked for ipv6 compatibility
-    sock->fd = socket(PF_INET,SOCK_STREAM,0);
+    if (addr->ss_family == AF_INET)
+        sock->fd = socket(PF_INET,SOCK_STREAM,0);
+    else if (addr->ss_family == AF_INET6)
+        sock->fd = socket(PF_INET6,SOCK_STREAM,0);
+    else
+        sock->fd = INVALID_SOCKET;
+
     if(sock->fd < 0)
     {
         goto FAILURE;                        
@@ -575,7 +592,7 @@ SLPDSocket* SLPDSocketCreateConnected(struct sockaddr_storage* addr)
         ((struct sockaddr_in6*) &(sock->peeraddr))->sin6_port = htons(SLP_RESERVED_PORT);
     }
     else {
-        //// error
+        goto FAILURE;  /* only ipv4 and ipv6 addresses are supported */
     }
 
     /* set the receive and send buffer low water mark to 18 bytes 

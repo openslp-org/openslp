@@ -71,9 +71,13 @@ SLPDProperty G_SlpdProperty;
 int SLPDPropertyInit(const char* conffile)
 /*=========================================================================*/
 {
-    char                myname[MAX_HOST_NAME];
-    char*               myinterfaces = 0;
-    char*               myurl = 0;
+    char                    myname[MAX_HOST_NAME];
+    char*                   myinterfaces = 0;
+    char*                   myurl = 0;
+    struct sockaddr_storage myaddr;
+    int                     myaddr_check;
+    int                     myname_len;
+    int                     i;
     
     SLPPropertyReadFile(conffile);
 
@@ -149,9 +153,23 @@ int SLPDPropertyInit(const char* conffile)
     /* Set the value used internally as the url for this agent */
     /*---------------------------------------------------------*/
     /* 27 is the size of "service:directory-agent://(NULL)" */
-    //// this may need some ipv6 attention
     if(SLPNetGetThisHostname(myname,sizeof(myname),1) == 0)
     {
+        /* if myname is an IPv6 address, wrap it with '[' and ']' */
+        myaddr_check = inet_pton(AF_INET6, myname, &myaddr);
+        if (myaddr_check == 1)
+        {
+            myname_len = strlen(myname);
+            if (myname_len < MAX_HOST_NAME - 1)   /* make room for the null terminator */
+            {
+                for (i = myname_len; i > 0; i--)
+                    myname[i] = myname[i - 1];
+                myname[0] = '[';
+                myname[myname_len + 1] = ']';
+                myname[myname_len + 2] = '\0';
+            }
+        }
+
         myurl = (char*)xmalloc(27 + strlen(myname));
         if(G_SlpdProperty.isDA)
         {
