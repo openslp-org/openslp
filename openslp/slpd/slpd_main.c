@@ -372,12 +372,18 @@ int main(int argc, char* argv[])
     /*------------------------------*/
     /* Initialize the log file      */
     /*------------------------------*/
-    SLPLogFileOpen(G_SlpdCommandLine.logfile, 0);
+    if(SLPLogFileOpen(G_SlpdCommandLine.logfile, 0))
+    {
+        SLPFatal("Could not open logfile %s\n",G_SlpdCommandLine.logfile);
+    }
+   
+    /*---------------------*/
+    /* Log startup message */
+    /*---------------------*/
     SLPLog("****************************************\n");
     SLPLog("*** SLPD daemon started              ***\n");
     SLPLog("****************************************\n");
     SLPLog("command line = %s\n",argv[0]);
-
 
     /*--------------------------------------------------*/
     /* Initialize for the first time                    */

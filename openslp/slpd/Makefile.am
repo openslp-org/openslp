@@ -8,7 +8,7 @@
 sbin_PROGRAMS = slpd
 INCLUDES      = -I$(top_srcdir)/common -I$(top_srcdir)/libslpattr \
                 -I$(srcdir) -I$(top_srcdir)/libslp \
-                -DETCDIR=\"$(sysconfdir)\"  -DVARDIR=\"$(sharedstatedir)\"
+                -DETCDIR=\"$(sysconfdir)\"  -DVARDIR=\"$(localstatedir)\"
 
 if ENABLE_SLPv1
 slpd_v1process_SRCS = slpd_v1process.c

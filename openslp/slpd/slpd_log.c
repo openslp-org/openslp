@@ -72,9 +72,9 @@ void SLPDLogSrvRegMessage(SLPSrvReg* srvreg)
 /*-------------------------------------------------------------------------*/
 {
     SLPLog("Message SRVREG:\n");
-	SLPLog("   type = \"%*s\"\n", srvreg->srvtypelen, srvreg->srvtype);
-	SLPLog("   scope = \"%*s\"\n", srvreg->scopelistlen, srvreg->scopelist);
-	SLPLog("   attributes = \"%*s\"\n", srvreg->attrlistlen, srvreg->attrlist);
+    SLPLog("   type = \"%*s\"\n", srvreg->srvtypelen, srvreg->srvtype);
+    SLPLog("   scope = \"%*s\"\n", srvreg->scopelistlen, srvreg->scopelist);
+    SLPLog("   attributes = \"%*s\"\n", srvreg->attrlistlen, srvreg->attrlist);
 }
         
 /*-------------------------------------------------------------------------*/

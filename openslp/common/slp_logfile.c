@@ -169,7 +169,10 @@ void SLPLogBuffer(const char* buf, int bufsize)
 /* Writes a buffer to the logfile                                          */
 /*=========================================================================*/
 {
-    fwrite(buf,bufsize,1,G_LogFile);
-    fflush(G_LogFile);
+    if(G_LogFile)
+    {
+        fwrite(buf,bufsize,1,G_LogFile);
+        fflush(G_LogFile);
+    }
 }
 
