@@ -146,7 +146,7 @@ SLPError SLPParseSrvURL(const char *pcSrvURL,
     {
         slider3 = slider2 = slider3 + 1; /* + 3 skips the ":" */
         while(*slider3 && *slider3 != '/') slider3++;
-        if(slider3)
+        if(*slider3)
         {
             *slider3 = 0;
             (*ppSrvURL)->s_iPort = atoi(slider2);
