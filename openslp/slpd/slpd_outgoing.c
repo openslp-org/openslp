@@ -214,10 +214,10 @@ void OutgoingStreamRead(SLPList* socklist, SLPDSocket* sock)
         }
         else
         {
-#ifdef WIN32
-      if (WSAEWOULDBLOCK == WSAGetLastError())
+#ifdef  WIN32
+            if (WSAEWOULDBLOCK != WSAGetLastError())
 #else
-        if(errno == EWOULDBLOCK)
+            if(errno != EWOULDBLOCK)
 #endif
             {
                 /* Error occured or connection was closed. Try to reconnect */
