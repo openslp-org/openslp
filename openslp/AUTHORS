@@ -53,3 +53,9 @@ John Calcote <jcalcote@novell.com>
 ----------------------------------
 Excellent DHCP code and Win32 porting work!
 
+
+Michael Schroeder <mls@suse.de>
+-------------------------------
+Has submitted chroot functionality to plug security holes and provide 
+zeroconf functionality.
+
