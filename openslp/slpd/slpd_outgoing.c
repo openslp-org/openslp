@@ -151,7 +151,7 @@ void OutgoingStreamRead(SLPList* socklist, SLPDSocket* sock)
             {
                 switch(SLPDProcessMessage(&(sock->peerinfo),
                                           sock->recvbuf,
-                                          sock->sendbuf))
+                                          &(sock->sendbuf)))
                 {
                 case SLP_ERROR_DA_BUSY_NOW:
                     sock->state = STREAM_WRITE_WAIT;

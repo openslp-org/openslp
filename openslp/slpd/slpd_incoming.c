@@ -60,7 +60,7 @@ void IncomingDatagramRead(SLPList* socklist, SLPDSocket* sock)
 
         if (SLPDProcessMessage(&(sock->peerinfo),
                                sock->recvbuf,
-                               sock->sendbuf) == 0)
+                               &(sock->sendbuf)) == 0)
         {
             /* check to see if we should send anything */
             bytestowrite = sock->sendbuf->end - sock->sendbuf->start;
@@ -199,7 +199,7 @@ void IncomingStreamRead(SLPList* socklist, SLPDSocket* sock)
             {
                 if (SLPDProcessMessage(&sock->peerinfo,
                                        sock->recvbuf,
-                                       sock->sendbuf) == 0)
+                                       &(sock->sendbuf)) == 0)
                 {
                     sock->state = STREAM_WRITE_FIRST;
                     IncomingStreamWrite(socklist, sock);
@@ -250,7 +250,8 @@ void IncomingSocketListen(SLPList* socklist, SLPDSocket* sock)
             if (connsock)
             {
                 /* setup the accepted socket */
-                connsock->peerinfo.peeraddrlen  = peeraddrlen;
+                connsock->fd                    = fd;
+	        connsock->peerinfo.peeraddrlen  = peeraddrlen;
                 connsock->peerinfo.peeraddr     = peeraddr;
                 connsock->peerinfo.peertype     = SLPD_PEER_ACCEPTED;
                 connsock->state                 = STREAM_READ_FIRST;
@@ -267,7 +268,7 @@ void IncomingSocketListen(SLPList* socklist, SLPDSocket* sock)
                 fcntl(connsock->fd,F_SETFL, fdflags | O_NONBLOCK);
 #endif        
                 SLPListLinkHead(socklist,(SLPListItem*)connsock);
-                IncomingDatagramRead(socklist, sock);
+                IncomingStreamRead(socklist, sock);
             }
         }
     }

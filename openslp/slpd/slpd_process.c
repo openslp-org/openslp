@@ -37,11 +37,12 @@
 /*-------------------------------------------------------------------------*/
 int ProcessSASrvRqst(SLPDPeerInfo* peerinfo,
                      SLPMessage message,
-                     SLPBuffer result,
+                     SLPBuffer* sendbuf,
                      int errorcode)
 /*-------------------------------------------------------------------------*/
 {
     int size = 0;
+    SLPBuffer result = *sendbuf;
 
     if (message->body.srvrqst.scopelistlen == 0 ||
         SLPIntersectStringList(message->body.srvrqst.scopelistlen,
@@ -69,7 +70,8 @@ int ProcessSASrvRqst(SLPDPeerInfo* peerinfo,
         if (result == 0)
         {
             /* TODO: out of memory, what should we do here! */
-            return SLP_ERROR_INTERNAL_ERROR;
+            errorcode = SLP_ERROR_INTERNAL_ERROR;
+            goto FINISHED;
         }
 
         /*----------------*/
@@ -121,6 +123,10 @@ int ProcessSASrvRqst(SLPDPeerInfo* peerinfo,
         *(result->curpos) = 0;
     }
 
+FINISHED:
+    
+    *sendbuf = result;
+    
     return errorcode;
 }
 
@@ -128,11 +134,12 @@ int ProcessSASrvRqst(SLPDPeerInfo* peerinfo,
 /*-------------------------------------------------------------------------*/
 int ProcessDASrvRqst(SLPDPeerInfo* peerinfo,
                      SLPMessage message,
-                     SLPBuffer result,
+                     SLPBuffer* sendbuf,
                      int errorcode)
 /*-------------------------------------------------------------------------*/
 {
     int size = 0;
+    SLPBuffer result = *sendbuf;
 
     /*--------------------------------------------------------------*/
     /* If errorcode is set, we can not be sure that message is good */
@@ -193,7 +200,8 @@ RESPOND:
     if (result == 0)
     {
         /* TODO: out of memory, what should we do here! */
-        return SLP_ERROR_INTERNAL_ERROR;
+        errorcode = SLP_ERROR_INTERNAL_ERROR;
+        goto FINISHED;                       
     }
 
     if (errorcode == 0)
@@ -265,6 +273,8 @@ RESPOND:
     *(result->curpos) = 0;
     result->curpos = result->curpos + 1;
 
+FINISHED:
+    *sendbuf = result;
     return errorcode;
 }
 
@@ -272,7 +282,7 @@ RESPOND:
 /*-------------------------------------------------------------------------*/
 int ProcessSrvRqst(SLPDPeerInfo* peerinfo,
                    SLPMessage message,
-                   SLPBuffer result,
+                   SLPBuffer* sendbuf,
                    int errorcode)
 /*-------------------------------------------------------------------------*/
 {
@@ -281,6 +291,7 @@ int ProcessSrvRqst(SLPDPeerInfo* peerinfo,
     int                     count       = 0;
     int                     found       = 0;
     SLPDDatabaseSrvUrl*     srvarray    = 0;
+    SLPBuffer               result      = *sendbuf;
 
     /*--------------------------------------------------------------*/
     /* If errorcode is set, we can not be sure that message is good */
@@ -311,7 +322,7 @@ int ProcessSrvRqst(SLPDPeerInfo* peerinfo,
                          23,
                          "service:directory-agent") == 0)
     {
-        errorcode = ProcessDASrvRqst(peerinfo, message, result, errorcode);
+        errorcode = ProcessDASrvRqst(peerinfo, message, sendbuf, errorcode);
         goto FINISHED;
     }
     if (SLPCompareString(message->body.srvrqst.srvtypelen,
@@ -319,7 +330,7 @@ int ProcessSrvRqst(SLPDPeerInfo* peerinfo,
                          21,
                          "service:service-agent") == 0)
     {
-        errorcode = ProcessSASrvRqst(peerinfo, message, result, errorcode);
+        errorcode = ProcessSASrvRqst(peerinfo, message, sendbuf, errorcode);
         goto FINISHED;
     }
 
@@ -458,23 +469,27 @@ RESPOND:
 FINISHED:   
     if (srvarray) free(srvarray);
 
+    *sendbuf = result;
     return errorcode;
 }
 
 /*-------------------------------------------------------------------------*/
 int ProcessSrvReg(SLPDPeerInfo* peerinfo,
                   SLPMessage message,
-                  SLPBuffer result,
+                  SLPBuffer* sendbuf,
                   int errorcode)
 /*                                                                         */
 /* Returns: non-zero if message should be silently dropped                 */
 /*-------------------------------------------------------------------------*/
 {
+    SLPBuffer result = *sendbuf;
+
     /*--------------------------------------------------------------*/
     /* If errorcode is set, we can not be sure that message is good */
-    /* Go directly to send response code                            */
+    /* Go directly to send response code  also do not process mcast */
+    /* srvreg or srvdereg messages                                  */
     /*--------------------------------------------------------------*/
-    if(errorcode)
+        if(errorcode || message->header.flags & SLP_FLAG_MCAST)
     {
         goto RESPOND;
     }
@@ -513,13 +528,13 @@ int ProcessSrvReg(SLPDPeerInfo* peerinfo,
     }
 
 RESPOND:    
-    /*-------------------------------------------------------*/
-    /* don't do anything multicast SrvReg (set result empty) */
-    /*-------------------------------------------------------*/
+    /*--------------------------------------------------------------------*/
+    /* don't send back reply anything multicast SrvReg (set result empty) */
+    /*--------------------------------------------------------------------*/
     if (message->header.flags & SLP_FLAG_MCAST)
     {
         result->end = result->start;
-        return errorcode;
+        goto FINISHED;
     }
     
     
@@ -527,6 +542,11 @@ RESPOND:
     /* ensure the buffer is big enough to handle the whole srvack */
     /*------------------------------------------------------------*/
     result = SLPBufferRealloc(result,message->header.langtaglen + 16);
+    if(result == 0)
+    {
+        errorcode = SLP_ERROR_INTERNAL_ERROR;
+        goto FINISHED;
+    }
 
 
     /*----------------*/
@@ -556,6 +576,8 @@ RESPOND:
     /*-------------------*/
     ToUINT16(result->start + 14 + message->header.langtaglen, errorcode);
 
+FINISHED:
+    *sendbuf = result;
     return errorcode;
 }
 
@@ -563,17 +585,20 @@ RESPOND:
 /*-------------------------------------------------------------------------*/
 int ProcessSrvDeReg(SLPDPeerInfo* peerinfo,
                     SLPMessage message,
-                    SLPBuffer result,
+                    SLPBuffer* sendbuf,
                     int errorcode)
 /*                                                                         */
 /* Returns: non-zero if message should be silently dropped                 */
 /*-------------------------------------------------------------------------*/
 {
+    SLPBuffer result = *sendbuf;
+
     /*--------------------------------------------------------------*/
     /* If errorcode is set, we can not be sure that message is good */
-    /* Go directly to send response code                            */
+    /* Go directly to send response code  also do not process mcast */
+    /* srvreg or srvdereg messages                                  */
     /*--------------------------------------------------------------*/
-    if(errorcode)
+    if(errorcode || message->header.flags & SLP_FLAG_MCAST)
     {
         goto RESPOND;
     }
@@ -616,13 +641,18 @@ RESPOND:
     {
         
         result->end = result->start;
-        return errorcode;
+        goto FINISHED;
     }
 
     /*------------------------------------------------------------*/
     /* ensure the buffer is big enough to handle the whole srvack */
     /*------------------------------------------------------------*/
     result = SLPBufferRealloc(result,message->header.langtaglen + 16);
+    if(result == 0)
+    {
+        errorcode = SLP_ERROR_INTERNAL_ERROR;
+        goto FINISHED;
+    }
 
     /*----------------*/
     /* Add the header */
@@ -651,19 +681,22 @@ RESPOND:
     /*-------------------*/
     ToUINT16(result->start + 14 + message->header.langtaglen, errorcode);
 
+FINISHED:
+    *sendbuf = result;
     return errorcode;
 }
-
 
 
 /*-------------------------------------------------------------------------*/
 int ProcessSrvAck(SLPDPeerInfo* peerinfo,
                   SLPMessage message,
-                  SLPBuffer result,
+                  SLPBuffer* sendbuf,
                   int errorcode)
 /*-------------------------------------------------------------------------*/
 {
     /* Ignore SrvAck.  Just return errorcode to caller */
+    SLPBuffer result = *sendbuf;
+
     result->end = result->start;
     return message->body.srvack.errorcode;
 }
@@ -672,7 +705,7 @@ int ProcessSrvAck(SLPDPeerInfo* peerinfo,
 /*-------------------------------------------------------------------------*/
 int ProcessAttrRqst(SLPDPeerInfo* peerinfo,
                     SLPMessage message,
-                    SLPBuffer result,
+                    SLPBuffer* sendbuf,
                     int errorcode)
 /*-------------------------------------------------------------------------*/
 {
@@ -682,6 +715,7 @@ int ProcessAttrRqst(SLPDPeerInfo* peerinfo,
     int                     count       = 0;
     int                     found       = 0;
     SLPDDatabaseAttr*       attrarray   = 0;
+    SLPBuffer               result      = *sendbuf;
 
     /*--------------------------------------------------------------*/
     /* If errorcode is set, we can not be sure that message is good */
@@ -822,7 +856,7 @@ RESPOND:
 
 FINISHED:
     if (attrarray) free(attrarray);
-
+    *sendbuf = result;
     return errorcode;
 }        
 
@@ -830,10 +864,11 @@ FINISHED:
 /*-------------------------------------------------------------------------*/
 int ProcessDAAdvert(SLPDPeerInfo* peerinfo,
                     SLPMessage message,
-                    SLPBuffer result,
+                    SLPBuffer* sendbuf,
                     int errorcode)
 /*-------------------------------------------------------------------------*/
 {
+    SLPBuffer result = *sendbuf;
 
     /* TODO: enable the following when we link to libslp and        */
     /* have SLPParseSrvURL()                                        */
@@ -854,7 +889,7 @@ int ProcessDAAdvert(SLPDPeerInfo* peerinfo,
     if (errorcode)
     {
         /* TODO: log something here? */
-        return errorcode;
+        goto FINISHED;
     }
 
     /* Do not look at DAAdverts if we are a DA */
@@ -903,6 +938,9 @@ RESPOND:
     /* DAAdverts should never be replied to.  Set result buffer to empty*/
     result->end = result->start;
 
+
+FINISHED:
+    *sendbuf = result;
     return errorcode;
 }
 
@@ -910,7 +948,7 @@ RESPOND:
 /*-------------------------------------------------------------------------*/
 int ProcessSrvTypeRqst(SLPDPeerInfo* peerinfo,
                        SLPMessage message,
-                       SLPBuffer result,
+                       SLPBuffer* sendbuf,
                        int errorcode)
 /*-------------------------------------------------------------------------*/
 {
@@ -919,6 +957,7 @@ int ProcessSrvTypeRqst(SLPDPeerInfo* peerinfo,
     int                     count        = 0;
     int                     found        = 0;
     SLPDDatabaseSrvType*    srvtypearray = 0;
+    SLPBuffer               result       = *sendbuf;
     
 
     /*-------------------------------------------------*/
@@ -1048,17 +1087,17 @@ int ProcessSrvTypeRqst(SLPDPeerInfo* peerinfo,
         if (i < found - 1)
             *result->curpos++ = ',';
     }
-    FINISHED:   
-    if(srvtypearray) free(srvtypearray);
 
+FINISHED:   
+    if(srvtypearray) free(srvtypearray);
+    *sendbuf = result;
     return errorcode;
 }
-
 
 /*-------------------------------------------------------------------------*/
 int ProcessSAAdvert(SLPDPeerInfo* peerinfo,
                     SLPMessage message,
-                    SLPBuffer result,
+                    SLPBuffer* sendbuf,
                     int errorcode)
 /*-------------------------------------------------------------------------*/
 {
@@ -1069,7 +1108,7 @@ int ProcessSAAdvert(SLPDPeerInfo* peerinfo,
 /*=========================================================================*/
 int SLPDProcessMessage(SLPDPeerInfo* peerinfo,
                        SLPBuffer recvbuf,
-                       SLPBuffer sendbuf)
+                       SLPBuffer* sendbuf)
 /* Processes the recvbuf and places the results in sendbuf                 */
 /*                                                                         */
 /* recvfd   - the socket the message was received on                       */
@@ -1101,7 +1140,7 @@ int SLPDProcessMessage(SLPDPeerInfo* peerinfo,
     switch (message->header.functionid)
     {
     case SLP_FUNCT_SRVRQST:
-        errorcode = ProcessSrvRqst(peerinfo, message,sendbuf, errorcode);
+        errorcode = ProcessSrvRqst(peerinfo, message, sendbuf, errorcode);
         break;
 
     case SLP_FUNCT_SRVREG:
@@ -1151,7 +1190,7 @@ int SLPDProcessMessage(SLPDPeerInfo* peerinfo,
     /* Log traceMsg of message was received and the one that will be sent */
     if (G_SlpdProperty.traceMsg)
     {
-        SLPDLogTraceMsg("OUT",peerinfo,sendbuf);
+        SLPDLogTraceMsg("OUT",peerinfo,*sendbuf);
     }
 
     SLPMessageFree(message);

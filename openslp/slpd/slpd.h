@@ -545,7 +545,7 @@ extern SLPList G_OutgoingSocketList;
 /*=========================================================================*/
 int SLPDProcessMessage(SLPDPeerInfo* peerinfo,
                        SLPBuffer recvbuf,
-                       SLPBuffer sendbuf);
+                       SLPBuffer* sendbuf);
 /* Processes the recvbuf and places the results in sendbuf                 */
 /*                                                                         */
 /* recvfd   - the socket the message was received on                       */
