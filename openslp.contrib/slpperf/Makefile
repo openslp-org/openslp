@@ -6,10 +6,10 @@ SOURCES = slp_linkedlist.c \
           slpperf.c \
           slpperf_test1.c
 
-$(BINARY):
+$(BINARY): $(SOURCES)
 	$(CC) -o$(BINARY) -lslp $(SOURCES)
 	
-debug:
+debug: $(SOURCES)
 	$(CC) -g -o$(BINARY) -lslp $(SOURCES)
 
 clean:
