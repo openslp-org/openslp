@@ -1,6 +1,20 @@
 NEWS - list of user-visible changes between releases of OpenSLP and other
 important events.
 
+New in openslp-1.0.1
+---------------------
+No new features in 1.0.1 just the following bug fixes:
+* Fixed minor KnownDAEcho problem that resulted in some DAs not getting
+  registrations.
+* Fixed SLP_INTERNAL_ERROR problem that was caused by left over "debug
+  commenting"
+* Fixed Database "initialization" order so that LOCAL or (API registered)
+  services will be preserved on reset or SIGHUP
+* Applied Michael Sweet's patch to configure.in that allows use of CFLAGS and
+  LDFLAGS
+* Applied Michael Sweet's patch to fix parsing problem in SLPParseSrvURL()
+  that could cause SEGV.
+
 New in openslp-1.0.0
 --------------------
 * ALL PLANNED FEATURES ARE SUPPORTED IN THIS RELEASE

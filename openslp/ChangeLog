@@ -6,13 +6,15 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 
+*** Tag OpenSLP 1.0.1 ***
+
 07/25/01 matt@caldera.com
 Fixed minor KnownDAEcho problem that resulted in some DAs not getting
 registrations.
 
 07/25/01 matt@caldera.com
-Fixed init order so that LOCAL or (API registered) services will be
-preserved on reset or SIGHUP
+Fixed Database "initialization" order so that LOCAL or (API registered)
+services will be preserved on reset or SIGHUP
 
 07/25/01 matt@caldera.com
 Applied Michael Sweet's patch to configure.in that allows use of CFLAGS and

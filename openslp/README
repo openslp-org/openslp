@@ -16,21 +16,21 @@ The OpenSLP project is an effort to develop an open-source implementation of
 Service Location Protocol suitable for commercial and non-commercial 
 application.
 
-The latest stable version of OpenSLP is 1.0.0  Release notes for this version 
-follow:
+The latest stable version of OpenSLP is 1.0.1.  OpenSLP-1.0.1 fixes quite a 
+few bugs that were embarrassingly released in 1.0.0.  The following is a 
+shortened list changes for 1.0.1:
 
-OpenSLP 1.0.0 is the first "stable/complete" release of OpenSLP.  It is highly
-recommended that all OpenSLP users upgrade to this release.
-
-The following is a shortened list changes for 1.0.0:
-- Fixes all known bugs (SourceForge bug tracker 
-  http://sourceforge.net/tracker/?group_id=1730&atid=101730 for details)
-- Duplicate results in sync API calls are now removed
-- Fixed several SEGVs attributed to parsing bugs
-- Fix "echo to ourselves" bug when slpd is running as a DA
-- Cosmetic logging changes
-- ALL PLANNED FEATURES ARE SUPPORTED IN THIS RELEASE
-
+- Fixed minor KnownDAEcho problem that resulted in some DAs not getting
+  registrations. 
+- Fixed SLP_INTERNAL_ERROR problem that was caused by left over "debug
+  commenting"
+- Fixed Database "initialization" order so that LOCAL or (API registered)
+  services will be preserved on reset or SIGHUP
+- Applied Michael Sweet's patch to configure.in that allows use of CFLAGS and
+  LDFLAGS
+- Applied Michael Sweet's patch to fix parsing problem in SLPParseSrvURL()  
+  that could cause SEGV.
+  
        
 2 - Roadmap
 ------------
