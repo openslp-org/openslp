@@ -8,6 +8,10 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 
+08/04/00 david.mccormack@ottawa.com
+Modified slpd command line parameter parsing to print version and help 
+information
+
 08/02/00 rganesan@myrealbox.com
 Build changes to take advantage of automake/libtool integration. Building 
 with builddir != srcdir works. DESTDIR is supported for make install to
