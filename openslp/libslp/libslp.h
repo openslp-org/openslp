@@ -235,7 +235,7 @@ typedef union _SLPHandleCallParams
 /*=========================================================================*/
 typedef struct _SLPHandleInfo
 /* The SLPHandle that is used internally in slplib is actually a pointer to*/
-/* a struct _SLPHandleInfo                                                 */
+/* a structSLPHandleInfo                                                 */
 /*=========================================================================*/
 {
     unsigned int        sig;

@@ -105,7 +105,7 @@ static int nesting_level;
 %union {
   int filter_int;
   char *filter_string;
-  lslpLDAPFilter *filter_filter;
+  SLPLDAPFilter *filter_filter;
 }
 
 
@@ -125,31 +125,31 @@ filter_list: filter | filter_list filter ;
 
 filter: filter_open filter_op filter_list filter_close 
 { 
-    if(NULL != ($$ = lslpAllocFilter($2)))
+    if(NULL != ($$ = SLPAllocFilter($2)))
     {
         $$->nestingLevel = nesting_level;
-        if(! _LSLP_IS_EMPTY(&reducedFilters) )
+        if(!SLP_IS_EMPTY(&reducedFilters) )
         {
-            lslpLDAPFilter *temp = (lslpLDAPFilter *)reducedFilters.next;
-            while(! _LSLP_IS_HEAD(temp))
+            SLPLDAPFilter *temp = (SLPLDAPFilter *)reducedFilters.next;
+            while(!SLP_IS_HEAD(temp))
             {
                 if(temp->nestingLevel == nesting_level + 1)
                 {
-                    lslpLDAPFilter *nest = temp;
+                    SLPLDAPFilter *nest = temp;
                     temp = temp->next;
-                    _LSLP_UNLINK(nest);
-                    _LSLP_INSERT_BEFORE(nest, (lslpLDAPFilter *)&($$->children)) ;
+                   SLP_UNLINK(nest);
+                   SLP_INSERT_BEFORE(nest, (SLPLDAPFilter *)&($$->children)) ;
                 }
                 else
                 {
                     temp = temp->next;
                 }
             }
-            _LSLP_INSERT_BEFORE( (filterHead *)$$, &reducedFilters);
+           SLP_INSERT_BEFORE( (filterHead *)$$, &reducedFilters);
         }
         else
         {
-            lslpFreeFilter($$) ; $$ = NULL ;
+            SLPFreeFilter($$) ; $$ = NULL ;
         }
     }
 }
@@ -159,7 +159,7 @@ filter: filter_open filter_op filter_list filter_close
     if($2 != NULL)
     {
         $2->nestingLevel = nesting_level;
-        _LSLP_INSERT_BEFORE((filterHead *)$2, &reducedFilters) ; 
+       SLP_INSERT_BEFORE((filterHead *)$2, &reducedFilters) ; 
     }
 };
 
@@ -180,64 +180,64 @@ filter_op: OP_AND | OP_OR | OP_NOT
 
 expression: OPERAND OP_PRESENT 
 {      /* presence test binds to single operand */
-    if(NULL != ($$ = lslpAllocFilter(expr_present)))
+    if(NULL != ($$ = SLPAllocFilter(expr_present)))
     {
-        lslpAttrList *attr = lslpAllocAttr($1, string, "*", (int)strlen("*") + 1);
+        SLPAttrList *attr = SLPAllocAttr($1, string, "*", (int)strlen("*") + 1);
         if(attr != NULL)
         {
-            _LSLP_INSERT(attr, &($$->attrs));
+           SLP_INSERT(attr, &($$->attrs));
         }
         else
         {
-            lslpFreeFilter($$); $$ = NULL;
+            SLPFreeFilter($$); $$ = NULL;
         }
     }
 }     
 
 | OPERAND exp_operator VAL_INT  
 {  /* must be an int or a bool */
-    /* remember to touch up the token values to match the enum in lslp.h */
-    if(NULL != ($$ = lslpAllocFilter($2)))
+    /* remember to touch up the token values to match the enum in SLP.h */
+    if(NULL != ($$ = SLPAllocFilter($2)))
     {
-        lslpAttrList *attr = lslpAllocAttr($1, integer, &($3), sizeof($3));
+        SLPAttrList *attr = SLPAllocAttr($1, integer, &($3), sizeof($3));
         if(attr != NULL)
         {
-            _LSLP_INSERT(attr, &($$->attrs));
+           SLP_INSERT(attr, &($$->attrs));
         }
         else
         {
-            lslpFreeFilter($$); $$ = NULL ;
+            SLPFreeFilter($$); $$ = NULL ;
         } 
     }
 }
 | OPERAND exp_operator VAL_BOOL  
 {  /* must be an int or a bool */
-    /* remember to touch up the token values to match the enum in lslp.h */
-    if(NULL != ($$ = lslpAllocFilter($2)))
+    /* remember to touch up the token values to match the enum in SLP.h */
+    if(NULL != ($$ = SLPAllocFilter($2)))
     {
-        lslpAttrList *attr = lslpAllocAttr($1, boolean, &($3), sizeof($3));
+        SLPAttrList *attr = SLPAllocAttr($1, boolean, &($3), sizeof($3));
         if(attr != NULL)
         {
-            _LSLP_INSERT(attr, &($$->attrs));
+           SLP_INSERT(attr, &($$->attrs));
         }
         else
         {
-            lslpFreeFilter($$); $$ = NULL ;
+            SLPFreeFilter($$); $$ = NULL ;
         } 
     }
 }
 | OPERAND exp_operator OPERAND  
 {   /* both operands are strings */
-    if(NULL != ($$ = lslpAllocFilter($2)))
+    if(NULL != ($$ = SLPAllocFilter($2)))
     {
-        lslpAttrList *attr = lslpAllocAttr($1, string, $3, (int)strlen($3) + 1 );
+        SLPAttrList *attr = SLPAllocAttr($1, string, $3, (int)strlen($3) + 1 );
         if(attr != NULL)
         {
-            _LSLP_INSERT(attr, &($$->attrs));
+           SLP_INSERT(attr, &($$->attrs));
         }
         else
         {
-            lslpFreeFilter($$); $$ = NULL ;
+            SLPFreeFilter($$); $$ = NULL ;
         } 
     }
 };
@@ -251,9 +251,9 @@ exp_operator: OP_EQU | OP_GT | OP_LT | OP_APPROX
 
 
 
-lslpLDAPFilter *lslpAllocFilter(int operator)
+SLPLDAPFilter *SLPAllocFilter(int operator)
 {
-    lslpLDAPFilter *filter = (lslpLDAPFilter *)calloc(1, sizeof(lslpLDAPFilter));
+    SLPLDAPFilter *filter = (SLPLDAPFilter *)calloc(1, sizeof(SLPLDAPFilter));
     if ( filter  != NULL )
     {
         filter->next = filter->prev = filter;
@@ -274,99 +274,99 @@ lslpLDAPFilter *lslpAllocFilter(int operator)
 }
 
 
-void lslpFreeFilter(lslpLDAPFilter *filter)
+void SLPFreeFilter(SLPLDAPFilter *filter)
 {
     if ( filter->children.next != NULL )
     {
-        while ( ! (_LSLP_IS_EMPTY((lslpLDAPFilter *)&(filter->children))) )
+        while ( ! (SLP_IS_EMPTY((SLPLDAPFilter *)&(filter->children))) )
         {
-            lslpLDAPFilter *child = (lslpLDAPFilter *)filter->children.next;
-            _LSLP_UNLINK(child);
-            lslpFreeFilter(child);
+            SLPLDAPFilter *child = (SLPLDAPFilter *)filter->children.next;
+           SLP_UNLINK(child);
+            SLPFreeFilter(child);
         }
     }
     if ( filter->attrs.next != NULL )
     {
-        while ( ! (_LSLP_IS_EMPTY(&(filter->attrs))) )
+        while ( ! (SLP_IS_EMPTY(&(filter->attrs))) )
         {
-            lslpAttrList *attrs = filter->attrs.next;
-            _LSLP_UNLINK(attrs);
-            lslpFreeAttr(attrs);
+            SLPAttrList *attrs = filter->attrs.next;
+           SLP_UNLINK(attrs);
+            SLPFreeAttr(attrs);
         }
     }
 }
 
-void lslpFreeFilterList(lslpLDAPFilter *head, int static_flag)
+void SLPFreeFilterList(SLPLDAPFilter *head, int static_flag)
 {
-    while ( ! (_LSLP_IS_EMPTY(head)) )
+    while ( ! (SLP_IS_EMPTY(head)) )
     {
-        lslpLDAPFilter *temp = head->next;
-        _LSLP_UNLINK(temp);
-        lslpFreeFilter(temp);
+        SLPLDAPFilter *temp = head->next;
+       SLP_UNLINK(temp);
+        SLPFreeFilter(temp);
     }
 
     if ( static_flag == TRUE )
-        lslpFreeFilter(head);
+        SLPFreeFilter(head);
     return;
 }
 
-void lslpFreeFilterTree(lslpLDAPFilter *root)
+void SLPFreeFilterTree(SLPLDAPFilter *root)
 {
-    if ( ! _LSLP_IS_EMPTY( &(root->children) ) )
+    if ( !SLP_IS_EMPTY( &(root->children) ) )
     {
-        lslpFreeFilterTree((lslpLDAPFilter *)root->children.next);
+        SLPFreeFilterTree((SLPLDAPFilter *)root->children.next);
     }
-    if ( ! (_LSLP_IS_HEAD(root->next)) && (! _LSLP_IS_EMPTY(root->next)) )
+    if ( ! (SLP_IS_HEAD(root->next)) && (!SLP_IS_EMPTY(root->next)) )
     {
-        lslpFreeFilterTree(root->next);
+        SLPFreeFilterTree(root->next);
     }
 
     if ( root->attrs.next != NULL )
     {
-        while ( ! (_LSLP_IS_EMPTY(&(root->attrs))) )
+        while ( ! (SLP_IS_EMPTY(&(root->attrs))) )
         {
-            lslpAttrList *attrs = root->attrs.next;
-            _LSLP_UNLINK(attrs);
-            lslpFreeAttr(attrs);
+            SLPAttrList *attrs = root->attrs.next;
+           SLP_UNLINK(attrs);
+            SLPFreeAttr(attrs);
         }
     }
 }
 
-void lslpInitFilterList(void )
+void SLPInitFilterList(void )
 {
     reducedFilters.next = reducedFilters.prev = &reducedFilters;
     reducedFilters.isHead = TRUE;
     return;
 }
 
-void lslpCleanUpFilterList(void)
+void SLPCleanUpFilterList(void)
 {
-    lslpFreeFilterList( (lslpLDAPFilter *)&reducedFilters, FALSE);
+    SLPFreeFilterList( (SLPLDAPFilter *)&reducedFilters, FALSE);
 }
 
-lslpLDAPFilter *lslpDecodeLDAPFilter(const char *filter)
+SLPLDAPFilter *SLPDecodeLDAPFilter(const char *filter)
 {
-    lslpLDAPFilter *temp = NULL;
+    SLPLDAPFilter *temp = NULL;
     unsigned int lexer = 0;
 
-    lslpInitFilterList();
+    SLPInitFilterList();
     nesting_level = 1;
     if ( 0 != (lexer = slp_filter_init_lexer(filter)) )
     {
         if ( slp_filter_parse() )
         {
-            lslpCleanUpFilterList();
+            SLPCleanUpFilterList();
         }
         slp_filter_close_lexer(lexer);
     }
-    if ( ! _LSLP_IS_EMPTY(&reducedFilters) )
+    if ( !SLP_IS_EMPTY(&reducedFilters) )
     {
-        if ( NULL != (temp  = lslpAllocFilter(ldap_and)) )
+        if ( NULL != (temp  = SLPAllocFilter(ldap_and)) )
         {
-            _LSLP_LINK_HEAD(&(temp->children), &reducedFilters);
+           SLP_LINK_HEAD(&(temp->children), &reducedFilters);
         }
     }
-    lslpCleanUpFilterList();
+    SLPCleanUpFilterList();
 
 
     return(temp);

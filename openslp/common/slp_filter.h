@@ -58,16 +58,16 @@ typedef struct ldap_filter_struct
     int nestingLevel;
     int logical_value;
     filterHead children;
-    lslpAttrList attrs;
-} lslpLDAPFilter;
+    SLPAttrList attrs;
+} SLPLDAPFilter;
 
-lslpLDAPFilter *lslpAllocFilter(int operator);
-void lslpFreeFilter(lslpLDAPFilter *filter);
-void lslpFreeFilterList(lslpLDAPFilter *head, int static_flag);
-void lslpFreeFilterTree(lslpLDAPFilter *root);
+SLPLDAPFilter *SLPAllocFilter(int operator);
+void SLPFreeFilter(SLPLDAPFilter *filter);
+void SLPFreeFilterList(SLPLDAPFilter *head, int static_flag);
+void SLPFreeFilterTree(SLPLDAPFilter *root);
 
 /*prototypes */
-lslpLDAPFilter *lslpDecodeLDAPFilter(const char *filter) ;
+SLPLDAPFilter *SLPDecodeLDAPFilter(const char *filter) ;
 
-#endif /* _LSLPDEFS_INCLUDE */
+#endif /*SLPDEFS_INCLUDE */
 

@@ -78,7 +78,7 @@ typedef struct _SLPDatabaseHandle
 {
     SLPDatabase*      database;
     SLPDatabaseEntry* current;
-}* SLPDatabaseHandle;
+}*SLPDatabaseHandle;
 
 
 /*=========================================================================*/

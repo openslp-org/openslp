@@ -82,7 +82,7 @@ typedef SOCKET              sockfd_t;
 
 /* enum detailing what to do with SLPD when launching it :
    run in the console for debug, install it as a service or uninstall it */
-typedef enum _SLPDAction
+typedef enumSLPDAction
 {
     SLPD_DEBUG   = 0,
     SLPD_INSTALL = 1,

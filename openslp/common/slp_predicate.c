@@ -23,11 +23,11 @@
 #define SLP_MAX(a, b) ((a) > (b) ? (a) : (b))
 
 #ifdef DEBUG
-void dumpAttrList(int level, const lslpAttrList *attrs)
+void dumpAttrList(int level, const SLPAttrList *attrs)
 {
     int i;
     
-    if ( _LSLP_IS_EMPTY(attrs) )
+    if (SLP_IS_EMPTY(attrs) )
     {
         return;
     }
@@ -38,7 +38,7 @@ void dumpAttrList(int level, const lslpAttrList *attrs)
     }
 
     attrs = attrs->next;
-    while ( ! _LSLP_IS_HEAD(attrs) )
+    while ( !SLP_IS_HEAD(attrs) )
     {
         switch ( attrs->type )
         {
@@ -93,7 +93,7 @@ void printOperator(int op)
     return; 
 }
 
-void dumpFilterTree( const lslpLDAPFilter *filter )
+void dumpFilterTree( const SLPLDAPFilter *filter )
 {
     int i; 
     
@@ -110,12 +110,12 @@ void dumpFilterTree( const lslpLDAPFilter *filter )
 
     dumpAttrList(filter->nestingLevel, &(filter->attrs));
     
-    if ( ! _LSLP_IS_EMPTY( &(filter->children) ) )
+    if ( !SLP_IS_EMPTY( &(filter->children) ) )
     {
-        dumpFilterTree((lslpLDAPFilter *)filter->children.next ) ;
+        dumpFilterTree((SLPLDAPFilter *)filter->children.next ) ;
     }
 
-    if ( (! _LSLP_IS_HEAD(filter->next)) && (! _LSLP_IS_EMPTY(filter->next)) )
+    if ( (!SLP_IS_HEAD(filter->next)) && (!SLP_IS_EMPTY(filter->next)) )
     {
         dumpFilterTree(filter->next);
     }
@@ -124,7 +124,7 @@ void dumpFilterTree( const lslpLDAPFilter *filter )
 }
 #endif /* DEBUG*/
 
-int lslpEvaluateOperation(int compare_result, int operation)
+int SLPEvaluateOperation(int compare_result, int operation)
 {
     switch ( operation )
     {
@@ -152,7 +152,7 @@ int lslpEvaluateOperation(int compare_result, int operation)
 }
 
 /* evaluates attr values, not names */
-int lslpEvaluateAttributes(const lslpAttrList *a, const lslpAttrList *b, int op)
+int SLPEvaluateAttributes(const SLPAttrList *a, const SLPAttrList *b, int op)
 {
     /* first ensure they are the same type  */
     if ( a->type == b->type )
@@ -160,9 +160,9 @@ int lslpEvaluateAttributes(const lslpAttrList *a, const lslpAttrList *b, int op)
         switch ( a->type )
         {
             case string:
-                return( lslpEvaluateOperation(fnmatch(a->val.stringVal, b->val.stringVal, FNM_CASEFOLD), op) );
+                return( SLPEvaluateOperation(fnmatch(a->val.stringVal, b->val.stringVal, FNM_CASEFOLD), op) );
             case integer:
-                return( lslpEvaluateOperation( a->val.intVal - b->val.intVal, op));
+                return( SLPEvaluateOperation( a->val.intVal - b->val.intVal, op));
             case tag:                   /* equivalent to a presence test  */
                 return(TRUE);
             case boolean:
@@ -187,16 +187,16 @@ int lslpEvaluateAttributes(const lslpAttrList *a, const lslpAttrList *b, int op)
 
 
 /* filter is a filter tree, attrs is ptr to an attr listhead */
-int lslpEvaluateFilterTree(lslpLDAPFilter *filter, const lslpAttrList *attrs)
+int SLPEvaluateFilterTree(SLPLDAPFilter *filter, const SLPAttrList *attrs)
 {
-    if ( ! _LSLP_IS_EMPTY( &(filter->children) ) )
+    if ( !SLP_IS_EMPTY( &(filter->children) ) )
     {
-        lslpEvaluateFilterTree((lslpLDAPFilter *)filter->children.next, attrs);
+        SLPEvaluateFilterTree((SLPLDAPFilter *)filter->children.next, attrs);
     }
     
-    if ( ! (_LSLP_IS_HEAD(filter->next)) && (! _LSLP_IS_EMPTY(filter->next)) )
+    if ( ! (SLP_IS_HEAD(filter->next)) && (!SLP_IS_EMPTY(filter->next)) )
     {
-        lslpEvaluateFilterTree(filter->next, attrs);
+        SLPEvaluateFilterTree(filter->next, attrs);
     }
 
 
@@ -206,7 +206,7 @@ int lslpEvaluateFilterTree(lslpLDAPFilter *filter, const lslpAttrList *attrs)
     {
         /* evaluate ldap logical operators by evaluating filter->children as a list of filters */
 
-        lslpLDAPFilter *child_list = (lslpLDAPFilter *)filter->children.next;
+        SLPLDAPFilter *child_list = (SLPLDAPFilter *)filter->children.next;
         
         /* initialize  the filter's logical value to true */
         if ( filter->operator == ldap_or )
@@ -218,7 +218,7 @@ int lslpEvaluateFilterTree(lslpLDAPFilter *filter, const lslpAttrList *attrs)
             filter->logical_value = TRUE;
         }
 
-        while ( ! _LSLP_IS_HEAD(child_list) )
+        while ( !SLP_IS_HEAD(child_list) )
         {
             if ( child_list->logical_value == TRUE )
             {
@@ -250,17 +250,17 @@ int lslpEvaluateFilterTree(lslpLDAPFilter *filter, const lslpAttrList *attrs)
     {
         /* find the first matching attribute and set the logical value */
         filter->logical_value = FALSE;
-        if ( ! _LSLP_IS_HEAD(filter->attrs.next) )
+        if ( !SLP_IS_HEAD(filter->attrs.next) )
         {
             attrs = attrs->next;
-            while ( (! _LSLP_IS_HEAD(attrs )) &&
+            while ( (!SLP_IS_HEAD(attrs )) &&
                     ( FNM_NOMATCH == fnmatch(filter->attrs.next->name,
                                              attrs->name, FNM_CASEFOLD)) )
             {
                 attrs = attrs->next ;
             }
             /* either we have traversed the list or found the first matching attribute */
-            if ( ! _LSLP_IS_HEAD(attrs) )
+            if ( !SLP_IS_HEAD(attrs) )
             {
                 /* we found the first matching attribute, now do the comparison */
                 if ( filter->operator == expr_present || 
@@ -270,7 +270,7 @@ int lslpEvaluateFilterTree(lslpLDAPFilter *filter, const lslpAttrList *attrs)
                 }
                 else
                 {
-                    filter->logical_value = lslpEvaluateAttributes(filter->attrs.next, 
+                    filter->logical_value = SLPEvaluateAttributes(filter->attrs.next, 
                                                                    attrs, filter->operator );
                 }
             }
@@ -280,20 +280,20 @@ int lslpEvaluateFilterTree(lslpLDAPFilter *filter, const lslpAttrList *attrs)
 }
 
 /* a is an attribute list, while b is a string representation of an ldap filter */
-int lslp_predicate_match(const lslpAttrList *attrlist,
+int SLP_predicate_match(const SLPAttrList *attrlist,
                          const char *filter)
 {
     int ccode;
-    lslpLDAPFilter *ftree;
+    SLPLDAPFilter *ftree;
     if ( filter == NULL || ! strlen(filter) )
     {
-        return(TRUE);               /*  no predicate - aways tests TRUE  */
+        return(TRUE);  /*  no predicate - aways tests TRUE  */
     }
 
-    if ( NULL != (ftree = lslpDecodeLDAPFilter(filter)) )
+    if ( NULL != (ftree = SLPDecodeLDAPFilter(filter)) )
     {
-        ccode = lslpEvaluateFilterTree(ftree, attrlist);
-        lslpFreeFilterTree(ftree);
+        ccode = SLPEvaluateFilterTree(ftree, attrlist);
+        SLPFreeFilterTree(ftree);
         return(ccode);
     }
 

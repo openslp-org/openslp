@@ -35,32 +35,32 @@ typedef enum attrTypes
     boolean,
     opaque,
     tag
-}lslpTypes;
+}SLPTypes;
 
-typedef union lslp_attr_value 
+typedef union SLP_attr_value 
 {
     char *stringVal;
     unsigned long intVal;
     int boolVal;
     void *opaqueVal;
-}lslpAttrVal;
+}SLPAttrVal;
 
-typedef struct lslp_attr_list 
+typedef struct SLP_attr_list 
 {
-    struct lslp_attr_list *next;
-    struct lslp_attr_list *prev;
+    struct SLP_attr_list *next;
+    struct SLP_attr_list *prev;
     int isHead;
     unsigned char *name;
-    lslpTypes type;
-    lslpAttrVal val;
-}lslpAttrList;
+    SLPTypes type;
+    SLPAttrVal val;
+}SLPAttrList;
 
-lslpAttrList *lslpAllocAttr(char *name, lslpTypes type, void *val, int len);
-lslpAttrList *lslpAllocAttrList(void);
-void lslpFreeAttr(lslpAttrList *attr);
-void lslpFreeAttrList(lslpAttrList *list, int staticFlag);
+SLPAttrList *SLPAllocAttr(char *name, SLPTypes type, void *val, int len);
+SLPAttrList *SLPAllocAttrList(void);
+void SLPFreeAttr(SLPAttrList *attr);
+void SLPFreeAttrList(SLPAttrList *list, int staticFlag);
 
-lslpAttrList *lslpDecodeAttrString(char *s);
+SLPAttrList *SLPDecodeAttrString(char *s);
 
 #endif /* SLP_ATTR_H_INCLUDED */
 

@@ -2,9 +2,9 @@
 #include "slp_filter.h"
 
 #ifdef DEBUG
-void dumpAttrList(int level, const lslpAttrList *attrs);
-void dumpFilterTree(const lslpLDAPFilter *filter);
+void dumpAttrList(int level, const SLPAttrList *attrs);
+void dumpFilterTree(const SLPLDAPFilter *filter);
 #endif
 
-int lslp_predicate_match(const lslpAttrList *a, const char *b);
+int SLP_predicate_match(const SLPAttrList *a, const char *b);
 
