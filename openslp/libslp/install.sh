@@ -6,6 +6,7 @@ if [ "$LIB" ]; then
    echo Installing OpenSLP Library LIB ...
    if [ $UID = 0 ]; then
       install slp.h /usr/include
+      rm -f /usr/lib/slplib.so*
       install ./$LIB /usr/lib
       cd /usr/lib
       ldconfig
