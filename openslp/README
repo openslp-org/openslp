@@ -16,32 +16,29 @@ The OpenSLP project is an effort to develop an open-source implementation of
 Service Location Protocol suitable for commercial and non-commercial 
 application.
 
-The latest stable version of OpenSLP is 1.0.8a.  OpenSLP-1.0.8a contains several
-important changes:
+The latest stable version of OpenSLP is 1.0.9.  OpenSLP-1.0.9 contains
+a few minor bug fixes that some OpenSLP users will be interested in.
+Most of all, OpenSLP 1.0.9 probably represents the last official
+release of the 1.0.x branch.  Subsequent releases will only be made if
+serious bug fixes are needed.  Otherwise, all changes will be made to
+the development 1.1.x branch.   
 
-   - Added patchs from Arun Barboza to handle '==' SLPv1 predicates.  These
-     patches allow for better interoperability with Novell SLP networks.
-
-   - Force use of numeric IP addresses in all DAAdvert and SAAdvert messages
-     (as per RFC2608).
-
-   - Fixed bug where idle connections to DAs were not being aged.
-
-   - Fixes for various and obscure errorcode and memory access problems
-
-If you downloaded OpenSLP 1.0.8, please know that there was a bug in this
-release that required a re-release labled 1.0.8a.  Please use 1.0.8a instead.
+Those that are investigating OpenSLP as part of a development or
+porting project should look at the 1.1.x development releases.  This
+is where the development action will be.  Those that are deploying
+OpenSLP in production systems should continue to look at OpenSLP
+1.0.9 until the 1.1.x code becomes stable enought for production use.
 
 
 2 - Roadmap
 ------------
-The first phase of OpenSLP is now complete.  Upon release of OpenSLP 1.0.0,
-the CVS repository will be branched to allow new development for the next
-major release of OpenSLP.  OpenSLP 1.0.x will continue as the stable branch
-allowing conservative bug fixes only. OpenSLP 1.1.x will be the main
-development branch that will be used to implement revisions and features
-currently under discussion on the Service Location Protocol mailing lists
-(see http://srvloc.org)
+The first phase of OpenSLP is now complete.  The OpenSLP 1.0.x branch
+is now frozen. The CVS repository has been branched to allow new 
+development for the next major release of OpenSLP.  OpenSLP 1.1.x will be
+the main development branch that will be used to implement revisions and
+features currently under discussion on the Service Location Protocol mailing lists
+(see http://srvloc.org).  For more roadmap information please see 
+http://openslp.org/roadmap.html.
     
 
 3 - Building OpenSLP

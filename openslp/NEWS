@@ -1,6 +1,14 @@
 NEWS - list of user-visible changes between releases of OpenSLP and other
 important events.
 
+New in openslp-1.0.9
+--------------------
+Very minor bug fixes.  1.0.x tree is frozen. See Change log for details.  
+
+openslp-1.0.7 and openslp 1.0.8
+-------------------------------
+See ChangeLog
+
 New in openslp-1.0.6
 --------------------
 No new features have been added to 1.0.6.  Please see README or ChangeLog for
