@@ -40,6 +40,7 @@
 #ifdef WIN32
 #include <windows.h>
 #else
+#include <sys/types.h>
 #include <netinet/in.h>			/* for htonl() routines */
 #endif
 
