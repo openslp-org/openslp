@@ -122,10 +122,19 @@ int SLPParseSrvUrl(int srvurllen,
     if(*slider2 == ':')
     {
         slider2 ++; /* + 1 skips the ":" */
+        slider1 = slider2; /* set up slider1 at the start of the port str */
         while(*slider2 && (*slider2 != '/' && *slider2 != ';')) slider2++;
-        memcpy(buf,slider1,slider2-slider1);
-        (*parsedurl)->port = atoi(buf);
-        buf += (slider2-slider1) + 1;
+        if (slider2 - slider1 < 1)
+        {
+            /* FIXME: no port, default to 80? */
+            (*parsedurl)->port = 80;
+        }
+        else
+        {
+            memcpy(buf,slider1,slider2-slider1);
+            (*parsedurl)->port = atoi(buf);
+            buf += (slider2-slider1) + 1;
+        }
     }
 
     /* parse out the remainder of the url */
@@ -142,7 +151,7 @@ int SLPParseSrvUrl(int srvurllen,
         (*parsedurl)->remainder = empty;
     }
 
-    /* set  the net family to always be an empty string for IP */
+    /* set the net family to always be an empty string for IP */
     (*parsedurl)->family = empty;
 
     return 0;
