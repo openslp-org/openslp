@@ -460,7 +460,7 @@ int SLPDDatabaseFindAttr(SLPAttrRqst* attrrqst,
                     
                     /* TRICKY: null terminate the taglist. This is squishes the spistrlen */
                     /*         which is not a problem because it was already copied       */
-                    ((char*)attrrqst->taglist)[attrrqst->taglistlen] = 0
+                    ((char*)attrrqst->taglist)[attrrqst->taglistlen] = 0;
                     err = SLPAttrSerialize(entry->attr,
                                            attrrqst->taglist,
                                            &entry->partiallist,
@@ -485,20 +485,19 @@ int SLPDDatabaseFindAttr(SLPAttrRqst* attrrqst,
 
                     if(err == SLP_OK)
                     {
-                        result->attrlistlen = entry->partiallist;
-                        result->attrlist = entry->partiallistlen;
+                        result->attrlistlen = entry->partiallistlen;
+                        result->attrlist = entry->partiallist;
                         found = 1;
                         break;
                     }
                 }
                 else
-                #else
+                #endif
                 {   result->attrlistlen = entry->attrlistlen;
                     result->attrlist = entry->attrlist;
                     found = 1;
                     break;
                 }
-                #endif
             }
         }
 
@@ -581,7 +580,7 @@ SLPDDatabaseEntry *SLPDDatabaseEntryAlloc()
     #ifdef USE_PREDICATES 
     if(SLPAttrAlloc("en", NULL, SLP_FALSE, &entry->attr))
     {
-        FreeEntry(entry);
+        SLPDDatabaseEntryFree(entry);
         entry = 0;
     }
     #endif  
