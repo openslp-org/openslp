@@ -15,6 +15,91 @@
 #define OP1 "aasdf"
 #define OP2 "ae\nl;adsf;\\y"
 
+#include <stdarg.h>
+
+/* Finds the number of attributes in an attribute list. 
+ *
+ * Returns the number of attributes in the passed list. 
+ */
+int test_size(SLPAttributes attr) {
+	SLPAttrIterator iter;
+	SLPError err;
+	char const *tag; /* The tag. */
+	SLPType type; 
+	size_t count;
+	
+	err = SLPAttrIteratorAlloc(attr, &iter);
+
+	count = 0;
+	while (SLPAttrIterNext(iter, &tag, &type) == SLP_TRUE) {
+		count++;
+	}
+
+	SLPAttrIteratorFree(iter);
+	
+	return count;
+}
+
+/* Tests the named attribute to see if it has all of the named attributes. 
+ *
+ * Params:
+ * name - Name of the attribute to test. 
+ * ... - List of strings that must be associated with name. Terminated with a 
+ * 		NULL.
+ * 
+ * Returns 1 iff the attributes contain all of the named values. 0 otherwise.
+ */
+int test_string(SLPAttributes attr, char *name, ...) {
+	char **str_arr; /* Values returned from SLPAttrGet_str(). */
+	size_t len; /* Number of values returned. */
+	char *current_value; /* The passed value currently being tested. */
+	size_t values_seen; /* The count of passed values. */
+	size_t i;
+	va_list ap;
+	SLPError err;
+
+	err = SLPAttrGet_str(attr, name, &str_arr, &len); 
+	assert(err == SLP_OK);
+
+	/* Foreach value... */
+	values_seen = 0;
+	va_start(ap, name);
+	current_value = va_arg(ap, char *);
+	while (current_value != NULL) {
+		values_seen++;
+		/* Check to see if the current value is in the value list. */
+		for (i = 0; i < len; i++) {
+			if (strcmp(current_value, str_arr[i]) == 0) {
+				break;
+			}
+		}
+		
+		/* The current value was not found. */
+		if (i == len) {
+			/* TODO cleanup:  */
+			va_end(ap);
+			return 0;
+		}
+		
+		current_value = va_arg(ap, char *);
+	}
+	va_end(ap);
+
+	/* Cleanup memory. */
+	for (i = 0; i < len; i++) {
+		free(str_arr[i]);
+	}
+	free(str_arr);
+	
+	/* Check that all values in str_attr are accounted for (ie, there are no extra). */
+	if (values_seen != len) {
+		return 0;
+	}
+	
+	return 1;	
+}
+
+
 
 int main(int argc, char *argv[]) {
 	SLPAttributes attr;
@@ -430,5 +515,19 @@ int main(int argc, char *argv[]) {
 	
 	SLPAttrFree(attr);
 
+	/**** Test deserialization. ****/
+	err = SLPAttrAllocStr("en", NULL, SLP_FALSE, &attr, "(attr1=val1),(attr2=val1,val2),(attr3=val1,val2,val3)");
+	assert(err == SLP_OK);
+
+	/* Check that all values were deserialized. */
+	assert(test_string(attr, "attr1", "val1", NULL));
+	assert(test_string(attr, "attr2", "val1", "val2", NULL));
+	assert(test_string(attr, "attr3", "val1", "val2", "val3", NULL));
+
+	/* Check that there are no extra values. */
+	assert(test_size(attr) == 3);
+	
+	SLPAttrFree(attr);
+	
 	return 0;
 }
