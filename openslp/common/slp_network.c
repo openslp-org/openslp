@@ -179,11 +179,11 @@ int SLPNetworkConnectToBroadcast(struct sockaddr_in* peeraddr)
 /* Returns          Valid socket or -1 if no DA connection can be made     */
 /*=========================================================================*/
 {
-    int                 sockfd;
+    int     sockfd;
 #ifdef WIN32
-    char on = 1;
+    BOOL    on = 1;
 #else
-    int                 on = 1;
+    int     on = 1;
 #endif
 
 
