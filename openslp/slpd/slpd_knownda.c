@@ -69,6 +69,7 @@
 #include "slp_utf8.h"
 #include "slp_compare.h"
 #include "slp_xid.h"
+#include "slp_dhcp.h"
 #include "slp_parse.h"
 #include "slp_net.h"
 #ifdef ENABLE_SLPv2_SECURITY
@@ -473,22 +474,127 @@ void SLPDKnownDADeregisterAll(SLPMessage daadvert)
 
 
 /*=========================================================================*/
-int SLPDKnownDAInit()
-/* Initializes the KnownDA list.  Removes all entries and adds entries     */
-/* that are statically configured.                                         */
+int SLPDKnownDAFromDHCP()
+/* Queries DHCP for configured DA's.													*/
 /*                                                                         */
 /* returns  zero on success, Non-zero on failure                           */
 /*=========================================================================*/
 {
-    char*               temp;
-    char*               tempend;
-    char*               slider1;
-    char*               slider2;
-    struct hostent*     he;
-    struct in_addr      daaddr;
-    SLPDSocket*         sock;
-    SLPBuffer           buf;
+	SLPBuffer			buf;
+	DHCPContext			ctx;
+	SLPDSocket*			sock;
+	struct in_addr		daaddr;
+	unsigned char *	alp;
+	unsigned char		dhcpOpts[] = {TAG_SLP_SCOPE, TAG_SLP_DA};
 
+	*ctx.scopelist = 0;
+	ctx.addrlistlen = 0;
+
+	DHCPGetOptionInfo(dhcpOpts, sizeof(dhcpOpts), DHCPParseSLPTags, &ctx);
+
+	alp = ctx.addrlist;
+	while(ctx.addrlistlen >= 4)
+	{
+		memcpy(&daaddr.s_addr, alp, 4);
+		if (daaddr.s_addr)
+		{
+			/*--------------------------------------------------------
+				Get an outgoing socket to the DA and set it up to make
+				the service:directoryagent request
+			  --------------------------------------------------------*/
+			sock = SLPDOutgoingConnect(&daaddr);
+			if (sock)
+			{
+			   buf = 0;
+			   if (MakeActiveDiscoveryRqst(0,&buf) == 0)
+			   {
+					if (sock->state == STREAM_CONNECT_IDLE)
+						sock->state = STREAM_WRITE_FIRST;
+					SLPListLinkTail(&(sock->sendlist),(SLPListItem*)buf);
+					if (sock->state == STREAM_CONNECT_IDLE)
+						sock->state = STREAM_WRITE_FIRST;
+			   }
+			}
+		}
+		ctx.addrlistlen -= 4;
+		alp += 4;
+	}
+	return 0;
+}
+
+/*=========================================================================*/
+int SLPKnownDAFromProperties()
+/* Queries static configuration for DA's.												*/
+/*                                                                         */
+/* returns  zero on success, Non-zero on failure                           */
+/*=========================================================================*/
+{
+	char*               temp;
+	char*               tempend;
+	char*               slider1;
+	char*               slider2;
+	struct hostent*     he;
+	struct in_addr      daaddr;
+	SLPDSocket*         sock;
+	SLPBuffer           buf;
+
+	if (G_SlpdProperty.DAAddresses && *G_SlpdProperty.DAAddresses)
+	{
+		temp = slider1 = xstrdup(G_SlpdProperty.DAAddresses);
+		if (temp)
+		{
+			tempend = temp + strlen(temp);
+			while (slider1 < tempend)
+			{
+				while (*slider1 && *slider1 == ' ') slider1++;
+				slider2 = slider1;
+				while (*slider2 && *slider2 != ',') slider2++;
+				*slider2++ = 0;
+
+				daaddr.s_addr = 0;
+				if(inet_aton(slider1, &daaddr) == 0)
+				{
+					he = gethostbyname(slider1);
+					if (he)
+						daaddr.s_addr = *((unsigned int*)(he->h_addr_list[0]));
+				}
+			    
+				if(daaddr.s_addr)
+				{
+					/*--------------------------------------------------------*/
+					/* Get an outgoing socket to the DA and set it up to make */
+					/* the service:directoryagent request                     */
+					/*--------------------------------------------------------*/
+					sock = SLPDOutgoingConnect(&daaddr);
+					if (sock)
+					{
+						buf = 0;
+						if (MakeActiveDiscoveryRqst(0,&buf) == 0)
+						{
+							if (sock->state == STREAM_CONNECT_IDLE)
+								sock->state = STREAM_WRITE_FIRST;
+							SLPListLinkTail(&(sock->sendlist),(SLPListItem*)buf);
+							if (sock->state == STREAM_CONNECT_IDLE)
+								sock->state = STREAM_WRITE_FIRST;
+						}
+					}
+				}
+				slider1 = slider2;
+			}
+			xfree(temp);
+		}
+	}
+	return 0;
+}
+
+/*=========================================================================*/
+int SLPDKnownDAInit()
+/* Initializes the KnownDA list.  Removes all entries and adds entries     */
+/* that are statically configured.  Adds entries configured through DHCP.  */
+/*                                                                         */
+/* returns  zero on success, Non-zero on failure                           */
+/*=========================================================================*/
+{
     /*--------------------------------------*/
     /* Set initialize the DAAdvert database */
     /*--------------------------------------*/
@@ -498,67 +604,17 @@ int SLPDKnownDAInit()
     /* Added statically configured DAs to the Known DA List by sending */
     /* active DA discovery requests directly to them                   */
     /*-----------------------------------------------------------------*/
-    if ( G_SlpdProperty.DAAddresses && *G_SlpdProperty.DAAddresses )
-    {
-        temp = slider1 = xstrdup(G_SlpdProperty.DAAddresses);
-        if ( temp )
-        {
-            tempend = temp + strlen(temp);
-            while ( slider1 < tempend )
-            {
-                while ( *slider1 && *slider1 == ' ' ) slider1++;
-                slider2 = slider1;
-                while ( *slider2 && *slider2 != ',' ) slider2++;
-                *slider2++ = 0;
+    SLPKnownDAFromProperties();
 
-                daaddr.s_addr = 0;
-                if (inet_aton(slider1, &daaddr) == 0)
-                {
-                    he = gethostbyname(slider1);
-                    if (he)
-                    {
-                        daaddr.s_addr = *((unsigned int*)(he->h_addr_list[0]));
-                    }
-                }
-
-                if (daaddr.s_addr)
-                {
-                    /*--------------------------------------------------------*/
-                    /* Get an outgoing socket to the DA and set it up to make */
-                    /* the service:directoryagent request                     */
-                    /*--------------------------------------------------------*/
-                    sock = SLPDOutgoingConnect(&daaddr);
-                    if ( sock )
-                    {
-                        buf = 0;
-                        if ( MakeActiveDiscoveryRqst(0,&buf) == 0 )
-                        {
-                            if ( sock->state == STREAM_CONNECT_IDLE )
-                            {
-                                sock->state = STREAM_WRITE_FIRST;
-                            }
-                            SLPListLinkTail(&(sock->sendlist),(SLPListItem*)buf);
-                            if ( sock->state == STREAM_CONNECT_IDLE )
-                            {
-                                sock->state = STREAM_WRITE_FIRST;
-                            }
-                        }
-                    }
-                }
-
-                slider1 = slider2;
-            }
-
-            xfree(temp);
-        }
-    }
-
+    /*-----------------------------------------------------------------*/
+    /* Discover DHCP DA's and add them to the active discovery list.	  */
+    /*-----------------------------------------------------------------*/
+    SLPDKnownDAFromDHCP();
 
     /*----------------------------------------*/
     /* Lastly, Perform first active discovery */
     /*----------------------------------------*/
     SLPDKnownDAActiveDiscovery(0);
-
 
     return 0;
 }

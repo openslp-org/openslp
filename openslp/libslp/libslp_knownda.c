@@ -3,7 +3,7 @@
 /* Project:     OpenSLP - OpenSource implementation of Service Location    */
 /*              Protocol                                                   */
 /*                                                                         */
-/* File:        slplib_knownda.c                                           */
+/* File:        libslp_knownda.c                                           */
 /*                                                                         */
 /* Abstract:    Internal implementation for generating unique XIDs.        */
 /*              Provides functions that are supposed to generate 16-bit    */
@@ -368,187 +368,16 @@ int KnownDADiscoverFromMulticast(int scopelistlen, const char* scopelist)
     return result;
 }
 
-typedef struct _dhcpContext
-{
-	int addrlistlen;
-	int scopelistlen;
-	char scopelist[256];
-	unsigned char addrlist[256];
-} dhcpContext;
-
-/* The Novell (pre-rfc2610 or draft 3) format for the DHCP TAG_SLP_DA option
-   has the 'mandatory' flag containing other bits besides bit 0x01.
-   These flags are important because if the DA_NAME_PRESENT flag is set, 
-   then we know we are parsing this format, otherwise it's the newer 
-   rfc2610 format. Luckily, the specification provides for these older 
-   deployments by disallowing the use of the high bit for anything in
-   future versions, or current deployments of DHCP. 
- */
-#define DA_NAME_PRESENT		0x80	/* DA name present in option */
-#define DA_NAME_IS_DNS		0x40	/* DA name is host name or DNS name */
-#define DISABLE_DA_MCAST	0x20	/* Multicast for DA's is disabled */
-#define SCOPE_PRESENT		0x10	/* Scope is present in option */
-
-/* Character type encodings that we expect to be supported. */
-#define CT_ASCII     3       /* standard 7 or 8 bit ASCII */
-#define CT_UTF8      106     /* UTF-8 */
-#define CT_UNICODE   1000    /* normal Unicode */
-
-/*-------------------------------------------------------------------------*/
-static int dhcpInfoCallback(int tag, 
-		void *optdata, size_t optdatasz, void *context)
-/*  Callback routined tests each DA discovered from DHCP and add it to the
-    DA cache.
-
-    Returns: 0 on success, or nonzero to stop being called.
-  -------------------------------------------------------------------------*/
-{
-	int cpysz, bufsz;
-	dhcpContext *ctxp = (dhcpContext *)context;
-	unsigned char *p = (unsigned char *)optdata;
-	unsigned char flags, dasize;
-	int encoding;
-
-	/* filter out zero length options */
-	if (!optdatasz)
-		return 0;
-
-	switch(tag)
-	{
-		case TAG_SLP_SCOPE:
-
-			/* Draft 3 format is only supported for ASCII and UNICODE
-				character encodings - UTF8 encodings must use rfc2610 format.
-				To determine the format, we parse 2 bytes and see if the result
-				is a valid encoding. If so it's draft 3, otherwise rfc2610. */
-
-			encoding = (optdatasz > 1)? AsUINT16(p): 0;
-			if (encoding != CT_ASCII && encoding != CT_UNICODE)
-			{
-				/* rfc2610 format */
-
-				if (optdatasz == 1)
-					break;		/* UA's should ignore static scopes for this interface - later... */
-
-				flags = *p++;	/* pick up the mandatory flag... */
-				optdatasz--;
-
-				if (flags)
-					;				/* ...and deal with it later... */
-
-				/* copy utf8 string into return buffer */
-				cpysz = optdatasz < sizeof(ctxp->scopelist)? 
-						optdatasz: sizeof(ctxp->scopelist);
-				strncpy(ctxp->scopelist, (char*)p, cpysz);
-			}
-			else
-			{
-				/* draft 3 format: defined to configure scopes for SA's only
-					so we should flag the scopes to be used only as registration
-					filter scopes, but we'll handle this later...
-
-					offs		len		name			description
-					0			2			encoding		character encoding used 
-					2			n			scopelist	list of scopes as asciiz string.
-
-				 */
-
-				optdatasz -= 2;	/* skip encoding bytes */
-
-				/* if UNICODE encoding is used convert to utf8 */
-				if (encoding == CT_UNICODE)
-					wcstombs(ctxp->scopelist, (wchar_t*)p, sizeof(ctxp->scopelist));
-				else
-				{
-					cpysz = optdatasz < sizeof(ctxp->scopelist)? 
-							optdatasz: sizeof(ctxp->scopelist);
-					strncpy(ctxp->scopelist, (char*)p, cpysz);
-				}
-			}
-			break;
-
-		case TAG_SLP_DA:
-			flags = *p++;
-			optdatasz--;
-
-			/* If the flags byte has the high bit set, we know we are
-				using draft 3 format, otherwise rfc2610 format. */
-
-			if (!(flags & DA_NAME_PRESENT))
-			{
-				/* rfc2610 format */
-				if (flags)
-				{
-					/*	If the mandatory byte is non-zero, indicate that 
-						multicast is not to be used to dynamically discover 
-						directory agents on this interface by setting the 
-						LACBF_STATIC_DA flag in the LACB for this interface. */
-
-					/* skip this for now - deal with it later... */
-				}
-
-				bufsz = sizeof(ctxp->addrlist) - ctxp->addrlistlen;
-				cpysz = (int)optdatasz < bufsz? optdatasz: bufsz;
-				memcpy(ctxp->addrlist + ctxp->addrlistlen, p, cpysz);
-				ctxp->addrlistlen += cpysz;
-			}
-			else
-			{
-				/* pre-rfc2610 (draft 3) format:
-						offs		len		name		description
-						0			1			flags		contains 4 flags (defined above)
-						1			1			dasize	name or addr length
-						2			dasize	daname	da name or ip address (flags)
-				 */
-				dasize = *p++;
-				optdatasz--;
-
-				if (dasize > optdatasz)
-					dasize = optdatasz;
-				if (flags & DA_NAME_IS_DNS)
-					;	/* DA name contains dns name - we have to resolve - later... */
-				else
-				{		/* DA name is one 4-byte ip address */
-					if (dasize < 4)
-						break;	/* oops, bad option format */
-					dasize = 4;
-					bufsz = sizeof(ctxp->addrlist) - ctxp->addrlistlen;
-					cpysz = dasize < bufsz? dasize: bufsz;
-					memcpy(ctxp->addrlist + ctxp->addrlistlen, p, cpysz);
-					ctxp->addrlistlen += cpysz;
-				}
-				if (flags & DISABLE_DA_MCAST)
-					;	/* this is the equivalent of the rfc2610 mandatory bit */
-			}
-			break;
-	}
-	return 0;
-}
-
 /*-------------------------------------------------------------------------*/
 int KnownDADiscoverFromDHCP()
 /* Locates  DAs via DHCP                                                   */
 /*                                                                         */
 /* Returns: number of *new* DAs found via DHCP.                            */
-/*
-   Packet Formats:
-   
-   TAG_SLP_SCOPE
-   offs		len		name		description
-   0		1		mandatory	boolean - 1 if scope list use is mandatory
-   1		n		scopelist	null-terminate string of scopes in slp form
-
-   TAG_SLP_DA
-   offs		len		name		description
-   0		1		mandatory	boolean - 1 if da list use is mandatory
-   1		4		addr[0]		first DA address
-   ...
-   n*4+1	4		addr[n]		nth DA address
-  -------------------------------------------------------------------------*/
+/*-------------------------------------------------------------------------*/
 {
 	int count = 0;
 	int scopelistlen;
-	dhcpContext ctx;
+	DHCPContext ctx;
 	unsigned char *alp;
 	struct timeval timeout;
 	struct sockaddr_in peeraddr;
@@ -557,7 +386,7 @@ int KnownDADiscoverFromDHCP()
 	*ctx.scopelist = 0;
 	ctx.addrlistlen = 0;
 
-	DHCPGetOptionInfo(dhcpOpts, sizeof(dhcpOpts), dhcpInfoCallback, &ctx);
+	DHCPGetOptionInfo(dhcpOpts, sizeof(dhcpOpts), DHCPParseSLPTags, &ctx);
 
 	if(!*ctx.scopelist)
 	{

@@ -18,7 +18,7 @@
 /*                                                                         */
 /* Redistribution and use in source and binary forms, with or without      */
 /* modification, are permitted provided that the following conditions are  */
-/* met:                                                                    */ 
+/* met:                                                                    */
 /*                                                                         */
 /*      Redistributions of source code must retain the above copyright     */
 /*      notice, this list of conditions and the following disclaimer.      */
@@ -64,7 +64,22 @@
 
 #define TAG_END     				255
 
-/*=========================================================================*/ 
+/* The Novell (pre-rfc2610 or draft 3) format for the DHCP TAG_SLP_DA option
+	has the 'mandatory' flag containing other bits besides simply 'mandatory'.
+	These flags are important because if the DA_NAME_PRESENT flag is set, then 
+	we know we are parsing this format, otherwise it's the rfc2610 format. */
+
+#define DA_NAME_PRESENT		0x80	/* DA name present in option */
+#define DA_NAME_IS_DNS		0x40	/* DA name is host name or DNS name */
+#define DISABLE_DA_MCAST	0x20	/* Multicast for DA's is disabled */
+#define SCOPE_PRESENT		0x10	/* Scope is present in option */
+
+/* Character type encodings that we expect to be supported. */
+#define CT_ASCII     3       /* standard 7 or 8 bit ASCII */
+#define CT_UTF8      106     /* UTF-8 */
+#define CT_UNICODE   1000    /* normal Unicode */
+
+/*=========================================================================*/
 typedef int DHCPInfoCallBack(int tag, void *optdata, 
 		size_t optdatasz, void *context);
 /* Callback routine used by DHCPGetOptionInfo - called once for each			*/
@@ -73,16 +88,33 @@ typedef int DHCPInfoCallBack(int tag, void *optdata,
 /*	returned to the caller of DHCPGetOptionInfo.										*/
 /*                                                                         */
 /* Returns  -    zero on success, non-zero on 'stop processing options'.	*/
-/*=========================================================================*/ 
+/*=========================================================================*/
 
-
-/*=========================================================================*/ 
+/*=========================================================================*/
 int DHCPGetOptionInfo(unsigned char *dhcpOptCodes, int dhcpOptCodeCnt, 
 		DHCPInfoCallBack *dhcpInfoCB, void *context);
 /* Calls dhcpInfoCB once for each requested option in dhcpOptCodes.			*/
 /*                                                                         */
 /* Returns  -    zero on success, non-zero on failure                      */
-/*=========================================================================*/ 
+/*=========================================================================*/
+
+/*=========================================================================*/
+int DHCPParseSLPTags(int tag, void *optdata, size_t optdatasz, void *context);
+/* Callback routined tests each DA discovered from DHCP and add it to the	*/
+/*	DA cache.																					*/
+/*                                                                         */
+/* Returns: 0 on success, or nonzero to stop being called.						*/
+/* This type definition is used as the context block by this callback.		*/
+
+typedef struct _DHCPContext
+{
+	int addrlistlen;
+	int scopelistlen;
+	char scopelist[256];
+	unsigned char addrlist[256];
+} DHCPContext;
+
+/*=========================================================================*/
 
 #endif
 

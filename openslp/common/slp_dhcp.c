@@ -3,7 +3,7 @@
 /* Project:     OpenSLP - OpenSource implementation of Service Location    */
 /*              Protocol                                                   */
 /*                                                                         */
-/* File:	slp_dhcp.h                                                 */
+/* File:        slp_dhcp.h                                                 */
 /*                                                                         */
 /* Abstract:    Implementation for functions that are related              */
 /*              to acquiring specific dhcp parameters.                     */
@@ -547,6 +547,140 @@ int DHCPGetOptionInfo(unsigned char *dhcpOptCodes, int dhcpOptCodeCnt,
 	closesocket(sockfd);
 	return rcvbufsz? dhcpProcessOptions(rcvbuf + 236, rcvbufsz - 236, 
 			dhcpInfoCB, context): -1;
+}
+
+/*-------------------------------------------------------------------------*/
+int DHCPParseSLPTags(int tag, void *optdata, size_t optdatasz, void *context)
+/* Callback routined tests each DA discovered from DHCP and add it to the	*/
+/*	DA cache.																					*/
+/*                                                                         */
+/* Returns: 0 on success, or nonzero to stop being called.						*/
+/*-------------------------------------------------------------------------*/
+{
+	int cpysz, bufsz;
+	DHCPContext *ctxp = (DHCPContext *)context;
+	unsigned char *p = (unsigned char *)optdata;
+	unsigned char flags, dasize;
+	int encoding;
+
+	/* filter out zero length options */
+	if (!optdatasz)
+		return 0;
+
+	switch(tag)
+	{
+		case TAG_SLP_SCOPE:
+
+			/* Draft 3 format is only supported for ASCII and UNICODE
+				character encodings - UTF8 encodings must use rfc2610 format.
+				To determine the format, we parse 2 bytes and see if the result
+				is a valid encoding. If so it's draft 3, otherwise rfc2610. */
+
+			encoding = (optdatasz > 1)? AsUINT16(p): 0;
+			if (encoding != CT_ASCII && encoding != CT_UNICODE)
+			{
+				/* rfc2610 format */
+
+				if (optdatasz == 1)
+					break;		/*	UA's should ignore statically configured
+										scopes for this interface - 
+										add code to handle this later... 
+									 */
+
+				flags = *p++;	/* pick up the mandatory flag... */
+				optdatasz--;
+
+				if (flags)
+					;				/* ...and add code to handle it later... */
+
+				/* copy utf8 string into return buffer */
+				cpysz = optdatasz < sizeof(ctxp->scopelist)? 
+						optdatasz: sizeof(ctxp->scopelist);
+				strncpy(ctxp->scopelist, (char*)p, cpysz);
+			}
+			else
+			{
+				/* draft 3 format: defined to configure scopes for SA's only
+					so we should flag the scopes to be used only as registration
+					filter scopes - add code to handle this case later...
+
+					offs		len		name			description
+					0			2			encoding		character encoding used 
+					2			n			scopelist	list of scopes as asciiz string.
+
+				 */
+
+				optdatasz -= 2;	/* skip encoding bytes */
+				p += 2;
+
+				/* if UNICODE encoding is used convert to utf8 */
+				if (encoding == CT_UNICODE)
+					wcstombs(ctxp->scopelist, (wchar_t*)p, sizeof(ctxp->scopelist));
+				else
+				{
+					cpysz = optdatasz < sizeof(ctxp->scopelist)? 
+							optdatasz: sizeof(ctxp->scopelist);
+					strncpy(ctxp->scopelist, (char*)p, cpysz);
+				}
+			}
+			break;
+
+		case TAG_SLP_DA:
+			flags = *p++;
+			optdatasz--;
+
+			/* If the flags byte has the high bit set, we know we are
+				using draft 3 format, otherwise rfc2610 format. */
+
+			if (!(flags & DA_NAME_PRESENT))
+			{
+				/* rfc2610 format */
+				if (flags)
+				{
+					/*	If the mandatory byte is non-zero, indicate that 
+						multicast is not to be used to dynamically discover 
+						directory agents on this interface by setting the 
+						LACBF_STATIC_DA flag in the LACB for this interface. */
+
+					/* skip this for now - deal with it later... */
+				}
+
+				bufsz = sizeof(ctxp->addrlist) - ctxp->addrlistlen;
+				cpysz = (int)optdatasz < bufsz? optdatasz: bufsz;
+				memcpy(ctxp->addrlist + ctxp->addrlistlen, p, cpysz);
+				ctxp->addrlistlen += cpysz;
+			}
+			else
+			{
+				/* pre-rfc2610 (draft 3) format:
+						offs		len		name		description
+						0			1			flags		contains 4 flags (defined above)
+						1			1			dasize	name or addr length
+						2			dasize	daname	da name or ip address (flags)
+				 */
+				dasize = *p++;
+				optdatasz--;
+
+				if (dasize > optdatasz)
+					dasize = optdatasz;
+				if (flags & DA_NAME_IS_DNS)
+					;	/* DA name contains dns name - we have to resolve - later... */
+				else
+				{		/* DA name is one 4-byte ip address */
+					if (dasize < 4)
+						break;	/* oops, bad option format */
+					dasize = 4;
+					bufsz = sizeof(ctxp->addrlist) - ctxp->addrlistlen;
+					cpysz = dasize < bufsz? dasize: bufsz;
+					memcpy(ctxp->addrlist + ctxp->addrlistlen, p, cpysz);
+					ctxp->addrlistlen += cpysz;
+				}
+				if (flags & DISABLE_DA_MCAST)
+					;	/* this is the equivalent of the rfc2610 mandatory bit */
+			}
+			break;
+	}
+	return 0;
 }
 
 

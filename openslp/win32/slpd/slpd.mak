@@ -45,6 +45,7 @@ CLEAN :
 	-@erase "$(INTDIR)\slp_buffer.obj"
 	-@erase "$(INTDIR)\slp_compare.obj"
 	-@erase "$(INTDIR)\slp_database.obj"
+	-@erase "$(INTDIR)\slp_dhcp.obj"
 	-@erase "$(INTDIR)\slp_iface.obj"
 	-@erase "$(INTDIR)\slp_linkedlist.obj"
 	-@erase "$(INTDIR)\slp_message.obj"
@@ -56,6 +57,7 @@ CLEAN :
 	-@erase "$(INTDIR)\slp_v1message.obj"
 	-@erase "$(INTDIR)\slp_xid.obj"
 	-@erase "$(INTDIR)\slpd.idb"
+	-@erase "$(INTDIR)\slpd.pdb"
 	-@erase "$(INTDIR)\slpd_cmdline.obj"
 	-@erase "$(INTDIR)\slpd_database.obj"
 	-@erase "$(INTDIR)\slpd_incoming.obj"
@@ -72,7 +74,6 @@ CLEAN :
 	-@erase "$(INTDIR)\slpd_win32.obj"
 	-@erase "$(OUTDIR)\slpd.exe"
 	-@erase "$(OUTDIR)\slpd.map"
-	-@erase "$(OUTDIR)\slpd.pdb"
 
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
@@ -113,7 +114,8 @@ LINK32_OBJS= \
 	"$(INTDIR)\slpd_regfile.obj" \
 	"$(INTDIR)\slpd_socket.obj" \
 	"$(INTDIR)\slpd_v1process.obj" \
-	"$(INTDIR)\slpd_win32.obj"
+	"$(INTDIR)\slpd_win32.obj" \
+	"$(INTDIR)\slp_dhcp.obj"
 
 "$(OUTDIR)\slpd.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -136,6 +138,7 @@ CLEAN :
 	-@erase "$(INTDIR)\slp_buffer.obj"
 	-@erase "$(INTDIR)\slp_compare.obj"
 	-@erase "$(INTDIR)\slp_database.obj"
+	-@erase "$(INTDIR)\slp_dhcp.obj"
 	-@erase "$(INTDIR)\slp_iface.obj"
 	-@erase "$(INTDIR)\slp_linkedlist.obj"
 	-@erase "$(INTDIR)\slp_message.obj"
@@ -147,6 +150,7 @@ CLEAN :
 	-@erase "$(INTDIR)\slp_v1message.obj"
 	-@erase "$(INTDIR)\slp_xid.obj"
 	-@erase "$(INTDIR)\slpd.idb"
+	-@erase "$(INTDIR)\slpd.pdb"
 	-@erase "$(INTDIR)\slpd_cmdline.obj"
 	-@erase "$(INTDIR)\slpd_database.obj"
 	-@erase "$(INTDIR)\slpd_incoming.obj"
@@ -164,7 +168,6 @@ CLEAN :
 	-@erase "$(OUTDIR)\slpd.exe"
 	-@erase "$(OUTDIR)\slpd.ilk"
 	-@erase "$(OUTDIR)\slpd.map"
-	-@erase "$(OUTDIR)\slpd.pdb"
 
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
@@ -205,7 +208,8 @@ LINK32_OBJS= \
 	"$(INTDIR)\slpd_regfile.obj" \
 	"$(INTDIR)\slpd_socket.obj" \
 	"$(INTDIR)\slpd_v1process.obj" \
-	"$(INTDIR)\slpd_win32.obj"
+	"$(INTDIR)\slpd_win32.obj" \
+	"$(INTDIR)\slp_dhcp.obj"
 
 "$(OUTDIR)\slpd.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -276,6 +280,12 @@ SOURCE=..\..\common\slp_compare.c
 SOURCE=..\..\common\slp_database.c
 
 "$(INTDIR)\slp_database.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+SOURCE=..\..\common\slp_dhcp.c
+
+"$(INTDIR)\slp_dhcp.obj" : $(SOURCE) "$(INTDIR)"
 	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 
