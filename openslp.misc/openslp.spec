@@ -1,8 +1,13 @@
 Name            : openslp
-Version         : 0.8.1
-Release         : 2
+Version         : 0.8.2
+Release         : 1
 Group           : Server/Network
-Summary         : OpenSLP implementation of Service Location Protocol V2
+Summary     	: Open source implementation of Service Location Protocol V2.
+Summary(de) 	: Open source Implementierung des Service Location Protocols V2.
+Summary(es) 	: Implementación open source del Service Location Protocol V2.
+Summary(fr) 	: Implémentation Open Source du Service Location Protocol V2.
+Summary(it) 	: Implementazione open source del Service Location Protocol V2.
+Summary(pt) 	: Implementação 'open source' do protocolo Service Location Protocol V2.
 Copyright       : Caldera Systems, Inc (BSD)
 Packager        : Matthew Peterson <mpeterson@caldera.com>
 URL             : http://www.openslp.org
@@ -12,18 +17,47 @@ Requires	: SysVinit-scripts >= 1.07
 
 Source0: openslp/openslp-%{Version}.tar.gz
 Source1: openslp/slptool-%{Version}.tar.gz
-
+Patch0: openslp-0.8.1cvs-SLPBuffer_init.patch
 
 %Description
 Service Location Protocol is an IETF standards track protocol that
 provides a framework to allow networking applications to discover the
 existence, location, and configuration of networked services in
 enterprise networks.
-    
+
+%Description -l de
+Das Service Location Protocol ist ein IETF standard Protokoll welches ein Gerüst
+bereitstellt um es Netzwerk-fähigen Anwendungen zu ermöglichen die Existenz,
+den Ort und die Konfiguration von Netzwerkdiensten in Unternehmensnetzwerken zu
+entdecken.
+
+%Description -l es
+El Protocolo de Localización de Servicios es un protocolo de seguimiento acorde
+al estándar IETF que proporciona un entorno para permitir a las aplicaciones de
+red descubrir la existencia, localización y configuración de servicios de red 
+en redes empresariales.
+
+%Description -l fr
+Service Location Protocol est un protocole de suivi des normes IETF
+qui fournit un cadre permettant à des applications réseau de 
+découvrir l'existence, l'emplacement et la configuration de 
+services de réseau dans les réseaux d'entreprise.
+
+%Description -l it
+Il Service Location Protocol (protocollo di localizzazione di servizi)
+è un protocollo standard IETF che fornisce un'infrastruttura per
+permettere alle applicazioni di rete di scoprire l'esistenza, la localizzazione
+e la configurazione dei servizi nelle reti delle aziende.
+
+%Description -l pt
+O Service Location Protocol é um protocolo normalizado pelo IETF que
+oferece uma plataforma para permitir às aplicações de rede que descubram
+a existência, localização e a configuração dos serviços de rede nas redes
+duma empresa.
 
 %Prep
 %setup -b 1
-
+%patch0 -p1 
 
 %Build
 ./configure --disable-predicates
