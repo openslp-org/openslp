@@ -1382,10 +1382,10 @@ int SLPDProcessMessage(struct sockaddr_in* peerinfo,
     else if((*sendbuf)->end == (*sendbuf)->start)
     {
         if(G_SlpdProperty.traceDrop)
-	{
-	   SLPDLogMessage("Ignored message (no response to)",
-                      peerinfo,*sendbuf);
-	}
+    	{
+    	   SLPDLogMessage("Ignored message (no response to)",
+                          peerinfo,*sendbuf);
+    	}
     }
     else
     {

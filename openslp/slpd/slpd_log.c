@@ -396,24 +396,30 @@ void SLPDLogMessage(const char* prefix,
     
     if(G_SlpdProperty.traceMsg)
     {
-        msg = SLPMessageAlloc();
-        if(msg)
+        /* Don't log localhost traffic since it is probably IPC */
+        if(!ISLOCAL(peerinfo->sin_addr))
         {
-            SLPDLog("\n");
-	    SLPDLogTime();
-            SLPDLog("%s:\n",prefix);
-            if(SLPMessageParseBuffer(peerinfo,buf,msg) == 0)
+            msg = SLPMessageAlloc();
+            if(msg)
             {
-                SLPDLogMessageInternals(msg);
-            }
-            else
-            {
-                SLPDLog("Message parsing failed\n");
-	            SLPDLog("Peer: \n");
-                SLPDLog("   IP address: %s\n", inet_ntoa(msg->peer.sin_addr));	        
-            }
+            
+                
+                SLPDLog("\n");
+    	        SLPDLogTime();
+                SLPDLog("%s:\n",prefix);
+                if(SLPMessageParseBuffer(peerinfo,buf,msg) == 0)
+                {
+                    SLPDLogMessageInternals(msg);
+                }
+                else 
+                {
+                    SLPDLog("Message parsing failed\n");
+    	            SLPDLog("Peer: \n");
+                    SLPDLog("   IP address: %s\n", inet_ntoa(msg->peer.sin_addr));	        
+                }
 
-            SLPMessageFree(msg);
+                SLPMessageFree(msg);
+            }
         }
     }
 }
