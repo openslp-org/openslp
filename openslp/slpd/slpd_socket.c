@@ -125,9 +125,10 @@ int BindSocketToInetAddr(int sock, struct in_addr* addr)
     int                 result;
 #ifdef WIN32
     char                lowat;
-    BOOL Reuse = TRUE;
+    BOOL                reuse = TRUE;
 #else
     int                 lowat;
+    int                 reuse = 1;
 #endif
     struct sockaddr_in  mysockaddr;
 
@@ -135,13 +136,10 @@ int BindSocketToInetAddr(int sock, struct in_addr* addr)
     mysockaddr.sin_family = AF_INET;
     mysockaddr.sin_port = htons(SLP_RESERVED_PORT);
 
-#ifdef WIN32
-    setsockopt(sock,SOL_SOCKET,SO_REUSEADDR,(const char *)&Reuse,sizeof(Reuse));
-#endif
+    setsockopt(sock,SOL_SOCKET,SO_REUSEADDR,(const char *)&reuse,sizeof(reuse));
 
     if (addr != NULL)
     {
-
         mysockaddr.sin_addr = *addr;
     } else
     {
@@ -272,7 +270,7 @@ SLPDSocket* SLPDSocketCreateDatagram(struct in_addr* peeraddr,
 SLPDSocket* SLPDSocketCreateBoundDatagram(struct in_addr* myaddr,
                                           struct in_addr* peeraddr,
                                           int type)
-/* myaddr - (IN) the address of the interface to join mcast on              */                                                                          
+/* myaddr - (IN) the address of the interface to join mcast on              */ 
 /*                                                                          */
 /* peeraddr - (IN) the address of the peer to connect to                    */
 /*                                                                          */

@@ -47,6 +47,7 @@ void IncomingDatagramRead(SLPList* socklist, SLPDSocket* sock)
 {
     int                 bytesread;
     int                 bytestowrite;
+    int                 byteswritten;
 
     bytesread = recvfrom(sock->fd,
                          sock->recvbuf->start,
@@ -66,12 +67,19 @@ void IncomingDatagramRead(SLPList* socklist, SLPDSocket* sock)
             bytestowrite = sock->sendbuf->end - sock->sendbuf->start;
             if (bytestowrite > 0)
             {
-                sendto(sock->fd,
-                       sock->sendbuf->start,
-                       sock->sendbuf->end - sock->sendbuf->start,
-                       0,
-                       (struct sockaddr *) &(sock->peerinfo.peeraddr),
-                       sock->peerinfo.peeraddrlen);
+                byteswritten = sendto(sock->fd,
+				      sock->sendbuf->start,
+				      bytestowrite,
+				      0,
+				      (struct sockaddr *)
+				      &(sock->peerinfo.peeraddr),
+				      sock->peerinfo.peeraddrlen);
+		if (byteswritten != bytestowrite)
+		{
+		    SLPLog("An error occured while processing message "
+			   "from %s\n",
+			   inet_ntoa(sock->peerinfo.peeraddr.sin_addr));
+		}
             }
         } else
         {
@@ -396,7 +404,6 @@ int SLPDIncomingInit()
     char*           end;
     int             finished;
     struct in_addr  myaddr;
-    struct in_addr  mcastaddr;
     struct in_addr  bcastaddr;
     struct in_addr  loaddr;
     SLPDSocket*     sock;
@@ -411,16 +418,15 @@ int SLPDIncomingInit()
 
 
     /*-----------------------------------------------*/
-    /* set up address to use for multicast/broadcast */
+    /* set up address to use for loopback/broadcast  */
     /*-----------------------------------------------*/
-    mcastaddr.s_addr = htonl(SLP_MCAST_ADDRESS);
     loaddr.s_addr = htonl(LOOPBACK_ADDRESS);
     bcastaddr.s_addr = htonl(SLP_BCAST_ADDRESS);
 
 
-    /*-----------------------------------------------------------------*/
+    /*--------------------------------------------------------------------*/
     /* Create SOCKET_LISTEN socket for LOOPBACK for the library to talk to*/
-    /*-----------------------------------------------------------------*/
+    /*--------------------------------------------------------------------*/
     sock = SLPDSocketCreateListen(&loaddr);
     if (sock)
     {
@@ -462,19 +468,15 @@ int SLPDIncomingInit()
         }
 
 
-        /*--------------------------------------------------------*/
-        /* Create socket that will handle multicast UDP           */
-        /*--------------------------------------------------------*/
+        /*----------------------------------------------------------------*/
+        /* Create socket that will handle multicast UDP. The peer address */
+	/* is set to NULL because some BSD derived OSs and WIN32 don't    */
+	/* work correctly if we bind to the multicast address             */
+        /*----------------------------------------------------------------*/
 
-#ifdef WIN32
         sock =  SLPDSocketCreateBoundDatagram(&myaddr,
                                               NULL,
                                               DATAGRAM_MULTICAST);
-#else
-        sock =  SLPDSocketCreateBoundDatagram(&myaddr,
-                                              &mcastaddr,
-                                              DATAGRAM_MULTICAST);
-#endif
         if (sock)
         {
             SLPListLinkTail(&G_IncomingSocketList,(SLPListItem*)sock);
