@@ -1,6 +1,6 @@
 Name            : openslp
 Version         : 0.8.3
-Release         : 1
+Release         : 2
 Group           : Server/Network
 Summary     	: Open source implementation of Service Location Protocol V2.
 Summary(de) 	: Open source Implementierung des Service Location Protocols V2.
@@ -13,6 +13,7 @@ Packager        : Matthew Peterson <mpeterson@caldera.com>
 URL             : http://www.openslp.org
 BuildRoot       : /tmp/%{Name}-%{Version}
 
+Provides	: libslp.so
 Requires	: SysVinit-scripts >= 1.07 
 
 Source0: openslp/openslp-%{Version}.tar.gz
