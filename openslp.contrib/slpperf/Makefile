@@ -10,7 +10,7 @@ $(BINARY):
 	$(CC) -o$(BINARY) -lslp $(SOURCES)
 	
 debug:
-	$(CC) -g -o(BINARY) -lslp $(SOURCES)
+	$(CC) -g -o$(BINARY) -lslp $(SOURCES)
 
 clean:
 	rm -f *.o

@@ -276,7 +276,7 @@ int SlpPerfTest1_slpdereg (SLPHandle hslp,
 }
 
 /*-------------------------------------------------------------------------*/
-void SlpPerfTest1_slpderegall (SLPHandle hslp, 
+int SlpPerfTest1_slpderegall (SLPHandle hslp, 
                            SLPList* service_list,
                            double* ave_slpdereg,
                            int* count_slpdereg)
@@ -295,6 +295,8 @@ void SlpPerfTest1_slpderegall (SLPHandle hslp,
                              srv);
         srv = (TestService_T*)srv->listitem.next;
     }                             
+	
+    return errorcode;
 }
 
 
