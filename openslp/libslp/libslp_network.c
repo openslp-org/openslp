@@ -376,9 +376,13 @@ SLPError NetworkRqstRply(int sock,
         looprecv = 1;
     }
 
-    /*--------------------------------*/
-    /* Allocate memory for the prlist */
-    /*--------------------------------*/
+    /*---------------------------------------------------------------------*/
+    /* Allocate memory for the prlist for appropriate messages.            */
+    /* Notice that the prlist is as large as the MTU -- thus assuring that */
+    /* there will not be any buffer overwrites regardless of how many      */
+    /* previous responders there are.   This is because the retransmit     */
+    /* code terminates if ever MTU is exceeded for any datagram message.   */
+    /*---------------------------------------------------------------------*/
     if(buftype == SLP_FUNCT_SRVRQST ||
        buftype == SLP_FUNCT_ATTRRQST ||
        buftype == SLP_FUNCT_SRVTYPERQST)
@@ -390,7 +394,7 @@ SLPError NetworkRqstRply(int sock,
             goto CLEANUP;
         }
         *prlist = 0;
-        prlistlen = 0;
+        prlistlen = 0; 
     }
 
     /*--------------------------*/
@@ -420,10 +424,26 @@ SLPError NetworkRqstRply(int sock,
             timeout.tv_usec = (maxwait % 1000) * 1000;
         }
 
-        /*--------------------*/
-        /* re-allocate buffer */
-        /*--------------------*/
-        size = 14 + langtaglen + 2 + prlistlen + bufsize;
+        /*------------------------------------------------------------------*/
+        /* re-allocate buffer and make sure that the send buffer does not   */
+        /* exceed MTU for datagram transmission                             */
+        /*------------------------------------------------------------------*/
+        size = 14 + langtaglen + bufsize;
+        if(buftype == SLP_FUNCT_SRVRQST ||
+           buftype == SLP_FUNCT_ATTRRQST ||
+           buftype == SLP_FUNCT_SRVTYPERQST)
+        {
+            /* add in room for the prlist */
+            size += 2 + prlistlen;
+        }
+        if(size > mtu && socktype == SOCK_DGRAM)
+        {
+            if(xmitcount == 0)
+            {
+                result = SLP_BUFFER_OVERFLOW;
+            }
+            goto FINISHED;
+        }
         if(SLPBufferRealloc(sendbuf,size) == 0)
         {
             result = SLP_MEMORY_ALLOC_FAILED;
@@ -529,7 +549,10 @@ SLPError NetworkRqstRply(int sock,
                         goto CLEANUP;
                     }
                     
-                    /* add the peer to the previous responder list */
+                    /* add the peer to the previous responder list          */
+                    /* Note that prlist will be NULL if message type is not */
+                    /* SLP_FUNCT_SRVRQST, SLP_FUNCT_ATTRRQST, or            */
+                    /* SLP_FUNCT_SRVTYPERQST)                               */
                     if(prlist && socktype == SOCK_DGRAM)
                     {
                         if(prlistlen != 0)
@@ -546,8 +569,7 @@ SLPError NetworkRqstRply(int sock,
     }
 
     FINISHED:
-
-
+    
     /*-----------------------------------------------*/
     /* Notify the last time callback that we're done */
     /*-----------------------------------------------*/
