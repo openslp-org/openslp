@@ -2,7 +2,7 @@
 <html>
 <head>
    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-   <meta name="GENERATOR" content="Mozilla/4.72C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.2.14 i686) [Netscape]">
+   <meta name="GENERATOR" content="Mozilla/4.76C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.4.2 i686) [Netscape]">
    <title>OpenSLP Programmers Guide - SLPFindSrvs()</title>
 </head>
 <body text="#000000" bgcolor="#FFFFFF" link="#0000EF" vlink="#51188E" alink="#FF0000">
@@ -14,14 +14,16 @@ SLPFindSrvs</h2>
 <h3>
 Declaration</h3>
 <tt>#include &lt;slp.h></tt>
-<p><tt><a href="SLPError.html">SLPError</a> SLPFindSrvs( <a href="SLPTypes.html#SLPHandle">SLPHandle</a><a href="#hslp">hslp</a>,</tt>
+<p><tt><a href="SLPError.html">SLPError</a> SLPFindSrvs( <a href="SLPTypes.html#SLPHandle">SLPHandle</a>
+<a href="#hslp">hslp</a>,</tt>
 <br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 const char* <a href="#srvtype">srvtype</a>,</tt>
 <br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 const char* <a href="#scopelist">scopelist</a>,</tt>
 <br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 const char* <a href="#filter">filter</a>,</tt>
-<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
 <a href="SLPSrvURLCallback.html">SLPSrvURLCallback</a> callback,</tt>
 <br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 void* <a href="#cookie">cookie</a>)</tt>
@@ -41,7 +43,7 @@ the service.</td>
 </tr>
 
 <tr VALIGN=TOP NOSAVE>
-<td><a NAME="srvtype"></a>srvtype</td>
+<td><a NAME="srvtype"></a><tt>srvtype</tt></td>
 
 <td NOSAVE>The service type string, including the authority string (if
 any) for the request.&nbsp; May not be the empty string, "". May not be
@@ -97,10 +99,9 @@ Status</h3>
 
 <table CELLPADDING=5 NOSAVE >
 <tr VALIGN=TOP NOSAVE>
-<td NOSAVE>OpenSLP 0.6.0</td>
+<td NOSAVE>OpenSLP 0.9.1</td>
 
-<td NOSAVE>When used with slpd ver 0.6.0, the <tt>filter</tt> parameter
-is ignored.&nbsp; All services of the specified <tt>srvtype</tt> are returned.</td>
+<td NOSAVE>Implemented as specified by RFC 2614.</td>
 </tr>
 </table>
 
