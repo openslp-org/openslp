@@ -76,25 +76,32 @@ int v1ProcessDASrvRqst(struct sockaddr_in* peeraddr,
                        int errorcode)
 /*-------------------------------------------------------------------------*/
 {
-    if (message->body.srvrqst.scopelistlen == 0 ||
-        SLPIntersectStringList(message->body.srvrqst.scopelistlen,
+    if (G_SlpdProperty.isDA)
+    {
+        if (message->body.srvrqst.scopelistlen == 0 ||
+            SLPIntersectStringList(message->body.srvrqst.scopelistlen,
                                message->body.srvrqst.scopelist,
                                G_SlpdProperty.useScopesLen,
                                G_SlpdProperty.useScopes))
-    {
-        /* fill out real structure */
-        errorcode = SLPDKnownDAGenerateMyV1DAAdvert(errorcode,
+        {
+            /* fill out real structure */
+            errorcode = SLPDKnownDAGenerateMyV1DAAdvert(errorcode,
                                                     message->header.encoding,
                                                     message->header.xid,
                                                     sendbuf);
+        }
+        else
+        {
+            errorcode =  SLP_ERROR_SCOPE_NOT_SUPPORTED;
+        }
     }
     else
     {
-        errorcode =  SLP_ERROR_SCOPE_NOT_SUPPORTED;
+	errorcode = SLP_ERROR_MESSAGE_NOT_SUPPORTED;
     }
 
     /* don't return errorcodes to multicast messages */
-    if (errorcode == 0)
+    if (errorcode != 0)
     {
         if (message->header.flags & SLP_FLAG_MCAST ||
             ISMCAST(peeraddr->sin_addr))

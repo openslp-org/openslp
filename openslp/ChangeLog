@@ -6,6 +6,15 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 
+*** TAG OpenSLP-1.2.1 ***
+02/04/2005 jcalcote@novell.com
+Incorporated various bug fixes from SuSE and others.
+Updated Autotools files for version 1.5+
+
+*** TAG OpenSLP-1.2.0 ***
+02/23/2004 beastham@emware.com
+Fixed autoconf bug and updated specfile.
+
 *** TAG OpenSLP-1.1.5 ***
 08/20/2003 smhatre@cisco.com
 Fixes for the following 2 sourceforge bugs:-

@@ -74,6 +74,7 @@ int SLPDPropertyInit(const char* conffile)
     char*               myname = 0;
     char*               myinterfaces = 0;
     char*               myurl = 0;
+    const char*         ifaces = 0;
     
     SLPPropertyReadFile(conffile);
 
@@ -125,9 +126,14 @@ int SLPDPropertyInit(const char* conffile)
     /*-------------------------------------*/
     /* Set the net.slp.interfaces property */
     /*-------------------------------------*/
-    if(SLPIfaceGetInfo(SLPPropertyGet("net.slp.interfaces"),&G_SlpdProperty.ifaceInfo) == 0)
+    ifaces = SLPPropertyGet("net.slp.interfaces");
+    if (!ifaces || !*ifaces)
     {
-        if(SLPPropertyGet("net.slp.interfaces"))
+	G_SlpdProperty.updateIfaces = 1;
+    }
+    if(SLPIfaceGetInfo(ifaces, &G_SlpdProperty.ifaceInfo) == 0)
+    {
+        if(ifaces)
         {
             if(SLPIfaceSockaddrsToString(G_SlpdProperty.ifaceInfo.iface_addr,
                                          G_SlpdProperty.ifaceInfo.iface_count,
@@ -137,39 +143,73 @@ int SLPDPropertyInit(const char* conffile)
                 {
                     SLPPropertySet("net.slp.interfaces", myinterfaces);
                     xfree(myinterfaces);
+		    ifaces = SLPPropertyGet("net.slp.interfaces");
                 }
             }
         }
-        G_SlpdProperty.interfaces = SLPPropertyGet("net.slp.interfaces");
     }
-    G_SlpdProperty.interfacesLen = strlen(G_SlpdProperty.interfaces);
+    else
+    {
+	G_SlpdProperty.ifaceInfo.iface_count = SLP_MAX_IFACES;
+	if (SLPIfaceStringToSockaddrs(ifaces,  G_SlpdProperty.ifaceInfo.iface_addr, &G_SlpdProperty.ifaceInfo.iface_count) != 0)
+	{
+	    G_SlpdProperty.ifaceInfo.iface_count = 0;
+	}
+    }
+    G_SlpdProperty.interfaces = ifaces;
+    G_SlpdProperty.interfacesLen = ifaces ? strlen(ifaces) : 0;
     
-    
+    /*----------------------------*/
+    /* Get out canonical hostname */
+    /*----------------------------*/
+    if(SLPNetGetThisHostname(&myname,0) == 0)
+    {
+	if (!myname && !G_SlpdProperty.myHostnameLen)
+	    myname = xstrdup("127.0.0.1");
+	if (myname)
+	{
+	    SLPPropertySet("net.slp.myHostname",myname);
+	    xfree(myname);
+	    G_SlpdProperty.myHostname = SLPPropertyGet("net.slp.myHostname");
+	    G_SlpdProperty.myHostnameLen = strlen(G_SlpdProperty.myHostname);
+	}
+    }
+
     /*---------------------------------------------------------*/
     /* Set the value used internally as the url for this agent */
     /*---------------------------------------------------------*/
     /* 27 is the size of "service:directory-agent://(NULL)" */
     if(SLPNetGetThisHostname(&myname,1) == 0)
     {
-        myurl = (char*)xmalloc(27 + strlen(myname));
-        if(G_SlpdProperty.isDA)
-        {
-            strcpy(myurl,SLP_DA_SERVICE_TYPE);
-        }
-        else
-        {
-            strcpy(myurl,SLP_SA_SERVICE_TYPE);
-        }
-        strcat(myurl,"://");
-        strcat(myurl,myname);
-        
-        SLPPropertySet("net.slp.agentUrl",myurl);
+	if (!myname && !G_SlpdProperty.myUrlLen)
+	    myname = xstrdup("127.0.0.1");
+	if (myname)
+	{
+	    if (!strncmp(myname, "127.", 4))
+	    {
+		/* cannot run as DA if hostname is loopback */
+		G_SlpdProperty.isDA = 0;
+	    }
+	    myurl = (char*)xmalloc(27 + strlen(myname));
+	    if(G_SlpdProperty.isDA)
+	    {
+		strcpy(myurl,SLP_DA_SERVICE_TYPE);
+	    }
+	    else
+	    {
+		strcpy(myurl,SLP_SA_SERVICE_TYPE);
+	    }
+	    strcat(myurl,"://");
+	    strcat(myurl,myname);
+	    
+	    SLPPropertySet("net.slp.agentUrl",myurl);
 
-        G_SlpdProperty.myUrl = SLPPropertyGet("net.slp.agentUrl");
-        G_SlpdProperty.myUrlLen = strlen(G_SlpdProperty.myUrl);
+	    G_SlpdProperty.myUrl = SLPPropertyGet("net.slp.agentUrl");
+	    G_SlpdProperty.myUrlLen = strlen(G_SlpdProperty.myUrl);
 
-        xfree(myurl);
-        xfree(myname);
+	    xfree(myurl);
+	    xfree(myname);
+	}
     }
 
     /*----------------------------------*/

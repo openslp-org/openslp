@@ -72,6 +72,7 @@
 
 #include "slp_xcast.h"
 #include "slp_message.h"
+#include "slp_property.h"
 
 /*========================================================================*/
 int SLPBroadcastSend(const SLPIfaceInfo* ifaceinfo, 
@@ -172,11 +173,14 @@ int SLPMulticastSend(const SLPIfaceInfo* ifaceinfo,
     int             flags = 0;
     int             xferbytes;
     struct in_addr  saddr;
+    int		    optarg;
 
 
 #if defined(MSG_NOSIGNAL)
     flags = MSG_NOSIGNAL;
 #endif
+
+    optarg = atoi(SLPPropertyGet("net.slp.multicastTTL"));
 
     for (socks->sock_count = 0;
          socks->sock_count < ifaceinfo->iface_count;
@@ -197,6 +201,14 @@ int SLPMulticastSend(const SLPIfaceInfo* ifaceinfo,
                        sizeof(struct in_addr)))
         {
             /* error setting socket option */
+            return -1;
+        }
+        if(setsockopt(socks->sock[socks->sock_count],
+                      IPPROTO_IP,
+                      IP_MULTICAST_TTL,
+                      &optarg,
+                      sizeof(optarg)))
+        {
             return -1;
         }
 
@@ -252,22 +264,22 @@ int SLPXcastRecvMessage(const SLPXcastSockets* sockets,
                         struct sockaddr_in* peeraddr,
                         struct timeval* timeout)
 /* Description: 
- *    Receives datagram messages from one of the sockets in the specified  
- *    SLPXcastsSockets structure
- *  
- * Parameters:
- *    sockets (IN) Pointer to the SOPXcastSockets structure that describes
- *                 which sockets to read messages from.
- *    buf     (OUT) Pointer to SLPBuffer that will contain the message upon
- *                  successful return.
- *    peeraddr (OUT) Pointer to struc sockaddr_in that will contain the
- *                   address of the peer that sent the received message.
- *    timeout (IN/OUT) pointer to the struct timeval that indicates how much
- *                     time to wait for a message to arrive
- *
- * Returns:
- *    Zero on success, non-zero with errno set on failure.
- *========================================================================*/
+ * 	Receives datagram messages from one of the sockets in the specified 
+ * 	SLPXcastsSockets structure
+ * 
+ * Parameters:
+ * 	sockets (IN) Pointer to the SOPXcastSockets structure that describes
+ * 		       which sockets to read messages from.
+ * 	buf (OUT) Pointer to SLPBuffer that will contain the message upon
+ * 		       successful return.
+ * 	peeraddr (OUT) Pointer to struc sockaddr_in that will contain the
+ * 		       address of the peer that sent the received message.
+ * 	timeout (IN/OUT) pointer to the struct timeval that indicates how much
+ * 		       time to wait for a message to arrive
+ *
+ * Returns:
+ * 	Zero on success, non-zero with errno set on failure.
+ *==========================================================================*/ 
 {
     fd_set  readfds;
     int     highfd;

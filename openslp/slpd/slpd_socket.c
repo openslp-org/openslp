@@ -412,6 +412,8 @@ SLPDSocket* SLPDSocketCreateBoundDatagram(struct in_addr* myaddr,
         sock->fd = socket(PF_INET, SOCK_DGRAM, 0);
         if(sock->fd >=0)
         {
+	    if(myaddr != NULL)
+		sock->ifaddr.sin_addr = *myaddr;
             if(BindSocketToInetAddr(sock->fd, bindaddr) == 0)
             {
                 if(peeraddr != NULL)
@@ -479,6 +481,8 @@ SLPDSocket* SLPDSocketCreateListen(struct in_addr* peeraddr)
         sock->fd = socket(PF_INET, SOCK_STREAM, 0);
         if(sock->fd >= 0)
         {
+	    if(peeraddr != NULL)
+		sock->ifaddr.sin_addr = *peeraddr;
             if(BindSocketToInetAddr(sock->fd, peeraddr) >= 0)
             {
                 if(listen(sock->fd,5) == 0)

@@ -389,8 +389,11 @@ int Daemonize(const char* pidfile)
            setuid(pwent->pw_uid) < 0)
         {
             /* TODO: should we log here and return fail */
+	    exit(1);
         }
     }
+    else
+	exit(1);
 
     /*--------------------*/
     /* Set cwd to / (root)*/

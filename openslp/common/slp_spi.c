@@ -395,6 +395,8 @@ SLPCryptoDSAKey* SLPSpiGetDSAKey(SLPSpiHandle hspi,
                 }
                 
                 tmp->key = SLPSpiReadKeyFile(tmp->keyfilename,keytype);
+		if (tmp->key == 0)
+		    return 0;
             }
 
             *key = SLPCryptoDSAKeyDup(tmp->key);

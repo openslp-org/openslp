@@ -175,5 +175,15 @@ AC_CHECK_LIB(socket, main)
 AC_CHECK_LIB(nsl, gethostbyname)
 AC_CHECK_LIB(m, main)
 AC_CHECK_FUNCS(ceil log10 strncasecmp strcasecmp )
-AC_OUTPUT(Makefile common/Makefile libslpattr/Makefile libslp/Makefile \
-          slpd/Makefile slptool/Makefile test/Makefile slp.list)
+dnl AC_OUTPUT( Makefile common/Makefile libslpattr/Makefile libslp/Makefile 
+dnl 	slpd/Makefile slptool/Makefile test/Makefile slp.list )
+AC_CONFIG_FILES([ Makefile ])
+AC_CONFIG_FILES([ common/Makefile ])
+AC_CONFIG_FILES([ libslpattr/Makefile ])
+AC_CONFIG_FILES([ libslp/Makefile ])
+AC_CONFIG_FILES([ slpd/Makefile ])
+AC_CONFIG_FILES([ slptool/Makefile ])
+AC_CONFIG_FILES([ test/Makefile ])
+AC_CONFIG_FILES([ slp.list ])
+AC_OUTPUT
+

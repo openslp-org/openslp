@@ -484,7 +484,7 @@ void Register(SLPToolCommandLine* cmdline)
 
         result = SLPReg(hslp,
                         cmdline->cmdparam1,
-                        SLP_LIFETIME_DEFAULT,
+                        SLP_LIFETIME_MAXIMUM,
                         srvtype,
                         cmdline->cmdparam2,
                         SLP_TRUE,

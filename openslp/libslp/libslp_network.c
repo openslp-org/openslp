@@ -971,14 +971,16 @@ SLPError NetworkMcastRqstRply(const char* langtag,
                     /* We are done!                       */
                     goto CLEANUP;
                 }
-                 
-                /* add the peer to the previous responder list */
-                if(prlistlen != 0)
-                {
-                    strcat(prlist,",");
-                }
-                strcat(prlist,inet_ntoa(peeraddr.sin_addr));
-                prlistlen =  strlen(prlist);
+                if (prlistlen + 14 < mtu)
+		{ 
+                    /* add the peer to the previous responder list */
+                    if(prlistlen != 0)
+                    {
+                        strcat(prlist,",");
+                    }
+                    strcat(prlist,inet_ntoa(peeraddr.sin_addr));
+                    prlistlen =  strlen(prlist);
+		}
             }
         }
 

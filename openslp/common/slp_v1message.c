@@ -40,6 +40,7 @@
 
 #include "slp_v1message.h"
 #include "slp_utf8.h"
+#include "slp_compare.h"
 
 /* Implementation Note:
  * 
@@ -215,7 +216,9 @@ int v1ParseSrvRqst(SLPBuffer buffer, SLPHeader* header, SLPSrvRqst* srvrqst)
     srvrqst->predicate += srvrqst->srvtypelen + 1;
 
     /* Now split out the scope (if any) */
-    if(*srvrqst->predicate == '/')
+    /* Special case DA discovery, empty scope is allowed here */
+    if(*srvrqst->predicate == '/' && SLPCompareString(srvrqst->srvtypelen, 
+	srvrqst->srvtype, 15, "directory-agent") != 0)
     {
         /* no scope - so set default scope */
         srvrqst->scopelist = "default";
