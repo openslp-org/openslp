@@ -78,6 +78,21 @@
 /* TODO find a better constant for MAX_HOSTNAME */
 #define MAX_HOST_NAME 512
 
+
+/*=========================================================================*/
+/* IPv6 SLP address constants                                              */
+/*=========================================================================*/
+extern const struct in6_addr in6addr_srvloc_node;
+extern const struct in6_addr in6addr_srvloc_link;
+extern const struct in6_addr in6addr_srvloc_site;
+extern const struct in6_addr in6addr_srvlocda_node;
+extern const struct in6_addr in6addr_srvlocda_link;
+extern const struct in6_addr in6addr_srvlocda_site;
+extern const struct in6_addr in6addr_service_node_mask;
+extern const struct in6_addr in6addr_service_link_mask;
+extern const struct in6_addr in6addr_service_site_mask;
+
+
 /*-------------------------------------------------------------------------*/
 int SLPNetGetThisHostname(char* hostfdn, unsigned int hostfdnLen, int numeric_only, int family);
 /* 
