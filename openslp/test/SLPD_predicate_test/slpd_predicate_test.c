@@ -433,17 +433,37 @@ void test_predicate() {
 	str = "(|(keyw=*)(!(a=b)))";
 	ierr = SLPAttrEvalPred(slp_attr, (SLPDPredicate)str, &result, 2);
 	assert(ierr == 0); /* t */
-
 	
 	SLPAttrFree(slp_attr);
+
+
+	/* Check multiple (more than two) subexpressions. */
+	err = SLPAttrAlloc("en", NULL, SLP_FALSE, &slp_attr);
+	assert(err == SLP_OK);
+
+	err = SLPAttrSet_int(slp_attr, "x", 1, SLP_ADD);
+	assert(err == SLP_OK);
 	
+	str = "(&(x=1)(!(x=1)))";
+	ierr = SLPDTestPredicate((SLPDPredicate)str, slp_attr);
+	assert(ierr > 0); /* f */
+
+	str = "(&(x=1))";
+	ierr = SLPDTestPredicate((SLPDPredicate)str, slp_attr);
+	assert(ierr == 0); /* t */
+
+	str = "(&(x=1)(x=1)(x=1))";
+	ierr = SLPDTestPredicate((SLPDPredicate)str, slp_attr);
+	assert(ierr == 0); /* t */
+
+	SLPAttrFree(slp_attr);
 }
 
 int main(int argc, char *argv[]) {
 	test_predicate();
 	test_wildcard();
 
-	return 1;
+	return 0;
 }
 
 
@@ -451,7 +471,7 @@ int main(int argc, char *argv[]) {
 
 int main(int argc, char *argv[]) {
 	puts("Predicates disabled. Not testing.");
-	return 1;
+	return 0;
 }
 
 #endif /* USE_PREDICATES */
