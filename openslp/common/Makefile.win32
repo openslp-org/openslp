@@ -1,0 +1,22 @@
+DEPTH= ..
+include $(DEPTH)/defs.mk
+
+LIBRARY_NAME= slp_common
+
+CSRCS= slp_buffer.c \
+       slp_compare.c \
+       slp_da.c \
+       slp_linkedlist.c \
+       slp_logfile.c \
+       slp_message.c \
+       slp_network.c \
+       slp_property.c \
+       slp_xid.c
+
+
+APPLIBS = 
+
+include $(DEPTH)/rules.mk
+
+build:: $(TARGETS)
+
