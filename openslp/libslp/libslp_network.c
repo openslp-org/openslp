@@ -545,19 +545,28 @@ SLPError NetworkRqstRply(int sock,
     }
 
     FINISHED:
-    /*----------------*/
-    /* We're all done */
-    /*----------------*/
-    if(rplycount == 0)
-    {
-        result = SLP_NETWORK_TIMED_OUT;
-    }
-
-    /*-------------------------------------*/
-    /* Notify the callback that we're done */
-    /*-------------------------------------*/
-    callback(SLP_LAST_CALL,msg,cookie);
     
+
+    /*-----------------------------------------------*/
+    /* Notify the last time callback that we're done */
+    /*-----------------------------------------------*/
+    if(result == 0)
+    {
+        result = SLP_LAST_CALL;
+
+        if(rplycount == 0)
+        {
+            result = SLP_NETWORK_TIMED_OUT;
+        }
+    }  
+    
+    callback(result,msg,cookie);
+    
+    if(result == SLP_LAST_CALL)
+    {
+        result = 0;
+    }
+       
     /*----------------*/
     /* Free resources */
     /*----------------*/
