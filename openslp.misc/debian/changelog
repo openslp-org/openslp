@@ -1,0 +1,9 @@
+openslp (0.8.1-1) unstable; urgency=low
+
+  * Initial Release.
+
+ -- Ganesan Rajagopal <rganesan@myrealbox.com>  Sat,  9 Dec 2000 16:18:46 +0530
+
+Local variables:
+mode: debian-changelog
+End:

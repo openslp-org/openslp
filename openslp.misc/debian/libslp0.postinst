@@ -1,0 +1,10 @@
+#!/bin/sh
+
+if test -x /sbin/ldconfig
+then
+    /sbin/ldconfig
+fi
+
+#DEBHELPER#
+
+exit 0

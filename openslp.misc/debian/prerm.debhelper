@@ -1,0 +1,8 @@
+# Automatically added by dh_installinit
+/etc/init.d/openslpd stop
+# End automatically added section
+# Automatically added by dh_installdocs
+if [ \( "$1" = "upgrade" -o "$1" = "remove" \) -a -L /usr/doc/openslpd ]; then
+	rm -f /usr/doc/openslpd
+fi
+# End automatically added section

@@ -1,0 +1,3 @@
+/etc/slp.reg
+/etc/slp.conf
+/etc/init.d/openslpd
