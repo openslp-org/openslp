@@ -56,6 +56,9 @@
 #include <windows.h>
 #else
 #include <sys/types.h>
+#ifdef __FreeBSD__
+#include <sys/param.h>			/* for limits.h - INT_MAX slpd*/
+#endif
 #include <netinet/in.h>			/* for htonl() routines */
 #endif
 
