@@ -18,9 +18,91 @@
 /*                                                                         */
 /***************************************************************************/
 
+#include "slpd.h"
+
+
+
+/******************************************************************************
+ *
+ *                          PREDICATE STRUCTURE
+ *
+ *****************************************************************************/
+
+
+/*=========================================================================*/
+SLPError SLPDPredicateAlloc(const char *predicate_str, size_t len, SLPDPredicate *pred) 
+/*                                                                         */
+/* Create a predicate structure.                                           */
+/*                                                                         */
+/* predicate    (IN) the predicate string                                  */
+/*                                                                         */
+/* len          (IN) the length of the predicate string                    */
+/*                                                                         */
+/* pred         (IN) the predicate struct to populate                      */
+/*                                                                         */
+/* Returns:                                                                */
+/*   SLP_OK if allocated properly.                                         */
+/*   SLP_PARSE_ERROR if there is an error in the predicate string.         */
+/*   SLP_MEMORY_ALLOC_FAILED if out of memory                              */
+/*                                                                         */
+/*=========================================================================*/
+{
+	const char *start_cur; /* Used to find first non-WS char in pred. */
+	const char *end_cur; /* Used to find last non-WS char in pred. */
+
+	char *new_pred; /* Temporary pointer for working with the under-construction predicate "object". */
+
+	size_t real_len; /* The length of the elided whitespace. */
+	
+	/***** Elide start. *****/
+	start_cur = predicate_str;
+	while (((start_cur - predicate_str) < len) && (isspace(*start_cur))) {
+		start_cur++;
+	}
+
+	/***** Elide end. *****/
+	end_cur = predicate_str + len;
+	while ((end_cur >= start_cur) && (isspace(*end_cur))) {
+		end_cur--;
+	}
+
+	/***** Return if empty *****/
+	if (end_cur < start_cur) {
+		*pred = NULL; /* Empty string. */
+		return SLP_OK;
+	}
+
+	/***** Copy *****/
+	real_len = end_cur - start_cur;
+	new_pred = (char *)malloc(real_len + 1);
+
+	if (new_pred == NULL) {
+		return SLP_MEMORY_ALLOC_FAILED;
+	}
+
+	/* Copy. */
+	strncpy(new_pred, predicate_str, real_len);
+
+	/* Null terminate. */
+	new_pred[real_len] = 0;
+
+	/* Set value. */
+	*pred = (SLPDPredicate)new_pred;
+
+	return SLP_OK;
+}
+
+
+void SLPDPredicateFree(SLPDPredicate *victim) {
+	if (victim != NULL) {
+		free(victim);
+	}
+	return;
+}
+
+
 #ifdef USE_PREDICATES
 
-#include "slpd.h"
 #include <slp_logfile.h>
 
 /*********
@@ -722,85 +804,6 @@ int SLPTestPredicate(SLPDPredicate predicate, SLPAttributes attr)
 }
 
 
-/******************************************************************************
- *
- *                          PREDICATE STRUCTURE
- *
- *****************************************************************************/
-
-
-
-/*=========================================================================*/
-SLPError SLPDPredicateAlloc(const char *predicate_str, size_t len, SLPDPredicate *pred) 
-/*                                                                         */
-/* Create a predicate structure.                                           */
-/*                                                                         */
-/* predicate    (IN) the predicate string                                  */
-/*                                                                         */
-/* len          (IN) the length of the predicate string                    */
-/*                                                                         */
-/* pred         (IN) the predicate struct to populate                      */
-/*                                                                         */
-/* Returns:                                                                */
-/*   SLP_OK if allocated properly.                                         */
-/*   SLP_PARSE_ERROR if there is an error in the predicate string.         */
-/*   SLP_MEMORY_ALLOC_FAILED if out of memory                              */
-/*                                                                         */
-/*=========================================================================*/
-{
-	const char *start_cur; /* Used to find first non-WS char in pred. */
-	const char *end_cur; /* Used to find last non-WS char in pred. */
-
-	char *new_pred; /* Temporary pointer for working with the under-construction predicate "object". */
-
-	size_t real_len; /* The length of the elided whitespace. */
-	
-	/***** Elide start. *****/
-	start_cur = predicate_str;
-	while (((start_cur - predicate_str) < len) && (isspace(*start_cur))) {
-		start_cur++;
-	}
-
-	/***** Elide end. *****/
-	end_cur = predicate_str + len;
-	while ((end_cur >= start_cur) && (isspace(*end_cur))) {
-		end_cur--;
-	}
-
-	/***** Return if empty *****/
-	if (end_cur < start_cur) {
-		*pred = NULL; /* Empty string. */
-		return SLP_OK;
-	}
-
-	/***** Copy *****/
-	real_len = end_cur - start_cur;
-	new_pred = (char *)malloc(real_len + 1);
-
-	if (new_pred == NULL) {
-		return SLP_MEMORY_ALLOC_FAILED;
-	}
-
-	/* Copy. */
-	strncpy(new_pred, predicate_str, real_len);
-
-	/* Null terminate. */
-	new_pred[real_len] = 0;
-
-	/* Set value. */
-	*pred = (SLPDPredicate)new_pred;
-
-	return SLP_OK;
-}
-
-
-void SLPDPredicateFree(SLPDPredicate *victim) {
-	if (victim != NULL) {
-		free(victim);
-	}
-	return;
-}
-
 
 #else /* USE_PREDICATES */
 
@@ -809,9 +812,7 @@ void SLPDPredicateFree(SLPDPredicate *victim) {
  * disabled. I'm operating on the assumption that the compiler is smart 
  * enough to optimize this out. 
  */
-int SLPTestPredicate(int predicatelen, 
-                        const char* predicate, 
-                        SLPAttributes attr) 
+int SLPTestPredicate(SLPDPredicate predicate, SLPAttributes attr) 
 {
 	return 0;
 }
