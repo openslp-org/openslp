@@ -52,7 +52,7 @@
 
 #ifdef WIN32
 #include <windows.h>
-#include  <sys/types.h>
+#include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <time.h>
