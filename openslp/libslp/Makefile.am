@@ -9,8 +9,8 @@ lib_LTLIBRARIES		= libslp.so
 INCLUDES			= -I../common 
 libslp_so_LIBADD	=  $(top_srcdir)/common/libcommonlibslp.a
 AR					= gcc
-CFLAGS				+= -shared -Wall -O3 
 LIBTOOL_DEPS 		= @LIBTOOL_DEPS@
+CFLAGS				+= -shared
 
 libtool: $(LIBTOOL_DEPS)
 	$(SHELL) ./config.status --recheck
