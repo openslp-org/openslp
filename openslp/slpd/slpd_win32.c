@@ -335,7 +335,7 @@ void ServiceStart (int argc, char **argv)
       SLPDIncomingAge(SLPD_AGE_INTERVAL);
       SLPDOutgoingAge(SLPD_AGE_INTERVAL);
       SLPDDatabaseAge(SLPD_AGE_INTERVAL);
-      SLPDKnownDAActiveDiscovery();
+      SLPDKnownDAActiveDiscovery(SLPD_AGE_INTERVAL);
       G_SIGALRM = 0;
       /* continue to top of loop so that fd_sets are loaded again */
       continue;
