@@ -294,7 +294,8 @@ int KnownDADiscoveryRqstRply(int sock,
     /* service type */
     ToUINT16(curpos,23);
     curpos = curpos + 2;
-    memcpy(curpos,"service:directory-agent",23);
+    /* 23 is the length of SLP_DA_SERVICE_TYPE */
+    memcpy(curpos,SLP_DA_SERVICE_TYPE,23);
     curpos += 23;
     /* scope list */
     ToUINT16(curpos,scopelistlen);

@@ -176,8 +176,8 @@ SLPBoolean ProcessSrvRplyCallback(SLPError errorcode,
 SLPError ProcessSrvRqst(PSLPHandleInfo handle)
 /*-------------------------------------------------------------------------*/
 {
-    int                 sock;
     struct sockaddr_in  peeraddr;
+    int                 sock        = -1;
     int                 bufsize     = 0;
     char*               buf         = 0;
     char*               curpos      = 0;
@@ -252,10 +252,19 @@ SLPError ProcessSrvRqst(PSLPHandleInfo handle)
     /*--------------------------*/
     do
     {
-        sock = NetworkConnectToDA(handle,
-                                  handle->params.findsrvs.scopelist,
-                                  handle->params.findsrvs.scopelistlen,
-                                  &peeraddr);
+        if(strncasecmp(handle->params.findsrvs.scopelist,
+                       SLP_DA_SERVICE_TYPE,
+                       handle->params.findsrvs.scopelistlen) &&
+           strncasecmp(handle->params.findsrvs.scopelist,
+                       SLP_SA_SERVICE_TYPE,
+                       handle->params.findsrvs.scopelistlen))
+        {
+            sock = NetworkConnectToDA(handle,
+                                      handle->params.findsrvs.scopelist,
+                                      handle->params.findsrvs.scopelistlen,
+                                      &peeraddr);
+        }
+
         if(sock == -1)
         {
             /* use multicast as a last resort */
@@ -268,6 +277,7 @@ SLPError ProcessSrvRqst(PSLPHandleInfo handle)
                                      bufsize,
                                      ProcessSrvRplyCallback,
                                      handle);
+            /* close the socket */
             close(sock);
             break;
         }

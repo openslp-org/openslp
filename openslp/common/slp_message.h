@@ -143,6 +143,8 @@ typedef UINT32*         PUINT32;
 /* Default wait between retransmits*/
 #define CONFIG_RETRY_INTERVAL      3    
 
+#define SLP_DA_SERVICE_TYPE       "service:directory-agent"
+#define SLP_SA_SERVICE_TYPE       "service:service-agent"
 
 /*=========================================================================*/
 /* SLP Registration Sources                                                */
