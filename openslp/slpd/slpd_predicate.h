@@ -1,7 +1,7 @@
 #if(!defined SLPD_PREDICATE_H_INCLUDED)
 #define SLPD_PREDICATE_H_INCLUDED
 
-#include <libslpattr.h>
+#include "libslpattr.h"
 
 typedef void * SLPDPredicate; 
 
