@@ -1,7 +1,7 @@
-%define	ver 0.7.3
+%define	ver 0.7.5
 %define	rel 1
 %define	name openslp
-%define libver 0.0.1
+%define libver 0.0.2
 
 Name        	: openslp
 Version     	: %ver
