@@ -51,6 +51,23 @@
 #define SLP_STRING_H_INCLUDED
 
 
+#ifdef WIN32
+#define strncasecmp(String1, String2, Num) strnicmp(String1, String2, Num)
+#define strcasecmp(String1, String2, Num) stricmp(String1, String2, Num)
+#define inet_aton(opt,bind) ((bind)->s_addr = inet_addr(opt))
+#else
+#ifndef HAVE_STRNCASECMP
+int
+strncasecmp(const char *s1, const char *s2, size_t len);
+#endif
+#ifndef HAVE_STRCASECMP
+int
+strcasecmp(const char *s1, const char *s2);
+#endif
+#endif 
+
+
+
 /*=========================================================================*/
 int SLPCompareString(int str1len,                                          
                      const char* str1,

@@ -85,7 +85,6 @@ typedef UINT32*         PUINT32;
 #define SLPv1_DA_MCAST_ADDRESS  0xe0000123  /* 224.0.1.35 */
 #define LOOPBACK_ADDRESS        0x7f000001  /* 127.0.0.1 */
 #define SLP_MAX_DATAGRAM_SIZE   1400 
-#define SLP_CONFIG_DA_BEAT      10800       /* 3 hours */
 #if(!defined SLP_LIFETIME_MAXIMUM) 
 #define SLP_LIFETIME_MAXIMUM    0xffff
 #endif

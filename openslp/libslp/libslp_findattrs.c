@@ -223,17 +223,12 @@ SLPError ProcessAttrRqst(PSLPHandleInfo handle)
         if(sock == -1)
         {
             /* use multicast as a last resort */
-            sock = NetworkConnectToMulticast(&peeraddr);
-            result = NetworkRqstRply(sock,
-                                     &peeraddr,
-                                     handle->langtag,
-                                     buf,
-                                     SLP_FUNCT_ATTRRQST,
-                                     bufsize,
-                                     ProcessAttrRplyCallback,
-                                     handle);
-            close(sock);
-
+            result = NetworkMcastRqstRply(handle->langtag,
+                                          buf,
+                                          SLP_FUNCT_ATTRRQST,
+                                          bufsize,
+                                          ProcessAttrRplyCallback,
+                                          handle);
             break;
         }
 

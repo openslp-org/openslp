@@ -438,7 +438,7 @@ SLPError SLPParseAttrs(const char* pcAttrList,
 {
     const char* slider1;
     const char* slider2;
-    size_t      attridlen;
+    int			attridlen;
 
     /* Check for bad parameters */
     if(pcAttrList == 0 ||

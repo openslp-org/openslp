@@ -4,7 +4,7 @@
 /* Project:     OpenSLP - OpenSource implementation of Service Location    */
 /*              Protocol Version 2                                         */
 /*                                                                         */
-/* File:        slpd_property.c                                            */
+/* File:        slpd_property.h                                            */
 /*                                                                         */
 /* Abstract:    Defines the data structures for global SLP properties      */
 /*                                                                         */
@@ -72,6 +72,7 @@ typedef struct _SLPDProperty
     int             isBroadcastOnly;
     int             passiveDADetection;
     int             activeDADetection; 
+    int             DAActiveDiscoveryInterval;
     int             activeDiscoveryXmits;
     int             nextActiveDiscovery;
     int             nextPassiveDAAdvert;

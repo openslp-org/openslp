@@ -6,6 +6,14 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 
+11/29/01 matt@caldera.com
+Finished the initial addition of all the new multicast code with significant
+help from Satya and Venu.
+
+*** Tag merged OpenSLP 1.0.5 ***
+
+*** Tag merged OpenSLP 1.0.4 ***
+
 *** Tag merged OpenSLP 1.0.3 ***
 
 *** Tag merged OpenSLP 1.0.2 ***

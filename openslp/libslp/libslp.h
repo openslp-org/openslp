@@ -82,6 +82,8 @@
 #include "slp_database.h"
 #include "slp_compare.h"
 #include "slp_xmalloc.h"
+#include "slp_iface.h"
+#include "slp_xcast.h"
 #ifdef ENABLE_SLPv2_SECURITY
 #include "slp_auth.h"
 #include "slp_spi.h"
@@ -276,11 +278,6 @@ SLPError ThreadCreate(ThreadStartProc startproc, void *arg);
 
 
 /*=========================================================================*/
-int NetworkConnectToMulticast(struct sockaddr_in* peeraddr);
-/*=========================================================================*/
-
-
-/*=========================================================================*/
 int NetworkConnectToSlpd(struct sockaddr_in* peeraddr); 
 /* Connects to slpd and provides a peeraddr to send to                     */
 /*                                                                         */
@@ -391,7 +388,7 @@ SLPError NetworkRqstRply(int sock,
 
 
 /*=========================================================================*/ 
-SLPError NetworkXcastRqstRply(const char* langtag,
+SLPError NetworkMcastRqstRply(const char* langtag,
                               char* buf,
                               char buftype,
                               int bufsize,
@@ -480,40 +477,5 @@ void KnownDAFreeAll();
 /* returns: none                                                           */
 /*=========================================================================*/
 #endif
-
-
-
-#ifdef WIN32
-#define strncasecmp(String1, String2, Num) strnicmp(String1, String2, Num)
-#define strcasecmp(String1, String2, Num) stricmp(String1, String2, Num)
-#define inet_aton(opt,bind) ((bind)->s_addr = inet_addr(opt))
-#else
-#ifndef HAVE_STRNCASECMP
-static int
-strncasecmp(const char *s1, const char *s2, size_t len)
-{
-    while ( *s1 && (*s1 == *s2 || tolower(*s1) == tolower(*s2)) )
-    {
-        len--;
-        if(len == 0) return 0;
-        s1++;
-        s2++;
-    }
-    return(int) *(unsigned char *)s1 - (int) *(unsigned char *)s2;
-}
-#endif
-#ifndef HAVE_STRCASECMP
-static int
-strcasecmp(const char *s1, const char *s2)
-{
-    while ( *s1 && (*s1 == *s2 || tolower(*s1) == tolower(*s2)) )
-    {
-        s1++;
-        s2++;
-    }
-    return(int) *(unsigned char *)s1 - (int) *(unsigned char *)s2;
-}
-#endif
-#endif /*WIN32*/
 
 #endif /*LIBSLP_H_INCLUDED*/ 

@@ -591,8 +591,7 @@ SLPDSocket* SLPDSocketCreateConnected(struct in_addr* addr)
     FAILURE:
     if(sock)
     {
-        CloseSocket(sock->fd);
-        xfree(sock);
+        SLPDSocketFree(sock);
         sock = 0;
     }
 

@@ -6,46 +6,46 @@
 #         Modified for RHS Linux by Damien Neil
 #	  Modified for COL by Raymund Will, <ray@lst.de>
 # 	  Modified for OpenSLP by Matt Peterson <mpeterson@calderasystems.com>
+# 	  Modified for OSr5/UnixWare/OpenUNIX platform by Vince Seavello
+#		vinces@caldera.com
 #
 ### BEGIN INIT INFO
 # Provides:
 # Required-Start:
 # Required-Stop:
-# Default-Start: <run level 3> <run level 4> <run level 5>
-# Default-Stop: <run level 0> <run level 1> <run level 2> <run level 6>
-# Description: gpm - General Purpose Mouse
+# Default-Start: <run level 2> <run level 3>
+# Default-Stop: <run level 0> <run level 1> <run level 6>
+# Description: slpd - Service Location Protocol daemon
 ### END INIT INFO 
 
 NAME=slpd
 DAEMON=/usr/sbin/$NAME
+SVIlock=/var/run/$NAME.pid
 
-# Source function library.
-. /etc/rc.d/init.d/functions
+SVIscript=$0
 
-# Change to root
 cd /
 
 # See how we were called.
 case "$1" in
  start)
-  [ -e $SVIlock ] && exit 1
+  [ -f $SVIlock ] && exit 1
   [ -x $DAEMON ] || exit 0
 
-  echo -n "Starting slpd daemon:"
-  ssd -S -n $NAME -x $DAEMON -- $OPTIONS
-	
-  echo "."
-  touch $SVIlock
+  echo -n "Starting slpd daemon..."
+  # ssd -S -n $NAME -x $DAEMON -- $OPTIONS
+  $DAEMON
+  echo
   ;;
 
  stop)
-  [ -e $SVIlock ] || exit 0
+  [ -f $SVIlock ] || exit 0
 
-  echo -n "Stopping slpd daemon: "
-  ssd -K -p /var/run/$NAME.pid -n $NAME
-  rm /var/run/$NAME.pid
-  echo "."
-  rm -f $SVIlock
+  echo -n "Stopping slpd daemon..."
+  pid=`cat $SVIlock`
+  kill $pid
+  rm -f /var/run/$NAME.pid
+  echo
   ;;
 
  *)

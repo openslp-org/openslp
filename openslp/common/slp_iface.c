@@ -147,9 +147,9 @@ int SLPInterfaceGetInformation(const char* useifaces,
                         if(ioctl(fd,SIOCGIFBRDADDR,&(ifrlist[i])) == 0)
                         {
                             sin = (struct sockaddr_in *)&(ifrlist[i].ifr_broadaddr);
-                            mempcpy(&(ifaceinfo->bcast_addr[ifaceinfo->iface_count]),
-                                    sin,
-                                    sizeof(struct sockaddr_in));
+                            memcpy(&(ifaceinfo->bcast_addr[ifaceinfo->iface_count]),
+                                   sin,
+                                   sizeof(struct sockaddr_in));
                         }
         
                         ifaceinfo->iface_count ++;
@@ -180,10 +180,6 @@ int SLPInterfaceSockaddrsToString(const struct sockaddr_in* addrs,
  *     zero on success, non-zero (with errno set) on error.
  *=========================================================================*/
 {
-    /* TODO: to be finished by Satya */
-
-    struct sockaddr_in  *itfaddr;  
-    char *str;
     int i;
     
     #ifdef DEBUG
@@ -237,7 +233,6 @@ int SLPInterfaceStringToSockaddrs(const char* addrstr,
  *=========================================================================*/
 {
     int i;
-    char  tmp;
     char* str;
     char* slider1;
     char* slider2;

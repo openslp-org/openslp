@@ -312,15 +312,28 @@ int KnownDADiscoveryRqstRply(int sock,
     memcpy(curpos,scopelist,scopelistlen);
     /* predicate zero length */
     /* spi list zero length */
+    
+    if(sock == -1)
+    {
+        NetworkMcastRqstRply("en",
+                             buf,
+                             SLP_FUNCT_DASRVRQST,
+                             bufsize,
+                             KnownDADiscoveryCallback,
+                             &result);
 
-    NetworkRqstRply(sock,
-                    peeraddr,
-                    "en",
-                    buf,
-                    SLP_FUNCT_DASRVRQST,
-                    bufsize,
-                    KnownDADiscoveryCallback,
-                    &result);
+    }
+    else
+    {
+        NetworkRqstRply(sock,
+                        peeraddr,
+                        "en",
+                        buf,
+                        SLP_FUNCT_DASRVRQST,
+                        bufsize,
+                        KnownDADiscoveryCallback,
+                        &result);
+    }
 
     xfree(buf);
 
@@ -335,22 +348,15 @@ int KnownDADiscoverFromMulticast(int scopelistlen, const char* scopelist)
 /* Returns: number of *new* DAs found                                      */
 /*-------------------------------------------------------------------------*/
 {
-    struct sockaddr_in peeraddr;
-    int sockfd; 
     int result = 0;
 
     if(SLPPropertyAsBoolean(SLPGetProperty("net.slp.activeDADetection")) &&
        SLPPropertyAsInteger(SLPGetProperty("net.slp.DADiscoveryMaximumWait")))
     {
-        sockfd = NetworkConnectToMulticast(&peeraddr);
-        if(sockfd >= 0)
-        {
-            result = KnownDADiscoveryRqstRply(sockfd,
-                                              &peeraddr,
-                                              scopelistlen,
-                                              scopelist);
-            close(sockfd);
-        }
+        result = KnownDADiscoveryRqstRply(-1,
+                                          NULL,
+                                          scopelistlen,
+                                          scopelist);
     }
 
     return result;

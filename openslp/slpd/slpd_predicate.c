@@ -90,7 +90,9 @@
 #define BRACKET_OPEN '('
 #define BRACKET_CLOSE ')'
 
+#ifndef MIN
 #define MIN(x,y) (x < y ? x : y)
+#endif
 
 /************************* <Lifted from slp_attr.c> ***********************/
 

@@ -19,6 +19,8 @@ libcommonlibslp_la_SOURCES = \
 	slp_network.c \
 	slp_database.c \
 	slp_xmalloc.c \
+	slp_xcast.c \
+	slp_iface.c \
 	$(slp_v1message_SRCS) \
 	$(slp_security_SRCS)
 

@@ -46,10 +46,27 @@
 /*                                                                         */
 /***************************************************************************/
 
+#ifdef WIN32
+#include <windows.h>
+#include <io.h>
+#include <errno.h>
+#define ETIMEDOUT 110
+#define ENOTCONN  107
+#else
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <sys/time.h>
+#include <netinet/in.h>
+#include <arpa/inet.h> 
+#include <netdb.h> 
+#include <fcntl.h> 
+#include <errno.h>
+#endif
 
 #include "slp_xcast.h"
 #include "slp_message.h"
-
 
 /*========================================================================*/
 int SLPBroadcastSend(const SLPInterfaceInfo* ifaceinfo, 
@@ -75,7 +92,7 @@ int SLPBroadcastSend(const SLPInterfaceInfo* ifaceinfo,
     int                 flags = 0;  
 
 #ifdef WIN32
-    BOOL    on = 1;
+    char    on = 1;
 #else
     int     on = 1;
 #endif
@@ -171,7 +188,7 @@ int SLPMulticastSend(const SLPInterfaceInfo* ifaceinfo,
         if( setsockopt(socks->sock[socks->sock_count], 
                        IPPROTO_IP, 
                        IP_MULTICAST_IF, 
-                       &saddr, 
+                       (char*)&saddr, 
                        sizeof(struct in_addr)))
         {
             /* error setting socket option */
@@ -222,6 +239,120 @@ int SLPXcastSocketsClose(SLPXcastSockets* socks)
     return 0;
 }
 
+
+
+/*=========================================================================*/
+int SLPXcastRecvMessage(const SLPXcastSockets* sockets,
+                        SLPBuffer* buf,
+                        struct sockaddr_in* peeraddr,
+                        struct timeval* timeout)
+/* Description: 
+ *    Receives datagram messages from one of the sockets in the specified  
+ *    SLPXcastsSockets structure
+ *  
+ * Parameters:
+ *    sockets (IN) Pointer to the SOPXcastSockets structure that describes
+ *                 which sockets to read messages from.
+ *    buf     (OUT) Pointer to SLPBuffer that will contain the message upon
+ *                  successful return.
+ *    peeraddr (OUT) Pointer to struc sockaddr_in that will contain the
+ *                   address of the peer that sent the received message.
+ *    timeout (IN/OUT) pointer to the struct timeval that indicates how much
+ *                     time to wait for a message to arrive
+ *
+ * Returns:
+ *    Zero on success, non-zero with errno set on failure.
+ *========================================================================*/
+{
+    fd_set  readfds;
+    int     highfd;
+    int     i;
+    int     readable;
+    size_t  bytesread;
+    int     recvloop;
+    int     peeraddrlen = sizeof(struct sockaddr_in);
+    char    peek[16];
+    int     result;  
+
+    /* recv loop */
+    recvloop = 1;
+    while(recvloop)
+    {
+        /* Set the readfds */
+        FD_ZERO(&readfds);
+        highfd = 0;
+        for (i=0; i<sockets->sock_count; i++)
+        {
+            FD_SET(sockets->sock[i],&readfds);
+            if(sockets->sock[i] > highfd)
+            {
+                highfd = sockets->sock[i];
+            }
+        }
+    
+        /* Select */
+        readable = select(highfd + 1,&readfds,NULL,NULL,timeout);
+        if(readable > 0)
+        {
+            /* Read the datagram */
+            for (i=0; i<sockets->sock_count; i++)
+            {
+                if(FD_ISSET(sockets->sock[i],&readfds))
+                {
+                    /* Peek at the first 16 bytes of the header */
+                    bytesread = recvfrom(sockets->sock[i],
+                                         peek,
+                                         16,
+                                         MSG_PEEK,
+                                         (struct sockaddr *)peeraddr,
+                                         &peeraddrlen);
+                    if(bytesread == 16)
+                    {
+                        if(AsUINT24(peek + 2) <=  SLP_MAX_DATAGRAM_SIZE)
+                        {
+                            *buf = SLPBufferRealloc(*buf, AsUINT24(peek + 2));
+                            bytesread = recv(sockets->sock[i],
+                                             (*buf)->curpos, 
+                                             (*buf)->end - (*buf)->curpos, 
+                                             0);
+                            if(bytesread != AsUINT24(peek + 2))
+                            {
+                                /* This should never happen but we'll be paranoid*/
+                                (*buf)->end = (*buf)->curpos + bytesread;
+                            }
+                            
+                            /* Message read. We're done! */
+                            result = 0; 
+                            recvloop = 0;
+                            break;
+                        }
+                        else
+                        {
+                            /* we got a bad message, or one that is too big! */
+                        }
+                    }
+                    else
+                    {
+                        /* Not even 16 bytes available */
+                    }
+                }
+            }   
+        }
+        else if(readable == 0)
+        {
+            result = -1;
+            errno = ETIMEDOUT;
+            recvloop = 0;
+        }
+        else
+        {
+            result = -1;
+            recvloop = 0;
+        }
+    }
+
+    return result;
+}
 
 /*===========================================================================
  * TESTING CODE may be compiling with the following command line:

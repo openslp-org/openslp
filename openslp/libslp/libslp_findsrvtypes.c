@@ -57,7 +57,7 @@ SLPBoolean ColateSrvTypeCallback(SLPHandle hSLP,
 {
     PSLPHandleInfo          handle;
     SLPBoolean              result;
-    size_t                  srvtypeslen;
+    int		                srvtypeslen;
     char*                   srvtypes;
     
     handle = (PSLPHandleInfo) hSLP;
@@ -271,16 +271,12 @@ SLPError ProcessSrvTypeRqst(PSLPHandleInfo handle)
         if(sock == -1)
         {
             /* use multicast as a last resort */
-            sock = NetworkConnectToMulticast(&peeraddr);
-            result = NetworkRqstRply(sock,
-                                     &peeraddr,
-                                     handle->langtag,
-                                     buf,
-                                     SLP_FUNCT_SRVTYPERQST,
-                                     bufsize,
-                                     ProcessSrvTypeRplyCallback,
-                                     handle);
-            close(sock);
+            result = NetworkMcastRqstRply(handle->langtag,
+                                          buf,
+                                          SLP_FUNCT_SRVTYPERQST,
+                                          bufsize,
+                                          ProcessSrvTypeRplyCallback,
+                                          handle);
             break;
         }
 

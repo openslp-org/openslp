@@ -82,8 +82,11 @@ multicast_route_set()
 
 NAME=slpd
 DAEMON=/usr/sbin/$NAME  
-
 SUSE=0
+
+# Change to root
+cd /
+
 # Source function library.
 if [ -f /etc/rc.d/init.d/functions ]; then
   . /etc/rc.d/init.d/functions
