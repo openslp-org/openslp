@@ -27,7 +27,8 @@
 				StringPooling="TRUE"
 				ExceptionHandling="FALSE"
 				RuntimeLibrary="2"
-				EnableFunctionLevelLinking="TRUE"
+				BufferSecurityCheck="FALSE"
+				EnableFunctionLevelLinking="FALSE"
 				PrecompiledHeaderFile=""
 				AssemblerListingLocation=".\Release\obj/"
 				ObjectFile=".\Release\obj/"
@@ -96,8 +97,9 @@
 				AdditionalIncludeDirectories="../../common"
 				PreprocessorDefinitions="_USRDLL;LIBSLP_EXPORTS;_WINDOWS;i386;_DEBUG;WIN32;SLP_VERSION=\&quot;1.2.1\&quot;"
 				ExceptionHandling="FALSE"
-				BasicRuntimeChecks="3"
+				BasicRuntimeChecks="0"
 				RuntimeLibrary="3"
+				BufferSecurityCheck="FALSE"
 				PrecompiledHeaderFile=""
 				AssemblerListingLocation=".\Debug\obj/"
 				ObjectFile=".\Debug\obj/"
@@ -764,10 +766,10 @@
 				RelativePath="..\..\common\slp_dhcp.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\..\mpeterson\cvs\openslp\openslp.HEAD\common\slp_iface.h">
+				RelativePath="..\..\common\slp_iface.h">
 			</File>
 			<File
-				RelativePath="..\..\common\slp_iface.h">
+				RelativePath="..\..\..\..\..\..\mpeterson\cvs\openslp\openslp.HEAD\common\slp_iface.h">
 			</File>
 			<File
 				RelativePath="..\..\common\slp_linkedlist.h">
@@ -797,10 +799,10 @@
 				RelativePath="..\..\common\slp_v1message.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\..\mpeterson\cvs\openslp\openslp.HEAD\common\slp_xcast.h">
+				RelativePath="..\..\common\slp_xcast.h">
 			</File>
 			<File
-				RelativePath="..\..\common\slp_xcast.h">
+				RelativePath="..\..\..\..\..\..\mpeterson\cvs\openslp\openslp.HEAD\common\slp_xcast.h">
 			</File>
 			<File
 				RelativePath="..\..\common\slp_xid.h">

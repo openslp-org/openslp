@@ -24,8 +24,9 @@
 				AdditionalIncludeDirectories="../../common"
 				PreprocessorDefinitions="_CONSOLE;ENABLE_SLPv1;_WINDOWS;i386;USE_PREDICATES;_DEBUG;WIN32;SLP_VERSION=\&quot;1.2.1\&quot;"
 				ExceptionHandling="FALSE"
-				BasicRuntimeChecks="3"
+				BasicRuntimeChecks="0"
 				RuntimeLibrary="3"
+				BufferSecurityCheck="FALSE"
 				PrecompiledHeaderFile=""
 				AssemblerListingLocation=".\Debug/obj/"
 				ObjectFile=".\Debug/obj/"
@@ -96,7 +97,8 @@
 				StringPooling="TRUE"
 				ExceptionHandling="FALSE"
 				RuntimeLibrary="2"
-				EnableFunctionLevelLinking="TRUE"
+				BufferSecurityCheck="FALSE"
+				EnableFunctionLevelLinking="FALSE"
 				PrecompiledHeaderFile=""
 				AssemblerListingLocation=".\Release/obj/"
 				ObjectFile=".\Release/obj/"
@@ -811,16 +813,16 @@
 				RelativePath="..\..\..\..\..\..\mpeterson\cvs\openslp\slpd\slpd_cmdline.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\..\mpeterson\cvs\openslp\slpd\slpd_database.h">
-			</File>
-			<File
 				RelativePath="..\..\slpd\slpd_database.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\..\mpeterson\cvs\openslp\slpd\slpd_incoming.h">
+				RelativePath="..\..\..\..\..\..\mpeterson\cvs\openslp\slpd\slpd_database.h">
 			</File>
 			<File
 				RelativePath="..\..\slpd\slpd_incoming.h">
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\mpeterson\cvs\openslp\slpd\slpd_incoming.h">
 			</File>
 			<File
 				RelativePath="..\..\slpd\slpd_knownda.h">
@@ -829,16 +831,16 @@
 				RelativePath="..\..\..\..\..\..\mpeterson\cvs\openslp\slpd\slpd_knownda.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\..\mpeterson\cvs\openslp\slpd\slpd_log.h">
-			</File>
-			<File
 				RelativePath="..\..\slpd\slpd_log.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\..\mpeterson\cvs\openslp\slpd\slpd_outgoing.h">
+				RelativePath="..\..\..\..\..\..\mpeterson\cvs\openslp\slpd\slpd_log.h">
 			</File>
 			<File
 				RelativePath="..\..\slpd\slpd_outgoing.h">
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\mpeterson\cvs\openslp\slpd\slpd_outgoing.h">
 			</File>
 			<File
 				RelativePath="..\..\slpd\slpd_predicate.h">
@@ -847,16 +849,16 @@
 				RelativePath="..\..\..\..\..\..\mpeterson\cvs\openslp\slpd\slpd_predicate.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\..\mpeterson\cvs\openslp\slpd\slpd_process.h">
-			</File>
-			<File
 				RelativePath="..\..\slpd\slpd_process.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\..\mpeterson\cvs\openslp\slpd\slpd_property.h">
+				RelativePath="..\..\..\..\..\..\mpeterson\cvs\openslp\slpd\slpd_process.h">
 			</File>
 			<File
 				RelativePath="..\..\slpd\slpd_property.h">
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\mpeterson\cvs\openslp\slpd\slpd_property.h">
 			</File>
 			<File
 				RelativePath="..\..\slpd\slpd_regfile.h">
@@ -865,10 +867,10 @@
 				RelativePath="..\..\..\..\..\..\mpeterson\cvs\openslp\slpd\slpd_regfile.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\..\mpeterson\cvs\openslp\slpd\slpd_socket.h">
+				RelativePath="..\..\slpd\slpd_socket.h">
 			</File>
 			<File
-				RelativePath="..\..\slpd\slpd_socket.h">
+				RelativePath="..\..\..\..\..\..\mpeterson\cvs\openslp\slpd\slpd_socket.h">
 			</File>
 			<File
 				RelativePath="..\..\..\..\..\..\mpeterson\cvs\openslp\slpd\slpd_unistd.h">

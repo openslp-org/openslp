@@ -31,6 +31,20 @@ no longer have time to maintain the older VC6 project files. They will be
 removed eventually - especially now that MS is giving away newer versions
 of their tools. (see http://msdn.microsoft.com/visualc/vctoolkit2003).
 
+From the command line, within the win32 directory, you may run the "m.bat"
+script to build the default "Release" configuration. If you want a full debug
+build, add "Debug" as an argument. This will invoke nmake for the appropriate
+project under vc6 (again, I'm not sure if this still works), or if you have
+VC7x installed, m.bat will detect it through the presence of the DevEnvDir
+environment variable, and run the DevEnv.exe utility with the /build 
+command-line option. 
+
+NOTE: For some unknown reason, on my system, if I invoke the DevEnv utility 
+from a batch file in this manner, it compiles very quietly - that is,
+there is _no_ output, but it works. If you invoke "DevEnv openslp.sln /build"
+directly from the command line, you will see each file name as it's compiled. 
+I'm sure there's some logical reasoning behind this design decision...
+
 Installing
 ----------
 There is currently still no installation application for OpenSLP on Windows.
