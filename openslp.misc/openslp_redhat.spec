@@ -43,7 +43,6 @@ rm -f /usr/lib/libslp.so
 ln -s /usr/lib/libslp.so.%{ver} /usr/lib/libslp.so
 /sbin/ldconfig
 chkconfig --add slpd
-/etc/rc.d/init.d/slpd start
 
 %PostUn 
 /sbin/ldconfig
