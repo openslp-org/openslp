@@ -28,7 +28,6 @@ multicast_route_set()
     PING_OPTIONS_1='-c1 -w1'
     PING_OPTIONS_2='-c1 -i1'
     MULTICAST_ADDRESS='239.255.255.253'
-    TMP_FILE=/tmp/route.check
     PING_ERROR_NO_ROUTE='unreachable'
 
     MSG_FAILED_TO_FIND='Failed to Detect Multicast Route'
@@ -40,17 +39,15 @@ multicast_route_set()
     CMD_GET_INTERFACE="netstat -i | awk 'BEGIN{}(NR>2)&&(!/^lo*/){print \$1}'"
     CMD_ADD_ROUTE="route add -net 224.0.0.0 netmask 240.0.0.0"
 
-    ping $PING_OPTIONS_1 $MULTICAST_ADDRESS 2> $TMP_FILE 1> /dev/null
+    err_unreachable_found=`ping $PING_OPTIONS_1 $MULTICAST_ADDRESS 2>$1 1>/dev/null`
 
 	if [ $? = 2 ]; then
-        ping $PING_OPTIONS_2 $MULTICAST_ADDRESS 2> $TMP_FILE 1> /dev/null
+        err_unreachable_found=`ping $PING_OPTIONS_2 $MULTICAST_ADDRESS 2>$1 1>/dev/null`
 	fi
 
-    grep $PING_ERROR_NO_ROUTE $TMP_FILE > /dev/null 2>&1
-    err_unreachable_found=$?
 
     #If errors, add route. Otherwise, do nothing
-    if [ -s $TMP_FILE ] && [ $err_unreachable_found = 0 ]; then 
+    if [ "$err_unreachable_found" ]; then 
 
         if [ $1 != 0 ]; then
             echo $MSG_FAILED_TO_FIND 
@@ -76,7 +73,6 @@ multicast_route_set()
         retval=0
     fi
 
-    rm -f $TMP_FILE # Clean up
     return $retval
 }
 
