@@ -97,6 +97,8 @@ dnl Conditional for optional asyncronous support in libslp SLP API library
 AM_CONDITIONAL(ENABLE_AUTHENTICATION, test "$authentication" = "yes")
 
 if test "$authentication" = "yes"; then
+    AC_CHECK_LIB(crypto,DSA_sign) 
+    AC_CHECK_FUNCS(DSA_verify DSA_size DSA_free SHA1)
     AC_DEFINE(ENABLE_AUTHENTICATION)
 fi
 

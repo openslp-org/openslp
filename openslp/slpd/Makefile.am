@@ -31,4 +31,5 @@ slpd_SOURCES	= slpd_socket.c \
     slpd.h \
     slpd_unistd.h
 
-slpd_LDADD      =  ../common/libcommonslpd.la ../libslpattr/libslpattr.la
+slpd_LDADD      =  ../common/libcommonslpd.la \
+             	   ../libslpattr/libslpattr.la

@@ -47,7 +47,12 @@
 /*                                                                         */
 /***************************************************************************/
 
+#include <openssl/ssl.h>
+
 #include "slp_auth.h"
+/*#include "slp_keys.h"*/
+#include "slp_crypto.h"
+
 
 /*=========================================================================*/
 int SLPAuthVerifyString(unsigned short stringlen,
