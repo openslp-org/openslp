@@ -12,11 +12,19 @@ then
    rm -rf $(find -name CVS)
    openslp/autogen.sh
    
-   #Tar up openslp
-   mv openslp openslp-$1
-   tar -cf openslp-$1.tar openslp-$1
-   gzip -9 openslp-$1.tar
+   #Tar up openslp "make dist"
+   cd openslp
+   ./autogen.sh
+   ./configure
+   make dist
+   tar -zxf openslp-$1.tar.gz
+   cp -a win32 openslp-$1
+   cp -a doc openslp-$1
+   cp -a etc openslp-$1
+   cp -a README.W32 openslp-$1
+   tar -zcf openslp-$1.tar.gz openslp-$1
    mv openslp-$1.tar.gz $CURRENTDIR
+   cd ..
    
    #Tar up slptool
    mv openslp.contrib openslp-contrib-$1
