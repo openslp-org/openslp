@@ -174,7 +174,7 @@ int SLPBroadcastSend(const SLPIfaceInfo* ifaceinfo,
 /*========================================================================*/
 int SLPMulticastSend(const SLPIfaceInfo* ifaceinfo, 
                      SLPBuffer msg,
-                     SLPXcastSockets* socks)
+                     SLPXcastSockets* socks, struct sockaddr_storage *dst)
 /* Description:
  *    Multicast a message.
  *
