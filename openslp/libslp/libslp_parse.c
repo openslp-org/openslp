@@ -187,6 +187,7 @@ SLPError SLPParseSrvURL(const char *pcSrvURL,
 #define ATTRIBUTE_RESERVE_STRING	"(),\\!<=>~"
 #define ATTRIBUTE_BAD_TAG			"\r\n\t_"
 #define ESCAPE_CHARACTER			'\\'
+#define ESCAPE_CHARACTER_STRING		"\\"
 /*=========================================================================*/
 SLPError SLPEscape(const char* pcInbuf,
                    char** ppcOutBuf,
@@ -231,6 +232,7 @@ SLPError SLPEscape(const char* pcInbuf,
 	 */
 	current_inbuf = (char *) pcInbuf;
 	amount_of_escape_characters = 0;
+
 	while (*current_inbuf != '\0')
 	{
 		/* Ensure that there are no bad tags when it is a tag. */
@@ -297,7 +299,6 @@ SLPError SLPEscape(const char* pcInbuf,
     return(SLP_OK);
 }
 
-
 /*=========================================================================*/
 SLPError SLPUnescape(const char* pcInbuf,
                      char** ppcOutBuf,
@@ -327,7 +328,84 @@ SLPError SLPUnescape(const char* pcInbuf,
 /*              or the appropriate error code if another error occurs.     */
 /*=========================================================================*/
 {
-    return SLP_NOT_IMPLEMENTED;
+	int		output_buffer_size;
+	char	*current_Inbuf, *current_OutBuf;
+	char	escaped_digit[2];
+
+	/* Ensure that the parameters are good. */
+	if ((pcInbuf == NULL) || ((isTag != SLP_TRUE) && (isTag != SLP_FALSE)))
+		return(SLP_PARAMETER_BAD);
+
+	/* 
+	 * Loop thru the string, counting the number of escape characters 
+	 * and checking for bad tags when required.  This is also used to 
+	 * calculate the size of the new string to create.
+	 * ASSUME: that pcInbuf is a NULL terminated string. 
+	 */
+	current_Inbuf = (char *) pcInbuf;
+	output_buffer_size = strlen(pcInbuf);
+
+	while (*current_Inbuf != '\0')
+	{
+		/* Ensure that there are no bad tags when it is a tag. */
+		if ((isTag) && strchr(ATTRIBUTE_BAD_TAG, *current_Inbuf))
+			return(SLP_PARSE_ERROR);
+
+		if (strchr(ATTRIBUTE_RESERVE_STRING, *current_Inbuf))
+			output_buffer_size-=2;
+
+		current_Inbuf++;
+	} /* End While. */
+
+	/* Allocate the string. */
+	*ppcOutBuf = (char *) malloc((sizeof(char) * output_buffer_size) + 1);
+	
+	if (ppcOutBuf == NULL)
+		return(SLP_MEMORY_ALLOC_FAILED);
+
+	current_Inbuf = (char *) pcInbuf;
+	current_OutBuf = *ppcOutBuf;
+
+	while (*current_Inbuf != '\0')
+	{
+		/* Check to see if it is an escape character. */
+		if (strchr(ESCAPE_CHARACTER_STRING, *current_Inbuf))
+		{
+			/* Insert the real character based on the escaped character. */
+			escaped_digit[0] = *(current_Inbuf + sizeof(char));
+			escaped_digit[1] = *(current_Inbuf + (sizeof(char) * 2));
+			
+			if ((escaped_digit[0] >= 'A') && (escaped_digit[0] <= 'F'))
+				escaped_digit[0] = escaped_digit[0] - 'A' + 0x0A;
+			else if ((escaped_digit[0] >= '0') && (escaped_digit[0] <= '9'))
+				escaped_digit[0] = escaped_digit[0] - '0';
+			else
+				return(SLP_PARSE_ERROR);
+
+			if ((escaped_digit[1] >= 'A') && (escaped_digit[1] <= 'F'))
+				escaped_digit[1] = escaped_digit[1] - 'A' + 0x0A;
+			else if ((escaped_digit[1] >= '0') && (escaped_digit[1] <= '9'))
+				escaped_digit[1] = escaped_digit[1] - '0';
+			else
+				return(SLP_PARSE_ERROR);
+
+			*current_OutBuf = escaped_digit[1] + (escaped_digit[0] * 0x10);
+			current_Inbuf = (char *) current_Inbuf + (sizeof(char) * 2);
+		}
+		else
+		{
+			*current_OutBuf = *current_Inbuf;
+		} /* End If, Else. */
+
+		/* Move to the next character. */
+		current_OutBuf++;
+		current_Inbuf++;
+	} /* End While. */
+	
+	/* Make sure we terminate the string properly. */
+	*current_OutBuf = '\0';
+
+	return(SLP_OK);
 }
 
 
