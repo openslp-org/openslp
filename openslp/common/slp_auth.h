@@ -51,16 +51,19 @@
 #define SLP_AUTH_H_INCLUDED
 
 #include "slp_message.h"
+#include "slp_spi.h"
 
 /*=========================================================================*/
-int SLPAuthVerifyString(int emptyisfail,
+int SLPAuthVerifyString(SLPSpiHandle hspi,
+                        int emptyisfail,
                         unsigned short stringlen,
                         const char* string,
                         int authcount,
                         const SLPAuthBlock* autharray);
 /* Verify authenticity of  the specified attribute list                    */
 /*                                                                         */
-/* Parameters: emptyisfail (IN) if non-zero, messages without authblocks   */
+/* Parameters: hspi        (IN) open SPI handle                            */
+/*             emptyisfail (IN) if non-zero, messages without authblocks   */
 /*                              will fail                                  */
 /*             stringlen   (IN) the length of string to verify             */
 /*             string      (IN) the list to verify                         */
@@ -72,11 +75,13 @@ int SLPAuthVerifyString(int emptyisfail,
 
 
 /*=========================================================================*/
-int SLPAuthVerifyUrl(int emptyisfail,
+int SLPAuthVerifyUrl(SLPSpiHandle hspi,
+                     int emptyisfail,
                      const SLPUrlEntry* urlentry);
 /* Verify authenticity of  the specified url entry                         */
 /*                                                                         */
-/* Parameters: emptyisfail  (IN) if non-zero, messages without authblocks  */
+/* Parameters: hspi         (IN) open SPI handle                            */
+/*             emptyisfail  (IN) if non-zero, messages without authblocks  */
 /*                               will fail                                 */
 /*             urlentry     (IN) the url entry to verify                   */
 /*                                                                         */
@@ -85,11 +90,13 @@ int SLPAuthVerifyUrl(int emptyisfail,
 
 
 /*=========================================================================*/
-int SLPAuthVerifyDAAdvert(int emptyisfail,
+int SLPAuthVerifyDAAdvert(SLPSpiHandle hspi,
+                          int emptyisfail,
                           const SLPDAAdvert* daadvert);
 /* Verify authenticity of  the specified DAAdvert                          */
 /*                                                                         */
-/* Parameters: emptyisfail (IN) if non-zero, messages without authblocks   */
+/* Parameters: hspi        (IN) open SPI handle                            */
+/*                         (IN) if non-zero, messages without authblocks   */
 /*                              will fail                                  */
 /*             spistrlen   (IN) length of the spi string                   */
 /*             sprstr      (IN) the spi string                             */
@@ -100,11 +107,13 @@ int SLPAuthVerifyDAAdvert(int emptyisfail,
 
 
 /*=========================================================================*/
-int SLPAuthVerifySAAdvert(int emptyisfail,
+int SLPAuthVerifySAAdvert(SLPSpiHandle hspi,
+                          int emptyisfail,
                           const SLPSAAdvert* saadvert);
 /* Verify authenticity of  the specified SAAdvert                          */
 /*                                                                         */
-/* Parameters: emptyisfail (IN) if non-zero, messages without authblocks   */
+/* Parameters: hspi        (IN) open SPI handle                            */
+/*             emptyisfail (IN) if non-zero, messages without authblocks   */
 /*                              will fail                                  */
 /*             spistrlen   (IN) length of the spi string                   */
 /*             sprstr      (IN) the spi string                             */
@@ -115,7 +124,8 @@ int SLPAuthVerifySAAdvert(int emptyisfail,
 
 
 /*=========================================================================*/
-int SLPAuthSignString(unsigned short spistrlen,
+int SLPAuthSignString(SLPSpiHandle hspi,
+                      unsigned short spistrlen,
                       const char* spistr,
                       unsigned short stringlen,
                       const char* string,
@@ -123,20 +133,22 @@ int SLPAuthSignString(unsigned short spistrlen,
                       unsigned char** authblock);
 /* Generate an authblock signature for an attribute list                   */
 /*                                                                         */
-/* Parameters: spistrlen (IN) length of the spi string                     */
-/*             sprstr (IN) the spi string                                  */
-/*             attrlistlen (IN) the length of the URL to sign              */
-/*             attrlist (IN) the url to sign                               */
+/* Parameters: hspi         (IN) open SPI handle                           */
+/*             spistrlen    (IN) length of the spi string                  */
+/*             sprstr       (IN) the spi string                            */
+/*             attrlistlen  (IN) the length of the URL to sign             */
+/*             attrlist     (IN) the url to sign                           */
 /*             authblocklen (OUT) the length of the authblock signature    */
-/*             authblock (OUT) buffer containing authblock signature must  */
-/*                             be freed by the caller                      */
+/*             authblock    (OUT) buffer containing authblock signature    */
+/*                                must be freed by the caller              */
 /*                                                                         */
 /* Returns: 0 on success or SLP_ERROR_xxx code on failure                  */
 /*=========================================================================*/
 
 
 /*=========================================================================*/
-int SLPAuthSignUrl(unsigned short spistrlen,
+int SLPAuthSignUrl(SLPSpiHandle hspi,
+                   unsigned short spistrlen,
                    const char* spistr,
                    unsigned short urllen,
                    const char* url,
@@ -144,13 +156,14 @@ int SLPAuthSignUrl(unsigned short spistrlen,
                    unsigned char** authblock);
 /* Generate an authblock signature for a Url                               */
 /*                                                                         */
-/* Parameters: spistrlen (IN) length of the spi string                     */
-/*             sprstr (IN) the spi string                                  */
-/*             urllen (IN) the length of the URL to sign                   */
-/*             url (IN) the url to sign                                    */
+/* Parameters: hspi         (IN) open SPI handle                           */
+/*             spistrlen    (IN) length of the spi string                  */
+/*             sprstr       (IN) the spi string                            */
+/*             urllen       (IN) the length of the URL to sign             */
+/*             url          (IN) the url to sign                           */
 /*             authblocklen (OUT) the length of the authblock signature    */
-/*             authblock (OUT) buffer containing authblock signature must  */
-/*                             be freed by the caller                      */
+/*             authblock    (OUT) buffer containing authblock signature    */
+/*                                must be freed by the caller              */
 /*                                                                         */
 /* Returns: 0 on success or SLP_ERROR_xxx code on failure                  */
 /*=========================================================================*/

@@ -87,7 +87,7 @@ SLPCryptoDSAKey* SLPCryptoDSAKeyDup(SLPCryptoDSAKey* dsa)
 {
     SLPCryptoDSAKey* result;
     
-    result = malloc(sizeof(DSA));
+    result =  DSA_new();
     if(result)
     {
         result->p = BN_dup(dsa->p);

@@ -125,6 +125,7 @@ SLPCryptoDSAKey* SLPSpiReadKeyFile(const char* keyfile, int keytype)
 
 /*-------------------------------------------------------------------------*/
 SLPSpiEntry* SLPSpiReadSpiFile(FILE* fp, int keytype)
+/* Caller needs to free returned memory SLPSpiEntryFree()                  */
 /*-------------------------------------------------------------------------*/
 {
     SLPSpiEntry*    result;
@@ -335,6 +336,7 @@ SLPCryptoDSAKey* SLPSpiFetchPrivateDSAKey(SLPSpiHandle hspi,
     {
         tmp = SLPSpiEntryFind(&(hspi->cache), 0, 0);
         if(tmp == 0) return 0;
+        
     }
     else
     {
@@ -354,22 +356,10 @@ SLPCryptoDSAKey* SLPSpiFetchPrivateDSAKey(SLPSpiHandle hspi,
     *spistr = strdup(tmp->spistr);
     *spistrlen = tmp->spistrlen;
     
+    if(hspi->cacheprivate == 0)
+    {
+        SLPSpiEntryFree(tmp);
+    }
+
     return *key;
-}
-
-
-int main(int argc, char* argv[])
-{
-    SLPSpiHandle hspi;
-    SLPCryptoDSAKey* pubkey;
-    char* spistr;
-    int   spistrlen;
-    SLPCryptoDSAKey* privkey;
-
-    hspi = SLPSpiOpen("test.spi",1);
-    pubkey = SLPSpiFetchPublicDSAKey(hspi,strlen("mytestspi"),"mytestspi");
-    privkey = SLPSpiFetchPrivateDSAKey(hspi,&spistrlen,&spistr,&privkey);
-    
-    SLPCryptoDSAKeyDestroy(privkey);
-    //SLPSpiClose(hspi);
 }
