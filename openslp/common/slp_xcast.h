@@ -3,9 +3,9 @@
 /* Project:     OpenSLP - OpenSource implementation of Service Location    */
 /*              Protocol                                                   */
 /*                                                                         */
-/* File:        slp_iface.h                                                */
+/* File:        slp_xcast.h                                                */
 /*                                                                         */
-/* Abstract:    Common code to obtain network interface information        */
+/* Abstract:    Functions used to multicast and broadcast SLP messages     */
 /*                                                                         */
 /*-------------------------------------------------------------------------*/
 /*                                                                         */
@@ -46,78 +46,37 @@
 /*                                                                         */
 /***************************************************************************/
 
-#ifndef SLP_IFACE_H_INCLUDED
-#define SLP_IFACE_H_INCLUDED
+#ifndef SLP_XCAST_H_INCLUDED
+#define SLP_XCAST_H_INCLUDED
 
-#include <netinet/in.h>
+#include "slp_buffer.h"
+#include "slp_iface.h"
 
-#define SLP_MAX_IFACES 10
-
-/*=========================================================================*/
-typedef struct _SLPInterfaceInfo
-/*=========================================================================*/
-{
-    int iface_count;
-    struct sockaddr_in iface_addr[SLP_MAX_IFACES];
-    struct sockaddr_in bcast_addr[SLP_MAX_IFACES];
-}SLPInterfaceInfo;
-
-/*=========================================================================*/
-int SLPInterfaceGetInformation(const char* useifaces,
-                               SLPInterfaceInfo* ifaces);
+/*========================================================================*/
+int SLPBroadcastSend(SLPInterfaceInfo* ifaceinfo, SLPBuffer msg);
 /* Description:
- *    Get the network interface addresses for this host.  Exclude the
- *    loopback interface
+ *    Broadcast a message.
  *
  * Parameters:
- *     useifaces (IN) Pointer to comma delimited string of interface IPv4
- *                    addresses to get interface information for.  Pass
- *                    NULL to get all interfaces (excluding NULL)..
- *     ifaceinfo (OUT) Information about requested interfaces.
+ *    ifaceinfo (IN) Pointer to the SLPInterfaceInfo structure that contains
+ *                   information about the interfaces to send on
+ *    msg       (IN) Buffer to send
  *
  * Returns:
- *     zero on success, non-zero (with errno set) on error.
- *=========================================================================*/
+ *    Zero on sucess.  Non-zero with errno set on error
+ *========================================================================*/
 
 
-
-/*=========================================================================*/
-int SLPInterfaceSockaddrsToString(const struct sockaddr_in* addrs,
-                                  int addrcount,
-                                  char** addrstr);
+/*========================================================================*/
+int SLPMulticastSend(SLPInterfaceInfo* ifaceinfo, SLPBuffer msg);
 /* Description:
- *    Get the comma delimited string of addresses from an array of sockaddrs
+ *    Multicast a message.
  *
  * Parameters:
- *     addrs (IN) Pointer to array of sockaddrs to convert
- *     addrcount (IN) Number of sockaddrs in addrs.
- *     addrstr (OUT) pointer to receive malloc() allocated address string.
- *                   Caller must free() addrstr when no longer needed.
+ *    ifaceinfo (IN) Pointer to the SLPInterfaceInfo structure that contains
+ *                   information about the interfaces to send on
+ *    msg       (IN) Buffer to send
  *
  * Returns:
- *     zero on success, non-zero (with errno set) on error.
- *=========================================================================*/
-
-
-
-/*=========================================================================*/
-int SLPInterfaceStringToSockaddrs(const char* addrstr,
-                                  struct sockaddr_in* addrs,
-                                  int* addrcount);
-/* Description:
- *    Fill an array of struct sockaddrs from the comma delimited string of
- *    addresses.
- *
- * Parameters:
- *     addrstr (IN) Address string to convert.
- *     addrcount (OUT) sockaddr array to fill.
- *     addrcount (INOUT) The number of sockaddr stuctures in the addr array
- *                       on successful return will contain the number of
- *                       sockaddrs that were filled in the addr array
- *
- * Returns:
- *     zero on success, non-zero (with errno set) on error.
- *=========================================================================*/
-
-
-#endif
+ *    Zero on sucess.  Non-zero with errno set on error
+ *========================================================================*/
