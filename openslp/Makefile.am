@@ -3,7 +3,7 @@
 # Note the install script, it is not pretty, but it works.
 #
 
-SUBDIRS	= common libslpattr slpd libslp test
+SUBDIRS	= common libslpattr slpd libslp slptool test
 EXTRA_DIST = win32 doc etc README.W32
 DOC_DIR = $(prefix)/doc/openslp-$(VERSION)
 

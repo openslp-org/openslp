@@ -5,6 +5,11 @@ Please make entries to this log (in addition to the CVS log) that describe
 major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
+
+03/02/01 mpeterson@caldera.com
+Added slptool to openslp CVS module and included Ganesan's register and
+deregister enhancements
+
 03/01/01 mpeterson@caldera.com
 Changed SLPParseAttr() to be compliant with what will be in RFC2614bis this
 required an interface change I bumped the library rev to 0:3:0
