@@ -544,12 +544,28 @@ SLPError NetworkRqstRply(int sock,
                     /* SLP_FUNCT_SRVTYPERQST)                               */
                     if(prlist && socktype == SOCK_DGRAM)
                     {
-                        if(prlistlen != 0)
+                        /* calculate the peeraddr string and length */
+                        char* peeraddrstr = NULL;
+                        char* peeraddrstrlen = 0;
+                        peeraddrstr = inet_ntoa(peeraddr.sin_addr);
+                        if(peeraddrstr)
                         {
-                            strcat(prlist,",");
+                            peeraddrstrlen = strlen(peeraddrstr);
+                            
+                            /* Append to the prlist if we won't overflow */
+                            if(prlistlen + peeraddrstrlen + 1) < mtu )
+                            {
+                                /* append comma if necessary */
+                                if(prlistlen != 0)
+                                {
+                                    strcat(prlist,",");
+                                    prlistlen ++;
+                                }
+                                /* append address string */
+                                strcat(prlist,peeraddr_str);
+                                prlistlen += peeraddrstrlen;
+                            }
                         }
-                        strcat(prlist,inet_ntoa(peeraddr.sin_addr));
-                        prlistlen =  strlen(prlist);
                     }
                 }
             }
