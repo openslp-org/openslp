@@ -219,6 +219,11 @@ void HandleSigHup()
     /* re-read properties */
     SLPDPropertyInit(G_SlpdCommandLine.cfgfile);
 
+#ifdef ENABLE_SECURITY
+    /* Re-initialize SPI stuff*/
+    SLPDSpiInit(G_SlpdCommandLine.spifile);
+#endif
+    
     /* Re-read the static registration file (slp.reg)*/
     SLPDDatabaseReInit(G_SlpdCommandLine.regfile);
 
@@ -510,7 +515,10 @@ int main(int argc, char* argv[])
     SLPDLog("Command line = %s\n",argv[0]);
     SLPDLog("Using configuration file = %s\n",G_SlpdCommandLine.cfgfile);
     SLPDLog("Using registration file = %s\n",G_SlpdCommandLine.regfile);
-
+#ifdef ENABLE_SECURITY
+    SLPDLog("Using SPI file = %s\n",G_SlpdCommandLine.spifile);
+#endif
+   
     /*--------------------------------------------------*/
     /* Initialize for the first time                    */
     /*--------------------------------------------------*/
