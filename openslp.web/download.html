@@ -23,33 +23,41 @@
 <hr WIDTH="100%">
 <br>&nbsp;
 <h3>
-Release Notes for 1.0.2</h3>
-OpenSLP-1.0.2 fixes a few minor bugs and weird behaviors. <b>It is highly
-recommended that all OpenSLP users upgrade to this release.</b>
-<p>The following is a shortened list changes for 1.0.2:
+Release Notes for 1.0.3</h3>
+OpenSLP-1.0.3 fixes a few minor bugs. <b>It is highly recommended that
+all OpenSLP users upgrade to this release.</b>
+<p>The following is a shortened list changes for 1.0.3:
 <ul>
 <li>
-Fixed minor name resolution problem so that reverse lookups are not performed
-on hostnames supplied as are dotted IP addresses</li>
+Fixed several bugs that were resulting in messagage being send that contained
+2-6 bytes of trailing garbage.&nbsp; The garbage was disrupting interoperability
+with other implementations most notably the Netware 6 DA.&nbsp; Special
+thanks to Timothy Zurcher for debugging this problem.</li>
 
 <li>
-Fixed minor problem where DAs listed in net.slp.DAaddresses could not be
-found if multicast was not enabled.</li>
+Changed install script so that it does not erase existing configuration
+files</li>
 
 <li>
-Fixed minor bugs in DA discovery code so that SLPFindScopes() returns more
-consistant results.</li>
+Fixed reconnect code to be able to interoperate with inefficient DAs that
+close the stream after each srvreg/srvack exchange.&nbsp; This change fixes
+interoperability with the Mac OS/X DA which is reported to make inefficient
+use of TCP.&nbsp; Special thanks to Timothy Zurcher for debugging this
+problem.</li>
 
 <li>
-Applied patch by Tomasz K³oczko that fixes build with configure 2.5x</li>
+Applied patch that fixes compile problems related to inet_aton() on Win32</li>
 
 <li>
-Applied patch from Jim Meyer that fixes several predicate parsing irregularities</li>
+Fixed configure scripts so that -lresolv is used on Solaris</li>
 
 <li>
-Minor compilation and bug fixes: typecast char to int when passed to is*()
-functions, fix size of Attribute Reply buf etc.Fixed minor KnownDAEcho
-problem that resulted in some DAs not getting registrations.</li>
+Removed calls that (sort of) enforce service-url checking.&nbsp; This is
+for the benefit of AFP's usage of SRVLOC.&nbsp; Developers are now trusted
+not to register ambiguous service-urls.</li>
+
+<li>
+Applied Tomasz K?oczko patch for automake 1.5</li>
 </ul>
 
 <h3>
@@ -57,7 +65,7 @@ Source Code</h3>
 
 <table NOSAVE >
 <tr NOSAVE>
-<td NOSAVE><a href="http://prdownloads.sourceforge.net/openslp/openslp-1.0.2.tar.gz">openslp-1.0.2.tar.gz</a></td>
+<td NOSAVE><a href="http://prdownloads.sourceforge.net/openslp/openslp-1.0.3.tar.gz">openslp-1.0.3.tar.gz</a></td>
 
 <td NOSAVE>
 <blockquote>OpenSLP source code tarball</blockquote>
@@ -65,7 +73,7 @@ Source Code</h3>
 </tr>
 
 <tr NOSAVE>
-<td NOSAVE><a href="http://prdownloads.sourceforge.net/openslp/openslp-1.0.2-1.src.rpm">openslp-1.0.2-1.src.rpm</a></td>
+<td NOSAVE><a href="http://prdownloads.sourceforge.net/openslp/openslp-1.0.3-1.src.rpm">openslp-1.0.3-1.src.rpm</a></td>
 
 <td>
 <blockquote>OpenSLP source RPM</blockquote>
@@ -73,7 +81,7 @@ Source Code</h3>
 </tr>
 
 <tr>
-<td><a href="http://prdownloads.sourceforge.net/openslp/openslp-contrib-1.0.2.tar.gz">openslp-contrib-1.0.2.tar.gz</a></td>
+<td><a href="http://prdownloads.sourceforge.net/openslp/openslp-contrib-1.0.3.tar.gz">openslp-contrib-1.0.3.tar.gz</a></td>
 
 <td>
 <blockquote>Collection of SLP related utilities and tools</blockquote>
@@ -86,7 +94,7 @@ Binary Packages</h3>
 
 <table NOSAVE >
 <tr NOSAVE>
-<td NOSAVE><a href="http://prdownloads.sourceforge.net/openslp/openslp-1.0.2-1.i386.rpm">openslp-1.0.2-1.i386.rpm</a></td>
+<td NOSAVE><a href="http://prdownloads.sourceforge.net/openslp/openslp-1.0.3-1.i386.rpm">openslp-1.0.3-1.i386.rpm</a></td>
 
 <td>
 <blockquote>OpenSLP binary RPM for Linux (Caldera OpenLinux, RedHat, SUSE,
