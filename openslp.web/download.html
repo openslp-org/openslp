@@ -23,41 +23,33 @@
 <hr WIDTH="100%">
 <br>&nbsp;
 <h3>
-Release Notes for 1.0.3</h3>
-OpenSLP-1.0.3 fixes a few minor bugs. <b>It is highly recommended that
+Release Notes for 1.0.4</h3>
+OpenSLP-1.0.4 fixes some important bugs. <b>It is highly recommended that
 all OpenSLP users upgrade to this release.</b>
-<p>The following is a shortened list changes for 1.0.3:
+<p>The following is a shortened list changes for 1.0.4:
 <ul>
 <li>
-Fixed several bugs that were resulting in messagage being send that contained
-2-6 bytes of trailing garbage.&nbsp; The garbage was disrupting interoperability
-with other implementations most notably the Netware 6 DA.&nbsp; Special
-thanks to Timothy Zurcher for debugging this problem.</li>
+Use IP address in agent url for those operating systems where gethostname()
+does not return a fully qualified domain name (FQDN).</li>
 
 <li>
-Changed install script so that it does not erase existing configuration
-files</li>
+Applied patch from Tim Zurcher to fix memory realloc problems when messages
+exceed the SLP MTU of 1400 bytes.</li>
 
 <li>
-Fixed reconnect code to be able to interoperate with inefficient DAs that
-close the stream after each srvreg/srvack exchange.&nbsp; This change fixes
-interoperability with the Mac OS/X DA which is reported to make inefficient
-use of TCP.&nbsp; Special thanks to Timothy Zurcher for debugging this
-problem.</li>
+Fixed SEGV when operating with Mac OS/x which insists on sending corrupt
+SLP messages. Thanks to Ernie Stepson for reporting this problem.</li>
 
 <li>
-Applied patch that fixes compile problems related to inet_aton() on Win32</li>
+Added code to log parse errors and dump bad messages to the log</li>
 
 <li>
-Fixed configure scripts so that -lresolv is used on Solaris</li>
+Fixed problem where libslp.so would loop tightly if SLPReg() and SLPDereg()
+were called after previously contacted slpd had died.</li>
 
 <li>
-Removed calls that (sort of) enforce service-url checking.&nbsp; This is
-for the benefit of AFP's usage of SRVLOC.&nbsp; Developers are now trusted
-not to register ambiguous service-urls.</li>
-
-<li>
-Applied Tomasz K?oczko patch for automake 1.5</li>
+Fixed problem where empty message was sent when talking to more than one
+statically configured DA.&nbsp; Patch from Timothy Zurcher.</li>
 </ul>
 
 <h3>
@@ -65,7 +57,7 @@ Source Code</h3>
 
 <table NOSAVE >
 <tr NOSAVE>
-<td NOSAVE><a href="http://prdownloads.sourceforge.net/openslp/openslp-1.0.3.tar.gz">openslp-1.0.3.tar.gz</a></td>
+<td NOSAVE><a href="http://prdownloads.sourceforge.net/openslp/openslp-1.0.4.tar.gz">openslp-1.0.4.tar.gz</a></td>
 
 <td NOSAVE>
 <blockquote>OpenSLP source code tarball</blockquote>
@@ -73,7 +65,7 @@ Source Code</h3>
 </tr>
 
 <tr NOSAVE>
-<td NOSAVE><a href="http://prdownloads.sourceforge.net/openslp/openslp-1.0.3-1.src.rpm">openslp-1.0.3-1.src.rpm</a></td>
+<td NOSAVE><a href="http://prdownloads.sourceforge.net/openslp/openslp-1.0.4-1.src.rpm">openslp-1.0.4-1.src.rpm</a></td>
 
 <td>
 <blockquote>OpenSLP source RPM</blockquote>
@@ -81,7 +73,7 @@ Source Code</h3>
 </tr>
 
 <tr>
-<td><a href="http://prdownloads.sourceforge.net/openslp/openslp-contrib-1.0.3.tar.gz">openslp-contrib-1.0.3.tar.gz</a></td>
+<td><a href="http://prdownloads.sourceforge.net/openslp/openslp-contrib-1.0.4.tar.gz">openslp-contrib-1.0.4.tar.gz</a></td>
 
 <td>
 <blockquote>Collection of SLP related utilities and tools</blockquote>
@@ -94,7 +86,7 @@ Binary Packages</h3>
 
 <table NOSAVE >
 <tr NOSAVE>
-<td NOSAVE><a href="http://prdownloads.sourceforge.net/openslp/openslp-1.0.3-1.i386.rpm">openslp-1.0.3-1.i386.rpm</a></td>
+<td NOSAVE><a href="http://prdownloads.sourceforge.net/openslp/openslp-1.0.4-1.i386.rpm">openslp-1.0.4-1.i386.rpm</a></td>
 
 <td>
 <blockquote>OpenSLP binary RPM for Linux (Caldera OpenLinux, RedHat, SUSE,
