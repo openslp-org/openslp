@@ -37,7 +37,7 @@ SLPBuffer SLPBufferAlloc(size_t size)
 /*                                                                         */
 /* returns  - newly allocated SLPBuffer or NULL on ENOMEM. An extra byte   */
 /*            is allocated to null terminating strings. This extra byte    */
-/*			  is not counted in the buffer size                            */
+/*            is not counted in the buffer size                            */
 /*=========================================================================*/
 {
    SLPBuffer result;
@@ -67,7 +67,7 @@ SLPBuffer SLPBufferRealloc(SLPBuffer buf, size_t size)
 /*                                                                         */
 /* returns  - newly (re)allocated SLPBuffer or NULL on ENOMEM. An extra    */
 /*            byte is allocated to null terminating strings. This extra    */
-/*			  byte is not counted in the buffer size                       */
+/*            byte is not counted in the buffer size                       */
 /*=========================================================================*/
 {
    SLPBuffer result;
@@ -120,7 +120,7 @@ SLPBuffer SLPBufferDup(SLPBuffer buf)
     dup = SLPBufferAlloc(buf->end - buf->start);
     if(dup)
     {
-	    memcpy(dup->start,buf->start,buf->end - buf->start);       
+	memcpy(dup->start,buf->start,buf->end - buf->start);       
     }
     
     return dup;

@@ -47,7 +47,8 @@ typedef struct _SLPBuffer
     SLPListItem listitem;
     /* SLPListItem so that SLPBuffers can be linked into a list*/
     
-    /* the allocated size of this buffer */
+    /* the allocated size of this buffer (the actual malloc'd size is
+       one byte more than this to null terminate C strings) */
     size_t  allocated;
 
     char*   start;  
@@ -64,11 +65,13 @@ typedef struct _SLPBuffer
 
 /*=========================================================================*/
 SLPBuffer SLPBufferAlloc(size_t size);
-/* Must be called to initially allocate a SLPBuffer                        */           
+/* Must be called to initially allocate a SLPBuffer                        */ 
 /*                                                                         */
 /* size     - (IN) number of bytes to allocate                             */
 /*                                                                         */
-/* returns  - a newly allocated SLPBuffer or NULL on ENOMEM                */
+/* returns  - newly allocated SLPBuffer or NULL on ENOMEM. An extra byte   */
+/*            is allocated to null terminating strings. This extra byte    */
+/*            is not counted in the buffer size                            */
 /*=========================================================================*/
 
 
@@ -78,7 +81,9 @@ SLPBuffer SLPBufferRealloc(SLPBuffer buf, size_t size);
 /*                                                                         */
 /* size     - (IN) number of bytes to allocate                             */
 /*                                                                         */
-/* returns  - a newly allocated SLPBuffer or NULL on ENOMEM                */
+/* returns  - newly (re)allocated SLPBuffer or NULL on ENOMEM. An extra    */
+/*            byte is allocated to null terminating strings. This extra    */
+/*            byte is not counted in the buffer size                       */
 /*=========================================================================*/
 
 /*=========================================================================*/
