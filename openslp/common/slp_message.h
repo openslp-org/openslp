@@ -432,8 +432,8 @@ void ToUINT32(char *charptr, unsigned int val);
 /*=========================================================================*/
 
 /*=========================================================================*/
-#define ISLOCAL(addr) ((addr).s_addr & 0xff000000) == 0x7f000000)
-#define ISMCAST(addr) ((addr).s_addr & 0xff000000) >= 0xef000000)
+#define ISLOCAL(addr) (((addr).s_addr & 0xff000000) == 0x7f000000)
+#define ISMCAST(addr) (((addr).s_addr & 0xff000000) >= 0xef000000)
 /* Macros to check in_addr                                                 */
 /*=========================================================================*/
 #endif
