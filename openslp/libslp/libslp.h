@@ -1,6 +1,6 @@
 /***************************************************************************/
-/*									                                       */
-/* Project:     OpenSLP - OpenSource implementation of Service Location    */   
+/*									   */
+/* Project:     OpenSLP - OpenSource implementation of Service Location    */
 /*              Protocol                                                   */
 /*                                                                         */
 /* File:        libslp.h                                                   */
