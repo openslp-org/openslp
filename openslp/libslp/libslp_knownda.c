@@ -83,7 +83,8 @@ SLPBoolean KnownDAListFind(int scopelistlen,
 {
     SLPDatabaseHandle   dh;
     SLPDatabaseEntry*   entry;
-
+    int result = SLP_FALSE;
+   
     dh = SLPDatabaseOpen(&G_KnownDACache);
     if(dh)
     {
@@ -113,14 +114,14 @@ SLPBoolean KnownDAListFind(int scopelistlen,
                            &(entry->msg->peer.sin_addr),
                            sizeof(struct in_addr));
     
-                    return SLP_TRUE;
+                    result = SLP_TRUE;
                 }
             }
         }
         SLPDatabaseClose(dh);
     }
 
-    return SLP_FALSE;
+    return result;
 }
 
 

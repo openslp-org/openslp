@@ -303,6 +303,7 @@ int ProcessSrvRqst(SLPMessage message,
 
 #ifdef ENABLE_SECURITY
     SLPAuthBlock*               authblock    = 0;
+   int                          j;
 #endif
     
     /*--------------------------------------------------------------*/
@@ -431,14 +432,14 @@ int ProcessSrvRqst(SLPMessage message,
             if(G_SlpdProperty.securityEnabled &&
                message->body.srvrqst.spistrlen )
             {
-                for(i=0; i<urlentry->authcount;i++)
+                for(j=0; j<urlentry->authcount;j++)
                 {
-                    if(SLPCompareString(urlentry->autharray[i].spistrlen,
-                                        urlentry->autharray[i].spistr,
+                    if(SLPCompareString(urlentry->autharray[j].spistrlen,
+                                        urlentry->autharray[j].spistr,
                                         message->body.srvrqst.spistrlen,
                                         message->body.srvrqst.spistr) == 0)
                     {
-                        authblock = &(urlentry->autharray[i]);
+                        authblock = &(urlentry->autharray[j]);
                         size += authblock->length;
                         break;
                     }
