@@ -7,6 +7,8 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 
+10/31/00 mpeterson@caldera.com
+libslp now asks slpd for known DAs before multicasting requests
 
 10/31/00 mpeterson@caldera.com
 Slpd running as a DA now performs passive discovery

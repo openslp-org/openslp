@@ -201,6 +201,27 @@ int KnownDADiscoveryByMulticast()
     return result;
 }
 
+/*-------------------------------------------------------------------------*/
+int KnownDADiscoveryByIPC()
+/* Locates  DAs via loopback to slpd ence                                  */
+/*                                                                         */
+/* Returns: number of DAs discovered                                       */
+/*-------------------------------------------------------------------------*/
+{
+    int                 result      = 0;
+    int                 sock;
+    struct sockaddr_in  peeraddr;
+
+    sock = NetworkConnectToSlpd(&peeraddr);
+    if (sock >= 0)
+    {
+        result = KnownDADiscoveryRqstRply(sock, &peeraddr);
+        close(sock);
+    }
+
+    return result;
+}
+
 
 /*-------------------------------------------------------------------------*/
 int KnownDADiscoveryByProperties(struct timeval* timeout)
@@ -276,13 +297,23 @@ int KnownDADiscover(struct timeval* timeout)
         return result;
     }
     
-
+    
     /*------------------------------*/
     /* Check data from DHCP Options */
     /*------------------------------*/
     /* TODO put code here when you can */
 
 
+    /*------------------------------*/
+    /* Ask slpd for a known DAs     */
+    /*------------------------------*/
+    result = KnownDADiscoveryByIPC();
+    if (result)
+    {
+        KnownDASaveHints();
+    }
+
+    
     /*-----------------------------------*/
     /* Load G_KnownDAListhead from hints */
     /*-----------------------------------*/
@@ -297,7 +328,7 @@ int KnownDADiscover(struct timeval* timeout)
         }
     }
     
-
+    
     /*-------------------*/
     /* Multicast for DAs */
     /*-------------------*/
@@ -347,8 +378,11 @@ int KnownDAConnect(const char* scopelist,
             {
                 return sock;
             }
-
-            del = entry;
+            else
+            {
+                /* delete the DA entry if it can't be connected to */
+                del = entry;
+            }
         }
 
         entry = (SLPDAEntry*) entry->listitem.next;
@@ -362,4 +396,3 @@ int KnownDAConnect(const char* scopelist,
 
     return -1;
 }
-

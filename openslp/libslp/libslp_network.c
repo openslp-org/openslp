@@ -225,7 +225,7 @@ SLPError NetworkRqstRply(int sock,
     }
      
     /* Figure unicast/multicast,TCP/UDP, wait and time out stuff */
-    if(ntohl(destaddr->sin_addr.s_addr) > 0xe0000000)
+    if(ISMCAST(destaddr->sin_addr) )
     {
         /* Multicast or broadcast */
         maxwait = SLPPropertyAsInteger(SLPGetProperty("net.slp.multicastMaximumWait"));
@@ -243,8 +243,15 @@ SLPError NetworkRqstRply(int sock,
                                    MAX_RETRANSMITS );
         size = sizeof(socktype);
         getsockopt(sock,SOL_SOCKET,SO_TYPE,&socktype,&size);
-        xmitcount = MAX_RETRANSMITS;
-    }
+        if(socktype == SOCK_DGRAM)
+        {
+            xmitcount = 0;
+        }
+        else
+        {
+            xmitcount = MAX_RETRANSMITS;
+        }
+    }   
     
     
     /*--------------------------------*/
