@@ -118,9 +118,8 @@ void OutgoingStreamReconnect(SLPList* socklist, SLPDSocket* sock)
 
     #ifdef DEBUG
     /* Log that reconnect warning */
-    SLPDLog("WARNING: Reconnect to agent at %s.  Agent is not making efficient \n"
-            "         use of TCP.  It would be wise to use a more efficient agent such\n"
-            "         as those available from http://www.openslp.org\n",
+    SLPDLog("WARNING: Reconnect to agent at %s.  Agent may not be making efficient \n"
+            "         use of TCP.\n",
             inet_ntoa(sock->peeraddr.sin_addr));
     #endif
 
