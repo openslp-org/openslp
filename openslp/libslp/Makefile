@@ -3,7 +3,7 @@
 # 
 SONAME		= libslp
 MAJORVER	= 0
-MINORVER	= 6.0
+MINORVER	= 6.1
 BASE_DIR   	= .
 LIBSLP_DIR   	= $(BASE_DIR)
 COMMON_DIR 	= $(BASE_DIR)/../common
@@ -32,10 +32,10 @@ COMMON_SRC = $(COMMON_DIR)/slp_buffer.c  \
 TEST_SRC   = $(TEST_DIR)/LIBSLP_test.c
 
 release: 
-	gcc -Wall -O3 -fPIC -shared -Wl,-soname,$(SONAME).so.$(MAJORVER) -o$(SONAME).so.$(MAJORVER).$(MINORVER) -I$(COMMON_DIR) -I$(LIBSLP_DIR) $(LIBSLP_SRC) $(COMMON_SRC)
+	gcc -Wall -O3 -fPIC -shared -Wl,-soname,$(SONAME).so -o$(SONAME).so.$(MAJORVER).$(MINORVER) -I$(COMMON_DIR) -I$(LIBSLP_DIR) $(LIBSLP_SRC) $(COMMON_SRC)
 	
 debug:
-	gcc -Wall -g -shared -Wl,-soname,$(SONAME).so.$(MAJORVER) -o$(SONAME).so.$(MAJORVER).$(MINORVER) -DDEBUG -I$(COMMON_DIR) -I$(LIBSLP_DIR) $(LIBSLP_SRC) $(COMMON_SRC)
+	gcc -Wall -g -shared -Wl,-soname,$(SONAME).so -o$(SONAME).so.$(MAJORVER).$(MINORVER) -DDEBUG -I$(COMMON_DIR) -I$(LIBSLP_DIR) $(LIBSLP_SRC) $(COMMON_SRC)
 
 install: release
 	chmod a+x install.sh
