@@ -47,7 +47,7 @@
 /*                                                                         */
 /***************************************************************************/
 
-#include "..\libslp\slp.h"
+#include "../libslp/slp.h"
 #include "slp_net.h"
 #include "slp_xmalloc.h"
 #include "slp_property.h"
@@ -64,9 +64,9 @@ const struct in6_addr in6addr_srvlocda_link     = { 0xFF,0x2,0x0,0x0,0x0,0x0,0x0
 const struct in6_addr in6addr_srvlocda_site     = { 0xFF,0x5,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x01,0x23 };
 const struct in6_addr in6addr_service_node_mask = { 0xFF,0x1,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x1,0x10,0x00 };
 const struct in6_addr in6addr_service_link_mask = { 0xFF,0x2,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x1,0x10,0x00 };
-const struct in6_addr in6addr_service_site_mask = { 0xFF,0x5,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x1,0x10,0x00 };
+const struct in6_addr in6addr_service_site_maskp = { 0xFF,0x5,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x1,0x10,0x00 };
 
-// return 1 if successful, 0 if fails, and -1 if af argument is unknown
+// return 1 if successful, 0 if fails, and -1 if a:f argument is unknown
 int resolveHost(int af, const char *src, void *dst) {
     int sts = 0;
     struct addrinfo *res;
@@ -249,7 +249,7 @@ int SLPNetCompareStructs(const struct sockaddr_storage *addr1, const struct sock
 int SLPNetIsMCast(const struct sockaddr_storage *addr) {
     if (addr->ss_family == AF_INET) {
         struct sockaddr_in *v4 = (struct sockaddr_in *) addr;
-        if ((ntohl(v4->sin_addr.S_un.S_addr) & 0xff000000) >= 0xef000000) {
+        if ((ntohl(v4->sin_addr.s_addr) & 0xff000000) >= 0xef000000) {
             return(1);
         }
         else {
@@ -258,16 +258,16 @@ int SLPNetIsMCast(const struct sockaddr_storage *addr) {
     }
     else if (addr->ss_family == AF_INET6) {
         struct sockaddr_in6 *v6 = (struct sockaddr_in6 *) addr;
-        IN6_IS_ADDR_MULTICAST(&v6->sin6_addr);
+        return(IN6_IS_ADDR_MULTICAST(&v6->sin6_addr));
     }
 	return(0);
 }
 
 int SLPNetIsLocal(const struct sockaddr_storage *addr) {
-    DWORD sts = 0;
+    int sts = 0;
     if (addr->ss_family == AF_INET) {
         struct sockaddr_in *v4 = (struct sockaddr_in *) addr;
-        if ((ntohl(v4->sin_addr.S_un.S_addr) & 0xff000000) == 0x7f000000) {
+        if ((ntohl(v4->sin_addr.s_addr) & 0xff000000) == 0x7f000000) {
             sts = 1;
         }
         else {
@@ -282,10 +282,10 @@ int SLPNetIsLocal(const struct sockaddr_storage *addr) {
 }
 
 int SLPNetIsLoopback(const struct sockaddr_storage *addr) {
-    DWORD sts = 0;
+    int sts = 0;
     if (addr->ss_family == AF_INET) {
         struct sockaddr_in *v4 = (struct sockaddr_in *) addr;
-        if ((ntohl(v4->sin_addr.S_un.S_addr) == INADDR_LOOPBACK)) {
+        if ((ntohl(v4->sin_addr.s_addr) == INADDR_LOOPBACK)) {
             sts = 1;
         }
         else {
