@@ -1,3 +1,12 @@
+
+README OpenSLP release 0.7.6
+----------------------------
+OpenSLP now supports predicate features of the SLPv2 protocol.  This feature
+is enabled by default which increases the slpd slightly.  If for some reason
+you would rather not compile this feature you can run ./configure with the
+--disable-predicates
+
+
 README OpenSLP release 0.7.5
 ----------------------------
 For thos of you that are interested in using OpenSLP on Windows.  Please
