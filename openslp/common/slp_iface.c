@@ -102,7 +102,7 @@ int SLPIfaceGetInfo(const char* useifaces,
 	struct sockaddr_in v4addr;
 	struct sockaddr_in6 v6addr;
 	struct sockaddr_in6 indexHack;
-	SOCKET fd;
+	unsigned int fd;
 	int i;
 
     /* first try ipv6 addrs */
@@ -176,7 +176,11 @@ int SLPIfaceGetInfo(const char* useifaces,
 										break;
 									}
 								}
+								#ifdef _WIN32 
 								closesocket(fd);
+								#else
+								close(fd);
+								#endif
 							}
 						}
 					}
