@@ -5,6 +5,10 @@ Please make entries to this log (in addition to the CVS log) that describe
 major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
+
+12/20/11 matt@caldera.com
+Moved Win2000 specific defines inside #ifdef WIN32
+
 12/14/01 matt@caldera.com
 Changed slpd "daemonize" code to chdir() to "/"
 
