@@ -1,6 +1,6 @@
 MAKE	= make
 DIRS	= SLPOpen SLPFindSrvs SLPReg SLPDereg SLPFindAttrs \
-			SLPParseSrvURL SLPEscape
+			SLPParseSrvURL SLPEscape SLPUnescape 
 all:
 	for dir in $(DIRS); do\
 		echo Making all in $$dir... ;\
