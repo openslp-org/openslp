@@ -68,10 +68,10 @@ int SLPCompareString(int str1len,
     }
     else if(str1len > str2len)
     {
-        return str1[str2len-1];
+        return -1;
     }
     
-    return str2[str1len-1];
+    return 1;
 }
 
 
@@ -302,7 +302,7 @@ int SLPUnionStringList(int list1len,
                        int list2len,
                        const char* list2,
                        int* unionlistlen,
-                       char* unionlist)
+                       char * unionlist)
 /* Generate a string list that is a union of two string lists              */
 /*                                                                         */
 /* list1len -   length in bytes of list1                                   */
@@ -315,9 +315,10 @@ int SLPUnionStringList(int list1len,
 /*                                                                         */
 /* unionlistlen - pointer to the size in bytes of the unionlist buffer.    */
 /*                also receives the size in bytes of the unionlist buffer  */
-/*                on successful return                                     */
+/*                on successful return.                                    */
 /*                                                                         */
-/* unionlist -  pointer to buffer that will receive the union list         */
+/* unionlist -  pointer to the buffer that will receive the union list.    */ 
+/*                                                                         */
 /*                                                                         */
 /* Returns -    Length of the resulting union list or negative if          */
 /*              unionlist is not big enough. If negative is returned       */
@@ -342,7 +343,7 @@ int SLPUnionStringList(int list1len,
 
     if(unionlist == 0 ||
        *unionlistlen == 0 ||
-       *unionlist < list1len)
+       *unionlistlen < list1len)
     {
         *unionlistlen = list1len + list2len + 1;
         return -1;
@@ -376,7 +377,7 @@ int SLPUnionStringList(int list1len,
                                  itemlen,
                                  itembegin) == 0)
         {
-            if(copiedlen + itemlen + 1 >= *unionlistlen)
+            if(copiedlen + itemlen + 1 > *unionlistlen)
             {
               
                 *unionlistlen = list1len + list2len + 1;

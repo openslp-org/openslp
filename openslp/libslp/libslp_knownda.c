@@ -497,8 +497,10 @@ int KnownDAGetScopes(int* scopelistlen,
 /* returns: zero on success, non-zero on failure                           */
 /*=========================================================================*/
 {
-    time_t  curtime;
-
+    time_t      curtime;
+    SLPDAEntry* entry; 
+    int         newlen;
+    
     /* Refresh the cache if necessary */
     curtime = time(&curtime);
     if(G_KnownDALastCacheRefresh == 0 ||
@@ -515,10 +517,48 @@ int KnownDAGetScopes(int* scopelistlen,
         }
 
         /* TODO: */
-        /* enumerate through all the knownda entries and generate a scopelist */
+        /* enumerate through all the knownda entries and generate a */
+	/* scopelist                                                */
+        entry = (SLPDAEntry*)G_KnownDACache.head;
+        while(entry)
+        {
+	    newlen = G_KnownDAScopesLen;
+	    while(SLPUnionStringList(G_KnownDAScopesLen,
+				     G_KnownDAScopes,
+				     entry->scopelistlen,
+				     entry->scopelist,
+				     &newlen,
+				     G_KnownDAScopes) < 0 )
+	    {
+	        G_KnownDAScopes = realloc(G_KnownDAScopes,newlen);
+	        if(G_KnownDAScopes == 0)
+	        {
+		    G_KnownDAScopesLen = 0;
+		    break;
+		}
+	    }
+	    G_KnownDAScopesLen = newlen;
+	            
+            entry = (SLPDAEntry*) entry->listitem.next;
+        }
 
-        /* TODO: */
         /* Explicitly add in the useScopes property */
+        newlen = G_KnownDAScopesLen;
+        while(SLPUnionStringList(G_KnownDAScopesLen,
+				 G_KnownDAScopes,
+				 strlen(SLPPropertyGet("net.slp.useScopes")),
+				 SLPPropertyGet("net.slp.useScopes"),
+				 &newlen,
+				 G_KnownDAScopes) < 0 )
+	{
+	    G_KnownDAScopes = realloc(G_KnownDAScopes,newlen);
+	    if(G_KnownDAScopes == 0)
+	    {
+	       G_KnownDAScopesLen = 0;
+	       break;
+	    }
+        }
+        G_KnownDAScopesLen = newlen;
     }
 
     
@@ -530,6 +570,7 @@ int KnownDAGetScopes(int* scopelistlen,
             return -1;
         }
         memcpy(*scopelist,G_KnownDAScopes, G_KnownDAScopesLen);
+        (*scopelist)[G_KnownDAScopesLen] = 0; 
         *scopelistlen = G_KnownDAScopesLen;
     }
     else
