@@ -9,7 +9,7 @@
 export DH_COMPAT=1
 
 # shared library versions, option 1
-version=0.0.2
+version=0.0.3
 major=0
 
 build: build-stamp
@@ -54,9 +54,6 @@ binary-arch: build install
 	dh_installinit
 	dh_installdocs
 
-	# remove calderalogo.jpg
-	rm -f `pwd`/debian/openslp-doc/usr/share/doc/html/UsersGuide/calderalogo.jpg
-
         #
         # build libslp${major} package by moving files from slpd package
         #
@@ -77,7 +74,8 @@ binary-arch: build install
 	rmdir `pwd`/debian/tmp/usr/include
 	rmdir `pwd`/debian/tmp/usr/lib
 
-#	dh_installexamples
+	cd test; make clean
+	dh_installexamples
 #	dh_installmenu
 #	dh_installemacsen
 #	dh_installpam

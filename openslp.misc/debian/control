@@ -15,7 +15,7 @@ Description: OpenSLP Server (slpd)
 
 Package: openslp-doc
 Architecture: all
-Description: OpenSLP libraries
+Description: OpenSLP documentation
  This is the OpenSLP documentation package. This contains an Introduction to
  SLP, a User's Guide and a Programmer's Guide.
 
@@ -34,4 +34,4 @@ Architecture: any
 Depends: ${shlibs:Depends}
 Description: OpenSLP libraries
  This is the OpenSLP run-time library package used by applications to
- discover services on the network.
+ discover/advertise services on the network.
