@@ -156,11 +156,14 @@ int SLPDKnownDAGenerateMyDAAdvert(struct sockaddr_storage* localaddr,
 
 #if defined(ENABLE_SLPv1)
 /*=========================================================================*/
-int SLPDKnownDAGenerateMyV1DAAdvert(int errorcode,
+int SLPDKnownDAGenerateMyV1DAAdvert(struct sockaddr_storage* localaddr,
+                                    int errorcode,
                                     int encoding,
                                     unsigned int xid,
                                     SLPBuffer* sendbuf);
 /* Pack a buffer with a v1 DAAdvert using information from a SLPDAentry    */
+/*                                                                         */
+/* localaddr (IN) the address of the DA to advertise                       */
 /*                                                                         */
 /* errorcode (IN) the errorcode for the DAAdvert                           */
 /*                                                                         */

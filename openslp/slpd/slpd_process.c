@@ -1378,7 +1378,6 @@ int SLPDProcessMessage(struct sockaddr_storage* peerinfo,
         header.version == 1)
     {
         errorcode = SLPDv1ProcessMessage(peerinfo,
-                                         localaddr,
                                          recvbuf, 
                                          sendbuf);
     }

@@ -79,7 +79,6 @@ int SLPDProcessMessage(struct sockaddr_storage* peerinfo,
 #if defined(ENABLE_SLPv1)
 /*=========================================================================*/
 int SLPDv1ProcessMessage(struct sockaddr_storage* peeraddr,
-                         struct sockaddr_storage* localaddr,
                          SLPBuffer recvbuf,
                          SLPBuffer* sendbuf);
 /* Processes the recvbuf and places the results in sendbuf                 */

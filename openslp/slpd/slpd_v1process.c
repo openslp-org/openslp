@@ -73,6 +73,7 @@
 
 /*-------------------------------------------------------------------------*/
 int v1ProcessDASrvRqst(struct sockaddr_storage* peeraddr,
+                       struct sockaddr_storage* localaddr,
                        SLPMessage message,
                        SLPBuffer* sendbuf,
                        int errorcode)
@@ -85,7 +86,8 @@ int v1ProcessDASrvRqst(struct sockaddr_storage* peeraddr,
                                G_SlpdProperty.useScopes))
     {
         /* fill out real structure */
-        errorcode = SLPDKnownDAGenerateMyV1DAAdvert(errorcode,
+        errorcode = SLPDKnownDAGenerateMyV1DAAdvert(localaddr,
+                                                    errorcode,
                                                     message->header.encoding,
                                                     message->header.xid,
                                                     sendbuf);
@@ -112,6 +114,7 @@ int v1ProcessDASrvRqst(struct sockaddr_storage* peeraddr,
 
 /*-------------------------------------------------------------------------*/
 int v1ProcessSrvRqst(struct sockaddr_storage* peeraddr,
+                     struct sockaddr_storage* localaddr,
                      SLPMessage message,
                      SLPBuffer* sendbuf,
                      int errorcode)
@@ -152,7 +155,7 @@ int v1ProcessSrvRqst(struct sockaddr_storage* peeraddr,
                          15,
                          "directory-agent") == 0)
     {
-        errorcode = v1ProcessDASrvRqst(peeraddr, message, sendbuf, errorcode);
+        errorcode = v1ProcessDASrvRqst(peeraddr, localaddr, message, sendbuf, errorcode);
         return errorcode;
     }
 
@@ -839,7 +842,7 @@ int SLPDv1ProcessMessage(struct sockaddr_storage* peeraddr,
             switch (message->header.functionid)
             {
             case SLP_FUNCT_SRVRQST:
-                errorcode = v1ProcessSrvRqst(peeraddr, message, sendbuf, errorcode);
+                errorcode = v1ProcessSrvRqst(peeraddr, peeraddr, message, sendbuf, errorcode);
                 break;
 
             case SLP_FUNCT_SRVREG:

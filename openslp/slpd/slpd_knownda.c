@@ -1189,11 +1189,14 @@ int SLPDKnownDAGenerateMyDAAdvert(struct sockaddr_storage* localaddr,
 
 #if defined(ENABLE_SLPv1)
 /*=========================================================================*/
-int SLPDKnownDAGenerateMyV1DAAdvert(int errorcode,
+int SLPDKnownDAGenerateMyV1DAAdvert(struct sockaddr_storage* localaddr,
+                                    int errorcode,
                                     int encoding,
                                     unsigned int xid,
                                     SLPBuffer* sendbuf)
 /* Pack a buffer with a v1 DAAdvert using information from a SLPDAentry    */
+/*                                                                         */
+/* localaddr (IN) the address of the DA to advertise                       */
 /*                                                                         */
 /* errorcode (IN) the errorcode for the DAAdvert                           */
 /*                                                                         */
@@ -1211,6 +1214,8 @@ int SLPDKnownDAGenerateMyV1DAAdvert(int errorcode,
     int       urllen = INT_MAX;
     int       scopelistlen = INT_MAX;
     SLPBuffer result = *sendbuf;
+    char localaddr_str[INET6_ADDRSTRLEN + 2];
+    char da_url[INET6_ADDRSTRLEN + 29];
 
     /*-------------------------------------------------------------*/
     /* ensure the buffer is big enough to handle the whole srvrply */
@@ -1219,14 +1224,30 @@ int SLPDKnownDAGenerateMyV1DAAdvert(int errorcode,
                /*  2 errorcode  */
                /*  2 bytes for url len */
                /*  2 bytes for scope list len */
+    
+    /* Create the local address in string form */
+    localaddr_str[0] = '\0';
+    if (localaddr->ss_family == AF_INET) {
+        inet_ntop(localaddr->ss_family, &((struct sockaddr_in*) localaddr)->sin_addr, localaddr_str, sizeof(localaddr_str));
+    }
+    else if (localaddr->ss_family == AF_INET6) {
+        strcpy(localaddr_str, "[");
+        inet_ntop(localaddr->ss_family, &((struct sockaddr_in6*) localaddr)->sin6_addr, &localaddr_str[1], sizeof(localaddr_str) - 1);
+        strcat(localaddr_str, "]");
+    }
+
+    /* Create the DA URL */
+    da_url[0] = '\0';
+    strcpy(da_url, G_SlpdProperty.urlPrefix);
+    strcat(da_url, localaddr_str);
 
     if ( !errorcode )
     {
         errorcode = SLPv1ToEncoding(0, 
                                     &urllen, 
                                     encoding,
-                                    G_SlpdProperty.myUrl,
-                                    G_SlpdProperty.myUrlLen);
+                                    da_url,
+                                    strlen(da_url));
         if ( !errorcode )
         {
             size += urllen;
@@ -1295,8 +1316,8 @@ int SLPDKnownDAGenerateMyV1DAAdvert(int errorcode,
     SLPv1ToEncoding(result->curpos, 
                     &urllen, 
                     encoding, 
-                    G_SlpdProperty.myUrl,
-                    G_SlpdProperty.myUrlLen);
+                    da_url,
+                    strlen(da_url));
     result->curpos = result->curpos + urllen;
     /* scope list len */
     ToUINT16(result->curpos, scopelistlen);
@@ -1652,7 +1673,8 @@ void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead, int scope)
                 /* SLPv1 does not support shutdown messages */
 
                 /* Generate the DAAdvert and write it */
-                if (SLPDKnownDAGenerateMyV1DAAdvert(0,
+                if (SLPDKnownDAGenerateMyV1DAAdvert(&sock->localaddr,
+                                                    0,
                                                     SLP_CHAR_UTF8,
                                                     SLPXidGenerate(),
                                                     &(v1sock->sendbuf)) == 0)
