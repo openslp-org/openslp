@@ -7,7 +7,7 @@
 
 
 #ifdef WIN32
-	#define strncasecmp strnicmp
+    #define strncasecmp strnicmp
 #endif
 
 
@@ -24,17 +24,17 @@ typedef void *SLPTemplate;
 
 /* The callback for receiving attributes from a SLPFindAttrObj(). */
 typedef SLPBoolean SLPAttrObjCallback(
-									 SLPHandle hslp, 
-									 const SLPAttributes attr, 
-									 SLPError errcode, 
-									 void* cookie 
-									 );
+                                     SLPHandle hslp, 
+                                     const SLPAttributes attr, 
+                                     SLPError errcode, 
+                                     void* cookie 
+                                     );
 
 /* A datatype to encapsulate opaque data.*/
 typedef struct
 {
-	int len;
-	char *data;
+    int len;
+    char *data;
 } SLPOpaque;
 
 
@@ -52,6 +52,7 @@ typedef int SLPType;
 
 
 
+
 /*****************************************************************************
  *
  * Datatype to represent modes of attribute modification.
@@ -59,8 +60,8 @@ typedef int SLPType;
  ****************************************************************************/
 typedef enum
 {
-	SLP_ADD = 1, /* Appends to the attribute list.*/
-	SLP_REPLACE = 2	/* Replaces attribute. */
+    SLP_ADD = 1, /* Appends to the attribute list.*/
+    SLP_REPLACE = 2 /* Replaces attribute. */
 } SLPInsertionPolicy;
 
 
@@ -71,132 +72,132 @@ typedef enum
  ****************************************************************************/
 
 SLPError SLPAttrAlloc(
-					 const char *lang, 
-					 const FILE *template_h,
-					 const SLPBoolean strict, 
-					 SLPAttributes *slp_attr
-					 );
+                     const char *lang, 
+                     const FILE *template_h,
+                     const SLPBoolean strict, 
+                     SLPAttributes *slp_attr
+                     );
 
 SLPError SLPAttrAllocStr(
-						const char *lang, 
-						const FILE *template_h,
-						const SLPBoolean strict, 
-						SLPAttributes *slp_attr,
-						const char *str
-						);
+                        const char *lang, 
+                        const FILE *template_h,
+                        const SLPBoolean strict, 
+                        SLPAttributes *slp_attr,
+                        const char *str
+                        );
 
 void SLPAttrFree(SLPAttributes attr_h);
 
 /* Attribute manipulation. */
 SLPError SLPAttrSet_bool(
-						SLPAttributes attr_h,
-						const char *attribute_tag,
-						SLPBoolean val
-						);
+                        SLPAttributes attr_h,
+                        const char *attribute_tag,
+                        SLPBoolean val
+                        );
 
 SLPError SLPAttrSet_str(
-					   SLPAttributes attr_h,
-					   const char *tag,
-					   const char *val,
-					   SLPInsertionPolicy 
-					   );
+                       SLPAttributes attr_h,
+                       const char *tag,
+                       const char *val,
+                       SLPInsertionPolicy 
+                       );
 
 SLPError SLPAttrSet_keyw(
-						SLPAttributes attr_h,
-						const char *attribute_tag
-						);
+                        SLPAttributes attr_h,
+                        const char *attribute_tag
+                        );
 
 SLPError SLPAttrSet_int(
-					   SLPAttributes attr_h,
-					   const char *tag,
-					   int val,
-					   SLPInsertionPolicy policy
-					   ); 
+                       SLPAttributes attr_h,
+                       const char *tag,
+                       int val,
+                       SLPInsertionPolicy policy
+                       ); 
 
 SLPError SLPAttrSet_opaque(
-						  SLPAttributes attr_h,
-						  const char *tag,
-						  const char *val,
-						  const unsigned int len, 
-						  SLPInsertionPolicy policy
-						  );
+                          SLPAttributes attr_h,
+                          const char *tag,
+                          const char *val,
+                          const unsigned int len, 
+                          SLPInsertionPolicy policy
+                          );
 
 SLPError SLPAttrSet_guess(
-						 SLPAttributes attr_h,
-						 const char *tag,
-						 const char *val,
-						 SLPInsertionPolicy policy
-						 );
+                         SLPAttributes attr_h,
+                         const char *tag,
+                         const char *val,
+                         SLPInsertionPolicy policy
+                         );
 
 
 /* Attribute Querying. */
 SLPError SLPAttrGet_bool(
-						SLPAttributes attr_h,
-						const char *tag,
-						SLPBoolean *val
-						);
+                        SLPAttributes attr_h,
+                        const char *tag,
+                        SLPBoolean *val
+                        );
 
 SLPError SLPAttrGet_keyw(
-						SLPAttributes attr_h,
-						const char *tag
-						);
+                        SLPAttributes attr_h,
+                        const char *tag
+                        );
 
 SLPError SLPAttrGet_int(
-					   SLPAttributes attr_h,
-					   const char *tag,
-					   int *val[],
-					   int *size
-					   );
+                       SLPAttributes attr_h,
+                       const char *tag,
+                       int *val[],
+                       int *size
+                       );
 
 SLPError SLPAttrGet_str(
-					   SLPAttributes attr_h,
-					   const char *tag,
-					   char ***val,
-					   int *size
-					   ); 
+                       SLPAttributes attr_h,
+                       const char *tag,
+                       char ***val,
+                       int *size
+                       ); 
 
 
 SLPError SLPAttrGet_opaque(
-						  SLPAttributes attr_h,
-						  const char *tag,
-						  SLPOpaque ***val,
-						  int *size
-						  );
+                          SLPAttributes attr_h,
+                          const char *tag,
+                          SLPOpaque ***val,
+                          int *size
+                          );
 
 
 /* Misc. */
 SLPError SLPAttrGetType(SLPAttributes attr_h, const char *tag, SLPType *type);
 
 SLPError SLPAttrSerialize(SLPAttributes attr_h,
-						  const char* tags		  /* NULL terminated */,
-						  char **buffer,
-						  int bufferlen,		  /* Size of buffer. */
-						  int* count,			  /* Bytes needed/written. */
-						  SLPBoolean find_delta
-						 );
+                          const char* tags        /* NULL terminated */,
+                          char **buffer,
+                          int bufferlen,          /* Size of buffer. */
+                          int* count,             /* Bytes needed/written. */
+                          SLPBoolean find_delta
+                         );
 
 SLPError SLPAttrFreshen(SLPAttributes attr_h, const char *new_attrs);
 
 /* Functions. */
 SLPError SLPRegAttr(
-				   SLPHandle slp_h, 
-				   const char* srvurl, 
-				   unsigned short lifetime, 
-				   const char* srvtype, 
-				   SLPAttributes attr_h, 
-				   SLPBoolean fresh, 
-				   SLPRegReport callback, 
-				   void* cookie 
-				   );
+                   SLPHandle slp_h, 
+                   const char* srvurl, 
+                   unsigned short lifetime, 
+                   const char* srvtype, 
+                   SLPAttributes attr_h, 
+                   SLPBoolean fresh, 
+                   SLPRegReport callback, 
+                   void* cookie 
+                   );
 
 SLPError SLPFindAttrObj (
-						SLPHandle hslp, 
-						const char* srvurlorsrvtype, 
-						const char* scopelist, 
-						const char* attrids, 
-						SLPAttrObjCallback *callback, 
-						void* cookie
-						);
+                        SLPHandle hslp, 
+                        const char* srvurlorsrvtype, 
+                        const char* scopelist, 
+                        const char* attrids, 
+                        SLPAttrObjCallback *callback, 
+                        void* cookie
+                        );
 
 
 
