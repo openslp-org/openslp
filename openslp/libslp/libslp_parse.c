@@ -116,13 +116,16 @@ SLPError SLPParseSrvURL(const char *pcSrvURL,
         *ppSrvURL = 0;
         return SLP_PARSE_ERROR;
     }
-    /* ensure that URL is of the service: scheme */
+ 
+   /* ensure that URL is of the service: scheme 
     if(strstr(slider2,"service:") == 0)
     {
         free(*ppSrvURL);
         *ppSrvURL = 0;
         return SLP_PARSE_ERROR;
     }
+    */
+   
     memcpy(slider1,slider2,slider3-slider2);
     (*ppSrvURL)->s_pcSrvType = slider1;
     slider1 = slider1 + (slider3 - slider2);
