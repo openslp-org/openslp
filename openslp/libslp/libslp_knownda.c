@@ -220,25 +220,32 @@ SLPBoolean KnownDADiscoveryCallback(SLPError errorcode,
                         ((char*)(replymsg->body.daadvert.url))[replymsg->body.daadvert.urllen] = 0;
                         if(SLPParseSrvURL(replymsg->body.daadvert.url, &srvurl) == 0)
                         {
-                            he = gethostbyname(srvurl->s_pcHost);
-                            SLPFree(srvurl);
-			                if(he)
+                            replymsg->peer.sin_addr.s_addr = 0;
+                            if(inet_aton(srvurl->s_pcHost, &(replymsg->peer.sin_addr)) == 0)
                             {
-                                /* Reset the peer to the one in the URL */
-                                replymsg->peer.sin_addr.s_addr = *((unsigned int*)(he->h_addr_list[0]));
-                                
+                                he = gethostbyname(srvurl->s_pcHost);
+                                if(he)
+                                {
+                                    /* Reset the peer to the one in the URL */
+                                    replymsg->peer.sin_addr.s_addr = *((unsigned int*)(he->h_addr_list[0]));
+                                }
+                            }
+                            
+                            SLPFree(srvurl);
+
+                            if(replymsg->peer.sin_addr.s_addr)
+                            {
                                 (*count) += 1;
-                         
+                                
                                 KnownDAAdd(replymsg,dupbuf);
-                                 if(replymsg->header.flags & SLP_FLAG_MCAST)
-                                 {
-                                     return SLP_FALSE;
-                                 }
-                                 
-                                 return SLP_TRUE;
-                            }                            
+                                if(replymsg->header.flags & SLP_FLAG_MCAST)
+                                {
+                                    return SLP_FALSE;
+                                }
+
+                                return SLP_TRUE;
+                            }
                         }
-                         
                      }
                      else if(replymsg->body.daadvert.errorcode == SLP_ERROR_INTERNAL_ERROR)
                      {
@@ -362,8 +369,9 @@ int KnownDADiscoverFromDHCP()
 
 
 /*-------------------------------------------------------------------------*/
-int KnownDADiscoverFromProperties()
-/* Locates DAs from a list of DA hostnames                                 */
+int KnownDADiscoverFromProperties(int scopelistlen,
+                                  const char* scopelist)
+/* Locates DAs from the property list of DA hostnames                      */
 /*                                                                         */
 /* Returns: number of *new* DAs found                                      */
 /*-------------------------------------------------------------------------*/
@@ -395,17 +403,29 @@ int KnownDADiscoverFromProperties()
             while(*slider2 && *slider2 != ',') slider2++;
             *slider2 = 0;
 
-            he = gethostbyname(slider1);
-            if(he)
+            peeraddr.sin_addr.s_addr = 0;
+            if(inet_aton(slider1, &(peeraddr.sin_addr)) == 0)
             {
-                peeraddr.sin_addr.s_addr = *((unsigned int*)(he->h_addr_list[0]));
+                he = gethostbyname(slider1);
+                if(he)
+                {
+                    peeraddr.sin_addr.s_addr = *((unsigned int*)(he->h_addr_list[0]));
+                }
+            }
+            
+            if (peeraddr.sin_addr.s_addr)
+            {
                 sockfd = SLPNetworkConnectStream(&peeraddr,&timeout);
                 if(sockfd >= 0)
                 {
-                    result = KnownDADiscoveryRqstRply(sockfd,&peeraddr,0,"");
+                    result = KnownDADiscoveryRqstRply(sockfd,
+                                                      &peeraddr,
+                                                      scopelistlen,
+                                                      scopelist);
                     close(sockfd);
-                    if(result)
+                    if(scopelistlen && result)
                     {
+                        /* return if we found at least one DA */
                         break;
                     }
                 }
@@ -471,7 +491,7 @@ SLPBoolean KnownDAFromCache(int scopelistlen,
             /* discover DAs */
 
             if(KnownDADiscoverFromIPC() == 0)
-                if(KnownDADiscoverFromProperties() == 0)
+                if(KnownDADiscoverFromProperties(scopelistlen, scopelist) == 0)
                     if(KnownDADiscoverFromDHCP() == 0)
                         KnownDADiscoverFromMulticast(scopelistlen,
                                                      scopelist);
@@ -612,7 +632,7 @@ int KnownDAGetScopes(int* scopelistlen,
     if(KnownDADiscoverFromIPC() == 0)
     {
         KnownDADiscoverFromDHCP();
-        KnownDADiscoverFromProperties();
+        KnownDADiscoverFromProperties(0,"");
         KnownDADiscoverFromMulticast(0,"");
     }
 
@@ -711,7 +731,7 @@ void KnownDAProcessSrvRqst(PSLPHandleInfo handle)
     if(KnownDADiscoverFromIPC() == 0)
     {
         KnownDADiscoverFromDHCP();
-        KnownDADiscoverFromProperties();
+        KnownDADiscoverFromProperties(0,"");
         KnownDADiscoverFromMulticast(0,"");
     }
 

@@ -5,6 +5,12 @@ Please make entries to this log (in addition to the CVS log) that describe
 major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
+
+09/05/01 matt@caldera.com
+Added calls to inet_aton() that are used before call to gethostbyname()
+which should reduce name lookups and allow OpenSLP be configured to work in 
+environments where name resolution is not set up.
+
 08/31/01 matt@caldera.com
 Changed code path for handling of directory-agent SrvRqst.  Fixes problems
 DAs listed in net.slp.DAAddresses could not be found if multicast was not
