@@ -845,7 +845,7 @@ void SLPSetProperty(const char *pcName,
 /*=========================================================================*/
 
 
-//*=========================================================================*/
+/*=========================================================================*/
 SLPError SLPParseAttrs(const char* attrstr, 
                        const char* id,
                        int* valsize,
@@ -859,12 +859,14 @@ SLPError SLPParseAttrs(const char* attrstr,
 /* id       (IN) the ID of the attribute you want the value for            */
 /*                                                                         */
 /* valsize  (OUT) the size in bytes of the attribute value.  May be zero   */
-/*                if the ID was not found                                  */
+/*                if the ID was not found.                                 */
 /*                                                                         */
 /* val      (OUT) the attribute value of the requested attribute. Maybe    */
 /*                null if ID was not found. The returned pointer points    */
 /*                back into the original attrstr. Do not free the returned */
-/*                pointer.                                                 */
+/*                pointer.  WILL NOT BE NULL TERMINATED.  IF YOU WANT A    */
+/*                NULL TERMINATED STRING malloc() a valsize+1 bytes of     */
+/*                memory, memcpy() val and null terminate buffer           */
 /*                                                                         */
 /* Returns: Returns SLP_PARSE_ERROR if an attribute of the specified id    */
 /*          was not found                                                  */
