@@ -1,6 +1,6 @@
 Name            : openslp
-Version         : 0.8.3
-Release         : 2
+Version         : 0.9.0
+Release         : 1
 Group           : Server/Network
 Summary     	: Open source implementation of Service Location Protocol V2.
 Summary(de) 	: Open source Implementierung des Service Location Protocols V2.
@@ -102,6 +102,7 @@ fi
 %Files
 %defattr(-,root,root)
 %doc AUTHORS COPYING INSTALL NEWS README doc/*
+%config /etc/slp.spi
 %config /etc/slp.conf
 %config /etc/slp.reg
 %config /etc/sysconfig/daemons/slpd
