@@ -41,7 +41,7 @@ dnl ***********************************************************************
 dnl Set C/C++ compiler specific warning/optimization flags
 dnl ***********************************************************************
 if test X"$GCC" = X"yes"; then	
-    CFLAGS="$CFLAGS -Wall"
+    CFLAGS="$CFLAGS -Wall -Werror"
     if test X"$debug" = X"no"; then 
        OPTFLAGS="-O3"
     fi
