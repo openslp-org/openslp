@@ -41,7 +41,7 @@ aclocal $ACLOCAL_FLAGS
 
 libtoolize --force --copy
 autoheader
-automake --add-missing --copy $am_opt
+automake --copy $am_opt
 autoconf
 cd $ORIGDIR
 
