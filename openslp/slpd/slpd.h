@@ -631,11 +631,12 @@ int SLPDKnownDAInit();
 
 
 /*=========================================================================*/
-SLPDAEntry* SLPDKnownDAAdd(struct in_addr* addr,
-                           unsigned long bootstamp,
-                           const char* scopelist,
-                           int scopelistlen);
-/* Adds a DA to the known DA list.  If DA already exists, entry is updated */
+SLPDAEntry* SLPDKnownDAEvaluate(struct in_addr* addr,
+                                unsigned long bootstamp,
+                                const char* scopelist,
+                                int scopelistlen);
+/* Adds a DA to the known DA list if it is new, removes it if DA is going  */
+/* down or adjusts entry if DA changed.                                    */
 /*                                                                         */
 /* addr     (IN) pointer to in_addr of the DA to add                       */
 /*                                                                         */
@@ -643,8 +644,9 @@ SLPDAEntry* SLPDKnownDAAdd(struct in_addr* addr,
 /*                                                                         */
 /* scopelistlen (IN) the length of the scope list                          */
 /*                                                                         */
-/* returns  Pointer to the added or updated                                */
+/* returns  Pointer to the added or updated entry                          */
 /*=========================================================================*/
+
 
 /*=========================================================================*/
 void SLPDKnownDARemove(SLPDAEntry* daentry);

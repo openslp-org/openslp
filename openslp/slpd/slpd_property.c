@@ -70,7 +70,6 @@ void SLPDPropertyInit(const char* conffile)
     {
         G_SlpdProperty.activeDADetection = SLPPropertyAsBoolean(SLPPropertyGet("net.slp.activeDADetection"));               
     }
-    G_SlpdProperty.activeDiscoveryAttempts = G_SlpdProperty.activeDADetection * 4;
     G_SlpdProperty.passiveDADetection = SLPPropertyAsBoolean(SLPPropertyGet("net.slp.passiveDADetection"));               
     G_SlpdProperty.isBroadcastOnly = SLPPropertyAsBoolean(SLPPropertyGet("net.slp.isBroadcastOnly"));
     G_SlpdProperty.multicastTTL = atoi(SLPPropertyGet("net.slp.multicastTTL"));
@@ -87,7 +86,7 @@ void SLPDPropertyInit(const char* conffile)
     G_SlpdProperty.useScopesLen = strlen(G_SlpdProperty.useScopes);
     G_SlpdProperty.locale = SLPPropertyGet("net.slp.locale");
     G_SlpdProperty.localeLen = strlen(G_SlpdProperty.locale);
-
+    
  
     /*-------------------------------------*/
     /* Set the net.slp.interfaces property */
@@ -176,6 +175,12 @@ void SLPDPropertyInit(const char* conffile)
 #endif
 
     G_SlpdProperty.myUrlLen = strlen(G_SlpdProperty.myUrl);
+
+    /*----------------------------------*/
+    /* Set other values used internally */
+    /*----------------------------------*/     
+    G_SlpdProperty.DATimestamp = 1;  /* DATimestamp must start at 1 */
+    G_SlpdProperty.activeDiscoveryAttempts = G_SlpdProperty.activeDADetection * 4;
 }
 
 

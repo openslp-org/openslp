@@ -923,8 +923,6 @@ int ProcessDAAdvert(struct sockaddr_in* peeraddr,
             /* TODO: enable the following when we link to libslp and        */
             /* have SLPParseSrvURL()                                        */
 #if(0)  
-
-
             /* yes, we could just get the host addr from peer info. Looking */
             /* it up is safer                                               */
             if(SLPParseSrvURL(message->body.daadvert.url, &srvurl) == 0)
@@ -945,10 +943,11 @@ int ProcessDAAdvert(struct sockaddr_in* peeraddr,
 
             /* TODO: the following is allows for easy DA masquarading (unsafe) */
             /*       remove it when the above is fixed                         */
-            SLPDKnownDAAdd(&(peeraddr->sin_addr), 
-                           message->body.daadvert.bootstamp,
-                           message->body.daadvert.scopelist,
-                           message->body.daadvert.scopelistlen);
+            
+            SLPDKnownDAEvaluate(&(peeraddr->sin_addr), 
+                                message->body.daadvert.bootstamp,
+                                message->body.daadvert.scopelist,
+                                message->body.daadvert.scopelistlen);
         }
     }
 

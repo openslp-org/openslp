@@ -39,6 +39,14 @@ SLPList G_KnownDAList = {0,0,0};
 /*=========================================================================*/
 
 
+/*-------------------------------------------------------------------------*/
+void SLPDKnownDARegisterAll(SLPDAEntry* daentry)
+/* Forks a child process to register all services with specified DA        */
+/*-------------------------------------------------------------------------*/
+{
+    
+}   
+
 /*=========================================================================*/
 int SLPDKnownDAInit()
 /* Initializes the KnownDA list.  Removes all entries and adds entries     */
@@ -83,10 +91,10 @@ int SLPDKnownDAInit()
             {
                 daaddr.s_addr = *((unsigned long*)(he->h_addr_list[0]));
 
-                SLPDKnownDAAdd(&daaddr,
-                               0,
-                               G_SlpdProperty.useScopes,
-                               G_SlpdProperty.useScopesLen);
+                SLPDKnownDAEvaluate(&daaddr,
+                                    1, 
+                                    G_SlpdProperty.useScopes,
+                                    G_SlpdProperty.useScopesLen);
 
                 // For now do not contact the DA to see if it is up.  Just 
                 // assume that the statically configured DAs are available.
@@ -118,11 +126,12 @@ int SLPDKnownDAInit()
 
 
 /*=========================================================================*/
-SLPDAEntry* SLPDKnownDAAdd(struct in_addr* addr,
-                           unsigned long bootstamp,
-                           const char* scopelist,
-                           int scopelistlen)
-/* Adds a DA to the known DA list.  If DA already exists, entry is updated */
+SLPDAEntry* SLPDKnownDAEvaluate(struct in_addr* addr,
+                                unsigned long bootstamp,
+                                const char* scopelist,
+                                int scopelistlen)
+/* Adds a DA to the known DA list if it is new, removes it if DA is going  */
+/* down or adjusts entry if DA changed.                                    */
 /*                                                                         */
 /* addr     (IN) pointer to in_addr of the DA to add                       */
 /*                                                                         */
@@ -130,7 +139,7 @@ SLPDAEntry* SLPDKnownDAAdd(struct in_addr* addr,
 /*                                                                         */
 /* scopelistlen (IN) the length of the scope list                          */
 /*                                                                         */
-/* returns  Pointer to the added or updated                                */
+/* returns  Pointer to the added or updated entry                          */
 /*=========================================================================*/
 {
     SLPDAEntry* entry;
@@ -143,41 +152,55 @@ SLPDAEntry* SLPDKnownDAAdd(struct in_addr* addr,
         if (memcmp(&entry->daaddr,addr,sizeof(struct in_addr)) == 0)
         {
             /* Update an existing entry */
-            if (entry->bootstamp < bootstamp)
+            if(entry->bootstamp == 0)
             {
+                /* DA is going down. Remove it from our list */
+                SLPDKnownDARemove(entry);
+            }
+            else if(entry->bootstamp > bootstamp)
+            {
+                /* DA went down and came up. Record new entry and */
+                /* Re-register all services                       */
+                entry->bootstamp = bootstamp;
+                entry->scopelist = realloc(entry->scopelist,scopelistlen);
+                if (entry->scopelist)
+                {
+                    memcpy(entry->scopelist,scopelist,scopelistlen);
+                    entry->scopelistlen = scopelistlen;
+                    
+                    /* Register all services with the new DA */
+                    SLPDKnownDARegisterAll(entry); 
+                }
+                else
+                {
+                    /* Should we do anything special here */
+                } 
+            }
+            else
+            {
+                /* Just a routine passive discovery */
                 entry->bootstamp = bootstamp;
             }
-            else
-            {
-                /* set bootstamp to zero so that slpd will re-register with */
-                /* this DA                                                  */
-                bootstamp = 0;
-            }
-            entry->scopelist = realloc(entry->scopelist,scopelistlen);
-            if (entry->scopelist)
-            {
-                memcpy(entry->scopelist,scopelist,scopelistlen);
-                entry->scopelistlen = scopelistlen;
-            }
-            else
-            {
-                free(entry);
-                entry = 0;
-            }
 
-            return entry;
+            break;
         }
 
         entry = (SLPDAEntry*)entry->listitem.next;
     }
 
-    /* Create and link in a new entry */    
-    bootstamp = 0;  /* make sure we re-register with new entries */
-    entry = SLPDAEntryCreate(addr,bootstamp,scopelist,scopelistlen);
-    SLPListLinkHead(&G_KnownDAList,(SLPListItem*)entry);
-    
-    /* Log that we are found a known da */
-    SLPDLogKnownDA("Added",&(entry->daaddr));
+    if(entry == 0)
+    {
+        /* Create and link in a new entry */    
+        bootstamp = 0;  /* make sure we re-register with new entries */
+        entry = SLPDAEntryCreate(addr,bootstamp,scopelist,scopelistlen);
+        SLPListLinkHead(&G_KnownDAList,(SLPListItem*)entry);
+
+        /* Log that we are adding a new known DA */
+        SLPDLogKnownDA("Added",&(entry->daaddr));
+
+        /* Register all services with the new DA */
+        SLPDKnownDARegisterAll(entry); 
+    }
 
     return entry;
 }
@@ -281,8 +304,7 @@ void SLPDKnownDAActiveDiscovery()
     {
         return;
     }
-    G_SlpdProperty.activeDiscoveryAttempts --;
-    
+    G_SlpdProperty.activeDiscoveryAttempts --;   
 
     /*--------------------------------------------------*/
     /* Create new DATAGRAM socket with appropriate peer */
@@ -302,8 +324,6 @@ void SLPDKnownDAActiveDiscovery()
         /* Could not create socket */
         return;
     }
-    
-
     
     /*-------------------------------------------------*/
     /* Generate a DA service request buffer to be sent */
