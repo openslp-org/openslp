@@ -436,53 +436,46 @@ SLPError SLPUnescape(const char* pcInbuf,
 
 
 /*=========================================================================*/
-SLPError SLPParseAttrs(const char* attrstr, 
-                       const char* id,
-                       int* valsize,
-                       const char** val)
+SLPError SLPParseAttrs(const char* pcAttrList,
+                       const char *pcAttrId,
+                       char** ppcAttrVal)
 /*                                                                         */
 /* Used to get individual attribute values from an attribute string that   */
 /* is passed to the SLPAttrCallback                                        */
 /*                                                                         */
-/* attrstr  (IN) the attribute string as passed to SLPAttrCallback         */
+/* pcAttrList (IN) A character buffer containing a comma separated, null   */
+/*                 terminated list of attribute id/value assignments, in   */
+/*                 SLP wire format; i.e.  "(attr-id=attr-value-list)"      */
 /*                                                                         */
-/* id       (IN) the ID of the attribute you want the value for            */
+/* pcAttrId (IN)   The string indicating which attribute value to return.  */
+/*                 MUST not be null.  MUST not be the empty string ("").   */
 /*                                                                         */
-/* valsize  (OUT) the size in bytes of the attribute value.  May be zero   */
-/*                if the ID was not found.                                 */
-/*                                                                         */
-/* val      (OUT) the attribute value of the requested attribute. Maybe    */
-/*                null if ID was not found. The returned pointer points    */
-/*                back into the original attrstr. Do not free the returned */
-/*                pointer.  WILL NOT BE NULL TERMINATED.  IF YOU WANT A    */
-/*                NULL TERMINATED STRING malloc() a valsize+1 bytes of     */
-/*                memory, memcpy() val and null terminate buffer           */
+/* ppcAttrVal (IN) A pointer to a pointer to the buffer to receive         */
+/*                 attribute value.  The memory should be freed by a call  */
+/*                 to SLPFree() when no longer needed.                     */
 /*                                                                         */
 /* Returns: Returns SLP_PARSE_ERROR if an attribute of the specified id    */
-/*          was not found                                                  */
+/*          was not found otherwise SLP_OK                                 */
 /*=========================================================================*/
 {
     const char* slider1;
     const char* slider2;
 
     /* Check for bad parameters */
-    if(attrstr == 0 ||
-       id == 0      ||
-       valsize == 0 ||
-       val == 0)
+    if(pcAttrList == 0 ||
+       pcAttrId == 0   ||
+       ppcAttrVal == 0)
     {
         return SLP_PARAMETER_BAD;
     }
 
-    slider1 = attrstr;
+    slider1 = pcAttrList;
     while(1)
     {
         while(*slider1 != '(')
         {
             if(*slider1 == 0)
             {
-                *val = 0;
-                *valsize = 0;
                 return SLP_PARSE_ERROR;
             }
             slider1++;
@@ -490,21 +483,24 @@ SLPError SLPParseAttrs(const char* attrstr,
         slider1++;
         slider2=slider1;
 
-        while(*slider2 && *slider2 != '=' && *slider1 !=')') slider2++;
+        while(*slider2 && *slider2 != '=' && *slider2 !=')') slider2++;
 
-        if(strncasecmp(slider1, id, slider2 - slider1) == 0)
+        if(strncasecmp(slider1, pcAttrId, slider2 - slider1) == 0)
         {
             /* found the attribute id */
-            if(*slider2 != 0 && *slider1 != ')')
+            slider1 = slider2;
+            if(*slider1 == '=') slider1++;
+            while(*slider2 && *slider2 !=')') slider2++;
+            
+            *ppcAttrVal = (char*)malloc((slider2 - slider1) + 1);
+            if(*ppcAttrVal == 0)
             {
-                slider2++;
+                return SLP_MEMORY_ALLOC_FAILED;
             }
-            *val = slider2;
 
-            while(*slider2 && *slider2 != ')') slider2++;
-
-            *valsize = slider2 - *val;
-
+            memcpy(*ppcAttrVal,slider1,slider2-slider1);
+            (*ppcAttrVal)[slider2-slider1] = 0;
+                
             break;
         }
     }
