@@ -1158,7 +1158,15 @@ void SLPDKnownDAImmortalRefresh(int seconds)
         entry = (SLPDAEntry*)G_KnownDAList.head;
         while(entry)
         {
-            SLPDKnownDARegisterAll(entry,1);
+            /* Register all services with the all DAs except us*/
+            if(SLPCompareString(entry->urllen,
+                                entry->url,
+                                G_SlpdProperty.myUrlLen,
+                                G_SlpdProperty.myUrl))
+            {
+                SLPDKnownDARegisterAll(entry,1);
+            }   
+
             entry = (SLPDAEntry*)entry->listitem.next;
         }
 
