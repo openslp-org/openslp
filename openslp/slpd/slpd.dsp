@@ -42,7 +42,8 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /I ".\\" /I "..\libslpattr" /I "..\common" /D "NDEBUG" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /FD /c
+# SUBTRACT CPP /YX
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -50,7 +51,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /machine:I386
-# ADD LINK32 ..\common\Release\common.lib ..\libslp\Release\libslp.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib uuid.lib comctl32.lib wsock32.lib winmm.lib /nologo /subsystem:console /machine:I386
+# ADD LINK32 ..\common\Release\common.lib ..\libslp\Release\libslp.lib ..\libslpattr\Release\libslpattr.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib uuid.lib comctl32.lib wsock32.lib winmm.lib /nologo /subsystem:console /machine:I386
 
 !ELSEIF  "$(CFG)" == "slpd - Win32 Debug"
 
@@ -66,7 +67,8 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /GZ /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /D "_DEBUG" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /YX /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I ".\\" /I "..\libslpattr" /I "..\common" /D "_DEBUG" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /FD /GZ /c
+# SUBTRACT CPP /YX
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -74,7 +76,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 ..\common\Debug\common.lib ..\libslp\Debug\libslp.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib uuid.lib comctl32.lib wsock32.lib winmm.lib /nologo /subsystem:console /debug /machine:I386 /pdbtype:sept
+# ADD LINK32 ..\common\Debug\common.lib ..\libslp\Debug\libslp.lib ..\libslpattr\Debug\libslpattr.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib uuid.lib comctl32.lib wsock32.lib winmm.lib /nologo /subsystem:console /debug /machine:I386 /pdbtype:sept
 
 !ENDIF 
 
@@ -95,12 +97,12 @@ SOURCE=.\slpd_cmdline.c
 
 !IF  "$(CFG)" == "slpd - Win32 Release"
 
-# ADD CPP /I "./" /I "../common" /I "../libslp" /I "..\common" /I "..\libslp" /D VERSION="0.7.5"
+# ADD CPP /I "./" /I "../common" /I "../libslp" /I "..\libslp" /D VERSION="0.7.5"
 # SUBTRACT CPP /YX
 
 !ELSEIF  "$(CFG)" == "slpd - Win32 Debug"
 
-# ADD CPP /I "./" /I "../common" /I "../libslp" /I "..\common" /I "..\libslp"
+# ADD CPP /I "./" /I "../common" /I "../libslp" /I "..\libslp"
 # SUBTRACT CPP /YX
 
 !ENDIF 
@@ -112,12 +114,12 @@ SOURCE=.\slpd_database.c
 
 !IF  "$(CFG)" == "slpd - Win32 Release"
 
-# ADD CPP /I "./" /I "../common" /I "../libslp" /I "..\common" /I "..\libslp" /D VERSION="0.7.5"
+# ADD CPP /I "./" /I "../common" /I "../libslp" /I "..\libslp" /D VERSION="0.7.5"
 # SUBTRACT CPP /YX
 
 !ELSEIF  "$(CFG)" == "slpd - Win32 Debug"
 
-# ADD CPP /I "./" /I "../common" /I "../libslp" /I "..\common" /I "..\libslp"
+# ADD CPP /I "./" /I "../common" /I "../libslp" /I "..\libslp"
 # SUBTRACT CPP /YX
 
 !ENDIF 
@@ -129,12 +131,12 @@ SOURCE=.\slpd_incoming.c
 
 !IF  "$(CFG)" == "slpd - Win32 Release"
 
-# ADD CPP /I "./" /I "../common" /I "../libslp" /I "..\common" /I "..\libslp" /D VERSION="0.7.5"
+# ADD CPP /I "./" /I "../common" /I "../libslp" /I "..\libslp" /D VERSION="0.7.5"
 # SUBTRACT CPP /YX
 
 !ELSEIF  "$(CFG)" == "slpd - Win32 Debug"
 
-# ADD CPP /I "./" /I "../common" /I "../libslp" /I "..\common" /I "..\libslp"
+# ADD CPP /I "./" /I "../common" /I "../libslp" /I "..\libslp"
 # SUBTRACT CPP /YX
 
 !ENDIF 
@@ -146,12 +148,12 @@ SOURCE=.\slpd_knownda.c
 
 !IF  "$(CFG)" == "slpd - Win32 Release"
 
-# ADD CPP /I "./" /I "../common" /I "../libslp" /I "..\common" /I "..\libslp" /D VERSION="0.7.5"
+# ADD CPP /I "./" /I "../common" /I "../libslp" /I "..\libslp" /D VERSION="0.7.5"
 # SUBTRACT CPP /YX
 
 !ELSEIF  "$(CFG)" == "slpd - Win32 Debug"
 
-# ADD CPP /I "./" /I "../common" /I "../libslp" /I "..\common" /I "..\libslp"
+# ADD CPP /I "./" /I "../common" /I "../libslp" /I "..\libslp"
 # SUBTRACT CPP /YX
 
 !ENDIF 
@@ -163,12 +165,12 @@ SOURCE=.\slpd_log.c
 
 !IF  "$(CFG)" == "slpd - Win32 Release"
 
-# ADD CPP /I "./" /I "../common" /I "../libslp" /I "..\common" /I "..\libslp" /D VERSION="0.7.5"
+# ADD CPP /I "./" /I "../common" /I "../libslp" /I "..\libslp" /D VERSION="0.7.5"
 # SUBTRACT CPP /YX
 
 !ELSEIF  "$(CFG)" == "slpd - Win32 Debug"
 
-# ADD CPP /I "./" /I "../common" /I "../libslp" /I "..\common" /I "..\libslp"
+# ADD CPP /I "./" /I "../common" /I "../libslp" /I "..\libslp"
 # SUBTRACT CPP /YX
 
 !ENDIF 
@@ -180,12 +182,12 @@ SOURCE=.\slpd_main.c
 
 !IF  "$(CFG)" == "slpd - Win32 Release"
 
-# ADD CPP /I "./" /I "../common" /I "../libslp" /I "..\common" /I "..\libslp" /D VERSION="0.7.5"
+# ADD CPP /I "./" /I "../common" /I "../libslp" /I "..\libslp" /D VERSION="0.7.5"
 # SUBTRACT CPP /YX
 
 !ELSEIF  "$(CFG)" == "slpd - Win32 Debug"
 
-# ADD CPP /I "./" /I "../common" /I "../libslp" /I "..\common" /I "..\libslp"
+# ADD CPP /I "./" /I "../common" /I "../libslp" /I "..\libslp"
 # SUBTRACT CPP /YX
 
 !ENDIF 
@@ -197,12 +199,12 @@ SOURCE=.\slpd_outgoing.c
 
 !IF  "$(CFG)" == "slpd - Win32 Release"
 
-# ADD CPP /I "./" /I "../common" /I "../libslp" /I "..\common" /I "..\libslp" /D VERSION="0.7.5"
+# ADD CPP /I "./" /I "../common" /I "../libslp" /I "..\libslp" /D VERSION="0.7.5"
 # SUBTRACT CPP /YX
 
 !ELSEIF  "$(CFG)" == "slpd - Win32 Debug"
 
-# ADD CPP /I "./" /I "../common" /I "../libslp" /I "..\common" /I "..\libslp"
+# ADD CPP /I "./" /I "../common" /I "../libslp" /I "..\libslp"
 # SUBTRACT CPP /YX
 
 !ENDIF 
@@ -210,16 +212,20 @@ SOURCE=.\slpd_outgoing.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\slpd_predicate.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\slpd_process.c
 
 !IF  "$(CFG)" == "slpd - Win32 Release"
 
-# ADD CPP /I "./" /I "../common" /I "../libslp" /I "..\common" /I "..\libslp" /D VERSION="0.7.5"
+# ADD CPP /I "./" /I "../common" /I "../libslp" /I "..\libslp" /D VERSION="0.7.5"
 # SUBTRACT CPP /YX
 
 !ELSEIF  "$(CFG)" == "slpd - Win32 Debug"
 
-# ADD CPP /I "./" /I "../common" /I "../libslp" /I "..\common" /I "..\libslp"
+# ADD CPP /I "./" /I "../common" /I "../libslp" /I "..\libslp"
 # SUBTRACT CPP /YX
 
 !ENDIF 
@@ -231,12 +237,12 @@ SOURCE=.\slpd_property.c
 
 !IF  "$(CFG)" == "slpd - Win32 Release"
 
-# ADD CPP /I "./" /I "../common" /I "../libslp" /I "..\common" /I "..\libslp" /D VERSION="0.7.5"
+# ADD CPP /I "./" /I "../common" /I "../libslp" /I "..\libslp" /D VERSION="0.7.5"
 # SUBTRACT CPP /YX
 
 !ELSEIF  "$(CFG)" == "slpd - Win32 Debug"
 
-# ADD CPP /I "./" /I "../common" /I "../libslp" /I "..\common" /I "..\libslp"
+# ADD CPP /I "./" /I "../common" /I "../libslp" /I "..\libslp"
 # SUBTRACT CPP /YX
 
 !ENDIF 
@@ -248,12 +254,12 @@ SOURCE=.\slpd_regfile.c
 
 !IF  "$(CFG)" == "slpd - Win32 Release"
 
-# ADD CPP /I "./" /I "../common" /I "../libslp" /I "..\common" /I "..\libslp" /D VERSION="0.7.5"
+# ADD CPP /I "./" /I "../common" /I "../libslp" /I "..\libslp" /D VERSION="0.7.5"
 # SUBTRACT CPP /YX
 
 !ELSEIF  "$(CFG)" == "slpd - Win32 Debug"
 
-# ADD CPP /I "./" /I "../common" /I "../libslp" /I "..\common" /I "..\libslp"
+# ADD CPP /I "./" /I "../common" /I "../libslp" /I "..\libslp"
 # SUBTRACT CPP /YX
 
 !ENDIF 
@@ -265,12 +271,12 @@ SOURCE=.\slpd_socket.c
 
 !IF  "$(CFG)" == "slpd - Win32 Release"
 
-# ADD CPP /I "./" /I "../common" /I "../libslp" /I "..\common" /I "..\libslp" /D VERSION="0.7.5"
+# ADD CPP /I "./" /I "../common" /I "../libslp" /I "..\libslp" /D VERSION="0.7.5"
 # SUBTRACT CPP /YX
 
 !ELSEIF  "$(CFG)" == "slpd - Win32 Debug"
 
-# ADD CPP /I "./" /I "../common" /I "../libslp" /I "..\common" /I "..\libslp"
+# ADD CPP /I "./" /I "../common" /I "../libslp" /I "..\libslp"
 # SUBTRACT CPP /YX
 
 !ENDIF 
@@ -279,7 +285,7 @@ SOURCE=.\slpd_socket.c
 # Begin Source File
 
 SOURCE=.\slpd_win32.c
-# ADD CPP /I "..\common" /I "..\libslp"
+# ADD CPP /I "..\libslp"
 # End Source File
 # End Group
 # Begin Group "Header Files"
