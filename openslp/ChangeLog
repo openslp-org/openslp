@@ -6,6 +6,11 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 
+10/31/01 matt@caldera.com
+Fixed problem with SLPEscape() as patched by Timothy Zurcher
+
+*** Tag OpenSLP-1.0.4 ***
+
 10/18/01 matt@caldera.com
 Added code to use IP address in agent url for those operating systems where
 gethostname() does not return a fully qualified domain name (FQDN).
