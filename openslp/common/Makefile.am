@@ -1,4 +1,5 @@
 noinst_LTLIBRARIES	= libcommonslpd.la libcommonlibslp.la
+EXTRA_DIST = common.dsp common.dsw common.mak
 
 if ENABLE_SLPv1
 slp_v1message_SRCS = slp_v1message.c slp_utf8.c
