@@ -54,9 +54,9 @@ int SLPDKnownDAInit()
     struct hostent*     he;
     struct in_addr      daaddr;
 
-    /* Allow us to send 3 Active DA discovery service requests */
-    G_SlpdProperty.activeDiscoveryAttempts = G_SlpdProperty.activeDADetection * 3;
-
+    /*---------------------------------------*/
+    /* Skip static DA parsing if we are a DA */
+    /*---------------------------------------*/
     if(G_SlpdProperty.isDA)
     {
         /* TODO: some day we may put something here for DA to DA communication */
@@ -67,7 +67,10 @@ int SLPDKnownDAInit()
         slider1 = slider2 = temp = strdup(G_SlpdProperty.DAAddresses);
     }
     
-    if (temp)
+    /*------------------------------------------------------*/
+    /* Added statically configured DAs to the Known DA List */
+    /*------------------------------------------------------*/
+    if (temp && *temp)
     {
         tempend = temp + strlen(temp);
         while (slider1 != tempend)
@@ -103,6 +106,11 @@ int SLPDKnownDAInit()
         }
 
         free(temp);
+    }
+    else
+    {
+        /* Perform active discovery if no statically configured DAs */
+        SLPDKnownDAActiveDiscovery();
     }
 
     return 0;
@@ -230,11 +238,7 @@ void SLPDKnownDARegister(struct sockaddr_in* peeraddr,
             {
                 sock->daentry = daentry;
                 SLPListLinkTail(&G_OutgoingSocketList,(SLPListItem*)sock);
-            }
-            else
-            {
-                /* TODO: what should we do abou an error creating socket */
-            }
+            }  
         }
 
         /* Load the socket with the message to send */
@@ -258,7 +262,7 @@ void SLPDKnownDARegister(struct sockaddr_in* peeraddr,
 
 /*=========================================================================*/
 void SLPDKnownDAActiveDiscovery()
-/* Send an  active DA discovery SrvRqst                                    */
+/* Add a socket to the outgoing list to do active DA discovery SrvRqst     */
 /*									                                       */
 /* Returns:  none                                                          */
 /*=========================================================================*/
@@ -270,17 +274,12 @@ void SLPDKnownDAActiveDiscovery()
     size_t          prlistlen;
     struct in_addr  peeraddr;
     
-    if(G_SlpdProperty.isDA)
-    {
-        /* do not perform active DA discovery if we are a DA */
-        return;
-    }
     if(G_SlpdProperty.activeDiscoveryAttempts <= 0)
     {
         return;
     }
     G_SlpdProperty.activeDiscoveryAttempts --;
-
+    
 
     /*--------------------------------------------------*/
     /* Create new DATAGRAM socket with appropriate peer */
@@ -295,11 +294,17 @@ void SLPDKnownDAActiveDiscovery()
         peeraddr.s_addr = htonl(SLP_BCAST_ADDRESS);
         sock = SLPDSocketCreateDatagram(&peeraddr,DATAGRAM_BROADCAST);
     }
+    if(sock == 0)
+    {
+        /* Could not create socket */
+        return;
+    }
+    
 
+    
     /*-------------------------------------------------*/
     /* Generate a DA service request buffer to be sent */
     /*-------------------------------------------------*/
-
     /* determine the size of the fixed portion of the SRVRQST         */
     bufsize  = 47;  /* 14 bytes for the header                        */
                     /*  2 bytes for the prlistlen                     */
@@ -315,7 +320,8 @@ void SLPDKnownDAActiveDiscovery()
     prlist = malloc(SLP_MAX_DATAGRAM_SIZE);
     if(prlist == 0)
     {
-        goto FINISHED;
+        /* out of memory */
+        return;
     }
     
     *prlist = 0;
@@ -354,7 +360,7 @@ void SLPDKnownDAActiveDiscovery()
     /*ext offset*/
     ToUINT24(sock->sendbuf->start + 7,0);
     /*xid*/
-    ToUINT16(sock->sendbuf->start + 10, 0);  /* TODO: generat a real XID */
+    ToUINT16(sock->sendbuf->start + 10, 0);  /* TODO: generate a real XID */
     /*lang tag len*/
     ToUINT16(sock->sendbuf->start + 12, G_SlpdProperty.localeLen);
     /*lang tag*/
@@ -382,20 +388,10 @@ void SLPDKnownDAActiveDiscovery()
     ToUINT16(sock->sendbuf->curpos,0);
     sock->sendbuf->curpos = sock->sendbuf->curpos + 2;
     
-    /*------------------------------------*/
-    /* Send the active DA service request */
-    /*------------------------------------*/
-    if(sock)
-    {
-        sendto(sock->fd,
-               sock->sendbuf->start,
-               sock->sendbuf->end - sock->sendbuf->start,
-               0,
-               (struct sockaddr *) &(sock->peeraddr),
-               sizeof(struct sockaddr_in));
-    }
+    /*-------------------------------------*/
+    /* Add the socket to the outgoing list */
+    /*-------------------------------------*/
+    SLPDOutgoingDatagramWrite(sock);  
 
-FINISHED:
-    SLPDSocketFree(sock);
 }
 

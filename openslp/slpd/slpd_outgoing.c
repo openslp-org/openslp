@@ -39,6 +39,39 @@
 SLPList G_OutgoingSocketList = {0,0,0};
 /*=========================================================================*/
 
+/*-------------------------------------------------------------------------*/
+void OutgoingDatagramRead(SLPList* socklist, SLPDSocket* sock)
+/*-------------------------------------------------------------------------*/
+{
+    int                 bytesread;
+    int                 err;
+    int                 peeraddrlen = sizeof(struct sockaddr_in);
+
+    bytesread = recvfrom(sock->fd,
+                         sock->recvbuf->start,
+                         SLP_MAX_DATAGRAM_SIZE,
+                         0,
+                         (struct sockaddr *) &(sock->peeraddr),
+                         &peeraddrlen);
+    if (bytesread > 0)
+    {
+        sock->recvbuf->end = sock->recvbuf->start + bytesread;
+
+        if ((err = SLPDProcessMessage(&(sock->peeraddr),
+                                      sock->recvbuf,
+                                      &(sock->sendbuf))) == 0)
+        {
+            /* Never return anything!  We started the converstation */
+
+        }
+        else
+        {
+            SLPLog("An error (%d) occured while processing message from %s\n",
+                   err, inet_ntoa(sock->peeraddr.sin_addr));
+        }
+    }
+}
+
 
 /*-------------------------------------------------------------------------*/
 void OutgoingStreamReconnect(SLPList* socklist, SLPDSocket* sock)
@@ -64,13 +97,7 @@ void OutgoingStreamReconnect(SLPList* socklist, SLPDSocket* sock)
         }
         else
         {
-            /* TODO: if reconnect fails on known DA then we should remove  */
-            /*       the know DA                                           */
-            if(sock->daentry)
-            {
-                SLPDKnownDARemove(sock->daentry);
-                sock->daentry = 0;
-            }
+            /* Could not connect for some error */
             sock->state = SOCKET_CLOSE;
         }                                
     } 
@@ -267,7 +294,33 @@ void OutgoingStreamWrite(SLPList* socklist, SLPDSocket* sock)
     }
 }
 
-
+/*=========================================================================*/
+void SLPDOutgoingDatagramWrite(SLPDSocket* sock)
+/* Add a ready to write outgoing datagram socket to the outgoing list.     */
+/* The datagram will be written then sit in the list until it ages out     */
+/* (after  net.slp.unicastMaximumWait)                                     */
+/*                                                                         */
+/* sock (IN) the socket that will belong on the outgoing list              */
+/*=========================================================================*/
+{
+     if(sendto(sock->fd,
+               sock->sendbuf->start,
+               sock->sendbuf->end - sock->sendbuf->start,
+               0,
+               (struct sockaddr *) &(sock->peeraddr),
+               sizeof(struct sockaddr_in)) >= 0)
+     {
+        /* Link the socket into the outgoing list so replies will be */
+        /* proccessed                                                */
+        SLPListLinkHead(&G_OutgoingSocketList,(SLPListItem*)sock);
+     }
+     else
+     {
+         /* Data could not even be sent to peer, do not add to list */
+         /* free socket instead                                     */
+         SLPDSocketFree(sock);
+     }                       
+}
 
 
 /*=========================================================================*/
@@ -343,16 +396,22 @@ void SLPDOutgoingAge(time_t seconds)
     {
         switch (sock->state)
         {
+        case DATAGRAM_MULTICAST:
+        case DATAGRAM_BROADCAST:
+        case DATAGRAM_UNICAST:
         case STREAM_CONNECT_BLOCK:
-            sock->age = sock->age + 1;
-            if (sock->age > G_SlpdProperty.unicastMaximumWait)
+            sock->age = sock->age + seconds;
+            if (sock->age > G_SlpdProperty.unicastMaximumWait / 1000)
             {
-                /* TODO: Log that the DA is not accepting connections */
                 if (sock->daentry)
                 {
+                    /* Log that the DA is not accepting connection */
+                    SLPDLogKnownDA("Removed (not accepting connections)",
+                                   &(sock->daentry->daaddr));
+
                     /* Remove the DA we were talking to from the list because */
                     /* it is not accepting connections                        */
-                    SLPDAEntryFree((SLPDAEntry*)SLPListUnlink(&G_KnownDAList,(SLPListItem*)(sock->daentry)));
+                    SLPDKnownDARemove(sock->daentry);
                 }
                 del = sock;
             }
@@ -365,7 +424,7 @@ void SLPDOutgoingAge(time_t seconds)
             sock->age = sock->age + seconds;
             if (G_OutgoingSocketList.count > SLPD_COMFORT_SOCKETS)
             {
-                if (sock->age > G_SlpdProperty.unicastMaximumWait)
+                if (sock->age > G_SlpdProperty.unicastMaximumWait / 1000)
                 {
                     sock = del;
                 }

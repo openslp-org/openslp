@@ -117,7 +117,7 @@ int SLPNetworkConnectToMulticast(struct sockaddr_in* peeraddr, int ttl)
         peeraddr->sin_family = AF_INET;
         peeraddr->sin_port = htons(SLP_RESERVED_PORT);
         peeraddr->sin_addr.s_addr = htonl(SLP_MCAST_ADDRESS);
-	optarg = ttl;
+        optarg = ttl;
         
       
 #ifdef WIN32

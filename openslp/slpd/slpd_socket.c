@@ -58,6 +58,61 @@ int EnableBroadcast(sockfd_t sockfd)
 }
 
 /*-------------------------------------------------------------------------*/
+int SetTTL(sockfd_t sockfd, int ttl)
+/* Set the socket options for ttl                                          */
+/*                                                                         */
+/* sockfd   - the socket file descriptor to set option on                  */
+/*                                                                         */
+/* returns  - zero on success                                              */
+/*-------------------------------------------------------------------------*/
+{
+
+#if defined(linux)
+    int 		optarg;
+#else
+    /* Solaris and Tru64 expect a unsigned char parameter */
+    unsigned char	optarg;
+#endif
+    
+    
+#ifdef WIN32
+    BOOL Reuse = TRUE;
+    int TTLArg;
+    struct sockaddr_in	mysockaddr;
+
+    memset(&mysockaddr, 0, sizeof(mysockaddr));
+    mysockaddr.sin_family = AF_INET;
+    mysockaddr.sin_port = 0;
+    
+    TTLArg = ttl;
+    if (setsockopt(sockfd,
+                SOL_SOCKET,
+                SO_REUSEADDR,
+                (const char  *)&Reuse,
+                sizeof(Reuse)) ||
+        bind(sockfd, 
+             (struct sockaddr *)&mysockaddr, 
+             sizeof(mysockaddr)) ||
+        setsockopt(sockfd,
+                   IPPROTO_IP,
+                   IP_MULTICAST_TTL,
+                   (char *)&TTLArg,
+                   sizeof(TTLArg)) )
+    {
+        return -1;
+    }
+#else
+    if(setsockopt(sockfd,IPPROTO_IP,IP_MULTICAST_TTL,&optarg,sizeof(optarg)))
+    {
+        return -1;
+    }
+#endif
+
+    return 0;
+}
+
+
+/*-------------------------------------------------------------------------*/
 int JoinSLPMulticastGroup(sockfd_t sockfd, struct in_addr* maddr,
                           struct in_addr* addr)
 /* Sets the socket options to receive multicast traffic from the specified */
@@ -254,10 +309,25 @@ SLPDSocket* SLPDSocketCreateDatagram(struct in_addr* peeraddr,
         sock->fd = socket(PF_INET, SOCK_DGRAM, 0);
         if(sock->fd >=0)
         {
+            switch(type)
+            {
+            case DATAGRAM_BROADCAST:
+                EnableBroadcast(sock->fd);
+                break;
+                
+            case DATAGRAM_MULTICAST:
+                SetTTL(sock->fd,G_SlpdProperty.multicastTTL);
+                break;
+
+            default:
+                break;
+            }
+            
             sock->peeraddr.sin_family = AF_INET;
             sock->peeraddr.sin_addr = *peeraddr;
             sock->peeraddr.sin_port = htons(SLP_RESERVED_PORT);
             sock->state = type;
+           
         }
         else
         {
@@ -267,8 +337,7 @@ SLPDSocket* SLPDSocketCreateDatagram(struct in_addr* peeraddr,
     }
 
     return sock;
-}
-
+} 
 
 /*==========================================================================*/
 SLPDSocket* SLPDSocketCreateBoundDatagram(struct in_addr* myaddr,
@@ -422,7 +491,7 @@ SLPDSocket* SLPDSocketCreateConnected(struct in_addr* addr)
     }
 
     /* create the stream socket */
-    sock->fd = socket(PF_INET,SOCK_DGRAM,0);
+    sock->fd = socket(PF_INET,SOCK_STREAM,0);
     if(sock->fd < 0)
     {
         goto FAILURE;                        

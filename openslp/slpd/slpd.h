@@ -391,7 +391,7 @@ typedef struct _SLPDSocket
 {
     SLPListItem         listitem;    
     int                 fd;
-    time_t              age;      
+    time_t              age;  /* in seconds */    
     SLPDSocketState     state;
     struct sockaddr_in  peeraddr;
     
@@ -541,6 +541,16 @@ void SLPDOutgoingHandler(int* fdcount,
 /* readfds  (IN) file descriptors with pending read IO                     */
 /*                                                                         */
 /* writefds  (IN) file descriptors with pending read IO                    */
+/*=========================================================================*/
+
+
+/*=========================================================================*/
+void SLPDOutgoingDatagramWrite(SLPDSocket* sock);
+/* Add a ready to write outgoing datagram socket to the outgoing list.     */
+/* The datagram will be written then sit in the list until it ages out     */
+/* (after  net.slp.unicastMaximumWait)                                     */
+/*                                                                         */
+/* sock (IN) the socket that will belong on the outgoing list              */
 /*=========================================================================*/
 
 

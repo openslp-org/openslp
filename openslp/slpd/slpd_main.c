@@ -36,8 +36,8 @@
 /*==========================================================================*/
 int G_SIGALRM;
 int G_SIGTERM;
-int G_SIGHUP;
-/*==========================================================================*/                                                                                                 
+int G_SIGHUP;                                                                                                 
+/*==========================================================================*/
 
 
 /*-------------------------------------------------------------------------*/
@@ -49,7 +49,7 @@ void LoadFdSets(SLPList* socklist,
 {
     SLPDSocket* sock = 0;
     SLPDSocket* del = 0;
-    
+
     sock = (SLPDSocket*)socklist->head;
     while(sock)
     {
@@ -65,7 +65,7 @@ void LoadFdSets(SLPList* socklist,
         case DATAGRAM_BROADCAST:
             FD_SET(sock->fd,readfds);
             break;
-            
+
         case SOCKET_LISTEN:
             if(socklist->count < SLPD_MAX_SOCKETS)
             {
@@ -91,9 +91,9 @@ void LoadFdSets(SLPList* socklist,
         default:
             break;
         }
-        
+
         sock = (SLPDSocket*)sock->listitem.next;
-        
+
         if(del)
         {
             SLPDSocketFree((SLPDSocket*)SLPListUnlink(socklist,(SLPListItem*)del));     
@@ -105,45 +105,45 @@ void LoadFdSets(SLPList* socklist,
 
 #ifdef WIN32
 void __cdecl main(int argc, char **argv) 
-{ 
-  SERVICE_TABLE_ENTRY dispatchTable[] = 
-  { 
-    { G_SERVICENAME, (LPSERVICE_MAIN_FUNCTION)SLPDServiceMain }, 
-    { NULL, NULL } 
-  }; 
- 
-  /*------------------------*/
-  /* Parse the command line */
-  /*------------------------*/
-  if(SLPDParseCommandLine(argc,argv))
-  {
-    SLPFatal("Invalid command line\n");
-  }    
+{
+    SERVICE_TABLE_ENTRY dispatchTable[] = 
+    { 
+        { G_SERVICENAME, (LPSERVICE_MAIN_FUNCTION)SLPDServiceMain}, 
+        { NULL, NULL} 
+    }; 
 
-  switch(G_SlpdCommandLine.action)
-  {
+    /*------------------------*/
+    /* Parse the command line */
+    /*------------------------*/
+    if(SLPDParseCommandLine(argc,argv))
+    {
+        SLPFatal("Invalid command line\n");
+    }
+
+    switch(G_SlpdCommandLine.action)
+    {
     case SLPD_DEBUG:
-      SLPDCmdDebugService(argc, argv);
-      break;
+        SLPDCmdDebugService(argc, argv);
+        break;
     case SLPD_INSTALL:
-      SLPDCmdInstallService();
-      break;
+        SLPDCmdInstallService();
+        break;
     case SLPD_REMOVE:
-      SLPDCmdRemoveService();
-      break;
+        SLPDCmdRemoveService();
+        break;
     default:
-      SLPDPrintUsage();
-      StartServiceCtrlDispatcher(dispatchTable);
-      
-      break;
-  } 
+        SLPDPrintUsage();
+        StartServiceCtrlDispatcher(dispatchTable);
+
+        break;
+    } 
 } 
- 
+
 
 
 
 #else
- 
+
 
 /*--------------------------------------------------------------------------*/
 void SignalHandler(int signum)
@@ -160,7 +160,7 @@ void SignalHandler(int signum)
 
     case SIGHUP:
         G_SIGHUP = 1;
-        
+
     case SIGPIPE:
     default:
         return;
@@ -181,11 +181,11 @@ int SetUpSignalHandlers()
 #if defined(HAVE_SA_RESTORER)
     sa.sa_restorer   = 0;
 #endif
-    
+
     result = sigaction(SIGALRM,&sa,0);
     result |= sigaction(SIGTERM,&sa,0);
     result |= sigaction(SIGPIPE,&sa,0);
-    
+
     signal(SIGHUP,SignalHandler);
     //result |= sigaction(SIGHUP,&sa,0);
 
@@ -205,10 +205,10 @@ int Daemonize(const char* pidfile)
     FILE*   fd;
     struct  passwd* pwent;
     char    pidstr[13];
-    
+
     if(G_SlpdCommandLine.detach)
     {
-    
+
         /*-------------------------------------------*/
         /* Release the controlling tty and std files */
         /*-------------------------------------------*/
@@ -219,18 +219,18 @@ int Daemonize(const char* pidfile)
         case 0:
             /* child lives */
             break;
-    
+
         default:
             /* parent dies */
             exit(0);
         }
-    
+
         close(0); 
         close(1); 
         close(2); 
         setsid(); /* will only fail if we are already the process group leader */
     }
-     
+
     /*------------------------------------------*/
     /* make sure that we're not running already */
     /*------------------------------------------*/
@@ -249,7 +249,7 @@ int Daemonize(const char* pidfile)
                 SLPFatal("slpd daemon is already running\n");
                 return -1;
             }
-        }    
+        }
     }
     /* write my pid to the pidfile */
     fd = fopen(pidfile,"w");
@@ -259,7 +259,7 @@ int Daemonize(const char* pidfile)
         fwrite(pidstr,strlen(pidstr),1,fd);
         fclose(fd);
     }
-    
+
     /*----------------*/
     /* suid to daemon */
     /*----------------*/
@@ -274,7 +274,7 @@ int Daemonize(const char* pidfile)
             /* TODO: should we log here and return fail */
         }
     }
-    
+
     return 0;
 }
 
@@ -288,7 +288,7 @@ int main(int argc, char* argv[])
     fd_set          writefds;
     int             highfd;
     int             fdcount         = 0;
-    
+
     /*------------------------*/
     /* Parse the command line */
     /*------------------------*/
@@ -304,7 +304,7 @@ int main(int argc, char* argv[])
     {
         SLPFatal("slpd must be started by root\n");
     }
-    
+
     /*------------------------------*/
     /* Initialize the log file      */
     /*------------------------------*/
@@ -313,8 +313,8 @@ int main(int argc, char* argv[])
     SLPLog("*** SLPD daemon started              ***\n");
     SLPLog("****************************************\n");
     SLPLog("command line = %s\n",argv[0]);
-    
-    
+
+
     /*--------------------------------------------------*/
     /* Initialize for the first time                    */
     /*--------------------------------------------------*/
@@ -324,7 +324,7 @@ int main(int argc, char* argv[])
     SLPDOutgoingInit();
     SLPDKnownDAInit();
     /* TODO: Check error codes on all init functions */
-    
+
     /*---------------------------*/
     /* make slpd run as a daemon */
     /*---------------------------*/
@@ -334,13 +334,13 @@ int main(int argc, char* argv[])
     }
 
     /*-----------------------*/
-    /* Setup signal handlers */ 
+    /* Setup signal handlers */
     /*-----------------------*/
     if(SetUpSignalHandlers())
     {
         SLPFatal("Could not set up signal handlers.\n");
     }
-    
+
     /*------------------------------*/
     /* Set up alarm to age database */
     /*------------------------------*/
@@ -352,7 +352,7 @@ int main(int argc, char* argv[])
     G_SIGALRM   = 0;
     G_SIGTERM   = 0;
     G_SIGHUP    = 0;    
-	SLPLog("Initialization complete\n\n");
+    SLPLog("Initialization complete\n\n");
     while(G_SIGTERM == 0)
     {
         /*--------------------------------------------------------*/
@@ -363,7 +363,7 @@ int main(int argc, char* argv[])
         FD_ZERO(&writefds);
         LoadFdSets(&G_IncomingSocketList, &highfd, &readfds,&writefds);
         LoadFdSets(&G_OutgoingSocketList, &highfd, &readfds,&writefds);
-        
+
         /*--------------------------------------------------*/
         /* Before select(), check to see if we got a signal */
         /*--------------------------------------------------*/
@@ -371,7 +371,7 @@ int main(int argc, char* argv[])
         {
             goto HANDLE_SIGNAL;
         }
-        
+
         /*-------------*/
         /* Main select */
         /*-------------*/
@@ -385,7 +385,7 @@ int main(int argc, char* argv[])
         /*----------------*/
         /* Handle signals */
         /*----------------*/
-HANDLE_SIGNAL:
+        HANDLE_SIGNAL:
         if(G_SIGHUP)
         {
             /* Reinitialize */
@@ -393,7 +393,7 @@ HANDLE_SIGNAL:
             SLPLog("*** SLPD daemon restarted            ***\n");
             SLPLog("****************************************\n");
             SLPLog("Got SIGHUP reinitializing... \n");
-        
+
             SLPDPropertyInit(G_SlpdCommandLine.cfgfile);
             SLPDDatabaseInit(G_SlpdCommandLine.regfile);
             /* Don't reinitialize Incoming because we can't rebind to */
@@ -402,7 +402,7 @@ HANDLE_SIGNAL:
             SLPDOutgoingInit();
             SLPDKnownDAInit();
             G_SIGHUP = 0;     
-        } 
+        }
         if(G_SIGALRM)
         {
             /* TODO: add call to do passive DAAdvert */
@@ -413,18 +413,18 @@ HANDLE_SIGNAL:
             G_SIGALRM = 0;
             alarm(SLPD_AGE_INTERVAL);
         }
-                            
+
 
     } /* End of main loop */
 
     SLPLog("Got SIGTERM.  Going down\n");
 
-    #if(defined DEBUG)
+#if(defined DEBUG)
     SLPDIncomingDeinit();
     SLPDOutgoingDeinit();
     printf("Number of calls to SLPBufferAlloc() = %i\n",G_Debug_SLPBufferAllocCount);
     printf("Number of calls to SLPBufferFree() = %i\n",G_Debug_SLPBufferFreeCount);
-    #endif
+#endif
     return 0;
 }
 
