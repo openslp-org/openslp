@@ -6,7 +6,7 @@
 #
 
 sbin_PROGRAMS	= slpd
-INCLUDES	= -I$(top_srcdir)/common -I$(srcdir)
+INCLUDES	= -I$(top_srcdir)/common -I$(top_srcdir)/libslpattr -I$(srcdir)
 
 slpd_SOURCES	= slpd_socket.c \
     slpd_database.c \
@@ -18,8 +18,9 @@ slpd_SOURCES	= slpd_socket.c \
     slpd_log.c      \
     slpd_knownda.c  \
     slpd_incoming.c \
-    slpd_outgoing.c 
-slpd_LDADD	=  ../common/libcommonslpd.la
+    slpd_outgoing.c \
+	slpd_predicate.c
+slpd_LDADD	=  ../common/libcommonslpd.la ../libslpattr/libslpattr.la
 
-
+slpd_DEPENDENCIES = -lm ../libslpattr/libslpattr.la
 
