@@ -365,9 +365,23 @@ int SLPDRegFileReadSrvReg(FILE* fd,
                 result = SLP_ERROR_INTERNAL_ERROR;
                 goto CLEANUP;
             }
-            strcat(attrlist,"(");
-            strcat(attrlist,slider1);
-            strcat(attrlist,")");
+	    
+	    /* we need special case for keywords (why do we need these)   */
+	    /* they seem like a waste of code.  Why not just use booleans */
+	    if(strchr(slider1,'='))
+	    {
+	        /* normal attribute (with '=') */
+	        strcat(attrlist,"(");
+                strcat(attrlist,slider1);
+                strcat(attrlist,")");
+	    }
+	    else
+	    {
+	        /* keyword (no '=') */
+	        attrlistlen -= 2; /* subtract 2 bytes for no '(' or ')' */
+	        strcat(attrlist,slider1);	       
+	    }
+		
         }
     }
 
