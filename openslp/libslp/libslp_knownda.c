@@ -228,6 +228,8 @@ SLPBoolean KnownDADiscoveryCallback(SLPError errorcode,
                         if(SLPParseSrvURL(replymsg->body.daadvert.url, &srvurl) == 0)
                         {
 							int retval = -1;
+							/* Should call inet_pton with the same address family as was found in the
+							   DA url. */
 							if (replymsg->peer.ss_family == AF_INET && SLPNetIsIPV4()) {
 								memset(&((struct sockaddr_in *)&replymsg->peer)->sin_addr, 0, sizeof(struct in_addr));
 								retval = inet_pton(replymsg->peer.ss_family, srvurl->s_pcHost, &((struct sockaddr_in *)&replymsg->peer)->sin_addr);
@@ -683,11 +685,11 @@ int KnownDAConnect(PSLPHandleInfo handle,
             break;
         }
 
-		if (SLPNetIsIPV6()) {
+		if (peeraddr->ss_family == AF_INET6 && SLPNetIsIPV6()) {
 			SLPNetSetAddr(peeraddr, AF_INET6, htons(SLP_RESERVED_PORT), NULL, 0);
 			sock = SLPNetworkConnectStream(peeraddr,&timeout);
 		}
-		if (sock < 0 && SLPNetIsIPV4()) {
+		if (peeraddr->ss_family == AF_INET && SLPNetIsIPV4()) {
 			SLPNetSetAddr(peeraddr, AF_INET, htons(SLP_RESERVED_PORT), NULL, 0);
 			sock = SLPNetworkConnectStream(peeraddr,&timeout);
 		}
