@@ -1,3 +1,130 @@
+openslp (1.2.1+cvs20050404-0pm1) unstable; urgency=low
+
+  * new upstream version with lots of stability fixes
+
+ -- Peter Marschall <peter@adpm.de>  Mon,  4 Apr 2005 10:15:17 +0200
+
+openslp (1.0.11a-1) unstable; urgency=low
+
+  * Sanitized sources by removing CVS cruft and updating slpd.all_init
+    from latest CVS version (Closes: #279973).
+  * Applied patch from Robert Millan <rmh@debian.org> to fix OpenSLP build
+    for GNU/kFreeBSD (Closes: #262184).
+  * Included Danish debconf template translation (Closes: #245088).
+  * Included Catalan debconf template translation (Closes: #248746).
+  * Included German debconf template translation (Closes: #264609).
+  * Do igmp multicast check only for Linux kernel (Closes: #266675).
+  * Check for proc/net before igmp multicast check (Closes: #251004).
+  * Updated to standards version 3.6.1.
+
+ -- Ganesan Rajagopal <rganesan@debian.org>  Wed,  2 Feb 2005 14:53:49 +0530
+
+openslp (1.0.11-7) unstable; urgency=low
+
+  * Re-introduce Conflicts for libxdelta3-dev because it may break upgrade 
+    from woody (Closes: #228356).
+
+ -- Ganesan Rajagopal <rganesan@debian.org>  Fri,  5 Mar 2004 10:49:05 +0530
+
+openslp (1.0.11-6) unstable; urgency=medium
+
+  * Removed Conflicts for libxdelta3-dev. It's no longer in the archive.
+  * Fix segfault when prlist is overflowed (Closes: #222649).
+
+ -- Ganesan Rajagopal <rganesan@debian.org>  Fri,  5 Dec 2003 17:13:54 +0530
+
+openslp (1.0.11-5) unstable; urgency=low
+
+  * Remove "| hurd | freebsd" from dependency list because GNU/Hurd and
+    GNU/KFreeBSD now have a package providing net-tools (Closes: #217283).
+    
+ -- Ganesan Rajagopal <rganesan@debian.org>  Tue,  4 Nov 2003 13:38:21 +0530
+
+openslp (1.0.11-4) unstable; urgency=low
+
+  * Work-around timestamp skew problems for files patched from diff.gz 
+    on m68k (Closes: #201888).
+  
+ -- Ganesan Rajagopal <rganesan@debian.org>  Wed, 30 Jul 2003 16:20:58 +0530
+
+openslp (1.0.11-3) unstable; urgency=low
+
+  * Relaxed net-tools dependency for libslp1 by applying patch from
+    Robert Millan <rmh@debian.org> (Closes: #201455).
+  * Use updated config.{guess,sub} from autotools-dev. This helps the
+    GNU/FreeBSD port. Patch from Robert Millan <rmh@debian.org> 
+    (Closes: #195924).
+  * Removed RFCs from the doc package (Closes: #199813).
+  * Included French debconf templates update. Patch by Christian 
+    Perrier <bubulle@debian.org>, proofread by debian-l10n-french mailing 
+    list contributors (Closes: #192250).
+  * Bumped up standards version.
+  
+ -- Ganesan Rajagopal <rganesan@debian.org>  Fri, 18 Jul 2003 11:20:58 +0530
+
+openslp (1.0.11-2) unstable; urgency=low
+
+  * Added a dependency on net-tools for libslp1 (Closes: #193047)
+  * Fixed build so that doc packages are built in binary-indep rule
+    (Closes: #181453)
+  
+ -- Ganesan Rajagopal <rganesan@debian.org>  Wed, 13 May 2003 12:08:58 +0530
+
+openslp (1.0.11-1) unstable; urgency=low
+
+  * New upstream release.
+  * Included patch from Andre Luis Lopes <andrelop@ig.com.br> to move
+    to po-debconf (Closes: #187895, #186328).
+  * Removed prompting for multicast route (Closes: #173675).
+  * Moved slptool into it's own package (Closes: #173675).
+  * Bumped up standards version to 3.5.9.0.
+  
+ -- Ganesan Rajagopal <rganesan@debian.org>  Wed, 26 Apr 2003 17:13:08 +0530
+
+openslp (1.0.10-4) unstable; urgency=low
+
+  * autoreconf run on the source tree to get updated configure script (This
+    is to fix build breakage on mipsel) (Closes: #180100).
+
+ -- Ganesan Rajagopal <rganesan@debian.org>  Wed, 07 Feb 2003 14:16:08 +0530
+
+openslp (1.0.10-3) unstable; urgency=low
+
+  * Turning off --enable-slpv2-security because of licensing issues with
+    KDE (Closes: #179825).
+  * Use debconf for prompting (Closes: #171990).
+  * Update config.guess and config.sub from autotools-dev version 20030110.1.
+
+ -- Ganesan Rajagopal <rganesan@debian.org>  Wed, 05 Feb 2003 11:35:08 +0530
+
+openslp (1.0.10-2) unstable; urgency=low
+
+  * Argh. I can't believe I screwed up on config.{guess,sub} again. 
+    Especially, since I updated upstream CVS to the latest version. 
+    Updated config.{guess,sub} again from upstream CVS. (Closes: #172502).
+
+ -- Ganesan Rajagopal <rganesan@debian.org>  Thu, 12 Dec 2002 09:11:38 +0530
+
+openslp (1.0.10-1) unstable; urgency=low
+
+  * New upstream release.
+  * Enabled security and asyncapi (Closes: #163033).
+
+ -- Ganesan Rajagopal <rganesan@debian.org>  Thu,  5 Dec 2002 14:41:00 +0530
+
+openslp (1.0.9-3) unstable; urgency=low
+
+  * Removed CVS directories from openslp-doc package (thanks to Joey Hess
+    joyeh@debian.org for pointing out the problem).
+
+ -- Ganesan Rajagopal <rganesan@debian.org>  Mon, 18 May 2002 12:09:38 +0530
+
+openslp (1.0.9-2) unstable; urgency=high
+
+  * Fixed really bad bug which rendered OpenSLP literally unusable. 
+
+ -- Ganesan Rajagopal <rganesan@debian.org>  Mon, 16 May 2002 09:33:58 +0530
+
 openslp (1.0.9-1) unstable; urgency=low
 
   * New upstream version.
@@ -170,6 +297,4 @@ openslp (0.8.1-1) unstable; urgency=low
 
  -- Ganesan Rajagopal <rganesan@myrealbox.com>  Sat,  9 Dec 2000 16:18:46 +0530
 
-Local variables:
-mode: debian-changelog
-End:
+

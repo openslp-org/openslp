@@ -2,8 +2,8 @@ Source: openslp
 Section: net
 Priority: extra
 Maintainer: Ganesan Rajagopal <rganesan@debian.org>
-Build-Depends: debhelper (>= 3.0.15)
-Standards-Version: 3.5.6.0
+Build-Depends: debhelper (>= 4.1.26), debconf, autotools-dev
+Standards-Version: 3.6.1
 
 Package: slpd
 Section: net
@@ -12,20 +12,20 @@ Architecture: any
 Depends: ${shlibs:Depends}
 Suggests: openslp-doc (= ${Source-Version})
 Description: OpenSLP Server (slpd)
- SLPv2 (RFC 2608) is a IETF standard protocol that is used to
+ Service Location Protocol is a IETF standard protocol that is used to
  discover/advertise services on the network. You can use SLP for anything
  from locating a suitable printer on your floor to discovering what LDAP
  directories are available in your organization. This package provides slpd,
- the OpenSLP daemon, which provides an SLPv2 compliant Service Agent and
- Directory Agent. 
+ the OpenSLP daemon, which provides an SLPv2 (RFC 2608) compliant Service
+ Agent and Directory Agent. 
 
 Package: openslp-doc
 Section: doc
 Priority: extra
 Architecture: all
 Description: OpenSLP documentation
- SLPv2 (RFC 2608) is a IETF standard protocol (RFC 2608) that is used to
- discover/advertise services on the network. You can use SLP for anything
+ Service Location Protocol is a IETF standard protocol that is used to
+ discover/advertise services on the network. You can use SLP for anything 
  from locating a suitable printer on your floor to discovering what LDAP
  directories are available in your organization. This package provides
  comprehensive documentation on SLP and the OpenSLP implementation; it
@@ -36,27 +36,40 @@ Package: libslp1
 Section: libs
 Priority: optional
 Architecture: any
-Depends: ${shlibs:Depends}
+Depends: ${shlibs:Depends}, debconf, net-tools
 Suggests: slpd (= ${Source-Version}), openslp-doc (= ${Source-Version})
 Description: OpenSLP libraries
- SLPv2 (RFC 2608) is a IETF standard protocol (RFC 2608) that is used to
+ Service Location Protocol is a IETF standard protocol that is used to
  discover/advertise services on the network. You can use SLP for anything
  from locating a suitable printer on your floor to discovering what LDAP
  directories are available in your organization.  This package provides 
- a SLP run-time library package that is linked to SLP aware applications. The 
- library implements RFC 2614 - An API for Service Location. Unless there is 
- a SLP DA in the network, you must install the slpd package to be able to
- advertise the services.
+ the OpenSLP run-time library package that is linked to SLP aware
+ applications. This library implements RFC 2614 - An API for Service
+ Location. Unless there is a SLP DA in the network, you must install the
+ slpd package to be able to advertise the services.
+
+Package: slptool
+Section: utils
+Priority: extra
+Architecture: any
+Depends: libslp1 (= ${Source-Version})
+Suggests: openslp-doc (= ${Source-Version})
+Description: SLP command line tool
+ Service Location Protocol is a IETF standard protocol that is used to
+ discover/advertise services on the network. You can use SLP for anything
+ from locating a suitable printer on your floor to discovering what LDAP
+ directories are available in your organization. This package contains
+ the a utility which you can use to exercise/test SLP.
 
 Package: libslp-dev
-Section: devel
+Section: libdevel
 Priority: extra
 Architecture: any
 Depends: libslp1 (= ${Source-Version}), libc6-dev
 Suggests: openslp-doc (= ${Source-Version})
 Conflicts: libxdelta3-dev
 Description: OpenSLP development libraries
- SLPv2 (RFC 2608) is a IETF standard protocol (RFC 2608) that is used to
+ Service Location Protocol is a IETF standard protocol that is used to
  discover/advertise services on the network. You can use SLP for anything
  from locating a suitable printer on your floor to discovering what LDAP
  directories are available in your organization. This package allows

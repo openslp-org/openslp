@@ -1,10 +1,10 @@
-.TH slptool 1 "Sep 08 2001" "OpenSLP 1.0.1"
+.TH slptool 1 "Mar 03 2005" "OpenSLP 1.2.1"
 
 .SH NAME
 slptool \- SLP command line tool
 
 .SH SYNOPSIS
-.B /usr/bin/slpd 
+.B /usr/bin/slptool 
 .B [\-v|\-\-version] 
 .B [\-s|\-\-scope scopes]
 .B [\-l|\-\-language languagetag] 
@@ -29,12 +29,26 @@ is a comma separated list of scopes applicable for the command.
 .BI [\-l|\-\-language " languagetag"
 .I languagetag
 is the language tag to be used for the command.
+
+.SH COMMANDS
 .TP
 .BI findsrvs " service\-type [filter]"
 .TP
+.BI findsrvsusingiflist " interface-list service-type [filter]"
+.TP
+.BI unicastfindsrvs " ip-address service-type [filter]"
+.TP
 .BI findattrs " url [attrids]"
 .TP
-.BI findsrvtypes " [authority] "
+.BI unicastfindattrs " ip-address url [attrids]"
+.TP
+.BI findattrsusingiflist " interface-list url [attrids]"
+.TP
+.BI findsrvtypes " [authority]"
+.TP
+.BI unicastfindsrvtypes " [authority]"
+.TP
+.BI findsrvtypesusingiflist " interface-list [authority]"
 .TP
 .BI findscopes
 .TP
@@ -51,9 +65,25 @@ slptool findsrvs service:myserv.x
 .LP
 slptool findsrvs service:myserv.x "(attr1=val1)"
 .LP
+slptool findsrvsusingiflist 10.77.13.240,192.168.250.240 service:myserv.x
+.LP
+slptool findsrvsusingiflist 10.77.13.243 service:myserv.x "(attr1=val1)"
+.LP
+slptool unicastfindsrvs 10.77.13.237 service:myserv.x
+.LP
+slptool unicastfindsrvs 10.77.13.237 service:myserv.x "(attr1=val1)"
+.LP
 slptool findattrs service:myserv.x://myhost.com
 .LP
 slptool findattrs service:myserv.x://myhost.com attr1
+.LP
+slptool unicastfindattrs 10.77.13.237 service:myserv.x
+.LP
+slptool unicastfindattrs 10.77.13.237 service:myserv.x://myhost.com attr1
+.LP
+slptool findattrsusingiflist 10.77.13.240,192.168.250.240 service:myserv.x://myhost.com
+.LP
+slptool findattrsusingiflist 10.77.13.243 service:myserv.x://myhost.com attr1
 .LP
 slptool deregister service:myserv.x://myhost.com
 .LP
@@ -64,8 +94,8 @@ slptool getproperty net.slp.useScopes
 
 .SH NOTES
 This man page was written for the Debian project by Debian Developer Ganesan
-Rajagopal (rganesan@debian.org). You should refer to the online html
-documentation in the 
+Rajagopal (rganesan@debian.org) and Peter Marschall.
+You should refer to the online html documentation in the 
 .BR openslp-doc 
 package for more complete and up-to-date information.
 

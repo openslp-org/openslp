@@ -1,0 +1,63 @@
+#
+#    Translators, if you are not familiar with the PO format, gettext
+#    documentation is worth reading, especially sections dedicated to
+#    this format, e.g. by running:
+#         info -n '(gettext)PO Files'
+#         info -n '(gettext)Header Entry'
+#
+#    Some information specific to po-debconf are available at
+#            /usr/share/doc/po-debconf/README-trans
+#         or http://www.debian.org/intl/l10n/po-debconf/README-trans
+#
+#    Developers do not need to manually edit POT or PO files.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2003-04-06 17:12-0300\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. Description
+#: ../libslp1.templates:3
+msgid "To reduce network traffic use a IP multicast enabled kernel"
+msgstr ""
+
+#. Description
+#: ../libslp1.templates:3
+msgid ""
+"The kernel version that you are currently running does not appear to support "
+"IP multicast. OpenSLP will continue to work even without multicast support "
+"in the kernel by using broadcasts. However, broadcasts are less efficient on "
+"the network, so please consider upgrading to a multicast enabled kernel."
+msgstr ""
+
+#. Description
+#: ../libslp1.templates:12
+msgid "Please configure a multicast route in /etc/network/interfaces"
+msgstr ""
+
+#. Description
+#: ../libslp1.templates:12
+msgid ""
+"You don't seem to have a multicast route configured. OpenSLP can take "
+"advantage of multicast packets and reduce traffic on your network. You can "
+"setup a multicast route automatically on system startup by adding the "
+"following commands to the \"interface\" line(s) in your /etc/network/"
+"interfaces file."
+msgstr ""
+
+#. Description
+#: ../libslp1.templates:12
+msgid "\"    up route add -net 224.0.0.0 netmask 240.0.0.0 dev eth0\""
+msgstr ""
+
+#. Description
+#: ../libslp1.templates:12
+msgid "\"    down route del -net 224.0.0.0 netmask 240.0.0.0 dev eth0\""
+msgstr ""
