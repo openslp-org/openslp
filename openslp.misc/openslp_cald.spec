@@ -1,5 +1,5 @@
 Name            : openslp
-Version         : 0.8.0
+Version         : 0.8.1
 Release         : 1
 Group           : Server/Network
 Summary         : OpenSLP implementation of Service Location Protocol V2
@@ -9,8 +9,9 @@ URL             : http://www.openslp.org
  
 BuildRoot       : /tmp/%{Name}-%{Version}
   
-Source0: ftp://openslp.org//pub/openslp/%{Name}-%{Version}.tar.gz
-   
+Source0: openslp/openslp-%{Version}.tar.gz
+Source1: openslp/slptool-%{Version}.tar.gz
+
 %Description
 Service Location Protocol is an IETF standards track protocol that
 provides a framework to allow networking applications to discover the
@@ -18,18 +19,21 @@ existence, location, and configuration of networked services in
 enterprise networks.
     
 %Prep
-%setup
+%setup -b 1
 
 %Build
-./autogen.sh
-./configure
+./configure --disable-predicates
 make
+cd ../slptool-%{Version}
+LIBDIR=../openslp-%{Version}/libslp/.lib make
 
 %Install
 %{mkDESTDIR}
 make install 
 mkdir -p $DESTDIR/etc/rc.d/init.d
 install -m 755 etc/slpd.all_init $DESTDIR/etc/rc.d/init.d/slpd
+mkdir -p $DESTDIR/usr/bin
+install -m 755 ../slptool-%{Version}/slptool $DESTDIR/usr/bin/slptool
 
 %{fixManPages}
 
@@ -89,7 +93,7 @@ fi
 /usr/lib/libslp*
 /usr/include/slp.h
 /usr/sbin/slpd
-
+/usr/bin/slptool
 
 %ChangeLog
 * Wed Nov 28 2000 mpeterson@caldera.com
