@@ -16,21 +16,35 @@ The OpenSLP project is an effort to develop an open-source implementation of
 Service Location Protocol suitable for commercial and non-commercial 
 application.
 
-The latest version of OpenSLP is 0.8.3  Changes for this version consist of
-the following:
+The latest version of OpenSLP is 0.9.0  Release notes for this version follow:
+Due to the need to make some significant changes to the code, we have
+decided to make one final major release before 1.0.x.  Most of the changes
+in OpenSLP 0.9.0 were required to add SLPv2
+authentication support.  The most obvious difference between 0.9.0 and
+previous releases is a rewrite of the internal database used to store
+registrations and known DAs.  Instead of copying fields
+from SrvReg and DAAdvert messages, the registration and known DA databases
+now save off the entire message along with the SLPMessage descriptor.  This
+allows for slightly faster processing, but
+more importantly, it allows for storage of authentication information in a
+way that does not require the SA or DA to have to recalculate signatures for
+each reply. 
 
-    - Completely updated Win32 port.  See README.W32.
-    - Addition of SLPParseAttr() that complies with what will be in RFC2614bis
-      (Note: the libslp.so library version is not 0.0.3)
-    - Preliminary support for asyncronous API calls is now a compile time 
-      option.  Async calls still not fully supported.
-    - Many fixes to documentation based on review feedback from debian
-      developer Susan G. Kleinmann (sgk@debian.org)
-    - Fixed "DAs with multiple scopes" bug.
-    - Fixed "Local service time out on DA" bug.
-    - Fixed "Bad 1400 byte message" bug.
+The following is a shortened list changes for 0.9.0: 
 
-
+ - Full SLPv2 Authentication support
+ - Completely new internal registration and knownDA database implementation 
+ - Optional net.slp.checkSourceAddr security feature
+ - Support for net.slp.OpenSLPVersion
+ - Support for special service-types -- service:directory-agent and 
+   service:service-agent can now be used in calls to SLPFindSrvs()
+ - Changes to libslp to prepare for collation in 0.9.1
+ - Fixes for sever socket reconnect, reuse, and aging bugs
+ - Fixes for several slp.reg parsing errors.
+ - Fixed for "invalid predicate" SEGV
+ - Debug logging of registrations and known DAs on receipt of SIGINT
+ - Debug malloc wrappers       
+       
 2 - Roadmap
 ------------
 OpenSLP is getting very close to being released nd beta form.  It is 

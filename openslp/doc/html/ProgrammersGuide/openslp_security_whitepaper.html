@@ -1,0 +1,338 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+   <meta name="GENERATOR" content="Mozilla/4.76C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.4.2 i686) [Netscape]">
+   <title>OpenSLP Programmers Guide - Security Whitepaper</title>
+</head>
+<body text="#000000" bgcolor="#FFFFFF" link="#0000EE" vlink="#551A8B" alink="#FF0000">
+
+<h1>
+
+<hr WIDTH="100%"></h1>
+
+<h1>
+OpenSLP and SLPv2 Authentication</h1>
+February 6, 2001
+<p>Matthew Peterson&nbsp; &lt;mpeterson@caldera.com>
+<p>
+<hr WIDTH="100%">
+<h3>
+Abstract</h3>
+This document is summary of SLPv2 security discussions along with some
+conclusions that suggest direction for future Caldera sponsored development
+of the
+<a href="www.openslp.org">OpenSLP</a> implementation of Service
+Location Protocol.
+<br>&nbsp;
+<h3>
+Introduction</h3>
+Early in December 2000, it was suggested that OpenSLP be submitted for
+security review by noted security expert Olaf Kirch.&nbsp;&nbsp; Olaf offered
+some very useful feedback including a suggestion to implement optional
+SLPv2 authentication as specified by <a href="http://www.openslp.org/doc/rfc/rfc2608.txt">RFC
+2608 section 9.2.</a>&nbsp;&nbsp;&nbsp; Olaf was worried that in the absence
+of SLPv2 authentication,&nbsp; users of OpenSLP might unknowingly trust
+malicious services that have been setup to "masquerade" as legitimate services.&nbsp;&nbsp;
+In Olaf's estimation leaving out SLP authentication opens a security hole
+that is not&nbsp; acceptable.&nbsp; With respect to <i>Volution</i>'s use
+of SLP to locate services Olaf wrote the following:
+<blockquote><tt>"Not authenticating registration and deregistration requests
+is clearly inacceptable in an environment where there's a non-zero security
+awareness. If everyone is able to change the LDAP server Volution uses
+to obtain its information from, then we might as well replace /bin/login
+with a symlink to /bin/bash"&nbsp; -- Olaf Kirch</tt></blockquote>
+The initial response to Olaf's security review was one of complete compliance.&nbsp;&nbsp;
+Code changes were quickly made for the next release of OpenSLP (ver 0.8.1)
+to resolve all security issues <i>except</i> implementation of SLPv2 authentication
+which was expected to be an involved change that would take several days
+to complete.&nbsp;&nbsp;&nbsp; After a couple days of research, it became
+obvious that the addition of SLPv2 security would be much more complex
+than simply writing several hundred lines of security enabling code.&nbsp;&nbsp;
+The final conflict eventually boiled down to a fundamental security / usability
+tradeoff that would be unresolvable even with a perfect implementation.
+<br>&nbsp;
+<h3>
+Objective of SLP</h3>
+SLP can be thought of as a very simple global service registry (or directory).&nbsp;&nbsp;
+Software entities that provide services register with SLP so that software
+entities that want to use a services can locate them.&nbsp;&nbsp;&nbsp;
+SLP offers a very simple mapping of service types (or characteristics)
+to service URLs.&nbsp;&nbsp; This means that only the <i>type or characteristics</i>
+of a service need to be known in order for a user or application to locate
+a service for&nbsp; use.&nbsp;&nbsp;&nbsp; The major feature SLP provides
+is usability.&nbsp;&nbsp; Basically, SLP allows application developers
+to write more usable and manageable software.&nbsp;&nbsp; With SLP users
+no longer need to memorize network addresses, host names or other information
+to configure their client applications and administrators do not have to
+set up elaborate means to supply this information.
+<p>In discussing security problems associated with SLP it is important
+to note two things&nbsp; from <a href="http://www.openslp.org/doc/rfc/rfc2608.txt">section
+1 of RFC 2608</a>:
+<ul>
+<li>
+SLP is designed for enterprise networks not as a solution for the global
+Internet</li>
+
+<li>
+The goal of SLP is to provide a framework that allows developers to write
+software that is user friendly and easily managed.</li>
+</ul>
+
+<h3>
+SLP Security</h3>
+Imagine now that in an enterprise environment there is a malicious or overly
+curious individual that would like to obtain confidential information.&nbsp;&nbsp;&nbsp;
+SLP could be exploited to obtain information from software that was otherwise
+secured by virtue of manual configuration.&nbsp;&nbsp;&nbsp; For example,
+an OpenSource help desk application consisting of "server" and "client"
+software is SLP enabled because the network administrators got tired of
+helping employees set up the "client" software with location and configuration
+information used to connect with the "server" software.
+<p>Since the source code is readily available, a sneaky employee makes
+a few modifications to the server code that allows him to obtain user names
+and passwords.&nbsp; He recompiles the source and brings up the "rogue"
+help desk server.&nbsp; Since the "rogue" help desk server and the real
+help desk server both have similar SLP registerations, it is possible that
+clients may connect to the "rogue" server instead of the real one.&nbsp;
+When the users log in, the "rogue" server saves off a copies of user names
+and passwords.&nbsp; The malicious employee can use these user names and
+passwords later to impersonate other people.
+<p>In order to prevent this type of attack, SLP is designed so that services
+registrations and requests can be made with authentication information.&nbsp;&nbsp;
+When properly implemented, SLP requests can be issued that will only return
+registrations made by trusted services.&nbsp;&nbsp;&nbsp; With SLP Security
+enabled developers could trust that the service information returned by
+the SLP API&nbsp; (URLs and configuration information).&nbsp; They do not
+have to question (as much) whether the service at the other end of the
+provided URL is a rogue because SLP can guarantee that services have been
+"blessed" by administrators by virtue of key information.
+<br>&nbsp;
+<h3>
+SLP Security vs SLP Usability</h3>
+It is a well known fact that any increase in security inevitable reduces
+usability for the legitimate user.&nbsp; This is especially true with&nbsp;
+SLP security -- establishment of trust is unacceptable barrier to SLP usability.&nbsp;&nbsp;&nbsp;
+The whole reason for using SLP in the first place is to allow "plug and
+play" features to be built into applications!
+<p>Due to the lack of PKI standards, establishing the trust needed to ensure
+that service registrations can be authenticated would require manual distribution
+of key material.&nbsp;&nbsp; One solution would be to have the administrator
+verify the authenticity of a single SLP host key or certificate which would
+authenticate all services provided from a given host, but this would not
+prevent an attacker from masquerading services if they have access to the
+authenticated machine.&nbsp;&nbsp; A more secure approach is to provide
+per service or per user keys at the expense of increased manual intervention
+to establish authenticity of numerous keys or certificates.&nbsp;&nbsp;
+Wait... even with SLP secured, there is still the possiblity of DNS, DHCP
+or ARP spoofing, so you are still not secure.
+<p>After a few minutes of meditation it becomes evident that in order to
+be totally safe, applications need to establish the security of their own
+end to end communications.&nbsp; Two very good examples are PGP and SSH.&nbsp;
+Neither application makes any assumptions about the reliability of intermediate
+protocols.&nbsp; Everything is suspect from DNS to ARP.&nbsp;&nbsp; Suppose
+that a specialized application was written that used PGP encrypted messages
+to communicate.&nbsp;&nbsp; SLP is chosen to locate remote users of the
+same application.&nbsp;&nbsp;&nbsp; Now, assume that none of the SLP security
+features are implemented, is the application at risk?&nbsp; The answer
+is no because care was taken by the application developer to secure his
+own end to end communication.
+<br>&nbsp;
+<h3>
+IETF Workgroup (srvloc) Discussion</h3>
+The idea that authentication belongs in the application itself and not
+in the location protocol (or other intermediate protocols) was brought
+up for discussion on the IETF Service Location workgroup mailing list with
+the following post entitled "Theoretical SLP security discussion (long)":
+<blockquote><tt>SLPv2 is designed to be able to authenticate agents. In
+other words, SLPV2 can guarantee that SAs and DAs are trustworthy. With
+a proper SLPv2 implementation and installation, UAs can be sure that replies
+to SLP requests come from trustworthy agents. There is no need to wonder
+if a responding agent is representing malicious services. For example,
+with SLPv2 authentication, I can request a service of type "service:ldap"
+and implicitly trust that the service urls I receive in return are ldap
+servers that are considered trustworthy by whoever set up the SLP installations.</tt>
+<p><tt>Sounds pretty nice doesn't it -- at least until you start thinking
+about what is required to deliver key information (certificates) that makes
+trust relationships possible. I think I'm safe in saying that without exception,
+no automated delivery of key information is secure unless it requires actual
+validation by a human that results in some form of real-life action (phone
+call, hand delivery, etc).</tt>
+<p><tt>Administration of trust relationships are completely un-addressed
+by the SLPv2 and SLP API specs -- which is probably why authentication
+is considered an optional feature. One might even take the position that
+SLPv2 Authentication invalidates the SLP's claim to reduce administrative
+workload as there is no way to deploy secure SLP without significant (manual)
+administrative overhead to establish certificate or key information trust.</tt>
+<p><tt>In contemplating implementation and use of SLPv2 authentication
+in OpenSLP we found that there is nearly nothing in the way of standardized
+certificate delivery mechanisms that might actually make SLPv2 authentication
+possible. We did find bits and pieces from OpenSSL and various signing
+utilities, which lead us to start questioning why we were trying to authenticate
+services via SLP anyway? Why not just let services authenticate themselves?</tt>
+<p><tt>An analogy from real life... I need to call an associate and relay
+some confidential information. I write down his number as it was left on
+my voice mail and place the phone call. BEFORE I exchange sensitive information
+the individual on the other line, I authenticate their identity (recognize
+their voice, etc). Trusting the information available on my voice mail
+is not required (as the number may have be to an airport pay phone). Implicitly
+trusting a phone number from the white pages or any other source is not
+required (or expected) as long as the callers can authenticate themselves.</tt>
+<p><tt>Likewise, SLP delivered information need not be trusted to be useful.
+As long as the entity providing a service and the entity using the service
+can authenticate each other -- separate from the mechanism used to discover
+or locate one another. One problem is that many services do not have authentication
+capabilities -- which is not too much of a problem because most services
+don't have SLP capabilities either. In the end, the only problem is that
+developers are just beginning to write secure software. If secure service
+and client software were indeed available, there would not be any need
+for SLP authentication.</tt>
+<p><tt>Having not heard additional comment from other experts, it is my
+opinion the SLP need not bear the burden of authenticating services. The
+burden of authentication should be placed on the services and their clients
+rather than on a protocol valued for simplicity and ease of use, administration,
+and deployment.</tt>
+<p><tt>Please comment. Do you agree or disagree? Why?</tt>
+<br>&nbsp;</blockquote>
+Response from ebi@cup.hp.com:
+<blockquote><tt>My take on this would be that it needs to be implemented
+and the people deploying it should have the option of enabling/disabling
+it.</tt>
+<p><tt>Because if this is not implemented, I can see a potential denial
+of service attack, where a rogue SA/DA, keeps on responding to all the
+discovers sent by the UA. Even though the authentication might fail when
+the application tries to authenticate using other means. It can stop the
+UA from finding the correct SA/DA, there by creating a denial of service
+attack.</tt>
+<p><tt>On the other hand managing keys does make the protocol heavy weight.
+The problem of effective key management issue, needs to be solved for most
+other protocols (like DHCP) as well. Until then, we need</tt>
+<br><tt>to be doing the key management manually or use what openSSL uses,
+and when there is an optimum key management solution, we can integrate
+into that.</tt></blockquote>
+
+<p><br>Rebuttal from mpeterson@caldera.com:
+<blockquote><tt>I do not believe that the "denial of service" attack scenario
+described above is much of an issue.</tt>
+<p><tt>I think that it is worth clarifying that receiving incorrect information
+(service URLs of rogue services from rogue DA/SAs) is not a problem that
+involves the "SLP UA portion" of a client application. The problem you
+describe above involves the portions of the client application that *use*
+information delivered by SLP -- the "UA portion" is only in charge of *getting*
+the information not using it. In other words, the problem you describe
+above is an SLP usage problem not an SLP problem.</tt>
+<p><tt>Regardless of whether or not SLPv2 authentication is implemented
+and configured, client applications must not expect that SLP guarantees
+availability. SLP could not possibly be expected to guarantee the state
+of the network or the persistent state of the registered service. Suppose
+that a service registers with SLP just before a WAN outage. At least for
+a certain amount of time clients would experience the same "denial of service"
+symptoms you describe above. The real solution is to encourage developers
+to use the entire list of service URLs. If usage (connection to or authentication
+to) one service fails, the client application should try the next.</tt>
+<p><tt>Denial of service scenarios like the one you describe are impossible
+to prevent. The only protection against denial of service attacks is fear.
+Yes, security by fear. Remember, "SLP is intended to function within networks
+under cooperative administrative control."&nbsp; The above mentioned attack
+would be easy to detect, track and resolve; which means that it would not
+probably not be much of a problem in the environments SLP is written to
+run in (how many rogue DHCP servers do you see on your network).</tt>
+<p><tt>In private network environments, the security problems that you
+need to worry about are those that allow confidential data to be compromised
+(especially if it can be done in ways can not be detected.) Denial of service
+attacks to not compromise data.</tt>
+<p><tt>The argument from my original post is that even if SLP authentication
+was implemented and configured correctly with (magically) delivered certificates,
+there would still be significant service specific security risks that would
+be dangerous even in private networks. Upon close inspection SLP authentication
+appears to solve only those security problems that are not overly relevant
+to private networks in the first place. (Please, if I'm wrong here, give
+me some examples...)</tt>
+<p><tt>I agree fully that SLP without authentication is in the same realm
+(security wise) as DHCP. My question remains -- Is this really a problem
+in private networks? If so, why? DHCP continues to be a widely deployed
+and extremely useful technology. One of the most useful aspects of DHCP
+(and SLP) is that there is no need for extensive configuration. Add requirements
+for establishing trust (certificates, keys, etc.) and the "plug and play"
+features of DHCP and SLP are gone.&nbsp; As this is a "theoretical discussion"
+I might mention that security is not free. There is always a usability
+vs. security trade off. I might also mention that sometimes *lack of* security
+is a feature if the goal is usability.</tt></blockquote>
+
+<p><br>Response from ebi@cup.hp.com:
+<blockquote><tt>Let me give you another example. If I have a workstation
+on the shared lan where my manager's PC is also there. Some companies restrict
+root access to people on the main network. So I cannot sniff around to
+find password. If there is no security in SLP, then&nbsp; I can register
+one of the test machines, which would be in a different network (for which
+I have the root access to) as the pop server. Then I get the user name
+and password of my manager's pop account (The same thing can be done for
+a print spooler or a file server).</tt></blockquote>
+Rebuttal from mpeterson@caldera.com:
+<blockquote><tt>Again, Don't you think this is more an illustration of
+the weakness of POP3 protocol and mail server/client software than it is
+of SLP? I would argue that its is that POP3 needs the security boost --
+after all it is in the business of securing an end to end communication.
+SLP is not designed to solve the end-to-end authentication problem ...
+or is it?</tt>
+<p><tt>On the other hand, you do allude to a very valid point -- that most
+traditional and widely deployed "end-to-end" service specific protocols
+and software are not capable of secure service authentication. (It is usually
+possible authenticate the user, but client software can rarely authenticate
+the server which means that there is no establishment of trust before sending
+client side user credentials.)</tt>
+<p><tt>Should SLP be tasked with solving this problem? The answer is definitely
+YES if it can be done without completely squashing major SLP usability
+features ("plug and play" features). I guess I just don't see how this
+can be done.</tt></blockquote>
+
+<p><br>The discussion eventually involves several engineers from a number
+of organizations and becomes quite lengthy.&nbsp;&nbsp; At least, the exchange
+included above should give a taste of the arguments involved.&nbsp; For
+those that are interested in reading the entire thread, it can be found
+at <a href="http://www.srvloc.org/hypermail/0826.html">http://www.srvloc.org/hypermail/0826.html</a>
+<br>&nbsp;
+<h3>
+Conclusions</h3>
+For those that are not willing to endure the tedium of reading the entire
+mailing list discussion,&nbsp; the conclusion was eventually made (at least
+by the author) that though SLP authentication may be&nbsp; appropriate
+in some specialized SLP deployments, it is probably not beneficial in normal
+network computer environments.&nbsp;&nbsp;&nbsp; This conclusion is based
+on the following premises:
+<ul>
+<li>
+Implementation of SLP authentication in the absence of public key infrastructure
+standards would require enough manual configuration to invalidate all claims
+SLP has to increased usability.</li>
+
+<li>
+Common helper protocols DNS, DHCP, IP, even ARP are currently insecure
+for usability reasons.&nbsp;&nbsp; SLP fits into this category of protocols
+where lack of security may be considered a feature when it allows for maximal
+usability.</li>
+
+<li>
+Given the lack of security in the above mentioned (and other) protocols
+self-established authentication of end to end communication is required
+anyway for secure communication of network software entities.</li>
+
+<li>
+In the presence of appropriate end to end security mechanisms,&nbsp; SLP
+related security attacks are limited to the realm of "denial of service"
+or "disruptions" -- even when <i>no</i> authentication is implemented in
+SLP.&nbsp;&nbsp; In other words there is not a risk of compromise of confidential
+information that can be attributed to SLP as long as appropriate end to
+end security is established.</li>
+</ul>
+So, for the OpenSLP project, there are not any plans to implement SLPv2
+security.&nbsp;&nbsp; (This may change in the future depending on the success
+of ongoing PKI standardization efforts.)&nbsp;&nbsp; There are, however,
+many things that could be done to reduce opportunities for "denial of service
+attacks" or other malicious SLP related disruptions.&nbsp;&nbsp; These
+will be addressed in future versions of OpenSLP.&nbsp;&nbsp;&nbsp;&nbsp;
+Also, in order to inform developers about the importance of writing secure
+applications, plans have been made to include an SLP&nbsp;Security HOWTO
+as part of the OpenSLP&nbsp;Documentation.
+</body>
+</html>

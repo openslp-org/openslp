@@ -2,7 +2,7 @@
 <html>
 <head>
    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-   <meta name="GENERATOR" content="Mozilla/4.72C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.2.14 i686) [Netscape]">
+   <meta name="GENERATOR" content="Mozilla/4.76C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.4.2 i686) [Netscape]">
    <title>OpenSLP Users Guide - Security</title>
 </head>
 <body text="#000000" bgcolor="#FFFFFF" link="#0000EE" vlink="#551A8B" alink="#FF0000">
@@ -18,23 +18,46 @@ attacks:
 <ul>
 <li>
 The OpenSLP daemon (slpd) must run as root initially in order to bind to
-the well known SLP port.&nbsp; However, if the source is compiled with
-<tt>PARANOID</tt> defined, slpd will relinquish root privileges and
-suid() to the daemon user (if it exists).</li>
+the well known SLP port.&nbsp; However, slpd will relinquish root privileges
+and suid() to the daemon user (if it exists).</li>
 
 <li>
-If slpd is built with <tt>PARANOID</tt> defined, extra SLP message checking
-is enforced.&nbsp; This slows down the operation of slpd slightly but ensures
-that malformed or intentionally malicious SLP messages will not cause segmentation
-faults in the daemon.</li>
+If slpd includes paranoid SLP message checking code .&nbsp; This slows
+down the operation of slpd slightly but ensures that malformed or intentionally
+malicious SLP messages will not cause segmentation faults in the daemon.</li>
 </ul>
 
 <h3>
-Protecting the integrity of service registrations</h3> Although not
-implemented yet, OpenSLP will support the full SLPv2 authentication
-specification which ensures that registrations can not be modified in
-transit and that they are sent to and received from valid agents.&nbsp; See
-<a href="../../rfc/rfc2608.txt">RFC 2608</a>.  <br>&nbsp;
+Protecting the integrity of service registrations</h3>
+As of version 0.9.0, OpenSLP fully supports the SLPv2 message authentication
+blocks to ensure that registrations can not be modified in transit and
+that they are sent to and received from valid agents.&nbsp;&nbsp; When
+properly installed and configured, OpenSLP will automatically provide this
+level of security to all SLP enabled applications with out any need to
+recompile or relink.&nbsp;&nbsp; Installation of secure OpenSLP is a little
+involved...
+<p>Currently, OpenSLP uses DSS signatures to ensure the authenticity and
+integrity of certain SLP messages.&nbsp; In order to do this, administrators
+need to: build a security enabled OpenSLP, provide&nbsp; (or generate)
+a DSA&nbsp; public and private keys, and setup the /etc/slp.spi file.&nbsp;&nbsp;
+The administrator also has to ensure that OpenSSL crypto libraries are
+properly installed before secure OpenSLP will work.
+<p>Step 1:&nbsp;&nbsp; Since we not sure how many installations will require
+OpenSLP security so the security features&nbsp; are not currently built
+in by default.&nbsp; To build a security into open slp OpenSLP you will
+have to use --enable-security on the ./configure command line
+<p>Step 2:&nbsp; Generate DSA public and private key files in PEM format
+using the OpenSSL command line.&nbsp;&nbsp; I'll provide details on exactly
+how this is done when I get more time in the mean time, you can figure
+it out by reading the openssl man pages.
+<p>Step 3: Copy the private DSA key PEM key file to very safe locations
+on hosts that will be registering services.&nbsp; The public DSA key PEM
+file goes on all hosts that will be registering services and on all hosts
+that will be finding services.
+<p>Step 4: Edit the /etc/slp.spi file to assign an SPI to the DSA keys.&nbsp;
+Details on how to do this are documented in the comments of the slp.spi
+file
+<br>&nbsp;
 <h3>
 User Level Access Control</h3>
 Plans have been made to provide a mechanism that will enforce user level
@@ -44,7 +67,7 @@ groups that can register services with SLP.
 <h3>
 Help</h3>
 If you find a security hole in OpenSLP,&nbsp; <i>please</i> bring it to
-the attention of the <a href="mailto:mpeterson@calderasystems.com">OpenSLP&nbsp;maintainer</a>.&nbsp;
-Thanks.
+the attention of the <a href="mailto:mpeterson@calderasystems.com">OpenSLP
+maintainer</a>.&nbsp; Thanks.
 </body>
 </html>
