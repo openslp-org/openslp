@@ -16,21 +16,25 @@ The OpenSLP project is an effort to develop an open-source implementation of
 Service Location Protocol suitable for commercial and non-commercial 
 application.
 
-The latest version of OpenSLP is 0.7.8  Changes for this version and the
+The latest version of OpenSLP is 0.8.0  Changes for this version and the
 previous version consist of the following:
 
-    - slpd now does a graceful shutdown on SIGTERM to deregister serviced
-      with DAs    
-    - Considerable time spend using commercial debugging tools to remove
-      ALL memory leaks from slpd (without predicates) and libslp. 
-    - IPC (via loopback) is now used by libslp to obtain DA information
-      from slpd before multicasting
-    - slpd running as a DA now sends passive DAAdverts
-    - slpd running as an SA now performs active DA discovery
-    - slpd running as an SA now re-registers all services with new DAs
-    - Significant fixes were made to make slpd work properly on multi-homed
-      machines
- 
+    - New OpenSLP License.  OpenSLP is now licensed under the BSD license.
+    - OpenSLP contrib tarball is now available.  OpenSLP Contrib is a collection
+      of SLP related utilities and tools.
+    - Predicate support now enabled by default.
+    - SLPFindScopes() is now implemented to RFC spec.
+    - Implemented SLPFindScopes() in libslp.
+    - Send dead DAAdvert as part of graceful shutdown.
+    - DAs now echo local registrations to other DAs (slpd as a DA also acts like
+      an SA for local API callers).
+    - Added code to ensure we respond correctly (with AUTHENICATION_UNKNONW)
+      when a request with a SPI is received.
+    - Changed SLPD behaviour to be less destructive on SIGHUP.  SIGHUP no
+      longer dumps the entire registration database on SIGHUP.  SIGHUP only
+      causes slpd to re-read configuration and static registration as well as 
+      perform DA discovery.     
+      
 
 2 - Roadmap
 ------------
@@ -38,8 +42,6 @@ OpenSLP is getting very close to being release in alpha and beta form.  It
 is currently useable for most applications, but still lacks a few important
 features:
     
-    - slpd does not honor the predicate in SrvRqst messages.  (this feature
-      is nearly finished but is still not ready for general use)
     - libslp does not collate results for syncronous calls
     - libslp does not support asyncronous calls
 
@@ -55,7 +57,8 @@ libtool.  To build OpenSLP please use the following steps:
 	  
     - Run the autogen.sh script to generate configure script. Do not be
       alarmed if the autogen script prints a few errors.  Try the resulting
-      configure (next step) script anyway.
+      configure (next step) script anyway.  If the ./configure script already
+      exists, skip running ./autogen.sh
       
       $ cd openslp-x.x.x
       $ ./autogen.sh

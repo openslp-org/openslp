@@ -1,5 +1,24 @@
 NEWS - list of user-visible changes between releases of OpenSLP
 
+New in openslp-0.8.0 (2000-11-30)
+--------------------------------
+* New OpenSLP License.  OpenSLP is now licensed under the BSD license.
+* OpenSLP contrib tarball is now available.  OpenSLP Contrib is a collection
+  of SLP related utilities and tools.
+* Predicate support now enabled by default.
+* SLPFindScopes() is now implemented to RFC spec.
+* Implemented SLPFindScopes() in libslp.
+* Send dead DAAdvert as part of graceful shutdown.
+* DAs now echo local registrations to other DAs (slpd as a DA also acts like
+  an SA for local API callers).
+* Added code to ensure we respond correctly (with AUTHENICATION_UNKNONW)
+  when a request with a SPI is received.
+* Changed SLPD behaviour to be less destructive on SIGHUP.  SIGHUP no longer
+  dumps the entire registration database on SIGHUP.  SIGHUP only causes slpd
+  to re-read configuration and static registration as well as perform DA
+  discovery. 
+
+
 New in openslp-0.7.8 (2000-11-06)
 ---------------------------------
 * slpd now does a graceful shutdown on SIGTERM to deregister serviced
