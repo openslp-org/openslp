@@ -99,7 +99,7 @@ void FindSrvTypes(SLPToolCommandLine* cmdline)
        
         if(result != SLP_OK)
         {
-            printf("errorcode: %i",result);
+            printf("errorcode: %i\n",result);
         }
        
         SLPClose(hslp);
@@ -140,7 +140,7 @@ void FindAttrs(SLPToolCommandLine* cmdline)
                              0);
         if(result != SLP_OK)
         {
-            printf("errorcode: %i",result);
+            printf("errorcode: %i\n",result);
         }
         SLPClose(hslp);
     }               
@@ -181,7 +181,7 @@ void FindSrvs(SLPToolCommandLine* cmdline)
                              0);
         if(result != SLP_OK)
         {
-            printf("errorcode: %i",result);
+            printf("errorcode: %i\n",result);
         }
         SLPClose(hslp);
     }               
@@ -208,6 +208,74 @@ void FindScopes(SLPToolCommandLine* cmdline)
     }               
 }
 
+void mySLPRegReport(SLPHandle hslp, SLPError errcode, void* cookie)
+{
+    if (errcode)
+    printf("(de)registration errorcode %d\n", errcode);
+}
+
+/*=========================================================================*/
+void Register(SLPToolCommandLine* cmdline)
+/*=========================================================================*/
+{
+    SLPError    result;
+    SLPHandle   hslp;
+    char srvtype[80] = "", *s;
+    int len = 0, callbackerr;
+
+    if (strncasecmp(cmdline->cmdparam1, "service:", 8) == 0)
+	len = 8;
+
+    s = strchr(cmdline->cmdparam1 + len, ':');
+    if (!s)
+    {
+	printf("Invalid URL: %s\n", cmdline->cmdparam1);
+	return;
+    }
+    len = s - cmdline->cmdparam1;
+    strncpy(srvtype, cmdline->cmdparam1, len);
+    srvtype[len] = 0;
+
+    if(SLPOpen(cmdline->lang,SLP_FALSE,&hslp) == SLP_OK)
+    {
+
+        result = SLPReg(hslp,
+			cmdline->cmdparam1,
+			SLP_LIFETIME_MAXIMUM,
+			srvtype,
+			cmdline->cmdparam2,
+			SLP_TRUE,
+			mySLPRegReport,
+			0);
+        if(result != SLP_OK)
+        {
+            printf("errorcode: %i\n",result);
+        }
+        SLPClose(hslp);
+    }               
+}
+
+/*=========================================================================*/
+void Deregister(SLPToolCommandLine* cmdline)
+/*=========================================================================*/
+{
+    SLPError    result;
+    SLPHandle   hslp;
+
+    if(SLPOpen(cmdline->lang,SLP_FALSE,&hslp) == SLP_OK)
+    {
+
+        result = SLPDereg(hslp,
+			  cmdline->cmdparam1,
+			  mySLPRegReport,
+			  0);
+        if(result != SLP_OK)
+        {
+            printf("errorcode: %i\n",result);
+        }
+        SLPClose(hslp);
+    }               
+}
 
 /*=========================================================================*/
 int ParseCommandLine(int argc,char* argv[], SLPToolCommandLine* cmdline)
@@ -311,6 +379,49 @@ int ParseCommandLine(int argc,char* argv[], SLPToolCommandLine* cmdline)
         {
 	    cmdline->cmd = FINDSCOPES;
 	}
+        else if(strcasecmp(argv[i],"register") == 0)
+        {
+            cmdline->cmd = REGISTER;
+            
+            /* url */
+            i++;
+            if(i < argc)
+            {
+                cmdline->cmdparam1 = argv[i];
+            }
+            else
+            {
+                return 1;
+            }
+            
+            /* attrids */
+            i++;
+            if(i < argc)
+            {
+                cmdline->cmdparam2 = argv[i];
+            }
+	    else
+	    {
+		return 1;
+	    }
+            
+            break;
+        }
+        else if(strcasecmp(argv[i],"deregister") == 0)
+        {
+            cmdline->cmd = DEREGISTER;
+
+            /* url */
+            i++;
+            if(i < argc)
+            {
+                cmdline->cmdparam1 = argv[i];
+            }
+	    else
+	    {
+		return 1;
+	    }
+        }
         else
         {
             return 1;
@@ -334,6 +445,8 @@ void DisplayUsage()
     printf("      findattrs url [attrids]\n");
     printf("      findsrvtypes [authority]\n");
     printf("      findscopes\n");
+    printf("      register url attrs\n");
+    printf("      deregister url attrs\n");
 }
 
 
@@ -370,6 +483,12 @@ int main(int argc, char* argv[])
         
         case GETPROPERTY:
 //            GetProperty(&cmdline);
+            break;
+        case REGISTER:
+            Register(&cmdline);
+            break;
+        case DEREGISTER:
+            Deregister(&cmdline);
             break;
         }
     }

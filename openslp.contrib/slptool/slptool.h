@@ -33,12 +33,16 @@
 /***************************************************************************/
 
 
+#ifndef _SLPTOOL_H
+#define _SLPTOOL_H
+
 #include <slp.h>
 #include <string.h>
 #include <stdio.h>
-#include <malloc.h>
+#include <stdlib.h>
 
 #ifdef WIN32
+#include <malloc.h>
 #define strcasecmp(str1,str2) stricmp(str1,str2)
 #endif
 
@@ -50,7 +54,9 @@ typedef enum _SLPToolCommand
     FINDATTRS,
     FINDSRVTYPES,
     FINDSCOPES,
-    GETPROPERTY
+    GETPROPERTY,
+    REGISTER,
+    DEREGISTER
 }SLPToolCommand;
 
 
@@ -86,3 +92,13 @@ void FindSrvTypes(SLPToolCommandLine* cmdline);
 void GetProperty(SLPToolCommandLine* cmdline);
 /*=========================================================================*/
 
+/*=========================================================================*/
+void Register(SLPToolCommandLine* cmdline);
+/*=========================================================================*/
+
+
+/*=========================================================================*/
+void Deregister(SLPToolCommandLine* cmdline);
+/*=========================================================================*/
+
+#endif
