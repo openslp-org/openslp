@@ -649,6 +649,7 @@ SLPError NetworkMcastRqstRply(const char* langtag,
 	SLPIfaceInfo			v6outifaceinfo;
     SLPXcastSockets			xcastsocks;
 	int						currIntf		= 0;
+    int                     requestSent;
 
 #ifdef DEBUG
     /* This function only supports multicast or broadcast of the following
@@ -759,6 +760,7 @@ SLPError NetworkMcastRqstRply(const char* langtag,
 		/*--------------------------*/
 		xmitcount = 0;
 		totaltimeout = 0;
+        requestSent = 0;
 		while(xmitcount <= MAX_RETRANSMITS)
 		{
 			xmitcount++;
@@ -853,11 +855,9 @@ SLPError NetworkMcastRqstRply(const char* langtag,
 				else if (dstifaceinfo.iface_addr[currIntf].ss_family == AF_INET6)
 					result = SLPMulticastSend(&v6outifaceinfo,sendbuf,&xcastsocks, &dstifaceinfo.iface_addr[currIntf]);
 			}
-			if(result != 0)
+			if(result == 0)
 			{
-				/* we could not send the message for some reason */
-				result = SLP_NETWORK_ERROR;    
-				goto FINISHED;
+                requestSent = 1;
 			}
 
 			/*----------------*/
