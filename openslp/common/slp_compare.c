@@ -188,7 +188,7 @@ int SLPCompareSrvType(int lsrvtypelen,
 int SLPContainsStringList(int listlen, 
                           const char* list,
                           int stringlen,
-                          const char* string)
+                          const char* string) 
 /* Checks a string-list for the occurence of a string                      */
 /*                                                                         */
 /* list -       pointer to the string-list to be checked                   */
@@ -293,5 +293,113 @@ int SLPIntersectStringList(int list1len,
     }
 
     return result;
+}
+
+
+/*=========================================================================*/
+int SLPUnionStringList(int list1len,
+                       const char* list1,
+                       int list2len,
+                       const char* list2,
+                       int* unionlistlen,
+                       char* unionlist)
+/* Generate a string list that is a union of two string lists              */
+/*                                                                         */
+/* list1len -   length in bytes of list1                                   */
+/*                                                                         */
+/* list1 -      pointer to a string-list                                   */
+/*                                                                         */
+/* list2len -   length in bytes of list2                                   */
+/*                                                                         */
+/* list2 -      pointer to a string-list                                   */
+/*                                                                         */
+/* unionlistlen - pointer to the size in bytes of the unionlist buffer.    */
+/*                also receives the size in bytes of the unionlist buffer  */
+/*                on successful return                                     */
+/*                                                                         */
+/* unionlist -  pointer to buffer that will receive the union list         */
+/*                                                                         */
+/* Returns -    Length of the resulting union list or negative if          */
+/*              unionlist is not big enough. If negative is returned       */
+/*              *unionlist will be changed indicate the size of unionlist  */
+/*              buffer needed                                              */
+/*                                                                         */
+/* Important: In order ensure that unionlist does not contain any          */
+/*            duplicates, at least list1 must not have any duplicates.     */
+/*            Also, for speed optimization if list1 and list2 are both     */
+/*            with out duplicates, the larger list should be passed in     */
+/*            as list1.                                                    */
+/*                                                                         */
+/* Note: A good size for unionlist (so that non-zero will never be         */
+/*       returned) is list1len + list2len + 1                              */
+/*=========================================================================*/
+{
+    int result = 0;
+    char* listend = (char*)list2 + list2len;
+    char* itembegin = (char*)list2;
+    char* itemend = itembegin;
+    int   itemlen;
+    int   copiedlen;
+
+    if(unionlist == 0 ||
+       *unionlistlen == 0 ||
+       *unionlist < list1len)
+    {
+        *unionlistlen = list1len + list2len + 1;
+        return -1;
+    }
+    
+    /* Copy list1 into the unionlist since it should not have any duplicates */
+    memcpy(unionlist,list1,list1len);
+    copiedlen = list1len;
+    
+    while(itemend < listend)
+    {
+        itembegin = itemend;
+
+        /* seek to the end of the next list item */
+        while(1)
+        {
+            if(itemend == listend || *itemend == ',')
+            {
+                if (*(itemend - 1) != '\\')
+                {
+                    break;
+                }
+            }
+
+            itemend ++;
+        }
+
+        itemlen = itemend - itembegin;
+        if(SLPContainsStringList(list1len,
+                                 list1,
+                                 itemlen,
+                                 itembegin) == 0)
+        {
+            if(copiedlen + itemlen + 1 >= *unionlistlen)
+            {
+              
+                *unionlistlen = list1len + list2len + 1;
+                return -1;
+            }
+            
+            /* append a comma if not the first entry*/
+            if(copiedlen)
+            {
+                unionlist[copiedlen] = ',';
+                copiedlen++;
+            }
+            memcpy(unionlist + copiedlen, itembegin, itemlen);
+            copiedlen += itemlen;
+
+        }    
+
+        itemend ++;    
+    }
+
+    *unionlistlen = copiedlen;
+
+    return copiedlen;
 }
 
