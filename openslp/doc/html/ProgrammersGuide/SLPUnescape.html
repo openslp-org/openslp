@@ -2,7 +2,7 @@
 <html>
 <head>
    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-   <meta name="GENERATOR" content="Mozilla/4.72C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.2.14 i686) [Netscape]">
+   <meta name="GENERATOR" content="Mozilla/4.77C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.4.2 i686) [Netscape]">
    <title>OpenSLP Programmers Guide - SLPUnEscape()</title>
 </head>
 <body text="#000000" bgcolor="#FFFFFF" link="#0000EF" vlink="#51188E" alink="#FF0000">
@@ -13,12 +13,11 @@ SLPUnescape</h2>
 <hr WIDTH="100%">
 <h3>
 <tt>Declaration</tt></h3>
-<tt>#include &lt;slp.h></tt><tt></tt>
+<tt>#include &lt;slp.h></tt>
 <p><tt><a href="/SLPError.html">SLPError</a> SLPUnescape( const char* <a href="#escaped">escaped</a>,</tt>
 <br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 char** <a href="#unescaped">unescaped</a>,</tt>
-<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 <a href="/SLPTypes.html#SLPBoolean">SLPBoolean</a> <a href="#ist">istag</a>
 )</tt>
 <h3>
@@ -29,7 +28,7 @@ for bad tag characters.
 <h3>
 Parameters</h3>
 
-<table CELLPADDING=5 NOSAVE >
+<table BORDER CELLPADDING=5 NOSAVE >
 <tr VALIGN=TOP NOSAVE>
 <td><a NAME="escaped"></a><tt>escaped</tt></td>
 
@@ -49,15 +48,39 @@ when no longer needed.</td>
 
 <td NOSAVE>When SLP_TRUE_ the input buffer is checked for bad characters</td>
 </tr>
-
-<caption ALIGN=BOTTOM>&nbsp;</caption>
 </table>
 
 <h3>
 Returns</h3>
-<a href="SLPError.html#INVALID_REGISTRATION">SLPError</a> Code
-<br>&nbsp;
-<br>&nbsp;
+
+<table BORDER NOSAVE >
+<tr>
+<td>SLP_OK</td>
+
+<td>Indicates that the no error occurred during the operation.</td>
+</tr>
+
+<tr>
+<td>SLP_PARSE_ERROR</td>
+
+<td>The API returns this error only when no information was retrieved,
+and at least one SA or DA indicated a protocol error. The data supplied
+through the API may be malformed or a may have been damaged in transit.</td>
+</tr>
+
+<tr>
+<td>SLP_MEMORY_ALLOC_FAILED&nbsp;</td>
+
+<td>Out of memory error</td>
+</tr>
+
+<tr>
+<td>SLP_PARAMETER_BAD</td>
+
+<td>If a parameter passed into a function is bad, this error is returned.</td>
+</tr>
+</table>
+
 <h3>
 Status</h3>
 

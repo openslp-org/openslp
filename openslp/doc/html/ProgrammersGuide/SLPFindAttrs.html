@@ -2,7 +2,7 @@
 <html>
 <head>
    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-   <meta name="GENERATOR" content="Mozilla/4.76C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.4.2 i686) [Netscape]">
+   <meta name="GENERATOR" content="Mozilla/4.77C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.4.2 i686) [Netscape]">
    <title>OpenSLP Programmers Guide - SLPFindAttrs</title>
 </head>
 <body text="#000000" bgcolor="#FFFFFF" link="#0000EF" vlink="#51188E" alink="#FF0000">
@@ -29,13 +29,13 @@ void* <a href="#cookie">cookie</a>)</tt>
 <h3>
 Description</h3>
 This function returns service attributes matching the <tt>attrids</tt>
-for the indicated Service URL or service type.&nbsp;&nbsp; OpenSLP&nbsp;does
-not support location of attributes by service type or wiht <tt>attrids</tt>
+for the indicated Service URL or service type.&nbsp;&nbsp; OpenSLP does
+not support location of attributes by service type with <tt>attrids</tt>
 containing wildcards (see status below).
 <h3>
 Parameters</h3>
 
-<table CELLPADDING=5 NOSAVE >
+<table BORDER CELLPADDING=5 NOSAVE >
 <tr VALIGN=TOP NOSAVE>
 <td NOSAVE><a NAME="hslp"></a><tt>hslp</tt></td>
 
@@ -55,7 +55,7 @@ for more information SLP Service URLs.</td>
 <td NOSAVE><a NAME="attrids"></a><tt>attrids</tt></td>
 
 <td>A comma separated list of attribute ids to return. Use the empty string
-("") for all attributes.&nbsp;</td>
+("") for all attributes.&nbsp; Wildcards are not supported.</td>
 </tr>
 
 <tr VALIGN=TOP NOSAVE>
@@ -81,15 +81,97 @@ on how callbacks are used by the SLPAPI.</td>
 <td NOSAVE>Pointer to memory that gets passed to the callback code.&nbsp;
 May be NULL.</td>
 </tr>
-
-<caption ALIGN=BOTTOM>&nbsp;</caption>
 </table>
 
 <h3>
 Returns</h3>
-<a href="SLPError.html">SLPError</a> code
-<p>Be aware, especially if the call is async, of error codes that may be
-passed to the <tt>SLPSrvTypeCallback</tt> callback function.
+
+<table BORDER NOSAVE >
+<tr NOSAVE>
+<td NOSAVE>SLP_OK</td>
+
+<td>Indicates that the no error occurred during the operation.</td>
+</tr>
+
+<tr>
+<td>SLP_PARSE_ERROR</td>
+
+<td>The SLP message was rejected by a remote SLP agent. The API returns
+this error only when no information was retrieved, and at least one SA
+or DA indicated a protocol error. The data supplied through the API may
+be malformed or a may have been damaged in transit.</td>
+</tr>
+
+<tr>
+<td>SLP_AUTHENTICATION_ABSENT</td>
+
+<td>If the SLP framework supports authentication, this error arises when
+the UA or SA failed to send an authenticator for requests or registrations.</td>
+</tr>
+
+<tr>
+<td>SLP_AUTHENTICATION_FAILED</td>
+
+<td>If the SLP framework supports authentication, this error arises when
+a authentication on an SLP message failed.</td>
+</tr>
+
+<tr>
+<td>SLP_NETWORK_TIMED_OUT</td>
+
+<td>When no reply can be obtained in the time specified by the configured
+timeout interval for a unicast request, this error is returned.&nbsp; In
+other words, slpd is running, but something is wrong with it</td>
+</tr>
+
+<tr>
+<td>SLP_NETWORK_INIT_FAILED</td>
+
+<td>If the network cannot initialize properly, this error is returned.
+Will also be returned if an SA or DA agent (slpd) can not be contacted.&nbsp;
+slpd must be running in order to call SLPReg() or SLPDereg().</td>
+</tr>
+
+<tr>
+<td>SLP_MEMORY_ALLOC_FAILED&nbsp;</td>
+
+<td>Out of memory error</td>
+</tr>
+
+<tr>
+<td>SLP_PARAMETER_BAD</td>
+
+<td>If a parameter passed into a function is bad, this error is returned.</td>
+</tr>
+
+<tr>
+<td>SLP_NETWORK_ERROR</td>
+
+<td>The failure of networking during normal operations causes this error
+to be returned.&nbsp; In OpenSLP, this is the error you'll get if an underlying
+socket() call failed.</td>
+</tr>
+
+<tr>
+<td>SLP_INTERNAL_SYSTEM_ERROR</td>
+
+<td>A basic failure of the API causes this error to be returned. This occurs
+when a system call or library fails. The operation could not recover.</td>
+</tr>
+
+<tr>
+<td>SLP_HANDLE_IN_USE</td>
+
+<td>Callback functions are not permitted to recursively call into the API
+on the same SLPHandle, either directly or indirectly. If an attempt is
+made to do so, this error is returned from the called API function.</td>
+</tr>
+</table>
+
+<p>If no service types can be found, no error is returned.&nbsp; However,
+no calls (other than the SLP_LAST_CALL) will be made to the SLPSrvTypesCallback.&nbsp;
+Be aware, especially if the call is async, of error codes that may be passed
+to the <tt>SLPAttrCallback</tt> callback function.
 <br>&nbsp;
 <h3>
 Status</h3>

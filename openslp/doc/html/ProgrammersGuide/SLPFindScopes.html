@@ -2,7 +2,7 @@
 <html>
 <head>
    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-   <meta name="GENERATOR" content="Mozilla/4.76C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.4.0 i686) [Netscape]">
+   <meta name="GENERATOR" content="Mozilla/4.77C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.4.2 i686) [Netscape]">
    <title>OpenSLP Programmers Guide - SLPFindScopes()</title>
 </head>
 <body text="#000000" bgcolor="#FFFFFF" link="#0000EF" vlink="#51188E" alink="#FF0000">
@@ -28,7 +28,7 @@ the list.
 <h3>
 Parameters</h3>
 
-<table CELLPADDING=5 NOSAVE >
+<table BORDER CELLPADDING=5 NOSAVE >
 <tr VALIGN=TOP NOSAVE>
 <td><a NAME="hslp"></a><tt>hslp</tt></td>
 
@@ -36,21 +36,62 @@ Parameters</h3>
 </tr>
 
 <tr VALIGN=TOP NOSAVE>
-<td NOSAVE><a NAME="scopelist"></a>scopelist</td>
+<td NOSAVE><a NAME="scopelist"></a><tt>scopelist</tt></td>
 
 <td NOSAVE>Pointer to a pointer for the dynamically allocated list of scopes.&nbsp;
 The memory should be freed by a call to <tt><a href="SLPFree.html">SLPFree()</a></tt>
 when no longer needed.</td>
 </tr>
-
-<caption ALIGN=BOTTOM>&nbsp;</caption>
 </table>
 
 <h3>
 Returns</h3>
-<a href="SLPError.html#INVALID_REGISTRATION">SLPError</a> Code
-<br>&nbsp;
-<br>&nbsp;
+
+<table BORDER NOSAVE >
+<tr NOSAVE>
+<td NOSAVE>SLP_OK</td>
+
+<td>Indicates that the no error occurred during the operation.</td>
+</tr>
+
+<tr>
+<td>SLP_NETWORK_TIMED_OUT</td>
+
+<td>When no reply can be obtained in the time specified by the configured
+timeout interval for a unicast request, this error is returned.&nbsp; In
+other words, slpd is running, but something is wrong with it</td>
+</tr>
+
+<tr>
+<td>SLP_NETWORK_INIT_FAILED</td>
+
+<td>If the network cannot initialize properly, this error is returned.
+Will also be returned if an SA or DA agent (slpd) can not be contacted.&nbsp;
+slpd must be running in order to call SLPReg() or SLPDereg().</td>
+</tr>
+
+<tr>
+<td>SLP_MEMORY_ALLOC_FAILED&nbsp;</td>
+
+<td>Out of memory error</td>
+</tr>
+
+<tr>
+<td>SLP_NETWORK_ERROR</td>
+
+<td>The failure of networking during normal operations causes this error
+to be returned.&nbsp; In OpenSLP, this is the error you'll get if an underlying
+socket() call failed.</td>
+</tr>
+
+<tr>
+<td>SLP_INTERNAL_SYSTEM_ERROR</td>
+
+<td>A basic failure of the API causes this error to be returned. This occurs
+when a system call or library fails. The operation could not recover.</td>
+</tr>
+</table>
+
 <h3>
 Status</h3>
 

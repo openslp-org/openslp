@@ -2,7 +2,7 @@
 <html>
 <head>
    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-   <meta name="GENERATOR" content="Mozilla/4.72C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.2.14 i686) [Netscape]">
+   <meta name="GENERATOR" content="Mozilla/4.77C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.4.2 i686) [Netscape]">
    <title>OpenSLP Programmers Guide - Callbacks</title>
 </head>
 <body text="#000000" bgcolor="#FFFFFF" link="#0000EF" vlink="#51188E" alink="#FF0000">
@@ -38,7 +38,6 @@ Callbacks are an integral part of the SLP API.&nbsp; Developers usually
 associate callbacks with asynchronous APIs, but the SLP API uses callbacks
 for both synchronous and asynchronous operations.&nbsp; Whether the callback
 is called synchronously or asynchronously, depends on the <tt><a href="SLPOpen.html#isasync">isasync</a>
-
 </tt>parameter in the call to <tt><a href="SLPOpen.html">SLPOpen()</a></tt>.&nbsp;
 Remember the following rules and you should not have any problems with
 your callback functions.
@@ -86,6 +85,11 @@ of results is performed by the library when a call is initiated in async
 mode. </i>This means that the callback may be called multiple times with
 the same result.&nbsp; This would happen for example if two SAs or DAs
 maintained the same registration.
+<p>Currently all the code is in libslp to allow for asynchronous operation
+except for the calls to pthread_create().&nbsp; The reason for this is
+mainly that no one has really needed asynchronous operation.&nbsp; If you
+feel like you have a good reason to use asynchronous operation then please
+send email to openslp-devel@lists.sourceforge.net.
 <h3>
 How does OpenSLP library handle synchronous operation?</h3>
 When an SLP library call is made with an SLPHandle that was opened in sync
@@ -99,11 +103,12 @@ callback.
 Why not just have separate synchronous and asynchronous APIs?</h3>
 That would have been good choice, but for some reason, the SLP designers
 thought their way would be better.&nbsp; OpenSLP API is just an implementation
-of a standardized specification.
+of a standardized specification described in RFC 2614
 <h3>
-Can I see an example?</h3>
+Can I see some example code?</h3>
 Yes, example code can be found in the documentation for the <a href="SLPReg.html">SLPReg()</a>,
-<a href="SLPFindSrvs.html">SLPFindSrv()</a>, <a href="SLPFindAttrs.html">SLPFindAttrs()</a>
-and <a href="SLPFindSrvTypes.html">SLPFindSrvTypes()</a> functions.
+<a href="SLPFindSrvs.html">SLPFindSrv()</a>,
+<a href="SLPFindAttrs.html">SLPFindAttrs()</a> and <a href="SLPFindSrvTypes.html">SLPFindSrvTypes()</a>
+functions.
 </body>
 </html>

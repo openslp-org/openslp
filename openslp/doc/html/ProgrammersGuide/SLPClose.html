@@ -2,7 +2,7 @@
 <html>
 <head>
    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-   <meta name="GENERATOR" content="Mozilla/4.76C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.4.2 i686) [Netscape]">
+   <meta name="GENERATOR" content="Mozilla/4.77C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.4.2 i686) [Netscape]">
    <title>OpenSLP Programmers Guide - SLPClose</title>
 </head>
 <body text="#000000" bgcolor="#FFFFFF" link="#0000EF" vlink="#51188E" alink="#FF0000">
@@ -22,20 +22,19 @@ Frees all resources associated with the handle.&nbsp; If the handle was
 invalid, the functions returns silently.&nbsp; Any outstanding synchronous
 or asynchronous operations are canceled so their callback functions will
 not be called any longer.
-<p>In the OpenSLP&nbsp;implementation, SLPHandles are used to cache information
-that is costly (in terms of network usage and time) to obtain.&nbsp;&nbsp;
-Since the RFC 2614 API does not specify APIs to initialize the implementation
-library, OpenSLP&nbsp;keeps track of the number of SLPHandles that are
-open.&nbsp;&nbsp; Several global library data structures are initialized
-when the first SLPHandle is opened and maintained until the last SLPHandle
-is closed.&nbsp; Therefore, it is most efficient to leave SLPHandles open
-for as long as you will need them (often for the entire life of a process).&nbsp;&nbsp;&nbsp;
-If you can help it, DO&nbsp;NOT&nbsp;make a habit of opening and closing
-SLPHandles frequently.
+<p>In the OpenSLP implementation, SLPHandles are used to cache information
+that is costly to obtain (in terms of network usage and time).&nbsp;&nbsp;
+Since the RFC 2614 API does not provide function calls to for library initialization,&nbsp;
+OpenSLP keeps track of the number of SLPHandles that are open.&nbsp;&nbsp;
+Several global library data structures are initialized when the first SLPHandle
+is opened and maintained until the last SLPHandle is closed.&nbsp; Therefore,
+it is most efficient to leave SLPHandles open for as long as you will need
+them (often for the entire life of a process).&nbsp;&nbsp;&nbsp; If you
+can help it, DO NOT make a habit of opening and closing SLPHandles frequently.
 <h3>
 Parameters</h3>
 
-<table CELLPADDING=5 NOSAVE >
+<table BORDER CELLPADDING=5 NOSAVE >
 <tr VALIGN=TOP NOSAVE>
 <td NOSAVE><a NAME="hslp"></a>hslp</td>
 

@@ -2,7 +2,7 @@
 <html>
 <head>
    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-   <meta name="GENERATOR" content="Mozilla/4.72C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.2.14 i686) [Netscape]">
+   <meta name="GENERATOR" content="Mozilla/4.77C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.4.2 i686) [Netscape]">
    <title>OpenSLP Programmers Guide - SLPAttrCallback</title>
 </head>
 <body text="#000000" bgcolor="#FFFFFF" link="#0000EF" vlink="#51188E" alink="#FF0000">
@@ -14,11 +14,13 @@ SLPAttrCallback</h2>
 <h3>
 Declaration</h3>
 <tt>typedef <a href="SLPTypes.html#SLPBoolean">SLPBoolean</a> SLPAttrCallback(
-<a href="SLPTypes.html#SLPHandle">SLPHandle</a> <a href="#hslp">hslp</a>,</tt>
+<a href="SLPTypes.html#SLPHandle">SLPHandle</a>
+<a href="#hslp">hslp</a>,</tt>
 <br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 const char* attrlist,</tt>
-<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-<a href="SLPTypes.html#SLPError">SLPError</a> <a href="#errcode">errcode</a>,</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+ <a href="SLPTypes.html#SLPError">SLPError</a> <a href="#errcode">errcode</a>,</tt>
 <br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 void* <a href="#cookie">cookie</a> )</tt>
 <h3>
@@ -42,7 +44,7 @@ may return duplicates.
 <h3>
 Parameters</h3>
 
-<table CELLPADDING=5 NOSAVE >
+<table BORDER CELLPADDING=5 NOSAVE >
 <tr VALIGN=TOP NOSAVE>
 <td NOSAVE><a NAME="hslp"></a><tt>hslp</tt></td>
 
@@ -79,17 +81,20 @@ Returns</h3>
 The callback should return <tt>SLP_TRUE</tt> if more data is desired.&nbsp;
 The callback may continue to return <tt>SLP_TRUE</tt> until it is called
 with an <tt>errcode</tt> of <tt><a href="SLPError.html#SLP_LAST_CALL">SLP_LAST_CALL</a></tt>.&nbsp;
-If no more data is requested the callback should return <tt>SLP_FALSE</tt>.
+If no more data is requested the callback should return <tt>SLP_FALSE</tt>..&nbsp;
+Since discovery of attributes by service-type is not supported, there is
+really no reason to return anything but <tt>SLP_FALSE</tt>&nbsp;from the
+SLPAttrCallback().
 <br>&nbsp;
 <h3>
 Status</h3>
 
 <table CELLPADDING=5 NOSAVE >
 <tr VALIGN=TOP NOSAVE>
-<td NOSAVE>OpenSLP 0.6.0</td>
+<td NOSAVE>OpenSLP 1.0.0</td>
 
-<td NOSAVE><tt>SLPAttrCallback</tt> functions are not called because <tt>SLPFindAttrs()</tt>
-is not implemented</td>
+<td NOSAVE><tt>SLPAttrCallback</tt> function is implemented as specified
+by RFC 2614</td>
 </tr>
 </table>
 

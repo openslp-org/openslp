@@ -2,7 +2,7 @@
 <html>
 <head>
    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-   <meta name="GENERATOR" content="Mozilla/4.7C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.2.14 i686) [Netscape]">
+   <meta name="GENERATOR" content="Mozilla/4.77C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.4.2 i686) [Netscape]">
    <title>OpenSLP Programmers Guide - SLPError Codes</title>
 </head>
 <body text="#000000" bgcolor="#FFFFFF" link="#0000EF" vlink="#51188E" alink="#FF0000">
@@ -69,7 +69,13 @@ be malformed or a may have been damaged in transit.</td>
 
 <td>The API may return this error if an attempt to register a service was
 rejected by all DAs because of a malformed URL or attributes. SLP does
-not return the error if at least one DA accepted the registration.</td>
+not return the error if at least one DA accepted the registration.&nbsp;
+The deregistered service url does not conform to valid service url syntax.&nbsp;
+The service url being deregistered is not registered this means that either
+it was never registered via a call to SLPReg() or that the registration
+lifetime has expired.&nbsp;&nbsp; SLP_INVALID_REGISTRATION is commonly
+returned when an attempt is made to deregister a service that was registered
+by a call to SLPReg() on a different host.</td>
 </tr>
 
 <tr>
