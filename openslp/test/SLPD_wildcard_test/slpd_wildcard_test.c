@@ -49,4 +49,6 @@ int main(int argc, char *argv[]) {
 	/* Check substring check. */
 	err = wildcard("*ach*", "first roach dog cat cheese cat");
 	assert(err == 0);
+	
+	return 0;
 }
