@@ -281,7 +281,8 @@ int ProcessDASrvRqst(SLPMessage message,
         if(message->header.flags & SLP_FLAG_MCAST ||
            ISMCAST(message->peer.sin_addr))
         {
-            (*sendbuf)->end = (*sendbuf)->start;
+            errorcode = SLP_ERROR_MESSAGE_DROPPED;
+	    (*sendbuf)->end = (*sendbuf)->start;
         }
     }
 
@@ -405,7 +406,8 @@ int ProcessSrvRqst(SLPMessage message,
         if(message->header.flags & SLP_FLAG_MCAST ||
            ISMCAST(message->peer.sin_addr))
         {
-            result->end = result->start;
+            errorcode = SLP_ERROR_MESSAGE_DROPPED;
+	    result->end = result->start;
             goto FINISHED;  
         }
     }
@@ -619,6 +621,7 @@ int ProcessSrvReg(SLPMessage message,
     if(message->header.flags & SLP_FLAG_MCAST ||
        ISMCAST(message->peer.sin_addr))
     {
+        errorcode = SLP_ERROR_MESSAGE_DROPPED;
         result->end = result->start;
         goto FINISHED;
     }
@@ -724,7 +727,7 @@ int ProcessSrvDeReg(SLPMessage message,
     if(message->header.flags & SLP_FLAG_MCAST ||
        ISMCAST(message->peer.sin_addr))
     {
-
+        errorcode = SLP_ERROR_MESSAGE_DROPPED;
         result->end = result->start;
         goto FINISHED;
     }
@@ -782,7 +785,9 @@ int ProcessSrvAck(SLPMessage message,
     SLPBuffer result = *sendbuf;
 
     result->end = result->start;
-    return message->body.srvack.errorcode;
+    /*return message->body.srvack.errorcode; */
+    
+    return SLP_ERROR_MESSAGE_DROPPED;    
 }
 
 
@@ -909,7 +914,8 @@ int ProcessAttrRqst(SLPMessage message,
         if(message->header.flags & SLP_FLAG_MCAST ||
            ISMCAST(message->peer.sin_addr))
         {
-            result->end = result->start;
+            errorcode = SLP_ERROR_MESSAGE_DROPPED;
+	    result->end = result->start;
             goto FINISHED;  
         }
     }
@@ -1146,7 +1152,8 @@ int ProcessSrvTypeRqst(SLPMessage message,
         if(message->header.flags & SLP_FLAG_MCAST ||
            ISMCAST(message->peer.sin_addr))
         {
-            result->end = result->start;
+            errorcode = SLP_ERROR_MESSAGE_DROPPED;
+	    result->end = result->start;
             goto FINISHED;  
         }
     }
@@ -1372,37 +1379,27 @@ int SLPDProcessMessage(struct sockaddr_in* peerinfo,
         }
     }
     
-    SLPDLogMessage("Trace message (OUT)", peerinfo, *sendbuf);
-
     /* Log reception of important errors */
-    if(errorcode)
+    if(errorcode == 0)
     {
-        SLPDLog("\n *** ERROR ***");
-    switch(errorcode)
-    {
-    case SLP_ERROR_DA_BUSY_NOW:
-        SLPDLog("DA_BUSY");
-        break;
-    case SLP_ERROR_INTERNAL_ERROR:
-        SLPDLog("INTERNAL_ERROR");
-        break;
-    case SLP_ERROR_PARSE_ERROR:
-        SLPDLog("PARSE_ERROR");
-        break;
-    case SLP_ERROR_VER_NOT_SUPPORTED:
-        SLPDLog("VER_NOT_SUPPORTED");
-        break;
-    case SLP_ERROR_AUTHENTICATION_FAILED:
-    case SLP_ERROR_AUTHENTICATION_UNKNOWN:
-    case SLP_ERROR_AUTHENTICATION_ABSENT:
-        SLPDLog("AUTHENTICATION_xxx");
-        break;
-    default:
-	SLPDLog("code %i",errorcode);
-        break;
+        /* do nothing at all */
     }
-        SLPDLog(" in talking to: %s\n",inet_ntoa(peerinfo->sin_addr));
+    else if(errorcode == SLP_ERROR_MESSAGE_DROPPED)
+    {
+        if(G_SlpdProperty.traceDrop)
+	{
+	   SLPDLogMessage("Dropped message (silently ignored)",
+			  peerinfo,*sendbuf);
+	}
+    }
+    else
+    {
+        SLPDLog("\n*** ERROR *** code %i in talking to %s",
+		errorcode,
+		inet_ntoa(peerinfo->sin_addr));
     }
     
+    SLPDLogMessage("Trace message (OUT)", peerinfo, *sendbuf);
+      
     return errorcode;
 }                

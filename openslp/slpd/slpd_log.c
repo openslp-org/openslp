@@ -357,7 +357,7 @@ void SLPDLogMessageInternals(SLPMessage message)
         break;
 
     default:
-        SLPDLog("Message UNKNOWN:\n");
+        SLPDLog("Message %i UNKNOWN:\n",message->header.functionid);
         SLPDLog("   This is really bad\n");
         break;
     }
@@ -380,21 +380,29 @@ void SLPDLogMessage(const char* prefix,
 /*=========================================================================*/
 {
     SLPMessage msg;
+    
     if(G_SlpdProperty.traceMsg)
     {
+        if(buf->end == buf->start)
+        {
+            return;
+        }
+
         msg = SLPMessageAlloc();
         if(msg)
         {
-            SLPDLogTime();
+            SLPDLog("\n");
+	    SLPDLogTime();
             SLPDLog("%s:\n",prefix);
-            if(SLPMessageParseBuffer(peerinfo,buf,msg))
+            if(SLPMessageParseBuffer(peerinfo,buf,msg) == 0)
             {
                 SLPDLogMessageInternals(msg);
-                SLPDLog("\n");
             }
             else
             {
-                SLPDLog("Message parsing failed\n\n");
+                SLPDLog("Message parsing failed\n");
+	        SLPDLog("Peer: \n");
+                SLPDLog("   IP address: %s\n", inet_ntoa(msg->peer.sin_addr));	        
             }
             SLPMessageFree(msg);
         }
@@ -416,10 +424,10 @@ void SLPDLogRegistration(const char* prefix, SLPMessage srvreg)
 {
     if(G_SlpdProperty.traceReg)
     {
+        SLPDLog("\n");
         SLPDLogTime();
         SLPDLog("%s:\n",prefix);
         SLPDLogMessageInternals(srvreg);
-        SLPDLog("\n\n");
     }
 }
 
@@ -439,10 +447,10 @@ void SLPDLogDAAdvertisement(const char* prefix,
 {
     if(G_SlpdProperty.traceDATraffic)
     {
+        SLPDLog("\n");
         SLPDLogTime();
-        SLPDLog("%s:\n",prefix);
+        SLPDLog("\n%s:\n",prefix);
         SLPDLogMessageInternals(daadvert);
-        SLPDLog("\n\n");
     }
 }
 

@@ -90,6 +90,9 @@ void OutgoingDatagramRead(SLPList* socklist, SLPDSocket* sock)
         SLPDProcessMessage(&(sock->peeraddr),
                            sock->recvbuf,
                            &(sock->sendbuf));
+/*       
+        SLPDSocketFree((SLPDSocket*)SLPListUnlink(socklist,(SLPListItem*)sock));
+*/
     }
 }
 
@@ -481,9 +484,6 @@ void SLPDOutgoingAge(time_t seconds)
         case DATAGRAM_UNICAST:
             if(sock->age > G_SlpdProperty.unicastMaximumWait / 1000)
             {
-                /* Remove the DA we might have been talking to because */
-                /* it is not accepting connections                     */
-                SLPDKnownDARemove(&(sock->peeraddr.sin_addr));
                 del = sock;
             }
             sock->age = sock->age + seconds;
