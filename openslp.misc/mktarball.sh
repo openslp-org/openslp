@@ -1,4 +1,8 @@
 #!/bin/bash
+
+echo "Matt, Fix up the makefiles (the '$$d' thing) and use make dist!"
+exit 0
+
 if [ $1 ] ;
 then 
    #Set up temporary directory
