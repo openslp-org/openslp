@@ -58,11 +58,14 @@ int EnableBroadcast(sockfd_t sockfd)
 }
 
 /*-------------------------------------------------------------------------*/
-int JoinSLPMulticastGroup(sockfd_t sockfd, struct in_addr* addr)
+int JoinSLPMulticastGroup(sockfd_t sockfd, struct in_addr* maddr,
+			  struct in_addr* addr)
 /* Sets the socket options to receive multicast traffic from the specified */
 /* interface.                                                              */
 /*                                                                         */
 /* sockfd   - the socket file descriptor to set the options on.            */
+/*                                                                         */
+/* maddr    - pointer to multicast group to join                           */
 /*                                                                         */
 /* addr     - pointer to address of the interface to join on               */
 /*                                                                         */
@@ -70,14 +73,12 @@ int JoinSLPMulticastGroup(sockfd_t sockfd, struct in_addr* addr)
 /*-------------------------------------------------------------------------*/
 {
     struct ip_mreq  mreq;
-    struct in_addr  mcast_addr;
 
-    /* join using the reserved SLP_MCAST_ADDRESS */
-    mcast_addr.s_addr = htonl(SLP_MCAST_ADDRESS);
-    mreq.imr_multiaddr = mcast_addr;
+    /* join using the multicast address passed in */
+    memcpy(&mreq.imr_multiaddr, maddr, sizeof(struct in_addr));
 
     /* join with specified interface */
-    memcpy(&mreq.imr_interface,addr,sizeof(struct in_addr));
+    memcpy(&mreq.imr_interface, addr, sizeof(struct in_addr));
 
     return setsockopt(sockfd,
                       IPPROTO_IP,
@@ -88,23 +89,24 @@ int JoinSLPMulticastGroup(sockfd_t sockfd, struct in_addr* addr)
 
 
 /*-------------------------------------------------------------------------*/
-int DropSLPMulticastGroup(sockfd_t sockfd, struct in_addr* addr)
+int DropSLPMulticastGroup(sockfd_t sockfd, struct in_addr* maddr,
+			  struct in_addr* addr)
 /* Sets the socket options to not receive multicast traffic from the       */
 /* specified interface.                                                    */
 /*                                                                         */
 /* sockfd   - the socket file descriptor to set the options on.            */
 /*                                                                         */
+/* maddr     - pointer to the multicast address                             */
+/*                                                                         */
 /* addr     - pointer to the multicast address                             */
 /*-------------------------------------------------------------------------*/
 {
     struct ip_mreq  mreq;
-    struct in_addr  mcast_addr;
 
-    /* join using the reserved SLP_MCAST_ADDRESS */
-    mcast_addr.s_addr = htonl(SLP_MCAST_ADDRESS);
-    mreq.imr_multiaddr = mcast_addr;
+    /* drop from the multicast group passed in */
+    memcpy(&mreq.imr_multiaddr, maddr, sizeof(struct in_addr));
 
-    /* join with specified interface */
+    /* drop for the specified interface */
     memcpy(&mreq.imr_interface,addr,sizeof(addr));
 
     return setsockopt(sockfd, IPPROTO_IP, IP_DROP_MEMBERSHIP, (char*)&mreq,sizeof(mreq));               
@@ -280,7 +282,13 @@ SLPDSocket* SLPDSocketCreateBoundDatagram(struct in_addr* myaddr,
 /*          DATAGRAM_UNICAST, DATAGRAM_MULTICAST, or DATAGRAM_BROADCAST     */
 /*==========================================================================*/
 {
-    SLPDSocket*     sock;  
+    SLPDSocket*     sock;
+    struct in_addr*  bindaddr;
+
+    if (type == DATAGRAM_MULTICAST)
+	bindaddr = NULL;	/* must bind to INADDR_ANY for multicast */
+    else
+	bindaddr = peeraddr;
 
     sock = SLPDSocketAlloc();
     if (sock)
@@ -288,7 +296,7 @@ SLPDSocket* SLPDSocketCreateBoundDatagram(struct in_addr* myaddr,
         sock->fd = socket(PF_INET, SOCK_DGRAM, 0);
         if (sock->fd >=0)
         {
-            if (BindSocketToInetAddr(sock->fd, peeraddr) == 0)
+            if (BindSocketToInetAddr(sock->fd, bindaddr) == 0)
             {
                 if (peeraddr != NULL)
                 {
@@ -304,7 +312,7 @@ SLPDSocket* SLPDSocketCreateBoundDatagram(struct in_addr* myaddr,
                 switch (type)
                 {
                 case DATAGRAM_MULTICAST:
-                    if (JoinSLPMulticastGroup(sock->fd, myaddr) == 0)
+                    if (JoinSLPMulticastGroup(sock->fd, peeraddr, myaddr) == 0)
                     {
                         sock->state = DATAGRAM_MULTICAST;
                         goto SUCCESS;

@@ -35,6 +35,7 @@
 #if(!defined SLP_MESSAGE_H_INCLUDED)
 #define SLP_MESSAGE_H_INCLUDED
 
+#include <netinet/in.h>			/* for htonl() routines */
 #include <slp_buffer.h>
 
 #ifdef WIN32
@@ -61,12 +62,12 @@ typedef UINT32*         PUINT32;
 #define SLP_RESERVED_PORT       427
 #define SLP_MCAST_ADDRESS       0xeffffffd  /* 239.255.255.253 */
 #define SLP_BCAST_ADDRESS       0xffffffff  /* 255.255.255.255 */
+#define SLPv1_DA_MCAST_ADDRESS  0xe0000123  /* 224.0.1.35 */
 #define LOOPBACK_ADDRESS        0x7f000001  /* 127.0.0.1 */
 #define SLP_MAX_DATAGRAM_SIZE   1400
 #if(!defined SLP_LIFETIME_MAXIMUM) 
 #define SLP_LIFETIME_MAXIMUM    0xffff
 #endif
-
 
 /*=========================================================================*/
 /* SLP Function ID constants                                               */
@@ -93,6 +94,7 @@ typedef UINT32*         PUINT32;
 #define SLP_ERROR_PARSE_ERROR              2
 #define SLP_ERROR_INVALID_REGISTRATION     3
 #define SLP_ERROR_SCOPE_NOT_SUPPORTED      4
+#define SLP_ERROR_CHARSET_NOT_UNDERSTOOD   5 /* valid only for SLPv1 */
 #define SLP_ERROR_AUTHENTICATION_ABSENT    6
 #define SLP_ERROR_AUTHENTICATION_FAILED    7
 #define SLP_ERROR_VER_NOT_SUPPORTED        9
@@ -131,6 +133,7 @@ typedef struct _SLPHeader
     int         functionid;
     int         length;       
     int         flags;
+    int         encoding;	/* language encoding, valid only for SLPv1 */
     int         extoffset;    
     int         xid;
     int         langtaglen;
@@ -414,5 +417,9 @@ void ToUINT24(char *charptr, unsigned int val);
 void ToUINT32(char *charptr, unsigned int val);
 /* Functions used to set buffers                                           */
 /*=========================================================================*/
+#endif
+
+#if defined(ENABLE_SLPv1)
+#include <slp_v1message.h>
 #endif
 #endif

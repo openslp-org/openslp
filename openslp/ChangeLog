@@ -8,6 +8,11 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 
+09/29/00 rganesan@myrealbox.com
+Implemented SLPv1 support when running as a DA. This can be turned off by the
+configure option --disable-slpv1. New files common/slp_v1message.h,
+common/slp_v1message.c, slpd/slp_v1process.c. SLPv1 packets can have multiple
+character encodings, OpenSLP supports only ASCII and Unicode encodings.
 
 *** TAG OpenSLP 0.7.6 ***
 

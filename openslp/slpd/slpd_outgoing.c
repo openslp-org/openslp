@@ -90,7 +90,11 @@ void OutgoingStreamRead(SLPList* socklist, SLPDSocket* sock)
         if (bytesread > 0)
         {
             /* check the version */
+#if defined(ENABLE_SLPv1)
+            if (*peek == 2 || (G_SlpdProperty.isDA && *peek == 1))
+#else
             if (*peek == 2)
+#endif
             {
                 /* allocate the recvbuf big enough for the whole message */
                 sock->recvbuf = SLPBufferRealloc(sock->recvbuf,AsUINT24(peek+2));

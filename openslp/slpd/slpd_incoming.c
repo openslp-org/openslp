@@ -48,6 +48,7 @@ void IncomingDatagramRead(SLPList* socklist, SLPDSocket* sock)
     int                 bytesread;
     int                 bytestowrite;
     int                 byteswritten;
+	int                 err;
 
     bytesread = recvfrom(sock->fd,
                          sock->recvbuf->start,
@@ -59,9 +60,9 @@ void IncomingDatagramRead(SLPList* socklist, SLPDSocket* sock)
     {
         sock->recvbuf->end = sock->recvbuf->start + bytesread;
 
-        if (SLPDProcessMessage(&(sock->peerinfo),
-                               sock->recvbuf,
-                               &(sock->sendbuf)) == 0)
+        if ((err = SLPDProcessMessage(&(sock->peerinfo),
+									 sock->recvbuf,
+									 &(sock->sendbuf))) == 0)
         {
             /* check to see if we should send anything */
             bytestowrite = sock->sendbuf->end - sock->sendbuf->start;
@@ -76,15 +77,15 @@ void IncomingDatagramRead(SLPList* socklist, SLPDSocket* sock)
 				      sock->peerinfo.peeraddrlen);
 		if (byteswritten != bytestowrite)
 		{
-		    SLPLog("An error occured while processing message "
+		    SLPLog("An error occured while replying to a message "
 			   "from %s\n",
 			   inet_ntoa(sock->peerinfo.peeraddr.sin_addr));
 		}
             }
         } else
         {
-            SLPLog("An error occured while processing message from %s\n",
-                   inet_ntoa(sock->peerinfo.peeraddr.sin_addr));
+            SLPLog("An error (%d) occured while processing message from %s\n",
+                   err, inet_ntoa(sock->peerinfo.peeraddr.sin_addr));
         } 
     }
 }
@@ -161,7 +162,11 @@ void IncomingStreamRead(SLPList* socklist, SLPDSocket* sock)
         {
 
             /* check the version */
+#if defined(ENABLE_SLPv1)
+            if (*peek == 2 || (G_SlpdProperty.isDA && *peek == 1))
+#else
             if (*peek == 2)
+#endif
             {
                 /* allocate the recvbuf big enough for the whole message */
                 sock->recvbuf = SLPBufferRealloc(sock->recvbuf,AsUINT24(peek+2));
@@ -404,6 +409,7 @@ int SLPDIncomingInit()
     char*           end;
     int             finished;
     struct in_addr  myaddr;
+    struct in_addr  mcastaddr;
     struct in_addr  bcastaddr;
     struct in_addr  loaddr;
     SLPDSocket*     sock;
@@ -422,7 +428,7 @@ int SLPDIncomingInit()
     /*-----------------------------------------------*/
     loaddr.s_addr = htonl(LOOPBACK_ADDRESS);
     bcastaddr.s_addr = htonl(SLP_BCAST_ADDRESS);
-
+    mcastaddr.s_addr = htonl(SLP_MCAST_ADDRESS);
 
     /*--------------------------------------------------------------------*/
     /* Create SOCKET_LISTEN socket for LOOPBACK for the library to talk to*/
@@ -469,13 +475,11 @@ int SLPDIncomingInit()
 
 
         /*----------------------------------------------------------------*/
-        /* Create socket that will handle multicast UDP. The peer address */
-	/* is set to NULL because some BSD derived OSs and WIN32 don't    */
-	/* work correctly if we bind to the multicast address             */
+        /* Create socket that will handle multicast UDP.                  */
         /*----------------------------------------------------------------*/
 
         sock =  SLPDSocketCreateBoundDatagram(&myaddr,
-                                              NULL,
+                                              &mcastaddr,
                                               DATAGRAM_MULTICAST);
         if (sock)
         {
@@ -483,6 +487,26 @@ int SLPDIncomingInit()
             SLPLog("Multicast socket on %s ready\n",inet_ntoa(myaddr));
         }
 
+
+#if defined(ENABLE_SLPv1)
+	if (G_SlpdProperty.isDA)
+	{
+	    /*------------------------------------------------------------*/
+	    /* Create socket that will handle multicast UDP for SLPv1 DA  */
+	    /* Discovery.                                                 */
+	    /*------------------------------------------------------------*/
+	    mcastaddr.s_addr = htonl(SLPv1_DA_MCAST_ADDRESS);
+	    sock =  SLPDSocketCreateBoundDatagram(&myaddr,
+						  &mcastaddr,
+						  DATAGRAM_MULTICAST);
+	    if (sock)
+	    {
+		SLPListLinkTail(&G_IncomingSocketList,(SLPListItem*)sock);
+		SLPLog("SLPv1 DA Discovery Multicast socket on %s ready\n",
+		       inet_ntoa(myaddr));
+	    }
+	}
+#endif
 
         /*--------------------------------------------*/
         /* Create socket that will handle unicast UDP */

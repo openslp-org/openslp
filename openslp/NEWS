@@ -1,5 +1,10 @@
 NEWS - list of user-visible changes between releases of OpenSLP
 
+New in openslp-0.8.0: (2000-??-??)
+----------------------------------
+* OpenSLP now supports SLPv1 when run as a DA.
+
+
 New in openslp-0.7.6: (2000-10-28)
 ----------------------------------
 * OpenSLP ported to FreeBSD. Compaq Tru64 support is also complete.
@@ -14,7 +19,7 @@ New in openslp-0.7.6: (2000-10-28)
 New in openslp-0.7.5: (2000-09-08)
 ----------------------------------
 * OpenSLP ported to Win32.
-* SLPFindSrvTypes() now works!
+* SLPFindSrvTypes() now works.
 * libslp minor version updated.
 
 
