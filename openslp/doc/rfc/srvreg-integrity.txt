@@ -77,7 +77,7 @@ that write to the SLP API.
 
 Current SLP security requirements
 ----------------------------------
-SLPv2 security provisions as described by RFC 2608 supply -- at the protocol 
+SLPv2 security as described by RFC 2608 supplies -- at the protocol 
 level -- everything that is needed to ensure that service location information
 was sent by a trusted entity (authentication) and that it is not changed in 
 transit (integrity).  At the application level, this means that an
@@ -196,7 +196,7 @@ enhancements (in addition to normal SLPv2) it is impossible to prevent
 any of these attacks or to even detect "unauthorized de-registration" or 
 "unathorized re-registration" attacks.
 
-SOLUTION
+Solution
 --------
 "Simple Service Registration Transaction Integrity for SLPv2" (SSRTI-SLPv2) is
 a really long name for a very simple security extension to SLPv2 protocol that

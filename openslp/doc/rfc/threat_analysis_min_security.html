@@ -2,15 +2,21 @@
 <html>
 <head>
    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-   <meta name="GENERATOR" content="Mozilla/4.77C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.4.2 i686) [Netscape]">
+   <meta name="GENERATOR" content="Mozilla/4.76C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.4.2 i686) [Netscape]">
 </head>
 <body>
+
+<h3>
+SLP Security</h3>
+
+<h3>
+</h3>
 
 <h3>
 Introduction</h3>
 &nbsp;
 <h3>
-The SLP&nbsp;Security Problem</h3>
+The SLP Security Problem</h3>
 The SLP security problem can be divided into three categories:&nbsp; SLP
 security attacks, security configuration and management problems, and ignorance
 of secure SLPv2 usage.&nbsp; The following is an introduction to problems
@@ -25,7 +31,7 @@ secured only by virtue of manual configuration.&nbsp;&nbsp;&nbsp; For example,
 an OpenSource help desk application consisting of "server" and "client"
 software is SLP enabled because the network administrators got tired of
 helping employees set up the "client" software with location and configuration
-information used to connect with the "server" software.</tt><tt></tt>
+information used to connect with the "server" software.</tt>
 <p><tt>Since the source code is readily available, a sneaky employee makes
 a few modifications to the server code that allows him to obtain user names
 and passwords.&nbsp; He recompiles the source and brings up the "rogue"
@@ -43,7 +49,7 @@ effort on the part of user and application developer.&nbsp; However, it
 places a huge security configuration and management burdon on the system
 administrator and makes (application level) interoperability between SLP
 implementations difficult if not impossible.&nbsp; In other words, the
-SLPv2 security specification does a great job at solving most SLP&nbsp;security
+SLPv2 security specification does a great job at solving most SLP security
 problems from a protocol perspective, but in most applications, it creates
 a configuration and management nighmare that challenges the fundamental
 SLP usability claim"
@@ -65,26 +71,214 @@ are stuck with the prospect of having to manually configure key distibution
 and SPI configuration.
 <p>Finally, very little information is given in RFC 2608 or in RFC 2614
 (especially) to educates developers of SLP software about the subelties
-of SLP&nbsp;security and how SLP must be used in order to be secure.&nbsp;
-It turns out that there many things that developers can do to write software
+of SLP security and how SLP must be used in order to be secure.&nbsp; It
+turns out that there many things that developers can do to write software
 that is resistant to SLP related attacks that do not require use of SLPv2
 protocol security features.&nbsp;&nbsp; As discussed later in this document,
 it may be possible for educated developers to write acceptibly secure SLP
 enabled software that does not require any security configuration or management
 overhead.
-<br>&nbsp;
-<br>&nbsp;
 <h3>
-SLP Security Solutions</h3>
-Currently
+Limiting SLP&nbsp;Security Requirements</h3>
+Current SLP security requirements
+<br>----------------------------------
+<br>SLPv2 security as described by RFC 2608 supplies -- at the protocol
+<br>level -- everything that is needed to ensure that service location
+information
+<br>was sent by a trusted entity (authentication) and that it is not changed
+in
+<br>transit (integrity).&nbsp; At the application level, this means that
+an
+<br>application developer (probably using the SLP API) can trust *all*
+SLP
+<br>delivered information.
+<br>&nbsp;
+<br>Blind trust of SLP deliverd information (URLs, etc) is especially significant
+<br>in common situations where confidential information (username and password)
+<br>are exchanged with an entity authenticated only by the fact that it
+was
+<br>located via secure SLP.
+<br>&nbsp;
+<br>For example, LDAP enabled software uses SLP to locate an LDAP directory.&nbsp;
+If
+<br>SLP information is secure, the username and password to establish a
+connection
+<br>with the LDAP directory can be sent with out having to use any other
+method to
+<br>establish the identity of LDAP directory.&nbsp; However, with LDAP
+(and many other
+<br>protocols, however, possible to establish the identity even if the
+SLP
+<br>information is not trusted.&nbsp; In fact, for any SSL or equivilant
+transport
+<br>establishing the identity of the "other side" seperatly from the URL
+used.
+<br>&nbsp;
+<br>Most secure applications already have authentication built into their
+<br>protocols.&nbsp; In these cases, additional configuration for SLP to
+provide
+<br>another layer of authentication does not make sense.
+<br>&nbsp;
+<br>Security by fear
+<br>----------------
+<br>Most Internet security problems are approached with the assumption
+that no
+<br>one is trustworthy and that no one is trackable or accountable.&nbsp;
+This is
+<br>probably not an appropriate approach to SLP security because SLP is
+not
+<br>intended for the Internet.
+<br>&nbsp;
+<br>&nbsp;&nbsp;&nbsp; SLP is intended to function within networks under
+cooperative
+<br>&nbsp;&nbsp;&nbsp; administrative control.&nbsp; Such networks permit
+a policy to be
+<br>&nbsp;&nbsp;&nbsp; implemented regarding security, multicast routing
+and organization of
+<br>&nbsp;&nbsp;&nbsp; services and clients into groups which are not be
+feasible on the
+<br>&nbsp;&nbsp;&nbsp; scale of the Internet as a whole.
+<br>&nbsp;
+<br>&nbsp;&nbsp;&nbsp; -- RFC 2608 (section 1.1 Applicability Statement)
+<br>&nbsp;
+<br>In approaching the SLP security problem, one should continue to assume
+that
+<br>no one is trustworthy, however, it SHOULD NOT be assumed that no one
+is
+<br>accountable or trackable.&nbsp; In fact, in "networks under cooperative
+<br>administrative control" it is very easy track and confront individuals
+that
+<br>corrupt otherwise insecure systems as long as it can be identified
+that a
+<br>corruption has been attempted or has occured.&nbsp; Because they can
+be held
+<br>accountable, fear of consequences keep otherwise untrustworthy individuals
+<br>in line.
+<br>&nbsp;
+<br>The real SLP security problem
+<br>-----------------------------
+<br>The use of secure service specific protocols/frameworks in an environment
+<br>"under cooperative administrative control" greatly reduces the scope
+of the
+<br>Security problem.&nbsp; Instead of having to ensure that every bit
+of SLP
+<br>information is delivered with authenticity and integrity, SLP only
+has to
+<br>worry about a small portion of the SLP delivered information is delivered
+<br>with authenticity and integrity -- and this is only so that developers
+(and
+<br>ultimately system administrators) can be *alerted* to SLP related attacks.
+<br>&nbsp;
+<br>Continuing the LDAP example from above, it is possible to write a secure
+LDAP
+<br>enabled "client" application that uses "insecure" SLP to discover the
+LDAP
+<br>server.&nbsp; The client would locate URLs for *all* LDAP services
+using SLP.
+<br>The client would try to establish an SSL connection with each of the
+<br>discovered LDAP servers until an LDAP server that comes to an LDAP
+server
+<br>that is trusted.&nbsp; If SLP finds an LDAP servers that is not trusted
+it should
+<br>display a warning message (thus helping to track down the rogue or
+<br>misconfigured LDAP server).
+<br>&nbsp;
+<br>In the example above there is one no chance for security compromise
+in
+<br>the LDAP application due to it's use of SLP.&nbsp; There is, however
+a chance that
+<br>an attack could burdon the application.&nbsp; The following is a list
+of attacks
+<br>that can not be prevented without addtions to the required SLP implementation:
+<br>&nbsp;
+<br>&nbsp;&nbsp; Unauthorized Registration - An obvious attack of registering
+many
+<br>&nbsp;&nbsp; non-existant LDAP services which would result in the application
+taking
+<br>&nbsp;&nbsp; a long time to connect to LDAP (it would probably have
+to iterate through a
+<br>&nbsp;&nbsp; lot of bogus services before it found a valid one).
+<br>&nbsp;
+<br>&nbsp;&nbsp; Unauthorized Deregistration - A more effective attack
+would be to simply
+<br>&nbsp;&nbsp; de-register the valid registration so that no LDAP services
+would be found
+<br>&nbsp;&nbsp; at all.
+<br>&nbsp;
+<br>&nbsp;&nbsp; Unauthorized Reregistration - Reregister the LDAP service
+with different
+<br>&nbsp;&nbsp; attributes.&nbsp; (This attack would only affects applications
+that rely on
+<br>&nbsp;&nbsp; SLP attributes)
+<br>&nbsp;
+<br>&nbsp;&nbsp; Unauthorized DA - Bring up an unauthorized DA that has
+been modified to
+<br>&nbsp;&nbsp; achieve the same results as the above mentioned attacks.
+<br>&nbsp;
+<br>&nbsp;&nbsp; Unauthorized SA - Bring up an unauthorized SA that has
+been modified to
+<br>&nbsp;&nbsp; achieve the same results as an unauthorized registration
+or
+<br>&nbsp;&nbsp; re-reregistration (only a problem if the application relies
+on SLP
+<br>&nbsp;&nbsp; attributes)
+<br>&nbsp;
+<br>&nbsp;&nbsp; Scrambler in the middle - Malicious party that "sniffs"
+the network and
+<br>&nbsp;&nbsp; intentionally scrambles valid messages so that they become
+invalid.
+<br>&nbsp;
+<br>&nbsp;
+<br>Full SLPv2 security implementation prevents all of the above attacks
+except
+<br>the "scrambler in the middle attack" which is not preventable.&nbsp;
+However, in
+<br>order to do it, the full SLPv2 security imposes the SPI configuration
+and key
+<br>distribution overhead that was discussed earlier.
+<br>&nbsp;
+<br>The solution to the SPI and the key distribution problem is to simply
+not
+<br>use SLPv2 security as defined in the RFC or expect that the world will
+<br>standardize on a single SPI and key distribution solution and that
+tools can be
+<br>written to automate them.&nbsp; Perhaps the best advise for those trying
+to write
+<br>SLP software today is to simply not use SLPv2 security as defined by
+the RFC
+<br>and spend the time implementing or using secure service-specific transport
+or
+<br>presentation layer protocols. As long as service-specific protocols
+are
+<br>secure, there is no chance that sensitive data or resources will be
+<br>compromised.
+<br>&nbsp;
+<br>Careful use of normal (insecure) SLPv2 can supply enough information
+<br>to warn administrators about "unauthorized registration" attacks and
+<br>"unauthorized SA/DA" attacks, but currently, without a simple security
+<br>enhancements (in addition to normal SLPv2) it is impossible to prevent
+<br>any of these attacks or to even detect "unauthorized de-registration"
+or
+<br>"unathorized re-registration" attacks.
 <h3>
 </h3>
-&nbsp;
+
 <h3>
 SLP Security Attacks</h3>
-The following is a list of attacks that could affect SLP enabled software
-that does not implement any of the (optional) RFC 2608&nbsp; SLPv2 security
-specification.
+Since SLP controlled information is publically available, most SLP&nbsp;security
+attacks are calculated to compromize information and resources controlled
+by SLP&nbsp;enabled software rather than information that is controlled
+by SLP&nbsp;itself.&nbsp; There are two categories of SLP attack: impersonation
+attacks, and suppression attacks.&nbsp;&nbsp; Impersonation attacks involve
+manipulation of SLP&nbsp;in order trick SLP enabled software into using
+rogue service.&nbsp; Impersionation attacks range from making someone print
+to the wrong printer to reveiling their LDAP password a rogue LDAP server.&nbsp;&nbsp;
+Supression attacks attempt to suppress deployment of SLP&nbsp;information
+with the intention of halting the normal operation of SLP enabled software.&nbsp;
+A suppression attack makes it so that no services can be discovered at
+all.
+<p>The following is a table of SLP attacks that can be used to achieve
+impersonation or supression goals.
 <br>&nbsp;
 <table BORDER WIDTH="100%" NOSAVE >
 <tr NOSAVE>
@@ -125,7 +319,7 @@ to tell which attributes are really valid.</td>
 <td>Unauthorized Registrations with DA</td>
 
 <td>Contacting the DA to register many bogus services of the same service-type
-as a valid service.&nbsp;&nbsp; SLP enabled applications that rely on service
+as a valid service.&nbsp; Evan SLP enabled applications that rely on service
 specific security protocols (SSL, etc) would take a long time to connect
 to a valid service as&nbsp; it would probably have to iterate through a&nbsp;
 lot of bogus services before it found a valid one.</td>
@@ -168,8 +362,26 @@ so that they will be rejected by the valid SLP implementations.</td>
 </table>
 
 <h3>
+</h3>
+
+<h3>
+</h3>
+
+<h3>
+</h3>
+
+<h3>
 Vulnerablility</h3>
-Though provisions for security have been designed into the SLPv2 protocol,
+&nbsp;
+<p>&nbsp;
+<p>There are several approaches to solving security problems.&nbsp; The
+first approach is to use SLPv2 security as specified by RFC 2608 and deal
+with the associated manual configuration and management overhead.&nbsp;
+The second approach is to use custom security extensions to the SLPv2 protocol&nbsp;
+which may or may not be interoperable with other SLP&nbsp;software.&nbsp;
+The third approach would be to not use any SLP&nbsp;security enhancements
+at all, but&nbsp; a possibly uninteroperable
+<p>Though provisions for security have been designed into the SLPv2 protocol,
 security is not a mandatory feature.&nbsp;&nbsp; The following table presents
 the vulnerability of SLPv2 to attack:
 <br>&nbsp;
@@ -247,7 +459,7 @@ the vulnerability of SLPv2 to attack:
 <tr>
 <td>Man-in-the-middle Replay</td>
 
-<td><b><font color="#FFFF00">DETERRABLE</font></b></td>
+<td><b><font color="#FF9900">DETERRABLE</font></b></td>
 
 <td><b><font color="#33CC00">PREVENTABLE</font></b></td>
 
@@ -270,8 +482,8 @@ Attack can be prevented entirely.</font>
 <br><b><font color="#FFFF00">DETECTABLE</font></b><font color="#000000">
 - Attack can not be prevented, but can be detected by appropriately written
 SLP software</font>
-<br><b><font color="#FFFF00">DETERRABLE</font></b><font color="#000000">
-- Attack can not be prevented entirely, but can be deterred</font>
+<br><b><font color="#FF9900">DETERRABLE</font></b><font color="#000000">
+- Attack can not be detected or entirely prevented, but it can be deterred</font>
 <br><b><font color="#CC0000">VULNERABLE</font></b><font color="#000000">
 - Attack can not be prevented, deterred or detected</font>
 <br>&nbsp;
