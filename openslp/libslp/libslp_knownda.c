@@ -332,14 +332,18 @@ int KnownDADiscoverFromMulticast(int scopelistlen, const char* scopelist)
     int sockfd; 
     int result = 0;
 
-    sockfd = NetworkConnectToMulticast(&peeraddr);
-    if(sockfd >= 0)
+    if(SLPPropertyAsBoolean(SLPGetProperty("net.slp.activeDADetection")) &&
+       SLPPropertyAsInteger(SLPGetProperty("net.slp.DADiscoveryMaximumWait")))
     {
-        result = KnownDADiscoveryRqstRply(sockfd,
-                                          &peeraddr,
-                                          scopelistlen,
-                                          scopelist);
-        close(sockfd);
+        sockfd = NetworkConnectToMulticast(&peeraddr);
+        if(sockfd >= 0)
+        {
+            result = KnownDADiscoveryRqstRply(sockfd,
+                                              &peeraddr,
+                                              scopelistlen,
+                                              scopelist);
+            close(sockfd);
+        }
     }
 
     return result;
