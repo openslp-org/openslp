@@ -146,6 +146,7 @@ void IncomingStreamWrite(SLPList* socklist, SLPDSocket* sock)
 void IncomingStreamRead(SLPList* socklist, SLPDSocket* sock)
 /*-------------------------------------------------------------------------*/
 {
+    int     err;
     int     bytesread;
     char    peek[16];
     int     peeraddrlen = sizeof(struct sockaddr_in);
@@ -216,9 +217,10 @@ void IncomingStreamRead(SLPList* socklist, SLPDSocket* sock)
             sock->recvbuf->curpos += bytesread;
             if(sock->recvbuf->curpos == sock->recvbuf->end)
             {
-                if(SLPDProcessMessage(&sock->peeraddr,
+                err = SLPDProcessMessage(&sock->peeraddr,
                                       sock->recvbuf,
-                                      &(sock->sendbuf)) == 0)
+                                      &(sock->sendbuf));
+                if(err == 0)
                 {
                     sock->state = STREAM_WRITE_FIRST;
                     IncomingStreamWrite(socklist, sock);
@@ -226,8 +228,10 @@ void IncomingStreamRead(SLPList* socklist, SLPDSocket* sock)
                 else
                 {
                     /* An error has occured in SLPDProcessMessage() */
-                    SLPLog("An error while processing message from %s\n",
+                    SLPLog("An error (%d) while processing message from %s\n",
+                           err,
                            inet_ntoa(sock->peeraddr.sin_addr));
+
                     sock->state = SOCKET_CLOSE;
                 }                                                          
             }

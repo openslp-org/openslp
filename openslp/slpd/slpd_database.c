@@ -212,11 +212,11 @@ int SLPDDatabaseReg(SLPSrvReg* srvreg,
         }
 
         /* Serialize all attributes into entry->attrlist */
-        if(entry->partiallist)
+        if(entry->attrlist)
         {
-            free(entry->partiallist);
-            entry->partiallist = 0;
-            entry->partiallistlen = 0;
+            free(entry->attrlist);
+            entry->attrlist = 0;
+            entry->attrlistlen = 0;
         }
         if( SLPAttrSerialize(entry->attr,
                              "",

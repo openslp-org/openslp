@@ -65,18 +65,6 @@ char* GetHostname()
     /* fix for hostname stupidity.  Looks like hostname is not FQDN on  */
     /* some systems */
 
-    if(strchr(host,'.') == 0)
-    {
-        #ifdef HAVE_GETDOMAINNAME
-        hostlen = strlen(host);
-        if(getdomainname(host + hostlen + 1,
-                         MAX_HOST_NAME - hostlen - 1) == 0)
-        {
-            host[hostlen] = '.'; /* slip in the dot */
-        }
-        #endif
-    }
-
     return host;
 }
 

@@ -126,5 +126,5 @@ dnl ***********************************************************************
 AC_CHECK_LIB(socket, main)
 AC_CHECK_LIB(nsl, gethostbyname)
 AC_CHECK_LIB(m, main)
-AC_CHECK_FUNCS(ceil log10 getdomainname)
+AC_CHECK_FUNCS(ceil log10 )
 AC_OUTPUT(Makefile common/Makefile libslpattr/Makefile libslp/Makefile slpd/Makefile test/Makefile)
