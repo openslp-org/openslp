@@ -497,6 +497,18 @@ int SLPNetExpandIpv6Addr(char *ipv6Addr, char *result, int resultSize) {
         }
     }
     return(sts);
+#if 0
+    struct sockaddr_in6 in6;
+    
+    inet_pton(AF_INET6, ipv6Addr, &in6.sin6_addr);
+    in6.sin6_family = AF_INET6;
+    if (inet_ntop(in6.sin6_family, &in6.sin6_addr, result, resultSize)) {
+        return(0);
+    }
+    else {
+        return(-1);
+    }
+#endif
 }
 
 /* #define SLP_NET_TEST */
