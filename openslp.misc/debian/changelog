@@ -1,3 +1,51 @@
+openslp (1.0.9-1) unstable; urgency=low
+
+  * New upstream version.
+  * Changed multicast kernel detection to check the presence of
+    /proc/net/igmp instead of /boot/config-* (Closes: #134974).
+  * Changed message to add multicast route (Closes:  #145598, #140380).
+
+ -- Ganesan Rajagopal <rganesan@debian.org>  Mon, 13 May 2002 13:56:03 +0530
+
+openslp (1.0.8a-3) unstable; urgency=high
+
+  * Change libslp1 priority to optional (Closes: #145058). Increasing
+    urgency to high to get this into Woody. RM: This is the only change in
+    this package to fix a last minute bug because of policy violation.
+
+ -- Ganesan Rajagopal <rganesan@debian.org>  Mon, 30 Apr 2002 08:15:34 +0530
+
+openslp (1.0.8a-2) unstable; urgency=low
+
+  * Change libslp1 dependency on slpd to suggests (Closes: #138466).
+  * Partially fix multicast checks doing install.
+
+ -- Ganesan Rajagopal <rganesan@debian.org>  Wed, 13 Mar 2002 14:27:16 +0530
+
+openslp (1.0.8a-1) unstable; urgency=low
+
+  * New upstream release
+
+ -- Ganesan Rajagopal <rganesan@debian.org>  Tue,  5 Mar 2002 11:11:16 +0530
+
+openslp (1.0.7-1) unstable; urgency=low
+
+  * New upstream release
+
+ -- Ganesan Rajagopal <rganesan@debian.org>  Fri, 08 Feb 2002 08:39:14 +0530
+
+openslp (1.0.6-3) unstable; urgency=low
+
+  * Fixed URL in manpages (was pointing to www.openldap.org!).
+
+ -- Ganesan Rajagopal <rganesan@debian.org>  Sat, 05 Jan 2002 13:27:22 +0530
+
+openslp (1.0.6-2) unstable; urgency=low
+
+  * Added AUTHORS file to the package.
+
+ -- Ganesan Rajagopal <rganesan@debian.org>  Wed, 26 Dec 2001 08:27:22 +0530
+
 openslp (1.0.6-1) unstable; urgency=low
 
   * New upstream release

@@ -1,29 +1,29 @@
 #!/bin/sh
 
-
 if [ "$1" = "configure" ]
 then
     ldconfig
-fi
-
-if [ "$1" = "configure" ]
-then
-    if ! grep "CONFIG_IP_MULTICAST=y" /boot/config-`uname -r` >/dev/null
+    # /proc/net/igmp is present only in a multicast kernel
+    if [ ! -f /proc/net/igmp ]
     then
-        echo "WARNING: The kernel version that you are currently running does not support" 
-        echo "multicast. You must use a kernel with multicast enabled for OpenSLP to"
-        echo "function correctly."
+    	echo "NOTE: The kernel version that you are currently running does not appear to "
+        echo "support multicast. You must use a IP multicast enabled kernel for OpenSLP to"
+        echo "function efficiently."
     fi
 
-    if ! netstat -rn | grep 224 >/dev/null 
+    if ! netstat -rn | grep "224\.0\.0\.0" >/dev/null 
     then
-        echo "WARNING: You do not have a multicast routing configured. You need to add a "
-        echo "multicast route by running the command:"
+        echo "NOTE: You don't seem to have a multicast route configured. For OpenSLP to "
+        echo "function efficiently add a multicast route by running the command:"
         echo
         echo "route add -net 224.0.0.0 netmask 240.0.0.0 dev <interface>"
         echo
-        echo "You can add this command to your network init scripts to do this automatically"
-        echo "at startup."
+        echo "as root from the command line. Alternatively, you can also add the following "
+	echo "commands to the interface(s) in your /etc/network/interfaces file to setup "
+	echo "the multicast route automatically at system startup:"
+	echo 
+	echo "    up route add -net  224.0.0.0 netmask 240.0.0.0 dev eth0"
+	echo "    down route del -net  224.0.0.0 netmask 240.0.0.0 dev eth0"
     fi
 fi
 

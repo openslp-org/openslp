@@ -50,7 +50,6 @@ binary-arch: build install
 	dh_testroot
 	dh_installinit
 	dh_installdocs
-	-rm config.cache # fix lintian error
 
         # build libslp${major} package by moving files from slpd package
 	dh_movefiles -plibslp$(major)        \
@@ -72,7 +71,6 @@ binary-arch: build install
 	dh_installexamples
 #	dh_installmenu
 #	dh_installcron
-	pwd
 	dh_installman -pslpd debian/slpd.8 
 	dh_installman -plibslp-dev debian/slptool.1
 	dh_installchangelogs ChangeLog

@@ -34,11 +34,10 @@ Description: OpenSLP documentation
 
 Package: libslp1
 Section: libs
-Priority: extra
+Priority: optional
 Architecture: any
 Depends: ${shlibs:Depends}
-Recommends: slpd (= ${Source-Version})
-Suggests: openslp-doc (= ${Source-Version})
+Suggests: slpd (= ${Source-Version}), openslp-doc (= ${Source-Version})
 Description: OpenSLP libraries
  SLPv2 (RFC 2608) is a IETF standard protocol (RFC 2608) that is used to
  discover/advertise services on the network. You can use SLP for anything
@@ -65,4 +64,3 @@ Description: OpenSLP development libraries
  headers, libraries and links to allow static and dynamic linking. It also
  includes slptool, a utility to test service advertisement/lookup. The
  library implements RFC 2614 - An API for Service Location. 
-
