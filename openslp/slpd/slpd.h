@@ -63,7 +63,7 @@
 #if(!defined MAX_PATH)
 #define MAX_PATH    256
 #endif
-#define SLPDPROCESS_RESULT_COUNT    256  
+#define SLPDPROCESS_RESULT_COUNT    256 
 #define SLPD_MAX_SOCKETS            128  
 #define SLPD_AGE_TIMEOUT            15   /* age every 15 seconds */
 

@@ -10,7 +10,7 @@ blank lines and include the date, developer's email, and change description.
 =============================================================================
 
 05/24/00 mpeterson@calderasystems.com
-Fixed multiple attributes not showing in static registration
+Fixed 106298 - SLPFindAttrs does not find all attributes
 
 05/18/00 mpeterson@calderasystems.com
 Added the traceReg feature
