@@ -155,7 +155,6 @@ void IncomingStreamWrite(SLPList* socklist, SLPDSocket* sock)
 void IncomingStreamRead(SLPList* socklist, SLPDSocket* sock)
 /*-------------------------------------------------------------------------*/
 {
-    int     err;
     int     bytesread;
     char    peek[16];
     int     peeraddrlen = sizeof(struct sockaddr_in);

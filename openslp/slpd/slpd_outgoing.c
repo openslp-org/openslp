@@ -59,8 +59,7 @@ void OutgoingDatagramRead(SLPList* socklist, SLPDSocket* sock)
 /*-------------------------------------------------------------------------*/
 {
     int                 bytesread;
-    int                 err;
-    int                 peeraddrlen = sizeof(struct sockaddr_in);
+	int                 peeraddrlen = sizeof(struct sockaddr_in);
 
     bytesread = recvfrom(sock->fd,
                          sock->recvbuf->start,
