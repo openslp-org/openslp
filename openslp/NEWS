@@ -1,4 +1,0 @@
-openslp-0.7.0:	(2000-07-06)
-    - Now uses Autoconf/Automake
-    - Addition of NEWS file
-    - Move of CHANGELOG to ChangeLog

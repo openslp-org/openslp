@@ -1,4 +1,0 @@
-Service URL     = service:test://10.0.0.1
-Service Timeout = 65535
-Service URL     = service:test://10.0.0.2
-Service Timeout = 65535
