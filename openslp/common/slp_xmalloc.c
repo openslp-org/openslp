@@ -367,6 +367,7 @@ void xmalloc_deinit()
     if(G_xmalloc_fh)
     {
         fclose(G_xmalloc_fh);
+        G_xmalloc_fh = NULL;
     }
 
     while(G_xmalloc_list.count)
