@@ -52,6 +52,7 @@
 #define SLPD_PROPERTY_H_INCLUDED
 
 #include "slpd.h"
+#include "slp_iface.h"
 
 /*=========================================================================*/
 typedef struct _SLPDProperty
@@ -65,8 +66,9 @@ typedef struct _SLPDProperty
     int             DAAddressesLen;
     const char*     DAAddresses;
     unsigned long   DATimestamp;  /* here for convenience */
+    SLPIfaceInfo    ifaceInfo;
     int             interfacesLen;
-    const char*     interfaces; 
+    const char*     interfaces;
     int             localeLen;
     const char*     locale;
     int             isBroadcastOnly;
