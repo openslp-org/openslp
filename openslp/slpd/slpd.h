@@ -82,7 +82,7 @@
 #define SLPD_SMALLEST_MESSAGE       18   /* 18 bytes is smallest SLPv2 msg */
 #define SLPD_MAX_SOCKETS            64   /* maximum number of sockets */
 #define SLPD_COMFORT_SOCKETS        32   /* a comfortable number of sockets */
-#define SLPD_MAX_SOCKET_LIFETIME    3600 /* max idle time of socket - 60 min*/
+#define SLPD_CONFIG_CLOSE_CONN      900  /* max idle time of socket - 60 min*/
 #define SLPD_AGE_INTERVAL           15   /* age every 15 seconds */
 #define SLPD_ATTR_RECURSION_DEPTH   50
 

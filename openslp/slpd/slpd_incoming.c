@@ -401,7 +401,7 @@ void SLPDIncomingAge(time_t seconds)
             }
             else
             {
-                if(sock->age > SLPD_MAX_SOCKET_LIFETIME)
+                if(sock->age > SLPD_CONFIG_CLOSE_CONN)
                 {
                     del = sock;
                 }

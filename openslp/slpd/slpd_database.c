@@ -427,8 +427,8 @@ int SLPDDatabaseFindType(SLPSrvTypeRqst* srvtyperqst,
                 {
                     if(SLPCompareString(result[i].typelen,
 					result[i].type,
-					entry->srvtype,
-					entry->srvtypelen) == 0)
+					entry->srvtypelen,
+					entry->srvtype) == 0)
                     {
                         break;
                     }
