@@ -8,6 +8,15 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 
+09/27/00 hughes@lab43.org
+Changed slpd's internal representation of attributes to use libslpattr. This
+gives  much finer control over attributes, paving the way for filter support
+and attribute freshening. 
+
+09/27/00 hughes@lab43.org
+Integrated filter support into slpd. This can be found in 
+slpd/slpd_predicate.*. Regression test added in test.  
+
 09/19/00 rganesan@myrealbox.com
 Changed slpd to bind the multicast socket to INADDR_ANY instead of the SLP 
 multicast address. Binding to the multicast address causes BSD derived OSs
