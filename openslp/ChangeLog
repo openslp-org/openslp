@@ -6,6 +6,13 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 
+07/25/01 matt@caldera.com
+Applied Michael Sweet's patch to configure.in that allows use of CFLAGS and
+LDFLAGS
+ 
+07/25/01 matt@caldera.com
+Fixed parsing problem in SLPParseSrvURL() that could cause SEGV
+
 07/23/01 matt@caldera.com
 Branched CVS into HEAD and stable-1.0.  This is the stable branch.
 

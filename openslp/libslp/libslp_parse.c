@@ -100,6 +100,7 @@ SLPError SLPParseSrvURL(const char *pcSrvURL,
 /*          appropriate error code is returned.                            */
 /*=========================================================================*/
 {
+    char*   empty;   /* always points to an empty string */
     char*   slider1; /* points to location in the SLPSrvURL buffer */
     char*   slider2;
     char*   slider3;
@@ -111,18 +112,21 @@ SLPError SLPParseSrvURL(const char *pcSrvURL,
         return SLP_PARAMETER_BAD;
     }
 
-
-    *ppSrvURL = (SLPSrvURL*)xmalloc(strlen(pcSrvURL) + sizeof(SLPSrvURL) + 4);
-    /* +4 ensures space for 4 null terminations */
+    /* Allocate memory and set up sliders */
+    *ppSrvURL = (SLPSrvURL*)xmalloc(strlen(pcSrvURL) + sizeof(SLPSrvURL) + 5);
+    /* +5 ensures space for 5 null terminations */
     if(*ppSrvURL == 0)
     {
         return SLP_MEMORY_ALLOC_FAILED;
     }
-    memset(*ppSrvURL,0,sizeof(SLPSrvURL));
-
+    memset(*ppSrvURL,0,strlen(pcSrvURL) + sizeof(SLPSrvURL) + 5);    
     slider1 = ((char*)*ppSrvURL) + sizeof(SLPSrvURL);
     slider2 = slider3 = (char*)pcSrvURL;
-
+    
+    /* Set empty */
+    empty = slider1;
+    slider1 ++;
+     
     /* parse out the service type */
     slider3 = (char*)strstr(slider2,":/");
     if(slider3 == 0)
@@ -130,22 +134,10 @@ SLPError SLPParseSrvURL(const char *pcSrvURL,
         xfree(*ppSrvURL);
         *ppSrvURL = 0;
         return SLP_PARSE_ERROR;
-    }
-
-    /* ensure that URL is of the service: scheme 
-     if(strstr(slider2,"service:") == 0)
-     {
-         xfree(*ppSrvURL);
-         *ppSrvURL = 0;
-         return SLP_PARSE_ERROR;
-     }
-     */
-
+    }    
     memcpy(slider1,slider2,slider3-slider2);
     (*ppSrvURL)->s_pcSrvType = slider1;
-    slider1 = slider1 + (slider3 - slider2);
-    *slider1 = 0;  /* null terminate */
-    slider1 = slider1 + 1;
+    slider1 += (slider3 - slider2) + 1;
 
     /* parse out the host */
     slider3 = slider2 = slider3 + 3; /* + 3 skips the "://" */
@@ -153,15 +145,13 @@ SLPError SLPParseSrvURL(const char *pcSrvURL,
     if(slider3-slider2 < 1)
     {
         /* no host part (this is okay according to RFC2609) */
-        (*ppSrvURL)->s_pcHost = 0;
+        (*ppSrvURL)->s_pcHost = empty;
     }
     else
     {
         memcpy(slider1,slider2,slider3-slider2);
         (*ppSrvURL)->s_pcHost = slider1;
-        slider1 = slider1 + (slider3 - slider2);
-        *slider1 = 0;  /* null terminate */
-        slider1 = slider1 + 1;
+        slider1 += (slider3 - slider2) + 1;
     }
 
     /* parse out the port */
@@ -169,42 +159,28 @@ SLPError SLPParseSrvURL(const char *pcSrvURL,
     {
         slider3 = slider2 = slider3 + 1; /* + 3 skips the ":" */
         while(*slider3 && *slider3 != '/') slider3++;
-        if(*slider3)
-        {
-            memcpy(slider1,slider2,slider3-slider2);
-            (*ppSrvURL)->s_iPort = atoi(slider1);
-            slider1 = slider1 + (slider3 - slider2);
-            *slider1 = 0;  /* null terminate */
-            slider1 = slider1 + 1;
-        }
-        else
-        {
-            (*ppSrvURL)->s_iPort = atoi(slider2);
-        }
-        slider1 = slider1 + sizeof(int);   
+        memcpy(slider1,slider2,slider3-slider2);
+        (*ppSrvURL)->s_iPort = atoi(slider1);
+        slider1 += (slider3-slider2) + 1;
     }
 
     /* parse out the remainder of the url */
     if(*slider3)
     {
-        slider3 = slider2 = slider3; 
+        slider2 = slider3;
         while(*slider3) slider3 ++;
         memcpy(slider1,slider2,slider3-slider2);
         (*ppSrvURL)->s_pcSrvPart = slider1;
-        slider1 = slider1 + (slider3 - slider2);
-        *slider1 = 0;  /* null terminate */
-        slider1 = slider1 + 1;
+        slider1 += (slider3 - slider2) + 1;
     }
     else
     {
         /* no remainder portion */
-        (*ppSrvURL)->s_pcSrvPart = slider1;
+        (*ppSrvURL)->s_pcSrvPart = empty;
     }
 
     /* set  the net family to always be an empty string for IP */
-    *slider1 = 0;
-    (*ppSrvURL)->s_pcNetFamily = slider1;
-
+    (*ppSrvURL)->s_pcNetFamily = empty;
 
     return SLP_OK;
 }

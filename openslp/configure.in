@@ -23,9 +23,12 @@ AC_ARG_ENABLE(debug,
 debug=$enableval,
 debug=no)
 
+CFLAGS="${CFLAGS:=}"
+LDFLAGS="${LDFLAGS:=}"
+
 case "$debug" in
-  yes) CFLAGS='-g -DDEBUG -D_REENTRANT=1' ;;
-  no)  CFLAGS='-DNDEBUG -D_REENTRANT=1' ;;
+  yes) CFLAGS="-g -DDEBUG -D_REENTRANT=1 $CFLAGS" ;;
+  no)  CFLAGS="-DNDEBUG -D_REENTRANT=1 $CFLAGS" ;;
   *) AC_MSG_ERROR(bad value ${debug} for --enable-debug) ;;
 esac
 
