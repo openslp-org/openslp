@@ -1601,7 +1601,7 @@ SLPError SLPAttrGetType(SLPAttributes attr_h, const char *tag, SLPType *type)
     return SLPAttrGetType_len(attr_h, tag, strlen(tag), type);
 }
 
-#if 0 /* Jim Meyer's byte allignment code */
+#if 1 /* Jim Meyer's byte allignment code */
 /******************************************************************************
  *
  *                          Fix memory alignment
@@ -1610,7 +1610,7 @@ SLPError SLPAttrGetType(SLPAttributes attr_h, const char *tag, SLPType *type)
 char *fix_memory_alignment(char *p)
 {
     unsigned long address = (unsigned long)p;
-    address = (address + _MAX_ALIGNMENT - 1) & ~(_MAX_ALIGNMENT - 1);
+    address = (address + sizeof(long) - 1) & ~(sizeof(long) - 1);
     return (char *)address;
 }
 
@@ -1663,9 +1663,9 @@ int internal_store( struct xx_SLPAttributes *slp_attr, char const *tag, int tag_
 
     /***** Allocate space for the values. *****/
     block_size = (val_count * sizeof(value_t)) /* Size of each value */
-                 + unescaped_len;/* The size of the unescaped data. */
-#if 0 /* Jim Meyer's byte allignment code */
-                 + val_count * (_MAX_ALIGNMENT-1); /* Padding */
+                 + unescaped_len /* The size of the unescaped data. */
+#if 1 /* Jim Meyer's byte allignment code */
+                 + val_count * (sizeof(long) - 1); /* Padding */
 #endif     
     mem_block = (char *)malloc(block_size);
     if(mem_block == NULL)
@@ -1763,7 +1763,7 @@ int internal_store( struct xx_SLPAttributes *slp_attr, char const *tag, int tag_
             assert(0); /* Unknown type. */
         }
 
-#if 0 /* Jim Meyer's byte allignment code */
+#if 1 /* Jim Meyer's byte allignment code */
         mem_block = fix_memory_alignment(mem_block);
 #endif
         cur_start = cur_end + 1; /* +1 to move past comma. */
