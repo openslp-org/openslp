@@ -159,7 +159,7 @@ unsigned int slp_filter_init_lexer(const char *s)
 {
     memset(&buf[0], 0x00, 2052);
     strncpy(&buf[0], s, 2048);
-    return((uint)yy_scan_buffer(&buf[0], strlen(s) + 2));
+    return((unsigned int)yy_scan_buffer(&buf[0], strlen(s) + 2));
 }
 
 void slp_filter_error(char *s, ...)

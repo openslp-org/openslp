@@ -84,7 +84,7 @@ int slp_attr_lex(void);
 
 void slp_attr_close_lexer(unsigned int handle);
 
-uint slp_attr_init_lexer(char *s);
+unsigned int slp_attr_init_lexer(char *s);
 
 
 %}
@@ -198,10 +198,10 @@ unsigned int slp_attr_init_lexer(char *s)
 {
     memset(&buf[0], 0x00, 2052);
     strncpy(&buf[0], s, 2052);
-    return((uint)yy_scan_buffer(&buf[0], strlen(s) + 2));
+    return((unsigned int)yy_scan_buffer(&buf[0], strlen(s) + 2));
 }
 
-void attr_close_lexer(uint handle)
+void attr_close_lexer(unsigned int handle)
 {
     // assert(handle != 0);
     yy_delete_buffer((YY_BUFFER_STATE)handle);

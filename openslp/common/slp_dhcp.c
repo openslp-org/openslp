@@ -66,7 +66,6 @@
 #include <sys/socket.h>
 #include <sys/ioctl.h>
 #include <net/if_arp.h>
-#include <bits/ioctls.h>
 #include <sys/time.h>
 #endif
 
