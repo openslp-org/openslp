@@ -61,15 +61,18 @@ SLPBoolean CallbackAttrRqst(SLPError errorcode, SLPMessage msg, void* cookie)
                 *((char*)(msg->body.attrrply.attrlist)+msg->body.attrrply.attrlistlen) = 0;
                 
                 /* Call the callback function */
-                return handle->params.findattrs.callback((SLPHandle)handle, 
-                                                         msg->body.attrrply.attrlist,
-                                                         0,
-                                                         handle->params.findattrs.cookie);
+                if(handle->params.findattrs.callback((SLPHandle)handle,
+						     msg->body.attrrply.attrlist,
+						     0,
+						     handle->params.findattrs.cookie) == 0)
+		{
+		    return 0;
+		}
             }
         }
     }
     
-    return 0;    
+    return 1;    
 }
 
 /*-------------------------------------------------------------------------*/

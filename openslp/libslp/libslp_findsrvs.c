@@ -62,16 +62,19 @@ SLPBoolean CallbackSrvRqst(SLPError errorcode, SLPMessage msg, void* cookie)
                 /* TRICKY: null terminate the url by setting the authcount to 0 */
                 *((char*)(msg->body.srvrply.urlarray[i].url)+msg->body.srvrply.urlarray[i].urllen) = 0;
                 
-                return handle->params.findsrvs.callback((SLPHandle)handle,
-                                                        msg->body.srvrply.urlarray[i].url,
-                                                        msg->body.srvrply.urlarray[i].lifetime,
-                                                        0,
-                                                        handle->params.findsrvs.cookie);
+                if(handle->params.findsrvs.callback((SLPHandle)handle,
+						    msg->body.srvrply.urlarray[i].url,
+                                                    msg->body.srvrply.urlarray[i].lifetime,
+						    0,
+						    handle->params.findsrvs.cookie) == 0)
+		{
+		    return 0;
+		}
             }   
         }       
     }
             
-    return 0;
+    return 1;
 }
 
 /*-------------------------------------------------------------------------*/
