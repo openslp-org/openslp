@@ -44,20 +44,19 @@ time_t      G_LastDADiscovery = 0;
 int NetworkConnectToMulticast(struct sockaddr_in* peeraddr)
 /*=========================================================================*/
 {
-    int                 sock;
+    int                 sock = -1;
     
-    if(SLPPropertyAsBoolean(SLPGetProperty("net.slp.isBroadcastOnly")))
+    if(SLPPropertyAsBoolean(SLPGetProperty("net.slp.isBroadcastOnly")) == 0)
+    {
+        sock = SLPNetworkConnectToMulticast(peeraddr, 
+                                            atoi(SLPGetProperty("net.slp.multicastTTL")));
+    }
+    
+    if (sock < 0)
     {
         sock = SLPNetworkConnectToBroadcast(peeraddr);
-
     }
-    else
-    {
-
-        sock = SLPNetworkConnectToMulticast(peeraddr, 
-                                            atoi(SLPGetProperty("net.slp.multicastTTL")));    
-    }
-
+    
     return sock;    
 }
 
@@ -245,6 +244,27 @@ SLPError NetworkRqstRply(int sock,
     /*--------------------------*/
     for(xmitcount = 0; xmitcount < MAX_RETRANSMITS; xmitcount++)
     {
+        
+        /*--------------------*/
+        /* setup recv timeout */
+        /*--------------------*/
+        if(socktype == SOCK_DGRAM)
+        {   
+            totaltimeout += timeouts[xmitcount];
+            if(totaltimeout >= maxwait || timeouts[xmitcount] == 0)
+            {
+                /* we are all done */
+                break;
+            }
+            timeout.tv_sec = timeouts[xmitcount] / 1000;
+            timeout.tv_usec = (timeouts[xmitcount] % 1000) * 1000;
+        }
+        else
+        {
+            timeout.tv_sec = maxwait / 1000;
+            timeout.tv_usec = (maxwait % 1000) * 1000;
+        }
+        
         size = 14 + langtaglen + 2 + prlistlen + bufsize;
         if(SLPBufferRealloc(sendbuf,size) == 0)
         {
@@ -306,25 +326,7 @@ SLPError NetworkRqstRply(int sock,
             goto FINISHED;
         }
             
-        /*--------------------*/
-        /* setup recv timeout */
-        /*--------------------*/
-        if(socktype == SOCK_DGRAM)
-        {   
-            totaltimeout += timeouts[xmitcount];
-            if(totaltimeout >= maxwait || timeouts[xmitcount] == 0)
-            {
-                break;
-            }
-            timeout.tv_sec = timeouts[xmitcount] / 1000;
-            timeout.tv_usec = (timeouts[xmitcount] % 1000) * 1000;
-        }
-        else
-        {
-            timeout.tv_sec = maxwait / 1000;
-            timeout.tv_usec = (maxwait % 1000) * 1000;
-        }
-
+ 
         /*----------------*/
         /* Main recv loop */
         /*----------------*/
