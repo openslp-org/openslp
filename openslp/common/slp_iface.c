@@ -92,7 +92,95 @@ int SLPIfaceGetInfo(const char* useifaces,
  *     zero on success, non-zero (with errno set) on error.
  *=========================================================================*/
   {
-#ifdef _WIN32
+	#if defined(LINUX) || defined(AIX) || defined(SOLARIS) || defined(HPUX)
+    struct sockaddr_storage* sa;
+    struct sockaddr_in* sin;
+    struct lifreq lifrlist[SLP_MAX_IFACES];
+    struct lifreq lifrflags;
+    struct lifconf lifc;
+    int fd;
+    int i;
+    int useifaceslen;
+
+    #ifdef DEBUG
+    if(ifaceinfo == NULL )
+    {
+        errno = EINVAL;
+        /* bad parameters */
+        return 1;
+    }
+    #endif
+
+
+    lifc.lifc_len = sizeof(struct lifreq) * SLP_MAX_IFACES ;
+	lifc.lifc_family = AF_UNSPEC;
+	lifc.lifc_flags = 0;
+    lifc.lifc_req = lifrlist;
+    
+    fd = socket(AF_INET,SOCK_STREAM,0);
+    if(fd == -1)
+    {
+        /* failed to create socket */
+        #ifdef DEBUG
+        fprintf(stderr,"%s:%i Failed to created socket\n",__FILE__,__LINE__);
+        #endif
+        return 1;
+    }
+
+    #ifdef AIX
+    if (ioctl(fd,OSIOCGIFLCONF,&lifc) == -1)
+    #else
+    if (ioctl(fd,SIOCGIFLCONF,&lifc) == -1)
+    #endif
+    {
+        perror("ioctl failed");
+        return 1;
+    }
+
+    if(useifaces && *useifaces)
+    {
+        useifaceslen = strlen(useifaces);
+    }
+    else
+    {
+        useifaceslen = 0;
+    }
+    memset(ifaceinfo,0,sizeof(SLPIfaceInfo));
+    for (i = 0; i < lifc.lifc_len/sizeof(struct lifreq); i++)
+    {
+
+		if ((lifrlist[i].ifa_addr->sa_family == AF_INET6) || (lifrlist[i].ifa_addr->sa_family == AF_INET)) {
+            /* skip the loopback interfaces */
+            if(lifrlist[i].lifr_flags & IFF_LOOPBACK) == 0) {
+               /* Only include those interfaces in the requested list */
+				char addrString[256];
+
+				SLPNetSockAddrStorageToString(lifrlist[i], addrString, sizeof(addrString));
+                    if(useifaceslen == 0 ||
+                       SLPContainsStringList(useifaceslen,
+                                             useifaces,
+                                             strlen(addrString),
+                                             addrString))
+                    {
+						SLPNetCopyAddr(&(ifaceinfo->iface_addr[ifaceinfo->iface_count], &lifrlist[i].ifa_addr);
+                        #ifdef AIX
+                        if(ioctl(fd,OSIOCGIFBRDADDR,&(fifrlist[i])) == 0)
+                        #else
+                        if(ioctl(fd,SIOCGIFBRDADDR,&(fifrlist[i])) == 0)
+                        #endif
+                        {
+							SLPNetCopyAddr(&(ifaceinfo->bcast_addr[ifaceinfo->bcast_count], &lifrlist[i].ifa_addr);
+							ifaceinfo->bcast_count++;
+                        }
+        
+                        ifaceinfo->iface_count++;
+                    }
+                }
+            }
+        }
+    }
+#else
+	/* Windows implementation */
     char hostName[MAX_HOST_NAME];
     int sts = 0;
     int useifacesLen;
@@ -148,10 +236,6 @@ int SLPIfaceGetInfo(const char* useifaces,
         networkInterface = networkInterface->Next;
     }
     return(sts);
-/* non-windows implamentations */
-#else
-
-    return(0);
 #endif
 }
 /*=========================================================================*/
