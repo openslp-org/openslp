@@ -302,7 +302,8 @@ int ProcessSrvRqst(struct sockaddr_in* peeraddr,
     SLPBuffer               result      = *sendbuf;
 
 #ifdef ENABLE_AUTHENTICATION
-    int                     authcount;
+    int                     authcount   = 0;
+    int                     doauth      = 0;
 #endif
     
     /*--------------------------------------------------------------*/
@@ -333,6 +334,15 @@ int ProcessSrvRqst(struct sockaddr_in* peeraddr,
 #ifdef ENABLE_AUTHENTICATION
     
     /* TODO: Check known SPIs */
+    if(message->body.srvrqst.spistrlen && G_SlpdProperty.securityEnabled)
+    {
+        doauth = 1;
+    }
+    else
+    {
+        doauth = 0;
+    }
+    
     if(1)
 #else
     if(message->body.srvrqst.spistrlen == 0)
@@ -438,7 +448,7 @@ int ProcessSrvRqst(struct sockaddr_in* peeraddr,
                                             /*  1 byte for authcount */
 #ifdef ENABLE_AUTHENTICATION
             /* include authblocks if they were asked for */
-            if(message->body.srvrqst.spistrlen)
+            if(doauth)
             {
                 for(authcount=0;authcount<srvarray[i].authcount;authcount++)
                 {
@@ -507,7 +517,7 @@ int ProcessSrvRqst(struct sockaddr_in* peeraddr,
         /* url-entry auths */
 #ifdef ENABLE_AUTHENTICATION
         /* include authblocks if they were asked for */
-        if(message->body.srvrqst.spistrlen)
+        if(doauth)
         {
             *result->curpos = (char)srvarray[i].authcount;
             result->curpos = result->curpos + 1;
@@ -806,6 +816,7 @@ int ProcessAttrRqst(struct sockaddr_in* peeraddr,
 #ifdef ENABLE_AUTHENTICATION
     unsigned char*    attrauth       = 0;
     int               attrauthlen    = 0;
+    int               doauth         = 0;
 #endif
 
     /*--------------------------------------------------------------*/
@@ -843,6 +854,15 @@ int ProcessAttrRqst(struct sockaddr_in* peeraddr,
         /*------------------------------------*/
 #ifdef ENABLE_AUTHENTICATION
         
+        if(message->body.attrrqst.spistrlen && G_SlpdProperty.securityEnabled)
+        {
+            doauth = 1;
+        }
+        else
+        {
+            doauth = 0;
+        }
+
         /* TODO: Check known SPIs */
         if(1)
 #else
@@ -885,17 +905,6 @@ int ProcessAttrRqst(struct sockaddr_in* peeraddr,
         }
     }
 
-#ifdef ENABLE_AUTHENTICATION
-    /*--------------------*/
-    /* Generate authblock */
-    /*--------------------*/
-    errorcode = SLPAuthSignString(message->body.attrrqst.spistrlen,
-                                  message->body.attrrqst.spistr,
-                                  attr.attrlistlen,
-                                  attr.attrlist,
-                                  &attrauthlen,
-                                  &attrauth);
-#endif                                    
 
     /*--------------------------------------------------------------*/
     /* ensure the buffer is big enough to handle the whole attrrply */
@@ -905,11 +914,23 @@ int ProcessAttrRqst(struct sockaddr_in* peeraddr,
                                             /*  2 bytes for attr-list len */
                                             /*  2 bytes for the authcount */
     size += attr.attrlistlen;
-    
+   
 #ifdef ENABLE_AUTHENTICATION
-    size += attrauthlen;
-#endif
-
+    /*--------------------*/
+    /* Generate authblock */
+    /*--------------------*/
+    if(doauth)
+    {
+        errorcode = SLPAuthSignString(message->body.attrrqst.spistrlen,
+                                      message->body.attrrqst.spistr,
+                                      attr.attrlistlen,
+                                      attr.attrlist,
+                                      &attrauthlen,
+                                      &attrauth);
+        size += attrauthlen;
+    }
+#endif                                    
+    
     /*-------------------*/
     /* Alloc the  buffer */
     /*-------------------*/
@@ -961,17 +982,23 @@ int ProcessAttrRqst(struct sockaddr_in* peeraddr,
     result->curpos = result->curpos + attr.attrlistlen;
     /* authentication block */
 #ifdef ENABLE_AUTHENTICATION
-    if(attrauth)
+    if(doauth && attrauth)
     {
-        ToUINT16(result->curpos, 1);
-        result->curpos = result->curpos + 2;
+        /* authcount */
+        *(result->curpos) = 1;
+        result->curpos = result->curpos + 1;
+        /* authblock */
         memcpy(result->curpos,attrauth,attrauthlen);
+        result->curpos = result->curpos + attrauthlen;
     }
     else
 #endif
     {
-        ToUINT16(result->curpos, 0);
+        /* authcount */
+        *(result->curpos) = 1;
+        result->curpos = result->curpos + 1;
     }
+
 
     FINISHED:
     

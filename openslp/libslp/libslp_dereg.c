@@ -89,6 +89,26 @@ SLPError ProcessSrvDeReg(PSLPHandleInfo handle)
     char*               curpos      = 0;
     SLPError            result      = 0;
 
+#ifdef ENABLE_AUTHENTICATION
+    int                 spistrlen   = 0;
+    char*               spistr      = 0;
+    int                 urlauthlen  = 0;
+    unsigned char*      urlauth     = 0;
+    if(SLPPropertyAsBoolean(SLPGetProperty("net.slp.securityEnabled")))
+    {
+        /*TODO: Figure out how to select an SPI */ 
+        spistrlen = 0;
+        spistr    = 0;
+
+        result = SLPAuthSignUrl(spistrlen,
+                                spistr,
+                                handle->params.dereg.urllen,
+                                handle->params.dereg.url,
+                                &urlauthlen,
+                                &urlauth);
+    }
+#endif
+
     /*-------------------------------------------------------------------*/
     /* determine the size of the fixed portion of the SRVREG             */
     /*-------------------------------------------------------------------*/
@@ -98,9 +118,10 @@ SLPError ProcessSrvDeReg(PSLPHandleInfo handle)
                                                       /*  2 bytes for urllen   */
                                                       /*  1 byte for authcount */
     bufsize += 2;                                     /*  2 bytes for taglistlen*/
-
-    /* TODO: Fix this for authentication */
-
+#ifdef ENABLE_AUTHENTICATION
+    bufsize += urlauthlen;
+#endif
+    
     buf = curpos = (char*)malloc(bufsize);
     if(buf == 0)
     {
@@ -133,9 +154,22 @@ SLPError ProcessSrvDeReg(PSLPHandleInfo handle)
            handle->params.dereg.urllen);
     curpos = curpos + handle->params.dereg.urllen;
     /* url-entry authcount */
-    *curpos = 0;        
-    curpos = curpos + 1;
-    /* TODO: put in urlentry authentication stuff */
+#ifdef ENABLE_AUTHENTICATION
+    if(urlauth)
+    {
+        /* authcount */
+        *(curpos) = 1;
+        curpos = curpos + 1;
+        /* authblock */
+        memcpy(curpos,urlauth,urlauthlen);
+        curpos = curpos + urlauthlen;
+    }
+    else
+#endif
+    {
+        /* authcount */
+        *(curpos) = 0;
+    } 
     /* tag list */
     /* TODO: put in taglist stuff */
     ToUINT16(curpos,0);
@@ -174,6 +208,7 @@ SLPError ProcessSrvDeReg(PSLPHandleInfo handle)
 
     FINISHED:
     if(buf) free(buf);
+    if(urlauth) free(urlauth);
 
     return result;
 }

@@ -218,6 +218,7 @@ int SLPDPropertyInit(const char* conffile)
     G_SlpdProperty.useScopesLen = strlen(G_SlpdProperty.useScopes);
     G_SlpdProperty.locale = SLPPropertyGet("net.slp.locale");
     G_SlpdProperty.localeLen = strlen(G_SlpdProperty.locale);
+    G_SlpdProperty.securityEnabled = SLPPropertyAsBoolean(SLPPropertyGet("net.slp.securityEnabled"));
 
 
     /*-------------------------------------*/

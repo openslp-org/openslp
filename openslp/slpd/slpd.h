@@ -211,6 +211,7 @@ typedef struct _SLPDProperty
     int             traceDrop;
     int             traceDATraffic;
     int             isDA;
+    int             securityEnabled;
 }SLPDProperty;
 
 

@@ -72,6 +72,23 @@ SLPBoolean CallbackAttrRqst(SLPError errorcode, SLPMessage msg, void* cookie)
 
     if(msg->body.attrrply.errorcode == 0)
     {
+        
+#ifdef ENABLE_AUTHENTICATION
+        /*-------------------------------*/
+        /* Validate the authblocks       */
+        /*-------------------------------*/
+        if(SLPPropertyAsBoolean(SLPGetProperty("net.slp.securityEnabled")) &&
+           SLPAuthVerifyString(1,
+                               msg->body.attrrply.attrlistlen,
+                               msg->body.attrrply.attrlist,
+                               msg->body.attrrply.authcount,
+                               msg->body.attrrply.autharray))
+        {
+            /* authentication failed, skip it */
+            return 1;
+        }
+#endif
+        
         if(msg->body.attrrply.attrlistlen == 0)
         {
             /* Skip blank replies */
@@ -100,6 +117,19 @@ SLPError ProcessAttrRqst(PSLPHandleInfo handle)
     char*               curpos      = 0;
     SLPError            result      = 0;
 
+#ifdef ENABLE_AUTHENTICATION
+    int                 spistrlen   = 0;
+    char*               spistr      = 0;
+
+    if(SLPPropertyAsBoolean(SLPGetProperty("net.slp.securityEnabled")))
+    {
+        /*TODO: Figure out how to select an SPI */
+        
+        spistrlen = 0;
+        spistr    = 0;
+    }
+#endif
+
     /*-------------------------------------------------------------------*/
     /* determine the size of the fixed portion of the ATTRRQST           */
     /*-------------------------------------------------------------------*/
@@ -107,8 +137,10 @@ SLPError ProcessAttrRqst(PSLPHandleInfo handle)
     bufsize += handle->params.findattrs.scopelistlen + 2; /*  2 bytes for len field */
     bufsize += handle->params.findattrs.taglistlen + 2;   /*  2 bytes for len field */
     bufsize += 2;    /*  2 bytes for spistr len*/
+#ifdef ENABLE_AUTHENTICATION
+    bufsize += spistrlen;
+#endif
 
-    /* TODO: make sure that we don't exceed the MTU */
     buf = curpos = (char*)malloc(bufsize);
     if(buf == 0)
     {
@@ -140,8 +172,14 @@ SLPError ProcessAttrRqst(PSLPHandleInfo handle)
            handle->params.findattrs.taglist,
            handle->params.findattrs.taglistlen);
     curpos = curpos + handle->params.findattrs.taglistlen;
-    /* TODO: add spi list stuff here later*/
+#ifdef ENABLE_AUTHENTICATION
+    ToUINT16(curpos,spistrlen);
+    curpos = curpos + 2;
+    memcpy(curpos,spistr,spistrlen);
+    curpos = curpos + spistrlen;
+#else
     ToUINT16(curpos,0);
+#endif
 
 
     /*--------------------------*/

@@ -89,6 +89,40 @@ SLPError ProcessSrvReg(PSLPHandleInfo handle)
     char*               curpos      = 0;
     SLPError            result      = 0;
 
+#ifdef ENABLE_AUTHENTICATION
+    int                 spistrlen   = 0;
+    char*               spistr      = 0;
+    int                 urlauthlen  = 0;
+    unsigned char*      urlauth     = 0;
+    int                 attrauthlen = 0;
+    unsigned char*      attrauth    = 0;
+
+    if(SLPPropertyAsBoolean(SLPGetProperty("net.slp.securityEnabled")))
+    {
+        /*TODO: Figure out how to select an SPI */
+        
+        spistrlen = 0;
+        spistr    = 0;
+        
+        result = SLPAuthSignUrl(spistrlen,
+                                spistr,
+                                handle->params.reg.urllen,
+                                handle->params.reg.url,
+                                &urlauthlen,
+                                &urlauth);
+        if(result == 0)
+        {
+            result = SLPAuthSignUrl(spistrlen,
+                                    spistr,
+                                    handle->params.reg.attrlistlen,
+                                    handle->params.reg.attrlist,
+                                    &attrauthlen,
+                                    &attrauth);
+        }
+    }
+#endif
+
+
     /*-------------------------------------------------------------------*/
     /* determine the size of the fixed portion of the SRVREG             */
     /*-------------------------------------------------------------------*/
@@ -100,8 +134,10 @@ SLPError ProcessSrvReg(PSLPHandleInfo handle)
     bufsize += handle->params.reg.scopelistlen + 2; /*  2 bytes for len field */
     bufsize += handle->params.reg.attrlistlen + 2;  /*  2 bytes for len field */
     bufsize += 1;                                   /*  1 byte for authcount */
-
-    /* TODO: Fix this for authentication */
+#ifdef ENABLE_AUTHENTICATION
+    bufsize += urlauthlen;
+    bufsize += attrauthlen;
+#endif
 
     buf = curpos = (char*)malloc(bufsize);
     if(buf == 0)
@@ -127,10 +163,23 @@ SLPError ProcessSrvReg(PSLPHandleInfo handle)
            handle->params.reg.url,
            handle->params.reg.urllen);
     curpos = curpos + handle->params.reg.urllen;
-    /* url-entry authcount */
-    *curpos = 0;        
-    curpos = curpos + 1;
-    /* TODO: put in urlentry authentication stuff too */
+    /* url-entry authblock */
+#ifdef ENABLE_AUTHENTICATION
+    if(urlauth)
+    {
+        /* authcount */
+        *curpos = 1;
+        curpos = curpos + 1;
+        /* authblock */
+        memcpy(curpos,urlauth,urlauthlen);
+        curpos = curpos + urlauthlen;
+    }
+    else
+#endif
+    {
+        /* authcount */
+        *curpos = 0;
+    } 
     /* service type */
     ToUINT16(curpos,handle->params.reg.srvtypelen);
     curpos = curpos + 2;
@@ -152,9 +201,24 @@ SLPError ProcessSrvReg(PSLPHandleInfo handle)
            handle->params.reg.attrlist,
            handle->params.reg.attrlistlen);
     curpos = curpos + handle->params.reg.attrlistlen;
-    /* attr auths*/
-    *(curpos) = 0;
-
+    /* attribute auth block */
+#ifdef ENABLE_AUTHENTICATION
+    if(attrauth)
+    {
+        /* authcount */
+        *curpos = 1;
+        curpos = curpos + 1;
+        /* authblock */
+        memcpy(curpos,attrauth,attrauthlen);
+        curpos = curpos + attrauthlen;
+    }
+    else
+#endif
+    {
+        /* authcount */
+        *curpos = 0;
+        curpos = curpos + 1;
+    }
 
     /*--------------------------*/
     /* Call the RqstRply engine */
@@ -189,6 +253,8 @@ SLPError ProcessSrvReg(PSLPHandleInfo handle)
 
     FINISHED:
     if(buf) free(buf);
+    if(urlauth) free(urlauth);
+    if(attrauth) free(attrauth);
 
     return result;
 }

@@ -56,6 +56,11 @@ SLPBoolean CallbackSrvRqst(SLPError errorcode, SLPMessage msg, void* cookie)
     int             i;
     PSLPHandleInfo  handle      = (PSLPHandleInfo) cookie;
 
+#ifdef ENABLE_AUTHENTICATION
+    int             securityenabled;
+    securityenabled = SLPPropertyAsBoolean(SLPGetProperty("net.slp.securityEnabled"));
+#endif
+
     if(errorcode)
     {
         handle->params.findsrvs.callback((SLPHandle)handle,
@@ -75,8 +80,17 @@ SLPBoolean CallbackSrvRqst(SLPError errorcode, SLPMessage msg, void* cookie)
     {
         for(i=0;i<msg->body.srvrply.urlcount;i++)
         {
-            /* TODO: Check the authblock */
-
+#ifdef ENABLE_AUTHENTICATION
+            /*-------------------------------*/
+            /* Validate the authblocks       */
+            /*-------------------------------*/
+            if(securityenabled &&
+               SLPAuthVerifyUrl(1,&(msg->body.srvrply.urlarray[i])))
+            {
+                /* authentication failed */
+                continue;
+            }
+#endif
             /* TRICKY: null terminate the url by setting the authcount to 0 */
             *((char*)(msg->body.srvrply.urlarray[i].url)+msg->body.srvrply.urlarray[i].urllen) = 0;
 
@@ -111,6 +125,19 @@ SLPError ProcessSrvRqst(PSLPHandleInfo handle)
     char*               curpos      = 0;
     SLPError            result      = 0;
 
+#ifdef ENABLE_AUTHENTICATION
+    int                 spistrlen   = 0;
+    char*               spistr      = 0;
+
+    if(SLPPropertyAsBoolean(SLPGetProperty("net.slp.securityEnabled")))
+    {
+        /*TODO: Figure out how to select an SPI */
+        
+        spistrlen = 0;
+        spistr    = 0;
+    }
+#endif
+
     /*-------------------------------------------------------------------*/
     /* determine the size of the fixed portion of the SRVRQST            */
     /*-------------------------------------------------------------------*/
@@ -118,8 +145,10 @@ SLPError ProcessSrvRqst(PSLPHandleInfo handle)
     bufsize += handle->params.findsrvs.scopelistlen + 2; /*  2 bytes for len field */
     bufsize += handle->params.findsrvs.predicatelen + 2; /*  2 bytes for len field */
     bufsize += 2;    /*  2 bytes for spistr len*/
-
-    /* TODO: make sure that we don't exceed the MTU */
+#ifdef ENABLE_AUTHENTICATION
+    bufsize += spistrlen;
+#endif
+    
     buf = curpos = (char*)malloc(bufsize);
     if(buf == 0)
     {
@@ -151,8 +180,14 @@ SLPError ProcessSrvRqst(PSLPHandleInfo handle)
            handle->params.findsrvs.predicate,
            handle->params.findsrvs.predicatelen);
     curpos = curpos + handle->params.findsrvs.predicatelen;
-    /* TODO: add spi list stuff here later*/
+#ifdef ENABLE_AUTHENTICATION
+    ToUINT16(curpos,spistrlen);
+    curpos = curpos + 2;
+    memcpy(curpos,spistr,spistrlen);
+    curpos = curpos + spistrlen;
+#else
     ToUINT16(curpos,0);
+#endif
 
     /*--------------------------*/
     /* Call the RqstRply engine */
