@@ -54,7 +54,7 @@ typedef int SLPError;
 #define SLP_OK                      0
     /* indicates that the no error occurred during the operation.           */
     
-#define SLP_LANGUAGE_NOT_SUPPORTED  -1,
+#define SLP_LANGUAGE_NOT_SUPPORTED  -1
     /* No DA or SA has service advertisement or attribute information       */
     /* in the language requested, but at least one DA or SA indicated,      */
     /* via the LANGUAGE_NOT_SUPPORTED error code, that it might have        */
