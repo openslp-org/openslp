@@ -1460,7 +1460,7 @@ SLPError SLPAttrGetType(SLPAttributes attr_h, const char *tag, SLPType *type) {
 int internal_store( struct xx_SLPAttributes *slp_attr, char const *tag, size_t tag_len, char const *attr_start, char const *attr_end, int val_count, SLPType type, int unescaped_len) {
 	var_t *var;
 	int block_size;
-	void *mem_block; /* Pointer into allocated block. */
+	char *mem_block; /* Pointer into allocated block. */
 	char const *cur_start; /* Pointer into attribute list (start of current data). */
 	char const *cur_end; /* Pointer into attribute list (end of current data). */
 	value_t *val;
@@ -1480,7 +1480,7 @@ int internal_store( struct xx_SLPAttributes *slp_attr, char const *tag, size_t t
 	/***** Allocate space for the values. *****/
 	block_size = (val_count * sizeof(value_t)) /* Size of each value */
 			+ unescaped_len /* The size of the unescaped data. */;
-	mem_block = (void *)malloc(block_size);
+	mem_block = (char *)malloc(block_size);
 
 	if (mem_block == NULL) {
 		free(val);
