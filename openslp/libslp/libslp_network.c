@@ -168,13 +168,15 @@ int NetworkConnectToDA(PSLPHandleInfo handle,
     }
     else
     {
-        if( handle->dasock > 0)
+        /* close handle cause it can't support the scope */
+        if( handle->dasock >= 0)
         {
             close(handle->dasock);
         }
 
+        /* Attempt to connect to DA that does support the scope */
         handle->dasock = KnownDAConnect(scopelistlen,scopelist,&(handle->daaddr));
-        if(handle->dasock)
+        if(handle->dasock >= 0)
         {
             if(handle->dascope) free(handle->dascope);
             handle->dascope = memdup(scopelist,scopelistlen);
@@ -221,6 +223,12 @@ int NetworkConnectToSA(PSLPHandleInfo handle,
     }
     else
     {
+        /* close handle cause it can't support the scope */
+        if( handle->sasock >= 0)
+        {
+            close(handle->sasock);
+        }
+
         /*-----------------------------------------*/
         /* Attempt to connect to slpd via loopback */
         /*-----------------------------------------*/
