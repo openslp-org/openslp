@@ -228,20 +228,20 @@ int SLPMulticastSend(const SLPIfaceInfo* ifaceinfo,
         }
         else if (ifaceinfo->iface_addr[socks->sock_count].ss_family == AF_INET6) {
             struct sockaddr_in6 *s6 = (struct sockaddr_in6 *) &socks->peeraddr[socks->sock_count];
+            unsigned int interfaceId = s6->sin6_scope_id; /* should be interface id to send the broadcast message to */
             /* send via IPV6 multicast */
             if( setsockopt(socks->sock[socks->sock_count], 
                            IPPROTO_IPV6, 
                            IPV6_MULTICAST_IF, 
-                           (char*)&socks->peeraddr[socks->sock_count], 
-                           sizeof(struct sockaddr_storage)))
+                           (char *)&interfaceId,
+                           sizeof(interfaceId)))
             {
                 /* error setting socket option */
                 return -1;
             }
             s6->sin6_family = AF_INET6;
             s6->sin6_port = htons(SLP_RESERVED_PORT);
-            /* assume address is set ?? */
-
+            /* address must already be set in the passed in ifaceinfo at this point */
         }
         else {
             /* unknown family */
@@ -256,6 +256,7 @@ int SLPMulticastSend(const SLPIfaceInfo* ifaceinfo,
         if (xferbytes <= 0)
         {
             /* error sending */
+            printf("Error sending.  Error was %s\r\n", DecodeError(WSAGetLastError()));
             return -1;
         }
     }
@@ -471,6 +472,7 @@ main()
     
         /* set up address and scope for v6 multicast */
         SLPNetSetAddr(&ifaceinfo6.iface_addr[0], AF_INET6, 0, (BYTE *)v6Addr, sizeof(v6Addr));
+        ((struct sockaddr_in6 *)&ifaceinfo6.iface_addr[0])->sin6_scope_id = 4;
         if (SLPMulticastSend(&ifaceinfo6, buffer, &socks) !=0)
             printf("\n SLPMulticast failed for ipv\n");
         SLPXcastSocketsClose(&socks);
