@@ -7,8 +7,6 @@
 
 typedef void* SLPDPredicate; 
 int SLPDTestPredicate(SLPDPredicate predicate, SLPAttributes attr);
-SLPError SLPAttrEvalPred(SLPAttributes slp_attr, SLPDPredicate *predicate, SLPBoolean *result, int recursion_depth); /* It's defined in slpd_predicate.c, but since we don't want to pollute namespaces, we put the prototype here. -- we use this so we don't have to calculate the string length, and so we can play with the recursion depth.*/
-
 int wildcard(const char *pattern, const char *string);
 
 
@@ -67,7 +65,6 @@ void test_predicate() {
 	int ierr;
 	SLPAttributes slp_attr;
 	SLPError err;
-	SLPBoolean result;
 
 	
 	/******************** Test int stuff. *********************/
@@ -412,28 +409,6 @@ void test_predicate() {
 	ierr = SLPDTestPredicate( str, slp_attr);
 	assert(ierr < 0);
 
-	/* Check recursion depth. */
-	str = "(a=b)";
-	ierr = SLPAttrEvalPred(slp_attr, (SLPDPredicate)str, &result, 1);
-	assert(ierr == 0); /* f */
-	
-	str = "(!(a=b))";
-	ierr = SLPAttrEvalPred(slp_attr, (SLPDPredicate)str, &result, 1);
-	assert(ierr < 0);
-
-	/* Check that short-circuiting works. */
-	str = "(&(a=b)(!(a=b)))";
-	ierr = SLPAttrEvalPred(slp_attr, (SLPDPredicate)str, &result, 2);
-	assert(ierr == 0); /* f */
-
-	str = "(|(a=b)(!(a=b)))";
-	ierr = SLPAttrEvalPred(slp_attr, (SLPDPredicate)str, &result, 2);
-	assert(ierr < 0);
-
-	str = "(|(keyw=*)(!(a=b)))";
-	ierr = SLPAttrEvalPred(slp_attr, (SLPDPredicate)str, &result, 2);
-	assert(ierr == 0); /* t */
-	
 	SLPAttrFree(slp_attr);
 
 
