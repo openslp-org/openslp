@@ -8,6 +8,14 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 
+09/19/00 rganesan@myrealbox.com
+Changed slpd to bind the multicast socket to INADDR_ANY instead of the SLP 
+multicast address. Binding to the multicast address causes BSD derived OSs
+to put the multicast address instead of the host address on outgoing packets.
+With this fix (and a couple of others), OpenSLP works on FreeBSD and 
+Compaq Tru64. 
+
+
 09/18/00 mdes@ocegr.fr
 Added Rick Braddy's MSVC Project files so that now OpenSLP should compile easily on Windows machines in Visual Studio
 
