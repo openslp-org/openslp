@@ -2,11 +2,13 @@
 /*                                                                         */
 /* Project:     OpenSLP command line UA wrapper                            */
 /*                                                                         */
-/* File:        slptool_main.c                                             */
+/* File:        slptool.c                                                  */
 /*                                                                         */
-/* Abstract:    Main implementation for slpua                              */
+/* Abstract:    Command line wrapper for OpenSLP                           */
 /*                                                                         */
 /* Requires:    OpenSLP installation                                       */
+/*                                                                         */
+/* Author(s):   Matt Peterson <mpeterson@caldera.com>                      */
 /*                                                                         */
 /* Copyright (c) 1995, 1999  Caldera Systems, Inc.                         */
 /*                                                                         */

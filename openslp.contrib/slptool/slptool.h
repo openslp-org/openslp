@@ -4,9 +4,11 @@
 /*                                                                         */
 /* File:        slptool.h                                                  */
 /*                                                                         */
-/* Abstract:    Main implementation for slptool                            */
+/* Abstract:    Main header for slptool                                    */
 /*                                                                         */
 /* Requires:    OpenSLP installation                                       */
+/*                                                                         */
+/* Author(s):   Matt Peterson <mpeterson@caldera.com>                      */ 
 /*                                                                         */
 /* Copyright (c) 1995, 1999  Caldera Systems, Inc.                         */
 /*                                                                         */
