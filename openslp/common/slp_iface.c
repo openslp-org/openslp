@@ -75,6 +75,80 @@ typedef unsigned int uint32_t;
 #define MAX_INTERFACE_TEST_INDEX 255
 
 /*=========================================================================*/
+int SLPIfaceContainsAddr(int listlen, 
+                         const char* list,
+                         int stringlen,
+                         const char* string) 
+/* Checks a string-list for the occurence of a string                      */
+/*                                                                         */
+/* list -       pointer to the string-list to be checked                   */
+/*                                                                         */
+/* listlen -    length in bytes of the list to be checked                  */
+/*                                                                         */
+/* string -     pointer to a string to find in the string-list             */
+/*                                                                         */
+/* stringlen -  the length of the string in bytes                          */
+/*                                                                         */
+/* Returns -    zero if string is NOT contained in the list. non-zero if it*/
+/*              is.                                                        */
+/*=========================================================================*/
+{
+    char* listend = (char*)list + listlen;
+    char* itembegin = (char*)list;
+    char* itemend = itembegin;
+    struct sockaddr_storage addr;
+    char buffer[INET6_ADDRSTRLEN]; /* must be at least 40 characters */
+
+    while(itemend < listend)
+    {
+        itembegin = itemend;
+
+        /* seek to the end of the next list item */
+        while(1)
+        {
+            if(itemend == listend || *itemend == ',')
+            {
+                if(*(itemend - 1) != '\\')
+                {
+                    break;
+                }
+            }
+
+            itemend ++;
+        }
+        
+        strncpy(buffer, itembegin, min(itemend-itembegin, sizeof(buffer)));
+        buffer[itemend-itembegin] = '\0';
+        if (SLPNetIsIPV6() && inet_pton(AF_INET6, buffer, &addr) == 1)
+        {
+            inet_ntop(AF_INET6, &addr, buffer, sizeof(buffer));
+            if(SLPCompareString(strlen(buffer),
+                buffer,
+                stringlen,
+                string) == 0)
+            {
+                    return 1;
+            }
+        }
+        else if (SLPNetIsIPV4() && inet_pton(AF_INET, buffer, &addr) == 1)
+        {
+            inet_ntop(AF_INET, &addr, buffer, sizeof(buffer));
+            if(SLPCompareString(strlen(buffer),
+                buffer,
+                stringlen,
+                string) == 0)
+            {
+                    return 1;
+            }
+        }
+        itemend ++;    
+    }
+
+    return 0;
+}
+
+
+/*=========================================================================*/
 int SLPIfaceGetInfo(const char* useifaces,
                     SLPIfaceInfo* ifaceinfo, int family)
 /* Description:
@@ -182,10 +256,10 @@ int SLPIfaceGetInfo(const char* useifaces,
 					slider1++;
 				}
 				/* should have slider1 pointing to a NULL terminated string for the ip address */
-				if (SLPContainsStringList(useifaceslen,
-											 useifaces,
-											 strlen(slider1),
-											 slider1)) {
+				if (SLPIfaceContainsAddr(useifaceslen,
+										 useifaces,
+										 strlen(slider1),
+										 slider1)) {
 					/* check if an ipv4 address was given */
 					if (inet_pton(AF_INET, slider1, &v4addr.sin_addr) == 1) {
 						if (SLPNetIsIPV4() && ((family == AF_INET) || (family == AF_UNSPEC)) ) {
