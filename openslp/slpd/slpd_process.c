@@ -1081,12 +1081,7 @@ int ProcessDAAdvert(SLPMessage message,
         /* Only process if errorcode is not set */
         if(message->body.daadvert.errorcode == SLP_ERROR_OK)
         {
-            /* TODO: Authentication stuff here */
-            
-            if(SLPDKnownDAAdd(message,recvbuf))
-            {
-                errorcode = SLP_ERROR_INTERNAL_ERROR;
-            }
+            errorcode = SLPDKnownDAAdd(message,recvbuf);
         }
     }
 
@@ -1262,6 +1257,7 @@ int SLPDProcessMessage(struct sockaddr_in* peerinfo,
     SLPDLogMessage("Trace message (IN)",peerinfo,recvbuf);
 
     /* Parse just the message header the reset the buffer "curpos" pointer */
+    recvbuf->curpos = recvbuf->start;
     errorcode = SLPMessageParseHeader(recvbuf,&header);
 #if defined(ENABLE_SLPv1)   
     if(errorcode == SLP_ERROR_VER_NOT_SUPPORTED &&
@@ -1294,7 +1290,7 @@ int SLPDProcessMessage(struct sockaddr_in* peerinfo,
             errorcode = SLPMessageParseBuffer(peerinfo,recvbuf, message);
             if(errorcode == 0)
             {    
-                {
+
                     /* Process messages based on type */
                     switch(message->header.functionid)
                     {
@@ -1348,11 +1344,6 @@ int SLPDProcessMessage(struct sockaddr_in* peerinfo,
                         /* Should never happen... but we're paranoid */
                         errorcode = SLP_ERROR_PARSE_ERROR;
                         break;
-                    }
-                    
-                    /* Log traceMsg of message will be sent */
-                    /* that will be sent                    */
-                    /*SLPDLogMessage("Outgoing",peerinfo,*sendbuf);*/
                 }   
             }
     
@@ -1383,24 +1374,33 @@ int SLPDProcessMessage(struct sockaddr_in* peerinfo,
     SLPDLogMessage("Trace message (OUT)", peerinfo, *sendbuf);
 
     /* Log reception of important errors */
+    if(errorcode)
+    {
+        SLPDLog("\n *** ERROR ***");
     switch(errorcode)
     {
     case SLP_ERROR_DA_BUSY_NOW:
-        SLPDLog("DA_BUSY in talking to: %s\n",
-                inet_ntoa(peerinfo->sin_addr));
+        SLPDLog("DA_BUSY");
         break;
     case SLP_ERROR_INTERNAL_ERROR:
-        SLPDLog("INTERNAL_ERROR in talking to: %s\n",
-                inet_ntoa(peerinfo->sin_addr));
+        SLPDLog("INTERNAL_ERROR");
         break;
     case SLP_ERROR_PARSE_ERROR:
-        SLPDLog("PARSE_ERROR in talking to: %s\n",
-                inet_ntoa(peerinfo->sin_addr));
+        SLPDLog("PARSE_ERROR");
         break;
     case SLP_ERROR_VER_NOT_SUPPORTED:
-        SLPDLog("VER_NOT_SUPPORTED in talking to: %s\n",
-                inet_ntoa(peerinfo->sin_addr));
-        break;                    
+        SLPDLog("VER_NOT_SUPPORTED");
+        break;
+    case SLP_ERROR_AUTHENTICATION_FAILED:
+    case SLP_ERROR_AUTHENTICATION_UNKNOWN:
+    case SLP_ERROR_AUTHENTICATION_ABSENT:
+        SLPDLog("AUTHENTICATION_xxx");
+        break;
+    default:
+	SLPDLog("code %i",errorcode);
+        break;
+    }
+        SLPDLog(" in talking to: %s\n",inet_ntoa(peerinfo->sin_addr));
     }
     
     return errorcode;

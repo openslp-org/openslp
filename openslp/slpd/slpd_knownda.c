@@ -940,6 +940,10 @@ int SLPDKnownDAGenerateMyDAAdvert(int errorcode,
     }
 
     FINISHED:
+#ifdef ENABLE_SECURITY
+    if(daadvertauth) xfree(daadverauth);
+    if(spistr) xfree(spistr);
+#endif
     *sendbuf = result;
 
     return errorcode;
