@@ -25,4 +25,4 @@ libslp_la_SOURCES = libslp_dereg.c   \
 	libslp_knownda.c \
         libslp.h
 libslp_la_LIBADD = ../common/libcommonlibslp.la
-libslp_la_LDFLAGS = -version-info 0:3:0
+libslp_la_LDFLAGS = -version-info 1:0:0
