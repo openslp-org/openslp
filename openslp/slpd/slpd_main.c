@@ -558,7 +558,6 @@ int main(int argc, char* argv[])
         SLPDFatal("slpd initialization failed\n");
     }
     SLPDLog("Agent Interfaces = %s\n",G_SlpdProperty.interfaces);
-    SLPDLog("Agent URL = %s\n",G_SlpdProperty.myUrl);
 
     /*---------------------------*/
     /* make slpd run as a daemon */

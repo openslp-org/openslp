@@ -238,10 +238,10 @@ void SLPDKnownDARegisterAll(SLPMessage daadvert, int immortalonly)
     /*--------------------------------------*/
     /* Never do a Register All to ourselves */
     /*--------------------------------------*/
-    if ( SLPCompareString(G_SlpdProperty.myUrlLen,
-                          G_SlpdProperty.myUrl,
-                          daadvert->body.daadvert.urllen,
-                          daadvert->body.daadvert.url) == 0 )
+    if ( SLPContainsStringList(G_SlpdProperty.interfacesLen,
+                               G_SlpdProperty.interfaces,
+                               daadvert->body.daadvert.urllen,
+                               daadvert->body.daadvert.url) == 1 )
     {
         return;
     }
@@ -980,11 +980,14 @@ void SLPDKnownDAEnumEnd(void* eh)
 
 
 /*=========================================================================*/
-int SLPDKnownDAGenerateMyDAAdvert(int errorcode,
+int SLPDKnownDAGenerateMyDAAdvert(struct sockaddr_storage* localaddr,
+                                  int errorcode,
                                   int deadda,
                                   int xid,
                                   SLPBuffer* sendbuf) 
 /* Pack a buffer with a DAAdvert using information from a SLPDAentry       */
+/*                                                                         */
+/* localaddr (IN) the address of the DA to advertise                       */
 /*                                                                         */
 /* errorcode (IN) the errorcode for the DAAdvert                           */
 /*                                                                         */
@@ -999,6 +1002,7 @@ int SLPDKnownDAGenerateMyDAAdvert(int errorcode,
 /* returns: zero on success, non-zero on error                             */
 /*=========================================================================*/
 {
+    char localaddr_str[INET6_ADDRSTRLEN + 2];
     int       size;
     SLPBuffer result = *sendbuf;
 
@@ -1051,7 +1055,17 @@ int SLPDKnownDAGenerateMyDAAdvert(int errorcode,
                                            /*  2 bytes for attr list len */
                                            /*  2 bytes for spi str len */
                                            /*  1 byte for authblock count */
-    size += G_SlpdProperty.myUrlLen;
+    size += G_SlpdProperty.urlPrefixLen;
+    localaddr_str[0] = '\0';
+    if (localaddr->ss_family == AF_INET) {
+        inet_ntop(localaddr->ss_family, &((struct sockaddr_in*) localaddr)->sin_addr, localaddr_str, sizeof(localaddr_str));
+    }
+    else if (localaddr->ss_family == AF_INET6) {
+        strcpy(localaddr_str, "[");
+        inet_ntop(localaddr->ss_family, &((struct sockaddr_in6*) localaddr)->sin6_addr, &localaddr_str[1], sizeof(localaddr_str) - 1);
+        strcat(localaddr_str, "]");
+    }
+    size += strlen(localaddr_str);
     size += G_SlpdProperty.useScopesLen;
 #ifdef ENABLE_SLPv2_SECURITY
     size += spistrlen;
@@ -1109,13 +1123,13 @@ int SLPDKnownDAGenerateMyDAAdvert(int errorcode,
         }
         result->curpos = result->curpos + 4;                       
         /* url len */
-        ToUINT16(result->curpos, G_SlpdProperty.myUrlLen);
+        ToUINT16(result->curpos, G_SlpdProperty.urlPrefixLen + strlen(localaddr_str));
         result->curpos = result->curpos + 2;
         /* url */
-        memcpy(result->curpos,
-               G_SlpdProperty.myUrl,
-               G_SlpdProperty.myUrlLen);
-        result->curpos = result->curpos + G_SlpdProperty.myUrlLen;
+        memcpy(result->curpos,G_SlpdProperty.urlPrefix,G_SlpdProperty.urlPrefixLen);
+        result->curpos = result->curpos + G_SlpdProperty.urlPrefixLen;
+        memcpy(result->curpos,localaddr_str,strlen(localaddr_str));
+        result->curpos = result->curpos + strlen(localaddr_str);
         /* scope list len */
         ToUINT16(result->curpos, G_SlpdProperty.useScopesLen);
         result->curpos = result->curpos + 2;
@@ -1372,10 +1386,10 @@ void SLPDKnownDAEcho(SLPMessage msg, SLPBuffer buf)
             {
                 /* Do not echo to ourselves if we are a DA*/
                 if ( G_SlpdProperty.isDA  &&
-                     SLPCompareString(G_SlpdProperty.myUrlLen,
-                                      G_SlpdProperty.myUrl,
-                                      entrydaadvert->urllen,
-                                      entrydaadvert->url) == 0 )
+                     SLPContainsStringList(G_SlpdProperty.interfacesLen,
+                                           G_SlpdProperty.interfaces,
+                                           entrydaadvert->urllen,
+                                           entrydaadvert->url) == 1 )
                 {
                     /* don't do anything because it makes no sense to echo */
                     /* to myself                                           */
@@ -1567,7 +1581,7 @@ void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead, int scope)
             /* Generate the DAAdvert and link it to the write list */
             if ( sock )
             {
-                if (SLPDKnownDAGenerateMyDAAdvert(0,dadead,0,&(sock->sendbuf)) == 0)
+                if (SLPDKnownDAGenerateMyDAAdvert(&sock->localaddr,0,dadead,0,&(sock->sendbuf)) == 0)
                 {
                     SLPDOutgoingDatagramWrite(sock);
                 }
@@ -1622,7 +1636,7 @@ void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead, int scope)
             /* Generate the DAAdvert and link it to the write list */
             if ( sock )
             {
-                if (SLPDKnownDAGenerateMyDAAdvert(0,dadead,0,&(sock->sendbuf)) == 0)
+                if (SLPDKnownDAGenerateMyDAAdvert(&sock->localaddr,0,dadead,0,&(sock->sendbuf)) == 0)
                 {
                     SLPDOutgoingDatagramWrite(sock);
                 }
@@ -1692,10 +1706,10 @@ void SLPDKnownDAImmortalRefresh(int seconds)
                 entrydaadvert = &(entry->msg->body.daadvert);
 
                 /* Assume DAs are identical if their URLs match */
-                if ( SLPCompareString(entrydaadvert->urllen,
-                                      entrydaadvert->url,
-                                      G_SlpdProperty.myUrlLen,
-                                      G_SlpdProperty.myUrl) )
+                if ( SLPContainsStringList(G_SlpdProperty.interfacesLen,
+                                           G_SlpdProperty.interfaces,
+                                           entrydaadvert->urllen,
+                                           entrydaadvert->url) == 0 )
                 {
                     SLPDKnownDARegisterAll(entry->msg,1);
                 }

@@ -218,7 +218,7 @@ SLPBoolean KnownDADiscoveryCallback(SLPError errorcode,
             replymsg = SLPMessageAlloc();
             if(replymsg)
             {
-                 if(SLPMessageParseBuffer(peerinfo,dupbuf,replymsg) == 0 &&
+                 if(SLPMessageParseBuffer(peerinfo,NULL,dupbuf,replymsg) == 0 &&
                     replymsg->header.functionid == SLP_FUNCT_DAADVERT)
                  {
                     if(replymsg->body.daadvert.errorcode == 0)

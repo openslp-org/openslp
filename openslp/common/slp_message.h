@@ -398,6 +398,7 @@ typedef struct _SLPMessage
 /*=========================================================================*/
 {
     struct sockaddr_storage peer;
+    struct sockaddr_storage localaddr;
     SLPHeader             header;
     union _body
     {
@@ -458,24 +459,28 @@ int SLPMessageParseHeader(SLPBuffer buffer, SLPHeader* header);
 
 /*=========================================================================*/
 int SLPMessageParseBuffer(struct sockaddr_storage* peerinfo,
+                          struct sockaddr_storage* localaddr,
                           SLPBuffer buffer, 
                           SLPMessage message);
 /* Initializes a message descriptor by parsing the specified buffer.       */
 /*                                                                         */
-/* peerinfo - (IN) pointer to the network address information that sent    */ 
-/*                 buffer                                                  */
+/* peerinfo  - (IN) pointer to the network address information that sent   */ 
+/*                  buffer                                                 */
 /*                                                                         */
-/* buffer   - (IN) pointer the SLPBuffer to parse                          */
+/* localaddr - (IN) pointer to the local address of the socket on which    */ 
+/*                  the data was received                                  */
 /*                                                                         */
-/* message  - (OUT) set to describe the message from the buffer            */
+/* buffer    - (IN) pointer the SLPBuffer to parse                         */
 /*                                                                         */
-/* Returns  - Zero on success, SLP_ERROR_PARSE_ERROR, or                   */
-/*            SLP_ERROR_INTERNAL_ERROR if out of memory.  SLPMessage is    */
-/*            invalid return is not successful.                            */
+/* message   - (OUT) set to describe the message from the buffer           */
 /*                                                                         */
-/* WARNING  - If successful, pointers in the SLPMessage reference memory in*/ 
-/*            the parsed SLPBuffer.  If SLPBufferFree() is called then the */
-/*            pointers in SLPMessage will be invalidated.                  */
+/* Returns   - Zero on success, SLP_ERROR_PARSE_ERROR, or                  */
+/*             SLP_ERROR_INTERNAL_ERROR if out of memory.  SLPMessage is   */
+/*             invalid return is not successful.                           */
+/*                                                                         */
+/* WARNING   - If successful, pointers in the SLPMessage reference memory  */ 
+/*             in the parsed SLPBuffer.  If SLPBufferFree() is called then */
+/*             the pointers in SLPMessage will be invalidated.             */
 /*=========================================================================*/
 
 /*=========================================================================*/

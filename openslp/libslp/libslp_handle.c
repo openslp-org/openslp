@@ -251,7 +251,11 @@ void SLPAPI SLPClose(SLPHandle hSLP)
 
     if(handle->dasock >=0)
     {
+#ifdef _WIN32
+        closesocket(handle->dasock);
+#else
         close(handle->dasock);
+#endif
     }
 
     if(handle->dascope)
@@ -261,7 +265,11 @@ void SLPAPI SLPClose(SLPHandle hSLP)
 
     if(handle->sasock >=0)
     {
+#ifdef _WIN32
+        closesocket(handle->sasock);
+#else
         close(handle->sasock);
+#endif
     }
 
     if(handle->sascope)

@@ -183,7 +183,7 @@ SLPBoolean ProcessSrvTypeRplyCallback(SLPError errorcode,
     replymsg = SLPMessageAlloc();
     if(replymsg)
     {
-        if(SLPMessageParseBuffer(peerinfo,replybuf,replymsg) == 0 &&
+        if(SLPMessageParseBuffer(peerinfo,NULL,replybuf,replymsg) == 0 &&
            replymsg->header.functionid == SLP_FUNCT_SRVTYPERPLY &&
            replymsg->body.srvtyperply.errorcode == 0)
         {

@@ -373,6 +373,7 @@ void SLPDLogMessageInternals(SLPMessage message)
 /*=========================================================================*/
 void SLPDLogMessage(int msglogflags,
                     struct sockaddr_storage* peerinfo,
+                    struct sockaddr_storage* localaddr,
                     SLPBuffer buf)
 /* Log record of receiving or sending an SLP Message.  Logging will only   */
 /* occur if message logging is enabled G_SlpProperty.traceMsg != 0         */
@@ -380,6 +381,8 @@ void SLPDLogMessage(int msglogflags,
 /* msglogflags   (IN) What type of message to log                          */
 /*                                                                         */
 /* peerinfo (IN) the source or destination peer                            */
+/*                                                                         */
+/* peerinfo (IN) the local address                                         */
 /*                                                                         */
 /* msg      (IN) the message to log                                        */
 /*                                                                         */
@@ -425,7 +428,7 @@ void SLPDLogMessage(int msglogflags,
                     SLPDLog("\n");
                 }
 
-                if (SLPMessageParseBuffer(peerinfo,buf,msg) == 0)
+                if (SLPMessageParseBuffer(peerinfo,localaddr,buf,msg) == 0)
                 {
                     SLPDLogMessageInternals(msg);
                 }

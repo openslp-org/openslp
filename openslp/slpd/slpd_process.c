@@ -77,6 +77,7 @@ int ProcessSASrvRqst(SLPMessage message,
                      int errorcode)
 /*-------------------------------------------------------------------------*/
 {
+    char localaddr_str[INET6_ADDRSTRLEN + 2];
     int size = 0;
     SLPBuffer result = *sendbuf;
 
@@ -98,7 +99,17 @@ int ProcessSASrvRqst(SLPMessage message,
                                                 /*  2 bytes for scope list len */
                                                 /*  2 bytes for attr list len */
                                                 /*  1 byte for authblock count */
-        size += G_SlpdProperty.myUrlLen;
+        size += G_SlpdProperty.urlPrefixLen;
+        localaddr_str[0] = '\0';
+        if (message->localaddr.ss_family == AF_INET) {
+            inet_ntop(message->localaddr.ss_family, &((struct sockaddr_in*) &message->localaddr)->sin_addr, localaddr_str, sizeof(localaddr_str));
+        }
+        else if (message->localaddr.ss_family == AF_INET6) {
+            strcpy(localaddr_str, "[");
+            inet_ntop(message->localaddr.ss_family, &((struct sockaddr_in6*) &message->localaddr)->sin6_addr, &localaddr_str[1], sizeof(localaddr_str) - 1);
+            strcat(localaddr_str, "]");
+        }
+        size += strlen(localaddr_str);
         size += G_SlpdProperty.useScopesLen;
         /* TODO: size += G_SlpdProperty.SAAttributes */
 
@@ -138,11 +149,13 @@ int ProcessSASrvRqst(SLPMessage message,
         /*--------------------------*/
         result->curpos = result->start + 14 + message->header.langtaglen;
         /* url len */
-        ToUINT16(result->curpos, G_SlpdProperty.myUrlLen);
+        ToUINT16(result->curpos, G_SlpdProperty.urlPrefixLen + strlen(localaddr_str));
         result->curpos = result->curpos + 2;
         /* url */
-        memcpy(result->curpos,G_SlpdProperty.myUrl,G_SlpdProperty.myUrlLen);
-        result->curpos = result->curpos + G_SlpdProperty.myUrlLen;
+        memcpy(result->curpos,G_SlpdProperty.urlPrefix,G_SlpdProperty.urlPrefixLen);
+        result->curpos = result->curpos + G_SlpdProperty.urlPrefixLen;
+        memcpy(result->curpos,localaddr_str,strlen(localaddr_str));
+        result->curpos = result->curpos + strlen(localaddr_str);
         /* scope list len */
         ToUINT16(result->curpos, G_SlpdProperty.useScopesLen);
         result->curpos = result->curpos + 2;
@@ -185,6 +198,7 @@ int ProcessDASrvRqst(SLPMessage message,
     /* Special case for when libslp asks slpd (through the loopback) about */
     /* a known DAs. Fill sendbuf with DAAdverts from all known DAs.        */
     /*---------------------------------------------------------------------*/
+
     if (SLPNetIsLoopback(&(message->peer)))
     {
         /* TODO: be smarter about how much memory is allocated here! */
@@ -229,7 +243,8 @@ int ProcessDASrvRqst(SLPMessage message,
             }
 
             /* Tack on a "terminator" DAAdvert */
-            SLPDKnownDAGenerateMyDAAdvert(SLP_ERROR_INTERNAL_ERROR,
+            SLPDKnownDAGenerateMyDAAdvert(&message->localaddr,
+                                          SLP_ERROR_INTERNAL_ERROR,
                                           0,
                                           message->header.xid,
                                           &tmp);
@@ -268,7 +283,8 @@ int ProcessDASrvRqst(SLPMessage message,
                                    G_SlpdProperty.useScopesLen,
                                    G_SlpdProperty.useScopes))
         {
-            errorcode = SLPDKnownDAGenerateMyDAAdvert(errorcode,
+            errorcode = SLPDKnownDAGenerateMyDAAdvert(&message->localaddr,
+                                                      errorcode,
                                                       0,
                                                       message->header.xid,
                                                       sendbuf);           
@@ -1312,11 +1328,14 @@ int ProcessSAAdvert(SLPMessage message,
 
 /*=========================================================================*/
 int SLPDProcessMessage(struct sockaddr_storage* peerinfo,
+                       struct sockaddr_storage* localaddr,
                        SLPBuffer recvbuf,
                        SLPBuffer* sendbuf)
 /* Processes the recvbuf and places the results in sendbuf                 */
 /*                                                                         */
 /* peerinfo   - the socket the message was received on                     */
+/*                                                                         */
+/* localaddr  - the local address the message was received on              */
 /*                                                                         */
 /* recvbuf  - message to process                                           */
 /*                                                                         */
@@ -1333,7 +1352,7 @@ int SLPDProcessMessage(struct sockaddr_storage* peerinfo,
     char        addr_str[INET6_ADDRSTRLEN];
 #endif
 
-    SLPDLogMessage(SLPDLOG_TRACEMSG_IN,peerinfo,recvbuf);
+    SLPDLogMessage(SLPDLOG_TRACEMSG_IN,peerinfo,localaddr,recvbuf);
 
     /* set the sendbuf empty */
     if(*sendbuf)
@@ -1358,7 +1377,8 @@ int SLPDProcessMessage(struct sockaddr_storage* peerinfo,
     if (errorcode == SLP_ERROR_VER_NOT_SUPPORTED &&
         header.version == 1)
     {
-        errorcode = SLPDv1ProcessMessage(peerinfo, 
+        errorcode = SLPDv1ProcessMessage(peerinfo,
+                                         localaddr,
                                          recvbuf, 
                                          sendbuf);
     }
@@ -1384,7 +1404,7 @@ int SLPDProcessMessage(struct sockaddr_storage* peerinfo,
         if (message)
         {
             /* Parse the message and fill out the message descriptor */
-            errorcode = SLPMessageParseBuffer(peerinfo,recvbuf, message);
+            errorcode = SLPMessageParseBuffer(peerinfo, localaddr,recvbuf, message);
             if (errorcode == 0)
             {
                 /* Process messages based on type */
@@ -1493,12 +1513,12 @@ int SLPDProcessMessage(struct sockaddr_storage* peerinfo,
         if (*sendbuf == 0 ||
             (*sendbuf)->end == (*sendbuf)->start )
         {
-            SLPDLogMessage(SLPDLOG_TRACEDROP,peerinfo,recvbuf);
+            SLPDLogMessage(SLPDLOG_TRACEDROP,peerinfo,localaddr,recvbuf);
         }
     } 
     
     /* Log trace message */
-    SLPDLogMessage(SLPDLOG_TRACEMSG_OUT, peerinfo, *sendbuf);
+    SLPDLogMessage(SLPDLOG_TRACEMSG_OUT, peerinfo, localaddr, *sendbuf);
 
     return errorcode;
 }                

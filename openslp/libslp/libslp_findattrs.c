@@ -88,7 +88,7 @@ SLPBoolean ProcessAttrRplyCallback(SLPError errorcode,
     replymsg = SLPMessageAlloc();
     if(replymsg)
     {
-        if(SLPMessageParseBuffer(peerinfo,replybuf,replymsg) == 0 &&
+        if(SLPMessageParseBuffer(peerinfo,NULL,replybuf,replymsg) == 0 &&
            replymsg->header.functionid == SLP_FUNCT_ATTRRPLY &&
            replymsg->body.attrrply.errorcode == 0)
         {

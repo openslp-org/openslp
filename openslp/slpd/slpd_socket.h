@@ -97,6 +97,9 @@ typedef struct _SLPDSocket
     int                     fd;
     time_t                  age;    /* in seconds */
     int                     state;
+
+    /* addrs related to the socket */
+    struct sockaddr_storage localaddr;
     struct sockaddr_storage peeraddr;
     struct sockaddr_storage mcastaddr;
 

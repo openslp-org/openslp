@@ -72,7 +72,7 @@ SLPBoolean CallbackSrvReg(SLPError errorcode,
         replymsg = SLPMessageAlloc();
         if(replymsg)
         {
-            errorcode = SLPMessageParseBuffer(peerinfo,replybuf,replymsg);
+            errorcode = SLPMessageParseBuffer(peerinfo,NULL,replybuf,replymsg);
             if(errorcode == 0)
             {
                 if(replymsg->header.functionid == SLP_FUNCT_SRVACK)

@@ -85,7 +85,11 @@ void NetworkDisconnectDA(PSLPHandleInfo handle)
 {
     if(handle->dasock)
     {
-        close(handle->dasock);
+#ifdef _WIN32
+	    closesocket(handle->dasock);
+#else
+	    close(handle->dasock);
+#endif
         handle->dasock = -1;
     }
 
@@ -103,7 +107,11 @@ void NetworkDisconnectSA(PSLPHandleInfo handle)
 {
     if(handle->sasock)
     {
-        close(handle->sasock);
+#ifdef _WIN32
+	    closesocket(handle->sasock);
+#else
+	    close(handle->sasock);
+#endif
         handle->sasock = -1;
     }
 }
@@ -146,7 +154,11 @@ int NetworkConnectToDA(PSLPHandleInfo handle,
         /* close handle cause it can't support the scope */
         if(handle->dasock >= 0)
         {
-            close(handle->dasock);
+#ifdef _WIN32
+	        closesocket(handle->dasock);
+#else
+	        close(handle->dasock);
+#endif
         }
 
         /* Attempt to connect to DA that does support the scope */
@@ -204,7 +216,11 @@ int NetworkConnectToSA(PSLPHandleInfo handle,
         /* close handle cause it can't support the scope */
         if(handle->sasock >= 0)
         {
-            close(handle->sasock);
+#ifdef _WIN32
+	        closesocket(handle->sasock);
+#else
+	        close(handle->sasock);
+#endif
         }
 
         /*-----------------------------------------*/
@@ -534,7 +550,15 @@ SLPError NetworkRqstRply(int sock,
                     {
                         /* calculate the peeraddr string and length */
                         char peeraddrstr[INET6_ADDRSTRLEN];
-						if (inet_ntop(peeraddr.ss_family, &peeraddr, peeraddrstr, INET6_ADDRSTRLEN) == NULL)
+                        
+                        peeraddrstr[0] = '\0';
+                        if (peeraddr.ss_family == AF_INET) {
+                            inet_ntop(peeraddr.ss_family, &((struct sockaddr_in*) &peeraddr)->sin_addr, peeraddrstr, INET6_ADDRSTRLEN);
+                        }
+                        else if (peeraddr.ss_family == AF_INET6) {
+                            inet_ntop(peeraddr.ss_family, &((struct sockaddr_in6*) &peeraddr)->sin6_addr, peeraddrstr, INET6_ADDRSTRLEN);
+                        }
+						if (strcmp(peeraddrstr, "") != 0) 
                         {
                             int peeraddrstrlen = strlen(peeraddrstr);
                             
@@ -922,13 +946,17 @@ SLPError NetworkMcastRqstRply(const char* langtag,
 					{
 						result = SLP_NETWORK_ERROR;
 					}
-					close(tcpsockfd);		    
+#ifdef _WIN32
+	                closesocket(tcpsockfd);
+#else
+	                close(tcpsockfd);
+#endif
 	                             
 					break;
 				}
 				    
-							retval2 = SLPNetworkRecvMessage(tcpsockfd, SOCK_STREAM, &recvbuf, &peeraddr, &timeout);
-							if ( retval2 != 0 ) 
+				retval2 = SLPNetworkRecvMessage(tcpsockfd, SOCK_STREAM, &recvbuf, &peeraddr, &timeout);
+				if ( retval2 != 0 ) 
 				{
 					/* An error occured while receiving the message */
 					/* probably a just time out error. break for re-send.  */
@@ -941,11 +969,19 @@ SLPError NetworkMcastRqstRply(const char* langtag,
 					result = SLP_NETWORK_ERROR;
 					}
 				
-					close(tcpsockfd);
+#ifdef _WIN32
+	                closesocket(tcpsockfd);
+#else
+	                close(tcpsockfd);
+#endif
 					break;
 				}
 				 
-				close(tcpsockfd);
+#ifdef _WIN32
+	            closesocket(tcpsockfd);
+#else
+	            close(tcpsockfd);
+#endif
 				result = SLP_OK;
 				goto SNEEK;			                        
 				} 
@@ -980,7 +1016,7 @@ SLPError NetworkMcastRqstRply(const char* langtag,
 						cookie = (PSLPHandleInfo)handle;
 					}
 	#endif /* MI_NOT_SUPPORTED */
-			if(callback(result,&peeraddr,recvbuf,cookie) == SLP_FALSE)
+			        if(callback(result,&peeraddr,recvbuf,cookie) == SLP_FALSE)
 					{
 						/* Caller does not want any more info */
 						/* We are done!                       */
@@ -992,9 +1028,18 @@ SLPError NetworkMcastRqstRply(const char* langtag,
 					{
 						strcat(prlist,",");
 					}
-					inet_ntop(peeraddr.ss_family, &((struct sockaddr_in6 *)&peeraddr)->sin6_addr, peeraddrstr, INET6_ADDRSTRLEN);
-					strcat(prlist, peeraddrstr);
-					prlistlen =  strlen(prlist);
+                    peeraddrstr[0] = '\0';
+                    if (peeraddr.ss_family == AF_INET) {
+                        inet_ntop(peeraddr.ss_family, &((struct sockaddr_in*) &peeraddr)->sin_addr, peeraddrstr, INET6_ADDRSTRLEN);
+                    }
+                    else if (peeraddr.ss_family == AF_INET6) {
+                        inet_ntop(peeraddr.ss_family, &((struct sockaddr_in6*) &peeraddr)->sin6_addr, peeraddrstr, INET6_ADDRSTRLEN);
+                    }
+					if (strcmp(peeraddrstr, "") != 0) 
+                    {
+					    strcat(prlist, peeraddrstr);
+					    prlistlen = strlen(prlist);
+                    }
 				}
 			}
 
@@ -1150,9 +1195,8 @@ SLPError NetworkUcastRqstRply(PSLPHandleInfo handle,
     /*--------------------------*/
     /* Main unicast segment     */
     /*--------------------------*/
-    {
-        timeout.tv_sec = timeouts[0] / 1000;
-        timeout.tv_usec = (timeouts[0] % 1000) * 1000;
+    timeout.tv_sec = timeouts[0] / 1000;
+    timeout.tv_usec = (timeouts[0] % 1000) * 1000;
 
 	size = 14 + langtaglen + bufsize;
 	if(buftype == SLP_FUNCT_SRVRQST ||
@@ -1201,99 +1245,131 @@ SLPError NetworkUcastRqstRply(PSLPHandleInfo handle,
 	    sendbuf->curpos = sendbuf->curpos + prlistlen;
 	}
 
-        /*-----------------------------*/
-        /* Add the rest of the message */
-        /*-----------------------------*/
-        memcpy(sendbuf->curpos, buf, bufsize);
+	/*-----------------------------*/
+	/* Add the rest	of the message */
+	/*-----------------------------*/
+	memcpy(sendbuf->curpos,	buf, bufsize);
 
-        /*----------------------*/
-        /* send the send buffer */
-        /*----------------------*/
+	/*----------------------*/
+	/* send	the	send buffer	*/
+	/*----------------------*/
 
-        handle->unicastsock = SLPNetworkConnectStream(&(handle->unicastaddr), &timeout);
-        if ( handle->unicastsock >= 0 ) {
-            retval1 = SLPNetworkSendMessage(handle->unicastsock, SOCK_STREAM, sendbuf, &(handle->unicastaddr), &timeout);
-            if ( retval1 != 0 ) {
-                /* we could not send the message for some reason */
-                /* we close the TCP connection and break */
-                if(errno == ETIMEDOUT) {
-                    result = SLP_NETWORK_TIMED_OUT;
-                }else {
-		    result = SLP_NETWORK_ERROR;
-		}
-		close(handle->unicastsock);
-		goto FINISHED;
+	handle->unicastsock	= SLPNetworkConnectStream(&(handle->unicastaddr), &timeout);
+	if ( handle->unicastsock >=	0 )
+    {
+		retval1	= SLPNetworkSendMessage(handle->unicastsock, SOCK_STREAM, sendbuf, &(handle->unicastaddr), &timeout);
+		if ( retval1 !=	0 )
+        {
+			/* we could	not	send the message for some reason */
+			/* we close	the	TCP	connection and break */
+			if(errno ==	ETIMEDOUT)
+            {
+				result = SLP_NETWORK_TIMED_OUT;
+			}
+            else
+            {
+		        result = SLP_NETWORK_ERROR;
+	        }
+#ifdef _WIN32
+	        closesocket(handle->unicastsock);
+#else
+	        close(handle->unicastsock);
+#endif
+	        goto FINISHED;
 	    }
-	    
-	    retval2 = SLPNetworkRecvMessage(handle->unicastsock, SOCK_STREAM, &recvbuf, &(handle->unicastaddr), &timeout);
-            if ( retval2 != 0 ) {
-                /* An error occured while receiving the message */
-                /* probably just a time out error.              */
-                /* we close the TCP connection and break */
-                if(errno == ETIMEDOUT) {
-                    result = SLP_NETWORK_TIMED_OUT;
-		} else {
-                    result = SLP_NETWORK_ERROR;
-		}
-                close(handle->unicastsock);
-                goto FINISHED;
+		
+		retval2	= SLPNetworkRecvMessage(handle->unicastsock, SOCK_STREAM, &recvbuf,	&(handle->unicastaddr),	&timeout);
+		if ( retval2 !=	0 )
+        {
+			/* An error	occured	while receiving	the	message	*/
+			/* probably	just a time	out	error.				*/
+			/* we close	the	TCP	connection and break */
+			if(errno ==	ETIMEDOUT)
+            {
+				result = SLP_NETWORK_TIMED_OUT;
+	        }
+            else
+            {
+				result = SLP_NETWORK_ERROR;
             }
+#ifdef _WIN32
+	        closesocket(handle->unicastsock);
+#else
+	        close(handle->unicastsock);
+#endif
+			goto FINISHED;
+		}
+#ifdef _WIN32
+	    closesocket(handle->unicastsock);
+#else
 	    close(handle->unicastsock);
-	    result = SLP_OK;
-	} else {
-	    result = SLP_NETWORK_TIMED_OUT;
-	    /* Unsuccessful in opening a TCP connection */
-	    /* just break                               */
-	    goto FINISHED;
+#endif
+		result = SLP_OK;
 	}
-	/* Sneek in and check the XID */
+    else
+    {
+		result = SLP_NETWORK_TIMED_OUT;
+		/* Unsuccessful	in opening a TCP connection	*/
+		/* just	break								*/
+		goto FINISHED;
+	}
+	/* Sneek in	and	check the XID */
 	if(AsUINT16(recvbuf->start+10) == xid)
 	{
-        char peeraddrstr[INET6_ADDRSTRLEN];
-	    rplycount += 1;
-            /* Call the callback with the result and recvbuf */
-            if(callback(result,&peeraddr,recvbuf,cookie) == SLP_FALSE)
-            {
-                /* Caller does not want any more info */
-                /* We are done!                       */
-                goto CLEANUP;
-            }
-	    /* add the peer to the previous responder list */
-	    if(prlistlen != 0)
-	    {
-	        strcat(prlist,",");
-	    }
-
-		inet_ntop(peeraddr.ss_family, &((struct sockaddr_in6 *)&peeraddr)->sin6_addr, peeraddrstr, INET6_ADDRSTRLEN);
-		strcat(prlist, peeraddrstr);
-	    prlistlen =  strlen(prlist);
+		char peeraddrstr[INET6_ADDRSTRLEN];
+		rplycount += 1;
+		/* Call	the	callback with the result and recvbuf */
+		if(callback(result,&peeraddr,recvbuf,cookie) ==	SLP_FALSE)
+		{
+			/* Caller does not want	any	more info */
+			/* We are done!						  */
+			goto CLEANUP;
+		}
+		/* add the peer	to the previous	responder list */
+		if(prlistlen !=	0)
+		{
+			strcat(prlist,",");
+		}
+		peeraddrstr[0] = '\0';
+		if (peeraddr.ss_family == AF_INET)
+        {
+			inet_ntop(peeraddr.ss_family, &((struct	sockaddr_in*) &peeraddr)->sin_addr,	peeraddrstr, INET6_ADDRSTRLEN);
+		}
+		else if	(peeraddr.ss_family	== AF_INET6)
+        {
+			inet_ntop(peeraddr.ss_family, &((struct	sockaddr_in6*) &peeraddr)->sin6_addr, peeraddrstr, INET6_ADDRSTRLEN);
+		}
+		if (strcmp(peeraddrstr,	"")	!= 0) 
+		{
+			strcat(prlist, peeraddrstr);
+			prlistlen =	 strlen(prlist);
+		}
 	}
-    }
 		
-    FINISHED:
-    /*---------------------------------------------------------------------*/
-    /* Notify the callback with SLP_LAST_CALL so that they know we're done */
-    /*---------------------------------------------------------------------*/
-    if(rplycount || result == SLP_NETWORK_TIMED_OUT)
-    {
-        result = SLP_LAST_CALL;
-    }
+	FINISHED:
+	/*---------------------------------------------------------------------*/
+	/* Notify the callback with	SLP_LAST_CALL so that they know	we're done */
+	/*---------------------------------------------------------------------*/
+	if(rplycount ||	result == SLP_NETWORK_TIMED_OUT)
+	{
+		result = SLP_LAST_CALL;
+	}
  
-    callback(result, NULL,NULL,cookie);
-    if(result == SLP_LAST_CALL)
-    {
-        result = SLP_OK;
-    }
+	callback(result, NULL,NULL,cookie);
+	if(result == SLP_LAST_CALL)
+	{
+		result = SLP_OK;
+	}
 
-    CLEANUP:
-    /*----------------*/
-    /* Free resources */
-    /*----------------*/
-    if(prlist) xfree(prlist);
-    SLPBufferFree(sendbuf);
-    SLPBufferFree(recvbuf);
+	CLEANUP:
+	/*----------------*/
+	/* Free	resources */
+	/*----------------*/
+	if(prlist) xfree(prlist);
+	SLPBufferFree(sendbuf);
+	SLPBufferFree(recvbuf);
 
-    return result;
+	return result;
 
 }
 #endif

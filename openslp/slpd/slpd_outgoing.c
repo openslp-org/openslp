@@ -89,6 +89,7 @@ void OutgoingDatagramRead(SLPList* socklist, SLPDSocket* sock)
         sock->recvbuf->end = sock->recvbuf->start + bytesread;
 
         SLPDProcessMessage(&(sock->peeraddr),
+                           &(sock->localaddr),
                            sock->recvbuf,
                            &(sock->sendbuf));
 
@@ -266,6 +267,7 @@ void OutgoingStreamRead(SLPList* socklist, SLPDSocket* sock)
             if ( sock->recvbuf->curpos == sock->recvbuf->end )
             {
                 switch ( SLPDProcessMessage(&(sock->peeraddr),
+                                            &(sock->localaddr),
                                             sock->recvbuf,
                                             &(sock->sendbuf)) )
                 {

@@ -311,7 +311,6 @@ void ServiceStart (int argc, char **argv)
         goto cleanup_winsock;
     }
     SLPDLog("Agent Interfaces = %s\n",G_SlpdProperty.interfaces);
-    SLPDLog("Agent URL = %s\n",G_SlpdProperty.myUrl);
 
     /* Service is now running, perform work until shutdown    */
     if(!ReportStatusToSCMgr(SERVICE_RUNNING,       /* service state    */

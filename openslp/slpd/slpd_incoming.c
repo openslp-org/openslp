@@ -92,6 +92,7 @@ void IncomingDatagramRead(SLPList* socklist, SLPDSocket* sock)
         sock->recvbuf->end = sock->recvbuf->start + bytesread;
 
         switch (SLPDProcessMessage(&sock->peeraddr,
+                                   &sock->localaddr,
                                    sock->recvbuf,
                                    &(sock->sendbuf)))
         {
@@ -235,6 +236,7 @@ void IncomingStreamRead(SLPList* socklist, SLPDSocket* sock)
             if (sock->recvbuf->curpos == sock->recvbuf->end)
             {
                 switch (SLPDProcessMessage(&sock->peeraddr,
+                                           &sock->localaddr,
                                            sock->recvbuf,
                                            &(sock->sendbuf)))
                 {
@@ -289,7 +291,8 @@ void IncomingSocketListen(SLPList* socklist, SLPDSocket* sock)
             {
                 /* setup the accepted socket */
                 connsock->fd        = fd;
-                connsock->peeraddr  = peeraddr;
+                memcpy(&connsock->peeraddr, &peeraddr, sizeof(struct sockaddr_storage));
+                memcpy(&connsock->localaddr, &peeraddr, sizeof(struct sockaddr_storage));
                 connsock->state     = STREAM_READ_FIRST;
 
                 /* Set the low water mark on the accepted socket */

@@ -478,19 +478,6 @@ SLPDSocket* SLPDSocketCreateBoundDatagram(struct sockaddr_storage* myaddr,
 /*==========================================================================*/
 {
     SLPDSocket*                 sock;
-    struct sockaddr_storage*    bindaddr;
-
-    /*------------------------------------------*/
-    /* Adjust for multicast binding differences */
-    /*------------------------------------------*/
-#ifdef LINUX
-    bindaddr = peeraddr;  
-#else
-    if(type == DATAGRAM_MULTICAST)
-        bindaddr = NULL;    /* must bind to INADDR_ANY for multicast */
-    else
-        bindaddr = peeraddr;  
-#endif
 
     /*------------------------*/
     /* Create and bind socket */
@@ -509,14 +496,16 @@ SLPDSocket* SLPDSocketCreateBoundDatagram(struct sockaddr_storage* myaddr,
 
         if(sock->fd >=0)
         {
-            if(BindSocketToInetAddr(peeraddr->ss_family, sock->fd, bindaddr) == 0)
+            if(BindSocketToInetAddr(peeraddr->ss_family, sock->fd, myaddr) == 0)
             {
                 if(peeraddr != NULL)
                 {
-                    if (peeraddr->ss_family == AF_INET)
-                        memcpy(&((struct sockaddr_in*) &sock->peeraddr)->sin_addr, &((struct sockaddr_in*) peeraddr)->sin_addr, sizeof(struct sockaddr_in));
-                    else if (peeraddr->ss_family == AF_INET6)
-                        memcpy(&((struct sockaddr_in6*) &sock->peeraddr)->sin6_addr, &((struct sockaddr_in6*) peeraddr)->sin6_addr, sizeof(struct sockaddr_in6));
+                    memcpy((struct sockaddr_storage*) &sock->peeraddr, peeraddr, sizeof(struct sockaddr_storage));
+                }
+
+                if (myaddr != NULL)
+                {
+                    memcpy((struct sockaddr_storage*) &sock->localaddr, myaddr, sizeof(struct sockaddr_storage));
                 }
 
                 switch(type)
@@ -533,7 +522,7 @@ SLPDSocket* SLPDSocketCreateBoundDatagram(struct sockaddr_storage* myaddr,
                     break;
 
                 case DATAGRAM_BROADCAST:
-                    if(EnableBroadcast(sock->fd) == 0)
+                    if(myaddr->ss_family == AF_INET && EnableBroadcast(sock->fd) == 0)
                     {
                         sock->state = DATAGRAM_BROADCAST;
                         goto SUCCESS;
@@ -592,6 +581,11 @@ SLPDSocket* SLPDSocketCreateListen(struct sockaddr_storage* peeraddr)
             {
                 if(listen(sock->fd,5) == 0)
                 {
+                    if (peeraddr != NULL)
+                    {
+                        memcpy((struct sockaddr_storage*) &sock->localaddr, peeraddr, sizeof(struct sockaddr_storage));
+                    }
+
                     /* Set socket to non-blocking so subsequent calls to */
                     /* accept will *never* block                         */
 #ifdef _WIN32

@@ -131,11 +131,14 @@ void SLPDKnownDAEnumEnd(void* eh);
 
 
 /*=========================================================================*/
-int SLPDKnownDAGenerateMyDAAdvert(int errorcode,
+int SLPDKnownDAGenerateMyDAAdvert(struct sockaddr_storage* localaddr,
+                                  int errorcode,
                                   int deadda,
                                   int xid,
                                   SLPBuffer* sendbuf);
 /* Pack a buffer with a DAAdvert using information from a SLPDAentry       */
+/*                                                                         */
+/* localaddr (IN) the address of the DA to advertise                       */
 /*                                                                         */
 /* errorcode (IN) the errorcode for the DAAdvert                           */
 /*                                                                         */

@@ -71,13 +71,8 @@ SLPDProperty G_SlpdProperty;
 int SLPDPropertyInit(const char* conffile)
 /*=========================================================================*/
 {
-    char                    myname[MAX_HOST_NAME];
     char*                   myinterfaces = 0;
-    char*                   myurl = 0;
-    struct sockaddr_storage myaddr;
-    int                     myaddr_check;
-    int                     myname_len;
-    int                     i;
+    char*                   urlPrefix[27];    /* 27 is the size of "service:directory-agent://(NULL)" */
     int                     family = AF_UNSPEC;
     
     SLPPropertyReadFile(conffile);
@@ -159,49 +154,20 @@ int SLPDPropertyInit(const char* conffile)
     /*---------------------------------------------------------*/
     /* Set the value used internally as the url for this agent */
     /*---------------------------------------------------------*/
-    /* 27 is the size of "service:directory-agent://(NULL)" */
-    myname[0] = '\0';
-    if (SLPPropertyGet("net.slp.hostName"))
-        strncpy(myname, SLPPropertyGet("net.slp.hostName"), sizeof(myname));
-    else
-        gethostname(myname, sizeof(myname));
-    
-    /* test length of myname... VxWorks and possibly other OSes can have 0-length hostnames */
-    myname_len = strlen(myname);
-    if (myname_len > 0) {
-        /* if myname happens to be an IPv6 address, wrap it with '[' and ']' */
-        myaddr_check = inet_pton(AF_INET6, myname, &myaddr);
-        if (myaddr_check == 1)
-        {
-            if (myname_len < MAX_HOST_NAME - 1)   /* make room for the null terminator */
-            {
-                for (i = myname_len; i > 0; i--)
-                    myname[i] = myname[i - 1];
-                myname[0] = '[';
-                myname[myname_len + 1] = ']';
-                myname[myname_len + 2] = '\0';
-            }
-        }
-
-        myurl = (char*)xmalloc(27 + strlen(myname));
-        if(G_SlpdProperty.isDA)
-        {
-            strcpy(myurl,SLP_DA_SERVICE_TYPE);
-        }
-        else
-        {
-            strcpy(myurl,SLP_SA_SERVICE_TYPE);
-        }
-        strcat(myurl,"://");
-        strcat(myurl,myname);
-
-        SLPPropertySet("net.slp.agentUrl",myurl);
-
-        G_SlpdProperty.myUrl = SLPPropertyGet("net.slp.agentUrl");
-        G_SlpdProperty.myUrlLen = strlen(G_SlpdProperty.myUrl);
-
-        xfree(myurl);
+    if(G_SlpdProperty.isDA)
+    {
+        strcpy((char *) urlPrefix,SLP_DA_SERVICE_TYPE);
     }
+    else
+    {
+        strcpy((char *) urlPrefix,SLP_SA_SERVICE_TYPE);
+    }
+    strcat((char *) urlPrefix,"://");
+
+    SLPPropertySet("net.slp.urlPrefix",(char *) urlPrefix);
+
+    G_SlpdProperty.urlPrefix = SLPPropertyGet("net.slp.urlPrefix");
+    G_SlpdProperty.urlPrefixLen = strlen(G_SlpdProperty.urlPrefix);
 
     /*----------------------------------*/
     /* Set other values used internally */
