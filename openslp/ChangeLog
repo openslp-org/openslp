@@ -6,8 +6,12 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 
+10/18/01 matt@caldera.com
+Added code to use IP address in agent url for those operating systems where
+gethostname() does not return a fully qualified domain name (FQDN).
+
 10/17/01 matt@caldera.com
-Applied patch from Tim Zurcher to memory realloc problems when messages 
+Applied patch from Tim Zurcher to fix memory realloc problems when messages 
 exceed the SLP MTU of 1400 bytes.
 
 10/17/01 matt@caldera.com
