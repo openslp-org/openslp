@@ -1,5 +1,5 @@
 %define	ver 1.0.0pre1
-%define	rel 1
+%define	rel 3
 %define	name openslp
 %define libver 1.0.0
 
@@ -41,6 +41,7 @@ cp etc/slp.conf $DESTDIR/etc
 cp etc/slp.reg $DESTDIR/etc
 mkdir -p $DESTDIR/usr/lib
 libtool install libslp/libslp.la $DESTDIR/usr/lib
+ln -s libslp.so.%{libver}  $DESTDIR/usr/lib/libslp.so.0
 mkdir -p  $DESTDIR/usr/sbin
 libtool install slpd/slpd $DESTDIR/usr/sbin 
 mkdir -p $DESTDIR/usr/bin
@@ -64,8 +65,7 @@ rm -rf $RPM_BUILD_ROOT/usr
 
 %Post
 rm -f /usr/lib/libslp.so
-ln -s /usr/lib/libslp.so.%{libver} /usr/lib/libslp.so
-ln -s /usr/lib/libslp.so.%{libver} /usr/lib/libslp.so.0
+ln -s libslp.so.%{libver} /usr/lib/libslp.so
 /sbin/ldconfig
 
 if [ -x /bin/lisa ]; then 
