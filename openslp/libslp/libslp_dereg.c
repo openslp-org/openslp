@@ -200,7 +200,7 @@ SLPError ProcessSrvDeReg(PSLPHandleInfo handle)
                               handle->params.reg.scopelist,
                               handle->params.reg.scopelistlen,
                               &peeraddr);
-    if(sock)
+    if(sock >= 0)
     {
         result = NetworkRqstRply(sock,
                                  &peeraddr,
@@ -215,7 +215,10 @@ SLPError ProcessSrvDeReg(PSLPHandleInfo handle)
             NetworkDisconnectSA(handle);
         }   
     }
-
+    else
+    {
+        result = SLP_NETWORK_INIT_FAILED;
+    }
 
     FINISHED:
     if(buf) xfree(buf);
