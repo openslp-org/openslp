@@ -82,6 +82,7 @@
 #include "slp_database.h"
 #include "slp_compare.h"
 #include "slp_xmalloc.h"
+#include "slp_parse.h"
 #include "slp_iface.h"
 #include "slp_xcast.h"
 #ifdef ENABLE_SLPv2_SECURITY
@@ -275,6 +276,11 @@ SLPError ThreadCreate(ThreadStartProc startproc, void *arg);
 /* Returns      SLPError code                                              */
 /*=========================================================================*/
 #endif
+
+
+/*=========================================================================*/
+int NetworkConnectToMulticast(struct sockaddr_in* peeraddr);
+/*=========================================================================*/
 
 
 /*=========================================================================*/

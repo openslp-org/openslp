@@ -625,7 +625,7 @@ SLPError NetworkMcastRqstRply(const char* langtag,
     int                 totaltimeout    = 0;
     int                 usebroadcast    = 0;
     int                 timeouts[MAX_RETRANSMITS];
-    SLPInterfaceInfo    ifaceinfo;
+    SLPIfaceInfo        ifaceinfo;
     SLPXcastSockets     xcastsocks;
 
 #ifdef DEBUG
@@ -653,7 +653,7 @@ SLPError NetworkMcastRqstRply(const char* langtag,
         result = SLP_MEMORY_ALLOC_FAILED;
         goto FINISHED;
     }
-    if(SLPInterfaceGetInformation(SLPGetProperty("net.slp.interfaces"),&ifaceinfo))
+    if(SLPIfaceGetInfo(SLPGetProperty("net.slp.interfaces"),&ifaceinfo))
     {
         result = SLP_NETWORK_ERROR;
         goto FINISHED;
