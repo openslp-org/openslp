@@ -39,10 +39,33 @@ SLPBoolean mySrvTypeCallback( SLPHandle hslp,
                               void* cookie ) 
 /*=========================================================================*/
 {
-    if(errcode == SLP_OK)
+    char* cpy;
+    char* slider1;
+    char* slider2;
+
+    if(errcode == SLP_OK && *srvtypes)
     {
-        printf("%s\n",srvtypes);
+        cpy = strdup(srvtypes);
+        if(cpy)
+        {
+            slider1 = slider2 = cpy;
+            while(slider1 = strchr(slider2,','))
+            {
+                *slider1 = 0;
+                printf("%s\n",slider2);
+                slider1 ++;
+                slider2 = slider1;
+            }
+
+            /* print the final itam */
+            printf("%s\n",slider2);
+
+            free(cpy);
+        }
+        
     }
+
+    return SLP_TRUE;
 }
 
 
@@ -55,15 +78,28 @@ void FindSrvTypes(SLPToolCommandLine* cmdline)
 
     if(SLPOpen(cmdline->lang,SLP_FALSE,&hslp) == SLP_OK)
     {
-        result = SLPFindSrvTypes(hslp,
-                                 cmdline->cmdparam1,
-                                 cmdline->scopes,
-                                 mySrvTypeCallback,
-                                 0);
+        if(cmdline->cmdparam1)
+        {
+            result = SLPFindSrvTypes(hslp,
+				     cmdline->cmdparam1,
+				     cmdline->scopes,
+				     mySrvTypeCallback,
+				     0);
+	}
+        else
+        {
+	    result = SLPFindSrvTypes(hslp,
+				     "*",
+				     cmdline->scopes,
+				     mySrvTypeCallback,
+				     0);
+	}
+       
         if(result != SLP_OK)
         {
             printf("errorcode: %i",result);
         }
+       
         SLPClose(hslp);
     }
 }
@@ -79,6 +115,8 @@ SLPBoolean myAttrCallback(SLPHandle hslp,
     {
         printf("%s\n",attrlist);
     }
+    
+    return SLP_TRUE;
 }
 
 
@@ -120,6 +158,8 @@ SLPBoolean mySrvUrlCallback( SLPHandle hslp,
     {
         printf("%s,%i\n",srvurl,lifetime);
     }
+    
+    return SLP_TRUE;
 }
 
 
@@ -265,8 +305,7 @@ void DisplayUsage()
     printf("   command-and-arguments may be:\n");
     printf("      findsrvs service-type [filter]\n");
     printf("      findattrs url [attrids]\n");
-    printf("      findsrvtypes [authority]\n");
-    
+    printf("      findsrvtypes [authority]\n");    
 }
 
 
