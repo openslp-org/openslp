@@ -1,0 +1,167 @@
+OpenSLP FAQ  by Matt Peterson <matt@caldera.com>
+=================================================
+
+A really compresensive FAQ is not yet available for OpenSLP so please send 
+your questions to the OpenSLP mailing lists: 
+
+    openslp-devel@lists.sourceforge.net 
+    openslp-users@lists.sourceforge.net 
+
+Q: Where is the configure script to build OpenSLP? 
+A: Did you read section 3 of the README?  You need to run autogen.sh to 
+   generate the configure script. 
+
+Q: How do I build OpenSLP on Windows? 
+A: The MSVC project files used by the developers who ported OpenSLP to win32 
+   available in the source directories.  If you do not use MSVC and you are a 
+   Windows developer, then you will be used to trying to get MSVC makes to 
+   work with your tools 
+
+Q: Will OpenSLP work on my operating system 
+A: Yes, the OpenSLP code has proven to be very portable.  It currently works 
+   many operating systems including: Linux, BSD, Solaris, Tru64, HPUX, UnixWare, 
+   OSR5, and Win32 
+
+Q: I am having trouble discovering attributes using FindAttr() and  "slptool 
+   findattrs".  The functions seem to execute properly, and the services URL's 
+   can be discovered, but no attributes are returned.  I am registering 
+   services in slp.reg files. I don't think it is my syntax in the slp.reg 
+   file, because the example registrations in that file do not return 
+   attributes either.  Can anyone help? 
+A: If you just want to use slptool to see if things are working, you need to 
+   do the following: 
+
+   Contents of the slp.reg: 
+   ------------------------ 
+   service:myservice1.x://myhost.caldera.com,en,65535 
+   owner=Matt Peterson 
+   email=mpeterson@caldera.com 
+
+   service:myservice1.x://yourhost.yourdomain.com,en,65535 
+   owner=Kim Jackson 
+   email=bjackson@yourhost.yourdomain.com 
+  
+
+   IMPORTANT: Restart slpd and check the /var/log/slpd.log to ensure that 
+   there were no errors during parsing of the .reg file 
+
+   Use slptool to find attributes 
+   ------------------------------ 
+   $ slptool findsrvs service:myservice1.x 
+   service:myservice1.x://myhost.caldera.com.com,65535 
+   service:myservice1.x://yourhost.yourdomain.com,65535 
+
+   $ slptool findattrs service:myservice1.x://myhost.mydomain.com 
+   (owner=Matt Peterson),(email=mpeterson@caldera.com) 
+
+   $ slptool findattrs service:myservice1.x://yourhost.caldera.com 
+   (owner=Kim Jackson),(email=bjackson@yourhost.yourdomain.com) 
+
+   Note that you need to supply the service-url as returned by findsrvs 
+
+Q: I have a multi-homed machine and OpenSLP is not working. 
+A: Please read the updated installation guide 
+   http://www.openslp.org/doc/html/UsersGuide/Installation.html. 
+   There are special instructions for users of multi-homed machines. 
+
+Q: In our development lab, the multicast SLP requests work just fine. 
+   However, in our SVT lab, the multicasts requests never work.  We always 
+   have to edit the slp.conf file and turn on broadcast.  Have any others seen 
+   this?  Do you recall what the solution was?  We have spent a great deal of 
+   time trying to figure this one out without success. 
+A: Yes, others have seen this behavior -- I know I have.  I should put this in 
+   the FAQ because I get a lot of questions.  The following is a list of the 
+   most common problems along with trouble shooting and resolution info: 
+
+   No multicast route 
+   ------------------- 
+   A very common problem with some OS installations (especially Linux) is 
+   that there is no multicast or default route set up.  On systems with BSD 
+   derived TCP/IP stacks (nearly all OSes), broadcast and multicast traffic 
+   are delivered using the unicast routing table.  If the unicast routing 
+   table does not have either a default route or an explicit multicast route, 
+   then the kernel does not know where to send the SLP datagram and returns 
+   an error 101 - network unreachable error which translates into a SLPError 
+   -23 SLP_NETWORK_ERROR. A quick test is to try to ping SLP multicast: 
+
+      $ ping 239.255.255.253 
+
+   If ping returns an error that the network was unreachable, you will need 
+   to set up a default route or a multicast route. 
+  
+   Note you may not get any responses to the ping.  This may not indicate 
+   a problem.  The only thing to be concerned about is if there is an error 
+   actually sending the ping. 
+  
+   Please read the installation instructions for more information on how 
+   to install a multicast route: 
+
+       http://www.openslp.org/doc/html/UsersGuide/Installation.html 
+
+  
+   The "smart switch /stupid router" problem 
+   ------------------------------------------ 
+   The smart switch / stupid router (or no router) problem is something that 
+   happens on switched ethernet networks only.  If you do not have a 
+   switched ethernet network, then you do not have this problem.  If you do 
+   have a switched ethernet network, then you may have this problem if you 
+   are using newer switching hardware.  The reason is that ethernet 
+   switching hardware is smart enough to monitor IGMP traffic and only 
+   forward multicast ethernet frames to those ports that are connected to a 
+   host that has maintained the appropriate IGMP conversations with the 
+   router. 
+
+   At a very high level, IGMP works like this.  First, the host joins the 
+   multicast group by sending the router an IGMP message.  The router 
+   responds periodically with request to the host to see if the host is 
+   still interested in multicast traffic.  Since IGMP conversations are 
+   handled transparently by the kernel level IP stack implementations, most 
+   developers and users do not even realize anything is happening. 
+
+   However, "smart" ethernet switches do realize something is happening! 
+   If they do not see the IGMP messages being sent from the router to a host 
+   that is plugged into a given port of the switch, then they will will not 
+   forward multicast ethernet frames to that port.  This is good and bad. 
+   It is good because it makes multicast extremely efficient in terms of 
+   physical network usage.  However, it also makes it so multicast will not 
+   work at all if a router does not exist (or does not support IGMP) to 
+   maintain it's end of the IGMP conversation. 
+
+   Trouble Shooting: 
+
+   Monitor IGMP traffic!  Make sure that periodic IGMP traffic is happening 
+   on your network.  IGMP traffic can be monitored on Linux (and many other 
+   OSes) with the following command: 
+  
+     # tcpdump igmp 
+
+   Issue this command before starting slpd.  You will notice that several 
+   IGMP "report" messages are sent.  The important thing to look for a IGMP 
+   "query" message from the router.  If you do not see the IGMP query 
+   message from the router then you will soon find that you will no longer 
+   see any "report" messages either. 
+
+   Another good test is to try to ping the multicast address and see where 
+   it is visable. 
+  
+     $ ping 239.255.255.253 
+
+   Finally, the best advice is to read the normally untouched section of 
+   your ethernet switch manual that describes how the switch handles 
+   multicast.  Stupid/inexpensive switches treat multicast frames exactly 
+   like broadcast frames which means that they are forwarded to every port 
+   of the switch.  Smart/Expensive switches often allow this behavior to be 
+   configured.  If you are on a network without a router, then it is 
+   possible that you might need to "dumb down" your switch. 
+
+   Broken NIC driver 
+   ------------------ 
+   Some NICs do not support multicast operation, so the driver does the 
+   work by  placing the NIC into permiscuous mode (accept everything) then 
+   the driver filters out what is not needed.  The problem with this is 
+   that sometimes on a very busy ethernet, the NIC buffers may not be able 
+   to keep up with all the traffic and some frames will be dropped.  This 
+   is normally not a problem since SLP is designed to work on unreliable 
+   physical networks, but if enough frames are dropped, OpenSLP may not 
+   be able to find DAs or other services.  This would result in erratic 
+   behavior. 
