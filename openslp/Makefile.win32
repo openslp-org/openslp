@@ -1,9 +1,0 @@
-DEPTH= .
-include $(DEPTH)/defs.mk
-
-DIRS = common libslp slpd
-
-include $(DEPTH)/rules.mk
-
-build:: $(TARGETS)
-
