@@ -360,6 +360,11 @@ int find_value_list_end(char const *value, int *value_count, SLPType
         (*cur)++;
     }
 
+    if (type_guess == TYPE_UNKNOWN)
+    {
+	return 0;	/* empty */
+    }
+
     *type = type_guess;
     return 1;
 }
