@@ -9,6 +9,9 @@ blank lines and include the date, developer's email, and change description.
 
 =============================================================================
 
+0525/00 mpeterson@calderasystems.com
+Added code to enable slpd to reply to service:service-agent SrvRqsts
+
 05/24/00 mpeterson@calderasystem.com
 Added an SLP test suite that was written by David McCormack.
 

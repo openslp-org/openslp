@@ -33,6 +33,164 @@
 
 #include "slpd.h"
 
+/*-------------------------------------------------------------------------*/
+void ProcessSASrvRqst(SLPDPeerInfo* peerinfo,
+		      SLPMessage message,
+		      SLPBuffer result)
+/*-------------------------------------------------------------------------*/
+{
+    int size = 0;
+   
+    if(message->body.srvrqst.scopelistlen == 0 ||
+       SLPStringListIntersect(message->body.srvrqst.scopelistlen,
+                              message->body.srvrqst.scopelist,
+                              G_SlpdProperty.useScopesLen,
+                              G_SlpdProperty.useScopes) != 0 )
+    {
+        /*----------------------*/
+        /* Send back a SAAdvert */
+        /*----------------------*/
+        
+        /*-------------------------------------------------------------*/
+        /* ensure the buffer is big enough to handle the whole srvrply */
+        /*-------------------------------------------------------------*/
+        size = message->header.langtaglen + 21; /* 14 bytes for header     */
+                                                /*  2 bytes for url count  */
+                                                /*  2 bytes for scope list len */
+                                                /*  2 bytes for attr list len */
+                                                /*  1 byte for authblock count */
+        size += G_SlpdProperty.myUrlLen;
+        size += G_SlpdProperty.useScopesLen;
+        /* TODO: size += G_SlpdProperty.SAAttributes */
+       
+        result = SLPBufferRealloc(result,size);
+        if(result == 0)
+        {
+	    /* TODO: out of memory, what should we do here! */
+	    return;
+        }
+
+        /*----------------*/
+        /* Add the header */
+        /*----------------*/
+        /*version*/
+        *(result->start)       = 2;
+        /*function id*/
+        *(result->start + 1)   = SLP_FUNCT_SAADVERT;
+        /*length*/
+        ToUINT24(result->start + 2, size);
+        /*flags*/
+        ToUINT16(result->start + 5,
+        size > SLP_MAX_DATAGRAM_SIZE ? SLP_FLAG_OVERFLOW : 0);
+        /*ext offset*/
+        ToUINT24(result->start + 7,0);
+        /*xid*/
+        ToUINT16(result->start + 10,message->header.xid);
+        /*lang tag len*/
+        ToUINT16(result->start + 12,message->header.langtaglen);
+        /*lang tag*/
+        memcpy(result->start + 14,
+               message->header.langtag,
+               message->header.langtaglen);
+        
+        /*--------------------------*/
+        /* Add rest of the SAAdvert */
+        /*--------------------------*/
+        result->curpos = result->start + 14 + message->header.langtaglen;
+        /* url len */
+        ToUINT16(result->curpos, G_SlpdProperty.myUrlLen);
+        result->curpos = result->curpos + 2;
+        /* url */
+        memcpy(result->start,G_SlpdProperty.myUrl,G_SlpdProperty.myUrlLen);
+        result->curpos = result->curpos + G_SlpdProperty.myUrlLen;
+        /* scope list len */
+        ToUINT16(result->curpos, G_SlpdProperty.useScopesLen);
+        result->curpos = result->curpos + 2;
+        /* scope list */
+        memcpy(result->start,G_SlpdProperty.useScopes,G_SlpdProperty.useScopesLen);
+        result->curpos = result->curpos + G_SlpdProperty.useScopesLen;
+        /* attr list len */
+        /* ToUINT16(result->curpos,G_SlpdProperty.SAAttributesLen) */
+        ToUINT16(result->curpos, 0);
+        result->curpos = result->curpos + 2;
+        /* attr list */
+        /* memcpy(result->start,G_SlpdProperty.SAAttributes,G_SlpdProperty.SAAttributesLen) */
+        /* authblock count */
+        *(result->curpos) = 0;
+    }
+    else
+    {
+        /*--------------------------------*/
+        /* Send back a SrvRply with error */
+        /*--------------------------------*/
+        if(message->header.flags & SLP_FLAG_MCAST)
+	{
+	    /* drop multicast SrvRqsts we can not answer */
+	    result->end = result->start;   
+	}
+        else
+	{
+	    /*-------------------------------------------------------------*/
+            /* ensure the buffer is big enough to handle the whole srvrply */
+            /*-------------------------------------------------------------*/
+            size = message->header.langtaglen + 18; /* 14 bytes for header     */
+                                            /*  2 bytes for error code */
+                                            /*  2 bytes for url count  */ 
+   
+            result = SLPBufferRealloc(result,size);
+            if(result == 0)
+            {
+                /* TODO: out of memory, what should we do here! */
+	        return;               
+            }
+
+            /*----------------*/
+            /* Add the header */
+            /*----------------*/
+            /*version*/
+            *(result->start)       = 2;
+            /*function id*/
+            *(result->start + 1)   = SLP_FUNCT_SRVRPLY;
+            /*length*/
+            ToUINT24(result->start + 2, size);
+            /*flags*/
+            ToUINT16(result->start + 5,
+            size > SLP_MAX_DATAGRAM_SIZE ? SLP_FLAG_OVERFLOW : 0);
+            /*ext offset*/
+            ToUINT24(result->start + 7,0);
+            /*xid*/
+            ToUINT16(result->start + 10,message->header.xid);
+            /*lang tag len*/
+            ToUINT16(result->start + 12,message->header.langtaglen);
+            /*lang tag*/
+            memcpy(result->start + 14,
+            message->header.langtag,
+            message->header.langtaglen);
+    
+            /*-------------------------*/
+            /* Add rest of the SrvRply */
+            /*-------------------------*/
+            result->curpos = result->start + 14 + message->header.langtaglen;
+            /* error code*/
+            ToUINT16(result->curpos, SLP_ERROR_SCOPE_NOT_SUPPORTED);
+            result->curpos = result->curpos + 2;
+            /* urlentry count */
+            ToUINT16(result->curpos, 0);
+            result->curpos = result->curpos + 2;
+        }
+    }
+}
+
+
+/*-------------------------------------------------------------------------*/
+void ProcessDASrvRqst(SLPDPeerInfo* peerinfo,
+		      SLPMessage message,
+		      SLPBuffer result)
+/*-------------------------------------------------------------------------*/
+{
+    /* ignore all requests for DAs for now */
+    result->end = result->start;
+}
 
 /*-------------------------------------------------------------------------*/
 void ProcessSrvRqst(SLPDPeerInfo* peerinfo,
@@ -57,55 +215,78 @@ void ProcessSrvRqst(SLPDPeerInfo* peerinfo,
                               G_SlpdProperty.interfaces))
     {
         result->end = result->start;
-        return;
+        goto FINISHED;
     }
 
+    /*------------------------------------------------*/
+    /* Check to to see if a this is a special SrvRqst */
+    /*------------------------------------------------*/
+    if(SLPStringCompare(message->body.srvrqst.srvtypelen,
+			message->body.srvrqst.srvtype,
+			23,
+			"service:directory-agent") == 0)
+    {
+        ProcessDASrvRqst(peerinfo,
+			 message,
+			 result);
+        goto FINISHED;
+    }
+    if(SLPStringCompare(message->body.srvrqst.srvtypelen,
+			message->body.srvrqst.srvtype,
+			21,
+			"service:service-agent") == 0)
+    {
+        ProcessSASrvRqst(peerinfo,
+			 message,
+			 result);
+        goto FINISHED;
+    }
+   
     /*------------------------------------*/
     /* Make sure that we handle the scope */
     /*------ -----------------------------*/
     if(SLPStringListIntersect(message->body.srvrqst.scopelistlen,
                               message->body.srvrqst.scopelist,
                               G_SlpdProperty.useScopesLen,
-                              G_SlpdProperty.useScopes) == 0)
+                              G_SlpdProperty.useScopes) != 0)
     {
-        result->end = result->start;
-        return;
-    }
-    
-    
-    /*-------------------------------*/
-    /* Find services in the database */
-    /*-------------------------------*/
-    while(found == count)
-    {
-        count += SLPDPROCESS_RESULT_COUNT;
-        
-        if(srvarray) free(srvarray);
-        srvarray = (SLPDDatabaseSrvUrl*)malloc(sizeof(SLPDDatabaseSrvUrl) * count);
-        if(srvarray == 0)
+        /*-------------------------------*/
+        /* Find services in the database */
+        /*-------------------------------*/
+        while(found == count)
         {
-            found       = 0;
-            errorcode   = SLP_ERROR_INTERNAL_ERROR;
-            break;
-        }
+            count += SLPDPROCESS_RESULT_COUNT;
         
-        found = SLPDDatabaseFindSrv(&(message->body.srvrqst), srvarray, count);
-        if(found < 0)
-        {
-            found = 0;
-            errorcode   = SLP_ERROR_INTERNAL_ERROR;
-            break;
+            if(srvarray) free(srvarray);
+            srvarray = (SLPDDatabaseSrvUrl*)malloc(sizeof(SLPDDatabaseSrvUrl) * count);
+            if(srvarray == 0)
+            {
+                found       = 0;
+                errorcode   = SLP_ERROR_INTERNAL_ERROR;
+                break;
+            }
+        
+            found = SLPDDatabaseFindSrv(&(message->body.srvrqst), srvarray, count);
+            if(found < 0)
+            {
+                found = 0;
+                errorcode   = SLP_ERROR_INTERNAL_ERROR;
+                break;
+            }
         }
     }
-
+    else
+    { 
+        errorcode = SLP_ERROR_SCOPE_NOT_SUPPORTED;
+    }
+   
     /*----------------------------------------------------------------*/
     /* Do not send error codes or empty replies to multicast requests */
     /*----------------------------------------------------------------*/
     if(found <= 0 && (message->header.flags & SLP_FLAG_MCAST))
     {
-        if(srvarray) free(srvarray);
         result->end = result->start;
-        return;
+        goto FINISHED;
     }   
 
 
@@ -140,7 +321,7 @@ void ProcessSrvRqst(SLPDPeerInfo* peerinfo,
     /*function id*/
     *(result->start + 1)   = SLP_FUNCT_SRVRPLY;
     /*length*/
-    ToUINT24(result->start + 2,size);
+    ToUINT24(result->start + 2, size);
     /*flags*/
     ToUINT16(result->start + 5,
              size > SLP_MAX_DATAGRAM_SIZE ? SLP_FLAG_OVERFLOW : 0);
@@ -186,7 +367,8 @@ void ProcessSrvRqst(SLPDPeerInfo* peerinfo,
 
         /* TODO: put in authentication stuff too */
     }
-
+    
+    FINISHED:   
     if(srvarray) free(srvarray);
 }
 

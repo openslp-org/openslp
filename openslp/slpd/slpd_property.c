@@ -38,67 +38,6 @@
 SLPDProperty G_SlpdProperty;
 /*=========================================================================*/
 
-/*-------------------------------------------------------------------------*/
-int UseAllInterfaces()
-/*-------------------------------------------------------------------------*/
-{
-    int             result = -1; /* assume error */
-    struct in_addr  ifaddr;
-    struct utsname  myname;
-    struct hostent* myhostent;
-    int             i;
-
-    /* put in all interfaces if none specified */
-    if(uname(&myname) >= 0)
-    {
-         myhostent = gethostbyname(myname.nodename);
-         if(myhostent != 0)
-         {
-             if(myhostent->h_addrtype == AF_INET)
-             {
-                 /* count the interfaces */
-                 for(i=0; myhostent->h_addr_list[i];i++);
-                                
-                 /* allocate memory 16 bytes per interface*/
-                 G_SlpdProperty.interfaces = (char*)malloc((i * 16) + 1);
-                 if(G_SlpdProperty.interfaces == 0)
-                 {
-                     SLPFatal("slpd is out of memory!\n");
-                 }
-                 *(char*)G_SlpdProperty.interfaces = 0; /* null terminate */
-
-                 for(i=0; myhostent->h_addr_list[i];i++)
-                 {
-                     memcpy(&ifaddr,myhostent->h_addr_list[i],sizeof(ifaddr));
-                     if(i)
-                     {
-                         strcat((char*)G_SlpdProperty.interfaces,",");
-                     }
-                     strcat((char*)G_SlpdProperty.interfaces,inet_ntoa(ifaddr));
-                 }
-
-                 result = 0;
-             }
-         }
-    }
-    
-    G_SlpdProperty.interfacesLen = strlen(G_SlpdProperty.interfaces);
-
-    return 0;
-}
-
-/*-------------------------------------------------------------------------*/
-int UseDefaultScope()
-/*-------------------------------------------------------------------------*/
-{
-    G_SlpdProperty.useScopes = (const char*)strdup("DEFAULT");
-    if( G_SlpdProperty.useScopes == 0)
-    {
-        return -1;
-    }
-    return 0;
-}
-
 
 /*-------------------------------------------------------------------------*/
 int AsBoolean(const char* str)
@@ -119,27 +58,19 @@ int AsBoolean(const char* str)
 void SLPDPropertyInit(const char* conffile)
 /*=========================================================================*/
 {
-    
+    struct in_addr  ifaddr;
+    struct utsname  myname;
+    struct hostent* myhostent;
+    int             i;
+
     SLPPropertyReadFile(conffile);
-
-    G_SlpdProperty.interfaces = SLPPropertyGet("net.slp.interfaces");
-    if(*G_SlpdProperty.interfaces == 0)
-    {
-        UseAllInterfaces();
-    }
-    G_SlpdProperty.DAAddressesLen = strlen(G_SlpdProperty.interfaces);
-
-    G_SlpdProperty.useScopes = SLPPropertyGet("net.slp.useScopes");
-    if(*G_SlpdProperty.useScopes == 0)
-    {
-        UseDefaultScope();
-    }
-    G_SlpdProperty.useScopesLen = strlen(G_SlpdProperty.useScopes);
-
-    G_SlpdProperty.DAAddresses = SLPPropertyGet("net.slp.DAAddresses");
-    G_SlpdProperty.DAAddressesLen = strlen(G_SlpdProperty.DAAddresses);
-
-    G_SlpdProperty.isBroadcastOnly = AsBoolean(SLPPropertyGet("net.slp.isBroadcastOnly"));               
+   
+    memset(&G_SlpdProperty,0,sizeof(G_SlpdProperty));
+   
+    /*-------------------------------------------------------------*/
+    /* Set the properties with out hard defaults                   */
+    /*-------------------------------------------------------------*/
+    G_SlpdProperty.isBroadcastOnly = AsBoolean(SLPPropertyGet("net.slp.isBroadcastOnly"));
     G_SlpdProperty.passiveDADetection = AsBoolean(SLPPropertyGet("net.slp.passiveDADetection"));               
     G_SlpdProperty.activeDADetection = AsBoolean(SLPPropertyGet("net.slp.activeDADetection"));               
     G_SlpdProperty.multicastTTL = atoi(SLPPropertyGet("net.slp.multicastTTL"));
@@ -150,6 +81,90 @@ void SLPDPropertyInit(const char* conffile)
     G_SlpdProperty.traceReg = AsBoolean(SLPPropertyGet("net.slp.traceReg"));
     G_SlpdProperty.traceDrop = AsBoolean(SLPPropertyGet("net.slp.traceDrop"));
     G_SlpdProperty.traceDATraffic = AsBoolean(SLPPropertyGet("net.slp.traceDATraffic"));
+    G_SlpdProperty.DAAddresses = SLPPropertyGet("net.slp.DAAddresses");
+    G_SlpdProperty.DAAddressesLen = strlen(G_SlpdProperty.DAAddresses);
+   
+    /*-------------------------------------*/
+    /* Set the net.slp.interfaces property */
+    /*-------------------------------------*/
+    G_SlpdProperty.interfaces = SLPPropertyGet("net.slp.interfaces");
+    if(*G_SlpdProperty.interfaces == 0)
+    {
+        /* put in all interfaces if none specified */
+        if(uname(&myname) >= 0)
+        {
+            myhostent = gethostbyname(myname.nodename);
+            if(myhostent != 0)
+            {
+                if(myhostent->h_addrtype == AF_INET)
+                {
+                    /* count the interfaces */
+                    for(i=0; myhostent->h_addr_list[i];i++);
+                                
+                    /* allocate memory 16 bytes per interface*/
+                    G_SlpdProperty.interfaces = (char*)malloc((i * 16) + 1);
+                    if(G_SlpdProperty.interfaces == 0)
+                    {
+                        SLPFatal("slpd is out of memory!\n");
+                    }
+                    *(char*)G_SlpdProperty.interfaces = 0; /* null terminate */
+
+                    for(i=0; myhostent->h_addr_list[i];i++)
+                    {
+                        memcpy(&ifaddr,myhostent->h_addr_list[i],sizeof(ifaddr));
+                        if(i)
+                        {
+                            strcat((char*)G_SlpdProperty.interfaces,",");
+                        }
+                        strcat((char*)G_SlpdProperty.interfaces,inet_ntoa(ifaddr));
+                    }
+		}
+            }
+        }
+    }
+    if(G_SlpdProperty.interfaces)
+    {
+        G_SlpdProperty.interfacesLen = strlen(G_SlpdProperty.interfaces);
+    }
+   
+
+    /*------------------------------------*/
+    /* Set the net.slp.useScopes property */
+    /*------------------------------------*/
+    G_SlpdProperty.useScopes = SLPPropertyGet("net.slp.useScopes");
+    if(*G_SlpdProperty.useScopes == 0)
+    {
+        G_SlpdProperty.useScopes = (const char*)strdup("DEFAULT");
+        if( G_SlpdProperty.useScopes == 0)
+        {
+            SLPFatal("slpd is out of memory\n");
+	}
+    }
+    G_SlpdProperty.useScopesLen = strlen(G_SlpdProperty.useScopes);
+    
+   
+    /*---------------------------------------------------------*/
+    /* Set the value used internally as the url for this agent */
+    /*---------------------------------------------------------*/      
+    G_SlpdProperty.myUrl = (const char*)malloc(25 + strlen(myname.nodename));
+    if(G_SlpdProperty.myUrl == 0)
+    {
+       SLPFatal("slpd is out of memory!\n");
+    }
+    if(G_SlpdProperty.isDA)
+    {
+        strcpy((char*)G_SlpdProperty.myUrl,"service:directory-agent://");
+    }
+    else
+    {
+        strcpy((char*)G_SlpdProperty.myUrl,"service:service-agent://");
+    }
+    if(uname(&myname) >= 0)
+    {
+        /* 25 is the length of "service:directory-agent://" */
+    	strcat((char*)G_SlpdProperty.myUrl,myname.nodename);
+    }   
+    G_SlpdProperty.myUrlLen = strlen(G_SlpdProperty.myUrl);
 }
 
 

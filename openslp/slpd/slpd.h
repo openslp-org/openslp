@@ -105,6 +105,8 @@ typedef struct _SLPDProperty
 /* structure that holds the value of all the properties slpd cares about   */
 /*=========================================================================*/
 {
+    int         myUrlLen;
+    const char* myUrl;
     int         useScopesLen;
     const char* useScopes; 
     int         DAAddressesLen;
@@ -122,6 +124,7 @@ typedef struct _SLPDProperty
     int         traceReg;
     int         traceDrop;
     int         traceDATraffic;
+    int         isDA;
 }SLPDProperty;
 
 
