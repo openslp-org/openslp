@@ -564,6 +564,19 @@ void SLPDOutgoingDatagramWrite(SLPDSocket* sock);
 
 
 /*=========================================================================*/
+SLPDSocket* SLPDOutgoingConnect(struct in_addr* addr);
+/* Get a pointer to a connected socket that is associated with the         */
+/* outgoing socket list.  If a connected socket already exists on the      */
+/* outgoing list, a pointer to it is returned, otherwise a new connection  */
+/* is made and added to the outgoing list                                  */
+/*                                                                         */
+/* addr (IN) the address of the peer a connection is desired for           */
+/*                                                                         */
+/* returns: pointer to socket or null on error                             */
+/*=========================================================================*/
+
+
+/*=========================================================================*/
 int SLPDOutgoingInit();
 /* Initialize outgoing socket list to have appropriate sockets for all     */
 /* network interfaces                                                      */

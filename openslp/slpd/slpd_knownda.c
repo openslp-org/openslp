@@ -38,179 +38,118 @@ SLPList G_KnownDAList = {0,0,0};
 /* The list of DAs known to slpd.                                          */
 /*=========================================================================*/
 
-
-/*-------------------------------------------------------------------------*/
-void LoadSocketFromDatabaseEntry(SLPDSocket* sock, SLPDDatabaseEntry* dbentry)
-/*-------------------------------------------------------------------------*/
-{
-    #if(0)
-    SLPBuffer result;
-    size_t    size;
-
-    /*-------------------------------------------------------------*/
-    /* ensure the buffer is big enough to handle the whole srvrply */
-    /*-------------------------------------------------------------*/
-    size = dbentry->langtaglen + 29; /* 14 bytes for header     */
-                                     /*  6 for static portions of urlentry  */
-                                     /*  2 bytes for srvtypelen */
-                                     /*  2 bytes for scopelen */
-                                     /*  2 bytes for attr list len */
-                                     /*  1 byte for authblock count */
-    size += dbentry->srvtypelen;
-    size += dbentry->scopelistlen;
-    size += dbentry->attrlistlen;
-    
-    /* TODO: room for authstuff */
-    
-    sock->sendbuf = SLPBufferRealloc(sock->sendbuf,size);
-    if(sock->sendbuf == 0)
-    {
-        /* TODO: out of memory, what should we do here! */
-        return;                       
-    }
-
-    result = sock->sendbuf;
-
-    /*----------------*/
-    /* Add the header */
-    /*----------------*/
-    /*version*/
-    *(result->start)       = 2;
-    /*function id*/
-    *(result->start + 1)   = SLP_FUNCT_SRVREG;
-    /*length*/
-    ToUINT24(result->start + 2, size);
-    /*flags*/
-    ToUINT16(result->start + 5,
-             size > SLP_MAX_DATAGRAM_SIZE ? SLP_FLAG_OVERFLOW : 0);
-    /*ext offset*/
-    ToUINT24(result->start + 7,0);
-    /*xid*/
-    ToUINT16(result->start + 10,rand());
-    /*lang tag len*/
-    ToUINT16(result->start + 12,dbentry->langtaglen);
-    /*lang tag*/
-    memcpy(result->start + 14,
-           dbentry->langtag,
-           dbentry->langtaglen);
-    result->curpos = result->start + 14 + dbentry->langtaglen;
-
-    /*--------------------------*/
-    /* Add rest of the SrvReg   */
-    /*--------------------------*/ 
-    /* url-entry reserved */
-    *result->curpos = 0;        
-    result->curpos = result->curpos + 1;
-    /* url-entry lifetime */
-    ToUINT16(result->curpos,dbentry->lifetime);
-    result->curpos = result->curpos + 2;
-    /* url-entry urllen */
-    ToUINT16(result->curpos,dbentry->urllen);
-    result->curpos = result->curpos + 2;
-    /* url-entry url */
-    memcpy(result->curpos,dbentry->url,dbentry->urllen);
-    result->curpos = result->curpos + dbentry->urllen;
-    /* url-entry authcount */
-    *result->curpos = 0;        
-    result->curpos = result->curpos + 1;
-    /* srvtype */
-    ToUINT16(result->curpos,dbentry->srvtypelen);
-    result->curpos = result->curpos + 2;
-    memcpy(result->curpos,dbentry->srvtype,dbentry->srvtypelen);
-    result->curpos = result->curpos + dbentry->srvtypelen;
-    /* scope list */
-    ToUINT16(result->curpos, dbentry->scopelistlen);
-    result->curpos = result->curpos + 2;
-    memcpy(result->curpos,dbentry->scopelist,dbentry->scopelistlen);
-    result->curpos = result->curpos + dbentry->scopelistlen;
-    /* attr list */
-    ToUINT16(result->curpos, dbentry->attrlistlen);
-    result->curpos = result->curpos + 2;
-    memcpy(result->curpos,dbentry->attrlist,dbentry->attrlistlen);
-    result->curpos = result->curpos + dbentry->attrlistlen;;
-    /* authblock count */
-    *(result->curpos) = 0;
-    result->curpos = result->curpos + 1;
-    #endif
-}
-
-
 /*-------------------------------------------------------------------------*/
 void SLPDKnownDARegisterAll(SLPDAEntry* daentry)
 /* Forks a child process to register all services with specified DA        */
 /*-------------------------------------------------------------------------*/
 {
-   #if(0)
-   fd_set              readfds;
-    fd_set              writefds;
-    int                 finished;
     SLPDDatabaseEntry*  dbentry;
+    SLPDSocket*         sock;
+    SLPBuffer           buf;
+    size_t              size;
     void*               handle      = 0;
-    SLPDSocket*         sock        = 0;
-
-    /* Fork child process */
-    /* Parent process returns */
-    /* Child process performs a random wait */
-    /* Child registers all entries with specified DA */
     
-    switch(fork())
-    {
-    case 0:
-        /* parent */
-        return;
-    case -1:
-        /* error forking */
-        /* TODO: Log error condition */
-        return;
-    default:
-        /* child process */
-        break;
-    }
-
-    /* Child process performs a random delay */
-    srand(G_SlpdProperty.randomWaitSeed);
-    usleep( rand() % G_SlpdProperty.randomWaitBound );
-
     /* Establish a new connection with the known DA */
-    sock = SLPDSocketCreateConnected(&(daentry->daaddr));
+    sock = SLPDOutgoingConnect(&daentry->daaddr);
     if(sock)
     {
-        finished = 0;
-        while(finished == 0)
+        while( SLPDDatabaseEnum(&handle,&dbentry) == 0)
         {
-            FD_ZERO(&readfds);
-            FD_ZERO(&writefds);
-            
-            switch(sock->state)
+            if(SLPIntersectStringList(daentry->scopelistlen,
+                                      daentry->scopelist,
+                                      dbentry->scopelistlen,
+                                      dbentry->scopelist) )
             {
-            case STREAM_READ:
-            case STREAM_READ_FIRST:
-                FD_SET(sock->fd,&readfds);
-                break;
-            
-            case STREAM_WRITE_FIRST:
-                finished = SLPDDatabaseEnum(&handle,&dbentry);
-                LoadSocketFromDatabaseEntry(sock,dbentry);
-                /* no break here on purpose */
-            case STREAM_WRITE:
-            case STREAM_CONNECT_BLOCK:
-                FD_SET(sock->fd,&writefds);
-                break;
-            
-            default:
-                finished = 1;
-                break;
-            }
-
-
-        }
-
-        SLPDSocketFree(sock);
-    }
+                /*-------------------------------------------------------------*/
+                /* ensure the buffer is big enough to handle the whole srvrply */
+                /*-------------------------------------------------------------*/
+                size = dbentry->langtaglen + 27; /* 14 bytes for header     */
+                                                 /*  6 for static portions of urlentry  */
+                                                 /*  2 bytes for srvtypelen */
+                                                 /*  2 bytes for scopelen */
+                                                 /*  2 bytes for attr list len */
+                                                 /*  1 byte for authblock count */
+                size += dbentry->urllen;
+                size += dbentry->srvtypelen;
+                size += dbentry->scopelistlen;
+                size += dbentry->attrlistlen;
+                
+                /* TODO: room for authstuff */
+                
+                buf = SLPBufferAlloc(size);
+                if(buf)
+                {
+                                
+                    /*--------------------*/
+                    /* Construct a SrvReg */
+                    /*--------------------*/
+                    /*version*/
+                    *(buf->start)       = 2;
+                    /*function id*/
+                    *(buf->start + 1)   = SLP_FUNCT_SRVREG;
+                    /*length*/
+                    ToUINT24(buf->start + 2, size);
+                    /*flags*/
+                    ToUINT16(buf->start + 5,
+                             size > SLP_MAX_DATAGRAM_SIZE ? SLP_FLAG_OVERFLOW : 0);
+                    /*ext offset*/
+                    ToUINT24(buf->start + 7,0);
+                    /*xid*/
+                    ToUINT16(buf->start + 10,rand());
+                    /*lang tag len*/
+                    ToUINT16(buf->start + 12,dbentry->langtaglen);
+                    /*lang tag*/
+                    memcpy(buf->start + 14,
+                           dbentry->langtag,
+                           dbentry->langtaglen);
+                    buf->curpos = buf->start + 14 + dbentry->langtaglen;
+                
+                    /* url-entry reserved */
+                    *buf->curpos = 0;        
+                    buf->curpos = buf->curpos + 1;
+                    /* url-entry lifetime */
+                    ToUINT16(buf->curpos,dbentry->lifetime);
+                    buf->curpos = buf->curpos + 2;
+                    /* url-entry urllen */
+                    ToUINT16(buf->curpos,dbentry->urllen);
+                    buf->curpos = buf->curpos + 2;
+                    /* url-entry url */
+                    memcpy(buf->curpos,dbentry->url,dbentry->urllen);
+                    buf->curpos = buf->curpos + dbentry->urllen;
+                    /* url-entry authcount */
+                    *buf->curpos = 0;        
+                    buf->curpos = buf->curpos + 1;
+                    /* srvtype */
+                    ToUINT16(buf->curpos,dbentry->srvtypelen);
+                    buf->curpos = buf->curpos + 2;
+                    memcpy(buf->curpos,dbentry->srvtype,dbentry->srvtypelen);
+                    buf->curpos = buf->curpos + dbentry->srvtypelen;
+                    /* scope list */
+                    ToUINT16(buf->curpos, dbentry->scopelistlen);
+                    buf->curpos = buf->curpos + 2;
+                    memcpy(buf->curpos,dbentry->scopelist,dbentry->scopelistlen);
+                    buf->curpos = buf->curpos + dbentry->scopelistlen;
+                    /* attr list */
+                    ToUINT16(buf->curpos, dbentry->attrlistlen);
+                    buf->curpos = buf->curpos + 2;
+                    memcpy(buf->curpos,dbentry->attrlist,dbentry->attrlistlen);
+                    buf->curpos = buf->curpos + dbentry->attrlistlen;;
+                    /* authblock count */
+                    *(buf->curpos) = 0;
+                    buf->curpos = buf->curpos + 1;
     
-    /* Exit the child process */
-    exit(0);
-   #endif
+                    /*--------------------------------------------------*/
+                    /* link newly constructed buffer to socket sendlist */
+                    /*--------------------------------------------------*/
+                    SLPListLinkTail(&(sock->sendlist),(SLPListItem*)buf);
+                    if (sock->state == STREAM_CONNECT_IDLE)
+                    {
+                        sock->state = STREAM_WRITE_FIRST;
+                    }
+                }
+            }
+        }
+    }
 }  
 
 
@@ -261,18 +200,6 @@ int SLPDKnownDAInit()
                                         1, 
                                         G_SlpdProperty.useScopes,
                                         G_SlpdProperty.useScopesLen);
-    
-                    // For now do not contact the DA to see if it is up.  Just 
-                    // assume that the statically configured DAs are available.
-                    // KnownDAConnect() will remove them if they can not be 
-                    // connected to.
-    
-                    //sock = SLPNetworkConnectStream(&peeraddr,timeout);
-                    //if(sock >= 0)
-                    //{
-                    //    result += KnownDADiscoveryRqstRply(sock, &peeraddr);
-                    //    close(sock);
-                    //}
                 }
     
                 slider1 = slider2;
@@ -338,7 +265,7 @@ SLPDAEntry* SLPDKnownDAEvaluate(struct in_addr* addr,
                 }
                 else
                 {
-                    /* TODO: Should we do anything special here */
+                    /* TODO: Out of memory */
                 } 
             }
             else
@@ -379,10 +306,9 @@ void SLPDKnownDARemove(SLPDAEntry* daentry)
 /* Warning! memory pointed to by daentry will be freed                     */
 /*=========================================================================*/
 {
-    /* TODO put the following line back in!*/
     SLPDLogKnownDA("Removed",&(daentry->daaddr));
-    SLPDAEntryFree((SLPDAEntry*)SLPListUnlink(&G_KnownDAList,(SLPListItem*)daentry));
-    
+    SLPDAEntryFree((SLPDAEntry*)SLPListUnlink(&G_KnownDAList,
+                   (SLPListItem*)daentry));
 }
 
 
@@ -436,36 +362,10 @@ void SLPDKnownDAEcho(struct sockaddr_in* peeraddr,
                                   msgscopelen,
                                   msgscope) )
         {
-
-            /*--------------------------------------------------------------*/
-            /* Check to see if we already have a connection to the Known DA */
-            /*--------------------------------------------------------------*/
-            sock = (SLPDSocket*)G_OutgoingSocketList.head;
-            while (sock)
-            {
-                if (sock->daentry == daentry)
-                {
-                    break;
-                }
-                sock = (SLPDSocket*)sock->listitem.next;
-            }
-    
-            /*----------------------------------------------------------*/
-            /* if we don't have a connection to the known DA create one */
-            /*--------------------------------------------------------------*/
-            if (sock == 0)
-            {
-                sock = SLPDSocketCreateConnected(&(daentry->daaddr));
-                if (sock)
-                {
-                    sock->daentry = daentry;
-                    SLPListLinkTail(&G_OutgoingSocketList,(SLPListItem*)sock);
-                }  
-            }
-    
             /*------------------------------------------*/
             /* Load the socket with the message to send */
             /*------------------------------------------*/
+            sock = SLPDOutgoingConnect(&daentry->daaddr);
             if(sock)
             {
                 dup = SLPBufferDup(buf);

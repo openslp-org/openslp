@@ -294,6 +294,41 @@ void OutgoingStreamWrite(SLPList* socklist, SLPDSocket* sock)
 }
 
 /*=========================================================================*/
+SLPDSocket* SLPDOutgoingConnect(struct in_addr* addr)
+/* Get a pointer to a connected socket that is associated with the         */
+/* outgoing socket list.  If a connected socket already exists on the      */
+/* outgoing list, a pointer to it is returned, otherwise a new connection  */
+/* is made and added to the outgoing list                                  */
+/*                                                                         */
+/* addr (IN) the address of the peer a connection is desired for           */
+/*                                                                         */
+/* returns: pointer to socket or null on error                             */
+/*=========================================================================*/
+{
+    SLPDSocket* sock = (SLPDSocket*)G_OutgoingSocketList.head;
+    while(sock)
+    {
+        if(sock->state >= STREAM_CONNECT_BLOCK  && 
+           sock->state <= STREAM_WRITE_WAIT)
+        {
+            if(sock->peeraddr.sin_addr.s_addr == addr->s_addr)
+            {
+                break;
+            }
+        }
+        sock = (SLPDSocket*)sock->listitem.next;    
+    }
+    
+    if(sock == 0)
+    {
+        sock = SLPDSocketCreateConnected(addr);
+        SLPListLinkTail(&(G_OutgoingSocketList),(SLPListItem*)sock);
+    }
+
+    return sock;
+}
+
+/*=========================================================================*/
 void SLPDOutgoingDatagramWrite(SLPDSocket* sock)
 /* Add a ready to write outgoing datagram socket to the outgoing list.     */
 /* The datagram will be written then sit in the list until it ages out     */
