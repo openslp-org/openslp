@@ -127,7 +127,7 @@ SLPBoolean ColateSrvTypeCallback(SLPHandle hSLP,
                                   strlen(pcSrvTypes),
                                   pcSrvTypes,
                                   &srvtypeslen,
-                                  srvtypes) != srvtypeslen)
+                                  srvtypes) != (int)srvtypeslen)
             {
                 xfree(handle->collatedsrvtypes);
                 handle->collatedsrvtypes = srvtypes;

@@ -86,7 +86,9 @@ typedef enum _SLPDAction
 {
     SLPD_DEBUG   = 0,
     SLPD_INSTALL = 1,
-    SLPD_REMOVE  = 2
+    SLPD_REMOVE  = 2,
+    SLPD_START   = 3,
+    SLPD_STOP    = 4
 } SLPDAction;
 
 

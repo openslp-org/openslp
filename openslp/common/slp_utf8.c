@@ -80,7 +80,8 @@ static int
 utftouni(unsigned *p, const char *s, size_t n)
 {
     long l;
-    int c0, c, nc;
+    int c0, c;
+	size_t nc;
     Tab *t;
 
     if(s == 0)
@@ -131,7 +132,7 @@ unitoutf(char *s, unsigned wc)
         if(l <= t->lmask)
         {
             c = t->shift;
-            *s = t->cval | ( l >> c );
+            *s = (char)(t->cval | ( l >> c ));
             while(c > 0)
             {
                 c -= 6;

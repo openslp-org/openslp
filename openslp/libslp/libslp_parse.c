@@ -465,7 +465,7 @@ SLPError SLPParseAttrs(const char* pcAttrList,
 
         while(*slider2 && *slider2 != '=' && *slider2 !=')') slider2++;
 
-        if(attridlen == slider2-slider1 && 
+        if((int)attridlen == slider2-slider1 && 
            strncasecmp(slider1, pcAttrId, slider2 - slider1) == 0)
         {
             /* found the attribute id */

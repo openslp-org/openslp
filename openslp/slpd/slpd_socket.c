@@ -88,16 +88,6 @@ int SetMulticastTTL(sockfd_t sockfd, int ttl)
 /*-------------------------------------------------------------------------*/
 {
 
-#if defined(linux)
-    int         optarg = ttl;
-    struct in_addr in;
-#else
-    /* Solaris and Tru64 expect a unsigned char parameter */
-    unsigned char   optarg = (unsigned char)ttl;
-    struct in_addr in;
-#endif
-
-
 #ifdef WIN32
     BOOL Reuse = TRUE;
     int TTLArg;
@@ -125,6 +115,16 @@ int SetMulticastTTL(sockfd_t sockfd, int ttl)
         return -1;
     }
 #else
+
+#if defined(linux)
+    int         optarg = ttl;
+    struct in_addr in;
+#else
+    /* Solaris and Tru64 expect a unsigned char parameter */
+    unsigned char   optarg = (unsigned char)ttl;
+    struct in_addr in;
+#endif
+
     if(setsockopt(sockfd,IPPROTO_IP,IP_MULTICAST_TTL,&optarg,sizeof(optarg)))
     {
         return -1;

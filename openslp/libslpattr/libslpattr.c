@@ -936,7 +936,7 @@ var_t *attr_val_find_str(struct xx_SLPAttributes *slp_attr, const char *tag, int
          * Using strncasecmp() so that comparision of tags are case-insensitive
          * atleast inside the ASCII range.
          */
-        if(var->tag_len == tag_len && strncasecmp(var->tag, tag, tag_len) == 0)
+        if((int)var->tag_len == tag_len && strncasecmp(var->tag, tag, tag_len) == 0)
         {
             return var;
         }
@@ -1985,7 +1985,7 @@ SLPError SLPAttrSerialize(SLPAttributes attr_h,
     {
         /* We write into a pre-alloc'd buffer. */
         /**** Check that out_buffer is big enough. ****/
-        if(size + 1 > bufferlen)
+        if(size + 1 > (unsigned)bufferlen)
         {
             return SLP_BUFFER_OVERFLOW;
         }
@@ -2111,7 +2111,7 @@ SLPError SLPAttrSerialize(SLPAttributes attr_h,
 
         /*** Add separator. This is fixed for the last val outside the loop ***/
         /* if (var->next != NULL) { */
-        if(cur - build_str < size)
+        if(cur - build_str < (int)size)
         {
             *cur = VAR_SEPARATOR;
             cur += VAR_SEPARATOR_LEN;
@@ -2128,7 +2128,7 @@ SLPError SLPAttrSerialize(SLPAttributes attr_h,
      * be safe than sorry =) *****/
     *cur = '\0';
 
-    assert((cur - build_str) == size && size == strlen(build_str));
+    assert((cur - build_str) == (int)size && size == strlen(build_str));
 
     *out_buffer = build_str;
 
