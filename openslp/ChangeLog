@@ -5,6 +5,13 @@ Please make entries to this log (in addition to the CVS log) that describe
 major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
+
+11/11/02 matt@sco.com
+Fixed SA->DA registration logic that excluded some mortal registrations.
+
+11/11/02 matt@sco.com
+Fixed aging problem that aged out static registrations
+
 10/23/02 matt@sco.com
 SLPDeReg() fix from Matthew Layton
 
