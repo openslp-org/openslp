@@ -1161,10 +1161,8 @@ int SLPDProcessMessage(struct sockaddr_in* peerinfo,
                                     message, errorcode);
 #endif
 
-    if(G_SlpdProperty.traceMsg)
-    {
-        SLPDLogTraceMsg("IN",peerinfo,recvbuf);
-    }
+    /* Log trace message */
+    SLPDLogTraceMsg("IN",peerinfo,recvbuf);
 
     switch(message->header.functionid)
     {
@@ -1193,10 +1191,7 @@ int SLPDProcessMessage(struct sockaddr_in* peerinfo,
     case SLP_FUNCT_DAADVERT:
         errorcode = ProcessDAAdvert(peerinfo, message, sendbuf, errorcode);
         /* If necessary log that we received a DAAdvert */
-        if(G_SlpdProperty.traceDATraffic)
-        {
-            SLPDLogDATrafficMsg("IN", peerinfo, message);
-        }
+        SLPDLogDATrafficMsg("IN", peerinfo, message);
         break;
 
     case SLP_FUNCT_SRVTYPERQST:
@@ -1217,11 +1212,8 @@ int SLPDProcessMessage(struct sockaddr_in* peerinfo,
     }
 
     /* Log traceMsg of message was received and the one that will be sent */
-    if(G_SlpdProperty.traceMsg)
-    {
-        SLPDLogTraceMsg("OUT",peerinfo,*sendbuf);
-    }
-
+    SLPDLogTraceMsg("OUT",peerinfo,*sendbuf);
+    
     SLPMessageFree(message);
 
     return errorcode;

@@ -346,6 +346,12 @@ void SLPDOutgoingHandler(int* fdcount,
         {
             switch (sock->state)
             {
+            case DATAGRAM_MULTICAST:
+            case DATAGRAM_BROADCAST:
+            case DATAGRAM_UNICAST:
+                OutgoingDatagramRead(&G_OutgoingSocketList,sock);
+                break;
+
             case STREAM_READ:
             case STREAM_READ_FIRST:
                 OutgoingStreamRead(&G_OutgoingSocketList,sock);
@@ -353,7 +359,6 @@ void SLPDOutgoingHandler(int* fdcount,
 
             default:
                 /* No SOCKET_LISTEN sockets should exist */
-                /* No DATAGRAM_ sockets should exist */
                 break;
             }
 

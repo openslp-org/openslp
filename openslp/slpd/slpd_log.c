@@ -128,7 +128,6 @@ void SLPDLogPeerAddr(struct sockaddr_in* peeraddr)
 {
     SLPLog("Peer Information:\n");
     SLPLog("   IP address: %s\n",inet_ntoa(peeraddr->sin_addr));
-    SLPLog("   Port:       %i\n",peeraddr->sin_port); 
 }
 
 /*-------------------------------------------------------------------------*/
@@ -207,22 +206,24 @@ void SLPDLogTraceMsg(const char* prefix,
 /*=========================================================================*/
 {
     SLPMessage msg;
-        
-    msg = SLPMessageAlloc();
-    if(msg)
+    if(G_SlpdProperty.traceMsg)
     {
-        if(SLPMessageParseBuffer(buf,msg) == 0)
+        msg = SLPMessageAlloc();
+        if(msg)
         {
-            SLPLog("----------------------------------------\n");
-            SLPLog("traceMsg %s:\n",prefix);
-            SLPLog("----------------------------------------\n");
-            SLPDLogPeerAddr(peeraddr);
-            SLPDLogMessage(msg);
-            SLPLog("\n");
+            if(SLPMessageParseBuffer(buf,msg) == 0)
+            {
+                SLPLog("----------------------------------------\n");
+                SLPLog("traceMsg %s:\n",prefix);
+                SLPLog("----------------------------------------\n");
+                SLPDLogPeerAddr(peeraddr);
+                SLPDLogMessage(msg);
+                SLPLog("\n");
+            }
         }
-    }
 
-    SLPMessageFree(msg);
+        SLPMessageFree(msg);
+    }
 }
 
 
@@ -239,41 +240,44 @@ void SLPDLogTraceReg(const char* prefix, SLPDDatabaseEntry* entry)
 /* returns:  None                                                          */
 /*=========================================================================*/
 {
-    SLPLog("----------------------------------------\n");
-    SLPLog("traceReg %s:\n",prefix);
-    SLPLog("----------------------------------------\n");
-    SLPLog("pid = %i\n",entry->pid);
-    SLPLog("uid = %i\n",entry->uid); 
-    SLPLog("language tag = ");
-    SLPLogBuffer(entry->langtag, entry->langtaglen);
-    SLPLog("\nlifetime = %i\n",entry->lifetime); 
-    SLPLog("url = ");
-    SLPLogBuffer(entry->url, entry->urllen);
-    SLPLog("\nscope = ");
-    SLPLogBuffer(entry->scopelist, entry->scopelistlen);
-    SLPLog("\nservice type = ");
-    SLPLogBuffer(entry->srvtype, entry->srvtypelen);
-	
-    #ifdef USE_PREDICATES
-    {/* Print attributes. */
-		char *str;
-		SLPError err;
-		err = SLPAttrSerialize(entry->attr, NULL, &str, SLP_FALSE);
-		if (err != SLP_OK) 
-		{
-    		SLPLog("\nerror %i when building attributes", err);
-		} 
-		else
-		{
-			SLPLog("\nattributes = %s", str);
-			free(str);
-		}      
-	}
-    #else
-    SLPLog("\nAttributes = = ");
-    SLPLogBuffer(entry->attrlist, entry->attrlistlen);
-    #endif
-    SLPLog("\n\n");
+    if(G_SlpdProperty.traceReg)
+    {
+        SLPLog("----------------------------------------\n");
+        SLPLog("traceReg %s:\n",prefix);
+        SLPLog("----------------------------------------\n");
+        SLPLog("pid = %i\n",entry->pid);
+        SLPLog("uid = %i\n",entry->uid); 
+        SLPLog("language tag = ");
+        SLPLogBuffer(entry->langtag, entry->langtaglen);
+        SLPLog("\nlifetime = %i\n",entry->lifetime); 
+        SLPLog("url = ");
+        SLPLogBuffer(entry->url, entry->urllen);
+        SLPLog("\nscope = ");
+        SLPLogBuffer(entry->scopelist, entry->scopelistlen);
+        SLPLog("\nservice type = ");
+        SLPLogBuffer(entry->srvtype, entry->srvtypelen);
+    	
+        #ifdef USE_PREDICATES
+        {/* Print attributes. */
+    		char *str;
+    		SLPError err;
+    		err = SLPAttrSerialize(entry->attr, NULL, &str, SLP_FALSE);
+    		if (err != SLP_OK) 
+    		{
+        		SLPLog("\nerror %i when building attributes", err);
+    		} 
+    		else
+    		{
+    			SLPLog("\nattributes = %s", str);
+    			free(str);
+    		}      
+    	}
+        #else
+        SLPLog("\nAttributes = ");
+        SLPLogBuffer(entry->attrlist, entry->attrlistlen);
+        #endif
+        SLPLog("\n\n");
+    }
 }
 
 /*=========================================================================*/
@@ -282,12 +286,15 @@ void SLPDLogDATrafficMsg(const char* prefix,
                          SLPMessage daadvert)
 /*=========================================================================*/
 {
-    SLPLog("----------------------------------------\n");
-    SLPLog("traceDATraffic %s:\n",prefix);
-    SLPLog("----------------------------------------\n");
-    SLPDLogPeerAddr(peeraddr);
-    SLPDLogMessage(daadvert);
-    SLPLog("\n")    ;
+    if(G_SlpdProperty.traceDATraffic)
+    {
+        SLPLog("----------------------------------------\n");
+        SLPLog("traceDATraffic %s:\n",prefix);
+        SLPLog("----------------------------------------\n");
+        SLPDLogPeerAddr(peeraddr);
+        SLPDLogMessage(daadvert);
+        SLPLog("\n\n");
+    }
 }
 
 
@@ -301,7 +308,7 @@ void SLPDLogKnownDA(const char* prefix,
     SLPLog("----------------------------------------\n");
     SLPLog("DA Peer\n");
     SLPLog("   IP address: %s\n",inet_ntoa(*peeraddr));
-    SLPLog("\n");
+    SLPLog("\n\n");
 }
 
 

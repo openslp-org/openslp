@@ -217,10 +217,7 @@ int SLPDDatabaseReg(SLPSrvReg* srvreg,
     SLPListLinkHead(&G_DatabaseList,(SLPListItem*)entry);
 
     /* traceReg if necessary */
-    if(G_SlpdProperty.traceReg)
-    {
-        SLPDLogTraceReg("SrvReg", entry);
-    }
+    SLPDLogTraceReg("Registered", entry);
 
     return result;
 }
@@ -253,11 +250,9 @@ int SLPDDatabaseDeReg(SLPSrvDeReg* srvdereg)
                                       srvdereg->scopelistlen,
                                       srvdereg->scopelist) > 0)
             {
-                if(G_SlpdProperty.traceReg)
-                {
-                    SLPDLogTraceReg("SrvDeReg",entry);
-                }
-
+                /* Log deregistration registration */
+                SLPDLogTraceReg("Deregistered",entry);
+                
                 del = entry;
 
                 break;
@@ -529,10 +524,8 @@ int SLPDDatabaseInit(const char* regfile)
                 entry->pid              = mypid;
                 entry->uid              = myuid;
 
-                if(G_SlpdProperty.traceReg)
-                {
-                    SLPDLogTraceReg("SrvReg (static)",entry);
-                }
+                /* Log registration */
+                SLPDLogTraceReg("Registered (static)",entry);
 
                 SLPListLinkHead(&G_DatabaseList,(SLPListItem*)entry);
             }

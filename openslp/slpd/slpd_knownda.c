@@ -175,6 +175,9 @@ SLPDAEntry* SLPDKnownDAAdd(struct in_addr* addr,
     bootstamp = 0;  /* make sure we re-register with new entries */
     entry = SLPDAEntryCreate(addr,bootstamp,scopelist,scopelistlen);
     SLPListLinkHead(&G_KnownDAList,(SLPListItem*)entry);
+    
+    /* Log that we are found a known da */
+    SLPDLogKnownDA("Added",&(entry->daaddr));
 
     return entry;
 }

@@ -58,7 +58,7 @@ int EnableBroadcast(sockfd_t sockfd)
 }
 
 /*-------------------------------------------------------------------------*/
-int SetTTL(sockfd_t sockfd, int ttl)
+int SetMulticastTTL(sockfd_t sockfd, int ttl)
 /* Set the socket options for ttl                                          */
 /*                                                                         */
 /* sockfd   - the socket file descriptor to set option on                  */
@@ -68,10 +68,10 @@ int SetTTL(sockfd_t sockfd, int ttl)
 {
 
 #if defined(linux)
-    int 		optarg;
+    int 		optarg = ttl;
 #else
     /* Solaris and Tru64 expect a unsigned char parameter */
-    unsigned char	optarg;
+    unsigned char	optarg = (unsigned char)ttl;
 #endif
     
     
@@ -316,7 +316,7 @@ SLPDSocket* SLPDSocketCreateDatagram(struct in_addr* peeraddr,
                 break;
                 
             case DATAGRAM_MULTICAST:
-                SetTTL(sock->fd,G_SlpdProperty.multicastTTL);
+                SetMulticastTTL(sock->fd,G_SlpdProperty.multicastTTL);
                 break;
 
             default:

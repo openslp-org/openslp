@@ -909,11 +909,10 @@ int SLPDv1ProcessMessage(struct sockaddr_in* peeraddr,
 	errorcode = SLP_ERROR_VER_NOT_SUPPORTED;
     }
 
-    if (G_SlpdProperty.traceMsg)
-    {
-        SLPDLogTraceMsg("IN",peeraddr,recvbuf);
-    }
-
+    /* Log trace message */
+    SLPDLogTraceMsg("IN",peeraddr,recvbuf);
+    
+    
     switch (message->header.functionid)
     {
     case SLP_FUNCT_SRVRQST:
@@ -952,11 +951,8 @@ int SLPDv1ProcessMessage(struct sockaddr_in* peeraddr,
     }
 
     /* Log traceMsg of message was received and the one that will be sent */
-    if (G_SlpdProperty.traceMsg)
-    {
-        SLPDLogTraceMsg("OUT", peeraddr, *sendbuf);
-    }
-
+    SLPDLogTraceMsg("OUT", peeraddr, *sendbuf);
+    
     SLPMessageFree(message);
 
     return errorcode;
