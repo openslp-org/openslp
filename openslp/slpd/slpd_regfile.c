@@ -153,19 +153,16 @@ SLPDDatabaseEntry* SLPDRegFileReadEntry(FILE* fd, SLPDDatabaseEntry** entry)
         }
         (*entry)->urllen = strlen((*entry)->url);
         
-        /* derive srvtype from srvurl if srvurl is "service:" scheme URL */
-        if(strncasecmp(slider1,"service:",8)==0) 
+        /* derive srvtype from srvurl */
+        (*entry)->srvtype = strstr(slider1,"://");
+        if((*entry)->srvtype == 0)
         {
-            (*entry)->srvtype = strstr(slider1,"://");
-            if((*entry)->srvtype == 0)
-            {
-                SLPLog("Looks like a bad url on regfile line ->%s",line);
-                goto ERROR;   
-            }
-            *(*entry)->srvtype = 0;
-            (*entry)->srvtype=strdup(TrimWhitespace(slider1));
-            (*entry)->srvtypelen = strlen((*entry)->srvtype);
+            SLPLog("Looks like a bad url on regfile line ->%s",line);
+            goto ERROR;   
         }
+        *(*entry)->srvtype = 0;
+        (*entry)->srvtype=strdup(TrimWhitespace(slider1));
+        (*entry)->srvtypelen = strlen((*entry)->srvtype);
         slider1 = slider2 + 1;
 
         /*lang*/
