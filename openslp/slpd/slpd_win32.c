@@ -376,8 +376,7 @@ void ServiceStart (int argc, char **argv)
     /* Got SIGTERM */
     HandleSigTerm();
     cleanup_winsock:
-    WSACleanup();
-    cleanup: 
+    WSACleanup();     cleanup: 
     ;
 } 
 
@@ -453,8 +452,7 @@ void WINAPI SLPDServiceMain(DWORD argc, LPTSTR *argv)
 /*==========================================================================*/
 {
     /* register our service control handler:    */
-    sshStatusHandle = RegisterServiceCtrlHandler( G_SERVICENAME, ServiceCtrl); 
-    if(sshStatusHandle != 0)
+    sshStatusHandle = RegisterServiceCtrlHandler( G_SERVICENAME, ServiceCtrl);      if(sshStatusHandle != 0)
     {
         /* SERVICE_STATUS members that don't change    */
         ssStatus.dwServiceType = SERVICE_WIN32_OWN_PROCESS; 
