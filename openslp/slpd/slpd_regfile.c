@@ -382,21 +382,25 @@ int SLPDRegFileReadSrvReg(FILE* fd,
     /*--------------------------------*/
     /* Generate authentication blocks */
     /*--------------------------------*/
-    SLPAuthSignUrl(G_SlpdSpiHandle,
-                   0,
-                   0,
-                   urllen,
-                   url,
-                   &urlauthlen,
-                   &urlauth);
-
-    SLPAuthSignString(G_SlpdSpiHandle,
-                      0,
-                      0,
-                      attrlistlen,
-                      attrlist,
-                      &attrauthlen,
-                      &attrauth);
+    if(G_SlpdProperty.securityEnabled)
+    {
+        
+        SLPAuthSignUrl(G_SlpdSpiHandle,
+                       0,
+                       0,
+                       urllen,
+                       url,
+                       &urlauthlen,
+                       &urlauth);
+    
+        SLPAuthSignString(G_SlpdSpiHandle,
+                          0,
+                          0,
+                          attrlistlen,
+                          attrlist,
+                          &attrauthlen,
+                          &attrauth);
+    }
 #endif
 
 

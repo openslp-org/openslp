@@ -62,6 +62,7 @@
 /*=========================================================================*/
 /* common code includes                                                    */
 /*=========================================================================*/
+#include "../common/slp_xmalloc.h"
 #include "../common/slp_message.h"
 #include "../common/slp_da.h"
 #include "../common/slp_compare.h"
@@ -353,52 +354,55 @@ int ProcessSrvRqst(SLPMessage message,
             goto RESPOND;
         }
     }
-    else if(message->body.srvrqst.spistrlen == 0)
-#else
-    if(message->body.srvrqst.spistrlen == 0)
-#endif
+    else if(message->body.srvrqst.spistrlen)
     {
-        /*------------------------------------------------*/
-        /* Check to to see if a this is a special SrvRqst */
-        /*------------------------------------------------*/
-        if(SLPCompareString(message->body.srvrqst.srvtypelen,
-                            message->body.srvrqst.srvtype,
-                            23,
-                            "service:directory-agent") == 0)
-        {
-            errorcode = ProcessDASrvRqst(message, sendbuf, errorcode);
-            return errorcode;
-        }
-        if(SLPCompareString(message->body.srvrqst.srvtypelen,
-                            message->body.srvrqst.srvtype,
-                            21,
-                            "service:service-agent") == 0)
-        {
-            errorcode = ProcessSASrvRqst(message, sendbuf, errorcode);
-            return errorcode;
-        }
-    
-        /*------------------------------------*/
-        /* Make sure that we handle the scope */
-        /*------ -----------------------------*/
-        if(SLPIntersectStringList(message->body.srvrqst.scopelistlen,
-                                  message->body.srvrqst.scopelist,
-                                  G_SlpdProperty.useScopesLen,
-                                  G_SlpdProperty.useScopes) != 0)
-        {
-            /*-------------------------------*/
-            /* Find services in the database */
-            /*-------------------------------*/
-            errorcode = SLPDDatabaseSrvRqstStart(message, &db);
-        }
-        else
-        {
-            errorcode = SLP_ERROR_SCOPE_NOT_SUPPORTED;
-        }
+        errorcode = SLP_ERROR_AUTHENTICATION_UNKNOWN;
+        goto RESPOND;
+    }
+#else
+    if(message->body.srvrqst.spistrlen)
+    {
+        errorcode = SLP_ERROR_AUTHENTICATION_UNKNOWN;
+        goto RESPOND;
+    }
+#endif
+
+    /*------------------------------------------------*/
+    /* Check to to see if a this is a special SrvRqst */
+    /*------------------------------------------------*/
+    if(SLPCompareString(message->body.srvrqst.srvtypelen,
+                        message->body.srvrqst.srvtype,
+                        23,
+                        "service:directory-agent") == 0)
+    {
+        errorcode = ProcessDASrvRqst(message, sendbuf, errorcode);
+        return errorcode;
+    }
+    if(SLPCompareString(message->body.srvrqst.srvtypelen,
+                        message->body.srvrqst.srvtype,
+                        21,
+                        "service:service-agent") == 0)
+    {
+        errorcode = ProcessSASrvRqst(message, sendbuf, errorcode);
+        return errorcode;
+    }
+
+    /*------------------------------------*/
+    /* Make sure that we handle the scope */
+    /*------ -----------------------------*/
+    if(SLPIntersectStringList(message->body.srvrqst.scopelistlen,
+                              message->body.srvrqst.scopelist,
+                              G_SlpdProperty.useScopesLen,
+                              G_SlpdProperty.useScopes) != 0)
+    {
+        /*-------------------------------*/
+        /* Find services in the database */
+        /*-------------------------------*/
+        errorcode = SLPDDatabaseSrvRqstStart(message, &db);
     }
     else
     {
-        errorcode = SLP_ERROR_AUTHENTICATION_UNKNOWN;
+        errorcode = SLP_ERROR_SCOPE_NOT_SUPPORTED;
     }
 
     RESPOND:

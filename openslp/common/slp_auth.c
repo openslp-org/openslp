@@ -49,6 +49,7 @@
 
 #include <time.h>
 
+#include "slp_xmalloc.h"
 #include "slp_auth.h"
 #include "slp_crypto.h"
 
@@ -315,6 +316,7 @@ int SLPAuthSignString(SLPSpiHandle hspi,
 
 
     /* NULL out the authblock and spistr just to be safe */
+    key = 0;
     *authblock = 0;
     *authblocklen = 0;
     spistr = 0;

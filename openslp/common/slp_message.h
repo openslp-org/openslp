@@ -389,6 +389,10 @@ typedef struct _SLPMessage
 
 
 /*=========================================================================*/
+void SLPMessageFreeInternals(SLPMessage message);
+/*=========================================================================*/
+
+/*=========================================================================*/
 SLPMessage SLPMessageAlloc();
 /* Allocates memory for a SLP message descriptor                           */
 /*                                                                         */

@@ -49,11 +49,13 @@
 /***************************************************************************/
 
 #include "slp_spi.h"
+#include "slp_xmalloc.h"
 
 #include <string.h>
 #include <stdio.h>
 #include <openssl/pem.h>
 #include <openssl/bn.h>
+
 
 #define MAX_SPI_ENTRY_LEN   1024
 #define PUBLIC_TOKEN        "PUBLIC"
@@ -64,6 +66,7 @@
 void SLPSpiEntryFree(SLPSpiEntry* victim)
 /*-------------------------------------------------------------------------*/
 {
+    if(victim->keyfilename) xfree(victim->keyfilename);
     if(victim->spistr) xfree(victim->spistr);
     if(victim->key) SLPCryptoDSAKeyDestroy(victim->key);
     if(victim) xfree(victim);
@@ -215,7 +218,8 @@ SLPSpiEntry* SLPSpiReadSpiFile(FILE* fp, int keytype)
         /* key file path is at slider1 length slider2 - slider1 */
         tmp = *slider2; 
         *slider2 = 0;
-        result->key = SLPSpiReadKeyFile(slider1,result->keytype);
+        result->keyfilename = xstrdup(slider1);
+        result->key = 0; /* read it later */ 
         *slider2 = tmp;
         
         /*-----------------*/
@@ -223,25 +227,13 @@ SLPSpiEntry* SLPSpiReadSpiFile(FILE* fp, int keytype)
         /*-----------------*/
         if(result &&
            result->spistr &&
-           result->key)
+           result->keyfilename)
         {
-            /* Check to see that keys are really of the type the SPI file */
-            /* says they are!                                             */
-	        if(result->keytype == SLPSPI_KEY_TYPE_PRIVATE &&
-               result->key->priv_key)
-            {
-                goto SUCCESS;
-            }
-
-            if(result->keytype == SLPSPI_KEY_TYPE_PUBLIC &&
-               result->key->pub_key)
-            {
-                goto SUCCESS;
-            }
+            goto SUCCESS;
         }
 
+        if(result->keyfilename) xfree(result->keyfilename);
         if(result->spistr) xfree(result->spistr);
-        if(result->key) SLPCryptoDSAKeyDestroy(result->key);
     }
 
     if (result)
@@ -394,14 +386,18 @@ SLPCryptoDSAKey* SLPSpiGetDSAKey(SLPSpiHandle hspi,
                               spistr);
         if(tmp)
         {
-            if(keytype == SLPSPI_KEY_TYPE_PRIVATE && hspi->cacheprivate == 0)
+            if(tmp->key == 0)
             {
-                *key = SLPSpiReadKeyFile(tmp->keyfilename,SLPSPI_KEY_TYPE_PRIVATE);
+                if(keytype == SLPSPI_KEY_TYPE_PRIVATE && hspi->cacheprivate == 0)
+                {
+                    *key = SLPSpiReadKeyFile(tmp->keyfilename,SLPSPI_KEY_TYPE_PRIVATE);
+                    return *key;
+                }
+                
+                tmp->key = SLPSpiReadKeyFile(tmp->keyfilename,keytype);
             }
-            else
-            {
-                *key = SLPCryptoDSAKeyDup(tmp->key);
-            }
+
+            *key = SLPCryptoDSAKeyDup(tmp->key);
         }
     }
 
@@ -426,6 +422,11 @@ int SLPSpiCanVerify(SLPSpiHandle hspi,
     if (hspi == 0)
     {
         return 0;
+    }
+
+    if(spistrlen == 0 || spistr == NULL)
+    {
+        return 1;
     }
 
     return (SLPSpiEntryFind(&(hspi->cache), 

@@ -124,10 +124,10 @@ SLPError ProcessAttrRqst(PSLPHandleInfo handle)
 
     if(SLPPropertyAsBoolean(SLPGetProperty("net.slp.securityEnabled")))
     {
-        /*TODO: Figure out how to select an SPI */
-        
-        spistrlen = 0;
-        spistr    = 0;
+        SLPSpiGetDefaultSPI(handle->hspi,
+                            SLPSPI_KEY_TYPE_PUBLIC,
+                            &spistrlen,
+                            &spistr);
     }
 #endif
 
@@ -227,6 +227,9 @@ SLPError ProcessAttrRqst(PSLPHandleInfo handle)
 
     FINISHED:
     if(buf) free(buf);
+#ifdef ENABLE_AUTHENTICATION
+    if(spistr) free(spistr);
+#endif
 
     return result;
 }

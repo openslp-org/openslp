@@ -129,7 +129,7 @@ void xmalloc_deinit();
 #define xmalloc(x) malloc((x))
 #define xrealloc(x,y) realloc((x),(y))
 #define xfree(x) free((x))
-
+#define xstrdup(x) strdup((x))
 #endif
 
 

@@ -193,6 +193,9 @@ void HandleSigTerm()
     SLPDLog("****************************************\n");
 
 #ifdef DEBUG
+    #ifdef ENABLE_AUTHENTICATION
+    SLPDSpiDeinit();
+    #endif
     SLPDDatabaseDeinit();
     SLPDPropertyDeinit();
     xmalloc_deinit();    

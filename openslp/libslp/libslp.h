@@ -94,7 +94,7 @@
 #define LIBSLP_SPIFILE  "%WINDIR%\\slp.spi"
 #else
 #define LIBSLP_CONFFILE "/etc/slp.conf"
-#define LIBSLP_SPIFILE "/etc/spi.conf"
+#define LIBSLP_SPIFILE "/etc/slp.spi"
 #endif
 #endif
 
