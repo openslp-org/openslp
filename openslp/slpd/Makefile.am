@@ -16,7 +16,7 @@ slp_predicate_SRCS = slpd_predicate.h slpd_predicate.c
 endif
 
 if ENABLE_SLPv1
-slpd_v1process_SRCS = slpd_v1process.h slpd_v1process.c
+slpd_v1process_SRCS = slpd_v1process.c
 endif
 
 if ENABLE_SECURITY
