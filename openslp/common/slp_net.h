@@ -49,7 +49,7 @@
 #ifndef SLP_NET_H_INCLUDED
 #define SLP_NET_H_INCLUDED
 
-#ifdef __WIN32__
+#ifdef _WIN32
 #if(_WIN32_WINNT >= 0x0400 && _WIN32_WINNT < 0x0500) 
 #include <ws2tcpip.h>
 #endif

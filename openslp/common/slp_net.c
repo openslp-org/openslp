@@ -50,7 +50,7 @@
 #include "slp_net.h"
 #include "slp_xmalloc.h"
 
-#ifdef __WIN32__
+#ifdef _WIN32
 /* definition for inet_aton() since Microsoft does not have this yet */
 #define inet_aton(opt,bind) ((bind)->s_addr = inet_addr(opt))
 #endif

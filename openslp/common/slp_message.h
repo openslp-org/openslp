@@ -52,7 +52,7 @@
 
 #include "slp_buffer.h"
 
-#ifdef __WIN32__
+#ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <winsock.h>
@@ -77,7 +77,7 @@ typedef char            CHAR;
 typedef unsigned char   UINT8;
 typedef unsigned short  UINT16;
 
-#ifndef __WIN32__
+#ifndef _WIN32
 typedef unsigned long   UINT32;
 #endif
 

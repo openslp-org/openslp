@@ -32,7 +32,7 @@
 #include <string.h>
 #include <ctype.h>
 
-#ifndef __WIN32__
+#ifndef _WIN32
 #include <stdlib.h>
 #include <sys/types.h>
 #include <netinet/in.h>

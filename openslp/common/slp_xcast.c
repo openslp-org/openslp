@@ -46,7 +46,7 @@
 /*                                                                         */
 /***************************************************************************/
 
-#ifdef __WIN32__
+#ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <io.h>
@@ -92,7 +92,7 @@ int SLPBroadcastSend(const SLPIfaceInfo* ifaceinfo,
     int                 xferbytes;
     int                 flags = 0;  
 
-#ifdef __WIN32__
+#ifdef _WIN32
     char    on = 1;
 #else
     int     on = 1;
@@ -308,7 +308,7 @@ int SLPXcastRecvMessage(const SLPXcastSockets* sockets,
                                          (struct sockaddr *)peeraddr,
                                          &peeraddrlen);
                     if(bytesread == 16
-#ifdef __WIN32__
+#ifdef _WIN32
                     /* Win32 returns WSAEMSGSIZE if the message is larger than
                      * the requested size, even with MSG_PEEK. But if this is the
                      * error code we can be sure that the message is at least 16

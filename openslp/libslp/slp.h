@@ -57,7 +57,8 @@ extern "C"
 {
 #endif
 
-#ifdef __WIN32__
+#if defined(_WIN32) && defined(_MSC_VER)
+/* MSVC auto-exports, BCB uses .def file */
 # define SLPCALLBACK
 # ifdef LIBSLP_EXPORTS
 #  define SLPEXP __declspec(dllexport)

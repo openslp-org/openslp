@@ -49,7 +49,7 @@
 #ifndef SLP_PID_H_INCLUDED
 #define SLP_PID_H_INCLUDED
 
-#ifdef __WIN32__
+#ifdef _WIN32
 #ifndef UINT32_T_DEFINED
 #define UINT32_T_DEFINED
 typedef unsigned int uint32_t;

@@ -54,8 +54,6 @@ CLEAN :
 	-@erase "$(INTDIR)\libslp_property.obj"
 	-@erase "$(INTDIR)\libslp_reg.obj"
 	-@erase "$(INTDIR)\libslp_thread.obj"
-	-@erase "$(INTDIR)\slp.idb"
-	-@erase "$(INTDIR)\slp.pdb"
 	-@erase "$(INTDIR)\slp_buffer.obj"
 	-@erase "$(INTDIR)\slp_compare.obj"
 	-@erase "$(INTDIR)\slp_database.obj"
@@ -71,11 +69,12 @@ CLEAN :
 	-@erase "$(INTDIR)\slp_v1message.obj"
 	-@erase "$(INTDIR)\slp_xcast.obj"
 	-@erase "$(INTDIR)\slp_xid.obj"
-	-@erase "$(OUTDIR)\obj\slp.map"
 	-@erase "$(OUTDIR)\slp.dll"
 	-@erase "$(OUTDIR)\slp.exp"
 	-@erase "$(OUTDIR)\slp.lib"
+	-@erase "$(OUTDIR)\slp.map"
 	-@erase "$(OUTDIR)\slp.pdb"
+	-@erase ".\Release\slp.idb"
 
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
@@ -83,14 +82,14 @@ CLEAN :
 "$(INTDIR)" :
     if not exist "$(INTDIR)/$(NULL)" mkdir "$(INTDIR)"
 
-CPP_PROJ=/nologo /MT /W3 /Zi /O2 /I "../../common" /D "_USRDLL" /D "LIBSLP_EXPORTS" /D "ENABLE" /D "_WINDOWS" /D "i386" /D "NDEBUG" /D "__WIN32__" /D "WIN32" /D "_MBCS" /D SLP_VERSION=\"1.0.5\" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\slp.pdb" /FD /c 
+CPP_PROJ=/nologo /MT /W3 /Zi /O2 /I "../../common" /D "_USRDLL" /D "LIBSLP_EXPORTS" /D "ENABLE" /D "_WINDOWS" /D "i386" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D SLP_VERSION=\"1.0.5\" /Fo"$(INTDIR)\\" /Fd"Release\slp.pdb" /FD /c 
 MTL_PROJ=/nologo /D "NDEBUG" /mktyplib203 /win32 
 BSC32=bscmake.exe
 BSC32_FLAGS=/nologo /o"$(OUTDIR)\libslp.bsc" 
 BSC32_SBRS= \
 	
 LINK32=link.exe
-LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib wsock32.lib /nologo /dll /incremental:no /pdb:"$(OUTDIR)\slp.pdb" /map:"$(INTDIR)\slp.map" /debug /machine:I386 /out:"$(OUTDIR)\slp.dll" /implib:"$(OUTDIR)\slp.lib" 
+LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib wsock32.lib /nologo /dll /incremental:no /pdb:"$(OUTDIR)\slp.pdb" /map:"Release/slp.map" /debug /machine:I386 /out:"$(OUTDIR)\slp.dll" /implib:"$(OUTDIR)\slp.lib" 
 LINK32_OBJS= \
 	"$(INTDIR)\libslp_delattrs.obj" \
 	"$(INTDIR)\libslp_dereg.obj" \
@@ -164,8 +163,6 @@ CLEAN :
 	-@erase "$(INTDIR)\libslp_property.obj"
 	-@erase "$(INTDIR)\libslp_reg.obj"
 	-@erase "$(INTDIR)\libslp_thread.obj"
-	-@erase "$(INTDIR)\slp.idb"
-	-@erase "$(INTDIR)\slp.pdb"
 	-@erase "$(INTDIR)\slp_buffer.obj"
 	-@erase "$(INTDIR)\slp_compare.obj"
 	-@erase "$(INTDIR)\slp_database.obj"
@@ -181,12 +178,13 @@ CLEAN :
 	-@erase "$(INTDIR)\slp_v1message.obj"
 	-@erase "$(INTDIR)\slp_xcast.obj"
 	-@erase "$(INTDIR)\slp_xid.obj"
-	-@erase "$(OUTDIR)\obj\slp.map"
 	-@erase "$(OUTDIR)\slp.dll"
 	-@erase "$(OUTDIR)\slp.exp"
 	-@erase "$(OUTDIR)\slp.ilk"
 	-@erase "$(OUTDIR)\slp.lib"
+	-@erase "$(OUTDIR)\slp.map"
 	-@erase "$(OUTDIR)\slp.pdb"
+	-@erase ".\Debug\slp.idb"
 
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
@@ -194,14 +192,14 @@ CLEAN :
 "$(INTDIR)" :
     if not exist "$(INTDIR)/$(NULL)" mkdir "$(INTDIR)"
 
-CPP_PROJ=/nologo /MTd /W3 /Gm /ZI /Od /I "../../common" /D "_USRDLL" /D "LIBSLP_EXPORTS" /D "_WINDOWS" /D "i386" /D "_DEBUG" /D "__WIN32__" /D "WIN32" /D "_MBCS" /D SLP_VERSION=\"1.0.5\" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\slp.pdb" /FD /GZ /c 
+CPP_PROJ=/nologo /MTd /W3 /Gm /ZI /Od /I "../../common" /D "_USRDLL" /D "LIBSLP_EXPORTS" /D "_WINDOWS" /D "i386" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D SLP_VERSION=\"1.0.5\" /Fo"$(INTDIR)\\" /Fd"Debug/slp.pdb" /FD /GZ /c 
 MTL_PROJ=/nologo /D "_DEBUG" /mktyplib203 /win32 
 BSC32=bscmake.exe
 BSC32_FLAGS=/nologo /o"$(OUTDIR)\libslp.bsc" 
 BSC32_SBRS= \
 	
 LINK32=link.exe
-LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib wsock32.lib /nologo /dll /incremental:yes /pdb:"$(OUTDIR)\slp.pdb" /map:"$(INTDIR)\slp.map" /debug /machine:I386 /out:"$(OUTDIR)\slp.dll" /implib:"$(OUTDIR)\slp.lib" 
+LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib wsock32.lib /nologo /dll /incremental:yes /pdb:"$(OUTDIR)\slp.pdb" /map:"Debug/slp.map" /debug /machine:I386 /out:"$(OUTDIR)\slp.dll" /implib:"$(OUTDIR)\slp.lib" 
 LINK32_OBJS= \
 	"$(INTDIR)\libslp_delattrs.obj" \
 	"$(INTDIR)\libslp_dereg.obj" \

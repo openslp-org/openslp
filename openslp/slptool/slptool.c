@@ -36,7 +36,7 @@
 
                        
 
-#ifdef __WIN32__
+#ifdef _WIN32
 #define strncasecmp(String1, String2, Num) strnicmp(String1, String2, Num)
 #define strcasecmp(String1, String2) stricmp(String1, String2)
 #define inet_aton(opt,bind) ((bind)->s_addr = inet_addr(opt))
@@ -302,7 +302,7 @@ void Deregister(SLPToolCommandLine* cmdline)
 void PrintVersion(SLPToolCommandLine* cmdline)
 /*=========================================================================*/
 {
-#ifdef __WIN32__
+#ifdef _WIN32
     printf("slptool version = %s\n",SLP_VERSION);
 #else
 	printf("slptool version = %s\n",VERSION);

@@ -50,7 +50,7 @@
 #if(!defined SLP_NETWORK_H_INCLUDED)
 #define SLP_NETWORK_H_INCLUDED
 
-#ifdef __WIN32__
+#ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <io.h>

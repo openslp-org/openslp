@@ -75,7 +75,7 @@ const char* SLPAPI SLPGetProperty(const char* pcName)
 
     memset(conffile,0,MAX_PATH);
 
-    #ifdef __WIN32__
+    #ifdef _WIN32
     ExpandEnvironmentStrings(LIBSLP_CONFFILE,conffile,MAX_PATH);
     #else
     strncpy(conffile,LIBSLP_CONFFILE,MAX_PATH-1);

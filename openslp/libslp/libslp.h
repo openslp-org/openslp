@@ -50,7 +50,7 @@
 #if(!defined LIBSLP_H_INCLUDED)
 #define LIBSLP_H_INCLUDED
 
-#ifdef __WIN32__
+#ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <sys/types.h>
@@ -97,7 +97,7 @@
 #define SLP_FUNCT_DASRVRQST         0x7f   /* fake id used internally */
 
 #if(!defined LIBSLP_CONFFILE)
-#ifdef __WIN32__
+#ifdef _WIN32
 #define LIBSLP_CONFFILE "%WINDIR%\\slp.conf"
 #define LIBSLP_SPIFILE  "%WINDIR%\\slp.spi"
 #else

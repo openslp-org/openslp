@@ -50,7 +50,7 @@
 #include "slp_message.h"
 #include "slp_xmalloc.h"
 
-#ifndef __WIN32__
+#ifndef _WIN32
 #include <sys/types.h>
 #include <netinet/in.h>
 #endif

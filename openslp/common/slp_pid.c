@@ -48,7 +48,7 @@
 
 #include "slp_pid.h"
 
-#ifdef __WIN32__
+#ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #else
@@ -72,7 +72,7 @@ uint32_t SLPPidGet()
  *     32 bit integer identifier for the current process
  *=========================================================================*/
 {
-    #ifdef __WIN32__
+    #ifdef _WIN32
     return GetCurrentProcessId();
     #else
     return getpid();
@@ -93,7 +93,7 @@ int SLPPidExists(uint32_t pid)
  *    Boolean value.  Zero if process does not exist, non-zero if it does
  *=========================================================================*/
 {
-#ifndef __WIN32__
+#ifndef _WIN32
     if(kill(pid,0))
     {
         if(errno == ESRCH)

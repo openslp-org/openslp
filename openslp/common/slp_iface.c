@@ -54,7 +54,7 @@
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
-#ifndef __WIN32__
+#ifndef _WIN32
 #include <sys/ioctl.h>
 #include <net/if.h>
 #include <arpa/inet.h>
