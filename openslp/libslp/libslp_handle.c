@@ -153,7 +153,7 @@ SLPError SLPOpen(const char *pcLang, SLPBoolean isAsync, SLPHandle *phSLP)
     /*---------------------------------------------------------*/
     if(G_OpenSLPHandleCount == 0)
     {
-        XidSeed();
+        SLPXidSeed();
     }
      
 

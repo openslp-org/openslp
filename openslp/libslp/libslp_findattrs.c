@@ -55,7 +55,7 @@ SLPError ProcessAttrRqst(PSLPHandleInfo handle)
     SLPMessage          msg         = 0;
     int                 sock        = -1;
     int                 mtu         = atoi(SLPGetProperty("net.slp.MTU"));
-    int                 xid         = XidGenerate();   
+    int                 xid         = SLPXidGenerate();   
     int                 peeraddrlen = sizeof(peeraddr);
 
 

@@ -47,7 +47,7 @@ SLPError ProcessSrvReg(PSLPHandleInfo handle)
     SLPError            error       = 0;
     SLPBuffer           buf         = 0;
     SLPMessage          msg         = 0;
-    int                 xid         = XidGenerate();
+    int                 xid         = SLPXidGenerate();
     
     /*-----------------------*/
     /* allocate a SLPMessage */
