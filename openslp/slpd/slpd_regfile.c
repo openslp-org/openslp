@@ -301,11 +301,11 @@ int SLPDRegFileReadSrvReg(FILE* fd,
         slider1 = RegFileReadLine(fd,line,4096);
         if(slider1 == 0)
         {
-            /* Breath a sigh of relief.  We're done */
+            /* Breathe a sigh of relief.  We're done */
             result = -1;
             break;
         }
-        if(*slider1 == 0x0d || *slider == 0x0a)
+        if(*slider1 == 0x0d || *slider1 == 0x0a)
         {
             break;
         }
