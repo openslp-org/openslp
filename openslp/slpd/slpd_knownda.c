@@ -43,6 +43,7 @@ SLPList G_KnownDAList = {0,0,0};
 void LoadSocketFromDatabaseEntry(SLPDSocket* sock, SLPDDatabaseEntry* dbentry)
 /*-------------------------------------------------------------------------*/
 {
+    #if(0)
     SLPBuffer result;
     size_t    size;
 
@@ -130,6 +131,7 @@ void LoadSocketFromDatabaseEntry(SLPDSocket* sock, SLPDDatabaseEntry* dbentry)
     /* authblock count */
     *(result->curpos) = 0;
     result->curpos = result->curpos + 1;
+    #endif
 }
 
 
@@ -166,7 +168,7 @@ void SLPDKnownDARegisterAll(SLPDAEntry* daentry)
 
     /* Child process performs a random delay */
     srand(G_SlpdProperty.randomWaitSeed);
-    usleep(1+(int)(10.0*rand()/(G_SlpdProperty.randomWaitBound + 1.0)));
+    usleep( rand() % G_SlpdProperty.randomWaitBound );
 
     /* Establish a new connection with the known DA */
     sock = SLPDSocketCreateConnected(&(daentry->daaddr));
@@ -198,6 +200,8 @@ void SLPDKnownDARegisterAll(SLPDAEntry* daentry)
                 finished = 1;
                 break;
             }
+
+
         }
 
         SLPDSocketFree(sock);
