@@ -247,8 +247,6 @@ SLPDSocket* SLPDSocketAlloc()
     if(sock)
     {
         memset(sock,0,sizeof(SLPDSocket));
-        sock->recvbuf = SLPBufferAlloc(SLP_MAX_DATAGRAM_SIZE);  
-        sock->sendbuf = SLPBufferAlloc(SLP_MAX_DATAGRAM_SIZE);
         sock->fd = -1;
     }
 
@@ -306,6 +304,8 @@ SLPDSocket* SLPDSocketCreateDatagram(struct in_addr* peeraddr,
     sock = SLPDSocketAlloc();
     if(sock)
     {
+        sock->recvbuf = SLPBufferAlloc(SLP_MAX_DATAGRAM_SIZE);
+        sock->sendbuf = SLPBufferAlloc(SLP_MAX_DATAGRAM_SIZE);
         sock->fd = socket(PF_INET, SOCK_DGRAM, 0);
         if(sock->fd >=0)
         {
@@ -375,6 +375,8 @@ SLPDSocket* SLPDSocketCreateBoundDatagram(struct in_addr* myaddr,
     sock = SLPDSocketAlloc();
     if(sock)
     {
+        sock->recvbuf = SLPBufferAlloc(SLP_MAX_DATAGRAM_SIZE);
+        sock->sendbuf = SLPBufferAlloc(SLP_MAX_DATAGRAM_SIZE);
         sock->fd = socket(PF_INET, SOCK_DGRAM, 0);
         if(sock->fd >=0)
         {

@@ -123,7 +123,6 @@ int SLPDDatabaseReg(SLPSrvReg* srvreg,
 /*              setting of the fresh parameter                             */
 /*=========================================================================*/
 {
-    int                result = 0;
     SLPDDatabaseEntry* entry  = (SLPDDatabaseEntry*)G_DatabaseList.head;
 
     /* Check to see if there is already an identical entry */
@@ -154,28 +153,37 @@ int SLPDDatabaseReg(SLPSrvReg* srvreg,
         if(entry == 0)
         {
             /* Out of memory */
-            return -1;
+           goto FAILURE;
         }
     }
 
     /* copy info from the message from the wire to the database entry */
-    entry->scopelistlen = srvreg->scopelistlen;
-    entry->scopelist    = (char*)memdup(srvreg->scopelist,srvreg->scopelistlen);
-    entry->lifetime     = srvreg->urlentry.lifetime;
-    entry->urllen       = srvreg->urlentry.urllen;
-    entry->url          = (char*)memdup(srvreg->urlentry.url, srvreg->urlentry.urllen);
-    entry->srvtypelen   = srvreg->srvtypelen;
-    entry->srvtype      = (char*)memdup(srvreg->srvtype,srvreg->srvtypelen);
-    entry->attrlistlen  = srvreg->attrlistlen;
-
-    /* check for malloc() failures */
-    if(entry->scopelist == 0 ||
-       entry->url == 0 ||
-       entry->srvtype == 0)
+    if(entry->scopelistlen >= srvreg->scopelistlen)
     {
-        result = -1;
-        goto CLEANUP;
+        memcpy(entry->scopelist,srvreg->scopelist,srvreg->scopelistlen);
     }
+    else
+    {
+        if(entry->scopelist) free(entry->scopelist);
+        entry->scopelist = (char*)memdup(srvreg->scopelist,srvreg->scopelistlen);
+        if(entry->scopelist == 0) goto FAILURE;
+    }
+    entry->scopelistlen = srvreg->scopelistlen;
+    entry->lifetime     = srvreg->urlentry.lifetime;
+    /* do not worry about url it will be the same */
+    //entry->url = (char*)memdup(srvreg->urlentry.url, srvreg->urlentry.urllen);
+    //entry->urllen = srvreg->urlentry.urllen;
+    if(entry->srvtypelen >= srvreg->srvtypelen)
+    {
+        memcpy(entry->srvtype,srvreg->srvtype,srvreg->srvtypelen);
+    }
+    else
+    {
+        if(entry->srvtype) free(entry->srvtype);
+        entry->srvtype = (char*)memdup(srvreg->srvtype,srvreg->srvtypelen);
+        if(entry->srvtype == 0) goto FAILURE;
+    }
+    entry->srvtypelen = srvreg->srvtypelen;
     
     if(srvreg->attrlistlen)
     {
@@ -185,22 +193,23 @@ int SLPDDatabaseReg(SLPSrvReg* srvreg,
         ((char*)srvreg->attrlist)[srvreg->attrlistlen] = 0;
         if( SLPAttrFreshen(entry->attr, srvreg->attrlist) != SLP_OK)
         {
-            result = -1;
-            goto CLEANUP;
+            goto FAILURE;
         }
 
         /* TODO: Serialize all attributes into entry->attrlist */
         /* TODO: Allocate the partiallist */
 
         #else
-        entry->attrlist = malloc(srvreg->attrlistlen + 1);
-        if(entry->attrlist == 0)
+        if(entry->attrlistlen >= srvreg->attrlistlen)
         {
-            result = -1;
-            goto CLEANUP;
+            memcpy(entry->attrlist,srvreg->attrlist,srvreg->attrlistlen);
         }
-        memcpy(entry->attrlist,srvreg->attrlist,srvreg->attrlistlen);
-        entry->attrlist[srvreg->attrlistlen] = 0;
+        else
+        {
+            if(entry->attrlist) free(entry->attrlist);
+            entry->attrlist = memdup(srvreg->attrlist,srvreg->attrlistlen);
+            if(entry->attrlist == 0) goto FAILURE;
+        }
         #endif 
     }
     
@@ -210,9 +219,15 @@ int SLPDDatabaseReg(SLPSrvReg* srvreg,
     /* traceReg if necessary */
     SLPDLogTraceReg("Registered", entry);
 
-    CLEANUP:
-
-    return result;
+    return 0;
+    
+FAILURE:
+    if(entry)
+    {
+        SLPDDatabaseEntryFree(entry);
+    }
+   
+    return -1;
 }
 
 

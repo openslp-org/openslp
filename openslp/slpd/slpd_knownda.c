@@ -46,8 +46,9 @@ int MakeActiveDiscoveryRqst(int ismcast, SLPBuffer* buffer)
     size_t          size;
     SLPDAEntry*     daentry;
     SLPBuffer       result;
-    char*           prlist;
-    size_t          prlistlen;
+    char*           prlist     = 0;
+    size_t          prlistlen  = 0;
+    int             errorcode = 0;
 
     /*-------------------------------------------------*/
     /* Generate a DA service request buffer to be sent */
@@ -68,7 +69,8 @@ int MakeActiveDiscoveryRqst(int ismcast, SLPBuffer* buffer)
     if(prlist == 0)
     {
         /* out of memory */
-        return SLP_ERROR_INTERNAL_ERROR;
+        errorcode = SLP_ERROR_INTERNAL_ERROR;
+        goto FINISHED;
     }
     
     *prlist = 0;
@@ -90,7 +92,8 @@ int MakeActiveDiscoveryRqst(int ismcast, SLPBuffer* buffer)
     if(result == 0)
     {
         /* out of memory */
-        return SLP_ERROR_INTERNAL_ERROR;
+        errorcode = SLP_ERROR_INTERNAL_ERROR;
+        goto FINISHED;
     }                            
 
     /*------------------------------------------------------------*/
@@ -136,6 +139,14 @@ int MakeActiveDiscoveryRqst(int ismcast, SLPBuffer* buffer)
     result->curpos = result->curpos + 2;
 
     *buffer = result;
+    
+    FINISHED:
+
+    if(prlist)
+    {
+        free(prlist);
+    }
+
     return 0;
 }
 
@@ -540,11 +551,14 @@ SLPDAEntry* SLPDKnownDAAdd(struct in_addr* addr,
     {
         /* Create and link in a new entry */    
         entry = SLPDAEntryCreate(addr, daentry);
-        SLPListLinkHead(&G_KnownDAList,(SLPListItem*)entry);
-        SLPDLogKnownDA("Added",entry);
+        if(entry)
+        {
+            SLPListLinkHead(&G_KnownDAList,(SLPListItem*)entry);
+            SLPDLogKnownDA("Added",entry);
 
-        /* Register all services with the new DA */
-        SLPDKnownDARegisterAll(entry); 
+            /* Register all services with the new DA */
+            SLPDKnownDARegisterAll(entry);
+        } 
     }
 
     return entry;

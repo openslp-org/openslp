@@ -200,7 +200,7 @@ int Daemonize(const char* pidfile)
     pid_t   pid;
     FILE*   fd;
     struct  passwd* pwent;
-    char    pidstr[13];
+    char    pidstr[14];
 
     if(G_SlpdCommandLine.detach)
     {
@@ -234,6 +234,7 @@ int Daemonize(const char* pidfile)
     fd = fopen(pidfile,"r");
     if(fd)
     {
+        memset(pidstr,0,14);
         fread(pidstr,13,1,fd);
         fclose(fd);
         pid = atoi(pidstr);
