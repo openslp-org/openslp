@@ -172,7 +172,7 @@ static int dhcpSendRequest(int sockfd, void *buf, size_t bufsz,
 #endif
 
 	FD_ZERO(&writefds);
-	FD_SET(sockfd, &writefds);
+	FD_SET((DWORD) sockfd, &writefds);
 
 	if((xferbytes = select(sockfd + 1, 0, &writefds, 0, timeout)) > 0)
 	{
@@ -214,7 +214,7 @@ static int dhcpRecvResponse(int sockfd, void *buf, size_t bufsz,
 	fd_set readfds;
 
 	FD_ZERO(&readfds);
-	FD_SET(sockfd, &readfds);
+	FD_SET( (DWORD) sockfd, &readfds);
 
 	if((xferbytes = select(sockfd + 1, &readfds, 0 , 0, timeout)) > 0)
 	{

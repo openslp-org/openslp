@@ -131,7 +131,7 @@ int SLPNetworkSendMessage(int sockfd,
     while(buf->curpos < buf->end)
     {
         FD_ZERO(&writefds);
-        FD_SET(sockfd, &writefds);
+        FD_SET((DWORD) sockfd, &writefds);
 
         xferbytes = select(sockfd + 1, 0, &writefds, 0, timeout);
         if(xferbytes > 0)
@@ -206,7 +206,7 @@ int SLPNetworkRecvMessage(int sockfd,
     /* take a peek at the packet to get version and size information */
     /*---------------------------------------------------------------*/
     FD_ZERO(&readfds);
-    FD_SET(sockfd, &readfds);
+    FD_SET( (DWORD) sockfd, &readfds);
     xferbytes = select(sockfd + 1, &readfds, 0 , 0, timeout);
     if(xferbytes > 0)
     {
@@ -265,7 +265,7 @@ int SLPNetworkRecvMessage(int sockfd,
             while((*buf)->curpos < (*buf)->end)
             {
                 FD_ZERO(&readfds);
-                FD_SET(sockfd, &readfds);
+                FD_SET( (DWORD) sockfd, &readfds);
                 xferbytes = select(sockfd + 1, &readfds, 0 , 0, timeout);
                 if(xferbytes > 0)
                 {

@@ -59,6 +59,10 @@
 #include <ws2tcpip.h>
 #include <iptypes.h>
 #include <iphlpapi.h>
+#ifndef IPPROTO_IPV6
+//#include <tpipv6.h> // For IPv6 Tech Preview.
+#endif
+
 //#endif
 #include "slp_win32.h"
 #define ETIMEDOUT 110

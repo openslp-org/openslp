@@ -50,8 +50,12 @@
 #ifndef _SLP_WIN32_H
 #define _SLP_WIN32_H
 
+#ifndef strncasecmp
 #define strncasecmp(String1, String2, Num) strnicmp(String1, String2, Num)
+#endif
+#ifndef strcasecmp
 #define strcasecmp(String1, String2, Num) stricmp(String1, String2, Num)
+#endif
 #define inet_aton(opt,bind) ((bind)->s_addr = inet_addr(opt))
 
 
