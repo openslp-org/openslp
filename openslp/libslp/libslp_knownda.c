@@ -120,7 +120,7 @@ SLPBoolean KnownDAListFind(int scopelistlen,
                     
                     memcpy(daaddr, 
                            &(entry->msg->peer),
-                           sizeof(daaddr));
+                           sizeof(struct sockaddr_storage));
     
                     result = SLP_TRUE;
                 }
@@ -667,7 +667,7 @@ int KnownDAConnect(PSLPHandleInfo handle,
 
     while(1)
     {
-        memset(peeraddr,0,sizeof(peeraddr));
+        memset(peeraddr,0,sizeof(struct sockaddr_storage));
         
         if(KnownDAFromCache(scopelistlen,
                             scopelist,
@@ -726,7 +726,7 @@ void KnownDABadDA(struct sockaddr_storage* daaddr)
             if(entry == NULL) break;
             
             /* Assume DAs are identical if their in_addrs match */
-            if(memcmp(daaddr,&(entry->msg->peer),sizeof(daaddr)) == 0)
+            if(memcmp(daaddr,&(entry->msg->peer),sizeof(struct sockaddr_storage)) == 0)
             {
                 SLPDatabaseRemove(dh,entry);
                 break;            

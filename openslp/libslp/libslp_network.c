@@ -71,7 +71,7 @@ int NetworkConnectToSlpd(struct sockaddr_storage* peeraddr)
     result = socket(AF_INET,SOCK_STREAM,0);
     if(result >= 0)
     {
-		memset(peeraddr, 0, sizeof(peeraddr));
+		memset(peeraddr, 0, sizeof(struct sockaddr_storage));
 		((struct sockaddr_in *)peeraddr)->sin_family = AF_INET;
 		((struct sockaddr_in *)peeraddr)->sin_port =  htons(SLP_RESERVED_PORT);
 		((struct sockaddr_in *)peeraddr)->sin_addr.S_un.S_addr = htonl(INADDR_LOOPBACK);
@@ -81,7 +81,7 @@ int NetworkConnectToSlpd(struct sockaddr_storage* peeraddr)
 
         if(connect(result,
                    (struct sockaddr *)peeraddr,
-                   sizeof(peeraddr)) == 0)
+                   sizeof(struct sockaddr_storage)) == 0)
         {
             /* set the receive and send buffer low water mark to 18 bytes
            (the length of the smallest slpv2 message) */
@@ -163,7 +163,7 @@ int NetworkConnectToDA(PSLPHandleInfo handle,
                         scopelistlen,
                         scopelist) == 0)
     {
-        memcpy(peeraddr,&(handle->daaddr),sizeof(peeraddr));
+        memcpy(peeraddr,&(handle->daaddr),sizeof(struct sockaddr_storage));
     }
     else
     {
@@ -183,7 +183,7 @@ int NetworkConnectToDA(PSLPHandleInfo handle,
             if(handle->dascope) xfree(handle->dascope);
             handle->dascope = memdup(scopelist,scopelistlen);
             handle->dascopelen = scopelistlen; 
-            memcpy(peeraddr,&(handle->daaddr),sizeof(peeraddr));
+            memcpy(peeraddr,&(handle->daaddr),sizeof(struct sockaddr_storage));
         }
     }
 
@@ -221,7 +221,7 @@ int NetworkConnectToSA(PSLPHandleInfo handle,
                         scopelistlen,
                         scopelist) == 0)
     {
-        memcpy(peeraddr,&(handle->saaddr),sizeof(peeraddr));
+        memcpy(peeraddr,&(handle->saaddr),sizeof(struct sockaddr_storage));
     }
     else
     {
@@ -244,7 +244,7 @@ int NetworkConnectToSA(PSLPHandleInfo handle,
             if(handle->sascope) xfree(handle->sascope);
             handle->sascope = memdup(scopelist,scopelistlen);
             handle->sascopelen = scopelistlen; 
-            memcpy(peeraddr,&(handle->saaddr),sizeof(peeraddr));
+            memcpy(peeraddr,&(handle->saaddr),sizeof(struct sockaddr_storage));
         }
     }
 
