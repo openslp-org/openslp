@@ -8,6 +8,9 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 
+09/18/00 mdes@ocegr.fr
+Added Rick Braddy's MSVC Project files so that now OpenSLP should compile easily on Windows machines in Visual Studio
+
 09/05/00 mpeterson@calderasystems.com
 Finally was able to reproduce (thanks to Jon) and fix bugs 109358 and 109359
 
