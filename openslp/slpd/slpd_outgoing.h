@@ -60,6 +60,11 @@
 
 
 /*=========================================================================*/
+extern SLPList G_OutgoingSocketList;
+/*=========================================================================*/
+
+
+/*=========================================================================*/
 void SLPDOutgoingAge(time_t seconds);
 /* Age the sockets in the outgoing list by the specified number of seconds.*/
 /*                                                                         */
@@ -125,9 +130,8 @@ int SLPDOutgoingDeinit(int graceful);
 /* Returns  Zero on success non-zero when pending writes remain            */
 /*=========================================================================*/
 
-
 /*=========================================================================*/
-extern SLPList G_OutgoingSocketList;
+void SLPDOutgoingSocketDump();
 /*=========================================================================*/
 
 

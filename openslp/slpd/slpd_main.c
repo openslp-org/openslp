@@ -249,6 +249,9 @@ void HandleSigAlrm()
 void HandleSigInt()
 /*--------------------------------------------------------------------------*/
 {
+    SLPDIncomingSocketDump();
+    SLPDOutgoingSocketDump();
+    SLPDKnownDADump();
     SLPDDatabaseDump();
 }
 #endif

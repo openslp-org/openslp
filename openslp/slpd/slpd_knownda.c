@@ -1268,3 +1268,15 @@ void SLPDKnownDAImmortalRefresh(int seconds)
         G_KnownDATimeSinceLastRefresh = 0;
     }
 }
+
+
+
+#ifdef DEBUG
+/*=========================================================================*/
+void SLPDKnownDADump()
+/*=========================================================================*/
+{
+
+}
+#endif
+
