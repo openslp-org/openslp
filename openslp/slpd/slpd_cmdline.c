@@ -48,6 +48,14 @@
 
 #include "slpd.h"
 
+#if !defined(ETCDIR)
+#define ETCDIR "/etc"
+#endif
+
+#if !defined(VARDIR)
+#define VARDIR "/var"
+#endif
+
 /*=========================================================================*/
 SLPDCommandLine G_SlpdCommandLine;
 /* Global variable containing command line options                         */
@@ -83,10 +91,10 @@ int SLPDParseCommandLine(int argc,char* argv[])
 
     /* Set defaults */
     memset(&G_SlpdCommandLine,0,sizeof(SLPDCommandLine));
-    strcpy(G_SlpdCommandLine.cfgfile,"/etc/slp.conf");
-    strcpy(G_SlpdCommandLine.logfile,"/var/log/slpd.log");
-    strcpy(G_SlpdCommandLine.regfile,"/etc/slp.reg");
-    strcpy(G_SlpdCommandLine.pidfile,"/var/run/slpd.pid");
+    strcpy(G_SlpdCommandLine.cfgfile,ETCDIR "/slp.conf");
+    strcpy(G_SlpdCommandLine.logfile,VARDIR "/log/slpd.log");
+    strcpy(G_SlpdCommandLine.regfile,ETCDIR "/slp.reg");
+    strcpy(G_SlpdCommandLine.pidfile,VARDIR "/run/slpd.pid");
     G_SlpdCommandLine.detach = 1;
 #ifdef WIN32
     G_SlpdCommandLine.action = -1;

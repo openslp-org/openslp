@@ -7,6 +7,9 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 
+12/14/00 rganesan@myrealbox.com
+slpd.log and slpd.pid file locations now change depending on the prefix. 
+
 12/13/00 rganesan@myrealbox.com
 Introduced predicate version field in srvrqst structure. Passed predicate 
 version (v1 or v2) all the way down to SLPDPredicateTest(). 

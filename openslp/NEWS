@@ -2,6 +2,8 @@ NEWS - list of user-visible changes between releases of OpenSLP
 
 New in openslp-0.8.1 (2000-12-??)
 ---------------------------------
+* Location of slpd.pid and slpd.log files now depends on the configure prefix 
+  on Unix.
 * slpd running as a DA now sends passive DAAdverts for SLPv1 also. 
 * slpd now works (again) on 64-bit platforms. 
 
