@@ -2,11 +2,11 @@ dnl ***********************************************************************
 dnl Process this file with autoconf to produce a configure script.
 dnl ***********************************************************************
 AC_PREREQ(2.50)
-AC_INIT(openslp, 1.2.1)
+AC_INIT(openslp, 1.2.1, openslp-devel@lists.sourceforge.net)
 AC_CONFIG_SRCDIR(slpd/slpd_main.c)
 AM_INIT_AUTOMAKE
 
-AC_CONFIG_HEADER(config.h)
+AC_CONFIG_HEADERS(config.h)
 
 dnl ***********************************************************************
 dnl We don't want /usr/etc or /usr/var
@@ -158,8 +158,8 @@ CFLAGS="$CFLAGS $OPTFLAGS"
 dnl ***********************************************************************
 dnl Checks for header files.
 dnl ***********************************************************************
-AC_STDC_HEADERS
-AC_HAVE_HEADERS(string.h sys/types.h stdint.h netinet/in.h)
+AC_HEADER_STDC
+AC_CHECK_HEADERS(string.h sys/types.h stdint.h netinet/in.h)
 
 dnl ***********************************************************************
 dnl Checks for data types.
@@ -173,8 +173,9 @@ dnl ***********************************************************************
 AC_CHECK_LIB(resolv, inet_aton)
 AC_CHECK_LIB(socket, main)
 AC_CHECK_LIB(nsl, gethostbyname)
-AC_CHECK_LIB(m, main)
-AC_CHECK_FUNCS(ceil log10 strncasecmp strcasecmp )
+dnl AC_CHECK_LIB(m, main)
+dnl AC_CHECK_FUNCS(ceil log10 strncasecmp strcasecmp )
+AC_CHECK_FUNCS(strncasecmp strcasecmp)
 dnl AC_OUTPUT( Makefile common/Makefile libslpattr/Makefile libslp/Makefile 
 dnl 	slpd/Makefile slptool/Makefile test/Makefile slp.list )
 AC_CONFIG_FILES([ Makefile ])

@@ -50,21 +50,21 @@
 #define SLP_IFACE_H_INCLUDED
 
 #ifdef HAVE_CONFIG_H
-#include "config.h"
+# include "config.h"
 #endif
 #ifdef HAVE_SYS_TYPES_H
-#include <sys/types.h>
+# include <sys/types.h>
 #endif
 #ifdef HAVE_STDINT_H
-#include <stdint.h>
+# include <stdint.h>
 #endif
 #ifdef HAVE_NETINET_IN_H
-#include <netinet/in.h>
+# include <netinet/in.h>
 #endif
 #ifdef _WIN32
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#include <winsock.h>
+# define WIN32_LEAN_AND_MEAN
+# include <windows.h>
+# include <winsock.h>
 #endif
 
 #define SLP_MAX_IFACES 10

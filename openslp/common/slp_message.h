@@ -52,25 +52,28 @@
 
 #include "slp_buffer.h"
 
+#ifdef HAVE_CONFIG_H
+# include "config.h"
+#endif
 #ifdef _WIN32
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#include <winsock.h>
-#ifndef UINT32_T_DEFINED
-#define UINT32_T_DEFINED
+# define WIN32_LEAN_AND_MEAN
+# include <windows.h>
+# include <winsock.h>
+# ifndef UINT32_T_DEFINED
+# define UINT32_T_DEFINED
 typedef unsigned int uint32_t;
-#endif
+# endif
 #else
-#include <sys/types.h>
-#ifdef __FreeBSD__
-#include <sys/param.h>			/* for limits.h - INT_MAX slpd*/
-#endif
-#include <netinet/in.h>			/* for htonl() routines */
-#ifdef HAVE_STDINT_H
-#include <stdint.h>
-#else
-#include <inttypes.h>
-#endif
+# include <sys/types.h>
+# ifdef __FreeBSD__
+#  include <sys/param.h>		/* for limits.h - INT_MAX slpd*/
+# endif
+# include <netinet/in.h>		/* for htonl() routines */
+# ifdef HAVE_STDINT_H
+#  include <stdint.h>
+# else
+#  include <inttypes.h>
+# endif
 #endif
 
 typedef char            CHAR;

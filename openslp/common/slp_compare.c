@@ -53,9 +53,8 @@
 #include "slp_compare.h"
 
 
-#ifdef _WIN32
-#else
-#ifndef HAVE_STRNCASECMP
+#ifndef _WIN32
+# ifndef HAVE_STRNCASECMP
 int
 strncasecmp(const char *s1, const char *s2, size_t len)
 {
@@ -68,8 +67,8 @@ strncasecmp(const char *s1, const char *s2, size_t len)
     }
     return(int) *(unsigned char *)s1 - (int) *(unsigned char *)s2;
 }
-#endif
-#ifndef HAVE_STRCASECMP
+# endif
+# ifndef HAVE_STRCASECMP
 int
 strcasecmp(const char *s1, const char *s2)
 {
@@ -80,7 +79,7 @@ strcasecmp(const char *s1, const char *s2)
     }
     return(int) *(unsigned char *)s1 - (int) *(unsigned char *)s2;
 }
-#endif
+# endif
 #endif 
 
 
@@ -108,6 +107,8 @@ int SLPCompareString(int str1len,
     /* TODO: fold whitespace and handle escapes*/
     if(str1len == str2len)
     {
+    	if (str1len <= 0)
+	    return(0);
         return strncasecmp(str1,str2,str1len);
     }
     else if(str1len > str2len)
@@ -141,7 +142,6 @@ int SLPCompareNamingAuth(int srvtypelen,
 /*=========================================================================*/
 {
     const char *dot;
-    int srvtypenalen;
 
     if(namingauthlen == 0xffff) /* match all naming authorities */
         return 0;
@@ -162,13 +162,16 @@ int SLPCompareNamingAuth(int srvtypelen,
     if(!namingauthlen)     /* IANA naming authority */
         return dot ? 1 : 0;
 
-    srvtypenalen = srvtypelen - (dot + 1 - srvtype);
+    if (dot)
+    {	    
+	int srvtypenalen = srvtypelen - (dot + 1 - srvtype);
 
-    if(srvtypenalen != namingauthlen)
-        return 1;
+	if(srvtypenalen != namingauthlen)
+	    return 1;
 
-    if(strncasecmp(dot + 1, namingauth, namingauthlen) == 0)
-        return 0;
+	if(strncasecmp(dot + 1, namingauth, namingauthlen) == 0)
+	    return 0;
+    }	
 
     return 1;
 }
