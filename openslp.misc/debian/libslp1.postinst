@@ -1,10 +1,5 @@
 #!/bin/sh
 
-if test -x /sbin/ldconfig
-then
-    /sbin/ldconfig
-fi
-
 if ! grep "CONFIG_IP_MULTICAST=y" /boot/config-`uname -r` >/dev/null
 then
     echo "WARNING: The kernel version that you are currently running does not support" 

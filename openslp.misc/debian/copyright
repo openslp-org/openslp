@@ -1,8 +1,8 @@
-This package was debianized by Ganesan Rajagopal <rganesan@myrealbox.com>.
+This package was debianized by Ganesan Rajagopal <rganesan@debian.org> from
+sources downloaded from
+http://prdownloads.sourceforge.net/openslp/openslp-*.tar.gz. 
 
-It was downloaded from http://prdownloads.sourceforge.net/openslp/openslp-*.tar.gz
-
-Upstream Author(s): Mathew Peterson (mpeterson@calderasystems.com) et al. 
+Upstream Authors: Mathew Peterson (mpeterson@calderasystems.com) et al. 
 
 Copyright:
 

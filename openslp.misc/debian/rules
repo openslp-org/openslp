@@ -1,6 +1,4 @@
 #!/usr/bin/make -f
-# Sample debian/rules that uses debhelper.
-# GNU copyright 1997 to 1999 by Joey Hess.
 
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
@@ -52,6 +50,7 @@ binary-arch: build install
 	dh_testroot
 	dh_installinit
 	dh_installdocs
+	-rm config.cache # fix lintian error
 
         # build libslp${major} package by moving files from slpd package
 	dh_movefiles -plibslp$(major)        \
@@ -64,18 +63,18 @@ binary-arch: build install
 
 	# Remove the installed html documentation (we'll pull it in by 
         # install-docs) into openslp-doc package
-	rm -rf `pwd`/debian/tmp/usr/doc
+	rm -rf debian/tmp/usr/doc
 
         # remove empty directories in slpd package
-	rmdir `pwd`/debian/tmp/usr/include
-	rmdir `pwd`/debian/tmp/usr/lib
+	rmdir debian/tmp/usr/include
+	rmdir debian/tmp/usr/lib
 
 	dh_installexamples
 #	dh_installmenu
 #	dh_installcron
-#	dh_installmanpages
-	dh_undocumented slpd.8
-	dh_undocumented -plibslp-dev slptool.1
+	pwd
+	dh_installman -pslpd debian/slpd.8 
+	dh_installman -plibslp-dev debian/slptool.1
 	dh_installchangelogs ChangeLog
 	dh_link
 	dh_strip

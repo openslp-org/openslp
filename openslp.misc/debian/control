@@ -1,11 +1,13 @@
 Source: openslp
-Build-Depends-Indep: debhelper (>= 3.0.15)
 Section: net
-Priority: optional
-Maintainer: Ganesan Rajagopal <rganesan@myrealbox.com>
+Priority: extra
+Maintainer: Ganesan Rajagopal <rganesan@debian.org>
+Build-Depends: debhelper (>= 3.0.15)
 Standards-Version: 3.5.6.0
 
 Package: slpd
+Section: net
+Priority: extra
 Architecture: any
 Depends: ${shlibs:Depends}
 Suggests: openslp-doc (= ${Source-Version})
@@ -15,12 +17,16 @@ Description: OpenSLP Server (slpd)
  used to discover services on the network.
 
 Package: openslp-doc
+Section: doc
+Priority: extra
 Architecture: all
 Description: OpenSLP documentation
  This is the OpenSLP documentation package. This contains an Introduction to
  SLP, a User's Guide and a Programmer's Guide.
 
 Package: libslp-dev
+Section: devel
+Priority: extra
 Architecture: any
 Depends: libslp1 (= ${Source-Version}), libc6-dev
 Suggests: openslp-doc (= ${Source-Version})
@@ -31,9 +37,14 @@ Description: OpenSLP development libraries
  Location. 
 
 Package: libslp1
+Section: libs
+Priority: extra
 Architecture: any
 Depends: ${shlibs:Depends}
+Recommends: slpd (= ${Source-Version})
 Suggests: openslp-doc (= ${Source-Version})
 Description: OpenSLP libraries
  This is the OpenSLP run-time library package used by applications to
- discover/advertise services on the network.
+ discover/advertise services on the network. You must install the slpd
+ package to be able to advertise the services unless there is a SLP DA in
+ the network. 

@@ -1,2 +1,4 @@
-You must copy the debian directory to the top of the openslp project and
-run debian/rules binary to create debian packages.
+OpenSLP is now officially part of Debian GNU/Linux, sources and binaries can
+be obtained from Debian mirrors. If you want to build a debian package from
+CVS, you must copy the debian directory here to the top of the openslp project
+and run "fakeroot debian/rules binary".

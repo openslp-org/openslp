@@ -1,3 +1,30 @@
+openslp (1.0.2-1) unstable; urgency=low
+
+  * New upstream release
+
+ -- Ganesan Rajagopal <rganesan@debian.org>  Thu, 13 Sep 2001 08:44:24 +0530
+
+openslp (1.0.1-3) unstable; urgency=low
+
+  * Fixed section and priority of packages.
+  * libslp1 now recommends slpd.
+  * Removed CVS stuff from debian directory.
+  * Man pages for slptool and slpd (no open bugs).
+  * Build-Depends-Indep changed to Build-Depends (Closes: #111870).
+
+ -- Ganesan Rajagopal <rganesan@debian.org>  Tue, 11 Sep 2001 08:55:59 +0530
+
+openslp (1.0.1-2) unstable; urgency=low
+
+  * First official debian upload, I am now a debian Developer :-).
+    Closes: #83228
+  * Removed config.cache after build to avoid lintian error.
+  * Modified "Upstream Author(s)" in copyright file to shutup lintian.
+  * Removed ldconfig call in libslp1.postinst (lintian warning).
+  * Changed maintainer field to rganesan@debian.org.
+
+ -- Ganesan Rajagopal <rganesan@debian.org>  Wed, 05 Sep 2001 18:13:08 +0530
+
 openslp (1.0.1-1) unstable; urgency=low
 
   * New upstream version.
