@@ -6,6 +6,10 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 02/13/02 matt@caldera.com
+Added fix from Arun Barboza to make V1 DAAdverts use the same encoding as
+the request
+
+02/13/02 matt@caldera.com
 Fixed a problem in SLPProcessMessage where errorcodes were not being returned
 resulting in attempts to send non-allocated sendbufs (i.e. SEGV).
 
