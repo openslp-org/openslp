@@ -7,9 +7,24 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 
-12/06/00 mpeterson@caldera.com
-Fixed bug where certain services were being ommited from a SrvTypeRply
+12/08/00 rganesan@myrealbox.com
+Second set of 64-bit cleanups - removed converted all size_t datatypes to
+int to be consistent with the rest of the code.
 
+12/07/00 rganesan@myrealbox.com
+Changed AC_OPENSLP_* macros to OPENSLP_* macros as per recommentation in
+the Goat book (autoconf/automake/libtool book by the authors).
+
+12/06/00 mpeterson@caldera.com
+Fixed bug where certain services were being omitted from a SrvTypeRply
+
+12/06/00 rganesan@myrealbox.com
+64-bit cleanups - change timestamps and signatures to int instead of long.
+
+12/06/00 rganesan@myrealbox.com
+Changed v1ProcessDASrvRqst to use SLPDAEntry. Added passive DAAdverts
+for SLPv1.
+	
 *** TAG OpenSLP 0.8.0 ****
 
 11/30/00 mpeterson@caldera.com
