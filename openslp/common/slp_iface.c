@@ -137,7 +137,7 @@ int SLPIfaceGetInfo(const char* useifaces,
                 {
                     /* Only include those interfaces in the requested list */
                     sin = (struct sockaddr_in*)sa;
-                    if(useifaces == NULL ||
+                    if(useifaceslen == 0 ||
                        SLPContainsStringList(useifaceslen,
                                              useifaces,
                                              strlen(inet_ntoa(sin->sin_addr)),

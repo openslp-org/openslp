@@ -5,6 +5,14 @@ Please make entries to this log (in addition to the CVS log) that describe
 major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
+01/24/2002 matt@caldera.com
+Changed the code in slpd_property.c to use the functions in slp_net.c and
+slp_iface.c to get interface and hostname information
+
+01/24/2002 matt@caldera.com
+Moved URL parsing code to common code (slp_parse.c) and added a few network
+utility functions (slp_net.c).  Modified slpd code so that DAs are contacted
+via the IP address in the DAAdvert not the source address of the datagram.
 
 *** Tag merged OpenSLP 1.0.6 ***
 

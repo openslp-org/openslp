@@ -69,6 +69,8 @@
 #include "slp_utf8.h"
 #include "slp_compare.h"
 #include "slp_xid.h"
+#include "slp_parse.h"
+#include "slp_net.h"
 #ifdef ENABLE_SLPv2_SECURITY
     #include "slp_auth.h"
     #include "slp_spi.h"
@@ -100,7 +102,7 @@ int MakeActiveDiscoveryRqst(int ismcast, SLPBuffer* buffer)
     int             errorcode   = 0;
     SLPBuffer       tmp         = 0;
     SLPBuffer       result      = *buffer;
-   
+
     /*-------------------------------------------------*/
     /* Generate a DA service request buffer to be sent */
     /*-------------------------------------------------*/
@@ -354,7 +356,7 @@ void SLPDKnownDADeregisterAll(SLPMessage daadvert)
                 else
                 {
                     size += 6; /* +6 for the static portion of the url-entry */
-		    size += srvreg->urlentry.urllen;
+                    size += srvreg->urlentry.urllen;
                 }
                 size += srvreg->scopelistlen;
                 /* taglistlen is always 0 */
@@ -482,7 +484,7 @@ int SLPDKnownDAInit()
                 *slider2++ = 0;
 
                 daaddr.s_addr = 0;
-                if(inet_aton(slider1, &daaddr) == 0)
+                if (inet_aton(slider1, &daaddr) == 0)
                 {
                     he = gethostbyname(slider1);
                     if (he)
@@ -490,8 +492,8 @@ int SLPDKnownDAInit()
                         daaddr.s_addr = *((unsigned int*)(he->h_addr_list[0]));
                     }
                 }
-                
-                if(daaddr.s_addr)
+
+                if (daaddr.s_addr)
                 {
                     /*--------------------------------------------------------*/
                     /* Get an outgoing socket to the DA and set it up to make */
@@ -581,6 +583,9 @@ int SLPDKnownDAAdd(SLPMessage msg, SLPBuffer buf)
     SLPDatabaseEntry*   entry;
     SLPDAAdvert*        entrydaadvert;
     SLPDAAdvert*        daadvert;
+    struct in_addr      daaddr;
+    int                 isnewda         = 0;
+    SLPParsedSrvUrl*    parsedurl       = NULL;
     int                 result          = 0;
     SLPDatabaseHandle   dh              = NULL;
 
@@ -612,7 +617,7 @@ int SLPDKnownDAAdd(SLPMessage msg, SLPBuffer buf)
                               daadvert->url) == 0 )
         {
 
-            #ifdef ENABLE_SLPv2_SECURITY                
+#ifdef ENABLE_SLPv2_SECURITY                
             if ( G_SlpdProperty.checkSourceAddr &&
                  memcmp(&(entry->msg->peer.sin_addr),
                         &(msg->peer.sin_addr),
@@ -631,9 +636,10 @@ int SLPDKnownDAAdd(SLPMessage msg, SLPBuffer buf)
                 SLPDatabaseClose(dh);
                 result = SLP_ERROR_AUTHENTICATION_FAILED;
                 goto CLEANUP;
-            }
-            #endif
-
+            } 
+            
+#endif
+            
             if ( daadvert->bootstamp != 0 &&
                  daadvert->bootstamp <= entrydaadvert->bootstamp )
             {
@@ -648,52 +654,103 @@ int SLPDKnownDAAdd(SLPMessage msg, SLPBuffer buf)
         }
     }
 
-    if ( entry == 0 )
-    {
-        /* Advertising DA is new to us */
-        SLPDKnownDARegisterAll(msg,0);
-    }
-    else
-    {
-        /* The advertising DA is not new to us, but the old entry   */
-        /* has been deleted from our database so that tne new entry */
-        /* with its up to date time stamp can be put back in        */
-    }
-
     /* Make sure the DA is not dying */
-    if ( daadvert->bootstamp != 0 )
+    if (daadvert->bootstamp != 0)
     {
-        /* Create and link in a new entry */
-        entry = SLPDatabaseEntryCreate(msg,buf);
-        if ( entry )
+        if ( entry == 0 )
         {
-            SLPDatabaseAdd(dh, entry);
-            SLPDLogDAAdvertisement("Addition",entry);
+            /* Advertising DA is new to us */
+            isnewda = 1;
+
+            /* Make sure that the peer address in the DAAdvert matches
+             * the host in the DA service URL.
+             */
+            if (SLPParseSrvUrl(daadvert->urllen,
+                               daadvert->url,
+                               &parsedurl))
+            {
+                /* could not parse the DA service url */
+                result = SLP_ERROR_PARSE_ERROR;
+                goto CLEANUP;
+            }
+            if (SLPNetResolveHostToAddr(parsedurl->host,&daaddr))
+            {
+                /* Unable to resolve the host in the DA advert to an address */
+                xfree(parsedurl);
+                result = SLP_ERROR_PARSE_ERROR;
+                goto CLEANUP;
+            }
+
+            /* free the parsed url created in call to SLPParseSrvUrl() */
+            xfree(parsedurl);
+
+            /* set the peer address in the DAAdvert message so that it matches
+             * the address the DA service URL resolves to 
+             */
+            msg->peer.sin_addr = daaddr;
+
+            /* create a new database entry using the DAAdvert message */
+            entry = SLPDatabaseEntryCreate(msg,buf);
+            if (entry)
+            {
+                SLPDatabaseAdd(dh, entry);
+
+                /* register all the services we know about with this new DA */
+                SLPDKnownDARegisterAll(msg,0);
+
+                /* log the addition of a new DA */
+                SLPDLogDAAdvertisement("Addition",entry);
+            }
+            else
+            {
+                /* Could not create a new entry */
+                result = SLP_ERROR_INTERNAL_ERROR;
+                goto CLEANUP;
+            }
         }
         else
         {
-            result = SLP_ERROR_INTERNAL_ERROR;
-            goto CLEANUP;
+            /* The advertising DA is not new to us, but the old entry   */
+            /* has been deleted from our database so that the new entry */
+            /* with its up to date time stamp can be put back in.       */
+            /* create a new database entry using the DAAdvert message */
+            entry = SLPDatabaseEntryCreate(msg,buf);
+            if (entry)
+            {
+                SLPDatabaseAdd(dh, entry);
+            }
+            else
+            {
+                /* Could not create a new entry */
+                result = SLP_ERROR_INTERNAL_ERROR;
+                goto CLEANUP;
+            }
         }
+
+        SLPDatabaseClose(dh);
+
+        return result;
     }
     else
     {
-        /* Dying DAs are not recorded in our database */
-        goto CLEANUP;
+        /* DA is dying */
+        if (entry)
+        {
+            /* Dying DA was found in our KnownDA database. Log that it
+             * was removed.
+             */
+            SLPDLogDAAdvertisement("Removed",entry);
+        }
     }
 
-    SLPDatabaseClose(dh);
-
-    return result;
-
-CLEANUP:
+    CLEANUP:
     /* If we are here, we need to cleanup the message descriptor and the  */
     /* message buffer because they were not added to the database and not */
     /* cleaning them up would result in a memory leak                     */
     /* We also need to make sure the Database handle is closed.           */
     SLPMessageFree(msg);
     SLPBufferFree(buf);
-    if(dh) SLPDatabaseClose(dh);
+    if (dh) SLPDatabaseClose(dh);
 
     return result;
 }
@@ -852,6 +909,7 @@ int SLPDKnownDAGenerateMyDAAdvert(int errorcode,
 
 
 
+
     /*-------------------------------------------------------------*/
     /* ensure the buffer is big enough to handle the whole srvrply */
     /*-------------------------------------------------------------*/
@@ -952,6 +1010,7 @@ int SLPDKnownDAGenerateMyDAAdvert(int errorcode,
         ToUINT16(result->curpos,0);
         result->curpos = result->curpos + 2;
 #endif
+
 
 
         /* authblock count */
@@ -1239,7 +1298,7 @@ void SLPDKnownDAActiveDiscovery(int seconds)
         return;
     }
     /* When activeDiscoveryXmits is < 0 then we should not xmit any more */
-    if(G_SlpdProperty.activeDiscoveryXmits < 0)
+    if (G_SlpdProperty.activeDiscoveryXmits < 0)
     {
         return ;
     }
@@ -1312,12 +1371,13 @@ void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead)
     SLPDSocket*     v1sock;
 #endif
 
+
     /* SAs don't send passive DAAdverts */
-    if( G_SlpdProperty.isDA == 0)
+    if ( G_SlpdProperty.isDA == 0)
     {
         return;
     }
-    
+
     /* Check to see if we should perform passive DA detection */
     if ( G_SlpdProperty.passiveDADetection == 0 )
     {
@@ -1335,8 +1395,8 @@ void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead)
         {
             peeraddr.s_addr = htonl(SLP_MCAST_ADDRESS);
             sock = SLPDSocketCreateDatagram(&peeraddr,DATAGRAM_MULTICAST);
-            
-            #ifdef ENABLE_SLPv1
+
+#ifdef ENABLE_SLPv1
             if ( !dadead )
             {
                 peeraddr.s_addr = htonl(SLPv1_DA_MCAST_ADDRESS);
@@ -1347,14 +1407,14 @@ void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead)
             {
                 v1sock = NULL;
             }
-            #endif  
+#endif  
         }
         else
         {
             peeraddr.s_addr = htonl(SLP_BCAST_ADDRESS);
             sock = SLPDSocketCreateDatagram(&peeraddr,DATAGRAM_BROADCAST);
-            
-            #ifdef ENABLE_SLPv1
+
+#ifdef ENABLE_SLPv1
             if ( !dadead )
             {
                 v1sock = SLPDSocketCreateDatagram(&peeraddr,DATAGRAM_BROADCAST);
@@ -1363,14 +1423,14 @@ void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead)
             {
                 v1sock = NULL;
             }
-            #endif
+#endif
         }
 
         /* Generate the DAAdvert and link it to the write list */
         if ( sock )
         {
-            if(SLPDKnownDAGenerateMyDAAdvert(0,dadead,0,&(sock->sendbuf)) == 0)
-            {   
+            if (SLPDKnownDAGenerateMyDAAdvert(0,dadead,0,&(sock->sendbuf)) == 0)
+            {
                 SLPDOutgoingDatagramWrite(sock);
             }
             else
@@ -1379,16 +1439,16 @@ void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead)
             }
         }
 
-        #ifdef ENABLE_SLPv1
+#ifdef ENABLE_SLPv1
         if ( v1sock )
         {
             /* SLPv1 does not support shutdown messages */
-            
+
             /* Generate the DAAdvert and write it */
-            if(SLPDKnownDAGenerateMyV1DAAdvert(0,
-                                               SLP_CHAR_UTF8,
-                                               SLPXidGenerate(),
-                                               &(v1sock->sendbuf)) == 0)
+            if (SLPDKnownDAGenerateMyV1DAAdvert(0,
+                                                SLP_CHAR_UTF8,
+                                                SLPXidGenerate(),
+                                                &(v1sock->sendbuf)) == 0)
             {
                 SLPDOutgoingDatagramWrite(v1sock);
             }
@@ -1397,7 +1457,7 @@ void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead)
                 SLPDSocketFree(v1sock);
             }
         }
-        #endif
+#endif
     }
     else
     {

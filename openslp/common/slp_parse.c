@@ -54,7 +54,7 @@
 /*=========================================================================*/
 int SLPParseSrvUrl(int srvurllen,
                    const char* srvurl,
-                   SLPParsedSrvURL** parsedurl)
+                   SLPParsedSrvUrl** parsedurl)
 /*                                            
  * Description:
  *    Parses a service URL into its parts                             
@@ -62,7 +62,7 @@ int SLPParseSrvUrl(int srvurllen,
  * Parameters:
  *    srvurllen (IN) size of srvurl in bytes
  *    srvurl    (IN) pointer to service URL to parse
- *    parsedurl (OUT) pointer to SLPParsedSrvURL pointer that will be
+ *    parsedurl (OUT) pointer to SLPParsedSrvUrl pointer that will be
  *                    set to xmalloc()ed parsed url parts.  Returned
  *                    pointer must be freed by caller with call to xfree() 
  *                                                                         
@@ -70,20 +70,20 @@ int SLPParseSrvUrl(int srvurllen,
  *=========================================================================*/
 {
     char*   empty;   /* always points to an empty string */
-    char*   buf;     /* points to location in the SLPSrvURL buffer */
+    char*   buf;     /* points to location in the SLPSrvUrl buffer */
     char*   slider1; /* points to parse locations in srvurl */
     char*   slider2; /* points to parse locations srvurl */
     char*   end;     /* points at the end of srvurl */
     
     /* Allocate memory and set up sliders */
-    *parsedurl = (SLPParsedSrvURL*)xmalloc(srvurllen + sizeof(SLPParsedSrvURL) + 5);
+    *parsedurl = (SLPParsedSrvUrl*)xmalloc(srvurllen + sizeof(SLPParsedSrvUrl) + 5);
     /* +5 ensures space for 5 null terminations */
     if(*parsedurl == 0)
     {
         return ENOMEM;
     }
-    memset(*parsedurl,0,srvurllen + sizeof(SLPParsedSrvURL) + 5);    
-    buf = ((char*)*parsedurl) + sizeof(SLPParsedSrvURL);
+    memset(*parsedurl,0,srvurllen + sizeof(SLPParsedSrvUrl) + 5);    
+    buf = ((char*)*parsedurl) + sizeof(SLPParsedSrvUrl);
     slider1 = slider2 = (char*)srvurl;
     end = slider1 + srvurllen;
 
@@ -169,14 +169,14 @@ int SLPParseSrvUrl(int srvurllen,
 
 int main(int argc, char* argv[])
 {
-    SLPParsedSrvURL* parsedurl;
+    SLPParsedSrvUrl* parsedurl;
     
     printf("Testing srvurl:   %s\n",TESTURL1);
-    if(SLPParseSrvURL(strlen(TESTURL1),
+    if(SLPParseSrvUrl(strlen(TESTURL1),
                       TESTURL1,
                       &parsedurl) != 0)
     {
-        printf("FAILURE: SLPParseSrvURL returned error\n");
+        printf("FAILURE: SLPParseSrvUrl returned error\n");
         return -1;
     }
     if(strcmp(parsedurl->srvtype,TESTSRVTYPE1))
@@ -207,11 +207,11 @@ int main(int argc, char* argv[])
 
     /* TESTURL2 */
     printf("Testing srvurl:   %s\n",TESTURL2);
-    if(SLPParseSrvURL(strlen(TESTURL2),
+    if(SLPParseSrvUrl(strlen(TESTURL2),
                       TESTURL2,
                       &parsedurl) != 0)
     {
-        printf("FAILURE: SLPParseSrvURL returned error\n");
+        printf("FAILURE: SLPParseSrvUrl returned error\n");
         return -1;
     }
     if(strcmp(parsedurl->srvtype,TESTSRVTYPE1))
@@ -244,11 +244,11 @@ int main(int argc, char* argv[])
 
     /* TESTURL3 */
     printf("Testing srvurl:   %s\n",TESTURL3);
-    if(SLPParseSrvURL(strlen(TESTURL3),
+    if(SLPParseSrvUrl(strlen(TESTURL3),
                       TESTURL3,
                       &parsedurl) != 0)
     {
-        printf("FAILURE: SLPParseSrvURL returned error\n");
+        printf("FAILURE: SLPParseSrvUrl returned error\n");
         return -1;
     }
     if(strcmp(parsedurl->srvtype,TESTSRVTYPE1))
@@ -282,11 +282,11 @@ int main(int argc, char* argv[])
 
     /* TESTURL4 */
     printf("Testing srvurl:   %s\n",TESTURL4);
-    if(SLPParseSrvURL(strlen(TESTURL4),
+    if(SLPParseSrvUrl(strlen(TESTURL4),
                       TESTURL4,
                       &parsedurl) == 0)
     {
-        printf("FAILURE: SLPParseSrvURL should have returned an error\n");
+        printf("FAILURE: SLPParseSrvUrl should have returned an error\n");
         
     }
     else

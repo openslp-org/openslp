@@ -101,7 +101,7 @@ SLPError SLPParseSrvURL(const char *pcSrvURL,
 {
     int result = SLPParseSrvUrl(strlen(pcSrvURL),
                                 pcSrvURL,
-                                (SLPParsedSrvURL**) ppSrvURL);
+                                (SLPParsedSrvUrl**) ppSrvURL);
     switch(result)
     {
     case ENOMEM:

@@ -49,7 +49,7 @@
 #ifndef SLP_PARSE_H_INCLUDED
 #define SLP_PARSE_H_INCLUDED
 
-typedef struct _SLPParsedSrvURL
+typedef struct _SLPParsedSrvUrl
 {
     char* srvtype ;
     /* A pointer to a character string containing the service              
@@ -80,12 +80,12 @@ typedef struct _SLPParsedSrvURL
     /* The remainder of the URL, after the host identification.            
      */
 
-} SLPParsedSrvURL;
+} SLPParsedSrvUrl;
 
 /*=========================================================================*/
 int SLPParseSrvUrl(int srvurllen,
                    const char* srvurl,
-                   SLPParsedSrvURL** parsedurl);
+                   SLPParsedSrvUrl** parsedurl);
 /*                                            
  * Description:
  *    Parses a service URL into its parts                             
@@ -93,7 +93,7 @@ int SLPParseSrvUrl(int srvurllen,
  * Parameters:
  *    srvurllen (IN) size of srvurl in bytes
  *    srvurl    (IN) pointer to service URL to parse
- *    parsedurl (OUT) pointer to SLPParsedSrvURL pointer that will be
+ *    parsedurl (OUT) pointer to SLPParsedSrvUrl pointer that will be
  *                    set to xmalloc()ed parsed url parts.  Returned
  *                    pointer must be freed by caller with call to xfree() 
  *                                                                         
