@@ -174,7 +174,7 @@ int SetDefaultValues()
     result |= SLPPropertySet("net.slp.passiveDADetection","true");
     result |= SLPPropertySet("net.slp.useScopes","DEFAULT");
     result |= SLPPropertySet("net.slp.locale","en");
-    result |= SLPPropertySet("net.slp.randomWaitBound","1000");
+    result |= SLPPropertySet("net.slp.randomWaitBound","5000");
     result |= SLPPropertySet("net.slp.interfaces","");
     result |= SLPPropertySet("net.slp.securityEnabled","false");
     result |= SLPPropertySet("net.slp.multicastTTL","8");
