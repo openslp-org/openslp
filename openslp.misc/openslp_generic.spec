@@ -1,5 +1,5 @@
 %define	ver 1.0.0pre1
-%define	rel 3
+%define	rel 4
 %define	name openslp
 %define libver 1.0.0
 
@@ -7,7 +7,7 @@ Name        	: openslp
 Version     	: %ver
 Release     	: %rel
 Group       	: Server/Network
-Provides        : openslp libslp.so slpd
+Provides        : openslp libslp.so libslp.so.0 slpd
 Obsoletes	: openslp-server
 Summary     	: OpenSLP implementation of Service Location Protocol V2 
 Copyright   	: Caldera Systems (BSD)
@@ -41,7 +41,7 @@ cp etc/slp.conf $DESTDIR/etc
 cp etc/slp.reg $DESTDIR/etc
 mkdir -p $DESTDIR/usr/lib
 libtool install libslp/libslp.la $DESTDIR/usr/lib
-ln -s libslp.so.%{libver}  $DESTDIR/usr/lib/libslp.so.0
+ln -s libslp.so.%{libver} $DESTDIR/usr/lib/libslp.so.0
 mkdir -p  $DESTDIR/usr/sbin
 libtool install slpd/slpd $DESTDIR/usr/sbin 
 mkdir -p $DESTDIR/usr/bin
@@ -62,6 +62,9 @@ install -m 755 etc/slpd.all_init $DESTDIR/etc/rc.d/init.d/slpd
 
 %Clean
 rm -rf $RPM_BUILD_ROOT/usr
+
+%Pre
+rm -f /usr/lib/libslp*
 
 %Post
 rm -f /usr/lib/libslp.so
