@@ -4,12 +4,12 @@
 #
 # slpd    Start/Stop the OpenSLP SA daemon (slpd).
 #
-# chkconfig: 345 40 60
+# chkconfig: 345 13 87
 # description: OpenSLP daemon for the Service Location Protocol
 # processname: slpd
 
 # Author: Miquel van Smoorenburg, <miquels@drinkel.nl.mugnet.org>
-#         Modified for RHS Linux by Damien Neil
+#     Modified for RHS Linux by Damien Neil
 #     Modified for COL by Raymund Will, <ray@lst.de>
 #     Modified for OpenSLP by Matt Peterson <mpeterson@calderasystems.com>
 #     Modified to be distribution agnostic by Bart Whiteley <bart@caldera.com>
