@@ -1,11 +1,17 @@
 NEWS - list of user-visible changes between releases of OpenSLP
 
-New in openslp-0.8.0: (2000-??-??)
+
+
+New in openslp-0.7.7: (2000-10-11)
 ----------------------------------
 * OpenSLP now supports SLPv1 when run as a DA.
+* TCP stream reusage was added to libslp and slpd
+* Correction of many active DA discovery problems were made in slpd
+* Predicate features from 0.7.6 are not build by default because of a
+  few problems that will be corrected for 0.7.8         
 
 
-New in openslp-0.7.6: (2000-10-28)
+New in openslp-0.7.6: (2000-9-28)
 ----------------------------------
 * OpenSLP ported to FreeBSD. Compaq Tru64 support is also complete.
 * Full predicate support has been added to OpenSLP.  slpd will now correctly 

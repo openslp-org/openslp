@@ -8,6 +8,16 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 
+*** TAG OpenSLP 0.7.7 ***
+
+10/11/00 mpeterson@caldera.com
+Rewrote the README file and removed README.CVS.
+
+10/11/00 mpeterson@caldera.com
+Made changes to configure.in so that new predicate code is not build by
+default.  Also added old predicate code back in (behind #ifdefs) so that at
+least the original functionality will be there for 0.7.7
+
 10/06/00 mpeterson@caldera.com
 Added code to make libslp reuse TCP connections
 
