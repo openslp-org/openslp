@@ -110,15 +110,12 @@ int SLPPropertySet(const char *pcName,
     int             pcValueSize;
     SLPProperty*    newProperty; 
 
-    /* TODO: Fix this when we support SLPSetProperty() so that setting a */
-    /*       value to the empty string will revert to default in         */
-    /*       cases (like net.slp.useScopes, and others)                  */
-    if(pcValue == 0 || *pcValue == 0)
+    if(pcValue == 0)
     {
        /* Bail for right now */
        return 0;
     }
-   
+    
     newProperty = Find(pcName);
     pcNameSize = strlen(pcName) + 1;
     pcValueSize = strlen(pcValue) + 1;
@@ -315,7 +312,10 @@ int SLPPropertyReadFile(const char* conffile)
         }
 
         /* set the property */
-        SLPPropertySet(namestart, valuestart);
+        if(valuestart && *valuestart)
+        {
+            SLPPropertySet(namestart, valuestart);
+        }
     }   
 
 
