@@ -121,20 +121,23 @@ int NetworkConnectToSlpd(struct sockaddr_in* peeraddr)
 #else
     int lowat;
 #endif
-    int result;
-     
+    int result;     
+
     result = socket(AF_INET,SOCK_STREAM,0);
     if(result >= 0)
     {
         peeraddr->sin_family      = AF_INET;
         peeraddr->sin_port        = htons(SLP_RESERVED_PORT);
         peeraddr->sin_addr.s_addr = htonl(LOOPBACK_ADDRESS);
+        
+        /* TODO: the following connect() could block for a long time.  */
+
         if(connect(result,
                    (struct sockaddr*)peeraddr,
                    sizeof(struct sockaddr_in)) == 0)
         {
              /* set the receive and send buffer low water mark to 18 bytes 
-            (the length of the smallest slpv2 message) */
+            (the length of the smallest slpv2 message) */   
             lowat = 18;
             setsockopt(result,SOL_SOCKET,SO_RCVLOWAT,&lowat,sizeof(lowat));
             setsockopt(result,SOL_SOCKET,SO_SNDLOWAT,&lowat,sizeof(lowat));

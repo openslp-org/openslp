@@ -40,9 +40,10 @@ SLPList G_DatabaseList = {0,0,0};
 /*=========================================================================*/
 
 
-/*-------------------------------------------------------------------------*/
-void FreeEntry(SLPDDatabaseEntry* entry)
-/*-------------------------------------------------------------------------*/
+/*=========================================================================*/
+void SLPDDatabaseEntryFree(SLPDDatabaseEntry* entry)
+/* Free all resource related to the specified entry                        */
+/*=========================================================================*/
 {
     if(entry)
     {
@@ -65,7 +66,7 @@ void FreeAllEntries(SLPList* list)
 {
     while(list->count)
     {
-        FreeEntry((SLPDDatabaseEntry*)SLPListUnlink(list,list->head));
+        SLPDDatabaseEntryFree((SLPDDatabaseEntry*)SLPListUnlink(list,list->head));
     }
 }
 
@@ -100,7 +101,7 @@ void SLPDDatabaseAge(int seconds)
 
         if(del)
         {
-            FreeEntry((SLPDDatabaseEntry*)SLPListUnlink(&G_DatabaseList,(SLPListItem*)del));
+            SLPDDatabaseEntryFree((SLPDDatabaseEntry*)SLPListUnlink(&G_DatabaseList,(SLPListItem*)del));
             del = 0;
         }
     }
@@ -109,18 +110,12 @@ void SLPDDatabaseAge(int seconds)
 
 /*=========================================================================*/
 int SLPDDatabaseReg(SLPSrvReg* srvreg,
-                    int fresh,
-                    pid_t pid,
-                    uid_t uid)
+                    int fresh)
 /* Add a service registration to the database                              */
 /*                                                                         */
 /* srvreg   -   (IN) pointer to the SLPSrvReg to be added to the database  */
 /*                                                                         */
 /* fresh    -   (IN) pass in nonzero if the registration is fresh.         */
-/*                                                                         */
-/* pid      -   (IN) process id of the process that registered the service */
-/*                                                                         */
-/* uid      -   (IN) user id of the user that registered the service       */
 /*                                                                         */
 /* Returns  -   Zero on success.  non-zero on error                        */
 /*                                                                         */
@@ -261,7 +256,7 @@ int SLPDDatabaseDeReg(SLPSrvDeReg* srvdereg)
 
         if(del)
         {
-            FreeEntry((SLPDDatabaseEntry*)SLPListUnlink(&G_DatabaseList,(SLPListItem*)del));
+            SLPDDatabaseEntryFree((SLPDDatabaseEntry*)SLPListUnlink(&G_DatabaseList,(SLPListItem*)del));
             del = 0;
         }
     }

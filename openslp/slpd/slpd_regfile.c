@@ -369,7 +369,7 @@ SLPDDatabaseEntry* SLPDRegFileReadEntry(FILE* fd, SLPDDatabaseEntry** entry)
 SLPD_ERROR:
     if(*entry)
     {
-        FreeEntry(*entry);
+        SLPDDatabaseEntryFree(*entry);
 		*entry = 0;
     }
 

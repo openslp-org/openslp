@@ -40,12 +40,101 @@ SLPList G_KnownDAList = {0,0,0};
 
 
 /*-------------------------------------------------------------------------*/
+void LoadSocketFromDatabaseEntry(SLPDSocket* sock, 
+                                 SLPDDatabaseEntry* dbentry)
+/*-------------------------------------------------------------------------*/
+{
+      
+}
+
+
+/*-------------------------------------------------------------------------*/
 void SLPDKnownDARegisterAll(SLPDAEntry* daentry)
 /* Forks a child process to register all services with specified DA        */
 /*-------------------------------------------------------------------------*/
 {
-    /* Child process should random wait */
-}   
+    #if(0)
+    fd_set              readfds;
+    fd_set              writefds;
+    int                 finished;
+    SLPDDatabaseEntry*  dbentry;
+    SLPDSocket*         sock        = 0;
+
+    /* Fork child process */
+    /* Parent process returns */
+    /* Child process performs a random wait */
+    /* Child registers all entries with specified DA */
+    
+    switch(fork())
+    {
+    case 0:
+        /* parent */
+        return;
+    case -1:
+        /* error forking */
+        /* TODO: Log error condition */
+        return;
+    default:
+        /* child process */
+        break;
+    }
+
+    /* Set up to iterate through the database */
+
+    /* TODO: we really need to change the database API to be a more usable */
+    /*       iterator based API                                            */
+    dbentry = (SLPDDatabaseEntry*)G_DatabaseList.head;
+
+    /* Child process performs a random delay */
+    srand(G_SlpdProperty.randomWaitSeed);
+    usleep(1+(int)(10.0*rand()/(G_SlpdProperty.randomWaitBound + 1.0)));
+
+    /* Establish a new connection with the known DA */
+    sock = SLPDSocketCreateConnected(&(daentry->daaddr));
+    if(sock)
+    {
+        finished = 0;
+        while(finished == 0)
+        {
+            FD_ZERO(readfds);
+            FD_ZERO(writefds);
+    
+            switch(sock->state)
+            {
+            case STREAM_READ:
+            case STREAM_READ_FIRST:
+                FD_SET(sock->fd,readfds);
+                break;
+            
+            case STREAM_FIRST_WRITE:
+                if(dbentry == 0)
+                {
+                    finished = 1;
+                    break;
+                }
+                LoadSocketFromDatabaseEntry(sock,dbentry);
+                dbentry = dbentry->next;
+                /* no break here on purpose */
+            case STREAM_WRITE:
+            case STREAM_CONNECT_BLOCK:
+                FD_SET(sock->fd,writefds);
+                break;
+            
+            default:
+                finished = 1;
+                break;
+            }
+        }
+
+        SLPDSocketFree(sock);
+    }
+    
+    /* Exit the child process */
+    exit(0);
+
+    #endif
+}  
+
 
 /*=========================================================================*/
 int SLPDKnownDAInit()
@@ -446,7 +535,6 @@ void SLPDKnownDAActiveDiscovery()
     /*-------------------------------------*/
     /* Add the socket to the outgoing list */
     /*-------------------------------------*/
-    SLPDOutgoingDatagramWrite(sock);  
-
+    SLPDOutgoingDatagramWrite(sock); 
 }
 

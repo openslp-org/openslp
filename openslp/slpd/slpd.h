@@ -66,7 +66,6 @@
 #define MAX_PATH    256
 #endif
 
-#define SLPDPROCESS_RESULT_COUNT    256  
 #define SLPD_SMALLEST_MESSAGE       18   /* 18 bytes is smallest SLPv2 msg */
 #define SLPD_MAX_SOCKETS            64   /* maximum number of sockets */
 #define SLPD_COMFORT_SOCKETS        32   /* a comfortable number of sockets */
@@ -143,6 +142,8 @@ typedef struct _SLPDProperty
     int             multicastMaximumWait;
     int             unicastMaximumWait;  
     int             randomWaitBound;
+    int             maxResults;
+    time_t          randomWaitSeed;
     int             traceMsg;
     int             traceReg;
     int             traceDrop;
@@ -183,8 +184,7 @@ typedef struct _SLPDDatabaseSrvUrl
 {
     int     lifetime;
     int     urllen;
-    char*   url; 
-    
+    char*   url;
     /* TODO: we might need some authblock storage here */
 }SLPDDatabaseSrvUrl;
 
@@ -196,7 +196,6 @@ typedef struct _SLPDDatabaseSrvType
 {
     int     typelen;
     char*   type;
-    
     /* TODO: we might need some authblock storage here */
 }SLPDDatabaseSrvType;
 
@@ -248,10 +247,8 @@ SLPDDatabaseEntry *SLPDDatabaseEntryAlloc();
 
 
 /*=========================================================================*/
-void FreeEntry(SLPDDatabaseEntry* entry);
-/* Deallocates a database entry, and any memory that may be associated     */
-/* with it.                                                                */
-/*                                                                         */
+void SLPDDatabaseEntryFree(SLPDDatabaseEntry* entry);
+/* Free all resource related to the specified entry                        */
 /*=========================================================================*/
 
 
@@ -267,18 +264,12 @@ void SLPDDatabaseAge(int seconds);
 
 /*=========================================================================*/
 int SLPDDatabaseReg(SLPSrvReg* srvreg,
-                    int fresh,
-                    pid_t pid,
-                    uid_t uid);
+                    int fresh);
 /* Add a service registration to the database                              */
 /*                                                                         */
 /* srvreg   -   (IN) pointer to the SLPSrvReg to be added to the database  */
 /*                                                                         */
 /* fresh    -   (IN) pass in nonzero if the registration is fresh.         */
-/*                                                                         */
-/* pid      -   (IN) process id of the process that registered the service */
-/*                                                                         */
-/* uid      -   (IN) user id of the user that registered the service       */
 /*                                                                         */
 /* Returns  -   Zero on success.  non-zero on error                        */
 /*                                                                         */

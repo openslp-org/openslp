@@ -221,7 +221,7 @@ int ProcessDASrvRqst(struct sockaddr_in* peeraddr,
         {
             G_SlpdProperty.DATimestamp = 1;
         }
-    }
+    } 
 
 
     /*----------------*/
@@ -357,7 +357,7 @@ int ProcessSrvRqst(struct sockaddr_in* peeraddr,
         /*-------------------------------*/
         while(found == count)
         {
-            count += SLPDPROCESS_RESULT_COUNT;
+            count += G_SlpdProperty.maxResults;
 
             if(srvarray) free(srvarray);
             srvarray = (SLPDDatabaseSrvUrl*)malloc(sizeof(SLPDDatabaseSrvUrl) * count);
@@ -375,6 +375,12 @@ int ProcessSrvRqst(struct sockaddr_in* peeraddr,
                 errorcode   = SLP_ERROR_INTERNAL_ERROR;
                 break;
             }
+        }
+
+        /* remember the amount found if is really big for next time */
+        if (found > G_SlpdProperty.maxResults)
+        {
+            G_SlpdProperty.maxResults = found;
         }
     }
     else
@@ -512,12 +518,6 @@ int ProcessSrvReg(struct sockaddr_in* peeraddr,
                               G_SlpdProperty.useScopesLen,
                               G_SlpdProperty.useScopes))
     {
-        int uid;
-#ifdef WIN32
-        uid = 0; /* no equivalent of UID on Windows */
-#else
-        uid = getuid();
-#endif
 
         /*-------------------------------*/
         /* TODO: Validate the authblocks */
@@ -528,9 +528,7 @@ int ProcessSrvReg(struct sockaddr_in* peeraddr,
         /* put the service in the database */
         /*---------------------------------*/
         if(SLPDDatabaseReg(&(message->body.srvreg),
-                           message->header.flags | SLP_FLAG_FRESH,
-                           getpid(),
-                           uid) == 0)
+                           message->header.flags | SLP_FLAG_FRESH) == 0)
         {
             errorcode = 0;
         }
@@ -761,36 +759,44 @@ int ProcessAttrRqst(struct sockaddr_in* peeraddr,
     if(SLPIntersectStringList(message->body.attrrqst.scopelistlen,
                               message->body.attrrqst.scopelist,
                               G_SlpdProperty.useScopesLen,
-                              G_SlpdProperty.useScopes) == 0)
+                              G_SlpdProperty.useScopes) )
+    {
+        /*-------------------------------*/
+        /* Find attributes in the database */
+        /*-------------------------------*/
+        while(found == count)
+        {
+            count +=  G_SlpdProperty.maxResults;
+    
+            if(attrarray) free(attrarray);
+            attrarray = (SLPDDatabaseAttr*)malloc(sizeof(SLPDDatabaseAttr) * count);
+            if(attrarray == 0)
+            {
+                found       = 0;
+                errorcode   = SLP_ERROR_INTERNAL_ERROR;
+                break;
+            }
+    
+            found = SLPDDatabaseFindAttr(&(message->body.attrrqst), attrarray, count);
+            if(found < 0)
+            {
+                found = 0;
+                errorcode   = SLP_ERROR_INTERNAL_ERROR;
+                break;
+            }
+        }
+    
+        /* remember the amount found if is really big for next time */
+        if (found > G_SlpdProperty.maxResults)
+        {
+            G_SlpdProperty.maxResults = found;
+        }
+    }
+    else
     {
         errorcode = SLP_ERROR_SCOPE_NOT_SUPPORTED;
     }
-
-    /*-------------------------------*/
-    /* Find attributes in the database */
-    /*-------------------------------*/
-    while(found == count)
-    {
-        count += SLPDPROCESS_RESULT_COUNT;
-
-        if(attrarray) free(attrarray);
-        attrarray = (SLPDDatabaseAttr*)malloc(sizeof(SLPDDatabaseAttr) * count);
-        if(attrarray == 0)
-        {
-            found       = 0;
-            errorcode   = SLP_ERROR_INTERNAL_ERROR;
-            break;
-        }
-
-        found = SLPDDatabaseFindAttr(&(message->body.attrrqst), attrarray, count);
-        if(found < 0)
-        {
-            found = 0;
-            errorcode   = SLP_ERROR_INTERNAL_ERROR;
-            break;
-        }
-    }
-
+    
 
     RESPOND:
     /*----------------------------------------------------------------*/
@@ -1003,7 +1009,7 @@ int ProcessSrvTypeRqst(struct sockaddr_in* peeraddr,
         /*------------------------------------*/
         while(found == count)
         {
-            count += SLPDPROCESS_RESULT_COUNT;
+            count += G_SlpdProperty.maxResults;
 
             if(srvtypearray) free(srvtypearray);
             srvtypearray = (SLPDDatabaseSrvType*)malloc(sizeof(SLPDDatabaseSrvType) * count);
@@ -1021,6 +1027,12 @@ int ProcessSrvTypeRqst(struct sockaddr_in* peeraddr,
                 errorcode   = SLP_ERROR_INTERNAL_ERROR;
                 break;
             }
+        }
+
+        /* remember the amount found if is really big for next time */
+        if (found > G_SlpdProperty.maxResults)
+        {
+            G_SlpdProperty.maxResults = found;
         }
     }
     else

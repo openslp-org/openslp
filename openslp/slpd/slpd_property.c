@@ -192,6 +192,7 @@ void SLPDPropertyInit(const char* conffile)
     G_SlpdProperty.multicastMaximumWait = atoi(SLPPropertyGet("net.slp.multicastMaximumWait"));
     G_SlpdProperty.unicastMaximumWait = atoi(SLPPropertyGet("net.slp.unicastMaximumWait"));
     G_SlpdProperty.randomWaitBound = atoi(SLPPropertyGet("net.slp.randomWaitBound"));
+    G_SlpdProperty.maxResults = atoi(SLPPropertyGet("net.slp.maxResults"));
     G_SlpdProperty.traceMsg = SLPPropertyAsBoolean(SLPPropertyGet("net.slp.traceMsg"));
     G_SlpdProperty.traceReg = SLPPropertyAsBoolean(SLPPropertyGet("net.slp.traceReg"));
     G_SlpdProperty.traceDrop = SLPPropertyAsBoolean(SLPPropertyGet("net.slp.traceDrop"));
@@ -248,6 +249,7 @@ void SLPDPropertyInit(const char* conffile)
     /*----------------------------------*/     
     G_SlpdProperty.DATimestamp = 1;  /* DATimestamp must start at 1 */
     G_SlpdProperty.activeDiscoveryAttempts = G_SlpdProperty.activeDADetection * 4;
+    G_SlpdProperty.randomWaitSeed = time(&G_SlpdProperty.randomWaitSeed);
 }
 
 

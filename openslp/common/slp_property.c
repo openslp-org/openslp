@@ -164,6 +164,7 @@ int SetDefaultValues()
     result |= SLPPropertySet("net.slp.unicastTimeouts","500,750,1000,1500,2000,3000");
     result |= SLPPropertySet("net.slp.unicastMaximumWait","5000");
     result |= SLPPropertySet("net.slp.datagramTimeouts","");
+    result |= SLPPropertySet("net.slp.maxResults","256");
     result |= SLPPropertySet("net.slp.DADiscoveryTimeouts","500,750,1000,1500,2000,3000");
     result |= SLPPropertySet("net.slp.DADiscoveryMaximumWait","2000");
     result |= SLPPropertySet("net.slp.DAActiveDiscoveryInterval","900");
