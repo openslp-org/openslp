@@ -62,7 +62,7 @@ int SLPNetworkConnectStream(struct sockaddr_in* peeraddr,
 /*=========================================================================*/ 
 {
 #ifdef WIN32
-  char lowat;
+    char lowat;
 #else
     int lowat;
 #endif
@@ -300,7 +300,7 @@ int SLPNetworkRecvMessage(int sockfd,
     int         xferbytes;
     fd_set      readfds;
     char        peek[16];
-    int         peeraddrlen = sizeof(struct sockaddr_in);
+    socklen_t   peeraddrlen = sizeof(struct sockaddr_in);
     
     /*---------------------------------------------------------------*/
     /* take a peek at the packet to get version and size information */
