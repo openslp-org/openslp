@@ -220,7 +220,7 @@ int SLPNetSetSockAddrStorageFromAddrInfo(struct sockaddr_storage *dst, struct ad
  *-------------------------------------------------------------------------*/
 
 
-int SLPNetSockAddrStorageToString(struct sockaddr_storage *src, char *dst, int dstLen);
+char * SLPNetSockAddrStorageToString(struct sockaddr_storage *src, char *dst, int dstLen);
 /*
  * Description:
  *    Used to obtain a string representation of the network portion of a sockaddr_storage struct
@@ -232,7 +232,7 @@ int SLPNetSockAddrStorageToString(struct sockaddr_storage *src, char *dst, int d
  *                   ("x:x:..:x" for IPV6)
  *  (out) dstLen    The number of bytes that may be copied into dst
  *
- * Returns: 0 if address set correctly, non-zero there were errors setting dst
+ * Returns: dst if address set correctly, NULL if there were errors setting dst
  *-------------------------------------------------------------------------*/
 
 int SLPNetAddrInfoToString(struct addrinfo *src, char *dst, int dstLen);

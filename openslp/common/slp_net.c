@@ -79,9 +79,6 @@ int SLPNetGetThisHostname(char* hostfdn, unsigned int hostfdnLen, int numeric_on
     memset(&hints, 0, sizeof(hints));
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_family = family;
-    if (numeric_only) {
-        hints.ai_flags = AI_NUMERICHOST;
-    }
     if(gethostname(host, MAX_HOST_NAME) == 0)
     {
         sts = getaddrinfo(host, NULL, &hints, &ifaddr);
@@ -271,9 +268,9 @@ int SLPNetSetSockAddrStorageFromAddrInfo(struct sockaddr_storage *dst, struct ad
  *                   ("x:x:..:x" for IPV6)
  *  (out) dstLen    The number of bytes that may be copied into dst
  *
- * Returns: 0 if address set correctly, non-zero there were errors setting dst
+ * Returns: dst if address set correctly, NULL if there were errors setting dst
  *-------------------------------------------------------------------------*/
-int SLPNetSockAddrStorageToString(struct sockaddr_storage *src, char *dst, int dstLen) {
+char * SLPNetSockAddrStorageToString(struct sockaddr_storage *src, char *dst, int dstLen) {
     if (src->ss_family = AF_INET) {
         struct sockaddr_in *v4 = (struct sockaddr_in *) src;
 
@@ -285,9 +282,9 @@ int SLPNetSockAddrStorageToString(struct sockaddr_storage *src, char *dst, int d
         inet_ntop(v6->sin6_family, &v6->sin6_addr, dst, dstLen);
     }
     else {
-        return(-1);
+        return(dst);
     }
-    return(0);
+    return(NULL);
 }
 
 

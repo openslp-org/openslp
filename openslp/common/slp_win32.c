@@ -14,9 +14,19 @@ int inet_pton(int af, const char *src, void *dst) {
         hints.ai_protocol = AF_INET;
         sts = getaddrinfo(src, NULL, &hints, &res);
         if (sts == 0) {
-            sts = 1;
-            d4Src = &(((struct sockaddr_in *)res->ai_addr)->sin_addr);
-            memcpy(&d4Dst->s_addr, &d4Src->s_addr, 4); 
+            struct addrinfo * aicheck = res;
+            while (aicheck != NULL) {
+                if (aicheck->ai_addr->sa_family == af) {
+                    sts = 1;
+                    d4Src = &(((struct sockaddr_in *)res->ai_addr)->sin_addr);
+                    memcpy(&d4Dst->s_addr, &d4Src->s_addr, 4);
+                    break;
+                }
+                else {
+                    aicheck = aicheck->ai_next;
+                }
+            }
+            /* if aicheck was NULL, sts will still be 0, if not, sts will be 1 */
         }
         else {
             sts = 0;
@@ -28,9 +38,19 @@ int inet_pton(int af, const char *src, void *dst) {
         hints.ai_protocol = AF_INET6;
         sts = getaddrinfo(src, NULL, &hints, &res);
         if (sts == 0) {
-            sts = 1;
-            d6Src = &(((struct sockaddr_in6 *)res->ai_addr)->sin6_addr);
-            memcpy(&d6Dst->s6_addr, &d6Src->s6_addr, 16); 
+            struct addrinfo * aicheck = res;
+            while (aicheck != NULL) {
+                if (aicheck->ai_addr->sa_family == af) {
+                    sts = 1;
+                    d6Src = &(((struct sockaddr_in6 *)res->ai_addr)->sin6_addr);
+                    memcpy(&d6Dst->s6_addr, &d6Src->s6_addr, 16); 
+                    break;
+                }
+                else {
+                    aicheck = aicheck->ai_next;
+                }
+            }
+            /* if aicheck was NULL, sts will still be 0, if not, sts will be 1 */
         }
         else {
             sts = 0;
