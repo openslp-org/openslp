@@ -16,7 +16,10 @@ noinst_PROGRAMS = slpdereg slpescape slpfindattrs slpfindsrvtypes \
 		  slp_attr_test slpd_predicate_test
 
 LDADD = ../libslp/libslp.la ../libslpattr/libslpattr.la
+
+if ENABLE_PREDICATES
 slpd_predicate_test_LDADD = $(LDADD) ../slpd/slpd_predicate.o ../common/libcommonslpd.la
+endif
 
 # Automake 1.4 doesn't allow subdirectory dependencies :-(, VPATH is a 
 # kludge to get around that. It's either this or a makefile for each test.

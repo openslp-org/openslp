@@ -623,7 +623,7 @@ int v1ProcessSrvTypeRqst(struct sockaddr_in* peeraddr,
                          int errorcode)
 /*-------------------------------------------------------------------------*/
 {
-    char*                           start;
+    char*                           type;
     char*                           end;
     char*                           slider;
     int                             i;
@@ -690,10 +690,10 @@ int v1ProcessSrvTypeRqst(struct sockaddr_in* peeraddr,
             numsrvtypes = 1;
 
             /* count the rest of the service types */
-            start = db->srvtypelist;
+            type = db->srvtypelist;
             for(i=0; i< db->srvtypelistlen; i++)
             {
-                if(start[i] == ',')
+                if(type[i] == ',')
                 {
                     numsrvtypes += 1;
                 }
@@ -762,9 +762,9 @@ int v1ProcessSrvTypeRqst(struct sockaddr_in* peeraddr,
         result->curpos += 2;
         
         /* service type strings */
-        start = db->srvtypelist;
+        type = db->srvtypelist;
         slider = db->srvtypelist;
-        end = &(start[db->srvtypelistlen]);
+        end = &(type[db->srvtypelistlen]);
         for(i=0;i<numsrvtypes; i++)
         {
             while(slider < end && *slider != ',') slider++;
@@ -774,15 +774,15 @@ int v1ProcessSrvTypeRqst(struct sockaddr_in* peeraddr,
             SLPv1ToEncoding(result->curpos + 2, 
                             &typelen,
                             message->header.encoding,
-                            start,
-                            slider - start);
+                            type,
+                            slider - type);
             /* slip in the typelen */
             ToUINT16(result->curpos, typelen);
             result->curpos += 2;
             result->curpos += typelen;
 
             slider ++; /* skip comma */
-            start = slider;
+            type = slider;
         }
 
         /* TODO - make sure we don't return generic types */

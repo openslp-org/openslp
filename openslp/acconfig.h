@@ -11,7 +11,7 @@
 #undef socklen_t
 
 /* defined if predicates are enabled */
-#undef USE_PREDICATES
+#undef ENABLE_PREDICATES
 
 /* defined if SLPv1 support is enabled */
 #undef ENABLE_SLPv1

@@ -79,11 +79,10 @@
 
 
 #include "slpd.h"
-#include <string.h>
 
-#ifdef USE_PREDICATES   
+#include <assert.h>
 
-//#include "libslpattr.h"
+#include "../libslpattr/libslpattr.h"
 #include "../libslpattr/libslpattr_internal.h"
 
 /* The character that is a wildcard. */
@@ -1219,66 +1218,86 @@ FilterResult filter(const char *start,
 
 
 /*=========================================================================*/
-int SLPDPredicateTest(int predicatever, const char* predicate,
-                      SLPAttributes attr)  
-/*                                                                         */
+int SLPDPredicateTest(int version,
+                      int attrlistlen,
+                      const char* attrlist,
+                      int predicatelen,
+                      const char* predicate)
 /* Determine whether the specified attribute list satisfies                */
 /* the specified predicate                                                 */
 /*                                                                         */
-/* predicatever (IN) SLP version of the predicate string                   */
+/* version    (IN) SLP version of the predicate string (should always be   */
+/*                 2 since we don't handle SLPv1 predicates yet)           */
 /*                                                                         */
-/* predicate    (IN) the predicate string                                  */
+/* attrlistlen  (IN) length of attrlist                                    */
 /*                                                                         */
 /* attr         (IN) attribute list to test                                */
 /*                                                                         */
-/* Returns: Zero if there is a match, a positive value if there was not a  */
-/*          match, and a negative value if there was a parse error in the  */
-/*          predicate string.                                              */
+/* predicatelen (IN) length of the predicate string                        */
+/*                                                                         */
+/* predicate    (IN) the predicate string                                  */
+/*                                                                         */
+/* Returns: Boolean value.  Zero of test fails.  Non-zero if test fails    */
+/*          or if there is a parse error in the predicate string           */
 /*=========================================================================*/
 {
-    const char *end; /* Pointer to the end of the parsed attribute string. */
-    FilterResult err;
+    SLPAttributes   attr;
+    const char      *end; /* Pointer to the end of the parsed attribute string. */
+    FilterResult    err;
+    char            attrnull;
+    char            prednull;
+    int             result = 0;
 
-
-    /***** An NULL or empty string is always true. *****/
+    /* An NULL or empty string is always true. */
     if(predicate == 0 || *(char *)predicate == 0)
     {
-        return 0;
-    }
-
-    /*  We don't handle SLPv1 predicates yet */
-    if(predicatever == 1)
-    {
-        return 0;
-    }
-
-    err = filter(predicate, &end, attr, SLPD_ATTR_RECURSION_DEPTH);
-    assert(err != FR_UNSET);
-
-    /***** Check for trailing trash data. *****/
-    if((err == FR_EVAL_TRUE || err == FR_EVAL_FALSE)&& *end != 0)
-    {
-        return -1;
-    }
-
-    switch(err)
-    {
-    case(FR_EVAL_TRUE):
-        return 0;
-    case(FR_EVAL_FALSE):
         return 1;
-    case(FR_INTERNAL_SYSTEM_ERROR):
-        SLPLog("The predicate string \"%s\" caused an internal error\n", (char *)predicate);
-    case(FR_PARSE_ERROR):
-    case(FR_MEMORY_ALLOC_FAILED):
-        return -1;
-
-    default:
-        SLPLog("SLPAttrEvalPred() returned an out of range value (%d) when evaluating \"%s\"\n", err, (char *)predicate);
     }
 
-    return -1;
+    /*  We don't handle SLPv1 predicates yet.  We'll say they all match */
+    if(version != 2)
+    {
+        return 1;
+    }
+
+    /* TRICKY: Temporarily NULL terminate the attribute list     */
+    /*         and the predicate string.  We can do this because */
+    /*         there is room in the corresponding SLPv2 SRVREG   */
+    /*         and SRVRQST messages.  Basically we are squashing */
+    /*         the authcount and the spi string length.  Don't   */
+    /*         worry, we fix things up later and it is MUCH      */
+    /*         faster than a malloc() for a new buffer 1 byte    */
+    /*         longer!                                           */
+    prednull = predicate[predicatelen];
+    ((char*)predicate)[predicatelen] = 0;
+    attrnull = attrlist[attrlistlen];
+    ((char*)attrlist)[attrlistlen] = 0;
+    
+    /* Generate an SLPAttr from the comma delimited list */
+    if(SLPAttrAlloc("en", NULL, SLP_FALSE, &attr) == 0)
+    {
+        if(SLPAttrFreshen(attr, attrlist) == 0)
+        {
+            err = filter(predicate, &end, attr, SLPD_ATTR_RECURSION_DEPTH);
+            
+            /* Check for trailing trash data. */
+            if((err == FR_EVAL_TRUE || err == FR_EVAL_FALSE) && *end != 0)
+            {
+                result = 0;
+            }
+            else if(err == FR_EVAL_TRUE)
+            {
+                result = 1;
+            }
+        }
+        
+        SLPAttrFree(attr);
+    }
+
+    ((char*)predicate)[predicatelen] = prednull;
+    ((char*)attrlist)[attrlistlen] = attrnull;
+
+    return result;
 }
 
 
-#endif /* USE_PREDICATES */

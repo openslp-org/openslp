@@ -4,7 +4,7 @@
 /* Project:     OpenSLP - OpenSource implementation of Service Location    */
 /*              Protocol Version 2                                         */
 /*                                                                         */
-/* File:        slpd_database.c                                            */
+/* File:        slpd_predicate.h                                           */
 /*                                                                         */
 /* Abstract:    This files contains an implementation of LDAPv3 search     */
 /*              filters for SLP (as specified in RFC 2254).                */
@@ -48,4 +48,31 @@
 /*                                                                         */
 /***************************************************************************/
 
+#ifndef SLPD_PREDICATE_H_INCLUDED
+#define SLPD_PREDICATE_H_INCLUDED
 
+/*=========================================================================*/
+int SLPDPredicateTest(int version,
+                      int attrlistlen,
+                      const char* attrlist,
+                      int predicatelen,
+                      const char* predicate);
+/* Determine whether the specified attribute list satisfies                */
+/* the specified predicate                                                 */
+/*                                                                         */
+/* version    (IN) SLP version of the predicate string (should always be   */
+/*                 2 since we don't handle SLPv1 predicates yet)           */
+/*                                                                         */
+/* attrlistlen  (IN) length of attrlist                                    */
+/*                                                                         */
+/* attr         (IN) attribute list to test                                */
+/*                                                                         */
+/* predicatelen (IN) length of the predicate string                        */
+/*                                                                         */
+/* predicate    (IN) the predicate string                                  */
+/*                                                                         */
+/* Returns: Boolean value.  Zero of test fails.  Non-zero if test fails    */
+/*          or if there is a parse error in the predicate string           */
+/*=========================================================================*/
+
+#endif 

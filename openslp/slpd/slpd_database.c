@@ -349,16 +349,23 @@ int SLPDDatabaseSrvRqstStart(SLPMessage msg,
                                           srvrqst->scopelistlen,
                                           srvrqst->scopelist) > 0 )
                 { 
-                    if((*result)->urlcount + 1 > G_SlpdDatabase.urlcount)
+#ifdef ENABLE_PREDICATES
+                    if(SLPDPredicateTest(entryreg->attrlistlen,
+                                         entryreg->attrlist,
+                                         srvrqst->predicate,
+                                         srvrqst->predicatelen) )
+#endif
                     {
-                        /* Oops we did not allocate a big enough result */
-                        G_SlpdDatabase.urlcount *= 2;
-                        break;
+                        if((*result)->urlcount + 1 > G_SlpdDatabase.urlcount)
+                        {
+                            /* Oops we did not allocate a big enough result */
+                            G_SlpdDatabase.urlcount *= 2;
+                            break;
+                        }
+    
+                        (*result)->urlarray[(*result)->urlcount] = &(entryreg->urlentry);
+                        (*result)->urlcount ++;
                     }
-
-                    (*result)->urlarray[(*result)->urlcount] = &(entryreg->urlentry);
-                    (*result)->urlcount ++;
-            
                 }
             }
         }

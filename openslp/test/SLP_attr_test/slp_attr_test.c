@@ -267,7 +267,7 @@ int main(int argc, char *argv[]) {
 	char *str, *str2;
 	int len;
 
-#ifdef USE_PREDICATES	
+#ifdef ENABLE_PREDICATES	
 	char data[] = STR;
 	SLPBoolean bool;
 	int *int_arr;
@@ -1009,11 +1009,11 @@ int main(int argc, char *argv[]) {
 	
 	SLPAttrFree(attr);
 	
-#else /* USE_PREDICATES */
+#else /* ENABLE_PREDICATES */
 	printf("Predicates disabled. Performing partial test for libslpattr_tiny.c");
 
 	
-#endif /* USE_PREDICATES */
+#endif /* ENABLE_PREDICATES */
 	/***** Common tests. *****/
 	
 	/**** Basic creation. ****/

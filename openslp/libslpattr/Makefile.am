@@ -3,7 +3,7 @@ EXTRA_DIST = libslpattr.dsp libslpattr.dsw libslpattr.mak
 
 noinst_LTLIBRARIES	= libslpattr.la  
 
-if USE_PREDICATES
+if ENABLE_PREDICATES
 PREDICATE_SRCS = libslpattr.c 
 else
 PREDICATE_SRCS = libslpattr_tiny.c

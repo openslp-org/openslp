@@ -83,24 +83,5 @@ int SLPDv1ProcessMessage(struct sockaddr_in* peeraddr,
 #endif                                                                       
 
 
-#if(defined USE_PREDICATES)
-/*=========================================================================*/
-int SLPDPredicateTest(int predicatever,
-                      const char* predicate,
-                      SLPAttributes attr); 
-/* Determine whether the specified attribute list satisfies                */
-/* the specified predicate                                                 */
-/*                                                                         */
-/* predicatever (IN) SLP version of the predicate string                   */
-/*                                                                         */
-/* predicate    (IN) the predicate string                                  */
-/*                                                                         */
-/* attr         (IN) attribute list to test                                */
-/*                                                                         */
-/* Returns: Zero if there is a match, a positive value if there was not a  */
-/*          match, and a negative value if there was a parse error in the  */
-/*          predicate string.                                              */
-/*=========================================================================*/
-#endif /* (defined USE_PREDICATES) */ 
 
 #endif

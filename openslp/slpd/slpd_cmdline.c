@@ -178,26 +178,33 @@ int SLPDParseCommandLine(int argc,char* argv[])
 
             /* Show options. */
             printf("compile options:\n"
-                   "            debugging     "
+                   "   debugging:            "
 #ifdef DEBUG
-                   "enabled (--enable-debug) "
+                   "enabled"
 #else
                    "disabled"
 #endif /* NDEBUG */
-                   "\n"
-                   "           predicates     "
-#ifdef USE_PREDICATES
-                   "enabled "
+                   "\n"                    
+                   "   predicates:           "
+#ifdef ENABLE_PREDICATES
+                   "enabled"
 #else 
-                   "disabled (--disable-predicates) "
-#endif /* USE_PREDICATES */
+                   "disabled"
+#endif /* ENABLE_PREDICATES */
                    "\n"
-                   "  slpv1 compatability     "
+                   "   slpv1 compatability:  "
 #ifdef ENABLE_SLPv1
-                   "enabled "
+                   "enabled"
 #else
-                   "disabled (--enable-slpv1=no)"
+                   "disabled"
 #endif /* ENABLE_SLPv1 */
+                   "\n"
+                   "   slpv2 authentication: "
+#ifdef ENABLE_AUTHENTICATION
+                   "enabled"
+#else
+                   "disabled"
+#endif /* ENABLE_AUTHENTICATION */
                    "\n"
                   );
             exit(1);

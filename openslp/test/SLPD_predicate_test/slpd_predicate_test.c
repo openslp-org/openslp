@@ -3,7 +3,7 @@
 
 #include <libslpattr.h>
 
-#ifdef USE_PREDICATES
+#ifdef ENABLE_PREDICATES
 
 typedef void* SLPDPredicate; 
 int SLPDPredicateTest(SLPDPredicate predicate, SLPAttributes attr);
@@ -23,7 +23,7 @@ FilterResult wildcard(const char *pattern, int pattern_len, const char *str, int
 #define ez_WILDCARD(x,y) wildcard(x, (int) strlen(x), y, (int) strlen(y))
 
 void test_wildcard() {
-#ifdef USE_PREDICATES
+#ifdef ENABLE_PREDICATES
 	int err;
 
 	err = ez_WILDCARD("slug", "slug");
@@ -94,9 +94,9 @@ void test_wildcard() {
 	err = ez_WILDCARD("ab\\2A*\\2Aln", "ab*x*l*ln");
 	assert(err == FR_EVAL_TRUE);
 
-#else /* USE_PREDICATES */
+#else /* ENABLE_PREDICATES */
 	puts("Predicates disabled. Skipping.");
-#endif /* USE_PREDICATES */
+#endif /* ENABLE_PREDICATES */
 
 }
 
@@ -545,11 +545,11 @@ int main(int argc, char *argv[]) {
 }
 
 
-#else /* USE_PREDICATES */
+#else /* ENABLE_PREDICATES */
 
 int main(int argc, char *argv[]) {
 	puts("Predicates disabled. Not testing.");
 	return 0;
 }
 
-#endif /* USE_PREDICATES */
+#endif /* ENABLE_PREDICATES */

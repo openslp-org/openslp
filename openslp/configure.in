@@ -64,10 +64,10 @@ predicates=$enableval,
 predicates=yes)
 
 dnl Conditional for optional predicates support
-AM_CONDITIONAL(USE_PREDICATES, test "$predicates" = "yes")
+AM_CONDITIONAL(ENABLE_PREDICATES, test "$predicates" = "yes")
 
 if test "$predicates" = "yes"; then
-    AC_DEFINE(USE_PREDICATES)
+    AC_DEFINE(ENABLE_PREDICATES)
 fi
 
 dnl ***********************************************************************
