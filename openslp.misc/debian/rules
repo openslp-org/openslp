@@ -64,7 +64,7 @@ binary-arch: build install
         #
         # build libslp-dev package by moving files from slpd package
         #
-	dh_movefiles -plibslp-dev usr/include usr/lib
+	dh_movefiles -plibslp-dev usr/include usr/lib usr/bin/slptool
 
 	# Remove the installed html documentation (we'll pull it in by 
         # install-docs) into openslp-doc package
@@ -74,7 +74,6 @@ binary-arch: build install
 	rmdir `pwd`/debian/tmp/usr/include
 	rmdir `pwd`/debian/tmp/usr/lib
 
-	cd test; make clean
 	dh_installexamples
 #	dh_installmenu
 #	dh_installemacsen
