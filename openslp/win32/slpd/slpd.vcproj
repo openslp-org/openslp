@@ -760,9 +760,6 @@
 				RelativePath="..\..\common\slp_linkedlist.h">
 			</File>
 			<File
-				RelativePath="..\..\common\slp_logfile.h">
-			</File>
-			<File
 				RelativePath="..\..\common\slp_message.h">
 			</File>
 			<File
