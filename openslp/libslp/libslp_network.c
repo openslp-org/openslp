@@ -65,12 +65,12 @@ int NetworkConnectToSlpd(struct sockaddr_storage* peeraddr)
     int sock = -1;
 
 	if (SLPNetIsIPV6()) {
-		if (SLPNetSetAddr(peeraddr, AF_INET6, SLP_RESERVED_PORT, (unsigned char *)&in6addr_loopback, 0) == 0)
+		if (SLPNetSetAddr(peeraddr, AF_INET6, SLP_RESERVED_PORT, (unsigned char *)&in6addr_loopback, sizeof(struct in6_addr)) == 0)
 			sock = SLPNetworkConnectStream(peeraddr,NULL);
 	}
 	if (sock < 0 && SLPNetIsIPV4()) {
 		int tempAddr = INADDR_LOOPBACK;
-		if (SLPNetSetAddr(peeraddr, AF_INET, SLP_RESERVED_PORT, (unsigned char *)&tempAddr, 0) == 0)
+		if (SLPNetSetAddr(peeraddr, AF_INET, SLP_RESERVED_PORT, (unsigned char *)&tempAddr, sizeof(struct in_addr)) == 0)
 			sock = SLPNetworkConnectStream(peeraddr,NULL);
 	}
 	return sock;
