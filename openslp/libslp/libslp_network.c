@@ -673,6 +673,7 @@ SLPError NetworkMcastRqstRply(const char* langtag,
 
 	v4outifaceinfo.iface_count = 0;
 	v6outifaceinfo.iface_count = 0;
+	xcastsocks.sock_count = 0;
     
 #ifndef MI_NOT_SUPPORTED
     if(handle->McastIFList != NULL) 
