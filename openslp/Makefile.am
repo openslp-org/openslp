@@ -3,7 +3,7 @@
 # Note the install script, it is not pretty, but it works.
 #
 
-SUBDIRS	= common slpd libslp test
+SUBDIRS	= common libslpattr slpd libslp test 
 DOC_DIR = $(prefix)/doc/openslp-$(VERSION)
 
 install-data-local:

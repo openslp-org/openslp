@@ -28,6 +28,22 @@ case "$debug" in
 esac
 
 dnl ***********************************************************************
+dnl Handle Predicates 
+dnl ***********************************************************************
+AC_ARG_ENABLE(predicates,
+[  --disable-predicates          Turn off predicates],
+predicates=$enableval,
+predicates=yes)
+
+dnl This can be used for conditional make
+AM_CONDITIONAL(USE_PREDICATES, test "$predicates" = "yes")
+
+dnl This can be used for a #define in the code
+if test "$predicates" = "yes"; then
+    AC_DEFINE(USE_PREDICATES)
+fi
+
+dnl ***********************************************************************
 dnl Checks for programs.
 dnl ***********************************************************************
 AC_PROG_CC
@@ -84,5 +100,8 @@ dnl Checks for libraries.
 dnl ***********************************************************************
 AC_CHECK_LIB(socket, main)
 AC_CHECK_LIB(nsl, gethostbyname)
+AC_CHECK_LIB(m, ceil)
+AC_CHECK_LIB(m, log10)
+AC_CHECK_LIB(assert, assert)
 
-AC_OUTPUT(Makefile common/Makefile libslp/Makefile slpd/Makefile test/Makefile)
+AC_OUTPUT(Makefile common/Makefile libslpattr/Makefile libslp/Makefile slpd/Makefile test/Makefile)
