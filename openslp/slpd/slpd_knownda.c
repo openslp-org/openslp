@@ -720,8 +720,8 @@ void SLPDKnownDARemove(struct in_addr* addr)
             /* Assume DAs are identical if their peer match */
             if ( memcmp(addr,&(entry->msg->peer.sin_addr),sizeof(*addr)) == 0 )
             {
-                SLPDatabaseRemove(dh,entry);
                 SLPDLogDAAdvertisement("Removal",entry);
+                SLPDatabaseRemove(dh,entry);
                 break;            
             }
         }
