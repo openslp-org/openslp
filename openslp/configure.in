@@ -103,5 +103,6 @@ AC_CHECK_LIB(nsl, gethostbyname)
 AC_CHECK_LIB(m, ceil)
 AC_CHECK_LIB(m, log10)
 AC_CHECK_LIB(assert, assert)
+AC_CHECK_LIB(ctype, isspace)
 
 AC_OUTPUT(Makefile common/Makefile libslpattr/Makefile libslp/Makefile slpd/Makefile test/Makefile)
