@@ -52,6 +52,10 @@
 int G_SIGALRM;
 int G_SIGTERM;
 int G_SIGHUP;                                                                                                 
+#ifdef DEBUG
+int G_SIGINT;		/* Signal being used for dumping registrations */
+#endif
+
 /*==========================================================================*/
 
 
@@ -348,6 +352,16 @@ int Daemonize(const char* pidfile)
     return 0;
 }
 
+#ifdef DEBUG
+
+void HandleSigInt()
+{
+	    SLPDDumpDatabase();
+}
+
+#endif
+
+
 /*--------------------------------------------------------------------------*/
 void SignalHandler(int signum)
 /*--------------------------------------------------------------------------*/
@@ -365,6 +379,12 @@ void SignalHandler(int signum)
     case SIGHUP:
         G_SIGHUP = 1;
         break;
+
+#ifdef DEBUG
+    case SIGINT:
+        G_SIGINT = 1;
+        break;
+#endif
 
     case SIGPIPE:
     default:
@@ -390,6 +410,10 @@ int SetUpSignalHandlers()
     result = sigaction(SIGALRM,&sa,0);
     result |= sigaction(SIGTERM,&sa,0);
     result |= sigaction(SIGPIPE,&sa,0);
+
+#ifdef DEBUG
+    result |= sigaction(SIGINT,&sa,0);
+#endif
 
     signal(SIGHUP,SignalHandler);
     //result |= sigaction(SIGHUP,&sa,0);
@@ -497,6 +521,10 @@ int main(int argc, char* argv[])
     G_SIGALRM   = 0;
     G_SIGTERM   = 0;
     G_SIGHUP    = 0;    
+#ifdef DEBUG
+    G_SIGINT    = 0;
+#endif
+
     while(G_SIGTERM == 0)
     {
         /*--------------------------------------------------------*/
@@ -541,6 +569,13 @@ int main(int argc, char* argv[])
             G_SIGALRM = 0;
             alarm(SLPD_AGE_INTERVAL);
         }
+#ifdef DEBUG
+	if (G_SIGINT)
+	{
+	    HandleSigInt();
+	    G_SIGINT = 0;
+	}			
+#endif
 
     } /* End of main loop */
 

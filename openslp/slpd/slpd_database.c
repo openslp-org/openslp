@@ -717,3 +717,39 @@ int SLPDDatabaseEnum(void** handle,
 
     return 0;
 }
+
+#ifdef DEBUG
+
+/*=========================================================================*/
+void SLPDDumpDatabase (void)
+/* Dumps currently valid service registrations present with slpd             */
+/*=========================================================================*/
+{
+
+    SLPDDatabaseEntry* entry;
+
+    SLPLogTime();
+    SLPLog("Dumping valid registrations\n");
+
+
+    entry = (SLPDDatabaseEntry*)G_DatabaseList.head;
+    while(entry)
+    {
+	    SLPLog("language tag = ");
+	    SLPLogBuffer(entry->langtag, entry->langtaglen);
+	    SLPLog("\nlifetime = %i\n",entry->lifetime);
+	    SLPLog("url = ");
+	    SLPLogBuffer(entry->url, entry->urllen);
+	    SLPLog("\nscope = ");
+	    SLPLogBuffer(entry->scopelist, entry->scopelistlen);
+	    SLPLog("\nservice type = ");
+	    SLPLogBuffer(entry->srvtype, entry->srvtypelen);
+	    SLPLog("\nAttributes = ");
+	    SLPLogBuffer(entry->attrlist, entry->attrlistlen);
+	    SLPLog("\n\n");
+
+	    entry = (SLPDDatabaseEntry*)entry->listitem.next;
+    }
+}
+
+#endif
