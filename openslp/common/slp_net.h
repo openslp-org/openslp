@@ -98,8 +98,8 @@ extern const struct in6_addr in6addr_service_node_mask;
 extern const struct in6_addr in6addr_service_link_mask;
 /* extern const struct in6_addr in6addr_service_site_mask; */
 
-#define SLP_IN6ADDR_ANY_INIT        { 0 }
-#define SLP_IN6ADDR_LOOPBACK_INIT   { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1 }
+#define SLP_IN6ADDR_ANY_INIT        {{{ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 }}}
+#define SLP_IN6ADDR_LOOPBACK_INIT   {{{ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1 }}}
 
 extern const struct in6_addr slp_in6addr_any;
 extern const struct in6_addr slp_in6addr_loopback;
