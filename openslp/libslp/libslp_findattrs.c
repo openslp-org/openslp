@@ -43,8 +43,9 @@ SLPBoolean CallbackAttrRqst(SLPError errorcode, SLPMessage msg, void* cookie)
     
     if(errorcode == SLP_LAST_CALL)
     {
-        handle->params.findattrs.callback((SLPHandle)handle, 
-                                          msg->body.attrrply.attrlist,
+        handle->params.findattrs.callback((SLPHandle)handle,
+					  (msg ?
+					   msg->body.attrrply.attrlist : 0),
                                           errorcode,
                                           handle->params.findattrs.cookie);
         return 0;    
