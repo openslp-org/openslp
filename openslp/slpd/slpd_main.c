@@ -83,6 +83,93 @@ int SetUpSignalHandlers()
 }
 
 
+/*-------------------------------------------------------------------------*/
+int Daemonize(const char* pidfile)
+/* Turn the calling process into a daemon (detach from tty setuid(), etc   */
+/*                                                                         */      
+/* Returns: zero on success non-zero if slpd could not daemonize (or if    */
+/*          slpd is already running                             .          */
+/*-------------------------------------------------------------------------*/
+{
+    pid_t   pid;
+    FILE*   fd;
+    struct  passwd* pwent;
+    char    pidstr[13];
+
+    #if(defined PARANOID)
+    struct  passwd* p;
+    #endif
+
+    switch(fork())
+    {
+    case -1:
+        return -1;
+    case 0:
+        /* child livs */
+        break;
+
+    default:
+        /* parent dies */
+        exit(0);
+    }
+    
+    /*-------------------------------------------*/
+    /* Release the controlling tty and std files */
+    /*-------------------------------------------*/
+    close(0); dup2(fd, 0);
+    close(1); dup2(fd, 1);
+    close(2); dup2(fd, 2);
+    if( setsid() < 0 )
+    {
+        return -1;
+    }
+    
+
+    /*------------------------------------------*/
+    /* make sure that we're not running already */
+    /*------------------------------------------*/
+    /* read the pid from the file */
+    fd = fopen(pidfile,"r");
+    if(fd)
+    {
+        fread(pidstr,13,1,fd);
+        fclose(fd);
+        pid = atoi(pidstr);
+        if(pid)
+        {
+            if(kill(pid,SIGWINCH) == 0)
+            {
+                /* we are already running */
+                return -1;
+            }
+        }    
+    }
+    /* write my pid to the pidfile */
+    fd = fopen(pidfile,"w");
+    if(fd)
+    {
+        sprintf(pidstr,"%i",getpid());
+        fwrite(pidstr,strlen(pidstr),1,fd);
+        fclose(fd);
+    }
+    
+    /*----------------*/
+    /* suid to daemon */
+    /*----------------*/
+    /* TODO: why do the following lines mess up my signal handlers?
+    pwent = getpwnam("daemon"); 
+    if(pwent)
+    {
+        chown(pidfile, pwent->pw_uid, pwent->pw_gid);
+        setgroups(1, &pwent->pw_gid);
+        setgid(pwent->pw_gid);
+        setuid(pwent->pw_uid);
+    }
+    */  
+    
+        return 0;
+}
+
                   
 /*-------------------------------------------------------------------------*/
 void HandleTCPListen(SLPDSocketList* list, SLPDSocket* sock)
@@ -336,87 +423,6 @@ void HandleTCPWrite(SLPDSocketList* list, SLPDSocket* sock)
             }   
         }    
     }
-}
-
-/*-------------------------------------------------------------------------*/
-int Daemonize(const char* pidfile)
-/* Turn the calling process into a daemon (detach from tty setuid(), etc   */
-/*                                                                         */      
-/* Returns: zero on success non-zero if slpd could not daemonize.          */
-/*-------------------------------------------------------------------------*/
-{
-    pid_t   pid;
-    FILE*   fd;
-    struct  passwd* pwent;
-    char    pidstr[13];
-
-    #if(defined PARANOID)
-    struct  passwd* p;
-    #endif
-
-    switch(fork())
-    {
-    case -1:
-        return -1;
-    case 0:
-        /* child livs */
-        break;
-
-    default:
-        /* parent dies */
-        exit(0);
-    }
-    
-    setsid();
-
-    /*------------------------------------------*/
-    /* make sure that we're not running already */
-    /*------------------------------------------*/
-    /* read the pid from the file */
-    fd = fopen(pidfile,"r");
-    if(fd)
-    {
-        fread(pidstr,13,1,fd);
-        fclose(fd);
-        pid = atoi(pidstr);
-        if(pid)
-        {
-            if(kill(pid,SIGWINCH) == 0)
-            {
-                return 1;
-            }
-        }    
-    }
-    /* write my pid to the pidfile */
-    fd = fopen(pidfile,"w");
-    if(fd)
-    {
-        sprintf(pidstr,"%i",getpid());
-        fwrite(pidstr,strlen(pidstr),1,fd);
-        fclose(fd);
-    }
-    
-    /* suid to daemon */
-    /* TODO: why do the following lines mess up my signal handlers?
-    pwent = getpwnam("daemon"); 
-    if(pwent)
-    {
-        chown(pidfile, pwent->pw_uid, pwent->pw_gid);
-        setgid(pwent->pw_gid);
-        setuid(pwent->pw_uid);
-    }
-    */
-                        
-                                                                   
-    
-    /* close std file handles */
-    close(0);
-    close(1);
-    close(2);
-    
-    
-
-    return 0;
 }
 
 
