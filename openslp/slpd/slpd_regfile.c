@@ -352,16 +352,16 @@ SLPDDatabaseEntry* SLPDRegFileReadEntry(FILE* fd, SLPDDatabaseEntry** entry)
         }
     }
 
-    /* Set the scope to default if not is set */
+    /* Set the scope set in properties if not is set */
     if((*entry)->scopelist == 0)
     {
-        (*entry)->scopelist=strdup("DEFAULT");
+        (*entry)->scopelist=strdup(G_SlpdProperty.useScopes);
         if((*entry)->scopelist == 0)
         {
             SLPLog("Out of memory adding DEFAULT scope\n");
             goto SLPD_ERROR;
         }
-        (*entry)->scopelistlen = 7;
+        (*entry)->scopelistlen = G_SlpdProperty.useScopesLen;
     }
 
     return *entry;
