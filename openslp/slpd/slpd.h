@@ -342,7 +342,7 @@ typedef enum _SLPDPeerType
 
 /*=========================================================================*/
 typedef struct _SLPDPeerInfo
-/* Structure representing a socket                                         */
+/* Structure representing a socket peer                                    */
 /*=========================================================================*/
 {
     SLPDPeerType        peertype;
