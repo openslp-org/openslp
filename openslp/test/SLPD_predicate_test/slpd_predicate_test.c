@@ -4,6 +4,7 @@
 #include <slpd_predicate.h>
 #include <libslpattr.h>
 
+#ifdef USE_PREDICATES
 
 SLPError SLPAttrEvalPred(SLPAttributes slp_attr, SLPDPredicate *predicate, SLPBoolean *result, int recursion_depth); /* It's defined in slpd_predicate.c, but since we don't want to pollute namespaces, we put the prototype here. -- we use this so we don't have to calculate the string length, and so we can play with the recursion depth.*/
 
@@ -385,3 +386,12 @@ int main(int argc, char *argv[]) {
 	
 	return 0;
 }
+
+#else /* USE_PREDICATES */
+
+int main(int argc, char *argv[]) {
+	puts("Predicates disabled. Not testing.");
+	return 1;
+}
+
+#endif /* USE_PREDICATES */
