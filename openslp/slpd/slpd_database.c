@@ -871,6 +871,7 @@ int SLPDDatabaseReInit(const char* regfile)
                 SLPDatabaseRemove(dh,entry);
             }
         }
+        SLPDatabaseClose(dh);
     }
 
     /*--------------------------------------*/

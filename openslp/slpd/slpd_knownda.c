@@ -95,16 +95,16 @@ int MakeActiveDiscoveryRqst(int ismcast, SLPBuffer* buffer)
     size_t          size;
     void*           eh;
     SLPMessage      msg;
-    SLPBuffer       result      = 0;
-    SLPBuffer       tmp         = 0;
     char*           prlist      = 0;
     size_t          prlistlen   = 0;
     int             errorcode   = 0;
-
+    SLPBuffer       tmp         = 0;
+    SLPBuffer       result      = *buffer;
+   
     /*-------------------------------------------------*/
     /* Generate a DA service request buffer to be sent */
     /*-------------------------------------------------*/
-    /* determine the size of the fixed portion of the SRVRQST         */
+    /* determine the size of the fixed portion of the SRVRQST     */
     size  = 47; /* 14 bytes for the header                        */
                 /*  2 bytes for the prlistlen                     */
                 /*  2 bytes for the srvtype length                */

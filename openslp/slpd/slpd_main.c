@@ -372,9 +372,9 @@ int Daemonize(const char* pidfile)
         break;
     }
 
-    close(0); 
-    close(1); 
-    close(2); 
+//    close(0); 
+//    close(1); 
+//    close(2); 
     setsid(); /* will only fail if we are already the process group leader */
 
     /*----------------*/
