@@ -112,15 +112,14 @@ void SLPDDatabaseAge(int seconds, int ageall)
 					del = entry;
 				}
 			}
-	
-			entry = (SLPDDatabaseEntry*)entry->listitem.next;
-	
-			if(del)
-			{
-				SLPDDatabaseEntryFree((SLPDDatabaseEntry*)SLPListUnlink(&G_DatabaseList,(SLPListItem*)del));
-				del = 0;
-			}
 		}
+		
+		entry = (SLPDDatabaseEntry*)entry->listitem.next;      
+		if(del)
+		{
+			SLPDDatabaseEntryFree((SLPDDatabaseEntry*)SLPListUnlink(&G_DatabaseList,(SLPListItem*)del));
+			del = 0;
+		}      
     }
 }
 
