@@ -43,6 +43,9 @@
 #endif
 
 /* common includes */
+/* eh */
+#include <slp_attr.h>
+
 #include <slp_compare.h>
 #include <slp_buffer.h>
 #include <slp_message.h>
@@ -51,6 +54,11 @@
 #include <slp_linkedlist.h>
 #include <slp_da.h>
 
+#include "slpd_predicate.h"
+
+#if(!defined MAX_PATH)
+#define MAX_PATH    256
+#endif
 
 #define SLPDPROCESS_RESULT_COUNT   256  
 #define SLPD_SMALLEST_MESSAGE       18   /* 18 bytes is smallest SLPv2 msg */
@@ -203,8 +211,7 @@ typedef struct _SLPDDatabaseEntry
     char*               scopelist;
     int                 srvtypelen;
     char*               srvtype;
-    int                 attrlistlen;
-    char*               attrlist;
+	SLPAttributes		attr;
     /* TODO: we might need some authblock storage here */
 }SLPDDatabaseEntry;
 
@@ -216,6 +223,23 @@ int SLPDDatabaseInit(const char* regfile);
 /* regfile  (IN)    the regfile to register.                               */
 /*                                                                         */
 /* Returns  - zero on success or non-zero on error.                        */
+/*=========================================================================*/
+
+
+/*=========================================================================*/
+SLPDDatabaseEntry *SLPDDatabaseEntryAlloc();
+/* Allocates and initializes a database entry.                             */
+/*                                                                         */
+/* Returns  - New database entry. If there is not enough memory, null (0)  */
+/*            is returned.                                                 */
+/*=========================================================================*/
+
+
+/*=========================================================================*/
+void FreeEntry(SLPDDatabaseEntry* entry);
+/* Deallocates a database entry, and any memory that may be associated     */
+/* with it.                                                                */
+/*                                                                         */
 /*=========================================================================*/
 
 
@@ -651,5 +675,6 @@ void SLPDKnownDAActiveDiscovery();
 extern SLPList G_KnownDAList;                                         
 /* The list of DAs known to slpd.                                          */
 /*=========================================================================*/
+
 
 #endif /*(!defined SLPD_H_INCLUDED) */
