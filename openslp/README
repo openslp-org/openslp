@@ -22,7 +22,7 @@ previous version consist of the following:
     - slpd now does a graceful shutdown on SIGTERM to deregister serviced
       with DAs    
     - Considerable time spend using commercial debugging tools to remove
-      ALL memory leaks from slpd and libslp.  Code should very clean.
+      ALL memory leaks from slpd (without predicates) and libslp. 
     - IPC (via loopback) is now used by libslp to obtain DA information
       from slpd before multicasting
     - slpd running as a DA now sends passive DAAdverts
