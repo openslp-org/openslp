@@ -24,8 +24,8 @@ location, and configuration of networked services in enterprise networks.&nbsp;
 Traditionally, in order to locate services on the network, users of network
 applications are required to supply the host name or network address of
 the machine that supplies a desired service.&nbsp; Ensuring that users
-and applications are supplied with the correct information has in many
-cases become an administration nightmare.
+and applications are supplied with the correct information has, in many
+cases, become an administration nightmare.
 <p>Protocols that allow service location are often taken for granted, mostly
 because they are already included (with out fanfare) in many network operating
 systems. For example, without Microsoft's SMB service location facilities,
@@ -57,10 +57,10 @@ Protocol</blockquote>
 
 <h3>
 SLP for Users and Administrators</h3>
-SLP can eliminates the need for to know the names of network hosts.&nbsp;
-Instead, with SLP, the user only needs to know the description of the of
-service they are interested in.&nbsp; Based on this description, SLP is
-then able to return the URL of the desired service.
+SLP can eliminate the need for users to know the names of network hosts.&nbsp;
+With SLP, the user only needs to know the description of the of service
+they are interested in.&nbsp; Based on this description, SLP is then able
+to return the URL of the desired service.
 <p>Consider the following example of a new employee setting up his workstation
 to use one of the department printers:
 <br>&nbsp;
@@ -90,14 +90,14 @@ files.
 an LDAP enabled application.
 <br>&nbsp;
 <blockquote><b><u>Traditional</u></b>
-<br>Currently, the only way to know the hostname to use in the call to
-ldap_bind() is to read it from a configuration file.&nbsp; The configuration
-file must be created at install time and updated as the location of the
-LDAP server changes.&nbsp; Keeping this configuration file up to date becomes
-a real problem especially when the LDAP application is installed on a laptop
-that connects to various networks.
+<br>Currently, the only way to know the hostname of the LDAP&nbsp;server
+to use in the call to ldap_bind() is to read it from a configuration file.&nbsp;
+The configuration file must be created at install time and updated as the
+location of the LDAP server changes.&nbsp; Keeping this configuration file
+up to date becomes a real problem especially when the LDAP application
+is installed on a laptop that connects to various networks.
 <p><b><u>With SLP</u></b>
-<p>The developer uses SLP to obtain a the host names and attributes of
+<br>The developer uses SLP to obtain a the host names and attributes of
 LDAP servers that are displayed to the user at install time and again if
 the user desires to connect to a different LDAP server.
 <p>As illustrated in the example above, SLP does not always eliminate the
@@ -138,7 +138,7 @@ contains the URL of the requested service
 <br>Message sent by SAs to DAs containing information about a service that
 is available.
 <p><b>Service Deregister (SrvDeReg)</b>
-<br>Message sent by SAs to DAs to inform that a service is no longer available.
+<br>Message sent by SAs to inform DAs that a service is no longer available.
 <p><b>Service Acknowledge (SrvAck)</b>
 <br>A generic acknowledgment that is sent as a reply to SrvReg and SrvDeReg
 messages
@@ -162,17 +162,17 @@ contains a list of requested service types.
 <h3>
 Unicast, Multicast and Broadcast</h3>
 SLP is a unicast and a multicast protocol.&nbsp; This means that the messages
-that were described in the <a href="broken">previous</a> section can be
-sent to one agent at a time (unicast) or to all agents (that are listening)
-at the same time (multicast).&nbsp; A multicast is not a broadcast.&nbsp;
-In theory, broadcast message are "heard" by <i>every</i> node on the network.&nbsp;
+described in the <a href="broken">previous</a> section can be sent to one
+agent at a time (unicast) or to all agents (that are listening) at the
+same time (multicast).&nbsp; A multicast is not a broadcast.&nbsp; In theory,
+broadcast message are "heard" by <i>every</i> node on the network.&nbsp;
 Multicast differs from broadcast because multicast messages are only "heard"
 by the nodes on the network that have "joined the multicast group".
 <p>For obvious reasons network routers filter almost all broadcast traffic.&nbsp;
 This means that broadcasts that are generated on subnet will not be "routed"
-or forwarded to any of the other subnets connected to the router.&nbsp;
-From the routers perspective, a subnet is all machines connected to one
-of its ports.&nbsp; Multicasts, on the other hand, are forwarded by routers.&nbsp;
+or forwarded to any of the other subnets connected to the router (from
+the routers perspective, a subnet is all machines connected to one of its
+ports).&nbsp; Multicasts, on the other hand, are forwarded by routers.&nbsp;
 Multicast traffic from a given group is forwarded by routers to all subnets
 that have at least one machine that is interested in receiving the multicast
 for that group.
@@ -224,8 +224,9 @@ between SLP agents.&nbsp; See <a href="http://www.ietf.org/rfc/rfc2608.txt">RFC
 location.&nbsp; It is not intended to be a solution for the global Internet.&nbsp;
 However as an enterprise solution, SLP can be configured to use "scopes"
 (see <a href="../../rfc/rfc2608.txt">RFC 2608</a> section 11) and DAs in
-ways that should allow it to scale well in large networks.&nbsp; More concrete
-evidence of SLPv2 scalability should be available as it becomes more popular.
+ways that should allow it to scale well in very large networks.&nbsp; More
+concrete evidence of SLPv2 scalability will become available when SLP&nbsp;is
+more widely used.
 <p><b>Implementations</b>
 <br>The following is a list of SLP implementations:
 <blockquote><a href="http://www.openslp.org">OpenSLP</a>
