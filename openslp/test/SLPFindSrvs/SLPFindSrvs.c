@@ -34,6 +34,12 @@ main (int argc, char *argv[])
 	SLPError callbackerr;
 	SLPHandle hslp;
 
+	if (argc != 2)
+	{
+		printf("SLPFindSrvs\n  Finds a SLP service.\n Usage:\n   SLPFindSrvs\n     <service type>\n");
+		return (0);
+	} /* End If. */
+
 	err = SLPOpen ("en", SLP_FALSE, &hslp);
 	check_error_state(err,"Error opening slp handle.");
 
