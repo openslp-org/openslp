@@ -22,7 +22,7 @@ $vardir=@localstatedir@
 %license ${srcdir}/COPYING
 %readme ${srcdir}/README
 %description Open source implementation of Service Location Protocol V2.
-%version 0.8.2
+%version 1.0.1
 
 # Binaries
 %system all
@@ -40,7 +40,7 @@ c 0644 root sys ${etcdir}/slp.reg ${DESTDIR}${etcdir}/slp.reg
 f 0755 root sys ${sbindir}/slpd ${DESTDIR}${sbindir}/slpd
 f 0755 root sys ${bindir}/slptool ${DESTDIR}${bindir}/slptool
 f 0644 root sys ${includedir}/slp.h ${DESTDIR}${includedir}/slp.h
-f 0644 root sys ${libdir}/libslp.so.0.0.3 ${DESTDIR}${libdir}/libslp.so.0.0.3
-l 0777 root sys ${libdir}/libslp.so.0 libslp.so.0.0.3
-l 0777 root sys ${libdir}/libslp.so libslp.so.0.0.3
+f 0644 root sys ${libdir}/libslp.so.1.0.0 ${DESTDIR}${libdir}/libslp.so.1.0.0
+l 0777 root sys ${libdir}/libslp.so.1 libslp.so.1.0.0
+l 0777 root sys ${libdir}/libslp.so libslp.so.1.0.0
 
