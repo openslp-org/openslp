@@ -1,5 +1,5 @@
-
 #include <assert.h>
+#include <string.h>
 
 #include <libslpattr.h>
 
@@ -18,9 +18,9 @@ typedef enum
 	FR_EVAL_FALSE /* Expression successfully evaluated to false. */
 } FilterResult;
 
-FilterResult wildcard(const char *pattern, size_t pattern_len, const char *str, size_t str_len);
+FilterResult wildcard(const char *pattern, int pattern_len, const char *str, int str_len);
 
-#define ez_WILDCARD(x,y) wildcard(x, strlen(x), y, strlen(y))
+#define ez_WILDCARD(x,y) wildcard(x, (int) strlen(x), y, (int) strlen(y))
 
 void test_wildcard() {
 #ifdef USE_PREDICATES
@@ -112,9 +112,9 @@ void test_predicate() {
 	err = SLPAttrAlloc("en", NULL, SLP_FALSE, &slp_attr);
 	assert(err == SLP_OK);
 	
-	SLPAttrSet_int(slp_attr, "int", (long)23, SLP_ADD);
-	SLPAttrSet_int(slp_attr, "int", (long)25, SLP_ADD);
-	SLPAttrSet_int(slp_attr, "int", (long)27, SLP_ADD);
+	SLPAttrSet_int(slp_attr, "int", (int)23, SLP_ADD);
+	SLPAttrSet_int(slp_attr, "int", (int)25, SLP_ADD);
+	SLPAttrSet_int(slp_attr, "int", (int)27, SLP_ADD);
 	
 	/* Test equals. */
 	str = "(&(&(int=23)(int=25))(int=26))";

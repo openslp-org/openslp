@@ -2,7 +2,6 @@
 #ifndef SLP_ATTR_H_INCLUDED
 #define SLP_ATTR_H_INCLUDED
 
-//#include <slp.h>
 #include "../libslp/slp.h"
 #include <stdio.h>
 
@@ -33,7 +32,7 @@ typedef SLPBoolean SLPAttrObjCallback(
 
 /* A datatype to encapsulate opaque data.*/
 typedef struct {
-	size_t len;
+	int len;
 	char *data;
 } SLPOpaque;
 
@@ -107,7 +106,7 @@ SLPError SLPAttrSet_keyw(
 SLPError SLPAttrSet_int(
 		SLPAttributes attr_h,
 		const char *tag,
-		long val,
+		int val,
 		SLPInsertionPolicy policy
 ); 
 
@@ -142,15 +141,15 @@ SLPError SLPAttrGet_keyw(
 SLPError SLPAttrGet_int(
 		SLPAttributes attr_h,
 		const char *tag,
-		long *val[],
-		size_t *size
+		int *val[],
+		int *size
 );
 
 SLPError SLPAttrGet_str(
 		SLPAttributes attr_h,
 		const char *tag,
 		char ***val,
-		size_t *size
+		int *size
 ); 
 
 
@@ -158,19 +157,18 @@ SLPError SLPAttrGet_opaque(
 		SLPAttributes attr_h,
 		const char *tag,
 		SLPOpaque ***val,
-		size_t *size
+		int *size
 );
 
 
 /* Misc. */
 SLPError SLPAttrGetType(SLPAttributes attr_h, const char *tag, SLPType *type);
 
-//SLPError SLPAttrSerialize(SLPAttributes attr_h, size_t *count, char **str, SLPBoolean);
 SLPError SLPAttrSerialize(SLPAttributes attr_h,
-		const char* tags /* NULL terminated */,
+		const char* tags		/* NULL terminated */,
 		char **buffer,
-		size_t bufferlen, /* Size of buffer. */
-		size_t* count, /* Bytes needed/written. */
+		int bufferlen,			/* Size of buffer. */
+		int* count,				/* Bytes needed/written. */
 		SLPBoolean find_delta
 );
 

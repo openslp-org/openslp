@@ -495,7 +495,7 @@ int SLPDDatabaseFindAttr(SLPAttrRqst* attrrqst,
                 if(attrrqst->taglistlen && entry->attr)
                 {
                     /* serialize into entry->partiallist and return partiallist */
-                    size_t count;
+                    int count;
                     SLPError err;
                     
                     /* TRICKY: null terminate the taglist. This is squishes the spistrlen */

@@ -171,7 +171,7 @@ SLPError SLPAttrSet_keyw(
 SLPError SLPAttrSet_int(
 		SLPAttributes attr_h,
 		const char *tag,
-		long val,
+		int val,
 		SLPInsertionPolicy policy
 )  {
 	return SLP_NOT_IMPLEMENTED;
@@ -221,7 +221,7 @@ SLPError SLPAttrGet_keyw(
 SLPError SLPAttrGet_int(
 		SLPAttributes attr_h,
 		const char *tag,
-		long *val[],
+		int *val[],
 		size_t *size
 ) {
 	return SLP_NOT_IMPLEMENTED;

@@ -1,7 +1,6 @@
 
 #include <stdlib.h>
 #include <string.h>
-//#include <slp.h>
 #include <assert.h>
 #include <math.h>
 #include <ctype.h>
@@ -130,9 +129,10 @@ char unescape(char d1, char d2) {
  * Returns: Pointer to start of unescaped string. If an error occurs, NULL is
  * returned (an error consists of an escaped value being truncated).
  */
-char *unescape_into(char *dest, const char *src, size_t len, size_t *unescaped_len) {
+char *unescape_into(char *dest, const char *src, int len, int
+					*unescaped_len) {
 	char *start, *write;
-	size_t i;
+	int i;
 	
 	assert(dest);
 	assert(src);
@@ -178,7 +178,9 @@ char *unescape_into(char *dest, const char *src, size_t len, size_t *unescaped_l
  * 
  * Returns: 0 on parse error. 1 on valid parse.
  */
-int find_value_list_end(char const *value, int *value_count, SLPType *type, int *unescaped_len, char const **cur) {
+int find_value_list_end(char const *value, int *value_count, SLPType
+						*type, int *unescaped_len, char const **cur) {
+	
 	enum {
 		START_VAL, /* We're at the start of a value */
 		IN_VAL /* We're in a val. */
@@ -342,7 +344,7 @@ char *find_value_end(char *value) {
  *
  * Returns the number of digits.
  */
-int count_digits(long number) {
+int count_digits(int number) {
 	int count = 0;
 
 	/***** As far as I recall, log is undefined at one... *****/
@@ -533,7 +535,7 @@ char *escape_into(char *dest, char *src, int len) {
  * 
  * Returns a pointer to where the addition has ended. 
  */
-char *escape_opaque_into(char *dest, char *src, size_t len) {
+char *escape_opaque_into(char *dest, char *src, int len) {
 	int i; /* Index into src. */
 	char *cur_dest;
 
@@ -567,7 +569,7 @@ char *escape_opaque_into(char *dest, char *src, size_t len) {
  * Params:
  *  extra -- amount of memory to allocate in addition to that needed for the value. This memory can be found at (return_value + sizeof(value_t))
  */
-value_t *value_new(size_t extra) {
+value_t *value_new(int extra) {
 	value_t *value = NULL;
 
 	value = (value_t *)malloc(sizeof(value_t) + extra);
@@ -608,7 +610,7 @@ void value_free(value_t *value) {
  *
  * FIXME should take tag_len as an argument
  */
-var_t *var_new(char *tag, size_t tag_len) {
+var_t *var_new(char *tag, int tag_len) {
 	var_t *var; /* Variable being created. */
 
 	assert(tag != NULL);
@@ -821,7 +823,7 @@ void attr_add(struct xx_SLPAttributes *slp_attr, var_t *var) {
  *
  * Returns a NULL if the value could not be found.
  */
-var_t *attr_val_find_str(struct xx_SLPAttributes *slp_attr, const char *tag, size_t tag_len) {
+var_t *attr_val_find_str(struct xx_SLPAttributes *slp_attr, const char *tag, int tag_len) {
 	var_t *var;
 
 	var = slp_attr->attrs;
@@ -855,7 +857,7 @@ SLPError attr_type_verify(struct xx_SLPAttributes *slp_attr, var_t *var, SLPType
  *****************************************************************************/
 
 /*****************************************************************************/
-SLPError generic_set_val(struct xx_SLPAttributes *slp_attr, const char *tag, size_t tag_len, value_t *value, SLPInsertionPolicy policy, SLPType attr_type) 
+SLPError generic_set_val(struct xx_SLPAttributes *slp_attr, const char *tag, int tag_len, value_t *value, SLPInsertionPolicy policy, SLPType attr_type) 
 /* Finds and sets the value named in tag.                                    */
 /* 
  * slp_attr  - the attr object to add to.
@@ -905,7 +907,7 @@ SLPError SLPAttrSet_bool(
 ) {
 	struct xx_SLPAttributes *slp_attr = (struct xx_SLPAttributes *)attr_h;
 	value_t *value = NULL;
-	size_t escaped_len;
+	int escaped_len;
 	
 	/***** Sanity check. *****/
 	if (val != SLP_TRUE && val != SLP_FALSE) {
@@ -932,7 +934,7 @@ SLPError SLPAttrSet_bool(
 
 
 	/**** Set the value and return. ****/
-	return generic_set_val(slp_attr, tag, (size_t)strlen(tag), value, SLP_REPLACE, SLP_BOOLEAN);
+	return generic_set_val(slp_attr, tag, (int)strlen(tag), value, SLP_REPLACE, SLP_BOOLEAN);
 }
 
 
@@ -945,7 +947,7 @@ SLPError SLPAttrSet_str(
 ) {
 	struct xx_SLPAttributes *slp_attr = (struct xx_SLPAttributes *)attr_h;
 	value_t *value;
-	size_t unescaped_len;
+	int unescaped_len;
 	
 	/***** Sanity check. *****/
 	if ( is_valid_tag(tag) == SLP_FALSE ) {
@@ -969,7 +971,7 @@ SLPError SLPAttrSet_str(
 	value->unescaped_len = unescaped_len;
 	value->escaped_len = find_escaped_size(value->data.va_str, unescaped_len);
 	
-	return generic_set_val(slp_attr, tag, (size_t)strlen(tag), value, policy, SLP_STRING);
+	return generic_set_val(slp_attr, tag, (int)strlen(tag), value, policy, SLP_STRING);
 }
 
 
@@ -978,7 +980,7 @@ SLPError SLPAttrSet_str(
 SLPError SLPAttrSet_keyw_len(
 		SLPAttributes attr_h,
 		const char *tag,
-		size_t tag_len
+		int tag_len
 ) {
 	struct xx_SLPAttributes *slp_attr = (struct xx_SLPAttributes *)attr_h;
 	
@@ -994,14 +996,14 @@ SLPError SLPAttrSet_keyw(
 		SLPAttributes attr_h,
 		const char *tag
 ) {
-	return SLPAttrSet_keyw_len(attr_h, tag, (size_t)strlen(tag));
+	return SLPAttrSet_keyw_len(attr_h, tag, (int)strlen(tag));
 }
 
 /* Sets an integer attribute. */
 SLPError SLPAttrSet_int(
 		SLPAttributes attr_h,
 		const char *tag,
-		long val,
+		int val,
 		SLPInsertionPolicy policy
 ) {
 	struct xx_SLPAttributes *slp_attr = (struct xx_SLPAttributes *)attr_h;
@@ -1023,7 +1025,7 @@ SLPError SLPAttrSet_int(
 	value->escaped_len = count_digits(value->data.va_int);
 	assert(value->escaped_len > 0);
 
-	return generic_set_val(slp_attr, tag, (size_t)strlen(tag), value, policy, SLP_INTEGER);
+	return generic_set_val(slp_attr, tag, (int)strlen(tag), value, policy, SLP_INTEGER);
 }
 
 
@@ -1056,14 +1058,14 @@ SLPError SLPAttrSet_opaque(
 	value->unescaped_len = len;
 	value->escaped_len = (len * ESCAPED_LEN) + OPAQUE_PREFIX_LEN;
 
-	return generic_set_val(slp_attr, tag, (size_t)strlen(tag), value, policy, SLP_OPAQUE);
+	return generic_set_val(slp_attr, tag, (int)strlen(tag), value, policy, SLP_OPAQUE);
 }
 
 
 SLPError SLPAttrStore(struct xx_SLPAttributes *slp_attr, 
 		const char *tag,
 		const char *val,
-		size_t len,
+		int len,
 		SLPInsertionPolicy policy
 );
 
@@ -1083,7 +1085,7 @@ SLPError SLPAttrSet_guess(
 		SLPInsertionPolicy policy
 ) {
 	SLPError err;
-	size_t len;
+	int len;
 	const char *cur, *end;
 	
 	/***** Sanity check. *****/
@@ -1222,13 +1224,13 @@ SLPError SLPAttrGet_keyw(
 SLPError SLPAttrGet_int(
 		SLPAttributes attr_h,
 		const char *tag,
-		long **val,
-		size_t *size
+		int **val,
+		int *size
 ) {
 	struct xx_SLPAttributes *slp_attr = (struct xx_SLPAttributes *)attr_h;
 	var_t *var;
 	value_t *value;
-	size_t i;
+	int i;
 
 	var = attr_val_find_str(slp_attr, tag, strlen(tag));
 
@@ -1246,7 +1248,7 @@ SLPError SLPAttrGet_int(
 
 	/***** Create return value. *****/
 	*size = var->list_size;
-	*val = (long *)malloc( sizeof(long) * var->list_size );
+	*val = (int *)malloc( sizeof(int) * var->list_size );
 	if (*val == NULL) {
 		return SLP_MEMORY_ALLOC_FAILED;
 	}
@@ -1285,12 +1287,12 @@ SLPError SLPAttrGet_str(
 		SLPAttributes attr_h,
 		const char *tag,
 		char ***val,
-		size_t *size
+		int *size
 ) {
 	struct xx_SLPAttributes *slp_attr = (struct xx_SLPAttributes *)attr_h;
 	var_t *var;
 	value_t *value;
-	size_t i;
+	int i;
 
 	var = attr_val_find_str(slp_attr, tag, strlen(tag));
 
@@ -1318,7 +1320,7 @@ SLPError SLPAttrGet_str(
 	value = var->list;
 	for (i = 0; i < var->list_size; i++, value = value->next) {
 		assert(value != NULL);
-		//(*val)[i] = strdup(value->data.va_str);
+		/* (*val)[i] = strdup(value->data.va_str); */
 		(*val)[i] = malloc(value->unescaped_len + 1);
 		assert((*val)[i] != NULL);
 		memcpy((*val)[i], value->data.va_str, value->unescaped_len);
@@ -1352,12 +1354,12 @@ SLPError SLPAttrGet_opaque(
 		SLPAttributes attr_h,
 		const char *tag,
 		SLPOpaque ***val,
-		size_t *size
+		int *size
 ) {
 	struct xx_SLPAttributes *slp_attr = (struct xx_SLPAttributes *)attr_h;
 	var_t *var;
 	value_t *value;
-	size_t i;
+	int i;
 
 	var = attr_val_find_str(slp_attr, tag, strlen(tag));
 
@@ -1411,7 +1413,7 @@ SLPError SLPAttrGet_opaque(
  *  SLP_TAG_ERROR
  *    If the attribute is not set. 
  */
-SLPError SLPAttrGetType_len(SLPAttributes attr_h, const char *tag, size_t tag_len, SLPType *type) {
+SLPError SLPAttrGetType_len(SLPAttributes attr_h, const char *tag, int tag_len, SLPType *type) {
 	struct xx_SLPAttributes *slp_attr = (struct xx_SLPAttributes *)attr_h;
 	var_t *var;
 
@@ -1457,7 +1459,7 @@ SLPError SLPAttrGetType(SLPAttributes attr_h, const char *tag, SLPType *type) {
  *   0 - Out of mem.
  *   1 - Success.
  */
-int internal_store( struct xx_SLPAttributes *slp_attr, char const *tag, size_t tag_len, char const *attr_start, char const *attr_end, int val_count, SLPType type, int unescaped_len) {
+int internal_store( struct xx_SLPAttributes *slp_attr, char const *tag, int tag_len, char const *attr_start, char const *attr_end, int val_count, SLPType type, int unescaped_len) {
 	var_t *var;
 	int block_size;
 	char *mem_block; /* Pointer into allocated block. */
@@ -1548,7 +1550,7 @@ int internal_store( struct xx_SLPAttributes *slp_attr, char const *tag, size_t t
 
 			break;
 			case(SLP_INTEGER):
-				val->data.va_int = strtol(cur_start, NULL, 0);
+				val->data.va_int = (int) strtol(cur_start, NULL, 0);
 				val->escaped_len = count_digits(val->data.va_int);
 				/* FIXME Check errno. */
 			break;
@@ -1669,8 +1671,8 @@ int var_iter(struct xx_SLPAttributes *slp_attr, char **tag_cur, char **tag_end, 
 SLPError SLPAttrSerialize(SLPAttributes attr_h,
 		const char* tags /* NULL terminated */,
 		char **out_buffer /* Where to write. if *out_buffer == NULL, space is alloc'd */,
-		size_t bufferlen, /* Size of buffer. */
-		size_t* count, /* Bytes needed/written. */
+		int bufferlen, /* Size of buffer. */
+		int* count, /* Bytes needed/written. */
 		SLPBoolean find_delta
 ) {
 	struct xx_SLPAttributes *slp_attr = (struct xx_SLPAttributes *)attr_h;
@@ -1795,7 +1797,7 @@ SLPError SLPAttrSerialize(SLPAttributes attr_h,
 		} else {
 			/**** Handle everything else. ****/
 			char *to_add;
-			size_t to_add_len;
+			int to_add_len;
 			value_t *value;
 		
 			/*** Add the prefix. ***/
@@ -1836,7 +1838,7 @@ SLPError SLPAttrSerialize(SLPAttributes attr_h,
 						cur = escape_into(cur, value->data.va_str, value->unescaped_len);
 						break;
 					case(SLP_INTEGER):
-						sprintf(cur, "%ld", value->data.va_int);
+						sprintf(cur, "%d", value->data.va_int);
 						cur += value->escaped_len;
 						break;
 					case(SLP_OPAQUE):
@@ -1866,7 +1868,7 @@ SLPError SLPAttrSerialize(SLPAttributes attr_h,
 		}
 
 		/*** Add separator. This is fixed for the last val outside the loop ***/
-		//if (var->next != NULL) {
+		/* if (var->next != NULL) { */
 		if (cur - build_str < size) {
 			*cur = VAR_SEPARATOR;
 			cur += VAR_SEPARATOR_LEN;
@@ -1908,13 +1910,13 @@ SLPError SLPAttrSerialize(SLPAttributes attr_h,
 SLPError SLPAttrStore(struct xx_SLPAttributes *slp_attr, 
 		const char *tag,
 		const char *val,
-		size_t len,
+		int len,
 		SLPInsertionPolicy policy
 ) {
 	int i; /* Index into val. */
 	SLPBoolean is_str; /* Flag used for checking if given is string. */
 	char *unescaped;
-	size_t unescaped_len; /* Length of the unescaped text. */
+	int unescaped_len; /* Length of the unescaped text. */
 	
 	/***** Check opaque. *****/
 	if (strncmp(val, OPAQUE_PREFIX, OPAQUE_PREFIX_LEN) == 0) { 
@@ -1968,7 +1970,7 @@ SLPError SLPAttrStore(struct xx_SLPAttributes *slp_attr,
 		if (is_int == SLP_TRUE) {
 			char *end; /* To verify that the correct length was read. */
 			SLPError err;
-			err = SLPAttrSet_int((SLPAttributes)slp_attr, tag, strtol(val, &end, 10), policy);
+			err = SLPAttrSet_int((SLPAttributes)slp_attr, tag, (int) strtol(val, &end, 10), policy);
 			assert(end == val + len);
 			return err;
 		}
@@ -2030,7 +2032,7 @@ SLPError attr_destringify(
 		STOP_VALUE /* The end of an [attr-val]. */
 	} state = START_ATTR; /* The current state of the parse. */
 	char const *tag; /* A tag that has been parsed. (carries data across state changes)*/
-	size_t tag_len = 0; /* length of the tag (in bytes) */
+	int tag_len = 0; /* length of the tag (in bytes) */
 	
 	assert(str != NULL);
 	if (strlen(str) == 0) {
@@ -2088,7 +2090,7 @@ SLPError attr_destringify(
 				
 				/*** Check the the end character is valid. ***/
 				if (*end == VAR_INFIX) {
-					tag_len = (size_t)(end - cur); /* Note that end is on the character _after_ the last character of the tag (the =). */
+					tag_len = (int)(end - cur); /* Note that end is on the character _after_ the last character of the tag (the =). */
 					assert(tag == NULL);
 					tag = cur; 
 					cur = end + VAR_INFIX_LEN;
@@ -2220,7 +2222,7 @@ SLPError SLPAttrFreshen(SLPAttributes slp_attr_h, const char *str) {
 //	char *str;
 //	SLPError err;
 //	
-////	err = SLPAttrSerialize(attr_h, size_t *count, char **str, SLPBoolean find_delta); 
+////	err = SLPAttrSerialize(attr_h, int *count, char **str, SLPBoolean find_delta); 
 //
 //	if (str == NULL) {
 //		return SLP_INTERNAL_SYSTEM_ERROR;

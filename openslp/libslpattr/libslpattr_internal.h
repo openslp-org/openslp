@@ -19,11 +19,11 @@
 
 typedef struct xx_value_t {
 	struct xx_value_t *next;
-	size_t escaped_len;
-	size_t unescaped_len;
+	int escaped_len;
+	int unescaped_len;
 	union {
 		SLPBoolean va_bool;
-		long va_int;
+		int va_int;
 		char *va_str; /* This is used for keyword, string, and opaque. */
 	} data; /* Stores the value of the variable. Note, any string must be copied into the struct. */
 
@@ -68,13 +68,13 @@ struct xx_SLPAttributes {
 	SLPBoolean strict; /* Are we using strict typing? */
 	char *lang; /* Language. */
 	var_t *attrs; /* List of vars to be sent. */
-	size_t attr_count; /* The number of attributes */
+	int attr_count; /* The number of attributes */
 };
 
 
 
 /* Finds a variable by its tag. */
-var_t *attr_val_find_str(struct xx_SLPAttributes *slp_attr, const char *tag, size_t tag_len); 
+var_t *attr_val_find_str(struct xx_SLPAttributes *slp_attr, const char *tag, int tag_len); 
 
 /* Finds the type of an attribute. */
-SLPError SLPAttrGetType_len(SLPAttributes attr_h, const char *tag, size_t tag_len, SLPType *type); 
+SLPError SLPAttrGetType_len(SLPAttributes attr_h, const char *tag, int tag_len, SLPType *type); 

@@ -17,7 +17,7 @@
 
 #define SER1 "(abool=false),keyw,(anInt=51)"
 
-#define TERM_INT  (long)-2345
+#define TERM_INT  (int)-2345
 
 #include <stdarg.h>
 
@@ -34,7 +34,7 @@
 int test_serialized(char *str, char *name, ...) {
 	char *vl_start; /* The start of the serialized value list. */
 	char *vl_end; /* End of the value list. The ')'. */
-	size_t vl_size; /* The expected size of the value list. */
+	int vl_size; /* The expected size of the value list. */
 
 	va_list ap;
 	char *current_value; /* Current member of ap. */
@@ -43,7 +43,7 @@ int test_serialized(char *str, char *name, ...) {
 	{
 		char *attr_name; /* The attribute name as it should appear in the serialized string. (ie, with preceeding '(' and trailing '=')*/
 		
-		size_t len; /* The length of the name. */
+		int len; /* The length of the name. */
 		
 		/**** Build attribute as it should appear in str. ****/
 		len = strlen(name) + 2; /* +2 for '(' and '='. */
@@ -110,7 +110,7 @@ int test_serialized(char *str, char *name, ...) {
 	/***** Check that all values in str are accounted for (ie, there are no extra). *****/
 	/**** Account for commas in value list. ****/
 	vl_size -= 1; /* -1 for lack of trailing comma. */
-	if (vl_size != (size_t) (vl_end - vl_start)) {
+	if (vl_size != (int) (vl_end - vl_start)) {
 		return 0;
 	}
 	
@@ -128,7 +128,7 @@ int test_size(SLPAttributes attr) {
 	SLPError err;
 	char const *tag; /* The tag. */
 	SLPType type; 
-	size_t count;
+	int count;
 	
 	err = SLPAttrIteratorAlloc(attr, &iter);
 
@@ -147,17 +147,17 @@ int test_size(SLPAttributes attr) {
  *
  * Params:
  * name - Name of the attribute to test. 
- * ... - List of longs that must be associated with name. Terminated with a 
+ * ... - List of ints that must be associated with name. Terminated with a 
  * 		TERM_INT.
  * 
  * Returns 1 iff the attributes contain all of the named values. 0 otherwise.
  */
 int test_int(SLPAttributes attr, char *name, ...) {
-	long *int_arr; /* Values returned from SLPAttrGet_str(). */
-	size_t len; /* Number of values returned. */
-	long current_value; /* The passed value currently being tested. */
-	size_t values_seen; /* The count of passed values. */
-	size_t i;
+	int *int_arr; /* Values returned from SLPAttrGet_str(). */
+	int len; /* Number of values returned. */
+	int current_value; /* The passed value currently being tested. */
+	int values_seen; /* The count of passed values. */
+	int i;
 	va_list ap;
 	SLPError err;
 
@@ -167,7 +167,7 @@ int test_int(SLPAttributes attr, char *name, ...) {
 	/* Foreach value... */
 	values_seen = 0;
 	va_start(ap, name);
-	current_value = va_arg(ap, long);
+	current_value = va_arg(ap, int);
 	while (current_value != TERM_INT) {
 		values_seen++;
 		/* Check to see if the current value is in the value list. */
@@ -184,7 +184,7 @@ int test_int(SLPAttributes attr, char *name, ...) {
 			return 0;
 		}
 		
-		current_value = va_arg(ap, long);
+		current_value = va_arg(ap, int);
 	}
 	va_end(ap);
 
@@ -210,10 +210,10 @@ int test_int(SLPAttributes attr, char *name, ...) {
  */
 int test_string(SLPAttributes attr, char *name, ...) {
 	char **str_arr; /* Values returned from SLPAttrGet_str(). */
-	size_t len; /* Number of values returned. */
+	int len; /* Number of values returned. */
 	char *current_value; /* The passed value currently being tested. */
-	size_t values_seen; /* The count of passed values. */
-	size_t i;
+	int values_seen; /* The count of passed values. */
+	int i;
 	va_list ap;
 	SLPError err;
 
@@ -265,12 +265,12 @@ int main(int argc, char *argv[]) {
 	SLPAttributes attr;
 	SLPError err;
 	char *str, *str2;
-	size_t len;
+	int len;
 
 #ifdef USE_PREDICATES	
 	char data[] = STR;
 	SLPBoolean bool;
-	long *int_arr;
+	int *int_arr;
 	char **str_arr;
 	SLPType type;
 	char *tag;
@@ -477,7 +477,7 @@ int main(int argc, char *argv[]) {
 	assert(err == SLP_OK);
 	
 	/**** Check an int. ****/
-	err = SLPAttrSet_int(attr, "anInt", (long)234, SLP_ADD);
+	err = SLPAttrSet_int(attr, "anInt", (int)234, SLP_ADD);
 	assert(err == SLP_OK);
 
 	err = SLPAttrGet_int(attr, "anInt", &int_arr, &len);
@@ -487,7 +487,7 @@ int main(int argc, char *argv[]) {
 	free(int_arr);
 	
 	/**** Check a bunch of ints. ****/
-	err = SLPAttrSet_int(attr, "anInt", (long)345, SLP_ADD);
+	err = SLPAttrSet_int(attr, "anInt", (int)345, SLP_ADD);
 	assert(err == SLP_OK);
 
 	err = SLPAttrGet_int(attr, "anInt", &int_arr, &len);
@@ -503,7 +503,7 @@ int main(int argc, char *argv[]) {
 	free(int_arr);
 	
 	/**** Check replacement. ****/
-	err = SLPAttrSet_int(attr, "anInt", (long)567, SLP_REPLACE);
+	err = SLPAttrSet_int(attr, "anInt", (int)567, SLP_REPLACE);
 	assert(err == SLP_OK);
 
 	err = SLPAttrGet_int(attr, "anInt", &int_arr, &len);
@@ -518,7 +518,7 @@ int main(int argc, char *argv[]) {
 	err = SLPAttrAllocStr("en", NULL, SLP_FALSE, &attr, "(doc=12,34,56)");
 	assert(err == SLP_OK);
 	
-	assert(test_int(attr, "doc", (long)12, (long)34, (long)56, TERM_INT));
+	assert(test_int(attr, "doc", (int)12, (int)34, (int)56, TERM_INT));
 	
 	SLPAttrFree(attr);
 
@@ -600,7 +600,7 @@ int main(int argc, char *argv[]) {
 	assert(err == SLP_OK);
 	assert(bool == SLP_TRUE);
 
-	err = SLPAttrSet_int(attr, "keyw1", (long)1, SLP_ADD);
+	err = SLPAttrSet_int(attr, "keyw1", (int)1, SLP_ADD);
 	assert(err == SLP_TYPE_ERROR);
 	
 	SLPAttrFree(attr);
@@ -840,7 +840,7 @@ int main(int argc, char *argv[]) {
 	err = SLPAttrAllocStr("en", NULL, SLP_FALSE, &attr, "(public=log),(slug=pig),(doc=12,34,56),zoink");
 	assert(err == SLP_OK);
 	
-	assert(test_int(attr, "doc", (long)12, (long)34, (long)56, TERM_INT));
+	assert(test_int(attr, "doc", (int)12, (int)34, (int)56, TERM_INT));
 
 	/*** Test singular desrialization. ***/
 	str = NULL;

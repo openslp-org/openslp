@@ -510,7 +510,7 @@ FilterResult int_op(SLPAttributes slp_attr,
 /* Perform an integer operation.                                            */
 /*--------------------------------------------------------------------------*/
 {
-    long rhs_val; /* The converted value of rhs. */
+    int rhs_val; /* The converted value of rhs. */
     char *end; /* Pointer to the end of op. */
 	var_t *var; /* Pointer to the variable named by tag. */
 	value_t *value; /* A value in var. */
