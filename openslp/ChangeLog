@@ -6,6 +6,10 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 
+09/12/01 matt@caldera.com
+Added slpd startup script for linux that automatically adds the multicast
+route if one is not found
+
 09/05/01 matt@caldera.com
 Added calls to inet_aton() that are used before call to gethostbyname()
 which should reduce name lookups and allow OpenSLP be configured to work in 
