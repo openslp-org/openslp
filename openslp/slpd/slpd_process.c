@@ -502,6 +502,12 @@ int ProcessSrvReg(SLPDPeerInfo* peerinfo,
                                G_SlpdProperty.useScopesLen,
                                G_SlpdProperty.useScopes))
     {
+        int uid;
+#ifdef WIN32
+        uid = 0; /* no equivalent of UID on Windows */
+#else
+        uid = getuid();
+#endif
         /*-------------------------------*/
         /* TODO: Validate the authblocks */
         /*-------------------------------*/
@@ -513,7 +519,7 @@ int ProcessSrvReg(SLPDPeerInfo* peerinfo,
         if (SLPDDatabaseReg(&(message->body.srvreg),
                             message->header.flags | SLP_FLAG_FRESH,
                             getpid(),
-                            getuid()) == 0)
+                            uid) == 0)
         {
             errorcode = 0;
         }
