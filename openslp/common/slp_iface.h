@@ -49,17 +49,32 @@
 #ifndef SLP_IFACE_H_INCLUDED
 #define SLP_IFACE_H_INCLUDED
 
+#include <netinet/in.h>
+
+#define SLP_MAX_IFACES 10
+
 /*=========================================================================*/
-int SLPInterfaceGetAddresses(struct sockaddr* addr, int* addrcount);
+typedef struct _SLPInterfaceInfo
+/*=========================================================================*/
+{
+    int iface_count;
+    struct sockaddr_in iface_addr[SLP_MAX_IFACES];
+    struct sockaddr_in bcast_addr[SLP_MAX_IFACES];
+}SLPInterfaceInfo;
+
+
+/*=========================================================================*/
+int SLPInterfaceGetInformation(const char* useifaces,
+                               SLPInterfaceInfo* ifaces);
 /* Description:
  *    Get the network interface addresses for this host.  Exclude the
  *    loopback interface
  *
  * Parameters:
- *     addr (OUT) Pointer to array of sockaddr structures to be filled*
- *     addrcount (INOUT) The number of sockaddr stuctures in the addr array
- *                       on successful return will contain the number of 
- *                       sockaddrs that were filled in the addr array
+ *     useifaces (IN) Pointer to comma delimited string of interface IPv4
+ *                    addresses to get interface information for.  Pass
+ *                    NULL to get all interfaces (excluding NULL)..
+ *     ifaceinfo (OUT) Information about requested interfaces.
  *
  * Returns:
  *     zero on success, non-zero (with errno set) on error.
@@ -68,23 +83,7 @@ int SLPInterfaceGetAddresses(struct sockaddr* addr, int* addrcount);
 
 
 /*=========================================================================*/
-int SLPInterfaceGetBroadcastAddress(const struct sockaddr* ifaddr,
-                                    struct sockaddr bcastaddr);
-/* Description:
- *    Get the broadcast address for the specified interface 
- *
- * Parameters:
- *     ifaddr (IN) Pointer to interface address to get broadcast address for
- *     addrcount (OUT) Pointer to sockaddr to receive the broadcast address
- *
- * Returns:
- *     zero on success, non-zero (with errno set) on error.
- *=========================================================================*/
-
-
-
-/*=========================================================================*/
-int SLPInterfaceSockaddrsToString(const struct sockaddr* addrs, 
+int SLPInterfaceSockaddrsToString(const struct sockaddr_in* addrs, 
                                   int addrcount,
                                   char** addrstr);
 /* Description:
@@ -104,7 +103,7 @@ int SLPInterfaceSockaddrsToString(const struct sockaddr* addrs,
 
 /*=========================================================================*/
 int SLPInterfaceStringToSockaddrs(const char* addrstr,
-                                  struct sockaddr* addrs,
+                                  struct sockaddr_in* addrs,
                                   int* addrcount);
 /* Description:
  *    Fill an array of struct sockaddrs from the comma delimited string of 
