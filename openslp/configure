@@ -14,7 +14,7 @@ ac_default_prefix=/usr/local
 ac_help="$ac_help
   --with-rpm-prefix=DIR   prefix where rpm-devel was installed"
 ac_help="$ac_help
-  --enable-debug    Turn on debugging"
+  --enable-debug          Turn on debugging"
 ac_help="$ac_help
   --enable-shared[=PKGS]  build shared libraries [default=yes]"
 ac_help="$ac_help
