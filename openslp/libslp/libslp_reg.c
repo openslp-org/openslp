@@ -193,7 +193,7 @@ SLPError ProcessSrvReg(PSLPHandleInfo handle)
     return result;
 }
 
-
+#ifdef ENABLE_ASYNC_API
 /*-------------------------------------------------------------------------*/ 
 SLPError AsyncProcessSrvReg(PSLPHandleInfo handle)
 /*-------------------------------------------------------------------------*/
@@ -209,8 +209,7 @@ SLPError AsyncProcessSrvReg(PSLPHandleInfo handle)
 
     return result;
 }
-
-
+#endif
 
 
 /*=========================================================================*/
@@ -303,6 +302,7 @@ SLPError SLPReg(SLPHandle   hSLP,
     handle->params.reg.callback      = callback;
     handle->params.reg.cookie        = cookie; 
 
+#ifdef ENABLE_ASYNC_API
     /*----------------------------------------------*/
     /* Check to see if we should be async or sync   */
     /*----------------------------------------------*/
@@ -337,6 +337,7 @@ SLPError SLPReg(SLPHandle   hSLP,
         }
     }
     else
+#endif //ffdef ENABLE_ASYNC_API    
     {
         result = ProcessSrvReg(handle);            
         handle->inUse = SLP_FALSE;

@@ -109,14 +109,24 @@ SLPError SLPOpen(const char *pcLang, SLPBoolean isAsync, SLPHandle *phSLP)
     *phSLP = 0;
 
 
-    /*-------------------------------------------------------*/
-    /* TODO: remove this line when you implement async calls */
-    /*-------------------------------------------------------*/
+#ifndef ENABLE_ASYNC_API   
     if(isAsync == SLP_TRUE)
     {
         result =  SLP_NOT_IMPLEMENTED;
         goto FINISHED;
     }
+/*-------------------------------------------------------*/
+/* TODO: remove the #else when we implement async calls  */
+/*-------------------------------------------------------*/
+#else
+    if(isAsync == SLP_TRUE)
+    {
+        result =  SLP_NOT_IMPLEMENTED;
+        goto FINISHED;
+    }
+#endif
+
+
 
     /*------------------------------------*/
     /* allocate a SLPHandleInfo structure */

@@ -7,6 +7,9 @@ blank lines and include the date, developer's email, and change description.
 =============================================================================
 
 03/02/01 mpeterson@caldera.com
+Added --enable-async-api configure option
+
+03/02/01 mpeterson@caldera.com
 Added slptool to openslp CVS module and included Ganesan's register and
 deregister enhancements
 

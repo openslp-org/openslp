@@ -198,9 +198,10 @@ SLPError ProcessSrvRqst(PSLPHandleInfo handle)
     if(buf) free(buf);
 
     return result;
-}                                   
+}   
 
 
+#ifdef ENABLE_ASYNC_API
 /*-------------------------------------------------------------------------*/ 
 SLPError AsyncProcessSrvRqst(PSLPHandleInfo handle)
 /*-------------------------------------------------------------------------*/
@@ -212,6 +213,7 @@ SLPError AsyncProcessSrvRqst(PSLPHandleInfo handle)
     handle->inUse = SLP_FALSE;
     return result;
 }
+#endif
 
 
 /*=========================================================================*/
@@ -322,6 +324,7 @@ SLPError SLPFindSrvs(SLPHandle  hSLP,
     /*----------------------------------------------*/
     /* Check to see if we should be async or sync   */
     /*----------------------------------------------*/
+#ifdef ENABLE_ASYNC_API
     if(handle->isAsync)
     {
         /* COPY all the referenced parameters */
@@ -350,6 +353,7 @@ SLPError SLPFindSrvs(SLPHandle  hSLP,
         }
     }
     else
+#endif /* ifdef ENABLE_ASYNC_API */
     {
         /* Leave all parameters REFERENCED */
 

@@ -233,17 +233,10 @@ typedef struct _SLPHandleInfo
 }SLPHandleInfo, *PSLPHandleInfo; 
 
 
+#ifdef ENABLE_ASYNC_API
 /*=========================================================================*/
 typedef void* (*ThreadStartProc)(void *);  
 /*=========================================================================*/
-
-
-/*=========================================================================*/
-typedef SLPBoolean NetworkRqstRplyCallback(SLPError error, 
-                                           SLPMessage msg,
-                                           void* cookie);  
-/*=========================================================================*/
-
 
 /*=========================================================================*/
 SLPError ThreadCreate(ThreadStartProc startproc, void *arg);
@@ -254,6 +247,14 @@ SLPError ThreadCreate(ThreadStartProc startproc, void *arg);
 /* arg          (IN) An argument for the thread start procedure.           */
 /*                                                                         */
 /* Returns      SLPError code                                              */
+/*=========================================================================*/
+#endif
+
+
+/*=========================================================================*/
+typedef SLPBoolean NetworkRqstRplyCallback(SLPError error, 
+                                           SLPMessage msg,
+                                           void* cookie);  
 /*=========================================================================*/
 
 

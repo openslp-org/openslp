@@ -50,6 +50,7 @@
 #include "slp.h"
 #include "libslp.h"
 
+#ifdef ENABLE_ASYNC_API
 /*=========================================================================*/ 
 SLPError ThreadCreate(ThreadStartProc startproc, void *arg)
 /* Creates a thread                                                        */
@@ -63,4 +64,4 @@ SLPError ThreadCreate(ThreadStartProc startproc, void *arg)
 {
     return SLP_NOT_IMPLEMENTED;
 }
-
+#endif

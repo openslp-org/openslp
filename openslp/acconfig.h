@@ -16,4 +16,7 @@
 /* defined if SLPv1 support is enabled */
 #undef ENABLE_SLPv1
 
+/* defined if the async SLP API support is enabled */
+#undef ENABLE_ASYNC_API
+
 #endif

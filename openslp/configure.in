@@ -59,7 +59,7 @@ dnl ***********************************************************************
 dnl Handle Predicates 
 dnl ***********************************************************************
 AC_ARG_ENABLE(predicates,
-[  --disable-predicates          Turn off predicates],
+[  --disable-predicates    Turn off predicates],
 predicates=$enableval,
 predicates=yes)
 
@@ -69,6 +69,22 @@ AM_CONDITIONAL(USE_PREDICATES, test "$predicates" = "yes")
 if test "$predicates" = "yes"; then
     AC_DEFINE(USE_PREDICATES)
 fi
+
+dnl ***********************************************************************
+dnl Enable asyncronous support in libslp SLP API library 
+dnl ***********************************************************************
+AC_ARG_ENABLE(async-api,
+[  --enable-async-api      Turn on asyncronous support (default off)],
+asyncapi=$enableval,
+asyncapi=no)
+
+dnl Conditional for optional asyncronous support in libslp SLP API library
+AM_CONDITIONAL(ENABLE_ASYNC_API, test "$asyncapi" = "yes")
+
+if test "$asyncapi" = "yes"; then
+    AC_DEFINE(ENABLE_ASYNC_API)
+fi
+
 
 dnl ***********************************************************************
 dnl Checks for programs.

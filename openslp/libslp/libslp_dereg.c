@@ -178,7 +178,7 @@ SLPError ProcessSrvDeReg(PSLPHandleInfo handle)
     return result;
 }
 
-
+#ifdef ENABLE_ASYNC_API
 /*-------------------------------------------------------------------------*/ 
 SLPError AsyncProcessSrvDeReg(PSLPHandleInfo handle)
 /*-------------------------------------------------------------------------*/
@@ -189,7 +189,7 @@ SLPError AsyncProcessSrvDeReg(PSLPHandleInfo handle)
     handle->inUse = SLP_FALSE;
     return result;
 }
-
+#endif
 
 /*=========================================================================*/
 SLPError SLPDereg(SLPHandle  hSLP,
@@ -264,6 +264,7 @@ SLPError SLPDereg(SLPHandle  hSLP,
     /*----------------------------------------------*/
     /* Check to see if we should be async or sync   */
     /*----------------------------------------------*/
+#ifdef ENABLE_ASYNC_API
     if(handle->isAsync)
     {
         /* COPY all the parameters */
@@ -289,6 +290,7 @@ SLPError SLPDereg(SLPHandle  hSLP,
         }
     }
     else
+#endif /* ifdef ENABLE_ASYNC_API */
     {
         /* REFERENCE all the parameters */
         result = ProcessSrvDeReg(handle);
