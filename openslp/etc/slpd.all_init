@@ -1,20 +1,34 @@
 #!/bin/bash
 #
-#	/etc/rc.d/init.d/slpd
-#
 # slpd    Start/Stop the OpenSLP SA daemon (slpd).
 #
+# Author: Miquel van Smoorenburg, <miquels@drinkel.nl.mugnet.org>
+# -Modified for RHS Linux by Damien Neil
+# -Modified for COL by Raymund Will, <ray@lst.de>
+# -Modified for OpenSLP by Matt Peterson <mpeterson@calderasystems.com>
+# -Modified to be distribution agnostic by Bart Whiteley <bart@caldera.com>
+# -Modified to be MORE agnostic by Erik Ratcliffe <eratcliffe@volutiontech.com>
+
+# Red Hat "chkconfig" init header:
+#
 # chkconfig: 345 13 87
-# description: OpenSLP daemon for the Service Location Protocol
+# description: slpd - OpenSLP daemon for the Service Location Protocol
 # processname: slpd
 
-# Author: Miquel van Smoorenburg, <miquels@drinkel.nl.mugnet.org>
-#     Modified for RHS Linux by Damien Neil
-#     Modified for COL by Raymund Will, <ray@lst.de>
-#     Modified for OpenSLP by Matt Peterson <mpeterson@calderasystems.com>
-#     Modified to be distribution agnostic by Bart Whiteley <bart@caldera.com>
+# LSB init header:
+#
+### BEGIN INIT INFO
+# Provides: openslp slpd
+# Required-Start: $named
+# Required-Stop:
+# Default-Start: 3 4 5
+# Default-Stop: 0 1 2 6
+# Description: slpd - OpenSLP daemon for the Service Location Protocol
+### END INIT INFO
 
-#//////////////////////////////////////////////////#
+
+#///////////// multicast_route_set() //////////////#
+#                                                  #
 # Does nothing if a route exists that supports     # 
 # multicast traffic. If no routes supporting       #
 # multicast traffic exists, the function tries to  #
@@ -22,6 +36,7 @@
 # on failure. One parameter must be passed in.     #
 # This variable determins verbosity. If parameter  #
 # is non-zero debugging will appear                #
+#                                                  #
 #//////////////////////////////////////////////////#
 multicast_route_set() 
 {
@@ -42,9 +57,9 @@ multicast_route_set()
 
     ping $PING_OPTIONS_1 $MULTICAST_ADDRESS 2> $TMP_FILE 1> /dev/null
 
-	if [ $? = 2 ]; then
+ if [ $? = 2 ]; then
         ping $PING_OPTIONS_2 $MULTICAST_ADDRESS 2> $TMP_FILE 1> /dev/null
-	fi
+ fi
 
     grep $PING_ERROR_NO_ROUTE $TMP_FILE > /dev/null 2>&1
     err_unreachable_found=$?
@@ -80,93 +95,158 @@ multicast_route_set()
     return $retval
 }
 
+
 NAME=slpd
 DAEMON=/usr/sbin/$NAME  
-SUSE=0
+
 
 # Change to root
 OLDDIR=`pwd`
 cd /
 
-# Source function library.
+
+# Source function library or libraries.  Start with the
+# uncommon ones like /etc[/rc.d]/init.d/functions, and then
+# source in the LSB functions if they exist (which will
+# override functions that may be defined in the former
+# functions library).  Finally, if /etc/sysconfig/slpd
+# exists (like on SCO Linux systems), source it in Just 
+# In Case(tm).
 if [ -f /etc/rc.d/init.d/functions ]; then
   . /etc/rc.d/init.d/functions
-else
-  SUSE=1
+else 
+  if [ -f /etc/init.d/functions ]; then
+      . /etc/init.d/functions 
+  fi
 fi
+if [ -f /lib/lsb/init-functions ]; then
+  . /lib/lsb/init-functions
+fi
+if [ -f /etc/sysconfig/$NAME ]; then
+  . /etc/sysconfig/$NAME
+fi
+
   
-test -x $DAEMON || exit 0
+# No executable daemon, no go...
+test -x $DAEMON || exit 1
 
-if [ ! "$SVIlock" = "" ]; then
-  unset LOCK
-else
-  LOCK=/var/lock/subsys/slpd
-fi
 
+# Lock files seem to be very, very consistent across distros...
+LOCK=/var/lock/subsys/$NAME
+
+
+# Run/PID files seem to be consistent as well...
+RUNPID=/var/run/$NAME
+
+
+# Make RETVAL default to 0...
 RETVAL=0
 
+
 #
-#	See how we were called.
+# See how we were called.
 #
+
 case "$1" in
   start)
-    # Check if atd is already running
-    # RH style
-    if [ $SUSE -eq 0 ] && [ ! "$LOCK" = "" ] && [ -f $LOCK ]; then
+    # Check if we're already running...
+    if [ ! "$LOCK" = "" ] && [ -f $LOCK ]; then
       exit 0
     fi
-    # Caldera Style
-    if [ ! "$SVIlock" = "" ] && [ -f $SVIlock ]; then
-      exit 0
-    fi
+
     echo -n 'Starting slpd: '
 
+    # Attempt to guarantee a multicast route...
     multicast_route_set 1
     multicast_enabled=$?
     if [ "$multicast_enabled" != "0" ] ; then
       echo "Failure: No Route Available for Multicast Traffic"
       exit 1
     fi
-    if [ $SUSE -eq 0 ]; then
-      if [ -x /sbin/ssd ]; then
-        ssd -S -n $NAME -x $DAEMON -- $OPTIONS
-        [ ! "$SVIlock" = "" ] && touch $SVIlock
-      else
-        daemon $DAEMON
-        RETVAL=$?
-      fi
-    else
+
+    # Try to start it up, beginning with LSB, then Red Hat,
+    # then OpenLinux.  If there are other methods for starting
+    # daemons and they don't accidentally fall into one of those
+    # categories (look below before jumping to conclusions), let 
+    # someone know so this can be fixed...
+    if [ -x /sbin/startproc ]; then
       startproc $DAEMON $OPTIONS
+      RETVAL=$?
+    elif grep ^startproc\(\) /etc/rc.d/init.d/functions > /dev/null 2>&1 || \
+      grep ^startproc\(\) /etc/init.d/functions > /dev/null 2>&1; then
+         startproc $DAEMON $OPTIONS
+         RETVAL=$?
+    elif grep ^daemon\(\) /etc/rc.d/init.d/functions > /dev/null 2>&1 || \
+      grep ^daemon\(\) /etc/init.d/functions > /dev/null 2>&1; then
+         daemon $DAEMON
+         RETVAL=$?
+    else 
+      if [ -x /sbin/ssd ]; then
+         ssd -S -n $NAME -x $DAEMON -- $OPTIONS
+         RETVAL=$?
+      fi
     fi
-    [ $SUSE -eq 0 ] && [ ! "$LOCK" = "" ] && [ $RETVAL -eq 0 ] && touch $LOCK
+
+    if [ $RETVAL -eq 0 ]; then touch $LOCK; fi 
+
     echo
     ;;
   stop)
-    echo -n 'Stopping slpd: '
-    
-    if [ -x /sbin/ssd ]; then
-      ssd -K -p /var/run/$NAME.pid -n $NAME
-      [ ! "$SVIlock" = "" ] && rm -f $SVIlock
+    # Are we even running?  Check first...
+    if [ -f $LOCK ]; then 
+      echo -n 'Stopping slpd: '
+      if [ -x /sbin/killproc ]; then
+        killproc $DAEMON
+        RETVAL=$?
+      elif grep killproc\(\) /etc/rc.d/init.d/functions > /dev/null 2>&1 || \
+        grep killproc\(\) /etc/init.d/functions > /dev/null 2>&1; then
+           killproc $DAEMON
+           RETVAL=$?
+      else 
+        if [ -x /sbin/ssd ]; then
+           ssd -K -p /var/run/$NAME.pid -n $NAME
+           RETVAL=$?
+        fi
+      fi
+      
+      if [ $RETVAL -eq 0 ]; then rm -f $LOCK; fi
     else
-      killproc $DAEMON
-      RETVAL=$?
+      echo "$NAME is not running"
+      RETVAL=0
     fi
-    [ ! "$LOCK" = "" ] && [ $RETVAL -eq 0 ] && rm -f $LOCK
+
     echo
     ;;
   reload|restart)
     cd $OLDDIR
     $0 stop
     $0 start
-	 cd /
     RETVAL=$?
+    cd /
     ;;
   status)
-    status /usr/sbin/slpd
+    if [ -x /sbin/checkproc ]; then 
+         /sbin/checkproc $NAME > /dev/null 2>&1
+    elif grep checkproc\(\) /etc/rc.d/init.d/functions > /dev/null 2>&1 || \
+         grep checkproc\(\) /etc/init.d/functions > /dev/null 2>&1; then
+         checkproc $NAME > /dev/null 2>&1
+    elif grep status\(\) /etc/rc.d/init.d/functions > /dev/null 2>&1 || \
+         grep status\(\) /etc/init.d/functions > /dev/null 2>&1; then
+         status $NAME > /dev/null 2>&1
+    else
+          pidof $NAME > /dev/null 2>&1
+    fi
+
     RETVAL=$?
+
+    if [ $RETVAL -eq 0 ]; then
+       echo "$NAME is running."
+    else
+       echo "$NAME is not running."
+    fi
     ;;
   *)
-    echo "Usage: /etc/rc.d/init.d/slpd {start|stop|restart|reload|status}"
+    echo "Usage: slpd {start|stop|restart|reload|status}"
     exit 1
 esac
 
