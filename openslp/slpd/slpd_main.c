@@ -495,6 +495,7 @@ int main(int argc, char* argv[])
         {
         case DATAGRAM_UNICAST:
         case DATAGRAM_MULTICAST:
+        case DATAGRAM_BROADCAST:
             FD_SET(sock->fd,&savedreadfds);
             break;
             
@@ -576,6 +577,7 @@ int main(int argc, char* argv[])
 
                     case DATAGRAM_UNICAST:
                     case DATAGRAM_MULTICAST:
+                    case DATAGRAM_BROADCAST:
                         HandleDatagramRead(&uasockets,sock);
                         break;                      
                 

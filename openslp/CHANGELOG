@@ -10,6 +10,9 @@ blank lines and include the date, developer's email, and change description.
 =============================================================================
 
 06/12/00 mpeterson@calderasystems.com
+Added support for slp.net.isBroadcastOnly property
+
+06/12/00 mpeterson@calderasystems.com
 Fixed 107022 - Seg Fault when net.slp.interfaces specified in slp.conf
 
 05/30/00 mpeterson@calderasystems.com

@@ -35,6 +35,7 @@ typedef UINT32*         PUINT32;
 /*=========================================================================*/
 #define SLP_RESERVED_PORT       427
 #define SLP_MCAST_ADDRESS       0xeffffffd  /* 239.255.255.253 */
+#define SLP_BCAST_ADDRESS       0xffffffff  /* 255.255.255.255 */
 #define LOOPBACK_ADDRESS        0x7f000001  /* 127.0.0.1 */
 #define SLP_MAX_DATAGRAM_SIZE   1400
 

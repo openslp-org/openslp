@@ -297,10 +297,20 @@ int NetworkConnectToSlpMulticast(struct sockaddr_in* peeraddr)
 /* Returns  - Valid file descriptor on success, -1 on failure w/ errno set.*/
 /*=========================================================================*/ 
 {
+    const char*         bcastonly;
     int                 sockfd;
     int                 ttl;
     
-    /* connect to the SA (through the loopback) */
+    bcastonly = SLPGetProperty("net.slp.isBroadcastOnly"); 
+    if(*bcastonly == 'T' ||
+       *bcastonly == 't' ||
+       *bcastonly == 'Y' ||
+       *bcastonly == 'y')
+    {
+        return -1;
+    }
+
+    /* setup multicast socket */
     sockfd = socket(AF_INET,SOCK_DGRAM,0);
     if(sockfd >= 0)
     {
@@ -308,13 +318,11 @@ int NetworkConnectToSlpMulticast(struct sockaddr_in* peeraddr)
         peeraddr->sin_port = htons(SLP_RESERVED_PORT);
         peeraddr->sin_addr.s_addr = htonl(SLP_MCAST_ADDRESS);
 
-        /* TODO: Set TTL from conf file*/
-        ttl = 8;
-        setsockopt(sockfd,
-                   IPPROTO_IP,
-                   IP_MULTICAST_TTL,
-                   &ttl,
-                   sizeof(ttl));
+        ttl = atoi(SLPGetProperty("net.slp.multicastTTL"));
+        if(setsockopt(sockfd,IPPROTO_IP,IP_MULTICAST_TTL,&ttl,sizeof(ttl)))
+        {
+            return -1;
+        }
     }
 
     return sockfd;
@@ -327,6 +335,22 @@ int NetworkConnectToSlpBroadcast(struct sockaddr_in* peeraddr)
 /* Returns  - Valid file descriptor on success, -1 on failure w/ errno set.*/
 /*=========================================================================*/ 
 {
-    /* TODO: implement broadcast later */
-    return -1;
+    int                 sockfd;
+    int                 on = 1;
+
+    /* setup broadcast */
+    sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    if(sockfd >= 0)
+    {
+        peeraddr->sin_family = AF_INET;
+        peeraddr->sin_port = htons(SLP_RESERVED_PORT);
+        peeraddr->sin_addr.s_addr = htonl(SLP_BCAST_ADDRESS);
+
+        if(setsockopt(sockfd, SOL_SOCKET, SO_BROADCAST, &on, sizeof(on)))
+        {
+            return -1;
+        }
+    }
+
+    return sockfd;
 }

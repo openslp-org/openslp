@@ -35,39 +35,50 @@
 #include "slpd.h"
 
 /*-------------------------------------------------------------------------*/
-int AddMulticastMembership(int sockfd, struct in_addr* addr)
+int EnableBroadcast(int sockfd)
+/* Sets the socket options to receive broadcast traffic                    */
+/*                                                                         */
+/* sockfd   - the socket file descriptor to set option on                  */
+/*                                                                         */
+/* returns  - zero on success                                              */
+/*-------------------------------------------------------------------------*/
+{
+    const int on = 1;                                                
+    return setsockopt(sockfd,SOL_SOCKET,SO_BROADCAST,&on,sizeof(on));
+}
+
+/*-------------------------------------------------------------------------*/
+int JoinSLPMulticastGroup(int sockfd, struct in_addr* addr)
 /* Sets the socket options to receive multicast traffic from the specified */
 /* interface.                                                              */
 /*                                                                         */
 /* sockfd   - the socket file descriptor to set the options on.            */
 /*                                                                         */
 /* addr     - pointer to the multicast address                             */
+/*                                                                         */
+/* returns  - zero on success                                              */
 /*-------------------------------------------------------------------------*/
 {
-    int             result;
     struct ip_mreq	mreq;
     struct in_addr  mcast_addr;
-
+    
     /* join using the reserved SLP_MCAST_ADDRESS */
     mcast_addr.s_addr = htonl(SLP_MCAST_ADDRESS);
     mreq.imr_multiaddr = mcast_addr;
     
     /* join with specified interface */
     memcpy(&mreq.imr_interface,addr,sizeof(struct in_addr));
-
     
-    result = setsockopt(sockfd,
-                        IPPROTO_IP,
-                        IP_ADD_MEMBERSHIP,
-                        (char*)&mreq,
-                        sizeof(mreq));               
-  
-    return result;
+    return setsockopt(sockfd,
+                      IPPROTO_IP,
+                      IP_ADD_MEMBERSHIP,
+                      (char*)&mreq,
+                      sizeof(mreq));               
 }
 
 
 /*-------------------------------------------------------------------------*/
-int DropMulticastMembership(int sockfd, struct in_addr* addr)
+int DropSLPMulticastGroup(int sockfd, struct in_addr* addr)
 /* Sets the socket options to not receive multicast traffic from the       */
 /* specified interface.                                                    */
 /*                                                                         */
@@ -184,9 +195,16 @@ void SLPDSocketInit(SLPDSocketList* list)
     int             finished;
     struct in_addr  myaddr;
     struct in_addr  mcastaddr;
+    struct in_addr  bcastaddr;
     SLPDSocket*     sock;
 
+    /*----------------------------------------------------*/
+    /* Decide what address to use for multicast/broadcast */
+    /*----------------------------------------------------*/
     mcastaddr.s_addr = htonl(SLP_MCAST_ADDRESS);
+    bcastaddr.s_addr = htonl(0xffffffff);     
+
+    
 
     /*-----------------------------------------------------------------*/
     /* Create SOCKET_LISTEN socket for LOOPBACK for the library to talk to*/
@@ -240,10 +258,9 @@ void SLPDSocketInit(SLPDSocketList* list)
     }
 
                                                                                    
-    /*--------------------------------------------------------------------*/
-    /* Create UDP and TCP_LISTEN sockets for all of the interfaces in the */
-    /* interfaces property                                                */
-    /*--------------------------------------------------------------------*/
+    /*---------------------------------------------------------------------*/
+    /* Create sockets for all of the interfaces in the interfaces property */
+    /*---------------------------------------------------------------------*/
     begin = (char*)G_SlpdProperty.interfaces;
     end = begin;
     finished = 0;
@@ -260,9 +277,10 @@ void SLPDSocketInit(SLPDSocketList* list)
         /* begin now points to a null terminated ip address string */
         myaddr.s_addr = inet_addr(begin);
 
-        /*----------------------------------------------*/
-        /* Create socket that will handle multicast UDP */
-        /*----------------------------------------------*/
+        /*--------------------------------------------------------*/
+        /* Create socket that will handle multicast UDP           */
+        /*--------------------------------------------------------*/
+    
         sock = (SLPDSocket*)malloc(sizeof(SLPDSocket));
         if(sock == 0)
         {
@@ -273,7 +291,7 @@ void SLPDSocketInit(SLPDSocketList* list)
         {
             if(BindSocketToInetAddr(sock->fd, &mcastaddr) >= 0)
             {
-                if(AddMulticastMembership(sock->fd, &myaddr) == 0)
+                if(JoinSLPMulticastGroup(sock->fd, &myaddr) == 0)
                 {
                     sock->state = DATAGRAM_MULTICAST;
                     sock->recvbuf = SLPBufferAlloc(SLP_MAX_DATAGRAM_SIZE);  
@@ -374,6 +392,50 @@ void SLPDSocketInit(SLPDSocketList* list)
         
         begin = end + 1;
     }     
+
+    /*--------------------------------------------------------*/
+    /* Create socket that will handle broadcast UDP           */
+    /*--------------------------------------------------------*/
+    
+    sock = (SLPDSocket*)malloc(sizeof(SLPDSocket));
+    if(sock == 0)
+    {
+        return;
+    }
+    sock->fd = socket(PF_INET, SOCK_DGRAM, 0);
+    if(sock->fd >=0)
+    {
+        if(BindSocketToInetAddr(sock->fd, &bcastaddr) >= 0)
+        {
+            if(EnableBroadcast(sock->fd) == 0)
+            {
+                sock->state = DATAGRAM_BROADCAST;
+                sock->recvbuf = SLPBufferAlloc(SLP_MAX_DATAGRAM_SIZE);  
+                sock->sendbuf = SLPBufferAlloc(SLP_MAX_DATAGRAM_SIZE);
+                sock->peerinfo.peeraddrlen = sizeof(sock->peerinfo.peeraddr);
+                sock->peerinfo.peertype = SLPD_PEER_REMOTE; 
+                if(sock->recvbuf == 0 || sock->sendbuf == 0)
+                {
+                    SLPFatal("SLPD out of memory !!\n");
+                }
+                SLPDSocketListAdd(list,sock);
+                SLPLog("Broadcast socket for %s ready\n", inet_ntoa(bcastaddr));
+            }
+            else
+            {
+                /* could not add multicast membership */
+                close(sock->fd);
+                free(sock);
+            }
+        }
+        else
+        {
+            /* could not bind(), close the socket*/
+            close(sock->fd);
+            free(sock);
+        }
+    }
+
 }
 
 

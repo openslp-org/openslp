@@ -85,7 +85,6 @@ void SLPDPropertyInit(const char* conffile)
     G_SlpdProperty.DAAddressesLen = strlen(G_SlpdProperty.DAAddresses);
     G_SlpdProperty.useScopes = SLPPropertyGet("net.slp.useScopes");
     G_SlpdProperty.useScopesLen = strlen(G_SlpdProperty.useScopes);
-
     
     /*-------------------------------------*/
     /* Set the net.slp.interfaces property */

@@ -137,6 +137,7 @@ int SetDefaultValues()
 {
     int result = 0;
 
+    result |= SLPPropertySet("net.slp.multicastTTL","8");
     result |= SLPPropertySet("net.slp.isBroadcastOnly","false");
     result |= SLPPropertySet("net.slp.passiveDADetection","false");
     result |= SLPPropertySet("net.slp.activeDADetection","false");

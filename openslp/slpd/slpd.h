@@ -358,11 +358,12 @@ typedef enum _SLPDSocketState
     SOCKET_LISTEN       = 0,
     DATAGRAM_UNICAST    = 1,
     DATAGRAM_MULTICAST  = 2,
-    STREAM_READ         = 3,
-    STREAM_FIRST_READ   = 4,
-    STREAM_WRITE        = 5,
-    STREAM_FIRST_WRITE  = 6,
-    SOCKET_CLOSE        = 7
+    DATAGRAM_BROADCAST  = 3,
+    STREAM_READ         = 4,
+    STREAM_FIRST_READ   = 5,
+    STREAM_WRITE        = 6,
+    STREAM_FIRST_WRITE  = 7,
+    SOCKET_CLOSE        = 8
 }SLPDSocketState;
 
 
