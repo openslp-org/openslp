@@ -36,12 +36,12 @@
 #include "slpd.h"
 
 /*=========================================================================*/
-SLPDSocketList G_OutgoingSocketList = {0,0};
+SLPList G_OutgoingSocketList = {0,0,0};
 /*=========================================================================*/
 
 
 /*-------------------------------------------------------------------------*/
-void OutgoingStreamReconnect(SLPDSocketList* list, SLPDSocket* sock)
+void OutgoingStreamReconnect(SLPList* socklist, SLPDSocket* sock)
 /*-------------------------------------------------------------------------*/
 {
     if(connect(sock->fd, 
@@ -67,7 +67,7 @@ void OutgoingStreamReconnect(SLPDSocketList* list, SLPDSocket* sock)
 
 
 /*-------------------------------------------------------------------------*/
-void OutgoingDatagramWrite(SLPDSocketList* list, SLPDSocket* sock)
+void OutgoingDatagramWrite(SLPList* socklist, SLPDSocket* sock)
 /*-------------------------------------------------------------------------*/
 {
     size_t bytestowrite = sock->sendbuf->end - sock->sendbuf->start;
@@ -86,7 +86,7 @@ void OutgoingDatagramWrite(SLPDSocketList* list, SLPDSocket* sock)
 
 
 /*-------------------------------------------------------------------------*/
-void OutgoingStreamWrite(SLPDSocketList* list, SLPDSocket* sock)
+void OutgoingStreamWrite(SLPList* socklist, SLPDSocket* sock)
 /*-------------------------------------------------------------------------*/
 {
     int        byteswritten;
@@ -99,7 +99,7 @@ void OutgoingStreamWrite(SLPDSocketList* list, SLPDSocket* sock)
     if (sock->state == STREAM_WRITE_FIRST)
     {
         /* make sure that there is something to do list */
-        sock->sendbuf = sock->sendbufhead;
+        sock->sendbuf = (SLPBuffer)sock->sendlist.head;
         if (sock->sendbuf == 0)
         {
             /* there is nothing in the to do list */
@@ -139,7 +139,7 @@ void OutgoingStreamWrite(SLPDSocketList* list, SLPDSocket* sock)
             {
                 /* Error occured or connection was closed. Try to reconnect */
                 /* Socket will be closed if connect times out               */
-                OutgoingStreamReconnect(list,sock);
+                OutgoingStreamReconnect(socklist,sock);
             }
         }    
     }
@@ -147,7 +147,7 @@ void OutgoingStreamWrite(SLPDSocketList* list, SLPDSocket* sock)
 
 
 /*-------------------------------------------------------------------------*/
-void OutgoingStreamRead(SLPDSocketList* list, SLPDSocket* sock)
+void OutgoingStreamRead(SLPList* socklist, SLPDSocket* sock)
 /*-------------------------------------------------------------------------*/
 {
     int     fdflags;
@@ -244,7 +244,7 @@ void OutgoingStreamRead(SLPDSocketList* list, SLPDSocket* sock)
                 default:
                     /* End of outgoing message exchange. Unlink   */
                     /* send buf from to do list and free it       */
-                    sock->sendbuf = SLPBufferListRemove(&(sock->sendbufhead),sock->sendbuf);
+                    SLPBufferFree((SLPBuffer)SLPListUnlink(&(sock->sendlist),(SLPListItem*)(sock->sendbuf)));
                     sock->state = STREAM_WRITE_FIRST;
                     break;
                 }
@@ -256,7 +256,7 @@ void OutgoingStreamRead(SLPDSocketList* list, SLPDSocket* sock)
             {
                 /* Error occured or connection was closed. Try to reconnect */
                 /* Socket will be closed if connect times out               */
-                OutgoingStreamReconnect(list,sock);
+                OutgoingStreamReconnect(socklist,sock);
             }
         }
     }
@@ -279,7 +279,7 @@ void SLPDOutgoingHandler(int* fdcount,
 /*=========================================================================*/
 {
     SLPDSocket* sock;
-    sock = G_OutgoingSocketList.head;
+    sock = (SLPDSocket*)G_OutgoingSocketList.head;
     while (sock && *fdcount)
     {
         if (FD_ISSET(sock->fd,readfds))
@@ -329,7 +329,8 @@ void SLPDOutgoingHandler(int* fdcount,
 void SLPDOutgoingAge(time_t seconds)
 /*=========================================================================*/
 {
-    SLPDSocket* sock = G_OutgoingSocketList.head;
+    SLPDSocket* del  = 0;
+    SLPDSocket* sock = (SLPDSocket*)G_OutgoingSocketList.head;
 
     while (sock)
     {
@@ -347,14 +348,13 @@ void SLPDOutgoingAge(time_t seconds)
             if (sock->age > G_SlpdProperty.unicastMaximumWait)
             {
                 /* TODO: Log that the DA is not accepting connections */
-
                 if (sock->daentry)
                 {
                     /* Remove the DA we were talking to from the list because */
                     /* it is not accepting connections                        */
-                    SLPDKnownDARemove(sock->daentry);
+                    SLPDAEntryFree((SLPDAEntry*)SLPListUnlink(&G_KnownDAList,(SLPListItem*)(sock->daentry)));
                 }
-                sock = SLPDSocketListRemove(&G_OutgoingSocketList,sock);
+                del = sock;
             }
             break;
 
@@ -367,14 +367,14 @@ void SLPDOutgoingAge(time_t seconds)
             {
                 if (sock->age > G_SlpdProperty.unicastMaximumWait)
                 {
-                    sock = SLPDSocketListRemove(&G_OutgoingSocketList,sock);
+                    sock = del;
                 }
             }
             else
             {
                 if (sock->age > SLPD_MAX_SOCKET_LIFETIME)
                 {
-                    sock = SLPDSocketListRemove(&G_OutgoingSocketList,sock);
+                    sock = del;
                 }
             }
             break;
@@ -389,9 +389,12 @@ void SLPDOutgoingAge(time_t seconds)
             break;
         }
 
-        if (sock)
+        sock = (SLPDSocket*)sock->listitem.next;
+
+        if (del)
         {
-            sock = (SLPDSocket*)sock->listitem.next;
+            SLPDSocketFree((SLPDSocket*)SLPListUnlink(&G_OutgoingSocketList,(SLPListItem*)del));
+            del = 0;
         }
     }                                                 
 }
@@ -407,15 +410,12 @@ int SLPDOutgoingInit()
 /* Returns  Zero on success non-zero on error                              */
 /*=========================================================================*/
 {
-    SLPDSocket* sock;
-
     /*------------------------------------------------------------*/
     /* First, remove all of the sockets that might be in the list */
     /*------------------------------------------------------------*/
-    sock = G_OutgoingSocketList.head;
-    while (sock)
+    while (G_OutgoingSocketList.count)
     {
-        sock = SLPDSocketListRemove(&G_OutgoingSocketList,sock);       
+        SLPDSocketFree((SLPDSocket*)SLPListUnlink(&G_OutgoingSocketList,(SLPListItem*)G_OutgoingSocketList.head));
     }
 
     return 0;

@@ -134,17 +134,20 @@ int ProcessDASrvRqst(SLPDPeerInfo* peerinfo,
 {
     int size = 0;
 
+    /*--------------------------------------------------------------*/
+    /* If errorcode is set, we can not be sure that message is good */
+    /* Go directly to send response code                            */
+    /*--------------------------------------------------------------*/
+    if(errorcode)
+    {
+        goto RESPOND;
+    }
+
+    /*----------------------------------------------*/
+    /* Do not send back DAAdvert unless we are a DA */
+    /*----------------------------------------------*/
     if (G_SlpdProperty.isDA == 0)
     {
-        /*----------------------------------------------------------------*/
-        /* Do not send error codes or empty replies to multicast requests */
-        /*----------------------------------------------------------------*/
-        if (message->header.flags & SLP_FLAG_MCAST)
-        {
-            result->end = result->start;
-            return errorcode;
-        }
-
         errorcode = SLP_ERROR_MESSAGE_NOT_SUPPORTED;       
     }
     else if (message->body.srvrqst.scopelistlen != 0 &&
@@ -156,7 +159,7 @@ int ProcessDASrvRqst(SLPDPeerInfo* peerinfo,
         errorcode = SLP_ERROR_SCOPE_NOT_SUPPORTED;
     }
 
-
+RESPOND:
     /*----------------------------------------------------------------*/
     /* Do not send error codes or empty replies to multicast requests */
     /*----------------------------------------------------------------*/
@@ -279,6 +282,15 @@ int ProcessSrvRqst(SLPDPeerInfo* peerinfo,
     int                     found       = 0;
     SLPDDatabaseSrvUrl*     srvarray    = 0;
 
+    /*--------------------------------------------------------------*/
+    /* If errorcode is set, we can not be sure that message is good */
+    /* Go directly to send response code                            */
+    /*--------------------------------------------------------------*/
+    if(errorcode)
+    {
+        goto RESPOND;
+    }
+
     /*-------------------------------------------------*/
     /* Check for one of our IP addresses in the prlist */
     /*-------------------------------------------------*/
@@ -349,12 +361,14 @@ int ProcessSrvRqst(SLPDPeerInfo* peerinfo,
         errorcode = SLP_ERROR_SCOPE_NOT_SUPPORTED;
     }
 
+
+RESPOND:
     /*----------------------------------------------------------------*/
     /* Do not send error codes or empty replies to multicast requests */
     /*----------------------------------------------------------------*/
     if (message->header.flags & SLP_FLAG_MCAST)
     {
-        if (found == 0 || errorcode != 0)
+        if (found == 0)
         {
             result->end = result->start;
             goto FINISHED;  
@@ -441,7 +455,7 @@ int ProcessSrvRqst(SLPDPeerInfo* peerinfo,
         /* TODO: put in authentication stuff too */
     }
 
-    FINISHED:   
+FINISHED:   
     if (srvarray) free(srvarray);
 
     return errorcode;
@@ -456,11 +470,13 @@ int ProcessSrvReg(SLPDPeerInfo* peerinfo,
 /* Returns: non-zero if message should be silently dropped                 */
 /*-------------------------------------------------------------------------*/
 {
-    if (message->header.flags & SLP_FLAG_MCAST)
+    /*--------------------------------------------------------------*/
+    /* If errorcode is set, we can not be sure that message is good */
+    /* Go directly to send response code                            */
+    /*--------------------------------------------------------------*/
+    if(errorcode)
     {
-        /* don't do anything multicast SrvReg (set result empty) */
-        result->end = result->start;
-        return errorcode;
+        goto RESPOND;
     }
 
     /*------------------------------------*/
@@ -496,6 +512,17 @@ int ProcessSrvReg(SLPDPeerInfo* peerinfo,
         errorcode = SLP_ERROR_SCOPE_NOT_SUPPORTED;
     }
 
+RESPOND:    
+    /*-------------------------------------------------------*/
+    /* don't do anything multicast SrvReg (set result empty) */
+    /*-------------------------------------------------------*/
+    if (message->header.flags & SLP_FLAG_MCAST)
+    {
+        result->end = result->start;
+        return errorcode;
+    }
+    
+    
     /*------------------------------------------------------------*/
     /* ensure the buffer is big enough to handle the whole srvack */
     /*------------------------------------------------------------*/
@@ -542,16 +569,19 @@ int ProcessSrvDeReg(SLPDPeerInfo* peerinfo,
 /* Returns: non-zero if message should be silently dropped                 */
 /*-------------------------------------------------------------------------*/
 {
-    if (message->header.flags & SLP_FLAG_MCAST)
+    /*--------------------------------------------------------------*/
+    /* If errorcode is set, we can not be sure that message is good */
+    /* Go directly to send response code                            */
+    /*--------------------------------------------------------------*/
+    if(errorcode)
     {
-        /* don't do anything multicast SrvDeReg (set result empty) */
-        result->end = result->start;
-        return errorcode;
+        goto RESPOND;
     }
 
-    /*------------------------------------------*/
-    /* TODO: make sure that we handle the scope */
-    /*------------------------------------------*/
+
+    /*------------------------------------*/
+    /* Make sure that we handle the scope */
+    /*------------------------------------*/
     if (SLPIntersectStringList(message->body.srvdereg.scopelistlen,
                                message->body.srvdereg.scopelist,
                                G_SlpdProperty.useScopesLen,
@@ -576,6 +606,17 @@ int ProcessSrvDeReg(SLPDPeerInfo* peerinfo,
     else
     {
         errorcode = SLP_ERROR_SCOPE_NOT_SUPPORTED;
+    }
+
+RESPOND:
+    /*---------------------------------------------------------*/
+    /* don't do anything multicast SrvDeReg (set result empty) */
+    /*---------------------------------------------------------*/
+    if (message->header.flags & SLP_FLAG_MCAST)
+    {
+        
+        result->end = result->start;
+        return errorcode;
     }
 
     /*------------------------------------------------------------*/
@@ -622,7 +663,7 @@ int ProcessSrvAck(SLPDPeerInfo* peerinfo,
                   int errorcode)
 /*-------------------------------------------------------------------------*/
 {
-    /* Ignore SrvAck */
+    /* Ignore SrvAck.  Just return errorcode to caller */
     result->end = result->start;
     return message->body.srvack.errorcode;
 }
@@ -642,6 +683,15 @@ int ProcessAttrRqst(SLPDPeerInfo* peerinfo,
     int                     found       = 0;
     SLPDDatabaseAttr*       attrarray   = 0;
 
+    /*--------------------------------------------------------------*/
+    /* If errorcode is set, we can not be sure that message is good */
+    /* Go directly to send response code                            */
+    /*--------------------------------------------------------------*/
+    if(errorcode)
+    {
+        goto RESPOND;
+    }
+
     /*-------------------------------------------------*/
     /* Check for one of our IP addresses in the prlist */
     /*-------------------------------------------------*/
@@ -651,7 +701,7 @@ int ProcessAttrRqst(SLPDPeerInfo* peerinfo,
                                G_SlpdProperty.interfaces))
     {
         result->end = result->start;
-        goto CLEANUP;
+        goto FINISHED;
     }
 
     /*------------------------------------*/
@@ -690,6 +740,20 @@ int ProcessAttrRqst(SLPDPeerInfo* peerinfo,
         }
     }
 
+
+RESPOND:
+    /*----------------------------------------------------------------*/
+    /* Do not send error codes or empty replies to multicast requests */
+    /*----------------------------------------------------------------*/
+    if (message->header.flags & SLP_FLAG_MCAST)
+    {
+        if (found == 0)
+        {
+            result->end = result->start;
+            goto FINISHED;  
+        }
+    }
+
     /*--------------------------------------------------------------*/
     /* ensure the buffer is big enough to handle the whole attrrply */
     /*--------------------------------------------------------------*/
@@ -703,19 +767,7 @@ int ProcessAttrRqst(SLPDPeerInfo* peerinfo,
     }
     size += attrlistlen;
 
-
-    /*----------------------------------------------------------------*/
-    /* Do not send error codes or empty replies to multicast requests */
-    /*----------------------------------------------------------------*/
-    if (message->header.flags & SLP_FLAG_MCAST)
-    {
-        if (found == 0 || errorcode)
-        {
-            result->end = result->start;
-            goto CLEANUP;
-        }
-    }
-
+    
     /*-------------------*/
     /* Alloc the  buffer */
     /*-------------------*/
@@ -768,7 +820,7 @@ int ProcessAttrRqst(SLPDPeerInfo* peerinfo,
     /* TODO: no auth block */
     ToUINT16(result->curpos, 0);
 
-    CLEANUP:
+FINISHED:
     if (attrarray) free(attrarray);
 
     return errorcode;
@@ -790,9 +842,14 @@ int ProcessDAAdvert(SLPDPeerInfo* peerinfo,
     struct hostent* he;
 #endif 
 
-
-    /* DAAdverts should never be replied to.  Set result buffer to empty*/
-    result->end = result->start;
+    /*--------------------------------------------------------------*/
+    /* If errorcode is set, we can not be sure that message is good */
+    /* Go directly to send response code                            */
+    /*--------------------------------------------------------------*/
+    if(errorcode)
+    {
+        goto RESPOND;
+    }
 
     if (errorcode)
     {
@@ -840,6 +897,11 @@ int ProcessDAAdvert(SLPDPeerInfo* peerinfo,
                            message->body.daadvert.scopelistlen);
         }
     }
+    
+
+RESPOND:
+    /* DAAdverts should never be replied to.  Set result buffer to empty*/
+    result->end = result->start;
 
     return errorcode;
 }

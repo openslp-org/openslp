@@ -44,8 +44,8 @@
 typedef struct _SLPBuffer                                                  
 /*=========================================================================*/
 {
-    ListItem listitem;
-    /* ListItem so that SLPBuffers can be linked into a list*/
+    SLPListItem listitem;
+    /* SLPListItem so that SLPBuffers can be linked into a list*/
     
     /* the allocated size of this buffer */
     size_t  allocated;

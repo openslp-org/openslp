@@ -34,7 +34,7 @@
 #include "slpd.h"
 
 /*=========================================================================*/
-SLPDAEntry* G_KnownDAListHead = 0;                                         
+SLPList G_KnownDAList = {0,0,0};                                         
 /* The list of DAs known to slpd.                                          */
 /*=========================================================================*/
 
@@ -110,26 +110,6 @@ int SLPDKnownDAInit()
 
 
 /*=========================================================================*/
-SLPDAEntry* SLPDKnownDARemove(SLPDAEntry* entry)
-/*                                                                         */
-/* entry- (IN) pointer to entry to remove                                  */
-/*                                                                         */
-/* Returns: The previous SLPDAEntry (may be null).                         */
-/*=========================================================================*/
-{
-    SLPDAEntry* del = entry;
-    entry = (SLPDAEntry*)entry->listitem.next;
-    ListUnlink((PListItem*)&G_KnownDAListHead,(PListItem)del);               
-    if (entry == 0)
-    {
-        entry = G_KnownDAListHead;
-    }
-    SLPDAEntryFree(del);
-    return entry;
-}
-
-
-/*=========================================================================*/
 SLPDAEntry* SLPDKnownDAAdd(struct in_addr* addr,
                            unsigned long bootstamp,
                            const char* scopelist,
@@ -148,7 +128,7 @@ SLPDAEntry* SLPDKnownDAAdd(struct in_addr* addr,
     SLPDAEntry* entry;
 
     /* Iterate through the list looking for an identical entry */
-    entry = G_KnownDAListHead;
+    entry = (SLPDAEntry*)G_KnownDAList.head;
     while (entry)
     {
         /* for now assume entries are the same if in_addrs match */
@@ -186,7 +166,7 @@ SLPDAEntry* SLPDKnownDAAdd(struct in_addr* addr,
     /* Create and link in a new entry */    
     bootstamp = 0;  /* make sure we re-register with new entries */
     entry = SLPDAEntryCreate(addr,bootstamp,scopelist,scopelistlen);
-    ListLink((PListItem*)&G_KnownDAListHead,(PListItem)entry);
+    SLPListLinkHead(&G_KnownDAList,(SLPListItem*)entry);
 
     return entry;
 }
@@ -211,10 +191,10 @@ void SLPDKnownDARegister(SLPDPeerInfo* peerinfo,
     SLPDSocket* sock;
     SLPBuffer   dup;
 
-    daentry = G_KnownDAListHead;
+    daentry = (SLPDAEntry*)G_KnownDAList.head;
     while (daentry)
     {
-        sock = G_OutgoingSocketList.head;
+        sock = (SLPDSocket*)G_OutgoingSocketList.head;
         while (sock)
         {
             if (sock->peerinfo.peeraddr.sin_addr.s_addr == daentry->daaddr.s_addr)
@@ -231,7 +211,7 @@ void SLPDKnownDARegister(SLPDPeerInfo* peerinfo,
             if (sock)
             {
                 sock->daentry = daentry;
-                SLPDSocketListAdd(&G_OutgoingSocketList,sock);
+                SLPListLinkTail(&G_OutgoingSocketList,(SLPListItem*)sock);
             }
         }
 
@@ -239,11 +219,11 @@ void SLPDKnownDARegister(SLPDPeerInfo* peerinfo,
         dup = SLPBufferDup(buf);
         if (dup)
         {
-            SLPBufferListAdd(&(sock->sendbufhead),dup);
             if (sock->state == STREAM_CONNECT_IDLE)
             {
                 sock->state = STREAM_WRITE_FIRST;
             }
+            SLPListLinkTail(&(sock->sendlist),(SLPListItem*)dup);
         }
         daentry = (SLPDAEntry*)daentry->listitem.next;
     }
@@ -260,7 +240,6 @@ void SLPDKnownDAActiveDiscovery()
     size_t          bufsize;
     SLPDAEntry*     daentry;
     SLPDSocket*     sock;
-    SLPBuffer       buf;
     char*           prlist;
     size_t          prlistlen;
     struct in_addr  peeraddr;
@@ -276,82 +255,7 @@ void SLPDKnownDAActiveDiscovery()
     }
     G_SlpdProperty.activeDiscoveryAttempts --;
 
-    /*-------------------------------------------------*/
-    /* Generate a DA service request buffer to be sent */
-    /*-------------------------------------------------*/
 
-    /* determine the size of the fixed portion of the SRVRQST         */
-    bufsize  = 64;  /* 14 bytes for the header                        */
-                    /*  2 bytes for the prlistlen                     */
-                    /*  2 bytes for the srvtype length                */ 
-                    /* 23 bytes for "service:directory-agent" srvtype */
-                    /*  2 bytes for scopelistlen                      */
-                    /*  2 bytes for predicatelen                      */
-                    /*  2 bytes for sprstrlen                         */
-    
-    /* figure out what our Prlist will be by going through our list of  */
-    /* known DAs                                                        */
-    prlistlen = 0;
-    prlist = malloc(SLP_MAX_DATAGRAM_SIZE);
-    if(prlist)
-    {
-        *prlist = 0;
-        daentry = G_KnownDAListHead;
-        while(daentry && prlistlen < SLP_MAX_DATAGRAM_SIZE)
-        {
-            strcat(prlist,inet_ntoa(daentry->daaddr));
-            daentry = (SLPDAEntry*)daentry->listitem.next;
-            if(daentry)
-            {
-                strcat(prlist,",");
-            }
-            prlistlen = strlen(prlist);
-        }
-    }                                  
-    /* Allocate a buffer */
-    bufsize += G_SlpdProperty.localeLen + prlistlen;
-    buf = SLPBufferAlloc(bufsize);
-    if(buf == 0)
-    {
-        return;
-    }                            
-
-    /*------------------------------------------------------------*/
-    /* Build a buffer containing the fixed portion of the SRVRQST */
-    /*------------------------------------------------------------*/
-    /*version*/
-    *(buf->start)       = 2;
-    /*function id*/
-    *(buf->start + 1)   = SLP_FUNCT_SRVRQST;
-    /*length*/
-    ToUINT24(buf->start + 2, bufsize);
-    /*flags*/
-    ToUINT16(buf->start + 5,  SLP_FLAG_MCAST);
-    /*ext offset*/
-    ToUINT24(buf->start + 7,0);
-    /*xid*/
-    ToUINT16(buf->start + 10, 0);  /* TODO: generat a real XID */
-    /*lang tag len*/
-    ToUINT16(buf->start + 12, G_SlpdProperty.localeLen);
-    /*lang tag*/
-    memcpy(buf->start + 14,
-           G_SlpdProperty.locale,
-           G_SlpdProperty.localeLen);
-    buf->curpos = buf->start + G_SlpdProperty.localeLen + 14;
-    /* Prlist */
-    ToUINT16(buf->curpos,prlistlen);
-    buf->curpos = buf->curpos + 2;
-    memcpy(buf->curpos,prlist,prlistlen);
-    buf->curpos = buf->curpos + prlistlen;
-    /* service type */
-    ToUINT16(buf->curpos,23);
-    buf->curpos = buf->curpos + 2;
-    memcpy(buf->curpos,"service:directory-agent",23);
-    /* scope list zero length */
-    /* predicate zero length */
-    /* spi list zero length */
-                                
-    
     /*--------------------------------------------------*/
     /* Create new DATAGRAM socket with appropriate peer */
     /*--------------------------------------------------*/
@@ -365,11 +269,106 @@ void SLPDKnownDAActiveDiscovery()
         peeraddr.s_addr = htonl(SLP_BCAST_ADDRESS);
         sock = SLPDSocketCreateDatagram(&peeraddr,DATAGRAM_BROADCAST);
     }
+
+    /*-------------------------------------------------*/
+    /* Generate a DA service request buffer to be sent */
+    /*-------------------------------------------------*/
+
+    /* determine the size of the fixed portion of the SRVRQST         */
+    bufsize  = 47;  /* 14 bytes for the header                        */
+                    /*  2 bytes for the prlistlen                     */
+                    /*  2 bytes for the srvtype length                */ 
+                    /* 23 bytes for "service:directory-agent" srvtype */
+                    /*  2 bytes for scopelistlen                      */
+                    /*  2 bytes for predicatelen                      */
+                    /*  2 bytes for sprstrlen                         */
     
+    /* figure out what our Prlist will be by going through our list of  */
+    /* known DAs                                                        */
+    prlistlen = 0;
+    prlist = malloc(SLP_MAX_DATAGRAM_SIZE);
+    if(prlist == 0)
+    {
+        goto FINISHED;
+    }
+    
+    *prlist = 0;
+    daentry = (SLPDAEntry*)G_KnownDAList.head;
+    while(daentry && prlistlen < SLP_MAX_DATAGRAM_SIZE)
+    {
+        strcat(prlist,inet_ntoa(daentry->daaddr));
+        daentry = (SLPDAEntry*)daentry->listitem.next;
+        if(daentry)
+        {
+            strcat(prlist,",");
+        }
+        prlistlen = strlen(prlist);
+    }                                  
+
+    /* Allocate the send buffer */
+    bufsize += G_SlpdProperty.localeLen + prlistlen;
+    sock->sendbuf = SLPBufferRealloc(sock->sendbuf,bufsize);
+    if(sock->sendbuf == 0)
+    {
+        return;
+    }                            
+
+    /*------------------------------------------------------------*/
+    /* Build a buffer containing the fixed portion of the SRVRQST */
+    /*------------------------------------------------------------*/
+    /*version*/
+    *(sock->sendbuf->start)       = 2;
+    /*function id*/
+    *(sock->sendbuf->start + 1)   = SLP_FUNCT_SRVRQST;
+    /*length*/
+    ToUINT24(sock->sendbuf->start + 2, bufsize);
+    /*flags*/
+    ToUINT16(sock->sendbuf->start + 5,  SLP_FLAG_MCAST);
+    /*ext offset*/
+    ToUINT24(sock->sendbuf->start + 7,0);
+    /*xid*/
+    ToUINT16(sock->sendbuf->start + 10, 0);  /* TODO: generat a real XID */
+    /*lang tag len*/
+    ToUINT16(sock->sendbuf->start + 12, G_SlpdProperty.localeLen);
+    /*lang tag*/
+    memcpy(sock->sendbuf->start + 14,
+           G_SlpdProperty.locale,
+           G_SlpdProperty.localeLen);
+    sock->sendbuf->curpos = sock->sendbuf->start + G_SlpdProperty.localeLen + 14;
+    /* Prlist */
+    ToUINT16(sock->sendbuf->curpos,prlistlen);
+    sock->sendbuf->curpos = sock->sendbuf->curpos + 2;
+    memcpy(sock->sendbuf->curpos,prlist,prlistlen);
+    sock->sendbuf->curpos = sock->sendbuf->curpos + prlistlen;
+    /* service type */
+    ToUINT16(sock->sendbuf->curpos,23);                                         
+    sock->sendbuf->curpos = sock->sendbuf->curpos + 2;
+    memcpy(sock->sendbuf->curpos,"service:directory-agent",23);
+    sock->sendbuf->curpos = sock->sendbuf->curpos + 23;
+    /* scope list zero length */
+    ToUINT16(sock->sendbuf->curpos,0);
+    sock->sendbuf->curpos = sock->sendbuf->curpos + 2;
+    /* predicate zero length */
+    ToUINT16(sock->sendbuf->curpos,0);
+    sock->sendbuf->curpos = sock->sendbuf->curpos + 2;
+    /* spi list zero length */
+    ToUINT16(sock->sendbuf->curpos,0);
+    sock->sendbuf->curpos = sock->sendbuf->curpos + 2;
+    
+    /*------------------------------------*/
+    /* Send the active DA service request */
+    /*------------------------------------*/
     if(sock)
     {
-        sock->sendbuf = buf;
-        SLPDSocketListAdd(&G_OutgoingSocketList,sock);
+        sendto(sock->fd,
+               sock->sendbuf->start,
+               sock->sendbuf->end - sock->sendbuf->start,
+               0,
+               &(sock->peerinfo.peeraddr),
+               sock->peerinfo.peeraddrlen);
     }
+
+FINISHED:
+    SLPDSocketFree(sock);
 }
 

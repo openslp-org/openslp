@@ -192,7 +192,7 @@ typedef struct _SLPDDatabaseEntry
 /* Structure representing an entry in slpd database (linked list)          */
 /*=========================================================================*/
 { 
-    ListItem            listitem;
+    SLPListItem         listitem;
     pid_t               pid;        /* the pid that registered the entry */
     uid_t               uid;        /* the uid that registered the entry */
     char*               langtag;
@@ -385,7 +385,7 @@ typedef struct _SLPDSocket
 /* Structure representing a socket                                         */
 /*=========================================================================*/
 {
-    ListItem            listitem;    
+    SLPListItem         listitem;    
     int                 fd;
     time_t              age;      
     SLPDSocketState     state;
@@ -397,18 +397,9 @@ typedef struct _SLPDSocket
 
     /* Outgoing socket stuff */
     SLPDAEntry*         daentry;
-    SLPBuffer           sendbufhead;
+    SLPList             sendlist;
 }SLPDSocket;
 
-
-/*=========================================================================*/
-typedef struct _SLPDSocketList
-/* Structure representing a list of SLPDSockets                            */
-/*=========================================================================*/
-{
-    int             count;
-    SLPDSocket*     head;
-}SLPDSocketList;
 
 
 /*==========================================================================*/
@@ -462,26 +453,19 @@ SLPDSocket* SLPDSocketCreateBoundDatagram(struct in_addr* myaddr,
 
 
 /*=========================================================================*/
-SLPDSocket* SLPDSocketListAdd(SLPDSocketList* list, SLPDSocket* addition);
-/* Adds a free()s the specified socket from the specified list             */
+SLPDSocket* SLPDSocketAlloc();
+/* Allocate memory for a new SLPDSocket.                                   */
 /*                                                                         */
-/* list     - pointer to the SLPSocketList to add the socket to.           */
-/*                                                                         */
-/* addition - a pointer to the socket to add                               */
-/*                                                                         */
-/* Returns  - pointer to the added socket or NULL on error                 */
+/* Returns: pointer to a newly allocated SLPDSocket, or NULL if out of     */
+/*          memory.                                                        */
 /*=========================================================================*/
 
 
 /*=========================================================================*/
-SLPDSocket* SLPDSocketListRemove(SLPDSocketList* list, SLPDSocket* sock);
-/* Unlinks and free()s the specified socket from the specified list        */
+void SLPDSocketFree(SLPDSocket* sock);
+/* Frees memory associated with the specified SLPDSocket                   */
 /*                                                                         */
-/* list     - pointer to the SLPSocketList to unlink the socket from.      */
-/*                                                                         */
-/* sock     - pointer to the SLPSocket to unlink to the list               */
-/*                                                                         */
-/* Returns  - pointer to the next socket (may be NULL)                     */
+/* sock (IN) pointer to the socket to free                                 */
 /*=========================================================================*/
 
 
@@ -518,7 +502,7 @@ int SLPDIncomingInit();
 
 
 /*=========================================================================*/
-extern SLPDSocketList G_IncomingSocketList;
+extern SLPList G_IncomingSocketList;
 /*=========================================================================*/
 
 
@@ -556,7 +540,7 @@ int SLPDOutgoingInit();
 
 
 /*=========================================================================*/
-extern SLPDSocketList G_OutgoingSocketList;
+extern SLPList G_OutgoingSocketList;
 /*=========================================================================*/
 
 
@@ -623,15 +607,6 @@ SLPDAEntry* SLPDKnownDAAdd(struct in_addr* addr,
 
 
 /*=========================================================================*/
-SLPDAEntry* SLPDKnownDARemove(SLPDAEntry* entry);
-/*                                                                         */
-/* entry- (IN) pointer to entry to remove                                  */
-/*                                                                         */
-/* Returns: The next SLPDAEntry (may be null).                             */
-/*=========================================================================*/
-
-
-/*=========================================================================*/
 void SLPDKnownDARegister(SLPDPeerInfo* peerinfo,
 			 SLPMessage msg,
 			 SLPBuffer buf);
@@ -656,7 +631,7 @@ void SLPDKnownDAActiveDiscovery();
 
 
 /*=========================================================================*/
-extern SLPDAEntry* G_KnownDAListHead;                                         
+extern SLPList G_KnownDAList;                                         
 /* The list of DAs known to slpd.                                          */
 /*=========================================================================*/
 

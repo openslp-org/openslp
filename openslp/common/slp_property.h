@@ -40,7 +40,7 @@
 typedef struct _SLPProperty
 /*=========================================================================*/
 {
-    ListItem        listitem;
+    SLPListItem     listitem;
     char*           propertyName;
     char*           propertyValue;
 }SLPProperty;

@@ -149,9 +149,13 @@ int BindSocketToLoopback(int sock)
     return BindSocketToInetAddr(sock,&loaddr);
 }
 
-/*-------------------------------------------------------------------------*/
-SLPDSocket* SLPDSocketNew()
-/*-------------------------------------------------------------------------*/
+/*=========================================================================*/
+SLPDSocket* SLPDSocketAlloc()
+/* Allocate memory for a new SLPDSocket.                                   */
+/*                                                                         */
+/* Returns: pointer to a newly allocated SLPDSocket, or NULL if out of     */
+/*          memory.                                                        */
+/*=========================================================================*/
 {
     SLPDSocket* sock;
      
@@ -165,23 +169,28 @@ SLPDSocket* SLPDSocketNew()
     return sock;
 }
 
-/*-------------------------------------------------------------------------*/
+/*=========================================================================*/
 void SLPDSocketFree(SLPDSocket* sock)
-/*-------------------------------------------------------------------------*/
+/* Frees memory associated with the specified SLPDSocket                   */
+/*                                                                         */
+/* sock (IN) pointer to the socket to free                                 */
+/*=========================================================================*/
 {
+    /* close the socket descriptor */
     close(sock->fd);
 
+    /* free receive buffer */
     if(sock->recvbuf)
     {
         SLPBufferFree(sock->recvbuf);
     }
 
-    if(sock->sendbufhead)
+    /* free send buffer(s) */
+    if(sock->sendlist.count)
     {
-        while(sock->sendbufhead)
+        while(sock->sendlist.count)
         {
-            sock->sendbuf = SLPBufferListRemove(&(sock->sendbufhead),
-                                                sock->sendbuf);
+            SLPBufferFree((SLPBuffer)SLPListUnlink(&(sock->sendlist), sock->sendlist.head));
         }
     }
     else if(sock->sendbuf)
@@ -189,6 +198,7 @@ void SLPDSocketFree(SLPDSocket* sock)
         SLPBufferFree(sock->sendbuf);                        
     }
 
+    /* free the actual socket structure */
     free(sock);
 }
 
@@ -204,7 +214,7 @@ SLPDSocket* SLPDSocketCreateDatagram(struct in_addr* peeraddr, int type)
 /*==========================================================================*/
 {
     SLPDSocket*     sock;  
-    sock = SLPDSocketNew();
+    sock = SLPDSocketAlloc();
     if(sock)
     {
         sock->fd = socket(PF_INET, SOCK_DGRAM, 0);
@@ -245,7 +255,7 @@ SLPDSocket* SLPDSocketCreateBoundDatagram(struct in_addr* myaddr,
 {
     SLPDSocket*     sock;  
 
-    sock = SLPDSocketNew();
+    sock = SLPDSocketAlloc();
     if(sock)
     {
         sock->fd = socket(PF_INET, SOCK_DGRAM, 0);
@@ -313,7 +323,7 @@ SLPDSocket* SLPDSocketCreateListen(struct in_addr* peeraddr)
 {
     SLPDSocket* sock;
 
-    sock = SLPDSocketNew();
+    sock = SLPDSocketAlloc();
     if(sock)
     {
         sock->fd = socket(PF_INET, SOCK_STREAM, 0);
@@ -355,7 +365,7 @@ SLPDSocket* SLPDSocketCreateConnected(struct in_addr* addr)
     int                 lowat;
     SLPDSocket*         sock = 0;
     
-    sock = SLPDSocketNew();
+    sock = SLPDSocketAlloc();
     if(sock == 0)
     {
         goto FAILURE;
@@ -417,45 +427,3 @@ SLPDSocket* SLPDSocketCreateConnected(struct in_addr* addr)
     
     return sock;
 }
-
-
-/*=========================================================================*/
-SLPDSocket* SLPDSocketListAdd(SLPDSocketList* list, SLPDSocket* addition) 
-/* Adds a free()s the specified socket from the specified list             */
-/*                                                                         */
-/* list     - pointer to the SLPSocketList to add the socket to.           */
-/*                                                                         */
-/* addition - a pointer to the socket to add                               */
-/*                                                                         */
-/* Returns  - pointer to the added socket or NULL on error                 */
-/*=========================================================================*/
-{
-    ListLink((PListItem*)&list->head,(PListItem)addition);
-    list->count = list->count + 1;
-    return addition;
-}
-
-
-/*=========================================================================*/
-SLPDSocket* SLPDSocketListRemove(SLPDSocketList* list, SLPDSocket* sock)
-/* Unlinks and free()s the specified socket from the specified list        */
-/*                                                                         */
-/* list     - pointer to the SLPSocketList to unlink the socket from.      */
-/*                                                                         */
-/* sock     - pointer to the SLPSocket to unlink to the list               */
-/*                                                                         */
-/* Returns  - pointer to the previous socket (may be NULL)                 */
-/*=========================================================================*/
-{
-    SLPDSocket* del = sock;
-    sock = (SLPDSocket*)sock->listitem.previous;
-    ListUnlink((PListItem*)&list->head,(PListItem)del);
-    if(sock == 0)
-    {
-        sock = list->head;
-    }                   
-    SLPDSocketFree(del);
-    list->count = list->count - 1;
-    return sock;
-}         
-

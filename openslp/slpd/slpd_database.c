@@ -35,11 +35,8 @@
 #include "slpd.h"
 
 /*=========================================================================*/
-SLPDDatabaseEntry*    G_DatabaseHead = 0;
-SLPDDatabaseEntry*    G_NewEntries = 0;
-SLPDDatabaseEntry*    G_DeletedEntries = 0;
+SLPList G_DatabaseList = {0,0,0};
 /*=========================================================================*/
-
 
 /*-------------------------------------------------------------------------*/
 void FreeEntry(SLPDDatabaseEntry* entry)
@@ -55,36 +52,16 @@ void FreeEntry(SLPDDatabaseEntry* entry)
     }
 }
 
+
 /*-------------------------------------------------------------------------*/
-void FreeAllEntries(SLPDDatabaseEntry** head)
+void FreeAllEntries(SLPList* list)
 /*-------------------------------------------------------------------------*/
 {
-    SLPDDatabaseEntry*  entry   = *head;
-    SLPDDatabaseEntry*  del     = 0;
-
-    while(entry)
+    while(list->count)
     {
-        del = entry;
-        entry = (SLPDDatabaseEntry*)entry->listitem.next;
-        ListUnlink((PListItem*)head,(PListItem)del);               
-        FreeEntry(del);
+        FreeEntry((SLPDDatabaseEntry*)SLPListUnlink(list,list->head));
     }
 }
-
-/*-------------------------------------------------------------------------*/
-void UnlinkAllEntries(SLPDDatabaseEntry** head)
-/*-------------------------------------------------------------------------*/
-{
-    SLPDDatabaseEntry*  entry   = *head;
-    SLPDDatabaseEntry*  del     = 0;
-
-    while(entry)
-    {
-        del = entry;
-        entry = (SLPDDatabaseEntry*)entry->listitem.next;
-        ListUnlink((PListItem*)head,(PListItem)del);               
-    }
-}  
 
 
 /*=========================================================================*/
@@ -97,23 +74,10 @@ void SLPDDatabaseAge(int seconds)
 /*=========================================================================*/
 {
     SLPDDatabaseEntry* entry;
-    SLPDDatabaseEntry* del;
+    SLPDDatabaseEntry* del   = 0;
 
-    /* Free everything in the deleted list */
-    FreeAllEntries(&G_DeletedEntries);
-
-    /* Take everything from the new entries list and put it in the database */
-    entry = G_NewEntries;
-    while(entry)
-    {
-        del = entry;
-        entry = (SLPDDatabaseEntry*)entry->listitem.next;
-        ListUnlink((PListItem*)&G_NewEntries,(PListItem)del);
-        ListLink((PListItem*)&G_DatabaseHead,(PListItem)del); 
-    }
-    
     /* Age the database */
-    entry = G_DatabaseHead;
+    entry = (SLPDDatabaseEntry*)G_DatabaseList.head;
     while(entry)
     {
         /* don't age services with lifetime > SLP_LIFETIME_MAXIMUM */
@@ -123,13 +87,16 @@ void SLPDDatabaseAge(int seconds)
             if(entry->lifetime <= 0)
             {
                 del = entry;
-                entry = (SLPDDatabaseEntry*)entry->listitem.next;
-                ListUnlink((PListItem*)&G_DatabaseHead,(PListItem)del);               
-                FreeEntry(del);
-                continue;
             }
     	}
+        
         entry = (SLPDDatabaseEntry*)entry->listitem.next;
+
+        if(del)
+        {
+            FreeEntry((SLPDDatabaseEntry*)SLPListUnlink(&G_DatabaseList,(SLPListItem*)del));
+            del = 0;
+        }                                                               
     }
 }
 
@@ -156,7 +123,7 @@ int SLPDDatabaseReg(SLPSrvReg* srvreg,
 /*=========================================================================*/
 {
     int                result = 0;
-    SLPDDatabaseEntry* entry  = G_DatabaseHead;
+    SLPDDatabaseEntry* entry  = (SLPDDatabaseEntry*)G_DatabaseList.head;
 
     /* Check to see if there is already an identical entry */
     while(entry)
@@ -171,7 +138,7 @@ int SLPDDatabaseReg(SLPSrvReg* srvreg,
                                       srvreg->scopelistlen,
                                       srvreg->scopelist) > 0)
             {
-                ListUnlink((PListItem*)&G_DatabaseHead,(PListItem)entry);
+                SLPListUnlink(&G_DatabaseList,(SLPListItem*)entry);
                 break;
             } 
         }             
@@ -179,31 +146,7 @@ int SLPDDatabaseReg(SLPSrvReg* srvreg,
         entry = (SLPDDatabaseEntry*) entry->listitem.next;
     }
     
-    /* Check the new entries too */
-    if(entry == 0)
-    {
-        entry  = G_NewEntries;
-        while(entry)
-        {
-            if(SLPCompareString(entry->urllen,
-                                entry->url,
-                                srvreg->urlentry.urllen,
-                                srvreg->urlentry.url) == 0)
-            {
-                if(SLPIntersectStringList(entry->scopelistlen,
-                                          entry->scopelist,
-                                          srvreg->scopelistlen,
-                                          srvreg->scopelist) > 0)
-                {
-                    ListUnlink((PListItem*)&G_NewEntries,(PListItem)entry);
-                    break;
-                } 
-            }             
-            
-            entry = (SLPDDatabaseEntry*) entry->listitem.next;
-        }
-    }
-    
+
     /* if no identical entry are found, create a new one */
     if(entry == 0)
     {
@@ -240,7 +183,7 @@ int SLPDDatabaseReg(SLPSrvReg* srvreg,
     }
     
     /* link the new (or modified) entry into the list */
-    ListLink((PListItem*)&G_NewEntries,(PListItem)entry);
+    SLPListLinkHead(&G_DatabaseList,(SLPListItem*)entry);
 
     /* traceReg if necessary */
     if(G_SlpdProperty.traceReg)
@@ -264,7 +207,9 @@ int SLPDDatabaseDeReg(SLPSrvDeReg* srvdereg)
 /*=========================================================================*/
 
 {
-    SLPDDatabaseEntry* entry = G_DatabaseHead;
+    SLPDDatabaseEntry* del = 0;
+    SLPDDatabaseEntry* entry = (SLPDDatabaseEntry*)G_DatabaseList.head;
+
 
     while(entry)
     {
@@ -283,43 +228,18 @@ int SLPDDatabaseDeReg(SLPSrvDeReg* srvdereg)
                     SLPDLogTraceReg("SrvDeReg",entry);
                 }
                 
-                ListUnlink((PListItem*)&G_DatabaseHead,(PListItem)entry);                
-                ListLink((PListItem*)&G_DeletedEntries,(PListItem)entry);                
+                del = entry;
+                
                 break;
             } 
         }             
         
         entry = (SLPDDatabaseEntry*) entry->listitem.next;
-    }
 
-    /* Check the new entries too */
-    if(entry == 0)
-    {
-        entry = G_NewEntries;
-        while(entry)
+        if(del)
         {
-            if(SLPCompareString(entry->urllen,
-                                entry->url,
-                                srvdereg->urlentry.urllen,
-                                srvdereg->urlentry.url) == 0)
-            {
-                if(SLPIntersectStringList(entry->scopelistlen,
-                                          entry->scopelist,
-                                          srvdereg->scopelistlen,
-                                          srvdereg->scopelist) > 0)
-                {
-                    if(G_SlpdProperty.traceReg)
-                    {
-                        SLPDLogTraceReg("SrvDeReg",entry);
-                    }
-                    
-                    ListUnlink((PListItem*)&G_NewEntries,(PListItem)entry);                
-                    ListLink((PListItem*)&G_DeletedEntries,(PListItem)entry);                
-                    break;
-                } 
-            }             
-            
-            entry = (SLPDDatabaseEntry*) entry->listitem.next;
+            FreeEntry((SLPDDatabaseEntry*)SLPListUnlink(&G_DatabaseList,(SLPListItem*)del));
+            del = 0;
         }
     }
 
@@ -349,41 +269,7 @@ int SLPDDatabaseFindSrv(SLPSrvRqst* srvrqst,
     int                 found;
 
     found = 0;
-    entry = G_DatabaseHead;
-    while(entry)
-    {
-        if(SLPCompareSrvType(srvrqst->srvtypelen,
-                             srvrqst->srvtype,
-                             entry->srvtypelen,
-                             entry->srvtype) == 0)
-        {
-            if(SLPComparePredicate(srvrqst->predicatelen,
-                                   srvrqst->predicate,
-                                   entry->attrlistlen,
-                                   entry->attrlist) != 0)
-            {
-                if(SLPIntersectStringList(srvrqst->scopelistlen,
-                                          srvrqst->scopelist,
-                                          entry->scopelistlen,
-                                          entry->scopelist))
-                {
-                    result[found].lifetime = entry->lifetime;
-                    result[found].urllen = entry->urllen;
-                    result[found].url = entry->url;
-                    found ++;
-                    if(found >= count)
-                    {
-                        break;
-                    }
-                }
-            }
-        }
-
-        entry = (SLPDDatabaseEntry*)entry->listitem.next;
-    }
-
-    /* Check the new list */
-    entry = G_NewEntries;
+    entry = (SLPDDatabaseEntry*)G_DatabaseList.head;
     while(entry)
     {
         if(SLPCompareSrvType(srvrqst->srvtypelen,
@@ -466,36 +352,7 @@ int SLPDDatabaseFindAttr(SLPAttrRqst* attrrqst,
     /*       for service types?                                            */
 
     found = 0;
-    entry = G_DatabaseHead;
-    while(entry)
-    {
-        if(SLPCompareString(attrrqst->urllen,
-                            attrrqst->url,
-                            entry->urllen,
-                            entry->url) == 0 ||
-           SLPCompareSrvType(attrrqst->urllen,
-                             attrrqst->url,
-                             entry->srvtypelen,
-                             entry->srvtype) == 0 )
-        {
-            if(SLPIntersectStringList(attrrqst->scopelistlen,
-                                      attrrqst->scopelist,
-                                      entry->scopelistlen,
-                                      entry->scopelist))
-            {
-                result[found].attrlen = entry->attrlistlen;
-                result[found].attr = entry->attrlist;
-                found++;
-                break;
-            }       
-        }
-
-        entry = (SLPDDatabaseEntry*)entry->listitem.next;
-
-    }
-
-    /* Check the new entry list too */
-    entry = G_NewEntries;
+    entry = (SLPDDatabaseEntry*)G_DatabaseList.head;
     while(entry)
     {
         if(SLPCompareString(attrrqst->urllen,
@@ -541,9 +398,9 @@ int SLPDDatabaseInit(const char* regfile)
     SLPDDatabaseEntry*  entry;
 
     /* Remove all entries in the database if any */
-    FreeAllEntries(&G_DatabaseHead);
-    FreeAllEntries(&G_DeletedEntries);
-
+    FreeAllEntries(&G_DatabaseList);
+    
+    
     /*--------------------------------------*/
     /* Read static registration file if any */
     /*--------------------------------------*/
@@ -565,7 +422,7 @@ int SLPDDatabaseInit(const char* regfile)
                     SLPDLogTraceReg("SrvReg (static)",entry);
                 }
 
-                ListLink((PListItem*)&G_DatabaseHead,(PListItem)entry);
+                SLPListLinkHead(&G_DatabaseList,(SLPListItem*)entry);
             }
 
             fclose(fd);

@@ -75,10 +75,7 @@ void SLPDPropertyInit(const char* conffile)
     G_SlpdProperty.locale = SLPPropertyGet("net.slp.locale");
     G_SlpdProperty.localeLen = strlen(G_SlpdProperty.locale);
     
-
-
-
-
+ 
     /*-------------------------------------*/
     /* Set the net.slp.interfaces property */
     /*-------------------------------------*/

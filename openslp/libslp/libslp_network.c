@@ -207,11 +207,13 @@ SLPError NetworkRqstRply(int sock,
     /* Figure unicast/multicast,TCP/UDP, wait and time out stuff */
     if(ntohl(destaddr->sin_addr.s_addr) > 0xe0000000)
     {
+        /* Multicast or broadcast */
         maxwait = SLPPropertyAsInteger(SLPGetProperty("net.slp.multicastMaximumWait"));
         SLPPropertyAsIntegerVector(SLPGetProperty("net.slp.multicastTimeouts"), 
                                    timeouts, 
                                    MAX_RETRANSMITS );
         socktype = SOCK_DGRAM;
+        xmitcount = 0;
     }
     else
     {
@@ -221,6 +223,8 @@ SLPError NetworkRqstRply(int sock,
                                    MAX_RETRANSMITS );
         size = sizeof(socktype);
         getsockopt(sock,SOL_SOCKET,SO_TYPE,&socktype,&size);
+        socktype = SOCK_STREAM;
+        xmitcount = MAX_RETRANSMITS;
     }
     
     /*--------------------------------*/
@@ -238,9 +242,10 @@ SLPError NetworkRqstRply(int sock,
     /*--------------------------*/
     /* Main retransmission loop */
     /*--------------------------*/
-    for(xmitcount = 0; xmitcount < MAX_RETRANSMITS; xmitcount++)
+    while(xmitcount <= MAX_RETRANSMITS)
     {
-        
+        xmitcount++;
+
         /*--------------------*/
         /* setup recv timeout */
         /*--------------------*/

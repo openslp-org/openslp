@@ -174,15 +174,16 @@ int Daemonize(const char* pidfile)
 
 
 /*-------------------------------------------------------------------------*/
-void LoadFdSets(SLPDSocketList* list, 
+void LoadFdSets(SLPList* socklist, 
                 int* highfd, 
                 fd_set* readfds, 
                 fd_set* writefds)
 /*-------------------------------------------------------------------------*/
 {
-    SLPDSocket* sock;
+    SLPDSocket* sock = 0;
+    SLPDSocket* del = 0;
     
-    sock = list->head;
+    sock = (SLPDSocket*)socklist->head;
     while(sock)
     {
         if(sock->fd > *highfd)
@@ -199,7 +200,7 @@ void LoadFdSets(SLPDSocketList* list,
             break;
             
         case SOCKET_LISTEN:
-            if(list->count < SLPD_MAX_SOCKETS)
+            if(socklist->count < SLPD_MAX_SOCKETS)
             {
                 FD_SET(sock->fd,readfds);
             }
@@ -217,16 +218,19 @@ void LoadFdSets(SLPDSocketList* list,
             break;
 
         case SOCKET_CLOSE:
-            sock = SLPDSocketListRemove(list, sock); 
+            del = sock;
             break;
 
         default:
             break;
         }
         
-	    if(sock)
+        sock = (SLPDSocket*)sock->listitem.next;
+        
+        if(del)
         {
-            sock = (SLPDSocket*)sock->listitem.next;
+            SLPDSocketFree((SLPDSocket*)SLPListUnlink(socklist,(SLPListItem*)del));     
+            del = 0;
         }
     }
 }
@@ -349,7 +353,9 @@ HANDLE_SIGNAL:
         
             SLPDPropertyInit(G_SlpdCommandLine.cfgfile);
             SLPDDatabaseInit(G_SlpdCommandLine.regfile);
-            SLPDIncomingInit();
+            /* Don't reinitialize Incoming because we can't rebind to */
+            /* slp reserved port because we are not root now          */
+            /* SLPDIncomingInit(); */
             SLPDOutgoingInit();
             SLPDKnownDAInit();
             G_SIGHUP = 0;     

@@ -41,7 +41,7 @@
 /*=========================================================================*/
 /* Global Variables                                                        */
 /*=========================================================================*/
-SLPProperty*    G_SLPPropertyListHead  = 0;
+SLPList G_SLPPropertyList = {0,0,0};
 
 
 /*-------------------------------------------------------------------------*/
@@ -56,15 +56,13 @@ SLPProperty* Find(const char* pcName)
 {
     SLPProperty*  curProperty;
 
-    curProperty = G_SLPPropertyListHead;
-    
+    curProperty = (SLPProperty*)G_SLPPropertyList.head;
     while(curProperty != 0)
     {
         if(strcmp(curProperty->propertyName,pcName) == 0)
         {
             break;
         }
-
         curProperty = (SLPProperty*)curProperty->listitem.next;
     }
 
@@ -123,11 +121,11 @@ int SLPPropertySet(const char *pcName,
         memcpy(newProperty->propertyValue,pcValue,pcValueSize);
     
         /* Link the new property into the list */
-        ListLink((PListItem*)&G_SLPPropertyListHead,(PListItem)newProperty);
+        SLPListLinkHead(&G_SLPPropertyList,(SLPListItem*)newProperty);
     }
     else
     {    
-        ListUnlink((PListItem*)&G_SLPPropertyListHead,(PListItem)newProperty);
+        SLPListUnlink(&G_SLPPropertyList,(SLPListItem*)newProperty);
         
         /* property already exists in the list */
         newProperty = (SLPProperty*)realloc(newProperty,sizeof(SLPProperty) + pcNameSize + pcValueSize);    
@@ -147,7 +145,7 @@ int SLPPropertySet(const char *pcName,
         memcpy(newProperty->propertyName,pcName,pcNameSize);
         memcpy(newProperty->propertyValue,pcValue,pcValueSize);
         
-        ListLink((PListItem*)&G_SLPPropertyListHead,(PListItem)newProperty);
+        SLPListLinkHead(&G_SLPPropertyList,(SLPListItem*)newProperty);
     }
     
     return 0;

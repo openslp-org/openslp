@@ -36,17 +36,34 @@
 /*                                                                         */
 /***************************************************************************/
 
- 
+
 #include "slp.h"
 #include "libslp.h"
- 
+
 /*=========================================================================*/
-SLPDAEntry* G_KnownDAListHead = 0;                                         
-/* The list of know DAs.  All calls in the file are ment to fill this list */
+SLPList G_KnownDAList = {0,0,0};
+/* The list of known DAs. All calls in the file are ment to fill this list */
 /* with useable DAs.                                                       */
 /*=========================================================================*/
 
-struct stat G_HintStat;
+
+/*-------------------------------------------------------------------------*/
+void KnownDASaveHints()
+/*-------------------------------------------------------------------------*/
+{
+    int         fd;
+    const char* hintfile;
+
+
+    fd = creat(hintfile,
+               S_IROTH | S_IWOTH | S_IRGRP| S_IWGRP | S_IRUSR | S_IWUSR);
+    if (fd >= 0)
+    {
+        SLPDAEntryListWrite(fd, &G_KnownDAList);
+        close(fd);
+    }
+
+}
 
 /*-------------------------------------------------------------------------*/
 SLPBoolean KnownDADiscoveryCallback(SLPError errorcode, 
@@ -58,34 +75,34 @@ SLPBoolean KnownDADiscoveryCallback(SLPError errorcode,
     SLPDAEntry*     entry;
     struct hostent* he;
     int*            count   = (int*)cookie;
-        
-    if(errorcode == 0)
+
+    if (errorcode == 0)
     {
-	if(msg && msg->header.functionid == SLP_FUNCT_DAADVERT)
-	{
-	    if(msg->body.srvrply.errorcode == 0)
-	    {
-		/* NULL terminate scopelist */ 
-		*((char*)msg->body.daadvert.scopelist + msg->body.daadvert.scopelistlen) = 0;
-		if(SLPParseSrvURL(msg->body.daadvert.url, &srvurl) == 0)
-		{
-		    he = gethostbyname(srvurl->s_pcHost);
-		    if(he)
-		    {
-			entry = SLPDAEntryCreate((struct in_addr*)(he->h_addr_list[0]),
-						 msg->body.daadvert.bootstamp,
-						 msg->body.daadvert.scopelist,
-						 msg->body.daadvert.scopelistlen);
-			ListLink((PListItem*)&G_KnownDAListHead,(PListItem)entry);
-			*count = *count + 1;
-		    }
-		    
-		    SLPFree(srvurl);
-		}
-             }
-	}
+        if (msg && msg->header.functionid == SLP_FUNCT_DAADVERT)
+        {
+            if (msg->body.srvrply.errorcode == 0)
+            { 
+                /* NULL terminate scopelist */
+                *((char*)msg->body.daadvert.scopelist + msg->body.daadvert.scopelistlen) = 0;
+                if (SLPParseSrvURL(msg->body.daadvert.url, &srvurl) == 0)
+                {
+                    he = gethostbyname(srvurl->s_pcHost);
+                    if (he)
+                    {
+                        entry = SLPDAEntryCreate((struct in_addr*)(he->h_addr_list[0]),
+                                                 msg->body.daadvert.bootstamp,
+                                                 msg->body.daadvert.scopelist,
+                                                 msg->body.daadvert.scopelistlen);
+                        SLPListLinkTail(&G_KnownDAList,(SLPListItem*)entry);
+                        *count = *count + 1;
+                    }
+
+                    SLPFree(srvurl);
+                }
+            }
+        }
     }
-    
+
     return 1;
 }
 
@@ -100,24 +117,24 @@ int KnownDADiscoveryRqstRply(int sock,
     char*       buf;
     char*       curpos;
     int         bufsize;
-    
+
     /*-------------------------------------------------------------------*/
     /* determine the size of the fixed portion of the SRVRQST            */
     /*-------------------------------------------------------------------*/
-    bufsize  = 31;  /*  2 bytes for the srvtype length */ 
-                    /* 23 bytes for "service:directory-agent" srvtype */
-                    /*  2 bytes for scopelistlen */
-                    /*  2 bytes for predicatelen */
-                    /*  2 bytes for sprstrlen */
+    bufsize  = 31; /*  2 bytes for the srvtype length */
+                   /* 23 bytes for "service:directory-agent" srvtype */
+                   /*  2 bytes for scopelistlen */
+                   /*  2 bytes for predicatelen */
+                   /*  2 bytes for sprstrlen */
 
     /* TODO: make sure that we don't exceed the MTU */
     buf = curpos = (char*)malloc(bufsize);
-    if(buf == 0)
+    if (buf == 0)
     {
         return 0;
     }
     memset(buf,0,bufsize);
-    
+
     /*------------------------------------------------------------*/
     /* Build a buffer containing the fixed portion of the SRVRQST */
     /*------------------------------------------------------------*/
@@ -154,14 +171,14 @@ int KnownDADiscoveryByMulticast()
     int                 result      = 0;
     int                 sock;
     struct sockaddr_in  peeraddr;
-    
+
     sock = NetworkConnectToMulticast(&peeraddr);
-    if(sock >= 0)
+    if (sock >= 0)
     {
         result = KnownDADiscoveryRqstRply(sock, &peeraddr);
         close(sock);
     }
-    
+
     return result;
 }
 
@@ -181,34 +198,34 @@ int KnownDADiscoveryByProperties(struct timeval* timeout)
     int                 sock;
     struct hostent*     he;
     struct sockaddr_in  peeraddr;
-    
+
     memset(&peeraddr,0,sizeof(peeraddr));
     peeraddr.sin_family = AF_INET;
     peeraddr.sin_port = htons(SLP_RESERVED_PORT);
-    
+
     slider1 = slider2 = temp = strdup(SLPGetProperty("net.slp.DAAddresses"));
-    if(temp)
+    if (temp)
     {
         tempend = temp + strlen(temp);
-        while(slider1 != tempend)
+        while (slider1 != tempend)
         {
-            while(*slider2 && *slider2 != ',') slider2++;
+            while (*slider2 && *slider2 != ',') slider2++;
             *slider2 = 0;
-            
+
             he = gethostbyname(slider1);
-            if(he)
+            if (he)
             {
                 peeraddr.sin_addr.s_addr = *((unsigned long*)(he->h_addr_list[0]));
                 result += 1;
-                
+
                 sock = SLPNetworkConnectStream(&peeraddr,timeout);
-                if(sock >= 0)
+                if (sock >= 0)
                 {
                     result += KnownDADiscoveryRqstRply(sock, &peeraddr);
                     close(sock);
                 }
             }
-            
+
             slider1 = slider2;
             slider2++;
         }
@@ -224,87 +241,59 @@ int KnownDADiscover(struct timeval* timeout)
 /* Returns: the number of DAs discovered                                   */
 /*=========================================================================*/
 {
-    int         result      = 0;
     int         fd;
-    struct stat hintstat;
-    const char* hintfile;
-   
+    int         result      = 0;
+
     /* TODO THIS FUNCTION MUST BE SYNCRONIZED !! */
-    
-    /*---------------------------------------------------------------------*/
-    /* The logic of the following if(G_KnownDAListHead) statements is an   */
-    /* attempt to reduce wasted time and network bandwidth due to unneeded */
-    /* communication with DAs and multicast                                */
-    /*---------------------------------------------------------------------*/
+    /* two threads must not be in here at the same time */
     
     /*----------------------------------------------------*/
     /* Check values from the net.slp.DAAddresses property */
     /*----------------------------------------------------*/
     result = KnownDADiscoveryByProperties(timeout);
-    if(result)
+    if (result)
     {
-        goto SAVEHINTS;
+        KnownDASaveHints();
+        return result;
     }
-        
     
+
+    /*------------------------------*/
     /* Check data from DHCP Options */
-    /*------------------------------*/ 
+    /*------------------------------*/
     /* TODO put code here when you can */
 
-    
+
     /*-----------------------------------*/
     /* Load G_KnownDAListhead from hints */
     /*-----------------------------------*/
-    hintfile = SLPGetProperty("net.slp.HintsFile");
-    if(stat(hintfile,&hintstat) == 0)  
+    fd = open(SLPGetProperty("net.slp.HintsFile"),O_RDONLY);
+    if (fd >= 0)
     {
-        /* Very important! Only read if newer! */
-        if(hintstat.st_mtime != G_HintStat.st_mtime) 
+        SLPDAEntryListRead(fd, &G_KnownDAList);
+        close(fd);
+        if (G_KnownDAList.count)
         {
-            fd = open(hintfile,O_RDONLY);
-            if(fd >= 0)
-            {
-                SLPDAEntryListRead(fd, &G_KnownDAListHead);
-                close(fd);
-            }
+            return G_KnownDAList.count;
         }
     }
-    if(G_KnownDAListHead) 
-    {
-        result = 1;
-        goto SAVEHINTS;
-    }
-
     
+
     /*-------------------*/
     /* Multicast for DAs */
-    /*-------------------*/ 
-    if(SLPPropertyAsBoolean(SLPGetProperty("net.slp.activeDADetection")) &&
-       SLPPropertyAsInteger(SLPGetProperty("net.slp.DAActiveDiscoveryInterval")))
+    /*-------------------*/
+    if (SLPPropertyAsBoolean(SLPGetProperty("net.slp.activeDADetection")) &&
+        SLPPropertyAsInteger(SLPGetProperty("net.slp.DAActiveDiscoveryInterval")))
     {
         result = KnownDADiscoveryByMulticast();
-        if(result)
+        if (result)
         {
-            goto SAVEHINTS;
+            KnownDASaveHints();
+            return result;
         }
     }
     
-
-
-SAVEHINTS:
-    /*---------------------*/
-    /* Save the hints file */
-    /*---------------------*/
-    fd = creat(hintfile,
-               S_IROTH | S_IWOTH | S_IRGRP| S_IWGRP | S_IRUSR | S_IWUSR);
-    if(fd >= 0)
-    {
-        SLPDAEntryListWrite(fd, &G_KnownDAListHead);
-        close(fd);
-        stat(hintfile,&G_HintStat);
-    }
-
-    return result;
+    return 0;
 }
 
 
@@ -315,35 +304,52 @@ int KnownDAConnect(const char* scopelist,
                    struct timeval* timeout)
 /*=========================================================================*/
 {
+    int                 fd;
     int                 sock;
     SLPDAEntry*         entry;
-    
+    SLPDAEntry*         del   = 0;
+
     /* TODO THIS FUNCTION MUST BE SYNCRONIZED !! */
 
     memset(peeraddr,0,sizeof(struct sockaddr_in));
     peeraddr->sin_family = AF_INET;
     peeraddr->sin_port   = htons(SLP_RESERVED_PORT);
 
-    entry = G_KnownDAListHead;
-    while(entry)
+    entry = (SLPDAEntry*)G_KnownDAList.head;
+    while (entry)
     {
-        if(SLPIntersectStringList(entry->scopelistlen,
-                                  entry->scopelist,
-                                  scopelistlen,
-                                  scopelist))
+        if (SLPIntersectStringList(entry->scopelistlen,
+                                   entry->scopelist,
+                                   scopelistlen,
+                                   scopelist))
         {
             peeraddr->sin_addr   = entry->daaddr;
             sock = SLPNetworkConnectStream(peeraddr,timeout);
-            if(sock >= 0)
+            if (sock >= 0)
             {
                 return sock;
             }
 
-            ListUnlink((PListItem*)&G_KnownDAListHead,(PListItem)entry);
-            SLPDAEntryFree(entry);
+            del = entry;
         }
-        
+
         entry = (SLPDAEntry*) entry->listitem.next;
+
+        if (del)
+        {
+            SLPDAEntryFree((SLPDAEntry*)SLPListUnlink(&G_KnownDAList,(SLPListItem*)del));
+
+            /*---------------------------------------------------*/
+            /* Save the hints file because something was removed */
+            /*---------------------------------------------------*/
+            fd = creat(SLPGetProperty("net.slp.HintsFile"),
+                       S_IROTH | S_IWOTH | S_IRGRP| S_IWGRP | S_IRUSR | S_IWUSR);
+            if (fd >= 0)
+            {
+                SLPDAEntryListWrite(fd, &G_KnownDAList);
+                close(fd);
+            }
+        }
     }
 
     return -1;

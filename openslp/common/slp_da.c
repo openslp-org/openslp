@@ -119,12 +119,12 @@ SLPDAEntry* SLPDAEntryRead(int fd)
 }
 
 /*=========================================================================*/
-int SLPDAEntryListWrite(int fd, SLPDAEntry** head)
+int SLPDAEntryListWrite(int fd, SLPList* dalist)
 /* Returns: Number of entries written                                      */
 /*=========================================================================*/
 {
     int         result = 0;
-    SLPDAEntry* entry = *head;
+    SLPDAEntry* entry = (SLPDAEntry*)dalist->head;
     
     while(entry)
     {
@@ -140,7 +140,7 @@ int SLPDAEntryListWrite(int fd, SLPDAEntry** head)
 }
 
 /*=========================================================================*/
-int SLPDAEntryListRead(int fd, SLPDAEntry** head)
+int SLPDAEntryListRead(int fd, SLPList* dalist)
 /* Returns: zero on success, -1 on error                                   */
 /*=========================================================================*/
 {
@@ -155,7 +155,7 @@ int SLPDAEntryListRead(int fd, SLPDAEntry** head)
             break;
         }
         result += 1;
-        ListLink((PListItem*)head,(PListItem)entry);
+        SLPListLinkHead(dalist,(SLPListItem*)entry);
     }
 
     return result;

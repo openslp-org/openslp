@@ -44,7 +44,7 @@
 typedef struct _SLPDAEntry
 /*=========================================================================*/
 {
-    ListItem        listitem;
+    SLPListItem     listitem;
     struct in_addr  daaddr;
     unsigned long   bootstamp;
     char*           scopelist;
@@ -92,13 +92,13 @@ SLPDAEntry* SLPDAEntryRead(int fd);
 
 
 /*=========================================================================*/
-int SLPDAEntryListWrite(int fd, SLPDAEntry** head);
+int SLPDAEntryListWrite(int fd, SLPList* dalist);
 /* Returns: Number of entries written                                      */
 /*=========================================================================*/
 
 
 /*=========================================================================*/
-int SLPDAEntryListRead(int fd, SLPDAEntry** head);
+int SLPDAEntryListRead(int fd, SLPList* dalist);
 /* Returns: zero on success, -1 on error                                   */
 /*=========================================================================*/
 
