@@ -48,7 +48,7 @@
 /***************************************************************************/
 
 #if(!defined SLP_STRING_H_INCLUDED)
-    #define SLP_STRING_H_INCLUDED
+#define SLP_STRING_H_INCLUDED
 
 
 /*=========================================================================*/
@@ -160,7 +160,7 @@ int SLPUnionStringList(int list1len,
                        int list2len,
                        const char* list2,
                        int* unionlistlen,
-                       char * unionlist);
+                       char * unionlist); 
 /* Generate a string list that is a union of two string lists              */
 /*                                                                         */
 /* list1len -   length in bytes of list1                                   */
@@ -175,7 +175,7 @@ int SLPUnionStringList(int list1len,
 /*                also receives the size in bytes of the unionlist buffer  */
 /*                on successful return.                                    */
 /*                                                                         */
-/* unionlist -  pointer to the buffer that will receive the union list.    */ 
+/* unionlist -  pointer to the buffer that will receive the union list.    */
 /*                                                                         */
 /*                                                                         */
 /* Returns -    Length of the resulting union list or negative if          */
@@ -196,9 +196,9 @@ int SLPUnionStringList(int list1len,
 
 /*=========================================================================*/
 int SLPSubsetStringList(int listlen,
-                         const char* list,
-                         int sublistlen,
-                         const char* sublist);
+                        const char* list,
+                        int sublistlen,
+                        const char* sublist);
 /* Test if sublist is a set of list                                        */
 /*                                                                         */
 /* list  -      pointer to the string-list to be checked                   */

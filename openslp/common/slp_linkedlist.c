@@ -45,8 +45,7 @@
 /*                                                                         */
 /***************************************************************************/
 
-#include <slp_linkedlist.h>
-
+#include "slp_linkedlist.h"
 
 /*=========================================================================*/
 SLPListItem* SLPListUnlink(SLPList* list, SLPListItem* item)

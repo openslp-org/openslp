@@ -5,6 +5,9 @@ Please make entries to this log (in addition to the CVS log) that describe
 major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
+02/09/01 mpeterson@caldera.com
+Numerous changes to make it so libsmb will build on Windows without cgywin. 
+(Had to beautify source after mangling it with Windows editors, etc)
 
 02/08/01 mpeterson@caldera.com
 UA requests may only be serviced by DAs if a known DA is found that supports

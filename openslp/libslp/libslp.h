@@ -48,41 +48,41 @@
 
 
 #if(!defined LIBSLP_H_INCLUDED)
-    #define LIBSLP_H_INCLUDED
+#define LIBSLP_H_INCLUDED
 
-    #ifdef WIN32
-        #include <windows.h>
-        #include  <sys/types.h>
-        #include <sys/stat.h>
-        #include <fcntl.h>
-        #include <time.h>
-    #else
-        #include <stdlib.h>
-        #include <unistd.h>
-        #include <string.h>
-        #include <sys/socket.h>
-        #include <sys/time.h>
-        #include <netinet/in.h>
-        #include <arpa/inet.h> 
-        #include <netdb.h> 
-        #include <fcntl.h> 
-        #include <errno.h>
-        #include <sys/types.h>
-        #include <sys/stat.h>
-        #include <fcntl.h> 
-    #endif
+#ifdef WIN32
+#include <windows.h>
+#include  <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <time.h>
+#else
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <sys/time.h>
+#include <netinet/in.h>
+#include <arpa/inet.h> 
+#include <netdb.h> 
+#include <fcntl.h> 
+#include <errno.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h> 
+#endif
 
-    #include <slp_buffer.h>
-    #include <slp_message.h>
-    #include <slp_property.h>
-    #include <slp_xid.h>
-    #include <slp_network.h>
-    #include <slp_da.h>
-    #include <slp_compare.h>
+#include "../common/slp_buffer.h"
+#include "../common/slp_message.h"
+#include "../common/slp_property.h"
+#include "../common/slp_xid.h"
+#include "../common/slp_network.h"
+#include "../common/slp_da.h"
+#include "../common/slp_compare.h"
 
-    #define MINIMUM_DISCOVERY_INTERVAL  300    /* 5 minutes */
-    #define MAX_RETRANSMITS             5      /* we'll only re-xmit 5 times! */
-    #define SLP_FUNCT_DASRVRQST         0x7f   /* fake id used internally */
+#define MINIMUM_DISCOVERY_INTERVAL  300    /* 5 minutes */
+#define MAX_RETRANSMITS             5      /* we'll only re-xmit 5 times! */
+#define SLP_FUNCT_DASRVRQST         0x7f   /* fake id used internally */
 
 /*=========================================================================*/
 typedef enum _SLPCallType
@@ -124,7 +124,7 @@ typedef struct _SLPDeRegParams
 /* API calls                                                               */
 /*=========================================================================*/
 {
-    int             scopelistlen;
+     int			scopelistlen;
     const char*     scopelist;
     int             urllen;
     const char*     url;

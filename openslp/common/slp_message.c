@@ -47,12 +47,12 @@
 /*                                                                         */
 /***************************************************************************/
 
-#include <slp_message.h>
+#include "slp_message.h"
 
 #ifndef WIN32
-    #include <stdlib.h>
-    #include <sys/types.h>
-    #include <netinet/in.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <netinet/in.h>
 #endif
 
 /*-------------------------------------------------------------------------*/
@@ -905,6 +905,7 @@ int SLPMessageParseBuffer(SLPBuffer buffer, SLPMessage message)
             return SLPv1MessageParseBuffer(buffer, &(message->header),
                                            message);
 #endif
+
 
 
 

@@ -46,7 +46,7 @@
 /***************************************************************************/
 
 #if(!defined LINKEDLIST_H_INCLUDED)
-    #define LINKEDLIST_H_INCLUDED
+#define LINKEDLIST_H_INCLUDED
 
 
 /*=========================================================================*/
@@ -103,6 +103,5 @@ SLPListItem* SLPListLinkTail(SLPList* list, SLPListItem* item);
 /*                                                                         */
 /* Returns  pointer to the linked item                                     */
 /*=========================================================================*/
-
 
 #endif

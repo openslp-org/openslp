@@ -49,16 +49,17 @@
 /***************************************************************************/
 
 #if(!defined SLP_BUFFER_H_INCLUDED)
-    #define SLP_BUFFER_H_INCLUDED
+#define SLP_BUFFER_H_INCLUDED
 
-    #include <stdlib.h>
+#include <stdlib.h>
+#include <memory.h>
 
-    #include <slp_linkedlist.h>
+#include "slp_linkedlist.h"
 
-    #ifdef DEBUG
+#ifdef DEBUG
 extern int G_Debug_SLPBufferAllocCount;
 extern int G_Debug_SLPBufferFreeCount;
-    #endif
+#endif
 
 
 

@@ -50,9 +50,9 @@
 #include "slpd.h"
 
 #ifdef WIN32
-    #define CloseSocket(Arg) closesocket(Arg)
+#define CloseSocket(Arg) closesocket(Arg)
 #else
-    #define CloseSocket(Arg) close(Arg)
+#define CloseSocket(Arg) close(Arg)
 #endif
 
 /*-------------------------------------------------------------------------*/
@@ -85,6 +85,7 @@ int SetMulticastTTL(sockfd_t sockfd, int ttl)
 #if defined(linux)
     int         optarg = ttl;
 #else
+
 
 
     /* Solaris and Tru64 expect a unsigned char parameter */
@@ -397,6 +398,7 @@ SLPDSocket* SLPDSocketCreateBoundDatagram(struct in_addr* myaddr,
 
 
 
+
     /*------------------------*/
     /* Create and bind socket */
     /*------------------------*/
@@ -546,6 +548,7 @@ SLPDSocket* SLPDSocketCreateConnected(struct in_addr* addr)
     fdflags = fcntl(sock->fd, F_GETFL, 0);
     fcntl(sock->fd,F_SETFL, fdflags | O_NONBLOCK);
 #endif
+
 
 
 

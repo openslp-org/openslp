@@ -51,7 +51,7 @@
 #include <string.h>
 #include <errno.h>
 
-#include <slp_property.h>
+#include "slp_property.h"
 
 /*=========================================================================*/
 /* Global Variables                                                        */

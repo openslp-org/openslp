@@ -47,9 +47,9 @@
 /***************************************************************************/
 
 #if(!defined SLP_PROPERTY_H_INCLUDED)
-    #define SLP_PROPERTY_H_INCLUDED
+#define SLP_PROPERTY_H_INCLUDED
 
-    #include <slp_linkedlist.h>
+#include "slp_linkedlist.h"
 
 /*=========================================================================*/
 typedef struct _SLPProperty
@@ -119,12 +119,10 @@ int SLPPropertyAsIntegerVector(const char* property,
                                int vectorsize);
 /*=========================================================================*/
 
-    #ifdef DEBUG
-
-
+#ifdef DEBUG
 /*=========================================================================*/
 void SLPPropertyFreeAll();
 /*=========================================================================*/
-    #endif
+#endif
 
 #endif 

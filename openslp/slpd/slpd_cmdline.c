@@ -159,8 +159,6 @@ int SLPDParseCommandLine(int argc,char* argv[])
             printf("slpd version: %s\n", VERSION);
 #endif
 
-
-
             /* Show options. */
             printf("compile options:\n"
                    "            debugging     "

@@ -120,7 +120,7 @@ void SLPDLogSrvTypeRqstMessage(SLPSrvTypeRqst* srvtyperqst)
 {
     SLPLog("Message SRVTYPERQST:\n");
 }
- 
+
 /*-------------------------------------------------------------------------*/
 void SLPDLogSrvTypeRplyMessage(SLPSrvTypeRply* srvtyperply)
 /*-------------------------------------------------------------------------*/ 

@@ -52,14 +52,14 @@
 
 /* Include platform specific headers files */
 #ifdef WIN32
-    #include "slpd_win32.h"
+#include "slpd_win32.h"
 #else
-    #include "slpd_unistd.h"
+#include "slpd_unistd.h"
 #endif
 
 #ifdef USE_PREDICATES
-    #include "libslpattr.h"
-    #include <assert.h>
+#include "libslpattr.h"
+#include <assert.h>
 #endif
 
 
@@ -209,11 +209,13 @@ int SLPDPropertyInit(const char* conffile);
 /* conffile (IN) the path of the configuration file to use                 */
 /*=========================================================================*/
 
-# ifdef DEBUG
+#ifdef DEBUG
+
 /*=========================================================================*/
 void SLPDPropertyDeinit();
 /*=========================================================================*/
 #endif
+
 
 
 /*=========================================================================*/
@@ -308,11 +310,13 @@ int SLPDDatabaseReInit(const char* regfile);
 
 
 #ifdef DEBUG
+
 /*=========================================================================*/
 void SLPDDatabaseDeinit();
 /* De-initialize the database.  Free all resources taken by registrations  */
 /*=========================================================================*/
 #endif
+
 
 
 /*=========================================================================*/
@@ -749,6 +753,7 @@ int SLPDKnownDAEntryToDAAdvert(int errorcode,
 
 
 
+
 /*=========================================================================*/
 int SLPDv1KnownDAEntryToDAAdvert(int errorcode,
                                  int encoding,
@@ -772,6 +777,7 @@ int SLPDv1KnownDAEntryToDAAdvert(int errorcode,
 /* returns: zero on success, non-zero on error                             */
 /*=========================================================================*/
 #endif
+
 
 
 
@@ -859,6 +865,7 @@ extern SLPList G_KnownDAList;
 
 
 #if(defined USE_PREDICATES)
+
 /*=========================================================================*/
 int SLPDPredicateTest(int predicatever, const char* predicate,
                       SLPAttributes attr); 

@@ -54,7 +54,7 @@
 #include <errno.h>
 #include <time.h> 
 
-#include <slp_logfile.h>
+#include "slp_logfile.h"
 
 /*=========================================================================*/
 static FILE*   G_LogFile    = 0;

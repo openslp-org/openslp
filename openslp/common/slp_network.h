@@ -48,29 +48,31 @@
 /***************************************************************************/
 
 #if(!defined SLP_NETWORK_H_INCLUDED)
-    #define SLP_NETWORK_H_INCLUDED
+#define SLP_NETWORK_H_INCLUDED
 
-    #ifdef WIN32
-        #include <windows.h>
-        #include <io.h>
-        #include <errno.h>
-    #else
-        #include <stdlib.h>
-        #include <unistd.h>
-        #include <string.h>
-        #include <sys/socket.h>
-        #include <sys/time.h>
-        #include <netinet/in.h>
-        #include <arpa/inet.h> 
-        #include <netdb.h> 
-        #include <fcntl.h> 
-        #include <errno.h>
-    #endif
+#ifdef WIN32
+#include <windows.h>
+#include <io.h>
+#include <errno.h>
+#define ETIMEDOUT 110
+#define ENOTCONN  107
+#else
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <sys/time.h>
+#include <netinet/in.h>
+#include <arpa/inet.h> 
+#include <netdb.h> 
+#include <fcntl.h> 
+#include <errno.h>
+#endif
 
-    #include <slp_buffer.h>
-    #include <slp_property.h>
-    #include <slp_message.h>
-    #include <slp_xid.h>
+#include "slp_buffer.h"
+#include "slp_property.h"
+#include "slp_message.h"
+#include "slp_xid.h"
 
 
 /*=========================================================================*/ 

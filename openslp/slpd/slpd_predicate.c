@@ -83,27 +83,27 @@
 
 #ifdef USE_PREDICATES   
 
-    #include "libslpattr.h"
-    #include "libslpattr_internal.h"
+#include "libslpattr.h"
+#include "libslpattr_internal.h"
 
 /* The character that is a wildcard. */
-    #define WILDCARD ('*')
-    #define BRACKET_OPEN '('
-    #define BRACKET_CLOSE ')'
+#define WILDCARD ('*')
+#define BRACKET_OPEN '('
+#define BRACKET_CLOSE ')'
 
-    #define MIN(x,y) (x < y ? x : y)
+#define MIN(x,y) (x < y ? x : y)
 
 /************************* <Lifted from slp_attr.c> ***********************/
 
 /* Tests a character to see if it reserved (as defined in RFC 2608, p11). */
-    #define IS_RESERVED(x) (((x) == '(' || (x) == ')' || (x) == ',' || (x) == '\\' || (x) == '!' || (x) == '<' || (x) == '=' || (x) == '>' || (x) == '~') || ((((char)0x01 <= (x)) && ((char)0x1F >= (x))) || ((x) == (char)0x7F)))
+#define IS_RESERVED(x) (((x) == '(' || (x) == ')' || (x) == ',' || (x) == '\\' || (x) == '!' || (x) == '<' || (x) == '=' || (x) == '>' || (x) == '~') || ((((char)0x01 <= (x)) && ((char)0x1F >= (x))) || ((x) == (char)0x7F)))
 
 
-    #define IS_INVALID_VALUE_CHAR(x) IS_RESERVED(x)
+#define IS_INVALID_VALUE_CHAR(x) IS_RESERVED(x)
 
-    #define IS_INVALID_TAG_CHAR(x) (IS_RESERVED(x) || ((x) == '*') || ((x) == (char)0x0D) || ((x) == (char)0x0A) || ((x) == (char)0x09) || ((x) == '_'))
+#define IS_INVALID_TAG_CHAR(x) (IS_RESERVED(x) || ((x) == '*') || ((x) == (char)0x0D) || ((x) == (char)0x0A) || ((x) == (char)0x09) || ((x) == '_'))
 
-    #define IS_VALID_TAG_CHAR(x) (!IS_INVALID_TAG_CHAR(x))
+#define IS_VALID_TAG_CHAR(x) (!IS_INVALID_TAG_CHAR(x))
 
 /************************* </Lifted from slp_attr.c> ***********************/
 

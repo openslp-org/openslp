@@ -78,10 +78,6 @@ VOID CALLBACK TimerHandler( UINT Timer,
 {
     G_SIGALRM = 1;
 }
-
-
-
-
 /*                                                                          */
 /*  FUNCTION: ReportStatusToSCMgr()                                         */
 /*                                                                          */
@@ -105,7 +101,6 @@ BOOL ReportStatusToSCMgr(DWORD dwCurrentState,
 {
     static DWORD dwCheckPoint = 1; 
     BOOL fResult = TRUE; 
-
 
     /* when debugging we don't report to the SCM    */
     if(G_SlpdCommandLine.action != SLPD_DEBUG)

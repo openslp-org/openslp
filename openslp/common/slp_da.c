@@ -45,8 +45,8 @@
 /*                                                                         */
 /***************************************************************************/
 
-#include <slp_da.h>
-#include <slp_compare.h>
+#include "slp_da.h"
+#include "slp_compare.h"
 
 /*=========================================================================*/
 SLPDAEntry* SLPDAEntryCreate(struct in_addr* addr,

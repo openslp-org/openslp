@@ -329,6 +329,7 @@ int v1ProcessSrvReg(struct sockaddr_in* peeraddr,
 #endif
 
 
+
         /*---------------------------------*/
         /* put the service in the database */
         /*---------------------------------*/
@@ -349,7 +350,7 @@ int v1ProcessSrvReg(struct sockaddr_in* peeraddr,
         else if(errorcode < 0)
         {
             errorcode = SLP_ERROR_INTERNAL_ERROR;
-        }    
+        }
     }
     else
     {

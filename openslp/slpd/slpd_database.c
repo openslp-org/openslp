@@ -233,6 +233,7 @@ int SLPDDatabaseReg(SLPSrvReg* srvreg, unsigned int regtype)
 
 
 
+
         /* Tricky: perform an in place null termination of the attrlist */
         /*         Remember this squishes the authblock count           */
         ((char*)srvreg->attrlist)[srvreg->attrlistlen] = 0;
@@ -352,6 +353,7 @@ int SLPDDatabaseFindSrv(SLPSrvRqst* srvrqst,
     int                 found;
 
 #ifdef USE_PREDICATES
+
 
 
 

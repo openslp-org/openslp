@@ -346,6 +346,7 @@ SLPDDatabaseEntry* SLPDRegFileReadEntry(FILE* fd, SLPDDatabaseEntry** entry)
 
 
 
+
             /* line contains an attribute (slow but it works)*/
             /* TODO Fix this so we do not have to realloc memory each time! */
             TrimWhitespace(line); 

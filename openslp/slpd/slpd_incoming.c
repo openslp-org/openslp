@@ -266,6 +266,7 @@ void IncomingSocketListen(SLPList* socklist, SLPDSocket* sock)
 
 
 
+
     /* Only accept if we can. If we still maximum number of sockets, just*/
     /* ignore the connection */
     if(socklist->count < SLPD_MAX_SOCKETS)
@@ -572,7 +573,7 @@ int SLPDIncomingInit()
         SLPLog("No usable interfaces\n");
         return 1;
     }
-   
+
     return 0;
 }
 

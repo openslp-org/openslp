@@ -47,7 +47,7 @@
 /*                                                                         */
 /***************************************************************************/
 
-#include <slp_network.h>
+#include "slp_network.h"
 
 /*=========================================================================*/ 
 int SLPNetworkConnectStream(struct sockaddr_in* peeraddr, 
@@ -112,6 +112,7 @@ int SLPNetworkConnectToMulticast(struct sockaddr_in* peeraddr, int ttl)
 #else
 
 
+
     /* Solaris and Tru64 expect a unsigned char parameter */
     unsigned char   optarg;
 #endif
@@ -126,6 +127,7 @@ int SLPNetworkConnectToMulticast(struct sockaddr_in* peeraddr, int ttl)
     mysockaddr.sin_family = AF_INET;
     mysockaddr.sin_port = 0;
 #endif
+
 
 
 
@@ -183,6 +185,7 @@ int SLPNetworkConnectToBroadcast(struct sockaddr_in* peeraddr)
 #else
     int                 on = 1;
 #endif
+
 
 
 
@@ -259,25 +262,19 @@ int SLPNetworkSendMessage(int sockfd,
             }
             else
             {
-#ifndef WIN32
                 errno = EPIPE;
-#endif
                 return -1;
             }
         }
         else if(xferbytes == 0)
         {
             /* timed out */
-#ifndef WIN32
             errno = ETIMEDOUT;
-#endif
             return -1;
         }
         else
         {
-#ifndef WIN32
             errno = EPIPE;
-#endif
             return -1;
         }
     }
@@ -306,7 +303,7 @@ int SLPNetworkRecvMessage(int sockfd,
     int         xferbytes;
     fd_set      readfds;
     char        peek[16];
-    socklen_t   peeraddrlen = sizeof(struct sockaddr_in);
+    int         peeraddrlen = sizeof(struct sockaddr_in);
 
     /*---------------------------------------------------------------*/
     /* take a peek at the packet to get version and size information */
@@ -338,6 +335,7 @@ int SLPNetworkRecvMessage(int sockfd,
 #ifdef WIN32
             if(WSAGetLastError() != WSAEMSGSIZE)
             {
+                errno = ENOTCONN;
                 return -1;
             }
 #else
@@ -348,16 +346,12 @@ int SLPNetworkRecvMessage(int sockfd,
     }
     else if(xferbytes == 0)
     {
-#ifndef WIN32
         errno = ETIMEDOUT;
-#endif
         return -1;
     }
     else
     {
-#ifndef WIN32
         errno = ENOTCONN;
-#endif
         return -1;
     }
 
@@ -388,24 +382,18 @@ int SLPNetworkRecvMessage(int sockfd,
                     }
                     else
                     {
-#ifndef WIN32
                         errno = ENOTCONN;
-#endif
                         return -1;
                     }
                 }
                 else if(xferbytes == 0)
                 {
-#ifndef WIN32
                     errno = ETIMEDOUT;
-#endif
                     return -1;
                 }
                 else
                 {
-#ifndef WIN32
                     errno =  ENOTCONN;
-#endif
                     return -1;
                 }
             } /* end of main read while. */  

@@ -49,10 +49,10 @@
 
 #include <string.h>
 
-#include <slp_compare.h>
+#include "slp_compare.h"
 
 #ifdef WIN32
-    #define strncasecmp(string1, string2, n) strnicmp(string1, string2, n)
+#define strncasecmp(string1, string2, n) strnicmp(string1, string2, n)
 #endif
 
 /*=========================================================================*/
@@ -419,9 +419,9 @@ int SLPUnionStringList(int list1len,
 
 /*=========================================================================*/
 int SLPSubsetStringList(int listlen,
-                         const char* list,
-                         int sublistlen,
-                         const char* sublist)
+                        const char* list,
+                        int sublistlen,
+                        const char* sublist)
 /* Test if sublist is a set of list                                        */
 /*                                                                         */
 /* list  -      pointer to the string-list to be checked                   */
@@ -448,7 +448,7 @@ int SLPSubsetStringList(int listlen,
     sublistcount = 1;
     while(curpos < sublistlen)
     {
-        if(sublist[curpos] == ',') 
+        if(sublist[curpos] == ',')
         {
             sublistcount ++;
         }

@@ -51,7 +51,7 @@
 
 
 #if(!defined SLP_XID_H_INCLUDED)
-    #define SLP_XID_H_INCLUDED
+#define SLP_XID_H_INCLUDED
 
 /*=========================================================================*/
 extern int G_Xid;

@@ -32,13 +32,14 @@
 #include <string.h>
 #include <ctype.h>
 
-#include <slp_message.h>
-
 #ifndef WIN32
-    #include <stdlib.h>
-    #include <sys/types.h>
-    #include <netinet/in.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <netinet/in.h>
 #endif
+
+#include "slp_message.h"
+#include "slp_v1message.h"
 
 /* Implementation Note:
  * 

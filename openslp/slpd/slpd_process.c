@@ -54,10 +54,7 @@ extern int SLPDv1ProcessMessage(struct sockaddr_in* peeraddr,
                                 SLPBuffer* sendbuf,
                                 SLPMessage message,
                                 int errocode);
-#endif
-
-
-
+#endif 
 
 /*-------------------------------------------------------------------------*/
 int ProcessSASrvRqst(struct sockaddr_in* peeraddr,
@@ -1134,6 +1131,7 @@ int SLPDProcessMessage(struct sockaddr_in* peerinfo,
         return SLPDv1ProcessMessage(peerinfo, recvbuf, sendbuf,
                                     message, errorcode);
 #endif
+
 
 
 

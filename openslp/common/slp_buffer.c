@@ -48,12 +48,13 @@
 /***************************************************************************/
 
 
-#include <slp_buffer.h> 
+#include "slp_buffer.h" 
 
 #ifdef DEBUG
 int G_Debug_SLPBufferAllocCount = 0;
 int G_Debug_SLPBufferFreeCount = 0;
 #endif
+
 
 
 

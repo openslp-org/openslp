@@ -89,8 +89,6 @@ char* GetInterfaceList()
     char*               result = 0;
 
 #ifdef LINUX
-
-
     /*------------------------------------------------------------------*/
     /* Use Linux ioctl. We will return only list of up to 10 interfaces */
     /*------------------------------------------------------------------*/
@@ -232,7 +230,7 @@ int SLPDPropertyInit(const char* conffile)
         G_SlpdProperty.interfaces = SLPPropertyGet("net.slp.interfaces");
     }
     G_SlpdProperty.interfacesLen = strlen(G_SlpdProperty.interfaces);
-    
+
     /*---------------------------------------------------------*/
     /* Set the value used internally as the url for this agent */
     /*---------------------------------------------------------*/
@@ -255,7 +253,7 @@ int SLPDPropertyInit(const char* conffile)
 
         free(myname);
     }
-    
+
     /*----------------------------------*/
     /* Set other values used internally */
     /*----------------------------------*/
@@ -263,7 +261,7 @@ int SLPDPropertyInit(const char* conffile)
     G_SlpdProperty.activeDiscoveryXmits = 3;
     G_SlpdProperty.nextPassiveDAAdvert = 0;
     G_SlpdProperty.nextActiveDiscovery = 0;
-   
+
     return 0;
 }
 
