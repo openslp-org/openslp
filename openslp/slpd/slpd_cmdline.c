@@ -131,7 +131,11 @@ int SLPDParseCommandLine(int argc,char* argv[])
 				|| (strcmp(argv[i], "--version") == 0)
 			   	|| (strcmp(argv[i], "-version") == 0))
 		{
+#ifdef WIN32
+                        printf("slpd version: %s\n", SLP_VERSION);
+#else /* UNIX */
 			printf("slpd version: %s\n", VERSION);
+#endif
 			exit(1);
 		}
 		else if((strcmp(argv[i], "-h") == 0) 
