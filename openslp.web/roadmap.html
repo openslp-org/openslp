@@ -2,7 +2,7 @@
 <html>
 <head>
    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-15">
-   <meta name="GENERATOR" content="Mozilla/4.77C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.4.2 i686) [Netscape]">
+   <meta name="GENERATOR" content="Mozilla/4.77C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.4.13 i686) [Netscape]">
    <title>OpenSLP - Development Roadmap</title>
 </head>
 <body text="#000000" bgcolor="#FFFFFF" link="#0000EE" vlink="#551A8B" alink="#FF0000">
@@ -49,14 +49,49 @@ Assigned</h3>
 </tr>
 
 <tr>
-<td>Proper usage of net.slp.interfaces property for sending and receiving
-multicast and broadcast messages</td>
+<td>Proper usage of net.slp.interfaces property for sending and receiving&nbsp;
+<br>multicast and broadcast messages</td>
 
 <td>high</td>
 
 <td>slpd, libslp</td>
 
-<td>&nbsp;Matt</td>
+<td>&nbsp;<b>FINISHED</b></td>
+</tr>
+
+<tr>
+<td>Fully implement changes as outlined by RFC2608-bis and RFC2614-bis.&nbsp;&nbsp;
+<br>Thus bringing OpenSLP up to date with the "draft standard" versions
+<br>of the SLPv2 RFCs</td>
+
+<td>high</td>
+
+<td></td>
+
+<td></td>
+</tr>
+
+<tr>
+<td>Keep track of which processes make service registrations.&nbsp; Periodically&nbsp;
+<br>check live processes and remove registrations of dead processes.</td>
+
+<td>medium</td>
+
+<td>slpd, libslp</td>
+
+<td></td>
+</tr>
+
+<tr>
+<td>Keep persistant store of long lived registrations as well as registration
+<br>timestamps so that processes are not required to re-register services
+<br>when slpd is restarted or when slpd unexpectedly dies</td>
+
+<td>medium</td>
+
+<td>slpd</td>
+
+<td></td>
 </tr>
 
 <tr>
@@ -73,7 +108,7 @@ const char* attrvalue);</td>
 
 <td>libslp</td>
 
-<td>&nbsp;Matt</td>
+<td></td>
 </tr>
 
 <tr>
