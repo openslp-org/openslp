@@ -87,7 +87,7 @@ SLPDAEntry* KnownDAListFindByScope(SLPList* dalist,
         if(SLPSubsetStringList(scopelistlen,
                                scopelist,
                                entry->scopelistlen,
-                               entry->scopelist) == 0)
+                               entry->scopelist))
         {
             break;
         }
