@@ -30,6 +30,8 @@ libslp_so_SOURCES	= libslp_dereg.c   \
 	libslp_knownda.c
 
 install-data-local:
+	mkdir -p $(libdir)
+	mkdir -p $(includedir)
 	cp -f $(lib_LTLIBRARIES) $(libdir)/libslp.so.$(VERSION)
 	cp -f slp.h	$(includedir)/
 	ln -f -s $(libdir)/libslp.so.$(VERSION) $(libdir)/libslp.so
