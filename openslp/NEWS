@@ -1,4 +1,26 @@
-openslp-0.7.0:	(2000-07-06)
-    - Now uses Autoconf/Automake
-    - Addition of NEWS file
-    - Move of CHANGELOG to ChangeLog
+NEWS - list of user-visible changes between releases of OpenSLP
+
+New in openslp-0.7.3:
+
+New in openslp-0.7.2: (2000-08-17)
+* Revamped build system.
+  Takes advantage of libtool/automake integration.
+  libslp versioning changed to be compatible with libtool.
+  Building with non-GCC compilers is now possible.
+  Build directory can be different from source directory.
+  Test suite integrated with automake, run make check to run the test suite.
+* Fixed several sneaky memory leaks and memory access bugs that dealt with
+  langtags in libslp 
+* Modified slpd command line parameter parsing to print version and help
+  information  
+* Ported to Solaris (2.6/7) and Linux Alpha.
+* Documentation cleaned up (code set changed to iso8859-1 and spell checked).
+
+New in openslp-0.7.1:
+* Several bug fixes.
+* Now uses Autoconf/Automake.
+
+
+New in openslp-0.7.0: (2000-07-06)
+* Addition of NEWS file.
+* Move of CHANGELOG to ChangeLog.
