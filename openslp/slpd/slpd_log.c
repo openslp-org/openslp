@@ -509,7 +509,7 @@ void SLPDLogParseWarning(struct sockaddr_in* peeraddr, SLPBuffer buf)
     SLPDLog("message dump = ");    
     for(curpos = buf->start; curpos < buf->end; curpos++)
     {
-        SLPDLog("0x%2x",*curpos);
+        SLPDLog("0x%02x",*curpos);
         if(*curpos < 20) 
 	{
 	    SLPDLog("(' ') ");

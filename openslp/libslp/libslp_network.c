@@ -434,7 +434,7 @@ SLPError NetworkRqstRply(int sock,
             }
             goto FINISHED;
         }
-        if(SLPBufferRealloc(sendbuf,size) == 0)
+        if((sendbuf = SLPBufferRealloc(sendbuf,size)) == 0)
         {
             result = SLP_MEMORY_ALLOC_FAILED;
             goto CLEANUP;
