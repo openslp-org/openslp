@@ -9,6 +9,12 @@ TESTROOT=.
 SUBDIRS=FINDATTRS FINDSRVS FINDSRVTYPES REG DEREG
 default: $(SUBDIRS)
 
+PARSESRVURL: $(TESTROOT)/slp_parsesrvurl/Makefile
+	@echo
+	@echo
+	@echo "****** Making slp_findsrvs *****************"
+	$(MAKE) -C $(TESTROOT)/slp_parsesrvurl	
+
 FINDSRVS: $(TESTROOT)/slp_findsrvs/Makefile
 	@echo
 	@echo

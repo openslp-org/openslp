@@ -1,0 +1,10 @@
+As a validation test for any changes made to SLPParseSrvURL() code, you
+should run the following:
+
+./slp_parsesrvurl < test.in | diff expected.out - 
+
+Basically what this does is take all the service urls from the test.ing
+file, parses them and prints the output to stdout.  stdout is piped to diff
+which compares it to an expected output.  
+
+If there are any differences then the test failed.
