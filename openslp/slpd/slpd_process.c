@@ -1119,6 +1119,15 @@ int ProcessSrvTypeRqst(SLPMessage message,
     SLPDDatabaseSrvTypeRqstResult*  db      = 0;
     SLPBuffer                       result  = *sendbuf;
 
+    /*--------------------------------------------------------------*/
+    /* If errorcode is set, we can not be sure that message is good */
+    /* Go directly to send response code                            */
+    /*--------------------------------------------------------------*/
+    if (errorcode)
+    {
+        goto RESPOND;
+    }
+
 
     /*-------------------------------------------------*/
     /* Check for one of our IP addresses in the prlist */
@@ -1150,6 +1159,8 @@ int ProcessSrvTypeRqst(SLPMessage message,
     {
         errorcode = SLP_ERROR_SCOPE_NOT_SUPPORTED;
     }
+
+    RESPOND:
 
     /*----------------------------------------------------------------*/
     /* Do not send error codes or empty replies to multicast requests */
