@@ -11,6 +11,8 @@
 /***************************************************************************/
 
 #include <libslpattr.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 /*****************************************************************************
@@ -117,7 +119,7 @@ SLPError SLPAttrSet_str(
 		SLPAttributes attr_h,
 		const char *tag,
 		const char *val,
-		SLPInsertionPolicy 
+		SLPInsertionPolicy pol
 ) {
 	return SLP_NOT_IMPLEMENTED;
 }
@@ -219,8 +221,25 @@ SLPError SLPAttrGetType(SLPAttributes attr_h, const char *tag, SLPType *type) {
 }
 
 
-SLPError SLPAttrSerialize(SLPAttributes attr_h, size_t *count, char **str, SLPBoolean) {
-	return SLP_NOT_IMPLEMENTED;
+SLPError SLPAttrSerialize(SLPAttributes attr_h, size_t *count, char **str, SLPBoolean xxx) {
+	struct xx_TinyAttr *slp_attr = (struct xx_TinyAttr*)attr_h;
+
+	if (count != NULL) {
+		*count = slp_attr->attr_len;
+	}
+
+	/* Check for empty string. */
+	if (slp_attr->attr_len == 0) {
+		*str = strdup("");
+		return SLP_OK;
+	}
+
+	*str = strdup(slp_attr->attributes);
+	if (*str == NULL) {
+		return SLP_MEMORY_ALLOC_FAILED;
+	}
+	
+	return SLP_OK;
 }
 
 
@@ -264,7 +283,7 @@ SLPError SLPAttrIteratorAlloc(SLPAttributes attr, SLPAttrIterator *iter) {
 }
 
 void SLPAttrIteratorFree(SLPAttrIterator iter) {
-	return SLP_NOT_IMPLEMENTED;
+	return ;
 }
 
 
