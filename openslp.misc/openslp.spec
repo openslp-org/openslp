@@ -3,7 +3,7 @@
 # -----------------------------------------------
 
 %define name openslp
-%define ver 1.0.10
+%define ver 1.0.11
 %define rel 4
 
 %define libver 1.0.0
