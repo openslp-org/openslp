@@ -134,14 +134,13 @@ void SLPDPredicateFree(SLPDPredicate *victim)
  *  - No operations can be performed on opaque data types. 
  *********/
 
-    #define _GNU_SOURCE	/*FIXME <-- Seems somewhat hackish. */
-    #include <fnmatch.h>
-    #undef _GNU_SOURCE
     #include <stdlib.h>
     #include <stdio.h>
     #include <string.h>
     #include <assert.h>
     #include <unistd.h>
+
+	#include "slpd_wildcard.h"
 
     #define BRACKET_OPEN '('
     #define BRACKET_CLOSE ')'
@@ -383,7 +382,7 @@ SLPError str_op(SLPAttributes slp_attr, char *tag, char *rhs, Operation op, SLPB
     case(EQUAL):
         for (i = 0; i < size; i++)
         {
-            if (fnmatch(rhs_val, tag_vals[i], FNM_CASEFOLD) == 0)
+            if (wildcard(rhs_val, tag_vals[i]) == 0)
             {
                 *result = SLP_TRUE;
                 break;
