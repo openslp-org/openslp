@@ -364,7 +364,7 @@ int ProcessSrvRqst(SLPMessage message,
     if(SLPCompareString(message->body.srvrqst.srvtypelen,
                         message->body.srvrqst.srvtype,
                         23,
-                        "service:directory-agent") == 0)
+                        SLP_DA_SERVICE_TYPE) == 0)
     {
         errorcode = ProcessDASrvRqst(message, sendbuf, errorcode);
         return errorcode;
@@ -372,7 +372,7 @@ int ProcessSrvRqst(SLPMessage message,
     if(SLPCompareString(message->body.srvrqst.srvtypelen,
                         message->body.srvrqst.srvtype,
                         21,
-                        "service:service-agent") == 0)
+                        SLP_SA_SERVICE_TYPE) == 0)
     {
         errorcode = ProcessSASrvRqst(message, sendbuf, errorcode);
         return errorcode;

@@ -182,7 +182,8 @@ int MakeActiveDiscoveryRqst(int ismcast, SLPBuffer* buffer)
     /* service type */
     ToUINT16(result->curpos,23);                                         
     result->curpos = result->curpos + 2;
-    memcpy(result->curpos,"service:directory-agent",23);
+    /* 23 is the length of SLP_DA_SERVICE_TYPE */
+    memcpy(result->curpos,SLP_DA_SERVICE_TYPE,23);
     result->curpos = result->curpos + 23;
     /* scope list zero length */
     ToUINT16(result->curpos,0);

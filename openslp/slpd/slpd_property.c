@@ -264,12 +264,13 @@ int SLPDPropertyInit(const char* conffile)
         myurl = (char*)xmalloc(27 + strlen(myname));
         if(G_SlpdProperty.isDA)
         {
-            strcpy(myurl,"service:directory-agent://");
+            strcpy(myurl,SLP_DA_SERVICE_TYPE);
         }
         else
         {
-            strcpy(myurl,"service:service-agent://");
+            strcpy(myurl,SLP_SA_SERVICE_TYPE);
         }
+        strcat(myurl,"://");
         strcat(myurl,myname);
         SLPPropertySet("net.slp.agentUrl",myurl);
 
