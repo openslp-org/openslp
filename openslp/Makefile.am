@@ -3,8 +3,8 @@
 # Note the install script, it is not pretty, but it works.
 #
 
-SUBDIRS	= common libslpattr slpd libslp test 
-EXTRA_DIST = doc etc win32 README.W32 
+SUBDIRS	= common libslpattr slpd libslp test
+EXTRA_DIST = win32 doc etc README.W32 
 DOC_DIR = $(prefix)/doc/openslp-$(VERSION)
 
 install-data-local:
@@ -26,3 +26,4 @@ install-data-local:
 dist-hook:
 	rm -rf `find $(distdir)/doc -name CVS`
 	rm -rf `find $(distdir)/etc -name CVS`
+	rm -r  `find $(distdir)/win32 -name CVS`

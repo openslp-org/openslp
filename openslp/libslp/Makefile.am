@@ -5,7 +5,7 @@
 #     containing exacts functions which are required.
 #
 
-EXTRA_DIST = libslp.def libslp.dsp libslp.dsw libslp.mak libslp.rc resource.h
+EXTRA_DIST = 
 lib_LTLIBRARIES	= libslp.la
 include_HEADERS = slp.h
 INCLUDES	= -I$(top_srcdir)/common 
