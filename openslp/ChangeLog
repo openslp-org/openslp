@@ -15,9 +15,9 @@ to put the multicast address instead of the host address on outgoing packets.
 With this fix (and a couple of others), OpenSLP works on FreeBSD and 
 Compaq Tru64. 
 
-
 09/18/00 mdes@ocegr.fr
-Added Rick Braddy's MSVC Project files so that now OpenSLP should compile easily on Windows machines in Visual Studio
+Added Rick Braddy's MSVC Project files so that now OpenSLP should compile 
+easily on Windows machines in Visual Studio
 
 09/05/00 mpeterson@calderasystems.com
 Finally was able to reproduce (thanks to Jon) and fix bugs 109358 and 109359
