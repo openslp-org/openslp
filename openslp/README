@@ -16,7 +16,7 @@ The OpenSLP project is an effort to develop an open-source implementation of
 Service Location Protocol suitable for commercial and non-commercial 
 application.
 
-The latest stable version of OpenSLP is 1.0.8.  OpenSLP-1.0.8 contains several
+The latest stable version of OpenSLP is 1.0.8a.  OpenSLP-1.0.8a contains several
 important changes:
 
    - Added patchs from Arun Barboza to handle '==' SLPv1 predicates.  These
@@ -28,6 +28,9 @@ important changes:
    - Fixed bug where idle connections to DAs were not being aged.
 
    - Fixes for various and obscure errorcode and memory access problems
+
+If you downloaded OpenSLP 1.0.8, please know that there was a bug in this
+release that required a re-release labled 1.0.8a.  Please use 1.0.8a instead.
 
 
 2 - Roadmap
