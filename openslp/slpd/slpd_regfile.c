@@ -61,29 +61,21 @@
  *
  * @internal
  */
-char* TrimWhitespace(char* str)
+static char * TrimWhitespace(char * str)
 {
-   char* end;
-
-   end=str+strlen(str)-1;
-
+   char * end;
+   
+   end = str + strlen(str) - 1;
    while (*str && *str <= 0x20)
-   {
       str++;
-   }
 
    while (end >= str)
    {
       if (*end > 0x20)
-      {
          break;
-      }
-
       *end = 0;
-
       end--;
    }
-
    return str;
 }
 
@@ -97,32 +89,22 @@ char* TrimWhitespace(char* str)
  *
  * @internal
  */
-char* RegFileReadLine(FILE* fd, char* line, int linesize)
+static char * RegFileReadLine(FILE * fd, char * line, int linesize)
 {
    while (1)
    {
       if (fgets(line,linesize,fd) == 0)
-      {
          return 0;
-      }
 
-      while (*line &&
-            *line <= 0x20 &&
-            *line != 0x0d &&
-            *line != 0x0a) line++;
+      while(*line && *line <= 0x20 && *line != 0x0d && *line != 0x0a) 
+         line++;
 
-      if (*line == 0x0d ||
-            *line == 0x0a)
-      {
-         break;
-      }
+      if (*line == 0x0d || *line == 0x0a)
+         break;    
 
       if (*line != 0 && *line != '#' && *line != ';')
-      {
          break;
-      }
    }
-
    return line;
 }
 
@@ -144,39 +126,37 @@ char* RegFileReadLine(FILE* fd, char* line, int linesize)
  * @note Eventually the caller needs to call SLPBufferFree and
  *    SLPMessageFree to free memory.
  */
-int SLPDRegFileReadSrvReg(FILE* fd,
-      SLPMessage* msg,
-      SLPBuffer* buf)
+int SLPDRegFileReadSrvReg(FILE * fd, SLPMessage * msg, SLPBuffer * buf)
 {
-   char*   slider1;
-   char*   slider2;
-   char*   p;
-   char    line[4096];
+   char * slider1;
+   char * slider2;
+   char * p;
+   char line[4096];
 
-   struct  sockaddr_storage    peer;
-   int     result              = 0;
-   int     bufsize             = 0;
-   int     langtaglen          = 0;
-   char*   langtag             = 0;
-   int     scopelistlen        = 0;
-   char*   scopelist           = 0;
-   int     urllen              = 0;
-   char*   url                 = 0;
-   int     lifetime            = 0;
-   int     srvtypelen          = 0;
-   char*   srvtype             = 0;
-   int     attrlistlen         = 0;
-   char*   attrlist            = 0;
+   struct sockaddr_storage peer;
+   int result = 0;
+   int bufsize = 0;
+   int langtaglen = 0;
+   char * langtag = 0;
+   int scopelistlen = 0;
+   char * scopelist = 0;
+   int urllen = 0;
+   char * url = 0;
+   int lifetime = 0;
+   int srvtypelen = 0;
+   char * srvtype = 0;
+   int attrlistlen = 0;
+   char * attrlist = 0;
+
 #ifdef ENABLE_SLPv2_SECURITY
-   unsigned char*  urlauth         = 0;
-   int             urlauthlen      = 0;
-   unsigned char*  attrauth        = 0;
-   int             attrauthlen     = 0;
+   unsigned char * urlauth = 0;
+   int urlauthlen = 0;
+   unsigned char * attrauth = 0;
+   int attrauthlen = 0;
 #endif
 
-
    /*-------------------------------------------*/
-   /* give the out params an initial NULL value */
+   /* give the out params an initial 0 value */
    /*-------------------------------------------*/
    *buf = 0;
    *msg = 0;
@@ -186,20 +166,16 @@ int SLPDRegFileReadSrvReg(FILE* fd,
    /*----------------------------------------------------------*/
    do
    {
-      slider1 = RegFileReadLine(fd,line,4096);
+      slider1 = RegFileReadLine(fd, line, 4096);
       if (slider1 == 0)
-      {
-         /* Breath a sigh of relief.  We get out before really  */
-         /* horrid code                                         */
          return -1;
-      }
-   }while (*slider1 == 0x0d ||  *slider1 == 0x0a);
 
+   } while (*slider1 == 0x0d ||  *slider1 == 0x0a);
 
    /*---------------------*/
    /* Parse the url-props */
    /*---------------------*/
-   slider2 = strchr(slider1,',');
+   slider2 = strchr(slider1, ',');
    if (slider2)
    {
       /* srvurl */
@@ -308,24 +284,22 @@ int SLPDRegFileReadSrvReg(FILE* fd,
    *line=0;
    while (1)
    {
-      slider1 = RegFileReadLine(fd,line,4096);
+      slider1 = RegFileReadLine(fd, line, 4096);
       if (slider1 == 0)
       {
-         /* Breathe a sigh of relief.  We're done */
          result = -1;
          break;
       }
       if (*slider1 == 0x0d || *slider1 == 0x0a)
-      {
          break;
-      }
 
       /* Check to see if it is the scopes line */
-      /* FIXME We can collapse the scope stuff into the value getting and 
-      * just make it a special case (do strcmp on the tag as opposed to the 
-      * line) of attribute getting. 
-      */
-      if (strncasecmp(slider1,"scopes",6) == 0)
+
+      /** @todo We can collapse the scope stuff into the value getting and 
+       * just make it a special case (do strcmp on the tag as opposed to the 
+       * line) of attribute getting. 
+       */
+      if (strncasecmp(slider1, "scopes", 6) == 0)
       {
          /* found scopes line */
          slider2 = strchr(slider1,'=');
@@ -361,7 +335,7 @@ int SLPDRegFileReadSrvReg(FILE* fd,
       else
       {
          /* line contains an attribute (slow but it works)*/
-         /* TODO Fix this so we do not have to realloc memory each time! */
+         /** @todo Fix this so we do not have to realloc memory each time! */
          TrimWhitespace(slider1);
 
          if (attrlist == 0)
@@ -373,9 +347,8 @@ int SLPDRegFileReadSrvReg(FILE* fd,
          else
          {
             attrlistlen += strlen(slider1) + 3;
-            attrlist = xrealloc(attrlist,
-                  attrlistlen + 1);
-            strcat(attrlist,",");
+            attrlist = xrealloc(attrlist, attrlistlen + 1);
+            strcat(attrlist, ",");
          }
 
          if (attrlist == 0)
@@ -384,22 +357,22 @@ int SLPDRegFileReadSrvReg(FILE* fd,
             goto CLEANUP;
          }
 
-         /* we need special case for keywords (why do we need these)   */
-         /* they seem like a waste of code.  Why not just use booleans */
-         if (strchr(slider1,'='))
+         /* we need special case for keywords (why do we need these)
+          * they seem like a waste of code. Why not just use booleans
+          */
+         if (strchr(slider1, '='))
          {
             /* normal attribute (with '=') */
-            strcat(attrlist,"(");
-            strcat(attrlist,slider1);
-            strcat(attrlist,")");
+            strcat(attrlist, "(");
+            strcat(attrlist, slider1);
+            strcat(attrlist, ")");
          }
          else
          {
             /* keyword (no '=') */
             attrlistlen -= 2; /* subtract 2 bytes for no '(' or ')' */
-            strcat(attrlist,slider1);
+            strcat(attrlist, slider1);
          }
-
       }
    }
 
@@ -415,49 +388,35 @@ int SLPDRegFileReadSrvReg(FILE* fd,
       scopelistlen = G_SlpdProperty.useScopesLen;
    }
 
-
 #ifdef ENABLE_SLPv2_SECURITY
    /*--------------------------------*/
    /* Generate authentication blocks */
    /*--------------------------------*/
    if (G_SlpdProperty.securityEnabled)
    {
-
-      SLPAuthSignUrl(G_SlpdSpiHandle,
-            0,
-            0,
-            urllen,
-            url,
-            &urlauthlen,
-            &urlauth);
-
-      SLPAuthSignString(G_SlpdSpiHandle,
-            0,
-            0,
-            attrlistlen,
-            attrlist,
-            &attrauthlen,
-            &attrauth);
+      SLPAuthSignUrl(G_SlpdSpiHandle, 0, 0, urllen, url,
+            &urlauthlen, &urlauth);
+      SLPAuthSignString(G_SlpdSpiHandle, 0, 0, attrlistlen,
+            attrlist, &attrauthlen, &attrauth);
    }
 #endif
-
 
    /*----------------------------------------*/
    /* Allocate buffer for the SrvReg Message */
    /*----------------------------------------*/
-   bufsize = 14 + langtaglen;  /* 14 bytes for header    */
-   bufsize += urllen + 6;      /*  1 byte for reserved   */
-   /*  2 bytes for lifetime  */
-   /*  2 bytes for urllen    */
-   /*  1 byte for authcount  */
-   bufsize += srvtypelen + 2;  /*  2 bytes for len field */
-   bufsize += scopelistlen + 2;/*  2 bytes for len field */
-   bufsize += attrlistlen + 2; /*  2 bytes for len field */
-   bufsize += 1;               /*  1 byte for authcount  */
-    #ifdef ENABLE_SLPv2_SECURITY
+   bufsize = 14 + langtaglen;    /* 14 bytes for header    */
+   bufsize += urllen + 6;        /*  1 byte for reserved   */
+                                 /*  2 bytes for lifetime  */
+                                 /*  2 bytes for urllen    */
+                                 /*  1 byte for authcount  */
+   bufsize += srvtypelen + 2;    /*  2 bytes for len field */
+   bufsize += scopelistlen + 2;  /*  2 bytes for len field */
+   bufsize += attrlistlen + 2;   /*  2 bytes for len field */
+   bufsize += 1;                 /*  1 byte for authcount  */
+#ifdef ENABLE_SLPv2_SECURITY
    bufsize += urlauthlen;
    bufsize += attrauthlen;
-    #endif  
+#endif  
    *buf = SLPBufferAlloc(bufsize);
    if (*buf == 0)
    {

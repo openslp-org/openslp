@@ -62,33 +62,26 @@
  * @return If no error occurs, returns SLP_OK, otherwise, the appropriate 
  *    error code.
  */
-SLPError SLPAPI SLPFindScopes(SLPHandle hSLP,
-      char** ppcScopeList)
+SLPError SLPAPI SLPFindScopes(SLPHandle hSLP, char ** ppcScopeList)
 {
    int scopelistlen;
 
    /*------------------------------*/
    /* check for invalid parameters */
    /*------------------------------*/
-   if (hSLP == 0 ||
-         *(unsigned int*)hSLP != SLP_HANDLE_SIG ||
-         ppcScopeList  == 0)
-   {
+   if (hSLP == 0 || *(unsigned int *)hSLP != SLP_HANDLE_SIG 
+         || ppcScopeList  == 0)
       return SLP_PARAMETER_BAD;
-   }
 
    /* start with nothing */
    *ppcScopeList = 0;
 
-
 #ifndef MI_NOT_SUPPORTED
-   if (KnownDAGetScopes(&scopelistlen,ppcScopeList, hSLP))
+   if (KnownDAGetScopes(&scopelistlen, ppcScopeList, hSLP))
 #else
-      if (KnownDAGetScopes(&scopelistlen,ppcScopeList))
-#endif /* MI_NOT_SUPPORTED */
-      {
+      if (KnownDAGetScopes(&scopelistlen, ppcScopeList))
+#endif
          return SLP_MEMORY_ALLOC_FAILED;
-      }
 
    return SLP_OK;
 }
@@ -105,7 +98,7 @@ SLPError SLPAPI SLPFindScopes(SLPHandle hSLP,
  *    DAs (a positive integer). If no DA advertises a min-refresh-interval
  *    attribute, or if an error occurs, returns 0.
  */
-unsigned short SLPAPI SLPGetRefreshInterval()
+unsigned short SLPAPI SLPGetRefreshInterval(void)
 {
    /** @todo Implement min-refresh attribute code. */
    return 0;

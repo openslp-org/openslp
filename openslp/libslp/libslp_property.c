@@ -53,33 +53,26 @@
  *
  * @return If no error, returns a pointer to a character buffer 
  *    containing the property value. If the property was not set, 
- *    returns the default value. If an error occurs, returns NULL. 
+ *    returns the default value. If an error occurs, returns 0. 
  *    The returned string MUST NOT be freed.
  */
-const char* SLPAPI SLPGetProperty(const char* pcName)
+const char * SLPAPI SLPGetProperty(const char * pcName)
 {
    char conffile[MAX_PATH];
-   const char* result;
 
-   memset(conffile,0,MAX_PATH);
+   memset(conffile, 0, MAX_PATH);
 
-    #ifdef _WIN32
-   ExpandEnvironmentStrings(LIBSLP_CONFFILE,conffile,MAX_PATH);
+#ifdef _WIN32
+   ExpandEnvironmentStrings(LIBSLP_CONFFILE, conffile, MAX_PATH);
 #else
-   strncpy(conffile,LIBSLP_CONFFILE,MAX_PATH-1);
-    #endif
+   strncpy(conffile, LIBSLP_CONFFILE, MAX_PATH - 1);
+#endif
 
-   if (G_SLPPropertyList.head == NULL)
-   {
+   if (G_SLPPropertyList.head == 0)
       if (SLPPropertyReadFile(conffile) != 0)
-      {
          return 0;
-      }
-   }
 
-   result = SLPPropertyGet(pcName);
-
-   return result;
+   return SLPPropertyGet(pcName);
 }
 
 /** Set a property value by name. 
@@ -104,22 +97,17 @@ const char* SLPAPI SLPGetProperty(const char* pcName)
  *    could be expensive, memory-wise, depending on the nature of the 
  *    application using this library.
  */
-void SLPAPI SLPSetProperty(const char *pcName,
-      const char *pcValue)
+void SLPAPI SLPSetProperty(const char * pcName, const char * pcValue)
 {
-   /* Following commented out for threading reasons 
+/* Following commented out for threading reasons 
 
-   if(G_PropertyInit.head == NULL)
-   {
-   if(SLPPropertyReadFile(LIBSLP_CONFFILE) == 0)
-   {
-   G_PropertyInit = 1;
-   }
-   }
+   if (G_PropertyInit.head == 0)
+      if (SLPPropertyReadFile(LIBSLP_CONFFILE) == 0)
+         G_PropertyInit = 1;
 
    SLPPropertySet(pcName,pcValue);
 
-   */
+*/
 }
 
 /*=========================================================================*/

@@ -84,21 +84,19 @@
  * @remarks The sockets returned in @p socks may be used to receive 
  *    responses. Must be close by caller using SLPXcastSocketsClose.
  */
-int SLPBroadcastSend(const SLPIfaceInfo* ifaceinfo, 
-      SLPBuffer msg,
-      SLPXcastSockets* socks)
+int SLPBroadcastSend(const SLPIfaceInfo * ifaceinfo, SLPBuffer msg,
+      SLPXcastSockets * socks)
 {
-   int                 xferbytes;
-   int                 flags = 0;
+   int xferbytes;
+   int flags = 0;
 
 #ifdef _WIN32
-   char    on = 1;
+   char on = 1;
 #else
-   int     on = 1;
+   int on = 1;
 #endif
 
-
-#if defined(MSG_NOSIGNAL)
+#ifdef MSG_NOSIGNAL
    flags = MSG_NOSIGNAL;
 #endif
 
@@ -108,43 +106,32 @@ int SLPBroadcastSend(const SLPIfaceInfo* ifaceinfo,
    {
       if (ifaceinfo[socks->sock_count].bcast_addr->ss_family == AF_INET)
       {
-         socks->sock[socks->sock_count] = socket(ifaceinfo[socks->sock_count].bcast_addr->ss_family, SOCK_DGRAM, 0);
+         socks->sock[socks->sock_count] = socket(
+               ifaceinfo[socks->sock_count].bcast_addr->ss_family, 
+               SOCK_DGRAM, 0);
 
          if (socks->sock[socks->sock_count] < 0)
-         {
-            /* error creating socket */
-            return -1;
-         }
+            return -1;  /* error creating socket */
 
          if ((setsockopt(socks->sock[socks->sock_count],
-               SOL_SOCKET, 
-               SO_BROADCAST, 
-               &on, 
-               sizeof(on))))
-         {
-            /* Error setting socket option */
-            return -1;
-         }
-         SLPNetCopyAddr(&(socks->peeraddr[socks->sock_count]), &(ifaceinfo->bcast_addr[socks->sock_count]));
+               SOL_SOCKET, SO_BROADCAST, &on, sizeof(on))))
+            return -1;  /* Error setting socket option */
 
-         SLPNetSetAddr(&(socks->peeraddr[socks->sock_count]), AF_INET, SLP_RESERVED_PORT, NULL, 0);
+         SLPNetCopyAddr(&(socks->peeraddr[socks->sock_count]), 
+               &(ifaceinfo->bcast_addr[socks->sock_count]));
+
+         SLPNetSetAddr(&(socks->peeraddr[socks->sock_count]), 
+               AF_INET, SLP_RESERVED_PORT, 0, 0);
+
          xferbytes = sendto(socks->sock[socks->sock_count], 
-               msg->start,
-               msg->end - msg->start,
-               0,
+               msg->start, msg->end - msg->start, 0,
                (struct sockaddr *) &(socks->peeraddr[socks->sock_count]),
                sizeof(struct sockaddr_storage));
          if (xferbytes  < 0)
-         {
-            /* Error sending to broadcast */
-            return -1;
-         }
+            return -1;  /* Error sending to broadcast */
       }
       else
-      {
-         /* assume broadcast for IPV4 only */
-         socks->sock[socks->sock_count] = 0;
-      }
+         socks->sock[socks->sock_count] = 0; /* broadcast for IPv4 only */
    }
    return 0;
 }
@@ -163,14 +150,13 @@ int SLPBroadcastSend(const SLPIfaceInfo* ifaceinfo,
  * @remarks May be used to receive responses. Must be close by caller using 
  *    SLPXcastSocketsClose.
  */
-int SLPMulticastSend(const SLPIfaceInfo* ifaceinfo, 
-      SLPBuffer msg,
-      SLPXcastSockets* socks, struct sockaddr_storage *dst)
+int SLPMulticastSend(const SLPIfaceInfo * ifaceinfo, SLPBuffer msg,
+      SLPXcastSockets * socks, struct sockaddr_storage * dst)
 {
-   int             flags = 0;
-   int             xferbytes;
+   int flags = 0;
+   int xferbytes;
 
-#if defined(MSG_NOSIGNAL)
+#ifdef MSG_NOSIGNAL
    flags = MSG_NOSIGNAL;
 #endif
 
@@ -178,26 +164,24 @@ int SLPMulticastSend(const SLPIfaceInfo* ifaceinfo,
          socks->sock_count < ifaceinfo->iface_count;
          socks->sock_count++)
    {
-      socks->sock[socks->sock_count] = socket(ifaceinfo->iface_addr[socks->sock_count].ss_family, SOCK_DGRAM, 0);
+      socks->sock[socks->sock_count] = socket(
+            ifaceinfo->iface_addr[socks->sock_count].ss_family, 
+            SOCK_DGRAM, 0);
       if (socks->sock[socks->sock_count] < 0)
-      {
-         /* error creating socket */
-         return -1;
-      }
-      SLPNetCopyAddr(&socks->peeraddr[socks->sock_count], &ifaceinfo->iface_addr[socks->sock_count]);
+         return -1;  /* error creating socket */
+
+      SLPNetCopyAddr(&socks->peeraddr[socks->sock_count], 
+            &ifaceinfo->iface_addr[socks->sock_count]);
       if (ifaceinfo->iface_addr[socks->sock_count].ss_family == AF_INET)
       {
+         struct sockaddr_in *s4 = (struct sockaddr_in *)
+               &socks->peeraddr[socks->sock_count];
 
-         struct sockaddr_in *s4 = (struct sockaddr_in *) &socks->peeraddr[socks->sock_count];
-         if (setsockopt(socks->sock[socks->sock_count], 
-               IPPROTO_IP, 
-               IP_MULTICAST_IF, 
-               (char *) (&(s4->sin_addr)),
+         if (setsockopt(socks->sock[socks->sock_count], IPPROTO_IP, 
+               IP_MULTICAST_IF, (char *) (&(s4->sin_addr)),
                sizeof(struct in_addr)))
-         {
-            /* error setting socket option */
-            return -1;
-         }
+            return -1; /* error setting socket option */
+
          s4->sin_family = AF_INET;
          s4->sin_port = htons(SLP_RESERVED_PORT);
          s4->sin_addr.s_addr = htonl(SLP_MCAST_ADDRESS);
@@ -207,38 +191,28 @@ int SLPMulticastSend(const SLPIfaceInfo* ifaceinfo,
          struct sockaddr_in6 *s6dst = (struct sockaddr_in6 *) dst;
 
          /* send via IPV6 multicast */
-         if (bind(socks->sock[socks->sock_count], (struct sockaddr *) &socks->peeraddr[socks->sock_count], sizeof(struct sockaddr_storage)) != 0)
-         {
-            /* error setting socket option */
-            return -1;
-         }
+         if (bind(socks->sock[socks->sock_count], (struct sockaddr *) 
+               &socks->peeraddr[socks->sock_count], 
+               sizeof(struct sockaddr_storage)) != 0)
+            return -1;  /* error setting socket option */
+
          if (dst->ss_family == AF_INET6)
-         {
-            SLPNetSetAddr(&socks->peeraddr[socks->sock_count], AF_INET6, SLP_RESERVED_PORT, (char *) &s6dst->sin6_addr, sizeof(s6dst->sin6_addr));
-         }
+            SLPNetSetAddr(&socks->peeraddr[socks->sock_count], 
+                  AF_INET6, SLP_RESERVED_PORT, (char *) &s6dst->sin6_addr, 
+                  sizeof(s6dst->sin6_addr));
          else
-         {
             return -1;
-         }
       }
       else
-      {
-         /* unknown family */
-         return -1;
-      }
+         return -1;  /* unknown family */
+
       xferbytes = sendto(socks->sock[socks->sock_count],
-            msg->start,
-            msg->end - msg->start,
-            flags,
+            msg->start, msg->end - msg->start, flags,
             (struct sockaddr *) &(socks->peeraddr[socks->sock_count]),
             sizeof(struct sockaddr_storage));
       if (xferbytes <= 0)
-      {
-         /* error sending */
-         return -1;
-      }
+         return -1;  /* error sending */
    }
-
    return 0;
 
 }
@@ -259,20 +233,14 @@ int SLPMulticastSend(const SLPIfaceInfo* ifaceinfo,
  *
  * @return Zero on success, or a non-zero with errno set on failure.
  */
-int SLPXcastRecvMessage(const SLPXcastSockets* sockets,
-      SLPBuffer* buf,
-      struct sockaddr_storage *peeraddr,
-      struct timeval* timeout)
+int SLPXcastRecvMessage(const SLPXcastSockets * sockets, SLPBuffer * buf,
+      struct sockaddr_storage * peeraddr, struct timeval * timeout)
 {
-   fd_set  readfds;
-   int     highfd;
-   int     i;
-   int     readable;
-   size_t  bytesread;
-   int     recvloop;
-   int     peeraddrlen = sizeof(struct sockaddr_storage);
-   char    peek[16];
-   int     result = 0;
+   fd_set readfds;
+   size_t bytesread;
+   int highfd, i, readable, recvloop, result = 0;
+   int peeraddrlen = sizeof(struct sockaddr_storage);
+   char peek[16];
 
    /* recv loop */
    recvloop = 1;
@@ -285,13 +253,11 @@ int SLPXcastRecvMessage(const SLPXcastSockets* sockets,
       {
          FD_SET((unsigned int) sockets->sock[i],&readfds);
          if (sockets->sock[i] > highfd)
-         {
             highfd = sockets->sock[i];
-         }
       }
 
       /* Select */
-      readable = select(highfd + 1,&readfds,NULL,NULL,timeout);
+      readable = select(highfd + 1, &readfds, 0, 0, timeout);
       if (readable > 0)
       {
          /* Read the datagram */
@@ -300,18 +266,15 @@ int SLPXcastRecvMessage(const SLPXcastSockets* sockets,
             if (FD_ISSET(sockets->sock[i],&readfds))
             {
                /* Peek at the first 16 bytes of the header */
-               bytesread = recvfrom(sockets->sock[i],
-                     peek,
-                     16,
-                     MSG_PEEK,
-                     (struct sockaddr *)peeraddr,
-                     &peeraddrlen);
+               bytesread = recvfrom(sockets->sock[i], peek, 16, MSG_PEEK,
+                     (struct sockaddr *)peeraddr, &peeraddrlen);
                if (bytesread == 16
 #ifdef _WIN32
-                     /* Win32 returns WSAEMSGSIZE if the message is larger than
-                     * the requested size, even with MSG_PEEK. But if this is the
-                     * error code we can be sure that the message is at least 16
-                     * bytes */
+                     /* Win32 returns WSAEMSGSIZE if the message is larger
+                      * than the requested size, even with MSG_PEEK. But if 
+                      * this is the error code we can be sure that the 
+                      * message is at least 16 bytes.
+                      */
                      || (bytesread == (size_t)-1 && WSAGetLastError() == WSAEMSGSIZE)
 #endif
                      )
@@ -319,15 +282,12 @@ int SLPXcastRecvMessage(const SLPXcastSockets* sockets,
                   if (AsUINT24(peek + 2) <=  SLP_MAX_DATAGRAM_SIZE)
                   {
                      *buf = SLPBufferRealloc(*buf, AsUINT24(peek + 2));
-                     bytesread = recv(sockets->sock[i],
-                           (*buf)->curpos,
-                           (*buf)->end - (*buf)->curpos,
-                           0);
+                     bytesread = recv(sockets->sock[i], (*buf)->curpos,
+                           (*buf)->end - (*buf)->curpos, 0);
+
+                     /* This should never happen but we'll be paranoid */
                      if (bytesread != AsUINT24(peek + 2))
-                     {
-                        /* This should never happen but we'll be paranoid*/
                         (*buf)->end = (*buf)->curpos + bytesread;
-                     }
 
                      /* Message read. We're done! */
                      result = 0;
@@ -340,15 +300,13 @@ int SLPXcastRecvMessage(const SLPXcastSockets* sockets,
 #ifndef UNICAST_NOT_SUPPORTED
                      /* Reading SLP_MAX_DATAGRAM_SIZE bytes on the socket */
                      *buf = SLPBufferRealloc(*buf, SLP_MAX_DATAGRAM_SIZE);
-                     bytesread = recv(sockets->sock[i],
-                           (*buf)->curpos,
-                           (*buf)->end - (*buf)->curpos,
-                           0);
+                     bytesread = recv(sockets->sock[i], (*buf)->curpos,
+                           (*buf)->end - (*buf)->curpos, 0);
+
+                     /* This should never happen but we'll be paranoid */
                      if (bytesread != SLP_MAX_DATAGRAM_SIZE)
-                     {
-                        /* This should never happen but we'll be paranoid*/
                         (*buf)->end = (*buf)->curpos + bytesread;
-                     }
+
                      result = SLP_RETRY_UNICAST;
                      recvloop = 0;
                      return result;
@@ -374,7 +332,6 @@ int SLPXcastRecvMessage(const SLPXcastSockets* sockets,
          recvloop = 0;
       }
    }
-
    return result;
 }
 
@@ -388,18 +345,19 @@ int SLPXcastRecvMessage(const SLPXcastSockets* sockets,
  *
  * @return Zero on sucess, or a non-zero with errno set on error.
  */
-int SLPXcastSocketsClose(SLPXcastSockets* socks)
+int SLPXcastSocketsClose(SLPXcastSockets * socks)
 {
    while (socks->sock_count)
    {
       socks->sock_count = socks->sock_count - 1;
+
 #ifdef _WIN32 
       closesocket(socks->sock[socks->sock_count]);
 #else
       close(socks->sock[socks->sock_count]);
 #endif
-   }
 
+   }
    return 0;
 }
 
@@ -413,26 +371,31 @@ int SLPXcastSocketsClose(SLPXcastSockets* socks)
 #ifdef SLP_XMIT_TEST
 int main(void)
 {
-   SLPIfaceInfo    ifaceinfo;
-   SLPIfaceInfo    ifaceinfo6;
-   SLPXcastSockets      socks;
-   SLPBuffer           buffer;
-   BYTE v6Addr[] = {0xFF, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x16};  // multicat srvloc address
+   SLPIfaceInfo ifaceinfo;
+   SLPIfaceInfo ifaceinfo6;
+   SLPXcastSockets socks;
+   SLPBuffer buffer;
+
+   /* multicast srvloc address */
+   BYTE v6Addr[] = {0xFF, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+         0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x16};
+
    struct sockaddr_storage dst;
+
 #ifdef _WIN32
    WSADATA wsadata;
    WSAStartup(MAKEWORD(2,2), &wsadata);
 #endif
 
-   //const struct in6_addr in6addr;
+   /* const struct in6_addr in6addr; */
    buffer = SLPBufferAlloc(SLP_MAX_DATAGRAM_SIZE);
    if (buffer)
    {
 
       strcpy(buffer->start,"testdata");
 
-      SLPIfaceGetInfo(NULL,&ifaceinfo, AF_INET);
-      SLPIfaceGetInfo(NULL,&ifaceinfo6, AF_INET6);
+      SLPIfaceGetInfo(0,&ifaceinfo, AF_INET);
+      SLPIfaceGetInfo(0,&ifaceinfo6, AF_INET6);
 
       if (SLPBroadcastSend(&ifaceinfo, buffer,&socks) !=0)
          printf("\n SLPBroadcastSend failed \n");
@@ -443,7 +406,7 @@ int main(void)
          printf("\n SLPBroadcastSend failed for ipv6\n");
       SLPXcastSocketsClose(&socks);
 
-      if (SLPMulticastSend(&ifaceinfo, buffer, &socks, NULL) !=0)
+      if (SLPMulticastSend(&ifaceinfo, buffer, &socks, 0) !=0)
          printf("\n SLPMulticast failed \n");
       SLPXcastSocketsClose(&socks);
 
@@ -457,9 +420,11 @@ int main(void)
 
       SLPBufferFree(buffer);
    }
+
 #ifdef _WIN32
    WSACleanup();
 #endif
+
    return 0;
 }
 

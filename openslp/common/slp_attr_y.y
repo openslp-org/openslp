@@ -66,15 +66,13 @@
 #include "slp_attr.h"
 #include "slp_linkedlist.h"
 
-
-
 /* prototypes and globals go here */
 
 #ifndef FALSE
-#define FALSE   0
+# define FALSE   0
 #endif
 #ifndef TRUE
-#define TRUE    (!FALSE)
+# define TRUE    (!FALSE)
 #endif
 
 #define yymaxdepth      slp_attr_maxdepth
@@ -120,9 +118,9 @@
 
 static int bt = TRUE;
 static int bf = FALSE;
-static SLPAttrList attrHead = {&attrHead, &attrHead, TRUE, NULL, head, {0L}};
-static SLPAttrList inProcessAttr = {&inProcessAttr, &inProcessAttr, TRUE, NULL, head, {0L}};
-static SLPAttrList inProcessTag = {&inProcessTag, &inProcessTag, TRUE, NULL, head, {0L}};
+static SLPAttrList attrHead = {&attrHead, &attrHead, TRUE, 0, head, {0L}};
+static SLPAttrList inProcessAttr = {&inProcessAttr, &inProcessAttr, TRUE, 0, head, {0L}};
+static SLPAttrList inProcessTag = {&inProcessTag, &inProcessTag, TRUE, 0, head, {0L}};
 
 int slp_attr_parse(void);
 void slp_attr_error(char *, ...);
@@ -131,16 +129,15 @@ int slp_attr_lex(void);
 void slp_attr_close_lexer(unsigned int handle);
 unsigned int slp_attr_init_lexer(char *s);
 
-
 %}
 
 /* definitions for ytab.h */
 
 %union 
 {
-    int _i;
-    char *_s;
-    SLPAttrList *_atl;
+   int _i;
+   char *_s;
+   SLPAttrList *_atl;
 }
 
 %token<_i> _TRUE _FALSE _MULTIVAL _INT 
@@ -155,257 +152,253 @@ unsigned int slp_attr_init_lexer(char *s);
 
 attr_list: attr 
 {
-    while ( !SLP_IS_HEAD(inProcessAttr.next) )
-    {
-        $$ = inProcessAttr.next;
-       SLP_UNLINK($$);
-       SLP_INSERT_BEFORE($$, &attrHead);
-    }
-    /* all we really want to do here is link each attribute */
-    /* to the global list head. */
+   while ( !SLP_IS_HEAD(inProcessAttr.next) )
+   {
+      $$ = inProcessAttr.next;
+      SLP_UNLINK($$);
+      SLP_INSERT_BEFORE($$, &attrHead);
+   }
+   /* all we really want to do here is link each attribute */
+   /* to the global list head. */
 }
 | attr_list ',' attr 
 {
-    /* both of these non-terminals are really lists */
-    /* ignore the first non-terminal */
-    while ( !SLP_IS_HEAD(inProcessAttr.next) )
-    {
-        $$ = inProcessAttr.next;
-       SLP_UNLINK($$);
-       SLP_INSERT_BEFORE($$, &attrHead);
-    }
+   /* both of these non-terminals are really lists */
+   /* ignore the first non-terminal */
+   while ( !SLP_IS_HEAD(inProcessAttr.next) )
+   {
+      $$ = inProcessAttr.next;
+      SLP_UNLINK($$);
+      SLP_INSERT_BEFORE($$, &attrHead);
+   }
 };
 
 attr: _TAG
 {
-    $$ =  SLPAllocAttr($1, tag, NULL, 0);
-    if ( NULL != $$ )
-    {
-       SLP_INSERT_BEFORE($$, &inProcessAttr);
-    }
+   $$ =  SLPAllocAttr($1, tag, 0, 0);
+   if ( 0 != $$ )
+   {
+      SLP_INSERT_BEFORE($$, &inProcessAttr);
+   }
 }
-| '(' _TAG ')' 	
+| '(' _TAG ')'    
 {
-    $$ =  SLPAllocAttr($2, tag, NULL, 0);
-    if (NULL != $$)
-    {
-       SLP_INSERT_BEFORE($$, &inProcessAttr);
-    }
+   $$ =  SLPAllocAttr($2, tag, 0, 0);
+   if (0 != $$)
+   {
+      SLP_INSERT_BEFORE($$, &inProcessAttr);
+   }
 }
 | '(' _TAG '=' attr_val_list ')' 
 {
-    $$ = inProcessTag.next;
-    while (!SLP_IS_HEAD($$))
-    {
-        $$->name = strdup($2); 
-   SLP_UNLINK($$);
-   SLP_INSERT_BEFORE($$, &inProcessAttr);
    $$ = inProcessTag.next;
-    }
+   while (!SLP_IS_HEAD($$))
+   {
+      $$->name = strdup($2); 
+      SLP_UNLINK($$);
+      SLP_INSERT_BEFORE($$, &inProcessAttr);
+      $$ = inProcessTag.next;
+   }
 };
 
 attr_val_list: attr_val 
 {
-    if(NULL != $1)
-    {
-       SLP_INSERT($1, &inProcessTag);
-    }
+   if(0 != $1)
+   {
+      SLP_INSERT($1, &inProcessTag);
+   }
 }
 | attr_val_list _MULTIVAL attr_val 
 {
-    if (NULL != $3)
-    {
-       SLP_INSERT_BEFORE($3, &inProcessTag);
-    }
+   if (0 != $3)
+   {
+      SLP_INSERT_BEFORE($3, &inProcessTag);
+   }
 };
 
 attr_val: _TRUE 
 {
-    $$ = SLPAllocAttr(NULL, boolean, &bt, sizeof(int));
+   $$ = SLPAllocAttr(0, boolean, &bt, sizeof(int));
 }
 | _FALSE 
 {
-    $$ = SLPAllocAttr(NULL, boolean, &bf, sizeof(int));
+   $$ = SLPAllocAttr(0, boolean, &bf, sizeof(int));
 }
 | _ESCAPED 
 { 
-    /* treat it as a string because it is already encoded */
-    $$ = SLPAllocAttr(NULL, string, $1, strlen($1) + 1);
+   /* treat it as a string because it is already encoded */
+   $$ = SLPAllocAttr(0, string, $1, strlen($1) + 1);
 }
 | _STRING 
 {    
-    $$ = SLPAllocAttr(NULL, string, $1, strlen($1) + 1);
+   $$ = SLPAllocAttr(0, string, $1, strlen($1) + 1);
 }
 | _INT
 {
-    $$ = SLPAllocAttr(NULL, integer, &($1), sizeof(int));
+   $$ = SLPAllocAttr(0, integer, &($1), sizeof(int));
 };
- 
        
 %%
 
 SLPAttrList *SLPAllocAttr(char *name, SLPTypes type, void *val, int len)
 {
-    SLPAttrList *attr;
-    if ( NULL != (attr = (SLPAttrList *)calloc(1, sizeof(SLPAttrList))) )
-    {
-        if ( name != NULL )
-        {
-            if ( NULL == (attr->name = strdup(name)) )
-            {
-                free(attr);
-                return(NULL);
-            }
-        }
-        attr->type = type;
-        if ( type == head ) /* listhead */
-            return(attr);
-        if ( val != NULL )
-        {
-            switch ( type )
-            {
-                case string:
-                    if ( NULL != (attr->val.stringVal = strdup((unsigned char *)val)) )
-                        return(attr);
-                    break;
-                case integer:
-                    attr->val.intVal = *(unsigned int *)val;
-                    break;
-                case boolean:
-                    attr->val.boolVal = *(int *)val;
-                    break;
-                case opaque:
-                    #if 0
-                    if ( len > 0 )
-                    {
-                        int encLen;
-                        opq_EncodeOpaque(val, len, (char **)&(attr->val.opaqueVal), &encLen);
-                        if ( NULL != attr->val.opaqueVal )
-                        {
-                            /* first two bytes contain length of attribute */
-                           SLP_SETSHORT(((char *)attr->val.opaqueVal), encLen, 0 );
-                        }
-                    }
-                    #endif
-                    break;
-                default:
-                    break;
-            }
-        }
-    }
-    return(attr);
+   SLPAttrList *attr;
+   if ( 0 != (attr = (SLPAttrList *)calloc(1, sizeof(SLPAttrList))) )
+   {
+      if ( name != 0 )
+      {
+         if ( 0 == (attr->name = strdup(name)) )
+         {
+            free(attr);
+            return(0);
+         }
+      }
+      attr->type = type;
+      if ( type == head ) /* listhead */
+         return(attr);
+      if ( val != 0 )
+      {
+         switch ( type )
+         {
+            case string:
+               if ( 0 != (attr->val.stringVal = strdup((unsigned char *)val)) )
+                  return(attr);
+               break;
+            case integer:
+               attr->val.intVal = *(unsigned int *)val;
+               break;
+            case boolean:
+               attr->val.boolVal = *(int *)val;
+               break;
+            case opaque:
+               #if 0
+               if ( len > 0 )
+               {
+                  int encLen;
+                  opq_EncodeOpaque(val, len, (char **)&(attr->val.opaqueVal), &encLen);
+                  if ( 0 != attr->val.opaqueVal )
+                  {
+                     /* first two bytes contain length of attribute */
+                     SLP_SETSHORT(((char *)attr->val.opaqueVal), encLen, 0 );
+                  }
+               }
+               #endif
+               break;
+            default:
+               break;
+         }
+      }
+   }
+   return(attr);
 }   
 
 SLPAttrList *SLPAllocAttrList(void)
 {
-    SLPAttrList *temp;
-    if ( NULL != (temp = SLPAllocAttr(NULL, head, NULL, 0)) )
-    {
-        temp->next = temp->prev = temp;
-        temp->isHead = TRUE;  
-    }
-    return(temp);
+   SLPAttrList *temp;
+   if ( 0 != (temp = SLPAllocAttr(0, head, 0, 0)) )
+   {
+      temp->next = temp->prev = temp;
+      temp->isHead = TRUE;  
+   }
+   return(temp);
 }   
 
 /* attr MUST be unlinked from its list ! */
 void SLPFreeAttr(SLPAttrList *attr)
 {
-    if ( attr->name != NULL )
-    {
-        free(attr->name);
-    }
-    if ( attr->type == string && attr->val.stringVal != NULL )
-    {
-        free(attr->val.stringVal);
-    }
-    else if ( attr->type == opaque && attr->val.opaqueVal != NULL )
-    {
-        free(attr->val.opaqueVal);
-    }
-    
-    free(attr);
+   if ( attr->name != 0 )
+   {
+      free(attr->name);
+   }
+   if ( attr->type == string && attr->val.stringVal != 0 )
+   {
+      free(attr->val.stringVal);
+   }
+   else if ( attr->type == opaque && attr->val.opaqueVal != 0 )
+   {
+      free(attr->val.opaqueVal);
+   }
+   free(attr);
 }   
 
 void SLPFreeAttrList(SLPAttrList *list, int staticFlag)
 {
-    SLPAttrList *temp;
+      SLPAttrList *temp;
 
-    while ( ! (SLP_IS_EMPTY(list)) )
-    {
-        temp = list->next;
-       SLP_UNLINK(temp);
-        SLPFreeAttr(temp);
-    }
-    if ( staticFlag == TRUE )
-    {
-        SLPFreeAttr(list);
-    }
-    
-    return;
+      while ( ! (SLP_IS_EMPTY(list)) )
+      {
+         temp = list->next;
+         SLP_UNLINK(temp);
+         SLPFreeAttr(temp);
+      }
+      if ( staticFlag == TRUE )
+      {
+         SLPFreeAttr(list);
+      }
+      return;
 }       
 
 void SLPInitInternalAttrList(void)
 {
-    attrHead.next = attrHead.prev = &attrHead;
-    attrHead.isHead = TRUE;
-    inProcessAttr.next =  inProcessAttr.prev = &inProcessAttr;
-    inProcessAttr.isHead = TRUE;
-    inProcessTag.next =  inProcessTag.prev = &inProcessTag;
-    inProcessTag.isHead = TRUE;
-    return;
+   attrHead.next = attrHead.prev = &attrHead;
+   attrHead.isHead = TRUE;
+   inProcessAttr.next =  inProcessAttr.prev = &inProcessAttr;
+   inProcessAttr.isHead = TRUE;
+   inProcessTag.next =  inProcessTag.prev = &inProcessTag;
+   inProcessTag.isHead = TRUE;
+   return;
 }   
 
 SLPAttrList *_SLPDecodeAttrString(char *s)
 {
-    unsigned int lexer = 0;
-    SLPAttrList *temp = NULL;
+   unsigned int lexer = 0;
+   SLPAttrList *temp = 0;
 
    SLPInitInternalAttrList();
-    if ( s != NULL )
-    {
-        if ( NULL != (temp = SLPAllocAttrList()) )
-        {
-            if ((0 != (lexer = slp_attr_init_lexer(s))) &&  yyparse() )
+   if ( s != 0 )
+   {
+      if ( 0 != (temp = SLPAllocAttrList()) )
+      {
+         if ((0 != (lexer = slp_attr_init_lexer(s))) &&  yyparse() )
+         {
+            SLPFreeAttrList(temp,0);
+
+            while ( !SLP_IS_HEAD(inProcessTag.next) )
             {
-                SLPFreeAttrList(temp,0);
-
-                while ( !SLP_IS_HEAD(inProcessTag.next) )
-                {
-                    temp = inProcessTag.next;
-                   SLP_UNLINK(temp);
-                    SLPFreeAttr(temp);
-                }
-                while ( !SLP_IS_HEAD(inProcessAttr.next) )
-                {
-                    temp = inProcessAttr.next;
-                   SLP_UNLINK(temp);
-                    SLPFreeAttr(temp);
-                }
-                while ( !SLP_IS_HEAD(attrHead.next) )
-                {
-                    temp = attrHead.next;
-                   SLP_UNLINK(temp);
-                    SLPFreeAttr(temp);
-                }
-
-                slp_attr_close_lexer(lexer);
-                
-                return(NULL);
+               temp = inProcessTag.next;
+               SLP_UNLINK(temp);
+               SLPFreeAttr(temp);
+            }
+            while ( !SLP_IS_HEAD(inProcessAttr.next) )
+            {
+               temp = inProcessAttr.next;
+               SLP_UNLINK(temp);
+               SLPFreeAttr(temp);
+            }
+            while ( !SLP_IS_HEAD(attrHead.next) )
+            {
+               temp = attrHead.next;
+               SLP_UNLINK(temp);
+               SLPFreeAttr(temp);
             }
 
-            if ( !SLP_IS_EMPTY(&attrHead) )
-            {
-               SLP_LINK_HEAD(temp, &attrHead);
-            }
+            slp_attr_close_lexer(lexer);
 
-            if ( lexer != 0 )
-            {
-                slp_attr_close_lexer(lexer);
-            }
-        }
-    }
+            return 0;
+         }
 
-    return(temp);
+         if ( !SLP_IS_EMPTY(&attrHead) )
+         {
+            SLP_LINK_HEAD(temp, &attrHead);
+         }
+
+         if ( lexer != 0 )
+         {
+             slp_attr_close_lexer(lexer);
+         }
+      }
+   }
+   return temp;
 }
 
 /*=========================================================================*/

@@ -57,9 +57,9 @@
  * @return A 16-bit unsigned value in native format; the buffer pointer
  *    is moved ahead by 2 bytes on return.
  */
-unsigned short AsUINT16(const char *charptr)
+unsigned short AsUINT16(const char * charptr)
 {
-   unsigned char *ucp = (unsigned char *) charptr;
+   unsigned char * ucp = (unsigned char *)charptr;
    return (ucp[0] << 8) | ucp[1];
 }
 
@@ -70,10 +70,10 @@ unsigned short AsUINT16(const char *charptr)
  * @return A 32-bit unsigned value in native format; the buffer pointer 
  *    is moved ahead by 3 bytes on return.
  */
-unsigned int AsUINT24(const char *charptr)
+unsigned int AsUINT24(const char * charptr)
 {
-   unsigned char *ucp = (unsigned char *) charptr;
-   return (ucp[0] << 16) | (ucp[1] << 8) |  ucp[2];
+   unsigned char * ucp = (unsigned char *)charptr;
+   return (ucp[0] << 16) | (ucp[1] << 8) | ucp[2];
 }
 
 /** Extract a 32-bit big-endian buffer value into a native 32-bit word.
@@ -83,9 +83,9 @@ unsigned int AsUINT24(const char *charptr)
  * @return A 32-bit unsigned value in native format; the buffer pointer
  *    is moved ahead by 4 bytes on return.
  */
-unsigned int AsUINT32(const char *charptr)
+unsigned int AsUINT32(const char * charptr)
 {
-   unsigned char *ucp = (unsigned char *) charptr;
+   unsigned char * ucp = (unsigned char *)charptr;
    return (ucp[0] << 24) | (ucp[1] << 16) | (ucp[2] << 8) | ucp[3];
 }
 
@@ -96,7 +96,7 @@ unsigned int AsUINT32(const char *charptr)
  *
  * @note The buffer address is moved ahead by 2 bytes on return.
  */
-void ToUINT16(char *charptr, unsigned int val)
+void ToUINT16(char * charptr, unsigned int val)
 {
    charptr[0] = (val >> 8) & 0xff;
    charptr[1] = val & 0xff;
@@ -109,7 +109,7 @@ void ToUINT16(char *charptr, unsigned int val)
  *
  * @note The buffer address is moved ahead by 3 bytes on return.
  */
-void ToUINT24(char *charptr, unsigned int val)
+void ToUINT24(char * charptr, unsigned int val)
 {
    charptr[0] = (val >> 16) & 0xff;
    charptr[1] = (val >> 8) & 0xff;
@@ -123,7 +123,7 @@ void ToUINT24(char *charptr, unsigned int val)
  *
  * @note The buffer address is moved ahead by 4 bytes on return.
  */
-void ToUINT32(char *charptr, unsigned int val)
+void ToUINT32(char * charptr, unsigned int val)
 {
    charptr[0] = (val >> 24) & 0xff;
    charptr[1] = (val >> 16) & 0xff;
@@ -152,7 +152,6 @@ void SLPMessageFreeInternals(SLPMessage message)
                   message->body.srvrply.urlarray[i].autharray = 0;
                }
             }
-
             xfree(message->body.srvrply.urlarray);
             message->body.srvrply.urlarray = 0;
          }
@@ -171,7 +170,6 @@ void SLPMessageFreeInternals(SLPMessage message)
          }
          break;
 
-
       case SLP_FUNCT_SRVDEREG:
          if (message->body.srvdereg.urlentry.autharray)
          {
@@ -187,7 +185,6 @@ void SLPMessageFreeInternals(SLPMessage message)
             message->body.attrrply.autharray = 0;
          }
          break;
-
 
       case SLP_FUNCT_DAADVERT:
          if (message->body.daadvert.autharray)
@@ -218,15 +215,13 @@ void SLPMessageFreeInternals(SLPMessage message)
 
 /** Allocate memory for an SLP message descriptor.
  *
- * @return A new SLP message object, or NULL if out of memory.
+ * @return A new SLP message object, or 0 if out of memory.
  */
-SLPMessage SLPMessageAlloc()
+SLPMessage SLPMessageAlloc(void)
 {
    SLPMessage result = (SLPMessage)xmalloc(sizeof(struct _SLPMessage));
    if (result)
-   {
-      memset(result,0,sizeof(struct _SLPMessage));
-   }
+      memset(result, 0, sizeof(struct _SLPMessage));
 
    return result;
 }
@@ -235,7 +230,7 @@ SLPMessage SLPMessageAlloc()
  *
  * @param[in] msg - The message descriptor to be reallocated.
  *
- * @return A resized version of @p msg, or NULL if out of memory.
+ * @return A resized version of @p msg, or 0 if out of memory.
  */
 SLPMessage SLPMessageRealloc(SLPMessage msg)
 {
@@ -243,14 +238,10 @@ SLPMessage SLPMessageRealloc(SLPMessage msg)
    {
       msg = SLPMessageAlloc();
       if (msg == 0)
-      {
          return 0;
-      }
    }
    else
-   {
       SLPMessageFreeInternals(msg);
-   }
 
    return msg;
 }
@@ -275,15 +266,14 @@ void SLPMessageFree(SLPMessage message)
  *
  * @return Zero on success, or SLP_ERROR_VER_NOT_SUPPORTED.
  */
-int SLPMessageParseHeader(SLPBuffer buffer, SLPHeader* header)
+int SLPMessageParseHeader(SLPBuffer buffer, SLPHeader * header)
 {
    header->version     = *(buffer->curpos);
    header->functionid  = *(buffer->curpos + 1);
 
    if (header->version != 2)
-   {
       return SLP_ERROR_VER_NOT_SUPPORTED;
-   }
+
    header->length      = AsUINT24(buffer->curpos + 2);
    header->flags       = AsUINT16(buffer->curpos + 5);
    header->encoding    = 0; /* not used for SLPv2 */
@@ -294,35 +284,26 @@ int SLPMessageParseHeader(SLPBuffer buffer, SLPHeader* header)
 
    /* check for invalid function id */
    if (header->functionid > SLP_FUNCT_SAADVERT)
-   {
       return SLP_ERROR_PARSE_ERROR;
-   }
 
    /* check for invalid length 18 bytes is the smallest v2 message*/
-   if (header->length != buffer->end - buffer->start ||
-         header->length < 18)
-   {
+   if (header->length != buffer->end - buffer->start
+         || header->length < 18)
       return SLP_ERROR_PARSE_ERROR;
-   }
 
    /* check for invalid flags */
    if (header->flags & 0x1fff)
-   {
       return SLP_ERROR_PARSE_ERROR;
-   }
+
    buffer->curpos = buffer->curpos + header->langtaglen + 14;
 
    /* check for invalid langtaglen */
    if ((void*)(header->langtag + header->langtaglen) > (void*)buffer->end)
-   {
       return SLP_ERROR_PARSE_ERROR;
-   }
 
    /* check for invalid ext offset */
    if (buffer->start + header->extoffset > buffer->end)
-   {
       return SLP_ERROR_PARSE_ERROR;
-   }
 
    return 0;
 }
@@ -346,17 +327,16 @@ int SLPMessageParseHeader(SLPBuffer buffer, SLPHeader* header)
  *    the parsed SLPBuffer. If SLPBufferFree is called then the pointers
  *    in @p message will be invalidated.
  */
-int SLPMessageParseBuffer(struct sockaddr_storage *peerinfo,
-      struct sockaddr_storage *localaddr,
-      SLPBuffer buffer, 
+int SLPMessageParseBuffer(struct sockaddr_storage * peerinfo,
+      struct sockaddr_storage * localaddr, SLPBuffer buffer, 
       SLPMessage message)
 {
    int result;
 
    /* Copy in the address info */
-   if (peerinfo != NULL)
+   if (peerinfo != 0)
       memcpy(&message->peer,peerinfo,sizeof(message->peer));
-   if (localaddr != NULL)
+   if (localaddr != 0)
       memcpy(&message->localaddr, localaddr, sizeof(message->localaddr));
 
    /* Get ready to parse */
@@ -419,59 +399,69 @@ int SLPMessageParseBuffer(struct sockaddr_storage *peerinfo,
    }
 
    if (result == 0 && message->header.extoffset)
-   {
       result = ParseExtension(buffer,message);
-   }
 
    return result;
 }
 
-int ParseAuthBlock(SLPBuffer buffer, SLPAuthBlock* authblock)
+/** Parse an authentication block.
+ *
+ * @param[in] buffer - The buffer from which data should be parsed.
+ * @param[out] authblock - The authentication block object into which 
+ *    @p buffer should be parsed.
+ *
+ * @return Zero on success, SLP_ERROR_INTERNAL_ERROR (out of memory)
+ *    or SLP_ERROR_PARSE_ERROR.
+ *
+ * @internal
+ */
+int ParseAuthBlock(SLPBuffer buffer, SLPAuthBlock * authblock)
 {
    /* make sure that min size is met */
    if (buffer->end - buffer->curpos < 10)
-   {
       return SLP_ERROR_PARSE_ERROR;
-   }
 
-   authblock->opaque = buffer->curpos;
-
+   authblock->opaque       = buffer->curpos;
    authblock->bsd          = AsUINT16(buffer->curpos);
    authblock->length       = AsUINT16(buffer->curpos + 2);
 
    if (authblock->length > buffer->end - buffer->curpos)
-   {
       return SLP_ERROR_PARSE_ERROR;
-   }
 
    authblock->timestamp    = AsUINT32(buffer->curpos + 4);
    authblock->spistrlen    = AsUINT16(buffer->curpos + 8);
    authblock->spistr       = buffer->curpos + 10;
 
    if (authblock->spistrlen > buffer->end - buffer->curpos + 10)
-   {
       return SLP_ERROR_PARSE_ERROR;
-   }
 
    authblock->authstruct   = buffer->curpos + authblock->spistrlen + 10;
-
-   authblock->opaquelen = authblock->length;
+   authblock->opaquelen    = authblock->length;
 
    buffer->curpos = buffer->curpos + authblock->length;
 
    return 0;
 }
 
-int ParseUrlEntry(SLPBuffer buffer, SLPUrlEntry* urlentry)
+/** Parse a URL entry.
+ *
+ * @param[in] buffer - The buffer from which data should be parsed.
+ * @param[out] urlentry - The URL entry object into which 
+ *    @p buffer should be parsed.
+ *
+ * @return Zero on success, SLP_ERROR_INTERNAL_ERROR (out of memory)
+ *    or SLP_ERROR_PARSE_ERROR.
+ *
+ * @internal
+ */
+int ParseUrlEntry(SLPBuffer buffer, SLPUrlEntry * urlentry)
 {
-   int             result;
-   int             i;
+   int result;
+   int i;
 
    /* make sure that min size is met */
    if (buffer->end - buffer->curpos < 6)
-   {
       return SLP_ERROR_PARSE_ERROR;
-   }
 
    urlentry->opaque = buffer->curpos;
 
@@ -487,9 +477,7 @@ int ParseUrlEntry(SLPBuffer buffer, SLPUrlEntry* urlentry)
    urlentry->urllen = AsUINT16(buffer->curpos);
    buffer->curpos = buffer->curpos + 2;
    if (urlentry->urllen > buffer->end - buffer->curpos)
-   {
       return SLP_ERROR_PARSE_ERROR;
-   }
 
    urlentry->url = buffer->curpos;
    buffer->curpos = buffer->curpos + urlentry->urllen;
@@ -503,9 +491,8 @@ int ParseUrlEntry(SLPBuffer buffer, SLPUrlEntry* urlentry)
    {
       urlentry->autharray = (SLPAuthBlock*)xmalloc(sizeof(SLPAuthBlock) * urlentry->authcount);
       if (urlentry->autharray == 0)
-      {
          return SLP_ERROR_INTERNAL_ERROR;
-      }
+
       memset(urlentry->autharray,0,sizeof(SLPAuthBlock) * urlentry->authcount);
 
       for (i=0;i<urlentry->authcount;i++)
@@ -514,88 +501,91 @@ int ParseUrlEntry(SLPBuffer buffer, SLPUrlEntry* urlentry)
          if (result) return result;
       }
    }
-
-   urlentry->opaquelen = (char*)buffer->curpos - urlentry->opaque;
+   urlentry->opaquelen = (char *)buffer->curpos - urlentry->opaque;
 
    return 0;
 }
 
-int ParseSrvRqst(SLPBuffer buffer, SLPSrvRqst* srvrqst)
+/** Parse a service request.
+ *
+ * @param[in] buffer - The buffer from which data should be parsed.
+ * @param[out] srvrqst - The service request object into which 
+ *    @p buffer should be parsed.
+ *
+ * @return Zero on success, or a non-zero error code.
+ *
+ * @internal
+ */
+int ParseSrvRqst(SLPBuffer buffer, SLPSrvRqst * srvrqst)
 {
    /* make sure that min size is met */
    if (buffer->end - buffer->curpos < 10)
-   {
       return SLP_ERROR_PARSE_ERROR;
-   }
 
    /* parse the prlist */
    srvrqst->prlistlen = AsUINT16(buffer->curpos);
    buffer->curpos = buffer->curpos + 2;
    if (srvrqst->prlistlen > buffer->end - buffer->curpos)
-   {
       return SLP_ERROR_PARSE_ERROR;
-   }
+
    srvrqst->prlist = buffer->curpos;
    buffer->curpos = buffer->curpos + srvrqst->prlistlen;
-
 
    /* parse the service type */
    srvrqst->srvtypelen = AsUINT16(buffer->curpos);
    buffer->curpos = buffer->curpos + 2;
    if (srvrqst->srvtypelen > buffer->end - buffer->curpos)
-   {
       return SLP_ERROR_PARSE_ERROR;
-   }
+
    srvrqst->srvtype = buffer->curpos;
    buffer->curpos = buffer->curpos + srvrqst->srvtypelen;
-
 
    /* parse the scope list */
    srvrqst->scopelistlen = AsUINT16(buffer->curpos);
    buffer->curpos = buffer->curpos + 2;
    if (srvrqst->scopelistlen > buffer->end - buffer->curpos)
-   {
       return SLP_ERROR_PARSE_ERROR;
-   }
    srvrqst->scopelist = buffer->curpos;
    buffer->curpos = buffer->curpos + srvrqst->scopelistlen;
-
 
    /* parse the predicate string */
    srvrqst->predicatever = 2;  /* SLPv2 predicate (LDAPv3) */
    srvrqst->predicatelen = AsUINT16(buffer->curpos);
    buffer->curpos = buffer->curpos + 2;
    if (srvrqst->predicatelen > buffer->end - buffer->curpos)
-   {
       return SLP_ERROR_PARSE_ERROR;
-   }
    srvrqst->predicate = buffer->curpos;
    buffer->curpos = buffer->curpos + srvrqst->predicatelen;
-
 
    /* parse the slpspi string */
    srvrqst->spistrlen = AsUINT16(buffer->curpos);
    buffer->curpos = buffer->curpos + 2;
    if (srvrqst->spistrlen > buffer->end - buffer->curpos)
-   {
       return SLP_ERROR_PARSE_ERROR;
-   }
    srvrqst->spistr = buffer->curpos;
    buffer->curpos = buffer->curpos + srvrqst->spistrlen;
 
    return 0;
 }
 
-int ParseSrvRply(SLPBuffer buffer, SLPSrvRply* srvrply)
+/** Parse a service reply.
+ *
+ * @param[in] buffer - The buffer from which data should be parsed.
+ * @param[out] srvrply - The service reply object into which 
+ *    @p buffer should be parsed.
+ *
+ * @return Zero on success, or a non-zero error code.
+ *
+ * @internal
+ */
+int ParseSrvRply(SLPBuffer buffer, SLPSrvRply * srvrply)
 {
-   int             result;
-   int             i;
+   int result;
+   int i;
 
    /* make sure that min size is met */
    if (buffer->end - buffer->curpos < 4)
-   {
       return SLP_ERROR_PARSE_ERROR;
-   }
 
    /* parse out the error code */
    srvrply->errorcode = AsUINT16(buffer->curpos);
@@ -617,9 +607,8 @@ int ParseSrvRply(SLPBuffer buffer, SLPSrvRply* srvrply)
    {
       srvrply->urlarray = (SLPUrlEntry*)xmalloc(sizeof(SLPUrlEntry) * srvrply->urlcount);
       if (srvrply->urlarray == 0)
-      {
          return SLP_ERROR_INTERNAL_ERROR;
-      }
+
       memset(srvrply->urlarray,0,sizeof(SLPUrlEntry) * srvrply->urlcount);
 
       for (i=0;i<srvrply->urlcount;i++)
@@ -629,57 +618,57 @@ int ParseSrvRply(SLPBuffer buffer, SLPSrvRply* srvrply)
       }
    }
    else
-   {
       srvrply->urlarray = 0;
-   }
 
    return 0;
 }
 
-int ParseSrvReg(SLPBuffer buffer, SLPSrvReg* srvreg)
+/** Parse a service registration.
+ *
+ * @param[in] buffer - The buffer from which data should be parsed.
+ * @param[out] srvreg - The service registration object into which 
+ *    @p buffer should be parsed.
+ *
+ * @return Zero on success, or a non-zero error code.
+ *
+ * @internal
+ */
+int ParseSrvReg(SLPBuffer buffer, SLPSrvReg * srvreg)
 {
-   int             result;
-   int             i;
+   int result;
+   int i;
 
    /* Parse out the url entry */
    result = ParseUrlEntry(buffer,&(srvreg->urlentry));
    if (result)
-   {
       return result;
-   }
 
    /* parse the service type */
    srvreg->srvtypelen = AsUINT16(buffer->curpos);
    buffer->curpos = buffer->curpos + 2;
    if (srvreg->srvtypelen > buffer->end - buffer->curpos)
-   {
       return SLP_ERROR_PARSE_ERROR;
-   }
+
    srvreg->srvtype = buffer->curpos;
    buffer->curpos = buffer->curpos + srvreg->srvtypelen;
-
 
    /* parse the scope list */
    srvreg->scopelistlen = AsUINT16(buffer->curpos);
    buffer->curpos = buffer->curpos + 2;
    if (srvreg->scopelistlen > buffer->end - buffer->curpos)
-   {
       return SLP_ERROR_PARSE_ERROR;
-   }
+
    srvreg->scopelist = buffer->curpos;
    buffer->curpos = buffer->curpos + srvreg->scopelistlen;
-
 
    /* parse the attribute list*/
    srvreg->attrlistlen = AsUINT16(buffer->curpos);
    buffer->curpos = buffer->curpos + 2;
    if (srvreg->attrlistlen > buffer->end - buffer->curpos)
-   {
       return SLP_ERROR_PARSE_ERROR;
-   }
+
    srvreg->attrlist = buffer->curpos;
    buffer->curpos = buffer->curpos + srvreg->attrlistlen;
-
 
    /* parse out attribute auth block count */
    srvreg->authcount = *(buffer->curpos);
@@ -688,11 +677,11 @@ int ParseSrvReg(SLPBuffer buffer, SLPSrvReg* srvreg)
    /* parse out the auth block (if any) */
    if (srvreg->authcount)
    {
-      srvreg->autharray = (SLPAuthBlock*)xmalloc(sizeof(SLPAuthBlock) * srvreg->authcount);
+      srvreg->autharray = (SLPAuthBlock *)xmalloc(sizeof(SLPAuthBlock) 
+            * srvreg->authcount);
       if (srvreg->autharray == 0)
-      {
          return SLP_ERROR_INTERNAL_ERROR;
-      }
+
       memset(srvreg->autharray,0,sizeof(SLPAuthBlock) * srvreg->authcount);
 
       for (i=0;i<srvreg->authcount;i++)
@@ -701,72 +690,91 @@ int ParseSrvReg(SLPBuffer buffer, SLPSrvReg* srvreg)
          if (result) return result;
       }
    }
-
    return 0;
 }
 
-int ParseSrvDeReg(SLPBuffer buffer, SLPSrvDeReg* srvdereg)
+/** Parse a service deregistration.
+ *
+ * @param[in] buffer - The buffer from which data should be parsed.
+ * @param[out] srvdereg - The service deregistration object into which 
+ *    @p buffer should be parsed.
+ *
+ * @return Zero on success, or a non-zero error code.
+ *
+ * @internal
+ */
+int ParseSrvDeReg(SLPBuffer buffer, SLPSrvDeReg * srvdereg)
 {
-   int            result;
+   int result;
 
    /* make sure that min size is met */
    if (buffer->end - buffer->curpos < 4)
-   {
       return SLP_ERROR_PARSE_ERROR;
-   }
-
 
    /* parse the scope list */
    srvdereg->scopelistlen = AsUINT16(buffer->curpos);
    buffer->curpos = buffer->curpos + 2;
    if (srvdereg->scopelistlen > buffer->end - buffer->curpos)
-   {
       return SLP_ERROR_PARSE_ERROR;
-   }
+
    srvdereg->scopelist = buffer->curpos;
    buffer->curpos = buffer->curpos + srvdereg->scopelistlen;
 
    /* parse the url entry */
    result = ParseUrlEntry(buffer,&(srvdereg->urlentry));
    if (result)
-   {
       return result;
-   }
 
    /* parse the tag list */
    srvdereg->taglistlen = AsUINT16(buffer->curpos);
    buffer->curpos = buffer->curpos + 2;
    if (srvdereg->taglistlen > buffer->end - buffer->curpos)
-   {
       return SLP_ERROR_PARSE_ERROR;
-   }
+
    srvdereg->taglist = buffer->curpos;
    buffer->curpos = buffer->curpos + srvdereg->taglistlen;
 
    return 0;
 }
 
-int ParseSrvAck(SLPBuffer buffer, SLPSrvAck* srvack)
+/** Parse a server ACK.
+ *
+ * @param[in] buffer - The buffer from which data should be parsed.
+ * @param[out] srvack - The server ACK object into which 
+ *    @p buffer should be parsed.
+ *
+ * @return Zero (success) always.
+ *
+ * @internal
+ */
+int ParseSrvAck(SLPBuffer buffer, SLPSrvAck * srvack)
 {
    srvack->errorcode = AsUINT16(buffer->curpos);
    return 0;
 }
 
-int ParseAttrRqst(SLPBuffer buffer, SLPAttrRqst* attrrqst)
+/** Parse an attribute request.
+ *
+ * @param[in] buffer - The buffer from which data should be parsed.
+ * @param[out] attrrqst - The attribute request object into which 
+ *    @p buffer should be parsed.
+ *
+ * @return Zero on success, or a non-zero error code.
+ *
+ * @internal
+ */
+int ParseAttrRqst(SLPBuffer buffer, SLPAttrRqst * attrrqst)
 {
    /* make sure that min size is met */
    if (buffer->end - buffer->curpos < 10)
-   {
       return SLP_ERROR_PARSE_ERROR;
-   }
 
    /* parse the prlist */
    attrrqst->prlistlen = AsUINT16(buffer->curpos);
    buffer->curpos = buffer->curpos + 2;
    if (attrrqst->prlistlen > buffer->end - buffer->curpos)
-   {
       return SLP_ERROR_PARSE_ERROR;
-   }
+
    attrrqst->prlist = buffer->curpos;
    buffer->curpos = buffer->curpos + attrrqst->prlistlen;
 
@@ -774,58 +782,59 @@ int ParseAttrRqst(SLPBuffer buffer, SLPAttrRqst* attrrqst)
    attrrqst->urllen = AsUINT16(buffer->curpos);
    buffer->curpos = buffer->curpos + 2;
    if (attrrqst->urllen > buffer->end - buffer->curpos)
-   {
       return SLP_ERROR_PARSE_ERROR;
-   }
+
    attrrqst->url = buffer->curpos;
    buffer->curpos = buffer->curpos + attrrqst->urllen;
-
 
    /* parse the scope list */
    attrrqst->scopelistlen = AsUINT16(buffer->curpos);
    buffer->curpos = buffer->curpos + 2;
    if (attrrqst->scopelistlen > buffer->end - buffer->curpos)
-   {
       return SLP_ERROR_PARSE_ERROR;
-   }
+
    attrrqst->scopelist = buffer->curpos;
    buffer->curpos = buffer->curpos + attrrqst->scopelistlen;
-
 
    /* parse the taglist string */
    attrrqst->taglistlen = AsUINT16(buffer->curpos);
    buffer->curpos = buffer->curpos + 2;
    if (attrrqst->taglistlen > buffer->end - buffer->curpos)
-   {
       return SLP_ERROR_PARSE_ERROR;
-   }
+
    attrrqst->taglist = buffer->curpos;
    buffer->curpos = buffer->curpos + attrrqst->taglistlen;
-
 
    /* parse the slpspi string */
    attrrqst->spistrlen = AsUINT16(buffer->curpos);
    buffer->curpos = buffer->curpos + 2;
    if (attrrqst->spistrlen > buffer->end - buffer->curpos)
-   {
       return SLP_ERROR_PARSE_ERROR;
-   }
+
    attrrqst->spistr = buffer->curpos;
    buffer->curpos = buffer->curpos + attrrqst->spistrlen;
 
    return 0;
 }
 
-int ParseAttrRply(SLPBuffer buffer, SLPAttrRply* attrrply)
+/** Parse an attribute reply.
+ *
+ * @param[in] buffer - The buffer from which data should be parsed.
+ * @param[out] attrrply - The attribute reply object into which 
+ *    @p buffer should be parsed.
+ *
+ * @return Zero on success, or a non-zero error code.
+ *
+ * @internal
+ */
+int ParseAttrRply(SLPBuffer buffer, SLPAttrRply * attrrply)
 {
-   int             result;
-   int             i;
+   int result;
+   int i;
 
    /* make sure that min size is met */
    if (buffer->end - buffer->curpos < 4)
-   {
       return SLP_ERROR_PARSE_ERROR;
-   }
 
    /* parse out the error code */
    attrrply->errorcode = AsUINT16(buffer->curpos);
@@ -842,9 +851,8 @@ int ParseAttrRply(SLPBuffer buffer, SLPAttrRply* attrrply)
    attrrply->attrlistlen = AsUINT16(buffer->curpos);
    buffer->curpos = buffer->curpos + 2;
    if (attrrply->attrlistlen > buffer->end - buffer->curpos)
-   {
       return SLP_ERROR_PARSE_ERROR;
-   }
+
    attrrply->attrlist = buffer->curpos;
    buffer->curpos = buffer->curpos + attrrply->attrlistlen;
 
@@ -857,9 +865,8 @@ int ParseAttrRply(SLPBuffer buffer, SLPAttrRply* attrrply)
    {
       attrrply->autharray = (SLPAuthBlock*)xmalloc(sizeof(SLPAuthBlock) * attrrply->authcount);
       if (attrrply->autharray == 0)
-      {
          return SLP_ERROR_INTERNAL_ERROR;
-      }
+
       memset(attrrply->autharray,0,sizeof(SLPAuthBlock) * attrrply->authcount);
 
       for (i=0;i<attrrply->authcount;i++)
@@ -868,20 +875,27 @@ int ParseAttrRply(SLPBuffer buffer, SLPAttrRply* attrrply)
          if (result) return result;
       }
    }
-
    return 0;
 }
 
-int ParseDAAdvert(SLPBuffer buffer, SLPDAAdvert* daadvert)
+/** Parse a DA advertisement.
+ *
+ * @param[in] buffer - The buffer from which data should be parsed.
+ * @param[out] daadvert - The DA advertisement object into which 
+ *    @p buffer should be parsed.
+ *
+ * @return Zero on success, or a non-zero error code.
+ *
+ * @internal
+ */
+int ParseDAAdvert(SLPBuffer buffer, SLPDAAdvert * daadvert)
 {
-   int             result;
-   int             i;
+   int result;
+   int i;
 
    /* make sure that min size is met */
    if (buffer->end - buffer->curpos < 4)
-   {
       return SLP_ERROR_PARSE_ERROR;
-   }
 
    /* parse out the error code */
    daadvert->errorcode = AsUINT16(buffer->curpos);
@@ -902,9 +916,8 @@ int ParseDAAdvert(SLPBuffer buffer, SLPDAAdvert* daadvert)
    daadvert->urllen = AsUINT16(buffer->curpos);
    buffer->curpos = buffer->curpos + 2;
    if (daadvert->urllen > buffer->end - buffer->curpos)
-   {
       return SLP_ERROR_PARSE_ERROR;
-   }
+
    daadvert->url = buffer->curpos;
    buffer->curpos = buffer->curpos + daadvert->urllen;
 
@@ -912,9 +925,8 @@ int ParseDAAdvert(SLPBuffer buffer, SLPDAAdvert* daadvert)
    daadvert->scopelistlen = AsUINT16(buffer->curpos);
    buffer->curpos = buffer->curpos + 2;
    if (daadvert->scopelistlen > buffer->end - buffer->curpos)
-   {
       return SLP_ERROR_PARSE_ERROR;
-   }
+
    daadvert->scopelist = buffer->curpos;
    buffer->curpos = buffer->curpos + daadvert->scopelistlen;
 
@@ -922,9 +934,8 @@ int ParseDAAdvert(SLPBuffer buffer, SLPDAAdvert* daadvert)
    daadvert->attrlistlen = AsUINT16(buffer->curpos);
    buffer->curpos = buffer->curpos + 2;
    if (daadvert->attrlistlen > buffer->end - buffer->curpos)
-   {
       return SLP_ERROR_PARSE_ERROR;
-   }
+
    daadvert->attrlist = buffer->curpos;
    buffer->curpos = buffer->curpos + daadvert->attrlistlen;
 
@@ -932,12 +943,10 @@ int ParseDAAdvert(SLPBuffer buffer, SLPDAAdvert* daadvert)
    daadvert->spilistlen = AsUINT16(buffer->curpos);
    buffer->curpos = buffer->curpos + 2;
    if (daadvert->spilistlen > buffer->end - buffer->curpos)
-   {
       return SLP_ERROR_PARSE_ERROR;
-   }
+
    daadvert->spilist = buffer->curpos;
    buffer->curpos = buffer->curpos + daadvert->spilistlen;
-
 
    /* parse out auth block count */
    daadvert->authcount = *(buffer->curpos);
@@ -948,9 +957,7 @@ int ParseDAAdvert(SLPBuffer buffer, SLPDAAdvert* daadvert)
    {
       daadvert->autharray = (SLPAuthBlock*)xmalloc(sizeof(SLPAuthBlock) * daadvert->authcount);
       if (daadvert->autharray == 0)
-      {
          return SLP_ERROR_INTERNAL_ERROR;
-      }
       memset(daadvert->autharray,0,sizeof(SLPAuthBlock) * daadvert->authcount);
 
       for (i=0;i<daadvert->authcount;i++)
@@ -959,28 +966,34 @@ int ParseDAAdvert(SLPBuffer buffer, SLPDAAdvert* daadvert)
          if (result) return result;
       }
    }
-
    return 0;
 }
 
-int ParseSAAdvert(SLPBuffer buffer, SLPSAAdvert* saadvert)
+/** Parse an SA advertisement.
+ *
+ * @param[in] buffer - The buffer from which data should be parsed.
+ * @param[out] saadvert - The SA advertisement object into which 
+ *    @p buffer should be parsed.
+ *
+ * @return Zero on success, or a non-zero error code.
+ *
+ * @internal
+ */
+int ParseSAAdvert(SLPBuffer buffer, SLPSAAdvert * saadvert)
 {
-   int             result;
-   int             i;
+   int result;
+   int i;
 
    /* make sure that min size is met */
    if (buffer->end - buffer->curpos < 4)
-   {
       return SLP_ERROR_PARSE_ERROR;
-   }
 
    /* parse out the url */
    saadvert->urllen = AsUINT16(buffer->curpos);
    buffer->curpos = buffer->curpos + 2;
    if (saadvert->urllen > buffer->end - buffer->curpos)
-   {
       return SLP_ERROR_PARSE_ERROR;
-   }
+
    saadvert->url = buffer->curpos;
    buffer->curpos = buffer->curpos + saadvert->urllen;
 
@@ -988,9 +1001,8 @@ int ParseSAAdvert(SLPBuffer buffer, SLPSAAdvert* saadvert)
    saadvert->scopelistlen = AsUINT16(buffer->curpos);
    buffer->curpos = buffer->curpos + 2;
    if (saadvert->scopelistlen > buffer->end - buffer->curpos)
-   {
       return SLP_ERROR_PARSE_ERROR;
-   }
+
    saadvert->scopelist = buffer->curpos;
    buffer->curpos = buffer->curpos + saadvert->scopelistlen;
 
@@ -998,9 +1010,8 @@ int ParseSAAdvert(SLPBuffer buffer, SLPSAAdvert* saadvert)
    saadvert->attrlistlen = AsUINT16(buffer->curpos);
    buffer->curpos = buffer->curpos + 2;
    if (saadvert->attrlistlen > buffer->end - buffer->curpos)
-   {
       return SLP_ERROR_PARSE_ERROR;
-   }
+
    saadvert->attrlist = buffer->curpos;
    buffer->curpos = buffer->curpos + saadvert->attrlistlen;
 
@@ -1013,9 +1024,8 @@ int ParseSAAdvert(SLPBuffer buffer, SLPSAAdvert* saadvert)
    {
       saadvert->autharray = (SLPAuthBlock*)xmalloc(sizeof(SLPAuthBlock) * saadvert->authcount);
       if (saadvert->autharray == 0)
-      {
          return SLP_ERROR_INTERNAL_ERROR;
-      }
+
       memset(saadvert->autharray,0,sizeof(SLPAuthBlock) * saadvert->authcount);
 
       for (i=0;i<saadvert->authcount;i++)
@@ -1024,25 +1034,31 @@ int ParseSAAdvert(SLPBuffer buffer, SLPSAAdvert* saadvert)
          if (result) return result;
       }
    }
-
    return 0;
 }
 
-int ParseSrvTypeRqst(SLPBuffer buffer, SLPSrvTypeRqst* srvtyperqst)
+/** Parse a service type request.
+ *
+ * @param[in] buffer - The buffer from which data should be parsed.
+ * @param[out] srvtyperqst - The service type request object into which 
+ *    @p buffer should be parsed.
+ *
+ * @return Zero on success, or a non-zero error code.
+ *
+ * @internal
+ */
+int ParseSrvTypeRqst(SLPBuffer buffer, SLPSrvTypeRqst * srvtyperqst)
 {
    /* make sure that min size is met */
    if (buffer->end - buffer->curpos < 6)
-   {
       return SLP_ERROR_PARSE_ERROR;
-   }
 
    /* parse the prlist */
    srvtyperqst->prlistlen = AsUINT16(buffer->curpos);
    buffer->curpos += 2;
    if (srvtyperqst->prlistlen > buffer->end - buffer->curpos)
-   {
       return SLP_ERROR_PARSE_ERROR;
-   }
+
    srvtyperqst->prlist = srvtyperqst->prlistlen ? buffer->curpos : 0;
    buffer->curpos += srvtyperqst->prlistlen;
 
@@ -1050,15 +1066,12 @@ int ParseSrvTypeRqst(SLPBuffer buffer, SLPSrvTypeRqst* srvtyperqst)
    srvtyperqst->namingauthlen = AsUINT16(buffer->curpos);
    buffer->curpos += 2;
    if (!srvtyperqst->namingauthlen || srvtyperqst->namingauthlen == 0xffff)
-   {
       srvtyperqst->namingauth = 0;
-   }
    else
    {
       if (srvtyperqst->namingauthlen > buffer->end - buffer->curpos)
-      {
          return SLP_ERROR_PARSE_ERROR;
-      }
+
       srvtyperqst->namingauth = buffer->curpos;
       buffer->curpos += srvtyperqst->namingauthlen;
    }
@@ -1067,22 +1080,29 @@ int ParseSrvTypeRqst(SLPBuffer buffer, SLPSrvTypeRqst* srvtyperqst)
    srvtyperqst->scopelistlen = AsUINT16(buffer->curpos);
    buffer->curpos += 2;
    if (srvtyperqst->scopelistlen > buffer->end - buffer->curpos)
-   {
       return SLP_ERROR_PARSE_ERROR;
-   }
+
    srvtyperqst->scopelist = buffer->curpos;
    buffer->curpos += srvtyperqst->scopelistlen;
 
    return 0;
 }
 
-int ParseSrvTypeRply(SLPBuffer buffer, SLPSrvTypeRply* srvtyperply)
+/** Parse a service type reply.
+ *
+ * @param[in] buffer - The buffer from which data should be parsed.
+ * @param[out] srvtyperply - The service type reply object into which 
+ *    @p buffer should be parsed.
+ *
+ * @return Zero on success, or a non-zero error code.
+ *
+ * @internal
+ */
+int ParseSrvTypeRply(SLPBuffer buffer, SLPSrvTypeRply * srvtyperply)
 {
    /* make sure that min size is met */
    if (buffer->end - buffer->curpos < 4)
-   {
       return SLP_ERROR_PARSE_ERROR;
-   }
 
    /* parse out the error code */
    srvtyperply->errorcode = AsUINT16(buffer->curpos);
@@ -1100,19 +1120,30 @@ int ParseSrvTypeRply(SLPBuffer buffer, SLPSrvTypeRply* srvtyperply)
    buffer->curpos += 2;
 
    if (srvtyperply->srvtypelistlen > buffer->end - buffer->curpos)
-   {
       return SLP_ERROR_PARSE_ERROR;
-   }
+
    srvtyperply->srvtypelist = buffer->curpos;
 
    return 0;
 }
 
+/** Parse a service extension.
+ *
+ * @param[in] buffer - The buffer from which data should be parsed.
+ * @param[out] message - The service extension object into which 
+ *    @p buffer should be parsed.
+ *
+ * @return Zero on success, or a non-zero error code.
+ *
+ * @note Parse extensions @b after all standard protocol fields are parsed.
+ *
+ * @internal
+ */
 int ParseExtension(SLPBuffer buffer, SLPMessage message)
 {
-   int             extid;
-   int             nextoffset;
-   int             result  = SLP_ERROR_OK;
+   int extid;
+   int nextoffset;
+   int result  = SLP_ERROR_OK;
 
    nextoffset = message->header.extoffset;
    while (nextoffset)

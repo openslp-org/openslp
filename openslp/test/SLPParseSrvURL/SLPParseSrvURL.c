@@ -47,8 +47,8 @@
 int
 main(int argc, char *argv[])
 {
-   SLPError	err;
-   SLPSrvURL	*parsedurl;
+   SLPError err;
+   SLPSrvURL   *parsedurl;
 
    if (argc != 2)
    {

@@ -84,8 +84,8 @@ main(int argc, char *argv[])
    err = SLPFindSrvs(
          hslp, 
          argv[1],
-         0,		/* use configured scopes */
-         0,		/* no attr filter        */
+         0,    /* use configured scopes */
+         0,    /* no attr filter        */
          MySLPSrvURLCallback,
          &callbackerr);
    check_error_state(err, "Error registering service with slp.");

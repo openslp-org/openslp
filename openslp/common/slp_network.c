@@ -50,46 +50,41 @@
  *
  * @return A connected socket, or SLP_INVALID_SOCKET on error.
  */
-int SLPNetworkConnectStream(struct sockaddr_storage *peeraddr,   
-      struct timeval* timeout)
+int SLPNetworkConnectStream(struct sockaddr_storage * peeraddr,
+      struct timeval * timeout)
 {
 #ifdef _WIN32
    char lowat;
 #else
    int lowat;
 #endif
+
    int result;
 
    /** @todo Make the socket non-blocking so we can timeout on connect. */
    if (peeraddr->ss_family == AF_INET6)
-   {
-      result = socket(PF_INET6,SOCK_STREAM,0);
-   }
+      result = socket(PF_INET6, SOCK_STREAM, 0);
    else if (peeraddr->ss_family == AF_INET)
-   {
-      result = socket(PF_INET,SOCK_STREAM,0);
-   }
+      result = socket(PF_INET, SOCK_STREAM, 0);
    else
-   {
-      return (-1);
-   }
+      return -1;
+
    if (result >= 0)
    {
-      if (connect(result,
-            (struct sockaddr *)peeraddr,
+      if (connect(result, (struct sockaddr *)peeraddr,
             sizeof(struct sockaddr_storage)) == 0)
       {
          /* set the receive and send buffer low water mark to 18 bytes 
-         (the length of the smallest slpv2 message) */
+          * (the length of the smallest slpv2 message) 
+          */
          lowat = 18;
          setsockopt(result,SOL_SOCKET,SO_RCVLOWAT,&lowat,sizeof(lowat));
          setsockopt(result,SOL_SOCKET,SO_SNDLOWAT,&lowat,sizeof(lowat));
          return result;
-         ;
       }
       else
       {
-         #ifdef _WIN32 
+#ifdef _WIN32 
          closesocket(result);
 #else
          close(result);
@@ -97,7 +92,6 @@ int SLPNetworkConnectStream(struct sockaddr_storage *peeraddr,
          result = -1;
       }
    }
-
    return result;
 }
 
@@ -113,15 +107,12 @@ int SLPNetworkConnectStream(struct sockaddr_storage *peeraddr,
  *    values for errno include EPIPE on write error, and ETIMEOUT on 
  *    read timeout error.
  */
-int SLPNetworkSendMessage(int sockfd,
-      int socktype,
-      SLPBuffer buf,
-      struct sockaddr_storage* peeraddr,
-      struct timeval* timeout)
+int SLPNetworkSendMessage(int sockfd, int socktype, SLPBuffer buf, 
+      struct sockaddr_storage * peeraddr, struct timeval * timeout)
 {
-   fd_set      writefds;
-   int         xferbytes;
-   int         flags = 0;
+   fd_set writefds;
+   int xferbytes;
+   int flags = 0;
 
 #if defined(MSG_NOSIGNAL)
    flags = MSG_NOSIGNAL;
@@ -138,26 +129,15 @@ int SLPNetworkSendMessage(int sockfd,
       if (xferbytes > 0)
       {
          if (socktype == SOCK_DGRAM)
-         {
-            xferbytes = sendto(sockfd,
-                  buf->curpos, 
-                  buf->end - buf->curpos, 
-                  flags,
-                  (struct sockaddr *)peeraddr,
+            xferbytes = sendto(sockfd, buf->curpos, buf->end - buf->curpos,
+                  flags, (struct sockaddr *)peeraddr,
                   sizeof(struct sockaddr_storage));
-         }
          else
-         {
-            xferbytes = send(sockfd,
-                  buf->curpos, 
-                  buf->end - buf->curpos, 
+            xferbytes = send(sockfd, buf->curpos, buf->end - buf->curpos, 
                   flags);
-         }
 
          if (xferbytes > 0)
-         {
             buf->curpos = buf->curpos + xferbytes;
-         }
          else
          {
             errno = EPIPE;
@@ -166,7 +146,6 @@ int SLPNetworkSendMessage(int sockfd,
       }
       else if (xferbytes == 0)
       {
-         /* timed out */
          errno = ETIMEDOUT;
          return -1;
       }
@@ -176,7 +155,6 @@ int SLPNetworkSendMessage(int sockfd,
          return -1;
       }
    }
-
    return 0;
 }
 
@@ -192,16 +170,13 @@ int SLPNetworkSendMessage(int sockfd,
  *    for errno include ENOTCONN on read error, ETIMEOUT on network timeout,
  *    ENOMEM on out-of-memory error, and EINVAL on parse error.
  */
-int SLPNetworkRecvMessage(int sockfd,
-      int socktype,
-      SLPBuffer* buf,
-      struct sockaddr_storage* peeraddr,
-      struct timeval* timeout)
+int SLPNetworkRecvMessage(int sockfd, int socktype, SLPBuffer * buf,
+      struct sockaddr_storage * peeraddr, struct timeval * timeout)
 {
-   int         xferbytes;
-   fd_set      readfds;
-   char        peek[16];
-   int         peeraddrlen = sizeof(struct sockaddr_storage);
+   int xferbytes;
+   fd_set readfds;
+   char peek[16];
+   int peeraddrlen = sizeof(struct sockaddr_storage);
 
    /*---------------------------------------------------------------*/
    /* take a peek at the packet to get version and size information */
@@ -212,21 +187,10 @@ int SLPNetworkRecvMessage(int sockfd,
    if (xferbytes > 0)
    {
       if (socktype == SOCK_DGRAM)
-      {
-         xferbytes = recvfrom(sockfd,
-               peek,
-               16,
-               MSG_PEEK,
-               (struct sockaddr *)peeraddr,
-               &peeraddrlen);
-      }
+         xferbytes = recvfrom(sockfd, peek, sizeof(peek), MSG_PEEK,
+               (struct sockaddr *)peeraddr, &peeraddrlen);
       else
-      {
-         xferbytes = recv(sockfd,
-               peek,
-               16,
-               MSG_PEEK);
-      }
+         xferbytes = recv(sockfd, peek, sizeof(peek), MSG_PEEK);
 
       if (xferbytes <= 0)
       {
@@ -270,14 +234,10 @@ int SLPNetworkRecvMessage(int sockfd,
             xferbytes = select(sockfd + 1, &readfds, 0 , 0, timeout);
             if (xferbytes > 0)
             {
-               xferbytes = recv(sockfd,
-                     (*buf)->curpos, 
-                     (*buf)->end - (*buf)->curpos, 
-                     0);
+               xferbytes = recv(sockfd, (*buf)->curpos, 
+                     (*buf)->end - (*buf)->curpos, 0);
                if (xferbytes > 0)
-               {
                   (*buf)->curpos = (*buf)->curpos + xferbytes;
-               }
                else
                {
                   errno = ENOTCONN;
@@ -294,7 +254,7 @@ int SLPNetworkRecvMessage(int sockfd,
                errno =  ENOTCONN;
                return -1;
             }
-         } /* end of main read while. */
+         }
       }
       else
       {
@@ -307,7 +267,6 @@ int SLPNetworkRecvMessage(int sockfd,
       errno = EINVAL;
       return -1;
    }
-
    return 0;
 }
 

@@ -56,16 +56,16 @@ SLPDProperty G_SlpdProperty;
  *
  * @return Zero on success, or a non-zero value on failure.
  */
-int SLPDPropertyInit(const char* conffile)
+int SLPDPropertyInit(const char * conffile)
 {
-   char*               myname = 0;
-   char*                   myinterfaces = 0;
-   char*                   urlPrefix[27];    /* 27 is the size of "service:directory-agent://(NULL)" */
-   int                     family = AF_UNSPEC;
+   char * myname = 0;
+   char * myinterfaces = 0;
+   char * urlPrefix[27];    /* 27 is the size of "service:directory-agent://(0)" */
+   int family = AF_UNSPEC;
 
    SLPPropertyReadFile(conffile);
 
-   memset(&G_SlpdProperty,0,sizeof(G_SlpdProperty));
+   memset(&G_SlpdProperty, 0, sizeof(G_SlpdProperty));
 
    /*-------------------------------------------------------------*/
    /* Set the properties without hard defaults                    */
@@ -75,17 +75,14 @@ int SLPDPropertyInit(const char* conffile)
 
    if (G_SlpdProperty.activeDADetection)
    {
-      G_SlpdProperty.DAActiveDiscoveryInterval = atoi(SLPPropertyGet("net.slp.DAActiveDiscoveryInterval"));
-      if (G_SlpdProperty.DAActiveDiscoveryInterval > 1 &&
-            G_SlpdProperty.DAActiveDiscoveryInterval < SLPD_CONFIG_DA_FIND)
-      {
+      G_SlpdProperty.DAActiveDiscoveryInterval 
+            = atoi(SLPPropertyGet("net.slp.DAActiveDiscoveryInterval"));
+      if (G_SlpdProperty.DAActiveDiscoveryInterval > 1 
+            && G_SlpdProperty.DAActiveDiscoveryInterval < SLPD_CONFIG_DA_FIND)
          G_SlpdProperty.DAActiveDiscoveryInterval = SLPD_CONFIG_DA_FIND;
-      }
    }
    else
-   {
       G_SlpdProperty.DAActiveDiscoveryInterval = 0;
-   }
 
    G_SlpdProperty.passiveDADetection = SLPPropertyAsBoolean(SLPPropertyGet("net.slp.passiveDADetection"));
    G_SlpdProperty.isBroadcastOnly = SLPPropertyAsBoolean(SLPPropertyGet("net.slp.isBroadcastOnly"));
@@ -100,7 +97,9 @@ int SLPDPropertyInit(const char* conffile)
    G_SlpdProperty.traceDATraffic = SLPPropertyAsBoolean(SLPPropertyGet("net.slp.traceDATraffic"));
    G_SlpdProperty.DAAddresses = SLPPropertyGet("net.slp.DAAddresses");
    G_SlpdProperty.DAAddressesLen = strlen(G_SlpdProperty.DAAddresses);
-   /* TODO make sure that we are using scopes correctly.  What about DHCP, etc*/
+
+   /** @todo make sure that we are using scopes correctly. What about DHCP, etc? */
+
    G_SlpdProperty.useScopes = SLPPropertyGet("net.slp.useScopes");
    G_SlpdProperty.useScopesLen = strlen(G_SlpdProperty.useScopes);
    G_SlpdProperty.locale = SLPPropertyGet("net.slp.locale");
@@ -108,7 +107,6 @@ int SLPDPropertyInit(const char* conffile)
    G_SlpdProperty.securityEnabled = SLPPropertyAsBoolean(SLPPropertyGet("net.slp.securityEnabled"));
    G_SlpdProperty.checkSourceAddr = SLPPropertyAsBoolean(SLPPropertyGet("net.slp.checkSourceAddr"));
    G_SlpdProperty.DAHeartBeat = SLPPropertyAsInteger(SLPPropertyGet("net.slp.DAHeartBeat"));
-
 
    /*-------------------------------------*/
    /* Set the net.slp.interfaces property */
@@ -119,13 +117,13 @@ int SLPDPropertyInit(const char* conffile)
       family = AF_INET;
    else if (SLPNetIsIPV6())
       family = AF_INET6;
-   if (SLPIfaceGetInfo(SLPPropertyGet("net.slp.interfaces"),&G_SlpdProperty.ifaceInfo,family) == 0)
+   if (SLPIfaceGetInfo(SLPPropertyGet("net.slp.interfaces"), 
+         &G_SlpdProperty.ifaceInfo, family) == 0)
    {
       if (SLPPropertyGet("net.slp.interfaces"))
       {
          if (SLPIfaceSockaddrsToString(G_SlpdProperty.ifaceInfo.iface_addr,
-               G_SlpdProperty.ifaceInfo.iface_count,
-               &myinterfaces) == 0)
+               G_SlpdProperty.ifaceInfo.iface_count, &myinterfaces) == 0)
          {
             if (myinterfaces)
             {
@@ -154,21 +152,19 @@ int SLPDPropertyInit(const char* conffile)
       }
    }
 
-   /* NOTE! A portion of this code was merged from the 1.2.x line.
-   It needs to be fixed because IPv6 mods changed the algorithm
-   so the merge was bad. FIX!!! */
+   /** @todo A portion of this code was merged from the 1.2.x line.
+    * It needs to be fixed because IPv6 mods changed the algorithm
+    * so the merge was bad. FIX!!! 
+    */
 
    /*---------------------------------------------------------*/
    /* Set the value used internally as the url for this agent */
    /*---------------------------------------------------------*/
    if (G_SlpdProperty.isDA)
-   {
       strcpy((char *) urlPrefix,SLP_DA_SERVICE_TYPE);
-   }
    else
-   {
       strcpy((char *) urlPrefix,SLP_SA_SERVICE_TYPE);
-   }
+
    strcat((char *) urlPrefix,"://");
 
    SLPPropertySet("net.slp.urlPrefix",(char *) urlPrefix);
@@ -179,10 +175,10 @@ int SLPDPropertyInit(const char* conffile)
    /*----------------------------------*/
    /* Set other values used internally */
    /*----------------------------------*/
-   G_SlpdProperty.DATimestamp = 1;  /* DATimestamp must start at 1 */
-   G_SlpdProperty.activeDiscoveryXmits = 3; /* ensures xmit on first 3 calls to SLPDKnownDAActiveDiscovery() */
-   G_SlpdProperty.nextActiveDiscovery = 0;  /* ensures xmit on first call to SLPDKnownDAActiveDiscovery() */
-   G_SlpdProperty.nextPassiveDAAdvert = 0;  /* ensures xmit on first call to SLPDKnownDAPassiveDiscovery()*/
+   G_SlpdProperty.DATimestamp = 1;           /* DATimestamp must start at 1 */
+   G_SlpdProperty.activeDiscoveryXmits = 3;  /* ensures xmit on first 3 calls to SLPDKnownDAActiveDiscovery() */
+   G_SlpdProperty.nextActiveDiscovery = 0;   /* ensures xmit on first call to SLPDKnownDAActiveDiscovery() */
+   G_SlpdProperty.nextPassiveDAAdvert = 0;   /* ensures xmit on first call to SLPDKnownDAPassiveDiscovery()*/
 
    return 0;
 }
@@ -192,7 +188,7 @@ int SLPDPropertyInit(const char* conffile)
  *
  * @note This routine is compiled into DEBUG builds only.
  */
-void SLPDPropertyDeinit()
+void SLPDPropertyDeinit(void)
 {
    SLPPropertyFreeAll();
 }

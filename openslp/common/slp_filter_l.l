@@ -47,7 +47,7 @@
  * 02111-1307, USA. 
  *-------------------------------------------------------------------------*/
 
-/** Lex input file for LDAPv3 search filter.
+/** Flex input file for LDAPv3 search filter.
  *
  * @file       slp_filter_l.l
  * @date       04-21-2001
@@ -119,9 +119,9 @@ unsigned int slp_filter_init_lexer(const char *s);
 %}
 
 /* regex macros for the lexer */
-hexdigit		[0-9a-fA-F]
-reserved                [()\&|!=<>~\n] /* newline in reserved set for convinience */
-not_reserved            [^()\&|!=<>~\n] 
+hexdigit       [0-9a-fA-F]
+reserved       [()\&|!=<>~\n] /* newline in reserved set for convinience */
+not_reserved   [^()\&|!=<>~\n] 
 
 
 /* special lexer states */
@@ -135,7 +135,7 @@ not_reserved            [^()\&|!=<>~\n]
 "\""                          { BEGIN QUOTED_STRING; yyless(0); }
 <QUOTED_STRING>[^()\&|!=<>~\n]+  {
                                  BEGIN INITIAL; 
-                                 if(NULL != (yylval.filter_string =  xstrdup(yytext)))
+                                 if(0 != (yylval.filter_string =  xstrdup(yytext)))
                                     return(OPERAND) ; 
                                  else 
                                     return(0L) ;
@@ -178,7 +178,7 @@ not_reserved            [^()\&|!=<>~\n]
 
 
 [^()\&|!=<>~ \t\v\f]+       {
-                                 if(NULL != (yylval.filter_string =  xstrdup(yytext)))
+                                 if(0 != (yylval.filter_string =  xstrdup(yytext)))
                                     return(OPERAND) ; 
                                  else 
                                     return(0L) ;
@@ -188,19 +188,19 @@ not_reserved            [^()\&|!=<>~\n]
 
 void filter_close_lexer(unsigned int handle)
 {
-    yy_delete_buffer((YY_BUFFER_STATE)handle);
+   yy_delete_buffer((YY_BUFFER_STATE)handle);
 }
 
-unsigned int slp_filter_init_lexer(const char *s)
+unsigned int slp_filter_init_lexer(const char * s)
 {
-    memset(&buf[0], 0x00, 2052);
-    strncpy(&buf[0], s, 2048);
-    return((uint)yy_scan_buffer(&buf[0], strlen(s) + 2));
+   memset(&buf[0], 0x00, 2052);
+   strncpy(&buf[0], s, 2048);
+   return((uint)yy_scan_buffer(&buf[0], strlen(s) + 2));
 }
 
 void slp_filter_error(char *s, ...)
 {
-    return;
+   return;
 }   
 
 /*=========================================================================*/

@@ -67,19 +67,17 @@
  *
  * @internal
  */
-int ProcessSASrvRqst(SLPMessage message,
-      SLPBuffer* sendbuf,
+int ProcessSASrvRqst(SLPMessage message, SLPBuffer * sendbuf,
       int errorcode)
 {
    char localaddr_str[INET6_ADDRSTRLEN + 2];
    int size = 0;
    SLPBuffer result = *sendbuf;
 
-   if (message->body.srvrqst.scopelistlen == 0 ||
-         SLPIntersectStringList(message->body.srvrqst.scopelistlen,
-         message->body.srvrqst.scopelist,
-         G_SlpdProperty.useScopesLen,
-         G_SlpdProperty.useScopes) != 0)
+   if (message->body.srvrqst.scopelistlen == 0 
+         || SLPIntersectStringList(message->body.srvrqst.scopelistlen,
+               message->body.srvrqst.scopelist, G_SlpdProperty.useScopesLen,
+               G_SlpdProperty.useScopes) != 0)
    {
       /*----------------------*/
       /* Send back a SAAdvert */
@@ -88,31 +86,34 @@ int ProcessSASrvRqst(SLPMessage message,
       /*--------------------------------------------------------------*/
       /* ensure the buffer is big enough to handle the whole SAAdvert */
       /*--------------------------------------------------------------*/
-      size = message->header.langtaglen + 21; /* 14 bytes for header     */
-      /*  2 bytes for url count  */
-      /*  2 bytes for scope list len */
-      /*  2 bytes for attr list len */
-      /*  1 byte for authblock count */
+      size = message->header.langtaglen + 21;/* 14 bytes for header     */
+                                             /*  2 bytes for url count  */
+                                             /*  2 bytes for scope list len */
+                                             /*  2 bytes for attr list len */
+                                             /*  1 byte for authblock count */
       size += G_SlpdProperty.urlPrefixLen;
       localaddr_str[0] = '\0';
       if (message->localaddr.ss_family == AF_INET)
-      {
-         inet_ntop(message->localaddr.ss_family, &((struct sockaddr_in*) &message->localaddr)->sin_addr, localaddr_str, sizeof(localaddr_str));
-      }
+         inet_ntop(message->localaddr.ss_family, 
+               &((struct sockaddr_in*)&message->localaddr)->sin_addr, 
+               localaddr_str, sizeof(localaddr_str));
       else if (message->localaddr.ss_family == AF_INET6)
       {
          strcpy(localaddr_str, "[");
-         inet_ntop(message->localaddr.ss_family, &((struct sockaddr_in6*) &message->localaddr)->sin6_addr, &localaddr_str[1], sizeof(localaddr_str) - 1);
+         inet_ntop(message->localaddr.ss_family, 
+               &((struct sockaddr_in6 *)&message->localaddr)->sin6_addr, 
+               &localaddr_str[1], sizeof(localaddr_str) - 1);
          strcat(localaddr_str, "]");
       }
       size += strlen(localaddr_str);
       size += G_SlpdProperty.useScopesLen;
-      /* TODO: size += G_SlpdProperty.SAAttributes */
+
+      /** @todo size += G_SlpdProperty.SAAttributes */
 
       result = SLPBufferRealloc(result,size);
       if (result == 0)
       {
-         /* TODO: out of memory, what should we do here! */
+         /** @todo Out of memory, what should we do here! */
          errorcode = SLP_ERROR_INTERNAL_ERROR;
          goto FINISHED;
       }
@@ -136,8 +137,7 @@ int ProcessSASrvRqst(SLPMessage message,
       /*lang tag len*/
       ToUINT16(result->start + 12,message->header.langtaglen);
       /*lang tag*/
-      memcpy(result->start + 14,
-            message->header.langtag,
+      memcpy(result->start + 14, message->header.langtag,
             message->header.langtaglen);
 
       /*--------------------------*/
@@ -168,9 +168,7 @@ int ProcessSASrvRqst(SLPMessage message,
       *(result->curpos) = 0;
    }
    else
-   {
       errorcode = SLP_ERROR_SCOPE_NOT_SUPPORTED;
-   }
 
 FINISHED:
 
@@ -189,50 +187,44 @@ FINISHED:
  *
  * @internal
  */
-int ProcessDASrvRqst(SLPMessage message,
-      SLPBuffer* sendbuf,
+int ProcessDASrvRqst(SLPMessage message, SLPBuffer * sendbuf,
       int errorcode)
 {
-   SLPBuffer       tmp     = 0;
-   SLPMessage      msg     = 0;
-   void*           eh      = 0;
+   SLPBuffer tmp = 0;
+   SLPMessage msg = 0;
+   void * eh = 0;
 
    /*---------------------------------------------------------------------*/
    /* Special case for when libslp asks slpd (through the loopback) about */
    /* a known DAs. Fill sendbuf with DAAdverts from all known DAs.        */
    /*---------------------------------------------------------------------*/
 
-   if (SLPNetIsLoopback(&(message->peer)))
+   if (SLPNetIsLoopback(&message->peer))
    {
-      /* TODO: be smarter about how much memory is allocated here! */
-      /* 4096 may not be big enough to handle all DAAdverts        */
+      /** @todo Be smarter about how much memory is allocated here! 
+       * 4096 may not be big enough to handle all DAAdverts
+       */
       *sendbuf = SLPBufferRealloc(*sendbuf, 4096);
       if (*sendbuf == 0)
-      {
          return SLP_ERROR_INTERNAL_ERROR;
-      }
 
       if (errorcode == 0)
       {
-         /* Note: The weird *sendbuf code is making a single SLPBuffer */
-         /*       that contains multiple DAAdverts.  This is a special */
-         /*       process that only happens for the DA SrvRqst through */
-         /*       loopback to the SLPAPI                               */
-
+         /* Note: The weird *sendbuf code is making a single SLPBuffer
+          *       that contains multiple DAAdverts.  This is a special
+          *       process that only happens for the DA SrvRqst through
+          *       loopback to the SLPAPI
+          */
          eh = SLPDKnownDAEnumStart();
          if (eh)
          {
             while (1)
             {
                if (SLPDKnownDAEnum(eh, &msg, &tmp) == 0)
-               {
                   break;
-               }
 
                if (((*sendbuf)->curpos) + (tmp->end - tmp->start) > (*sendbuf)->end)
-               {
                   break;
-               }
 
                /* TRICKY: fix up the xid */
                tmp->curpos = tmp->start + 10;
@@ -241,16 +233,12 @@ int ProcessDASrvRqst(SLPMessage message,
                memcpy((*sendbuf)->curpos, tmp->start, tmp->end - tmp->start);
                (*sendbuf)->curpos = ((*sendbuf)->curpos) + (tmp->end - tmp->start);
             }
-
             SLPDKnownDAEnumEnd(eh);
          }
 
          /* Tack on a "terminator" DAAdvert */
          SLPDKnownDAGenerateMyDAAdvert(&message->localaddr,
-               SLP_ERROR_INTERNAL_ERROR,
-               0,
-               message->header.xid,
-               &tmp);
+               SLP_ERROR_INTERNAL_ERROR, 0, message->header.xid, &tmp);
          if (((*sendbuf)->curpos) + (tmp->end - tmp->start) <= (*sendbuf)->end)
          {
             memcpy((*sendbuf)->curpos, tmp->start, tmp->end - tmp->start);
@@ -261,58 +249,39 @@ int ProcessDASrvRqst(SLPMessage message,
          (*sendbuf)->end = (*sendbuf)->curpos;
 
          if (tmp)
-         {
             SLPBufferFree(tmp);
-         }
       }
-
       return errorcode;
    }
-
 
    /*---------------------------------------------------------------------*/
    /* Normal case where a remote Agent asks for a DA                      */
    /*---------------------------------------------------------------------*/
    *sendbuf = SLPBufferRealloc(*sendbuf, SLP_MAX_DATAGRAM_SIZE);
    if (*sendbuf == 0)
-   {
       return SLP_ERROR_INTERNAL_ERROR;
-   }
+
    if (G_SlpdProperty.isDA)
    {
-      if (message->body.srvrqst.scopelistlen == 0 ||
-            SLPIntersectStringList(message->body.srvrqst.scopelistlen, 
-            message->body.srvrqst.scopelist,
-            G_SlpdProperty.useScopesLen,
-            G_SlpdProperty.useScopes))
-      {
+      if (message->body.srvrqst.scopelistlen == 0 
+            || SLPIntersectStringList(message->body.srvrqst.scopelistlen, 
+                  message->body.srvrqst.scopelist, G_SlpdProperty.useScopesLen,
+                  G_SlpdProperty.useScopes))
          errorcode = SLPDKnownDAGenerateMyDAAdvert(&message->localaddr,
-               errorcode,
-               0,
-               message->header.xid,
-               sendbuf);
-      }
+               errorcode, 0, message->header.xid, sendbuf);
       else
-      {
          errorcode =  SLP_ERROR_SCOPE_NOT_SUPPORTED;
-      }
    }
    else
-   {
       errorcode = SLP_ERROR_MESSAGE_NOT_SUPPORTED;
-   }
 
    /*-----------------------------------------------*/
    /* don't return errorcodes to multicast messages */
    /*-----------------------------------------------*/
    if (errorcode != 0)
-   {
-      if (message->header.flags & SLP_FLAG_MCAST ||
-            SLPNetIsMCast(&(message->peer)))
-      {
+      if (message->header.flags & SLP_FLAG_MCAST 
+            || SLPNetIsMCast(&(message->peer)))
          (*sendbuf)->end = (*sendbuf)->start;
-      }
-   }
 
    return errorcode;
 }
@@ -327,37 +296,31 @@ int ProcessDASrvRqst(SLPMessage message,
  *
  * @internal
  */
-int ProcessSrvRqst(SLPMessage message,
-      SLPBuffer* sendbuf,
-      int errorcode)
+int ProcessSrvRqst(SLPMessage message, SLPBuffer * sendbuf, int errorcode)
 {
-   int                         i;
-   SLPUrlEntry*                urlentry;
-   SLPDDatabaseSrvRqstResult*  db          = 0;
-   int                         size        = 0;
-   SLPBuffer                   result      = *sendbuf;
+   int i;
+   SLPUrlEntry * urlentry;
+   SLPDDatabaseSrvRqstResult * db = 0;
+   int size = 0;
+   SLPBuffer result = *sendbuf;
 
 #ifdef ENABLE_SLPv2_SECURITY
-   SLPAuthBlock*               authblock    = 0;
-   int                          j;
+   SLPAuthBlock * authblock = 0;
+   int j;
 #endif
-
 
    /*--------------------------------------------------------------*/
    /* If errorcode is set, we can not be sure that message is good */
    /* Go directly to send response code                            */
    /*--------------------------------------------------------------*/
    if (errorcode)
-   {
       goto RESPOND;
-   }
 
    /*-------------------------------------------------*/
    /* Check for one of our IP addresses in the prlist */
    /*-------------------------------------------------*/
    if (SLPIntersectStringList(message->body.srvrqst.prlistlen,
-         message->body.srvrqst.prlist,
-         G_SlpdProperty.interfacesLen,
+         message->body.srvrqst.prlist, G_SlpdProperty.interfacesLen,
          G_SlpdProperty.interfaces))
    {
       /* silently ignore */
@@ -374,8 +337,7 @@ int ProcessSrvRqst(SLPMessage message,
 #ifdef ENABLE_SLPv2_SECURITY
    if (G_SlpdProperty.securityEnabled)
    {
-      if (SLPSpiCanVerify(G_SlpdSpiHandle,
-            message->body.srvrqst.spistrlen,
+      if (SLPSpiCanVerify(G_SlpdSpiHandle, message->body.srvrqst.spistrlen,
             message->body.srvrqst.spistr) == 0)
       {
          errorcode = SLP_ERROR_AUTHENTICATION_UNKNOWN;
@@ -399,34 +361,29 @@ int ProcessSrvRqst(SLPMessage message,
    /* Check to to see if a this is a special SrvRqst */
    /*------------------------------------------------*/
    if (SLPCompareString(message->body.srvrqst.srvtypelen,
-         message->body.srvrqst.srvtype,
-         23,
-         SLP_DA_SERVICE_TYPE) == 0)
+         message->body.srvrqst.srvtype, 23, SLP_DA_SERVICE_TYPE) == 0)
    {
       errorcode = ProcessDASrvRqst(message, sendbuf, errorcode);
       if (errorcode == 0)
       {
-         // Since we have an errorcode of 0, we were successful,
-         // and have already formed a response packet; return now.
+         /* Since we have an errorcode of 0, we were successful,
+          * and have already formed a response packet; return now.
+          */
          return errorcode;
       }
-
       goto RESPOND;
-
    }
    if (SLPCompareString(message->body.srvrqst.srvtypelen,
-         message->body.srvrqst.srvtype,
-         21,
-         SLP_SA_SERVICE_TYPE) == 0)
+         message->body.srvrqst.srvtype, 21, SLP_SA_SERVICE_TYPE) == 0)
    {
       errorcode = ProcessSASrvRqst(message, sendbuf, errorcode);
       if (errorcode == 0)
       {
-         // Since we have an errorcode of 0, we were successful,
-         // and have already formed a response packet; return now.
+         /* Since we have an errorcode of 0, we were successful,
+          * and have already formed a response packet; return now.
+          */
          return errorcode;
       }
-
       goto RESPOND;
    }
 
@@ -434,28 +391,21 @@ int ProcessSrvRqst(SLPMessage message,
    /* Make sure that we handle the scope */
    /*------ -----------------------------*/
    if (SLPIntersectStringList(message->body.srvrqst.scopelistlen,
-         message->body.srvrqst.scopelist,
-         G_SlpdProperty.useScopesLen,
+         message->body.srvrqst.scopelist, G_SlpdProperty.useScopesLen,
          G_SlpdProperty.useScopes) != 0)
-   {
-      /*-------------------------------*/
-      /* Find services in the database */
-      /*-------------------------------*/
       errorcode = SLPDDatabaseSrvRqstStart(message, &db);
-   }
    else
-   {
       errorcode = SLP_ERROR_SCOPE_NOT_SUPPORTED;
-   }
 
 RESPOND:
+
    /*----------------------------------------------------------------*/
    /* Do not send error codes or empty replies to multicast requests */
    /*----------------------------------------------------------------*/
    if (errorcode != 0 || db->urlcount == 0)
    {
-      if (message->header.flags & SLP_FLAG_MCAST ||
-            SLPNetIsMCast(&(message->peer)))
+      if (message->header.flags & SLP_FLAG_MCAST 
+            || SLPNetIsMCast(&(message->peer)))
       {
          result->end = result->start;
          goto FINISHED;
@@ -465,9 +415,9 @@ RESPOND:
    /*-------------------------------------------------------------*/
    /* ensure the buffer is big enough to handle the whole srvrply */
    /*-------------------------------------------------------------*/
-   size = message->header.langtaglen + 18; /* 14 bytes for header     */
-   /*  2 bytes for error code */
-   /*  2 bytes for url count  */
+   size = message->header.langtaglen + 18;/* 14 bytes for header     */
+                                          /*  2 bytes for error code */
+                                          /*  2 bytes for url count  */
    if (errorcode == 0)
    {
       for (i=0;i<db->urlcount;i++)
@@ -476,14 +426,12 @@ RESPOND:
          urlentry = db->urlarray[i];
 
          size += urlentry->urllen + 6; /*  1 byte for reserved  */
-         /*  2 bytes for lifetime */
-         /*  2 bytes for urllen   */
-         /*  1 byte for authcount */
+                                       /*  2 bytes for lifetime */
+                                       /*  2 bytes for urllen   */
+                                       /*  1 byte for authcount */
 #ifdef ENABLE_SLPv2_SECURITY
-
          /* make room to include the authblock that was asked for */
-         if (G_SlpdProperty.securityEnabled &&
-               message->body.srvrqst.spistrlen)
+         if (G_SlpdProperty.securityEnabled && message->body.srvrqst.spistrlen)
          {
             for (j=0; j<urlentry->authcount;j++)
             {
@@ -505,7 +453,7 @@ RESPOND:
    /*------------------------------*/
    /* Reallocate the result buffer */
    /*------------------------------*/
-   result = SLPBufferRealloc(result,size);
+   result = SLPBufferRealloc(result, size);
    if (result == 0)
    {
       errorcode = SLP_ERROR_INTERNAL_ERROR;
@@ -575,7 +523,7 @@ RESPOND:
          else
 #endif
          {
-            /* Use an opaque copy if available (and authentication is not being used)*/
+            /* Use an opaque copy if available (and authentication is not being used) */
             /* TRICKY: fix up the lifetime */
             ToUINT16(urlentry->opaque + 1,urlentry->lifetime);
             memcpy(result->curpos,urlentry->opaque,urlentry->opaquelen);
@@ -591,6 +539,7 @@ RESPOND:
    }
 
 FINISHED:
+
    if (db) SLPDDatabaseSrvRqstEnd(db);
 
    *sendbuf = result;
@@ -609,88 +558,68 @@ FINISHED:
  *
  * @internal
  */
-int ProcessSrvReg(SLPMessage message,
-      SLPBuffer recvbuf,
-      SLPBuffer* sendbuf,
-      int errorcode)
+int ProcessSrvReg(SLPMessage message, SLPBuffer recvbuf, 
+      SLPBuffer * sendbuf, int errorcode)
 {
-   SLPBuffer       result  = *sendbuf;
+   SLPBuffer result = *sendbuf;
 
    /*--------------------------------------------------------------*/
    /* If errorcode is set, we can not be sure that message is good */
    /* Go directly to send response code  also do not process mcast */
    /* srvreg or srvdereg messages                                  */
    /*--------------------------------------------------------------*/
-   if (errorcode ||
-         message->header.flags & SLP_FLAG_MCAST ||
-         SLPNetIsMCast(&(message->peer)))
-   {
+   if (errorcode || message->header.flags & SLP_FLAG_MCAST 
+         || SLPNetIsMCast(&(message->peer)))
       goto RESPOND;
-   }
 
    /*------------------------------------*/
    /* Make sure that we handle the scope */
    /*------ -----------------------------*/
    if (SLPIntersectStringList(message->body.srvreg.scopelistlen,
-         message->body.srvreg.scopelist,
-         G_SlpdProperty.useScopesLen,
+         message->body.srvreg.scopelist, G_SlpdProperty.useScopesLen,
          G_SlpdProperty.useScopes))
    {
-
 #ifdef ENABLE_SLPv2_SECURITY
-
       /*-------------------------------*/
       /* Validate the authblocks       */
       /*-------------------------------*/
-      errorcode = SLPAuthVerifyUrl(G_SlpdSpiHandle,
-            0,
+      errorcode = SLPAuthVerifyUrl(G_SlpdSpiHandle, 0,
             &(message->body.srvreg.urlentry));
       if (errorcode == 0)
-      {
-         errorcode = SLPAuthVerifyString(G_SlpdSpiHandle,
-               0,
-               message->body.srvreg.attrlistlen,
-               message->body.srvreg.attrlist,
-               message->body.srvreg.authcount,
-               message->body.srvreg.autharray);
-      }
+         errorcode = SLPAuthVerifyString(G_SlpdSpiHandle, 0,
+               message->body.srvreg.attrlistlen, message->body.srvreg.attrlist,
+               message->body.srvreg.authcount, message->body.srvreg.autharray);
       if (errorcode == 0)
 #endif
       {
          /*--------------------------------------------------------------*/
          /* Put the registration in the                                  */
          /*--------------------------------------------------------------*/
-         /* TRICKY: Remember the recvbuf was duplicated back in          */
-         /*         SLPDProcessMessage()                                 */
-
+         /* TRICKY: Remember the recvbuf was duplicated back in
+          * SLPDProcessMessage()
+          */
          if (SLPNetIsLoopback(&(message->peer)))
-         {
             message->body.srvreg.source= SLP_REG_SOURCE_LOCAL;
-         }
          else
-         {
             message->body.srvreg.source = SLP_REG_SOURCE_REMOTE;
-         }
 
          errorcode = SLPDDatabaseReg(message, recvbuf);
       }
    }
    else
-   {
       errorcode = SLP_ERROR_SCOPE_NOT_SUPPORTED;
-   }
 
 RESPOND:
+
    /*--------------------------------------------------------------------*/
    /* don't send back reply anything multicast SrvReg (set result empty) */
    /*--------------------------------------------------------------------*/
-   if (message->header.flags & SLP_FLAG_MCAST ||
-         SLPNetIsMCast(&(message->peer)))
+   if (message->header.flags & SLP_FLAG_MCAST 
+         || SLPNetIsMCast(&(message->peer)))
    {
       result->end = result->start;
       goto FINISHED;
    }
-
 
    /*------------------------------------------------------------*/
    /* ensure the buffer is big enough to handle the whole srvack */
@@ -730,6 +659,7 @@ RESPOND:
    ToUINT16(result->start + 14 + message->header.langtaglen, errorcode);
 
 FINISHED:
+
    *sendbuf = result;
    return errorcode;
 }
@@ -744,9 +674,7 @@ FINISHED:
  *
  * @internal
  */
-int ProcessSrvDeReg(SLPMessage message,
-      SLPBuffer* sendbuf,
-      int errorcode)
+int ProcessSrvDeReg(SLPMessage message, SLPBuffer * sendbuf, int errorcode)
 {
    SLPBuffer result = *sendbuf;
 
@@ -756,47 +684,35 @@ int ProcessSrvDeReg(SLPMessage message,
    /* srvreg or srvdereg messages                                  */
    /*--------------------------------------------------------------*/
    if (errorcode || message->header.flags & SLP_FLAG_MCAST)
-   {
       goto RESPOND;
-   }
-
 
    /*------------------------------------*/
    /* Make sure that we handle the scope */
    /*------------------------------------*/
    if (SLPIntersectStringList(message->body.srvdereg.scopelistlen,
-         message->body.srvdereg.scopelist,
-         G_SlpdProperty.useScopesLen,
+         message->body.srvdereg.scopelist, G_SlpdProperty.useScopesLen,
          G_SlpdProperty.useScopes))
    {
 #ifdef ENABLE_SLPv2_SECURITY
-
       /*-------------------------------*/
       /* Validate the authblocks       */
       /*-------------------------------*/
-      errorcode = SLPAuthVerifyUrl(G_SlpdSpiHandle,
-            0,
+      errorcode = SLPAuthVerifyUrl(G_SlpdSpiHandle, 0,
             &(message->body.srvdereg.urlentry));
       if (errorcode == 0)
 #endif
-      {
-         /*--------------------------------------*/
-         /* remove the service from the database */
-         /*--------------------------------------*/
          errorcode = SLPDDatabaseDeReg(message);
-      }
    }
    else
-   {
       errorcode = SLP_ERROR_SCOPE_NOT_SUPPORTED;
-   }
 
 RESPOND:
+
    /*---------------------------------------------------------*/
    /* don't do anything multicast SrvDeReg (set result empty) */
    /*---------------------------------------------------------*/
-   if (message->header.flags & SLP_FLAG_MCAST ||
-         SLPNetIsMCast(&(message->peer)))
+   if (message->header.flags & SLP_FLAG_MCAST 
+         || SLPNetIsMCast(&(message->peer)))
    {
       result->end = result->start;
       goto FINISHED;
@@ -840,6 +756,7 @@ RESPOND:
    ToUINT16(result->start + 14 + message->header.langtaglen, errorcode);
 
 FINISHED:
+
    *sendbuf = result;
    return errorcode;
 }
@@ -854,11 +771,9 @@ FINISHED:
  *
  * @internal
  */
-int ProcessSrvAck(SLPMessage message,
-      SLPBuffer* sendbuf,
-      int errorcode)
+int ProcessSrvAck(SLPMessage message, SLPBuffer * sendbuf, int errorcode)
 {
-   /* Ignore SrvAck.  Just return errorcode to caller */
+   /* Ignore SrvAck. Just return errorcode to caller */
    SLPBuffer result = *sendbuf;
 
    result->end = result->start;
@@ -875,38 +790,32 @@ int ProcessSrvAck(SLPMessage message,
  *
  * @internal
  */
-int ProcessAttrRqst(SLPMessage message,
-      SLPBuffer* sendbuf,
-      int errorcode)
+int ProcessAttrRqst(SLPMessage message, SLPBuffer * sendbuf, int errorcode)
 {
-   SLPDDatabaseAttrRqstResult* db              = 0;
-   int                         size            = 0;
-   SLPBuffer                   result          = *sendbuf;
+   SLPDDatabaseAttrRqstResult * db = 0;
+   int size = 0;
+   SLPBuffer result = *sendbuf;
 
 #ifdef ENABLE_SLPv2_SECURITY
-   int               i;
-   unsigned char*    generatedauth       = 0;
-   int               generatedauthlen    = 0;
-   unsigned char*    opaqueauth          = 0;
-   int               opaqueauthlen       = 0;
+   int i;
+   unsigned char * generatedauth = 0;
+   int generatedauthlen = 0;
+   unsigned char * opaqueauth = 0;
+   int opaqueauthlen = 0;
 #endif
-
 
    /*--------------------------------------------------------------*/
    /* If errorcode is set, we can not be sure that message is good */
    /* Go directly to send response code                            */
    /*--------------------------------------------------------------*/
    if (errorcode)
-   {
       goto RESPOND;
-   }
 
    /*-------------------------------------------------*/
    /* Check for one of our IP addresses in the prlist */
    /*-------------------------------------------------*/
    if (SLPIntersectStringList(message->body.attrrqst.prlistlen,
-         message->body.attrrqst.prlist,
-         G_SlpdProperty.interfacesLen,
+         message->body.attrrqst.prlist, G_SlpdProperty.interfacesLen,
          G_SlpdProperty.interfaces))
    {
       /* Silently ignore */
@@ -914,16 +823,13 @@ int ProcessAttrRqst(SLPMessage message,
       goto FINISHED;
    }
 
-
    /*------------------------------------*/
    /* Make sure that we handle the scope */
    /*------ -----------------------------*/
    if (SLPIntersectStringList(message->body.attrrqst.scopelistlen,
-         message->body.attrrqst.scopelist,
-         G_SlpdProperty.useScopesLen,
+         message->body.attrrqst.scopelist, G_SlpdProperty.useScopesLen,
          G_SlpdProperty.useScopes))
    {
-
       /*------------------------------------------------------------------*/
       /* Make sure that we handle at least verify registrations made with */
       /* the requested SPI.  If we can't then have to return an error     */
@@ -983,52 +889,47 @@ int ProcessAttrRqst(SLPMessage message,
       errorcode = SLPDDatabaseAttrRqstStart(message,&db);
    }
    else
-   {
       errorcode = SLP_ERROR_SCOPE_NOT_SUPPORTED;
-   }
-
 
 RESPOND:
+
    /*----------------------------------------------------------------*/
    /* Do not send error codes or empty replies to multicast requests */
    /*----------------------------------------------------------------*/
    if (errorcode != 0 || db->attrlistlen == 0)
    {
-      if (message->header.flags & SLP_FLAG_MCAST ||
-            SLPNetIsMCast(&(message->peer)))
+      if (message->header.flags & SLP_FLAG_MCAST 
+            || SLPNetIsMCast(&(message->peer)))
       {
          result->end = result->start;
          goto FINISHED;
       }
    }
 
-
    /*--------------------------------------------------------------*/
    /* ensure the buffer is big enough to handle the whole attrrply */
    /*--------------------------------------------------------------*/
-   size = message->header.langtaglen + 19; /* 14 bytes for header     */
-   /*  2 bytes for error code */
-   /*  2 bytes for attr-list len */
-   /*  1 byte for the authcount */
+   size = message->header.langtaglen + 19;/* 14 bytes for header     */
+                                          /*  2 bytes for error code */
+                                          /*  2 bytes for attr-list len */
+                                          /*  1 byte for the authcount */
    if (errorcode == 0)
    {
       size += db->attrlistlen;
 
-    #ifdef ENABLE_SLPv2_SECURITY
-
+#ifdef ENABLE_SLPv2_SECURITY
       /*------------------------------------------------------------------*/
       /* Generate authblock if necessary or just use the one was included */
       /* by registering agent.  Reserve sufficent space for either case.  */
       /*------------------------------------------------------------------*/
-      if (G_SlpdProperty.securityEnabled &&
-            message->body.attrrqst.spistrlen)
+      if (G_SlpdProperty.securityEnabled && message->body.attrrqst.spistrlen)
       {
          if (message->body.attrrqst.taglistlen == 0)
          {
             for (i=0; i<db->authcount;i++)
             {
                if (SLPCompareString(db->autharray[i].spistrlen,
-                     db->autharray[i].spistr,
+                     db->autharray[i].spistr, 
                      message->body.attrrqst.spistrlen,
                      message->body.attrrqst.spistr) == 0)
                {
@@ -1041,18 +942,16 @@ RESPOND:
          else
          {
             errorcode = SLPAuthSignString(G_SlpdSpiHandle,
-                  message->body.attrrqst.spistrlen,
+                  message->body.attrrqst.spistrlen, 
                   message->body.attrrqst.spistr,
-                  db->attrlistlen,
-                  db->attrlist,
-                  &generatedauthlen,
-                  &generatedauth);
+                  db->attrlistlen, db->attrlist,
+                  &generatedauthlen, &generatedauth);
             opaqueauthlen = generatedauthlen;
             opaqueauth = generatedauth;
          }
          size += opaqueauthlen;
       }
-    #endif
+#endif
    }
 
    /*-------------------*/
@@ -1084,8 +983,7 @@ RESPOND:
    /*lang tag len*/
    ToUINT16(result->start + 12,message->header.langtaglen);
    /*lang tag*/
-   memcpy(result->start + 14,
-         message->header.langtag,
+   memcpy(result->start + 14, message->header.langtag,
          message->header.langtaglen);
 
    /*--------------------------*/
@@ -1101,9 +999,8 @@ RESPOND:
       ToUINT16(result->curpos, db->attrlistlen);
       result->curpos = result->curpos + 2;
       if (db->attrlistlen)
-      {
          memcpy(result->curpos, db->attrlist, db->attrlistlen);
-      }
+
       result->curpos = result->curpos + db->attrlistlen;
 
       /* authentication block */
@@ -1113,9 +1010,7 @@ RESPOND:
          /* authcount */
          *(result->curpos) = 1;
          result->curpos = result->curpos + 1;
-         memcpy(result->curpos,
-               opaqueauth,
-               opaqueauthlen);
+         memcpy(result->curpos, opaqueauth, opaqueauthlen);
          result->curpos = result->curpos + opaqueauthlen;
       }
       else
@@ -1126,7 +1021,6 @@ RESPOND:
          result->curpos = result->curpos + 1;
       }
    }
-
 
 FINISHED:
 
@@ -1153,10 +1047,8 @@ FINISHED:
  *
  * @internal
  */
-int ProcessDAAdvert(SLPMessage message,
-      SLPBuffer recvbuf,
-      SLPBuffer* sendbuf,
-      int errorcode)
+int ProcessDAAdvert(SLPMessage message, SLPBuffer recvbuf, 
+      SLPBuffer * sendbuf, int errorcode)
 {
    SLPBuffer result = *sendbuf;
 
@@ -1165,48 +1057,38 @@ int ProcessDAAdvert(SLPMessage message,
    /* Go directly to send response code                            */
    /*--------------------------------------------------------------*/
    if (errorcode)
-   {
       goto RESPOND;
-   }
 
    /*--------------------------------------------------------------*/
    /* If net.slp.passiveDADetection is turned off then we ignore   */
    /* DAAdverts with xid == 0                                      */
    /*--------------------------------------------------------------*/
-   if (G_SlpdProperty.passiveDADetection == 0 &&
-         message->header.xid == 0)
-   {
+   if (G_SlpdProperty.passiveDADetection == 0 && message->header.xid == 0)
       goto RESPOND;
-   }
 
    /*--------------------------------------------------------------*/
    /* If net.slp.DAActiveDiscoveryInterval == 0 then we ignore     */
    /* DAAdverts with xid != 0                                      */
    /*--------------------------------------------------------------*/
-   if (G_SlpdProperty.DAActiveDiscoveryInterval == 0 &&
-         message->header.xid != 0)
-   {
+   if (G_SlpdProperty.DAActiveDiscoveryInterval == 0 
+         && message->header.xid != 0)
       goto RESPOND;
-   }
 
    /*-------------------------------*/
    /* Validate the authblocks       */
    /*-------------------------------*/
 #ifdef ENABLE_SLPv2_SECURITY
-   errorcode = SLPAuthVerifyDAAdvert(G_SlpdSpiHandle,
-         0,
-         &(message->body.daadvert));
+   errorcode = SLPAuthVerifyDAAdvert(G_SlpdSpiHandle, 0, &message->body.daadvert);
    if (errorcode == 0);
 #endif
    {
       /* Only process if errorcode is not set */
       if (message->body.daadvert.errorcode == SLP_ERROR_OK)
-      {
          errorcode = SLPDKnownDAAdd(message,recvbuf);
-      }
    }
 
 RESPOND:
+
    /* DAAdverts should never be replied to.  Set result buffer to empty*/
    result->end = result->start;
 
@@ -1225,30 +1107,25 @@ RESPOND:
  *
  * @internal
  */
-int ProcessSrvTypeRqst(SLPMessage message,
-      SLPBuffer* sendbuf,
+int ProcessSrvTypeRqst(SLPMessage message, SLPBuffer * sendbuf,
       int errorcode)
 {
-   int                             size    = 0;
-   SLPDDatabaseSrvTypeRqstResult*  db      = 0;
-   SLPBuffer                       result  = *sendbuf;
+   int size = 0;
+   SLPDDatabaseSrvTypeRqstResult * db = 0;
+   SLPBuffer result = *sendbuf;
 
    /*--------------------------------------------------------------*/
    /* If errorcode is set, we can not be sure that message is good */
    /* Go directly to send response code                            */
    /*--------------------------------------------------------------*/
    if (errorcode)
-   {
       goto RESPOND;
-   }
-
 
    /*-------------------------------------------------*/
    /* Check for one of our IP addresses in the prlist */
    /*-------------------------------------------------*/
    if (SLPIntersectStringList(message->body.srvtyperqst.prlistlen,
-         message->body.srvtyperqst.prlist,
-         G_SlpdProperty.interfacesLen,
+         message->body.srvtyperqst.prlist, G_SlpdProperty.interfacesLen,
          G_SlpdProperty.interfaces))
    {
       /* Silently ignore */
@@ -1260,19 +1137,11 @@ int ProcessSrvTypeRqst(SLPMessage message,
    /* Make sure that we handle the scope */
    /*------ -----------------------------*/
    if (SLPIntersectStringList(message->body.srvtyperqst.scopelistlen,
-         message->body.srvtyperqst.scopelist,
-         G_SlpdProperty.useScopesLen,
+         message->body.srvtyperqst.scopelist, G_SlpdProperty.useScopesLen,
          G_SlpdProperty.useScopes) != 0)
-   {
-      /*------------------------------------*/
-      /* Find service types in the database */
-      /*------------------------------------*/
       errorcode = SLPDDatabaseSrvTypeRqstStart(message, &db);
-   }
    else
-   {
       errorcode = SLP_ERROR_SCOPE_NOT_SUPPORTED;
-   }
 
 RESPOND:
 
@@ -1281,8 +1150,8 @@ RESPOND:
    /*----------------------------------------------------------------*/
    if (errorcode != 0 || db->srvtypelistlen == 0)
    {
-      if (message->header.flags & SLP_FLAG_MCAST ||
-            SLPNetIsMCast(&(message->peer)))
+      if (message->header.flags & SLP_FLAG_MCAST 
+            || SLPNetIsMCast(&(message->peer)))
       {
          result->end = result->start;
          goto FINISHED;
@@ -1292,15 +1161,11 @@ RESPOND:
    /*-----------------------------------------------------------------*/
    /* ensure the buffer is big enough to handle the whole srvtyperply */
    /*-----------------------------------------------------------------*/
-   size = message->header.langtaglen + 18; /* 14 bytes for header     */
-   /*  2 bytes for error code */
-   /*  2 bytes for srvtype
-   list length  */
+   size = message->header.langtaglen + 18;/* 14 bytes for header     */
+                                          /*  2 bytes for error code */
+                                          /*  2 bytes for srvtype len */
    if (errorcode == 0)
-   {
       size += db->srvtypelistlen;
-   }
-
 
    /*------------------------------*/
    /* Reallocate the result buffer */
@@ -1331,8 +1196,7 @@ RESPOND:
    /*lang tag len*/
    ToUINT16(result->start + 12,message->header.langtaglen);
    /*lang tag*/
-   memcpy(result->start + 14,
-         message->header.langtag,
+   memcpy(result->start + 14, message->header.langtag,
          message->header.langtaglen);
 
    /*-----------------------------*/
@@ -1349,14 +1213,12 @@ RESPOND:
       /* length of srvtype-list */
       ToUINT16(result->curpos, db->srvtypelistlen);
       result->curpos += 2;
-      memcpy(result->curpos, 
-            db->srvtypelist,
-            db->srvtypelistlen);
+      memcpy(result->curpos, db->srvtypelist, db->srvtypelistlen);
       result->curpos += db->srvtypelistlen;
    }
 
-
 FINISHED:
+
    if (db) SLPDDatabaseSrvTypeRqstEnd(db);
 
    *sendbuf = result;
@@ -1374,9 +1236,7 @@ FINISHED:
  *
  * @internal
  */
-int ProcessSAAdvert(SLPMessage message,
-      SLPBuffer* sendbuf,
-      int errorcode)
+int ProcessSAAdvert(SLPMessage message, SLPBuffer * sendbuf, int errorcode)
 {
    /* Ignore all SAADVERTS */
    (*sendbuf)->end = (*sendbuf)->start;
@@ -1395,19 +1255,19 @@ int ProcessSAAdvert(SLPMessage message,
  *    or a non-zero value if @p sendbuf does not contain a response
  *    to send.
  */
-int SLPDProcessMessage(struct sockaddr_storage* peerinfo,
-      struct sockaddr_storage* localaddr,
-      SLPBuffer recvbuf,
-      SLPBuffer* sendbuf)
+int SLPDProcessMessage(struct sockaddr_storage * peerinfo,
+      struct sockaddr_storage * localaddr, SLPBuffer recvbuf,
+      SLPBuffer * sendbuf)
 {
-   SLPHeader   header;
-   SLPMessage  message     = 0;
-   int         errorcode   = 0;
+   SLPHeader header;
+   SLPMessage message = 0;
+   int errorcode = 0;
+
 #ifdef DEBUG
-   char        addr_str[INET6_ADDRSTRLEN];
+   char addr_str[INET6_ADDRSTRLEN];
 #endif
 
-   SLPDLogMessage(SLPDLOG_TRACEMSG_IN,peerinfo,localaddr,recvbuf);
+   SLPDLogMessage(SLPDLOG_TRACEMSG_IN, peerinfo, localaddr, recvbuf);
 
    if (!*sendbuf)
    {
@@ -1419,42 +1279,36 @@ int SLPDProcessMessage(struct sockaddr_storage* peerinfo,
    (*sendbuf)->end = (*sendbuf)->start;
 
    /* zero out the header before parsing it */
-   memset(&header,0,sizeof(header));
+   memset(&header, 0, sizeof(header));
 
    /* Parse just the message header */
    recvbuf->curpos = recvbuf->start;
-   errorcode = SLPMessageParseHeader(recvbuf,&header);
+   errorcode = SLPMessageParseHeader(recvbuf, &header);
 
    /* Reset the buffer "curpos" pointer so that full message can be 
-   * parsed later
-   */
+    * parsed later
+    */
    recvbuf->curpos = recvbuf->start;
 
 #if defined(ENABLE_SLPv1)   
    /* if version == 1 then parse message as a version 1 message */
-   if (errorcode == SLP_ERROR_VER_NOT_SUPPORTED &&
-         header.version == 1)
-   {
-      errorcode = SLPDv1ProcessMessage(peerinfo,
-            recvbuf, 
-            sendbuf);
-   }
+   if (errorcode == SLP_ERROR_VER_NOT_SUPPORTED && header.version == 1)
+      errorcode = SLPDv1ProcessMessage(peerinfo, recvbuf, sendbuf);
    else
 #endif
-   if (errorcode == 0)
-   {
-      /* TRICKY: Duplicate SRVREG recvbufs *before* parsing them     */
-      /*         we do this because we are going to keep track of    */
-      /*         in the registration database                        */
-      if (header.functionid == SLP_FUNCT_SRVREG ||
-            header.functionid == SLP_FUNCT_DAADVERT)
+      if (errorcode == 0)
       {
-         recvbuf = SLPBufferDup(recvbuf);
-         if (recvbuf == NULL)
+         /* TRICKY: Duplicate SRVREG recvbufs *before* parsing them
+          *         we do this because we are going to keep track of
+          *         in the registration database
+          */
+         if (header.functionid == SLP_FUNCT_SRVREG
+               || header.functionid == SLP_FUNCT_DAADVERT)
          {
-            return SLP_ERROR_INTERNAL_ERROR;
+            recvbuf = SLPBufferDup(recvbuf);
+            if (recvbuf == 0)
+               return SLP_ERROR_INTERNAL_ERROR;
          }
-      }
 
       /* Allocate the message descriptor */
       message = SLPMessageAlloc();
@@ -1468,38 +1322,32 @@ int SLPDProcessMessage(struct sockaddr_storage* peerinfo,
             switch (message->header.functionid)
             {
                case SLP_FUNCT_SRVRQST:
-                  errorcode = ProcessSrvRqst(message,sendbuf,errorcode);
+                  errorcode = ProcessSrvRqst(message, sendbuf, errorcode);
                   break;
 
                case SLP_FUNCT_SRVREG:
-                  errorcode = ProcessSrvReg(message,recvbuf,sendbuf,errorcode);
+                  errorcode = ProcessSrvReg(message, recvbuf, sendbuf, errorcode);
                   if (errorcode == 0)
-                  {
                      SLPDKnownDAEcho(message, recvbuf);
-                  }
                   break;
 
                case SLP_FUNCT_SRVDEREG:
-                  errorcode = ProcessSrvDeReg(message,sendbuf,errorcode);
+                  errorcode = ProcessSrvDeReg(message, sendbuf, errorcode);
                   if (errorcode == 0)
-                  {
                      SLPDKnownDAEcho(message, recvbuf);
-                  }
                   break;
 
                case SLP_FUNCT_SRVACK:
-                  errorcode = ProcessSrvAck(message,sendbuf, errorcode);
+                  errorcode = ProcessSrvAck(message, sendbuf, errorcode);
                   break;
 
                case SLP_FUNCT_ATTRRQST:
-                  errorcode = ProcessAttrRqst(message,sendbuf, errorcode);
+                  errorcode = ProcessAttrRqst(message, sendbuf, errorcode);
                   break;
 
                case SLP_FUNCT_DAADVERT:
-                  errorcode = ProcessDAAdvert(message,
-                        recvbuf,
-                        sendbuf,
-                        errorcode);
+                  errorcode = ProcessDAAdvert(message, recvbuf, 
+                        sendbuf, errorcode);
                   break;
 
                case SLP_FUNCT_SRVTYPERQST:
@@ -1517,62 +1365,44 @@ int SLPDProcessMessage(struct sockaddr_storage* peerinfo,
             }
          }
          else
-         {
             SLPDLogParseWarning(peerinfo, recvbuf);
-         }
 
-         if (header.functionid == SLP_FUNCT_SRVREG ||
-               header.functionid == SLP_FUNCT_DAADVERT)
+         if (header.functionid == SLP_FUNCT_SRVREG 
+               || header.functionid == SLP_FUNCT_DAADVERT)
          {
             /* TRICKY: If this is a reg or daadvert message we do not
-            * free the message descriptor or duplicated recvbuf 
-            * because they are being kept in the database!
-            *
-            */
+             * free the message descriptor or duplicated recvbuf 
+             * because they are being kept in the database!
+             */
             if (errorcode == 0)
-            {
                goto FINISHED;
-            }
 
             /* TRICKY: If there is an error we need to free the 
-            * duplicated recvbuf,
-            */
+             * duplicated recvbuf,
+             */
             SLPBufferFree(recvbuf);
          }
 
          SLPMessageFree(message);
       }
       else
-      {
-         /* out of memory */
          errorcode = SLP_ERROR_INTERNAL_ERROR;
-      }
    }
    else
-   {
       SLPDLogParseWarning(peerinfo,recvbuf);
-   }
 
 FINISHED:
 
 #ifdef DEBUG
    if (errorcode)
-   {
       SLPDLog("\n*** DEBUG *** errorcode %i during processing of message from %s\n",
-            errorcode,
-            SLPNetSockAddrStorageToString(peerinfo, addr_str, sizeof(addr_str)));
-   }
+            errorcode, SLPNetSockAddrStorageToString(peerinfo, addr_str, sizeof(addr_str)));
 #endif
 
    /* Log message silently ignored because of an error */
    if (errorcode)
-   {
-      if (*sendbuf == 0 ||
-            (*sendbuf)->end == (*sendbuf)->start)
-      {
+      if (*sendbuf == 0 || (*sendbuf)->end == (*sendbuf)->start)
          SLPDLogMessage(SLPDLOG_TRACEDROP,peerinfo,localaddr,recvbuf);
-      }
-   }
 
    /* Log trace message */
    SLPDLogMessage(SLPDLOG_TRACEMSG_OUT, peerinfo, localaddr, *sendbuf);

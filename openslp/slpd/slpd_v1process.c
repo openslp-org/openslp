@@ -66,41 +66,28 @@
  *
  * @internal
  */
-int v1ProcessDASrvRqst(struct sockaddr_storage* peeraddr,
-      struct sockaddr_storage* localaddr,
-      SLPMessage message,
-      SLPBuffer* sendbuf,
-      int errorcode)
+int v1ProcessDASrvRqst(struct sockaddr_storage * peeraddr,
+      struct sockaddr_storage * localaddr, SLPMessage message,
+      SLPBuffer * sendbuf, int errorcode)
 {
-   if (message->body.srvrqst.scopelistlen == 0 ||
-         SLPIntersectStringList(message->body.srvrqst.scopelistlen,
-         message->body.srvrqst.scopelist,
-         G_SlpdProperty.useScopesLen,
-         G_SlpdProperty.useScopes))
-   {
-      /* fill out real structure */
-      errorcode = SLPDKnownDAGenerateMyV1DAAdvert(localaddr,
-            errorcode,
-            message->header.encoding,
-            message->header.xid,
-            sendbuf);
-   }
+   if (message->body.srvrqst.scopelistlen == 0 
+         || SLPIntersectStringList(message->body.srvrqst.scopelistlen,
+               message->body.srvrqst.scopelist, G_SlpdProperty.useScopesLen,
+               G_SlpdProperty.useScopes))
+      errorcode = SLPDKnownDAGenerateMyV1DAAdvert(localaddr, errorcode,
+            message->header.encoding, message->header.xid, sendbuf);
    else
-   {
       errorcode =  SLP_ERROR_SCOPE_NOT_SUPPORTED;
-   }
 
    /* don't return errorcodes to multicast messages */
    if (errorcode == 0)
    {
-      if (message->header.flags & SLP_FLAG_MCAST ||
-            SLPNetIsMCast(peeraddr))
+      if (message->header.flags & SLP_FLAG_MCAST || SLPNetIsMCast(peeraddr))
       {
          (*sendbuf)->end = (*sendbuf)->start;
          return errorcode;
       }
    }
-
    return errorcode;
 }
 
@@ -108,33 +95,28 @@ int v1ProcessDASrvRqst(struct sockaddr_storage* peeraddr,
  *
  * @internal
  */
-int v1ProcessSrvRqst(struct sockaddr_storage* peeraddr,
-      struct sockaddr_storage* localaddr,
-      SLPMessage message,
-      SLPBuffer* sendbuf,
-      int errorcode)
+int v1ProcessSrvRqst(struct sockaddr_storage * peeraddr,
+      struct sockaddr_storage * localaddr, SLPMessage message,
+      SLPBuffer * sendbuf, int errorcode)
 {
-   int                         i;
-   int                         urllen;
-   int                         size        = 0;
-   SLPDDatabaseSrvRqstResult*  db          = 0;
-   SLPBuffer                   result      = *sendbuf;
+   int i;
+   int urllen;
+   int size = 0;
+   SLPDDatabaseSrvRqstResult * db = 0;
+   SLPBuffer result = *sendbuf;
 
    /*--------------------------------------------------------------*/
    /* If errorcode is set, we can not be sure that message is good */
    /* Go directly to send response code                            */
    /*--------------------------------------------------------------*/
    if (errorcode)
-   {
       goto RESPOND;
-   }
 
    /*-------------------------------------------------*/
    /* Check for one of our IP addresses in the prlist */
    /*-------------------------------------------------*/
    if (SLPIntersectStringList(message->body.srvrqst.prlistlen,
-         message->body.srvrqst.prlist,
-         G_SlpdProperty.interfacesLen,
+         message->body.srvrqst.prlist, G_SlpdProperty.interfacesLen,
          G_SlpdProperty.interfaces))
    {
       result->end = result->start;
@@ -145,9 +127,7 @@ int v1ProcessSrvRqst(struct sockaddr_storage* peeraddr,
    /* Check to to see if a this is a special SrvRqst */
    /*------------------------------------------------*/
    if (SLPCompareString(message->body.srvrqst.srvtypelen,
-         message->body.srvrqst.srvtype,
-         15,
-         "directory-agent") == 0)
+         message->body.srvrqst.srvtype, 15, "directory-agent") == 0)
    {
       errorcode = v1ProcessDASrvRqst(peeraddr, localaddr, message, sendbuf, errorcode);
       return errorcode;
@@ -157,22 +137,15 @@ int v1ProcessSrvRqst(struct sockaddr_storage* peeraddr,
    /* Make sure that we handle the scope */
    /*------ -----------------------------*/
    if (SLPIntersectStringList(message->body.srvrqst.scopelistlen,
-         message->body.srvrqst.scopelist,
-         G_SlpdProperty.useScopesLen,
+         message->body.srvrqst.scopelist, G_SlpdProperty.useScopesLen,
          G_SlpdProperty.useScopes) != 0)
-   {
-      /*-------------------------------*/
-      /* Find services in the database */
-      /*-------------------------------*/
       errorcode = SLPDDatabaseSrvRqstStart(message, &db);
-   }
    else
-   {
       errorcode = SLP_ERROR_SCOPE_NOT_SUPPORTED;
-   }
 
 
 RESPOND:
+
    /*----------------------------------------------------------------*/
    /* Do not send error codes or empty replies to multicast requests */
    /*----------------------------------------------------------------*/
@@ -188,27 +161,24 @@ RESPOND:
    /*-------------------------------------------------------------*/
    /* ensure the buffer is big enough to handle the whole srvrply */
    /*-------------------------------------------------------------*/
-   size = 16; /* 12 bytes for header, 2 bytes for error code, 2 bytes
-   for url count */
+
+   /* 12 bytes for header, 2 bytes for error code, 2 bytes for url count */
+   size = 16;
    if (errorcode == 0)
    {
       for (i = 0; i < db->urlcount; i++)
       {
          urllen = INT_MAX;
-         errorcode = SLPv1ToEncoding(0, 
-               &urllen,
-               message->header.encoding,  
-               db->urlarray[i]->url,
-               db->urlarray[i]->urllen);
+         errorcode = SLPv1ToEncoding(0, &urllen, message->header.encoding,  
+               db->urlarray[i]->url, db->urlarray[i]->urllen);
          if (errorcode)
             break;
+
          size += urllen + 4; /* 2 bytes for lifetime, 2 bytes for urllen */
       }
       result = SLPBufferRealloc(result,size);
       if (result == 0)
-      {
          errorcode = SLP_ERROR_INTERNAL_ERROR;
-      }
    }
 
    /*----------------*/
@@ -250,10 +220,8 @@ RESPOND:
          result->curpos = result->curpos + 2;
          /* url-entry url and urllen */
          urllen = size;
-         errorcode = SLPv1ToEncoding(result->curpos + 2, 
-               &urllen,
-               message->header.encoding,  
-               db->urlarray[i]->url,
+         errorcode = SLPv1ToEncoding(result->curpos + 2, &urllen,
+               message->header.encoding, db->urlarray[i]->url,
                db->urlarray[i]->urllen);
          ToUINT16(result->curpos, urllen);
          result->curpos = result->curpos + 2 + urllen;
@@ -287,13 +255,10 @@ FINISHED:
  *
  * @internal
  */
-int v1ProcessSrvReg(struct sockaddr_storage* peeraddr,
-      SLPMessage message,
-      SLPBuffer recvbuf,
-      SLPBuffer* sendbuf,
-      int errorcode)
+int v1ProcessSrvReg(struct sockaddr_storage * peeraddr, SLPMessage message,
+      SLPBuffer recvbuf, SLPBuffer * sendbuf, int errorcode)
 {
-   SLPBuffer       result = *sendbuf;
+   SLPBuffer result = *sendbuf;
 
    /*--------------------------------------------------------------*/
    /* If errorcode is set, we can not be sure that message is good */
@@ -301,38 +266,30 @@ int v1ProcessSrvReg(struct sockaddr_storage* peeraddr,
    /* srvreg or srvdereg messages                                  */
    /*--------------------------------------------------------------*/
    if (errorcode || message->header.flags & SLP_FLAG_MCAST)
-   {
       goto RESPOND;
-   }
 
    /*------------------------------------*/
    /* Make sure that we handle the scope */
    /*------ -----------------------------*/
    if (SLPIntersectStringList(message->body.srvreg.scopelistlen,
-         message->body.srvreg.scopelist,
-         G_SlpdProperty.useScopesLen,
+         message->body.srvreg.scopelist, G_SlpdProperty.useScopesLen,
          G_SlpdProperty.useScopes))
    {
       /*---------------------------------*/
       /* put the service in the database */
       /*---------------------------------*/
       if (SLPNetIsLocal(&(message->peer)))
-      {
          message->body.srvreg.source= SLP_REG_SOURCE_LOCAL;
-      }
       else
-      {
          message->body.srvreg.source = SLP_REG_SOURCE_REMOTE;
-      }
 
       errorcode = SLPDDatabaseReg(message,recvbuf);
    }
    else
-   {
       errorcode = SLP_ERROR_SCOPE_NOT_SUPPORTED;
-   }
 
 RESPOND:
+
    /*--------------------------------------------------------------------*/
    /* don't send back reply anything multicast SrvReg (set result empty) */
    /*--------------------------------------------------------------------*/
@@ -341,7 +298,6 @@ RESPOND:
       result->end = result->start;
       goto FINISHED;
    }
-
 
    /*------------------------------------------------------------*/
    /* ensure the buffer is big enough to handle the whole srvack */
@@ -378,6 +334,7 @@ RESPOND:
    ToUINT16(result->start + 12, errorcode);
 
 FINISHED:
+
    *sendbuf = result;
    return errorcode;
 }
@@ -391,10 +348,8 @@ FINISHED:
  *
  * @return Non-zero if message should be silently dropped.
  */
-int v1ProcessSrvDeReg(struct sockaddr_storage* peeraddr,
-      SLPMessage message,
-      SLPBuffer* sendbuf,
-      int errorcode)
+int v1ProcessSrvDeReg(struct sockaddr_storage * peeraddr, SLPMessage message,
+      SLPBuffer * sendbuf, int errorcode)
 {
    SLPBuffer result = *sendbuf;
 
@@ -404,36 +359,25 @@ int v1ProcessSrvDeReg(struct sockaddr_storage* peeraddr,
    /* srvreg or srvdereg messages                                  */
    /*--------------------------------------------------------------*/
    if (errorcode || message->header.flags & SLP_FLAG_MCAST)
-   {
       goto RESPOND;
-   }
-
 
    /*------------------------------------*/
    /* Make sure that we handle the scope */
    /*------------------------------------*/
    if (SLPIntersectStringList(message->body.srvdereg.scopelistlen,
-         message->body.srvdereg.scopelist,
-         G_SlpdProperty.useScopesLen,
+         message->body.srvdereg.scopelist, G_SlpdProperty.useScopesLen,
          G_SlpdProperty.useScopes))
-   {
-      /*--------------------------------------*/
-      /* remove the service from the database */
-      /*--------------------------------------*/
       errorcode = SLPDDatabaseDeReg(message);
-   }
    else
-   {
       errorcode = SLP_ERROR_SCOPE_NOT_SUPPORTED;
-   }
 
 RESPOND:
+
    /*---------------------------------------------------------*/
    /* don't do anything multicast SrvDeReg (set result empty) */
    /*---------------------------------------------------------*/
    if (message->header.flags & SLP_FLAG_MCAST)
    {
-
       result->end = result->start;
       goto FINISHED;
    }
@@ -473,6 +417,7 @@ RESPOND:
    ToUINT16(result->start + 12, errorcode);
 
 FINISHED:
+
    *sendbuf = result;
    return errorcode;
 }
@@ -486,31 +431,26 @@ FINISHED:
  *
  * @return Zero on success, or a non-zero value on failure.
  */
-int v1ProcessAttrRqst(struct sockaddr_storage* peeraddr,
-      SLPMessage message,
-      SLPBuffer* sendbuf,
-      int errorcode)
+int v1ProcessAttrRqst(struct sockaddr_storage * peeraddr, SLPMessage message,
+      SLPBuffer * sendbuf, int errorcode)
 {
-   SLPDDatabaseAttrRqstResult* db              = 0;
-   int                         attrlen     = 0;
-   int                         size        = 0;
-   SLPBuffer                   result      = *sendbuf;
+   SLPDDatabaseAttrRqstResult * db = 0;
+   int attrlen = 0;
+   int size = 0;
+   SLPBuffer result = *sendbuf;
 
    /*--------------------------------------------------------------*/
    /* If errorcode is set, we can not be sure that message is good */
    /* Go directly to send response code                            */
    /*--------------------------------------------------------------*/
    if (errorcode)
-   {
       goto RESPOND;
-   }
 
    /*-------------------------------------------------*/
    /* Check for one of our IP addresses in the prlist */
    /*-------------------------------------------------*/
    if (SLPIntersectStringList(message->body.attrrqst.prlistlen,
-         message->body.attrrqst.prlist,
-         G_SlpdProperty.interfacesLen,
+         message->body.attrrqst.prlist, G_SlpdProperty.interfacesLen,
          G_SlpdProperty.interfaces))
    {
       result->end = result->start;
@@ -521,21 +461,14 @@ int v1ProcessAttrRqst(struct sockaddr_storage* peeraddr,
    /* Make sure that we handle the scope */
    /*------ -----------------------------*/
    if (SLPIntersectStringList(message->body.attrrqst.scopelistlen,
-         message->body.attrrqst.scopelist,
-         G_SlpdProperty.useScopesLen,
+         message->body.attrrqst.scopelist, G_SlpdProperty.useScopesLen,
          G_SlpdProperty.useScopes))
-   {
-      /*---------------------------------*/
-      /* Find attributes in the database */
-      /*---------------------------------*/
       errorcode = SLPDDatabaseAttrRqstStart(message,&db);
-   }
    else
-   {
       errorcode = SLP_ERROR_SCOPE_NOT_SUPPORTED;
-   }
 
 RESPOND:
+
    /*----------------------------------------------------------------*/
    /* Do not send error codes or empty replies to multicast requests */
    /*----------------------------------------------------------------*/
@@ -557,10 +490,8 @@ RESPOND:
    {
 
       attrlen = INT_MAX;
-      errorcode = SLPv1ToEncoding(0, &attrlen,
-            message->header.encoding,  
-            db->attrlist,
-            db->attrlistlen);
+      errorcode = SLPv1ToEncoding(0, &attrlen, message->header.encoding,  
+            db->attrlist, db->attrlistlen);
       size += attrlen;
    }
 
@@ -607,14 +538,13 @@ RESPOND:
       ToUINT16(result->curpos, attrlen);
       result->curpos = result->curpos + 2;
       attrlen = size;
-      SLPv1ToEncoding(result->curpos, &attrlen,
-            message->header.encoding,
-            db->attrlist,
-            db->attrlistlen);
+      SLPv1ToEncoding(result->curpos, &attrlen, message->header.encoding,
+            db->attrlist, db->attrlistlen);
       result->curpos = result->curpos + attrlen;
    }
 
 FINISHED:
+
    *sendbuf = result;
    if (db) SLPDDatabaseAttrRqstEnd(db);
 
@@ -630,28 +560,24 @@ FINISHED:
  *
  * @return Zero on success, or a non-zero value on failure.
  */
-int v1ProcessSrvTypeRqst(struct sockaddr_storage* peeraddr,
-      SLPMessage message,
-      SLPBuffer* sendbuf,
-      int errorcode)
+int v1ProcessSrvTypeRqst(struct sockaddr_storage * peeraddr, 
+      SLPMessage message, SLPBuffer * sendbuf, int errorcode)
 {
-   char*                           type;
-   char*                           end;
-   char*                           slider;
-   int                             i;
-   int                             typelen;
-   int                             numsrvtypes = 0;
-   int                             size        = 0;
-   SLPDDatabaseSrvTypeRqstResult*  db          = 0;
-   SLPBuffer                       result      = *sendbuf;
-
+   char * type;
+   char * end;
+   char * slider;
+   int i;
+   int typelen;
+   int numsrvtypes = 0;
+   int size = 0;
+   SLPDDatabaseSrvTypeRqstResult * db = 0;
+   SLPBuffer result = *sendbuf;
 
    /*-------------------------------------------------*/
    /* Check for one of our IP addresses in the prlist */
    /*-------------------------------------------------*/
    if (SLPIntersectStringList(message->body.srvtyperqst.prlistlen,
-         message->body.srvtyperqst.prlist,
-         G_SlpdProperty.interfacesLen,
+         message->body.srvtyperqst.prlist, G_SlpdProperty.interfacesLen,
          G_SlpdProperty.interfaces))
    {
       result->end = result->start;
@@ -662,19 +588,11 @@ int v1ProcessSrvTypeRqst(struct sockaddr_storage* peeraddr,
    /* Make sure that we handle the scope */
    /*------------------------------------*/
    if (SLPIntersectStringList(message->body.srvtyperqst.scopelistlen,
-         message->body.srvtyperqst.scopelist,
-         G_SlpdProperty.useScopesLen,
+         message->body.srvtyperqst.scopelist, G_SlpdProperty.useScopesLen,
          G_SlpdProperty.useScopes) != 0)
-   {
-      /*------------------------------------*/
-      /* Find service types in the database */
-      /*------------------------------------*/
       errorcode = SLPDDatabaseSrvTypeRqstStart(message, &db);
-   }
    else
-   {
       errorcode = SLP_ERROR_SCOPE_NOT_SUPPORTED;
-   }
 
    /*----------------------------------------------------------------*/
    /* Do not send error codes or empty replies to multicast requests */
@@ -688,12 +606,13 @@ int v1ProcessSrvTypeRqst(struct sockaddr_storage* peeraddr,
       }
    }
 
-
    /*-----------------------------------------------------------------*/
    /* ensure the buffer is big enough to handle the whole srvtyperply */
    /*-----------------------------------------------------------------*/
-   size = 16; /* 12 bytes for header, 2 bytes for error code, 2 bytes
-   for num of service types */
+   /* 12 bytes for header, 2 bytes for error code, 2 bytes
+    * for num of service types 
+    */
+   size = 16;
    if (errorcode == 0)
    {
       if (db->srvtypelistlen)
@@ -704,30 +623,22 @@ int v1ProcessSrvTypeRqst(struct sockaddr_storage* peeraddr,
          /* count the rest of the service types */
          type = db->srvtypelist;
          for (i=0; i< db->srvtypelistlen; i++)
-         {
             if (type[i] == ',')
-            {
                numsrvtypes += 1;
-            }
-         }
 
          /* figure out how much memory is required for srvtype strings */
          typelen = INT_MAX;
-         errorcode = SLPv1ToEncoding(0,
-               &typelen,
-               message->header.encoding,  
-               db->srvtypelist,
-               db->srvtypelistlen);
+         errorcode = SLPv1ToEncoding(0, &typelen, message->header.encoding,  
+               db->srvtypelist, db->srvtypelistlen);
 
-         /* TRICKY: we add in the numofsrvtypes + 1 to make room for the */
-         /* type length.  We can do this because the ',' of the comma    */
-         /* delimited list is one byte.                                  */
+         /* TRICKY: we add in the numofsrvtypes + 1 to make room for the
+          * type length.  We can do this because the ',' of the comma
+          * delimited list is one byte.
+          */
          size = size + typelen + numsrvtypes + 1;
       }
       else
-      {
          numsrvtypes = 0;
-      }
    }
 
    /*-----------------*/
@@ -783,11 +694,8 @@ int v1ProcessSrvTypeRqst(struct sockaddr_storage* peeraddr,
 
          typelen = size;
          /* put in the encoded service type */
-         SLPv1ToEncoding(result->curpos + 2, 
-               &typelen,
-               message->header.encoding,
-               type,
-               slider - type);
+         SLPv1ToEncoding(result->curpos + 2, &typelen,
+               message->header.encoding, type, slider - type);
          /* slip in the typelen */
          ToUINT16(result->curpos, typelen);
          result->curpos += 2;
@@ -797,10 +705,11 @@ int v1ProcessSrvTypeRqst(struct sockaddr_storage* peeraddr,
          type = slider;
       }
 
-      /* TODO - make sure we don't return generic types */
+      /* @todo Make sure we don't return generic types. */
    }
 
 FINISHED:
+
    if (db) SLPDDatabaseSrvTypeRqstEnd(db);
 
    *sendbuf = result;
@@ -820,33 +729,29 @@ FINISHED:
  * @return Zero on success, or SLP_ERROR_PARSE_ERROR on general failure, 
  *    or SLP_ERROR_INTERNAL_ERROR under out-of-memory conditions.
  */
-int SLPDv1ProcessMessage(struct sockaddr_storage* peeraddr,
-      SLPBuffer recvbuf,
-      SLPBuffer* sendbuf)
+int SLPDv1ProcessMessage(struct sockaddr_storage * peeraddr, 
+      SLPBuffer recvbuf, SLPBuffer * sendbuf)
 {
-   SLPHeader   header;
-   SLPMessage  message;
-   int         errorcode   = 0;
+   SLPHeader header;
+   SLPMessage message;
+   int errorcode = 0;
 
+   /* SLPv1 messages are handled only by DAs */
    if (!G_SlpdProperty.isDA)
-   {
-      /* SLPv1 messages are handled only by DAs */
       errorcode = SLP_ERROR_VER_NOT_SUPPORTED;
-   }
 
    /* Parse just the message header the reset the buffer "curpos" pointer */
    recvbuf->curpos = recvbuf->start;
    errorcode = SLPv1MessageParseHeader(recvbuf, &header);
 
-   /* TRICKY: Duplicate SRVREG recvbufs *before* parsing them   */
-   /*         it because we are going to keep them in the       */
+   /* TRICKY: Duplicate SRVREG recvbufs *before* parsing them
+    * it because we are going to keep them in the
+    */
    if (header.functionid == SLP_FUNCT_SRVREG)
    {
       recvbuf = SLPBufferDup(recvbuf);
-      if (recvbuf == NULL)
-      {
+      if (recvbuf == 0)
          return SLP_ERROR_INTERNAL_ERROR;
-      }
    }
 
    /* Allocate the message descriptor */
@@ -861,35 +766,32 @@ int SLPDv1ProcessMessage(struct sockaddr_storage* peeraddr,
          switch (message->header.functionid)
          {
             case SLP_FUNCT_SRVRQST:
-               errorcode = v1ProcessSrvRqst(peeraddr, peeraddr, message, sendbuf, errorcode);
+               errorcode = v1ProcessSrvRqst(peeraddr, peeraddr, message, 
+                     sendbuf, errorcode);
                break;
 
             case SLP_FUNCT_SRVREG:
-               errorcode = v1ProcessSrvReg(peeraddr,
-                     message,
-                     recvbuf,
-                     sendbuf,
-                     errorcode);
+               errorcode = v1ProcessSrvReg(peeraddr, message, 
+                     recvbuf, sendbuf, errorcode);
                if (errorcode == 0)
-               {
                   SLPDKnownDAEcho(message, recvbuf);
-               }
                break;
 
             case SLP_FUNCT_SRVDEREG:
-               errorcode = v1ProcessSrvDeReg(peeraddr, message, sendbuf, errorcode);
+               errorcode = v1ProcessSrvDeReg(peeraddr, message, 
+                     sendbuf, errorcode);
                if (errorcode == 0)
-               {
                   SLPDKnownDAEcho(message, recvbuf);
-               }
                break;
 
             case SLP_FUNCT_ATTRRQST:
-               errorcode = v1ProcessAttrRqst(peeraddr, message, sendbuf, errorcode);
+               errorcode = v1ProcessAttrRqst(peeraddr, message, 
+                     sendbuf, errorcode);
                break;
 
             case SLP_FUNCT_SRVTYPERQST:
-               errorcode = v1ProcessSrvTypeRqst(peeraddr, message, sendbuf, errorcode);
+               errorcode = v1ProcessSrvTypeRqst(peeraddr, message, 
+                     sendbuf, errorcode);
                break;
 
             case SLP_FUNCT_DAADVERT:
@@ -906,9 +808,10 @@ int SLPDv1ProcessMessage(struct sockaddr_storage* peeraddr,
 
       if (header.functionid == SLP_FUNCT_SRVREG)
       {
-         /* TRICKY: Do not free the message descriptor for SRVREGs */
-         /*         because we are keeping them in the database    */
-         /*         unless there is an error then we free memory   */
+         /* TRICKY: Do not free the message descriptor for SRVREGs
+          * because we are keeping them in the database
+          * unless there is an error then we free memory
+          */
          if (errorcode)
          {
             SLPMessageFree(message);
@@ -916,15 +819,10 @@ int SLPDv1ProcessMessage(struct sockaddr_storage* peeraddr,
          }
       }
       else
-      {
          SLPMessageFree(message);
-      }
    }
    else
-   {
-      /* out of memory */
       errorcode = SLP_ERROR_INTERNAL_ERROR;
-   }
 
    return errorcode;
 }

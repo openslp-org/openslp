@@ -48,7 +48,7 @@ SLPSpiHandle G_SlpdSpiHandle = 0;
  *
  * @return Zero on success or a non-zero value on failure.
  */
-int SLPDSpiInit(const char* spifile)
+int SLPDSpiInit(const char * spifile)
 {
    if (G_SlpdSpiHandle)
    {
@@ -63,7 +63,7 @@ int SLPDSpiInit(const char* spifile)
 #ifdef DEBUG
 /** Deinitialize the Security Parameter Index system.
  */
-void SLPDSpiDeinit()
+void SLPDSpiDeinit(void)
 {
    SLPSpiClose(G_SlpdSpiHandle);
 }

@@ -46,8 +46,8 @@
 int
 main(int argc, char *argv[])
 {
-   SLPError	err;
-   char		*output_string;
+   SLPError err;
+   char     *output_string;
 
    if (argc != 2)
    {

@@ -99,9 +99,9 @@ main(int argc, char *argv[])
    SLPError callbackerr;
    SLPHandle hslp;
 
-   char	server_url[4096];
-   char	*attrids;
-   char	reg_string[MAX_STRING_LENGTH];
+   char  server_url[4096];
+   char  *attrids;
+   char  reg_string[MAX_STRING_LENGTH];
 
    if ((argc != 4) && (argc != 5))
    {
@@ -120,7 +120,7 @@ main(int argc, char *argv[])
       err = SLPReg(hslp,
             reg_string,
             SLP_LIFETIME_MAXIMUM,
-            NULL,
+            0,
             argv[3],
             SLP_TRUE,
             MySLPRegReport,
@@ -135,8 +135,8 @@ main(int argc, char *argv[])
    err = SLPFindSrvs(
          hslp, 
          argv[1],
-         NULL,		/* use configured scopes */
-         NULL,		/* no attr filter        */
+         0,    /* use configured scopes */
+         0,    /* no attr filter        */
          MySLPSrvURLCallback,
          &callbackerr);
    check_error_state(err, "Error verifying service with slp.");
@@ -152,7 +152,7 @@ main(int argc, char *argv[])
    err = SLPFindAttrs(
          hslp,
          server_url,
-         NULL,
+         0,
          attrids,
          MySLPAttrCallback,
          &callbackerr);

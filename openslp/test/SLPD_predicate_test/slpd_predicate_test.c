@@ -151,7 +151,7 @@ void test_predicate()
 
    /******************** Test int stuff. *********************/
 
-   err = SLPAttrAlloc("en", NULL, SLP_FALSE, &slp_attr);
+   err = SLPAttrAlloc("en", 0, SLP_FALSE, &slp_attr);
    assert(err == SLP_OK);
 
    SLPAttrSet_int(slp_attr, "int", (int)23, SLP_ADD);
@@ -206,7 +206,7 @@ void test_predicate()
    SLPAttrFree(slp_attr);
 
    /* Simple equality. */
-   err = SLPAttrAllocStr("en", NULL, SLP_FALSE, &slp_attr, "(a=1)");
+   err = SLPAttrAllocStr("en", 0, SLP_FALSE, &slp_attr, "(a=1)");
    assert(err == SLP_OK);
 
    str = "(a=1)";
@@ -218,7 +218,7 @@ void test_predicate()
 
    /******************** Test opaque stuff. *********************/
 
-   err = SLPAttrAlloc("en", NULL, SLP_FALSE, &slp_attr);
+   err = SLPAttrAlloc("en", 0, SLP_FALSE, &slp_attr);
    assert(err == SLP_OK);
 
    err = SLPAttrSet_str(slp_attr, "op", "\\00\\12\\24\\36", SLP_REPLACE);
@@ -247,7 +247,7 @@ void test_predicate()
 
    /******************** Test string stuff. *********************/
 
-   err = SLPAttrAlloc("en", NULL, SLP_FALSE, &slp_attr);
+   err = SLPAttrAlloc("en", 0, SLP_FALSE, &slp_attr);
    assert(err == SLP_OK);
 
    err = SLPAttrSet_str(slp_attr, "str", "string", SLP_REPLACE);
@@ -339,7 +339,7 @@ void test_predicate()
 
    /******************** Test boolean stuff. *********************/
 
-   err = SLPAttrAlloc("en", NULL, SLP_FALSE, &slp_attr);
+   err = SLPAttrAlloc("en", 0, SLP_FALSE, &slp_attr);
    assert(err == SLP_OK);
 
    err = SLPAttrSet_bool(slp_attr, "bool", SLP_TRUE);
@@ -378,7 +378,7 @@ void test_predicate()
 
    /******************** Test keyword stuff. *********************/
 
-   err = SLPAttrAlloc("en", NULL, SLP_FALSE, &slp_attr);
+   err = SLPAttrAlloc("en", 0, SLP_FALSE, &slp_attr);
    assert(err == SLP_OK);
 
    err = SLPAttrSet_keyw(slp_attr, "keyw");
@@ -400,7 +400,7 @@ void test_predicate()
    SLPAttrFree(slp_attr);
 
    /********************* Test boolean operators. *********************/
-   err = SLPAttrAlloc("en", NULL, SLP_FALSE, &slp_attr);
+   err = SLPAttrAlloc("en", 0, SLP_FALSE, &slp_attr);
    assert(err == SLP_OK);
 
    err = SLPAttrSet_keyw(slp_attr, "keyw");
@@ -558,7 +558,7 @@ void test_predicate()
 
 
    /* Check multiple (more than two) subexpressions. */
-   err = SLPAttrAlloc("en", NULL, SLP_FALSE, &slp_attr);
+   err = SLPAttrAlloc("en", 0, SLP_FALSE, &slp_attr);
    assert(err == SLP_OK);
 
    err = SLPAttrSet_int(slp_attr, "x", 1, SLP_ADD);

@@ -44,10 +44,8 @@
 #include "libslp.h"
 #include "slp_net.h"
 
+/** Global variable that keeps track of the number of open handles. */
 int G_OpenSLPHandleCount = 0;
-/*!< Global variable that keeps track of the number of handles 
- * that are open.
- */
 
 /** Open an OpenSLP session handle.
  *
@@ -59,7 +57,7 @@ int G_OpenSLPHandleCount = 0;
  * resources required by the implementation. However, SLP properties
  * are not encapsulated by the handle; they are global. The return
  * value of the function is an SLPError code indicating the status of
- * the operation. Upon failure, the phSLP parameter is NULL.
+ * the operation. Upon failure, the phSLP parameter is 0.
  *
  * @par
  * An SLPHandle can only be used for one SLP API operation at a time.
@@ -75,7 +73,7 @@ int G_OpenSLPHandleCount = 0;
  *
  * @param[in] pcLang -  A pointer to an array of characters containing 
  *    the [RFC 1766] Language Tag for the natural language locale of 
- *    requests and registrations issued on the handle. (Pass NULL or
+ *    requests and registrations issued on the handle. (Pass 0 or
  *    the empty string to use the default locale.)
  *
  * @param[in] isAsync - An SLPBoolean indicating whether the SLPHandle 
@@ -83,16 +81,17 @@ int G_OpenSLPHandleCount = 0;
  *
  * @param[out] phSLP - A pointer to an SLPHandle, in which the open  
  *    SLPHandle is returned. If an error occurs, the value upon return 
- *    is NULL.
+ *    is 0.
  *
  * @return An SLPError code; SLP_OK(0) on success, SLP_PARAMETER_BAD,
  *    SLP_NOT_IMPLEMENTED, SLP_MEMORY_ALLOC_FAILED, 
  *    SLP_NETWORK_INIT_FAILED, SLP_INTERNAL_SYSTEM_ERROR
  */
-SLPError SLPAPI SLPOpen(const char *pcLang, SLPBoolean isAsync, SLPHandle *phSLP)
+SLPError SLPAPI SLPOpen(const char * pcLang, SLPBoolean isAsync, 
+      SLPHandle * phSLP)
 {
-   SLPError        result = SLP_OK;
-   PSLPHandleInfo  handle = 0;
+   SLPError result = SLP_OK;
+   PSLPHandleInfo handle = 0;
 
    /*------------------------------*/
    /* check for invalid parameters */
@@ -106,7 +105,6 @@ SLPError SLPAPI SLPOpen(const char *pcLang, SLPBoolean isAsync, SLPHandle *phSLP
    /* assign out param to zero in just for paranoia */
    *phSLP = 0;
 
-
 #ifndef ENABLE_ASYNC_API   
    if (isAsync == SLP_TRUE)
    {
@@ -119,7 +117,7 @@ SLPError SLPAPI SLPOpen(const char *pcLang, SLPBoolean isAsync, SLPHandle *phSLP
 #else
    if (isAsync == SLP_TRUE)
    {
-      result =  SLP_NOT_IMPLEMENTED;
+      result = SLP_NOT_IMPLEMENTED;
       goto FINISHED;
    }
 #endif 
@@ -133,7 +131,7 @@ SLPError SLPAPI SLPOpen(const char *pcLang, SLPBoolean isAsync, SLPHandle *phSLP
       result =  SLP_PARAMETER_BAD;
       goto FINISHED;
    }
-   memset(handle,0,sizeof(SLPHandleInfo));
+   memset(handle, 0, sizeof(SLPHandleInfo));
 
    /*-------------------------------*/
    /* Set the language tag          */
@@ -141,14 +139,14 @@ SLPError SLPAPI SLPOpen(const char *pcLang, SLPBoolean isAsync, SLPHandle *phSLP
    if (pcLang && *pcLang)
    {
       handle->langtaglen = strlen(pcLang);
-      handle->langtag = (char*)xmalloc(handle->langtaglen + 1);
+      handle->langtag = (char *)xmalloc(handle->langtaglen + 1);
       if (handle->langtag == 0)
       {
          xfree(handle);
          result =  SLP_PARAMETER_BAD;
          goto FINISHED;
       }
-      memcpy(handle->langtag,pcLang,handle->langtaglen + 1);
+      memcpy(handle->langtag, pcLang, handle->langtaglen + 1);
    }
    else
    {
@@ -157,10 +155,11 @@ SLPError SLPAPI SLPOpen(const char *pcLang, SLPBoolean isAsync, SLPHandle *phSLP
       if (handle->langtag == 0)
       {
          xfree(handle);
-         result =  SLP_PARAMETER_BAD;
+         result = SLP_PARAMETER_BAD;
          goto FINISHED;
       }
-      memcpy(handle->langtag,SLPGetProperty("net.slp.locale"),handle->langtaglen + 1);
+      memcpy(handle->langtag, SLPGetProperty("net.slp.locale"), 
+            handle->langtaglen + 1);
    }
 
    /*---------------------------------------------------------*/
@@ -170,7 +169,7 @@ SLPError SLPAPI SLPOpen(const char *pcLang, SLPBoolean isAsync, SLPHandle *phSLP
    {
 #ifdef _WIN32
       WSADATA wsaData;
-      WORD    wVersionRequested = MAKEWORD(1,1);
+      WORD wVersionRequested = MAKEWORD(1, 1);
       if (0 != WSAStartup(wVersionRequested, &wsaData))
       {
          result = SLP_NETWORK_INIT_FAILED;
@@ -198,16 +197,14 @@ SLPError SLPAPI SLPOpen(const char *pcLang, SLPBoolean isAsync, SLPHandle *phSLP
    handle->unicastsock = -1;
 #endif
 
-   G_OpenSLPHandleCount ++;
+   G_OpenSLPHandleCount++;
 
    *phSLP = (SLPHandle)handle;
 
 FINISHED:
 
    if (result)
-   {
       *phSLP = 0;
-   }
 
    return result;
 }
@@ -218,27 +215,23 @@ FINISHED:
  */
 void SLPAPI SLPClose(SLPHandle hSLP)
 {
-   PSLPHandleInfo   handle;
+   PSLPHandleInfo handle;
 
    /*------------------------------*/
    /* check for invalid parameters */
    /*------------------------------*/
-   if (hSLP == 0 || *(unsigned int*)hSLP != SLP_HANDLE_SIG)
-   {
+   if (hSLP == 0 || *(unsigned int *)hSLP != SLP_HANDLE_SIG)
       return;
-   }
 
    handle = (PSLPHandleInfo)hSLP;
 
    if (handle->isAsync)
    {
-      /* TODO: stop the usage of this handle (kill threads, etc) */
+      /* @todo Stop the usage of this handle (kill threads, etc). */
    }
 
    if (handle->langtag)
-   {
       xfree(handle->langtag);
-   }
 
    if (handle->dasock >=0)
    {
@@ -250,9 +243,7 @@ void SLPAPI SLPClose(SLPHandle hSLP)
    }
 
    if (handle->dascope)
-   {
       xfree(handle->dascope);
-   }
 
    if (handle->sasock >=0)
    {
@@ -264,9 +255,7 @@ void SLPAPI SLPClose(SLPHandle hSLP)
    }
 
    if (handle->sascope)
-   {
       xfree(handle->sascope);
-   }
 
 #ifdef ENABLE_SLPv2_SECURITY
    if (handle->hspi) SLPSpiClose(handle->hspi);
@@ -278,17 +267,13 @@ void SLPAPI SLPClose(SLPHandle hSLP)
 
    G_OpenSLPHandleCount --;
 
-
 #if DEBUG
    /* Free additional resources if this is the last handle open */
    if (G_OpenSLPHandleCount <= 0)
    {
       G_OpenSLPHandleCount = 0;
-
       SLPPropertyFreeAll();
-
       KnownDAFreeAll();
-
       xmalloc_deinit();
    }
 #endif
@@ -310,21 +295,16 @@ void SLPAPI SLPClose(SLPHandle hSLP)
  *
  * @return An SLPError code.
  */
-SLPError SLPAssociateIFList(SLPHandle hSLP, const char* McastIFList)
+SLPError SLPAssociateIFList(SLPHandle hSLP, const char * McastIFList)
 {
-
-   PSLPHandleInfo      handle;
+   PSLPHandleInfo handle;
 
    /*------------------------------*/
    /* check for invalid parameters */
    /*------------------------------*/
-   if (hSLP            == 0 ||
-         *(unsigned int*)hSLP != SLP_HANDLE_SIG ||
-         McastIFList == 0 ||
-         *McastIFList == 0)  /* interface list can't be empty string */
-   {
+   if (hSLP == 0 || *(unsigned int *)hSLP != SLP_HANDLE_SIG 
+         || McastIFList == 0 || *McastIFList == 0)
       return SLP_PARAMETER_BAD;
-   }
 
    handle = (PSLPHandleInfo)hSLP;
 
@@ -333,11 +313,9 @@ SLPError SLPAssociateIFList(SLPHandle hSLP, const char* McastIFList)
 #endif
 
    handle->McastIFList = McastIFList;
-
    return SLP_OK;
 }
 #endif /* MI_NOT_SUPPORTED */
-
 
 #ifndef UNICAST_NOT_SUPPORTED
 /** Associates a unicast IP address with an open SLP handle.
@@ -354,22 +332,17 @@ SLPError SLPAssociateIFList(SLPHandle hSLP, const char* McastIFList)
  *
  * @return An SLPError code.
  */
-SLPError SLPAssociateIP(SLPHandle hSLP, const char* unicast_ip)
+SLPError SLPAssociateIP(SLPHandle hSLP, const char * unicast_ip)
 {
-
-   PSLPHandleInfo				handle;
-   int							result=-1;
+   PSLPHandleInfo handle;
+   int result = -1;
 
    /*------------------------------*/
    /* check for invalid parameters */
    /*------------------------------*/
-   if (hSLP            == 0 ||
-         *(unsigned int*)hSLP != SLP_HANDLE_SIG ||
-         unicast_ip == 0 ||
-         *unicast_ip == 0)  /* unicast address not specified */
-   {
+   if (hSLP == 0 || *(unsigned int *)hSLP != SLP_HANDLE_SIG 
+         || unicast_ip == 0 || *unicast_ip == 0)
       return SLP_PARAMETER_BAD;
-   }
 
    handle = (PSLPHandleInfo)hSLP;
 
@@ -382,6 +355,7 @@ SLPError SLPAssociateIP(SLPHandle hSLP, const char* unicast_ip)
    result = SLPNetResolveHostToAddr(unicast_ip, &handle->unicastaddr);
    if (SLPNetSetPort(&handle->unicastaddr, SLP_RESERVED_PORT) != 0)
       return SLP_PARAMETER_BAD;
+
    return SLP_OK;
 }
 #endif

@@ -67,56 +67,56 @@
 
 #include <limits.h>
 
-/*=========================================================================*/
+/** The database of DAAdverts from DAs known to slpd. */
 SLPDatabase G_SlpdKnownDAs;
-/* The database of DAAdverts from DAs known to slpd.                       */
-/*=========================================================================*/
 
-/*=========================================================================*/
 int G_KnownDATimeSinceLastRefresh = 0;
-/*=========================================================================*/
 
-/*-------------------------------------------------------------------------*/
-int MakeActiveDiscoveryRqst(int ismcast, SLPBuffer* buffer)
-      /* Pack a buffer with service:directory-agent SrvRqst                      *
-       *                                                                         *
-       * Caller must free buffer                                                 *
-       *-------------------------------------------------------------------------*/
+/** Pack a buffer with service:directory-agent SrvRqst
+ *
+ * @param[in] ismcast - a boolean flag - true if the buffer is from a 
+ *    multicast client.
+ * @param[in] buffer - the buffer to make active discovery request.
+ *
+ * @return zero on success, or a non-zero error code.
+ *
+ * @note Caller must free buffer                                                 *
+ */
+int MakeActiveDiscoveryRqst(int ismcast, SLPBuffer * buffer)
 {
-   size_t          size;
-   void*           eh;
-   SLPMessage      msg;
-   char*           prlist      = 0;
-   size_t          prlistlen   = 0;
-   int             errorcode   = 0;
-   SLPBuffer       tmp         = 0;
-   SLPBuffer       result      = *buffer;
-   char            addr_str[INET6_ADDRSTRLEN];
+   size_t size;
+   void * eh;
+   SLPMessage msg;
+   char * prlist = 0;
+   size_t prlistlen = 0;
+   int errorcode = 0;
+   SLPBuffer tmp = 0;
+   SLPBuffer result = *buffer;
+   char addr_str[INET6_ADDRSTRLEN];
 
    /*-------------------------------------------------*/
    /* Generate a DA service request buffer to be sent */
    /*-------------------------------------------------*/
    /* determine the size of the fixed portion of the SRVRQST     */
    size  = 47; /* 14 bytes for the header                        */
-   /*  2 bytes for the prlistlen                     */
-   /*  2 bytes for the srvtype length                */
-   /* 23 bytes for "service:directory-agent" srvtype */
-   /*  2 bytes for scopelistlen                      */
-   /*  2 bytes for predicatelen                      */
-   /*  2 bytes for sprstrlen                         */
+               /*  2 bytes for the prlistlen                     */
+               /*  2 bytes for the srvtype length                */
+               /* 23 bytes for "service:directory-agent" srvtype */
+               /*  2 bytes for scopelistlen                      */
+               /*  2 bytes for predicatelen                      */
+               /*  2 bytes for sprstrlen                         */
 
-   /* figure out what our Prlist will be by going through our list of  */
-   /* known DAs                                                        */
+   /* figure out what our Prlist will be by going through our list of known DAs */
    prlistlen = 0;
    prlist = xmalloc(SLP_MAX_DATAGRAM_SIZE);
    if (prlist == 0)
    {
-      /* out of memory */
       errorcode = SLP_ERROR_INTERNAL_ERROR;
       goto FINISHED;
    }
 
    *prlist = 0;
+
    /* Don't send active discoveries to DAs we already know about */
    eh = SLPDKnownDAEnumStart();
    if (eh)
@@ -124,14 +124,12 @@ int MakeActiveDiscoveryRqst(int ismcast, SLPBuffer* buffer)
       while (1)
       {
          if (SLPDKnownDAEnum(eh, &msg, &tmp) == 0)
-         {
             break;
-         }
-         strcat(prlist,SLPNetSockAddrStorageToString(&(msg->peer), addr_str, sizeof(addr_str)));
-         strcat(prlist,",");
+         strcat(prlist,SLPNetSockAddrStorageToString(&msg->peer, 
+               addr_str, sizeof(addr_str)));
+         strcat(prlist, ",");
          prlistlen = strlen(prlist);
       }
-
       SLPDKnownDAEnumEnd(eh);
    }
 
@@ -140,7 +138,6 @@ int MakeActiveDiscoveryRqst(int ismcast, SLPBuffer* buffer)
    result = SLPBufferRealloc(result, size);
    if (result == 0)
    {
-      /* out of memory */
       errorcode = SLP_ERROR_INTERNAL_ERROR;
       goto FINISHED;
    }
@@ -163,12 +160,10 @@ int MakeActiveDiscoveryRqst(int ismcast, SLPBuffer* buffer)
    /*lang tag len*/
    ToUINT16(result->start + 12, G_SlpdProperty.localeLen);
    /*lang tag*/
-   memcpy(result->start + 14,
-         G_SlpdProperty.locale,
-         G_SlpdProperty.localeLen);
+   memcpy(result->start + 14, G_SlpdProperty.locale, G_SlpdProperty.localeLen);
    result->curpos = result->start + G_SlpdProperty.localeLen + 14;
    /* Prlist */
-   ToUINT16(result->curpos,prlistlen);
+   ToUINT16(result->curpos, prlistlen);
    result->curpos = result->curpos + 2;
    memcpy(result->curpos,prlist,prlistlen);
    result->curpos = result->curpos + prlistlen;
@@ -192,52 +187,43 @@ int MakeActiveDiscoveryRqst(int ismcast, SLPBuffer* buffer)
 
 FINISHED:
 
-   if (prlist)
-   {
-      xfree(prlist);
-   }
+   if (prlist) xfree(prlist);
 
    return 0;
 }
 
-
-/*-------------------------------------------------------------------------*/
+/** Registers all services with specified DA.
+ *
+ * @param[in] daadvert - 
+ * @param[in] immortalonly - 
+ */
 void SLPDKnownDARegisterAll(SLPMessage daadvert, int immortalonly)
-      /* registers all services with specified DA                                */
-      /*-------------------------------------------------------------------------*/
 {
-   SLPBuffer           buf;
-   SLPMessage          msg;
-   SLPSrvReg*          srvreg;
-   SLPDSocket*         sock;
-   SLPBuffer           sendbuf     = 0;
-   void*               handle      = 0;
+   SLPBuffer buf;
+   SLPMessage msg;
+   SLPSrvReg * srvreg;
+   SLPDSocket * sock;
+   SLPBuffer sendbuf = 0;
+   void * handle = 0;
 
    /*---------------------------------------------------------------*/
    /* Check to see if the database is empty and open an enumeration */
    /* handle if it is not empty                                     */
    /*---------------------------------------------------------------*/
    if (SLPDDatabaseIsEmpty())
-   {
       return;
-   }
 
    /*--------------------------------------*/
    /* Never do a Register All to ourselves */
    /*--------------------------------------*/
    if (SLPContainsStringList(G_SlpdProperty.interfacesLen,
-         G_SlpdProperty.interfaces,
-         daadvert->body.daadvert.urllen,
+         G_SlpdProperty.interfaces, daadvert->body.daadvert.urllen,
          daadvert->body.daadvert.url) == 1)
-   {
       return;
-   }
 
    handle = SLPDDatabaseEnumStart();
    if (handle == 0)
-   {
       return;
-   }
 
    /*----------------------------------------------*/
    /* Establish a new connection with the known DA */
@@ -248,28 +234,24 @@ void SLPDKnownDARegisterAll(SLPMessage daadvert, int immortalonly)
       while (1)
       {
          msg = SLPDDatabaseEnum(handle, &msg, &buf);
-         if (msg == NULL) break;
+         if (msg == 0) break;
          srvreg = &(msg->body.srvreg);
 
          /*-----------------------------------------------*/
          /* If so instructed, skip mortal registrations   */
          /*-----------------------------------------------*/
-         if (immortalonly &&
-               srvreg->urlentry.lifetime < SLP_LIFETIME_MAXIMUM)
-         {
+         if (immortalonly && srvreg->urlentry.lifetime < SLP_LIFETIME_MAXIMUM)
             continue;
-         }
 
          /*---------------------------------------------------------*/
          /* Only register local (or static) registrations of scopes */
          /* supported by peer DA                                    */
          /*---------------------------------------------------------*/
-         if (( srvreg->source == SLP_REG_SOURCE_LOCAL ||
-               srvreg->source == SLP_REG_SOURCE_STATIC ) &&
-               SLPIntersectStringList(srvreg->scopelistlen,
-               srvreg->scopelist,
-               srvreg->scopelistlen,
-               srvreg->scopelist))
+         if ((srvreg->source == SLP_REG_SOURCE_LOCAL 
+                     || srvreg->source == SLP_REG_SOURCE_STATIC) 
+               && SLPIntersectStringList(srvreg->scopelistlen,
+                     srvreg->scopelist, srvreg->scopelistlen,
+                     srvreg->scopelist))
          {
             sendbuf = SLPBufferDup(buf);
             if (sendbuf)
@@ -279,31 +261,29 @@ void SLPDKnownDARegisterAll(SLPMessage daadvert, int immortalonly)
                /*--------------------------------------------------*/
                SLPListLinkTail(&(sock->sendlist),(SLPListItem*)sendbuf);
                if (sock->state == STREAM_CONNECT_IDLE)
-               {
                   sock->state = STREAM_WRITE_FIRST;
-               }
             }
          }
       }
    }
-
    SLPDDatabaseEnumEnd(handle);
 }
 
-
-/*-------------------------------------------------------------------------*/
-int MakeSrvderegFromSrvReg(SLPMessage msg, 
-      SLPBuffer inbuf,
-      SLPBuffer* outbuf)
-      /* Pack a buffer with a SrvDereg message using information from an existing
-       * SrvReg message
-       * 
-       * Caller must free outbuf
-       *-------------------------------------------------------------------------*/
+/** Create a SRVDEREG message from a SRVREG message.
+ *
+ * @param[in] msg - the SRVREG message to use as a template.
+ * @param[in] inbuf - the buffer associated with @p msg.
+ * @param[out] outbuf - the address of storage for an allocated message buffer.
+ *
+ * @return Zero on success.
+ *
+ * @note The caller must free the buffer returned in @p outbuf.
+ */
+int MakeSrvderegFromSrvReg(SLPMessage msg, SLPBuffer inbuf, SLPBuffer* outbuf)
 {
-   int                 size;
-   SLPBuffer           sendbuf;
-   SLPSrvReg*          srvreg;
+   int size;
+   SLPBuffer sendbuf;
+   SLPSrvReg * srvreg;
 
    srvreg = &(msg->body.srvreg);
 
@@ -315,9 +295,7 @@ int MakeSrvderegFromSrvReg(SLPMessage msg,
    /*  see below for URLEntry */
    /*  2 bytes for taglist len */
    if (srvreg->urlentry.opaque)
-   {
       size += srvreg->urlentry.opaquelen;
-   }
    else
    {
       size += 6; /* +6 for the static portion of the url-entry */
@@ -327,10 +305,8 @@ int MakeSrvderegFromSrvReg(SLPMessage msg,
    /* taglistlen is always 0 */
 
    *outbuf = sendbuf = SLPBufferAlloc(size);
-   if (*outbuf == NULL)
-   {
+   if (*outbuf == 0)
       return SLP_ERROR_INTERNAL_ERROR;
-   }
 
    /*----------------------*/
    /* Construct a SrvDereg */
@@ -399,32 +375,29 @@ int MakeSrvderegFromSrvReg(SLPMessage msg,
    return 0;
 }
 
-
-/*-------------------------------------------------------------------------*/
+/** De-registers all services with the specified DA.
+ *
+ * @param[in] daadvert - the DA to which all services should be deregistered.
+ */
 void SLPDKnownDADeregisterAll(SLPMessage daadvert)
-/* de-registers all services with specified DA                             */
-/*-------------------------------------------------------------------------*/
 {
-   SLPBuffer           buf;
-   SLPMessage          msg;
-   SLPSrvReg*          srvreg;
-   SLPDSocket*         sock;
-   SLPBuffer           sendbuf     = 0;
-   void*               handle      = 0;
+   SLPBuffer buf;
+   SLPMessage msg;
+   SLPSrvReg * srvreg;
+   SLPDSocket * sock;
+   SLPBuffer sendbuf = 0;
+   void * handle = 0;
 
    /*---------------------------------------------------------------*/
    /* Check to see if the database is empty and open an enumeration */
    /* handle if it is not empty                                     */
    /*---------------------------------------------------------------*/
    if (SLPDDatabaseIsEmpty())
-   {
       return;
-   }
+
    handle = SLPDDatabaseEnumStart();
    if (handle == 0)
-   {
       return;
-   }
 
    /* Establish a new connection with the known DA */
    sock = SLPDOutgoingConnect(&(daadvert->peer));
@@ -433,7 +406,7 @@ void SLPDKnownDADeregisterAll(SLPMessage daadvert)
       while (1)
       {
          msg = SLPDDatabaseEnum(handle, &msg, &buf);
-         if (msg == NULL) break;
+         if (msg == 0) break;
          srvreg = &(msg->body.srvreg);
 
          /*-------------------------------------------------*/
@@ -449,31 +422,27 @@ void SLPDKnownDADeregisterAll(SLPMessage daadvert)
                /*--------------------------------------------------*/
                SLPListLinkTail(&(sock->sendlist),(SLPListItem*)sendbuf);
                if (sock->state == STREAM_CONNECT_IDLE)
-               {
                   sock->state = STREAM_WRITE_FIRST;
-               }
             }
          }
       }
    }
-
    SLPDDatabaseEnumEnd(handle);
 }
 
-
-/*=========================================================================*/
-int SLPDKnownDAFromDHCP()
-/* Queries DHCP for configured DA's.  IPv4 is the only supported address   */
-/* family presently.                                                       */
-/* returns  zero on success, Non-zero on failure                           */
-/*=========================================================================*/
+/** Queries DHCP for configured DA's. IPv4 is the only supported address
+ *    family presently.
+ *
+ * @return Zero on success, Non-zero on failure.
+ */
+int SLPDKnownDAFromDHCP(void)
 {
-   SLPBuffer			        buf;
-   DHCPContext			        ctx;
-   SLPDSocket*			        sock;
-   struct sockaddr_storage		daaddr;
-   unsigned char *	            alp;
-   unsigned char		        dhcpOpts[] = {TAG_SLP_SCOPE, TAG_SLP_DA};
+   SLPBuffer buf;
+   DHCPContext ctx;
+   SLPDSocket * sock;
+   struct sockaddr_storage daaddr;
+   unsigned char * alp;
+   unsigned char dhcpOpts[] = {TAG_SLP_SCOPE, TAG_SLP_DA};
 
    *ctx.scopelist = 0;
    ctx.addrlistlen = 0;
@@ -484,22 +453,21 @@ int SLPDKnownDAFromDHCP()
    while (ctx.addrlistlen >= 4)
    {
       daaddr.ss_family = AF_INET;
-      memcpy(&(((struct sockaddr_in*) &daaddr)->sin_addr.s_addr), alp, 4);
-      if (&(((struct sockaddr_in*) &daaddr)->sin_addr.s_addr))
+      memcpy(&(((struct sockaddr_in *)&daaddr)->sin_addr.s_addr), alp, 4);
+      if (&(((struct sockaddr_in *)&daaddr)->sin_addr.s_addr))
       {
-         /*--------------------------------------------------------
-         Get an outgoing socket to the DA and set it up to make
-         the service:directoryagent request
-           --------------------------------------------------------*/
+         /* Get an outgoing socket to the DA and set it up to make
+          * the service:directoryagent request
+          */
          sock = SLPDOutgoingConnect(&daaddr);
          if (sock)
          {
             buf = 0;
-            if (MakeActiveDiscoveryRqst(0,&buf) == 0)
+            if (MakeActiveDiscoveryRqst(0, &buf) == 0)
             {
                if (sock->state == STREAM_CONNECT_IDLE)
                   sock->state = STREAM_WRITE_FIRST;
-               SLPListLinkTail(&(sock->sendlist),(SLPListItem*)buf);
+               SLPListLinkTail(&sock->sendlist, (SLPListItem *)buf);
                if (sock->state == STREAM_CONNECT_IDLE)
                   sock->state = STREAM_WRITE_FIRST;
             }
@@ -511,23 +479,22 @@ int SLPDKnownDAFromDHCP()
    return 0;
 }
 
-/*=========================================================================*/
-int SLPKnownDAFromProperties()
-/* Queries static configuration for DA's.												*/
-/*                                                                         */
-/* returns  zero on success, Non-zero on failure                           */
-/*=========================================================================*/
+/** Queries static configuration for DA's.
+ *
+ * @return Zero on success, non-zero on failure.
+ */
+int SLPKnownDAFromProperties(void)
 {
-   char*                       temp;
-   char*                       tempend;
-   char*                       slider1;
-   char*                       slider2;
-   struct addrinfo*            ai;
-   struct addrinfo*            ai_ref;
-   struct sockaddr_storage     daaddr;
-   int                         daaddr_isset;
-   SLPDSocket*                 sock;
-   SLPBuffer                   buf;
+   char * temp;
+   char * tempend;
+   char * slider1;
+   char * slider2;
+   struct addrinfo * ai;
+   struct addrinfo * ai_ref;
+   struct sockaddr_storage daaddr;
+   int daaddr_isset;
+   SLPDSocket * sock;
+   SLPBuffer buf;
 
    if (G_SlpdProperty.DAAddresses && *G_SlpdProperty.DAAddresses)
    {
@@ -543,22 +510,24 @@ int SLPKnownDAFromProperties()
             *slider2++ = 0;
 
             daaddr_isset = 0;
-            if (inet_pton(AF_INET6, slider1, &((struct sockaddr_in6*) &daaddr)->sin6_addr) > 0)
+            if (inet_pton(AF_INET6, slider1, 
+                  &((struct sockaddr_in6 *)&daaddr)->sin6_addr) > 0)
             {
                daaddr.ss_family = AF_INET6;
-               ((struct sockaddr_in6*) &daaddr)->sin6_family = AF_INET6;
+               ((struct sockaddr_in6 *)&daaddr)->sin6_family = AF_INET6;
                daaddr_isset = 1;
             }
-            else if (inet_pton(AF_INET, slider1, &((struct sockaddr_in*) &daaddr)->sin_addr) > 0)
+            else if (inet_pton(AF_INET, slider1, 
+                  &((struct sockaddr_in *)&daaddr)->sin_addr) > 0)
             {
                daaddr.ss_family = AF_INET;
-               ((struct sockaddr_in*) &daaddr)->sin_family = AF_INET;
+               ((struct sockaddr_in *)&daaddr)->sin_family = AF_INET;
                daaddr_isset = 1;
             }
-            else if (getaddrinfo(slider1, NULL, NULL, &ai) == 0)
+            else if (getaddrinfo(slider1, 0, 0, &ai) == 0)
             {
                ai_ref = ai;
-               while (ai_ref != NULL)
+               while (ai_ref != 0)
                {
                   if (SLPNetIsIPV6() && ai_ref->ai_addr->sa_family == AF_INET6)
                   {
@@ -574,7 +543,6 @@ int SLPKnownDAFromProperties()
                      /* we'll continue searching for an IPv6 address, but we'll use the first IPv4 address if none are found */
                   }
                }
-
                freeaddrinfo(ai);
             }
 
@@ -592,7 +560,7 @@ int SLPKnownDAFromProperties()
                   {
                      if (sock->state == STREAM_CONNECT_IDLE)
                         sock->state = STREAM_WRITE_FIRST;
-                     SLPListLinkTail(&(sock->sendlist),(SLPListItem*)buf);
+                     SLPListLinkTail(&sock->sendlist, (SLPListItem *)buf);
                      if (sock->state == STREAM_CONNECT_IDLE)
                         sock->state = STREAM_WRITE_FIRST;
                   }
@@ -606,13 +574,12 @@ int SLPKnownDAFromProperties()
    return 0;
 }
 
-/*=========================================================================*/
-int SLPDKnownDAInit()
-/* Initializes the KnownDA list.  Removes all entries and adds entries     */
-/* that are statically configured.  Adds entries configured through DHCP.  */
-/*                                                                         */
-/* returns  zero on success, Non-zero on failure                           */
-/*=========================================================================*/
+/** Initializes the KnownDA list. Removes all entries and adds entries
+ * that are statically configured. Adds entries configured through DHCP.
+ *
+ * @return Zero on success, non-zero on failure
+ */
+int SLPDKnownDAInit(void)
 {
    /*--------------------------------------*/
    /* Set initialize the DAAdvert database */
@@ -626,7 +593,7 @@ int SLPDKnownDAInit()
    SLPKnownDAFromProperties();
 
    /*-----------------------------------------------------------------*/
-   /* Discover DHCP DA's and add them to the active discovery list.	  */
+   /* Discover DHCP DA's and add them to the active discovery list.    */
    /*-----------------------------------------------------------------*/
    SLPDKnownDAFromDHCP();
 
@@ -634,30 +601,27 @@ int SLPDKnownDAInit()
    /* Lastly, Perform first active discovery */
    /*----------------------------------------*/
    if (SLPNetIsIPV4())
-   {
       SLPDKnownDAActiveDiscovery(0, 0);
-   }
+
    if (SLPNetIsIPV6())
    {
       SLPDKnownDAActiveDiscovery(0, SLP_SCOPE_NODE_LOCAL);
       SLPDKnownDAActiveDiscovery(0, SLP_SCOPE_LINK_LOCAL);
       SLPDKnownDAActiveDiscovery(0, SLP_SCOPE_SITE_LOCAL);
    }
-
    return 0;
 }
 
-
-/*=========================================================================*/
-int SLPDKnownDADeinit()
-/* Deinitializes the KnownDA list.  Removes all entries and deregisters    */
-/* all services.                                                           */
-/*                                                                         */
-/* returns  zero on success, Non-zero on failure                           */
-/*=========================================================================*/
+/** Deinitializes the KnownDA list. Removes all entries and deregisters
+ * all services.
+ *
+ * @return Zero on success, non-zero on failure.
+ */
+int SLPDKnownDADeinit(void)
 {
-   SLPDatabaseHandle   dh;
-   SLPDatabaseEntry*   entry;
+   SLPDatabaseHandle dh;
+   SLPDatabaseEntry * entry;
+
    dh = SLPDatabaseOpen(&G_SlpdKnownDAs);
    if (dh)
    {
@@ -667,58 +631,49 @@ int SLPDKnownDADeinit()
       while (1)
       {
          entry = SLPDatabaseEnum(dh);
-         if (entry == NULL) break;
+         if (entry == 0) 
+            break;
 
          SLPDKnownDADeregisterAll(entry->msg);
       }
       SLPDatabaseClose(dh);
    }
-
    SLPDatabaseDeinit(&G_SlpdKnownDAs);
-
    return 0;
 }
 
-
-/*=========================================================================*/
+/** Adds a DA to the known DA list if it is new, removes it if DA is going
+ * down or adjusts entry if DA changed.
+ *
+ * @param[in] msg - DAAdvert message descriptor
+ * @param[in] buf - The DAAdvert message buffer
+ *
+ * @return Zero on success, non-zero on error.
+ */
 int SLPDKnownDAAdd(SLPMessage msg, SLPBuffer buf)
-/* Adds a DA to the known DA list if it is new, removes it if DA is going  */
-/* down or adjusts entry if DA changed.                                    */
-/*                                                                         */
-/* msg     (IN) DAAdvert Message descriptor                                */
-/*                                                                         */
-/* buf     (IN) The DAAdvert message buffer                                */
-/*                                                                         */
-/* returns  Zero on success, Non-zero on error                             */
-/*=========================================================================*/
 {
-   SLPDatabaseEntry*           entry;
-   SLPDAAdvert*                entrydaadvert;
-   SLPDAAdvert*                daadvert;
-   struct sockaddr_storage     daaddr;
-   SLPParsedSrvUrl*            parsedurl       = NULL;
-   int                         result          = 0;
-   SLPDatabaseHandle           dh              = NULL;
+   SLPDatabaseEntry * entry;
+   SLPDAAdvert * entrydaadvert;
+   SLPDAAdvert * daadvert;
+   struct sockaddr_storage daaddr;
+   SLPParsedSrvUrl * parsedurl = 0;
+   int result = 0;
+   SLPDatabaseHandle dh = 0;
 
    dh = SLPDatabaseOpen(&G_SlpdKnownDAs);
-   if (dh == NULL)
+   if (dh == 0)
    {
       result = SLP_ERROR_INTERNAL_ERROR;
       goto CLEANUP;
    }
 
    /* daadvert is the DAAdvert message being added */
-   daadvert = &(msg->body.daadvert);
+   daadvert = &msg->body.daadvert;
 
-
-   /* --------------------------------------------------------
-   * Make sure that the peer address in the DAAdvert matches
-   * the host in the DA service URL.
-   *---------------------------------------------------------
-   */
-   if (SLPParseSrvUrl(daadvert->urllen,
-         daadvert->url,
-         &parsedurl))
+   /* Make sure that the peer address in the DAAdvert matches
+    * the host in the DA service URL.
+    */
+   if (SLPParseSrvUrl(daadvert->urllen, daadvert->url, &parsedurl))
    {
       /* could not parse the DA service url */
       result = SLP_ERROR_PARSE_ERROR;
@@ -731,13 +686,14 @@ int SLPDKnownDAAdd(SLPMessage msg, SLPBuffer buf)
       result = SLP_ERROR_PARSE_ERROR;
       goto CLEANUP;
    }
+
    /* free the parsed url created in call to SLPParseSrvUrl() */
    xfree(parsedurl);
-   /* set the peer address in the DAAdvert message so that it matches
-   * the address the DA service URL resolves to 
-   */
-   msg->peer = daaddr;
 
+   /* set the peer address in the DAAdvert message so that it matches
+    * the address the DA service URL resolves to 
+    */
+   msg->peer = daaddr;
 
    /*-----------------------------------------------------*/
    /* Check to see if there is already an identical entry */
@@ -745,31 +701,29 @@ int SLPDKnownDAAdd(SLPMessage msg, SLPBuffer buf)
    while (1)
    {
       entry = SLPDatabaseEnum(dh);
-      if (entry == NULL) break;
+      if (entry == 0) 
+         break;
 
       /* entrydaadvert is the DAAdvert message from the database */
-      entrydaadvert = &(entry->msg->body.daadvert);
+      entrydaadvert = &entry->msg->body.daadvert;
 
       /* Assume DAs are identical if their URLs match */
-      if (SLPCompareString(entrydaadvert->urllen,
-            entrydaadvert->url,
-            daadvert->urllen,
-            daadvert->url) == 0)
+      if (SLPCompareString(entrydaadvert->urllen, entrydaadvert->url,
+            daadvert->urllen, daadvert->url) == 0)
       {
-
 #ifdef ENABLE_SLPv2_SECURITY
          if (G_SlpdProperty.checkSourceAddr)
          {
-            if ((entry->msg->peer.ss_family == AF_INET &&
-                  msg->peer.ss_family == AF_INET &&
-                  memcmp(&(((sockaddr_in) entry->msg->peer).sin_addr),
-                  &(((sockaddr_in) msg->peer).sin_addr),
-                  sizeof(struct in_addr))) ||
-                  (entry->msg->peer.ss_family == AF_INET6 &&
-                  msg->peer.ss_family == AF_INET6 &&
-                  memcmp(&(((sockaddr_in6) entry->msg->peer).sin6_addr),
-                  &(((sockaddr_in6) msg->peer).sin6_addr),
-                  sizeof(struct in6_addr))))
+            if ((entry->msg->peer.ss_family == AF_INET 
+                     && msg->peer.ss_family == AF_INET 
+                     && memcmp(&(((sockaddr_in) entry->msg->peer).sin_addr),
+                           &(((sockaddr_in) msg->peer).sin_addr),
+                           sizeof(struct in_addr))) 
+                  || (entry->msg->peer.ss_family == AF_INET6 
+                     && msg->peer.ss_family == AF_INET6 
+                     && memcmp(&(((sockaddr_in6) entry->msg->peer).sin6_addr),
+                           &(((sockaddr_in6) msg->peer).sin6_addr),
+                           sizeof(struct in6_addr))))
             {
                SLPDatabaseClose(dh);
                result = SLP_ERROR_AUTHENTICATION_FAILED;
@@ -777,27 +731,25 @@ int SLPDKnownDAAdd(SLPMessage msg, SLPBuffer buf)
             }
          }
 
-         /* make sure an unauthenticated DAAdvert can't replace */
-         /* an authenticated one                                */
-         if (entrydaadvert->authcount &&
-               entrydaadvert->authcount != daadvert->authcount)
+         /* make sure an unauthenticated DAAdvert can't replace
+          * an authenticated one
+          */
+         if (entrydaadvert->authcount 
+               && entrydaadvert->authcount != daadvert->authcount)
          {
             SLPDatabaseClose(dh);
             result = SLP_ERROR_AUTHENTICATION_FAILED;
             goto CLEANUP;
          }
-
 #endif
 
-         if (daadvert->bootstamp != 0 &&
-               daadvert->bootstamp <= entrydaadvert->bootstamp)
-         {
-            /* Advertising DA must have went down then came back up */
-            SLPDKnownDARegisterAll(msg,0);
-         }
+         if (daadvert->bootstamp != 0 
+               && daadvert->bootstamp <= entrydaadvert->bootstamp)
+            SLPDKnownDARegisterAll(msg,0); /* Advertising DA must have went down then came back up */
 
-         /* Remove the entry that is the same as the advertised entry */
-         /* so that we can put the new advertised entry back in       */
+         /* Remove the entry that is the same as the advertised entry
+          * so that we can put the new advertised entry back in
+          */
          SLPDatabaseRemove(dh,entry);
          break;
       }
@@ -829,15 +781,14 @@ int SLPDKnownDAAdd(SLPMessage msg, SLPBuffer buf)
       }
       else
       {
-         /* The advertising DA is not new to us, but the old entry   */
-         /* has been deleted from our database so that the new entry */
-         /* with its up to date time stamp can be put back in.       */
-         /* create a new database entry using the DAAdvert message */
+         /* The advertising DA is not new to us, but the old entry
+          * has been deleted from our database so that the new entry
+          * with its up to date time stamp can be put back in.
+          * create a new database entry using the DAAdvert message
+          */
          entry = SLPDatabaseEntryCreate(msg,buf);
          if (entry)
-         {
             SLPDatabaseAdd(dh, entry);
-         }
          else
          {
             /* Could not create a new entry */
@@ -845,9 +796,7 @@ int SLPDKnownDAAdd(SLPMessage msg, SLPBuffer buf)
             goto CLEANUP;
          }
       }
-
       SLPDatabaseClose(dh);
-
       return result;
    }
    else
@@ -856,17 +805,19 @@ int SLPDKnownDAAdd(SLPMessage msg, SLPBuffer buf)
       if (entry)
       {
          /* Dying DA was found in our KnownDA database. Log that it
-         * was removed.
-         */
+          * was removed.
+          */
          SLPDLogDAAdvertisement("Removed",entry);
       }
    }
 
 CLEANUP:
-   /* If we are here, we need to cleanup the message descriptor and the  */
-   /* message buffer because they were not added to the database and not */
-   /* cleaning them up would result in a memory leak                     */
-   /* We also need to make sure the Database handle is closed.           */
+
+   /* If we are here, we need to cleanup the message descriptor and the
+    * message buffer because they were not added to the database and not
+    * cleaning them up would result in a memory leak
+    * We also need to make sure the Database handle is closed.
+    */
    SLPMessageFree(msg);
    SLPBufferFree(buf);
    if (dh) SLPDatabaseClose(dh);
@@ -874,13 +825,14 @@ CLEANUP:
    return result;
 }
 
-/*=========================================================================*/
-void SLPDKnownDARemove(struct sockaddr_storage* addr)
-/* Removes known DAs that sent DAAdverts from the specified in_addr        */
-/*=========================================================================*/
+/** Removes known DAs that sent DAAdverts from the specified in_addr.
+ *
+ * @param[in] addr - the address of the DA to be removed.
+ */
+void SLPDKnownDARemove(struct sockaddr_storage * addr)
 {
-   SLPDatabaseHandle   dh;
-   SLPDatabaseEntry*   entry;
+   SLPDatabaseHandle dh;
+   SLPDatabaseEntry * entry;
 
    dh = SLPDatabaseOpen(&G_SlpdKnownDAs);
    if (dh)
@@ -891,7 +843,8 @@ void SLPDKnownDARemove(struct sockaddr_storage* addr)
       while (1)
       {
          entry = SLPDatabaseEnum(dh);
-         if (entry == NULL) break;
+         if (entry == 0) 
+            break;
 
          /* Assume DAs are identical if their peer match */
          if (memcmp(addr,&(entry->msg->peer),sizeof(*addr)) == 0)
@@ -901,42 +854,36 @@ void SLPDKnownDARemove(struct sockaddr_storage* addr)
             break;
          }
       }
-
       SLPDatabaseClose(dh);
    }
 }
 
-
-/*=========================================================================*/
-void* SLPDKnownDAEnumStart()
-/* Start an enumeration of all Known DAs                                   */
-/*                                                                         */
-/* Returns: An enumeration handle that is passed to subsequent calls to    */
-/*          SLPDKnownDAEnum().  Returns NULL on failure.  Returned         */
-/*          enumeration handle (if not NULL) must be passed to             */
-/*          SLPDKnownDAEnumEnd() when you are done with it.                */
-/*=========================================================================*/
+/** Start an enumeration of all Known DAs.
+ *
+ * @return An enumeration handle that is passed to subsequent calls to
+ *    SLPDKnownDAEnum(). Returns 0 on failure. 
+ *
+ * @note Returned enumeration handle (if not 0) must be passed to
+ *    SLPDKnownDAEnumEnd() when you are done with it.
+ */
+void * SLPDKnownDAEnumStart(void)
 {
    return SLPDatabaseOpen(&G_SlpdKnownDAs);
 }
 
-
-/*=========================================================================*/
-SLPMessage SLPDKnownDAEnum(void* eh, SLPMessage* msg, SLPBuffer* buf)
-      /* Enumerate through all Known DAs                                         */
-      /*                                                                         */
-      /* eh (IN) pointer to opaque data that is used to maintain                 */
-      /*         enumerate entries.  Pass in a pointer to NULL to start          */
-      /*         enumeration.                                                    */
-      /*                                                                         */
-      /* msg (OUT) pointer to the DAAdvert message descriptor                    */
-      /*                                                                         */
-      /* buf (OUT) pointer to the DAAdvert message buffer                        */
-      /*                                                                         */
-      /* returns: Pointer to enumerated entry or NULL if end of enumeration      */
-      /*=========================================================================*/
+/** Enumerate through all Known DAs.
+ *
+ * @param[in] eh - pointer to opaque data that is used to maintain
+ *    enumerate entries. Pass in a pointer to 0 to start enumeration.
+ * @param[out] msg - pointer to the DAAdvert message descriptor.
+ * @param[out] buf - pointer to the DAAdvert message buffer.
+ *
+ * @return Pointer to enumerated entry or 0 if end of enumeration.
+ */
+SLPMessage SLPDKnownDAEnum(void * eh, SLPMessage * msg, SLPBuffer * buf)
 {
-   SLPDatabaseEntry*   entry;
+   SLPDatabaseEntry * entry;
+
    entry = SLPDatabaseEnum((SLPDatabaseHandle) eh);
    if (entry)
    {
@@ -948,112 +895,83 @@ SLPMessage SLPDKnownDAEnum(void* eh, SLPMessage* msg, SLPBuffer* buf)
       *msg = 0;
       *buf = 0;
    }
-
    return *msg;
 }
 
-
-/*=========================================================================*/
-void SLPDKnownDAEnumEnd(void* eh)
-      /* End an enumeration started by SLPDKnownDAEnumStart()                    */
-      /*                                                                         */
-      /* Parameters:  eh (IN) The enumeration handle returned by                 */
-      /*              SLPDKnownDAEnumStart()                                     */
-      /*=========================================================================*/
+/** End an enumeration started by SLPDKnownDAEnumStart.
+ *
+ * @param[in] eh - The enumeration handle returned by SLPDKnownDAEnumStart.
+ */
+void SLPDKnownDAEnumEnd(void * eh)
 {
    if (eh)
-   {
       SLPDatabaseClose((SLPDatabaseHandle)eh);
-   }
 }
 
-
-/*=========================================================================*/
-int SLPDKnownDAGenerateMyDAAdvert(struct sockaddr_storage* localaddr,
-      int errorcode,
-      int deadda,
-      int xid,
-      SLPBuffer* sendbuf) 
-      /* Pack a buffer with a DAAdvert using information from a SLPDAentry       */
-      /*                                                                         */
-      /* localaddr (IN) the address of the DA to advertise                       */
-      /*                                                                         */
-      /* errorcode (IN) the errorcode for the DAAdvert                           */
-      /*                                                                         */
-      /* xid (IN) the xid to for the DAAdvert                                    */
-      /*                                                                         */
-      /* daentry (IN) pointer to the daentry that contains the rest of the info  */
-      /*              to make the DAAdvert                                       */
-      /*                                                                         */
-      /* sendbuf (OUT) pointer to the SLPBuffer that will be packed with a       */
-      /*               DAAdvert                                                  */
-      /*                                                                         */
-      /* returns: zero on success, non-zero on error                             */
-      /*=========================================================================*/
+/** Pack a buffer with a DAAdvert using information from a SLPDAentry.
+ *
+ * @param[in] localaddr - the address of the DA to advertise
+ * @param[in] errorcode - the errorcode for the DAAdvert
+ * @param[in] deadda - a boolean flag indicating that the DA is dead
+ * @param[in] xid - the xid to for the DAAdvert
+ * @param[out] sendbuf - pointer to the SLPBuffer that will be packed with a
+ *    DAAdvert
+ *
+ * @return Zero on success, non-zero on error.
+ */
+int SLPDKnownDAGenerateMyDAAdvert(struct sockaddr_storage * localaddr,
+      int errorcode, int deadda, int xid, SLPBuffer * sendbuf) 
 {
    char localaddr_str[INET6_ADDRSTRLEN + 2];
-   int       size;
+   int size;
    SLPBuffer result = *sendbuf;
 
 #ifdef ENABLE_SLPv2_SECURITY
-   int                 daadvertauthlen  = 0;
-   unsigned char*      daadvertauth     = 0;
-   int                 spistrlen   = 0;
-   char*               spistr      = 0;
+   int daadvertauthlen  = 0;
+   unsigned char * daadvertauth = 0;
+   int spistrlen = 0;
+   char * spistr = 0;
 
    G_SlpdProperty.DATimestamp += 1;
 
    if (G_SlpdProperty.securityEnabled)
    {
-      SLPSpiGetDefaultSPI(G_SlpdSpiHandle,
-            SLPSPI_KEY_TYPE_PRIVATE,
-            &spistrlen,
-            &spistr);
+      SLPSpiGetDefaultSPI(G_SlpdSpiHandle, SLPSPI_KEY_TYPE_PRIVATE,
+            &spistrlen, &spistr);
 
-      SLPAuthSignDAAdvert(G_SlpdSpiHandle,
-            spistrlen,
-            spistr,
-            G_SlpdProperty.DATimestamp,
-            G_SlpdProperty.myUrlLen,
-            G_SlpdProperty.myUrl,
-            0,
-            0,
-            G_SlpdProperty.useScopesLen,
-            G_SlpdProperty.useScopes,
-            spistrlen,
-            spistr,
-            &daadvertauthlen,
-            &daadvertauth);
+      SLPAuthSignDAAdvert(G_SlpdSpiHandle, spistrlen, spistr,
+            G_SlpdProperty.DATimestamp, G_SlpdProperty.myUrlLen,
+            G_SlpdProperty.myUrl, 0, 0, G_SlpdProperty.useScopesLen,
+            G_SlpdProperty.useScopes, spistrlen, spistr,
+            &daadvertauthlen, &daadvertauth);
    }
 #else
    G_SlpdProperty.DATimestamp += 1;
 #endif
 
-
-
-
-
    /*-------------------------------------------------------------*/
    /* ensure the buffer is big enough to handle the whole srvrply */
    /*-------------------------------------------------------------*/
    size =  G_SlpdProperty.localeLen + 29; /* 14 bytes for header     */
-   /*  2 errorcode  */
-   /*  4 bytes for timestamp */
-   /*  2 bytes for url len */
-   /*  2 bytes for scope list len */
-   /*  2 bytes for attr list len */
-   /*  2 bytes for spi str len */
-   /*  1 byte for authblock count */
+                                          /*  2 errorcode  */
+                                          /*  4 bytes for timestamp */
+                                          /*  2 bytes for url len */
+                                          /*  2 bytes for scope list len */
+                                          /*  2 bytes for attr list len */
+                                          /*  2 bytes for spi str len */
+                                          /*  1 byte for authblock count */
    size += G_SlpdProperty.urlPrefixLen;
    localaddr_str[0] = '\0';
    if (localaddr->ss_family == AF_INET)
-   {
-      inet_ntop(localaddr->ss_family, &((struct sockaddr_in*) localaddr)->sin_addr, localaddr_str, sizeof(localaddr_str));
-   }
+      inet_ntop(localaddr->ss_family, 
+            &((struct sockaddr_in*)localaddr)->sin_addr, 
+            localaddr_str, sizeof(localaddr_str));
    else if (localaddr->ss_family == AF_INET6)
    {
       strcpy(localaddr_str, "[");
-      inet_ntop(localaddr->ss_family, &((struct sockaddr_in6*) localaddr)->sin6_addr, &localaddr_str[1], sizeof(localaddr_str) - 1);
+      inet_ntop(localaddr->ss_family, 
+            &((struct sockaddr_in6*) localaddr)->sin6_addr, 
+            &localaddr_str[1], sizeof(localaddr_str) - 1);
       strcat(localaddr_str, "]");
    }
    size += strlen(localaddr_str);
@@ -1105,13 +1023,10 @@ int SLPDKnownDAGenerateMyDAAdvert(struct sockaddr_storage* localaddr,
    {
       /* timestamp */
       if (deadda)
-      {
          ToUINT32(result->curpos,0);
-      }
       else
-      {
          ToUINT32(result->curpos,G_SlpdProperty.DATimestamp);
-      }
+
       result->curpos = result->curpos + 4;
       /* url len */
       ToUINT16(result->curpos, G_SlpdProperty.urlPrefixLen + strlen(localaddr_str));
@@ -1146,10 +1061,8 @@ int SLPDKnownDAGenerateMyDAAdvert(struct sockaddr_storage* localaddr,
       result->curpos = result->curpos + 2;
 #endif
 
-
-
-      /* authblock count */
 #ifdef ENABLE_SLPv2_SECURITY
+      /* authblock count */
       if (daadvertauth)
       {
          /* authcount */
@@ -1168,6 +1081,7 @@ int SLPDKnownDAGenerateMyDAAdvert(struct sockaddr_storage* localaddr,
    }
 
 FINISHED:
+
 #ifdef ENABLE_SLPv2_SECURITY
    if (daadvertauth) xfree(daadvertauth);
    if (spistr) xfree(spistr);
@@ -1177,33 +1091,24 @@ FINISHED:
    return errorcode;
 }
 
-
 #if defined(ENABLE_SLPv1)
-/*=========================================================================*/
-int SLPDKnownDAGenerateMyV1DAAdvert(struct sockaddr_storage* localaddr,
-      int errorcode,
-      int encoding,
-      unsigned int xid,
-      SLPBuffer* sendbuf)
-      /* Pack a buffer with a v1 DAAdvert using information from a SLPDAentry    */
-      /*                                                                         */
-      /* localaddr (IN) the address of the DA to advertise                       */
-      /*                                                                         */
-      /* errorcode (IN) the errorcode for the DAAdvert                           */
-      /*                                                                         */
-      /* encoding (IN) the SLPv1 language encoding for the DAAdvert              */
-      /*                                                                         */
-      /* xid (IN) the xid to for the DAAdvert                                    */
-      /*                                                                         */
-      /* sendbuf (OUT) pointer to the SLPBuffer that will be packed with a       */
-      /*               DAAdvert                                                  */
-      /*                                                                         */
-      /* returns: zero on success, non-zero on error                             */
-      /*=========================================================================*/
+/** Pack a buffer with a v1 DAAdvert using information from a SLPDAentry.
+ *
+ * @param[in] localaddr - the address of the DA to advertise
+ * @param[in] errorcode - the errorcode for the DAAdvert
+ * @param[in] encoding - the SLPv1 language encoding for the DAAdvert
+ * @param[in] xid - the xid to for the DAAdvert
+ * @param[out] sendbuf - pointer to the SLPBuffer that will be packed 
+ *    with a DAAdvert.
+ *
+ * @return Zero on success, non-zero on error.
+ */
+int SLPDKnownDAGenerateMyV1DAAdvert(struct sockaddr_storage * localaddr,
+      int errorcode, int encoding, unsigned int xid, SLPBuffer * sendbuf)
 {
-   int       size = 0;
-   int       urllen = INT_MAX;
-   int       scopelistlen = INT_MAX;
+   int size = 0;
+   int urllen = INT_MAX;
+   int scopelistlen = INT_MAX;
    SLPBuffer result = *sendbuf;
    char localaddr_str[INET6_ADDRSTRLEN + 2];
    char da_url[INET6_ADDRSTRLEN + 29];
@@ -1211,21 +1116,23 @@ int SLPDKnownDAGenerateMyV1DAAdvert(struct sockaddr_storage* localaddr,
    /*-------------------------------------------------------------*/
    /* ensure the buffer is big enough to handle the whole srvrply */
    /*-------------------------------------------------------------*/
-   size = 18; /* 12 bytes for header     */
-   /*  2 errorcode  */
-   /*  2 bytes for url len */
-   /*  2 bytes for scope list len */
+   size = 18;  /* 12 bytes for header     */
+               /*  2 errorcode  */
+               /*  2 bytes for url len */
+               /*  2 bytes for scope list len */
 
    /* Create the local address in string form */
    localaddr_str[0] = '\0';
    if (localaddr->ss_family == AF_INET)
-   {
-      inet_ntop(localaddr->ss_family, &((struct sockaddr_in*) localaddr)->sin_addr, localaddr_str, sizeof(localaddr_str));
-   }
+      inet_ntop(localaddr->ss_family, 
+            &((struct sockaddr_in *)localaddr)->sin_addr, 
+            localaddr_str, sizeof(localaddr_str));
    else if (localaddr->ss_family == AF_INET6)
    {
       strcpy(localaddr_str, "[");
-      inet_ntop(localaddr->ss_family, &((struct sockaddr_in6*) localaddr)->sin6_addr, &localaddr_str[1], sizeof(localaddr_str) - 1);
+      inet_ntop(localaddr->ss_family, 
+            &((struct sockaddr_in6 *)localaddr)->sin6_addr, 
+            &localaddr_str[1], sizeof(localaddr_str) - 1);
       strcat(localaddr_str, "]");
    }
 
@@ -1236,38 +1143,27 @@ int SLPDKnownDAGenerateMyV1DAAdvert(struct sockaddr_storage* localaddr,
 
    if (!errorcode)
    {
-      errorcode = SLPv1ToEncoding(0, 
-            &urllen, 
-            encoding,
-            da_url,
-            strlen(da_url));
+      errorcode = SLPv1ToEncoding(0, &urllen, encoding, da_url, strlen(da_url));
       if (!errorcode)
       {
          size += urllen;
 #ifndef FAKE_UNSCOPED_DA
-         errorcode = SLPv1ToEncoding(0, &scopelistlen,
-               encoding,
-               G_SlpdProperty.useScopes,
-               G_SlpdProperty.useScopesLen);
+         errorcode = SLPv1ToEncoding(0, &scopelistlen, encoding,
+               G_SlpdProperty.useScopes, G_SlpdProperty.useScopesLen);
 #else
          scopelistlen = 0;   /* pretend that we're unscoped */
 #endif
          if (!errorcode)
-         {
             size += scopelistlen;
-         }
       }
    }
    else
-   {
-      /* don't add these */
-      urllen = scopelistlen = 0;
-   }
+      urllen = scopelistlen = 0; /* don't add these */
 
    result = SLPBufferRealloc(result, size);
    if (result == 0)
    {
-      /* TODO: out of memory, what should we do here! */
+      /** @todo Out of memory, what should we do here! */
       errorcode = SLP_ERROR_INTERNAL_ERROR;
       goto FINISHED;
    }
@@ -1288,9 +1184,8 @@ int SLPDKnownDAGenerateMyV1DAAdvert(struct sockaddr_storage* localaddr,
    *(result->start + 5) = 0;
    /*language code*/
    if (G_SlpdProperty.locale)
-   {
       memcpy(result->start + 6, G_SlpdProperty.locale, 2);
-   }
+
    ToUINT16(result->start + 8, encoding);
    /*xid*/
    ToUINT16(result->start + 10,xid);
@@ -1306,60 +1201,47 @@ int SLPDKnownDAGenerateMyV1DAAdvert(struct sockaddr_storage* localaddr,
    ToUINT16(result->curpos, urllen);
    result->curpos = result->curpos + 2;
    /* url */
-   SLPv1ToEncoding(result->curpos, 
-         &urllen, 
-         encoding, 
-         da_url,
-         strlen(da_url));
+   SLPv1ToEncoding(result->curpos, &urllen, encoding, da_url, strlen(da_url));
    result->curpos = result->curpos + urllen;
    /* scope list len */
    ToUINT16(result->curpos, scopelistlen);
    result->curpos = result->curpos + 2;
    /* scope list */
 #ifndef FAKE_UNSCOPED_DA
-   SLPv1ToEncoding(result->curpos, 
-         &scopelistlen,
-         encoding,  
-         G_SlpdProperty.useScopes,
-         G_SlpdProperty.useScopesLen);
+   SLPv1ToEncoding(result->curpos, &scopelistlen, encoding,  
+         G_SlpdProperty.useScopes, G_SlpdProperty.useScopesLen);
 #endif
 
    result->curpos = result->curpos + scopelistlen;
 
 FINISHED:
+
    *sendbuf = result;
 
    return errorcode;
 }
 #endif
 
-
-
-/*=========================================================================*/
+/** Echo a srvreg message to a known DA.
+ *
+ * @param[in] msg - the SrvReg message descriptor
+ * @param[in] buf - the SrvReg message buffer to echo
+ */
 void SLPDKnownDAEcho(SLPMessage msg, SLPBuffer buf)
-/* Echo a srvreg message to a known DA                                     */
-/*									                                       */
-/* msg (IN) the SrvReg message descriptor                                  */
-/*                                                                         */
-/* buf (IN) the SrvReg message buffer to echo                              */
-/*                                                                         */
-/* Returns:  none                                                          */
-/*=========================================================================*/
 {
-   SLPBuffer           dup;
-   SLPDatabaseHandle   dh;
-   SLPDatabaseEntry*   entry;
-   SLPDAAdvert*        entrydaadvert;
-   SLPDSocket*         sock;
-   const char*         msgscope;
-   int                 msgscopelen;
+   SLPBuffer dup;
+   SLPDatabaseHandle dh;
+   SLPDatabaseEntry * entry;
+   SLPDAAdvert * entrydaadvert;
+   SLPDSocket * sock;
+   const char * msgscope;
+   int msgscopelen;
 
-   /* Do not echo registrations if we are a DA unless they were made  */
-   /* local through the API!                                          */
+   /* Do not echo registrations if we are a DA unless they were made
+    * local through the API!
+    */
    if (G_SlpdProperty.isDA && !SLPNetIsLocal(&(msg->peer)))
-   {
       return;
-   }
 
    if (msg->header.functionid == SLP_FUNCT_SRVREG)
    {
@@ -1372,10 +1254,7 @@ void SLPDKnownDAEcho(SLPMessage msg, SLPBuffer buf)
       msgscopelen = msg->body.srvdereg.scopelistlen;
    }
    else
-   {
-      /* We only echo SRVREG and SRVDEREG */
-      return;
-   }
+      return; /* We only echo SRVREG and SRVDEREG */
 
    dh = SLPDatabaseOpen(&G_SlpdKnownDAs);
    if (dh)
@@ -1387,26 +1266,23 @@ void SLPDKnownDAEcho(SLPMessage msg, SLPBuffer buf)
       while (1)
       {
          entry = SLPDatabaseEnum(dh);
-         if (entry == NULL) break;
+         if (entry == 0) 
+            break;
 
          /* entrydaadvert is the DAAdvert message from the database */
          entrydaadvert = &(entry->msg->body.daadvert);
 
          /* Send to all DAs that have matching scope */
-         if (SLPIntersectStringList(msgscopelen,
-               msgscope,
-               entrydaadvert->scopelistlen,
-               entrydaadvert->scopelist))
+         if (SLPIntersectStringList(msgscopelen, msgscope,
+               entrydaadvert->scopelistlen, entrydaadvert->scopelist))
          {
             /* Do not echo to ourselves if we are a DA*/
-            if (G_SlpdProperty.isDA  &&
-                  SLPContainsStringList(G_SlpdProperty.interfacesLen,
-                  G_SlpdProperty.interfaces,
-                  entrydaadvert->urllen,
-                  entrydaadvert->url) == 1)
+            if (G_SlpdProperty.isDA  
+                  && SLPContainsStringList(G_SlpdProperty.interfacesLen,
+                        G_SlpdProperty.interfaces, entrydaadvert->urllen,
+                        entrydaadvert->url) == 1)
             {
-               /* don't do anything because it makes no sense to echo */
-               /* to myself                                           */
+               /* don't do anything because it makes no sense to echo to myself */
             }
             else
             {
@@ -1421,14 +1297,10 @@ void SLPDKnownDAEcho(SLPMessage msg, SLPBuffer buf)
                   {
                      SLPListLinkTail(&(sock->sendlist),(SLPListItem*)dup);
                      if (sock->state == STREAM_CONNECT_IDLE)
-                     {
                         sock->state = STREAM_WRITE_FIRST;
-                     }
                   }
                   else
-                  {
                      sock->state = SOCKET_CLOSE;
-                  }
                }
             }
          }
@@ -1437,48 +1309,37 @@ void SLPDKnownDAEcho(SLPMessage msg, SLPBuffer buf)
    }
 }
 
-
-/*=========================================================================*/
+/** Add a socket to the outgoing list to do active DA discovery SrvRqst.
+ *
+ * @param[in] seconds - number of seconds that expired since last call
+ * @param[in] scope - the multicast scope to use for IPv6 (0 for IPv4)
+ */
 void SLPDKnownDAActiveDiscovery(int seconds, int scope)
-      /* Add a socket to the outgoing list to do active DA discovery SrvRqst     */
-      /*									                                       */
-      /* seconds (IN) number of seconds that expired since last call             */
-      /* scope   (IN) the multicast scope to use for IPv6 (0 for IPv4)           */
-      /*                                                                         */
-      /* Returns:  none                                                          */
-      /*=========================================================================*/
 {
    struct sockaddr_storage peeraddr;
-   SLPDSocket*             sock;
+   SLPDSocket * sock;
 
    /* Check to see if we should perform active DA detection */
    if (G_SlpdProperty.DAActiveDiscoveryInterval == 0)
-   {
       return;
-   }
+
    /* When activeDiscoveryXmits is < 0 then we should not xmit any more */
    if (G_SlpdProperty.activeDiscoveryXmits < 0)
-   {
-      return ;
-   }
+      return;
 
    if (G_SlpdProperty.nextActiveDiscovery <= 0)
    {
       if (G_SlpdProperty.activeDiscoveryXmits == 0)
       {
          if (G_SlpdProperty.DAActiveDiscoveryInterval == 1)
-         {/* ensures xmit on first call */
-            /* don't xmit any more */
-            G_SlpdProperty.activeDiscoveryXmits = -1;
-         }
+            G_SlpdProperty.activeDiscoveryXmits = -1; /* ensure xmit on 1st call */
          else
          {
             G_SlpdProperty.nextActiveDiscovery = G_SlpdProperty.DAActiveDiscoveryInterval;
             G_SlpdProperty.activeDiscoveryXmits = 3;
          }
       }
-
-      G_SlpdProperty.activeDiscoveryXmits --;
+      G_SlpdProperty.activeDiscoveryXmits--;
 
       /*--------------------------------------------------*/
       /* Create new DATAGRAM socket with appropriate peer */
@@ -1487,11 +1348,14 @@ void SLPDKnownDAActiveDiscovery(int seconds, int scope)
       {
          peeraddr.ss_family = AF_INET6;
          if (scope == SLP_SCOPE_NODE_LOCAL)
-            memcpy(&((struct sockaddr_in6*) &peeraddr)->sin6_addr, &in6addr_srvlocda_node, sizeof(struct in6_addr));
+            memcpy(&((struct sockaddr_in6 *)&peeraddr)->sin6_addr, 
+                  &in6addr_srvlocda_node, sizeof(struct in6_addr));
          else if (scope == SLP_SCOPE_LINK_LOCAL)
-            memcpy(&((struct sockaddr_in6*) &peeraddr)->sin6_addr, &in6addr_srvlocda_link, sizeof(struct in6_addr));
+            memcpy(&((struct sockaddr_in6 *)&peeraddr)->sin6_addr, 
+                  &in6addr_srvlocda_link, sizeof(struct in6_addr));
          else
-            memcpy(&((struct sockaddr_in6*) &peeraddr)->sin6_addr, &in6addr_srvlocda_site, sizeof(struct in6_addr));
+            memcpy(&((struct sockaddr_in6 *)&peeraddr)->sin6_addr, 
+                  &in6addr_srvlocda_site, sizeof(struct in6_addr));
 
          sock = SLPDSocketCreateDatagram(&peeraddr, DATAGRAM_MULTICAST);
 
@@ -1505,7 +1369,7 @@ void SLPDKnownDAActiveDiscovery(int seconds, int scope)
          }
       }
 
-      sock = NULL;
+      sock = 0;
 
       if (SLPNetIsIPV4())
       {
@@ -1513,13 +1377,13 @@ void SLPDKnownDAActiveDiscovery(int seconds, int scope)
          {
             peeraddr.ss_family = AF_INET;
             ((struct sockaddr_in*) &peeraddr)->sin_addr.s_addr = htonl(SLP_MCAST_ADDRESS);
-            sock = SLPDSocketCreateDatagram(&peeraddr,DATAGRAM_MULTICAST);
+            sock = SLPDSocketCreateDatagram(&peeraddr, DATAGRAM_MULTICAST);
          }
          else
          {
             peeraddr.ss_family = AF_INET;
             ((struct sockaddr_in*) &peeraddr)->sin_addr.s_addr = htonl(SLP_BCAST_ADDRESS);
-            sock = SLPDSocketCreateDatagram(&peeraddr,DATAGRAM_BROADCAST);
+            sock = SLPDSocketCreateDatagram(&peeraddr, DATAGRAM_BROADCAST);
          }
 
          if (sock)
@@ -1533,45 +1397,34 @@ void SLPDKnownDAActiveDiscovery(int seconds, int scope)
       }
    }
    else
-   {
       G_SlpdProperty.nextActiveDiscovery = G_SlpdProperty.nextActiveDiscovery - seconds;
-   }
 }
 
-
-/*=========================================================================*/
+/** Send passive daadvert messages if properly configured and running 
+ * as a DA.
+ *
+ * @param[in] seconds - number seconds that elapsed since the last call to 
+ *    this function.
+ * @param[in] dadead - nonzero if the DA is dead and a bootstamp of 0 should 
+ *    be sent.
+ * @param[in] scope - the multicast scope to use for IPv6 (0 for IPv4).
+ */
 void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead, int scope)
-      /* Send passive daadvert messages if properly configured and running as    */
-      /* a DA                                                                    */
-      /*	                                                                       */
-      /* seconds (IN) number seconds that elapsed since the last call to this    */
-      /*              function                                                   */
-      /*                                                                         */
-      /* dadead  (IN) nonzero if the DA is dead and a bootstamp of 0 should be   */
-      /*              sent                                                       */
-      /* scope   (IN) the multicast scope to use for IPv6 (0 for IPv4)           */
-      /*                                                                         */
-      /* Returns:  none                                                          */
-      /*=========================================================================*/
 {
    struct sockaddr_storage peeraddr;
-   SLPDSocket*             sock;
-#ifdef ENABLE_SLPv1
-    SLPDSocket*             v1sock;
-#endif
+   SLPDSocket * sock;
 
+#ifdef ENABLE_SLPv1
+    SLPDSocket * v1sock;
+#endif
 
    /* SAs don't send passive DAAdverts */
    if (G_SlpdProperty.isDA == 0)
-   {
       return;
-   }
 
    /* Check to see if we should perform passive DA detection */
    if (G_SlpdProperty.passiveDADetection == 0)
-   {
       return;
-   }
 
    if (G_SlpdProperty.nextPassiveDAAdvert <= 0 || dadead)
    {
@@ -1584,67 +1437,60 @@ void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead, int scope)
       {
          peeraddr.ss_family = AF_INET6;
          if (scope == SLP_SCOPE_NODE_LOCAL)
-            memcpy(&((struct sockaddr_in6*) &peeraddr)->sin6_addr, &in6addr_srvlocda_node, sizeof(struct in6_addr));
+            memcpy(&((struct sockaddr_in6 *)&peeraddr)->sin6_addr, 
+                  &in6addr_srvlocda_node, sizeof(struct in6_addr));
          else if (scope == SLP_SCOPE_LINK_LOCAL)
-            memcpy(&((struct sockaddr_in6*) &peeraddr)->sin6_addr, &in6addr_srvlocda_link, sizeof(struct in6_addr));
+            memcpy(&((struct sockaddr_in6 *)&peeraddr)->sin6_addr, 
+                  &in6addr_srvlocda_link, sizeof(struct in6_addr));
          else
-            memcpy(&((struct sockaddr_in6*) &peeraddr)->sin6_addr, &in6addr_srvlocda_site, sizeof(struct in6_addr));
+            memcpy(&((struct sockaddr_in6 *)&peeraddr)->sin6_addr, 
+                  &in6addr_srvlocda_site, sizeof(struct in6_addr));
 
-         sock = SLPDSocketCreateDatagram(&peeraddr,DATAGRAM_MULTICAST);
+         sock = SLPDSocketCreateDatagram(&peeraddr, DATAGRAM_MULTICAST);
 
          /* Generate the DAAdvert and link it to the write list */
          if (sock)
          {
-            if (SLPDKnownDAGenerateMyDAAdvert(&sock->localaddr,0,dadead,0,&(sock->sendbuf)) == 0)
-            {
+            if (SLPDKnownDAGenerateMyDAAdvert(&sock->localaddr, 0, dadead, 
+                  0, &sock->sendbuf) == 0)
                SLPDOutgoingDatagramWrite(sock);
-            }
             else
-            {
                SLPDSocketFree(sock);
-            }
          }
       }
 
-      sock = NULL;
+      sock = 0;
 
       if (SLPNetIsIPV4())
       {
          if (G_SlpdProperty.isBroadcastOnly == 0)
          {
             peeraddr.ss_family = AF_INET;
-            ((struct sockaddr_in*) &peeraddr)->sin_addr.s_addr = htonl(SLP_MCAST_ADDRESS);
-            sock = SLPDSocketCreateDatagram(&peeraddr,DATAGRAM_MULTICAST);
+            ((struct sockaddr_in *)&peeraddr)->sin_addr.s_addr = htonl(SLP_MCAST_ADDRESS);
+            sock = SLPDSocketCreateDatagram(&peeraddr, DATAGRAM_MULTICAST);
 
 #ifdef ENABLE_SLPv1
             if (!dadead)
             {
                peeraddr.ss_family = AF_INET;
-               ((struct sockaddr_in*) &peeraddr)->sin_addr.s_addr = htonl(SLPv1_DA_MCAST_ADDRESS);
-               v1sock = SLPDSocketCreateDatagram(&peeraddr,
-                     DATAGRAM_MULTICAST);
+               ((struct sockaddr_in *)&peeraddr)->sin_addr.s_addr = htonl(SLPv1_DA_MCAST_ADDRESS);
+               v1sock = SLPDSocketCreateDatagram(&peeraddr, DATAGRAM_MULTICAST);
             }
             else
-            {
-               v1sock = NULL;
-            }
+               v1sock = 0;
 #endif  
          }
          else
          {
             peeraddr.ss_family = AF_INET;
-            ((struct sockaddr_in*) &peeraddr)->sin_addr.s_addr = htonl(SLP_BCAST_ADDRESS);
+            ((struct sockaddr_in *)&peeraddr)->sin_addr.s_addr = htonl(SLP_BCAST_ADDRESS);
             sock = SLPDSocketCreateDatagram(&peeraddr,DATAGRAM_BROADCAST);
 
 #ifdef ENABLE_SLPv1
             if (!dadead)
-            {
                v1sock = SLPDSocketCreateDatagram(&peeraddr,DATAGRAM_BROADCAST);
-            }
             else
-            {
-               v1sock = NULL;
-            }
+               v1sock = 0;
 #endif
          }
 
@@ -1652,13 +1498,9 @@ void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead, int scope)
          if (sock)
          {
             if (SLPDKnownDAGenerateMyDAAdvert(&sock->localaddr,0,dadead,0,&(sock->sendbuf)) == 0)
-            {
                SLPDOutgoingDatagramWrite(sock);
-            }
             else
-            {
                SLPDSocketFree(sock);
-            }
          }
 
 #ifdef ENABLE_SLPv1
@@ -1667,39 +1509,28 @@ void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead, int scope)
             /* SLPv1 does not support shutdown messages */
 
             /* Generate the DAAdvert and write it */
-            if (SLPDKnownDAGenerateMyV1DAAdvert(&sock->localaddr,
-                  0,
-                  SLP_CHAR_UTF8,
-                  SLPXidGenerate(),
-                  &(v1sock->sendbuf)) == 0)
-            {
+            if (SLPDKnownDAGenerateMyV1DAAdvert(&sock->localaddr, 0,
+                  SLP_CHAR_UTF8, SLPXidGenerate(), &v1sock->sendbuf) == 0)
                SLPDOutgoingDatagramWrite(v1sock);
-            }
             else
-            {
                SLPDSocketFree(v1sock);
-            }
          }
 #endif
       }
    }
    else
-   {
       G_SlpdProperty.nextPassiveDAAdvert = G_SlpdProperty.nextPassiveDAAdvert - seconds;
-   }
 }
 
-
-/*=========================================================================*/
+/** Refresh all SLP_LIFETIME_MAXIMUM services.
+ *
+ * @param[in] seconds - time in seconds since last call
+ */
 void SLPDKnownDAImmortalRefresh(int seconds)
-      /* Refresh all SLP_LIFETIME_MAXIMUM services                               */
-      /* 																		   */
-      /* seconds (IN) time in seconds since last call                            */
-      /*=========================================================================*/
 {
-   SLPDatabaseHandle   dh;
-   SLPDatabaseEntry*   entry;
-   SLPDAAdvert*        entrydaadvert;
+   SLPDatabaseHandle dh;
+   SLPDatabaseEntry * entry;
+   SLPDAAdvert * entrydaadvert;
 
    G_KnownDATimeSinceLastRefresh += seconds;
 
@@ -1709,47 +1540,37 @@ void SLPDKnownDAImmortalRefresh(int seconds)
       dh = SLPDatabaseOpen(&G_SlpdKnownDAs);
       if (dh)
       {
-
          /*-----------------------------------------------------*/
          /* Check to see if there is already an identical entry */
          /*-----------------------------------------------------*/
          while (1)
          {
             entry = SLPDatabaseEnum(dh);
-            if (entry == NULL) break;
+            if (entry == 0) 
+               break;
 
             /* entrydaadvert is the DAAdvert message from the database */
-            entrydaadvert = &(entry->msg->body.daadvert);
+            entrydaadvert = &entry->msg->body.daadvert;
 
             /* Assume DAs are identical if their URLs match */
             if (SLPContainsStringList(G_SlpdProperty.interfacesLen,
-                  G_SlpdProperty.interfaces,
-                  entrydaadvert->urllen,
+                  G_SlpdProperty.interfaces, entrydaadvert->urllen,
                   entrydaadvert->url) == 0)
-            {
                SLPDKnownDARegisterAll(entry->msg,1);
-            }
          }
-
          SLPDatabaseClose(dh);
       }
-
       G_KnownDATimeSinceLastRefresh = 0;
    }
 }
 
-
-/*=========================================================================*/
+/** Deregister the registration described by the specified message.
+ *
+ * @param[in] msg - A message descriptor for a SrvReg or SrvDereg message 
+ *    to deregister.
+ * @param[in] buf - Message buffer associated with msg.
+ */
 void SLPDKnownDADeRegisterWithAllDas(SLPMessage msg, SLPBuffer buf)
-/* Deregister the registration described by the specified message          */
-/*                                                                         */
-/* msg (IN) A message descriptor for a SrvReg or SrvDereg message to       */
-/*          deregister                                                     */
-/*                                                                         */
-/* buf (IN) Message buffer associated with msg                             */
-/*                                                                         */
-/* Returns: None                                                           */
-/*=========================================================================*/
 {
    SLPBuffer  sendbuf;
 
@@ -1762,41 +1583,29 @@ void SLPDKnownDADeRegisterWithAllDas(SLPMessage msg, SLPBuffer buf)
       }
    }
    else if (msg->header.functionid == SLP_FUNCT_SRVDEREG)
-   {
-      /* Simply echo the message through as is */
-      SLPDKnownDAEcho(msg,buf);
-   }
+      SLPDKnownDAEcho(msg,buf); /* Simply echo the message through as is */
 }
 
-
-/*=========================================================================*/
+/** Register the registration described by the specified message with all
+ * known DAs.
+ *
+ * @param[in] msg - A message descriptor for a SrvReg or SrvDereg message 
+ *    to register.
+ * @param[in] buf - Message buffer associated with msg.
+ */
 void SLPDKnownDARegisterWithAllDas(SLPMessage msg, SLPBuffer buf)
-/* Register the registration described by the specified message with all   */
-/* known DAs                                                               */
-/*                                                                         */
-/* msg (IN) A message descriptor for a SrvReg or SrvDereg message to       */
-/*          register                                                       */
-/*                                                                         */
-/* buf (IN) Message buffer associated with msg                             */
-/*                                                                         */
-/* Returns: None                                                           */
-/*=========================================================================*/
 {
    if (msg->header.functionid == SLP_FUNCT_SRVREG)
-   {
-      /* Simply echo the message through as is */
-      SLPDKnownDAEcho(msg,buf);
-   }
+      SLPDKnownDAEcho(msg,buf); /* Simply echo the message through as is */
 }
 
-
 #ifdef DEBUG
-/*=========================================================================*/
-void SLPDKnownDADump()
-/*=========================================================================*/
+/** Dump all known DA's to the console.
+ */
+void SLPDKnownDADump(void)
 {
-   SLPMessage      msg;
-   SLPBuffer       buf;
+   SLPMessage msg;
+   SLPBuffer buf;
    void* eh;
 
    eh = SLPDKnownDAEnumStart();
@@ -1810,7 +1619,6 @@ void SLPDKnownDADump()
          SLPDLogMessageInternals(msg);
          SLPDLog("\n");
       }
-
       SLPDKnownDAEnumEnd(eh);
    }
 }

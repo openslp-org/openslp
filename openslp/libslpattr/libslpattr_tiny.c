@@ -55,98 +55,84 @@
 /* The tiny attribute structure. */
 struct xx_TinyAttr
 {
-   char *attributes; /* A null terminated attribute string. */
+   char * attributes; /* A null terminated attribute string. */
    int attr_len; /* The length of the attributes member. */
 };
 
 SLPError SLPAttrAlloc(
-      const char *lang, 
-      const FILE *template_h,
+      const char * lang, 
+      const FILE * template_h,
       const SLPBoolean strict, 
-      SLPAttributes *slp_attr_h)
+      SLPAttributes * slp_attr_h)
 {
-   struct xx_TinyAttr **slp_attr;
-   slp_attr = (struct xx_TinyAttr**)slp_attr_h;
+   struct xx_TinyAttr ** slp_attr;
+   slp_attr = (struct xx_TinyAttr **)slp_attr_h;
 
    /* Don't bother sanity checking. */
    /* FIXME Should we check? */
 
-   (*slp_attr) = (struct xx_TinyAttr*)malloc(sizeof(struct xx_TinyAttr));
-   if (*slp_attr == NULL)
-   {
+   (*slp_attr) = (struct xx_TinyAttr *)malloc(sizeof(struct xx_TinyAttr));
+   if (*slp_attr == 0)
       return SLP_MEMORY_ALLOC_FAILED;
-   }
 
-   (*slp_attr)->attributes = NULL;
+   (*slp_attr)->attributes = 0;
    (*slp_attr)->attr_len = 0;
 
    return SLP_OK;
 }
 
-
 void SLPAttrFree(SLPAttributes attr_h)
 {
-   struct xx_TinyAttr *slp_attr = (struct xx_TinyAttr*)attr_h;
+   struct xx_TinyAttr * slp_attr = (struct xx_TinyAttr *)attr_h;
 
    /***** Free data. *****/
    if (slp_attr->attributes)
-   {
       free(slp_attr->attributes);
-   }
+
    slp_attr->attr_len = 0;
 
    /***** Free struct. *****/
    free(slp_attr);
-   slp_attr = NULL;
+   slp_attr = 0;
 }
 
 /* TODO/FIXME Does not freshen, instead replaces. */
-SLPError SLPAttrFreshen(SLPAttributes attr_h, const char *new_attrs)
+SLPError SLPAttrFreshen(SLPAttributes attr_h, const char * new_attrs)
 {
-   struct xx_TinyAttr *slp_attr = (struct xx_TinyAttr*)attr_h;
+   struct xx_TinyAttr * slp_attr = (struct xx_TinyAttr *)attr_h;
 
    /***** Free old data. *****/
    if (slp_attr->attributes)
-   {
       free(slp_attr->attributes);
-   }
+
    slp_attr->attr_len = 0;
 
    /***** Copy new data. *****/
    slp_attr->attributes = strdup(new_attrs);
-   if (slp_attr->attributes == NULL)
-   {
+   if (slp_attr->attributes == 0)
       return SLP_MEMORY_ALLOC_FAILED;
-   }
+
    slp_attr->attr_len = strlen(new_attrs);
 
    /***** Done. *****/
    return SLP_OK;
 }
 
-
-SLPError SLPAttrSerialize(SLPAttributes attr_h,
-      const char* tags /* NULL terminated */,
-      char **out_buffer /* Where to write. if *out_buffer == NULL, space is alloc'd */,
-      int bufferlen, /* Size of buffer. */
-      int* count, /* Bytes needed/written. */
-      SLPBoolean find_delta)
+SLPError SLPAttrSerialize(SLPAttributes attr_h, const char * tags,
+      char ** out_buffer, int bufferlen, int * count, SLPBoolean find_delta)
 {
-   struct xx_TinyAttr *slp_attr = (struct xx_TinyAttr*)attr_h;
+   struct xx_TinyAttr *slp_attr = (struct xx_TinyAttr *)attr_h;
 
    /* Write the amount of space we need. */
-   if (count != NULL)
-   {
+   if (count != 0)
       *count = slp_attr->attr_len + 1; /* For the null. */
-   }
 
    /* Check that we have somewhere to write to. */
-   if (bufferlen < slp_attr->attr_len + 1)
-   { /* +1 for null. */
+   if (bufferlen < slp_attr->attr_len + 1) /* +1 for null. */
       return SLP_BUFFER_OVERFLOW;
-   }
-   assert(out_buffer != NULL && *out_buffer != NULL); /* Verify we have somewhere to write. */
 
+   /* Verify we have somewhere to write. */
+   assert(out_buffer != 0 && *out_buffer != 0);
 
    /* Check for empty string. */
    if (slp_attr->attr_len == 0)
@@ -161,169 +147,104 @@ SLPError SLPAttrSerialize(SLPAttributes attr_h,
    return SLP_OK;
 }
 
-
-
 /*****************************************************************************
  *
  * Unimplemented functions.
  * 
  ****************************************************************************/
 
-SLPError SLPAttrAllocStr(
-      const char *lang, 
-      const FILE *template_h,
-      const SLPBoolean strict, 
-      SLPAttributes *slp_attr,
-      const char *str)
+SLPError SLPAttrAllocStr(const char * lang, const FILE * template_h,
+      const SLPBoolean strict, SLPAttributes * slp_attr, const char * str)
 {
    return SLP_NOT_IMPLEMENTED;
 }
 
-
 /* Attribute manipulation. */
-SLPError SLPAttrSet_bool(
-      SLPAttributes attr_h,
-      const char *attribute_tag,
+SLPError SLPAttrSet_bool(SLPAttributes attr_h, const char * attribute_tag,
       SLPBoolean val)
 {
    return SLP_NOT_IMPLEMENTED;
 }
 
-
-SLPError SLPAttrSet_str(
-      SLPAttributes attr_h,
-      const char *tag,
-      const char *val,
-      SLPInsertionPolicy pol)
+SLPError SLPAttrSet_str(SLPAttributes attr_h, const char * tag, 
+      const char * val, SLPInsertionPolicy pol)
 {
    return SLP_NOT_IMPLEMENTED;
 }
 
-
-SLPError SLPAttrSet_keyw(
-      SLPAttributes attr_h,
-      const char *attribute_tag)
+SLPError SLPAttrSet_keyw(SLPAttributes attr_h, const char * attribute_tag)
 {
    return SLP_NOT_IMPLEMENTED;
 }
 
-
-SLPError SLPAttrSet_int(
-      SLPAttributes attr_h,
-      const char *tag,
-      int val,
+SLPError SLPAttrSet_int(SLPAttributes attr_h, const char * tag, int val,
       SLPInsertionPolicy policy)
 {
    return SLP_NOT_IMPLEMENTED;
 }
 
-
-SLPError SLPAttrSet_opaque(
-      SLPAttributes attr_h,
-      const char *tag,
-      const char *val,
-      const unsigned int len, 
-      SLPInsertionPolicy policy)
+SLPError SLPAttrSet_opaque(SLPAttributes attr_h, const char * tag,
+      const char * val, const unsigned int len, SLPInsertionPolicy policy)
 {
    return SLP_NOT_IMPLEMENTED;
 }
 
-
-SLPError SLPAttrSet_guess(
-      SLPAttributes attr_h,
-      const char *tag,
-      const char *val,
-      SLPInsertionPolicy policy)
+SLPError SLPAttrSet_guess(SLPAttributes attr_h, const char * tag,
+      const char * val, SLPInsertionPolicy policy)
 {
    return SLP_NOT_IMPLEMENTED;
 }
-
-
 
 /* Attribute Querying. */
-SLPError SLPAttrGet_bool(
-      SLPAttributes attr_h,
-      const char *tag,
-      SLPBoolean *val)
+SLPError SLPAttrGet_bool(SLPAttributes attr_h, const char * tag,
+      SLPBoolean * val)
 {
    return SLP_NOT_IMPLEMENTED;
 }
 
-
-SLPError SLPAttrGet_keyw(
-      SLPAttributes attr_h,
-      const char *tag)
+SLPError SLPAttrGet_keyw(SLPAttributes attr_h, const char * tag)
 {
    return SLP_NOT_IMPLEMENTED;
 }
 
-
-SLPError SLPAttrGet_int(
-      SLPAttributes attr_h,
-      const char *tag,
-      int *val[],
-      int *size)
+SLPError SLPAttrGet_int(SLPAttributes attr_h, const char * tag, int * val[],
+      int * size)
 {
    return SLP_NOT_IMPLEMENTED;
 }
 
-
-SLPError SLPAttrGet_str(
-      SLPAttributes attr_h,
-      const char *tag,
-      char ***val,
-      int *size)
+SLPError SLPAttrGet_str(SLPAttributes attr_h, const char * tag, 
+      char *** val, int * size)
 {
    return SLP_NOT_IMPLEMENTED;
 }
 
-
-
-SLPError SLPAttrGet_opaque(
-      SLPAttributes attr_h,
-      const char *tag,
-      SLPOpaque ***val,
-      int *size)
+SLPError SLPAttrGet_opaque(SLPAttributes attr_h, const char * tag,
+      SLPOpaque *** val, int * size)
 {
    return SLP_NOT_IMPLEMENTED;
 }
-
-
 
 /* Misc. */
-SLPError SLPAttrGetType(SLPAttributes attr_h, const char *tag, SLPType *type)
+SLPError SLPAttrGetType(SLPAttributes attr_h, const char * tag, SLPType * type)
 {
    return SLP_NOT_IMPLEMENTED;
 }
 
 /* Functions. */
-SLPError SLPRegAttr(
-      SLPHandle slp_h, 
-      const char* srvurl, 
-      unsigned short lifetime, 
-      const char* srvtype, 
-      SLPAttributes attr_h, 
-      SLPBoolean fresh, 
-      SLPRegReport callback, 
-      void* cookie)
+SLPError SLPRegAttr(SLPHandle slp_h, const char * srvurl, 
+      unsigned short lifetime, const char * srvtype, SLPAttributes attr_h, 
+      SLPBoolean fresh, SLPRegReport callback, void * cookie)
 {
    return SLP_NOT_IMPLEMENTED;
 }
 
-
-SLPError SLPFindAttrObj(
-      SLPHandle hslp, 
-      const char* srvurlorsrvtype, 
-      const char* scopelist, 
-      const char* attrids, 
-      SLPAttrObjCallback *callback, 
-      void* cookie)
+SLPError SLPFindAttrObj(SLPHandle hslp, const char * srvurlorsrvtype, 
+      const char* scopelist, const char * attrids, 
+      SLPAttrObjCallback * callback, void * cookie)
 {
    return SLP_NOT_IMPLEMENTED;
 }
-
-
-
 
 /*****************************************************************************
  *
@@ -331,18 +252,18 @@ SLPError SLPFindAttrObj(
  * 
  ****************************************************************************/
 
-SLPError SLPAttrIteratorAlloc(SLPAttributes attr, SLPAttrIterator *iter)
+SLPError SLPAttrIteratorAlloc(SLPAttributes attr, SLPAttrIterator * iter)
 {
    return SLP_NOT_IMPLEMENTED;
 }
 
 void SLPAttrIteratorFree(SLPAttrIterator iter)
 {
-   return ;
 }
 
 
-SLPBoolean SLPAttrIterNext(SLPAttrIterator iter_h, char const **tag, SLPType *type)
+SLPBoolean SLPAttrIterNext(SLPAttrIterator iter_h, char const ** tag, 
+      SLPType * type)
 {
    return SLP_NOT_IMPLEMENTED;
 }

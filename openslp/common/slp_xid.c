@@ -80,7 +80,7 @@ void SLPXidSeed(void)
  *
  * @todo Needs an atomic to be thread-safe.
  */
-unsigned short SLPXidGenerate()
+unsigned short SLPXidGenerate(void)
 {
    G_Xid++;
    return G_Xid;

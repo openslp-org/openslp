@@ -69,7 +69,7 @@
 
 /* Global Variables */
 /** @todo Make property list non-global. */
-SLPList G_SLPPropertyList = {0,0,0};
+SLPList G_SLPPropertyList = {0, 0, 0};
 
 /** Locate a property by name.
  *
@@ -82,18 +82,16 @@ SLPList G_SLPPropertyList = {0,0,0};
  */
 SLPProperty * Find(const char * pcName)
 {
-   SLPProperty*  curProperty;
+   SLPProperty * curProperty;
 
-   curProperty = (SLPProperty*)G_SLPPropertyList.head;
+   curProperty = (SLPProperty *)G_SLPPropertyList.head;
    while (curProperty != 0)
    {
       if (strcmp(curProperty->propertyName,pcName) == 0)
-      {
          break;
-      }
+
       curProperty = (SLPProperty*)curProperty->listitem.next;
    }
-
    return curProperty;
 }
 
@@ -105,11 +103,9 @@ SLPProperty * Find(const char * pcName)
  */
 const char * SLPPropertyGet(const char * pcName)
 {
-   SLPProperty* existingProperty = Find(pcName);
+   SLPProperty * existingProperty = Find(pcName);
    if (existingProperty)
-   {
       return existingProperty->propertyValue;
-   }
 
    return 0;
 }
@@ -121,18 +117,14 @@ const char * SLPPropertyGet(const char * pcName)
  *
  * @return Zero on success; -1 on error, with errno set.
  */
-int SLPPropertySet(const char *pcName,
-      const char *pcValue)
+int SLPPropertySet(const char * pcName, const char * pcValue)
 {
    int             pcNameSize;
    int             pcValueSize;
    SLPProperty*    newProperty;
 
    if (pcValue == 0)
-   {
-      /* Bail for right now */
       return 0;
-   }
 
    newProperty = Find(pcName);
    pcNameSize = strlen(pcName) + 1;
@@ -141,51 +133,50 @@ int SLPPropertySet(const char *pcName,
    if (newProperty == 0)
    {
       /* property does not exist in the list */
-      newProperty = (SLPProperty*)xmalloc(sizeof(SLPProperty) + pcNameSize + pcValueSize);
+      newProperty = (SLPProperty *)xmalloc(sizeof(SLPProperty) 
+            + pcNameSize + pcValueSize);
       if (newProperty == 0)
       {
-         /* out of memory */
          errno = ENOMEM;
          return -1;
       }
 
-      /* set the pointers in the SLPProperty structure to point to areas of    */
-      /* the previously allocated block of memory                              */
-      newProperty->propertyName   = ((char*)newProperty) + sizeof(SLPProperty);
-      newProperty->propertyValue  = newProperty->propertyName + pcNameSize;
+      /* set the pointers in the SLPProperty structure to point to areas of */
+      /* the previously allocated block of memory */
+      newProperty->propertyName = ((char *)newProperty) + sizeof(SLPProperty);
+      newProperty->propertyValue = newProperty->propertyName + pcNameSize;
 
       /* copy the passed in name and value */
-      memcpy(newProperty->propertyName,pcName,pcNameSize);
-      memcpy(newProperty->propertyValue,pcValue,pcValueSize);
+      memcpy(newProperty->propertyName, pcName, pcNameSize);
+      memcpy(newProperty->propertyValue, pcValue, pcValueSize);
 
       /* Link the new property into the list */
-      SLPListLinkHead(&G_SLPPropertyList,(SLPListItem*)newProperty);
+      SLPListLinkHead(&G_SLPPropertyList, (SLPListItem *)newProperty);
    }
    else
    {
-      SLPListUnlink(&G_SLPPropertyList,(SLPListItem*)newProperty);
+      SLPListUnlink(&G_SLPPropertyList, (SLPListItem *)newProperty);
 
       /* property already exists in the list */
-      newProperty = (SLPProperty*)xrealloc(newProperty,sizeof(SLPProperty) + pcNameSize + pcValueSize);
+      newProperty = (SLPProperty *)xrealloc(newProperty, 
+            sizeof(SLPProperty) + pcNameSize + pcValueSize);
       if (newProperty == 0)
       {
-         /* out of memory */
          errno = ENOMEM;
          return -1;
       }
 
-      /* set the pointers in the SLPProperty structure to point to areas of    */
-      /* the previously allocated block of memory                              */
-      newProperty->propertyName   = ((char*)newProperty) + sizeof(SLPProperty);
-      newProperty->propertyValue  = newProperty->propertyName + pcNameSize;
+      /* set the pointers in the SLPProperty structure to point to areas of */
+      /* the previously allocated block of memory */
+      newProperty->propertyName = ((char *)newProperty) + sizeof(SLPProperty);
+      newProperty->propertyValue = newProperty->propertyName + pcNameSize;
 
       /* copy the passed in name and value */
-      memcpy(newProperty->propertyName,pcName,pcNameSize);
-      memcpy(newProperty->propertyValue,pcValue,pcValueSize);
+      memcpy(newProperty->propertyName, pcName, pcNameSize);
+      memcpy(newProperty->propertyValue, pcValue, pcValueSize);
 
-      SLPListLinkHead(&G_SLPPropertyList,(SLPListItem*)newProperty);
+      SLPListLinkHead(&G_SLPPropertyList, (SLPListItem *)newProperty);
    }
-
    return 0;
 }
 
@@ -193,7 +184,7 @@ int SLPPropertySet(const char *pcName,
  *
  * @return Zero on success, or -1 with errno set on error.
  */
-int SetDefaultValues()
+int SetDefaultValues(void)
 {
    int result = 0;
 
@@ -224,7 +215,6 @@ int SetDefaultValues()
    result |= SLPPropertySet("net.slp.traceDATraffic","false");
    result |= SLPPropertySet("net.slp.isDA","false");
    result |= SLPPropertySet("net.slp.DAHeartBeat","10800");
-
    result |= SLPPropertySet("net.slp.securityEnabled","false");
    result |= SLPPropertySet("net.slp.checkSourceAddr","true");
    result |= SLPPropertySet("net.slp.OpenSLPVersion", SLP_VERSION);
@@ -244,37 +234,32 @@ int SetDefaultValues()
  * @return Zero on success, or a non-zero value on error. Properties will 
  *    be set to default on error.
  */
-int SLPPropertyReadFile(const char* conffile)
+int SLPPropertyReadFile(const char * conffile)
 {
-   char*   line;
-   char*   alloced;
-   FILE*   fp;
-   char*   namestart;
-   char*   nameend;
-   char*   valuestart;
-   char*   valueend;
+   char * line;
+   char * alloced;
+   FILE * fp;
+   char * namestart;
+   char * nameend;
+   char * valuestart;
+   char * valueend;
 
    if (SetDefaultValues())
-   {
       return -1;
-   }
 
    alloced = xmalloc(4096);
    if (alloced == 0)
    {
-      /* out of memory */
       errno = ENOMEM;
       return -1;
    }
 
    fp = fopen(conffile,"r");
    if (!fp)
-   {
       goto CLEANUP;
-   }
 
    /* Set the property that keeps track of conffile */
-   SLPPropertySet("net.slp.OpenSLPConfigFile",conffile);
+   SLPPropertySet("net.slp.OpenSLPConfigFile", conffile);
 
    while (fgets(alloced,4096,fp))
    {
@@ -282,20 +267,14 @@ int SLPPropertyReadFile(const char* conffile)
 
       /* trim whitespace */
       while (*line && *line <= 0x20)
-      {
          line++;
-      }
 
       if (*line == 0)
-      {
          continue;
-      }
 
       /* skip commented lines */
       if (*line == '#' || *line == ';')
-      {
          continue;
-      }
 
       /* parse out the property name*/
       namestart = line;
@@ -303,9 +282,8 @@ int SLPPropertyReadFile(const char* conffile)
       nameend = strchr(nameend,'=');
 
       if (nameend == 0)
-      {
          continue;
-      }
+
       valuestart = nameend + 1;  /* start of value for later*/
 
       while (*nameend <= 0x20 || *nameend == '=')
@@ -316,17 +294,13 @@ int SLPPropertyReadFile(const char* conffile)
 
       /* parse out the property value */
       while (*valuestart && *valuestart <= 0x20)
-      {
          valuestart++;
-      }
 
       valueend = valuestart;
 
       /* Seek to the end of the value */
       while (*valueend)
-      {
          valueend++;
-      }
 
       /* Remove any whitespace that might be present */
       while (valueend != valuestart && *valueend <= 0x20)
@@ -337,22 +311,16 @@ int SLPPropertyReadFile(const char* conffile)
 
       /* set the property */
       if (valuestart && *valuestart)
-      {
          SLPPropertySet(namestart, valuestart);
-      }
    }
-
 
 CLEANUP:
+
    if (fp)
-   {
       fclose(fp);
-   }
 
    if (alloced)
-   {
       xfree(alloced);
-   }
 
    return 0;
 }
@@ -367,20 +335,15 @@ CLEANUP:
  * @return Zero if @p property refers to a FALSE boolean string value;
  *    Non-zero if @p property refers to a TRUE boolean string value.
  */
-int SLPPropertyAsBoolean(const char* property)
+int SLPPropertyAsBoolean(const char * property)
 {
    if (property)
    {
-      if (*property == 't' ||
-            *property == 'T' ||
-            *property == 'y' ||
-            *property == 'Y' ||
-            *property == '1')
-      {
+      if (*property == 't' || *property == 'T' 
+            || *property == 'y' || *property == 'Y'
+            || *property == '1')
          return 1;
-      }
    }
-
    return 0;
 }
 
@@ -394,7 +357,7 @@ int SLPPropertyAsBoolean(const char* property)
  * @return An integer value of the string value associated with 
  *    @p property.
  */
-int SLPPropertyAsInteger(const char* property)
+int SLPPropertyAsInteger(const char * property)
 {
    return atoi(property);
 }
@@ -416,39 +379,36 @@ int SLPPropertyAsInteger(const char* property)
  * @todo Convert this routine to return the number of entries set on 
  *    success, rather than simply zero.
  */
-int SLPPropertyAsIntegerVector(const char* property, 
-      int* vector, 
+int SLPPropertyAsIntegerVector(const char * property, int * vector, 
       int vectorsize)
 {
-   int         i;
-   char*       slider1;
-   char*       slider2;
-   char*       temp;
-   char*       end;
+   int i;
+   char * slider1;
+   char * slider2;
+   char * temp;
+   char * end;
 
-   memset(vector,0,sizeof(int)*vectorsize);
+   memset(vector, 0, sizeof(int) * vectorsize);
    temp = xstrdup(property);
    if (temp == 0)
-   {
       return 0;
-   }
 
    end = temp + strlen(property);
    slider1 = slider2 = temp;
 
-   for (i=0;i<vectorsize;i++)
+   for (i = 0; i < vectorsize; i++)
    {
-      while (*slider2 && *slider2 != ',') slider2++;
+      while (*slider2 && *slider2 != ',') 
+         slider2++;
+
       *slider2 = 0;
       vector[i] = SLPPropertyAsInteger(slider1);
       slider2++;
       if (slider2 >= end)
-      {
          break;
-      }
+
       slider1 = slider2;
    }
-
    xfree(temp);
 
    return i;
@@ -462,19 +422,17 @@ int SLPPropertyAsIntegerVector(const char* property,
  */
 void SLPPropertyFreeAll(void)
 {
-   SLPProperty* property;
-   SLPProperty* del;
+   SLPProperty * property;
+   SLPProperty * del;
 
-
-   property = (SLPProperty*)G_SLPPropertyList.head;
+   property = (SLPProperty *)G_SLPPropertyList.head;
    while (property)
    {
       del = property;
       property = (SLPProperty*)property->listitem.next;
       xfree(del);
    }
-
-   memset(&G_SLPPropertyList,0,sizeof(G_SLPPropertyList));
+   memset(&G_SLPPropertyList, 0, sizeof(G_SLPPropertyList));
 }
 #endif
 

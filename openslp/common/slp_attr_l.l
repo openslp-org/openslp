@@ -123,74 +123,76 @@ uint slp_attr_init_lexer(char *s);
 
 %}
 
-/* {}	*/
-digit			[0-9]
-hexdigit		[0-9a-fA-F]
-escaped			("\\"([a-fA-F0-9]{2}))
-reserved		[(),\\!<=>~\x00-\x1f]
-res_tag			[(),\\!<>~\x00-\x1f*_\r\n\t]
-res_val			[*_\r\n\t]
-tag				[^(),\\!<=>~\x00-\x1f]
-val				[^(),\\!<>~\x00-\x1f*_\r\n\t]
+/* {} */
+digit       [0-9]
+hexdigit    [0-9a-fA-F]
+escaped     ("\\"([a-fA-F0-9]{2}))
+reserved    [(),\\!<=>~\x00-\x1f]
+res_tag     [(),\\!<>~\x00-\x1f*_\r\n\t]
+res_val     [*_\r\n\t]
+tag         [^(),\\!<=>~\x00-\x1f]
+val         [^(),\\!<>~\x00-\x1f*_\r\n\t]
 
- /* 
-   this lexer cycles through three states. in the initial state, 
-   it is looking strictly for attribute tags. If, in the initial 
-   state it finds a '(' it anticipates an attribute-value pair 
-   and changes to ATTRIBUTE state .
+   /* 
+      this lexer cycles through three states. in the initial state, 
+      it is looking strictly for attribute tags. If, in the initial 
+      state it finds a '(' it anticipates an attribute-value pair 
+      and changes to ATTRIBUTE state .
 
-   in the ATTRIBUTE state is is looking for either a closing ')'
-   or a '='. If it sees a closing ')' it changes to the initial state. 
-   if it sees an '=' it changes to the VALUE state and looks for 
-   the attribute value. After seeing the attribute value, it looks
-   for a either a ')' or a ','. If it sees a ')' it closes the attribute
-   and returns to the initial state. 
+      in the ATTRIBUTE state is is looking for either a closing ')'
+      or a '='. If it sees a closing ')' it changes to the initial state. 
+      if it sees an '=' it changes to the VALUE state and looks for 
+      the attribute value. After seeing the attribute value, it looks
+      for a either a ')' or a ','. If it sees a ')' it closes the attribute
+      and returns to the initial state. 
 
-   if, during the VALUE state the lexer sees a ',' it decides it is 
-   looking at a multi-valued attribute and returns a special _MULTIVAL
-   token to the parser. The parser uses this to construct additional
-   attribute-value pairs for each value in the multi-val statement. 
- */ 
+      if, during the VALUE state the lexer sees a ',' it decides it is 
+      looking at a multi-valued attribute and returns a special _MULTIVAL
+      token to the parser. The parser uses this to construct additional
+      attribute-value pairs for each value in the multi-val statement. 
+   */ 
 %option noyywrap
 %x ATTR
 %x VALUE
 %%
 
-[ \t\v\f]*              { ; }
+[ \t\v\f]*  { ; }
 
-"," 			{ yylval._i = *yytext; return(yylval._i); }
-"("			{ BEGIN ATTR; yylval._i = *yytext; return(yylval._i); }
-{tag}+			{   
-            if (yyleng > 0) {
-               if(NULL != (yylval._s = xstrdup(yytext)))
-                                 return(_TAG);
-                              else
-                                 return(0L);
-                           }
-                        }
+","         { yylval._i = *yytext; return(yylval._i); }
+"("         { BEGIN ATTR; yylval._i = *yytext; return(yylval._i); }
+{tag}+      {   
+               if (yyleng > 0) 
+               {
+                  if (0 != (yylval._s = xstrdup(yytext)))
+                     return(_TAG);
+                  else
+                     return(0L);
+               }
+            }
 
- /* anything else in the initial state is an error */
-.				{yyerror("error in lexer - initial state\n");}
+   /* anything else in the initial state is an error */
+.                 { yyerror("error in lexer - initial state\n"); }
 
-<ATTR>[ \t\v\f]*        { ; }
-<ATTR>"="	        {BEGIN VALUE; yylval._i = *yytext; return(yylval._i);}
-<ATTR>{tag}+	        {   
-                          if (yyleng > 0 ) {
-                             if(NULL != (yylval._s = xstrdup(yytext)))
-                                return(_TAG);
-                             else
-                                return(0L);
-                           }
-                        }
+<ATTR>[ \t\v\f]*  { ; }
+<ATTR>"="         {BEGIN VALUE; yylval._i = *yytext; return(yylval._i);}
+<ATTR>{tag}+      {
+                     if (yyleng > 0 ) 
+                     {
+                        if(0 != (yylval._s = xstrdup(yytext)))
+                           return(_TAG);
+                        else
+                           return(0L);
+                     }
+                  }
 
- /* make it legal to have just an attr tag enclosed in parens */
-<ATTR>")"		{BEGIN INITIAL; yylval._i = *yytext; return(yylval._i); }
+   /* make it legal to have just an attr tag enclosed in parens */
+<ATTR>")"         { BEGIN INITIAL; yylval._i = *yytext; return(yylval._i); }
 
- /* anything else in the attribute state is an error */
-<ATTR>.			{yyerror("error in lexer - attribute state\n");}
+   /* anything else in the attribute state is an error */
+<ATTR>.           { yyerror("error in lexer - attribute state\n"); }
 
-<VALUE>[ \t\v\f]*       { ; }
-<VALUE>","  		{yylval._i = *yytext; return(_MULTIVAL);}
+<VALUE>[ \t\v\f]* { ; }
+<VALUE>","        { yylval._i = *yytext; return(_MULTIVAL); }
 
 <VALUE>[-+][0-9]+             |
 <VALUE>[-+]"0"[xX]{hexdigit}+ { yylval._i = strtol(yytext, (char **) 0, 0); return _INT ;};
@@ -199,52 +201,50 @@ val				[^(),\\!<>~\x00-\x1f*_\r\n\t]
 <VALUE>"0"[xX]{hexdigit}+     { yylval._i = strtoul(yytext, (char **)0, 0); return _INT; };
 
 
-<VALUE>[tT][rR][uU][eE] {return(_TRUE);}
-<VALUE>[fF][aA][lL][sS][eE]  {return(_FALSE);}
+<VALUE>[tT][rR][uU][eE]       { return(_TRUE); }
+<VALUE>[fF][aA][lL][sS][eE]   { return(_FALSE); }
 
-<VALUE>{val}+	        {	
-                           if (yyleng > 0) {
-                              if(NULL != (yylval._s = xstrdup(yytext)))
-                                 return(_STRING);
-                              else
-                                 return(0L);
-                           }
-                        }		
+<VALUE>{val}+     {  
+                     if (yyleng > 0) {
+                        if(0 != (yylval._s = xstrdup(yytext)))
+                           return(_STRING);
+                        else
+                           return(0L);
+                     }
+                  }     
 
-<VALUE>{escaped}+       {	
-                           if (yyleng > 0) {
-                              if(NULL != (yylval._s = xstrdup(yytext)))
-                                 return(_ESCAPED);
-                              else
-                                 return(0L);
-                           }
-                        }
+<VALUE>{escaped}+ {  
+                     if (yyleng > 0) {
+                        if(0 != (yylval._s = xstrdup(yytext)))
+                           return(_ESCAPED);
+                        else
+                           return(0L);
+                     }
+                  }
 
+<VALUE>")"        { BEGIN INITIAL; yylval._i = *yytext; return(yylval._i); }
 
-<VALUE>")"	        {BEGIN INITIAL; yylval._i = *yytext; return(yylval._i);}
-
- /* anything else in the value state is an error */
-<VALUE>.		{yyerror("error in lexer - value state\n");}
+   /* anything else in the value state is an error */
+<VALUE>.          { yyerror("error in lexer - value state\n"); }
 
 %%
 
-unsigned int slp_attr_init_lexer(char *s)
+unsigned int slp_attr_init_lexer(char * s)
 {
-    memset(&buf[0], 0x00, 2052);
-    strncpy(&buf[0], s, 2052);
-    return((uint)yy_scan_buffer(&buf[0], strlen(s) + 2));
+   memset(&buf[0], 0x00, 2052);
+   strncpy(&buf[0], s, 2052);
+   return((uint)yy_scan_buffer(&buf[0], strlen(s) + 2));
 }
 
 void attr_close_lexer(uint handle)
 {
-    // assert(handle != 0);
-    yy_delete_buffer((YY_BUFFER_STATE)handle);
+   /* assert(handle != 0); */
+   yy_delete_buffer((YY_BUFFER_STATE)handle);
 }
-
 
 void yyerror(char *s, ...)
 {
-    return;
+   return;
 }   
 
 /*=========================================================================*/

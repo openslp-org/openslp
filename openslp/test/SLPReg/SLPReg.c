@@ -73,10 +73,10 @@ MySLPSrvURLCallback(SLPHandle hslp,
 
 int main(int argc, char* argv[])
 {
-   SLPError	err;
-   SLPError	callbackerr;
-   SLPHandle	hslp;
-   char		reg_string[4096];
+   SLPError err;
+   SLPError callbackerr;
+   SLPHandle   hslp;
+   char     reg_string[4096];
 
    if ((argc < 2) || (argc > 4))
    {
@@ -105,8 +105,8 @@ int main(int argc, char* argv[])
    err = SLPFindSrvs(
          hslp, 
          argv[3],
-         0,		/* use configured scopes */
-         0,		/* no attr filter        */
+         0,    /* use configured scopes */
+         0,    /* no attr filter        */
          MySLPSrvURLCallback,
          &callbackerr);
 

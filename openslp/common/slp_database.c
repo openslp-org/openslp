@@ -51,12 +51,11 @@
  * 
  * @return Zero on success, or a non-zero error code.
  */
-int SLPDatabaseInit(SLPDatabase* database)
+int SLPDatabaseInit(SLPDatabase * database)
 {
    if (database && database->head)
-   {
       SLPDatabaseDeinit(database);
-   }
+
    return 0;
 }
 
@@ -67,10 +66,9 @@ int SLPDatabaseInit(SLPDatabase* database)
 void SLPDatabaseDeinit(SLPDatabase * database)
 {
    while (database->count)
-   {
-      SLPDatabaseEntryDestroy((SLPDatabaseEntry*)
+      SLPDatabaseEntryDestroy((SLPDatabaseEntry *)
             SLPListUnlink(database, database->head));
-   }
+
    memset(database, 0, sizeof(SLPDatabase));
 }
 
@@ -86,10 +84,9 @@ void SLPDatabaseDeinit(SLPDatabase * database)
  *    via SLPMessageFree or SLPBufferFree! Instead, the caller should
  *    use SLPDatabaseEntryDestroy only to free memory.
  */
-SLPDatabaseEntry* SLPDatabaseEntryCreate(SLPMessage msg,
-      SLPBuffer buf)
+SLPDatabaseEntry * SLPDatabaseEntryCreate(SLPMessage msg, SLPBuffer buf)
 {
-   SLPDatabaseEntry* result;
+   SLPDatabaseEntry * result;
 
    result = (SLPDatabaseEntry *)xmalloc(sizeof(SLPDatabaseEntry));
    if (result)
@@ -125,7 +122,7 @@ void SLPDatabaseEntryDestroy(SLPDatabaseEntry * entry)
  *    versions may use handles to ensure synchronized access to the 
  *    database in multi-threaded environments.
  */
-SLPDatabaseHandle SLPDatabaseOpen(SLPDatabase* database)
+SLPDatabaseHandle SLPDatabaseOpen(SLPDatabase * database)
 {
    SLPDatabaseHandle result;
    result = (SLPDatabaseHandle)xmalloc(sizeof(struct _SLPDatabaseHandle));
@@ -144,15 +141,14 @@ SLPDatabaseHandle SLPDatabaseOpen(SLPDatabase* database)
  * @return A pointer to an SLP database entry, or 0 if end-of-enumeration
  *    has been reached.
  */
-SLPDatabaseEntry* SLPDatabaseEnum(SLPDatabaseHandle dh)
+SLPDatabaseEntry * SLPDatabaseEnum(SLPDatabaseHandle dh)
 {
-   SLPDatabaseEntry* result;
+   SLPDatabaseEntry * result;
 
    result = dh->current;
    if (result)
-   {
-      dh->current = (SLPDatabaseEntry*)((SLPListItem*)(dh->current))->next;
-   }
+      dh->current = (SLPDatabaseEntry *)((SLPListItem *)(dh->current))->next;
+
    return result;
 }
 
@@ -162,7 +158,7 @@ SLPDatabaseEntry* SLPDatabaseEnum(SLPDatabaseHandle dh)
  */
 void SLPDatabaseRewind(SLPDatabaseHandle dh)
 {
-   dh->current = (SLPDatabaseEntry*)dh->database->head;
+   dh->current = (SLPDatabaseEntry *)dh->database->head;
 }
 
 /** Closes an SLP database handle.
@@ -184,11 +180,10 @@ void SLPDatabaseClose(SLPDatabaseHandle dh)
  *    @p entry. This means that you must NOT use the entry after it's
  *    been removed.
  */
-void SLPDatabaseRemove(SLPDatabaseHandle dh, 
-      SLPDatabaseEntry* entry)
+void SLPDatabaseRemove(SLPDatabaseHandle dh, SLPDatabaseEntry * entry)
 {
-   SLPDatabaseEntryDestroy((SLPDatabaseEntry*)
-         SLPListUnlink(dh->database, (SLPListItem*)entry));
+   SLPDatabaseEntryDestroy((SLPDatabaseEntry *)
+         SLPListUnlink(dh->database, (SLPListItem *)entry));
 }
 
 /** Add the specified entry
@@ -200,10 +195,9 @@ void SLPDatabaseRemove(SLPDatabaseHandle dh,
  *    been added to the database. Instead call SLPDatabaseDeinit or 
  *    SLPDatabaseRemove to free resources associated with an added entry.
  */
-void SLPDatabaseAdd(SLPDatabaseHandle dh,
-      SLPDatabaseEntry* entry)
+void SLPDatabaseAdd(SLPDatabaseHandle dh, SLPDatabaseEntry * entry)
 {
-   SLPListLinkTail(dh->database, (SLPListItem*)entry);
+   SLPListLinkTail(dh->database, (SLPListItem *)entry);
 }
 
 /** Count the number of entries in an SLP database.
@@ -218,10 +212,10 @@ int SLPDatabaseCount(SLPDatabaseHandle dh)
 }
 
 #ifdef TEST_SLP_DATABASE_TEST
-int main(int argc, char* argv[])
+int main(int argc, char * argv[])
 {
-   SLPDatabase         testdb;
-   SLPDatabaseEntry*   testentry;
+   SLPDatabase testdb;
+   SLPDatabaseEntry * testentry;
 
    memset(&testdb, 0, sizeof(testdb));
    SLPDatabaseInit(&testdb);

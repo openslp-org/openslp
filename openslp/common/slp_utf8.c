@@ -76,12 +76,12 @@ static Tab tab[] =
  *
  * @internal
  */
-static int utftouni(unsigned *p, const char *s, size_t n)
+static int utftouni(unsigned * p, const char * s, size_t n)
 {
    long l;
    int c0, c;
    size_t nc;
-   Tab *t;
+   Tab * t;
 
    if (s == 0)
       return 0;
@@ -89,6 +89,7 @@ static int utftouni(unsigned *p, const char *s, size_t n)
    nc = 0;
    if (n <= nc)
       return -1;
+
    c0 = *s & 0xff;
    l = c0;
    for (t = tab; t->cmask; t++)
@@ -99,15 +100,18 @@ static int utftouni(unsigned *p, const char *s, size_t n)
          l &= t->lmask;
          if (l < t->lval)
             return -1;
+
          *p = l;
          return (int)nc;
       }
       if (n <= nc)
          return -1;
+
       s++;
       c = (*s ^ 0x80) & 0xFF;
       if (c & 0xC0)
          return -1;
+
       l = (l << 6) | c;
    }
    return -1;
@@ -128,11 +132,11 @@ static int utftouni(unsigned *p, const char *s, size_t n)
  *
  * @internal
  */
-static int unitoutf(char *s, unsigned wc)
+static int unitoutf(char * s, unsigned wc)
 {
    long l;
    int c, nc;
-   Tab *t;
+   Tab * t;
 
    if (s == 0)
       return 0;
@@ -182,12 +186,12 @@ static int unitoutf(char *s, unsigned wc)
  *    character. However MOST utf-8 characters in common use today are two
  *    bytes or less in length. 
  */
-int SLPv1AsUTF8(int encoding, char *string, int *len)
+int SLPv1AsUTF8(int encoding, char * string, int * len)
 {
    int nc;
    unsigned uni;
    char utfchar[6];        /* UTF-8 chars are at most 6 bytes */
-   char *utfstring = string, *unistring = string;
+   char * utfstring = string, * unistring = string;
 
    if (encoding == SLP_CHAR_ASCII || encoding == SLP_CHAR_UTF8)
       return 0;
@@ -241,8 +245,8 @@ int SLPv1AsUTF8(int encoding, char *string, int *len)
  * @remarks When called with @p string set to null, this routine returns
  *    the number of bytes needed in string.
  */
-int SLPv1ToEncoding(char *string, int *len, int encoding, 
-      const char *utfstring, int utflen)
+int SLPv1ToEncoding(char * string, int * len, int encoding, 
+      const char * utfstring, int utflen)
 {
    unsigned uni;
    int nc, total = 0;
@@ -251,6 +255,7 @@ int SLPv1ToEncoding(char *string, int *len, int encoding,
    {
       if (*len < utflen)
          return SLP_ERROR_INTERNAL_ERROR;
+
       *len = utflen;
       if (string)
          memcpy(string, utfstring, utflen);
@@ -258,6 +263,7 @@ int SLPv1ToEncoding(char *string, int *len, int encoding,
    }
    if (encoding != SLP_CHAR_UNICODE16 && encoding != SLP_CHAR_UNICODE32)
       return SLP_ERROR_INTERNAL_ERROR;
+
    while (utflen)
    {
       nc = utftouni(&uni, utfstring, utflen);

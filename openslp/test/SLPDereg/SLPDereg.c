@@ -76,16 +76,16 @@ int main(int argc, char* argv[])
 {
    /*
    * This test works by:
-   *	1.  Register a service.
-   *	2.  Query the service to make sure it is there.
-   *	3.  Remove the service.
-   *	4.  Query the service to ensure it is not there.
+   *  1.  Register a service.
+   *  2.  Query the service to make sure it is there.
+   *  3.  Remove the service.
+   *  4.  Query the service to ensure it is not there.
    */
-   SLPError	err;
-   SLPError	callbackerr;
-   SLPHandle	hslp;
-   char		reg_string[4096];
-   char		dereg_string[4096];
+   SLPError err;
+   SLPError callbackerr;
+   SLPHandle   hslp;
+   char     reg_string[4096];
+   char     dereg_string[4096];
 
    if ((argc != 3) && (argc != 5))
    {
@@ -119,8 +119,8 @@ int main(int argc, char* argv[])
    err = SLPFindSrvs(
          hslp, 
          (argc==5)?argv[3]:argv[1],
-         "",		/* use configured scopes */
-         "",		/* no attr filter        */
+         "",      /* use configured scopes */
+         "",      /* no attr filter        */
          MySLPSrvURLCallback,
          &callbackerr);
    check_error_state(err, "Error registering service with slp.");

@@ -65,16 +65,17 @@
  *
  * @internal
  */
-int strncasecmp(const char *s1, const char *s2, size_t len)
+int strncasecmp(const char * s1, const char * s2, size_t len)
 {
    while (*s1 && (*s1 == *s2 || tolower(*s1) == tolower(*s2)))
    {
       len--;
-      if (len == 0) return 0;
+      if (len == 0) 
+         return 0;
       s1++;
       s2++;
    }
-   return (int) *(unsigned char *)s1 - (int) *(unsigned char *)s2;
+   return (int)*(unsigned char *)s1 - (int)*(unsigned char *)s2;
 }
 # endif
 # ifndef HAVE_STRCASECMP
@@ -93,14 +94,14 @@ int strncasecmp(const char *s1, const char *s2, size_t len)
  *
  * @internal
  */
-int strcasecmp(const char *s1, const char *s2)
+int strcasecmp(const char * s1, const char * s2)
 {
    while (*s1 && (*s1 == *s2 || tolower(*s1) == tolower(*s2)))
    {
       s1++;
       s2++;
    }
-   return (int) *(unsigned char *)s1 - (int) *(unsigned char *)s2;
+   return (int)*(unsigned char *)s1 - (int)*(unsigned char *)s2;
 }
 # endif
 #endif 
@@ -120,10 +121,8 @@ int strcasecmp(const char *s1, const char *s2)
  *    is greater than @p str2, greater than zero if @p str1 is less than 
  *    @p str2.
  */
-int SLPCompareString(int str1len,
-      const char* str1,
-      int str2len,
-      const char* str2)
+int SLPCompareString(int str1len, const char * str1, int str2len, 
+      const char * str2)
 {
    /* TODO: fold whitespace and handle escapes*/
    if (str1len == str2len)
@@ -133,9 +132,7 @@ int SLPCompareString(int str1len,
       return strncasecmp(str1,str2,str1len);
    }
    else if (str1len > str2len)
-   {
       return -1;
-   }
 
    return 1;
 }
@@ -153,12 +150,10 @@ int SLPCompareString(int str1len,
  * 
  * @return Zero if @p srvtype matches @p namingauth; non-zero if not.
  */
-int SLPCompareNamingAuth(int srvtypelen,
-      const char* srvtype,
-      int namingauthlen,
-      const char* namingauth)
+int SLPCompareNamingAuth(int srvtypelen, const char * srvtype,
+      int namingauthlen, const char * namingauth)
 {
-   const char *dot;
+   const char * dot;
 
    if (namingauthlen == 0xffff) /* match all naming authorities */
       return 0;
@@ -169,6 +164,7 @@ int SLPCompareNamingAuth(int srvtypelen,
       srvtypelen -= 8;
       srvtype += 8;
    }
+
    /* stop search at colon after naming authority (if there is one) */
    dot = memchr(srvtype,':',srvtypelen);
    if (dot)
@@ -177,7 +173,7 @@ int SLPCompareNamingAuth(int srvtypelen,
    dot = memchr(srvtype,'.',srvtypelen);
 
    if (!namingauthlen)     /* IANA naming authority */
-      return dot ? 1 : 0;
+      return dot? 1: 0;
 
    if (dot)
    {
@@ -189,7 +185,6 @@ int SLPCompareNamingAuth(int srvtypelen,
       if (strncasecmp(dot + 1, namingauth, namingauthlen) == 0)
          return 0;
    }
-
    return 1;
 }
 
@@ -205,52 +200,44 @@ int SLPCompareNamingAuth(int srvtypelen,
  * @return Zero if @p lsrvtype is the same as @p lsrvtype; non-zero 
  *    if they are different.
  */
-int SLPCompareSrvType(int lsrvtypelen,
-      const char* lsrvtype,
-      int rsrvtypelen,
-      const char* rsrvtype)
+int SLPCompareSrvType(int lsrvtypelen, const char * lsrvtype,
+      int rsrvtypelen, const char * rsrvtype)
 {
-   char* colon;
+   char * colon;
 
    /* Skip "service:" */
-   if (strncasecmp(lsrvtype,"service:",lsrvtypelen > 8 ? 8 : lsrvtypelen) == 0)
+   if (strncasecmp(lsrvtype, "service:", lsrvtypelen > 8? 8: lsrvtypelen) == 0)
    {
       lsrvtypelen = lsrvtypelen - 8;
       lsrvtype = lsrvtype + 8;
    }
-   if (strncasecmp(rsrvtype,"service:",rsrvtypelen > 8 ? 8 : rsrvtypelen) == 0)
+   if (strncasecmp(rsrvtype, "service:", rsrvtypelen > 8? 8: rsrvtypelen) == 0)
    {
       rsrvtypelen = rsrvtypelen - 8;
       rsrvtype = rsrvtype + 8;
    }
-
-   if (memchr(lsrvtype,':',lsrvtypelen))
+   if (memchr(lsrvtype, ':', lsrvtypelen))
    {
       /* lsrvtype is uses concrete type so strings must be identical */
       if (lsrvtypelen == rsrvtypelen)
-      {
-         return strncasecmp(lsrvtype,rsrvtype,lsrvtypelen);
-      }
+         return strncasecmp(lsrvtype, rsrvtype, lsrvtypelen);
 
       return 1;
    }
 
-   colon = memchr(rsrvtype,':',rsrvtypelen);
+   colon = memchr(rsrvtype, ':', rsrvtypelen);
    if (colon)
    {
       /* lsrvtype is abstract only and rsrvtype is concrete */
       if (lsrvtypelen == (colon - rsrvtype))
-      {
-         return strncasecmp(lsrvtype,rsrvtype,lsrvtypelen);
-      }
+         return strncasecmp(lsrvtype, rsrvtype, lsrvtypelen);
+
       return 1;
    }
 
    /* lsrvtype and rsrvtype are  abstract only */
    if (lsrvtypelen == rsrvtypelen)
-   {
-      return strncasecmp(lsrvtype,rsrvtype,lsrvtypelen);
-   }
+      return strncasecmp(lsrvtype, rsrvtype, lsrvtypelen);
 
    return 1;
 }
@@ -271,14 +258,12 @@ int SLPCompareSrvType(int lsrvtypelen,
  *    determines if a specified sub-string (@p string) matches one of
  *    the sub-strings in this list.
  */
-int SLPContainsStringList(int listlen, 
-      const char* list,
-      int stringlen,
-      const char* string)
+int SLPContainsStringList(int listlen, const char * list, int stringlen,
+      const char * string)
 {
-   char* listend = (char*)list + listlen;
-   char* itembegin = (char*)list;
-   char* itemend = itembegin;
+   char * listend = (char *)list + listlen;
+   char * itembegin = (char *)list;
+   char * itemend = itembegin;
 
    while (itemend < listend)
    {
@@ -288,27 +273,17 @@ int SLPContainsStringList(int listlen,
       while (1)
       {
          if (itemend == listend || *itemend == ',')
-         {
             if (*(itemend - 1) != '\\')
-            {
                break;
-            }
-         }
 
-         itemend ++;
+         itemend++;
       }
-
-      if (SLPCompareString(itemend - itembegin,
-            itembegin,
-            stringlen,
-            string) == 0)
-      {
+      if (SLPCompareString(itemend - itembegin, itembegin, 
+            stringlen, string) == 0)
          return 1;
-      }
 
-      itemend ++;
+      itemend++;
    }
-
    return 0;
 }
 
@@ -323,15 +298,13 @@ int SLPContainsStringList(int listlen,
  * 
  * @return The number of common entries between @p list1 and @p list2.
  */
-int SLPIntersectStringList(int list1len,
-      const char* list1,
-      int list2len,
-      const char* list2)
+int SLPIntersectStringList(int list1len, const char * list1, 
+      int list2len, const char * list2)
 {
    int result = 0;
-   char* listend = (char*)list1 + list1len;
-   char* itembegin = (char*)list1;
-   char* itemend = itembegin;
+   char * listend = (char *)list1 + list1len;
+   char * itembegin = (char *)list1;
+   char * itemend = itembegin;
 
    while (itemend < listend)
    {
@@ -341,27 +314,17 @@ int SLPIntersectStringList(int list1len,
       while (1)
       {
          if (itemend == listend || *itemend == ',')
-         {
             if (*(itemend - 1) != '\\')
-            {
                break;
-            }
-         }
 
-         itemend ++;
+         itemend++;
       }
+      if (SLPContainsStringList(list2len, list2,
+            itemend - itembegin, itembegin))
+         result++;
 
-      if (SLPContainsStringList(list2len,
-            list2,
-            itemend - itembegin,
-            itembegin))
-      {
-         result ++;
-      }
-
-      itemend ++;
+      itemend++;
    }
-
    return result;
 }
 
@@ -392,29 +355,23 @@ int SLPIntersectStringList(int list1len,
  * @remarks To avoid buffer overflow errors pass @p list1len + 
  *    @p list2len + 1 as the value for @p unionlistlen.
  */
-int SLPUnionStringList(int list1len,
-      const char* list1,
-      int list2len,
-      const char* list2,
-      int* unionlistlen,
-      char * unionlist)
+int SLPUnionStringList(int list1len, const char * list1, int list2len,
+      const char * list2, int * unionlistlen, char * unionlist)
 {
-   char* listend = (char*)list2 + list2len;
-   char* itembegin = (char*)list2;
-   char* itemend = itembegin;
-   int   itemlen;
-   int   copiedlen;
+   char * listend = (char *)list2 + list2len;
+   char * itembegin = (char *)list2;
+   char * itemend = itembegin;
+   int itemlen;
+   int copiedlen;
 
-   if (unionlist == 0 ||
-         *unionlistlen == 0 ||
-         *unionlistlen < list1len)
+   if (unionlist == 0 || *unionlistlen == 0 || *unionlistlen < list1len)
    {
       *unionlistlen = list1len + list2len + 1;
       return -1;
    }
 
    /* Copy list1 into the unionlist since it should not have any duplicates */
-   memcpy(unionlist,list1,list1len);
+   memcpy(unionlist, list1, list1len);
    copiedlen = list1len;
 
    while (itemend < listend)
@@ -425,25 +382,18 @@ int SLPUnionStringList(int list1len,
       while (1)
       {
          if (itemend == listend || *itemend == ',')
-         {
             if (*(itemend - 1) != '\\')
-            {
                break;
-            }
-         }
 
-         itemend ++;
+         itemend++;
       }
 
       itemlen = itemend - itembegin;
-      if (SLPContainsStringList(list1len,
-            list1,
-            itemlen,
-            itembegin) == 0)
+      if (SLPContainsStringList(list1len, list1,
+            itemlen, itembegin) == 0)
       {
          if (copiedlen + itemlen + 1 > *unionlistlen)
          {
-
             *unionlistlen = list1len + list2len + 1;
             return -1;
          }
@@ -456,10 +406,8 @@ int SLPUnionStringList(int list1len,
          }
          memcpy(unionlist + copiedlen, itembegin, itemlen);
          copiedlen += itemlen;
-
       }
-
-      itemend ++;
+      itemend++;
    }
 
    *unionlistlen = copiedlen;
@@ -479,38 +427,28 @@ int SLPUnionStringList(int list1len,
  * @return A Boolean value; true if @p sublist is a proper subset of
  *    @p list; false if not.
  */
-int SLPSubsetStringList(int listlen,
-      const char* list,
-      int sublistlen,
-      const char* sublist)
+int SLPSubsetStringList(int listlen, const char * list, int sublistlen,
+      const char * sublist)
 {
    /* count the items in sublist */
    int curpos;
    int sublistcount;
 
    if (sublistlen ==0 || listlen == 0)
-   {
       return 0;
-   }
 
    curpos = 0;
    sublistcount = 1;
    while (curpos < sublistlen)
    {
       if (sublist[curpos] == ',')
-      {
-         sublistcount ++;
-      }
-      curpos ++;
-   }
+         sublistcount++;
 
-   if (SLPIntersectStringList(listlen,
-         list,
-         sublistlen,
-         sublist) == sublistcount)
-   {
-      return sublistcount;
+      curpos++;
    }
+   if (SLPIntersectStringList(listlen, list, sublistlen,
+         sublist) == sublistcount)
+      return sublistcount;
 
    return 0;
 }
@@ -528,23 +466,20 @@ int SLPSubsetStringList(int listlen,
 int SLPCheckServiceUrlSyntax(const char* srvurl,
       int srvurllen)
 {
-   /* TODO: Do we actually need to do something here to ensure correct
-   * service-url syntax, or should we expect that it will be used
-   * by smart developers who know that ambiguities could be encountered
-   * if they don't?
+   /* @todo Ensure correct service-url syntax. */
 
-   if(srvurllen < 8)
-   {
-   return 1;
-   }
+/* TODO: Do we actually need to do something here to ensure correct
+ * service-url syntax, or should we expect that it will be used
+ * by smart developers who know that ambiguities could be encountered
+ * if they don't?
 
-   if(strncasecmp(srvurl,"service:",8))
-   {
-   return 1;
-   }        
+   if (srvurllen < 8)
+      return 1;
 
-   return 0;
-   */
+   if (strncasecmp(srvurl, "service:", 8))
+      return 1;
+
+ */
 
    return 0;
 }
@@ -559,11 +494,10 @@ int SLPCheckServiceUrlSyntax(const char* srvurl,
  * 
  * @return Zero if @p srvurl has acceptable syntax, non-zero on failure.
  */
-int SLPCheckAttributeListSyntax(const char* attrlist,
-      int attrlistlen)
+int SLPCheckAttributeListSyntax(const char * attrlist, int attrlistlen)
 {
-   const char* slider;
-   const char* end;
+   const char * slider;
+   const char * end;
 
    if (attrlistlen)
    {
@@ -576,12 +510,10 @@ int SLPCheckAttributeListSyntax(const char* attrlist,
             while (slider != end)
             {
                if (*slider == '=')
-               {
                   return 0;
-               }
+
                slider++;
             }
-
             return 1;
          }
          slider++;
