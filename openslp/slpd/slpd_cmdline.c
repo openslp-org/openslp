@@ -164,13 +164,6 @@ int SLPDParseCommandLine(int argc,char* argv[])
                   );
             exit(1);
         }
-        else if ((strcmp(argv[i], "-h") == 0) 
-                 || (strcmp(argv[i], "-help") == 0)
-                 || (strcmp(argv[i], "--help") == 0))
-        {
-            printf("USAGE: slpd [-d] [-c conf file] [-l log file] [-r reg file] [-v version]\n");
-            exit(1);
-        }
         else
         {
             goto USAGE;
