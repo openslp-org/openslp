@@ -6,7 +6,7 @@
 #
 
 sbin_PROGRAMS	= slpd
-INCLUDES	= -I$(top_srcdir)/common -I$(top_srcdir)/libslpattr -I$(srcdir)
+INCLUDES	= -I$(top_srcdir)/common -I$(top_srcdir)/libslpattr -I$(srcdir) -I$(top_srcdir)/libslp
 
 if ENABLE_SLPv1
 slpd_v1process_SRCS = slpd_v1process.c
