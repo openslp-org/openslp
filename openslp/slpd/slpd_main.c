@@ -206,23 +206,28 @@ void LoadFdSets(SLPDSocketList* list,
             break;
 
         case STREAM_READ:
-        case STREAM_FIRST_READ:
+        case STREAM_READ_FIRST:
             FD_SET(sock->fd,readfds);
             break;
 
         case STREAM_WRITE:
-        case STREAM_FIRST_WRITE:
-        case STREAM_CONNECT:
+        case STREAM_WRITE_FIRST:
+        case STREAM_CONNECT_BLOCK:
             FD_SET(sock->fd,writefds);
             break;
 
         case SOCKET_CLOSE:
-        default:
             sock = SLPDSocketListRemove(list, sock); 
             break;
-        }
 
-        sock = (SLPDSocket*)sock->listitem.next;
+        default:
+            break;
+        }
+        
+	    if(sock)
+        {
+            sock = (SLPDSocket*)sock->listitem.next;
+        }
     }
 }
 
@@ -235,9 +240,6 @@ int main(int argc, char* argv[])
     fd_set          writefds;
     int             highfd;
     int             fdcount         = 0;
-    SLPDSocketList  incoming        = {0,0};
-    SLPDSocketList  outgoing        = {0,0};
-        
     
     /*------------------------------*/
     /* Make sure we are root        */
@@ -272,11 +274,10 @@ int main(int argc, char* argv[])
     /*--------------------------------------------------*/
     SLPDPropertyInit(G_SlpdCommandLine.cfgfile);
     SLPDDatabaseInit(G_SlpdCommandLine.regfile);
-    SLPDIncomingInit(&incoming);
-    /* TODO SLPDOutgoingInit(&outgoing); */
-    /* TODO: Check error codes on all init functions */
+    SLPDIncomingInit();
+    SLPDOutgoingInit();
     SLPDKnownDAInit();
-    
+    /* TODO: Check error codes on all init functions */
     
     /*---------------------------*/
     /* make slpd run as a daemon */
@@ -285,7 +286,6 @@ int main(int argc, char* argv[])
     {
         SLPFatal("Could not run as daemon\n");
     }
-    
 
     /*-----------------------*/
     /* Setup signal handlers */ 
@@ -294,14 +294,12 @@ int main(int argc, char* argv[])
     {
         SLPFatal("Could not set up signal handlers.\n");
     }
-
     
     /*------------------------------*/
     /* Set up alarm to age database */
     /*------------------------------*/
     alarm(SLPD_AGE_INTERVAL);
 
-    
     /*-----------*/
     /* Main loop */
     /*-----------*/
@@ -310,19 +308,37 @@ int main(int argc, char* argv[])
     G_SIGHUP    = 0;    
     while(G_SIGTERM == 0)
     {
-        
         /*--------------------------------------------------------*/
         /* Load the fdsets up with all valid sockets in the list  */
         /*--------------------------------------------------------*/
         highfd = 0;
         FD_ZERO(&readfds);
         FD_ZERO(&writefds);
-        LoadFdSets(&incoming, &highfd, &readfds,&writefds);
-        LoadFdSets(&outgoing, &highfd, &readfds,&writefds);
+        LoadFdSets(&G_IncomingSocketList, &highfd, &readfds,&writefds);
+        LoadFdSets(&G_OutgoingSocketList, &highfd, &readfds,&writefds);
         
-        /*----------------------------------------------------------*/
-        /* Before select(), check to see if we should reinitialize  */
-        /*----------------------------------------------------------*/
+        /*--------------------------------------------------*/
+        /* Before select(), check to see if we got a signal */
+        /*--------------------------------------------------*/
+        if(G_SIGALRM || G_SIGHUP)
+        {
+            goto HANDLE_SIGNAL;
+        }
+        
+        /*-------------*/
+        /* Main select */
+        /*-------------*/
+        fdcount = select(highfd+1,&readfds,&writefds,0,0);
+        if(fdcount > 0) /* fdcount will be < 0 when interrupted by a signal */
+        {
+            SLPDIncomingHandler(&fdcount,&readfds,&writefds);
+            SLPDOutgoingHandler(&fdcount,&readfds,&writefds);
+        }
+
+        /*----------------*/
+        /* Handle signals */
+        /*----------------*/
+HANDLE_SIGNAL:
         if(G_SIGHUP)
         {
             /* Reinitialize */
@@ -333,47 +349,22 @@ int main(int argc, char* argv[])
         
             SLPDPropertyInit(G_SlpdCommandLine.cfgfile);
             SLPDDatabaseInit(G_SlpdCommandLine.regfile);
-            SLPDIncomingInit(&incoming);
-            /* TODO SLPDOutgoingInit(&outgoing); */
-                
+            SLPDIncomingInit();
+            SLPDOutgoingInit();
             SLPDKnownDAInit();
-            G_SIGHUP = 0;
-            
-            /* continue to top of loop so that fd_sets are loaded again */
-            continue; 
-        }
-
-        /*--------------------------------------------------------------*/
-        /* Before select(), check to see if we should age the database  */
-        /*--------------------------------------------------------------*/
+            G_SIGHUP = 0;     
+        } 
         if(G_SIGALRM)
         {
             /* TODO: add call to do passive DAAdvert */
-            SLPDSocketAge(&incoming, SLPD_AGE_INTERVAL);
-            SLPDSocketAge(&outgoing, SLPD_AGE_INTERVAL);
+            SLPDIncomingAge(SLPD_AGE_INTERVAL);
+            SLPDOutgoingAge(SLPD_AGE_INTERVAL);
             SLPDDatabaseAge(SLPD_AGE_INTERVAL);
+            SLPDKnownDAActiveDiscovery();
             G_SIGALRM = 0;
             alarm(SLPD_AGE_INTERVAL);
-            
-            /* continue to top of loop so that fd_sets are loaded again */
-            continue;
         }
-        
-        /*-------------*/
-        /* Main select */
-        /*-------------*/
-        fdcount = select(highfd+1,&readfds,&writefds,0,0);
-        if(fdcount > 0) /* fdcount will be < 0 when interrupted by a signal */
-        {
-            SLPDIncomingHandler(&incoming, &fdcount,&readfds,&writefds);
-            SLPDOutgoingHandler(&outgoing, &fdcount,&readfds,&writefds);
-        }
-
-        /*--------------------------------*/
-        /* Echo registrations to KnownDAs */
-        /*--------------------------------*/ 
-        /* TODO: Put call to SLPDKnownDARegister() here */
-
+                            
 
     } /* End of main loop */
 

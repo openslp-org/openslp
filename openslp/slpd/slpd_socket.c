@@ -170,16 +170,69 @@ void SLPDSocketFree(SLPDSocket* sock)
 /*-------------------------------------------------------------------------*/
 {
     close(sock->fd);
-    if(sock->recvbuf) SLPBufferFree(sock->recvbuf);
-    if(sock->sendbuf) SLPBufferFree(sock->sendbuf);                        
+
+    if(sock->recvbuf)
+    {
+        SLPBufferFree(sock->recvbuf);
+    }
+
+    if(sock->sendbufhead)
+    {
+        while(sock->sendbufhead)
+        {
+            sock->sendbuf = SLPBufferListRemove(&(sock->sendbufhead),
+                                                sock->sendbuf);
+        }
+    }
+    else if(sock->sendbuf)
+    {
+        SLPBufferFree(sock->sendbuf);                        
+    }
+
     free(sock);
 }
 
 
 /*==========================================================================*/
-SLPDSocket* SLPDSocketCreateDatagram(struct in_addr* myaddr,
-                                     struct in_addr* peeraddr,
-                                     int type)
+SLPDSocket* SLPDSocketCreateDatagram(struct in_addr* peeraddr, int type)
+/* peeraddr - (IN) the address of the peer to connect to                    */
+/*                                                                          */
+/* type - (IN) the type of socket to create DATAGRAM_UNICAST,               */
+/*             DATAGRAM_MULTICAST, or DATAGRAM_BROADCAST                    */ 
+/* Returns: A datagram socket SLPDSocket->state will be set to              */
+/*          DATAGRAM_UNICAST, DATAGRAM_MULTICAST, or DATAGRAM_BROADCAST     */
+/*==========================================================================*/
+{
+    SLPDSocket*     sock;  
+    sock = SLPDSocketNew();
+    if(sock)
+    {
+        sock->fd = socket(PF_INET, SOCK_DGRAM, 0);
+        if(sock->fd >=0)
+        {
+            sock->recvbuf = SLPBufferAlloc(SLP_MAX_DATAGRAM_SIZE);  
+            sock->sendbuf = SLPBufferAlloc(SLP_MAX_DATAGRAM_SIZE);
+            sock->peerinfo.peeraddr.sin_family = AF_INET;
+            sock->peerinfo.peeraddr.sin_addr = *peeraddr;
+            sock->peerinfo.peeraddr.sin_port = htons(SLP_RESERVED_PORT);
+            sock->peerinfo.peeraddrlen = sizeof(sock->peerinfo.peeraddr);
+            sock->state = type;
+        }
+        else
+        {
+            SLPDSocketFree(sock);
+            sock = 0;
+        }
+    }
+
+    return sock;
+}
+
+
+/*==========================================================================*/
+SLPDSocket* SLPDSocketCreateBoundDatagram(struct in_addr* myaddr,
+                                          struct in_addr* peeraddr,
+                                          int type)
 /* myaddr - (IN) the address of the interface to join mcast on              */                                                                          
 /*                                                                          */
 /* peeraddr - (IN) the address of the peer to connect to                    */
@@ -212,10 +265,7 @@ SLPDSocket* SLPDSocketCreateDatagram(struct in_addr* myaddr,
                     if(JoinSLPMulticastGroup(sock->fd, myaddr) == 0)
                     {
                         sock->state = DATAGRAM_MULTICAST;
-                    }
-                    else
-                    {
-                        goto FAILURE;
+                        goto SUCCESS;
                     }
                     break;
     
@@ -223,16 +273,14 @@ SLPDSocket* SLPDSocketCreateDatagram(struct in_addr* myaddr,
                     if(EnableBroadcast(sock->fd) == 0)
                     {
                         sock->state = DATAGRAM_BROADCAST;
-                    }
-                    else
-                    {
-                        goto FAILURE;
+                        goto SUCCESS;
                     }
                     break;
     
                 case DATAGRAM_UNICAST:
                 default:
                     sock->state = DATAGRAM_UNICAST;
+                    goto SUCCESS;
                     break;
     
                 }
@@ -240,15 +288,15 @@ SLPDSocket* SLPDSocketCreateDatagram(struct in_addr* myaddr,
         }
     }
 
-    return sock;
-
-    FAILURE:
-
     if(sock)
     {
         SLPDSocketFree(sock);
     }
-    return 0;
+    sock = 0;
+
+
+SUCCESS:    
+    return sock;    
 }
 
 
@@ -303,7 +351,6 @@ SLPDSocket* SLPDSocketCreateConnected(struct in_addr* addr)
 /*          be set to connect.  Return NULL on error                        */
 /*==========================================================================*/
 {
-    struct sockaddr_in  peeraddr;
     int                 fdflags;
     int                 lowat;
     SLPDSocket*         sock = 0;
@@ -315,7 +362,7 @@ SLPDSocket* SLPDSocketCreateConnected(struct in_addr* addr)
     }
     
     /* create the stream socket */
-    sock->fd = socket(PF_INET,SOCK_DGRAM,0);
+    sock->fd = socket(PF_INET,SOCK_STREAM,0);
     if(sock->fd < 0)
     {
         goto FAILURE;                        
@@ -326,10 +373,9 @@ SLPDSocket* SLPDSocketCreateConnected(struct in_addr* addr)
     fcntl(sock->fd,F_SETFL, fdflags | O_NONBLOCK);
 
     /* zero then set peeraddr to connect to */
-    memset(&peeraddr, 0, sizeof(peeraddr));
-    peeraddr.sin_family = AF_INET;
-    peeraddr.sin_port = htons(SLP_RESERVED_PORT);
-    peeraddr.sin_addr = *addr;
+    sock->peerinfo.peeraddr.sin_family = AF_INET;
+    sock->peerinfo.peeraddr.sin_port = htons(SLP_RESERVED_PORT);
+    sock->peerinfo.peeraddr.sin_addr = *addr;
 
     /* set the receive and send buffer low water mark to 18 bytes 
     (the length of the smallest slpv2 message) */
@@ -338,17 +384,19 @@ SLPDSocket* SLPDSocketCreateConnected(struct in_addr* addr)
     setsockopt(sock->fd,SOL_SOCKET,SO_SNDLOWAT,&lowat,sizeof(lowat));
         
     /* non-blocking connect */
-    if(connect(sock->fd, &peeraddr, sizeof(peeraddr)) == 0)   
+    if(connect(sock->fd, 
+               &(sock->peerinfo.peeraddr), 
+               sizeof(sock->peerinfo.peeraddr)) == 0)   
     {
         /* Connection occured immediately */
-        sock->state = STREAM_FIRST_WRITE;
+        sock->state = STREAM_CONNECT_IDLE;
     }
     else
     {
         if(errno == EINPROGRESS)
         {
             /* Connect would have blocked */
-            sock->state = STREAM_CONNECT;
+            sock->state = STREAM_CONNECT_BLOCK;
         }
         else
         {
@@ -387,6 +435,7 @@ SLPDSocket* SLPDSocketListAdd(SLPDSocketList* list, SLPDSocket* addition)
     return addition;
 }
 
+
 /*=========================================================================*/
 SLPDSocket* SLPDSocketListRemove(SLPDSocketList* list, SLPDSocket* sock)
 /* Unlinks and free()s the specified socket from the specified list        */
@@ -410,56 +459,3 @@ SLPDSocket* SLPDSocketListRemove(SLPDSocketList* list, SLPDSocket* sock)
     return sock;
 }         
 
-
-/*=========================================================================*/
-void SLPDSocketAge(SLPDSocketList* list, time_t seconds)
-/* Age the sockets in the list by the specified number of seconds.  If     */
-/* SLPDSocket->lifetime <= 0 it is removed from the list                   */
-/*                                                                         */
-/* list (IN) pointer to the list to age                                    */
-/*                                                                         */
-/* seconds (IN) seconds to age each entry of the list                      */
-/*=========================================================================*/
-{
-    SLPDSocket* sock = list->head;
-    while(sock)
-    {
-        /* Do not age certain types of sockets */
-        if(sock->state != SOCKET_LISTEN &&
-           sock->state != DATAGRAM_UNICAST &&
-           sock->state != DATAGRAM_MULTICAST &&
-           sock->state != DATAGRAM_BROADCAST)
-        {
-            sock->age = sock->age + seconds;
-
-            if(list->count > SLPD_COMFORT_SOCKETS)
-            {
-                if (sock->age > G_SlpdProperty.unicastMaximumWait)
-                {
-                    
-                    /* Log if the removed socket was supposed to be talking */
-                    /* a DA                                                 */
-                    if( sock->state == STREAM_CONNECT &&
-                        sock->peerinfo.peertype == SLPD_PEER_CONNECTED )
-                    {
-                        SLPLog("WARNING: DA at %s is does not appear to be accepting connections!\n",
-                               inet_ntoa(sock->peerinfo.peeraddr.sin_addr));
-                    }
-                    
-                    /* remove the socket from the list */
-                    SLPDSocketListRemove(list,sock);
-                }                                   
-            }
-            else
-            {
-                if (sock->age > SLPD_MAX_SOCKET_LIFETIME)
-                {
-                    /* close the socket */
-                    SLPDSocketListRemove(list,sock);
-                }
-            }
-        }
-
-        sock = (SLPDSocket*)sock->listitem.next;
-    }                                                 
-}

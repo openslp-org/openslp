@@ -71,7 +71,7 @@
 #define SLPD_MAX_SOCKETS            64   /* maximum number of sockets */
 #define SLPD_COMFORT_SOCKETS        32   /* a comfortable number of sockets */
 #define SLPD_MAX_SOCKET_LIFETIME    3600 /* max idle time of socket - 60 min*/
-#define SLPD_AGE_INTERVAL           3600   /* age every 15 seconds */
+#define SLPD_AGE_INTERVAL           15   /* age every 15 seconds */
 
 
 /*=========================================================================*/
@@ -119,9 +119,12 @@ typedef struct _SLPDProperty
     unsigned long   DATimestamp;  /* here for convenience */
     int             interfacesLen;
     const char*     interfaces; 
+    int             localeLen;
+    const char*     locale;
     int             isBroadcastOnly;
     int             passiveDADetection;
     int             activeDADetection; 
+    int             activeDiscoveryAttempts;
     int             multicastTTL;
     int             multicastMaximumWait;
     int             unicastMaximumWait;  
@@ -365,12 +368,15 @@ typedef enum _SLPDSocketState
     DATAGRAM_UNICAST        = 1,
     DATAGRAM_MULTICAST      = 2,
     DATAGRAM_BROADCAST      = 3,
-    STREAM_CONNECT          = 4,
-    STREAM_READ             = 5,
-    STREAM_FIRST_READ       = 6,
-    STREAM_WRITE            = 7,
-    STREAM_FIRST_WRITE      = 8,
-    SOCKET_CLOSE            = 9
+    STREAM_CONNECT_BLOCK    = 4,
+    STREAM_CONNECT_IDLE     = 5,
+    STREAM_CONNECT_CLOSE    = 6,
+    STREAM_READ             = 7,
+    STREAM_READ_FIRST       = 8,
+    STREAM_WRITE            = 9,
+    STREAM_WRITE_FIRST      = 10,
+    STREAM_WRITE_WAIT       = 11,
+    SOCKET_CLOSE            = 12
 }SLPDSocketState;
 
 
@@ -383,9 +389,15 @@ typedef struct _SLPDSocket
     int                 fd;
     time_t              age;      
     SLPDSocketState     state;
+    SLPDPeerInfo        peerinfo;
+
+    /* Incoming socket stuff */
     SLPBuffer           recvbuf;
     SLPBuffer           sendbuf;
-    SLPDPeerInfo        peerinfo;
+
+    /* Outgoing socket stuff */
+    SLPDAEntry*         daentry;
+    SLPBuffer           sendbufhead;
 }SLPDSocket;
 
 
@@ -424,9 +436,20 @@ SLPDSocket* SLPDSocketCreateListen(struct in_addr* peeraddr);
 
 
 /*==========================================================================*/
-SLPDSocket* SLPDSocketCreateDatagram(struct in_addr* myaddr,
-                                     struct in_addr* peeraddr,
-                                     int type);
+SLPDSocket* SLPDSocketCreateDatagram(struct in_addr* peeraddr, int type);
+/* peeraddr - (IN) the address of the peer to connect to                    */
+/*                                                                          */
+/* type - (IN) the type of socket to create DATAGRAM_UNICAST,               */
+/*             DATAGRAM_MULTICAST, or DATAGRAM_BROADCAST                    */ 
+/* Returns: A datagram socket SLPDSocket->state will be set to              */
+/*          DATAGRAM_UNICAST, DATAGRAM_MULTICAST, or DATAGRAM_BROADCAST     */
+/*==========================================================================*/
+
+
+/*==========================================================================*/
+SLPDSocket* SLPDSocketCreateBoundDatagram(struct in_addr* myaddr,
+                                          struct in_addr* peeraddr,
+                                          int type);
 /* myaddr - (IN) the address of the interface to join mcast on              */                                                                          
 /*                                                                          */
 /* peeraddr - (IN) the address of the peer to connect to                    */
@@ -463,25 +486,19 @@ SLPDSocket* SLPDSocketListRemove(SLPDSocketList* list, SLPDSocket* sock);
 
 
 /*=========================================================================*/
-void SLPDSocketAge(SLPDSocketList* list, time_t seconds);
-/* Age the sockets in the list by the specified number of seconds.  If     */
-/* SLPDSocket->lifetime <= 0 it is removed from the list                   */
-/*                                                                         */
-/* list (IN) pointer to the list to age                                    */
+void SLPDIncomingAge(time_t seconds);
+/* Age the sockets in the incoming list by the specified number of seconds.*/
 /*                                                                         */
 /* seconds (IN) seconds to age each entry of the list                      */
 /*=========================================================================*/
 
 
 /*=========================================================================*/
-void SLPDIncomingHandler(SLPDSocketList* list, 
-                         int* fdcount,
+void SLPDIncomingHandler(int* fdcount,
                          fd_set* readfds,
                          fd_set* writefds);
 /* Handles all outgoing requests that are pending on the specified file    */
 /* discriptors                                                             */
-/*                                                                         */
-/* list     (IN) list of incoming sockets                                  */
 /*                                                                         */
 /* fdcount  (IN/OUT) number of file descriptors marked in fd_sets          */
 /*                                                                         */
@@ -492,32 +509,54 @@ void SLPDIncomingHandler(SLPDSocketList* list,
 
 
 /*=========================================================================*/
-int SLPDIncomingInit(SLPDSocketList* list);
+int SLPDIncomingInit();
 /* Initialize incoming socket list to have appropriate sockets for all     */
 /* network interfaces                                                      */
-/*                                                                         */
-/* list     (IN/OUT) pointer to a socket list to be filled with sockets    */
 /*                                                                         */
 /* Returns  Zero on success non-zero on error                              */
 /*=========================================================================*/
 
 
 /*=========================================================================*/
-void SLPDOutgoingHandler(SLPDSocketList* list, 
-                         int* fdcount,
+extern SLPDSocketList G_IncomingSocketList;
+/*=========================================================================*/
+
+
+/*=========================================================================*/
+void SLPDOutgoingAge(time_t seconds);
+/* Age the sockets in the outgoing list by the specified number of seconds.*/
+/*                                                                         */
+/* seconds (IN) seconds to age each entry of the list                      */
+/*=========================================================================*/
+
+
+/*=========================================================================*/
+void SLPDOutgoingHandler(int* fdcount,
                          fd_set* readfds,
                          fd_set* writefds);
 
 /* Handles all incoming requests that are pending on the specified file    */
 /* discriptors                                                             */
 /*                                                                         */
-/* list     (IN) list of incoming sockets                                  */
-/*                                                                         */
 /* fdcount  (IN/OUT) number of file descriptors marked in fd_sets          */
 /*                                                                         */
 /* readfds  (IN) file descriptors with pending read IO                     */
 /*                                                                         */
 /* writefds  (IN) file descriptors with pending read IO                    */
+/*=========================================================================*/
+
+
+/*=========================================================================*/
+int SLPDOutgoingInit();
+/* Initialize outgoing socket list to have appropriate sockets for all     */
+/* network interfaces                                                      */
+/*                                                                         */
+/* Returns  Zero on success non-zero on error                              */
+/*=========================================================================*/
+
+
+/*=========================================================================*/
+extern SLPDSocketList G_OutgoingSocketList;
 /*=========================================================================*/
 
 
@@ -589,6 +628,30 @@ SLPDAEntry* SLPDKnownDARemove(SLPDAEntry* entry);
 /* entry- (IN) pointer to entry to remove                                  */
 /*                                                                         */
 /* Returns: The next SLPDAEntry (may be null).                             */
+/*=========================================================================*/
+
+
+/*=========================================================================*/
+void SLPDKnownDARegister(SLPDPeerInfo* peerinfo,
+			 SLPMessage msg,
+			 SLPBuffer buf);
+/* Echo a message to a known DA                                            */
+/*									   */
+/* peerinf (IN) the peer that the registration came from                   */    
+/*                                                                         */ 
+/* msg (IN) the translated message to echo                                 */
+/*                                                                         */
+/* buf (IN) the message buffer to echo                                     */
+/*                                                                         */
+/* Returns:  Zero on success, non-zero on error                            */
+/*=========================================================================*/
+
+
+/*=========================================================================*/
+void SLPDKnownDAActiveDiscovery();
+/* Set outgoing socket list to send an active DA discovery SrvRqst         */
+/*									                                       */
+/* Returns:  none                                                          */
 /*=========================================================================*/
 
 

@@ -38,6 +38,7 @@ SLPDAEntry* G_KnownDAListHead = 0;
 /* The list of DAs known to slpd.                                          */
 /*=========================================================================*/
 
+
 /*=========================================================================*/
 int SLPDKnownDAInit()
 /* Initializes the KnownDA list.  Removes all entries and adds entries     */
@@ -46,7 +47,65 @@ int SLPDKnownDAInit()
 /* returns  zero on success, Non-zero on failure                           */
 /*=========================================================================*/
 {
-    return 0;    
+    char*               temp;
+    char*               tempend;
+    char*               slider1;
+    char*               slider2;
+    struct hostent*     he;
+    struct in_addr      daaddr;
+
+    /* Allow us to send 3 Active DA discovery service requests */
+    G_SlpdProperty.activeDiscoveryAttempts = G_SlpdProperty.activeDADetection * 3;
+
+    if(G_SlpdProperty.isDA)
+    {
+        /* TODO: some day we may put something here for DA to DA communication */
+        temp = 0;
+    }
+    else
+    {
+        slider1 = slider2 = temp = strdup(G_SlpdProperty.DAAddresses);
+    }
+    
+    if (temp)
+    {
+        tempend = temp + strlen(temp);
+        while (slider1 != tempend)
+        {
+            while (*slider2 && *slider2 != ',') slider2++;
+            *slider2 = 0;
+
+            he = gethostbyname(slider1);
+            if (he)
+            {
+                daaddr.s_addr = *((unsigned long*)(he->h_addr_list[0]));
+
+                SLPDKnownDAAdd(&daaddr,
+                               0,
+                               G_SlpdProperty.useScopes,
+                               G_SlpdProperty.useScopesLen);
+
+                // For now do not contact the DA to see if it is up.  Just 
+                // assume that the statically configured DAs are available.
+                // KnownDAConnect() will remove them if they can not be 
+                // connected to.
+
+                //sock = SLPNetworkConnectStream(&peeraddr,timeout);
+                //if(sock >= 0)
+                //{
+                //    result += KnownDADiscoveryRqstRply(sock, &peeraddr);
+                //    close(sock);
+                //}
+            }
+
+            slider1 = slider2;
+            slider2++;
+        }
+
+        free(temp);
+    }
+
+    return 0;
 }
 
 
@@ -61,13 +120,14 @@ SLPDAEntry* SLPDKnownDARemove(SLPDAEntry* entry)
     SLPDAEntry* del = entry;
     entry = (SLPDAEntry*)entry->listitem.next;
     ListUnlink((PListItem*)&G_KnownDAListHead,(PListItem)del);               
-    if(entry == 0)
+    if (entry == 0)
     {
         entry = G_KnownDAListHead;
     }
     SLPDAEntryFree(del);
     return entry;
 }
+
 
 /*=========================================================================*/
 SLPDAEntry* SLPDKnownDAAdd(struct in_addr* addr,
@@ -89,13 +149,13 @@ SLPDAEntry* SLPDKnownDAAdd(struct in_addr* addr,
 
     /* Iterate through the list looking for an identical entry */
     entry = G_KnownDAListHead;
-    while(entry)
+    while (entry)
     {
         /* for now assume entries are the same if in_addrs match */
         if (memcmp(&entry->daaddr,addr,sizeof(struct in_addr)) == 0)
         {
             /* Update an existing entry */
-            if(entry->bootstamp < bootstamp)
+            if (entry->bootstamp < bootstamp)
             {
                 entry->bootstamp = bootstamp;
             }
@@ -106,7 +166,7 @@ SLPDAEntry* SLPDKnownDAAdd(struct in_addr* addr,
                 bootstamp = 0;
             }
             entry->scopelist = realloc(entry->scopelist,scopelistlen);
-            if(entry->scopelist)
+            if (entry->scopelist)
             {
                 memcpy(entry->scopelist,scopelist,scopelistlen);
                 entry->scopelistlen = scopelistlen;
@@ -127,83 +187,189 @@ SLPDAEntry* SLPDKnownDAAdd(struct in_addr* addr,
     bootstamp = 0;  /* make sure we re-register with new entries */
     entry = SLPDAEntryCreate(addr,bootstamp,scopelist,scopelistlen);
     ListLink((PListItem*)&G_KnownDAListHead,(PListItem)entry);
-    
+
     return entry;
 }
 
 
 /*=========================================================================*/
-void SLPDKnownDARegister(SLPDDatabaseEntry* dbhead, SLPDSocketList* sockets)
+void SLPDKnownDARegister(SLPDPeerInfo* peerinfo,
+                         SLPMessage msg,
+                         SLPBuffer buf)
+/* Echo a message to a known DA                                            */
+/*									   */
+/* peerinfo (IN) the peer that the registration came from                   */    
+/*                                                                         */ 
+/* msg (IN) the translated message to echo                                 */
 /*                                                                         */
-/* Modify the specified socket list to register all entries of the         */
-/* specified database list with all known DAs                              */
+/* buf (IN) the message buffer to echo                                     */
 /*                                                                         */
 /* Returns:  Zero on success, non-zero on error                            */
 /*=========================================================================*/
 {
-    SLPDDatabaseEntry*  dbentry;
-    SLPDSocket*         sockentry;
-    SLPDAEntry*         daentry;
+    SLPDAEntry* daentry;
+    SLPDSocket* sock;
+    SLPBuffer   dup;
 
-    
-    if(dbhead)
+    daentry = G_KnownDAListHead;
+    while (daentry)
     {
-        daentry = G_KnownDAListHead;
-        while(daentry)
+        sock = G_OutgoingSocketList.head;
+        while (sock)
         {
-            /* check to see if a socket is already connected to this DA */
-            sockentry = sockets->head;
-            while(sockentry)
+            if (sock->peerinfo.peeraddr.sin_addr.s_addr == daentry->daaddr.s_addr)
             {
-                if(sockentry->peerinfo.peertype == SLPD_PEER_CONNECTED)
-                {
-                    if (memcmp(&sockentry->peerinfo.peeraddr.sin_addr,
-                               &daentry->daaddr,
-                               sizeof(daentry->daaddr)) == 0)
-                    {
-                        break;
-                    }
-                }
-                sockentry = (SLPDSocket*)sockentry->listitem.next;                                                            
+                break;
             }
+            sock = (SLPDSocket*)sock->listitem.next;
+        }
 
-            if(sockentry == 0)
+        if (sock == 0)
+        {
+            /* Create a new socket to the known DA */
+            sock = SLPDSocketCreateConnected(&(daentry->daaddr));
+            if (sock)
             {
-                /* Could not find a connected socket */
-                /* Create a connected socket         */
-                sockentry = SLPDSocketCreateConnected(&daentry->daaddr);
-                if(sockentry == 0)
-                {
-                    /* Could not create connected socket */
-                    
-                    /* TODO: should we log here?         */
-
-                    /* Remove the  known DA entry we could not connect to */
-                    daentry = SLPDKnownDARemove(daentry);
-                }
-                else
-                {
-                    SLPDSocketListAdd(sockets, sockentry);   
-                }
-                                                             
+                sock->daentry = daentry;
+                SLPDSocketListAdd(&G_OutgoingSocketList,sock);
             }
+        }
 
-            if(sockentry != 0)
+        /* Load the socket with the message to send */
+        dup = SLPBufferDup(buf);
+        if (dup)
+        {
+            SLPBufferListAdd(&(sock->sendbufhead),dup);
+            if (sock->state == STREAM_CONNECT_IDLE)
             {
-                /* Load the send buffer with reg stuff */
-                dbentry = dbhead;
-                while(dbentry)
-                {
-                    
-                    /* TODO: put a whole bunch of registration stuff here */
-
-                    dbentry = (SLPDDatabaseEntry*)dbentry->listitem.next;
-                }
+                sock->state = STREAM_WRITE_FIRST;
             }
-            
-            daentry = (SLPDAEntry*)daentry->listitem.next;
-        } 
+        }
+        daentry = (SLPDAEntry*)daentry->listitem.next;
     }
 }
 
+
+/*=========================================================================*/
+void SLPDKnownDAActiveDiscovery()
+/* Set outgoing socket list to send an active DA discovery SrvRqst         */
+/*									                                       */
+/* Returns:  none                                                          */
+/*=========================================================================*/
+{
+    size_t          bufsize;
+    SLPDAEntry*     daentry;
+    SLPDSocket*     sock;
+    SLPBuffer       buf;
+    char*           prlist;
+    size_t          prlistlen;
+    struct in_addr  peeraddr;
+    
+    if(G_SlpdProperty.isDA)
+    {
+        /* do not perform active DA discovery if we are a DA */
+        return;
+    }
+    if(G_SlpdProperty.activeDiscoveryAttempts <= 0)
+    {
+        return;
+    }
+    G_SlpdProperty.activeDiscoveryAttempts --;
+
+    /*-------------------------------------------------*/
+    /* Generate a DA service request buffer to be sent */
+    /*-------------------------------------------------*/
+
+    /* determine the size of the fixed portion of the SRVRQST         */
+    bufsize  = 64;  /* 14 bytes for the header                        */
+                    /*  2 bytes for the prlistlen                     */
+                    /*  2 bytes for the srvtype length                */ 
+                    /* 23 bytes for "service:directory-agent" srvtype */
+                    /*  2 bytes for scopelistlen                      */
+                    /*  2 bytes for predicatelen                      */
+                    /*  2 bytes for sprstrlen                         */
+    
+    /* figure out what our Prlist will be by going through our list of  */
+    /* known DAs                                                        */
+    prlistlen = 0;
+    prlist = malloc(SLP_MAX_DATAGRAM_SIZE);
+    if(prlist)
+    {
+        *prlist = 0;
+        daentry = G_KnownDAListHead;
+        while(daentry && prlistlen < SLP_MAX_DATAGRAM_SIZE)
+        {
+            strcat(prlist,inet_ntoa(daentry->daaddr));
+            daentry = (SLPDAEntry*)daentry->listitem.next;
+            if(daentry)
+            {
+                strcat(prlist,",");
+            }
+            prlistlen = strlen(prlist);
+        }
+    }                                  
+    /* Allocate a buffer */
+    bufsize += G_SlpdProperty.localeLen + prlistlen;
+    buf = SLPBufferAlloc(bufsize);
+    if(buf == 0)
+    {
+        return;
+    }                            
+
+    /*------------------------------------------------------------*/
+    /* Build a buffer containing the fixed portion of the SRVRQST */
+    /*------------------------------------------------------------*/
+    /*version*/
+    *(buf->start)       = 2;
+    /*function id*/
+    *(buf->start + 1)   = SLP_FUNCT_SRVRQST;
+    /*length*/
+    ToUINT24(buf->start + 2, bufsize);
+    /*flags*/
+    ToUINT16(buf->start + 5,  SLP_FLAG_MCAST);
+    /*ext offset*/
+    ToUINT24(buf->start + 7,0);
+    /*xid*/
+    ToUINT16(buf->start + 10, 0);  /* TODO: generat a real XID */
+    /*lang tag len*/
+    ToUINT16(buf->start + 12, G_SlpdProperty.localeLen);
+    /*lang tag*/
+    memcpy(buf->start + 14,
+           G_SlpdProperty.locale,
+           G_SlpdProperty.localeLen);
+    buf->curpos = buf->start + G_SlpdProperty.localeLen + 14;
+    /* Prlist */
+    ToUINT16(buf->curpos,prlistlen);
+    buf->curpos = buf->curpos + 2;
+    memcpy(buf->curpos,prlist,prlistlen);
+    buf->curpos = buf->curpos + prlistlen;
+    /* service type */
+    ToUINT16(buf->curpos,23);
+    buf->curpos = buf->curpos + 2;
+    memcpy(buf->curpos,"service:directory-agent",23);
+    /* scope list zero length */
+    /* predicate zero length */
+    /* spi list zero length */
+                                
+    
+    /*--------------------------------------------------*/
+    /* Create new DATAGRAM socket with appropriate peer */
+    /*--------------------------------------------------*/
+    if(G_SlpdProperty.isBroadcastOnly == 0)
+    {
+        peeraddr.s_addr = htonl(SLP_MCAST_ADDRESS);
+        sock = SLPDSocketCreateDatagram(&peeraddr,DATAGRAM_BROADCAST);
+    }
+    else
+    {   
+        peeraddr.s_addr = htonl(SLP_BCAST_ADDRESS);
+        sock = SLPDSocketCreateDatagram(&peeraddr,DATAGRAM_BROADCAST);
+    }
+    
+    if(sock)
+    {
+        sock->sendbuf = buf;
+        SLPDSocketListAdd(&G_OutgoingSocketList,sock);
+    }
+}
 
