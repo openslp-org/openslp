@@ -26,39 +26,34 @@
     <LIBFILES value=""/>
     <LIBRARIES value="rtl.lib vcl.lib"/>
     <SPARELIBS value="vcl.lib rtl.lib"/>
-    <PACKAGES value="vcl.bpi rtl.bpi bcbie.bpi vclx.bpi dbrtl.bpi vcldb.bpi vclie.bpi 
-      xmlrtl.bpi inet.bpi inetdbbde.bpi inetdbxpress.bpi bcbsmp.bpi ibxpress.bpi 
-      webdsnap.bpi bcb2kaxserver.bpi adortl.bpi dsnap.bpi cds.bpi bdertl.bpi 
-      vcldbx.bpi visualclx.bpi visualdbclx.bpi dsnapcrba.bpi dsnapcon.bpi 
-      dbexpress.bpi dss.bpi bdecds.bpi dbxcds.bpi dclocx.bpi soaprtl.bpi 
-      inetdb.bpi websnap.bpi indy.bpi nmfast.bpi qrpt.bpi teeqr.bpi"/>
+    <PACKAGES value=""/>
     <PATHCPP value=".;..\..\libslp;..\..\libslp;..\..\libslp;..\..\libslp;..\..\libslp;..\..\libslp;..\..\libslp;..\..\libslp;..\..\libslp;..\..\libslp;..\..\libslp;..\..\libslp;..\..\libslp;..\..\common;..\..\common;..\..\common;..\..\common;..\..\common;..\..\common;..\..\common;..\..\common;..\..\common;..\..\common;..\..\common;..\..\common;..\..\common;..\..\common;..\..\common"/>
     <PATHPAS value=".;"/>
     <PATHRC value=".;"/>
     <PATHASM value=".;"/>
     <LINKER value="ilink32"/>
-    <USERDEFINES value="STRICT;LIBSLP_EXPORTS;SLP_VERSION=&quot;1.0.5&quot;;HAVE_STDINT_H;_DEBUG"/>
-    <SYSDEFINES value="NO_STRICT;_NO_VCL;_RTLDLL"/>
+    <USERDEFINES value="STRICT;LIBSLP_EXPORTS;SLP_VERSION=&quot;1.1.1&quot;;HAVE_STDINT_H"/>
+    <SYSDEFINES value="NO_STRICT;_NO_VCL"/>
     <MAINSOURCE value="slp.bpf"/>
     <INCLUDEPATH value="$(BCB)\include;..\..\common;..\..\libslp"/>
-    <LIBPATH value="$(BCB)\lib\obj;$(BCB)\lib;$(BCB)\lib\release;..\..\common;..\..\libslp"/>
+    <LIBPATH value="$(BCB)\lib;$(BCB)\lib\obj;$(BCB)\lib\release;..\..\common;..\..\libslp"/>
     <WARNINGS value=""/>
     <LISTFILE value=""/>
     <OTHERFILES value=""/>
   </MACROS>
   <OPTIONS>
-    <IDLCFLAGS value="-src_suffix cpp -DSTRICT -DLIBSLP_EXPORTS -DSLP_VERSION=&quot;1.0.5&quot; 
-      -DHAVE_STDINT_H -D_DEBUG -I$(BCB)\include -I..\..\common -I..\..\libslp -boa"/>
-    <CFLAG1 value="-WD -Od -Vx -Ve -X- -r- -a8 -b- -k -y -v -vi- -tWD -tWM -c"/>
-    <PFLAGS value="-$YD -$W -$O- -$A8 -v -JPHNE -M"/>
-    <AFLAGS value="/mx /w2 /zi"/>
-    <LFLAGS value="-D&quot;&quot; -aa -Tpd -Gn -Gi -v"/>
+    <IDLCFLAGS value="-I$(BCB)\include -I..\..\common -I..\..\libslp -src_suffix cpp -DSTRICT 
+      -DLIBSLP_EXPORTS -DSLP_VERSION=&quot;1.1.1&quot; -DHAVE_STDINT_H -boa"/>
+    <CFLAG1 value="-WD -O2 -X- -a8 -b- -k- -vi -tWD -tWM -c"/>
+    <PFLAGS value="-$Y- -$L- -$D- -$A8 -v -JPHNE -M"/>
+    <AFLAGS value="/mx /w2 /zn"/>
+    <LFLAGS value="-D&quot;&quot; -aa -Tpd -Gn -Gi"/>
     <OTHERFILES value=""/>
   </OPTIONS>
   <LINKER>
     <ALLOBJ value="c0d32.obj $(OBJFILES)"/>
     <ALLRES value="$(RESFILES)"/>
-    <ALLLIB value="$(LIBFILES) $(LIBRARIES) import32.lib cw32mti.lib"/>
+    <ALLLIB value="$(LIBFILES) $(LIBRARIES) import32.lib cw32mt.lib"/>
     <OTHERFILES value=""/>
   </LINKER>
   <FILELIST>
@@ -96,102 +91,6 @@
   </BUILDTOOLS>
 
   <IDEOPTIONS>
-[Version Info]
-IncludeVerInfo=0
-AutoIncBuild=0
-MajorVer=1
-MinorVer=0
-Release=0
-Build=0
-Debug=0
-PreRelease=0
-Special=0
-Private=0
-DLL=0
-Locale=1031
-CodePage=1252
 
-[Version Info Keys]
-CompanyName=
-FileDescription=
-FileVersion=1.0.0.0
-InternalName=
-LegalCopyright=
-LegalTrademarks=
-OriginalFilename=
-ProductName=
-ProductVersion=1.0.0.0
-Comments=
-
-[HistoryLists\hlIncludePath]
-Count=7
-Item0=$(BCB)\include;..\..\common;..\..\libslp
-Item1=..\..\common;$(BCB)\include;..\..\libslp
-Item2=$(BCB)\include;..\..\libslp
-Item3=$(BCB)\include;..\libslp
-Item4=C:\Coding\openslp\HEAD\win32\libslp;C:\Programme\Borland\CBuilder6\Projects;C:\Coding;$(BCB)\include;$(BCB)\include\vcl
-Item5=C:\Programme\Borland\CBuilder6\Projects;C:\Coding;$(BCB)\include;$(BCB)\include\vcl
-Item6=$(BCB)\include;$(BCB)\include\vcl
-
-[HistoryLists\hlLibraryPath]
-Count=6
-Item0=$(BCB)\lib\obj;$(BCB)\lib;$(BCB)\lib\release;..\..\common;..\..\libslp
-Item1=..\..\common;..\..\libslp;$(BCB)\lib\obj;$(BCB)\lib;$(BCB)\lib\release
-Item2=$(BCB)\lib\obj;$(BCB)\lib;$(BCB)\lib\release
-Item3=$(BCB)\lib\obj;$(BCB)\lib
-Item4=C:\Programme\Borland\CBuilder6\lib\Release;C:\Coding\openslp\HEAD\win32\libslp;C:\Programme\Borland\CBuilder6\Projects;C:\Coding;..\lib\release;$(BCB)\lib\obj;$(BCB)\lib
-Item5=C:\Programme\Borland\CBuilder6\Projects;C:\Coding;..\lib\release;$(BCB)\lib\obj;$(BCB)\lib
-
-[HistoryLists\hlDebugSourcePath]
-Count=1
-Item0=$(BCB)\source\vcl
-
-[HistoryLists\hlConditionals]
-Count=5
-Item0=STRICT;LIBSLP_EXPORTS;SLP_VERSION=&quot;1.0.5&quot;;HAVE_STDINT_H;_DEBUG
-Item1=WIN32;STRICT;LIBSLP_EXPORTS;SLP_VERSION=&quot;1.0.5&quot;;HAVE_STDINT_H;_DEBUG
-Item2=WIN32;STRICT;LIBSLP_EXPORTS;SLP_VERSION=&quot;1.0.5&quot;;HAVE_STDINT_H
-Item3=_DEBUG;STRICT
-Item4=_DEBUG
-
-[HistoryLists\hlFinalOutputDir]
-Count=2
-Item0=C:\SLTNG\bin\
-Item1=C:\SLTNG\bin
-
-[Debugging]
-DebugSourceDirs=
-
-[Parameters]
-RunParams=
-Launcher=
-UseLauncher=0
-DebugCWD=
-HostApplication=
-RemoteHost=
-RemotePath=
-RemoteLauncher=
-RemoteCWD=
-RemoteDebug=0
-
-[Compiler]
-ShowInfoMsgs=0
-LinkDebugVcl=1
-LinkCGLIB=0
-
-[CORBA]
-AddServerUnit=1
-AddClientUnit=1
-PrecompiledHeaders=1
-
-[Language]
-ActiveLang=
-ProjectLang=
-RootDir=
-
-[Linker]
-LibPrefix=
-LibSuffix=
-LibVersion=
   </IDEOPTIONS>
 </PROJECT>

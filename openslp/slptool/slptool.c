@@ -36,7 +36,7 @@
 
                        
 
-#ifdef WIN32
+#ifdef __WIN32__
 #define strncasecmp(String1, String2, Num) strnicmp(String1, String2, Num)
 #define strcasecmp(String1, String2) stricmp(String1, String2)
 #define inet_aton(opt,bind) ((bind)->s_addr = inet_addr(opt))
@@ -52,10 +52,10 @@ strcasecmp(const char *s1, const char *s2);
 #endif 
 
 /*=========================================================================*/
-SLPBoolean mySrvTypeCallback( SLPHandle hslp, 
-                              const char* srvtypes, 
-                              SLPError errcode, 
-                              void* cookie ) 
+SLPBoolean SLPCALLBACK mySrvTypeCallback( SLPHandle hslp,
+                                          const char* srvtypes,
+                                          SLPError errcode,
+                                          void* cookie ) 
 /*=========================================================================*/
 {
     char* cpy;
@@ -126,10 +126,10 @@ void FindSrvTypes(SLPToolCommandLine* cmdline)
 }
 
 /*=========================================================================*/
-SLPBoolean myAttrCallback(SLPHandle hslp, 
-                        const char* attrlist, 
-                        SLPError errcode, 
-                        void* cookie )
+SLPBoolean SLPCALLBACK myAttrCallback(SLPHandle hslp,
+                                      const char* attrlist,
+                                      SLPError errcode,
+                                      void* cookie )
 /*=========================================================================*/
 {
     if(errcode == SLP_OK)
@@ -167,11 +167,11 @@ void FindAttrs(SLPToolCommandLine* cmdline)
 
  
 /*=========================================================================*/
-SLPBoolean mySrvUrlCallback( SLPHandle hslp, 
-                             const char* srvurl, 
-                             unsigned short lifetime, 
-                             SLPError errcode, 
-                             void* cookie ) 
+SLPBoolean SLPCALLBACK mySrvUrlCallback( SLPHandle hslp,
+                                         const char* srvurl,
+                                         unsigned short lifetime,
+                                         SLPError errcode,
+                                         void* cookie )
 /*=========================================================================*/
 {
     if(errcode == SLP_OK)
@@ -228,7 +228,7 @@ void FindScopes(SLPToolCommandLine* cmdline)
 }
 
 /*-------------------------------------------------------------------------*/
-void mySLPRegReport(SLPHandle hslp, SLPError errcode, void* cookie)
+void SLPCALLBACK mySLPRegReport(SLPHandle hslp, SLPError errcode, void* cookie)
 {
     if (errcode)
     printf("(de)registration errorcode %d\n", errcode);
@@ -302,7 +302,7 @@ void Deregister(SLPToolCommandLine* cmdline)
 void PrintVersion(SLPToolCommandLine* cmdline)
 /*=========================================================================*/
 {
-#ifdef WIN32
+#ifdef __WIN32__
     printf("slptool version = %s\n",SLP_VERSION);
 #else
 	printf("slptool version = %s\n",VERSION);
