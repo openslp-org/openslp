@@ -488,12 +488,13 @@ void WINAPI SLPDServiceMain(DWORD argc, LPTSTR *argv)
 
 
 /*--------------------------------------------------------------------------*/
-void SLPDCmdInstallService() 
+void SLPDCmdInstallService(int automatic) 
 /*--------------------------------------------------------------------------*/
 {
     SC_HANDLE   schService; 
     SC_HANDLE   schSCManager; 
 
+    DWORD start_type;
     TCHAR szPath[512]; 
 
     if(GetModuleFileName( NULL, szPath, 512 ) == 0)
@@ -503,6 +504,15 @@ void SLPDCmdInstallService()
                GetLastErrorText(szErr, 256)); 
         return; 
     }
+
+    if(automatic)
+    {
+      start_type = SERVICE_AUTO_START;
+    }
+    else
+    {
+      start_type = SERVICE_DEMAND_START;
+    } 
 
     schSCManager = OpenSCManager(
                                 NULL,                   /* machine (NULL == local)    */
@@ -517,7 +527,7 @@ void SLPDCmdInstallService()
                                   G_SERVICEDISPLAYNAME, /* name to display    */
                                   SERVICE_ALL_ACCESS,         /* desired access    */
                                   SERVICE_WIN32_OWN_PROCESS,  /* service type    */
-                                  SERVICE_DEMAND_START,       /* start type    */
+                                  start_type,       			  /* start type    */
                                   SERVICE_ERROR_NORMAL,       /* error control type    */
                                   szPath,                     /* service's binary    */
                                   NULL,                       /* no load ordering group    */
@@ -542,9 +552,7 @@ void SLPDCmdInstallService()
         printf("OpenSCManager failed - %s\n", GetLastErrorText(szErr,256)); 
 } 
 
-/*--------------------------------------------------------------------------*/
 static void SLPDHlpStopService(SC_HANDLE schService)
-/*--------------------------------------------------------------------------*/
 {
 	/* try to stop the service    */
 	if(ControlService(schService, SERVICE_CONTROL_STOP, &ssStatus))
@@ -608,7 +616,7 @@ void SLPDCmdRemoveService()
 } 
 
 /*--------------------------------------------------------------------------*/
-void SLPDCmdStartService(void)
+void SLPDCmdStartService()
 /*--------------------------------------------------------------------------*/
 {
 	 SC_HANDLE schService; 
@@ -643,7 +651,7 @@ void SLPDCmdStartService(void)
 }
 
 /*--------------------------------------------------------------------------*/
-void SLPDCmdStopService(void)
+void SLPDCmdStopService()
 /*--------------------------------------------------------------------------*/
 {
 	 SC_HANDLE schService; 
@@ -707,8 +715,11 @@ void __cdecl main(int argc, char **argv)
     case SLPD_DEBUG:
         SLPDCmdDebugService(argc, argv);
         break;
-    case SLPD_INSTALL:
-        SLPDCmdInstallService();
+    case SLPD_INSTALL_AUTO:
+        SLPDCmdInstallService(1);
+        break;
+    case SLPD_INSTALL_MANUAL:
+        SLPDCmdInstallService(0);
         break;
     case SLPD_REMOVE:
         SLPDCmdRemoveService();

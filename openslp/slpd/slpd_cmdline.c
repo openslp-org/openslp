@@ -80,8 +80,8 @@ void SLPDPrintUsage()
 /*=========================================================================*/
 {
 
-#ifdef WIN32
-    fprintf(stderr,"USAGE: slpd -install|-remove|-start|-stop|-debug [-d] [-c conf file] [-l log file] [-s spi file] [-r reg file] [-v version]\n");
+#ifdef _WIN32
+    fprintf(stderr,"USAGE: slpd -install-auto|-install-manual|-remove|-start|-stop|-debug [-d] [-c conf file] [-l log file] [-s spi file] [-r reg file] [-v version]\n");
 #else
     fprintf(stderr,"USAGE: slpd [-d] [-c conf file] [-l log file] [-r reg file] [-s spi file] [-v version]\n");
 #endif
@@ -104,7 +104,7 @@ int SLPDParseCommandLine(int argc,char* argv[])
 
     /* Set defaults */
     memset(&G_SlpdCommandLine,0,sizeof(SLPDCommandLine));
-#ifndef WIN32
+#ifndef _WIN32
     strcpy(G_SlpdCommandLine.cfgfile,SLPD_CONFFILE);
     strcpy(G_SlpdCommandLine.logfile,SLPD_LOGFILE);
     strcpy(G_SlpdCommandLine.regfile,SLPD_REGFILE);
@@ -127,10 +127,14 @@ int SLPDParseCommandLine(int argc,char* argv[])
 
     for(i=1; i<argc; i++)
     {
-#ifdef WIN32
-        if(strcmp(argv[i],"-install") == 0)
+#ifdef _WIN32
+        if(strcmp(argv[i],"-install-auto") == 0)
         {
-            G_SlpdCommandLine.action = SLPD_INSTALL;
+            G_SlpdCommandLine.action = SLPD_INSTALL_AUTO;
+        }
+        else if(strcmp(argv[i],"-install-manual") == 0)
+        {
+            G_SlpdCommandLine.action = SLPD_INSTALL_MANUAL;
         }
         else if(strcmp(argv[i],"-remove") == 0)
         {
@@ -140,15 +144,15 @@ int SLPDParseCommandLine(int argc,char* argv[])
         {
             G_SlpdCommandLine.action = SLPD_DEBUG;
         }
-		  else if(strcmp(argv[i],"-start") == 0)
-		  {
-				G_SlpdCommandLine.action = SLPD_START;
-		  } 
-		  else if(strcmp(argv[i],"-stop") == 0)
-		  {
-				G_SlpdCommandLine.action = SLPD_STOP;
-		  }
-		  else
+		else if(strcmp(argv[i],"-start") == 0)
+		{
+			G_SlpdCommandLine.action = SLPD_START;
+		}
+		else if(strcmp(argv[i],"-stop") == 0)
+		{
+			G_SlpdCommandLine.action = SLPD_STOP;
+		}
+		else
 #endif
         if(strcmp(argv[i],"-l") == 0)
         {
@@ -191,7 +195,7 @@ int SLPDParseCommandLine(int argc,char* argv[])
                 || (strcmp(argv[i], "--version") == 0)
                 || (strcmp(argv[i], "-version") == 0))
         {
-#ifdef WIN32
+#ifdef _WIN32
             fprintf(stderr,"slpd version: %s\n", SLP_VERSION);
 #else /* UNIX */
             fprintf(stderr,"slpd version: %s\n", VERSION);

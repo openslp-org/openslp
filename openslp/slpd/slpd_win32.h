@@ -82,13 +82,14 @@ typedef SOCKET              sockfd_t;
 
 /* enum detailing what to do with SLPD when launching it :
    run in the console for debug, install it as a service or uninstall it */
-typedef enum _SLPDAction
+typedef enum SLPDAction
 {
     SLPD_DEBUG   = 0,
-    SLPD_INSTALL = 1,
-    SLPD_REMOVE  = 2,
-    SLPD_START   = 3,
-    SLPD_STOP    = 4
+    SLPD_INSTALL_AUTO = 1,
+    SLPD_INSTALL_MANUAL = 2,
+    SLPD_REMOVE = 3,
+    SLPD_START = 4,
+    SLPD_STOP = 5
 } SLPDAction;
 
 
@@ -113,8 +114,10 @@ VOID WINAPI SLPDServiceMain(DWORD argc, LPTSTR *argv);
 
 
 /*=========================================================================*/
-VOID SLPDCmdInstallService(); 
+VOID SLPDCmdInstallService(int automatic); 
 /* Installs the SLPD service in the system                                 */
+/*                                                                         */
+/* automatic boolean specifying whether service should start automatically */
 /*                                                                         */
 /* returns  none                                                           */
 /*=========================================================================*/
