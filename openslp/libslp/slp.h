@@ -1,14 +1,15 @@
-/****************************************************************************/
-/*                                                                          */
-/* Project:     OpenSLP - OpenSource implementation of Service Location     */
-/*              Protocol                                                    */
-/*                                                                          */
-/* File:        slp.h                                                       */
-/*                                                                          */
-/* Abstract:    Main header file for the SLP API exactly as described by    */
-/*              rfc2614.  This is the only file that needs to be included   */
-/*              in order make all SLP API declarations.                     */
-/*                                                                          */
+/***************************************************************************/
+/*                                                                         */
+/* Project:     OpenSLP - OpenSource implementation of Service Location    */
+/*              Protocol                                                   */
+/*                                                                         */
+/* File:        slp.h                                                      */
+/*                                                                         */
+/* Abstract:    Main header file for the SLP API exactly as described by   */
+/*              rfc2614.  This is the only file that needs to be included  */
+/*              in order make all SLP API declarations.                    */
+/*                                                                         */
+/* Author(s)    Matt Peterson <mpeterson@caldera.com>                      */
 /*-------------------------------------------------------------------------*/
 /*                                                                         */
 /*     Please submit patches to http://www.openslp.org                     */
