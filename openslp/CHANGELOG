@@ -8,6 +8,10 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 
 =============================================================================
+05/15/00 mpeterson@calderasystems.com
+Brushed up traceMsg a little more.  Needs a little more work to be really
+useful.  The framework is there though.
+ 
 05/12/00 mpeterson@calderasystems.com
 Add framework to support traceMsg functionality.  Still needs a little 
 brushing up, but the main part is done.
