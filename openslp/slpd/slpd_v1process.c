@@ -56,137 +56,51 @@ int v1ProcessDASrvRqst(struct sockaddr_in* peeraddr,
                        int errorcode)
 /*-------------------------------------------------------------------------*/
 {
-    int size = 0, noscopes = 0, urllen = INT_MAX, scopeslen = INT_MAX;
-    SLPBuffer result = *sendbuf;
+    SLPDAEntry      daentry;
 
-    /*--------------------------------------------------------------*/
-    /* If errorcode is set, we can not be sure that message is good */
-    /* Go directly to send response code                            */
-    /*--------------------------------------------------------------*/
-    if(errorcode)
-    {
-        goto RESPOND;
-    }
+    /* set up local data */
+    memset(&daentry,0,sizeof(daentry));
 
-    if (message->body.srvrqst.scopelistlen != 0 &&
+    if (message->body.srvrqst.scopelistlen == 0 ||
 	SLPIntersectStringList(message->body.srvrqst.scopelistlen,
 			       message->body.srvrqst.scopelist,
 			       G_SlpdProperty.useScopesLen,
-			       G_SlpdProperty.useScopes) == 0 )
+			       G_SlpdProperty.useScopes))
     {
-        errorcode = SLP_ERROR_SCOPE_NOT_SUPPORTED;
+	/* fill out real structure */
+	daentry.bootstamp = G_SlpdProperty.DATimestamp;
+	daentry.langtaglen = G_SlpdProperty.localeLen;
+	daentry.langtag = (char*)G_SlpdProperty.locale;
+	daentry.urllen = G_SlpdProperty.myUrlLen;
+	daentry.url = (char*)G_SlpdProperty.myUrl;
+	daentry.scopelistlen = G_SlpdProperty.useScopesLen;
+	daentry.scopelist = (char*)G_SlpdProperty.useScopes;
+	daentry.attrlistlen = 0;
+	daentry.attrlist = 0;
+	daentry.spilistlen = 0;
+	daentry.spilist = 0;
+    }
+    else
+    {
+	errorcode =  SLP_ERROR_SCOPE_NOT_SUPPORTED;
     }
 
-RESPOND:
-    /*----------------------------------------------------------------*/
-    /* Do not send error codes or empty replies to multicast requests */
-    /*----------------------------------------------------------------*/
-    if (message->header.flags & SLP_FLAG_MCAST)
+    /* don't return errorcodes to multicast messages */
+    if(errorcode == 0)
     {
-        if (errorcode != 0)
+        if(message->header.flags & SLP_FLAG_MCAST ||
+           ISMCAST(peeraddr->sin_addr) )
         {
-	    errorcode = 0;	/* don't log these errors */
-            result->end = result->start;
-            goto FINISHED;   
+            (*sendbuf)->end = (*sendbuf)->start;
+             return errorcode;
         }
     }
 
-
-    /*-------------------------------------------------------------*/
-    /* ensure the buffer is big enough to handle the whole srvrply */
-    /*-------------------------------------------------------------*/
-    size = 18; /* 12 bytes for header, 2 errorcode,  2 bytes for url
-		  len, 2 bytes for scope list len */
-
-    errorcode = SLPv1ToEncoding(0, &urllen, message->header.encoding,
-				G_SlpdProperty.myUrl,
-				G_SlpdProperty.myUrlLen);
-    if (errorcode)
-	goto FINISHED;
-    size += urllen;
-    
-    if (G_SlpdProperty.useScopesLen == 7 &&
-	strncasecmp(G_SlpdProperty.useScopes, "default", 7) == 0)
-    {
-	/* Do not advertise any scope if we operate only in the
-	   default scope. For SLPv1 UAs we are an "unscoped" DA */
-	noscopes = 1;
-    }
-    else
-    {
-	errorcode = SLPv1ToEncoding(0, &scopeslen,
-				    message->header.encoding, 
-				    G_SlpdProperty.useScopes,
-				    G_SlpdProperty.useScopesLen);
-	if (errorcode)
-	    goto FINISHED;
-	size += scopeslen;
-    }
-
-    result = SLPBufferRealloc(result,size);
-    if (result == 0)
-    {
-        /* TODO: out of memory, what should we do here! */
-        errorcode = SLP_ERROR_INTERNAL_ERROR;
-        goto FINISHED;                       
-    }
-
-    /*----------------*/
-    /* Add the header */
-    /*----------------*/
-    /*version*/
-    *(result->start)       = 1;
-    /*function id*/
-    *(result->start + 1)   = SLP_FUNCT_DAADVERT;
-    /*length*/
-    ToUINT16(result->start + 2, size);
-    /*flags - TODO set the flags correctly */
-    *(result->start + 4) = message->header.flags |
-	(size > SLP_MAX_DATAGRAM_SIZE ? SLPv1_FLAG_OVERFLOW : 0);  
-    /*dialect*/
-    *(result->start + 5) = 0;
-    /*language code*/
-    memcpy(result->start + 6, message->header.langtag, 2);
-    ToUINT16(result->start + 8, message->header.encoding);
-    /*xid*/
-    ToUINT16(result->start + 10, message->header.xid);
-
-    /*--------------------------*/
-    /* Add rest of the DAAdvert */
-    /*--------------------------*/
-    result->curpos = result->start + 12;
-    /* error code */
-    ToUINT16(result->curpos,errorcode);
-    result->curpos = result->curpos + 2;
-    /* url len */
-    ToUINT16(result->curpos, urllen);
-    result->curpos = result->curpos + 2;
-    /* url */
-    SLPv1ToEncoding(result->curpos, &urllen, message->header.encoding, 
-		    G_SlpdProperty.myUrl,
-		    G_SlpdProperty.myUrlLen);
-    result->curpos = result->curpos + urllen;
-    if (noscopes)
-    {
-	/* Advertise ourselves as a unscoped DA for SLPv1 */
-	ToUINT16(result->curpos, 0);
-	result->curpos = result->curpos + 2;
-    }
-    else
-    {
-	/* scope list len */
-	ToUINT16(result->curpos, G_SlpdProperty.useScopesLen);
-	result->curpos = result->curpos + 2;
-	/* scope list */
-	SLPv1ToEncoding(result->curpos, &scopeslen,
-			message->header.encoding,  
-			G_SlpdProperty.useScopes,
-			G_SlpdProperty.useScopesLen);
-	result->curpos = result->curpos + scopeslen;
-    }
-
-FINISHED:
-    *sendbuf = result;
+    errorcode = SLPDv1KnownDAEntryToDAAdvert(errorcode,
+					     message->header.encoding,
+					     message->header.xid,
+					     &daentry,
+					     sendbuf);
     return errorcode;
 }
 
