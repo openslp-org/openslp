@@ -90,9 +90,13 @@ SLPError SLPOpen(const char *pcLang, SLPBoolean isAsync, SLPHandle *phSLP)
         goto FINISHED;
     }
     
-    *phSLP = 0;
+    /* assign out param to zero in just for paranoia */
+    *phSLP == 0;
+    
 
+    /*-------------------------------------------------------*/
     /* TODO: remove this line when you implement async calls */
+    /*-------------------------------------------------------*/
     if(isAsync == SLP_TRUE)
     {
         result =  SLP_NOT_IMPLEMENTED;
@@ -109,8 +113,6 @@ SLPError SLPOpen(const char *pcLang, SLPBoolean isAsync, SLPHandle *phSLP)
         goto FINISHED;
     }
     memset(handle,0,sizeof(SLPHandleInfo));
-    handle->sig = SLP_HANDLE_SIG;
-
     
     /*-------------------------------*/
     /* Set the language tag          */
@@ -150,8 +152,9 @@ SLPError SLPOpen(const char *pcLang, SLPBoolean isAsync, SLPHandle *phSLP)
      
     handle->inUse = SLP_FALSE;
     handle->isAsync = isAsync;
+    handle->sig = SLP_HANDLE_SIG;
+
     G_OpenSLPHandleCount ++;  
-    
     
     *phSLP = (SLPHandle)handle;
     
@@ -179,23 +182,27 @@ void SLPClose(SLPHandle hSLP)
 /*=========================================================================*/
 {
     PSLPHandleInfo   handle;
+    
     /*------------------------------*/
     /* check for invalid parameters */
     /*------------------------------*/
-    if(hSLP == 0 ||
-       *(unsigned long*)hSLP != SLP_HANDLE_SIG)
+    if(hSLP == 0 || *(unsigned long*)hSLP != SLP_HANDLE_SIG)
     {
         return;
     }
     
     handle = (PSLPHandleInfo)hSLP;
-    
+
     if(handle->isAsync)
     {
         /* TODO: stop the usage of this handle (kill threads, etc) */
     }
+    if(handle->langtag)
+    {
+        free(handle->langtag);
+    }
 
-    handle->sig = 0;		/* If they give it to us again, it won't be valid */
+    handle->sig = 0;  /* If they use the handle again, it won't be valid */
 
     free(hSLP);
 }
