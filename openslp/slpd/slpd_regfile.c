@@ -35,6 +35,10 @@
 
 #include "slpd.h"
 
+#ifdef WIN32
+#define strncasecmp(String1, String2, Num) strnicmp(String1, String2, Num)
+#endif
+
 /*-------------------------------------------------------------------------*/
 char* TrimWhitespace(char* str)
 /*-------------------------------------------------------------------------*/
@@ -313,7 +317,7 @@ SLPDDatabaseEntry* SLPDRegFileReadEntry(FILE* fd, SLPDDatabaseEntry** entry)
 
     return *entry;
 
-    ERROR:
+ERROR:
     if(*entry)
     {
         if((*entry)->srvtype) free((*entry)->srvtype);

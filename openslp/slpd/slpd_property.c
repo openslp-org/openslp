@@ -44,7 +44,12 @@ void SLPDPropertyInit(const char* conffile)
 /*=========================================================================*/
 {
     struct in_addr  ifaddr;
+#ifdef WIN32
+    char myname[32]; /* TODO: isn't there a constant for the 
+                        max length of the hostname ? */
+#else
     struct utsname  myname;
+#endif
     struct hostent* myhostent;
     int             i;
 
@@ -83,9 +88,18 @@ void SLPDPropertyInit(const char* conffile)
     if(*G_SlpdProperty.interfaces == 0)
     {
         /* put in all interfaces if none specified */
+#ifdef WIN32
+      if (gethostname(myname, sizeof(myname)) == 0)
+#else
         if(uname(&myname) >= 0)
+#endif
         {
-            myhostent = gethostbyname(myname.nodename);
+
+#ifdef WIN32
+          myhostent = gethostbyname(myname);
+#else
+          myhostent = gethostbyname(myname.nodename);
+#endif
             if(myhostent != 0)
             {
                 if(myhostent->h_addrtype == AF_INET)
@@ -121,8 +135,12 @@ void SLPDPropertyInit(const char* conffile)
    
     /*---------------------------------------------------------*/
     /* Set the value used internally as the url for this agent */
-    /*---------------------------------------------------------*/      
+    /*---------------------------------------------------------*/     
+#ifdef WIN32
+    G_SlpdProperty.myUrl = (const char*)malloc(25 + strlen(myname));
+#else 
     G_SlpdProperty.myUrl = (const char*)malloc(25 + strlen(myname.nodename));
+#endif
     if(G_SlpdProperty.myUrl == 0)
     {
        SLPFatal("slpd is out of memory!\n");
@@ -135,11 +153,21 @@ void SLPDPropertyInit(const char* conffile)
     {
         strcpy((char*)G_SlpdProperty.myUrl,"service:service-agent://");
     }
+
+#ifdef WIN32
+      if (strlen(myname) > 0)
+    {
+        /* 25 is the length of "service:directory-agent://" */
+    	strcat((char*)G_SlpdProperty.myUrl,myname);
+    }   
+#else
     if(uname(&myname) >= 0)
     {
         /* 25 is the length of "service:directory-agent://" */
     	strcat((char*)G_SlpdProperty.myUrl,myname.nodename);
     }   
+#endif
+
     G_SlpdProperty.myUrlLen = strlen(G_SlpdProperty.myUrl);
 }
 

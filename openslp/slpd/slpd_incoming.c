@@ -46,8 +46,12 @@ void IncomingSocketListen(SLPList* socklist, SLPDSocket* sock)
 /*-------------------------------------------------------------------------*/
 {
     SLPDSocket* connsock;
+#ifdef WIN32
+    const char   lowat = SLPD_SMALLEST_MESSAGE;
+#else    
     const int   lowat = SLPD_SMALLEST_MESSAGE;
-    
+#endif
+   
     /* Only accept if we can. If we still maximum number of sockets, just*/
     /* ignore the connection */
     if(socklist->count < SLPD_MAX_SOCKETS)
@@ -57,8 +61,9 @@ void IncomingSocketListen(SLPList* socklist, SLPDSocket* sock)
         {
             connsock->peerinfo.peeraddrlen = sizeof(sock->peerinfo.peeraddr);
             connsock->fd = accept(sock->fd,
+                                  (struct sockaddr *) 
                                   &(connsock->peerinfo.peeraddr), 
-                                  &(connsock->peerinfo  .peeraddrlen));
+                                  &(connsock->peerinfo.peeraddrlen));
             if(connsock->fd >= 0)
             {
                 setsockopt(connsock->fd,SOL_SOCKET,SO_RCVLOWAT,&lowat,sizeof(lowat));
@@ -90,7 +95,7 @@ void IncomingDatagramRead(SLPList* socklist, SLPDSocket* sock)
                          sock->recvbuf->start,
                          SLP_MAX_DATAGRAM_SIZE,
                          0,
-                         &(sock->peerinfo.peeraddr),
+                         (struct sockaddr *) &(sock->peerinfo.peeraddr),
                          &(sock->peerinfo.peeraddrlen));
     if(bytesread > 0)
     {
@@ -108,7 +113,7 @@ void IncomingDatagramRead(SLPList* socklist, SLPDSocket* sock)
                        sock->sendbuf->start,
                        sock->sendbuf->end - sock->sendbuf->start,
                        0,
-                       &(sock->peerinfo.peeraddr),
+                       (struct sockaddr *) &(sock->peerinfo.peeraddr),
                        sock->peerinfo.peeraddrlen);
             }
         }
@@ -118,7 +123,6 @@ void IncomingDatagramRead(SLPList* socklist, SLPDSocket* sock)
                    inet_ntoa(sock->peerinfo.peeraddr.sin_addr));
         } 
     }
-
 }
 
 
@@ -132,9 +136,13 @@ void IncomingStreamRead(SLPList* socklist, SLPDSocket* sock)
     
     if(sock->state == STREAM_READ_FIRST)
     {
-        fdflags = fcntl(sock->fd, F_GETFL, 0);
-        fcntl(sock->fd,F_SETFL, fdflags | O_NONBLOCK);
-        
+#ifdef WIN32
+      fdflags = 1;
+      ioctlsocket(sock->fd, FIONBIO, &fdflags);
+#else
+      fdflags = fcntl(sock->fd, F_GETFL, 0);
+      fcntl(sock->fd,F_SETFL, fdflags | O_NONBLOCK);
+#endif        
         /*---------------------------------------------------------------*/
         /* take a peek at the packet to get version and size information */
         /*---------------------------------------------------------------*/
@@ -142,10 +150,11 @@ void IncomingStreamRead(SLPList* socklist, SLPDSocket* sock)
                              peek,
                              16,
                              MSG_PEEK,
-                             &(sock->peerinfo.peeraddr),
+                             (struct sockaddr *)&(sock->peerinfo.peeraddr),
                              &(sock->peerinfo.peeraddrlen));
         if(bytesread > 0)
         {
+          
             /* check the version */
             if(*peek == 2)
             {
@@ -172,11 +181,8 @@ void IncomingStreamRead(SLPList* socklist, SLPDSocket* sock)
         }
         else
         {
-            if(errno != EWOULDBLOCK)
-            {
-                sock->state = SOCKET_CLOSE;
-                return;
-            }
+          sock->state = SOCKET_CLOSE;
+          return;
         }        
     }
         
@@ -214,11 +220,8 @@ void IncomingStreamRead(SLPList* socklist, SLPDSocket* sock)
         }
         else
         {
-            if(errno != EWOULDBLOCK)
-            {
                 /* error in recv() */
                 sock->state = SOCKET_CLOSE;
-            }
         }
     }
 }
@@ -260,7 +263,11 @@ void IncomingStreamWrite(SLPList* socklist, SLPDSocket* sock)
         }
         else
         {
-            if(errno != EWOULDBLOCK)
+#ifdef WIN32
+      if (WSAEWOULDBLOCK == WSAGetLastError())
+#else
+        if(errno == EWOULDBLOCK)
+#endif
             {
                 /* Error occured or connection was closed */
                 sock->state = SOCKET_CLOSE;
@@ -327,8 +334,8 @@ void SLPDIncomingHandler(int* fdcount,
                 break;
             }
             
-            *fdcount = *fdcount - 1;
-        }
+      *fdcount = *fdcount - 1;
+    }
 
         sock = (SLPDSocket*)sock->listitem.next; 
     }                               
@@ -464,9 +471,16 @@ int SLPDIncomingInit()
         /*--------------------------------------------------------*/
         /* Create socket that will handle multicast UDP           */
         /*--------------------------------------------------------*/
+        
+#ifdef WIN32
+        sock =  SLPDSocketCreateBoundDatagram(&myaddr,
+                                              NULL,
+                                              DATAGRAM_MULTICAST);
+#else
         sock =  SLPDSocketCreateBoundDatagram(&myaddr,
                                               &mcastaddr,
                                               DATAGRAM_MULTICAST);
+#endif
         if(sock)
         {
             SLPListLinkTail(&G_IncomingSocketList,(SLPListItem*)sock);
@@ -500,7 +514,7 @@ int SLPDIncomingInit()
         SLPListLinkTail(&G_IncomingSocketList,(SLPListItem*)sock);
         SLPLog("Broadcast socket for %s ready\n", inet_ntoa(bcastaddr));
     }
-
+    
     return 0;
 }
 

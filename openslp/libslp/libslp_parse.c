@@ -35,6 +35,10 @@
 #include "slp.h"
 #include "libslp.h"
 
+#ifdef WIN32 /* on Win32 strncasecmp is named strnicmp, but behaves the same */
+#define strncasecmp(String1, String2, Num) strnicmp(String1, String2, Num)
+#endif
+
 /*=========================================================================*/
 void SLPFree(void* pvMem)                                                  
 /*                                                                         */

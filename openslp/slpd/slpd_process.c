@@ -596,7 +596,7 @@ int ProcessSrvDeReg(SLPDPeerInfo* peerinfo,
         /*--------------------------------------*/
         if (SLPDDatabaseDeReg(&(message->body.srvdereg)) == 0)
         {
-            errorcode = 0;
+             errorcode = 0;
         }
         else
         {

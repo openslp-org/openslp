@@ -38,6 +38,7 @@
 SLPList G_DatabaseList = {0,0,0};
 /*=========================================================================*/
 
+
 /*-------------------------------------------------------------------------*/
 void FreeEntry(SLPDDatabaseEntry* entry)
 /*-------------------------------------------------------------------------*/
@@ -424,6 +425,7 @@ int SLPDDatabaseFindAttr(SLPAttrRqst* attrrqst,
     return found;
 }
 
+
 /*=========================================================================*/
 int SLPDDatabaseInit(const char* regfile)
 /* Optionaly initialize the database with registrations from a regfile.    */
@@ -434,14 +436,19 @@ int SLPDDatabaseInit(const char* regfile)
 /*=========================================================================*/
 {
     FILE*               fd;
+#ifdef WIN32
+    int                 mypid = GetCurrentProcessId();
+    int                 myuid = 0; /* TODO: find an equivalent to 
+                                      uid on Win32 */
+#else
     int                 mypid = getpid();
     int                 myuid = getuid();
+#endif
     SLPDDatabaseEntry*  entry;
 
     /* Remove all entries in the database if any */
     FreeAllEntries(&G_DatabaseList);
-    
-    
+
     /*--------------------------------------*/
     /* Read static registration file if any */
     /*--------------------------------------*/

@@ -147,6 +147,15 @@ SLPError SLPOpen(const char *pcLang, SLPBoolean isAsync, SLPHandle *phSLP)
     /*---------------------------------------------------------*/
     if(G_OpenSLPHandleCount == 0)
     {
+#ifdef WIN32
+          WSADATA wsaData; 
+          WORD    wVersionRequested = MAKEWORD(1,1); 
+          if (0 != WSAStartup(wVersionRequested, &wsaData))
+          {
+            result = SLP_NETWORK_INIT_FAILED;
+            goto FINISHED;
+          }
+#endif
         SLPXidSeed();
     }
      

@@ -116,7 +116,11 @@ int NetworkConnectToSlpd(struct sockaddr_in* peeraddr)
 /* Returns          Connected socket or -1 if no DA connection can be made */
 /*=========================================================================*/
 {
+#ifdef WIN32 /* on WIN32 setsockopt takes a const char * argument */
+  char lowat;
+#else
     int lowat;
+#endif
     int result;
      
     result = socket(AF_INET,SOCK_STREAM,0);
@@ -167,7 +171,11 @@ SLPError NetworkRqstRply(int sock,
     SLPBuffer           recvbuf         = 0;
     SLPMessage          msg             = 0;
     SLPError            result          = 0;
+#ifdef WIN32 /* on WIN32 setsockopt takes a const char * argument */
+    char                socktype        = 0;
+#else
     int                 socktype        = 0;
+#endif
     int                 langtaglen      = 0;
     int                 prlistlen       = 0;
     char*               prlist          = 0;
@@ -227,6 +235,8 @@ SLPError NetworkRqstRply(int sock,
         socktype = SOCK_STREAM;
         xmitcount = MAX_RETRANSMITS;
     }
+    
+    
     
     /*--------------------------------*/
     /* Allocate memory for the prlist */

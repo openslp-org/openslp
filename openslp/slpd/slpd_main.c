@@ -39,6 +39,112 @@ int G_SIGTERM;
 int G_SIGHUP;
 /*==========================================================================*/                                                                                                 
 
+
+/*-------------------------------------------------------------------------*/
+void LoadFdSets(SLPList* socklist, 
+                int* highfd, 
+                fd_set* readfds, 
+                fd_set* writefds)
+/*-------------------------------------------------------------------------*/
+{
+    SLPDSocket* sock = 0;
+    SLPDSocket* del = 0;
+    
+    sock = (SLPDSocket*)socklist->head;
+    while(sock)
+    {
+        if(sock->fd > *highfd)
+        {
+            *highfd = sock->fd;
+        }
+
+        switch(sock->state)
+        {
+        case DATAGRAM_UNICAST:
+        case DATAGRAM_MULTICAST:
+        case DATAGRAM_BROADCAST:
+            FD_SET(sock->fd,readfds);
+            break;
+            
+        case SOCKET_LISTEN:
+            if(socklist->count < SLPD_MAX_SOCKETS)
+            {
+                FD_SET(sock->fd,readfds);
+            }
+            break;
+
+        case STREAM_READ:
+        case STREAM_READ_FIRST:
+            FD_SET(sock->fd,readfds);
+            break;
+
+        case STREAM_WRITE:
+        case STREAM_WRITE_FIRST:
+        case STREAM_CONNECT_BLOCK:
+            FD_SET(sock->fd,writefds);
+            break;
+
+        case SOCKET_CLOSE:
+            del = sock;
+            break;
+
+        default:
+            break;
+        }
+        
+        sock = (SLPDSocket*)sock->listitem.next;
+        
+        if(del)
+        {
+            SLPDSocketFree((SLPDSocket*)SLPListUnlink(socklist,(SLPListItem*)del));     
+            del = 0;
+        }
+    }
+}
+
+
+#ifdef WIN32
+void __cdecl main(int argc, char **argv) 
+{ 
+  SERVICE_TABLE_ENTRY dispatchTable[] = 
+  { 
+    { G_SERVICENAME, (LPSERVICE_MAIN_FUNCTION)SLPDServiceMain }, 
+    { NULL, NULL } 
+  }; 
+ 
+  /*------------------------*/
+  /* Parse the command line */
+  /*------------------------*/
+  if(SLPDParseCommandLine(argc,argv))
+  {
+    SLPFatal("Invalid command line\n");
+  }    
+
+  switch(G_SlpdCommandLine.action)
+  {
+    case SLPD_DEBUG:
+      SLPDCmdDebugService(argc, argv);
+      break;
+    case SLPD_INSTALL:
+      SLPDCmdInstallService();
+      break;
+    case SLPD_REMOVE:
+      SLPDCmdRemoveService();
+      break;
+    default:
+      SLPDPrintUsage();
+      StartServiceCtrlDispatcher(dispatchTable);
+      
+      break;
+  } 
+} 
+ 
+
+
+
+#else
+ 
+
 /*--------------------------------------------------------------------------*/
 void SignalHandler(int signum)
 /*--------------------------------------------------------------------------*/
@@ -172,68 +278,6 @@ int Daemonize(const char* pidfile)
     return 0;
 }
 
-
-/*-------------------------------------------------------------------------*/
-void LoadFdSets(SLPList* socklist, 
-                int* highfd, 
-                fd_set* readfds, 
-                fd_set* writefds)
-/*-------------------------------------------------------------------------*/
-{
-    SLPDSocket* sock = 0;
-    SLPDSocket* del = 0;
-    
-    sock = (SLPDSocket*)socklist->head;
-    while(sock)
-    {
-        if(sock->fd > *highfd)
-        {
-            *highfd = sock->fd;
-        }
-
-        switch(sock->state)
-        {
-        case DATAGRAM_UNICAST:
-        case DATAGRAM_MULTICAST:
-        case DATAGRAM_BROADCAST:
-            FD_SET(sock->fd,readfds);
-            break;
-            
-        case SOCKET_LISTEN:
-            if(socklist->count < SLPD_MAX_SOCKETS)
-            {
-                FD_SET(sock->fd,readfds);
-            }
-            break;
-
-        case STREAM_READ:
-        case STREAM_READ_FIRST:
-            FD_SET(sock->fd,readfds);
-            break;
-
-        case STREAM_WRITE:
-        case STREAM_WRITE_FIRST:
-        case STREAM_CONNECT_BLOCK:
-            FD_SET(sock->fd,writefds);
-            break;
-
-        case SOCKET_CLOSE:
-            del = sock;
-            break;
-
-        default:
-            break;
-        }
-        
-        sock = (SLPDSocket*)sock->listitem.next;
-        
-        if(del)
-        {
-            SLPDSocketFree((SLPDSocket*)SLPListUnlink(socklist,(SLPListItem*)del));     
-            del = 0;
-        }
-    }
-}
 
 
 /*=========================================================================*/
@@ -378,3 +422,6 @@ HANDLE_SIGNAL:
 
     return 0;
 }
+
+
+#endif

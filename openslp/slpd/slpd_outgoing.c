@@ -45,7 +45,7 @@ void OutgoingStreamReconnect(SLPList* socklist, SLPDSocket* sock)
 /*-------------------------------------------------------------------------*/
 {
     if(connect(sock->fd, 
-               &(sock->peerinfo.peeraddr), 
+               (struct sockaddr *)&(sock->peerinfo.peeraddr), 
                sizeof(sock->peerinfo.peeraddr)) == 0)   
     {
         /* Connection occured immediately */
@@ -53,7 +53,11 @@ void OutgoingStreamReconnect(SLPList* socklist, SLPDSocket* sock)
     }
     else
     {
+#ifdef WIN32
+      if (WSAEWOULDBLOCK == WSAGetLastError())
+#else
         if(errno == EINPROGRESS)
+#endif
         {
             /* Connect would have blocked */
             sock->state = STREAM_CONNECT_BLOCK;
@@ -115,7 +119,11 @@ void OutgoingStreamWrite(SLPList* socklist, SLPDSocket* sock)
         }
         else
         {
-            if (errno != EWOULDBLOCK)
+#ifdef WIN32
+      if (WSAEWOULDBLOCK == WSAGetLastError())
+#else
+        if(errno == EWOULDBLOCK)
+#endif
             {
                 /* Error occured or connection was closed. Try to reconnect */
                 /* Socket will be closed if connect times out               */
@@ -136,8 +144,13 @@ void OutgoingStreamRead(SLPList* socklist, SLPDSocket* sock)
 
     if (sock->state == STREAM_READ_FIRST)
     {
-        fdflags = fcntl(sock->fd, F_GETFL, 0);
-        fcntl(sock->fd,F_SETFL, fdflags | O_NONBLOCK);
+#ifdef WIN32
+      fdflags = 1;
+      ioctlsocket(sock->fd, FIONBIO, &fdflags);
+#else
+      fdflags = fcntl(sock->fd, F_GETFL, 0);
+      fcntl(sock->fd,F_SETFL, fdflags | O_NONBLOCK);
+#endif        
 
         /*---------------------------------------------------------------*/
         /* take a peek at the packet to get version and size information */
@@ -146,7 +159,7 @@ void OutgoingStreamRead(SLPList* socklist, SLPDSocket* sock)
                              peek,
                              16,
                              MSG_PEEK,
-                             &(sock->peerinfo.peeraddr),
+                             (struct sockaddr *)&(sock->peerinfo.peeraddr),
                              &(sock->peerinfo.peeraddrlen));
         if (bytesread > 0)
         {
@@ -175,7 +188,11 @@ void OutgoingStreamRead(SLPList* socklist, SLPDSocket* sock)
         }
         else
         {
-            if (errno != EWOULDBLOCK)
+#ifdef WIN32
+      if (WSAEWOULDBLOCK == WSAGetLastError())
+#else
+        if(errno == EWOULDBLOCK)
+#endif
             {
                 /* TODO: */
                 /* Stream was probably closed.  Try to re connect */
@@ -232,7 +249,11 @@ void OutgoingStreamRead(SLPList* socklist, SLPDSocket* sock)
         }
         else
         {
-            if (errno != EWOULDBLOCK)
+#ifdef WIN32
+      if (WSAEWOULDBLOCK == WSAGetLastError())
+#else
+        if(errno == EWOULDBLOCK)
+#endif
             {
                 /* Error occured or connection was closed. Try to reconnect */
                 /* Socket will be closed if connect times out               */

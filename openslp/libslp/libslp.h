@@ -12,6 +12,13 @@
 #if(!defined LIBSLP_H_INCLUDED)
 #define LIBSLP_H_INCLUDED
 
+#ifdef WIN32
+#include <windows.h>
+#include  <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <time.h>
+#else
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
@@ -25,7 +32,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h> 
-
+#endif
 
 #include <slp_buffer.h>
 #include <slp_message.h>

@@ -40,6 +40,7 @@
 #include "slp.h"
 #include "libslp.h"
 
+
 /*=========================================================================*/
 SLPList G_KnownDAList = {0,0,0};
 /* The list of known DAs. All calls in the file are ment to fill this list */
