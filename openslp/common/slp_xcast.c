@@ -250,7 +250,11 @@ int SLPXcastSocketsClose(SLPXcastSockets* socks)
     while(socks->sock_count)
     {
         socks->sock_count = socks->sock_count - 1;
+		#ifdef _WIN32 
+			closesocket(socks->sock[socks->sock_count]);
+		#else
         close(socks->sock[socks->sock_count]);
+		#endif
     }
 
     return 0;
@@ -408,6 +412,10 @@ main()
     SLPIfaceInfo    ifaceinfo;
     SLPXcastSockets      socks;
     SLPBuffer           buffer;
+    #ifdef _WIN32
+    WSADATA wsadata;
+    WSAStartup(MAKEWORD(2,2), &wsadata);
+    #endif
 
     buffer = SLPBufferAlloc(SLP_MAX_DATAGRAM_SIZE);
     if(buffer)
@@ -429,6 +437,9 @@ main()
 
         SLPBufferFree(buffer);
     }
+    #ifdef _WIN32
+    WSACleanup();
+    #endif
 }
 
 #endif

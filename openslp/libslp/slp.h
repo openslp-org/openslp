@@ -62,6 +62,8 @@ extern "C"
 # define SLPCALLBACK
 # ifdef LIBSLP_EXPORTS
 #  define SLPEXP __declspec(dllexport)
+# elif defined(LIBSLP_STATIC)
+#  define SLPEXP
 # else
 #  define SLPEXP __declspec(dllimport)
 # endif

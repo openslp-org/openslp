@@ -34,7 +34,7 @@
 
 #include "slptool.h"
 
-#ifdef WIN32
+#ifdef _WIN32
 # define strncasecmp(String1, String2, Num) strnicmp(String1, String2, Num)
 # define strcasecmp(String1, String2) stricmp(String1, String2)
 # define inet_aton(opt,bind) ((bind)->s_addr = inet_addr(opt))
@@ -43,7 +43,7 @@
 #  include "config.h"
 #  define SLP_VERSION VERSION
 # else
-#  define SLP_VERSION 1.2.x
+#  define SLP_VERSION 1.2.1
 # endif
 # ifndef HAVE_STRNCASECMP
 int strncasecmp(const char *s1, const char *s2, size_t len);

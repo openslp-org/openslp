@@ -106,7 +106,11 @@ void NetworkDisconnectDA(PSLPHandleInfo handle)
 {
     if(handle->dasock)
     {
-        close(handle->dasock);
+#ifdef _WIN32
+	    closesocket(handle->dasock);
+#else
+	    close(handle->dasock);
+#endif
         handle->dasock = -1;
     }
 
@@ -124,7 +128,11 @@ void NetworkDisconnectSA(PSLPHandleInfo handle)
 {
     if(handle->sasock)
     {
-        close(handle->sasock);
+#ifdef _WIN32
+	    closesocket(handle->sasock);
+#else
+	    close(handle->sasock);
+#endif
         handle->sasock = -1;
     }
 }
@@ -167,7 +175,11 @@ int NetworkConnectToDA(PSLPHandleInfo handle,
         /* close handle cause it can't support the scope */
         if(handle->dasock >= 0)
         {
-            close(handle->dasock);
+#ifdef _WIN32
+	        closesocket(handle->dasock);
+#else
+	        close(handle->dasock);
+#endif
         }
 
         /* Attempt to connect to DA that does support the scope */
@@ -225,7 +237,11 @@ int NetworkConnectToSA(PSLPHandleInfo handle,
         /* close handle cause it can't support the scope */
         if(handle->sasock >= 0)
         {
-            close(handle->sasock);
+#ifdef _WIN32
+	        closesocket(handle->sasock);
+#else
+	        close(handle->sasock);
+#endif
         }
 
         /*-----------------------------------------*/
@@ -908,7 +924,11 @@ SLPError NetworkMcastRqstRply(const char* langtag,
 			     {
 			         result = SLP_NETWORK_ERROR;
 			     }
+#ifdef _WIN32
+	                closesocket(tcpsockfd);
+#else
 			     close(tcpsockfd);		    
+#endif
                              
 			     break;
 			 }
@@ -927,11 +947,19 @@ SLPError NetworkMcastRqstRply(const char* langtag,
 				 result = SLP_NETWORK_ERROR;
 			     }
 			
+#ifdef _WIN32
+	                closesocket(tcpsockfd);
+#else
 			     close(tcpsockfd);
+#endif
 			     break;
 			 }
 			 
+#ifdef _WIN32
+	            closesocket(tcpsockfd);
+#else
 			 close(tcpsockfd);
+#endif
 			 result = SLP_OK;
 			 goto SNEEK;			                        
 		    } 
@@ -1203,7 +1231,11 @@ SLPError NetworkUcastRqstRply(PSLPHandleInfo handle,
                 }else {
 		    result = SLP_NETWORK_ERROR;
 		}
+#ifdef _WIN32
+	        closesocket(handle->unicastsock);
+#else
 		close(handle->unicastsock);
+#endif
 		goto FINISHED;
 	    }
 	    
@@ -1217,10 +1249,18 @@ SLPError NetworkUcastRqstRply(PSLPHandleInfo handle,
 		} else {
                     result = SLP_NETWORK_ERROR;
 		}
+#ifdef _WIN32
+	        closesocket(handle->unicastsock);
+#else
                 close(handle->unicastsock);
+#endif
                 goto FINISHED;
             }
+#ifdef _WIN32
+	    closesocket(handle->unicastsock);
+#else
 	    close(handle->unicastsock);
+#endif
 	    result = SLP_OK;
 	} else {
 	    result = SLP_NETWORK_TIMED_OUT;

@@ -62,6 +62,9 @@
 
 #include "slp_linkedlist.h"
 
+/* needed for snprintf to work */
+#define snprintf                    _snprintf
+
 #define SLPXMALLOC_MAX_WHERE_LEN    256
 #define SLPXMALLOC_MAX_BUF_LOG_LEN  32
 

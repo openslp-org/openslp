@@ -249,10 +249,6 @@ SOURCE=..\..\common\slp_iface.h
 # End Source File
 # Begin Source File
 
-SOURCE=\mpeterson\cvs\openslp\openslp.HEAD\common\slp_iface.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\common\slp_linkedlist.h
 # End Source File
 # Begin Source File
@@ -290,10 +286,6 @@ SOURCE=..\..\common\slp_v1message.h
 # Begin Source File
 
 SOURCE=..\..\common\slp_xcast.h
-# End Source File
-# Begin Source File
-
-SOURCE=\mpeterson\cvs\openslp\openslp.HEAD\common\slp_xcast.h
 # End Source File
 # Begin Source File
 

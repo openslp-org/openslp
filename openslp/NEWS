@@ -25,7 +25,7 @@ New in openslp-1.0.0
 --------------------
 * ALL PLANNED FEATURES ARE SUPPORTED IN THIS RELEASE
 * Duplicate results in sync calls are now removed
-*rschall <peter@adpm.de> Fixed several SEGVs attributed to parsing bugs
+* Fixed several SEGVs attributed to parsing bugs
 * Fix "echo to ourselves" bug when slpd is running as a DA
 * Cosmetic logging changes
 

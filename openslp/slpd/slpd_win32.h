@@ -51,8 +51,8 @@
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-#include <stdio.h>
 #include <winsock.h>
+#include <stdio.h>
 #include <process.h>
 #include <ctype.h>
 #include <time.h>
