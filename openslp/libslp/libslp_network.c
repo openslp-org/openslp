@@ -676,6 +676,9 @@ SLPError NetworkMcastRqstRply(const char* langtag,
 	xcastsocks.sock_count = 0;
     
 #ifndef MI_NOT_SUPPORTED
+	/* Determine which multicast addresses to send to. */
+	NetworkGetMcastAddrs(buftype, buf, &dstifaceinfo);
+	/* Determine which interfaces to send out on. */
     if(handle->McastIFList != NULL) 
     {
         #ifdef DEBUG
@@ -694,6 +697,8 @@ SLPError NetworkMcastRqstRply(const char* langtag,
         result = SLP_NETWORK_ERROR;
         goto FINISHED;
     }
+
+
 #ifndef MI_NOT_SUPPORTED
 	}
 #endif
@@ -737,10 +742,8 @@ SLPError NetworkMcastRqstRply(const char* langtag,
     prlistlen = 0; 
 
 #ifndef MI_NOT_SUPPORTED
-	/* Determine which multicast addresses to send to. */
-	NetworkGetMcastAddrs(buftype, buf, &dstifaceinfo);
 	/* Iterate through each multicast scope until we found a provider. */
-	while (currIntf < dstifaceinfo.iface_count) {
+	while (currIntf < dstifaceinfo.iface_count && totaltimeout < maxwait) {
 #endif
 		/*--------------------------*/
 		/* Main retransmission loop */
