@@ -48,10 +48,14 @@
 
 #include "slp_pid.h"
 
+#ifdef __WIN32__
+#include <windows.h>
+#else
 #include <unistd.h>
 #include <signal.h>
 #include <errno.h>
 #include <sys/types.h>
+#endif
 
                    
 
@@ -67,8 +71,8 @@ uint32_t SLPPidGet()
  *     32 bit integer identifier for the current process
  *=========================================================================*/
 {
-    #ifdef WIN32
-    return GetCurrentProcessId()
+    #ifdef __WIN32__
+    return GetCurrentProcessId();
     #else
     return getpid();
     #endif
@@ -88,6 +92,7 @@ int SLPPidExists(uint32_t pid)
  *    Boolean value.  Zero if process does not exist, non-zero if it does
  *=========================================================================*/
 {
+#ifndef __WIN32__
     if(kill(pid,0))
     {
         if(errno == ESRCH)
@@ -98,4 +103,8 @@ int SLPPidExists(uint32_t pid)
     }
 
     return 1;
+#else
+    /* FIXME */
+    return 0;
+#endif
 }

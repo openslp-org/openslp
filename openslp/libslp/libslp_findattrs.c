@@ -274,7 +274,7 @@ SLPError AsyncProcessAttrRqst(PSLPHandleInfo handle)
 
 
 /*=========================================================================*/
-SLPError SLPFindAttrs(SLPHandle   hSLP,
+SLPError SLPAPI SLPFindAttrs(SLPHandle   hSLP,
                       const char *pcURLOrServiceType,
                       const char *pcScopeList,
                       const char *pcAttrIds,

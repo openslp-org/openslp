@@ -49,7 +49,11 @@
 #ifndef SLP_PID_H_INCLUDED
 #define SLP_PID_H_INCLUDED
 
-#include <inttypes.h>    
+#ifdef HAVE_STDINT_H
+#include <stdint.h>
+#else
+#include <inttypes.h>
+#endif    
 
 /*=========================================================================*/
 uint32_t SLPPidGet();

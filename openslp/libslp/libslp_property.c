@@ -56,7 +56,7 @@
 
 
 /*=========================================================================*/
-const char* SLPGetProperty(const char* pcName)
+const char* SLPAPI SLPGetProperty(const char* pcName)
 /*                                                                         */
 /* Returns the value of the corresponding SLP property name.  The returned */
 /* string is owned by the library and MUST NOT be freed.                   */
@@ -75,7 +75,7 @@ const char* SLPGetProperty(const char* pcName)
 
     memset(conffile,0,MAX_PATH);
 
-    #ifdef WIN32
+    #ifdef __WIN32__
     ExpandEnvironmentStrings(LIBSLP_CONFFILE,conffile,MAX_PATH);
     #else
     strncpy(conffile,LIBSLP_CONFFILE,MAX_PATH-1);
@@ -96,7 +96,7 @@ const char* SLPGetProperty(const char* pcName)
 
 
 /*=========================================================================*/
-void SLPSetProperty(const char *pcName,
+void SLPAPI SLPSetProperty(const char *pcName,
                     const char *pcValue)
 /*                                                                         */
 /* Sets the value of the SLP property to the new value.  The pcValue       */

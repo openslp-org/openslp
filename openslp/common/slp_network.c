@@ -61,7 +61,7 @@ int SLPNetworkConnectStream(struct sockaddr_in* peeraddr,
 /* returns: a connected socket or -1                                       */
 /*=========================================================================*/ 
 {
-#ifdef WIN32
+#ifdef __WIN32__
     char lowat;
 #else
     int lowat;
@@ -118,7 +118,7 @@ int SLPNetworkConnectToMulticast(struct sockaddr_in* peeraddr, int ttl)
 #endif
 
 
-#ifdef WIN32
+#ifdef __WIN32__
     BOOL Reuse = TRUE;
     int TTLArg;
     struct sockaddr_in  mysockaddr;
@@ -141,7 +141,7 @@ int SLPNetworkConnectToMulticast(struct sockaddr_in* peeraddr, int ttl)
         optarg = ttl;
 
 
-#ifdef WIN32
+#ifdef __WIN32__
         TTLArg = ttl;
         if(setsockopt(sockfd,
                       SOL_SOCKET,
@@ -180,7 +180,7 @@ int SLPNetworkConnectToBroadcast(struct sockaddr_in* peeraddr)
 /*=========================================================================*/
 {
     int     sockfd;
-#ifdef WIN32
+#ifdef __WIN32__
     BOOL    on = 1;
 #else
     int     on = 1;
@@ -332,7 +332,7 @@ int SLPNetworkRecvMessage(int sockfd,
 
         if(xferbytes <= 0)
         {
-#ifdef WIN32
+#ifdef __WIN32__
             if(WSAGetLastError() != WSAEMSGSIZE)
             {
                 errno = ENOTCONN;

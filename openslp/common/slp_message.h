@@ -52,7 +52,7 @@
 
 #include "slp_buffer.h"
 
-#ifdef WIN32
+#ifdef __WIN32__
 #include <windows.h>
 #else
 #include <sys/types.h>
@@ -61,12 +61,17 @@
 #endif
 #include <netinet/in.h>			/* for htonl() routines */
 #endif
+#ifdef HAVE_STDINT_H
+#include <stdint.h>
+#else
+#include <inttypes.h>
+#endif
 
 typedef char            CHAR;
 typedef unsigned char   UINT8;
 typedef unsigned short  UINT16;
 
-#ifndef WIN32
+#ifndef __WIN32__
 typedef unsigned long   UINT32;
 #endif
 
@@ -260,7 +265,7 @@ typedef struct _SLPSrvReg
     int                 authcount;
     SLPAuthBlock*       autharray;
     /* The following are used for OpenSLP specific extensions */
-    pid_t               pid;
+    uint32_t            pid;
     /* The following are not part of the RFC protocol.  They are used by   */
     /* the OpenSLP implementation for convenience                          */
     int                 source;

@@ -50,12 +50,12 @@
 #include "slp.h"
 #include "libslp.h"
 
-#ifdef WIN32 /* on Win32 strncasecmp is named strnicmp, but behaves the same */
+#ifdef __WIN32__ /* on Win32 strncasecmp is named strnicmp, but behaves the same */
     #define strncasecmp(String1, String2, Num) strnicmp(String1, String2, Num)
 #endif
 
 /*=========================================================================*/
-void SLPFree(void* pvMem)                                                  
+void SLPAPI SLPFree(void* pvMem)                                                  
 /*                                                                         */
 /* Frees memory returned from SLPParseSrvURL(), SLPFindScopes(),           */
 /* SLPEscape(), and SLPUnescape().                                         */
@@ -72,7 +72,7 @@ void SLPFree(void* pvMem)
 }
 
 /*=========================================================================*/
-SLPError SLPParseSrvURL(const char *pcSrvURL,
+SLPError SLPAPI SLPParseSrvURL(const char *pcSrvURL,
                         SLPSrvURL** ppSrvURL)
 /*                                                                         */
 /* Parses the URL passed in as the argument into a service URL structure   */
@@ -118,7 +118,7 @@ SLPError SLPParseSrvURL(const char *pcSrvURL,
 #define ESCAPE_CHARACTER			'\\'
 #define ESCAPE_CHARACTER_STRING		"\\"
 /*=========================================================================*/
-SLPError SLPEscape(const char* pcInbuf,
+SLPError SLPAPI SLPEscape(const char* pcInbuf,
                    char** ppcOutBuf,
                    SLPBoolean isTag)
 /*                                                                         */
@@ -232,7 +232,7 @@ SLPError SLPEscape(const char* pcInbuf,
 }
 
 /*=========================================================================*/
-SLPError SLPUnescape(const char* pcInbuf,
+SLPError SLPAPI SLPUnescape(const char* pcInbuf,
                      char** ppcOutBuf,
                      SLPBoolean isTag)
 /*                                                                         */
@@ -342,7 +342,7 @@ SLPError SLPUnescape(const char* pcInbuf,
 
 
 /*=========================================================================*/
-SLPError SLPParseAttrs(const char* pcAttrList,
+SLPError SLPAPI SLPParseAttrs(const char* pcAttrList,
                        const char *pcAttrId,
                        char** ppcAttrVal)
 /*                                                                         */

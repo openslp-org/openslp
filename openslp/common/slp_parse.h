@@ -18,7 +18,7 @@
 /*                                                                         */
 /* Redistribution and use in source and binary forms, with or without      */
 /* modification, are permitted provided that the following conditions are  */
-/* met:                                                                    */ 
+/* met:                                                                    */
 /*                                                                         */
 /*      Redistributions of source code must retain the above copyright     */
 /*      notice, this list of conditions and the following disclaimer.      */
@@ -71,7 +71,7 @@ typedef struct _SLPParsedSrvUrl
 
     char* family;
     /* A pointer to a character string containing the network address      
-     * family identifier.  Possible values are "ipx" for the IPX           
+     * family identifier.  Possible values are "ipx" for the IPX
      * family, "at" for the Appletalk family, and "" (i.e.  the empty      
      * string) for the IP address family.                                  
      */

@@ -51,7 +51,7 @@
 
 #include <stdlib.h>
 
-#ifdef _WIN32
+#ifdef __WIN32__
 #include <malloc.h>
 #endif
 

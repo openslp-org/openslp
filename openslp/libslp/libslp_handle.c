@@ -56,7 +56,7 @@ int G_OpenSLPHandleCount = 0;
 
 
 /*=========================================================================*/
-SLPError SLPOpen(const char *pcLang, SLPBoolean isAsync, SLPHandle *phSLP)
+SLPError SLPAPI SLPOpen(const char *pcLang, SLPBoolean isAsync, SLPHandle *phSLP)
 /*                                                                         */
 /* Returns a SLPHandle handle in the phSLP parameter for the language      */
 /* locale passed in as the pcLang parameter.  The client indicates if      */
@@ -170,7 +170,7 @@ SLPError SLPOpen(const char *pcLang, SLPBoolean isAsync, SLPHandle *phSLP)
     /*---------------------------------------------------------*/
     if(G_OpenSLPHandleCount == 0)
     {
-#ifdef WIN32
+#ifdef __WIN32__
         WSADATA wsaData; 
         WORD    wVersionRequested = MAKEWORD(1,1); 
         if(0 != WSAStartup(wVersionRequested, &wsaData))
@@ -213,7 +213,7 @@ SLPError SLPOpen(const char *pcLang, SLPBoolean isAsync, SLPHandle *phSLP)
 
 
 /*=========================================================================*/
-void SLPClose(SLPHandle hSLP)                                             
+void SLPAPI SLPClose(SLPHandle hSLP)                                             
 /*                                                                         */
 /* Frees all resources associated with the handle.  If the handle was      */
 /* invalid, the function returns silently.  Any outstanding synchronous    */

@@ -53,10 +53,12 @@
 
 #include <errno.h>
 #include <stdio.h>
+#include <string.h>
+#ifndef __WIN32__
 #include <sys/ioctl.h>
 #include <net/if.h>
-#include <string.h>
 #include <arpa/inet.h>
+#endif
 
 #ifdef LINUX
 /*=========================================================================*/
@@ -209,6 +211,7 @@ int SLPIfaceGetInfo(const char* useifaces,
                     useifaceslen = 0;
                 }
 
+                ifaceinfo->iface_count = 0;
                 haddr = (uint32_t**)(myhostent->h_addr_list);
                 
                 /* count the interfaces */

@@ -60,7 +60,7 @@ int NetworkConnectToSlpd(struct sockaddr_in* peeraddr)
 /* Returns          Connected socket or -1 if no DA connection can be made */
 /*=========================================================================*/
 {
-#ifdef WIN32 /* on WIN32 setsockopt takes a const char * argument */
+#ifdef __WIN32__ /* on WIN32 setsockopt takes a const char * argument */
     char lowat;
 #else
     int lowat;
@@ -281,7 +281,7 @@ SLPError NetworkRqstRply(int sock,
     int                 rplycount       = 0;
     int                 maxwait         = 0;
     int                 totaltimeout    = 0;
-#ifdef WIN32 /* on WIN32 setsockopt takes a const char * argument */
+#ifdef __WIN32__ /* on WIN32 setsockopt takes a const char * argument */
     char                socktype        = 0;
 #else
     int                 socktype        = 0;

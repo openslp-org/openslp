@@ -53,7 +53,7 @@
 #include "slp_compare.h"
 
 
-#ifdef WIN32
+#ifdef __WIN32__
 #else
 #ifndef HAVE_STRNCASECMP
 int

@@ -50,7 +50,7 @@
 #include "libslp.h"
 
 /*=========================================================================*/
-SLPError SLPDelAttrs(SLPHandle   hSLP,
+SLPError SLPAPI SLPDelAttrs(SLPHandle   hSLP,
                      const char  *pcURL,
                      const char  *pcAttrs,
                      SLPRegReport callback,

@@ -433,7 +433,7 @@ SLPError AsyncProcessSrvRqst(PSLPHandleInfo handle)
 
 
 /*=========================================================================*/
-SLPError SLPFindSrvs(SLPHandle  hSLP,
+SLPError SLPAPI SLPFindSrvs(SLPHandle  hSLP,
                      const char *pcServiceType,
                      const char *pcScopeList,
                      const char *pcSearchFilter,

@@ -50,11 +50,11 @@
 #if(!defined SLP_NETWORK_H_INCLUDED)
 #define SLP_NETWORK_H_INCLUDED
 
-#ifdef WIN32
+#ifdef __WIN32__
 #include <windows.h>
 #include <io.h>
 #include <errno.h>
-#if(_WIN32_WINNT >= 0x0400) 
+#if(_WIN32_WINNT >= 0x0400 && _WIN32_WINNT < 0x0500) 
 #include <ws2tcpip.h> 
 #endif
 #define ETIMEDOUT 110

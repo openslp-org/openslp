@@ -51,7 +51,7 @@
 
 
 /*=========================================================================*/
-SLPError SLPFindScopes(SLPHandle hSLP,
+SLPError SLPAPI SLPFindScopes(SLPHandle hSLP,
                        char** ppcScopeList)
 /*                                                                         */
 /* Sets ppcScopeList parameter to a pointer to a comma separated list      */
@@ -98,7 +98,7 @@ SLPError SLPFindScopes(SLPHandle hSLP,
 
 
 /*=========================================================================*/
-unsigned short SLPGetRefreshInterval()
+unsigned short SLPAPI SLPGetRefreshInterval()
 /*                                                                         */
 /* Returns the maximum across all DAs of the min-refresh-interval          */
 /* attribute.  This value satisfies the advertised refresh interval        */

@@ -246,7 +246,7 @@ SLPError AsyncProcessSrvDeReg(PSLPHandleInfo handle)
 #endif
 
 /*=========================================================================*/
-SLPError SLPDereg(SLPHandle  hSLP,
+SLPError SLPAPI SLPDereg(SLPHandle  hSLP,
                   const char *srvUrl,
                   SLPRegReport callback,
                   void *cookie)

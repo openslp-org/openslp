@@ -46,7 +46,7 @@
 /*                                                                         */
 /***************************************************************************/
 
-#ifdef WIN32
+#ifdef __WIN32__
 #include <windows.h>
 #include <io.h>
 #include <errno.h>
@@ -91,7 +91,7 @@ int SLPBroadcastSend(const SLPIfaceInfo* ifaceinfo,
     int                 xferbytes;
     int                 flags = 0;  
 
-#ifdef WIN32
+#ifdef __WIN32__
     char    on = 1;
 #else
     int     on = 1;
@@ -272,7 +272,7 @@ int SLPXcastRecvMessage(const SLPXcastSockets* sockets,
     int     recvloop;
     int     peeraddrlen = sizeof(struct sockaddr_in);
     char    peek[16];
-    int     result;  
+    int     result;
 
     /* recv loop */
     recvloop = 1;
@@ -306,14 +306,22 @@ int SLPXcastRecvMessage(const SLPXcastSockets* sockets,
                                          MSG_PEEK,
                                          (struct sockaddr *)peeraddr,
                                          &peeraddrlen);
-                    if(bytesread == 16)
+                    if(bytesread == 16
+#ifdef __WIN32__
+                    /* Win32 returns WSAEMSGSIZE if the message is larger than
+                     * the requested size, even with MSG_PEEK. But if this is the
+                     * error code we can be sure that the message is at least 16
+                     * bytes */
+                       || (bytesread == (size_t)-1 && WSAGetLastError() == WSAEMSGSIZE)
+#endif
+                       )
                     {
                         if(AsUINT24(peek + 2) <=  SLP_MAX_DATAGRAM_SIZE)
                         {
                             *buf = SLPBufferRealloc(*buf, AsUINT24(peek + 2));
                             bytesread = recv(sockets->sock[i],
-                                             (*buf)->curpos, 
-                                             (*buf)->end - (*buf)->curpos, 
+                                             (*buf)->curpos,
+                                             (*buf)->end - (*buf)->curpos,
                                              0);
                             if(bytesread != AsUINT24(peek + 2))
                             {

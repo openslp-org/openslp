@@ -316,7 +316,7 @@ SLPError AsyncProcessSrvReg(PSLPHandleInfo handle)
 
 
 /*=========================================================================*/
-SLPError SLPReg(SLPHandle   hSLP,
+SLPError SLPAPI SLPReg(SLPHandle   hSLP,
                 const char  *srvUrl,
                 const unsigned short lifetime,
                 const char  *srvType,

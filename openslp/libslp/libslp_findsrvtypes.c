@@ -317,7 +317,7 @@ SLPError AsyncProcessSrvTypeRqst(PSLPHandleInfo handle)
 #endif
 
 /*=========================================================================*/
-SLPError SLPFindSrvTypes(SLPHandle    hSLP,
+SLPError SLPAPI SLPFindSrvTypes(SLPHandle    hSLP,
                          const char  *pcNamingAuthority,
                          const char  *pcScopeList,
                          SLPSrvTypeCallback callback,

@@ -58,6 +58,9 @@
 #ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
 #endif
+#ifdef __WIN32__
+#include <windows.h>
+#endif
 
 #define SLP_MAX_IFACES 10
 

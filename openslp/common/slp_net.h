@@ -49,9 +49,9 @@
 #ifndef SLP_NET_H_INCLUDED
 #define SLP_NET_H_INCLUDED
 
-#ifdef WIN32
-#if(_WIN32_WINNT >= 0x0400) 
-#include <ws2tcpip.h> 
+#ifdef __WIN32__
+#if(_WIN32_WINNT >= 0x0400 && _WIN32_WINNT < 0x0500) 
+#include <ws2tcpip.h>
 #endif
 #include <windows.h>
 #include <io.h>
@@ -79,20 +79,20 @@ int SLPNetGetThisHostname(char** hostfdn, int numeric_only);
  *    free returned string                                                    
  *
  * Parameters:
- *    hostfdn   (OUT) pointer to char pointer that is set to buffer 
+ *    hostfdn   (OUT) pointer to char pointer that is set to buffer
  *                    contining this machine's FDN.  Caller must free
  *                    returned string with call to xfree()
- *    numeric_only (IN) force return of numeric address.  
+ *    numeric_only (IN) force return of numeric address.
  *-------------------------------------------------------------------------*/
 
 
 /*-------------------------------------------------------------------------*/
 int SLPNetResolveHostToAddr(const char* host,
                             struct in_addr* addr);
-/* 
+/*
  * Description:
- *    Returns a string represting this host (the FDN) or null. Caller must    
- *    free returned string                                                    
+ *    Returns a string represting this host (the FDN) or null. Caller must
+ *    free returned string
  *
  * Parameters:
  *    host  (IN)  pointer to hostname to resolve

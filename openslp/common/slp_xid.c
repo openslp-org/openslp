@@ -50,7 +50,7 @@
 /*                                                                         */
 /***************************************************************************/
 
-#ifdef WIN32
+#ifdef __WIN32__
 #include <windows.h>
 #include <stdlib.h>
 #else
@@ -74,7 +74,7 @@ void SLPXidSeed()
 /*=========================================================================*/
 {
 /* Generate a random start*/
-#ifdef WIN32
+#ifdef __WIN32__
 srand(SLPPidGet() | G_Xid);   
 G_Xid = (unsigned short)rand();
 #else
