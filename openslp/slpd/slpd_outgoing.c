@@ -308,15 +308,11 @@ SLPDSocket* SLPDOutgoingConnect(struct in_addr* addr)
     SLPDSocket* sock = (SLPDSocket*)G_OutgoingSocketList.head;
     while(sock)
     {
-        if(sock->state >= STREAM_CONNECT_BLOCK  && 
-           sock->state <= STREAM_WRITE_WAIT)
+        if(sock->state == STREAM_CONNECT_IDLE ||
+           sock->state > SOCKET_PENDING_IO)
         {
             if(sock->peeraddr.sin_addr.s_addr == addr->s_addr)
             {
-                if(sock->state == STREAM_CONNECT_IDLE)
-                {
-                    sock->state = STREAM_WRITE_FIRST;
-                }
                 break;
             }
         }
@@ -515,27 +511,37 @@ int SLPDOutgoingInit()
 
 
 /*=========================================================================*/
-int SLPDOutgoingDeinit()
+int SLPDOutgoingDeinit(int graceful)
 /* Deinitialize incoming socket list to have appropriate sockets for all   */
 /* network interfaces                                                      */
 /*                                                                         */
-/* Returns  Zero on success non-zero on error                              */
+/* graceful (IN) Do not close sockets with pending writes                  */
+/*                                                                         */
+/* Returns  Zero on success non-zero when pending writes remain            */
 /*=========================================================================*/
 {
     SLPDSocket* del  = 0;
     SLPDSocket* sock = (SLPDSocket*)G_OutgoingSocketList.head;
+    
     while (sock)
     {
-        del = sock;
+        /* graceful only closes sockets without pending I/O */
+        if(graceful && 
+           sock->state < SOCKET_PENDING_IO)
+        {
+            del = sock;
+        }
+
         sock = (SLPDSocket*)sock->listitem.next;
+        
         if (del)
         {
-            SLPDSocketFree((SLPDSocket*)SLPListUnlink(&G_IncomingSocketList,(SLPListItem*)del));
+            SLPDSocketFree((SLPDSocket*)SLPListUnlink(&G_OutgoingSocketList,(SLPListItem*)del));
             del = 0;
         }
-    } 
+    }
 
-    return 0;
+    return G_OutgoingSocketList.count;
 }
 
 

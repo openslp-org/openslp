@@ -263,10 +263,9 @@ int SLPDKnownDAEntryToDAAdvert(int errorcode,
     return errorcode;
 }
 
-
 /*-------------------------------------------------------------------------*/
 void SLPDKnownDARegisterAll(SLPDAEntry* daentry)
-/* Forks a child process to register all services with specified DA        */
+/* registers all services with specified DA                                */
 /*-------------------------------------------------------------------------*/
 {
     SLPDDatabaseEntry*  dbentry;
@@ -275,6 +274,16 @@ void SLPDKnownDARegisterAll(SLPDAEntry* daentry)
     size_t              size;
     void*               handle      = 0;
     
+    /* do not attempt to establish a connection if the database is empty */
+    if(SLPDDatabaseEnum(&handle,&dbentry) == 0)
+    {
+        handle = 0;
+    }
+    else
+    {
+        return;
+    }
+
     /* Establish a new connection with the known DA */
     sock = SLPDOutgoingConnect(&daentry->daaddr);
     if(sock)
@@ -367,7 +376,7 @@ void SLPDKnownDARegisterAll(SLPDAEntry* daentry)
                     /* link newly constructed buffer to socket sendlist */
                     /*--------------------------------------------------*/
                     SLPListLinkTail(&(sock->sendlist),(SLPListItem*)buf);
-                    if (sock->state == STREAM_CONNECT_IDLE)
+                    if(sock->state == STREAM_CONNECT_IDLE)
                     {
                         sock->state = STREAM_WRITE_FIRST;
                     }
@@ -376,6 +385,109 @@ void SLPDKnownDARegisterAll(SLPDAEntry* daentry)
         }
     }
 }  
+
+
+/*-------------------------------------------------------------------------*/
+void SLPDKnownDADeregisterAll(SLPDAEntry* daentry)
+/* de-registers all services with specified DA                             */
+/*-------------------------------------------------------------------------*/
+{
+    SLPDDatabaseEntry*  dbentry;
+    SLPDSocket*         sock;
+    SLPBuffer           buf;
+    size_t              size;
+    void*               handle      = 0;
+    
+    /* do not attempt to establish a connection if the database is empty */
+    if(SLPDDatabaseEnum(&handle,&dbentry) == 0)
+    {
+        handle = 0;
+    }
+    else
+    {
+        return;
+    }
+
+    /* Establish a new connection with the known DA */
+    sock = SLPDOutgoingConnect(&daentry->daaddr);
+    if(sock)
+    {
+        while( SLPDDatabaseEnum(&handle,&dbentry) == 0)
+        {
+            /*-------------------------------------------------------------*/
+            /* ensure the buffer is big enough to handle the whole srvrply */
+            /*-------------------------------------------------------------*/
+            size = dbentry->langtaglen + 24; /* 14 bytes for header     */
+                                             /*  2 bytes for scopelen */
+                                             /*  6 for static portions of urlentry  */
+                                             /*  2 bytes for taglist len */
+                                             
+            size += dbentry->urllen;
+            size += dbentry->scopelistlen;
+            /* taglistlen is always 0 */
+            
+            buf = SLPBufferAlloc(size);
+            if(buf)
+            {                               
+                /*----------------------*/
+                /* Construct a SrvDereg */
+                /*----------------------*/
+                /*version*/
+                *(buf->start)       = 2;
+                /*function id*/
+                *(buf->start + 1)   = SLP_FUNCT_SRVDEREG;
+                /*length*/
+                ToUINT24(buf->start + 2, size);
+                /*flags*/
+                ToUINT16(buf->start + 5,
+                         size > SLP_MAX_DATAGRAM_SIZE ? SLP_FLAG_OVERFLOW : 0);
+                /*ext offset*/
+                ToUINT24(buf->start + 7,0);
+                /*xid*/
+                ToUINT16(buf->start + 10,rand());
+                /*lang tag len*/
+                ToUINT16(buf->start + 12,dbentry->langtaglen);
+                /*lang tag*/
+                memcpy(buf->start + 14,
+                       dbentry->langtag,
+                       dbentry->langtaglen);
+                buf->curpos = buf->start + 14 + dbentry->langtaglen;
+                
+                /* scope list */
+                ToUINT16(buf->curpos, dbentry->scopelistlen);
+                buf->curpos = buf->curpos + 2;
+                memcpy(buf->curpos,dbentry->scopelist,dbentry->scopelistlen);
+                buf->curpos = buf->curpos + dbentry->scopelistlen;
+                /* url-entry reserved */
+                *buf->curpos = 0;        
+                buf->curpos = buf->curpos + 1;
+                /* url-entry lifetime */
+                ToUINT16(buf->curpos,dbentry->lifetime);
+                buf->curpos = buf->curpos + 2;
+                /* url-entry urllen */
+                ToUINT16(buf->curpos,dbentry->urllen);
+                buf->curpos = buf->curpos + 2;
+                /* url-entry url */
+                memcpy(buf->curpos,dbentry->url,dbentry->urllen);
+                buf->curpos = buf->curpos + dbentry->urllen;
+                /* url-entry authcount */
+                *buf->curpos = 0;        
+                buf->curpos = buf->curpos + 1;
+                /* taglist (always 0) */
+                ToUINT16(buf->curpos,0);
+                
+                /*--------------------------------------------------*/
+                /* link newly constructed buffer to socket sendlist */
+                /*--------------------------------------------------*/
+                SLPListLinkTail(&(sock->sendlist),(SLPListItem*)buf);
+                if(sock->state == STREAM_CONNECT_IDLE)
+                {
+                    sock->state = STREAM_WRITE_FIRST;
+                }
+            }
+        }
+    }
+}
 
 
 /*=========================================================================*/
@@ -440,6 +552,10 @@ int SLPDKnownDAInit()
                                 sock->state = STREAM_WRITE_FIRST;
                             }
                             SLPListLinkTail(&(sock->sendlist),(SLPListItem*)buf);
+                            if(sock->state == STREAM_CONNECT_IDLE)
+                            {
+                                sock->state = STREAM_WRITE_FIRST;
+                            }
                         }
                     }
                 }
@@ -460,6 +576,33 @@ int SLPDKnownDAInit()
     
     return 0;
 }
+
+
+/*=========================================================================*/
+int SLPDKnownDADeinit()
+/* Deinitializes the KnownDA list.  Removes all entries and deregisters    */
+/* all services.                                                           */
+/*                                                                         */
+/* returns  zero on success, Non-zero on failure                           */
+/*=========================================================================*/
+{
+    SLPDAEntry* entry;
+    SLPDAEntry* del;
+    
+    entry = (SLPDAEntry*)G_KnownDAList.head;
+    while (entry)
+    {
+        SLPDKnownDADeregisterAll(entry);
+
+        del = entry;
+
+        entry = (SLPDAEntry*)entry->listitem.next;
+
+        SLPDKnownDARemove(del);
+    }
+
+    return 0;
+} 
 
 
 /*=========================================================================*/
@@ -640,6 +783,10 @@ void SLPDKnownDAEcho(struct sockaddr_in* peeraddr,
                 if (dup)
                 {
                     SLPListLinkTail(&(sock->sendlist),(SLPListItem*)dup);
+                    if(sock->state == STREAM_CONNECT_IDLE)
+                    {
+                        sock->state = STREAM_WRITE_FIRST;
+                    }
                 }
             }
         }

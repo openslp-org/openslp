@@ -567,6 +567,7 @@ int SLPDIncomingInit()
     return 0;
 }
 
+
 /*=========================================================================*/
 int SLPDIncomingDeinit()
 /* Deinitialize incoming socket list to have appropriate sockets for all   */

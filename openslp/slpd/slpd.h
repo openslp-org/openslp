@@ -61,12 +61,34 @@
 #define MAX_PATH    256
 #endif
 
+/*=========================================================================*/
+/* Misc constants                                                          */
+/*=========================================================================*/
 #define SLPD_SMALLEST_MESSAGE       18   /* 18 bytes is smallest SLPv2 msg */
 #define SLPD_MAX_SOCKETS            64   /* maximum number of sockets */
 #define SLPD_COMFORT_SOCKETS        32   /* a comfortable number of sockets */
 #define SLPD_MAX_SOCKET_LIFETIME    3600 /* max idle time of socket - 60 min*/
 #define SLPD_AGE_INTERVAL           15   /* age every 15 seconds */
 #define SLPD_ATTR_RECURSION_DEPTH   50
+
+
+/*=========================================================================*/
+/* Values representing a type or state of a socket                         */
+/*=========================================================================*/
+#define    SOCKET_PENDING_IO       100
+#define    SOCKET_LISTEN           0
+#define    SOCKET_CLOSE            1
+#define    DATAGRAM_UNICAST        2
+#define    DATAGRAM_MULTICAST      3
+#define    DATAGRAM_BROADCAST      4
+#define    STREAM_CONNECT_IDLE     5
+#define    STREAM_CONNECT_BLOCK    6    + SOCKET_PENDING_IO
+#define    STREAM_CONNECT_CLOSE    7    + SOCKET_PENDING_IO
+#define    STREAM_READ             8    + SOCKET_PENDING_IO
+#define    STREAM_READ_FIRST       9    + SOCKET_PENDING_IO
+#define    STREAM_WRITE            10   + SOCKET_PENDING_IO
+#define    STREAM_WRITE_FIRST      11   + SOCKET_PENDING_IO
+#define    STREAM_WRITE_WAIT       12   + SOCKET_PENDING_IO
 
 
 /* Global variables representing signals */
@@ -239,6 +261,15 @@ int SLPDDatabaseInit(const char* regfile);
 
 
 /*=========================================================================*/
+int SLPDKnownDADeinit();
+/* Deinitializes the KnownDA list.  Removes all entries and deregisters    */
+/* all services.                                                           */
+/*                                                                         */
+/* returns  zero on success, Non-zero on failure                           */
+/*=========================================================================*/
+
+
+/*=========================================================================*/
 SLPDDatabaseEntry *SLPDDatabaseEntryAlloc();
 /* Allocates and initializes a database entry.                             */
 /*                                                                         */
@@ -374,27 +405,6 @@ SLPDDatabaseEntry* SLPDRegFileReadEntry(FILE* fd, SLPDDatabaseEntry** entry);
 
 
 /*=========================================================================*/
-typedef enum _SLPDSocketState
-/* Value representing a type or state of a socket                          */
-/*=========================================================================*/
-{
-    SOCKET_LISTEN           = 0,
-    DATAGRAM_UNICAST        = 1,
-    DATAGRAM_MULTICAST      = 2,
-    DATAGRAM_BROADCAST      = 3,
-    STREAM_CONNECT_BLOCK    = 4,
-    STREAM_CONNECT_IDLE     = 5,
-    STREAM_CONNECT_CLOSE    = 6,
-    STREAM_READ             = 7,
-    STREAM_READ_FIRST       = 8,
-    STREAM_WRITE            = 9,
-    STREAM_WRITE_FIRST      = 10,
-    STREAM_WRITE_WAIT       = 11,
-    SOCKET_CLOSE            = 12
-}SLPDSocketState;
-
-
-/*=========================================================================*/
 typedef struct _SLPDSocket
 /* Structure representing a socket                                         */
 /*=========================================================================*/
@@ -402,7 +412,7 @@ typedef struct _SLPDSocket
     SLPListItem         listitem;    
     int                 fd;
     time_t              age;  /* in seconds */    
-    SLPDSocketState     state;
+    int                 state;
     struct sockaddr_in  peeraddr;
     
     /* Incoming socket stuff */
@@ -514,7 +524,6 @@ int SLPDIncomingInit();
 /*=========================================================================*/
 
 
-#if(defined DEBUG)
 /*=========================================================================*/
 int SLPDIncomingDeinit();
 /* Deinitialize incoming socket list to have appropriate sockets for all   */
@@ -522,7 +531,6 @@ int SLPDIncomingDeinit();
 /*                                                                         */
 /* Returns  Zero on success non-zero on error                              */
 /*=========================================================================*/
-#endif
 
 
 /*=========================================================================*/
@@ -586,15 +594,15 @@ int SLPDOutgoingInit();
 /*=========================================================================*/
 
 
-#if(defined DEBUG)
 /*=========================================================================*/
-int SLPDOutgoingDeinit();
+int SLPDOutgoingDeinit(int graceful);
 /* Deinitialize incoming socket list to have appropriate sockets for all   */
 /* network interfaces                                                      */
 /*                                                                         */
-/* Returns  Zero on success non-zero on error                              */
+/* graceful (IN) Do not close sockets with pending writes                  */
+/*                                                                         */
+/* Returns  Zero on success non-zero when pending writes remain            */
 /*=========================================================================*/
-#endif
 
 
 /*=========================================================================*/

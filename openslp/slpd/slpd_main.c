@@ -275,7 +275,49 @@ int Daemonize(const char* pidfile)
     return 0;
 }
 
+void Shutdown()
+{
+    struct timeval  timeout;
+    fd_set          readfds;
+    fd_set          writefds;
+    int             highfd;
+    int             fdcount         = 0;
 
+    SLPLog("****************************************\n");
+    SLPLog("*** SLPD daemon stopped              ***\n");
+    SLPLog("****************************************\n");
+
+    /* close all incoming sockets */
+    SLPDIncomingDeinit();
+    
+    /* unregister with all DAs */
+    SLPDKnownDADeinit();
+    
+    timeout.tv_sec  = 5;
+    timeout.tv_usec = 0; 
+
+    /* if possible wait until all outgoing socket are done and closed */
+    while(SLPDOutgoingDeinit(1))
+    {
+        LoadFdSets(&G_OutgoingSocketList, &highfd, &readfds,&writefds);
+        fdcount = select(highfd+1,&readfds,&writefds,0,&timeout);
+        if(fdcount == 0)
+        {
+            break;
+        }
+        
+        SLPDOutgoingHandler(&fdcount,&readfds,&writefds);
+    }
+
+    SLPDOutgoingDeinit(0);
+
+#ifdef DEBUG
+    SLPDPropertyDeinit();
+    printf("Number of calls to SLPBufferAlloc() = %i\n",G_Debug_SLPBufferAllocCount);
+    printf("Number of calls to SLPBufferFree() = %i\n",G_Debug_SLPBufferFreeCount);
+#endif
+
+}
 
 /*=========================================================================*/
 int main(int argc, char* argv[])
@@ -414,15 +456,9 @@ int main(int argc, char* argv[])
 
     } /* End of main loop */
 
-    SLPLog("Got SIGTERM.  Going down\n");
-
-#if(defined DEBUG)
-    SLPDIncomingDeinit();
-    SLPDOutgoingDeinit();
-    SLPDPropertyDeinit();
-    printf("Number of calls to SLPBufferAlloc() = %i\n",G_Debug_SLPBufferAllocCount);
-    printf("Number of calls to SLPBufferFree() = %i\n",G_Debug_SLPBufferFreeCount);
-#endif
+    /* Got SIGTERM */
+    Shutdown();
+    
     return 0;
 }
 
