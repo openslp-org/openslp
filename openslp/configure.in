@@ -117,8 +117,8 @@ AC_HAVE_HEADERS(string.h)
 dnl ***********************************************************************
 dnl Checks for data types.
 dnl ***********************************************************************
-AC_OPENSLP_CHECK_TYPE(socklen_t, size_t)
-AC_OPENSLP_STRUCT_SA_RESTORER
+OPENSLP_CHECK_TYPE(socklen_t, int)
+OPENSLP_STRUCT_SA_RESTORER
 
 dnl ***********************************************************************
 dnl Checks for libraries.

@@ -4,8 +4,8 @@ dnl macro only checks in standard headers. This one checks in sys/socket.h
 dnl also. This code has been copied from Unix Network Programming examples
 dnl by W. Richard Stevens
 dnl
-dnl AC_OPENSLP_CHECK_TYPE(TYPE, DEFAULT)
-AC_DEFUN(AC_OPENSLP_CHECK_TYPE,
+dnl OPENSLP_CHECK_TYPE(TYPE, DEFAULT)
+AC_DEFUN(OPENSLP_CHECK_TYPE,
 [AC_REQUIRE([AC_HEADER_STDC])dnl
 AC_MSG_CHECKING(for $1)
 AC_CACHE_VAL(ac_cv_type_$1,
@@ -26,8 +26,8 @@ fi
 
 dnl Check for the presence of SA_RESTORER field in struct sigaction.
 dnl
-dnl AC_OPENSLP_STRUCT_SA_RESTORER
-AC_DEFUN(AC_OPENSLP_STRUCT_SA_RESTORER,
+dnl OPENSLP_STRUCT_SA_RESTORER
+AC_DEFUN(OPENSLP_STRUCT_SA_RESTORER,
 [AC_CACHE_CHECK([for sa_restorer in struct sigaction], 
 ac_cv_struct_sa_restorer,
 [AC_TRY_COMPILE([#include <sys/types.h>
