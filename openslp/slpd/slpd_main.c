@@ -472,7 +472,6 @@ int main(int argc, char* argv[])
         }
         if(G_SIGALRM)
         {
-            /* TODO: add call to do passive DAAdvert */
             SLPDIncomingAge(SLPD_AGE_INTERVAL);
             SLPDOutgoingAge(SLPD_AGE_INTERVAL);
             SLPDDatabaseAge(SLPD_AGE_INTERVAL);
