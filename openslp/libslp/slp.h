@@ -784,16 +784,15 @@ SLPEXP SLPError SLPAPI SLPParseSrvURL(const char *pcSrvURL,
 /*                                                                         */
 /* Parses the URL passed in as the argument into a service URL structure   */
 /* and returns it in the ppSrvURL pointer.  If a parse error occurs,       */
-/* returns SLP_PARSE_ERROR. The input buffer pcSrvURL is destructively     */
-/* modified during the parse and used to fill in the fields of the         */
-/* return structure.  The structure returned in ppSrvURL should be freed   */
-/* with SLPFreeURL().  If the URL has no service part, the s_pcSrvPart     */
-/* string is the empty string, "", i.e.  not NULL. If pcSrvURL is not a    */
-/* service:  URL, then the s_pcSrvType field in the returned data          */
-/* structure is the URL's scheme, which might not be the same as the       */
-/* service type under which the URL was registered.  If the transport is   */
-/* IP, the s_pcTransport field is the empty string.  If the transport is   */
-/* not IP or there is no port number, the s_iPort field is zero.           */
+/* returns SLP_PARSE_ERROR.  The structure returned in ppSrvURL should be  */
+/* freed with SLPFreeURL().  If the URL has no service part, the           */
+/* s_pcSrvPart  string is the empty string, "", i.e.  not NULL. If         */
+/* pcSrvURL is not a service:  URL, then the s_pcSrvType field in the      */
+/* returned data structure is the URL's scheme, which might not be the     */
+/* same as the service type under which the URL was registered.  If the    */
+/* transport is IP, the s_pcTransport field is the empty string.  If the   */
+/* transport is not IP or there is no port number, the s_iPort field is    */
+/* zero.                                                                   */
 /*                                                                         */
 /* pcSrvURL A pointer to a character buffer containing the null terminated */
 /*          URL string to parse.                                           */
