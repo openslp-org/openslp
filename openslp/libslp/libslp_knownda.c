@@ -54,6 +54,8 @@
 #include "slp.h"
 #include "libslp.h"
 
+#include <time.h>
+
 /*=========================================================================*/
 SLPDatabase G_KnownDACache ={0,0,0};
 /* The cache DAAdvert messages from known DAs.                             */
