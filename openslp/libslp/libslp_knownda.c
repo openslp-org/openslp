@@ -515,6 +515,7 @@ int KnownDADiscoverFromProperties(int scopelistlen,
             *slider2 = 0;
 
 			if (SLPNetResolveHostToAddr(slider1, &peeraddr) == 0) {
+				SLPNetSetParams(&peeraddr, peeraddr.ss_family, SLP_RESERVED_PORT);
                 sockfd = SLPNetworkConnectStream(&peeraddr,&timeout);
                 if(sockfd >= 0)
                 {
