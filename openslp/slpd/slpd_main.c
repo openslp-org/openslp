@@ -392,6 +392,11 @@ int Daemonize(const char* pidfile)
         }
     }
 
+    /*--------------------*/
+    /* Set cwd to / (root)*/
+    /*--------------------*/
+    chdir("/");
+    
     return 0;
 }
 

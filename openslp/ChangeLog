@@ -5,6 +5,16 @@ Please make entries to this log (in addition to the CVS log) that describe
 major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
+
+01/25/2002 matt@caldera.com
+Added relevant fixes from the stable branch:
+   - Applied patch from Garth Bushell that fixes a problem where not enough
+     memory was being allocated to hold an escaped string in SLPEscape().
+   - Fixed some problems with multicast route handling code in the slpd
+     startup script
+   - Moved Win2000 specific defines inside #ifdef WIN32
+   - Changed slpd "daemonize" code to chdir() to "/"
+
 01/24/2002 matt@caldera.com
 Changed the code in slpd_property.c to use the functions in slp_net.c and
 slp_iface.c to get interface and hostname information

@@ -54,6 +54,9 @@
 #include <windows.h>
 #include <io.h>
 #include <errno.h>
+#if(_WIN32_WINNT >= 0x0400) 
+#include <ws2tcpip.h> 
+#endif
 #define ETIMEDOUT 110
 #define ENOTCONN  107
 #else
@@ -67,9 +70,6 @@
 #include <netdb.h> 
 #include <fcntl.h> 
 #include <errno.h>
-#if(_WIN32_WINNT >= 0x0400) 
-#include <ws2tcpip.h> 
-#endif
 #endif
 
 #include "slp_buffer.h"
