@@ -6,14 +6,6 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 
-*** TAG OpenSLP-1.1.2 ***
-
-03/12/02 matt@caldera.com
-Rolled in fixes from 1.0.x branch
-
-03/12/02 matt@caldera.com
-Removed all SLPv2 Security code
-
 *** TAG OpenSLP-1.1.1 ***
 
 02/22/02 matt@caldera.com

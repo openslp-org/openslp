@@ -121,8 +121,8 @@ int SLPParseSrvUrl(int srvurllen,
     /* parse out the port */
     if(*slider2 == ':')
     {
-        slider2 ++; /* + 1 skips the ":" */
-        while(*slider2 && (*slider2 != '/' && *slider2 != ';')) slider2++;
+        slider3 = slider2 = slider3 + 1; /* + 1 skips the ":" */
+        while(*slider3 && (*slider3 != '/' && *slider3 != ';')) slider3++;
         memcpy(buf,slider1,slider2-slider1);
         (*parsedurl)->port = atoi(buf);
         buf += (slider2-slider1) + 1;

@@ -196,6 +196,7 @@ int SetDefaultValues()
     result |= SLPPropertySet("net.slp.locale","en");
     result |= SLPPropertySet("net.slp.randomWaitBound","5000");
     result |= SLPPropertySet("net.slp.interfaces","");
+    result |= SLPPropertySet("net.slp.securityEnabled","false");
     result |= SLPPropertySet("net.slp.multicastTTL","8");
     result |= SLPPropertySet("net.slp.MTU","1400");
     result |= SLPPropertySet("net.slp.traceMsg","false");
@@ -203,6 +204,7 @@ int SetDefaultValues()
     result |= SLPPropertySet("net.slp.traceDrop","false");
     result |= SLPPropertySet("net.slp.traceDATraffic","false");
     result |= SLPPropertySet("net.slp.isDA","false");
+    result |= SLPPropertySet("net.slp.securityEnabled","false");
     result |= SLPPropertySet("net.slp.checkSourceAddr","true");
 #ifdef WIN32
     result |= SLPPropertySet("net.slp.OpenSLPVersion", SLP_VERSION);

@@ -104,12 +104,20 @@ SLPBoolean KnownDAListFind(int scopelistlen,
                                    scopelistlen,
                                    scopelist))
             {
-                
-                memcpy(daaddr, 
-                       &(entry->msg->peer.sin_addr),
-                       sizeof(struct in_addr));
-
-                result = SLP_TRUE;
+#ifdef ENABLE_SLPv2_SECURITY
+                if(SLPCompareString(entry->msg->body.daadvert.spilistlen,
+                                    entry->msg->body.daadvert.spilist,
+                                    spistrlen,
+                                    spistr) == 0)
+#endif
+                {
+                    
+                    memcpy(daaddr, 
+                           &(entry->msg->peer.sin_addr),
+                           sizeof(struct in_addr));
+    
+                    result = SLP_TRUE;
+                }
             }
         }
         SLPDatabaseClose(dh);
@@ -528,6 +536,15 @@ int KnownDAConnect(PSLPHandleInfo handle,
     int             sock = -1;
     int                 spistrlen   = 0;
     char*               spistr      = 0;
+#ifdef ENABLE_SLPv2_SECURITY
+    if(SLPPropertyAsBoolean(SLPGetProperty("net.slp.securityEnabled")))
+    {
+        SLPSpiGetDefaultSPI(handle->hspi,
+                            SLPSPI_KEY_TYPE_PUBLIC,
+                            &spistrlen,
+                            &spistr);
+    }
+#endif
 
     /* Set up connect timeout */
     timeout.tv_sec = SLPPropertyAsInteger(SLPGetProperty("net.slp.DADiscoveryMaximumWait"));
@@ -557,6 +574,11 @@ int KnownDAConnect(PSLPHandleInfo handle,
 
         KnownDABadDA(&(peeraddr->sin_addr));
     }
+
+
+#ifdef ENABLE_SLPv2_SECURITY
+    if(spistr) xfree(spistr);
+#endif
 
     return sock;
 }

@@ -223,6 +223,14 @@ int SLPDDatabaseReg(SLPMessage msg, SLPBuffer buf)
                         return SLP_ERROR_AUTHENTICATION_FAILED;
                     }
 
+#ifdef ENABLE_SLPv2_SECURITY
+                    if ( entryreg->urlentry.authcount &&
+                         entryreg->urlentry.authcount != reg->urlentry.authcount )
+                    {
+                        SLPDatabaseClose(dh);
+                        return SLP_ERROR_AUTHENTICATION_FAILED;
+                    }
+#endif  
                     /* Remove the identical entry */
                     SLPDatabaseRemove(dh,entry);
                     break;
@@ -325,6 +333,14 @@ int SLPDDatabaseDeReg(SLPMessage msg)
                         return SLP_ERROR_AUTHENTICATION_FAILED;
                     }
 
+#ifdef ENABLE_SLPv2_SECURITY
+                    if ( entryreg->urlentry.authcount &&
+                         entryreg->urlentry.authcount != dereg->urlentry.authcount )
+                    {
+                        SLPDatabaseClose(dh);
+                        return SLP_ERROR_AUTHENTICATION_FAILED;
+                    }
+#endif                    
                     /* remove the registration from the database */
                     SLPDatabaseRemove(dh,entry);                   
                     SLPDLogRegistration("Deregistration",entry);
@@ -362,6 +378,10 @@ int SLPDDatabaseSrvRqstStart(SLPMessage msg,
     SLPDatabaseEntry*           entry;
     SLPSrvReg*                  entryreg;
     SLPSrvRqst*                 srvrqst;
+#ifdef ENABLE_SLPv2_SECURITY
+    int                         i;
+#endif
+
 
     /* start with the result set to NULL just to be safe */
     *result = NULL;
@@ -426,6 +446,26 @@ int SLPDDatabaseSrvRqstStart(SLPMessage msg,
                                            srvrqst->predicate) )
 #endif
                     {
+
+#ifdef ENABLE_SLPv2_SECURITY
+                        if ( srvrqst->spistrlen )
+                        {
+                            for ( i=0; i< entryreg->urlentry.authcount;i++ )
+                            {
+                                if ( SLPCompareString(srvrqst->spistrlen,
+                                                      srvrqst->spistr,
+                                                      entryreg->urlentry.autharray[i].spistrlen,
+                                                      entryreg->urlentry.autharray[i].spistr) == 0 )
+                                {
+                                    break;
+                                }
+                            }
+                            if ( i == entryreg->urlentry.authcount )
+                            {
+                                continue;
+                            }
+                        }
+#endif
                         if ( (*result)->urlcount + 1 > G_SlpdDatabase.urlcount )
                         {
                             /* Oops we did not allocate a big enough result */
@@ -602,6 +642,9 @@ int SLPDDatabaseAttrRqstStart(SLPMessage msg,
     SLPDatabaseEntry*           entry;
     SLPSrvReg*                  entryreg;
     SLPAttrRqst*                attrrqst;
+#ifdef ENABLE_SLPv2_SECURITY
+    int                         i;
+#endif
 
     *result = xmalloc(sizeof(SLPDDatabaseAttrRqstResult));
     if ( *result == NULL )
@@ -646,6 +689,25 @@ int SLPDDatabaseAttrRqstStart(SLPMessage msg,
                 {
                     if ( attrrqst->taglistlen == 0 )
                     {
+#ifdef ENABLE_SLPv2_SECURITY
+                        if ( attrrqst->spistrlen )
+                        {
+                            for ( i=0; i< entryreg->authcount;i++ )
+                            {
+                                if ( SLPCompareString(attrrqst->spistrlen,
+                                                      attrrqst->spistr,
+                                                      entryreg->autharray[i].spistrlen,
+                                                      entryreg->autharray[i].spistr) == 0 )
+                                {
+                                    break;
+                                }
+                            }
+                            if ( i == entryreg->authcount )
+                            {
+                                continue;
+                            }
+                        }
+#endif
                         /* Send back what was registered */
                         (*result)->attrlistlen = entryreg->attrlistlen;
                         (*result)->attrlist = (char*)entryreg->attrlist;

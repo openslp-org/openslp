@@ -112,6 +112,37 @@ SLPError ProcessSrvReg(PSLPHandleInfo handle)
     SLPError            result      = 0;
     int                 extoffset   = 0;
 
+#ifdef ENABLE_SLPv2_SECURITY
+    int                 urlauthlen  = 0;
+    unsigned char*      urlauth     = 0;
+    int                 attrauthlen = 0;
+    unsigned char*      attrauth    = 0;
+    
+    if(SLPPropertyAsBoolean(SLPGetProperty("net.slp.securityEnabled")))
+    {
+        result = SLPAuthSignUrl(handle->hspi,
+                                0,
+                                0,
+                                handle->params.reg.urllen,
+                                handle->params.reg.url,
+                                &urlauthlen,
+                                &urlauth);
+        if(result == 0)
+        {
+            result = SLPAuthSignString(handle->hspi,
+                                       0,
+                                       0,
+                                       handle->params.reg.attrlistlen,
+                                       handle->params.reg.attrlist,
+                                       &attrauthlen,
+                                       &attrauth);
+        }
+        bufsize += urlauthlen;
+        bufsize += attrauthlen;
+    }
+#endif
+
+
     /*-------------------------------------------------------------------*/
     /* determine the size of the fixed portion of the SRVREG             */
     /*-------------------------------------------------------------------*/
@@ -155,11 +186,24 @@ SLPError ProcessSrvReg(PSLPHandleInfo handle)
            handle->params.reg.url,
            handle->params.reg.urllen);
     curpos = curpos + handle->params.reg.urllen;
-
-    /* authcount */
-    *curpos = 0;
-    curpos = curpos + 1;
-
+    /* url-entry authblock */
+#ifdef ENABLE_SLPv2_SECURITY
+    if(urlauth)
+    {
+        /* authcount */
+        *curpos = 1;
+        curpos = curpos + 1;
+        /* authblock */
+        memcpy(curpos,urlauth,urlauthlen);
+        curpos = curpos + urlauthlen;
+    }
+    else
+#endif
+    {
+        /* authcount */
+        *curpos = 0;
+        curpos = curpos + 1;
+    } 
     /* service type */
     ToUINT16(curpos,handle->params.reg.srvtypelen);
     curpos = curpos + 2;
@@ -182,11 +226,23 @@ SLPError ProcessSrvReg(PSLPHandleInfo handle)
            handle->params.reg.attrlistlen);
     curpos = curpos + handle->params.reg.attrlistlen;
     /* attribute auth block */
-
-    /* authcount */
-    *curpos = 0;
-    curpos = curpos + 1;
-
+#ifdef ENABLE_SLPv2_SECURITY
+    if(attrauth)
+    {
+        /* authcount */
+        *curpos = 1;
+        curpos = curpos + 1;
+        /* authblock */
+        memcpy(curpos,attrauth,attrauthlen);
+        curpos = curpos + attrauthlen;
+    }
+    else
+#endif
+    {
+        /* authcount */
+        *curpos = 0;
+        curpos = curpos + 1;
+    }
 
     /* Put in the SLP_EXTENSION_ID_REG_PID */
     if(SLPPropertyAsBoolean(SLPGetProperty("net.slp.watchRegistrationPID")))
@@ -232,6 +288,11 @@ SLPError ProcessSrvReg(PSLPHandleInfo handle)
     FINISHED:
     if(buf) xfree(buf);
     
+#ifdef ENABLE_SLPv2_SECURITY
+    if(urlauth) xfree(urlauth);
+    if(attrauth) xfree(attrauth);
+#endif 
+
     return result;
 }
 

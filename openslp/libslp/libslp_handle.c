@@ -187,6 +187,10 @@ SLPError SLPOpen(const char *pcLang, SLPBoolean isAsync, SLPHandle *phSLP)
         SLPXidSeed();
     }
 
+#ifdef ENABLE_SLPv2_SECURITY
+    handle->hspi = SLPSpiOpen(LIBSLP_SPIFILE,0);
+#endif
+
     handle->sig = SLP_HANDLE_SIG;
     handle->inUse = SLP_FALSE;
     handle->isAsync = isAsync;
@@ -260,6 +264,10 @@ void SLPClose(SLPHandle hSLP)
     {
         xfree(handle->sascope);
     }
+
+#ifdef ENABLE_SLPv2_SECURITY
+    if(handle->hspi) SLPSpiClose(handle->hspi);
+#endif
 
     handle->sig = 0;  /* If they use the handle again, it won't be valid */
 

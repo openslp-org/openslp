@@ -20,7 +20,31 @@ OpenSLP 1.1.1 is a develper release of the cutting edge OpenSLP code.  If you
 are looking for a stable release, you should download the latest revision of
 the 1.0.x series. 
 
-Please see the ChangeLog File for a list of changes.
+OpenSLP 1.1.1 is the first release of the 1.1.x series.  Several significant
+changes have been made that are not part of the 1.0.x releases.  A list of
+these changes as well as a list of known issues follows:
+
+Changes:
+   
+   - Significant changes have been made in multicasting send code.  These
+     changes are highlighted by the addition of several new files and
+     functions like those found in common/slp_iface.c common/slp_xcast.c,
+     and libslp_network.c.
+     
+   - Several changes have been made to consolidate common code.  Please
+     notice several new files in common directory
+
+   - Significant changes were made to provide a PID watching feature.  In 
+     OpenSLP 1.1.x slpd will watch the "PIDs" of processes that register
+     via the SLPReg() API.  If the registering process dies unexpectedly,
+     slpd will automatically deregister the registered services.
+
+Known Issues:
+
+   - Much of the new code is not ported to platforms other than Linux.  Please
+     feel free to send patches for your OS directly to me or to the
+     openslp-devel@sourceforge.net mailing list.
+
       
 2 - Roadmap
 ------------
