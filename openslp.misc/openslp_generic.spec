@@ -1,4 +1,4 @@
-%define	ver 0.9.0
+%define	ver 0.9.1pre1
 %define	rel 1
 %define	name openslp
 %define libver 0.0.3
@@ -8,13 +8,13 @@ Version     	: %ver
 Release     	: %rel
 Group       	: Server/Network
 Provides        : openslp libslp.so slpd
+Obsoletes	: openslp-server
 Summary     	: OpenSLP implementation of Service Location Protocol V2 
-Copyright   	: Caldera Systems (LGPL)
+Copyright   	: Caldera Systems (BSD)
 Packager    	: Matthew Peterson <mpeterson@calderasystems.com>
 URL         	: http://www.openslp.org/
 BuildRoot   	: /tmp/%{name}-%{ver}
 Source0		: ftp://openslp.org/pub/openslp/%{name}-%{ver}/%{name}-%{ver}.tar.gz
-
 
 %Description
 Service Location Protocol is an IETF standards track protocol that
@@ -27,38 +27,35 @@ by RFC 2608 and RFC 2614.  This package include the daemon, libraries, header
 files and documentation
 
 %Prep
-%setup
+%setup -n %{name}-%{ver}
 
 %Build
-#./configure --with-RPM-prefix=$RPM_BUILD_ROOT
-./autogen.sh
-./configure --prefix=$RPM_BUILD_ROOT
-./configure
+./configure --prefix=$RPM_BUILD_ROOT/usr --sysconfdir=$RPM_BUILD_ROOT/etc
 make
 
 %Install
 %{mkDESTDIR}
 make install 
+mkdir -p $DESTDIR/etc/sysconfig/daemons 
+cat <<EOD  > $DESTDIR/etc/sysconfig/daemons/slpd
+IDENT=slp
+DESCRIPTIVE="SLP Service Agent"
+ONBOOT="yes"
+EOD
 mkdir -p $DESTDIR/etc/rc.d/init.d
 install -m 755 etc/slpd.all_init $DESTDIR/etc/rc.d/init.d/slpd
 
 %Clean
-rm -rf $RPM_BUILD_ROOT
+rm -rf $RPM_BUILD_ROOT/usr
 
 %Post
 rm -f /usr/lib/libslp.so
 ln -s /usr/lib/libslp.so.%{libver} /usr/lib/libslp.so
 /sbin/ldconfig
 
-if [ -d '/usr/lib/OpenLinux' ]; then 
-cat <<EOD  > /etc/sysconfig/daemons/slpd
-IDENT=slp
-DESCRIPTIVE="SLP Service Agent"
-ONBOOT="yes"
-EOD
-fi
-
-if [ -x /sbin/chkconfig ]; then
+if [ -x /bin/lisa ]; then 
+  lisa --SysV-init install slpd S13 2:3:4:5 K87 0:1:6  
+elif [ -x /sbin/chkconfig ]; then
   chkconfig --add slpd
 else 
   for i in 2 3 4 5; do
@@ -69,11 +66,12 @@ else
   done
 fi
 
-%PreUn
-rm -f /etc/sysconfig/daemons/slpd
+%PreUn 
 if [ "$1" = "0" ]; then
   if [ -x /sbin/chkconfig ]; then
     /sbin/chkconfig --del slpd
+  elif [ -x /bin/lisa ]; then
+    lisa --SysV-init remove slpd $1 
   else
     for i in 2 3 4 5; do
       rm -f /etc/rc.d/rc$i.d/S13slpd
@@ -93,16 +91,20 @@ fi
 
 %Files
 %defattr(-,root,root)
-%doc AUTHORS COPYING INSTALL NEWS README doc/*
+%doc /usr/doc/openslp-%{ver}
 %config /etc/slp.conf
-%config /etc/slp.reg
-/etc/rc.d/init.d/slpd
 /usr/lib/libslp*
 /usr/include/slp.h
+%config /etc/sysconfig/daemons/slpd
+%config /etc/slp.reg
+/etc/rc.d/init.d/slpd
 /usr/sbin/slpd
 
 
 %ChangeLog
+* Wed Jun 13 2001 matt@caldera.com
+        Removed server stuff.  We want on binary rpm again
+	
 * Wed Jul 17 2000 mpeterson@calderasystems.com
         Added lisa stuff
 	
