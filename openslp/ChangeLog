@@ -6,6 +6,14 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 
+10/08/01 matt@caldera.com
+Fixed reconnect code to be able to interoperate with inefficient DAs that
+close the stream after each srvreg/srvack exchange.  The Mac OS/X DA is 
+reported to have this problem
+
+10/08/01 matt@caldera.com
+Fixed "sendbuf 2 bytes too long" as suggested by Timothy Zurcher
+
 09/25/01 matt@caldera.com
 Fixed inet_aton() on Win32
 

@@ -107,13 +107,35 @@ void OutgoingStreamReconnect(SLPList* socklist, SLPDSocket* sock)
     int                 fdflags;
 #endif
 
+    /*-----------------------------------------------------------------*/
+    /* If socket is already being reconnected but is reconnect blocked */
+    /* just return.  Blocking connect sockets will eventually time out */
+    /*-----------------------------------------------------------------*/
+    if(sock->state == STREAM_CONNECT_BLOCK)
+    {
+        return;
+    }
+
+    #ifdef DEBUG
+    /* Log that reconnect warning */
+    SLPDLog("WARNING: Reconnect to agent at %s.  Agent is not making efficient \n"
+            "         use of TCP.  It would be wise to use a more efficient agent such\n"
+            "         as those available from http://www.openslp.org\n",
+            inet_ntoa(sock->peeraddr.sin_addr));
+    #endif
+
     /*----------------------------------------------------------------*/
     /* Make sure we have not reconnected too many times               */
+    /* We only allow SLPD_CONFIG_MAX_RECONN reconnection retries      */
+    /* before we stop                                                 */
     /*----------------------------------------------------------------*/
     sock->reconns += 1;
     if ( sock->reconns > SLPD_CONFIG_MAX_RECONN )
     {
         sock->state = SOCKET_CLOSE;
+        SLPDLog("WARNING: Reconnect tries to agent at %s exceeded maximum. It\n"
+                "         is possible that the agent is malicious.  Check it out!\n",
+                inet_ntoa(sock->peeraddr.sin_addr));
         return;
     }
 
@@ -250,6 +272,10 @@ void OutgoingStreamRead(SLPList* socklist, SLPDSocket* sock)
                     /* send buf from to do list and free it       */
                     SLPBufferFree((SLPBuffer)SLPListUnlink(&(sock->sendlist),(SLPListItem*)(sock->sendbuf)));
                     sock->state = STREAM_WRITE_FIRST;
+                    /* clear the reconnection count since we actually
+                     * transmitted a successful message exchange
+                     */
+                    sock->reconns = 0;
                     break;
                 }
             }
@@ -267,7 +293,6 @@ void OutgoingStreamRead(SLPList* socklist, SLPDSocket* sock)
                 OutgoingStreamReconnect(socklist,sock);
             }
         }
-
     }
 }
 
