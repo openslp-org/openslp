@@ -119,6 +119,7 @@ SLPError ProcessSrvTypeRqst(PSLPHandleInfo handle)
     {
         ToUINT16(curpos,0xffff); /* 0xffff indicates all service types */
         curpos += 2;
+	bufsize--;		/* '*' is not put on the wire */
     } else
     {
 	ToUINT16(curpos,handle->params.findsrvtypes.namingauthlen);
