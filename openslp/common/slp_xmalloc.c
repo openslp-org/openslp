@@ -347,8 +347,11 @@ int xmalloc_report()
         x = (xallocation_t*)(x->listitem.next);;
     }
 
-    fprintf(G_xmalloc_fh, 
-            "*** End of xmalloc_report ***\n\n");
+    if(G_xmalloc_fh)
+    {
+	fprintf(G_xmalloc_fh, 
+		"*** End of xmalloc_report ***\n\n");
+    }
 
     return 0;
 

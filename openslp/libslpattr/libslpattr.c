@@ -1,4 +1,3 @@
-
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
@@ -69,6 +68,7 @@
 /* Tests a character to see if it is in set of known hex characters. */
 #define IS_VALID_HEX(x) ( ((x >= '0') && (x <= '9')) /* Number */ \
 				|| ((x >= 'A') && (x <= 'F')) /* ABCDEF */ \
+				|| ((x >= 'a') && (x <= 'f')) /* abcdef */ \
 				)
 
 
@@ -108,11 +108,15 @@ char unescape(char d1, char d2)
 
     if((d1 >= 'A') && (d1 <= 'F'))
         d1 = d1 - 'A' + 0x0A;
+    else if((d1 >= 'a') && (d1 <= 'f'))
+        d1 = d1 - 'a' + 0x0A;
     else
         d1 = d1 - '0';
 
     if((d2 >= 'A') && (d2 <= 'F'))
         d2 = d2 - 'A' + 0x0A;
+    else if((d2 >= 'a') && (d2 <= 'f'))
+        d2 = d2 - 'a' + 0x0A;
     else
         d2 = d2 - '0';
 
@@ -1597,7 +1601,20 @@ SLPError SLPAttrGetType(SLPAttributes attr_h, const char *tag, SLPType *type)
     return SLPAttrGetType_len(attr_h, tag, strlen(tag), type);
 }
 
+#if 0 /* Jim Meyer's byte allignment code */
+/******************************************************************************
+ *
+ *                          Fix memory alignment
+ *
+*****************************************************************************/
+char *fix_memory_alignment(char *p)
+{
+    unsigned long address = (unsigned long)p;
+    address = (address + _MAX_ALIGNMENT - 1) & ~(_MAX_ALIGNMENT - 1);
+    return (char *)address;
+}
 
+#endif
 
 /******************************************************************************
  *
@@ -1646,9 +1663,11 @@ int internal_store( struct xx_SLPAttributes *slp_attr, char const *tag, int tag_
 
     /***** Allocate space for the values. *****/
     block_size = (val_count * sizeof(value_t)) /* Size of each value */
-                 + unescaped_len /* The size of the unescaped data. */;
+                 + unescaped_len;/* The size of the unescaped data. */
+#if 0 /* Jim Meyer's byte allignment code */
+                 + val_count * (_MAX_ALIGNMENT-1); /* Padding */
+#endif     
     mem_block = (char *)malloc(block_size);
-
     if(mem_block == NULL)
     {
         free(val);
@@ -1744,6 +1763,9 @@ int internal_store( struct xx_SLPAttributes *slp_attr, char const *tag, int tag_
             assert(0); /* Unknown type. */
         }
 
+#if 0 /* Jim Meyer's byte allignment code */
+        mem_block = fix_memory_alignment(mem_block);
+#endif
         cur_start = cur_end + 1; /* +1 to move past comma. */
     }
 

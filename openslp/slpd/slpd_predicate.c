@@ -78,6 +78,7 @@
  *********/
  
 #include <assert.h>
+#include <ctype.h>
 
 #include "slpd_predicate.h"
 
@@ -312,9 +313,15 @@ FilterResult unescape_cmp(const char *escaped, int escaped_len, const char *verb
             unesc = escaped[esc_i];
         }
 
-        if(unesc != verbatim[ver_i])
+        if(unesc != verbatim[ver_i])		/* quick check for equality*/
         {
-            return FR_EVAL_FALSE;
+	    if(! isascii(unesc)			/* case insensitive check */
+	       || ! isalpha(unesc)
+	       || ! isalpha(verbatim[ver_i])
+	       || tolower(unesc) != tolower(verbatim[ver_i]))
+	    {
+		return FR_EVAL_FALSE;
+	    }
         }
 
         unescaped_count++;
