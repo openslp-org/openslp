@@ -111,7 +111,6 @@ SLPError SLPParseSrvURL(const char *pcSrvURL,
         return SLP_PARAMETER_BAD;
     }
 
-
     *ppSrvURL = (SLPSrvURL*)malloc(strlen(pcSrvURL) + sizeof(SLPSrvURL) + 4);
     /* +4 ensures space for 4 null terminations */
     if(*ppSrvURL == 0)
@@ -123,8 +122,16 @@ SLPError SLPParseSrvURL(const char *pcSrvURL,
     slider1 = ((char*)*ppSrvURL) + sizeof(SLPSrvURL);
     slider2 = slider3 = (char*)pcSrvURL;
 
+    /*----------------------------*/
     /* parse out the service type */
-    slider3 = (char*)strstr(slider2,"://");
+    /*----------------------------*/
+    if(strncasecmp(slider3,"service:",8) == 0)
+    {
+        /* account for 'service:' */
+        slider3 += 8;
+    }
+    slider3 = strchr(slider3,':'); 
+    /* end of service type is next colon after service: */
     if(slider3 == 0)
     {
         free(*ppSrvURL);
@@ -138,7 +145,7 @@ SLPError SLPParseSrvURL(const char *pcSrvURL,
         free(*ppSrvURL);
         *ppSrvURL = 0;
         return SLP_PARSE_ERROR;
-    }
+    }                             
     */
    
     memcpy(slider1,slider2,slider3-slider2);
@@ -147,24 +154,28 @@ SLPError SLPParseSrvURL(const char *pcSrvURL,
     *slider1 = 0;  /* null terminate */
     slider1 = slider1 + 1;
 
+    /*--------------------*/
     /* parse out the host */
+    /*--------------------*/
     slider3 = slider2 = slider3 + 3; /* + 3 skips the "://" */
     while(*slider3 && *slider3 != '/' && *slider3 != ':') slider3++;
     if(slider3-slider2 < 1)
     {
         /* no host part (this is okay according to RFC2609) */
-	(*ppSrvURL)->s_pcHost = 0;
+	    (*ppSrvURL)->s_pcHost = 0;
     }
     else
     {
-	memcpy(slider1,slider2,slider3-slider2);
-	(*ppSrvURL)->s_pcHost = slider1;
-	slider1 = slider1 + (slider3 - slider2);
-	*slider1 = 0;  /* null terminate */
-	slider1 = slider1 + 1;
+    	memcpy(slider1,slider2,slider3-slider2);
+    	(*ppSrvURL)->s_pcHost = slider1;
+    	slider1 = slider1 + (slider3 - slider2);
+    	*slider1 = 0;  /* null terminate */
+    	slider1 = slider1 + 1;
     }
 
+    /*--------------------*/
     /* parse out the port */
+    /*--------------------*/
     if(*slider3 == ':')
     {
         slider3 = slider2 = slider3 + 1; /* + 3 skips the ":" */
@@ -182,7 +193,9 @@ SLPError SLPParseSrvURL(const char *pcSrvURL,
         slider1 = slider1 + sizeof(int);   
     }
 
+    /*------------------------------------*/
     /* parse out the remainder of the url */
+    /*------------------------------------*/
     if(*slider3)
     {
         slider3 = slider2 = slider3; 
