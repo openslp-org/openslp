@@ -444,7 +444,7 @@ void SLPDKnownDARegisterAll(SLPDAEntry* daentry, int immortalonly)
                 /* Only pass on local registrations of scopes supported by */
                 /* peer DA   											   */
                 /*---------------------------------------------------------*/
-                if(dbentry->regtype & SLPDDATABASE_REG_LOCAL &&
+                if((dbentry->regtype & SLPDDATABASE_REG_LOCAL) &&
                    SLPIntersectStringList(daentry->scopelistlen,
                                           daentry->scopelist,
                                           dbentry->scopelistlen,
@@ -811,7 +811,7 @@ SLPDAEntry* SLPDKnownDAAdd(struct in_addr* addr,
 /* addr     (IN) pointer to in_addr of the DA to add                       */
 /*                                                                         */
 /* pointer (IN) pointer to a daentry to add                                */
-/*                                                                         */
+/*                                          SLP_LIFETIME_MAXIMUM                               */
 /* returns  Pointer to the added or updated entry                          */
 /*=========================================================================*/
 {
@@ -858,8 +858,14 @@ SLPDAEntry* SLPDKnownDAAdd(struct in_addr* addr,
             SLPListLinkHead(&G_KnownDAList,(SLPListItem*)entry);
             SLPDLogKnownDA("Added",entry);
 
-            /* Register all services with the new DA */
-            SLPDKnownDARegisterAll(entry,0);
+            /* Register all services with the new DA unless the new DA is us*/
+            if(SLPCompareString(entry->urllen,
+                                entry->url,
+                                G_SlpdProperty.myUrlLen,
+                                G_SlpdProperty.myUrl))
+            {
+                SLPDKnownDARegisterAll(entry,0);
+            }
         }
     }
 

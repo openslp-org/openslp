@@ -5,6 +5,10 @@ Please make entries to this log (in addition to the CVS log) that describe
 major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
+03/05/01 mpeterson@caldera.com
+Fixed a very very hard to find problem where regtypes were being cleared by
+local re-registration (.reg registration re-registered when we discovered
+ourselves as a DA)  Duh!
 
 03/05/01 mpeterson@caldera.com
 Fixed problem where multicast was not being use when a DA can not be found
