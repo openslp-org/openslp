@@ -57,8 +57,8 @@ SLPBoolean KnownDADiscoveryCallback(SLPError errorcode,
     SLPSrvURL*      srvurl;
     SLPDAEntry*     entry;
     struct hostent* he;
-    int*            count = (int*)cookie;
-    
+    int*            count   = (int*)cookie;
+        
     if(msg->header.functionid == SLP_FUNCT_DAADVERT)
     {
         if(msg->body.srvrply.errorcode == 0)
@@ -87,7 +87,9 @@ SLPBoolean KnownDADiscoveryCallback(SLPError errorcode,
 
 
 /*-------------------------------------------------------------------------*/
-int KnownDADiscoveryRqstRply(int sock, struct sockaddr_in* peeraddr)
+int KnownDADiscoveryRqstRply(int sock, 
+                             struct sockaddr_in* peeraddr)
+/* Returns: number of DAs discovered                                       */
 /*-------------------------------------------------------------------------*/
 {
     int         result      = 0;
@@ -142,7 +144,7 @@ int KnownDADiscoveryRqstRply(int sock, struct sockaddr_in* peeraddr)
 int KnownDADiscoveryByMulticast()
 /* Locates  DAs via multicast convergence                                  */
 /*                                                                         */
-/* Returns  The number of DAs found                                        */
+/* Returns: number of DAs discovered                                       */
 /*-------------------------------------------------------------------------*/
 {
     int                 result      = 0;
@@ -156,7 +158,7 @@ int KnownDADiscoveryByMulticast()
         close(sock);
     }
     
-    return result;;
+    return result;
 }
 
 
@@ -164,7 +166,7 @@ int KnownDADiscoveryByMulticast()
 int KnownDADiscoveryByProperties(struct timeval* timeout)
 /* Locates DAs from a list of DA hostnames                                 */
 /*                                                                         */
-/* Returns  number of DAs discovered                                       */
+/* Returns: number of DAs discovered                                       */
 /*-------------------------------------------------------------------------*/
 {
     int                 result      = 0;
@@ -208,22 +210,31 @@ int KnownDADiscoveryByProperties(struct timeval* timeout)
 }
 
 /*=========================================================================*/
-void KnownDADiscover(struct timeval* timeout) 
+int KnownDADiscover(struct timeval* timeout)
+/* Returns: the number of DAs discovered                                   */
 /*=========================================================================*/
 {
+    int         result      = 0;
     int         fd;
     struct stat hintstat;
     const char* hintfile;
    
     /* TODO THIS FUNCTION MUST BE SYNCRONIZED !! */
     
-    /*-------------------------------------------*/
-    /* Check hints file to and load it if it     */
-    /*-------------------------------------------*/
+    /*---------------------------------------------------------------------*/
+    /* The logic of the following if(G_KnownDAListHead) statements is an   */
+    /* attempt to reduce wasted time and network bandwidth due to unneeded */
+    /* communication with DAs and multicast                                */
+    /*---------------------------------------------------------------------*/
+    
+    /*-----------------------------------*/
+    /* Load G_KnownDAListhead from hints */
+    /*-----------------------------------*/
     hintfile = SLPGetProperty("net.slp.HintsFile");
-    if(stat(hintfile,&hintstat) == 0)
+    if(stat(hintfile,&hintstat) == 0)  
     {
-        if(hintstat.st_mtime != G_HintStat.st_mtime)
+        /* Very important! Only read if newer! */
+        if(hintstat.st_mtime != G_HintStat.st_mtime) 
         {
             fd = open(hintfile,O_RDONLY);
             if(fd >= 0)
@@ -233,32 +244,26 @@ void KnownDADiscover(struct timeval* timeout)
             }
         }
     }
-    
-    /* The logic of the following if(G_KnownDAListHead) statements is an   */
-    /* attempt to reduce wasted time and network bandwidth due to unneeded */
-    /* communication with DAs and multicast                                */
-    if(G_KnownDAListHead == 0)
+    if(G_KnownDAListHead) 
     {
-        /*----------------------------------------------------*/
-        /* Check values from the net.slp.DAAddresses property */
-        /*----------------------------------------------------*/
-        KnownDADiscoveryByProperties(timeout);
-        
-        /*------------------------------*/
-        /* Check data from DHCP Options */
-        /*------------------------------*/ 
-
-        if(G_KnownDAListHead)
-        {
-            return;
-        }
+        result = 1;
+        goto SAVEHINTS;
     }
     
-    
-    /*-------------*/
-    /* IPC to slpd */
-    /*-------------*/
 
+    /*----------------------------------------------------*/
+    /* Check values from the net.slp.DAAddresses property */
+    /*----------------------------------------------------*/
+    result = KnownDADiscoveryByProperties(timeout);
+    if(result)
+    {
+        goto SAVEHINTS;
+    }
+        
+    /*------------------------------*/
+    /* Check data from DHCP Options */
+    /*------------------------------*/ 
+    
 
     /*-------------------*/
     /* Multicast for DAs */
@@ -266,25 +271,30 @@ void KnownDADiscover(struct timeval* timeout)
     if(SLPPropertyAsBoolean(SLPGetProperty("net.slp.activeDADetection")) &&
        SLPPropertyAsInteger(SLPGetProperty("net.slp.DAActiveDiscoveryInterval")))
     {
-        KnownDADiscoveryByMulticast();
+        result = KnownDADiscoveryByMulticast();
+        if(result)
+        {
+            goto SAVEHINTS;
+        }
     }
     
 
+
+SAVEHINTS:
     /*---------------------*/
     /* Save the hints file */
     /*---------------------*/
-    if(G_KnownDAListHead)
+    fd = open(hintfile,
+              O_RDONLY | O_CREAT,
+              S_IROTH | S_IWOTH | S_IRGRP| S_IWGRP | S_IRUSR, S_IWUSR);
+    if(fd >= 0)
     {
-        fd = open(hintfile,
-                  O_RDONLY | O_CREAT,
-                  S_IROTH | S_IWOTH | S_IRGRP| S_IWGRP | S_IRUSR, S_IWUSR);
-        if(fd >= 0)
-        {
-            SLPDAEntryListWrite(fd, &G_KnownDAListHead);
-            close(fd);
-            stat(hintfile,&G_HintStat);
-        } 
+        SLPDAEntryListWrite(fd, &G_KnownDAListHead);
+        close(fd);
+        stat(hintfile,&G_HintStat);
     }
+
+    return result;
 }
 
 

@@ -224,7 +224,7 @@ SLPError NetworkRqstRply(int sock,
 
 
 /*=========================================================================*/
-void KnownDADiscover(struct timeval* timeout);
+int KnownDADiscover(struct timeval* timeout);
 /*=========================================================================*/
 
 
