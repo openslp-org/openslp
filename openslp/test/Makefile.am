@@ -14,11 +14,7 @@ LDADD = ../libslp/libslp.la
 # Automake 1.4 doesn't allow subdirectory dependencies :-(, VPATH is a kludge 
 # to get around that. It's either this or a makefile for each test.
 
-VPATH = $(srcdir):$(srcdir)/SLPDereg:$(srcdir)/SLPEscape:\
-        $(srcdir)/SLPFindAttrs:$(srcdir)/SLPFindSrvTypes:\
-        $(srcdir)/SLPFindSrvs: $(srcdir)/SLPOpen:\
-        $(srcdir)/SLPParseSrvURL:$(srcdir)/SLPReg:\
-        $(srcdir)/SLPUnescape
+VPATH = $(srcdir):$(srcdir)/SLPDereg:$(srcdir)/SLPEscape:$(srcdir)/SLPFindAttrs:$(srcdir)/SLPFindSrvTypes:$(srcdir)/SLPFindSrvs:$(srcdir)/SLPOpen:$(srcdir)/SLPParseSrvURL:$(srcdir)/SLPReg:$(srcdir)/SLPUnescape
 
 # Program names are in lower case because they conflict with directory names
 slpdereg_SOURCES = SLPDereg.c
