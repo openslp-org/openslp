@@ -165,8 +165,6 @@ int SLPDDatabaseReg(SLPSrvReg* srvreg,
     }
 
     /* copy info from the message from the wire to the database entry */
-    entry->pid          = pid;
-    entry->uid          = uid;
     entry->scopelistlen = srvreg->scopelistlen;
     entry->scopelist    = (char*)memdup(srvreg->scopelist,srvreg->scopelistlen);
     entry->lifetime     = srvreg->urlentry.lifetime;
@@ -175,6 +173,26 @@ int SLPDDatabaseReg(SLPSrvReg* srvreg,
     entry->srvtypelen   = srvreg->srvtypelen;
     entry->srvtype      = (char*)memdup(srvreg->srvtype,srvreg->srvtypelen);
     entry->attrlistlen  = srvreg->attrlistlen;
+    
+
+    #ifdef USE_PREDICATES
+    if(srvreg->attrlist)
+    {
+        /* Tricky: perform an in place null termination of the attrlist */
+        /*         Remember this squishes the authblock count           */
+
+        ((char*)srvreg->attrlist)[srvreg->attrlistlen] = 0;
+        if( SLPAttrFreshen(entry->attr, srvreg->attrlist) != SLP_OK)
+        {
+            FreeEntry(entry);
+            return -1;
+        } 
+
+        /* TODO: We need to serialize here !!*/
+
+    }
+    #endif
+//    #else
     if (entry->attrlistlen)
     {
         entry->attrlist = malloc(srvreg->attrlistlen);
@@ -184,18 +202,8 @@ int SLPDDatabaseReg(SLPSrvReg* srvreg,
             entry->attrlist[srvreg->attrlistlen] = 0;
         }
     }
-
-    #ifdef USE_PREDICATES
-    if(srvreg->attrlist)
-    {
-        if( SLPAttrFreshen(entry->attr, srvreg->attrlist) != SLP_OK)
-        {
-            FreeEntry(entry);
-            return -1;
-        }
-    }
-    #endif USE_PREDICATES
-
+//    #endif 
+    
     /* check for malloc() failures */
     if(entry->scopelist == 0 ||
        entry->url == 0 ||
@@ -437,16 +445,10 @@ int SLPDDatabaseFindAttr(SLPAttrRqst* attrrqst,
                                       entry->scopelist))
             {
                 #ifdef USE_PREDICATES
-                //if(SLPAttrSerialize(entry->attr,
-                //                    &(result[found].attrlen), 
-                //                    &(result[found].attr), 
-                //                    SLP_FALSE) == SLP_OK)
-                //{
-                    /* FIXME TODO Should the entire function fail, or should 
-                     * we just ignore this one? */
-                //    found++;
-                //    break;
-                //}
+                result[found].attrlen = entry->attrlistlen;
+                result[found].attr = entry->attrlist;
+                found++;
+                break;
                 #else
                 result[found].attrlen = entry->attrlistlen;
                 result[found].attr = entry->attrlist;
@@ -473,14 +475,6 @@ int SLPDDatabaseInit(const char* regfile)
 /*=========================================================================*/
 {
     FILE*               fd;
-#ifdef WIN32
-    int                 mypid = GetCurrentProcessId();
-    int                 myuid = 0; /* TODO: find an equivalent to 
-                                      uid on Win32 */
-#else
-    int                 mypid = getpid();
-    int                 myuid = getuid();
-#endif
     SLPDDatabaseEntry*  entry;
 
     /* Remove all entries in the database if any */
@@ -499,9 +493,6 @@ int SLPDDatabaseInit(const char* regfile)
 
             while(SLPDRegFileReadEntry(fd,&entry) != 0)
             {
-                entry->pid              = mypid;
-                entry->uid              = myuid;
-
                 /* Log registration */
                 SLPDLogTraceReg("Registered (static)",entry);
 

@@ -202,8 +202,6 @@ typedef struct _SLPDDatabaseEntry
 /*=========================================================================*/
 { 
     SLPListItem         listitem;
-    pid_t               pid;        /* the pid that registered the entry */
-    uid_t               uid;        /* the uid that registered the entry */
     char*               langtag;
     int                 langtaglen;
     int                 lifetime;

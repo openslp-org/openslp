@@ -245,8 +245,6 @@ void SLPDLogTraceReg(const char* prefix, SLPDDatabaseEntry* entry)
         SLPLog("----------------------------------------\n");
         SLPLog("traceReg %s:\n",prefix);
         SLPLog("----------------------------------------\n");
-        SLPLog("pid = %i\n",entry->pid);
-        SLPLog("uid = %i\n",entry->uid); 
         SLPLog("language tag = ");
         SLPLogBuffer(entry->langtag, entry->langtaglen);
         SLPLog("\nlifetime = %i\n",entry->lifetime); 
