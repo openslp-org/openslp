@@ -16,15 +16,21 @@ The OpenSLP project is an effort to develop an open-source implementation of
 Service Location Protocol suitable for commercial and non-commercial 
 application.
 
-The latest version of OpenSLP is 0.7.7  Changes for this version and the 
+The latest version of OpenSLP is 0.7.8  Changes for this version and the
 previous version consist of the following:
 
-    - Addition of SLPv1 backwards compatibility support
-    - TCP stream reusage in libslp and slpd
-    - Correction of many active DA discovery problems in slpd
-    - Predicate features from 0.7.6 are not build by default because of a 
-      few problems that will be corrected for 0.7.8
-
+    - slpd now does a graceful shutdown on SIGTERM to deregister serviced
+      with DAs    
+    - Considerable time spend using commercial debugging tools to remove
+      ALL memory leaks from slpd and libslp.  Code should very clean.
+    - IPC (via loopback) is now used by libslp to obtain DA information
+      from slpd before multicasting
+    - slpd running as a DA now sends passive DAAdverts
+    - slpd running as an SA now performs active DA discovery
+    - slpd running as an SA now re-registers all services with new DAs
+    - Significant fixes were made to make slpd work properly on 
+    - multi-homed machines
+ 
 
 2 - Roadmap
 ------------
@@ -34,9 +40,6 @@ features:
     
     - slpd does not honor the predicate in SrvRqst messages.  (this feature
       is nearly finished but is still not ready for general use)
-    - slpd does not honor the honor taglist in AttrRqst messages
-    - slpd does not re-register all services with new DAs 
-    - libslp and slpd do not cooperate for efficiency in locating DAs
     - libslp does not collate results for syncronous calls
     - libslp does not support asyncronous calls
 
