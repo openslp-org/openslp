@@ -71,6 +71,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h> 
+#include <ctype.h> 
 #endif
 
 #include "slp_buffer.h"
@@ -102,11 +103,6 @@
 
 #if (!defined MAX_PATH)
 #define MAX_PATH 256
-#endif
-
-#ifdef WIN32
-#define strncasecmp(String1, String2, Num) strnicmp(String1, String2, Num)
-#define strcasecmp(String1, String2, Num) stricmp(String1, String2, Num)
 #endif
 
 /*=========================================================================*/
@@ -443,5 +439,40 @@ void KnownDAFreeAll();
 /*                                                                         */
 /* returns: none                                                           */
 /*=========================================================================*/
+
+
+
+#ifdef WIN32
+#define strncasecmp(String1, String2, Num) strnicmp(String1, String2, Num)
+#define strcasecmp(String1, String2, Num) stricmp(String1, String2, Num)
+#else
+#ifndef HAVE_STRNCASECMP
+static int
+strncasecmp(const char *s1, const char *s2, size_t len)
+{
+    while ( len-- > 1 && *s1 && (*s1 == *s2 || tolower(*s1) == tolower(*s2)) )
+    {
+        s1++;
+        s2++;
+    }
+    return(int) *(unsigned char *)s1 - (int) *(unsigned char *)s2;
+}
+
+#endif
+
+#ifndef HAVE_STRCASECMP
+static int
+strcasecmp(const char *s1, const char *s2)
+{
+    while ( *s1 && (*s1 == *s2 || tolower(*s1) == tolower(*s2)) )
+    {
+        s1++;
+        s2++;
+    }
+    return(int) *(unsigned char *)s1 - (int) *(unsigned char *)s2;
+}
+#endif
+
+#endif /*WIN32*/
 
 #endif
