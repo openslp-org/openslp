@@ -1,25 +1,20 @@
 MAKE	= make
-
+DIRS	= SLPOpen SLPFindSrvs SLPReg SLPDereg SLPFindAttrs \
+			SLPParseSrvURL
 all:
-	$(MAKE) -C SLPOpen
-	$(MAKE) -C SLPFindSrvs
-	$(MAKE) -C SLPReg
-	$(MAKE) -C SLPDereg
-	$(MAKE) -C SLPFindAttrs
-	$(MAKE) -C SLPParseSrvURL
+	for dir in $(DIRS); do\
+		echo Making all in $$dir... ;\
+		(cd $$dir; $(MAKE))|| break;\
+    done
 
 test:
-	$(MAKE) -s -C SLPOpen test
-	$(MAKE) -s -C SLPFindSrvs test
-	$(MAKE) -s -C SLPReg test
-	$(MAKE) -C SLPDereg test
-	$(MAKE) -C SLPFindAttrs test
-	$(MAKE) -C SLPParseSrvURL test
+	for dir in $(DIRS); do\
+		echo Making all in $$dir... ;\
+		(cd $$dir; $(MAKE) test)|| break;\
+    done
 
 clean:
-	$(MAKE) -C SLPOpen clean
-	$(MAKE) -C SLPFindSrvs clean
-	$(MAKE) -C SLPReg clean
-	$(MAKE) -C SLPDereg clean
-	$(MAKE) -C SLPFindAttrs clean 
-	$(MAKE) -C SLPParseSrvURL clean
+	for dir in $(DIRS); do\
+		echo Making all in $$dir... ;\
+		(cd $$dir; $(MAKE) clean)|| break;\
+    done
