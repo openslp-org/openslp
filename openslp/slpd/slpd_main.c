@@ -607,7 +607,8 @@ int main(int argc, char* argv[])
                 }   
 
                 /* Mark old sockets/connections for close */
-                if(sock->state != SOCKET_LISTEN)
+                //if(sock->state != SOCKET_LISTEN)
+		if(sock->timestamp)
                 {
                     if(sock->timestamp > timestamp)
                     {
