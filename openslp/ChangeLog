@@ -13,6 +13,11 @@ API user, but it would be a good idea to look at the conf file additions to
 acquaint yourself with the new settings available.
 beastham@emware.com
 
+*** TAG OpenSLP-1.2.1 ***
+02/04/2005 jcalcote@novell.com
+Incorporated various bug fixes from SuSE and others.
+Updated Autotools files for version 1.5+
+
 *** TAG OpenSLP-1.2.0 ***
 02/24/2004 beastham@emware.com
 This release includes all of the code updates and feature changes up to 1.1.5.

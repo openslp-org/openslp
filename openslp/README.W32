@@ -1,55 +1,71 @@
-Announcement
-------------
-The Win32 port of OpenSLP 0.8.3 is working!. 
+Announcement (Updated 8 Feb 2005)
+---------------------------------
 
-Beginning with 0.8.2  Matt Peterson has personally take over the Win32 port. 
-The goal is to fully support OpenSLP on Win32.  The reasons for full support 
-of the Win32 "platform" are related to the fact that Micro$oft insists on 
-supporting location protocols other than the one designed by the IETF.  The 
-hope is that by offering a really good port of OpenSLP, Microsoft enslaved 
-developers and partners will have some ammunition to fight proprietary or 
-otherwise non-interoperable protocols.
+The reasons for full Win32 support are _still_ valid: Namely, primarily that
+Microsoft insists on supporting location protocols other than the one 
+designed by the IETF. The hope is that by offering a really good port of 
+OpenSLP, Microsoft enslaved developers and partners will have some 
+ammunition to fight proprietary or otherwise non-interoperable protocols.
 
 Current State
 -------------
 Currently the OpenSLP code base does work on Win32 with the same
-functionality as OpenSLP on Linux.  Cool huh!
+functionality as OpenSLP on Linux, with one exception. The lex/yacc files
+that were originally written by Michael Day, which define the attribute 
+language parser are not used on Win32 (for lack of tools). Rather, the 
+original hand-coded version of this parser is being used. I'd be grateful
+if someone would please help me get a version of the gbod stuff working -
+one way or another :)
 
 Schedule
 --------
-OpenSLP 0.8.2 - Reorganize location of MSVC files and clean libsmbclient
-OpenSLP 0.8.3 - Clean slpd and test on Win2000 and Win98 "platforms"
-OpenSLP 0.9.0 - Provide installable binaries
+Maintain simultaneous development with linux/unix from now on.
 
 Building 
 --------
-As of OpenSLP 0.8.3, an MSVC workspace is provided in the win32 directory.
-This should be all that you need to build OpenSLP for the Win32 platforms.
-Sorry if these files are compatible with the latest versions of MSVC, but I
-am primarily a Linux developer working for a Linux company so there will
-probably no ever be a chance that I will upgrade from the MSVC 6.0 I
-currently have.  If you would like to donate a copy to OpenSLP, then I could
-probably find the time to install it.
+As of OpenSLP 1.2.1, an MS Visual Studio .NET 2003 "solution" (openslp.sln) 
+and associated project files (*.vcproj) are provided in the win32 directory
+structure. The older MSVC 6.0 workspace and project files still exist, but 
+need to be updated in minor ways. Please feel free to help if you wish. I
+no longer have time to maintain the older VC6 project files. They will be 
+removed eventually - especially now that MS is giving away newer versions
+of their tools. (see http://msdn.microsoft.com/visualc/vctoolkit2003).
+
+From the command line, within the win32 directory, you may run the "m.bat"
+script to build the default "Release" configuration. If you want a full debug
+build, add "Debug" as an argument. This will invoke nmake for the appropriate
+project under vc6 (again, I'm not sure if this still works), or if you have
+VC7x installed, m.bat will detect it through the presence of the DevEnvDir
+environment variable, and run the DevEnv.exe utility with the /build 
+command-line option. 
+
+NOTE: For some unknown reason, on my system, if I invoke the DevEnv utility 
+from a batch file in this manner, it compiles very quietly - that is,
+there is _no_ output, but it works. If you invoke "DevEnv openslp.sln /build"
+directly from the command line, you will see each file name as it's compiled. 
+I'm sure there's some logical reasoning behind this design decision...
 
 Installing
 ----------
-Currently there is not an install for OpenSLP on Win32.  Hopefully, there
-will be time to write one before 0.9.0 (we'll see).  Right now, for the 
-library, all you have to do is copy the slp.h slp.lib and slp.dll files to the
-appropriate locations.
+There is currently still no installation application for OpenSLP on Windows.
+Hopefully, there will be time to write one in the 1.3.0 developer line before
+we transition to a full release in 1.4.0. Right now, for the library, all you 
+have to do is copy the slp.h slp.lib and slp.dll files to the appropriate 
+locations for your client application code to consume them.
 
-slpd is a little harder to install.  The easy part is copying it to
-c:\windows\system (or where every you keep services).  The hard part is making
-the correct registry entry entries to install it as a service.  To help you
-out installation functionality has been built right into slpd.  Run slpd
-with out any command line parameters and follow the directions.  Also, it is
-important to note that slpd.log, slp.reg and slp.conf must currently reside
-in c:\windows.  Good Luck.
+slpd is pretty trivial to install now that we have a command line interface
+to the service registry, so it's easy as 1, 2, 3 (literally):
+
+1. Copy slp.reg and slp.conf to %SystemRoot%
+2. Copy slpd.exe to %SystemRoot%/System32
+3. From this location, execute: "slpd.exe --install [auto]"
+
+Note that the log file (slpd.log) will be created in %SystemRoot%.
 
 Credits
 -------
 The work currently being done on the Win32 port in no way invalidates the 
-tremendous contribution of Matthieu Desmons who did the original port of the
+tremendous contribution of Matthieu Desmons who did the original port of the 
 0.7.x codebase.  Most of the actual code changes can still be attributed to 
 him -- not to mention the initive to to show that the port was actually 
 possible.

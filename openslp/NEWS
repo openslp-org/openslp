@@ -6,6 +6,18 @@ New in openslp-1.3.0
 * IPv6 support has been added and is mostly compliant with the RFC.  
 * Minor bug fixes for socket leakage in Windows
 
+New in openslp-1.2.1
+--------------------
+* A multitude of bug fixes submitted by the SuSE linux team in Germany.
+  Much of this work was done by Michael Schroeder <mls@suse.de> and
+  other patches were submitted by Peter Marschall <peter@adpm.de>.
+  Thanks very much to both of them. 
+* The autotools scripts have been updated to be compatible with Autotools
+  1.5+. This should help out developers wanting to check out OpenSLP on 
+  other platforms.
+* The slp.reg file now accepts a $HOSTNAME "variable" that represents the
+  hostname of the current machine. That way your reg files are somewhat
+  more portable.
 
 New in openslp-1.1.3
 --------------------

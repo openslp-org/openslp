@@ -52,29 +52,28 @@
 
 #include "slp_buffer.h"
 
+#ifdef HAVE_CONFIG_H
+# include "config.h"
+#endif
 #ifdef _WIN32
-#define WIN32_LEAN_AND_MEAN
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#ifndef IPPROTO_IPV6
-//#include <tpipv6.h> // For IPv6 Tech Preview.
-#endif
-
-#ifndef UINT32_T_DEFINED
-#define UINT32_T_DEFINED
+# define WIN32_LEAN_AND_MEAN
+# include <winsock2.h>
+# include <ws2tcpip.h>
+# ifndef UINT32_T_DEFINED
+#  define UINT32_T_DEFINED
 typedef unsigned long uint32_t;
-#endif
+# endif
 #else
-#include <sys/types.h>
-#ifdef __FreeBSD__
-#include <sys/param.h>			/* for limits.h - INT_MAX slpd*/
-#endif
-#include <netinet/in.h>			/* for htonl() routines */
-#ifdef HAVE_STDINT_H
-#include <stdint.h>
-#else
-#include <inttypes.h>
-#endif
+# include <sys/types.h>
+# ifdef __FreeBSD__
+#  include <sys/param.h>		/* for limits.h - INT_MAX slpd*/
+# endif
+# include <netinet/in.h>		/* for htonl() routines */
+# ifdef HAVE_STDINT_H
+#  include <stdint.h>
+# else
+#  include <inttypes.h>
+# endif
 #endif
 
 typedef char            CHAR;
@@ -464,23 +463,23 @@ int SLPMessageParseBuffer(struct sockaddr_storage* peerinfo,
                           SLPMessage message);
 /* Initializes a message descriptor by parsing the specified buffer.       */
 /*                                                                         */
-/* peerinfo  - (IN) pointer to the network address information that sent   */ 
-/*                  buffer                                                 */
+/* peerinfo - (IN) pointer to the network address information that sent    */ 
+/*                 buffer                                                  */
 /*                                                                         */
-/* localaddr - (IN) pointer to the local address of the socket on which    */ 
-/*                  the data was received                                  */
+/* localaddr- (IN) pointer to the local address of the socket on which    */ 
+/*                 the data was received                                  */
 /*                                                                         */
-/* buffer    - (IN) pointer the SLPBuffer to parse                         */
+/* buffer   - (IN) pointer the SLPBuffer to parse                          */
 /*                                                                         */
-/* message   - (OUT) set to describe the message from the buffer           */
+/* message  - (OUT) set to describe the message from the buffer            */
 /*                                                                         */
-/* Returns   - Zero on success, SLP_ERROR_PARSE_ERROR, or                  */
-/*             SLP_ERROR_INTERNAL_ERROR if out of memory.  SLPMessage is   */
-/*             invalid return is not successful.                           */
+/* Returns  - Zero on success, SLP_ERROR_PARSE_ERROR, or                   */
+/*            SLP_ERROR_INTERNAL_ERROR if out of memory.  SLPMessage is    */
+/*            invalid return is not successful.                            */
 /*                                                                         */
-/* WARNING   - If successful, pointers in the SLPMessage reference memory  */ 
-/*             in the parsed SLPBuffer.  If SLPBufferFree() is called then */
-/*             the pointers in SLPMessage will be invalidated.             */
+/* WARNING  - If successful, pointers in the SLPMessage reference memory in*/ 
+/*            the parsed SLPBuffer.  If SLPBufferFree() is called then the */
+/*            pointers in SLPMessage will be invalidated.                  */
 /*=========================================================================*/
 
 /*=========================================================================*/

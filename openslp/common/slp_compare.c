@@ -49,14 +49,12 @@
 
 #include <string.h>
 #include <ctype.h>
- 
-#include "slp_compare.h"
-#include "slp_net.h"
-#include "slp_iface.h"
 
-#ifdef _WIN32
-#else
-#ifndef HAVE_STRNCASECMP
+#include "slp_compare.h"
+
+
+#ifndef _WIN32
+# ifndef HAVE_STRNCASECMP
 int
 strncasecmp(const char *s1, const char *s2, size_t len)
 {
@@ -69,8 +67,8 @@ strncasecmp(const char *s1, const char *s2, size_t len)
     }
     return(int) *(unsigned char *)s1 - (int) *(unsigned char *)s2;
 }
-#endif
-#ifndef HAVE_STRCASECMP
+# endif
+# ifndef HAVE_STRCASECMP
 int
 strcasecmp(const char *s1, const char *s2)
 {
@@ -81,7 +79,7 @@ strcasecmp(const char *s1, const char *s2)
     }
     return(int) *(unsigned char *)s1 - (int) *(unsigned char *)s2;
 }
-#endif
+# endif
 #endif 
 
 
@@ -109,6 +107,8 @@ int SLPCompareString(int str1len,
     /* TODO: fold whitespace and handle escapes*/
     if(str1len == str2len)
     {
+    	if (str1len <= 0)
+	    return(0);
         return strncasecmp(str1,str2,str1len);
     }
     else if(str1len > str2len)
@@ -142,23 +142,36 @@ int SLPCompareNamingAuth(int srvtypelen,
 /*=========================================================================*/
 {
     const char *dot;
-    int srvtypenalen;
 
     if(namingauthlen == 0xffff) /* match all naming authorities */
         return 0;
 
+    /* Skip "service:" */
+    if ((srvtypelen > 8) && (strncasecmp(srvtype,"service:",8) == 0))
+    {
+        srvtypelen -= 8;
+        srvtype += 8;
+    }
+    /* stop search at colon after naming authority (if there is one) */
+    dot = memchr(srvtype,':',srvtypelen);
+    if (dot)
+	srvtypelen = dot - srvtype;
+ 
     dot = memchr(srvtype,'.',srvtypelen);
 
     if(!namingauthlen)     /* IANA naming authority */
         return dot ? 1 : 0;
 
-    srvtypenalen = srvtypelen - (dot + 1 - srvtype);
+    if (dot)
+    {	    
+	int srvtypenalen = srvtypelen - (dot + 1 - srvtype);
 
-    if(srvtypenalen != namingauthlen)
-        return 1;
+	if(srvtypenalen != namingauthlen)
+	    return 1;
 
-    if(strncasecmp(dot + 1, namingauth, namingauthlen) == 0)
-        return 0;
+	if(strncasecmp(dot + 1, namingauth, namingauthlen) == 0)
+	    return 0;
+    }	
 
     return 1;
 }
@@ -228,6 +241,7 @@ int SLPCompareSrvType(int lsrvtypelen,
     return 1;
 }
 
+
 /*=========================================================================*/
 int SLPContainsStringList(int listlen, 
                           const char* list,
@@ -268,13 +282,15 @@ int SLPContainsStringList(int listlen,
 
             itemend ++;
         }
+
         if(SLPCompareString(itemend - itembegin,
-                        itembegin,
-                        stringlen,
-                        string) == 0)
+                            itembegin,
+                            stringlen,
+                            string) == 0)
         {
             return 1;
         }
+
         itemend ++;    
     }
 

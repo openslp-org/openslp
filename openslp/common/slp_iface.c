@@ -168,13 +168,11 @@ int SLPIfaceGetInfo(const char* useifaces,
  *     ifaceinfo (OUT) Information about requested interfaces.
  *     family    (IN) Hint for family to get info for - can be AF_INET, AF_INET6, 
  *                    or AF_UNSPEC for both
- *     scope     (IN) For IPV6 this specifies which scope to get an address for,
- *                this can be SCOPE_GLO
  *
  * Returns:
  *     zero on success, non-zero (with errno set) on error.
  *=========================================================================*/
-  {
+{
 	char *interfaceString;
 	char *bcastString;
 	int sts = 0;
@@ -495,13 +493,15 @@ int SLPIfaceStringToSockaddrs(const char* addrstr,
     return 0;
 }
 
+
+
 /*===========================================================================
  * TESTING CODE enabled by removing #define comment and compiling with the 
  * following command line:
  *
  * $ gcc -g -DDEBUG slp_iface.c slp_xmalloc.c slp_linkedlist.c slp_compare.c
  *==========================================================================*/
-/* #define SLP_IFACE_TEST */
+/* #define SLP_IFACE_TEST  */
 #ifdef SLP_IFACE_TEST 
 int main(int argc, char* argv[])
 {

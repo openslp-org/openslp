@@ -58,3 +58,10 @@ Michael Day <mday@soft-hackle.net>
 ----------------------------------
 Special thanks to Mike Day who has graciously contributed the SLP filter and
 predicate code in the the OpenSLP 1.1.x branch.
+
+
+Michael Schroeder <mls@suse.de>
+-------------------------------
+Has submitted chroot functionality to plug security holes and provide 
+zeroconf functionality.
+

@@ -233,6 +233,8 @@ void SLPDLogSrvDeRegMessage(SLPSrvDeReg* srvdereg)
 /*-------------------------------------------------------------------------*/
 {
     SLPDLog("Message SRVDEREG:\n");
+    SLPDLogBuffer("   scope = ", srvdereg->scopelistlen, srvdereg->scopelist);
+    SLPDLogBuffer("   url = ", srvdereg->urlentry.urllen, srvdereg->urlentry.url);
 }
 
 /*-------------------------------------------------------------------------*/
@@ -248,6 +250,8 @@ void SLPDLogAttrRqstMessage(SLPAttrRqst* attrrqst)
 /*-------------------------------------------------------------------------*/
 {
     SLPDLog("Message ATTRRQST:\n");
+    SLPDLogBuffer("   scope = ", attrrqst->scopelistlen, attrrqst->scopelist);
+    SLPDLogBuffer("   url = ", attrrqst->urllen, attrrqst->url);
 }
 
 /*-------------------------------------------------------------------------*/
@@ -273,6 +277,8 @@ void SLPDLogSrvTypeRqstMessage(SLPSrvTypeRqst* srvtyperqst)
 /*-------------------------------------------------------------------------*/
 {
     SLPDLog("Message SRVTYPERQST:\n");
+    SLPDLogBuffer("   namingauth = ", srvtyperqst->namingauthlen, srvtyperqst->namingauth);
+    SLPDLogBuffer("   scope = ", srvtyperqst->scopelistlen, srvtyperqst->scopelist);
 }
 
 /*-------------------------------------------------------------------------*/
@@ -288,6 +294,9 @@ void SLPDLogSAAdvertMessage(SLPSAAdvert* saadvert)
 /*-------------------------------------------------------------------------*/
 {
     SLPDLog("Message SAADVERT:\n");
+    SLPDLogBuffer("   scope = ", saadvert->scopelistlen, saadvert->scopelist);
+    SLPDLogBuffer("   url = ", saadvert->urllen, saadvert->url);
+    SLPDLogBuffer("   attributes = ", saadvert->attrlistlen, saadvert->attrlist);
 }
 
 

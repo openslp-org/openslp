@@ -3,7 +3,6 @@
 	ProjectType="Visual C++"
 	Version="7.10"
 	Name="libslp"
-	RootNamespace="libslp"
 	SccProjectName=""
 	SccLocalPath="">
 	<Platforms>
@@ -24,11 +23,13 @@
 				Optimization="2"
 				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories="../../common"
-				PreprocessorDefinitions="_USRDLL;LIBSLP_EXPORTS;ENABLE;_WINDOWS;i386;NDEBUG;WIN32;SLP_VERSION=\&quot;1.1.1\&quot;"
+				PreprocessorDefinitions="_USRDLL;LIBSLP_EXPORTS;_WINDOWS;i386;NDEBUG;WIN32;SLP_VERSION=\&quot;1.2.1\&quot;"
 				StringPooling="TRUE"
-				RuntimeLibrary="0"
-				EnableFunctionLevelLinking="TRUE"
-				PrecompiledHeaderFile=".\Release\obj/libslp.pch"
+				ExceptionHandling="FALSE"
+				RuntimeLibrary="2"
+				BufferSecurityCheck="FALSE"
+				EnableFunctionLevelLinking="FALSE"
+				PrecompiledHeaderFile=""
 				AssemblerListingLocation=".\Release\obj/"
 				ObjectFile=".\Release\obj/"
 				ProgramDataBaseFileName="Release\slp.pdb"
@@ -40,7 +41,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="odbc32.lib odbccp32.lib wsock32.lib"
+				AdditionalDependencies="ws2_32.lib"
 				OutputFile="Release/slp.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
@@ -48,6 +49,8 @@
 				ProgramDatabaseFile=".\Release/slp.pdb"
 				GenerateMapFile="TRUE"
 				MapFileName="Release/slp.map"
+				MapExports="TRUE"
+				MapLines="TRUE"
 				ImportLibrary=".\Release/slp.lib"
 				TargetMachine="1"/>
 			<Tool
@@ -92,130 +95,34 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="../../common"
-				PreprocessorDefinitions="_USRDLL;LIBSLP_EXPORTS;_WINDOWS;i386;_DEBUG;WIN32;SLP_VERSION=\&quot;1.1.1\&quot;"
-				BasicRuntimeChecks="3"
-				RuntimeLibrary="1"
-				PrecompiledHeaderFile=".\Debug\obj/libslp.pch"
+				PreprocessorDefinitions="_USRDLL;LIBSLP_EXPORTS;_WINDOWS;i386;_DEBUG;WIN32;SLP_VERSION=\&quot;1.2.1\&quot;"
+				ExceptionHandling="FALSE"
+				BasicRuntimeChecks="0"
+				RuntimeLibrary="3"
+				BufferSecurityCheck="FALSE"
+				PrecompiledHeaderFile=""
 				AssemblerListingLocation=".\Debug\obj/"
 				ObjectFile=".\Debug\obj/"
 				ProgramDataBaseFileName="Debug/slp.pdb"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
-				DebugInformationFormat="4"
-				CompileAs="0"/>
-			<Tool
-				Name="VCCustomBuildTool"
-				Description="Copying slp.dll to slptool dir"
-				CommandLine="copy $(OutDir)\$(TargetFileName) ..\slptool\Debug\$(TargetFileName)"
-				Outputs=" ../slptool/Debug/$(TargetFileName)"/>
-			<Tool
-				Name="VCLinkerTool"
-				AdditionalDependencies="odbc32.lib odbccp32.lib ws2_32.lib Iphlpapi.lib"
-				OutputFile="Debug/slp.dll"
-				LinkIncremental="1"
-				SuppressStartupBanner="TRUE"
-				GenerateDebugInformation="TRUE"
-				ProgramDatabaseFile=".\Debug/slp.pdb"
-				GenerateMapFile="TRUE"
-				MapFileName="Debug/slp.map"
-				ImportLibrary=".\Debug/slp.lib"
-				TargetMachine="1"/>
-			<Tool
-				Name="VCMIDLTool"
-				PreprocessorDefinitions="_DEBUG"
-				MkTypLibCompatible="TRUE"
-				SuppressStartupBanner="TRUE"
-				TargetEnvironment="1"
-				TypeLibraryName=".\Debug/libslp.tlb"
-				HeaderFileName=""/>
-			<Tool
-				Name="VCPostBuildEventTool"
-				Description="Copy slp.h ..."
-				CommandLine="copy ..\..\libslp\slp.h debug"/>
-			<Tool
-				Name="VCPreBuildEventTool"/>
-			<Tool
-				Name="VCPreLinkEventTool"/>
-			<Tool
-				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="_DEBUG"
-				Culture="1033"/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"/>
-			<Tool
-				Name="VCXMLDataGeneratorTool"/>
-			<Tool
-				Name="VCWebDeploymentTool"/>
-			<Tool
-				Name="VCManagedWrapperGeneratorTool"/>
-			<Tool
-				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
-		</Configuration>
-		<Configuration
-			Name="Xcast Unit Test|Win32"
-			ConfigurationType="1">
-			<Tool
-				Name="VCCLCompilerTool"/>
-			<Tool
-				Name="VCCustomBuildTool"/>
-			<Tool
-				Name="VCLinkerTool"/>
-			<Tool
-				Name="VCMIDLTool"/>
-			<Tool
-				Name="VCPostBuildEventTool"/>
-			<Tool
-				Name="VCPreBuildEventTool"/>
-			<Tool
-				Name="VCPreLinkEventTool"/>
-			<Tool
-				Name="VCResourceCompilerTool"/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"/>
-			<Tool
-				Name="VCXMLDataGeneratorTool"/>
-			<Tool
-				Name="VCWebDeploymentTool"/>
-			<Tool
-				Name="VCManagedWrapperGeneratorTool"/>
-			<Tool
-				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
-		</Configuration>
-		<Configuration
-			Name="xcast test|Win32"
-			OutputDirectory="$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="1"
-			UseOfMFC="0"
-			ATLMinimizesCRunTimeLibraryUsage="FALSE"
-			CharacterSet="2">
-			<Tool
-				Name="VCCLCompilerTool"
-				Optimization="0"
-				AdditionalIncludeDirectories="../../common"
-				PreprocessorDefinitions="_USRDLL;LIBSLP_EXPORTS;_WINDOWS;i386;_DEBUG;WIN32;SLP_VERSION=\&quot;1.1.1\&quot;"
-				BasicRuntimeChecks="3"
-				RuntimeLibrary="1"
-				PrecompiledHeaderFile=".\Debug\obj/libslp.pch"
-				AssemblerListingLocation=".\Debug\obj/"
-				ObjectFile=".\Debug\obj/"
-				ProgramDataBaseFileName="Debug/slp.pdb"
-				WarningLevel="3"
-				SuppressStartupBanner="TRUE"
-				DebugInformationFormat="4"
+				DebugInformationFormat="3"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="odbc32.lib odbccp32.lib ws2_32.lib Iphlpapi.lib"
+				AdditionalDependencies="ws2_32.lib"
 				OutputFile="Debug/slp.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
+				IgnoreAllDefaultLibraries="FALSE"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile=".\Debug/slp.pdb"
 				GenerateMapFile="TRUE"
 				MapFileName="Debug/slp.map"
+				MapExports="TRUE"
+				MapLines="TRUE"
 				ImportLibrary=".\Debug/slp.lib"
 				TargetMachine="1"/>
 			<Tool
@@ -275,15 +182,6 @@
 						PreprocessorDefinitions="_USRDLL;LIBSLP_EXPORTS;_WINDOWS;i386;_DEBUG;WIN32;_MBCS;SLP_VERSION=\&quot;1.1.1\&quot;;$(NoInherit)"
 						BasicRuntimeChecks="3"/>
 				</FileConfiguration>
-				<FileConfiguration
-					Name="xcast test|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions="_USRDLL;LIBSLP_EXPORTS;_WINDOWS;i386;_DEBUG;WIN32;_MBCS;SLP_VERSION=\&quot;1.1.1\&quot;;$(NoInherit)"
-						BasicRuntimeChecks="3"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\libslp\libslp_dereg.c">
@@ -297,15 +195,6 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions="_USRDLL;LIBSLP_EXPORTS;_WINDOWS;i386;_DEBUG;WIN32;_MBCS;SLP_VERSION=\&quot;1.1.1\&quot;;$(NoInherit)"
-						BasicRuntimeChecks="3"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="xcast test|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						Optimization="0"
@@ -333,15 +222,6 @@
 						PreprocessorDefinitions="_USRDLL;LIBSLP_EXPORTS;_WINDOWS;i386;_DEBUG;WIN32;_MBCS;SLP_VERSION=\&quot;1.1.1\&quot;;$(NoInherit)"
 						BasicRuntimeChecks="3"/>
 				</FileConfiguration>
-				<FileConfiguration
-					Name="xcast test|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions="_USRDLL;LIBSLP_EXPORTS;_WINDOWS;i386;_DEBUG;WIN32;_MBCS;SLP_VERSION=\&quot;1.1.1\&quot;;$(NoInherit)"
-						BasicRuntimeChecks="3"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\libslp\libslp_findscopes.c">
@@ -355,15 +235,6 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions="_USRDLL;LIBSLP_EXPORTS;_WINDOWS;i386;_DEBUG;WIN32;_MBCS;SLP_VERSION=\&quot;1.1.1\&quot;;$(NoInherit)"
-						BasicRuntimeChecks="3"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="xcast test|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						Optimization="0"
@@ -391,15 +262,6 @@
 						PreprocessorDefinitions="_USRDLL;LIBSLP_EXPORTS;_WINDOWS;i386;_DEBUG;WIN32;_MBCS;SLP_VERSION=\&quot;1.1.1\&quot;;$(NoInherit)"
 						BasicRuntimeChecks="3"/>
 				</FileConfiguration>
-				<FileConfiguration
-					Name="xcast test|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions="_USRDLL;LIBSLP_EXPORTS;_WINDOWS;i386;_DEBUG;WIN32;_MBCS;SLP_VERSION=\&quot;1.1.1\&quot;;$(NoInherit)"
-						BasicRuntimeChecks="3"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\libslp\libslp_findsrvtypes.c">
@@ -413,15 +275,6 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions="_USRDLL;LIBSLP_EXPORTS;_WINDOWS;i386;_DEBUG;WIN32;_MBCS;SLP_VERSION=\&quot;1.1.1\&quot;;$(NoInherit)"
-						BasicRuntimeChecks="3"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="xcast test|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						Optimization="0"
@@ -449,15 +302,6 @@
 						PreprocessorDefinitions="_USRDLL;LIBSLP_EXPORTS;_WINDOWS;i386;_DEBUG;WIN32;_MBCS;SLP_VERSION=\&quot;1.1.1\&quot;;$(NoInherit)"
 						BasicRuntimeChecks="3"/>
 				</FileConfiguration>
-				<FileConfiguration
-					Name="xcast test|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions="_USRDLL;LIBSLP_EXPORTS;_WINDOWS;i386;_DEBUG;WIN32;_MBCS;SLP_VERSION=\&quot;1.1.1\&quot;;$(NoInherit)"
-						BasicRuntimeChecks="3"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\libslp\libslp_knownda.c">
@@ -471,15 +315,6 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions="_USRDLL;LIBSLP_EXPORTS;_WINDOWS;i386;_DEBUG;WIN32;_MBCS;SLP_VERSION=\&quot;1.1.1\&quot;;$(NoInherit)"
-						BasicRuntimeChecks="3"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="xcast test|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						Optimization="0"
@@ -507,15 +342,6 @@
 						PreprocessorDefinitions="_USRDLL;LIBSLP_EXPORTS;_WINDOWS;i386;_DEBUG;WIN32;_MBCS;SLP_VERSION=\&quot;1.1.1\&quot;;$(NoInherit)"
 						BasicRuntimeChecks="3"/>
 				</FileConfiguration>
-				<FileConfiguration
-					Name="xcast test|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions="_USRDLL;LIBSLP_EXPORTS;_WINDOWS;i386;_DEBUG;WIN32;_MBCS;SLP_VERSION=\&quot;1.1.1\&quot;;$(NoInherit)"
-						BasicRuntimeChecks="3"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\libslp\libslp_parse.c">
@@ -529,15 +355,6 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions="_USRDLL;LIBSLP_EXPORTS;_WINDOWS;i386;_DEBUG;WIN32;_MBCS;SLP_VERSION=\&quot;1.1.1\&quot;;$(NoInherit)"
-						BasicRuntimeChecks="3"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="xcast test|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						Optimization="0"
@@ -565,15 +382,6 @@
 						PreprocessorDefinitions="_USRDLL;LIBSLP_EXPORTS;_WINDOWS;i386;_DEBUG;WIN32;_MBCS;SLP_VERSION=\&quot;1.1.1\&quot;;$(NoInherit)"
 						BasicRuntimeChecks="3"/>
 				</FileConfiguration>
-				<FileConfiguration
-					Name="xcast test|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions="_USRDLL;LIBSLP_EXPORTS;_WINDOWS;i386;_DEBUG;WIN32;_MBCS;SLP_VERSION=\&quot;1.1.1\&quot;;$(NoInherit)"
-						BasicRuntimeChecks="3"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\libslp\libslp_reg.c">
@@ -587,15 +395,6 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions="_USRDLL;LIBSLP_EXPORTS;_WINDOWS;i386;_DEBUG;WIN32;_MBCS;SLP_VERSION=\&quot;1.1.1\&quot;;$(NoInherit)"
-						BasicRuntimeChecks="3"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="xcast test|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						Optimization="0"
@@ -623,15 +422,6 @@
 						PreprocessorDefinitions="_USRDLL;LIBSLP_EXPORTS;_WINDOWS;i386;_DEBUG;WIN32;_MBCS;SLP_VERSION=\&quot;1.1.1\&quot;;$(NoInherit)"
 						BasicRuntimeChecks="3"/>
 				</FileConfiguration>
-				<FileConfiguration
-					Name="xcast test|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions="_USRDLL;LIBSLP_EXPORTS;_WINDOWS;i386;_DEBUG;WIN32;_MBCS;SLP_VERSION=\&quot;1.1.1\&quot;;$(NoInherit)"
-						BasicRuntimeChecks="3"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\common\slp_buffer.c">
@@ -645,15 +435,6 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions="_USRDLL;LIBSLP_EXPORTS;_WINDOWS;i386;_DEBUG;WIN32;_MBCS;SLP_VERSION=\&quot;1.1.1\&quot;;$(NoInherit)"
-						BasicRuntimeChecks="3"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="xcast test|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						Optimization="0"
@@ -681,15 +462,6 @@
 						PreprocessorDefinitions="_USRDLL;LIBSLP_EXPORTS;_WINDOWS;i386;_DEBUG;WIN32;_MBCS;SLP_VERSION=\&quot;1.1.1\&quot;;$(NoInherit)"
 						BasicRuntimeChecks="3"/>
 				</FileConfiguration>
-				<FileConfiguration
-					Name="xcast test|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions="_USRDLL;LIBSLP_EXPORTS;_WINDOWS;i386;_DEBUG;WIN32;_MBCS;SLP_VERSION=\&quot;1.1.1\&quot;;$(NoInherit)"
-						BasicRuntimeChecks="3"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\common\slp_database.c">
@@ -703,15 +475,6 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions="_USRDLL;LIBSLP_EXPORTS;_WINDOWS;i386;_DEBUG;WIN32;_MBCS;SLP_VERSION=\&quot;1.1.1\&quot;;$(NoInherit)"
-						BasicRuntimeChecks="3"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="xcast test|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						Optimization="0"
@@ -739,15 +502,6 @@
 						PreprocessorDefinitions="_USRDLL;LIBSLP_EXPORTS;_WINDOWS;i386;_DEBUG;WIN32;_MBCS;SLP_VERSION=\&quot;1.1.1\&quot;;$(NoInherit)"
 						BasicRuntimeChecks="3"/>
 				</FileConfiguration>
-				<FileConfiguration
-					Name="xcast test|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions="_USRDLL;LIBSLP_EXPORTS;_WINDOWS;i386;_DEBUG;WIN32;_MBCS;SLP_VERSION=\&quot;1.1.1\&quot;;$(NoInherit)"
-						BasicRuntimeChecks="3"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\common\slp_iface.c">
@@ -761,15 +515,6 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions="_USRDLL;LIBSLP_EXPORTS;_WINDOWS;i386;_DEBUG;WIN32;_MBCS;SLP_VERSION=\&quot;1.1.1\&quot;;$(NoInherit)"
-						BasicRuntimeChecks="3"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="xcast test|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						Optimization="0"
@@ -797,15 +542,6 @@
 						PreprocessorDefinitions="_USRDLL;LIBSLP_EXPORTS;_WINDOWS;i386;_DEBUG;WIN32;_MBCS;SLP_VERSION=\&quot;1.1.1\&quot;;$(NoInherit)"
 						BasicRuntimeChecks="3"/>
 				</FileConfiguration>
-				<FileConfiguration
-					Name="xcast test|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions="_USRDLL;LIBSLP_EXPORTS;_WINDOWS;i386;_DEBUG;WIN32;_MBCS;SLP_VERSION=\&quot;1.1.1\&quot;;$(NoInherit)"
-						BasicRuntimeChecks="3"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\common\slp_message.c">
@@ -819,15 +555,6 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions="_USRDLL;LIBSLP_EXPORTS;_WINDOWS;i386;_DEBUG;WIN32;_MBCS;SLP_VERSION=\&quot;1.1.1\&quot;;$(NoInherit)"
-						BasicRuntimeChecks="3"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="xcast test|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						Optimization="0"
@@ -855,15 +582,6 @@
 						PreprocessorDefinitions="_USRDLL;LIBSLP_EXPORTS;_WINDOWS;i386;_DEBUG;WIN32;_MBCS;SLP_VERSION=\&quot;1.1.1\&quot;;$(NoInherit)"
 						BasicRuntimeChecks="3"/>
 				</FileConfiguration>
-				<FileConfiguration
-					Name="xcast test|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions="_USRDLL;LIBSLP_EXPORTS;_WINDOWS;i386;_DEBUG;WIN32;_MBCS;SLP_VERSION=\&quot;1.1.1\&quot;;$(NoInherit)"
-						BasicRuntimeChecks="3"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\common\slp_network.c">
@@ -877,15 +595,6 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions="_USRDLL;LIBSLP_EXPORTS;_WINDOWS;i386;_DEBUG;WIN32;_MBCS;SLP_VERSION=\&quot;1.1.1\&quot;;$(NoInherit)"
-						BasicRuntimeChecks="3"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="xcast test|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						Optimization="0"
@@ -913,15 +622,6 @@
 						PreprocessorDefinitions="_USRDLL;LIBSLP_EXPORTS;_WINDOWS;i386;_DEBUG;WIN32;_MBCS;SLP_VERSION=\&quot;1.1.1\&quot;;$(NoInherit)"
 						BasicRuntimeChecks="3"/>
 				</FileConfiguration>
-				<FileConfiguration
-					Name="xcast test|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions="_USRDLL;LIBSLP_EXPORTS;_WINDOWS;i386;_DEBUG;WIN32;_MBCS;SLP_VERSION=\&quot;1.1.1\&quot;;$(NoInherit)"
-						BasicRuntimeChecks="3"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\common\slp_pid.c">
@@ -935,15 +635,6 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions="_USRDLL;LIBSLP_EXPORTS;_WINDOWS;i386;_DEBUG;WIN32;_MBCS;SLP_VERSION=\&quot;1.1.1\&quot;;$(NoInherit)"
-						BasicRuntimeChecks="3"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="xcast test|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						Optimization="0"
@@ -971,15 +662,6 @@
 						PreprocessorDefinitions="_USRDLL;LIBSLP_EXPORTS;_WINDOWS;i386;_DEBUG;WIN32;_MBCS;SLP_VERSION=\&quot;1.1.1\&quot;;$(NoInherit)"
 						BasicRuntimeChecks="3"/>
 				</FileConfiguration>
-				<FileConfiguration
-					Name="xcast test|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions="_USRDLL;LIBSLP_EXPORTS;_WINDOWS;i386;_DEBUG;WIN32;_MBCS;SLP_VERSION=\&quot;1.1.1\&quot;;$(NoInherit)"
-						BasicRuntimeChecks="3"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\common\slp_utf8.c">
@@ -993,15 +675,6 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions="_USRDLL;LIBSLP_EXPORTS;_WINDOWS;i386;_DEBUG;WIN32;_MBCS;SLP_VERSION=\&quot;1.1.1\&quot;;$(NoInherit)"
-						BasicRuntimeChecks="3"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="xcast test|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						Optimization="0"
@@ -1029,18 +702,6 @@
 						PreprocessorDefinitions="_USRDLL;LIBSLP_EXPORTS;_WINDOWS;i386;_DEBUG;WIN32;_MBCS;SLP_VERSION=\&quot;1.1.1\&quot;;$(NoInherit)"
 						BasicRuntimeChecks="3"/>
 				</FileConfiguration>
-				<FileConfiguration
-					Name="xcast test|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions="_USRDLL;LIBSLP_EXPORTS;_WINDOWS;i386;_DEBUG;WIN32;_MBCS;SLP_VERSION=\&quot;1.1.1\&quot;;$(NoInherit)"
-						BasicRuntimeChecks="3"/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\common\slp_win32.c">
 			</File>
 			<File
 				RelativePath="..\..\common\slp_xcast.c">
@@ -1061,15 +722,6 @@
 						PreprocessorDefinitions="_USRDLL;LIBSLP_EXPORTS;_WINDOWS;i386;_DEBUG;WIN32;_MBCS;SLP_VERSION=\&quot;1.1.1\&quot;;$(NoInherit)"
 						BasicRuntimeChecks="3"/>
 				</FileConfiguration>
-				<FileConfiguration
-					Name="xcast test|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions="_USRDLL;LIBSLP_EXPORTS;_WINDOWS;i386;_DEBUG;WIN32;_MBCS;SLP_VERSION=\&quot;1.1.1\&quot;;$(NoInherit)"
-						BasicRuntimeChecks="3"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\common\slp_xid.c">
@@ -1083,15 +735,6 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions="_USRDLL;LIBSLP_EXPORTS;_WINDOWS;i386;_DEBUG;WIN32;_MBCS;SLP_VERSION=\&quot;1.1.1\&quot;;$(NoInherit)"
-						BasicRuntimeChecks="3"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="xcast test|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						Optimization="0"
@@ -1126,7 +769,7 @@
 				RelativePath="..\..\common\slp_iface.h">
 			</File>
 			<File
-				RelativePath="..\..\common\slp_iface.h">
+				RelativePath="..\..\..\..\..\..\mpeterson\cvs\openslp\openslp.HEAD\common\slp_iface.h">
 			</File>
 			<File
 				RelativePath="..\..\common\slp_linkedlist.h">
@@ -1156,13 +799,10 @@
 				RelativePath="..\..\common\slp_v1message.h">
 			</File>
 			<File
-				RelativePath="..\..\common\slp_win32.h">
-			</File>
-			<File
 				RelativePath="..\..\common\slp_xcast.h">
 			</File>
 			<File
-				RelativePath="..\..\common\slp_xcast.h">
+				RelativePath="..\..\..\..\..\..\mpeterson\cvs\openslp\openslp.HEAD\common\slp_xcast.h">
 			</File>
 			<File
 				RelativePath="..\..\common\slp_xid.h">

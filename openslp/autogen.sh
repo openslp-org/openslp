@@ -38,15 +38,15 @@ test $TEST_TYPE $FILE || {
 }
 
 aclocal $ACLOCAL_FLAGS
-echo "alocal done"
+echo "aclocal done"
+libtoolize --force --copy
+echo "libtoolize done"
 autoheader
 echo "autoheader done"
+automake --add-missing --copy $am_opt
+echo "automake done"
 autoconf
 echo "autoconf done"
-automake --add-missing $am_opt
-echo "automake done"
-libtoolize --force
-echo "libtoolize done"
 cd $ORIGDIR
 
 echo 

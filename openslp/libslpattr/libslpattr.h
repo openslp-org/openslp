@@ -3,7 +3,6 @@
 #define SLP_ATTR_H_INCLUDED
 
 #include "../common/slp_compare.h"
-#include "../common/slp_net.h"
 #include "../libslp/slp.h"
 #include <stdio.h>
 

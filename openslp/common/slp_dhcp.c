@@ -139,7 +139,7 @@ static int dhcpCreateBCSkt(struct sockaddr_storage *peeraddr)
 
         SLPNetSetAddr(&localaddr, AF_INET, IPPORT_BOOTPC, (unsigned char *)&add, sizeof(add));
 
-    	if(bind(sockfd, (struct sockaddr*)&localaddr, sizeof(localaddr))
+		if(bind(sockfd, (struct sockaddr*)&localaddr, sizeof(localaddr))
 				|| setsockopt(sockfd, SOL_SOCKET, SO_BROADCAST,
 						(char*)&on, sizeof(on)))
 		{

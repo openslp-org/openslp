@@ -49,24 +49,25 @@
 #ifndef SLP_IFACE_H_INCLUDED
 #define SLP_IFACE_H_INCLUDED
 
+#ifdef HAVE_CONFIG_H
+# include "config.h"
+#endif
 #ifdef HAVE_SYS_TYPES_H
-#include <sys/types.h>
+# include <sys/types.h>
 #endif
 #ifdef HAVE_STDINT_H
-#include <stdint.h>
+# include <stdint.h>
 #endif
 #ifdef HAVE_NETINET_IN_H
-#include <netinet/in.h>
+# include <netinet/in.h>
 #endif
 #ifdef _WIN32
-#define WIN32_LEAN_AND_MEAN
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#ifndef IPPROTO_IPV6
-//#include <tpipv6.h> // For IPv6 Tech Preview.
-#endif
+# define WIN32_LEAN_AND_MEAN
+# include <winsock2.h>
+# include <ws2tcpip.h>
 
 #endif
+
 #include "slp_net.h"
 
 #define SLP_MAX_IFACES 100
@@ -80,6 +81,7 @@ typedef struct _SLPInterfaceInfo
     struct sockaddr_storage iface_addr[SLP_MAX_IFACES];
     struct sockaddr_storage bcast_addr[SLP_MAX_IFACES];
 }SLPIfaceInfo;
+
 
 /*=========================================================================*/
 int SLPIfaceGetInfo(const char* useifaces,

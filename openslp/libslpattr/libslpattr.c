@@ -1,7 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-#include <math.h>
 #include <ctype.h>
 
 #include "libslpattr.h"
@@ -360,6 +359,11 @@ int find_value_list_end(char const *value, int *value_count, SLPType
         (*cur)++;
     }
 
+    if (type_guess == TYPE_UNKNOWN)
+    {
+	return 0;	/* empty */
+    }
+
     *type = type_guess;
     return 1;
 }
@@ -393,32 +397,21 @@ char *find_value_end(char *value)
  */
 int count_digits(int number)
 {
-    int count = 0;
+    int count = (number < 0) ? 1 : 0;	/* do we need a negative sign ? */
 
-    /***** As far as I recall, log is undefined at one... *****/
-    if(number == 1)
-    {
+    /* special case: 0 */
+    if (number == 0)
         return 1;
-    }
-    if(number == -1)
-    {
-        return 2;
+
+    /* poor man's abs() function */
+    number = (number < 0 ) ? -number : number;
+
+    /* count number of digits required; this only works with integers */
+    for ( ; number > 0; number /= 10) {
+	count++;
     }
 
-    /***** Does it require a negative sign? *****/
-    if(number < 0)
-    {
-        count += 1;
-    }
-
-    /***** Count digits *****/
-    /*** Can't take the log of zero. ***/
-    if(number == 0)
-    {
-        return 1 + count;
-    }
-
-    return count + (int)(ceil(log10((double)labs(number))));
+    return count;
 }
 
 

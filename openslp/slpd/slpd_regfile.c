@@ -153,6 +153,7 @@ int SLPDRegFileReadSrvReg(FILE* fd,
 {
     char*   slider1;
     char*   slider2;
+    char*   p;
     char    line[4096];
     
     struct  sockaddr_storage    peer;
@@ -212,6 +213,17 @@ int SLPDRegFileReadSrvReg(FILE* fd,
             result = SLP_ERROR_INTERNAL_ERROR;
             goto CLEANUP;
         }
+
+	/* replace "$HOSTNAME" string in url */
+	while ((p = strchr(url, '$')) && !strncmp(p, "$HOSTNAME", 9))
+	{
+	    char *_url = (char*)malloc(strlen(url) - 9 + G_SlpdProperty.myHostnameLen + 1);
+	    strncpy(_url, url, p - url);
+	    strncpy(_url + (p - url), G_SlpdProperty.myHostname, G_SlpdProperty.myHostnameLen);
+	    strcpy(_url + (p - url) + G_SlpdProperty.myHostnameLen, url + (p - url) + 9);
+	    free(url);
+	    url = _url;
+	}
         urllen = strlen(url);
 
         /* derive srvtype from srvurl */

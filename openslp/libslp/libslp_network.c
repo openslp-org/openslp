@@ -260,29 +260,29 @@ SLPError NetworkRqstRply(int sock,
 /* Returns  -    SLP_OK on success                                         */
 /*=========================================================================*/ 
 {
-    struct timeval			timeout;
+    struct timeval      timeout;
     struct sockaddr_storage  peeraddr;
-    SLPBuffer				sendbuf         = 0;
-    SLPBuffer				recvbuf         = 0;
-    SLPError				result          = 0;
-    int						looprecv        = 0;
-    int						langtaglen      = 0;
-    int						prlistlen       = 0;
-    char*					prlist          = 0;
-    int						xid             = 0;
-    int						mtu             = 0;
-    int						size            = 0;
-    int						xmitcount       = 0;
-    int						rplycount       = 0;
-    int						maxwait         = 0;
-    int						totaltimeout    = 0;
+    SLPBuffer           sendbuf         = 0;
+    SLPBuffer           recvbuf         = 0;
+    SLPError            result          = 0;
+    int                 looprecv        = 0;
+    int                 langtaglen      = 0;
+    int                 prlistlen       = 0;
+    char*               prlist          = 0;
+    int                 xid             = 0;
+    int                 mtu             = 0;
+    int                 size            = 0;
+    int                 xmitcount       = 0;
+    int                 rplycount       = 0;
+    int                 maxwait         = 0;
+    int                 totaltimeout    = 0;
 #ifdef _WIN32 /* on WIN32 setsockopt takes a const char * argument */
-    char					socktype        = 0;
+    char                socktype        = 0;
 #else
-    int						socktype        = 0;
+    int                 socktype        = 0;
 #endif
-    int						timeouts[MAX_RETRANSMITS];
-    unsigned short			flags;
+    int                 timeouts[MAX_RETRANSMITS];
+    unsigned short      flags;
 
 
     /*----------------------------------------------------*/
@@ -651,27 +651,27 @@ SLPError NetworkMcastRqstRply(const char* langtag,
 /* Returns  -    SLP_OK on success. SLP_ERROR on failure                   */
 /*=========================================================================*/ 
 {
-    struct timeval			timeout;
+    struct timeval      timeout;
     struct sockaddr_storage peeraddr;
-    SLPBuffer				sendbuf         = 0;
-    SLPBuffer				recvbuf         = 0;
-    SLPError				result          = 0;
-    int						langtaglen      = 0;
-    int						prlistlen       = 0;
-    char*					prlist          = 0;
-    int						xid             = 0;
-    int						mtu             = 0;
-    int						size            = 0;
-    int						xmitcount       = 0;
-    int						rplycount       = 0;
-    int						maxwait         = 0;
-    int						totaltimeout    = 0;
-    int						usebroadcast    = 0;
-    int						timeouts[MAX_RETRANSMITS];
+    SLPBuffer           sendbuf         = 0;
+    SLPBuffer           recvbuf         = 0;
+    SLPError            result          = 0;
+    int                 langtaglen      = 0;
+    int                 prlistlen       = 0;
+    char*               prlist          = 0;
+    int                 xid             = 0;
+    int                 mtu             = 0;
+    int                 size            = 0;
+    int                 xmitcount       = 0;
+    int                 rplycount       = 0;
+    int                 maxwait         = 0;
+    int                 totaltimeout    = 0;
+    int                 usebroadcast    = 0;
+    int                 timeouts[MAX_RETRANSMITS];
     SLPIfaceInfo			dstifaceinfo;
 	SLPIfaceInfo			v4outifaceinfo;
 	SLPIfaceInfo			v6outifaceinfo;
-    SLPXcastSockets			xcastsocks;
+    SLPXcastSockets     xcastsocks;
 	int						currIntf		= 0;
     int                     requestSent;
 
@@ -1022,7 +1022,8 @@ SLPError NetworkMcastRqstRply(const char* langtag,
 						/* We are done!                       */
 						goto CLEANUP;
 					}
-	                 
+                if (prlistlen + 14 < mtu)
+		{ 
 					/* add the peer to the previous responder list */
 					if(prlistlen != 0)
 					{
@@ -1042,7 +1043,7 @@ SLPError NetworkMcastRqstRply(const char* langtag,
                     }
 				}
 			}
-
+		}
 			SLPXcastSocketsClose(&xcastsocks);
 		}
 #ifndef MI_NOT_SUPPORTED

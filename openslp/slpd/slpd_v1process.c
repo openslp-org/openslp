@@ -46,7 +46,6 @@
 /*                                                                         */
 /***************************************************************************/
 
-#if defined(ENABLE_SLPv1)
 
 /*=========================================================================*/
 /* slpd includes                                                           */
@@ -909,5 +908,3 @@ int SLPDv1ProcessMessage(struct sockaddr_storage* peeraddr,
 
     return errorcode;
 }                
-
-#endif /* ENABLE_SLPv1 */

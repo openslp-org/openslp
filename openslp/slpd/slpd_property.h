@@ -61,6 +61,8 @@ typedef struct _SLPDProperty
 {
     int             urlPrefixLen;
     const char*     urlPrefix;
+    int             myHostnameLen;
+    const char*     myHostname;
     int             useScopesLen;
     const char*     useScopes; 
     int             DAAddressesLen;
@@ -69,6 +71,7 @@ typedef struct _SLPDProperty
     SLPIfaceInfo    ifaceInfo;
     int             interfacesLen;
     const char*     interfaces;
+    int             updateIfaces;
     int             localeLen;
     const char*     locale;
     int             isBroadcastOnly;

@@ -54,4 +54,3 @@ slpd_socket.h
 #if you're building on Irix, exchange commented and uncommented lines
 #slpd_LDADD      =  ../common/libcommonslpd.a ../libslpattr/libslpattr.a
 slpd_LDADD      =  ../common/libcommonslpd.la ../libslpattr/libslpattr.la
-

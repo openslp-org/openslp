@@ -51,6 +51,13 @@
 #include <string.h>
 #include <errno.h>
 
+#ifndef _WIN32
+# ifdef HAVE_CONFIG_H
+#  include "config.h"
+#  define SLP_VERSION VERSION
+# endif
+#endif
+
 #include "slp_property.h"
 #include "slp_xmalloc.h"
 
@@ -191,7 +198,7 @@ int SetDefaultValues()
     result |= SLPPropertySet("net.slp.DAAddresses","");
     result |= SLPPropertySet("net.slp.watchRegistrationPID","true");
     result |= SLPPropertySet("net.slp.activeDADetection","true");
-    result |= SLPPropertySet("net.slp.passiveDADetection","false");
+    result |= SLPPropertySet("net.slp.passiveDADetection","true");
     result |= SLPPropertySet("net.slp.useScopes","default");
     result |= SLPPropertySet("net.slp.locale","en");
     result |= SLPPropertySet("net.slp.randomWaitBound","5000");
@@ -208,14 +215,10 @@ int SetDefaultValues()
 
     result |= SLPPropertySet("net.slp.securityEnabled","false");
     result |= SLPPropertySet("net.slp.checkSourceAddr","true");
-#ifdef _WIN32
     result |= SLPPropertySet("net.slp.OpenSLPVersion", SLP_VERSION);
-#else /* UNIX */
-    result |= SLPPropertySet("net.slp.OpenSLPVersion", VERSION);
-#endif
     result |= SLPPropertySet("net.slp.useIPV4", "true");
-    result |= SLPPropertySet("net.slp.useIPV6", "true");
-	result |= SLPPropertySet("net.slp.broadcastAddr", "255.255.255.255");
+    result |= SLPPropertySet("net.slp.useIPV6", "false");
+    result |= SLPPropertySet("net.slp.broadcastAddr", "255.255.255.255");
 
     return result;
 }
@@ -238,7 +241,6 @@ int SLPPropertyReadFile(const char* conffile)
     char*   nameend;
     char*   valuestart;
     char*   valueend; 
-    int     sts = 0;
 
     if(SetDefaultValues())
     {
@@ -246,91 +248,101 @@ int SLPPropertyReadFile(const char* conffile)
     }
 
     alloced = xmalloc(4096);
-    if(alloced) {
-        fp = fopen(conffile,"r");
-        if(fp)
+    if(alloced == 0)
+    {
+        /* out of memory */
+        errno = ENOMEM;
+        return -1;
+    }
+
+    fp = fopen(conffile,"r");
+    if(!fp)
+    {
+        goto CLEANUP;
+    }
+
+    /* Set the property that keeps track of conffile */
+    SLPPropertySet("net.slp.OpenSLPConfigFile",conffile);
+
+    while(fgets(alloced,4096,fp))
+    {
+        line = alloced;
+
+        /* trim whitespace */
+        while(*line && *line <= 0x20)
         {
-            /* Set the property that keeps track of conffile */
-            SLPPropertySet("net.slp.OpenSLPConfigFile",conffile);
-
-            while(fgets(alloced,4096,fp))
-            {
-                line = alloced;
-
-                /* trim whitespace */
-                while(*line && *line <= 0x20)
-                {
-                    line++;
-                }
-
-                if(*line == 0)
-                {
-                    continue;
-                }
-
-                /* skip commented lines */
-                if(*line == '#' || *line == ';')
-                {
-                    continue;
-                }
-
-                /* parse out the property name*/
-                namestart = line;
-                nameend = line;
-                nameend = strchr(nameend,'=');
-
-                if(nameend == 0)
-                {
-                    continue;
-                }
-                valuestart = nameend + 1;  /* start of value for later*/
-
-                while(*nameend <= 0x20 || *nameend == '=')
-                {
-                    *nameend = 0;
-                    nameend --;
-                }
-
-                /* parse out the property value */
-                while(*valuestart && *valuestart <= 0x20)
-                {
-                    valuestart++;
-                }
-
-                valueend = valuestart;
-
-                /* Seek to the end of the value */
-                while(*valueend)
-                {
-                    valueend++;
-                }
-                
-                /* Remove any whitespace that might be present */
-                while(valueend != valuestart && *valueend <= 0x20)
-                {
-                    *valueend = 0;
-                    valueend --;
-                }
-
-                /* set the property */
-                if(valuestart && *valuestart)
-                {
-                    SLPPropertySet(namestart, valuestart);
-                }
-            }
-            fclose(fp);
+            line++;
         }
-        else {
-            sts = 0; // file not found
-            // from usage - this is what you want - success if file not found - yuck
+
+        if(*line == 0)
+        {
+            continue;
         }
+
+        /* skip commented lines */
+        if(*line == '#' || *line == ';')
+        {
+            continue;
+        }
+
+        /* parse out the property name*/
+        namestart = line;
+        nameend = line;
+        nameend = strchr(nameend,'=');
+
+        if(nameend == 0)
+        {
+            continue;
+        }
+        valuestart = nameend + 1;  /* start of value for later*/
+
+        while(*nameend <= 0x20 || *nameend == '=')
+        {
+            *nameend = 0;
+            nameend --;
+        }
+
+        /* parse out the property value */
+        while(*valuestart && *valuestart <= 0x20)
+        {
+            valuestart++;
+        }
+
+        valueend = valuestart;
+
+        /* Seek to the end of the value */
+        while(*valueend)
+        {
+            valueend++;
+        }
+        
+        /* Remove any whitespace that might be present */
+        while(valueend != valuestart && *valueend <= 0x20)
+        {
+            *valueend = 0;
+            valueend --;
+        }
+
+        /* set the property */
+        if(valuestart && *valuestart)
+        {
+            SLPPropertySet(namestart, valuestart);
+        }
+    }   
+
+
+    CLEANUP:
+    if(fp)
+    {
+        fclose(fp);
+    }
+
+    if(alloced)
+    {
         xfree(alloced);
     }
-    else {
-        errno = ENOMEM;
-        sts = -2;  // out of memory
-    }
-    return(sts);
+
+    return 0;
 }
 
 /*=========================================================================*/

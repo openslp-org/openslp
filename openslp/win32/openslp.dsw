@@ -1,14 +1,11 @@
 Microsoft Developer Studio Workspace File, Format Version 6.00
 # WARNING: DO NOT EDIT OR DELETE THIS WORKSPACE FILE!
-
 ###############################################################################
 
 Project: "libslp"=.\libslp\libslp.dsp - Package Owner=<4>
-
 Package=<5>
 {{{
 }}}
-
 Package=<4>
 {{{
 }}}
@@ -16,11 +13,9 @@ Package=<4>
 ###############################################################################
 
 Project: "slpd"=.\slpd\slpd.dsp - Package Owner=<4>
-
 Package=<5>
 {{{
 }}}
-
 Package=<4>
 {{{
 }}}
@@ -28,11 +23,9 @@ Package=<4>
 ###############################################################################
 
 Project: "slptool"=.\slptool\slptool.dsp - Package Owner=<4>
-
 Package=<5>
 {{{
 }}}
-
 Package=<4>
 {{{
 }}}
@@ -40,14 +33,11 @@ Package=<4>
 ###############################################################################
 
 Global:
-
 Package=<5>
 {{{
 }}}
-
 Package=<3>
 {{{
 }}}
 
 ###############################################################################
-

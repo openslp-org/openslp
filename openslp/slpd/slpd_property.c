@@ -71,6 +71,7 @@ SLPDProperty G_SlpdProperty;
 int SLPDPropertyInit(const char* conffile)
 /*=========================================================================*/
 {
+    char*               myname = 0;
     char*                   myinterfaces = 0;
     char*                   urlPrefix[27];    /* 27 is the size of "service:directory-agent://(NULL)" */
     int                     family = AF_UNSPEC;
@@ -150,7 +151,26 @@ int SLPDPropertyInit(const char* conffile)
     }
     G_SlpdProperty.interfacesLen = strlen(G_SlpdProperty.interfaces);
     
-    
+    /*----------------------------*/
+    /* Get out canonical hostname */
+    /*----------------------------*/
+    if(SLPNetGetThisHostname(&myname,0) == 0)
+    {
+	if (!myname && !G_SlpdProperty.myHostnameLen)
+	    myname = xstrdup("127.0.0.1");
+	if (myname)
+	{
+	    SLPPropertySet("net.slp.myHostname",myname);
+	    xfree(myname);
+	    G_SlpdProperty.myHostname = SLPPropertyGet("net.slp.myHostname");
+	    G_SlpdProperty.myHostnameLen = strlen(G_SlpdProperty.myHostname);
+	}
+    }
+
+    /* NOTE! A portion of this code was merged from the 1.2.x line.
+       It needs to be fixed because IPv6 mods changed the algorithm
+       so the merge was bad. FIX!!! */
+
     /*---------------------------------------------------------*/
     /* Set the value used internally as the url for this agent */
     /*---------------------------------------------------------*/

@@ -34,20 +34,23 @@
 
 #include "slptool.h"
 
-
-#ifdef WIN32
-#define strncasecmp(String1, String2, Num) strnicmp(String1, String2, Num)
-#define strcasecmp(String1, String2) stricmp(String1, String2)
-#define inet_aton(opt,bind) ((bind)->s_addr = inet_addr(opt))
+#ifdef _WIN32
+# define strncasecmp(String1, String2, Num) strnicmp(String1, String2, Num)
+# define strcasecmp(String1, String2) stricmp(String1, String2)
+# define inet_aton(opt,bind) ((bind)->s_addr = inet_addr(opt))
 #else
-#ifndef HAVE_STRNCASECMP
-int
-strncasecmp(const char *s1, const char *s2, size_t len);
-#endif
-#ifndef HAVE_STRCASECMP
-int
-strcasecmp(const char *s1, const char *s2);
-#endif
+# ifdef HAVE_CONFIG_H
+#  include "config.h"
+#  define SLP_VERSION VERSION
+# else
+#  define SLP_VERSION 1.3.0
+# endif
+# ifndef HAVE_STRNCASECMP
+int strncasecmp(const char *s1, const char *s2, size_t len);
+# endif
+# ifndef HAVE_STRCASECMP
+int strcasecmp(const char *s1, const char *s2);
+# endif
 #endif 
 
 
@@ -481,7 +484,7 @@ void Register(SLPToolCommandLine* cmdline)
 
         result = SLPReg(hslp,
                         cmdline->cmdparam1,
-                        SLP_LIFETIME_DEFAULT,
+                        SLP_LIFETIME_MAXIMUM,
                         srvtype,
                         cmdline->cmdparam2,
                         SLP_TRUE,
@@ -521,11 +524,7 @@ void Deregister(SLPToolCommandLine* cmdline)
 void PrintVersion(SLPToolCommandLine* cmdline)
 /*=========================================================================*/
 {
-#ifdef WIN32
-    printf("slptool version = %s\n",SLP_VERSION);
-#else
-	printf("slptool version = %s\n",VERSION);
-#endif
+    printf("slptool version = %s\n", SLP_VERSION);
     printf("libslp version = %s\n", 
            SLPGetProperty("net.slp.OpenSLPVersion"));
 
@@ -1053,6 +1052,10 @@ int main(int argc, char* argv[])
 
 	 case PRINT_VERSION:
 	    PrintVersion(&cmdline);
+	    break;
+
+	 case DUMMY:
+	    break;
         }
     }
     else

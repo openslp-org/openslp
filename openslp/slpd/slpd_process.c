@@ -1354,11 +1354,14 @@ int SLPDProcessMessage(struct sockaddr_storage* peerinfo,
 
     SLPDLogMessage(SLPDLOG_TRACEMSG_IN,peerinfo,localaddr,recvbuf);
 
-    /* set the sendbuf empty */
-    if(*sendbuf)
+    if(!*sendbuf)
     {
-        (*sendbuf)->end = (*sendbuf)->start;
+	*sendbuf = SLPBufferAlloc(SLP_MAX_DATAGRAM_SIZE);
+	if (!*sendbuf)
+	    return SLP_ERROR_PARSE_ERROR;
     }
+    /* set the sendbuf empty */
+    (*sendbuf)->end = (*sendbuf)->start;
 
     /* zero out the header before parsing it */
     memset(&header,0,sizeof(header));

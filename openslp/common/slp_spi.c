@@ -267,9 +267,9 @@ SLPSpiHandle SLPSpiOpen(const char* spifile, int cacheprivate)
     fp = fopen(spifile,"r");
     if(fp)
     {
-        result = xmalloc(sizeof(structSLPSpiHandle));
+        result = xmalloc(sizeof(struct _SLPSpiHandle));
         if(result == 0) return 0;
-        memset(result, 0, sizeof(structSLPSpiHandle));
+        memset(result, 0, sizeof(struct _SLPSpiHandle));
         
         result->spifile = xstrdup(spifile);
         result->cacheprivate = cacheprivate;
@@ -395,6 +395,8 @@ SLPCryptoDSAKey* SLPSpiGetDSAKey(SLPSpiHandle hspi,
                 }
                 
                 tmp->key = SLPSpiReadKeyFile(tmp->keyfilename,keytype);
+		if (tmp->key == 0)
+		    return 0;
             }
 
             *key = SLPCryptoDSAKeyDup(tmp->key);

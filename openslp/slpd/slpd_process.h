@@ -48,7 +48,7 @@
 
 #ifndef SLPD_PROCESS_H_INCLUDED
 #define SLPD_PROCESS_H_INCLUDED
-     
+
 #include "slpd.h"  
 
 /*=========================================================================*/
@@ -61,7 +61,7 @@
 int SLPDProcessMessage(struct sockaddr_storage* peerinfo,
                        struct sockaddr_storage* localaddr,
                        SLPBuffer recvbuf,
-                       SLPBuffer* sendbuf);
+                       SLPBuffer* sendbuf) ;
 /* Processes the recvbuf and places the results in sendbuf                 */
 /*                                                                         */
 /* peerinfo   - the socket the message was received on                     */

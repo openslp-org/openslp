@@ -58,17 +58,11 @@ extern "C"
 #endif
 
 #if defined(_WIN32) && defined(_MSC_VER)
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#ifndef IPPROTO_IPV6
-//#include <tpipv6.h> // For IPv6 Tech Preview.
-#endif
-
 /* MSVC auto-exports, BCB uses .def file */
 # define SLPCALLBACK
-# if (defined LIBSLP_EXPORTS)
+# ifdef LIBSLP_EXPORTS
 #  define SLPEXP __declspec(dllexport)
-# elif (defined LIBSLP_STATIC)
+# elif defined(LIBSLP_STATIC)
 #  define SLPEXP
 # else
 #  define SLPEXP __declspec(dllimport)

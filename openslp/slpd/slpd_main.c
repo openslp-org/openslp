@@ -407,8 +407,11 @@ int Daemonize(const char* pidfile)
            setuid(pwent->pw_uid) < 0)
         {
             /* TODO: should we log here and return fail */
+	    exit(1);
         }
     }
+    else
+	exit(1);
 
     /*--------------------*/
     /* Set cwd to / (root)*/
@@ -558,6 +561,7 @@ int main(int argc, char* argv[])
         SLPDFatal("slpd initialization failed\n");
     }
     SLPDLog("Agent Interfaces = %s\n",G_SlpdProperty.interfaces);
+    SLPDLog("Agent URL = %s\n",G_SlpdProperty.myUrl);
 
     /*---------------------------*/
     /* make slpd run as a daemon */

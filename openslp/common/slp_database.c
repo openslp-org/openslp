@@ -253,7 +253,7 @@ int SLPDatabaseCount(SLPDatabaseHandle dh)
     return dh->database->count;
 }
 
-//#define TEST_SLP_DATABASE_TEST
+
 #ifdef TEST_SLP_DATABASE_TEST
 
 int main(int argc, char* argv[])

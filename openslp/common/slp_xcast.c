@@ -49,9 +49,6 @@
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <winsock2.h>
-#ifndef IPPROTO_IPV6
-//#include <tpipv6.h> // For IPv6 Tech Preview.
-#endif
 #include <ws2tcpip.H>
 #include <windows.h>
 #include <io.h>
