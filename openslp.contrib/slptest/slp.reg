@@ -83,7 +83,7 @@ service:scope2://192.168.100.5,en,65535
 scopes=testscope
 daysinyear=365
 yearsindecade=10
-hugenumber=22000000000
+hugenumber=220000000000
 phone=435-123-4567
 alphanumeric=13AbbyRD
 

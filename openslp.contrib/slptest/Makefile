@@ -68,3 +68,15 @@ test:
 	-./slp_findattrs/slp_findattrs
 	-./slp_reg/slp_reg
 	-./slp_dereg/slp_dereg
+	@echo 
+	@echo "****** Testing ParseSrvUrl ******************"
+	-@PSU=`./slp_parsesrvurl/slp_parsesrvurl < ./slp_parsesrvurl/test.in | diff ./slp_parsesrvurl/expected.out - | grep -c ".*"`; \
+	if [ $$PSU > 0 ]; then \
+		echo "Result:   **FAILED**"; \
+		echo "Differences: (see ./slp_parsesrvurl/README)"; \
+		./slp_parsesrvurl/slp_parsesrvurl < ./slp_parsesrvurl/test.in | diff ./slp_parsesrvurl/expected.out - ; \
+	else \
+		echo "Result:     PASSED"; \
+	fi
+
+	
