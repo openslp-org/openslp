@@ -81,7 +81,7 @@ void SLPDPrintUsage()
 {
 
 #ifdef _WIN32
-    fprintf(stderr,"USAGE: slpd -install-auto|-install-manual|-remove|-start|-stop|-debug [-d] [-c conf file] [-l log file] [-s spi file] [-r reg file] [-v version]\n");
+    fprintf(stderr,"USAGE: slpd -install [auto]|-remove|-start|-stop|-debug [-d] [-c conf file] [-l log file] [-s spi file] [-r reg file] [-v version]\n");
 #else
     fprintf(stderr,"USAGE: slpd [-d] [-c conf file] [-l log file] [-r reg file] [-s spi file] [-v version]\n");
 #endif
@@ -128,13 +128,14 @@ int SLPDParseCommandLine(int argc,char* argv[])
     for(i=1; i<argc; i++)
     {
 #ifdef _WIN32
-        if(strcmp(argv[i],"-install-auto") == 0)
+        if(strcmp(argv[i],"-install") == 0)
         {
-            G_SlpdCommandLine.action = SLPD_INSTALL_AUTO;
-        }
-        else if(strcmp(argv[i],"-install-manual") == 0)
+            G_SlpdCommandLine.action = SLPD_INSTALL;
+				if (i+1 < argc && strcmp(argv[i+1], "auto") == 0)
         {
-            G_SlpdCommandLine.action = SLPD_INSTALL_MANUAL;
+					i++;
+					G_SlpdCommandLine.autostart = 1;
+				}
         }
         else if(strcmp(argv[i],"-remove") == 0)
         {

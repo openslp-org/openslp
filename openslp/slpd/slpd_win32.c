@@ -715,11 +715,8 @@ void __cdecl main(int argc, char **argv)
     case SLPD_DEBUG:
         SLPDCmdDebugService(argc, argv);
         break;
-    case SLPD_INSTALL_AUTO:
-        SLPDCmdInstallService(1);
-        break;
-    case SLPD_INSTALL_MANUAL:
-        SLPDCmdInstallService(0);
+    case SLPD_INSTALL:
+        SLPDCmdInstallService(G_SlpdCommandLine.autostart);
         break;
     case SLPD_REMOVE:
         SLPDCmdRemoveService();

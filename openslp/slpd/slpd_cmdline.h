@@ -90,6 +90,7 @@ typedef struct _SLPDCommandLine
     char   spifile[MAX_PATH];
 #endif
     int    action;
+	 int	  autostart;
     int    detach;
 }SLPDCommandLine;
 
