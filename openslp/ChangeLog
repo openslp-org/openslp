@@ -6,6 +6,9 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 
+10/09/01 matt@caldera.com
+Changed install script so that it does not erase existing configuration files
+
 10/08/01 matt@caldera.com
 Fixed reconnect code to be able to interoperate with inefficient DAs that
 close the stream after each srvreg/srvack exchange.  The Mac OS/X DA is 
