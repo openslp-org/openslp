@@ -53,6 +53,10 @@ BSC32=bscmake.exe
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /machine:I386
 # ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /machine:I386
+# Begin Special Build Tool
+SOURCE="$(InputPath)"
+PostBuild_Cmds=copy ..\..\libslp\slp.h release
+# End Special Build Tool
 
 !ELSEIF  "$(CFG)" == "slpd - Win32 Debug"
 
@@ -78,6 +82,11 @@ BSC32=bscmake.exe
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept
 # ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept
+# Begin Special Build Tool
+SOURCE="$(InputPath)"
+PostBuild_Desc=Copy slp.h ...
+PostBuild_Cmds=copy ..\..\libslp\slp.h debug
+# End Special Build Tool
 
 !ENDIF 
 
@@ -90,47 +99,47 @@ LINK32=link.exe
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
-SOURCE=\openslp\common\slp_buffer.c
+SOURCE=\mpeterson\cvs\openslp\common\slp_buffer.c
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\common\slp_compare.c
+SOURCE=\mpeterson\cvs\openslp\common\slp_compare.c
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\common\slp_da.c
+SOURCE=\mpeterson\cvs\openslp\common\slp_da.c
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\common\slp_linkedlist.c
+SOURCE=\mpeterson\cvs\openslp\common\slp_linkedlist.c
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\common\slp_logfile.c
+SOURCE=\mpeterson\cvs\openslp\common\slp_logfile.c
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\common\slp_message.c
+SOURCE=\mpeterson\cvs\openslp\common\slp_message.c
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\common\slp_network.c
+SOURCE=\mpeterson\cvs\openslp\slp_network.c
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\common\slp_property.c
+SOURCE=\mpeterson\cvs\openslp\common\slp_property.c
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\common\slp_utf8.c
+SOURCE=\mpeterson\cvs\openslp\common\slp_utf8.c
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\common\slp_v1message.c
+SOURCE=\mpeterson\cvs\openslp\common\slp_v1message.c
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\common\slp_xid.c
+SOURCE=\mpeterson\cvs\openslp\common\slp_xid.c
 # End Source File
 # Begin Source File
 

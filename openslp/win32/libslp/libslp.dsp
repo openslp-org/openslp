@@ -54,6 +54,10 @@ BSC32=bscmake.exe
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /machine:I386
 # ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib wsock32.lib /nologo /dll /machine:I386
+# Begin Special Build Tool
+SOURCE="$(InputPath)"
+PostBuild_Cmds=copy ..\..\libslp\slp.h release
+# End Special Build Tool
 
 !ELSEIF  "$(CFG)" == "libslp - Win32 Debug"
 
@@ -68,8 +72,8 @@ LINK32=link.exe
 # PROP Intermediate_Dir "Debug"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
-# ADD BASE CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "LIBSLP_EXPORTS" /YX /FD /GZ  /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "LIBSLP_EXPORTS" /YX /FD /GZ  /c
+# ADD BASE CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "LIBSLP_EXPORTS" /YX /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "LIBSLP_EXPORTS" /YX /FD /GZ /c
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
@@ -80,6 +84,11 @@ BSC32=bscmake.exe
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /debug /machine:I386 /pdbtype:sept
 # ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib wsock32.lib /nologo /dll /debug /machine:I386 /pdbtype:sept
+# Begin Special Build Tool
+SOURCE="$(InputPath)"
+PostBuild_Desc=Copy slp.h ...
+PostBuild_Cmds=copy ..\..\libslp\slp.h debug
+# End Special Build Tool
 
 !ENDIF 
 
@@ -92,99 +101,103 @@ LINK32=link.exe
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
-SOURCE=\openslp\libslp\libslp_delattrs.c
+SOURCE=.\libslp.def
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\libslp\libslp_dereg.c
+SOURCE=..\..\libslp\libslp_delattrs.c
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\libslp\libslp_findattrs.c
+SOURCE=..\..\libslp\libslp_dereg.c
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\libslp\libslp_findscopes.c
+SOURCE=..\..\libslp\libslp_findattrs.c
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\libslp\libslp_findsrvs.c
+SOURCE=..\..\libslp\libslp_findscopes.c
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\libslp\libslp_findsrvtypes.c
+SOURCE=..\..\libslp\libslp_findsrvs.c
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\libslp\libslp_handle.c
+SOURCE=..\..\libslp\libslp_findsrvtypes.c
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\libslp\libslp_knownda.c
+SOURCE=..\..\libslp\libslp_handle.c
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\libslp\libslp_network.c
+SOURCE=..\..\libslp\libslp_knownda.c
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\libslp\libslp_parse.c
+SOURCE=..\..\libslp\libslp_network.c
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\libslp\libslp_property.c
+SOURCE=..\..\libslp\libslp_parse.c
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\libslp\libslp_reg.c
+SOURCE=..\..\libslp\libslp_property.c
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\libslp\libslp_thread.c
+SOURCE=..\..\libslp\libslp_reg.c
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\common\slp_buffer.c
+SOURCE=..\..\libslp\libslp_thread.c
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\common\slp_compare.c
+SOURCE=..\..\common\slp_buffer.c
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\common\slp_da.c
+SOURCE=..\..\common\slp_compare.c
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\common\slp_linkedlist.c
+SOURCE=..\..\common\slp_da.c
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\common\slp_logfile.c
+SOURCE=..\..\common\slp_linkedlist.c
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\common\slp_message.c
+SOURCE=..\..\common\slp_logfile.c
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\common\slp_network.c
+SOURCE=..\..\common\slp_message.c
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\common\slp_property.c
+SOURCE=..\..\common\slp_network.c
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\common\slp_utf8.c
+SOURCE=..\..\common\slp_property.c
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\common\slp_v1message.c
+SOURCE=..\..\common\slp_utf8.c
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\common\slp_xid.c
+SOURCE=..\..\common\slp_v1message.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\common\slp_xid.c
 # End Source File
 # End Group
 # Begin Group "Header Files"
@@ -192,55 +205,51 @@ SOURCE=\openslp\common\slp_xid.c
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
 # Begin Source File
 
-SOURCE=\openslp\libslp\libslp.h
+SOURCE=..\..\libslp\libslp.h
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\libslp\resource.h
+SOURCE=..\..\libslp\slp.h
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\libslp\slp.h
+SOURCE=..\..\common\slp_buffer.h
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\common\slp_buffer.h
+SOURCE=..\..\common\slp_compare.h
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\common\slp_compare.h
+SOURCE=..\..\common\slp_da.h
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\common\slp_da.h
+SOURCE=..\..\common\slp_linkedlist.h
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\common\slp_linkedlist.h
+SOURCE=..\..\common\slp_logfile.h
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\common\slp_logfile.h
+SOURCE=..\..\common\slp_message.h
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\common\slp_message.h
+SOURCE=..\..\common\slp_network.h
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\common\slp_network.h
+SOURCE=..\..\common\slp_property.h
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\common\slp_property.h
+SOURCE=..\..\common\slp_v1message.h
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\common\slp_v1message.h
-# End Source File
-# Begin Source File
-
-SOURCE=\openslp\common\slp_xid.h
+SOURCE=..\..\common\slp_xid.h
 # End Source File
 # End Group
 # Begin Group "Resource Files"
