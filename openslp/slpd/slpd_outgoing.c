@@ -121,7 +121,7 @@ void OutgoingStreamReconnect(SLPList* socklist, SLPDSocket* sock)
     /* Log that reconnect warning */
     SLPDLog("WARNING: Reconnect to agent at %s.  Agent may not be making efficient \n"
             "         use of TCP.\n",
-            inet_ntop(sock->peeraddr.ss_family, sock->peeraddr, addr_str, sizeof(addr_str)));
+            SLPNetSockAddrStorageToString(&(sock->peeraddr), addr_str, sizeof(addr_str)));
     #endif
 
     /*----------------------------------------------------------------*/
@@ -135,7 +135,7 @@ void OutgoingStreamReconnect(SLPList* socklist, SLPDSocket* sock)
         sock->state = SOCKET_CLOSE;
         SLPDLog("WARNING: Reconnect tries to agent at %s exceeded maximum. It\n"
                 "         is possible that the agent is malicious.  Check it out!\n",
-                inet_ntop(sock->peeraddr.ss_family, &(sock->peeraddr), addr_str, sizeof(addr_str)));
+                SLPNetSockAddrStorageToString(&(sock->peeraddr), addr_str, sizeof(addr_str)));
         return;
     }
 

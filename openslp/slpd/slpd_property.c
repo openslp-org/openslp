@@ -129,7 +129,8 @@ int SLPDPropertyInit(const char* conffile)
     /*-------------------------------------*/
     /* Set the net.slp.interfaces property */
     /*-------------------------------------*/
-    if(SLPIfaceGetInfo(SLPPropertyGet("net.slp.interfaces"),&G_SlpdProperty.ifaceInfo) == 0)
+    //// this will need to be done twice, once for ipv4 and once for ipv6
+    if(SLPIfaceGetInfo(SLPPropertyGet("net.slp.interfaces"),&G_SlpdProperty.ifaceInfo,AF_INET) == 0)
     {
         if(SLPPropertyGet("net.slp.interfaces"))
         {
@@ -153,7 +154,8 @@ int SLPDPropertyInit(const char* conffile)
     /* Set the value used internally as the url for this agent */
     /*---------------------------------------------------------*/
     /* 27 is the size of "service:directory-agent://(NULL)" */
-    if(SLPNetGetThisHostname(myname,sizeof(myname),1) == 0)
+    //// ipv6 stuff needs to be done here too
+    if(SLPNetGetThisHostname(myname,sizeof(myname),1,AF_INET) == 0)
     {
         /* if myname is an IPv6 address, wrap it with '[' and ']' */
         myaddr_check = inet_pton(AF_INET6, myname, &myaddr);
@@ -188,7 +190,6 @@ int SLPDPropertyInit(const char* conffile)
         G_SlpdProperty.myUrlLen = strlen(G_SlpdProperty.myUrl);
 
         xfree(myurl);
-        xfree(myname);
     }
 
     /*----------------------------------*/

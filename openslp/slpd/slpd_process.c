@@ -1483,7 +1483,7 @@ int SLPDProcessMessage(struct sockaddr_storage* peerinfo,
     {
         SLPDLog("\n*** DEBUG *** errorcode %i during processing of message from %s\n",
                 errorcode,
-                inet_ntop(peerinfo->ss_family, peerinfo, addr_str, sizeof(addr_str)));
+                SLPNetSockAddrStorageToString(peerinfo, addr_str, sizeof(addr_str)));
     }
 #endif
  

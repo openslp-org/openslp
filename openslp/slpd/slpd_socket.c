@@ -224,7 +224,7 @@ int BindSocketToInetAddr(int sock, struct sockaddr_storage* addr)
 
     setsockopt(sock,SOL_SOCKET,SO_REUSEADDR,(const char *)&reuse,sizeof(reuse));
 
-    result = bind(sock, (struct sockaddr*) addr, sizeof(&addr));
+    result = bind(sock, (struct sockaddr*) addr, sizeof(struct sockaddr_storage));
     if(result == 0)
     {
         /* set the receive and send buffer low water mark to 18 bytes 

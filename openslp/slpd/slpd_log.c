@@ -297,7 +297,7 @@ void SLPDLogPeerAddr(struct sockaddr_storage* peeraddr)
 {
     char    addr_str[INET6_ADDRSTRLEN];
 
-    SLPDLog("Peer IP address: %s\n", inet_ntop(peeraddr->ss_family, peeraddr, addr_str, sizeof(addr_str)));
+    SLPDLog("Peer IP address: %s\n", SLPNetSockAddrStorageToString(peeraddr, addr_str, sizeof(addr_str)));
 }
 
 /*=========================================================================*/
@@ -307,7 +307,7 @@ void SLPDLogMessageInternals(SLPMessage message)
     char    addr_str[INET6_ADDRSTRLEN];
 
     SLPDLog("Peer: \n");
-    SLPDLog("   IP address: %s\n", inet_ntop(message->peer.ss_family, &(message->peer), addr_str, sizeof(addr_str)));
+    SLPDLog("   IP address: %s\n", SLPNetSockAddrStorageToString(&(message->peer), addr_str, sizeof(addr_str)));
     SLPDLog("Header:\n");
     SLPDLog("   version = %i\n",message->header.version);
     SLPDLog("   functionid = %i\n",message->header.functionid);
@@ -433,7 +433,7 @@ void SLPDLogMessage(int msglogflags,
                 {
                     SLPDLog("Message parsing failed\n");
                     SLPDLog("Peer: \n");
-                    SLPDLog("   IP address: %s\n", inet_ntop(msg->peer.ss_family, &(msg->peer), addr_str, sizeof(addr_str)));
+                    SLPDLog("   IP address: %s\n", SLPNetSockAddrStorageToString(&(msg->peer), addr_str, sizeof(addr_str)));
                 }
 
                 SLPMessageFree(msg);
@@ -476,7 +476,7 @@ void SLPDLogRegistration(const char* prefix, SLPDatabaseEntry* entry)
             SLPDLog("<unknown>\n");
             break;
         case SLP_REG_SOURCE_REMOTE:
-            SLPDLog("remote (%s)\n", inet_ntop(entry->msg->peer.ss_family, &(entry->msg->peer), addr_str, sizeof(addr_str)));
+            SLPDLog("remote (%s)\n", SLPNetSockAddrStorageToString(&(entry->msg->peer), addr_str, sizeof(addr_str)));
             break;
         case SLP_REG_SOURCE_LOCAL:
             SLPDLog("IPC (libslp)\n");
@@ -524,7 +524,7 @@ void SLPDLogDAAdvertisement(const char* prefix,
         SLPDLog("\n");
         SLPDLogTime();
         SLPDLog("KNOWNDA - %s:\n",prefix);
-        SLPDLog("    DA address = %s\n",inet_ntop(entry->msg->peer.ss_family, &(entry->msg->peer), addr_str, sizeof(addr_str)));
+        SLPDLog("    DA address = %s\n",SLPNetSockAddrStorageToString(&(entry->msg->peer), addr_str, sizeof(addr_str)));
         SLPDLogBuffer("    directory-agent-url = ",
                       entry->msg->body.daadvert.urllen,
                       entry->msg->body.daadvert.url);

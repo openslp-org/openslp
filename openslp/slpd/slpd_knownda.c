@@ -140,7 +140,7 @@ int MakeActiveDiscoveryRqst(int ismcast, SLPBuffer* buffer)
             {
                 break;
             }
-            strcat(prlist,inet_ntop(msg->peer.ss_family, &(msg->peer), addr_str, sizeof(addr_str)));
+            strcat(prlist,SLPNetSockAddrStorageToString(&(msg->peer), addr_str, sizeof(addr_str)));
             strcat(prlist,",");
             prlistlen = strlen(prlist);
         }

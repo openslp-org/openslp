@@ -114,10 +114,7 @@ void IncomingDatagramRead(SLPList* socklist, SLPDSocket* sock)
                 {
                     SLPDLog("NETWORK_ERROR - %d replying %s\n",
                             errno,
-                            inet_ntop(sock->peeraddr.ss_family,
-                                      &(sock->peeraddr),
-                                      addr_str,
-                                      sizeof(addr_str)));
+                            SLPNetSockAddrStorageToString(&(sock->peeraddr), addr_str, sizeof(addr_str)));
                 }
             }
         }
@@ -522,7 +519,7 @@ int SLPDIncomingInit()
         if (sock)
         {
             SLPListLinkTail(&G_IncomingSocketList,(SLPListItem*)sock);
-            SLPDLog("Listening on %s ...\n",inet_ntop(myaddr.ss_family, &myaddr, addr_str, sizeof(addr_str)));
+            SLPDLog("Listening on %s ...\n",SLPNetSockAddrStorageToString(&myaddr, addr_str, sizeof(addr_str)));
         }
 
 
@@ -536,12 +533,12 @@ int SLPDIncomingInit()
         if (sock)
         {
             SLPListLinkTail(&G_IncomingSocketList,(SLPListItem*)sock);
-            SLPDLog("Multicast socket on %s ready\n",inet_ntop(myaddr.ss_family, &myaddr, addr_str, sizeof(addr_str)));
+            SLPDLog("Multicast socket on %s ready\n",SLPNetSockAddrStorageToString(&myaddr, addr_str, sizeof(addr_str)));
         }
         else
         {
             SLPDLog("Couldn't bind to multicast for interface %s (%s)\n",
-                    inet_ntop(myaddr.ss_family, &myaddr, addr_str, sizeof(addr_str)), strerror(errno));
+                    SLPNetSockAddrStorageToString(&myaddr, addr_str, sizeof(addr_str)), strerror(errno));
         }
 
 #if defined(ENABLE_SLPv1)
@@ -561,7 +558,7 @@ int SLPDIncomingInit()
             {
                 SLPListLinkTail(&G_IncomingSocketList,(SLPListItem*)sock);
                 SLPDLog("SLPv1 DA Discovery Multicast socket on %s ready\n",
-                        inet_ntop(myaddr.ss_family, &myaddr, addr_str, sizeof(addr_str)));
+                        SLPNetSockAddrStorageToString(&myaddr, addr_str, sizeof(addr_str)));
             }
         }
 #endif
@@ -575,7 +572,7 @@ int SLPDIncomingInit()
         if (sock)
         {
             SLPListLinkTail(&G_IncomingSocketList,(SLPListItem*)sock);
-            SLPDLog("Unicast socket on %s ready\n",inet_ntop(myaddr.ss_family, &myaddr, addr_str, sizeof(addr_str)));
+            SLPDLog("Unicast socket on %s ready\n",SLPNetSockAddrStorageToString(&myaddr, addr_str, sizeof(addr_str)));
         }
     }     
 
@@ -591,7 +588,7 @@ int SLPDIncomingInit()
     if (sock)
     {
         SLPListLinkTail(&G_IncomingSocketList,(SLPListItem*)sock);
-        SLPDLog("Broadcast socket for %s ready\n", inet_ntop(bcastaddr.ss_family, &bcastaddr, addr_str, sizeof(addr_str)));
+        SLPDLog("Broadcast socket for %s ready\n", SLPNetSockAddrStorageToString(&bcastaddr, addr_str, sizeof(addr_str)));
     }
 
     if (G_IncomingSocketList.count == 0)
