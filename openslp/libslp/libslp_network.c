@@ -550,15 +550,14 @@ SLPError NetworkRqstRply(int sock,
     /*-----------------------------------------------*/
     /* Notify the last time callback that we're done */
     /*-----------------------------------------------*/
-    if(result == 0)
+    if(rplycount)
     {
-        result = SLP_LAST_CALL;
-
-        if(rplycount == 0)
-        {
-            result = SLP_NETWORK_TIMED_OUT;
-        }
-    }  
+        result = SLP_LAST_CALL; 
+    }
+    else if(result == 0 && rplycount == 0)
+    {
+        result = SLP_NETWORK_TIMED_OUT;
+    }
     
     callback(result,msg,cookie);
     

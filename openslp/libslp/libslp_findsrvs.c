@@ -89,6 +89,8 @@ SLPBoolean CallbackSrvRqst(SLPError errorcode, SLPMessage msg, void* cookie)
                 return 0;
             }
         }   
+
+        return 1;
     }
     
     return handle->params.findsrvs.callback((SLPHandle)handle,

@@ -72,7 +72,7 @@ SLPBoolean CallbackSrvTypeRqst(SLPError errorcode, SLPMessage msg, void* cookie)
 
     if(msg->body.srvtyperply.errorcode == 0)
     {
-        if(msg->body.srvtyperply.srvtypelistlen > 0)
+        if(msg->body.srvtyperply.srvtypelistlen == 0)
         {
             /* Skip blank replies */
             return 1; 
