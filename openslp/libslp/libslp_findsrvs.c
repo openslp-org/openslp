@@ -252,12 +252,12 @@ SLPError ProcessSrvRqst(PSLPHandleInfo handle)
     /*--------------------------*/
     do
     {
-        if(strncasecmp(handle->params.findsrvs.scopelist,
+        if(strncasecmp(handle->params.findsrvs.srvtype,
                        SLP_DA_SERVICE_TYPE,
-                       handle->params.findsrvs.scopelistlen) &&
-           strncasecmp(handle->params.findsrvs.scopelist,
+                       handle->params.findsrvs.srvtypelen) &&
+           strncasecmp(handle->params.findsrvs.srvtype,
                        SLP_SA_SERVICE_TYPE,
-                       handle->params.findsrvs.scopelistlen))
+                       handle->params.findsrvs.srvtypelen))
         {
             sock = NetworkConnectToDA(handle,
                                       handle->params.findsrvs.scopelist,

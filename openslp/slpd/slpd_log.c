@@ -167,6 +167,20 @@ void SLPDFatal(const char* msg, ...)
     exit(1);
 }
 
+/*=========================================================================*/
+void SLPDLogBuffer(const char* prefix, int bufsize, const char* buf)
+/* Writes a buffer to the logfile                                          */
+/*=========================================================================*/
+{
+    if(G_SlpdLogFile)
+    {
+        fprintf(G_SlpdLogFile,"%s",prefix);
+        fwrite(buf,bufsize,1,G_SlpdLogFile);
+        fprintf(G_SlpdLogFile,"\n");
+        fflush(G_SlpdLogFile);
+    }
+}
+
 
 
 /*=========================================================================*/
@@ -184,9 +198,9 @@ void SLPDLogSrvRqstMessage(SLPSrvRqst* srvrqst)
 /*-------------------------------------------------------------------------*/
 {
     SLPDLog("Message SRVRQST:\n");
-    SLPDLog("   srvtype = \"%*s\"\n", srvrqst->srvtypelen, srvrqst->srvtype);
-    SLPDLog("   scopelist = \"%*s\"\n", srvrqst->scopelistlen, srvrqst->scopelist);
-    SLPDLog("   predicate = \"%*s\"\n", srvrqst->predicatelen, srvrqst->predicate);
+    SLPDLogBuffer("   srvtype = ", srvrqst->srvtypelen, srvrqst->srvtype);
+    SLPDLogBuffer("   scopelist = ", srvrqst->scopelistlen, srvrqst->scopelist);
+    SLPDLogBuffer("   predicate = ", srvrqst->predicatelen, srvrqst->predicate);
 }
 
 /*-------------------------------------------------------------------------*/
@@ -218,10 +232,10 @@ void SLPDLogSrvRegMessage(SLPSrvReg* srvreg)
         SLPDLog("UNKNOWN\n");
         break;         
     }
-    SLPDLog("   srvtype = \"%*s\"\n", srvreg->srvtypelen, srvreg->srvtype);
-    SLPDLog("   scope = \"%*s\"\n", srvreg->scopelistlen, srvreg->scopelist);
-    SLPDLog("   url = \"%*s\"\n", srvreg->urlentry.urllen, srvreg->urlentry.url);
-    SLPDLog("   attributes = \"%*s\"\n", srvreg->attrlistlen, srvreg->attrlist);
+    SLPDLogBuffer("   srvtype = ", srvreg->srvtypelen, srvreg->srvtype);
+    SLPDLogBuffer("   scope = ", srvreg->scopelistlen, srvreg->scopelist);
+    SLPDLogBuffer("   url = ", srvreg->urlentry.urllen, srvreg->urlentry.url);
+    SLPDLogBuffer("   attributes = ", srvreg->attrlistlen, srvreg->attrlist);
 }
 
 /*-------------------------------------------------------------------------*/
@@ -259,9 +273,9 @@ void SLPDLogDAAdvertMessage(SLPDAAdvert* daadvert)
 /*-------------------------------------------------------------------------*/
 {
     SLPDLog("Message DAADVERT:\n");
-    SLPDLog("   scope = \"%*s\"\n", daadvert->scopelistlen, daadvert->scopelist);
-    SLPDLog("   url = \"%*s\"\n", daadvert->urllen, daadvert->url);
-    SLPDLog("   attributes = \"%*s\"\n", daadvert->attrlistlen, daadvert->attrlist);
+    SLPDLogBuffer("   scope = ", daadvert->scopelistlen, daadvert->scopelist);
+    SLPDLogBuffer("   url = ", daadvert->urllen, daadvert->url);
+    SLPDLogBuffer("   attributes = ", daadvert->attrlistlen, daadvert->attrlist);
 }
 
 /*-------------------------------------------------------------------------*/
@@ -294,9 +308,9 @@ void SLPDLogPeerAddr(struct sockaddr_in* peeraddr)
     SLPDLog("Peer IP address: %s\n", inet_ntoa(peeraddr->sin_addr));
 }
 
-/*-------------------------------------------------------------------------*/
+/*=========================================================================*/
 void SLPDLogMessageInternals(SLPMessage message)
-/*-------------------------------------------------------------------------*/
+/*=========================================================================*/
 {
     SLPDLog("Peer: \n");
     SLPDLog("   IP address: %s\n", inet_ntoa(message->peer.sin_addr));
@@ -307,8 +321,7 @@ void SLPDLogMessageInternals(SLPMessage message)
     SLPDLog("   flags = %i\n",message->header.flags);
     SLPDLog("   extoffset = %i\n",message->header.extoffset);
     SLPDLog("   xid = %i\n",message->header.xid);
-    SLPDLog("   langtaglen = %i\n",message->header.langtaglen);
-    SLPDLog("   langtag = %*s\n", message->header.langtaglen, message->header.langtag); 
+    SLPDLogBuffer("   langtag = ", message->header.langtaglen, message->header.langtag); 
     
     switch(message->header.functionid)
     {
