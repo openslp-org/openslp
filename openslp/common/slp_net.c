@@ -293,7 +293,7 @@ int SLPNetSetAddr(struct sockaddr_storage *addr, const int family, const short p
         v6->sin6_family = family;
         v6->sin6_flowinfo = 0;
         v6->sin6_port = htons(port);
-        v6->sin6_scope_id = setScopeFromAddress(address);
+        v6->sin6_scope_id = 0;
         memcpy(&v6->sin6_addr, address, min(addrLen, sizeof(v6->sin6_addr)));
     }
     else {
