@@ -1,0 +1,62 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-15">
+   <meta name="GENERATOR" content="Mozilla/4.72C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.2.14 i686) [Netscape]">
+   <title>OpenSLP Programmers Guide - SLP Data Types</title>
+</head>
+<body text="#000000" bgcolor="#FFFFFF" link="#0000EF" vlink="#51188E" alink="#FF0000">
+
+<h2>
+SLP Data Types</h2>
+
+<hr WIDTH="100%">
+<h3>
+<a NAME="SLPURLLifetime"></a>SLPURLLifetime</h3>
+An enumerated type with a range of 0 - 65535.&nbsp; There are two defined
+values <tt>of:</tt>
+<blockquote><tt>SLP_LIFETIME_DEFAULT&nbsp;&nbsp;&nbsp; 10800</tt>
+<br><tt>SLP_LIFETIME_MAXIMUM&nbsp;&nbsp;&nbsp; 65535</tt></blockquote>
+
+<h3>
+<a NAME="SLPError"></a>SLPError</h3>
+An enumerated type with a range of -26 - 1.&nbsp; See <a href="SLPError.html">SLPError
+Codes </a>for more detail.
+<br>&nbsp;
+<h3>
+<a NAME="SLPBoolean"></a>SLPBoolean</h3>
+A boolean value with one of the following values:
+<blockquote><tt>SLP_FALSE&nbsp;&nbsp;&nbsp; 0</tt>
+<br><tt>SLP_TRUE&nbsp;&nbsp;&nbsp;&nbsp; 1</tt></blockquote>
+
+<h3>
+<a NAME="SLPSrvURL"></a>SLPSrvURL</h3>
+Structure that is used to index the parts of a parsed Service URL that
+is returned by <a href="SLPParseSrvURL.html">SLPParseSrvURL()</a>.&nbsp;
+The structure contains the following members.
+<blockquote><tt>char* s_pcSrvType</tt>
+<blockquote>A pointer to a character string containing the service type
+name, including naming authority.&nbsp; The service type name includes
+the "service:" if the URL is of the service: scheme.</blockquote>
+<tt>char* s_pcHost</tt>
+<blockquote>A pointer to a character string containing the hose identification
+information.</blockquote>
+<tt>char* s_iPort</tt>
+<blockquote>The port number, or zero if none.&nbsp; The port is only available
+if the transport is IP</blockquote>
+<tt>char* s_pcNetFamily</tt>
+<blockquote>A pointer to a character string containing the netwrok address
+family identifier.&nbsp; Possible values are "ipx" for the IPX family,
+"at" for the Appletalk family, and "" (the empty string) for IP address
+family.&nbsp; OpenSLP only supports the IP address family.</blockquote>
+<tt>char* s_pcSrvPart</tt>
+<blockquote>The remainder of the URL.</blockquote>
+</blockquote>
+
+<h3>
+<a NAME="SLPHandle"></a>SLPHandle</h3>
+The SLPHandle type is returned by <a href="SLPOpen.html">SLPOpen()</a>
+and is a parameter to all SLP Functions.&nbsp; The type is opaque to the
+caller.
+</body>
+</html>

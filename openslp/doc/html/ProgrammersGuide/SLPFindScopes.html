@@ -1,0 +1,69 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-15">
+   <meta name="GENERATOR" content="Mozilla/4.72C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.2.14 i686) [Netscape]">
+   <title>OpenSLP Programmers Guide - SLPFindScopes()</title>
+</head>
+<body text="#000000" bgcolor="#FFFFFF" link="#0000EF" vlink="#51188E" alink="#FF0000">
+
+<h2>
+SLPFindScopes</h2>
+
+<hr WIDTH="100%">
+<h3>
+Declaration</h3>
+<tt><a href="/SLPError.html">SLPError</a> SLPFindScopes( <a href="SLPTypes.html#SLPHandle">SLPHandle</a><a href="#hslp">hslp</a>,</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+char** <a href="#scopelist">scopelist</a> )</tt>
+<br>&nbsp;
+<h3>
+Description</h3>
+Sets the scopelist parameter to a pointer to a comma separated list of
+all available scope values.&nbsp; The most desirable values are always
+placed first in the list.&nbsp; There is always one value, "DEFAULT", in
+the list.
+<br>&nbsp;
+<h3>
+Parameters</h3>
+
+<table CELLPADDING=5 NOSAVE >
+<tr VALIGN=TOP NOSAVE>
+<td><a NAME="hslp"></a><tt>hslp</tt></td>
+
+<td NOSAVE>Pointer to the string to be un-escaped</td>
+</tr>
+
+<tr VALIGN=TOP NOSAVE>
+<td NOSAVE><a NAME="scopelist"></a>scopelist</td>
+
+<td NOSAVE>Pointer to a pointer for the dynamically allocated list of scopes.&nbsp;
+The memory should be freed by a call to <tt><a href="/SLPFree.html">SLPFree()</a></tt>
+when no longer needed.</td>
+</tr>
+
+<caption ALIGN=BOTTOM>&nbsp;</caption>
+</table>
+
+<h3>
+Returns</h3>
+<a href="/SLPError.html#INVALID_REGISTRATION">SLPError</a> Code
+<br>&nbsp;
+<br>&nbsp;
+<h3>
+Status</h3>
+
+<table CELLPADDING=5 NOSAVE >
+<tr VALIGN=TOP NOSAVE>
+<td NOSAVE>OpenSLP 0.6.0</td>
+
+<td NOSAVE>Only returns the scopes that are found in the net.slp.useScopes
+parameter.&nbsp; DHCP and DAAdverts are not yet supported.</td>
+</tr>
+</table>
+
+<h3>
+See Also</h3>
+<a href="broken">Open SLP Users Guide</a>
+</body>
+</html>

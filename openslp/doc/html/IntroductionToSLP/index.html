@@ -1,0 +1,244 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-15">
+   <meta name="GENERATOR" content="Mozilla/4.72C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.2.14 i686) [Netscape]">
+   <title>An Introduction to SLP</title>
+</head>
+<body text="#000000" bgcolor="#FFFFFF" link="#0000EE" vlink="#551A8B" alink="#FF0000">
+
+<h1>
+An Introduction to SLP</h1>
+&nbsp;
+<h3>
+<b>Whitepaper, <a href="http://www.calderasystems.com">Caldera Systems,
+Inc</a></b></h3>
+
+<hr WIDTH="100%">
+<h3>
+What Is SLP?</h3>
+
+<p><br>Service Location Protocol is an IETF standards track protocol that
+provides a framework to allow networking applications to discover the existance,
+location, and configuration of networked services in enterprise networks.&nbsp;
+Traditionally, in order to locate services on the network, users of network
+applications are required to supply the host name or network address of
+the machine that supplies a desired service.&nbsp; Ensuring that users
+and applications are supplied with the correct information has in many
+cases become an administration nightmare.
+<p>Protocols that allow service location are often taken for granted, mostly
+because they are already included (with out fan-fair) in many network operating.
+With out Microsoft's SMB service location facilities, "Network Neighborhood"
+could not discover service available for use on the network and Novell
+Netware would be unable to locate NDS trees.&nbsp; Nevertheless, an IETF
+service location protocol was not standardized until the advent of SLP.&nbsp;
+Because it is not tied to a proprietary technology, SLP provides is a service
+location solution that could become extremely important (especially on
+Unix) platforms.
+<br>&nbsp;
+<h3>
+About this Document</h3>
+Like all Internet Enginner Task Force (IETF) standards, Service Location
+Protocol (SLP) is described in great detail by documents called Request
+For Comments (RFC).&nbsp; IETF RFCs are usually lengthy, very detailed,
+and written in using precise language and notations.&nbsp; This document,
+on the other hand, was written to give a overview presentation of SLP.&nbsp;
+This document will, by nature, omit important details that would be interesting
+to the more technical reader.&nbsp; For these, the reader is refered the
+following RFCs:
+<blockquote><a href="../../rfc/rfc2165.txt">RFC 2165</a> - Service Location
+Protocol, Version 1
+<br><a href="../../rfc/rfc2608.txt">RFC 2608</a> - Service Location Protocol,
+Version 2
+<br><a href="../../rfc/rfc2609.txt">RFC 2609</a> - Service Templates and
+Service Schemes
+<br><a href="../../rfc/rfc2614.txt">RFC 2614</a> - An API for Service Location
+Protocol</blockquote>
+
+<h3>
+SLP for Users and Administrators</h3>
+SLP eliminates the need for users to know the names of network hosts.&nbsp;
+Instead, with SLP, the user only needs to know the description of the of
+service they are interested in.&nbsp; Based on this description, SLP is
+then able to return the URL of the desired service.
+<p>Consider the following example of a new employee setting up his workstation
+to use one of the department printers:
+<br>&nbsp;
+<blockquote><b><u>Traditional</u></b>
+<br>New employee: "Hey Stan, the setup program is asking me for the name
+of our printer.&nbsp; What should I type in?"
+<br>Stan: "Which printer do you want?"
+<br>New employee: "The big one by the copier."
+<br>Stan: "I've heard it does not work well with postscript applications.&nbsp;
+You'll have to use the one down the hall."
+<br>New employee: "Ok.&nbsp; What should I type in."
+<br>Stan: "Actually, I don't know I use the one by the copier.&nbsp; You'll
+probably have to call the IS help desk"
+<br>New employee: &lt;groan> ...
+<p><b><u>With SLP</u></b>
+<br>The setup program uses SLP to display to the user the description (including
+location) of the printers that work with postscript. The user selects one
+that is close to his office.
+<br>&nbsp;</blockquote>
+
+<h3>
+SLP for Software Developers</h3>
+In many cases, SLP can eliminate the the need for software applications
+to prompt users for host names, or to read host names from configuration
+files.
+<p>Consider the following example of a software engineer that is writing
+an LDAP enabled application.
+<br>&nbsp;
+<blockquote><b><u>Traditional</u></b>
+<br>The only way to know the hostname to use in the call to ldap_bind()
+is to read it from a configuration file.&nbsp; The configuration file must
+be created at install time and updated as the location of the LDAP server
+changes.&nbsp; This keeping the configuration file up-to-date becomes a
+real problem especially when the application is installed on a laptop that
+connects to various networks.
+<p><b><u>With SLP</u></b>
+<p>The developer uses SLP to obtain a the host names and attributes of
+LDAP servers that is displayed to the user at install time and again if
+the user desires to connect to a different LDAP server.
+<br>As illustrated in the example above, SLP does not always eliminate
+the need to prompt users for information.&nbsp; However, it does allow
+the software developer to present a descriptive list of services that can
+be understood by the user.</blockquote>
+
+<h3>
+Agents</h3>
+In order to understand the rest of this document (as well as all other
+SLP documentation), you will need to know about SLP agents.&nbsp; In SLP
+an agent is a software entity that process SLP protocol messages.&nbsp;
+There are three types of SLP agents:
+<br>&nbsp;
+<blockquote><b>User Agent (UA)</b>
+<br>The SLP User Agent is a software entities that is looking for the location
+of one or more services.
+<p><b>Service Agent (SA)</b>
+<br>The SLP Service Agent is a software entity that provides the location
+of one or more services.
+<p><b>Directory Agent(DA)</b>
+<br>The SLP Directory Agent is a software entity that acts as a centralized
+repository for service location information.
+<br>&nbsp;</blockquote>
+
+<h3>
+Messages</h3>
+In order to be able to provide a "framework" for service location, SLP
+agents communicate with each other using eleven (11) different types of
+messages.&nbsp; The dialog between agents is usually limited to very simple
+exchanges of request and reply messages.
+<blockquote><b>Service Request (SrvRqst)</b>
+<br>Message sent by UAs to SAs and DAs to request the location of a service
+<p><b>Service Reply (SrvRply)</b>
+<br>Message sent by SAs and DAs in reply to a SrvRqst.&nbsp; The SrvRply
+contains the URL of the requested service
+<p><b>Service Registration (SrvReg)</b>
+<br>Message sent by SAs to DAs containing information about a service that
+is avaliable.
+<p><b>Service Deregister (SrvDeReg)</b>
+<br>Message sent by SAs to DAs to inform that a service is no longer available.
+<p><b>Service Acknowledge (SrvAck)</b>
+<br>A generic acknowledgment that is sent as a reply to SrvReg and SrvDeReg
+messages
+<p><b>Attribute Request (AttrRqst)</b>
+<br>Message sent by UAs to request the attributes of a service.
+<p><b>Attribute Reply (AttrRply)</b>
+<br>Message sent by SAs and DAs in reply to a AttrRqst.&nbsp; The AttrRply
+contains the list of attributes that were requested
+<p><b>Service Type Request (SrvTypeRqst)</b>
+<br>Message sent by UAs to SAs and DAs request the types of services that
+are available
+<p><b>Service Type Reply (SrvTypeRply)</b>
+<br>Message by SAs and DAs in reply to a SrvTypeRqst.&nbsp; The SrvTypeRply
+contains a list of requested service types.
+<p><b>DA Advertisement (DAAdvert)</b>
+<br>Message sent by DAs to let SAs and UAs know where they are
+<p><b>SA Advertisement (SAAdvert)</b>
+<br>Message sent by SAs to let UAs know where they are
+<br>&nbsp;</blockquote>
+
+<h3>
+Unicast, Multicast and Broadcast</h3>
+SLP is a unicast and a multicast protocol.&nbsp; This means that the messages
+that were described in the <a href="broken">previous</a> section can be
+sent to one agent at a time (unicast) or to all agents (that are listening)
+at the same time (multicast).&nbsp; A multicast is not a broadcast.&nbsp;
+In theory, broadcast message are "heard" by <i>every</i> node on the network.&nbsp;
+Multicast differs from broadcast because multicast messages are only "heard"
+by the nodes on the network that have "joined the multicast group".
+<p>For obvious reasons network routers filter almost all broadcast traffic.&nbsp;
+This means that broadcasts that are generated on subnet will not be "routed"
+or forwarded to any of the other subnets connected to the router.&nbsp;
+From the routers perspective, a subnet is all machines connected to one
+of its ports.&nbsp; Multicasts, on the other hand, are forwarded by routers.&nbsp;
+Multicast traffic from a given group is forwarded by routers to all subnets
+that have at least one machine that is interested in receiving the multicast
+for that group.
+<br>&nbsp;
+<h3>
+Agent Dialog Examples</h3>
+Agent Initialization
+<br><img SRC="AgentInit.jpg" height=40 width=37>
+<p>Service Registration
+<br><img SRC="ServiceReg.jpg" height=40 width=37>
+<p>Service Request/Reply
+<br><img SRC="ServiceRqst.jpg" height=40 width=37>
+<br>&nbsp;
+<h3>
+SLP API</h3>
+One of the most important parts of the SLP specification is the standard
+Application Programmers Interface (API).&nbsp; The SLP API is an interface
+that allows programmers to use SLP in their applications to locate services.&nbsp;
+Without the API, SLP would be little more than a specification.&nbsp; With
+the API, developers can add easily add SLP based feature to their programs.
+<p>The following is a list of the major SLP API function calls (more information
+can be found in "<a href="../ProgrammersGuide/index.html">OpenSLP Programmers
+Guide</a>" or <a href="../../rfc/rfc2614.txt">RFC 2614</a>):
+<blockquote>&nbsp;
+<br><b>SLPReg()</b>
+<br>Registers a service URL and service attributes with SLP.
+<p><b>SLPDeReg()</b>
+<br>Deregisters a previously registered service.
+<p><b>SLPFindSrvs()</b>
+<br>Finds services based on service type or attributes.
+<p><b>SLPFindAddrs()</b>
+<br>Obtains a list of attributes for services registered with SLP .
+<p><b>SLPFindSrvTypes()</b>
+<br>Obtains a list of the types of services that have been registered with
+SLP.
+<br>&nbsp;</blockquote>
+
+<h3>
+Additional Information</h3>
+Technical readers probably has additional questions that are beyond the
+scope of this document.
+<p><b>Security</b>
+<br>SLPv2 has been designed to be a secure protocol.&nbsp; When properly
+implemented SLPv2 can ensure integrity and authenticity of data being transmitted
+between SLP agents.&nbsp; See <a href="http://www.ietf.org/rfc/rfc2608.txt">RFC
+2608</a> section 9.2 for more information.
+<p><b>Scalability</b>
+<br>SLPv2 was designed to be a scalable solution for enterprise service
+location.&nbsp; It is not intended to be a solution for the global Internet.&nbsp;
+However as an enterprise solution, SLP can be configured to use "scopes"
+(see <a href="../../rfc/rfc2608.txt">RFC 2608</a> section 11) and DAs in
+ways that should allow it to scale well in large networks.&nbsp; More concrete
+evidence of SLPv2 scalability should be available as it becomes more popular.
+<p><b>Implementations</b>
+<br>The following is a list of SLP implementations:
+<blockquote><a href="http://www.openslp.org">OpenSLP</a>
+<br>An OpenSource project that aims to provide a full SLPv2 implementation
+<p><a href="http://www.srvloc.org">Sun Microsystems</a>
+<br>Offers a "reference implementation" of SLPv2 that is available under
+the Sun Community License
+<p>Novell Netware
+<br>SLPv1 replaces SAP as the service location protocol of choice in Netware
+5.0 IP networks
+<p><a href="http://www.axis.com">Axis Communications</a>
+<br>Uses SLP in it's thin server products</blockquote>
+
+<br>&nbsp;
+</body>
+</html>

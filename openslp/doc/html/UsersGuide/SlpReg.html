@@ -1,0 +1,123 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-15">
+   <meta name="GENERATOR" content="Mozilla/4.72C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.2.14 i686) [Netscape]">
+   <title>OpenSLP - Static Registration File</title>
+</head>
+<body text="#000000" bgcolor="#FFFFFF" link="#0000EE" vlink="#551A8B" alink="#FF0000">
+
+<h2>
+The Static Registration File</h2>
+
+<hr WIDTH="100%">
+<p>Often it will be very useful for OpenSLP users to be able to statically
+register legacy services (applications that were not compiled to use the
+SLP library).&nbsp; To accomidate this need <a href="../../rfc/rfc2614.txt">RFC
+2614</a> specifies a syntax for a registration file that is read by the
+OpenSLP daemon (slpd).&nbsp; All of the registration from the registration
+file are maintained by slpd and will remain registered as long as slpd
+is alive.&nbsp; The default location for the registration can be changed
+from <tt>/etc/slp.reg
+</tt>to another location using the <a href="CommandLine.html">-r
+command line option</a><tt>.&nbsp; slpd reads the slp.reg </tt>file on
+startup and re-read when ever the SIGHUP signal is received.
+<h3>
+<tt>Syntax</tt></h3>
+The registration file format is pretty easy to understand.&nbsp; It can
+get complicated so if you have any questions after reading this please
+consult <a href="../../rfc/rfc2614.txt">RFC 2614.</a> Each registration
+consists of sever lines with the following format:
+<br>&nbsp;
+<blockquote><b><tt>#comment</tt></b>
+<br><b><tt>;comment</tt></b>
+<br><b><tt>service-url,language-tag,lifetime,[service-type]&lt;newline></tt></b>
+<br><b><tt>"scopes="[scope-list]&lt;newline></tt></b>
+<br><b><tt>[attrid]"="val1&lt;newline></tt></b>
+<br><b><tt>[attrid]"="val1,val2,val3&lt;newline></tt></b>
+<br><b><tt>&lt;newline></tt></b></blockquote>
+
+<p><br><b><tt>service-url</tt></b>
+<blockquote>(Required) The service-url which must follow the Service URL
+syntax explained <a href="#Service URL Syntax">below</a>.</blockquote>
+<b><tt>language-tag</tt></b>
+<blockquote>(Required) The language-tag uses the (two character) language
+tags as specified by <a href="../../rfc/rfc1766.txt">RFC 1766</a> ("en"
+"fr", "de", etc...)</blockquote>
+<b><tt>lifetime</tt></b>
+<blockquote>(Required) The lifetime of the registration in seconds.&nbsp;
+Value must be between 0 and 65535.&nbsp; Use 65535 if you want the registration
+to be maintained for the life of slpd.</blockquote>
+<b><tt>service-type</tt></b>
+<blockquote>(Optional) The type of service being registered.&nbsp; Ignored
+by OpenSLP because service-url must conform the SLP Service URL format.</blockquote>
+<b><tt>scope-list</tt></b>
+<blockquote>(Optional) List of comma delimited scopes to register the service
+in.&nbsp; If omitted then service is registered in all scopes specified
+by the <tt>slp.conf</tt> file.</blockquote>
+<b><tt>attrs</tt></b>
+<blockquote>(Optional) The attributes to register along with the service.&nbsp;
+Any string but "scopes" or "SCOPES" can be used as an attrid.</blockquote>
+
+<h3>
+Examples</h3>
+Several examples of registration entries are provided below:
+<br>&nbsp;
+<blockquote><tt>#Register a OpenSLP testing service</tt>
+<br><tt>service:test.openslp://192.168.100.1,en,65535</tt>
+<br><tt>scopes=test1,test2</tt>
+<br><tt>description=OpenSLP Testing Service</tt>
+<br><tt>authors=mpeterson,jcarey</tt>
+<p><tt>#Register ssh service</tt>
+<br><tt>service:ssh.openslp://192.168.100.1,en,65535</tt>
+<br><tt>#use default scopes</tt>
+<br><tt>description="Secure Shell"</tt>
+<p><tt>#Register telnet service with not attributes</tt>
+<br><tt>service:telnet.myorg://192.168.100.1,en,65535</tt>
+<br><tt>#use default scopes</tt></blockquote>
+
+<h3>
+<a NAME="Service URL Syntax"></a>Service URL Syntax</h3>
+<tt>If you decide to use Service URLs extensively, you should probably
+read <a href="../../rfc/rfc2609.txt">RFC 2609</a>, but if you just want
+to know what they look like, the following explaination should be good
+enough:</tt>
+<blockquote><tt>service-url = "service:"&lt;service-type>"://"&lt;addrspec></tt></blockquote>
+The service-type is a service type as explained <a href="#SLP Service Type Syntax">below</a>.
+addrspec can be just about anything you want that fits URL syntax (see
+RFC 2396) and can be translated as a network location.&nbsp; The "<tt>service:</tt>"
+and "<tt>://</tt>" strings are required.
+<p><b>Service URL Examples</b>
+<p><tt>service:weather.nasa:wtp://weather.nasa.com:12000</tt>
+<br><tt>service:weather.nasa:swtp://weather.nasa.com:12001</tt>
+<br><tt>service:chat.superchat://chat.superchat.com;auth=ldap</tt>
+<br>&nbsp;
+<h3>
+<a NAME="SLP Service Type Syntax"></a>SLP Service Type Syntax</h3>
+The official definition of Service Type strings can be found in <a href="../../rfc/rfc2609.txt">RFC
+2609</a>, "Service Templates and Service Schemes".&nbsp; If you will be
+working with "well known" (IANA) service types, you should read it.&nbsp;
+If you are developing applications for "proprietary" services then you
+will probably be satisfied with the following explaination:
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <tt>service-type = &lt;abstract-type.naming-authority>":"&lt;concrete-type></tt>
+<p>The abstract-type is simple (hopefully short) descriptive string that
+describes the type of service.&nbsp; The naming-authority is the name (hopefully
+unique) name of the organization that named the service.&nbsp; The naming-authority
+is optional, but if it is ommitted then IANA is assumed to be the naming
+authority and IANA requires service-types to be registered (see <a href="../../rfc/rfc2609.txt">RFC
+2609</a>).&nbsp; The concrete-type is also optional.&nbsp; Think of a concrete-type
+as a kind of sub-type of the abstract-type.&nbsp; For example, "printer"
+is an abstract type (owned by IANA) and "printer:lpr" is a concrete type
+(owned by IANA).
+<p><b>Service Type Examples</b>
+<p><tt>weather.nasa:wtp</tt>&nbsp; - A (ficticious) weather service type
+owned by NASA that uses Weather Transfer protocol
+<br>weather.nasa:swtp - A (ficticious) wether service type owned by NASA
+tha uses Simple Weather Transfer protocol.
+<br><tt>chat.superchat</tt> - A chat service type owned by SuperChat
+<br><tt>printer.samba</tt> - A samba printer service type
+<br><tt>ftp</tt> - An IANA ftp service type
+<br><tt>telnet</tt> - An IANA telnet service type
+<br>&nbsp;
+</body>
+</html>

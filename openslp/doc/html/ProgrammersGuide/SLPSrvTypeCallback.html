@@ -1,0 +1,92 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-15">
+   <meta name="GENERATOR" content="Mozilla/4.7C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.2.14 i686) [Netscape]">
+   <title>OpenSLP Programmers Guide - SLPSrvTypeCallback</title>
+</head>
+<body text="#000000" bgcolor="#FFFFFF" link="#0000EF" vlink="#51188E" alink="#FF0000">
+
+<h2>
+SLPSrvTypeCallback</h2>
+
+<hr WIDTH="100%">
+<h3>
+<tt>Declaration</tt></h3>
+<tt>typedef <a href="/SLPTypes.html#SLPBoolean">SLPBoolean</a> SLPSrvTypeCallback(
+<a href="/SLPTypes.html#SLPHandle">SLPHandle</a>
+<a href="#hslp">hslp</a>,</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+const char* <a href="#srvtypes">srvtypes</a>,</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<a href="/SLPTypes.html#SLPError">SLPError</a> <a href="#errcode">errcode</a>,</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+void* <a href="#cookie">cookie</a> )</tt>
+<h3>
+Description</h3>
+The <tt>SLPSrvTypeCallback</tt> type is the type of the callback function
+passed as a parameter to the <tt><a href="SLPFindSrvTypes.html">SLPFindSrvTypes()</a></tt>
+function.&nbsp; If the hslp parameter was opened asynchronously, the results
+retuned through the callback may be uncollated.&nbsp; If the hslp handle
+parameter was opened synchronously, then the results will be collated to
+remove duplicates.
+<h3>
+Parameters</h3>
+
+<table CELLPADDING=5 NOSAVE >
+<tr VALIGN=TOP NOSAVE>
+<td NOSAVE><a NAME="hslp"></a><tt>hslp</tt></td>
+
+<td NOSAVE>The language specific <tt>SLPHandle</tt> that was passed in
+to the <tt>SLPFindSrvTypes()</tt> function.</td>
+</tr>
+
+<tr>
+<td><a NAME="srvtypes"></a><tt>srvtypes</tt></td>
+
+<td>Pointer to a comma separated list of service types.&nbsp; See <a href="Syntax.html#Service Type">Syntax</a>
+for more information on service type syntax.&nbsp;</td>
+</tr>
+
+<tr VALIGN=TOP NOSAVE>
+<td><a NAME="errcode"></a><tt>errcode</tt></td>
+
+<td NOSAVE>An error code indicating if an error occured during the operation.&nbsp;
+The callback should check this error code before processing the parameters.&nbsp;</td>
+</tr>
+
+<tr VALIGN=TOP NOSAVE>
+<td NOSAVE><a NAME="cookie"></a><tt>cookie</tt></td>
+
+<td NOSAVE>The same cookie that was passed as a parameter to the <tt>SLPFindSrvTypes()</tt>
+call</td>
+</tr>
+
+<caption ALIGN=BOTTOM>&nbsp;</caption>
+</table>
+
+<h3>
+Returns</h3>
+The callback should return <tt>SLP_TRUE</tt> if more data is desired.&nbsp;
+The callback may continue to return <tt>SLP_TRUE</tt> until it is called
+with an errcode of <tt>SLP_LAST_CALL</tt>.&nbsp; If no more data is requested
+the callback should return <tt>SLP_FALSE</tt>.
+<br>&nbsp;
+<h3>
+Status</h3>
+
+<table CELLPADDING=5 NOSAVE >
+<tr VALIGN=TOP NOSAVE>
+<td NOSAVE>OpenSLP 0.6.0</td>
+
+<td NOSAVE>SLPSrvTyperCallback functions are not called because SLPFindSrvTypes()
+is not implemented</td>
+</tr>
+</table>
+
+<h3>
+See Also</h3>
+<a href="/Syntax.html">Syntax</a>,
+<a href="/Callbacks.html">Callbacks</a>
+</body>
+</html>

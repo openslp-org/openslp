@@ -1,0 +1,15 @@
+# KDE Config File
+[Breakpoint 0]
+Enabled=true
+Temporary=false
+File=slpd_database.c
+Line=344
+[Breakpoint 1]
+Enabled=true
+Temporary=false
+File=slpd_database.c
+Line=423
+[General]
+WorkingDirectory=
+FileVersion=1
+ProgramArgs=
