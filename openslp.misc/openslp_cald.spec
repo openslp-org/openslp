@@ -1,5 +1,5 @@
 Name            : openslp
-Version         : 0.7.8
+Version         : 0.8.0
 Release         : 1
 Group           : Server/Network
 Summary         : OpenSLP implementation of Service Location Protocol V2
