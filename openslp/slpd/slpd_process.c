@@ -188,7 +188,6 @@ int ProcessDASrvRqst(struct sockaddr_in* peeraddr,
         }
     }
 
-
     /*-------------------------------------------------------------*/
     /* ensure the buffer is big enough to handle the whole srvrply */
     /*-------------------------------------------------------------*/
@@ -222,7 +221,6 @@ int ProcessDASrvRqst(struct sockaddr_in* peeraddr,
             G_SlpdProperty.DATimestamp = 1;
         }
     } 
-
 
     /*----------------*/
     /* Add the header */
@@ -343,6 +341,9 @@ int ProcessSrvRqst(struct sockaddr_in* peeraddr,
         errorcode = ProcessSASrvRqst(peeraddr, message, sendbuf, errorcode);
         return errorcode;
     }
+
+    /* TODO: check the spi list of the message and return                  */
+    /*       AUTHENTICATION_UNKNOWN since we do not do authentication yet  */ 
 
     /*------------------------------------*/
     /* Make sure that we handle the scope */
@@ -488,6 +489,7 @@ int ProcessSrvRqst(struct sockaddr_in* peeraddr,
     *sendbuf = result;
     return errorcode;
 }
+
 
 /*-------------------------------------------------------------------------*/
 int ProcessSrvReg(struct sockaddr_in* peeraddr,
@@ -749,7 +751,10 @@ int ProcessAttrRqst(struct sockaddr_in* peeraddr,
         result->end = result->start;
         goto FINISHED;
     }
-
+    
+    /* TODO: check the spi list of the message and return                  */
+    /*       AUTHENTICATION_UNKNOWN since we do not do authentication yet  */ 
+    
     /*------------------------------------*/
     /* Make sure that we handle the scope */
     /*------ -----------------------------*/
@@ -894,7 +899,6 @@ int ProcessDAAdvert(struct sockaddr_in* peeraddr,
         {
             /* TODO: Authentication stuff here */
 
-
             /* TODO: enable the following when we link to libslp and        */
             /* have SLPParseSrvURL()                                        */
 #if(0)  
@@ -965,6 +969,9 @@ int ProcessSrvTypeRqst(struct sockaddr_in* peeraddr,
         goto FINISHED;
     }
 
+    /* TODO: check the spi list of the message and return                  */
+    /*       AUTHENTICATION_UNKNOWN since we do not do authentication yet  */ 
+    
     /*------------------------------------*/
     /* Make sure that we handle the scope */
     /*------ -----------------------------*/

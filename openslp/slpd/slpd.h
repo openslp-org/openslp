@@ -705,6 +705,17 @@ void SLPDKnownDAActiveDiscovery();
 
 
 /*=========================================================================*/
+void SLPDKnownDAPassiveDiscovery(int seconds);
+/* Send passive discovery packets if properly configured and running as    */
+/* a DA                                                                    */
+/*	                                                                       */
+/* seconds (IN) number seconds that elapsed since the last call to this    */
+/*              function                                                   */
+/* Returns:  none                                                          */
+/*=========================================================================*/
+
+
+/*=========================================================================*/
 extern SLPList G_KnownDAList;                                         
 /* The list of DAs known to slpd.                                          */
 /*=========================================================================*/  

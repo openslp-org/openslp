@@ -78,8 +78,7 @@ void SLPDKnownDARegisterAll(SLPDAEntry* daentry)
                 
                 buf = SLPBufferAlloc(size);
                 if(buf)
-                {
-                                
+                {                               
                     /*--------------------*/
                     /* Construct a SrvReg */
                     /*--------------------*/
@@ -516,3 +515,16 @@ void SLPDKnownDAActiveDiscovery()
     SLPDOutgoingDatagramWrite(sock); 
 }
 
+
+/*=========================================================================*/
+void SLPDKnownDAPassiveDiscovery(int seconds)
+/* Send passive discovery packets if properly configured and running as    */
+/* a DA                                                                    */
+/*	                                                                       */
+/* seconds (IN) number seconds that elapsed since the last call to this    */
+/*              function                                                   */
+/* Returns:  none                                                          */
+/*=========================================================================*/
+{
+    /* TODO: finish this function */
+}

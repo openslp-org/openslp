@@ -139,11 +139,7 @@ void __cdecl main(int argc, char **argv)
     } 
 } 
 
-
-
-
 #else
-
 
 /*--------------------------------------------------------------------------*/
 void SignalHandler(int signum)
@@ -409,11 +405,11 @@ int main(int argc, char* argv[])
             SLPDIncomingAge(SLPD_AGE_INTERVAL);
             SLPDOutgoingAge(SLPD_AGE_INTERVAL);
             SLPDDatabaseAge(SLPD_AGE_INTERVAL);
+            SLPDKnownDAPassiveDiscovery(SLPD_AGE_INTERVAL);
             SLPDKnownDAActiveDiscovery();
             G_SIGALRM = 0;
             alarm(SLPD_AGE_INTERVAL);
         }
-
 
     } /* End of main loop */
 

@@ -258,7 +258,7 @@ void SLPDPropertyInit(const char* conffile)
     /* Set other values used internally */
     /*----------------------------------*/     
     G_SlpdProperty.DATimestamp = 1;  /* DATimestamp must start at 1 */
-    G_SlpdProperty.activeDiscoveryAttempts = G_SlpdProperty.activeDADetection * 4;
+    G_SlpdProperty.activeDiscoveryAttempts = G_SlpdProperty.activeDADetection * 3;
     G_SlpdProperty.randomWaitSeed = time(&G_SlpdProperty.randomWaitSeed);
 }
 
