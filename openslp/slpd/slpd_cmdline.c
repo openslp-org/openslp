@@ -96,6 +96,7 @@ int SLPDParseCommandLine(int argc,char* argv[])
         }
 		else if((strcmp(argv[i], "-v") == 0) 
 				|| (strcmp(argv[i], "-V") == 0)
+				|| (strcmp(argv[i], "--version") == 0)
 			   	|| (strcmp(argv[i], "-version") == 0))
 		{
 			printf("slpd version: %s\n", VERSION);
