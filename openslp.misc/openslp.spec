@@ -1,5 +1,5 @@
 Name            : openslp
-Version         : 1.0.1
+Version         : 1.0.3
 Release         : 1
 Group           : Server/Network
 Summary     	: Open source implementation of Service Location Protocol V2.
@@ -11,12 +11,13 @@ Summary(pt) 	: Implementação 'open source' do protocolo Service Location Protoco
 Copyright       : Caldera Systems, Inc (BSD)
 Packager        : Matthew Peterson <mpeterson@caldera.com>
 URL             : http://www.openslp.org
-BuildRoot       : /tmp/%{Name}-%{Version}
+BuildRoot       : /var/tmp/%{Name}-%{Version}
 
 Provides	: libslp.so
-Requires	: SysVinit-scripts >= 1.07 
+Requires	: SysVinit-scripts >= 1.07, libtool
 
-Source0: openslp/openslp-%{Version}.tar.gz
+Source0		: %{Name}-%{Version}.tar.gz
+Source1		: slpd.init
 
 %Description
 Service Location Protocol is an IETF standards track protocol that
@@ -58,24 +59,36 @@ duma empresa.
 %setup 
 
 %Build
-./configure
+./configure --disable-predicates
 make
 
 %Install
 %{mkDESTDIR}
-make install DOC_DIR=$DESTDIR/%{_defaultdocdir}/openslp-%{Version}
-mkdir -p $DESTDIR/etc/rc.d/init.d
-install -m 755 etc/slpd.caldera_init $DESTDIR%{SVIdir}/slpd
 
-if [ -d '/usr/lib/OpenLinux' ]; then 
-mkdir -p $DESTDIR/etc/sysconfig/daemons
+mkdir -p $DESTDIR/etc
+mkdir -p $DESTDIR%{SVIdir}
+mkdir -p $DESTDIR/usr/{sbin,lib,bin,include}
+mkdir -p $DESTDIR/etc/sysconfig/daemons 
+mkdir -p $DESTDIR%{_defaultdocdir}/%{Name}-%{Version}
+
+cp etc/slp.conf $DESTDIR/etc
+cp etc/slp.reg $DESTDIR/etc
+cp libslp/slp.h $DESTDIR/usr/include
+cp -a doc/* $DESTDIR%{_defaultdocdir}/%{Name}-%{Version}
+
+libtool install slpd/slpd $DESTDIR/usr/sbin 
+libtool install slptool/slptool $DESTDIR/usr/bin
+libtool install libslp/libslp.la $DESTDIR/usr/lib
+ln -s libslp.so.%{libver} $DESTDIR/usr/lib/libslp.so.0
+
 cat <<EOD  > $DESTDIR/etc/sysconfig/daemons/slpd
 IDENT=slp
 DESCRIPTIVE="SLP Service Agent"
 ONBOOT="yes"
+OPTIONS=""
 EOD
-fi
 
+install -m 755 %{SOURCE1} $DESTDIR%{SVIdir}/slpd
 
 %{fixManPages}
 %{fixInfoPages}
@@ -87,11 +100,17 @@ fi
 
 
 %Post
-/sbin/ldconfig
+if [ -e /usr/lib/libslp.so ]; then
+	rm -f /usr/lib/libslp.so
+fi
+ln -s /usr/lib/libslp.so.%{libver} /usr/lib/libslp.so
+libtool --finish /usr/lib > /dev/null 2>&1
+
 /usr/lib/LSB/init-install slpd
 
 
 %PreUn
+%{SVIdir}/slpd stop > /dev/null 2>&1
 /usr/lib/LSB/init-remove slpd
 
 
@@ -101,12 +120,11 @@ fi
 
 %Files
 %defattr(-,root,root)
-%doc AUTHORS COPYING INSTALL NEWS README doc/*
-%config /etc/slp.spi
 %config /etc/slp.conf
 %config /etc/slp.reg
 %config /etc/sysconfig/daemons/slpd
-/etc/rc.d/init.d/slpd
+%{SVIdir}/slpd
+%{_defaultdocdir}/%{Name}-%{Version}/*
 /usr/lib/libslp*
 /usr/include/slp.h
 /usr/sbin/slpd
