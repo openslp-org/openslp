@@ -23,30 +23,33 @@
 <hr WIDTH="100%">
 <br>&nbsp;
 <h3>
-Release Notes for 1.0.1</h3>
-OpenSLP 1.0.1 is the second "stable/complete" release of OpenSLP.&nbsp;
-It turns out that a few bugs did slip into the 1.0.0 release.&nbsp; We
-hope that they are all fixed in 1.0.1.&nbsp; <b>It is highly recommended
-that all OpenSLP users upgrade to this release.</b>
-<p>The following is a shortened list changes for 1.0.1:
+Release Notes for 1.0.2</h3>
+OpenSLP-1.0.2 fixes a few minor bugs and weird behaviors. <b>It is highly
+recommended that all OpenSLP users upgrade to this release.</b>
+<p>The following is a shortened list changes for 1.0.2:
 <ul>
 <li>
-Fixed minor KnownDAEcho problem that resulted in some DAs not getting registrations.</li>
+Fixed minor name resolution problem so that reverse lookups are not performed
+on hostnames supplied as are dotted IP addresses</li>
 
 <li>
-Fixed SLP_INTERNAL_ERROR problem that was caused by left over "debug commenting"</li>
+Fixed minor problem where DAs listed in net.slp.DAaddresses could not be
+found if multicast was not enabled.</li>
 
 <li>
-Fixed Database "initialization" order so that LOCAL or (API registered)
-services will be preserved on reset or SIGHUP</li>
+Fixed minor bugs in DA discovery code so that SLPFindScopes() returns more
+consistant results.</li>
 
 <li>
-Applied Michael Sweet's patch to configure.in that allows use of CFLAGS
-and LDFLAGS</li>
+Applied patch by Tomasz K³oczko that fixes build with configure 2.5x</li>
 
 <li>
-Applied Michael Sweet's patch to fix parsing problem in SLPParseSrvURL()
-that could cause SEGV</li>
+Applied patch from Jim Meyer that fixes several predicate parsing irregularities</li>
+
+<li>
+Minor compilation and bug fixes: typecast char to int when passed to is*()
+functions, fix size of Attribute Reply buf etc.Fixed minor KnownDAEcho
+problem that resulted in some DAs not getting registrations.</li>
 </ul>
 
 <h3>
@@ -54,7 +57,7 @@ Source Code</h3>
 
 <table NOSAVE >
 <tr NOSAVE>
-<td NOSAVE><a href="http://prdownloads.sourceforge.net/openslp/openslp-1.0.1.tar.gz">openslp-1.0.1.tar.gz</a></td>
+<td NOSAVE><a href="http://prdownloads.sourceforge.net/openslp/openslp-1.0.2.tar.gz">openslp-1.0.2.tar.gz</a></td>
 
 <td NOSAVE>
 <blockquote>OpenSLP source code tarball</blockquote>
@@ -62,7 +65,7 @@ Source Code</h3>
 </tr>
 
 <tr NOSAVE>
-<td NOSAVE><a href="http://prdownloads.sourceforge.net/openslp/openslp-1.0.1-4.src.rpm">openslp-1.0.1-1.src.rpm</a></td>
+<td NOSAVE><a href="http://prdownloads.sourceforge.net/openslp/openslp-1.0.2-1.src.rpm">openslp-1.0.2-1.src.rpm</a></td>
 
 <td>
 <blockquote>OpenSLP source RPM</blockquote>
@@ -70,7 +73,7 @@ Source Code</h3>
 </tr>
 
 <tr>
-<td><a href="http://prdownloads.sourceforge.net/openslp/openslp-contrib.1.0.1.tar.gz">openslp-contrib-1.0.1.tar.gz</a></td>
+<td><a href="http://prdownloads.sourceforge.net/openslp/openslp-contrib.1.0.2.tar.gz">openslp-contrib-1.0.2.tar.gz</a></td>
 
 <td>
 <blockquote>Collection of SLP related utilities and tools</blockquote>
@@ -83,7 +86,7 @@ Binary Packages</h3>
 
 <table NOSAVE >
 <tr NOSAVE>
-<td NOSAVE><a href="http://prdownloads.sourceforge.net/openslp/openslp-1.0.1-4.i386.rpm">openslp-1.0.1-1.i386.rpm</a></td>
+<td NOSAVE><a href="http://prdownloads.sourceforge.net/openslp/openslp-1.0.2-1.i386.rpm">openslp-1.0.2-1.i386.rpm</a></td>
 
 <td>
 <blockquote>OpenSLP binary RPM for Linux (Caldera OpenLinux, RedHat, SUSE,
