@@ -66,6 +66,69 @@ const struct in6_addr in6addr_service_node_mask = { 0xFF,0x1,0x0,0x0,0x0,0x0,0x0
 const struct in6_addr in6addr_service_link_mask = { 0xFF,0x2,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x1,0x10,0x00 };
 const struct in6_addr in6addr_service_site_mask = { 0xFF,0x5,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x1,0x10,0x00 };
 
+// return 1 if successful, 0 if fails, and -1 if af argument is unknown
+int resolveHost(int af, const char *src, void *dst) {
+    int sts = 0;
+    struct addrinfo *res;
+    struct addrinfo hints;
+
+    memset (&hints, 0, sizeof(hints));
+    if (af == AF_INET) {
+        struct in_addr *d4Dst = (struct in_addr *) dst;
+        struct in_addr *d4Src;
+        hints.ai_family = PF_INET;
+        sts = getaddrinfo(src, NULL, &hints, &res);
+        if (sts == 0) {
+            struct addrinfo * aicheck = res;
+            while (aicheck != NULL) {
+                if (aicheck->ai_addr->sa_family == af) {
+                    sts = 1;
+                    d4Src = &(((struct sockaddr_in *)res->ai_addr)->sin_addr);
+                    memcpy(&d4Dst->s_addr, &d4Src->s_addr, 4);
+                    break;
+                }
+                else {
+                    aicheck = aicheck->ai_next;
+                }
+            }
+            /* if aicheck was NULL, sts will still be 0, if not, sts will be 1 */
+        }
+        else {
+            sts = 0;
+        }
+    }
+    else if (af == AF_INET6) {
+        struct in6_addr *d6Dst = (struct in6_addr *) dst;
+        struct in6_addr *d6Src;
+        hints.ai_family = PF_INET6;
+        sts = getaddrinfo(src, NULL, &hints, &res);
+        if (sts == 0) {
+            struct addrinfo * aicheck = res;
+            while (aicheck != NULL) {
+                if (aicheck->ai_addr->sa_family == af) {
+                    sts = 1;
+                    d6Src = &(((struct sockaddr_in6 *)res->ai_addr)->sin6_addr);
+                    memcpy(&d6Dst->s6_addr, &d6Src->s6_addr, 16); 
+                    break;
+                }
+                else {
+                    aicheck = aicheck->ai_next;
+                }
+            }
+            /* if aicheck was NULL, sts will still be 0, if not, sts will be 1 */
+        }
+        else {
+            sts = 0;
+        }
+    }
+    else {
+        sts = -1;
+    }
+    return(sts);
+}
+
+
+
 /*-------------------------------------------------------------------------*/
 int SLPNetResolveHostToAddr(const char* host,
                             struct sockaddr_storage* addr)
@@ -84,12 +147,12 @@ int SLPNetResolveHostToAddr(const char* host,
     struct sockaddr_in6 *a6 = (struct sockaddr_in6 *) addr;
     struct sockaddr_in *a4 = (struct sockaddr_in *) addr;
     /* quick check for dotted quad IPv4 address */
-    if(inet_pton(AF_INET, host, &a4->sin_addr) == 1) {
+    if(resolveHost(AF_INET, host, &a4->sin_addr) == 1) {
         addr->ss_family = AF_INET;
     }
     else {
         // try a IPv6 address
-        if(inet_pton(AF_INET6, host, &a6->sin6_addr) == 1) {
+        if(resolveHost(AF_INET6, host, &a6->sin6_addr) == 1) {
             addr->ss_family = AF_INET6;
         }
         else {
@@ -513,7 +576,7 @@ int SLPNetExpandIpv6Addr(char *ipv6Addr, char *result, int resultSize) {
 #endif
 }
 
-/* #define SLP_NET_TEST */
+/*#define SLP_NET_TEST*/
 #ifdef SLP_NET_TEST
 int main(int argc, char* argv[]) {
     char addrString[1024];

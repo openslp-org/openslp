@@ -197,7 +197,6 @@ int SLPMulticastSend(const SLPIfaceInfo* ifaceinfo,
     int             xferbytes;
     DWORD           ad = SLP_MCAST_ADDRESS;
 
-
 #if defined(MSG_NOSIGNAL)
     flags = MSG_NOSIGNAL;
 #endif
@@ -234,13 +233,9 @@ int SLPMulticastSend(const SLPIfaceInfo* ifaceinfo,
             struct sockaddr_in6 *s6dst = (struct sockaddr_in6 *) dst;
             unsigned int interfaceId = s6->sin6_scope_id; /* should be interface id to send the broadcast message to */
             /* send via IPV6 multicast */
-            if( setsockopt(socks->sock[socks->sock_count], 
-                           IPPROTO_IPV6, 
-                           IPV6_MULTICAST_IF, 
-                           (char *)&interfaceId,
-                           sizeof(interfaceId)))
-            {
+            if (bind(socks->sock[socks->sock_count], (struct sockaddr *) &socks->peeraddr[socks->sock_count], sizeof(struct sockaddr_storage)) != 0) {
                 /* error setting socket option */
+                printf("Error binding.  Error was %s\r\n", DecodeError(WSAGetLastError()));
                 return -1;
             }
             if (dst->ss_family == AF_INET6) {
@@ -440,7 +435,7 @@ int SLPXcastRecvMessage(const SLPXcastSockets* sockets,
  * $ gcc -g -DDEBUG -DSLP_XMIT_TEST slp_xcast.c slp_iface.c slp_buffer.c 
  *   slp_linkedlist.c slp_compare.c slp_xmalloc.c
  *==========================================================================*/ 
-//#define SLP_XMIT_TEST
+/* #define SLP_XMIT_TEST */
 #ifdef SLP_XMIT_TEST
 main()
 {
@@ -480,7 +475,6 @@ main()
     
         /* set up address and scope for v6 multicast */
         SLPNetSetAddr(&dst, AF_INET6, 0, (BYTE *)v6Addr, sizeof(v6Addr));
-        ((struct sockaddr_in6 *)&ifaceinfo6.iface_addr[0])->sin6_scope_id = 4;
         if (SLPMulticastSend(&ifaceinfo6, buffer, &socks, &dst) !=0)
             printf("\n SLPMulticast failed for ipv\n");
         SLPXcastSocketsClose(&socks);
