@@ -21,6 +21,6 @@ libslp_la_SOURCES = libslp_dereg.c   \
 	libslp_findattrs.c \
 	libslp_delattrs.c \
 	libslp_findsrvtypes.c \
-	libslp_knownda.c
+	libslp_knownda.c 
 libslp_la_LIBADD = ../common/libcommonlibslp.la
 libslp_la_LDFLAGS = -version-info 0:2:0
