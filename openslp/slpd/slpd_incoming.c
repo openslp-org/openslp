@@ -655,34 +655,11 @@ int SLPDIncomingInit()
     if (G_SlpdProperty.interfaces != NULL)
     {
         SLPIfaceGetInfo(G_SlpdProperty.interfaces, &ifaces, AF_UNSPEC);
-        
-//        begin = xstrdup((char *) G_SlpdProperty.interfaces);
-//        beginSave = begin;  /* save pointer for free() operation later */
-//        end = begin;
-//        finished = 0;
     }
     else
     {
         ifaces.iface_count = 0;
-//        finished = 1; /* if no interface is defined,       */
-//                      /* don't even enter the parsing loop */
     }
-
-//    for (; (finished == 0); begin = ++end)
-//    {
-//        while (*end && *end != ',') end ++;
-//        if (*end == 0) finished = 1;
-//        *end = 0;                      /* Terminate string. */
-//        if (end <= begin) continue;    /* Skip empty entries */
-//
-//        /* begin now points to a null terminated ip address string */
-//        if (inet_pton(AF_INET6, begin, &(((struct sockaddr_in6*) &myaddr)->sin6_addr)) == 1) {
-//            myaddr.ss_family = AF_INET6;
-//        }
-//        else {
-//            myaddr.ss_family = AF_INET;
-//            inet_pton(AF_INET, begin, &(((struct sockaddr_in*) &myaddr)->sin_addr));
-//        }
 
     for (i = 0; i < ifaces.iface_count; i++)
     {
@@ -841,32 +818,6 @@ int SLPDIncomingInit()
             SLPDLog("Unicast socket on %s ready\n",SLPNetSockAddrStorageToString(&myaddr, addr_str, sizeof(addr_str)));
         }
     }     
-
-//    if (beginSave) xfree(beginSave);
-
-
-    /*--------------------------------------------------------*/
-    /* Create socket that will handle broadcast UDP           */
-    /* (Only if IPv4 is supported.  IPv6 does not use bcast.) */
-    /*--------------------------------------------------------*/
-    /*//// this code doesn't seem to work... can't bind to the broadcast address.
-    if (SLPNetIsIPV4()) {
-        sock =  SLPDSocketCreateBoundDatagram(&myaddr,
-                                              &bcast4addr,
-                                              DATAGRAM_BROADCAST);
-        if (sock)
-        {
-            SLPListLinkTail(&G_IncomingSocketList,(SLPListItem*)sock);
-            SLPDLog("Broadcast socket for %s ready\n", SLPNetSockAddrStorageToString(&bcast4addr, addr_str, sizeof(addr_str)));
-        }
-
-        if (G_IncomingSocketList.count == 0)
-        {
-            SLPDLog("No usable interfaces\n");
-            return 1;
-        }
-    }
-    */
 
     return 0;
 }
