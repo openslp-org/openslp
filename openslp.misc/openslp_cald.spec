@@ -1,6 +1,7 @@
-%define	ver 0.7.1
+%define	ver 0.7.2
 %define	rel	1
 %define	name openslp
+%define libver 0.0.1
 
 Name        	: openslp
 Version     	: %ver
@@ -12,7 +13,7 @@ Copyright   	: Caldera Systems (LGPL)
 Packager    	: Matthew Peterson <mpeterson@calderasystems.com>
 URL         	: http://www.openslp.org/
 BuildRoot   	: /tmp/%{name}-%{ver}
-Source0		: ftp://openslp.org/pub/openslp/%{name}-%{ver}/%{name}-%{ver}.tar.gz
+Source0			: ftp://openslp.org/pub/openslp/%{name}-%{ver}/%{name}-%{ver}.tar.gz
 
 
 %Description
@@ -34,15 +35,15 @@ make
 
 %Install
 %{mkDESTDIR}
-make install 
-mkdir -p $DESTDIR/etc/sysconfig/daemons 
-cat <<EOD  > $DESTDIR/etc/sysconfig/daemons/slpd
+make install DESTDIR=$RPM_BUILD_ROOT
+mkdir -p $RPM_BUILD_ROOT/etc/sysconfig/daemons 
+cat <<EOD  > $RPM_BUILD_ROOT/etc/sysconfig/daemons/slpd
 IDENT=slp
 DESCRIPTIVE="SLP Service Agent"
 ONBOOT="yes"
 EOD
-mkdir -p $DESTDIR/etc/rc.d/init.d
-cp etc/slpd.caldera_init $DESTDIR/etc/rc.d/init.d/slpd
+mkdir -p $RPM_BUILD_ROOT/etc/rc.d/init.d
+cp etc/slpd.caldera_init $RPM_BUILD_ROOT/etc/rc.d/init.d/slpd
 
 %Clean
 rm -rf $RPM_BUILD_ROOT
@@ -65,7 +66,7 @@ lisa --SysV-init remove slpd $1
 %config /etc/slp.reg
 %config /etc/sysconfig/daemons/slpd
 /etc/rc.d/init.d/slpd
-/usr/lib/libslp.so.%{ver}
+/usr/lib/libslp.so.%{libver}
 /usr/include/slp.h
 /usr/sbin/slpd
 
