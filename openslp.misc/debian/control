@@ -4,7 +4,7 @@ Priority: optional
 Maintainer: Ganesan Rajagopal <rganesan@myrealbox.com>
 Standards-Version: 3.0.1
 
-Package: openslpd
+Package: slpd
 Architecture: any
 Depends: ${shlibs:Depends}
 Recommends: openslp-doc (= ${Source-Version})

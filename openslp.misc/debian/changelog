@@ -1,3 +1,14 @@
+openslp (0.8.1-2) unstable; urgency=low
+
+  * Updated with review comments from Susan G. Kleinmann (sgk@debian.org).  
+    New package openslp-doc created.
+  
+  * Added doc-base entry for openslp-doc.
+  
+  * Renamed openslpd package to slpd (based on how openldap2 does this).
+
+ -- Ganesan Rajagopal <rganesan@myrealbox.com>  Wed, 14 Feb 2001 17:09:53 +0530
+
 openslp (0.8.1-1) unstable; urgency=low
 
   * Initial Release.

@@ -3,7 +3,7 @@
 
 DAEMON=/usr/sbin/slpd
 NAME=slpd
-DESC=openslp
+DESC="openslp server"
 
 test -f $DAEMON || exit 0
 

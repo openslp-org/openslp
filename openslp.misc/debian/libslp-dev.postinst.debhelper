@@ -1,7 +1,0 @@
-# Automatically added by dh_installdocs
-if [ "$1" = "configure" ]; then
-	if [ -d /usr/doc -a ! -e /usr/doc/libslp-dev -a -d /usr/share/doc/libslp-dev ]; then
-		ln -sf ../share/doc/libslp-dev /usr/doc/libslp-dev
-	fi
-fi
-# End automatically added section

@@ -1,0 +1,11 @@
+Document: openslp-programmersguide
+Title: OpenSLP Programmer's Guide
+Author: Matt Peterson
+Abstract: This is a programmer's guide for OpenSLP. It describes all the SLP
+ APIs.
+Section: Apps/Programming
+
+Format: HTML                                     
+Index: /usr/share/doc/openslp-doc/html/ProgrammersGuide/index.html
+Files: /usr/share/doc/openslp-doc/html/ProgrammersGuide/*.html
+

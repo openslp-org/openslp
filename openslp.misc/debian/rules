@@ -58,14 +58,14 @@ binary-arch: build install
 	rm -f `pwd`/debian/openslp-doc/usr/share/doc/html/UsersGuide/calderalogo.jpg
 
         #
-        # build libslp${major} package by moving files from openslpd
+        # build libslp${major} package by moving files from slpd package
         #
 	dh_movefiles -plibslp$(major)        \
                usr/lib/libslp.so.$(major)    \
                usr/lib/libslp.so.$(version)
 
         #
-        # build libslp-dev package by moving files from openslpd
+        # build libslp-dev package by moving files from slpd package
         #
 	dh_movefiles -plibslp-dev usr/include usr/lib
 
@@ -73,7 +73,7 @@ binary-arch: build install
         # install-docs) into openslp-doc package
 	rm -rf `pwd`/debian/tmp/usr/doc
 
-        # remove empty directories in openslpd package
+        # remove empty directories in slpd package
 	rmdir `pwd`/debian/tmp/usr/include
 	rmdir `pwd`/debian/tmp/usr/lib
 
