@@ -1,0 +1,234 @@
+Simple Service Registration Transaction Integrity for SLPv2
+============================================================
+
+As described by RFC 2608, SLPv2 is designed to support integrity and 
+authentication of service location information.  In fact, the full 
+implementation of SLPv2 security often exceed the requirements for many
+SLP applications.  In such cases, the requirements for distribution of key 
+material and security configuration challenges SLP's claim that:
+
+   "Using this protocol, computers using the [network] need little or no 
+   static configuration of network services for network based applications."
+   
+       -- RFC 2608 (abstract)
+
+
+In order to provide SLPv2 security, it is necessary to distribute SPI and
+key information to ALL agents (UAs SAs and DAs).  
+
+The SLP security Problem
+-------------------------
+
+
+SPI configuration
+-----------------
+An SPI is an arbitrary string that identifies a key material that is needed
+to generate and verify digital signatures.  Basically, a SPI is an alias for
+a public/private key pair.
+
+In order for SLPv2 security to work, there needs to be some way for the
+implementation to map SPIs to keys and mapping must be saved in secure
+storage.  The formatting will vary, but the information represented by the
+following table must be represented:
+
+    SPINAME = PUBLICKEY [PRIVATEKEY]
+
+In the case of a UAs it is not necessary to configure a private key since
+a UA does not generate signatures.   The SA and DA do generate signatures
+and must be configured with a private key for SPIs they support.  All agents
+need to be configured with a public key for SPIs they support.
+
+It is evident from RFC 2614 that it is not intended for SPIs to be exposed to 
+developers.  Since there are no standardized APIs to change SPI configuration,
+it is always an implementation specific (and most likely manual) procedure. 
+It is also evident that SPI configuration is intended to be managed on a
+per-SLP installation basis -- not on a per-application basis.
+
+Key distribution
+----------------
+- keys (especially private) are difficult to distribute automatically.
+
+SPIs and scopes related?
+------------------------
+Using SLP scopes allows administrators to create functional SLP "domains"
+for administrative and scalability purposes.  Scope configuration can be
+statically configured, delivered via DHCP, or selected by the user.
+Regardless, scope configuration is really the only peice of information that
+is needed for a working SLP deployment -- unless the SLP deployment needs to
+be secure.  
+
+SPIs allow administrators to create functional SLP "domains" of trust.
+Conceptually, there would could be a one-to-one mapping of scopes to SPIs.
+To reduce confusion, might be wise to use *exactly the same string* for the
+scope and the SPI.
+
+SPI Hell
+---------
+Perhaps the reason SPI configuration standards were not treated in the RFCs is
+because it would be very difficult (if not impossible) to come up with a
+standard that would address the needs of SLP deployments.  Imagine the
+differences between the way that SPI configuration would be performed for
+the following: a desktop computer, a fileserver, a printer, a cell phone (or
+other embedded device).   
+
+The best way to avoid confusion is to simply not use SLPv2 security.  This
+is true for implementors of the SLPv2 protocol as well as for developers
+that write to the SLP API.
+
+Current SLP security requirements
+----------------------------------
+SLPv2 security provisions as described by RFC 2608 supply -- at the protocol 
+level -- everything that is needed to ensure that service location information
+was sent by a trusted entity (authentication) and that it is not changed in 
+transit (integrity).  At the application level, this means that an
+application developer (probably using the SLP API) can trust *all* SLP
+delivered information.  
+
+Blind trust of SLP deliverd information (URLs, etc) is especially significant 
+in common situations where confidential information (username and password) 
+are exchanged with an entity authenticated only by the fact that it was 
+located via secure SLP. 
+
+For example, LDAP enabled software uses SLP to locate an LDAP directory.  If
+SLP information is secure, the username and password to establish a connection
+with the LDAP directory can be sent with out having to use any other method to
+establish the identity of LDAP directory.  However, with LDAP (and many other 
+protocols, however, possible to establish the identity even if the SLP
+information is not trusted.  In fact, for any SSL or equivilant transport 
+establishing the identity of the "other side" seperatly from the URL used.
+
+Most secure applications already have authentication built into their
+protocols.  In these cases, additional configuration for SLP to provide 
+another layer of authentication does not make sense.  
+
+Security by fear
+----------------
+Most Internet security problems are approached with the assumption that no 
+one is trustworthy and that no one is trackable or accountable.  This is
+probably not an appropriate approach to SLP security because SLP is not
+intended for the Internet.  
+
+    SLP is intended to function within networks under cooperative
+    administrative control.  Such networks permit a policy to be
+    implemented regarding security, multicast routing and organization of
+    services and clients into groups which are not be feasible on the
+    scale of the Internet as a whole.
+    
+    -- RFC 2608 (section 1.1 Applicability Statement)
+
+In approaching the SLP security problem, one should continue to assume that
+no one is trustworthy, however, it SHOULD NOT be assumed that no one is 
+accountable or trackable.  In fact, in "networks under cooperative 
+administrative control" it is very easy track and confront individuals that 
+corrupt otherwise insecure systems as long as it can be identified that a 
+corruption has been attempted or has occured.  Because they can be held
+accountable, fear of consequences keep otherwise untrustworthy individuals
+in line.
+
+The real SLP security problem
+-----------------------------
+The use of secure service specific protocols/frameworks in an environment 
+"under cooperative administrative control" greatly reduces the scope of the 
+Security problem.  Instead of having to ensure that every bit of SLP
+information is delivered with authenticity and integrity, SLP only has to
+worry about a small portion of the SLP delivered information is delivered
+with authenticity and integrity -- and this is only so that developers (and
+ultimately system administrators) can be *alerted* to SLP related attacks.
+
+Continuing the LDAP example from above, it is possible to write a secure LDAP
+enabled "client" application that uses "insecure" SLP to discover the LDAP
+server.  The client would locate URLs for *all* LDAP services using SLP.
+The client would try to establish an SSL connection with each of the
+discovered LDAP servers until an LDAP server that comes to an LDAP server
+that is trusted.  If SLP finds an LDAP servers that is not trusted it should
+display a warning message (thus helping to track down the rogue or
+misconfigured LDAP server). 
+
+In the example above there is one no chance for security compromise in 
+the LDAP application due to it's use of SLP.  There is, however a chance that
+an attack could burdon the application.  The following is a list of attacks
+that can not be prevented without addtions to the required SLP implementation:
+
+   Unauthorized Registration - An obvious attack of registering many
+   non-existant LDAP services which would result in the application taking
+   a long time to connect to LDAP (it would probably have to iterate through a
+   lot of bogus services before it found a valid one).  
+   
+   Unauthorized Deregistration - A more effective attack would be to simply 
+   de-register the valid registration so that no LDAP services would be found 
+   at all.
+   
+   Unauthorized Reregistration - Reregister the LDAP service with different
+   attributes.  (This attack would only affects applications that rely on 
+   SLP attributes)
+   
+   Unauthorized DA - Bring up an unauthorized DA that has been modified to
+   achieve the same results as the above mentioned attacks.
+
+   Unauthorized SA - Bring up an unauthorized SA that has been modified to 
+   achieve the same results as an unauthorized registration or 
+   re-reregistration (only a problem if the application relies on SLP
+   attributes)
+   
+   Scrambler in the middle - Malicious party that "sniffs" the network and
+   intentionally scrambles valid messages so that they become invalid.
+
+
+Full SLPv2 security implementation prevents all of the above attacks except
+the "scrambler in the middle attack" which is not preventable.  However, in
+order to do it, the full SLPv2 security imposes the SPI configuration and key
+distribution overhead that was discussed earlier.  
+
+The solution to the SPI and the key distribution problem is to simply not 
+use SLPv2 security as defined in the RFC or expect that the world will
+standardize on a single SPI and key distribution solution and that tools can be
+written to automate them.  Perhaps the best advise for those trying to write
+SLP software today is to simply not use SLPv2 security as defined by the RFC 
+and spend the time implementing or using secure service-specific transport or 
+presentation layer protocols. As long as service-specific protocols are 
+secure, there is no chance that sensitive data or resources will be 
+compromised.
+
+Careful use of normal (insecure) SLPv2 can supply enough information
+to warn administrators about "unauthorized registration" attacks and 
+"unauthorized SA/DA" attacks, but currently, without a simple security 
+enhancements (in addition to normal SLPv2) it is impossible to prevent 
+any of these attacks or to even detect "unauthorized de-registration" or 
+"unathorized re-registration" attacks.
+
+SOLUTION
+--------
+"Simple Service Registration Transaction Integrity for SLPv2" (SSRTI-SLPv2) is
+a really long name for a very simple security extension to SLPv2 protocol that
+facilitates prevention or dection of all the SLP attacks that would otherwise 
+"burdon" (not compromise) SLP enable software.
+
+Prevented by SLPv2 security
+    unauthorized registration
+    unauthorized deregistration
+    unauthorized reregistration
+    unauthorized SA
+    unauthorized DA
+    first registration wins (not applicable)
+    man-in-the-middle
+
+Prevented by SSRTI-SLPv2:
+    unauthorized deregistration
+    unauthorized reregistration
+    
+Detectable by application developer:
+    unauthorized registration
+    unauthorized SA
+
+Deterrable by implementation:
+    unauthorized registration
+    first registration wins
+
+Detectable by implementation:
+    unauthorized DA
+
+Not preventable or detectable
+    scrambler-in-the-middle
+    
+(Remember the Registration replay attack!)
+    
