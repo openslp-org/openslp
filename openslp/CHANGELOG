@@ -10,6 +10,12 @@ blank lines and include the date, developer's email, and change description.
 =============================================================================
 
 06/12/00 mpeterson@calderasystems.com
+Fixed a nasty little bug in slp_property.c that caused a segfault
+
+06/12/00 mpeterson@calderasystems.com
+Added support for slp.net.DAAddresses to libslp.
+
+06/12/00 mpeterson@calderasystems.com
 Added support for slp.net.isBroadcastOnly property
 
 06/12/00 mpeterson@calderasystems.com

@@ -188,7 +188,8 @@ void HandleSocketListen(SLPDSocketList* list, SLPDSocket* sock)
 /*-------------------------------------------------------------------------*/
 {
     SLPDSocket* connsock;
-
+    const int   lowat = 18;
+    
     /* check to see if we have accepted the maximum number of sockets */
     if(list->count < SLPD_MAX_SOCKETS)
     {
@@ -199,15 +200,15 @@ void HandleSocketListen(SLPDSocketList* list, SLPDSocket* sock)
         connsock->fd = accept(sock->fd,
                               &(connsock->peerinfo.peeraddr), 
                               &(connsock->peerinfo.peeraddrlen));
-        if(sock->fd >= 0)
+        if(connsock->fd >= 0)
         {
-            /* TODO: do a getsockopt() to determine if local */
+            setsockopt(connsock->fd,SOL_SOCKET,SO_RCVLOWAT,&lowat,sizeof(lowat));
+            setsockopt(connsock->fd,SOL_SOCKET,SO_SNDLOWAT,&lowat,sizeof(lowat)); 
             connsock->peerinfo.peertype = SLPD_PEER_REMOTE;
             connsock->recvbuf = SLPBufferAlloc(SLP_MAX_DATAGRAM_SIZE);
             connsock->sendbuf = SLPBufferAlloc(SLP_MAX_DATAGRAM_SIZE);
             connsock->state = STREAM_FIRST_READ;
             time(&(connsock->timestamp));
-
             SLPDSocketListAdd(list,connsock);
         }
         else

@@ -103,11 +103,12 @@ int SLPPropertySet(const char *pcName,
         memcpy(newProperty->propertyValue,pcValue,pcValueSize);
     
         /* Link the new property into the list */
-        ListLink((PListItem*)&G_SLPPropertyListHead,
-                 (PListItem)newProperty);
+        ListLink((PListItem*)&G_SLPPropertyListHead,(PListItem)newProperty);
     }
     else
     {    
+        ListUnlink((PListItem*)&G_SLPPropertyListHead,(PListItem)newProperty);
+        
         /* property already exists in the list */
         newProperty = (SLPProperty*)realloc(newProperty,sizeof(SLPProperty) + pcNameSize + pcValueSize);    
         if(newProperty == 0)
@@ -125,6 +126,8 @@ int SLPPropertySet(const char *pcName,
         /* copy the passed in name and value */
         memcpy(newProperty->propertyName,pcName,pcNameSize);
         memcpy(newProperty->propertyValue,pcValue,pcValueSize);
+        
+        ListLink((PListItem*)&G_SLPPropertyListHead,(PListItem)newProperty);
     }
     
     return 0;

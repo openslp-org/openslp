@@ -40,79 +40,6 @@ struct sockaddr_in  G_SlpdAddr;
 int                 G_SlpdSocket  = -1;
 /*=========================================================================*/    
     
-/*=========================================================================*/ 
-int NetworkGetSlpdSocket(struct sockaddr* peeraddr, int peeraddrlen)       
-/* Connects to slpd.  Will not block.                                      */
-/*                                                                         */
-/* peeraddr     (OUT) receives the address of the socket                   */
-/*                                                                         */
-/* peeraddrlen  (OUT) receives the length of the socket address            */
-/*                                                                         */
-/* Returns  -   -1 if connection can not be made                           */
-/*=========================================================================*/ 
-{
-    int lowat;
-
-    if(G_SlpdSocket == -1)
-    {
-        G_SlpdSocket = socket(AF_INET,SOCK_STREAM,0);
-        if(G_SlpdSocket >= 0)
-        {
-            G_SlpdAddr.sin_family      = AF_INET;
-            G_SlpdAddr.sin_port        = htons(SLP_RESERVED_PORT);
-            G_SlpdAddr.sin_addr.s_addr = htonl(LOOPBACK_ADDRESS);
-            if(connect(G_SlpdSocket,(struct sockaddr*)&G_SlpdAddr,sizeof(G_SlpdAddr)) == 0)
-            {
-                 /* set the receive and send buffer low water mark to 18 bytes 
-                (the length of the smallest slpv2 message) */
-                lowat = 18;
-                setsockopt(G_SlpdSocket,SOL_SOCKET,SO_RCVLOWAT,&lowat,sizeof(lowat));
-                setsockopt(G_SlpdSocket,SOL_SOCKET,SO_SNDLOWAT,&lowat,sizeof(lowat));
-
-                if(peeraddrlen >= sizeof(G_SlpdAddr))
-                {
-                    memcpy(peeraddr,&G_SlpdAddr,sizeof(G_SlpdAddr));
-                }
-                else
-                {
-
-                    memcpy(peeraddr,&G_SlpdAddr,peeraddrlen);
-                }
-                
-            }
-            else
-            {
-                  /* Could not connect to the slpd through the loopback */
-                  close(G_SlpdSocket);
-                  G_SlpdSocket = -1;
-            }
-        }    
-    }
-    else
-    {
-        if(peeraddrlen >= sizeof(G_SlpdAddr))
-        {
-            memcpy(peeraddr,&G_SlpdAddr,sizeof(G_SlpdAddr));
-        }
-        else
-        {
-
-            memcpy(peeraddr,&G_SlpdAddr,peeraddrlen);
-        }
-    }
-    
-    return G_SlpdSocket;
-}
-
-
-/*=========================================================================*/ 
-void NetworkCloseSlpdSocket()
-/*=========================================================================*/ 
-{
-    close(G_SlpdSocket);
-    G_SlpdSocket = -1;
-}
-
 
 /*=========================================================================*/ 
 SLPError NetworkSendMessage(int sockfd,
@@ -280,13 +207,142 @@ SLPError NetworkRecvMessage(int sockfd,
 int NetworkConnectToDA(struct sockaddr_in* peeraddr)
 /*=========================================================================*/ 
 {
-    /*
+    char* begin;
+    char* end;
+    int   finished;
+    int   lowat;
+    int   result      = -1;
+    char* daaddresses = 0;
+    
+    /* First use net.slp.DAAddresses if they are available */
+    daaddresses = strdup(SLPGetProperty("net.slp.DAAddresses"));
+    if(daaddresses == 0 || *daaddresses == 0)
+    {
+        /* TODO: Try DAs that were configured via DHCP */
+
+        /* TODO: Get DAAddresses from slpd */
+
+        result = -1;
+        goto FINISHED;
+    }
+    
+    /*------------------------------------------*/
+    /* Take the first socket that can be created */
+    /*------------------------------------------*/
+    begin = (char*)daaddresses;
+    end = begin;
+    finished = 0;
+    while( finished == 0 )
+    {
+        while(*end && *end != ',') end ++;
+        if(*end == 0) finished = 1;
+        while(*end <=0x2f) 
+        {
+            *end = 0;
+            end--;
+        }
+         
+        memset(peeraddr,0,sizeof(struct sockaddr_in));
+        peeraddr->sin_family      = AF_INET;
+        peeraddr->sin_addr.s_addr = inet_addr(begin);
+        peeraddr->sin_port = htons(SLP_RESERVED_PORT);
+        result = socket(AF_INET,SOCK_STREAM,0);
+        if(result >= 0)
+        {
+            if(connect(result,(struct sockaddr*)peeraddr,sizeof(struct sockaddr_in)) == 0)
+            {
+                /* set the receive and send buffer low water mark to 18 bytes 
+                (the length of the smallest slpv2 message) */
+                lowat = 18;
+                setsockopt(G_SlpdSocket,SOL_SOCKET,SO_RCVLOWAT,&lowat,sizeof(lowat));
+                setsockopt(G_SlpdSocket,SOL_SOCKET,SO_SNDLOWAT,&lowat,sizeof(lowat));
+                
+                break;
+            }
+            
+            close(result);
+            result = -1;
+        }
+    }
+
+    FINISHED:       
+    if(daaddresses) free(daaddresses);
+    
+    return result;
+}
+
+
+/*=========================================================================*/ 
+int NetworkGetSlpdSocket(struct sockaddr* peeraddr, int peeraddrlen)       
+/* Connects to slpd.  Will not block.                                      */
+/*                                                                         */
+/* peeraddr     (OUT) receives the address of the socket                   */
+/*                                                                         */
+/* peeraddrlen  (OUT) receives the length of the socket address            */
+/*                                                                         */
+/* Returns  -   -1 if connection can not be made                           */
+/*=========================================================================*/ 
+{
     int lowat;
-    lowat = 18;
-    setsockopt(G_SlpdSocket,SOL_SOCKET,SO_RCVLOWAT,&lowat,sizeof(lowat));
-    setsockopt(G_SlpdSocket,SOL_SOCKET,SO_SNDLOWAT,&lowat,sizeof(lowat));
-    */
-    return -1;
+
+    if(G_SlpdSocket == -1)
+    {
+        G_SlpdSocket = socket(AF_INET,SOCK_STREAM,0);
+        if(G_SlpdSocket >= 0)
+        {
+            G_SlpdAddr.sin_family      = AF_INET;
+            G_SlpdAddr.sin_port        = htons(SLP_RESERVED_PORT);
+            G_SlpdAddr.sin_addr.s_addr = htonl(LOOPBACK_ADDRESS);
+            if(connect(G_SlpdSocket,(struct sockaddr*)&G_SlpdAddr,sizeof(G_SlpdAddr)) == 0)
+            {
+                 /* set the receive and send buffer low water mark to 18 bytes 
+                (the length of the smallest slpv2 message) */
+                lowat = 18;
+                setsockopt(G_SlpdSocket,SOL_SOCKET,SO_RCVLOWAT,&lowat,sizeof(lowat));
+                setsockopt(G_SlpdSocket,SOL_SOCKET,SO_SNDLOWAT,&lowat,sizeof(lowat));
+
+                if(peeraddrlen >= sizeof(G_SlpdAddr))
+                {
+                    memcpy(peeraddr,&G_SlpdAddr,sizeof(G_SlpdAddr));
+                }
+                else
+                {
+
+                    memcpy(peeraddr,&G_SlpdAddr,peeraddrlen);
+                }
+                
+            }
+            else
+            {
+                  /* Could not connect to the slpd through the loopback */
+                  close(G_SlpdSocket);
+                  G_SlpdSocket = -1;
+            }
+        }    
+    }
+    else
+    {
+        if(peeraddrlen >= sizeof(G_SlpdAddr))
+        {
+            memcpy(peeraddr,&G_SlpdAddr,sizeof(G_SlpdAddr));
+        }
+        else
+        {
+
+            memcpy(peeraddr,&G_SlpdAddr,peeraddrlen);
+        }
+    }
+    
+    return G_SlpdSocket;
+}
+
+
+/*=========================================================================*/ 
+void NetworkCloseSlpdSocket()
+/*=========================================================================*/ 
+{
+    close(G_SlpdSocket);
+    G_SlpdSocket = -1;
 }
 
 

@@ -81,7 +81,7 @@ SLPError ProcessSrvRqst(PSLPHandleInfo handle)
     }
     else
     {
-        ismcast = 1;
+        ismcast = 0;
         maxwait = atoi(SLPGetProperty("net.slp.unicastMaximumWait")) / 1000;
         wait    = maxwait;
     }
@@ -136,7 +136,7 @@ SLPError ProcessSrvRqst(PSLPHandleInfo handle)
     }
     
     /* repeat loop until timeout or until the retransmit exceeds mtu */
-    while(maxwait > 0 && size + prlistlen < mtu)
+    do
     {
         if(SLPBufferRealloc(buf, size + prlistlen) == 0)
         {
@@ -226,7 +226,7 @@ SLPError ProcessSrvRqst(PSLPHandleInfo handle)
         }
             
         rplynet = 0;
-        while(1)
+        do
         {
             /* Recv the SrvAck */
             result = NetworkRecvMessage(sock,
@@ -289,7 +289,7 @@ SLPError ProcessSrvRqst(PSLPHandleInfo handle)
                     }
                 }   
             }
-        }
+        }while(ismcast);
 
         /* determine if no replies have been received */
         rplytot += rplynet;                        
@@ -298,11 +298,17 @@ SLPError ProcessSrvRqst(PSLPHandleInfo handle)
             break;
         }
         
+        if(ismcast == 0)
+        {
+            /* no retry necessary we were talking to DA */
+            break;
+        }
         
         /* calculate the wait for the next retry */
         maxwait = maxwait - wait;
         wait = wait * 2;
-    }
+    }while(ismcast && maxwait > 0 && size + prlistlen < mtu);
+    /* retry if mcast message and wait and size still are valid */
 
     /*----------------*/
     /* We're all done */
