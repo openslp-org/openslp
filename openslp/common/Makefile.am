@@ -28,4 +28,4 @@ noinst_HEADERS = \
 	slp_compare.h	\
 	slp_linkedlist.h\
 	slp_message.h	\
-	slp_property.h
+	slp_property.h 
