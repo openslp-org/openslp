@@ -129,7 +129,6 @@ void FindAttrs(SLPToolCommandLine* cmdline)
 
     if(SLPOpen(cmdline->lang,SLP_FALSE,&hslp) == SLP_OK)
     {
-        printf("Calling FindAttrs(hslp,%s,%s,%s,callback\n",cmdline->cmdparam1,cmdline->scopes,cmdline->cmdparam2);
 
         result = SLPFindAttrs(hslp,
                              cmdline->cmdparam1,
