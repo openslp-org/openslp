@@ -380,6 +380,11 @@ void SLPDKnownDARegisterAll(SLPDAEntry* daentry)
                     {
                         sock->state = STREAM_WRITE_FIRST;
                     }
+
+                    /*-------------------*/
+                    /* Log trace message */
+                    /*-------------------*/
+                    SLPDLogTraceMsg("OUT",&sock->peeraddr,buf);
                 }
             }
         }
@@ -484,6 +489,11 @@ void SLPDKnownDADeregisterAll(SLPDAEntry* daentry)
                 {
                     sock->state = STREAM_WRITE_FIRST;
                 }
+
+                /*-------------------*/
+                /* Log trace message */
+                /*-------------------*/
+                SLPDLogTraceMsg("OUT",&sock->peeraddr,buf);
             }
         }
     }
@@ -787,6 +797,11 @@ void SLPDKnownDAEcho(struct sockaddr_in* peeraddr,
                     {
                         sock->state = STREAM_WRITE_FIRST;
                     }
+                    
+                    /*-------------------*/
+                    /* Log trace message */
+                    /*-------------------*/
+                    SLPDLogTraceMsg("OUT",&sock->peeraddr,buf);
                 }
             }
         }
@@ -843,6 +858,11 @@ void SLPDKnownDAActiveDiscovery(int seconds)
             /*----------------------------------------------------------*/
             MakeActiveDiscoveryRqst(1,&(sock->sendbuf));
             SLPDOutgoingDatagramWrite(sock); 
+            
+            /*-------------------*/
+            /* Log trace message */
+            /*-------------------*/
+            SLPDLogTraceMsg("OUT",&sock->peeraddr,sock->sendbuf);
         }
     } 
     else
@@ -913,6 +933,10 @@ void SLPDKnownDAPassiveDAAdvert(int seconds)
                                           &(sock->sendbuf)) == 0)
             {
                 SLPDOutgoingDatagramWrite(sock);
+                /*-------------------*/
+                /* Log trace message */
+                /*-------------------*/
+                SLPDLogTraceMsg("OUT",&sock->peeraddr,sock->sendbuf);
             }
         }
     }

@@ -78,8 +78,8 @@ SLPErrorEntry error_entries[] = {
 
 /*=========================================================================*/
 void get_full_error_data(int error_number,
-		char **error_name,
-		char **error_description)
+			 char **error_name,
+			 char **error_description)
 /* Returns data in the parameter variables about the error code            */
 /*                                                                         */
 /* errorNumber -	Error code received.                                   */
@@ -115,10 +115,10 @@ void get_full_error_data(int error_number,
 
 void check_error_state(int err, char *location_text)
 {
-	char		*error_name;
-	char		*error_description;
+    char		*error_name;
+    char		*error_description;
 
-	if (err != SLP_OK)
+    if (err != SLP_OK)
     {
         get_full_error_data(err, &error_name, &error_description);
         printf ("%s\n%d: %s\n%s\n",

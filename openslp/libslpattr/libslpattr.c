@@ -1463,7 +1463,7 @@ int internal_store( struct xx_SLPAttributes *slp_attr, char const *tag, size_t t
 	char *mem_block; /* Pointer into allocated block. */
 	char const *cur_start; /* Pointer into attribute list (start of current data). */
 	char const *cur_end; /* Pointer into attribute list (end of current data). */
-	value_t *val;
+    value_t *val = 0;
 	value_t **next_val_ptr; /* Pointer from the previous val to the next val. */
 
 	assert(type == SLP_BOOLEAN || type == SLP_STRING || type == SLP_OPAQUE || type == SLP_INTEGER); /* Ensure that we're dealing with a known type. */
@@ -2030,7 +2030,7 @@ SLPError attr_destringify(
 		STOP_VALUE /* The end of an [attr-val]. */
 	} state = START_ATTR; /* The current state of the parse. */
 	char const *tag; /* A tag that has been parsed. (carries data across state changes)*/
-	size_t tag_len; /* length of the tag (in bytes) */
+	size_t tag_len = 0; /* length of the tag (in bytes) */
 	
 	assert(str != NULL);
 	if (strlen(str) == 0) {

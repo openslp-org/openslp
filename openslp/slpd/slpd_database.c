@@ -204,9 +204,22 @@ int SLPDDatabaseReg(SLPSrvReg* srvreg,
             goto FAILURE;
         }
 
-        /* TODO: Serialize all attributes into entry->attrlist */
-        /* TODO: Allocate the partiallist */
-
+        /* Serialize all attributes into entry->attrlist */
+        if(entry->partiallist)
+        {
+            free(entry->partiallist);
+            entry->partiallist = 0;
+            entry->partiallistlen = 0;
+        }
+        if( SLPAttrSerialize(entry->attr,
+                             "",
+                             &entry->attrlist,
+                             entry->attrlistlen,
+                             &entry->attrlistlen,
+                             SLP_FALSE) )
+        {
+            goto FAILURE;
+        }
         #else
         if(entry->attrlistlen >= srvreg->attrlistlen)
         {
@@ -472,12 +485,13 @@ int SLPDDatabaseFindAttr(SLPAttrRqst* attrrqst,
                         free(entry->partiallist);
                         entry->partiallist = 0;
                         entry->partiallistlen = 0;
+
                         /* SLPAttrSerialize will allocate memory for us */
                         err = SLPAttrSerialize(entry->attr,
                                                attrrqst->taglist,
                                                &entry->partiallist,
                                                entry->partiallistlen,
-                                               &count,
+                                               &entry->partiallistlen,
                                                SLP_FALSE);
                         entry->partiallistlen = count;
 		            }
@@ -551,9 +565,10 @@ void SLPDDatabaseDeinit()
 /* De-initialize the database.  Free all resources taken by registrations  */
 /*=========================================================================*/
 {
-    while(list->count)
+    while(G_DatabaseList.count)
     {
-        SLPDDatabaseEntryFree((SLPDDatabaseEntry*)SLPListUnlink(list,list->head));
+        SLPDDatabaseEntryFree((SLPDDatabaseEntry*)SLPListUnlink(&G_DatabaseList,
+                                                                G_DatabaseList.head));
     }
 }
 #endif

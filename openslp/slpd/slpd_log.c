@@ -254,26 +254,8 @@ void SLPDLogTraceReg(const char* prefix, SLPDDatabaseEntry* entry)
         SLPLogBuffer(entry->scopelist, entry->scopelistlen);
         SLPLog("\nservice type = ");
         SLPLogBuffer(entry->srvtype, entry->srvtypelen);
-    	
-        #ifdef USE_PREDICATES
-        {/* Print attributes. */
-    		char *str;
-    		SLPError err;
-    		//err = SLPAttrSerialize(entry->attr, NULL, &str, SLP_FALSE);
-    		if (err != SLP_OK) 
-    		{
-        		SLPLog("\nerror %i when building attributes", err);
-    		} 
-    		else
-    		{
-    			SLPLog("\nattributes = %s", str);
-    			free(str);
-    		}      
-    	}
-        #else
         SLPLog("\nAttributes = ");
         SLPLogBuffer(entry->attrlist, entry->attrlistlen);
-        #endif
         SLPLog("\n\n");
     }
 }
