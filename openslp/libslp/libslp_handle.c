@@ -262,7 +262,7 @@ void SLPClose(SLPHandle hSLP)
     if(handle->sasock >=0)
     {
         #ifdef WIN32
-        socketclose(handle->sasock);
+        closesocket(handle->sasock);
         #else
         close(handle->sasock);
         #endif

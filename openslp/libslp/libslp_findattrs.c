@@ -233,7 +233,7 @@ SLPError ProcessAttrRqst(PSLPHandleInfo handle)
                                      ProcessAttrRplyCallback,
                                      handle);
             #ifdef WIN32
-            closesocket(sock)
+            closesocket(sock);
             #else
             close(sock);
             #endif
