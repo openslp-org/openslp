@@ -24,8 +24,8 @@
 <h3>
 README 0.7.1</h3>
 As far as enhancements go OpenSLP release 0.7.1 just slightly more stable
-release of 0.7.0. Several bug fixes that kept 0.7.0 from working in some
-cases have been added.&nbsp; For developers,&nbsp; OpenSLP 0.7.1 introduces
+release of 0.7.0. Several bug fixes (that kept 0.7.0 from working in some
+cases) have been added.&nbsp; For developers,&nbsp; OpenSLP 0.7.1 introduces
 a new make file system that uses automake/autoconf...&nbsp; one step closer
 to our goal of makeing OpenSLP easier to port and maintain.
 <br>&nbsp;
@@ -33,25 +33,23 @@ to our goal of makeing OpenSLP easier to port and maintain.
 CHANGELOG 0.7.1</h3>
 
 <li>
-Added multicast DA discover support to the library</li>
+Fixed 109269 - SLPFindSrvs callback no longer gives a LAST_CALL</li>
 
 <li>
-Centralized the request reply engine for the library to libslp_network.c</li>
+Fixed a short coming of SLPEscape, it did not handle CTL, which it now
+does</li>
 
 <li>
-Added support for net.slp.multicastTimeouts, net.slp.unicastTimeout, and
-net.slp.DADiscoveryTimeouts</li>
-
-<li>
-Added in SLPUnescape function, and changed the documentation to reflect
-it.</li>
+Removed all old Makefile and install scripts and replaced them with Automake/Autoconf
+ones</li>
 
 <h3>
 Source Code</h3>
 
 <table NOSAVE >
 <tr NOSAVE>
-<td NOSAVE><a href="http://download.sourceforge.net/openslp/openslp-0.7.1.tar.gz">openslp-0.7.1.tar.gz</a></td>
+<td NOSAVE><a href="http://download.sourceforge.net/openslp/openslp-0.7.1.tar.gz">openslp-0.7.1.tar.gz</a>
+<br><a href="http://download.sourceforge.net/openslp/openslp-0.7.1.tar.gz"></a>&nbsp;</td>
 
 <td>
 <blockquote>OpenSLP source code tarball</blockquote>
