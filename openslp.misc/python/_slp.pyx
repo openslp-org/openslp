@@ -164,7 +164,6 @@ cdef class SLPConn:
     def findsrvs(self, char *srvtype, char *scopelist, char *searchfilter,
                  object callback, object cookie = None):
         pycb = (callback, cookie or self.cookie)
-        print srvtype, scopelist, searchfilter
         return SLPFindSrvs(self.slph, srvtype, scopelist, searchfilter,
                            srvcb, <void *>pycb)
 
