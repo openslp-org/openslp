@@ -2,13 +2,13 @@
 
 include SETUP.mk
 
-SUBDIRS=FINDATTRS FINDSRVS FINDSRVTYPES REG DEREG
+SUBDIRS=FINDATTRS FINDSRVS FINDSRVTYPES REG DEREG PARSESRVURL
 default: $(SUBDIRS)
 
 PARSESRVURL: $(TESTROOT)/slp_parsesrvurl/Makefile
 	@echo
 	@echo
-	@echo "****** Making slp_findsrvs *****************"
+	@echo "****** Making slp_parsesrvurl *****************"
 	$(MAKE) -C $(TESTROOT)/slp_parsesrvurl	
 
 FINDSRVS: $(TESTROOT)/slp_findsrvs/Makefile
@@ -59,6 +59,9 @@ setup:
 	/usr/sbin/slpd
 	
 test:
+	-killall -TERM slpd
+	-sleep 2
+	/usr/sbin/slpd
 	-./slp_findsrvtypes/slp_findsrvtypes
 	-./slp_findsrvs/slp_findsrvs
 	-./slp_findattrs/slp_findattrs

@@ -217,7 +217,7 @@ int main(int argc, char* argv[])
                           NUM_ALL_LOWER,
                           all_lower_strings,
                           SLP_OK);
-        result = doTest(hslp, "service:testservice:service1", "default", "description", "All lowercase scopes",  &resultCookie);
+        result = doTest(hslp, "service:testservice:service1", "testscope", "description", "All lowercase scopes",  &resultCookie);
         
         //alpha numeric attribute request
         setupResultCookie(&resultCookie,

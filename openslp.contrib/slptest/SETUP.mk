@@ -7,7 +7,7 @@
 # source code
 #
 
-SLPROOT=<put directory here>
+SLPROOT=/home/mpeterson/cvs/openslp/openslp.STABLE
 
 TESTROOT=.
 
