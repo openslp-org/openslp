@@ -47,14 +47,13 @@
 /*                                                                         */
 /***************************************************************************/
 
-/*********
+/*********/
 /* TODO: The current implementation reparses the predicate string every    */
 /*       time it is evaluated. This implementation should be refactored to */
 /*       parse the predicate string once, build some sort of data-         */
 /*       structure out of that, and then compare the predicate DS with the */
 /*       attribute DS.                                                     */
-/*                                                                         */
-/*********
+/*********/
 
 /*********
  *
