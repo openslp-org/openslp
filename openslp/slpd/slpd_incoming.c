@@ -175,9 +175,9 @@ void IncomingStreamRead(SLPList* socklist, SLPDSocket* sock)
 
     if(sock->state == STREAM_READ_FIRST)
     {
-        /*---------------------------------------------------------------*/
-        /* take a peek at the packet to get version and size information */
-        /*---------------------------------------------------------------*/
+        /*---------------------------------------------------*/
+        /* take a peek at the packet to get size information */
+        /*---------------------------------------------------*/
         bytesread = recvfrom(sock->fd,
                              peek,
                              16,
@@ -187,29 +187,15 @@ void IncomingStreamRead(SLPList* socklist, SLPDSocket* sock)
         if(bytesread > 0)
         {
 
-            /* check the version */
-#if defined(ENABLE_SLPv1)
-            if(*peek == 2 || (G_SlpdProperty.isDA && *peek == 1))
-#else
-            if(*peek == 2)
-#endif
+             /* allocate the recvbuf big enough for the whole message */
+            sock->recvbuf = SLPBufferRealloc(sock->recvbuf,AsUINT24(peek+2));
+            if(sock->recvbuf)
             {
-                /* allocate the recvbuf big enough for the whole message */
-                sock->recvbuf = SLPBufferRealloc(sock->recvbuf,AsUINT24(peek+2));
-                if(sock->recvbuf)
-                {
-                    sock->state = STREAM_READ; 
-                }
-                else
-                {
-                    SLPDLog("INTERNAL_ERROR - out of memory!\n");
-                    sock->state = SOCKET_CLOSE;
-                }
+                sock->state = STREAM_READ; 
             }
             else
             {
-                SLPDLog("VER_NOT_SUPPORTED from %s\n",
-                       inet_ntoa(sock->peeraddr.sin_addr));
+                SLPDLog("INTERNAL_ERROR - out of memory!\n");
                 sock->state = SOCKET_CLOSE;
             }
         }
@@ -389,9 +375,9 @@ void SLPDIncomingAge(time_t seconds)
         case STREAM_READ:
         case STREAM_WRITE_FIRST:
         case STREAM_WRITE:
-            sock->age = sock->age + seconds;
             if(G_IncomingSocketList.count > SLPD_COMFORT_SOCKETS)
             {
+                /* Accellerate ageing cause we are low on sockets */
                 if(sock->age > G_SlpdProperty.unicastMaximumWait / 1000)
                 {
                     del = sock;
@@ -404,6 +390,7 @@ void SLPDIncomingAge(time_t seconds)
                     del = sock;
                 }
             }
+            sock->age = sock->age + seconds;
             break;
 
         default:

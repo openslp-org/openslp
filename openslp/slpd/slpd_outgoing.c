@@ -103,53 +103,63 @@ void OutgoingStreamReconnect(SLPList* socklist, SLPDSocket* sock)
 #else    
     int                 fdflags;
 #endif
-
-    /* Close the existing socket to clean the stream  and open an new socket */
-    close(sock->fd);
-    sock->fd = sock->fd = socket(PF_INET,SOCK_STREAM,0);
-    if(sock->fd > 0)
+    /*----------------------------------------------------------------*/
+    /* Make sure we have not reconnected too many times               */
+    /*----------------------------------------------------------------*/
+    sock->reconns += 1;
+    if(sock->reconns > SLPD_CONFIG_MAX_RECONN)
     {
-        /* Set the socket to nonblocking IO */
-#ifdef WIN32
-        fdflags = 1;
-        ioctlsocket(sock->fd, FIONBIO, &fdflags);
-#else
-        fdflags = fcntl(sock->fd, F_GETFL, 0);
-        fcntl(sock->fd,F_SETFL, fdflags | O_NONBLOCK);
-#endif
-    
-        if(connect(sock->fd, 
-                   (struct sockaddr *)&(sock->peeraddr), 
-                   sizeof(struct sockaddr_in)) == 0)
-        {
-            /* Connection occured immediately*/
-            if(sock->state == STREAM_WRITE)
-            {
-                sock->state = STREAM_WRITE_FIRST;
-            }
-            else if(sock->state == STREAM_READ)
-            {
-                sock->state = STREAM_READ_FIRST;
-            }
-            return;
-        }
-        else
-        {
-#ifdef WIN32
-            if(WSAEWOULDBLOCK == WSAGetLastError())
-#else
-            if(errno == EINPROGRESS && errno == EWOULDBLOCK)
-#endif
-            {
-                /* Connect would have blocked */
-                sock->state = STREAM_CONNECT_BLOCK;
-                return;
-            }
-        }
+        sock->state = SOCKET_CLOSE;
+        return;
     }
     
-    sock->state = SOCKET_CLOSE;
+    /*----------------------------------------------------------------*/
+    /* Close the existing socket to clean the stream  and open an new */
+    /* socket                                                         */
+    /*----------------------------------------------------------------*/
+    close(sock->fd);
+    sock->fd = socket(PF_INET,SOCK_STREAM,0);
+    if(sock->fd < 0)
+    {
+        sock->state = SOCKET_CLOSE;
+        return;
+    }
+    
+    /*---------------------------------------------*/
+    /* Set the new socket to enable nonblocking IO */
+    /*---------------------------------------------*/
+#ifdef WIN32
+    fdflags = 1;
+    ioctlsocket(sock->fd, FIONBIO, &fdflags);
+#else
+    fdflags = fcntl(sock->fd, F_GETFL, 0);
+    fcntl(sock->fd,F_SETFL, fdflags | O_NONBLOCK);
+#endif
+    
+    /*--------------------------*/
+    /* Connect a the new socket */
+    /*--------------------------*/
+    if(connect(sock->fd, 
+               (struct sockaddr *)&(sock->peeraddr), 
+               sizeof(struct sockaddr_in)))
+    {
+#ifdef WIN32
+        if(WSAEWOULDBLOCK == WSAGetLastError())
+#else
+        if(errno == EINPROGRESS)
+#endif
+        {
+            /* Connect blocked */
+            sock->state = STREAM_CONNECT_BLOCK;
+            return;
+        }
+    }
+
+    /* Connection occured immediately. Set to WRITE_FIRST so whole */
+    /* packet will be written                                      */
+    sock->state = STREAM_WRITE_FIRST;
 }
+
 
 /*-------------------------------------------------------------------------*/
 void OutgoingStreamRead(SLPList* socklist, SLPDSocket* sock)
@@ -161,9 +171,9 @@ void OutgoingStreamRead(SLPList* socklist, SLPDSocket* sock)
 
     if(sock->state == STREAM_READ_FIRST)
     {
-        /*---------------------------------------------------------------*/
-        /* take a peek at the packet to get version and size information */
-        /*---------------------------------------------------------------*/
+        /*---------------------------------------------------*/
+        /* take a peek at the packet to get size information */
+        /*---------------------------------------------------*/
         bytesread = recvfrom(sock->fd,
                              peek,
                              16,
@@ -172,29 +182,15 @@ void OutgoingStreamRead(SLPList* socklist, SLPDSocket* sock)
                              &peeraddrlen);
         if(bytesread > 0)
         {
-            /* check the version */
-#if defined(ENABLE_SLPv1)
-            if(*peek == 2 || (G_SlpdProperty.isDA && *peek == 1))
-#else
-            if(*peek == 2)
-#endif
+            /* allocate the recvbuf big enough for the whole message */
+            sock->recvbuf = SLPBufferRealloc(sock->recvbuf,AsUINT24(peek+2));
+            if(sock->recvbuf)
             {
-                /* allocate the recvbuf big enough for the whole message */
-                sock->recvbuf = SLPBufferRealloc(sock->recvbuf,AsUINT24(peek+2));
-                if(sock->recvbuf)
-                {
-                    sock->state = STREAM_READ;
-                }
-                else
-                {
-                    SLPDLog("INTERNAL_ERROR - out of memory!\n");
-                    sock->state = SOCKET_CLOSE;
-                }
+                sock->state = STREAM_READ;
             }
             else
             {
-                SLPDLog("VER_NOT_SUPPORTED from %s\n",
-                       inet_ntoa(sock->peeraddr.sin_addr));
+                SLPDLog("INTERNAL_ERROR - out of memory!\n");
                 sock->state = SOCKET_CLOSE;
             }
         }
@@ -203,12 +199,14 @@ void OutgoingStreamRead(SLPList* socklist, SLPDSocket* sock)
 #ifdef WIN32
             if(WSAEWOULDBLOCK != WSAGetLastError())
 #else
-            if(errno != EWOULDBLOCK && errno != EINPROGRESS)
+            if(errno != EWOULDBLOCK)
 #endif
             {
+                /* Error occured or connection was closed. Try to reconnect */
+                /* Socket will be closed if connect times out               */
                 OutgoingStreamReconnect(socklist,sock);
             }
-        }        
+        }       
     }
 
     if(sock->state == STREAM_READ)
@@ -219,8 +217,7 @@ void OutgoingStreamRead(SLPList* socklist, SLPDSocket* sock)
         bytesread = recv(sock->fd,
                          sock->recvbuf->curpos,
                          sock->recvbuf->end - sock->recvbuf->curpos,
-                         0);              
-
+                         0);
         if(bytesread > 0)
         {
             /* reset age because of activity */
@@ -254,15 +251,18 @@ void OutgoingStreamRead(SLPList* socklist, SLPDSocket* sock)
         }
         else
         {
-#ifdef  WIN32
+#ifdef WIN32
             if(WSAEWOULDBLOCK != WSAGetLastError())
 #else
-            if(errno != EWOULDBLOCK && errno != EINPROGRESS)
+            if(errno != EWOULDBLOCK)
 #endif
             {
+                /* Error occured or connection was closed. Try to reconnect */
+                /* Socket will be closed if connect times out               */
                 OutgoingStreamReconnect(socklist,sock);
             }
         }
+
     }
 }
 
@@ -286,6 +286,9 @@ void OutgoingStreamWrite(SLPList* socklist, SLPDSocket* sock)
         {
             /* there is nothing in the to do list */
             sock->state = STREAM_CONNECT_IDLE;
+            /* reset the reconnect count because the socket */
+            /* appears to be healthy again                  */
+            sock->reconns = 0;
             return;
         }
 
@@ -320,7 +323,7 @@ void OutgoingStreamWrite(SLPList* socklist, SLPDSocket* sock)
 #ifdef WIN32
             if(WSAEWOULDBLOCK != WSAGetLastError())
 #else
-            if(errno != EWOULDBLOCK && errno != EINPROGRESS)
+            if(errno != EWOULDBLOCK)
 #endif
             {
                 /* Error occured or connection was closed. Try to reconnect */
@@ -495,9 +498,17 @@ void SLPDOutgoingAge(time_t seconds)
         case STREAM_WRITE:
             if(G_OutgoingSocketList.count > SLPD_COMFORT_SOCKETS)
             {
+                /* Accellerate ageing cause we are low on sockets */
                 if(sock->age > G_SlpdProperty.unicastMaximumWait / 1000)
                 {
-                    /* remove the socket cause someone is not responding */
+                    SLPDKnownDARemove(&(sock->peeraddr.sin_addr));
+                    del = sock;
+                }
+            }
+            else
+            {
+                if(sock->age > SLPD_CONFIG_CLOSE_CONN)
+                {
                     SLPDKnownDARemove(&(sock->peeraddr.sin_addr));
                     del = sock;
                 }

@@ -686,7 +686,7 @@ void* SLPDDatabaseEnumStart()
 {
     return SLPDatabaseOpen(&G_SlpdDatabase.database);   
 }
-
+    
 
 /*=========================================================================*/
 SLPMessage SLPDDatabaseEnum(void* eh, SLPMessage* msg, SLPBuffer* buf)

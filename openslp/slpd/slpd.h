@@ -63,12 +63,14 @@
 /*=========================================================================*/
 /* Misc "adjustable" constants (I would not adjust the if I were you)      */
 /*=========================================================================*/
+#define SLPD_CONFIG_MAX_RECONN      1    /* max number tcp of reconnects   */
 #define SLPD_MAX_SOCKETS            128  /* maximum number of sockets      */
 #define SLPD_COMFORT_SOCKETS        64   /* a comfortable number of socket */
 #define SLPD_CONFIG_CLOSE_CONN      900  /* max idle time (60 min)         */
 #define SLPD_AGE_INTERVAL           15   /* age every 15 seconds           */
 #define SLPD_ATTR_RECURSION_DEPTH   50   /* max recursion depth for attr   */
                                          /* parser                         */
+
 
 /*=========================================================================*/
 /* Global variables representing signals */

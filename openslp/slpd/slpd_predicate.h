@@ -51,6 +51,9 @@
 #ifndef SLPD_PREDICATE_H_INCLUDED
 #define SLPD_PREDICATE_H_INCLUDED
 
+#define SLPD_ATTR_RECURSION_DEPTH   50   /* max recursion depth for attr   */
+                                         /* parser                         */                                        
+                                        
 /*=========================================================================*/
 int SLPDPredicateTest(int version,
                       int attrlistlen,

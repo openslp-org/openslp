@@ -101,6 +101,7 @@ typedef struct _SLPDSocket
     SLPBuffer           sendbuf;
 
     /* Outgoing socket stuff */
+    int                 reconns;
     SLPList             sendlist;
 }SLPDSocket;
 

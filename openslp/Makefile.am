@@ -15,6 +15,8 @@ install-data-local:
 	file=$(DESTDIR)$(sysconfdir)/slp.conf;\
 	if [ -f $$file ]; then cp -f $$file $$file.bak; else true; fi
 	cp -f $(srcdir)/etc/slp.conf $(DESTDIR)$(sysconfdir)
+	if [ -f $$file ]; then cp -f $$file $$file.bak; else true; fi
+	cp -f $(srcdir)/etc/slp.spi $(DESTDIR)$(sysconfdir)
 	rm -rf $(DESTDIR)$(DOC_DIR)
 	mkdir -p $(DESTDIR)$(DOC_DIR)
 	cp -r $(srcdir)/doc/* $(DESTDIR)$(DOC_DIR)
