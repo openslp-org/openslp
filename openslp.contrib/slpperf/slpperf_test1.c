@@ -85,6 +85,61 @@ TestService_T* CreateRandomTestService(int id)
     return  CreateTestService(serviceurl,servicetype,attributes);
 }
 
+
+/*-------------------------------------------------------------------------*/
+SLPBoolean SlpPerfTest1_srvtypecallback(SLPHandle hslp,
+                                        const char* srvtypes,
+                                        SLPError errcode,
+                                        void *cookie)
+/*-------------------------------------------------------------------------*/
+{
+    int* found = (int*) cookie;
+    
+    if(errcode == SLP_OK)
+    {
+        *found = *found + 1;
+        printf("Found srvtypes: %s\n",srvtypes);
+    }
+    
+    return SLP_TRUE;   
+}
+
+
+/*-------------------------------------------------------------------------*/
+int SlpPerfTest1_slpfindsrvtypes(SLPHandle hslp, 
+                                 SLPList* service_list,
+                                 double* ave_slpfindattrs,
+                                 int* count_slpfindattrs)
+/*-------------------------------------------------------------------------*/
+{
+    SLPError errorcode;
+    int      found;
+
+    errorcode = SLPFindSrvTypes(hslp,
+                                "*",
+                                "",
+                                SlpPerfTest1_srvtypecallback,
+                                &found);
+
+    if(errorcode != SLP_OK)
+    {
+        printf("SLPFindSrvTypes(hslp,*, , callback %i) returned %i \n",
+               found,
+               errorcode);
+        printf("This should not happen!\n");
+    
+        return -1;
+    }
+
+    if(found <= 0)
+    {
+        printf("Did not find any types on SLPFindSrvTypes(). This is bad\n");
+        return -1;
+    }
+
+    return 0;
+}
+
 /*-------------------------------------------------------------------------*/
 SLPBoolean SlpPerfTest1_slpfindattrscallback( SLPHandle hslp,
                                               const char* attrlist, 
@@ -130,7 +185,7 @@ int SlpPerfTest1_slpfindattrs (SLPHandle hslp,
                               0,
                               SlpPerfTest1_slpfindattrscallback, 
                               &found);
-     if(errorcode != SLP_OK)
+    if(errorcode != SLP_OK)
     {
         printf("SLPFindAttrs(hslp,%s,0,0,callback,%i) returned %i\n", srv->serviceurl,found,errorcode);
         printf("This should not happen!\n");
@@ -383,16 +438,16 @@ int SlpPerfTest1(int min_services,
 {
     int             i;
     SLPError        result;
-    double          ave_slpreg          = 0;
-    int             count_slpreg        = 0;
-    double          ave_slpfindsrvs     = 0;
-    int             count_slpfindsrvs   = 0;
-    double          ave_slpfindattrs    = 0;
-    int             count_slpfindattrs  = 0;
-    double          ave_slpfindtype     = 0;
-    int             count_slpfindtype   = 0;
-    double          ave_slpdereg        = 0;
-    int             count_slpdereg      = 0;
+    double          ave_slpreg              = 0;
+    int             count_slpreg            = 0;
+    double          ave_slpfindsrvs         = 0;
+    int             count_slpfindsrvs       = 0;
+    double          ave_slpfindattrs        = 0;
+    int             count_slpfindattrs      = 0;
+    double          ave_slpfindsrvtypes     = 0;
+    int             count_slpfindsrvtypes   = 0;
+    double          ave_slpdereg            = 0;
+    int             count_slpdereg          = 0;
     SLPHandle       hslp = 0;
     SLPList         service_list        = {0,0,0};
 
@@ -480,10 +535,9 @@ int SlpPerfTest1(int min_services,
                                               &count_slpfindsrvs);
             break;
 
-        /* 30% chance*/
+        /* 20% chance*/
         case 7:
         case 8:
-        case 9:
             /* call SlpPerfTest1_slpfindattr() */
              result = SlpPerfTest1_slpfindattrs(hslp,
                                                 &service_list,
@@ -492,9 +546,12 @@ int SlpPerfTest1(int min_services,
             break;
 
         /* 10% chance */
-        //case 9:
-        //  /* call SlpPerfTest1_slpfindsrvtype() */
-        //    break;
+        case 9:
+            result = SlpPerfTest1_slpfindsrvtypes(hslp,
+                                                  &service_list,
+                                                  &ave_slpfindsrvtypes,
+                                                  &count_slpfindsrvtypes);
+            break;
         }
         
         if(result)
