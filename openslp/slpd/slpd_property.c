@@ -57,6 +57,7 @@
 /* Common code code includes                                               */
 /*=========================================================================*/
 #include "../common/slp_property.h"  
+#include "../common/slp_xmalloc.h"
 
 
 /*=========================================================================*/
@@ -82,7 +83,7 @@ char* GetHostname()
         he = gethostbyname(host);
         if(he)
         {
-            hostfdn = strdup(he->h_name);
+            hostfdn = xstrdup(he->h_name);
         }
     }
 
@@ -116,7 +117,7 @@ char* GetInterfaceList()
     if(ioctl(fd,SIOCGIFCONF,&ifc) == 0)
     {
         /* allocate 16 bytes per interface */
-        result = (char*)malloc((MAX_INTERFACE * 16) + 1);
+        result = (char*)xmalloc((MAX_INTERFACE * 16) + 1);
         if(result)
         {
             result[0] = 0; /* null terminate for strcat */
@@ -160,7 +161,7 @@ char* GetInterfaceList()
                 for(i=0; myhostent->h_addr_list[i];i++);
 
                 /* allocate memory 16 bytes per interface*/
-                result = (char*)malloc((i * 16) + 1);
+                result = (char*)xmalloc((i * 16) + 1);
                 if(result)
                 {
                     result[0] = 0; /* null terminate */
@@ -176,7 +177,7 @@ char* GetInterfaceList()
                 }
             }
 
-            free(myname);    
+            xfree(myname);    
         }
     }
 #endif
@@ -250,7 +251,7 @@ int SLPDPropertyInit(const char* conffile)
     myname = GetHostname();    
     if(myname)
     {
-        G_SlpdProperty.myUrl = (const char*)malloc(27 + strlen(myname));
+        G_SlpdProperty.myUrl = (const char*)xmalloc(27 + strlen(myname));
         if(G_SlpdProperty.isDA)
         {
             strcpy((char*)G_SlpdProperty.myUrl,"service:directory-agent://");
@@ -263,7 +264,7 @@ int SLPDPropertyInit(const char* conffile)
         strcat((char*)G_SlpdProperty.myUrl,myname);
         G_SlpdProperty.myUrlLen = strlen(G_SlpdProperty.myUrl);
 
-        free(myname);
+        xfree(myname);
     }
 
     /*----------------------------------*/

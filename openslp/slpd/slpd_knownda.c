@@ -62,6 +62,7 @@
 /*=========================================================================*/
 /* common code includes                                                    */
 /*=========================================================================*/
+#include "../common/slp_xmalloc.h"
 #include "../common/slp_v1message.h"
 #include "../common/slp_utf8.h"
 #include "../common/slp_compare.h"
@@ -104,7 +105,7 @@ int MakeActiveDiscoveryRqst(int ismcast, SLPBuffer* buffer)
     /* figure out what our Prlist will be by going through our list of  */
     /* known DAs                                                        */
     prlistlen = 0;
-    prlist = malloc(SLP_MAX_DATAGRAM_SIZE);
+    prlist = xmalloc(SLP_MAX_DATAGRAM_SIZE);
     if(prlist == 0)
     {
         /* out of memory */
@@ -183,7 +184,7 @@ int MakeActiveDiscoveryRqst(int ismcast, SLPBuffer* buffer)
 
     if(prlist)
     {
-        free(prlist);
+        xfree(prlist);
     }
 
     return 0;
@@ -672,7 +673,7 @@ int SLPDKnownDAInit()
     /*------------------------------------------------------*/
     if(G_SlpdProperty.DAAddresses && *G_SlpdProperty.DAAddresses)
     {
-        temp = slider1 = slider2 = strdup(G_SlpdProperty.DAAddresses);
+        temp = slider1 = slider2 = xstrdup(G_SlpdProperty.DAAddresses);
         if(temp)
         {
             tempend = temp + strlen(temp);
@@ -712,7 +713,7 @@ int SLPDKnownDAInit()
                 slider2++;
             }
 
-            free(temp);
+            xfree(temp);
         }
     }
 

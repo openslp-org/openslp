@@ -61,6 +61,7 @@
 /*=========================================================================*/
 /* common code includes                                                    */
 /*=========================================================================*/
+#include "../common/slp_xmalloc.h"
 #include "../common/slp_message.h"
 
 
@@ -481,7 +482,7 @@ int SLPDIncomingInit()
 
     if(G_SlpdProperty.interfaces != NULL)
     {
-        begin = strdup((char *) G_SlpdProperty.interfaces);
+        begin = xstrdup((char *) G_SlpdProperty.interfaces);
         beginSave = begin;  /* save pointer for free() operation later */
         end = begin;
         finished = 0;
@@ -560,7 +561,7 @@ int SLPDIncomingInit()
         }
     }     
 
-    if(beginSave) free(beginSave);
+    if(beginSave) xfree(beginSave);
 
 
     /*--------------------------------------------------------*/

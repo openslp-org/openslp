@@ -18,6 +18,7 @@ libcommonlibslp_la_SOURCES = \
 	slp_network.c \
 	slp_da.c \
 	slp_compare.c \
+	slp_xmalloc.c \
 	$(slp_v1message_SRCS) \
 	$(slp_authentication_SRCS)
 
@@ -30,6 +31,7 @@ libcommonslpd_la_SOURCES = \
 	slp_xid.c \
 	slp_database.c \
 	slp_da.c \
+	slp_xmalloc.c \
 	$(slp_v1message_SRCS) \
 	$(slp_authentication_SRCS)
 
@@ -47,4 +49,5 @@ noinst_HEADERS = \
 	slp_crypto.h \
 	slp_auth.h \
 	slp_spi.h \
+	slp_xmalloc.h \
 	slp_utf8.h 

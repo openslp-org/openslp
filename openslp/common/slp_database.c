@@ -51,6 +51,7 @@
 /***************************************************************************/
 
 #include "slp_database.h"
+#include "slp_xmalloc.h"
 
 /*=========================================================================*/
 int SLPDatabaseInit(SLPDatabase* database)
@@ -102,7 +103,7 @@ SLPDatabaseEntry* SLPDatabaseEntryCreate(SLPMessage msg,
 {
     SLPDatabaseEntry* result;
 
-    result = (SLPDatabaseEntry*)malloc(sizeof(SLPDatabaseEntry));
+    result = (SLPDatabaseEntry*)xmalloc(sizeof(SLPDatabaseEntry));
     if(result)
     {
         result->msg = msg;
@@ -124,7 +125,7 @@ void SLPDatabaseEntryDestroy(SLPDatabaseEntry* entry)
 {
     SLPMessageFree(entry->msg);
     SLPBufferFree(entry->buf);
-    free(entry);
+    xfree(entry);
 }
 
 
@@ -144,7 +145,7 @@ SLPDatabaseHandle SLPDatabaseOpen(SLPDatabase* database)
 /*=========================================================================*/
 {
     SLPDatabaseHandle result;
-    result = (SLPDatabaseHandle) malloc(sizeof(struct _SLPDatabaseHandle));
+    result = (SLPDatabaseHandle) xmalloc(sizeof(struct _SLPDatabaseHandle));
     if(result)
     {
         result->database = database;
@@ -199,7 +200,7 @@ void SLPDatabaseClose(SLPDatabaseHandle dh)
 /* Returns: None                                                           */
 /*=========================================================================*/
 {
-    free(dh);
+    xfree(dh);
     dh = 0;
 }
 

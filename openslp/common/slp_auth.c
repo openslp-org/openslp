@@ -77,7 +77,7 @@ int SLPAuthDigestString(int spistrlen,
     /*                     autharray[i].spistrlen (2 bytes)  */
     /*                     timestamp 4 bytes                 */
     tmpbufsize = stringlen + spistrlen + 8;
-    tmpbuf = malloc(tmpbufsize);
+    tmpbuf = xmalloc(tmpbufsize);
     if(tmpbuf == 0)
     {
         return SLP_ERROR_INTERNAL_ERROR;
@@ -110,7 +110,7 @@ int SLPAuthDigestString(int spistrlen,
     /*------------------------------*/
     /* Cleanup the temporary buffer */
     /*------------------------------*/
-    free(tmpbuf);
+    xfree(tmpbuf);
 
     return result;
 }
@@ -364,7 +364,7 @@ int SLPAuthSignString(SLPSpiHandle hspi,
     /*     - the timestamp (4 bytes)                */
     signaturelen = SLPCryptoDSASignLen(key);
     *authblocklen = spistrlen + signaturelen + 10;
-    *authblock = (unsigned char*)malloc(*authblocklen);
+    *authblock = (unsigned char*)xmalloc(*authblocklen);
     if(*authblock == 0)
     {
         result = SLP_ERROR_INTERNAL_ERROR;
@@ -416,7 +416,7 @@ int SLPAuthSignString(SLPSpiHandle hspi,
     /*-----------------------------*/
     /* Clean up and return success */
     /*-----------------------------*/ 
-    if(defaultspistr) free(defaultspistr);
+    if(defaultspistr) xfree(defaultspistr);
        
     return 0;
 
@@ -426,8 +426,8 @@ ERROR:
     /*-------------------------------*/
     /* Clean up and return errorcode */
     /*-------------------------------*/ 
-    if(defaultspistr) free(defaultspistr);
-    if(authblock) free(*authblock);
+    if(defaultspistr) xfree(defaultspistr);
+    if(authblock) xfree(*authblock);
     *authblock = 0;
     *authblocklen = 0;
     
@@ -586,7 +586,7 @@ int main(int argc, char* argv[])
                                  1,
                                  &auth);
 
-    free(authblock);
+    xfree(authblock);
     SLPSpiClose(hspi);
 }
 #endif

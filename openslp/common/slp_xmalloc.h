@@ -1,10 +1,11 @@
 /***************************************************************************/
 /*                                                                         */
-/* Project:     OpenSLP                                                    */
+/* Project:     OpenSLP - OpenSource implementation of Service Location    */
+/*              Protocol                                                   */
 /*                                                                         */
-/* File:        slp_da.c                                                   */
+/* File:        slp_xmalloc.h                                              */
 /*                                                                         */
-/* Abstract:    Functions to keep track of DAs                             */
+/* Abstract:    Debug memory allocator                                     */
 /*                                                                         */
 /*-------------------------------------------------------------------------*/
 /*                                                                         */
@@ -45,76 +46,91 @@
 /*                                                                         */
 /***************************************************************************/
 
-#include "slp_da.h"
-#include "slp_xmalloc.h"
-#include "slp_compare.h"
+#ifndef SLP_XMALLOC_H_INCLUDED
+#define SLP_XMALLOC_H_INCLUDED
 
+#include <malloc.h>
+#include <stdio.h>
+#include <string.h>
+
+#ifdef DEBUG
+
+#include "slp_linkedlist.h"
+
+#define SLPXMALLOC_MAX_WHERE_LEN    256
+#define SLPXMALLOC_MAX_BUF_LOG_LEN  32
 
 /*=========================================================================*/
-SLPDAEntry* SLPDAEntryCreate(struct in_addr* addr,
-                             const SLPDAEntry* daentry)
-/* Creates a SLPDAEntry                                                    */
-/*                                                                         */
-/* addr     (IN) pointer to in_addr of the DA to create                    */
-/*                                                                         */
-/* daentry (IN) pointer to daentry that will be duplicated in the new      */
-/*              daentry                                                    */
-/*                                                                         */
-/* returns  Pointer to the created SLPDAEntry.  Must be freed by caller.   */
+extern SLPList G_xmalloc_list;
+/*=========================================================================*/
+
+/*=========================================================================*/
+typedef struct xallocation
 /*=========================================================================*/
 {
-    SLPDAEntry* entry;
-    char*       curpos;
+    SLPListItem listitem;
+    char        where[SLPXMALLOC_MAX_WHERE_LEN];
+    void*       buf;
     size_t      size;
+}xallocation_t;
 
-    size = sizeof(SLPDAEntry);
-    size += daentry->langtaglen;
-    size += daentry->urllen;
-    size += daentry->scopelistlen;
-    size += daentry->attrlistlen;
-    size += daentry->spilistlen;
-
-    entry = (SLPDAEntry*)xmalloc(size);
-    if(entry == 0) return 0;
-
-    entry->daaddr = *addr;
-    entry->bootstamp = daentry->bootstamp;
-    entry->langtaglen = daentry->langtaglen;
-    entry->urllen = daentry->urllen;
-    entry->scopelistlen = daentry->scopelistlen;
-    entry->attrlistlen = daentry->attrlistlen;
-    entry->spilistlen = daentry->spilistlen;
-    curpos = (char*)(entry + 1);
-    memcpy(curpos,daentry->langtag,daentry->langtaglen);
-    entry->langtag = curpos;
-    curpos = curpos + daentry->langtaglen; 
-    memcpy(curpos,daentry->url,daentry->urllen);
-    entry->url = curpos;
-    curpos = curpos + daentry->urllen;
-    memcpy(curpos,daentry->scopelist,daentry->scopelistlen);
-    entry->scopelist = curpos;
-    curpos = curpos + daentry->scopelistlen;
-    memcpy(curpos,daentry->attrlist,daentry->attrlistlen);
-    entry->attrlist = curpos;
-    curpos = curpos + daentry->attrlistlen;
-    memcpy(curpos,daentry->spilist,daentry->spilistlen);
-    entry->spilist = curpos;
-
-    return entry;
-}
 
 /*=========================================================================*/
-void SLPDAEntryFree(SLPDAEntry* entry)
-/* Frees a SLPDAEntry                                                      */
-/*                                                                         */
-/* entry    (IN) pointer to entry to free                                  */
-/*                                                                         */
-/* returns  none                                                           */
+void* _xmalloc(const char* file,
+               int line,
+               size_t size);
 /*=========================================================================*/
-{
-    if(entry)
-    {
-        xfree(entry);
-    }
-}
 
+
+/*=========================================================================*/
+void* _xrealloc(const char* file,
+                int line,
+                void* buf, 
+                size_t size);
+/*=========================================================================*/
+
+
+/*=========================================================================*/
+void _xfree(const char* file,
+            int line,
+            void* buf);
+/*=========================================================================*/
+
+
+/*=========================================================================*/
+char* _xstrdup(const char* file,
+               int line,
+               const char* str);
+/*=========================================================================*/
+
+                     
+/*=========================================================================*/
+int xmalloc_init(const char* filename, size_t freemem);
+/*=========================================================================*/
+
+
+/*=========================================================================*/
+int xmalloc_report();
+/*=========================================================================*/
+
+
+/*=========================================================================*/
+void xmalloc_deinit();
+/*=========================================================================*/
+
+
+#define xmalloc(x) _xmalloc(__FILE__,__LINE__,(x))
+#define xrealloc(x,y) _xrealloc(__FILE__,__LINE__,(x),(y))
+#define xfree(x) _xfree(__FILE__,__LINE__,(x))
+#define xstrdup(x) _xstrdup(__FILE__,__LINE__,(x))
+
+#else
+
+#define xmalloc(x) malloc((x))
+#define xrealloc(x,y) realloc((x),(y))
+#define xfree(x) free((x))
+
+#endif
+
+
+#endif

@@ -61,6 +61,7 @@
 /*=========================================================================*/
 /* common code includes                                                    */
 /*=========================================================================*/
+#include "../common/slp_xmalloc.h"
 #ifdef ENABLE_AUTHENTICATION
 #include "../common/slp_auth.h"
 #endif
@@ -198,7 +199,7 @@ int SLPDRegFileReadSrvReg(FILE* fd,
     {
         /* srvurl */
         *slider2 = 0; /* squash comma to null terminate srvurl */
-        url = strdup(TrimWhitespace(slider1));
+        url = xstrdup(TrimWhitespace(slider1));
         if(url == 0)
         {
             result = SLP_ERROR_INTERNAL_ERROR;
@@ -214,7 +215,7 @@ int SLPDRegFileReadSrvReg(FILE* fd,
             goto CLEANUP;   
         }
         *srvtype = 0;
-        srvtype=strdup(TrimWhitespace(slider1));
+        srvtype=xstrdup(TrimWhitespace(slider1));
         if(srvtype == 0)
         {
             result = SLP_ERROR_INTERNAL_ERROR;
@@ -228,7 +229,7 @@ int SLPDRegFileReadSrvReg(FILE* fd,
         if(slider2)
         {
             *slider2 = 0; /* squash comma to null terminate lang */
-            langtag = strdup(TrimWhitespace(slider1)); 
+            langtag = xstrdup(TrimWhitespace(slider1)); 
             if(langtag == 0)
             {
                 result = SLP_ERROR_INVALID_REGISTRATION;
@@ -265,7 +266,7 @@ int SLPDRegFileReadSrvReg(FILE* fd,
         /* get the srvtype if one was not derived by the srvurl*/
         if(srvtype == 0)
         {
-            srvtype = strdup(TrimWhitespace(slider1));
+            srvtype = xstrdup(TrimWhitespace(slider1));
             if(srvtype == 0)
             {
                 result = SLP_ERROR_INTERNAL_ERROR;
@@ -323,7 +324,7 @@ int SLPDRegFileReadSrvReg(FILE* fd,
                         result = SLP_ERROR_SCOPE_NOT_SUPPORTED;
                         goto CLEANUP;
                     }
-                    scopelist=strdup(TrimWhitespace(slider2));
+                    scopelist=xstrdup(TrimWhitespace(slider2));
                     if(scopelist == 0)
                     {
                         result = SLP_ERROR_INTERNAL_ERROR;
@@ -342,13 +343,13 @@ int SLPDRegFileReadSrvReg(FILE* fd,
             if(attrlist == 0)
             {
                 attrlistlen += strlen(line) + 2;
-                attrlist = malloc(attrlistlen + 1);
+                attrlist = xmalloc(attrlistlen + 1);
                 *attrlist = 0;
             }
             else
             {
                 attrlistlen += strlen(line) + 3;
-                attrlist = realloc(attrlist,
+                attrlist = xrealloc(attrlist,
                                    attrlistlen + 1);
                 strcat(attrlist,",");
             }
@@ -367,7 +368,7 @@ int SLPDRegFileReadSrvReg(FILE* fd,
     /* Set the scope set in properties if not is set */
     if(scopelist == 0)
     {
-        scopelist=strdup(G_SlpdProperty.useScopes);
+        scopelist=xstrdup(G_SlpdProperty.useScopes);
         if(scopelist == 0)
         {
             result = SLP_ERROR_INTERNAL_ERROR;
@@ -542,14 +543,14 @@ CLEANUP:
         break;
     }
         
-    if(langtag) free(langtag);
-    if(scopelist) free(scopelist);
-    if(url) free(url);
-    if(srvtype) free(srvtype);
-    if(attrlist)free(attrlist);
+    if(langtag) xfree(langtag);
+    if(scopelist) xfree(scopelist);
+    if(url) xfree(url);
+    if(srvtype) xfree(srvtype);
+    if(attrlist)xfree(attrlist);
 #ifdef ENABLE_AUTHENTICATION
-    if(urlauth) free(urlauth);
-    if(attrauth) free(attrauth);
+    if(urlauth) xfree(urlauth);
+    if(attrauth) xfree(attrauth);
 #endif
 
     return result;

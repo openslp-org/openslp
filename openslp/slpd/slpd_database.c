@@ -64,7 +64,7 @@
 /* common code includes                                                    */
 /*=========================================================================*/
 #include "../common/slp_compare.h"
-
+#include "../common/slp_xmalloc.h"
 
 /*=========================================================================*/
 SLPDDatabase G_SlpdDatabase;
@@ -311,7 +311,7 @@ int SLPDDatabaseSrvRqstStart(SLPMessage msg,
             /*-----------------------------------------------------------*/
             /* Allocate result with generous array of url entry pointers */
             /*-----------------------------------------------------------*/
-            *result = (SLPDDatabaseSrvRqstResult*) realloc(*result, sizeof(SLPDDatabaseSrvRqstResult) + (sizeof(SLPUrlEntry*) * G_SlpdDatabase.urlcount));
+            *result = (SLPDDatabaseSrvRqstResult*) xrealloc(*result, sizeof(SLPDDatabaseSrvRqstResult) + (sizeof(SLPUrlEntry*) * G_SlpdDatabase.urlcount));
             if(*result == NULL)
             {
                 /* out of memory */
@@ -392,7 +392,7 @@ void SLPDDatabaseSrvRqstEnd(SLPDDatabaseSrvRqstResult* result)
     if(result)
     {
         SLPDatabaseClose((SLPDatabaseHandle)result->reserved);
-        free(result);
+        xfree(result);
     }
 }
 
@@ -428,7 +428,7 @@ int SLPDDatabaseSrvTypeRqstStart(SLPMessage msg,
             /*-----------------------------------------------------------------*/
             /* Allocate result with generous srvtypelist of url entry pointers */
             /*-----------------------------------------------------------------*/
-            *result = (SLPDDatabaseSrvTypeRqstResult*) realloc(*result, sizeof(SLPDDatabaseSrvTypeRqstResult) + G_SlpdDatabase.srvtypelistlen);
+            *result = (SLPDDatabaseSrvTypeRqstResult*) xrealloc(*result, sizeof(SLPDDatabaseSrvTypeRqstResult) + G_SlpdDatabase.srvtypelistlen);
             if(*result == NULL)
             {
                 /* out of memory */
@@ -512,7 +512,7 @@ void SLPDDatabaseSrvTypeRqstEnd(SLPDDatabaseSrvTypeRqstResult* result)
     if(result)
     {
         SLPDatabaseClose((SLPDatabaseHandle)result->reserved);
-        free(result);
+        xfree(result);
     }
 }
 
@@ -537,7 +537,7 @@ int SLPDDatabaseAttrRqstStart(SLPMessage msg,
     SLPSrvReg*                  entryreg;
     SLPAttrRqst*                attrrqst;
     
-    *result = malloc(sizeof(SLPDDatabaseAttrRqstResult));
+    *result = xmalloc(sizeof(SLPDDatabaseAttrRqstResult));
     if(*result == NULL)
     {                   
         return SLP_ERROR_INTERNAL_ERROR;
@@ -603,7 +603,7 @@ void SLPDDatabaseAttrRqstEnd(SLPDDatabaseAttrRqstResult* result)
     if(result)
     {
         SLPDatabaseClose((SLPDatabaseHandle)result->reserved);
-        free(result);
+        xfree(result);
     }
 }
 

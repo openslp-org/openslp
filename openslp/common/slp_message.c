@@ -3,7 +3,7 @@
 /* Project:     OpenSLP - OpenSource implementation of Service Location    */
 /*              Protocol                                                   */
 /*                                                                         */
-/* File:        slp_msg.h                                                  */
+/* File:        slp_message.h                                              */
 /*                                                                         */
 /* Abstract:    Header file that defines structures and constants that are */
 /*              specific to the SLP wire protocol messages.                */
@@ -48,6 +48,7 @@
 /***************************************************************************/
 
 #include "slp_message.h"
+#include "slp_xmalloc.h"
 
 #ifndef WIN32
 #include <stdlib.h>
@@ -197,7 +198,7 @@ int ParseUrlEntry(SLPBuffer buffer, SLPUrlEntry* urlentry)
     /* parse out the auth block (if any) */
     if(urlentry->authcount)
     {
-        urlentry->autharray = (SLPAuthBlock*)malloc(sizeof(SLPAuthBlock) * urlentry->authcount);
+        urlentry->autharray = (SLPAuthBlock*)xmalloc(sizeof(SLPAuthBlock) * urlentry->authcount);
         if(urlentry->autharray == 0)
         {
             return SLP_ERROR_INTERNAL_ERROR;
@@ -317,7 +318,7 @@ int ParseSrvRply(SLPBuffer buffer, SLPSrvRply* srvrply)
     /* parse out the url entries (if any) */
     if(srvrply->urlcount)
     {
-        srvrply->urlarray = (SLPUrlEntry*)malloc(sizeof(SLPUrlEntry) * srvrply->urlcount);
+        srvrply->urlarray = (SLPUrlEntry*)xmalloc(sizeof(SLPUrlEntry) * srvrply->urlcount);
         if(srvrply->urlarray == 0)
         {
             return SLP_ERROR_INTERNAL_ERROR;
@@ -393,7 +394,7 @@ int ParseSrvReg(SLPBuffer buffer, SLPSrvReg* srvreg)
     /* parse out the auth block (if any) */
     if(srvreg->authcount)
     {
-        srvreg->autharray = (SLPAuthBlock*)malloc(sizeof(SLPAuthBlock) * srvreg->authcount);
+        srvreg->autharray = (SLPAuthBlock*)xmalloc(sizeof(SLPAuthBlock) * srvreg->authcount);
         if(srvreg->autharray == 0)
         {
             return SLP_ERROR_INTERNAL_ERROR;
@@ -572,7 +573,7 @@ int ParseAttrRply(SLPBuffer buffer, SLPAttrRply* attrrply)
     /* parse out the auth block (if any) */
     if(attrrply->authcount)
     {
-        attrrply->autharray = (SLPAuthBlock*)malloc(sizeof(SLPAuthBlock) * attrrply->authcount);
+        attrrply->autharray = (SLPAuthBlock*)xmalloc(sizeof(SLPAuthBlock) * attrrply->authcount);
         if(attrrply->autharray == 0)
         {
             return SLP_ERROR_INTERNAL_ERROR;
@@ -665,7 +666,7 @@ int ParseDAAdvert(SLPBuffer buffer, SLPDAAdvert* daadvert)
     /* parse out the auth block (if any) */
     if(daadvert->authcount)
     {
-        daadvert->autharray = (SLPAuthBlock*)malloc(sizeof(SLPAuthBlock) * daadvert->authcount);
+        daadvert->autharray = (SLPAuthBlock*)xmalloc(sizeof(SLPAuthBlock) * daadvert->authcount);
         if(daadvert->autharray == 0)
         {
             return SLP_ERROR_INTERNAL_ERROR;
@@ -782,12 +783,12 @@ void SLPMessageFreeInternals(SLPMessage message)
             {
                 if(message->body.srvrply.urlarray[i].autharray)
                 {
-                    free(message->body.srvrply.urlarray[i].autharray);
+                    xfree(message->body.srvrply.urlarray[i].autharray);
                     message->body.srvrply.urlarray[i].autharray = 0;
                 }
             }
 
-            free(message->body.srvrply.urlarray);
+            xfree(message->body.srvrply.urlarray);
             message->body.srvrply.urlarray = 0;
         }
         break;
@@ -795,12 +796,12 @@ void SLPMessageFreeInternals(SLPMessage message)
     case SLP_FUNCT_SRVREG:
         if(message->body.srvreg.urlentry.autharray)
         {
-            free(message->body.srvreg.urlentry.autharray);
+            xfree(message->body.srvreg.urlentry.autharray);
             message->body.srvreg.urlentry.autharray = 0;
         }
         if(message->body.srvreg.autharray)
         {
-            free(message->body.srvreg.autharray);
+            xfree(message->body.srvreg.autharray);
             message->body.srvreg.autharray = 0;
         }
         break;
@@ -809,7 +810,7 @@ void SLPMessageFreeInternals(SLPMessage message)
     case SLP_FUNCT_SRVDEREG:
         if(message->body.srvdereg.urlentry.autharray)
         {
-            free(message->body.srvdereg.urlentry.autharray);
+            xfree(message->body.srvdereg.urlentry.autharray);
             message->body.srvdereg.urlentry.autharray = 0;
         }
         break;
@@ -817,7 +818,7 @@ void SLPMessageFreeInternals(SLPMessage message)
     case SLP_FUNCT_ATTRRPLY:
         if(message->body.attrrply.autharray)
         {
-            free(message->body.attrrply.autharray);
+            xfree(message->body.attrrply.autharray);
             message->body.attrrply.autharray = 0;
         }
         break;
@@ -826,7 +827,7 @@ void SLPMessageFreeInternals(SLPMessage message)
     case SLP_FUNCT_DAADVERT:
         if(message->body.daadvert.autharray)
         {
-            free(message->body.daadvert.autharray);
+            xfree(message->body.daadvert.autharray);
             message->body.daadvert.autharray = 0;
         }
         break; 
@@ -849,7 +850,7 @@ SLPMessage SLPMessageAlloc()
 /* Returns   - A newly allocated SLPMessage pointer of NULL on ENOMEM      */
 /*=========================================================================*/
 {
-    SLPMessage result = (SLPMessage)malloc(sizeof(struct _SLPMessage));
+    SLPMessage result = (SLPMessage)xmalloc(sizeof(struct _SLPMessage));
     if(result)
     {
         memset(result,0,sizeof(struct _SLPMessage));
@@ -894,7 +895,7 @@ void SLPMessageFree(SLPMessage message)
     if(message)
     {
         SLPMessageFreeInternals(message);
-        free(message);
+        xfree(message);
     }
 }
 

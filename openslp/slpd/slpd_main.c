@@ -66,6 +66,7 @@
 /*=========================================================================*/
 /* common code includes                                                    */
 /*=========================================================================*/
+#include "../common/slp_xmalloc.h"
 #include "../common/slp_xid.c"
 
 
@@ -194,8 +195,7 @@ void HandleSigTerm()
 #ifdef DEBUG
     SLPDDatabaseDeinit();
     SLPDPropertyDeinit();
-    printf("Number of calls to SLPBufferAlloc() = %i\n",G_Debug_SLPBufferAllocCount);
-    printf("Number of calls to SLPBufferFree() = %i\n",G_Debug_SLPBufferFreeCount);
+    xmalloc_deinit();    
 #endif
 
 }
@@ -451,6 +451,10 @@ int main(int argc, char* argv[])
     fd_set          writefds;
     int             highfd;
     int             fdcount         = 0;
+
+#ifdef DEBUG
+    xmalloc_init("/var/log/slpd_xmalloc.log",0);
+#endif
 
     /*------------------------*/
     /* Parse the command line */

@@ -58,6 +58,7 @@
 /* common code includes                                                    */
 /*=========================================================================*/
 #include "../common/slp_message.h"
+#include "../common/slp_xmalloc.h"
 
 
 #ifdef WIN32
@@ -272,7 +273,7 @@ SLPDSocket* SLPDSocketAlloc()
 {
     SLPDSocket* sock;
 
-    sock = (SLPDSocket*)malloc(sizeof(SLPDSocket));
+    sock = (SLPDSocket*)xmalloc(sizeof(SLPDSocket));
     if(sock)
     {
         memset(sock,0,sizeof(SLPDSocket));
@@ -312,7 +313,7 @@ void SLPDSocketFree(SLPDSocket* sock)
     }
 
     /* free the actual socket structure */
-    free(sock);
+    xfree(sock);
 }
 
 
@@ -606,7 +607,7 @@ SLPDSocket* SLPDSocketCreateConnected(struct in_addr* addr)
     if(sock)
     {
         CloseSocket(sock->fd);
-        free(sock);
+        xfree(sock);
         sock = 0;
     }
 

@@ -56,13 +56,6 @@
 
 #include "slp_linkedlist.h"
 
-#ifdef DEBUG
-extern int G_Debug_SLPBufferAllocCount;
-extern int G_Debug_SLPBufferFreeCount;
-#endif
-
-
-
 
 /*=========================================================================*/
 typedef struct _SLPBuffer                                                  
@@ -76,7 +69,7 @@ typedef struct _SLPBuffer
     size_t  allocated;
 
     unsigned char*   start;  
-    /* ALWAYS points to the start of the malloc() buffer  */
+    /* ALWAYS points to the start of the xmalloc() buffer  */
 
     unsigned char*   curpos;
     /* "slider" pointer.  Range is ALWAYS (start < curpos < end) */

@@ -1069,7 +1069,7 @@ int ProcessAttrRqst(SLPMessage message,
     
 #ifdef ENABLE_AUTHENTICATION    
     /* free the generated authblock if any */
-    if(generatedauth) free(generatedauth);
+    if(generatedauth) xfree(generatedauth);
 #endif
     
     if(db) SLPDDatabaseAttrRqstEnd(db);

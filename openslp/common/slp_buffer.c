@@ -49,11 +49,7 @@
 
 
 #include "slp_buffer.h" 
-
-#ifdef DEBUG
-int G_Debug_SLPBufferAllocCount = 0;
-int G_Debug_SLPBufferFreeCount = 0;
-#endif
+#include "slp_xmalloc.h"
 
 
 /*=========================================================================*/
@@ -62,7 +58,7 @@ void* memdup(const void* src, int srclen)
 /*=========================================================================*/
 {
     char* result;
-    result = (unsigned char*)malloc(srclen);
+    result = (unsigned char*)xmalloc(srclen);
     if(result)
     {
         memcpy(result,src,srclen);
@@ -85,7 +81,7 @@ SLPBuffer SLPBufferAlloc(size_t size)
     SLPBuffer result;
 
     /* allocate an extra byte for null terminating strings */
-    result = (SLPBuffer)malloc(sizeof(struct _SLPBuffer) + size + 1);
+    result = (SLPBuffer)xmalloc(sizeof(struct _SLPBuffer) + size + 1);
     if(result)
     {
         result->allocated = size;
@@ -94,8 +90,7 @@ SLPBuffer SLPBufferAlloc(size_t size)
         result->end = result->start + size; 
 
 #if(defined DEBUG)
-        memset(result->start,0xff,size + 1);
-        G_Debug_SLPBufferAllocCount ++;
+        memset(result->start,0x4d,size + 1);
 #endif
     }
 
@@ -123,7 +118,7 @@ SLPBuffer SLPBufferRealloc(SLPBuffer buf, size_t size)
         else
         {
             /* allocate an extra byte for null terminating strings */
-            result = (SLPBuffer)realloc(buf, sizeof(struct _SLPBuffer) +
+            result = (SLPBuffer)xrealloc(buf, sizeof(struct _SLPBuffer) +
                                         size + 1);
             result->allocated = size;
         }
@@ -135,7 +130,7 @@ SLPBuffer SLPBufferRealloc(SLPBuffer buf, size_t size)
             result->end = result->start + size;
 
 #if(defined DEBUG)
-            memset(result->start,0xff,size + 1);
+            memset(result->start,0x4d,size + 1);
 #endif
         }
     }
@@ -181,9 +176,6 @@ void SLPBufferFree(SLPBuffer buf)
 {
     if(buf)
     {
-        free(buf);
-#ifdef DEBUG
-        G_Debug_SLPBufferFreeCount ++;
-#endif
+        xfree(buf);
     }
 }

@@ -52,6 +52,7 @@
 #include <errno.h>
 
 #include "slp_property.h"
+#include "slp_xmalloc.h"
 
 /*=========================================================================*/
 /* Global Variables                                                        */
@@ -118,7 +119,7 @@ int SLPPropertySet(const char *pcName,
     if(newProperty == 0)
     {
         /* property does not exist in the list */
-        newProperty = (SLPProperty*)malloc(sizeof(SLPProperty) + pcNameSize + pcValueSize);
+        newProperty = (SLPProperty*)xmalloc(sizeof(SLPProperty) + pcNameSize + pcValueSize);
         if(newProperty == 0)
         {
             /* out of memory */
@@ -143,7 +144,7 @@ int SLPPropertySet(const char *pcName,
         SLPListUnlink(&G_SLPPropertyList,(SLPListItem*)newProperty);
 
         /* property already exists in the list */
-        newProperty = (SLPProperty*)realloc(newProperty,sizeof(SLPProperty) + pcNameSize + pcValueSize);    
+        newProperty = (SLPProperty*)xrealloc(newProperty,sizeof(SLPProperty) + pcNameSize + pcValueSize);    
         if(newProperty == 0)
         {
             /* out of memory */
@@ -227,7 +228,7 @@ int SLPPropertyReadFile(const char* conffile)
         return -1;
     }
 
-    alloced = malloc(4096);
+    alloced = xmalloc(4096);
     if(alloced == 0)
     {
         /* out of memory */
@@ -311,7 +312,7 @@ int SLPPropertyReadFile(const char* conffile)
 
     if(alloced)
     {
-        free(alloced);
+        xfree(alloced);
     }
 
     return 0;
@@ -357,7 +358,7 @@ int SLPPropertyAsIntegerVector(const char* property,
     char*       end;
 
     memset(vector,0,sizeof(int)*vectorsize);
-    temp = strdup(property);
+    temp = xstrdup(property);
     if(temp == 0)
     {
         return 0;
@@ -379,7 +380,7 @@ int SLPPropertyAsIntegerVector(const char* property,
         slider1 = slider2;
     }
 
-    free(temp);
+    xfree(temp);
 
     return i;
 }
@@ -398,7 +399,7 @@ void SLPPropertyFreeAll()
     {
         del = property;
         property = (SLPProperty*)property->listitem.next;
-        free(del);
+        xfree(del);
     }
 }
 #endif

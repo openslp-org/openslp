@@ -64,9 +64,9 @@
 void SLPSpiEntryFree(SLPSpiEntry* victim)
 /*-------------------------------------------------------------------------*/
 {
-    if(victim->spistr) free(victim->spistr);
+    if(victim->spistr) xfree(victim->spistr);
     if(victim->key) SLPCryptoDSAKeyDestroy(victim->key);
-    if(victim) free(victim);
+    if(victim) xfree(victim);
 }
 
 /*-------------------------------------------------------------------------*/
@@ -142,8 +142,8 @@ SLPSpiEntry* SLPSpiReadSpiFile(FILE* fp, int keytype)
     /*----------------------------*/
     /* Allocate memory for result */
     /*----------------------------*/
-    line = (char*) malloc(MAX_SPI_ENTRY_LEN);
-    result = (SLPSpiEntry*) malloc(sizeof(SLPSpiEntry));
+    line = (char*) xmalloc(MAX_SPI_ENTRY_LEN);
+    result = (SLPSpiEntry*) xmalloc(sizeof(SLPSpiEntry));
     if(result == 0 || line == 0)
     {
         return 0;
@@ -196,7 +196,7 @@ SLPSpiEntry* SLPSpiReadSpiFile(FILE* fp, int keytype)
         while(*slider2 && *slider2 > 0x20) slider2++;
         /* SPI string is at slider1 length slider2 - slider1 */
     
-        result->spistr = (char*)malloc(slider2-slider1);
+        result->spistr = (char*)xmalloc(slider2-slider1);
         if(result->spistr)
         {
             memcpy(result->spistr,slider1,slider2-slider1);
@@ -240,19 +240,19 @@ SLPSpiEntry* SLPSpiReadSpiFile(FILE* fp, int keytype)
             }
         }
 
-        if(result->spistr) free(result->spistr);
+        if(result->spistr) xfree(result->spistr);
         if(result->key) SLPCryptoDSAKeyDestroy(result->key);
     }
 
     if (result)
     { 
-        free(result);
+        xfree(result);
         result = 0;
     }
     
 SUCCESS:
 
-    if (line) free(line);
+    if (line) xfree(line);
 
     return result;
 }
@@ -275,11 +275,11 @@ SLPSpiHandle SLPSpiOpen(const char* spifile, int cacheprivate)
     fp = fopen(spifile,"r");
     if(fp)
     {
-        result = malloc(sizeof(struct _SLPSpiHandle));
+        result = xmalloc(sizeof(struct _SLPSpiHandle));
         if(result == 0) return 0;
         memset(result, 0, sizeof(struct _SLPSpiHandle));
         
-        result->spifile = strdup(spifile);
+        result->spifile = xstrdup(spifile);
         result->cacheprivate = cacheprivate;
         while(1)
         {
@@ -310,13 +310,13 @@ void SLPSpiClose(SLPSpiHandle hspi)
 {
     if(hspi)
     {
-        if(hspi->spifile) free(hspi->spifile);
+        if(hspi->spifile) xfree(hspi->spifile);
         while(hspi->cache.count)
         {
             SLPSpiEntryFree((SLPSpiEntry*)SLPListUnlink(&(hspi->cache),hspi->cache.head));
         }
         
-        free(hspi);
+        xfree(hspi);
     }
 }
 
@@ -349,7 +349,7 @@ char* SLPSpiGetDefaultSPI(SLPSpiHandle hspi,
         entry = SLPSpiEntryFind(&(hspi->cache),keytype,0,0);
         if(entry)
         {
-            *spistr = malloc(entry->spistrlen);
+            *spistr = xmalloc(entry->spistrlen);
             if(*spistr)
             {
                 memcpy(*spistr, entry->spistr, entry->spistrlen);
