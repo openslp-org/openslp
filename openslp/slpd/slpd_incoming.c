@@ -96,7 +96,6 @@ void IncomingDatagramRead(SLPList* socklist, SLPDSocket* sock)
         case SLP_ERROR_PARSE_ERROR:
         case SLP_ERROR_VER_NOT_SUPPORTED:
         case SLP_ERROR_MESSAGE_NOT_SUPPORTED:
-            sock->state = SOCKET_CLOSE;
             break;                    
         default:
             /* check to see if we should send anything */
