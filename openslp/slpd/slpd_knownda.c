@@ -584,7 +584,6 @@ int SLPDKnownDAAdd(SLPMessage msg, SLPBuffer buf)
     SLPDAAdvert*        entrydaadvert;
     SLPDAAdvert*        daadvert;
     struct in_addr      daaddr;
-    int                 isnewda         = 0;
     SLPParsedSrvUrl*    parsedurl       = NULL;
     int                 result          = 0;
     SLPDatabaseHandle   dh              = NULL;
@@ -598,6 +597,35 @@ int SLPDKnownDAAdd(SLPMessage msg, SLPBuffer buf)
 
     /* daadvert is the DAAdvert message being added */
     daadvert = &(msg->body.daadvert);
+
+    
+    /* --------------------------------------------------------
+     * Make sure that the peer address in the DAAdvert matches
+     * the host in the DA service URL.
+     *---------------------------------------------------------
+     */
+    if (SLPParseSrvUrl(daadvert->urllen,
+                       daadvert->url,
+                       &parsedurl))
+    {
+        /* could not parse the DA service url */
+        result = SLP_ERROR_PARSE_ERROR;
+        goto CLEANUP;
+    }
+    if (SLPNetResolveHostToAddr(parsedurl->host,&daaddr))
+    {
+        /* Unable to resolve the host in the DA advert to an address */
+        xfree(parsedurl);
+        result = SLP_ERROR_PARSE_ERROR;
+        goto CLEANUP;
+    }
+    /* free the parsed url created in call to SLPParseSrvUrl() */
+    xfree(parsedurl);
+    /* set the peer address in the DAAdvert message so that it matches
+     * the address the DA service URL resolves to 
+     */
+    msg->peer.sin_addr = daaddr;
+
 
     /*-----------------------------------------------------*/
     /* Check to see if there is already an identical entry */
@@ -659,36 +687,6 @@ int SLPDKnownDAAdd(SLPMessage msg, SLPBuffer buf)
     {
         if ( entry == 0 )
         {
-            /* Advertising DA is new to us */
-            isnewda = 1;
-
-            /* Make sure that the peer address in the DAAdvert matches
-             * the host in the DA service URL.
-             */
-            if (SLPParseSrvUrl(daadvert->urllen,
-                               daadvert->url,
-                               &parsedurl))
-            {
-                /* could not parse the DA service url */
-                result = SLP_ERROR_PARSE_ERROR;
-                goto CLEANUP;
-            }
-            if (SLPNetResolveHostToAddr(parsedurl->host,&daaddr))
-            {
-                /* Unable to resolve the host in the DA advert to an address */
-                xfree(parsedurl);
-                result = SLP_ERROR_PARSE_ERROR;
-                goto CLEANUP;
-            }
-
-            /* free the parsed url created in call to SLPParseSrvUrl() */
-            xfree(parsedurl);
-
-            /* set the peer address in the DAAdvert message so that it matches
-             * the address the DA service URL resolves to 
-             */
-            msg->peer.sin_addr = daaddr;
-
             /* create a new database entry using the DAAdvert message */
             entry = SLPDatabaseEntryCreate(msg,buf);
             if (entry)

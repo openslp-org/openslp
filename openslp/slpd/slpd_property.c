@@ -148,7 +148,7 @@ int SLPDPropertyInit(const char* conffile)
     /* Set the value used internally as the url for this agent */
     /*---------------------------------------------------------*/
     /* 27 is the size of "service:directory-agent://(NULL)" */
-    if(SLPNetGetThisHostname(&myname) == 0)
+    if(SLPNetGetThisHostname(&myname,1) == 0)
     {
         myurl = (char*)xmalloc(27 + strlen(myname));
         if(G_SlpdProperty.isDA)

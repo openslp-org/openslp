@@ -252,6 +252,9 @@ int SLPPropertyReadFile(const char* conffile)
         goto CLEANUP;
     }
 
+    /* Set the property that keeps track of conffile */
+    SLPPropertySet("net.slp.OpenSLPConfigFile",conffile);
+
     while(fgets(alloced,4096,fp))
     {
         line = alloced;

@@ -72,7 +72,7 @@
 #endif
 
 /*-------------------------------------------------------------------------*/
-int SLPNetGetThisHostname(char** hostfdn);
+int SLPNetGetThisHostname(char** hostfdn, int numeric_only);
 /* 
  * Description:
  *    Returns a string represting this host (the FDN) or null. Caller must    
@@ -81,7 +81,8 @@ int SLPNetGetThisHostname(char** hostfdn);
  * Parameters:
  *    hostfdn   (OUT) pointer to char pointer that is set to buffer 
  *                    contining this machine's FDN.  Caller must free
- *                    returned string with call to xfree()  
+ *                    returned string with call to xfree()
+ *    numeric_only (IN) force return of numeric address.  
  *-------------------------------------------------------------------------*/
 
 

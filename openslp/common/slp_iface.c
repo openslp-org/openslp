@@ -193,7 +193,7 @@ int SLPIfaceGetInfo(const char* useifaces,
     uint32_t**      haddr;
     int             useifaceslen;
     
-    if(SLPNetGetThisHostname(&myname) == 0)
+    if(SLPNetGetThisHostname(&myname,0) == 0)
     {
         myhostent = gethostbyname(myname);
         if(myhostent != 0)
