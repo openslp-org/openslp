@@ -1,1 +1,15 @@
+README OpenSLP releas 0.6.1
+---------------------------
+
+OpenSLP release 0.6.1 is based on the original Caldera Systems source code 
+snapshot from April.  Some SLPv2 features were not implemented because they 
+were not considered overly useful.  Please see the Project Roadmap 
+<http://www.openslp.org> for an idea of what still needs to be finished.  
+
+Sufficent testing resources have not been available to properly test OpenSLP.
+Therefore, we can not currently give an accurate expectation with regard to
+stability and functionality.  Please send email to notify us of any bugs 
+<mpeterson@calderasystems.com>. 
+
+
 
