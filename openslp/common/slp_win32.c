@@ -13,16 +13,28 @@ int inet_pton(int af, const char *src, void *dst) {
         struct in_addr *d4Src;
         hints.ai_protocol = AF_INET;
         sts = getaddrinfo(src, NULL, &hints, &res);
-        d4Src = &res->ai_addr->sa_data[2];
-        memcpy(&d4Dst->S_un, &d4Src->S_un, 4); 
+        if (sts == 0) {
+            sts = 1;
+            d4Src = &(((struct sockaddr_in *)res->ai_addr)->sin_addr);
+            memcpy(&d4Dst->s_addr, &d4Src->s_addr, 4); 
+        }
+        else {
+            sts = 0;
+        }
     }
     else if (af == AF_INET6) {
         struct in6_addr *d6Dst = (struct in6_addr *) dst;
         struct in6_addr *d6Src;
         hints.ai_protocol = AF_INET6;
         sts = getaddrinfo(src, NULL, &hints, &res);
-        d6Src = res->ai_addr;
-        memcpy(&d6Dst->u, &d6Src->u, 16); 
+        if (sts == 0) {
+            sts = 1;
+            d6Src = &(((struct sockaddr_in6 *)res->ai_addr)->sin6_addr);
+            memcpy(&d6Dst->s6_addr, &d6Src->s6_addr, 16); 
+        }
+        else {
+            sts = 0;
+        }
     }
     else {
         sts = -1;
@@ -38,31 +50,33 @@ const char *inet_ntop(int af, const void *src, char *dst, size_t size) {
         dst[0] = '\0';
         if (af == AF_INET) {
             struct in_addr *d4 = (struct in_addr *) src;
-            itoa(d4->S_un.S_un_b.s_b1, tmp, 10);
+            unsigned char *paddr = (unsigned char *)&d4->s_addr;
+            itoa(paddr[0], tmp, 10);
             strncat(dst, tmp, size - (strlen(dst) + 1));
             strncat(dst, ".", size - (strlen(dst) + 1));
-            itoa(d4->S_un.S_un_b.s_b2, tmp, 10);
+            itoa(paddr[1], tmp, 10);
             strncat(dst, tmp, size - (strlen(dst) + 1));
             strncat(dst, ".", size - (strlen(dst) + 1));
-            itoa(d4->S_un.S_un_b.s_b3, tmp, 10);
+            itoa(paddr[2], tmp, 10);
             strncat(dst, tmp, size - (strlen(dst) + 1));
             strncat(dst, ".", size - (strlen(dst) + 1));
-            itoa(d4->S_un.S_un_b.s_b4, tmp, 10);
+            itoa(paddr[3], tmp, 10);
             strncat(dst, tmp, size - (strlen(dst) + 1));
         }
         else if (af == AF_INET6) {
             struct in_addr6 *d6 = (struct in6_addr *) src;
+            unsigned char *paddr = (unsigned char *)&(d6->s6_addr);
             for (i = 0; i < 7; i++) {
-                itoa(d6->u.Byte[2 * i], tmp, 16);
+                itoa(paddr[2 * i], tmp, 16);
                 strncat(dst, tmp, size - (strlen(dst) + 1));
-                itoa(d6->u.Byte[(2 * i) + 1], tmp, 16);
+                itoa(paddr[(2 * i) + 1], tmp, 16);
                 strncat(dst, tmp, size - (strlen(dst) + 1));
                 strncat(dst, ":", size - (strlen(dst) + 1));
             }
             // now do the last one
-            itoa(d6->u.Byte[14], tmp, 16);
+            itoa(paddr[14], tmp, 16);
             strncat(dst, tmp, size - (strlen(dst) + 1));
-            itoa(d6->u.Byte[15], tmp, 16);
+            itoa(paddr[15], tmp, 16);
             strncat(dst, tmp, size - (strlen(dst) + 1));
         }
     }

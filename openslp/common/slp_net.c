@@ -148,7 +148,7 @@ int SLPNetResolveHostToAddr(const char* host,
 }
 
 int SLPNetIsIPV6() {
-    int isv6 = SLPPropertyAsBoolean(SLPGetProperty("net.slp.useIPV6"));
+    int isv6 = SLPPropertyAsBoolean(SLPPropertyGet("net.slp.useIPV6"));
     if (isv6) {
         return(1);
     }
@@ -158,7 +158,7 @@ int SLPNetIsIPV6() {
 }
 
 int SLPNetIsIPV4() {
-    int isv4 = SLPPropertyAsBoolean(SLPGetProperty("net.slp.useIPV4"));
+    int isv4 = SLPPropertyAsBoolean(SLPPropertyGet("net.slp.useIPV4"));
     if (isv4) {
         return(1);
     }
