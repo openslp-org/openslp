@@ -21,31 +21,23 @@
 </table>
 
 <hr WIDTH="100%">
-<h3>
-README 0.7.6</h3>
-With 0.7.6 OpenSLP is getting very close to being feature complete.&nbsp;
-0.7.6 should be much more stable than previous versions of OpenSLP.&nbsp;
-If you have been waiting for a more stable version before upgrading, now
-would be a good time.
 <br>&nbsp;
 <h3>
 NEWS 0.7.6</h3>
 
 <ul>
 <li>
-OpenSLP ported to FreeBSD. Compaq Tru64 support is also complete.</li>
+OpenSLP now supports SLPv1 when run as a DA.</li>
 
 <li>
-Full predicate support has been added to OpenSLP.&nbsp; slpd will now correctly
-answer service requests containing LDAP filters</li>
+TCP stream reusage was added to libslp and slpd</li>
 
 <li>
-As part of the Windows port, the MSVC project files added.&nbsp; This should
-make it much easier for OpenSLP to be build on Win32 platform.</li>
+Correction of many active DA discovery problems were made in slpd</li>
 
 <li>
-Most of slpd and libslp code was tested against a malloc debugger.&nbsp;
-Several bugs and memory leaks were fixed.</li>
+Predicate features from 0.7.6 are not build by default because of a few
+problems that will be corrected for 0.7.8</li>
 </ul>
 
 <h3>
@@ -53,7 +45,7 @@ Source Code</h3>
 
 <table NOSAVE >
 <tr NOSAVE>
-<td NOSAVE><a href="http://download.sourceforge.net/openslp/openslp-0.7.6.tar.gz">openslp-0.7.6.tar.gz</a></td>
+<td NOSAVE><a href="http://download.sourceforge.net/openslp/openslp-0.7.7.tar.gz">openslp-0.7.7.tar.gz</a></td>
 
 <td>
 <blockquote>OpenSLP source code tarball</blockquote>
@@ -61,7 +53,7 @@ Source Code</h3>
 </tr>
 
 <tr NOSAVE>
-<td NOSAVE><a href="http://download.sourceforge.net/openslp/openslp-0.7.6-1.src.rpm">openslp-0.7.6-1.src.rpm</a></td>
+<td NOSAVE><a href="http://download.sourceforge.net/openslp/openslp-0.7.7-1.src.rpm">openslp-0.7.7-1.src.rpm</a></td>
 
 <td>
 <blockquote>OpenSLP source RPM</blockquote>
@@ -74,7 +66,7 @@ Binary Packages</h3>
 
 <table NOSAVE >
 <tr NOSAVE>
-<td NOSAVE><a href="http://download.sourceforge.net/openslp/openslp-0.7.6-1.i386.rpm">openslp-0.7.6-1.i386.rpm</a></td>
+<td NOSAVE><a href="http://download.sourceforge.net/openslp/openslp-0.7.7-1.i386.rpm">openslp-0.7.7-1.i386.rpm</a></td>
 
 <td>
 <blockquote>OpenSLP binary RPM for Linux (Caldera OpenLinux, RedHat, SUSE,
