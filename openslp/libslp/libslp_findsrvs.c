@@ -83,7 +83,7 @@ SLPBoolean CallbackSrvRqst(SLPError errorcode, SLPMessage msg, void* cookie)
             if(handle->params.findsrvs.callback((SLPHandle)handle,
                                                 msg->body.srvrply.urlarray[i].url,
                                                 msg->body.srvrply.urlarray[i].lifetime,
-                                                0,
+                                                SLP_OK,
                                                 handle->params.findsrvs.cookie) == 0)
             {
                 return 0;
