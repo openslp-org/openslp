@@ -449,7 +449,6 @@ void SLPDOutgoingAge(time_t seconds)
         case DATAGRAM_MULTICAST:
         case DATAGRAM_BROADCAST:
         case DATAGRAM_UNICAST:
-        case STREAM_CONNECT_BLOCK:
             if(sock->age > G_SlpdProperty.unicastMaximumWait / 1000)
             {
                 /* Remove the DA we might have been talking to because */
@@ -461,14 +460,18 @@ void SLPDOutgoingAge(time_t seconds)
             break;
 
         case STREAM_READ_FIRST:
-        case STREAM_READ:
         case STREAM_WRITE_FIRST:
+            sock->age = 0;
+            break;
+        case STREAM_CONNECT_BLOCK:
+        case STREAM_READ:
         case STREAM_WRITE:
             if(G_OutgoingSocketList.count > SLPD_COMFORT_SOCKETS)
             {
                 if(sock->age > G_SlpdProperty.unicastMaximumWait / 1000)
                 {
                     /* remove the socket cause someone is not responding */
+                    SLPDKnownDARemove(&(sock->peeraddr.sin_addr));
                     del = sock;
                 }
             }

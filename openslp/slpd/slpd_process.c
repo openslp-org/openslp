@@ -507,14 +507,18 @@ int ProcessSrvRqst(SLPMessage message,
                urlentry->opaque)
             {
                 /* Use an opaque copy if available (and authentication is not being used)*/
+                /* TRICKY: fix up the lifetime */
+                ToUINT16(urlentry->opaque + 1,urlentry->lifetime);
                 memcpy(result->curpos,urlentry->opaque,urlentry->opaquelen);
                 result->curpos = result->curpos + urlentry->opaquelen;
             }
            else
 #else
-            /* Use an opaque copy if available (and authentication is not being used)*/
             if(urlentry->opaque)
             {
+                /* Use an opaque copy if available (and authentication is not being used)*/
+                /* TRICKY: fix up the lifetime */
+                ToUINT16(urlentry->opaque + 1,urlentry->lifetime);
                 memcpy(result->curpos,urlentry->opaque,urlentry->opaquelen);
                 result->curpos = result->curpos + urlentry->opaquelen;
             }

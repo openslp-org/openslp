@@ -223,6 +223,17 @@ void SLPDKnownDARegisterAll(SLPMessage daadvert, int immortalonly)
         return;
     }
 
+    /*--------------------------------------*/
+    /* Never do a Register All to ourselves */
+    /*--------------------------------------*/
+    if(SLPCompareString(G_SlpdProperty.myUrlLen,
+                        G_SlpdProperty.myUrl,
+                        daadvert->body.daadvert.urllen,
+                        daadvert->body.daadvert.url) == 0)
+    {
+        return;
+    }
+
     handle = SLPDDatabaseEnumStart();
     if(handle == 0)
     {
