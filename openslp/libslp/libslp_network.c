@@ -84,7 +84,7 @@ int NetworkConnectToDA(const char* scopelist,
     int             sock;
     struct timeval  timeout;
 
-    timeout.tv_sec = SLPPropertyAsInteger(SLPGetProperty("net.slp.unicastMaxTimeout"));
+    timeout.tv_sec = SLPPropertyAsInteger(SLPGetProperty("net.slp.DADiscoveryMaximumWait"));
     timeout.tv_usec = (timeout.tv_sec % 1000) * 1000;
     timeout.tv_sec = timeout.tv_sec / 1000;
 
@@ -100,8 +100,8 @@ int NetworkConnectToDA(const char* scopelist,
         if(curtime - G_LastDADiscovery > dinterval)
         {
             KnownDADiscover(&timeout);
-
             sock = KnownDAConnect(scopelist,scopelistlen,peeraddr,&timeout);
+            time(&G_LastDADiscovery);
         }   
     }       
 
@@ -227,7 +227,7 @@ SLPError NetworkRqstRply(int sock,
     }
     
     
-
+    
     /*--------------------------------*/
     /* Allocate memory for the prlist */
     /*--------------------------------*/
@@ -239,7 +239,6 @@ SLPError NetworkRqstRply(int sock,
     }
     *prlist = 0;
     prlistlen = 0;
-    
     
     /*--------------------------*/
     /* Main retransmission loop */
@@ -277,10 +276,15 @@ SLPError NetworkRqstRply(int sock,
         /*-----------------------------------*/
         /* Add the prlist to the send buffer */
         /*-----------------------------------*/
-        ToUINT16(sendbuf->curpos,prlistlen);
-        sendbuf->curpos = sendbuf->curpos + 2;
-        memcpy(sendbuf->curpos, prlist, prlistlen);
-        sendbuf->curpos = sendbuf->curpos + prlistlen;
+        if( buftype == SLP_FUNCT_SRVRQST ||
+            buftype == SLP_FUNCT_ATTRRQST ||
+            buftype == SLP_FUNCT_SRVTYPERQST)
+        {
+            ToUINT16(sendbuf->curpos,prlistlen);
+            sendbuf->curpos = sendbuf->curpos + 2;
+            memcpy(sendbuf->curpos, prlist, prlistlen);
+            sendbuf->curpos = sendbuf->curpos + prlistlen;
+        }
          
         /*-----------------------------*/
         /* Add the rest of the message */
@@ -394,6 +398,3 @@ SLPError NetworkRqstRply(int sock,
 
     return result;
 }
-
-
-

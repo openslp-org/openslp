@@ -161,18 +161,18 @@ int SetDefaultValues()
     int result = 0;                                
 
     result |= SLPPropertySet("net.slp.isBroadcastOnly","false");
-    result |= SLPPropertySet("net.slp.multicastTimeouts","500,750,1000,2000,4000,8000");
+    result |= SLPPropertySet("net.slp.multicastTimeouts","500,750,1000,1500,2000,3000");
     result |= SLPPropertySet("net.slp.multicastMaximumWait","5000");
-    result |= SLPPropertySet("net.slp.unicastTimeouts","500,750,1000,2000,4000,8000");
+    result |= SLPPropertySet("net.slp.unicastTimeouts","500,750,1000,1500,2000,3000");
     result |= SLPPropertySet("net.slp.uniticastMaximumWait","5000");
     result |= SLPPropertySet("net.slp.datagramTimeouts","");
-    result |= SLPPropertySet("net.slp.DADiscoveryTimeouts","500,750,1000,2000,4000,8000");
+    result |= SLPPropertySet("net.slp.DADiscoveryTimeouts","500,750,1000,1500,2000,3000");
     result |= SLPPropertySet("net.slp.DADiscoveryMaximumWait","2000");
     result |= SLPPropertySet("net.slp.DAActiveDiscoveryInterval","900");
     result |= SLPPropertySet("net.slp.DAAddresses","");
     result |= SLPPropertySet("net.slp.HintsFile","/tmp/slp.hints");
     result |= SLPPropertySet("net.slp.activeDADetection","true");
-    result |= SLPPropertySet("net.slp.passiveDADetection","false");
+    result |= SLPPropertySet("net.slp.passiveDADetection","true");
     result |= SLPPropertySet("net.slp.useScopes","DEFAULT");
     result |= SLPPropertySet("net.slp.locale","en");
     result |= SLPPropertySet("net.slp.randomWaitBound","1000");

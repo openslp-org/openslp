@@ -287,8 +287,7 @@ void KnownDADiscover(struct timeval* timeout)
         SLPDAEntryListWrite(fd, &G_KnownDAListHead);
         close(fd);
         stat(hintfile,&G_HintStat);
-    }
-    
+    } 
 }
 
 /*=========================================================================*/

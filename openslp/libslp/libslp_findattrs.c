@@ -94,7 +94,7 @@ SLPError ProcessAttrRqst(PSLPHandleInfo handle)
     }
     
     /*------------------------------------------------------------*/
-    /* Build a buffer containing the fixed portion of the SRVRQST */
+    /* Build a buffer containing the fixed portion of the ATTRRQST*/
     /*------------------------------------------------------------*/
     /* url */
     ToUINT16(curpos,handle->params.findattrs.urllen);
