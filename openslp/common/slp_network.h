@@ -57,17 +57,6 @@
 
 
 /*=========================================================================*/ 
-typedef struct _SLPNetworkMcastInfo
-/*=========================================================================*/ 
-{
-    int broadcast;
-    int ttl;
-    int maxwait;
-    int timeouts[MAX_RETRANSMITS];
-    int mtu;
-}SLPNetworkMcastInfo;
-
-/*=========================================================================*/ 
 int SLPNetworkConnectStream(struct sockaddr_in* peeraddr,
                             struct timeval* timeout);
 /* Connect a TCP stream to the specified peer                              */
@@ -120,7 +109,7 @@ int SLPNetworkSendMessage(int sockfd,
 
 /*=========================================================================*/ 
 int SLPNetworkRecvMessage(int sockfd,
-                          SLPBuffer buf,
+                          SLPBuffer* buf,
                           struct sockaddr_in* peeraddr,
                           struct timeval* timeout);
 /* Receives a message                                                      */
@@ -134,15 +123,49 @@ int SLPNetworkRecvMessage(int sockfd,
 /*=========================================================================*/ 
 
 
+/*=========================================================================*/
+typedef int SLPConverseCallback(SLPMessage msgf, void* cookie);
+/*=========================================================================*/
+
 /*=========================================================================*/ 
-int SLPNetworkMcastConverge(const SLPNetworkMcastInfo *mcastinfo,
-                            const char* langtag,
-                            char buftype,
-                            const void* buf,
-                            int* bufsize,
-                            SLPBuffer* replybufs,
-                            int* replybufcount);
-/* Receives a message                                                      */
+typedef struct _SLPConverseInfo
+/*=========================================================================*/ 
+{
+    int broadcast;
+    int ttl;
+    int mtu;
+    int maxwait;
+    int timeouts[MAX_RETRANSMITS];
+}SLPConverseInfo;
+
+
+/*=========================================================================*/ 
+int SLPConverseMcast(const SLPConverseInfo *convinfo,
+                     const char* langtag,
+                     char buftype,
+                     const void* buf,
+                     int bufsize,
+                     SLPConverseCallback callback,
+                     void* cookie);
+/* Transmits and receives SLP messages via multicast convergence algorithm */
+/*                                                                         */
+/* Returns  -    zero on success, non-zero on failure                      */
+/*                                                                         */
+/*               EPIPE error during write                                  */
+/*               ETIME read timed out                                      */
+/*               ENOMEM out of memory                                      */
+/*=========================================================================*/ 
+
+
+/*=========================================================================*/ 
+int SLPConverseUcast(int sock,
+                     const char* langtag,
+                     char buftype,
+                     const void* buf,
+                     int bufsize,
+                     SLPConverseCallback callback,
+                     void* cookie);
+/* Transmits and receives SLP messages via TCP stream                      */
 /*                                                                         */
 /* Returns  -    zero on success, non-zero on failure                      */
 /*                                                                         */

@@ -161,9 +161,10 @@ int SetDefaultValues()
     int result = 0;
 
     result |= SLPPropertySet("net.slp.isBroadcastOnly","false");
+    result |= SLPPropertySet("net.slp.multicastTimeouts","500,750,1000,2000,4000,8000");
+    result |= SLPPropertySet("net.slp.multicastMaximumWait","5000");
     result |= SLPPropertySet("net.slp.passiveDADetection","false");
     result |= SLPPropertySet("net.slp.locale","en");
-    result |= SLPPropertySet("net.slp.multicastTimeouts","");
     result |= SLPPropertySet("net.slp.DADiscoveryTimeouts","");
     result |= SLPPropertySet("net.slp.datagramTimeouts","");
     result |= SLPPropertySet("net.slp.randomWaitBound","1000");
@@ -171,7 +172,6 @@ int SetDefaultValues()
     result |= SLPPropertySet("net.slp.DAAddresses","");
     result |= SLPPropertySet("net.slp.securityEnabled","false");
     result |= SLPPropertySet("net.slp.unicastMaximumWait","15000");
-    result |= SLPPropertySet("net.slp.multicastMaximumWait","15000");
     result |= SLPPropertySet("net.slp.multicastTTL","255");
     result |= SLPPropertySet("net.slp.MTU","1400");
     result |= SLPPropertySet("net.slp.useScopes","DEFAULT");
@@ -317,3 +317,50 @@ int SLPPropertyAsBoolean(const char* property)
     return 0;
 }
 
+/*=========================================================================*/
+int SLPPropertyAsInteger(const char* property)
+/*=========================================================================*/
+{
+    return atoi(property);
+}
+
+
+/*=========================================================================*/
+int SLPPropertyAsIntegerVector(const char* property, 
+                               int* vector, 
+                               int vectorsize)
+/*=========================================================================*/
+{
+    int         i;
+    char*       slider1;
+    char*       slider2;
+    char*       temp;
+    char*       end;
+
+    memset(vector,0,sizeof(int)*vectorsize);
+    temp = strdup(property);
+    if(temp == 0)
+    {
+        return 0;
+    }    
+
+    end = temp + strlen(property);
+    slider1 = slider2 = temp;
+
+    for(i=0;i<vectorsize;i++)
+    {
+        while(*slider2 && *slider2 != ',') slider2++;
+        *slider2 = 0;
+        vector[i] = SLPPropertyAsInteger(slider1);
+        slider2++;
+        if(slider2 >= end)
+        {
+            break;
+        }
+        slider1 = slider2;
+    }
+
+    free(temp);
+    
+    return i;
+}

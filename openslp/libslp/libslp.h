@@ -145,6 +145,11 @@ typedef void* (*ThreadStartProc)(void *);
 
 
 /*=========================================================================*/ 
+typedef SLPBoolean NetworkRqstRplyCallback(SLPMessage msg, void* cookie);
+/*=========================================================================*/ 
+
+
+/*=========================================================================*/ 
 SLPError ThreadCreate(ThreadStartProc startproc, void *arg);
 /* Creates a thread                                                        */
 /*                                                                         */
@@ -182,5 +187,19 @@ int NetworkConnectToSlpd(struct sockaddr_in* peeraddr);
 /* Returns          Connected socket or -1 if no DA connection can be made */
 /*=========================================================================*/
 
+
+/*=========================================================================*/ 
+SLPError NetworkRqstRply(int sock,
+                         struct sockaddr_in* peeraddr,
+                         const char* langtag,
+                         char* buf,
+                         char buftype,
+                         int bufsize,
+                         NetworkRqstRplyCallback callback,
+                         void * cookie);
+/* Transmits and receives SLP messages via multicast convergence algorithm */
+/*                                                                         */
+/* Returns  -    SLP_OK on success                                         */
+/*=========================================================================*/ 
 
 #endif

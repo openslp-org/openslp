@@ -36,12 +36,6 @@
 #include "libslp.h"
 
 /*=========================================================================*/ 
-SLPDAEntry* G_KnownDAListHead = 0;
-time_t G_LastMulticast = 0;
-/*=========================================================================*/ 
-
-
-/*=========================================================================*/ 
 int NetworkConnectToDA(const char* scopelist,
                        int scopelistlen,
                        struct sockaddr_in* peeraddr)
@@ -58,76 +52,8 @@ int NetworkConnectToDA(const char* scopelist,
 /* Returns          Connected socket or -1 if no DA connection can be made */
 /*=========================================================================*/
 {
-    struct timeval      timeout;
-    time_t              curtime;
-    int                 interval;
-    int                 result  = -1;
-    SLPDAEntry*         entry   = 0;
-
-    timeout.tv_sec = atoi(SLPGetProperty("net.slp.multicastMaximumWait"));
-    timeout.tv_usec = timeout.tv_sec % 1000;
-    timeout.tv_sec = timeout.tv_sec / 1000;
-    interval = atoi(SLPGetProperty("net.slp.DAActiveDiscoveryInterval"));
-
-    memset(peeraddr,0,sizeof(struct sockaddr_in));
-    peeraddr->sin_family = AF_INET;
-    peeraddr->sin_port = htons(SLP_RESERVED_PORT);
-
-    entry = G_KnownDAListHead;
-    while(entry)
-    {
-        peeraddr->sin_addr = entry->daaddr;
-        result = SLPNetworkConnectStream(peeraddr,&timeout);
-        if(result >= 0)
-        {
-            /* hurray we connected */
-            break; 
-        }
-        else
-        {
-            /* remove DAs that we can't connect to */
-            ListUnlink((PListItem*)&G_KnownDAListHead,(PListItem)entry);
-            SLPDAEntryFree(entry);
-        }
-    }
-
-    if(result < 0)
-    {
-        time(&curtime);
-        if(interval && curtime - G_LastMulticast > interval) 
-        {
-            G_LastMulticast = curtime;
-            if(SLPDiscoverDAs(&G_KnownDAListHead,
-                              scopelistlen,
-                              scopelist,
-                              0x00000003,
-                              SLPGetProperty("net.slp.DAAddresses"),
-                              &timeout))
-            {
-                entry = G_KnownDAListHead;
-                while(entry)
-                {
-                    peeraddr->sin_addr = entry->daaddr;
-                    result = SLPNetworkConnectStream(peeraddr,&timeout);
-                    if(result >= 0)
-                    {
-                        /* hurray we connected */
-                        break; 
-                    }
-                    else
-                    {
-                        /* remove DAs that we can't connect to */
-                        ListUnlink((PListItem*)&G_KnownDAListHead,(PListItem)entry);
-                        SLPDAEntryFree(entry);
-                    }
-                }
-            }
-        }
-    }
-
-    return result;
+    return -1;
 }
-
 
 /*=========================================================================*/ 
 int NetworkConnectToSlpd(struct sockaddr_in* peeraddr)       
@@ -166,4 +92,239 @@ int NetworkConnectToSlpd(struct sockaddr_in* peeraddr)
     
     return result;
 }
+
+
+/*=========================================================================*/ 
+SLPError NetworkRqstRply(int sock,
+                         struct sockaddr_in* destaddr,
+                         const char* langtag,
+                         char* buf,
+                         char buftype,
+                         int bufsize,
+                         NetworkRqstRplyCallback callback,
+                         void * cookie)
+/* Transmits and receives SLP messages via multicast convergence algorithm */
+/*                                                                         */
+/* Returns  -    SLP_OK on success                                         */
+/*=========================================================================*/ 
+{
+    struct timeval      timeout;
+    struct sockaddr_in  peeraddr;
+    SLPBuffer           sendbuf         = 0;
+    SLPBuffer           recvbuf         = 0;
+    SLPMessage          msg             = 0;
+    SLPError            result          = 0;
+    int                 socktype        = 0;
+    int                 langtaglen      = 0;
+    int                 prlistlen       = 0;
+    char*               prlist          = 0;
+    int                 xid             = 0;
+    int                 mtu             = 0;
+    int                 size            = 0;
+    int                 xmitcount       = 0;
+    int                 rplycount       = 0;
+    int                 maxwait         = 0;
+    int                 totaltimeout    = 0;
+    int                 timeouts[MAX_RETRANSMITS];
+
+    /*----------------------------------------------------*/
+    /* Save off a few things we don't want to recalculate */
+    /*----------------------------------------------------*/
+    langtaglen = strlen(langtag);
+    xid = SLPXidGenerate();
+    mtu = SLPPropertyAsInteger(SLPGetProperty("net.slp.MTU"));
+    sendbuf = SLPBufferAlloc(mtu);
+    if(sendbuf == 0)
+    {                 
+        result = SLP_MEMORY_ALLOC_FAILED;
+        goto CLEANUP;
+    }
+
+    /* Figure unicast/multicast,TCP/UDP, wait and time out stuff */
+    if(ntohl(destaddr->sin_addr.s_addr) > 0xe0000000)
+    {
+        maxwait = SLPPropertyAsInteger(SLPGetProperty("net.slp.multicastMaximumWait"));
+        SLPPropertyAsIntegerVector(SLPGetProperty("net.slp.multicastTimeouts"), 
+                                   timeouts, 
+                                   MAX_RETRANSMITS );
+        socktype = SOCK_DGRAM;
+    }
+    else
+    {
+        maxwait = SLPPropertyAsInteger(SLPGetProperty("net.slp.unicastMaximumWait"));
+        SLPPropertyAsIntegerVector(SLPGetProperty("net.slp.unicastTimeouts"), 
+                                   timeouts, 
+                                   MAX_RETRANSMITS );
+        size = sizeof(socktype);
+        getsockopt(sock,SOL_SOCKET,SO_TYPE,&socktype,&size);
+    }
+    
+    /*--------------------------------*/
+    /* Allocate memory for the prlist */
+    /*--------------------------------*/
+    prlist = (char*)malloc(mtu);
+    if(prlist == 0)
+    {
+        result = SLP_MEMORY_ALLOC_FAILED;
+        goto CLEANUP;
+    }
+    *prlist = 0;
+    prlistlen = 0;
+    
+    
+    /*--------------------------*/
+    /* Main retransmission loop */
+    /*--------------------------*/
+    for(xmitcount = 0; xmitcount < MAX_RETRANSMITS; xmitcount++)
+    {
+        size = 14 + langtaglen + 2 + prlistlen + bufsize;
+        if(SLPBufferRealloc(sendbuf,size) == 0)
+        {
+            result = SLP_MEMORY_ALLOC_FAILED;
+            goto CLEANUP;
+        }
+
+        /*-----------------------------------*/
+        /* Add the header to the send buffer */
+        /*-----------------------------------*/
+        /*version*/
+        *(sendbuf->start)       = 2;
+        /*function id*/
+        *(sendbuf->start + 1)   = buftype;
+        /*length*/
+        ToUINT24(sendbuf->start + 2, size);
+        /*flags*/
+        ToUINT16(sendbuf->start + 5, socktype == SOCK_STREAM ? 0 : SLP_FLAG_MCAST);
+        /*ext offset*/
+        ToUINT24(sendbuf->start + 7,0);
+        /*xid*/
+        ToUINT16(sendbuf->start + 10,xid);
+        /*lang tag len*/
+        ToUINT16(sendbuf->start + 12,langtaglen);
+        /*lang tag*/
+        memcpy(sendbuf->start + 14, langtag, langtaglen);
+        sendbuf->curpos = sendbuf->start + langtaglen + 14 ;
+
+        /*-----------------------------------*/
+        /* Add the prlist to the send buffer */
+        /*-----------------------------------*/
+        ToUINT16(sendbuf->curpos,prlistlen);
+        sendbuf->curpos = sendbuf->curpos + 2;
+        memcpy(sendbuf->curpos, prlist, prlistlen);
+        sendbuf->curpos = sendbuf->curpos + prlistlen;
+         
+        /*-----------------------------*/
+        /* Add the rest of the message */
+        /*-----------------------------*/
+        memcpy(sendbuf->curpos, buf, bufsize);
+        
+        /*----------------------*/
+        /* send the send buffer */
+        /*----------------------*/
+        result = SLPNetworkSendMessage(sock,
+                                       sendbuf,
+                                       destaddr,
+                                       &timeout);
+        if(result != 0)
+        {
+            /* we could not send the message for some reason */
+            /* we're done */
+            result = SLP_NETWORK_ERROR;
+            goto FINISHED;
+        }
+            
+        /*--------------------*/
+        /* setup recv timeout */
+        /*--------------------*/
+        if(socktype == SOCK_DGRAM)
+        {   
+            totaltimeout += timeouts[xmitcount];
+            if(totaltimeout >= maxwait || timeouts[xmitcount] == 0)
+            {
+                break;
+            }
+            timeout.tv_sec = timeouts[xmitcount] / 1000;
+            timeout.tv_usec = (timeouts[xmitcount] % 1000) * 1000;
+        }
+        else
+        {
+            timeout.tv_sec = maxwait / 1000;
+            timeout.tv_usec = (maxwait % 1000) * 1000;
+        }
+
+        /*----------------*/
+        /* Main recv loop */
+        /*----------------*/
+        while(1)
+        {
+            
+            if(SLPNetworkRecvMessage(sock,
+                                     &recvbuf,
+                                     &peeraddr,
+                                     &timeout) != 0)
+            {
+                /* An error occured while receiving the message */
+                /* probably a just time out error. Retry send.  */
+                break;
+            }
+             
+            /* Parse the message and call callback */
+            msg = SLPMessageRealloc(msg);
+            if(msg == 0)
+            {
+                result = SLP_MEMORY_ALLOC_FAILED;
+                goto FINISHED;
+            }
+
+            if(SLPMessageParseBuffer(recvbuf, msg) == 0)
+            {
+                if (msg->header.xid == xid)
+                {
+                    rplycount = rplycount + 1;
+                    if(callback(msg, cookie) == 0)
+                    {
+                        goto CLEANUP;
+                    }
+                }
+            }
+            
+            if(socktype == SOCK_STREAM)
+            {
+                goto FINISHED;
+            }
+
+            /* add the peer to the previous responder list */
+            if(prlistlen != 0)
+            {
+                strcat(prlist,",");
+            }
+            strcat(prlist,inet_ntoa(peeraddr.sin_addr));
+            prlistlen =  strlen(prlist); 
+        }
+    }
+
+    FINISHED:
+    /*----------------*/
+    /* We're all done */
+    /*----------------*/
+    if(rplycount == 0)
+    {
+        result = SLP_NETWORK_TIMED_OUT;
+    }
+    
+    
+    /*----------------*/
+    /* Free resources */
+    /*----------------*/
+    CLEANUP:
+    if(prlist) free(prlist);
+    SLPBufferFree(sendbuf);
+    SLPBufferFree(recvbuf);
+    SLPMessageFree(msg);
+    close(sock);
+
+    return result;
+}
+
+
 

@@ -35,7 +35,7 @@
 #include <slp_network.h>
 
 /*=========================================================================*/ 
-int SLPNetworkConnectStream(struct sockaddr_in* peeraddr,
+int SLPNetworkConnectStream(struct sockaddr_in* peeraddr, 
                             struct timeval* timeout)
 /* Connect a TCP stream to the specified peer                              */
 /*                                                                         */
@@ -111,8 +111,6 @@ int SLPNetworkConnectToBroadcast(struct sockaddr_in* peeraddr)
 /* Creates a socket and provides a peeraddr to send to                     */
 /*                                                                         */
 /* peeraddr         (OUT) pointer to receive the connected DA's address    */                                                       
-/*                                                                         */
-/* peeraddrlen      (IN/OUT) Size of the peeraddr structure                */
 /*                                                                         */
 /* Returns          Valid socket or -1 if no DA connection can be made     */
 /*=========================================================================*/
@@ -200,7 +198,7 @@ int SLPNetworkSendMessage(int sockfd,
 
 /*=========================================================================*/ 
 int SLPNetworkRecvMessage(int sockfd,
-                          SLPBuffer buf,
+                          SLPBuffer* buf,
                           struct sockaddr_in* peeraddr,
                           struct timeval* timeout)
 /* Receives a message                                                      */
@@ -256,9 +254,10 @@ int SLPNetworkRecvMessage(int sockfd,
     if(*peek == 2)
     {
         /* allocate the recvmsg big enough for the whole message */
-        if(SLPBufferRealloc(buf, AsUINT24(peek + 2)))
+        *buf = SLPBufferRealloc(*buf, AsUINT24(peek + 2));
+        if(*buf)
         {
-            while(buf->curpos < buf->end)
+            while((*buf)->curpos < (*buf)->end)
             {
                 FD_ZERO(&readfds);
                 FD_SET(sockfd, &readfds);
@@ -266,12 +265,12 @@ int SLPNetworkRecvMessage(int sockfd,
                 if(xferbytes > 0)
                 {
                      xferbytes = recv(sockfd,
-                                   buf->curpos, 
-                                   buf->end - buf->curpos, 
+                                   (*buf)->curpos, 
+                                   (*buf)->end - (*buf)->curpos, 
                                    0);
                     if(xferbytes > 0)
                     {
-                        buf->curpos = buf->curpos + xferbytes;
+                        (*buf)->curpos = (*buf)->curpos + xferbytes;
                     }
                     else
                     {
@@ -305,206 +304,3 @@ int SLPNetworkRecvMessage(int sockfd,
 
     return 0;
 }
-
-
-/*=========================================================================*/ 
-int SLPNetworkMcastConverge(const SLPNetworkMcastInfo *mcastinfo,
-                            const char* langtag,
-                            char buftype,
-                            const void* buf,
-                            int* bufsize,
-                            SLPBuffer* rplybufs,
-                            int* rplybufcount)
-/* Receives a message                                                      */
-/*                                                                         */
-/* Returns  -    zero on success, non-zero on failure                      */
-/*                                                                         */
-/*               EPIPE error during write                                  */
-/*               ETIME read timed out                                      */
-/*               ENOMEM out of memory                                      */
-/*=========================================================================*/ 
-{
-    struct timeval      timeout;
-    struct sockaddr_in  peeraddr;
-    SLPBuffer           sendbuf         = 0;
-    int                 result          = 0;
-    int                 sock            = 0;
-    int                 langtaglen      = 0;
-    int                 prlistlen       = 0;
-    char*               prlist          = 0;
-    int                 size            = 0;
-    int                 xmitcount       = 0;
-    int                 rplycount       = 0;
-    int                 totaltimeout    = 0;
-    
-    /*-----------------------------*/
-    /* Hook up a socket to talk on */
-    /*-----------------------------*/
-    if(mcastinfo->broadcast)
-    {
-        sock = SLPNetworkConnectToBroadcast(&peeraddr);
-    }
-    else
-    {
-        sock = SLPNetworkConnectToMulticast(&peeraddr,
-                                            mcastinfo->ttl);
-    }                                
-    if(sock < 0)
-    {
-        result = EPIPE;
-        goto FINISHED;
-    }
-
-    /*--------------------------------*/
-    /* Allocate memory for the prlist */
-    /*--------------------------------*/
-    prlist = (char*)malloc(mcastinfo->mtu);
-    if(prlist == 0)
-    {
-        result = ENOMEM;
-        goto FINISHED;
-    }
-    *prlist = 0;
-    prlistlen = 0;
-    
-    /*----------------------------------------------------*/
-    /* Save off a few things we don't want to recalculate */
-    /*----------------------------------------------------*/
-    sendbuf = SLPBufferAlloc(mcastinfo->mtu);
-    if(sendbuf == 0)
-    {
-        result = ENOMEM;
-        goto FINISHED;
-    }
-    langtaglen = strlen(langtag);
-
-    /*--------------------------*/
-    /* Main retransmission loop */
-    /*--------------------------*/
-    for(xmitcount = 0; xmitcount < MAX_RETRANSMITS; xmitcount++)
-    {
-        size = 14 + langtaglen + 2 + prlistlen + *bufsize;
-        if(SLPBufferRealloc(sendbuf,size) == 0)
-        {
-            goto FINISHED;
-        }
-
-        /*----------------------------------*/
-        /* Add the header to the send buffer*/
-        /*----------------------------------*/
-        /*version*/
-        *(sendbuf->start)       = 2;
-        /*function id*/
-        *(sendbuf->start + 1)   = buftype;
-        /*length*/
-        ToUINT24(sendbuf->start + 2, size);
-        /*flags*/
-        ToUINT16(sendbuf->start + 5, SLP_FLAG_MCAST);
-        /*ext offset*/
-        ToUINT24(sendbuf->start + 7,0);
-        /*xid*/
-        ToUINT16(sendbuf->start + 10,SLPXidGenerate());
-        /*lang tag len*/
-        ToUINT16(sendbuf->start + 12,langtaglen);
-        /*lang tag*/
-        memcpy(sendbuf->start + 14, langtag, langtaglen);
-        sendbuf->curpos = sendbuf->start + langtaglen + 14 ;
-
-        /*-----------------------------------*/
-        /* Add the prlist to the send buffer */
-        /*-----------------------------------*/
-        ToUINT16(sendbuf->curpos,prlistlen);
-        sendbuf->curpos = sendbuf->curpos + 2;
-        memcpy(sendbuf->curpos, prlist, prlistlen);
-        sendbuf->curpos = sendbuf->curpos + prlistlen;
-         
-        /*-----------------------------*/
-        /* Add the rest of the message */
-        /*-----------------------------*/
-        memcpy(sendbuf->curpos, buf, *bufsize);
-        
-        /*----------------------*/
-        /* send the send buffer */
-        /*----------------------*/
-        result = SLPNetworkSendMessage(sock,
-                                       sendbuf,
-                                       &peeraddr,
-                                       &timeout);
-        if(result != 0)
-        {
-            /* we could not send the message for some reason */
-            /* we're done */
-            result = EPIPE;
-            break;
-        }
-            
-        /*--------------------*/
-        /* setup recv timeout */
-        /*--------------------*/
-        if(mcastinfo->timeouts[xmitcount] == 0)
-        {
-            break;
-        }                  
-        timeout.tv_sec = mcastinfo->timeouts[xmitcount] / 1000;
-        timeout.tv_usec = (mcastinfo->timeouts[xmitcount] % 1000) * 1000;
-
-        /*----------------*/
-        /* Main recv loop */
-        /*----------------*/
-        for(;rplycount < *rplybufcount; rplycount++)
-        {
-            
-            if(SLPNetworkRecvMessage(sock,
-                                     rplybufs[rplycount],
-                                     &peeraddr,
-                                     &timeout) != 0)
-            {
-                /* An error occured while receiving the message */
-                /* probably a just time out error. Retry send.  */
-                break;
-            }
-             
-            /* add the peer to the previous responder list */
-            if(prlistlen != 0)
-            {
-                strcat(prlist,",");
-            }
-            strcat(prlist,inet_ntoa(peeraddr.sin_addr));
-            prlistlen =  strlen(prlist); 
-        }
-
-        /*----------------------------------------------*/
-        /* Make some final checks to see if we are done */
-        /*----------------------------------------------*/
-        totaltimeout += mcastinfo->timeouts[xmitcount];
-        if(totaltimeout >= mcastinfo->maxwait)
-        {
-            break;
-        }
-        if(rplycount >= *rplybufcount);
-        {
-            break;
-        }
-    }
-
-    /*----------------*/
-    /* We're all done */
-    /*----------------*/
-    if(rplycount == 0)
-    {
-        result = ETIME;
-    }
-    *rplybufcount = rplycount;
-    
-
-    /*----------------*/
-    /* Free resources */
-    /*----------------*/
-    FINISHED:
-    if(prlist) free(prlist);
-    SLPBufferFree(sendbuf);
-    close(sock);
-
-    return result;
-}
-

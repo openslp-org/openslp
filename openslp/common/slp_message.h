@@ -347,6 +347,14 @@ SLPMessage SLPMessageAlloc();
 
 
 /*=========================================================================*/
+SLPMessage SLPMessageRealloc(SLPMessage msg);
+/* Reallocates memory for a SLP message descriptor                         */
+/*                                                                         */
+/* Returns   - A newly allocated SLPMessage pointer of NULL on ENOMEM      */
+/*=========================================================================*/
+
+
+/*=========================================================================*/
 void SLPMessageFree(SLPMessage message);
 /* Frees memory that might have been allocated by the SLPMessage for       */
 /* UrlEntryLists or AuthBlockLists.                                        */

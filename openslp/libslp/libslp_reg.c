@@ -183,7 +183,7 @@ SLPError ProcessSrvReg(PSLPHandleInfo handle)
     {
         /* Recv the SrvAck */
         if(SLPNetworkRecvMessage(slpdsock,
-                                 buf,
+                                 &buf,
                                  &peeraddr,
                                  &timeout) == 0)
         {

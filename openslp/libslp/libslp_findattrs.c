@@ -36,314 +36,137 @@
 #include "libslp.h"
 
 /*-------------------------------------------------------------------------*/
+SLPBoolean CallbackAttrRqst(SLPMessage msg, void* cookie)
+/*-------------------------------------------------------------------------*/
+{
+    PSLPHandleInfo  handle      = (PSLPHandleInfo) cookie;
+    
+    if(msg->header.functionid == SLP_FUNCT_ATTRRPLY)
+    {
+        if(msg->body.attrrply.errorcode == 0)
+        {
+            if(msg->body.attrrply.attrlistlen)
+            {
+                /* TRICKY: null terminate the attrlist by setting the authcount to 0 */
+                msg->body.attrrply.authcount = 0;
+                
+                /* Call the callback function */
+                if(handle->params.findattrs.callback((SLPHandle)handle, 
+                                                     msg->body.attrrply.attrlist,
+                                                     0,
+                                                     handle->params.findattrs.cookie) == 0)
+                {
+                    /* callback does not want any more data */
+                    return 0;
+                }   
+            }
+        }                
+    }
+    
+    return 1;
+}
+
+/*-------------------------------------------------------------------------*/
 SLPError ProcessAttrRqst(PSLPHandleInfo handle)
 /*-------------------------------------------------------------------------*/
 {
-    struct timeval      timeout;
     struct sockaddr_in  peeraddr;
-    
+    int                 sock        = 0;
+    int                 bufsize     = 0;
+    char*               buf         = 0;
+    char*               curpos      = 0;
     SLPError            result      = 0;
-    char*               prlist      = 0;
-    int                 prlistlen   = 0;
-    int                 rplytot     = 0;
-    int                 rplynet     = 0;
-    int                 ismcast     = 0;
-    int                 size        = 0;
-    int                 maxwait     = 0;
-    int                 wait        = 0;
-    SLPBuffer           buf         = 0;
-    SLPMessage          msg         = 0;
-    int                 sock        = -1;
-    int                 mtu         = atoi(SLPGetProperty("net.slp.MTU"));
-    int                 xid         = SLPXidGenerate();   
     
-
-    /*---------------------------------------*/
-    /* Connect to DA, multicast or broadcast */
-    /*---------------------------------------*/
-    sock = NetworkConnectToDA(handle->params.findsrvs.scopelist,
-                              handle->params.findsrvs.scopelistlen,
-                              &peeraddr);
-    if(sock < 0)
-    {
-        /* Lets try multicast / broadcast */
-        ismcast = 1;
-        maxwait = atoi(SLPGetProperty("net.slp.multicastMaximumWait")) / 1000;
-        wait    = 1;
-        if(SLPPropertyAsBoolean(SLPPropertyGet("net.slp.isBroadcastOnly"))) 
-        {
-            sock = SLPNetworkConnectToBroadcast(&peeraddr);
-        }
-        else
-        {
-            sock = SLPNetworkConnectToMulticast(&peeraddr,
-                                                atoi(SLPGetProperty("net.slp.multicastTTL")));
-        }
-        
-        if(sock < 0)
-        {
-            if(sock < 0)
-            {
-                result = SLP_NETWORK_INIT_FAILED;
-                goto FINISHED;
-            }
-        }
-    }
-    else
-    {
-        /* Going with unicast tcp */
-        ismcast = 0;
-        maxwait = atoi(SLPGetProperty("net.slp.unicastMaximumWait")) / 1000;
-        wait    = maxwait;
-    }
-
-    /*--------------------------------*/
-    /* allocate memory for the prlist */
-    /*--------------------------------*/
-    prlist = (char*)malloc(mtu);
-    if(prlist == 0)
-    {
-        result = SLP_MEMORY_ALLOC_FAILED;
-        goto FINISHED;   
-    }
-    memset(prlist,0,SLP_MAX_DATAGRAM_SIZE);
-
-
-    /*-----------------------*/
-    /* allocate a SLPMessage */
-    /*-----------------------*/
-    msg = SLPMessageAlloc();
-    if(msg == 0)
-    {
-        result = SLP_MEMORY_ALLOC_FAILED;
-        goto FINISHED;
-    }
+    /*-------------------------------------------------------------------*/
+    /* determine the size of the fixed portion of the ATTRRQST           */
+    /*-------------------------------------------------------------------*/
+    bufsize  = handle->params.findattrs.urllen + 2;       /*  2 bytes for len field */
+    bufsize += handle->params.findattrs.scopelistlen + 2; /*  2 bytes for len field */
+    bufsize += handle->params.findattrs.taglistlen + 2;   /*  2 bytes for len field */
+    bufsize += 2;                                         /*  2 bytes for spistr len*/    
     
-    /*--------------------------------------------------------------*/
-    /* ensure the buffer is big enough to handle the whole attrrqst */
-    /*--------------------------------------------------------------*/
-    size = handle->langtaglen + 14;                 /* 14 bytes for header     */
-    size += 2;
-    /* we add in the size of the prlist later */
-    size += handle->params.findattrs.urllen + 2;       /*  2 bytes for len field */
-    size += handle->params.findattrs.scopelistlen + 2; /*  2 bytes for len field */
-    size += handle->params.findattrs.taglistlen + 2;   /*  2 bytes for len field */
-    size += 2;                                         /*  2 bytes for spistr len*/    
-                                  
-    /* make sure that we don't exceed the MTU */
-    if(ismcast && size > mtu)
-    {
-        result = SLP_BUFFER_OVERFLOW;
-        goto FINISHED;
-    }                 
-
-    /* allocate memory for the prlist */
-    buf = SLPBufferAlloc(size + mtu);  
+    /* TODO: make sure that we don't exceed the MTU */
+    buf = curpos = (char*)malloc(bufsize);
     if(buf == 0)
     {
         result = SLP_MEMORY_ALLOC_FAILED;
         goto FINISHED;
     }
     
-    /* repeat loop until timeout or until the retransmit exceeds mtu */
-    do
+    /*------------------------------------------------------------*/
+    /* Build a buffer containing the fixed portion of the SRVRQST */
+    /*------------------------------------------------------------*/
+    /* url */
+    ToUINT16(curpos,handle->params.findattrs.urllen);
+    curpos = curpos + 2;
+    memcpy(curpos,
+           handle->params.findattrs.url,
+           handle->params.findattrs.urllen);
+    curpos = curpos + handle->params.findattrs.urllen;
+    /* scope list */
+    ToUINT16(curpos,handle->params.findattrs.scopelistlen);
+    curpos = curpos + 2;
+    memcpy(curpos,
+           handle->params.findattrs.scopelist,
+           handle->params.findattrs.scopelistlen);
+    curpos = curpos + handle->params.findattrs.scopelistlen;
+    /* taglist  */
+    ToUINT16(curpos,handle->params.findattrs.taglistlen);
+    curpos = curpos + 2;
+    memcpy(curpos,
+           handle->params.findattrs.taglist,
+           handle->params.findattrs.taglistlen);
+    curpos = curpos + handle->params.findattrs.taglistlen;
+    /* TODO: add spi list stuff here later*/
+    ToUINT16(curpos,0);
+    
+    /*---------------------------------------*/
+    /* Connect to DA, multicast or broadcast */
+    /*---------------------------------------*/
+    sock = NetworkConnectToDA(handle->params.findsrvs.scopelist,
+                              handle->params.findsrvs.scopelistlen,
+                              &peeraddr);
+    if(sock >= 0)
     {
-        if(SLPBufferRealloc(buf, size + prlistlen) == 0)
-        {
-            result = SLP_MEMORY_ALLOC_FAILED;
-            goto FINISHED;
-        }
-        
-        /*----------------*/
-        /* Add the header */
-        /*----------------*/
-        /*version*/
-        *(buf->start)       = 2;
-        /*function id*/
-        *(buf->start + 1)   = SLP_FUNCT_ATTRRQST;
-        /*length*/
-        ToUINT24(buf->start + 2, size + prlistlen);
-        /*flags*/
-        ToUINT16(buf->start + 5, ismcast ? SLP_FLAG_MCAST : 0);
-        /*ext offset*/
-        ToUINT24(buf->start + 7,0);
-        /*xid*/
-        ToUINT16(buf->start + 10,xid);
-        /*lang tag len*/
-        ToUINT16(buf->start + 12,handle->langtaglen);
-        /*lang tag*/
-        memcpy(buf->start + 14,
-               handle->langtag,
-               handle->langtaglen);
-    
-        /*--------------------------*/
-        /* Add rest of the AttrRqst */
-        /*--------------------------*/
-        buf->curpos = buf->start + handle->langtaglen + 14 ;
-        /* prlist */
-        ToUINT16(buf->curpos,prlistlen);
-        buf->curpos = buf->curpos + 2;
-        memcpy(buf->curpos,
-               prlist,
-               prlistlen);
-        buf->curpos = buf->curpos + prlistlen;
-    
-        /* url */
-        ToUINT16(buf->curpos,handle->params.findattrs.urllen);
-        buf->curpos = buf->curpos + 2;
-        memcpy(buf->curpos,
-               handle->params.findattrs.url,
-               handle->params.findattrs.urllen);
-        buf->curpos = buf->curpos + handle->params.findattrs.urllen;
-        
-        /* scope list */
-        ToUINT16(buf->curpos,handle->params.findattrs.scopelistlen);
-        buf->curpos = buf->curpos + 2;
-        memcpy(buf->curpos,
-               handle->params.findattrs.scopelist,
-               handle->params.findattrs.scopelistlen);
-        buf->curpos = buf->curpos + handle->params.findattrs.scopelistlen;
-    
-        /* taglist  */
-        ToUINT16(buf->curpos,handle->params.findattrs.taglistlen);
-        buf->curpos = buf->curpos + 2;
-        memcpy(buf->curpos,
-               handle->params.findattrs.taglist,
-               handle->params.findattrs.taglistlen);
-        buf->curpos = buf->curpos + handle->params.findattrs.taglistlen;
-    
-        /* TODO: add spi list stuff here later*/
-        ToUINT16(buf->curpos,0);
-        
-    
-        /*------------------------*/
-        /* Send the AttrRqst      */
-        /*------------------------*/
-        timeout.tv_sec = wait; 
-        timeout.tv_usec = 0;
-        
-        buf->curpos = buf->start;
-        if(SLPNetworkSendMessage(sock,
-                                 buf,
-                                 &peeraddr,
-                                 &timeout) != 0)
-        {
-            /* we could not send the message for some reason */
-            /* we're done */
-            break;
-        }
-            
-        rplynet = 0;
-
-        while(1)
-        {
-            /* Recv the SrvAck */
-            if(SLPNetworkRecvMessage(sock,
-                                     buf,
-                                     &peeraddr,
-                                     &timeout) != 0)
-            {
-                /* An error occured while receiving the message */
-                /* probably a just time out error. Retry send.  */
-                break;
-            }
-             
-            /* add the peer to the previous responder list */
-            if(prlistlen != 0)
-            {
-                strcat(prlist,",");
-            }
-            strcat(prlist,inet_ntoa(peeraddr.sin_addr));
-            prlistlen =  strlen(prlist); 
-            
-            /* parse the AttrRply message */
-            result = SLPMessageParseBuffer(buf,msg);
-            if(result != SLP_OK)
-            {
-                /* we probably got a parse error. Ignore the message and get
-                   the next one */
-                result = SLP_OK;
-                continue;
-            }
-            
-            if(msg->header.xid != xid ||
-               msg->header.functionid != SLP_FUNCT_ATTRRPLY)
-            {
-                /* we probably got an out of sequence message. Ignore the 
-                   message and get the next one */                    
-                continue;
-            }
-            
-            if(msg->body.attrrply.errorcode == 0)
-            {
-                
-                /* TODO: Check the authblock */
-                
-                rplynet ++;    
-
-                /* TRICKY: null terminate the attrlist by setting the authcount to 0 */
-                msg->body.attrrply.authcount = 0;
-                
-                /* Call the callback function */
-                if(handle->params.findattrs.callback((SLPHandle)handle,
-                                                    msg->body.attrrply.attrlist,
-                                                    0,
-                                                    handle->params.findattrs.cookie) == 0)
-                {
-                    /* callback does not want any more data */
-                    goto FINISHED;
-                }
-                   
-            }while(ismcast) /* repeat again if rqst was mcast */
-
-            if(ismcast == 0)
-            {
-                /* no need to recv again because we were talking to DA */
-                break;
-            }
-        }
-
-        /* determine if no replies have been received */
-        rplytot += rplynet;                        
-        if(rplytot && rplynet == 0)
-        {
-            break;
-        }
-        
-        /* calculate the wait for the next retry */
-        maxwait = maxwait - wait;
-        wait = wait * 2;
-
-    }while(ismcast && maxwait > 0 && size + prlistlen < mtu);
-
-    /*----------------*/
-    /* We're all done */
-    /*----------------*/
-    if(rplytot)
-    {   
-        /* call callback with last call */
-        result = SLP_OK;
-        handle->params.findattrs.callback((SLPHandle)handle,
-                                          msg->body.attrrply.attrlist,
-                                          SLP_LAST_CALL,
-                                          handle->params.findattrs.cookie);
+        /* Use Unicast */
     }
     else
     {
-        /* call calback with network timed out because no srvs were available */
-        result = SLP_NETWORK_TIMED_OUT;
-        handle->params.findattrs.callback((SLPHandle)handle,
-                                          msg->body.attrrply.attrlist,
-                                          SLP_NETWORK_TIMED_OUT,
-                                          handle->params.findattrs.cookie);
+        if(SLPPropertyAsBoolean(SLPGetProperty("net.slp.isBroadcastOnly")))
+        {
+            sock = SLPNetworkConnectToBroadcast(&peeraddr);
+
+        }
+        else
+        {
+            
+            sock = SLPNetworkConnectToMulticast(&peeraddr, 
+                                                atoi(SLPGetProperty("net.slp.multicastTTL")));    
+        }
+
+        if(sock >= 0)
+        {
+            /* Use multicast */
+        }
+        else
+        {
+            result = SLP_NETWORK_INIT_FAILED;
+            goto FINISHED;
+        } 
+
     }
     
+    result = NetworkRqstRply(sock,
+                             &peeraddr,
+                             handle->langtag,
+                             buf,
+                             SLP_FUNCT_ATTRRQST,
+                             bufsize,
+                             CallbackAttrRqst,
+                             handle);
+    
     FINISHED:
-    /* free resources */
-    if(prlist) free(prlist);
-    SLPBufferFree(buf);
-    SLPMessageFree(msg);
-    close(sock);
+    if(buf) free(buf);
 
     return result;
 }
