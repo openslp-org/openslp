@@ -294,3 +294,97 @@ void SLPAPI SLPClose(SLPHandle hSLP)
 #endif
 
 }
+
+
+#ifndef MI_NOT_SUPPORTED
+/*=========================================================================*/
+SLPError SLPAssociateIFList( SLPHandle hSLP, const char* McastIFList)
+/*                                                                         */
+/* Associates a list of interfaces McastIFList on which multicast needs to */
+/* be done with a particular SLPHandle hSLP. McastIFList is a comma        */
+/* separated list of host interface IP addresses.                          */
+/*                                                                         */
+/* hSLP                 The SLPHandle with which the interface list is to  */
+/*                      be associated with.                                */
+/*                                                                         */
+/* McastIFList          A comma separated list of host interface IP        */
+/*                      addresses on which multicast needs to be done.     */
+/*                                                                         */
+/* Returns  SLPError code                                                  */
+/*=========================================================================*/
+{
+
+    PSLPHandleInfo      handle;
+
+    /*------------------------------*/
+    /* check for invalid parameters */
+    /*------------------------------*/
+    if(hSLP            == 0 ||
+       *(unsigned int*)hSLP != SLP_HANDLE_SIG ||
+       McastIFList == 0 ||
+       *McastIFList == 0)  /* interface list can't be empty string */
+    {
+        return SLP_PARAMETER_BAD;
+    }
+
+    handle = (PSLPHandleInfo)hSLP;
+
+#ifdef DEBUG
+    fprintf(stderr, "SLPAssociateIFList(): McastIFList = %s\n", McastIFList);
+#endif
+
+        handle->McastIFList = McastIFList;
+
+    return SLP_OK;
+}
+#endif /* MI_NOT_SUPPORTED */
+
+
+#ifndef UNICAST_NOT_SUPPORTED
+/*=========================================================================*/
+SLPError SLPAssociateIP( SLPHandle hSLP, const char* unicast_ip)
+/*                                                                         */
+/* Associates an IP address unicast_ip with a particular SLPHandle hSLP.   */
+/* unicast_ip is the IP address of the SA/DA from which service is         */
+/* requested.                                                              */
+/*                                                                         */
+/* hSLP                 The SLPHandle with which the unicast_ip address is */
+/*                      to be associated with.                             */
+/*                                                                         */
+/* unicast_ip           IP address of the SA/DA from which service is      */
+/*                      requested.                                         */
+/*                                                                         */
+/* Returns  SLPError code                                                  */
+/*=========================================================================*/
+{
+
+    PSLPHandleInfo      handle;
+
+    /*------------------------------*/
+    /* check for invalid parameters */
+    /*------------------------------*/
+    if(hSLP            == 0 ||
+       *(unsigned int*)hSLP != SLP_HANDLE_SIG ||
+       unicast_ip == 0 ||
+       *unicast_ip == 0)  /* unicast address not specified */
+    {
+        return SLP_PARAMETER_BAD;
+    }
+
+    handle = (PSLPHandleInfo)hSLP;
+
+#ifdef DEBUG
+    fprintf(stderr, "SLPAssociateIP(): unicast_ip = %s\n", unicast_ip);
+#endif
+    handle->dounicast = 1;
+    handle->unicastaddr.sin_family = AF_INET;
+    if (inet_aton(unicast_ip, ((struct in_addr *)(&handle->unicastaddr.sin_addr))) == 0 )
+    {
+        return SLP_PARAMETER_BAD;
+    }
+    handle->unicastaddr.sin_port = htons(SLP_RESERVED_PORT);
+
+    return SLP_OK;
+}
+#endif
+

@@ -81,22 +81,6 @@ typedef struct _SLPToolCommandLine
 }SLPToolCommandLine;
 
 
-#ifndef MI_NOT_SUPPORTED
-/*=========================================================================*/
-SLPError SLPAssociateIFList( SLPHandle hSLP,
-			     SLPToolCommandLine* cmdline);
-/*=========================================================================*/
-#endif /* MI_NOT_SUPPORTED */
-
-
-#ifndef UNICAST_NOT_SUPPORTED
-/*=========================================================================*/
-SLPError SLPAssociateIP( SLPHandle hSLP,
-                         SLPToolCommandLine* cmdline);
-/*=========================================================================*/
-#endif /* UNICAST_NOT_SUPPORTED */
-
-
 /*=========================================================================*/
 void FindSrvs(SLPToolCommandLine* cmdline);
 /*=========================================================================*/

@@ -293,11 +293,7 @@ SLPError NetworkRqstRply(int sock,
     /*----------------------------------------------------*/
     /* Save off a few things we don't want to recalculate */
     /*----------------------------------------------------*/
-#ifndef MI_NOT_SUPPORTED
-    langtaglen = strlen(handle->langtag);
-#else
     langtaglen = strlen(langtag);
-#endif /* MI_NOT_SUPPORTED */
     xid = SLPXidGenerate();
     mtu = SLPPropertyAsInteger(SLPGetProperty("net.slp.MTU"));
     sendbuf = SLPBufferAlloc(mtu);
@@ -612,7 +608,11 @@ SLPError NetworkRqstRply(int sock,
 }
 
 /*=========================================================================*/ 
+#ifndef MI_NOT_SUPPORTED
+SLPError NetworkMcastRqstRply(PSLPHandleInfo handle,
+#else
 SLPError NetworkMcastRqstRply(const char* langtag,
+#endif /* MI_NOT_SUPPORTED */
                               char* buf,
                               char buftype,
                               int bufsize,
@@ -676,7 +676,11 @@ SLPError NetworkMcastRqstRply(const char* langtag,
     /*----------------------------------------------------*/
     /* Save off a few things we don't want to recalculate */
     /*----------------------------------------------------*/
+#ifndef MI_NOT_SUPPORTED
+    langtaglen = strlen(handle->langtag);
+#else
     langtaglen = strlen(langtag);
+#endif /* MI_NOT_SUPPORTED */
     xid = SLPXidGenerate();
     mtu = SLPPropertyAsInteger(SLPGetProperty("net.slp.MTU"));
     sendbuf = SLPBufferAlloc(mtu);
@@ -1195,7 +1199,7 @@ SLPError NetworkUcastRqstRply(PSLPHandleInfo handle,
 		goto FINISHED;
 	    }
 	    
-	    retvl2 = SLPNetworkRecvMessage(handle->unicastsock, SOCK_STREAM, &recvbuf, &(handle->unicastaddr), &timeout);
+	    retval2 = SLPNetworkRecvMessage(handle->unicastsock, SOCK_STREAM, &recvbuf, &(handle->unicastaddr), &timeout);
             if ( retval2 != 0 ) {
                 /* An error occured while receiving the message */
                 /* probably just a time out error.              */

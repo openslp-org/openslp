@@ -33,13 +33,6 @@
 /***************************************************************************/
 
 #include "slptool.h"
-#ifndef MI_NOT_SUPPORTED
-#include "libslp.h"
-#else
-#ifndef UNICAST_NOT_SUPPORTED
-#include "libslp.h"
-#endif
-#endif /* MI_NOT_SUPPORTED */
 
 
 #ifdef WIN32
@@ -56,82 +49,6 @@ int
 strcasecmp(const char *s1, const char *s2);
 #endif
 #endif 
-
-#ifndef MI_NOT_SUPPORTED
-/*=========================================================================*/
-SLPError SLPAssociateIFList( SLPHandle hSLP,
-                         SLPToolCommandLine* cmdline)
-/*=========================================================================*/
-{
-
-    PSLPHandleInfo      handle;
-
-    /*------------------------------*/
-    /* check for invalid parameters */
-    /*------------------------------*/
-    if(hSLP            == 0 ||
-       *(unsigned int*)hSLP != SLP_HANDLE_SIG ||
-       cmdline->cmdparam3 == 0 ||
-       *cmdline->cmdparam3 == 0)  /* interface list can't be empty string */
-    {
-        return SLP_PARAMETER_BAD;
-    }
-
-    handle = (PSLPHandleInfo)hSLP;
-
-#ifdef DEBUG
-    fprintf(stderr, "SLPAssociateIFList(): cmdline->cmdparam3 = %s\n", cmdline->cmdparam3);
-#endif
-
-    if ((cmdline->cmd == FINDSRVSUSINGIFLIST) || 
-        (cmdline->cmd ==  FINDATTRSUSINGIFLIST) || 
-        (cmdline->cmd == FINDSRVTYPESUSINGIFLIST))
-    { 
-        handle->McastIFList = cmdline->cmdparam3;
-    } else {
-        return SLP_PARAMETER_BAD;
-    }
-
-    return SLP_OK;
-}
-#endif /* MI_NOT_SUPPORTED */
-
-
-#ifndef UNICAST_NOT_SUPPORTED
-/*=========================================================================*/
-SLPError SLPAssociateIP( SLPHandle hSLP,
-                         SLPToolCommandLine* cmdline)
-/*=========================================================================*/
-{
-
-    PSLPHandleInfo      handle;
-
-    /*------------------------------*/
-    /* check for invalid parameters */
-    /*------------------------------*/
-    if(hSLP            == 0 ||
-       *(unsigned int*)hSLP != SLP_HANDLE_SIG ||
-       cmdline->cmdparam3 == 0 ||
-       *cmdline->cmdparam3 == 0)  /* unicast address not specified */
-    {
-        return SLP_PARAMETER_BAD;
-    }
-
-    handle = (PSLPHandleInfo)hSLP;
-
-#ifdef DEBUG
-    fprintf(stderr, "SLPAssociateIP(): cmdline->cmdparam3 = %s\n", cmdline->cmdparam3);
-#endif
-    handle->dounicast = 1;
-    handle->unicastaddr.sin_family = AF_INET;
-    if (inet_aton(cmdline->cmdparam3, ((struct in_addr *)(&handle->unicastaddr.sin_addr))) == 0 ) {
-        return SLP_PARAMETER_BAD;
-    }
-    handle->unicastaddr.sin_port = htons(SLP_RESERVED_PORT);
-
-    return SLP_OK;
-}
-#endif
 
 
 /*=========================================================================*/
@@ -218,7 +135,7 @@ void UnicastFindSrvTypes(SLPToolCommandLine* cmdline)
     SLPHandle   hslp;
 
     if(SLPOpen(cmdline->lang,SLP_FALSE,&hslp) == SLP_OK) {
-        if((result = SLPAssociateIP(hslp, cmdline)) != SLP_OK)
+        if((result = SLPAssociateIP(hslp, cmdline->cmdparam3)) != SLP_OK)
         {
             printf("errorcode: %i\n",result);
             SLPClose(hslp);
@@ -262,7 +179,7 @@ void FindSrvTypesUsingIFList(SLPToolCommandLine* cmdline)
 
     if(SLPOpen(cmdline->lang,SLP_FALSE,&hslp) == SLP_OK)
     {
-	if((result = SLPAssociateIFList(hslp, cmdline)) != SLP_OK)
+	if((result = SLPAssociateIFList(hslp, cmdline->cmdparam3)) != SLP_OK)
         {
             printf("errorcode: %i\n",result);
             SLPClose(hslp);
@@ -346,7 +263,7 @@ void UnicastFindAttrs(SLPToolCommandLine* cmdline)
     SLPHandle   hslp;
 
     if(SLPOpen(cmdline->lang,SLP_FALSE,&hslp) == SLP_OK) {
-        if((result = SLPAssociateIP(hslp, cmdline)) != SLP_OK)
+        if((result = SLPAssociateIP(hslp, cmdline->cmdparam3)) != SLP_OK)
         {
             printf("errorcode: %i\n",result);
             SLPClose(hslp);
@@ -379,7 +296,7 @@ void FindAttrsUsingIFList(SLPToolCommandLine* cmdline)
 
     if(SLPOpen(cmdline->lang,SLP_FALSE,&hslp) == SLP_OK)
     {
-	if((result = SLPAssociateIFList(hslp, cmdline)) != SLP_OK)
+	if((result = SLPAssociateIFList(hslp, cmdline->cmdparam3)) != SLP_OK)
         {
             printf("errorcode: %i\n",result);
             SLPClose(hslp);
@@ -453,7 +370,7 @@ void FindSrvsUsingIFList(SLPToolCommandLine* cmdline)
 
     if(SLPOpen(cmdline->lang,SLP_FALSE,&hslp) == SLP_OK)
     {
-	if((result = SLPAssociateIFList(hslp, cmdline)) != SLP_OK)
+	if((result = SLPAssociateIFList(hslp, cmdline->cmdparam3)) != SLP_OK)
         {
             printf("errorcode: %i\n",result);
             SLPClose(hslp);
@@ -485,7 +402,7 @@ void UnicastFindSrvs(SLPToolCommandLine* cmdline)
     SLPHandle   hslp;
 
     if(SLPOpen(cmdline->lang,SLP_FALSE,&hslp) == SLP_OK) {
-	if((result = SLPAssociateIP(hslp, cmdline)) != SLP_OK)
+	if((result = SLPAssociateIP(hslp, cmdline->cmdparam3)) != SLP_OK)
         {
             printf("errorcode: %i\n",result);
             SLPClose(hslp);

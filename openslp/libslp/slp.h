@@ -477,6 +477,45 @@ SLPEXP void SLPAPI SLPClose(SLPHandle hSLP);
 /* SLPHandle    A SLPHandle handle returned from a call to SLPOpen().      */
 /*=========================================================================*/
 
+
+#ifndef MI_NOT_SUPPORTED
+/*=========================================================================*/
+SLPEXP SLPError SLPAssociateIFList( SLPHandle hSLP, const char* McastIFList);
+/*                                                                         */
+/* Associates a list of interfaces McastIFList on which multicast needs to */
+/* be done with a particular SLPHandle hSLP. McastIFList is a comma        */
+/* separated list of host interface IP addresses.                          */
+/*                                                                         */
+/* hSLP                 The SLPHandle with which the interface list is to  */
+/*                      be associated with.                                */
+/*                                                                         */
+/* McastIFList          A comma separated list of host interface IP        */
+/*                      addresses on which multicast needs to be done.     */
+/*                                                                         */
+/* Returns  SLPError code                                                  */
+/*=========================================================================*/
+#endif /* MI_NOT_SUPPORTED */
+
+
+#ifndef UNICAST_NOT_SUPPORTED
+/*=========================================================================*/
+SLPEXP SLPError SLPAssociateIP( SLPHandle hSLP, const char* unicast_ip);
+/*                                                                         */
+/* Associates an IP address unicast_ip with a particular SLPHandle hSLP.   */
+/* unicast_ip is the IP address of the SA/DA from which service is         */
+/* requested.                                                              */
+/*                                                                         */
+/* hSLP                 The SLPHandle with which the unicast_ip address is */
+/*                      to be associated with.                             */
+/*                                                                         */
+/* unicast_ip           IP address of the SA/DA from which service is      */
+/*                      requested.                                         */
+/*                                                                         */
+/* Returns  SLPError code                                                  */
+/*=========================================================================*/
+#endif
+
+
 #define SLP_REG_FLAG_FRESH      (1)
 #define SLP_REG_FLAG_WATCH_PID  (1 << 1)
 
