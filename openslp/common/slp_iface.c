@@ -54,6 +54,11 @@
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
+
+#ifdef SOLARIS
+#include <sys/sockio.h>
+#endif
+
 #ifndef _WIN32
 #include <sys/ioctl.h>
 #include <net/if.h>
@@ -65,7 +70,7 @@ typedef unsigned int uint32_t;
 #endif
 #endif
 
-#ifdef LINUX
+#if defined(LINUX) || defined(AIX) || defined(SOLARIS) || defined(HPUX)
 /*=========================================================================*/
 int SLPIfaceGetInfo(const char* useifaces,
                     SLPIfaceInfo* ifaceinfo)
@@ -116,7 +121,11 @@ int SLPIfaceGetInfo(const char* useifaces,
         return 1;
     }
 
+    #ifdef AIX
+    if (ioctl(fd,OSIOCGIFCONF,&ifc) == -1)
+    #else
     if (ioctl(fd,SIOCGIFCONF,&ifc) == -1)
+    #endif
     {
         perror("ioctl failed");
         return 1;
@@ -155,7 +164,11 @@ int SLPIfaceGetInfo(const char* useifaces,
                                sin,
                                sizeof(struct sockaddr_in));
                     
+                        #ifdef AIX
+                        if(ioctl(fd,OSIOCGIFBRDADDR,&(ifrlist[i])) == 0)
+                        #else
                         if(ioctl(fd,SIOCGIFBRDADDR,&(ifrlist[i])) == 0)
+                        #endif
                         {
                             sin = (struct sockaddr_in *)&(ifrlist[i].ifr_broadaddr);
                             memcpy(&(ifaceinfo->bcast_addr[ifaceinfo->iface_count]),
