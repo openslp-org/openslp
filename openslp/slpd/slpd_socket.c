@@ -297,7 +297,7 @@ void SLPDSocketInit(SLPDSocketList* list)
                     sock->recvbuf = SLPBufferAlloc(SLP_MAX_DATAGRAM_SIZE);  
                     sock->sendbuf = SLPBufferAlloc(SLP_MAX_DATAGRAM_SIZE);
                     sock->peerinfo.peeraddrlen = sizeof(sock->peerinfo.peeraddr);
-                    sock->peerinfo.peertype = SLPD_PEER_REMOTE; 
+                    sock->peerinfo.peertype = SLPD_PEER_UA; 
                     if(sock->recvbuf == 0 || sock->sendbuf == 0)
                     {
                         SLPFatal("SLPD out of memory !!\n");
@@ -336,7 +336,7 @@ void SLPDSocketInit(SLPDSocketList* list)
                 sock->state = DATAGRAM_UNICAST;
                 sock->recvbuf = SLPBufferAlloc(SLP_MAX_DATAGRAM_SIZE);  
                 sock->sendbuf = SLPBufferAlloc(SLP_MAX_DATAGRAM_SIZE);  
-                sock->peerinfo.peertype = SLPD_PEER_REMOTE; 
+                sock->peerinfo.peertype = SLPD_PEER_UA; 
                 if(sock->recvbuf == 0 || sock->sendbuf == 0)
                 {
                     SLPFatal("SLPD out of memory !!\n");
@@ -413,7 +413,7 @@ void SLPDSocketInit(SLPDSocketList* list)
                 sock->recvbuf = SLPBufferAlloc(SLP_MAX_DATAGRAM_SIZE);  
                 sock->sendbuf = SLPBufferAlloc(SLP_MAX_DATAGRAM_SIZE);
                 sock->peerinfo.peeraddrlen = sizeof(sock->peerinfo.peeraddr);
-                sock->peerinfo.peertype = SLPD_PEER_REMOTE; 
+                sock->peerinfo.peertype = SLPD_PEER_UA; 
                 if(sock->recvbuf == 0 || sock->sendbuf == 0)
                 {
                     SLPFatal("SLPD out of memory !!\n");

@@ -103,7 +103,6 @@ int SLPDParseCommandLine(int argc,char* argv[]);
 /*=========================================================================*/
 
 
-
 /*=========================================================================*/
 typedef struct _SLPDProperty
 /* structure that holds the value of all the properties slpd cares about   */
@@ -335,8 +334,9 @@ typedef enum _SLPDPeerType
 /*=========================================================================*/
 {
     SLPD_PEER_UNKNOWN   = 0,
-    SLPD_PEER_LOCAL     = 1,
-    SLPD_PEER_REMOTE    = 2
+    SLPD_PEER_LIBSLP    = 1,
+    SLPD_PEER_UA        = 2,
+    SLPD_PEER_DA        = 3
 }SLPDPeerType;
 
 
@@ -397,7 +397,7 @@ typedef struct _SLPDSocketList
 
 
 /*=========================================================================*/
-SLPDSocket* SLPDSocketListAdd(SLPDSocketList* list, SLPDSocket* addition);  
+SLPDSocket* SLPDSocketListAdd(SLPDSocketList* list, SLPDSocket* addition);
 /* Adds a free()s the specified socket from the specified list             */
 /*                                                                         */
 /* list     - pointer to the SLPSocketList to add the socket to.           */
@@ -455,6 +455,7 @@ int SLPDProcessMessage(SLPDPeerInfo* peerinfo,
 /* Returns  - zero on success SLP_ERROR_PARSE_ERROR or                     */
 /*            SLP_ERROR_INTERNAL_ERROR on ENOMEM.                          */
 /*=========================================================================*/
+
 
 /*=========================================================================*/
 void SLPDLogTraceMsg(const char* prefix,

@@ -122,13 +122,18 @@ void SLPDLogPeerInfo(SLPDPeerInfo* peerinfo)
 {
     switch(peerinfo->peertype)
     {
-    case SLPD_PEER_REMOTE:
-        SLPLog("Peer Remote:\n");
+    case SLPD_PEER_UA:
+        SLPLog("Peer UA:\n");
         SLPLog("   IP address: %s\n",inet_ntoa(peerinfo->peeraddr.sin_addr));
         break;
-        
-    case SLPD_PEER_LOCAL:
-        SLPLog("Peer Local:\n");
+    
+    case SLPD_PEER_DA:
+        SLPLog("Peer DA:\n");
+        SLPLog("   IP address: %s\n",inet_ntoa(peerinfo->peeraddr.sin_addr));
+        break;
+
+    case SLPD_PEER_LIBSLP:
+        SLPLog("Peer libslp:\n");
         SLPLog("   pid = %i\n",peerinfo->peerpid);
         SLPLog("   uid = %i\n",peerinfo->peeruid);
         SLPLog("   gid = %i\n",peerinfo->peergid);

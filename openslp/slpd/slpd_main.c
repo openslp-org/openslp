@@ -206,7 +206,7 @@ void HandleSocketListen(SLPDSocketList* list, SLPDSocket* sock)
         {
             setsockopt(connsock->fd,SOL_SOCKET,SO_RCVLOWAT,&lowat,sizeof(lowat));
             setsockopt(connsock->fd,SOL_SOCKET,SO_SNDLOWAT,&lowat,sizeof(lowat)); 
-            connsock->peerinfo.peertype = SLPD_PEER_REMOTE;
+            connsock->peerinfo.peertype = SLPD_PEER_UA;
             connsock->recvbuf = SLPBufferAlloc(SLP_MAX_DATAGRAM_SIZE);
             connsock->sendbuf = SLPBufferAlloc(SLP_MAX_DATAGRAM_SIZE);
             connsock->state = STREAM_FIRST_READ;
