@@ -7,6 +7,7 @@
 #include <ctype.h>
 
 #include <libslpattr.h>
+#include "libslpattr_internal.h"
 
 /* The strings used to represent non-string variables. */
 #define BOOL_TRUE_STR "true"
@@ -559,21 +560,7 @@ char *escape_opaque_into(char *dest, char *src, size_t len) {
  * tag. 
  *****************************************************************************/
 
-typedef struct xx_value_t {
-	struct xx_value_t *next;
-	int escaped_len;
-	int unescaped_len;
-	union {
-		SLPBoolean va_bool;
-		long va_int;
-		char *va_str; /* This is used for keyword, string, and opaque. */
-	} data; /* Stores the value of the variable. Note, any string must be copied into the struct. */
-
-	/* Memory handling */
-	struct xx_value_t *next_chunk; /* The next chunk of allocated memory in the value list. */
-	struct xx_value_t *last_value_in_chunk; /* The last value in the chunk. Only set by the chunk head. */
-} value_t;
-
+/* See libslpattr_internal.h for implementation. */
 
 /* Create and initialize a new value. 
  *
@@ -615,17 +602,7 @@ void value_free(value_t *value) {
  *  a var is kept in a value struct. 
  *****************************************************************************/
 
-/* An individual attribute in the struct. */
-typedef struct xx_var_t {
-	struct xx_var_t *next; /* Pointer to the next variable. */
-	SLPType type; /* The type of this variable. */ 
-	const char *tag; /* The name of this variable. */
-	unsigned int tag_len; /* The length of the tag. */
-	value_t *list; /* The list of values. */
-	int list_size; /* The number of values in the list. */
-	SLPBoolean modified; /* Flag. Set to be true if the attribute should be included in the next freshen.  */
-} var_t;
-
+/* See libslpattr_internal.h for struct. */
 
 /* Create a new variable. 
  *
