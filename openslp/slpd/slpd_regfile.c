@@ -34,6 +34,7 @@
 /***************************************************************************/
 
 #include "slpd.h"
+#include <ctype.h>
 
 #ifdef WIN32
 #define strncasecmp(String1, String2, Num) strnicmp(String1, String2, Num)
@@ -129,13 +130,12 @@ SLPDDatabaseEntry* SLPDRegFileReadEntry(FILE* fd, SLPDDatabaseEntry** entry)
     /*---------------------------*/
     /* Allocate a database entry */
     /*---------------------------*/
-    *entry =  (SLPDDatabaseEntry*)malloc(sizeof(SLPDDatabaseEntry));
+    *entry = SLPDDatabaseEntryAlloc();
     if(entry == 0)
     {
         SLPFatal("Out of memory!\n");
         return 0;
     }
-    memset(*entry,0,sizeof(SLPDDatabaseEntry));
 
     /*---------------------*/
     /* Parse the url-props */
@@ -243,6 +243,10 @@ SLPDDatabaseEntry* SLPDRegFileReadEntry(FILE* fd, SLPDDatabaseEntry** entry)
         }
 
         /* Check to see if it is the scopes line */
+		/* FIXME We can collapse the scope stuff into the value getting and 
+		 * just make it a special case (do strcmp on the tag as opposed to the 
+		 * line) of attribute getting. 
+		 */
         if(strncasecmp(line,"scopes",6) == 0)
         {
             /* found scopes line */
@@ -272,31 +276,52 @@ SLPDDatabaseEntry* SLPDRegFileReadEntry(FILE* fd, SLPDDatabaseEntry** entry)
         }
         else
         {
-            /* line contains an attribute (slow but it works)*/
-            /* TODO Fix this so we do not have to realloc memory each time! */
-            TrimWhitespace(line); 
-            (*entry)->attrlistlen += strlen(line) + 2;
-            
-            if((*entry)->attrlist == 0)
-            {
-                (*entry)->attrlist = malloc((*entry)->attrlistlen + 1);
-                *(*entry)->attrlist = 0;
-            }
-            else
-            {
-                (*entry)->attrlist = realloc((*entry)->attrlist,
-                                             (*entry)->attrlistlen + 1);
-            }
-            
-            if((*entry)->attrlist == 0)
-            {
-                SLPLog("Out of memory adding DEFAULT scope\n");
-                goto SLPD_ERROR;
-            }
+			char *tag; /* Will point to the start of the tag. */
+			char *val; /* Will point to the start of the value. */
+			char *end;
+			char *tag_end;
 
-            strcat((*entry)->attrlist,"(");
-            strcat((*entry)->attrlist,line);
-            strcat((*entry)->attrlist,")");
+			tag = line;
+			/*** Elide ws. ***/
+			while (isspace(*tag)) 
+			{
+				tag++;
+			}
+			tag_end = tag;
+
+			/*** Find tag end. ***/
+			while (*tag_end && (!isspace(*tag_end)) && (*tag_end != '=')) {
+				tag_end++;
+			}
+			while (*tag_end && *tag_end != '=') {
+				tag_end++;
+			}
+			*tag_end = 0;
+
+			/*** Find value start. ***/
+			val = tag_end + 1;
+			/*** Elide ws. ***/
+			while (isspace(*val)) 
+			{
+				val++;
+			}
+
+			/*** Elide trailing ws. ***/
+			end = val;
+
+			/** Find tag end. **/
+			while (*end != 0) {
+				end++;
+			}
+
+			/*** Back up over trailing whitespace. ***/
+			end--;
+			while(isspace(*end)) {
+				*end = 0; /* Overwrite ws. */
+				end--;
+			}
+
+			SLPAttrSet_guess((*entry)->attr, tag, val, SLP_ADD);
         }
     }
 
@@ -317,13 +342,14 @@ SLPDDatabaseEntry* SLPDRegFileReadEntry(FILE* fd, SLPDDatabaseEntry** entry)
 SLPD_ERROR:
     if(*entry)
     {
-        if((*entry)->srvtype) free((*entry)->srvtype);
-        if((*entry)->url) free((*entry)->url);
-        if((*entry)->langtag) free((*entry)->langtag);
-        if((*entry)->scopelist) free((*entry)->scopelist);
-        if((*entry)->attrlist) free((*entry)->attrlist);
-        free(*entry);
-        *entry = 0;
+//        if((*entry)->srvtype) free((*entry)->srvtype);
+//        if((*entry)->url) free((*entry)->url);
+//        if((*entry)->langtag) free((*entry)->langtag);
+//        if((*entry)->scopelist) free((*entry)->scopelist);
+//        if((*entry)->attrlist) free((*entry)->attrlist);
+//        free(*entry);
+		FreeEntry(*entry);
+		*entry = 0;
     }
 
     return 0;
