@@ -111,7 +111,10 @@ int SLPNetGetThisHostname(char* hostfdn, unsigned int hostfdnLen, int numeric_on
             freeaddrinfo(ifaddr);
         }
         else {
+#ifdef _DEBUG
+            printf("gethostname failed with error %s\r\n", DecodeError(WSAGetLastError()));
             assert(1);
+#endif
         }
     }
     else {

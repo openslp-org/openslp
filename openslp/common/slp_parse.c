@@ -74,6 +74,7 @@ int SLPParseSrvUrl(int srvurllen,
     char*   slider1; /* points to parse locations in srvurl */
     char*   slider2; /* points to parse locations srvurl */
     char*   end;     /* points at the end of srvurl */
+    int     isIpv6Host = 0;
     
     /* Allocate memory and set up sliders */
     *parsedurl = (SLPParsedSrvUrl*)xmalloc(srvurllen + sizeof(SLPParsedSrvUrl) + 5);
@@ -112,6 +113,7 @@ int SLPParseSrvUrl(int srvurllen,
         if (slider2) {
             /* get past the ending ] */
             slider2++;
+            isIpv6Host = 1;
         }
         else {
             // get to the next good character
@@ -129,9 +131,17 @@ int SLPParseSrvUrl(int srvurllen,
     }
     else
     {
-        memcpy(buf,slider1,slider2-slider1);
-        (*parsedurl)->host = buf;
-        buf += (slider2 - slider1) + 1;
+        if (isIpv6Host) {
+            /* different condition here - must just get stuff inside beginning [ and ending ] */
+            memcpy(buf,++slider1,slider2-slider1-1);
+            (*parsedurl)->host = buf;
+            buf += (slider2 - slider1) + 1;
+        }
+        else {
+            memcpy(buf,slider1,slider2-slider1);
+            (*parsedurl)->host = buf;
+            buf += (slider2 - slider1) + 1;
+        }
     }
 
     /* parse out the port */
@@ -186,6 +196,7 @@ int SLPParseSrvUrl(int srvurllen,
 #define TESTSRVTYPE1    "service:printer.x"
 #define TESTHOST1       "192.168.100.2"
 #define TESTHOST2       "[1111:2222:3333::4444]"
+#define TESTHOST2_PARSED "1111:2222:3333::4444"
 #define TESTHOST3       "[1111:2222:3333::4444"
 #define TESTPORT1       "4563"
 #define TESTREMAINDER1  "/hello/good/world"
@@ -341,7 +352,7 @@ int main(int argc, char* argv[])
     {
         printf("FAILURE: wrong srvtype\n");
     }
-    else if(strcmp(parsedurl->host,TESTHOST2))
+    else if(strcmp(parsedurl->host,TESTHOST2_PARSED))  /* host should be different */
     {
         printf("FAILURE: wrong host\n");
     }
