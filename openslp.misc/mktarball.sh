@@ -19,10 +19,10 @@ then
    mv openslp-$1.tar.gz $CURRENTDIR
    
    #Tar up slptool
-   mv openslp.contrib/slptool slptool-$1
-   tar -cf slptool-$1.tar slptool-$1
-   gzip -9 slptool-$1.tar
-   mv slptool-$1.tar.gz $CURRENTDIR
+   mv openslp.contrib openslp-contrib-$1
+   tar -cf openslp-contrib-$1.tar openslp-contrib-$1
+   gzip -9 openslp-contrib-$1.tar
+   mv openslp-contrib-$1.tar.gz $CURRENTDIR
    
    # Clean up temp direcory
    rm -rf /tmp/mktarball
