@@ -76,11 +76,10 @@
  *    "abc\2axyz" instead of "abc*xyz". 
  *  - No operations can be performed on opaque data types. 
  *********/
-
-
-#include "slpd.h"
-
+ 
 #include <assert.h>
+
+#include "slpd_predicate.h"
 
 #include "../libslpattr/libslpattr.h"
 #include "../libslpattr/libslpattr_internal.h"

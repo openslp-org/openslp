@@ -64,12 +64,23 @@
 /* Misc "adjustable" constants (I would not adjust the if I were you)      */
 /*=========================================================================*/
 #define SLPD_CONFIG_MAX_RECONN      1    /* max number tcp of reconnects   */
+                                         /* to complete an outgoing        */
+                                         /* transaction                    */
+                                         
 #define SLPD_MAX_SOCKETS            128  /* maximum number of sockets      */
-#define SLPD_COMFORT_SOCKETS        64   /* a comfortable number of socket */
-#define SLPD_CONFIG_CLOSE_CONN      900  /* max idle time (60 min)         */
+
+#define SLPD_COMFORT_SOCKETS        64   /* a "comfortable" number of      */
+                                         /* of sockets.  Exceeding this    */
+                                         /* number will indicate a busy    */
+                                         /* agent                          */
+
+#define SLPD_CONFIG_CLOSE_CONN      900  /* max idle time (60 min) when    */
+                                         /* not busy                       */
+                                         
+#define SLPD_CONFIG_BUSY_CLOSE_CONN 30   /* max idle time (30 sec) when    */
+                                         /* busy                           */
+
 #define SLPD_AGE_INTERVAL           15   /* age every 15 seconds           */
-#define SLPD_ATTR_RECURSION_DEPTH   50   /* max recursion depth for attr   */
-                                         /* parser                         */
 
 
 /*=========================================================================*/
@@ -79,6 +90,5 @@ extern int G_SIGALRM;
 extern int G_SIGTERM;
 extern int G_SIGHUP;
 extern int G_SIGINT;
-
 
 #endif /*(!defined SLPD_H_INCLUDED) */

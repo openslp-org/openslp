@@ -378,7 +378,7 @@ void SLPDIncomingAge(time_t seconds)
             if(G_IncomingSocketList.count > SLPD_COMFORT_SOCKETS)
             {
                 /* Accellerate ageing cause we are low on sockets */
-                if(sock->age > G_SlpdProperty.unicastMaximumWait / 1000)
+                if(sock->age > SLPD_CONFIG_BUSY_CLOSE_CONN)
                 {
                     del = sock;
                 }
