@@ -1225,6 +1225,8 @@ void SLPDKnownDAEcho(SLPMessage msg, SLPBuffer buf)
 void SLPDKnownDAActiveDiscovery(int seconds)
 /* Add a socket to the outgoing list to do active DA discovery SrvRqst     */
 /*									                                       */
+/* seconds (IN) number of seconds that expired since last call             */
+/*                                                                         */
 /* Returns:  none                                                          */
 /*=========================================================================*/
 {
@@ -1232,17 +1234,30 @@ void SLPDKnownDAActiveDiscovery(int seconds)
     SLPDSocket*     sock;
 
     /* Check to see if we should perform active DA detection */
-    if ( G_SlpdProperty.activeDADetection == 0 )
+    if ( G_SlpdProperty.DAActiveDiscoveryInterval == 0 )
     {
         return;
+    }
+    /* When activeDiscoveryXmits is < 0 then we should not xmit any more */
+    if(G_SlpdProperty.activeDiscoveryXmits < 0)
+    {
+        return ;
     }
 
     if ( G_SlpdProperty.nextActiveDiscovery <= 0 )
     {
-        if ( G_SlpdProperty.activeDiscoveryXmits <= 0 )
+        if ( G_SlpdProperty.activeDiscoveryXmits == 0)
         {
-            G_SlpdProperty.nextActiveDiscovery = SLP_CONFIG_DA_BEAT;
-            G_SlpdProperty.activeDiscoveryXmits = 3;
+            if (G_SlpdProperty.DAActiveDiscoveryInterval == 1)
+            {/* ensures xmit on first call */
+                /* don't xmit any more */
+                G_SlpdProperty.activeDiscoveryXmits = -1;
+            }
+            else
+            {
+                G_SlpdProperty.nextActiveDiscovery = G_SlpdProperty.DAActiveDiscoveryInterval;
+                G_SlpdProperty.activeDiscoveryXmits = 3;
+            }
         }
 
         G_SlpdProperty.activeDiscoveryXmits --;
@@ -1297,8 +1312,12 @@ void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead)
     SLPDSocket*     v1sock;
 #endif
 
-
-
+    /* SAs don't send passive DAAdverts */
+    if( G_SlpdProperty.isDA == 0)
+    {
+        return;
+    }
+    
     /* Check to see if we should perform passive DA detection */
     if ( G_SlpdProperty.passiveDADetection == 0 )
     {
@@ -1307,7 +1326,7 @@ void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead)
 
     if ( G_SlpdProperty.nextPassiveDAAdvert <= 0 || dadead )
     {
-        G_SlpdProperty.nextPassiveDAAdvert = SLP_CONFIG_DA_BEAT;
+        G_SlpdProperty.nextPassiveDAAdvert = SLPD_CONFIG_DA_BEAT;
 
         /*--------------------------------------------------*/
         /* Create new DATAGRAM socket with appropriate peer */
@@ -1316,52 +1335,69 @@ void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead)
         {
             peeraddr.s_addr = htonl(SLP_MCAST_ADDRESS);
             sock = SLPDSocketCreateDatagram(&peeraddr,DATAGRAM_MULTICAST);
-#ifdef ENABLE_SLPv1
-            peeraddr.s_addr = htonl(SLPv1_DA_MCAST_ADDRESS);
-            v1sock = SLPDSocketCreateDatagram(&peeraddr,
-                                              DATAGRAM_MULTICAST);
-#endif
-
+            
+            #ifdef ENABLE_SLPv1
+            if ( !dadead )
+            {
+                peeraddr.s_addr = htonl(SLPv1_DA_MCAST_ADDRESS);
+                v1sock = SLPDSocketCreateDatagram(&peeraddr,
+                                                  DATAGRAM_MULTICAST);
+            }
+            else
+            {
+                v1sock = NULL;
+            }
+            #endif  
         }
         else
         {
             peeraddr.s_addr = htonl(SLP_BCAST_ADDRESS);
             sock = SLPDSocketCreateDatagram(&peeraddr,DATAGRAM_BROADCAST);
-#ifdef ENABLE_SLPv1
-            v1sock = SLPDSocketCreateDatagram(&peeraddr,DATAGRAM_BROADCAST);
-#endif
+            
+            #ifdef ENABLE_SLPv1
+            if ( !dadead )
+            {
+                v1sock = SLPDSocketCreateDatagram(&peeraddr,DATAGRAM_BROADCAST);
+            }
+            else
+            {
+                v1sock = NULL;
+            }
+            #endif
         }
 
         /* Generate the DAAdvert and link it to the write list */
         if ( sock )
         {
-            SLPDKnownDAGenerateMyDAAdvert(0,
-                                          dadead,
-                                          SLPXidGenerate(),
-                                          &(sock->sendbuf));
-            SLPDOutgoingDatagramWrite(sock);
+            if(SLPDKnownDAGenerateMyDAAdvert(0,dadead,0,&(sock->sendbuf)) == 0)
+            {   
+                SLPDOutgoingDatagramWrite(sock);
+            }
+            else
+            {
+                SLPDSocketFree(sock);
+            }
         }
 
-#ifdef ENABLE_SLPv1
+        #ifdef ENABLE_SLPv1
         if ( v1sock )
         {
             /* SLPv1 does not support shutdown messages */
-            if ( !dadead )
+            
+            /* Generate the DAAdvert and write it */
+            if(SLPDKnownDAGenerateMyV1DAAdvert(0,
+                                               SLP_CHAR_UTF8,
+                                               SLPXidGenerate(),
+                                               &(v1sock->sendbuf)) == 0)
             {
-                /* Generate the DAAdvert and write it */
-                SLPDKnownDAGenerateMyV1DAAdvert(0,
-                                                SLP_CHAR_UTF8,
-                                                SLPXidGenerate(),
-                                                &(v1sock->sendbuf));
                 SLPDOutgoingDatagramWrite(v1sock);
             }
             else
             {
-                /* free the v1 sock since it was linked to the write list */
                 SLPDSocketFree(v1sock);
             }
         }
-#endif
+        #endif
     }
     else
     {

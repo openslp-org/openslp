@@ -1106,6 +1106,26 @@ int ProcessDAAdvert(SLPMessage message,
         goto RESPOND;
     }
 
+    /*--------------------------------------------------------------*/
+    /* If net.slp.passiveDADetection is turned off then we ignore   */
+    /* DAAdverts with xid == 0                                      */
+    /*--------------------------------------------------------------*/
+    if(G_SlpdProperty.passiveDADetection == 0 &&
+       message->header.xid == 0)
+    {
+        goto RESPOND;
+    }
+
+    /*--------------------------------------------------------------*/
+    /* If net.slp.DAActiveDiscoveryInterval == 0 then we ignore     */
+    /* DAAdverts with xid != 0                                      */
+    /*--------------------------------------------------------------*/
+    if(G_SlpdProperty.DAActiveDiscoveryInterval == 0 &&
+       message->header.xid != 0)
+    {
+        goto RESPOND;
+    } 
+
     /*-------------------------------*/
     /* Validate the authblocks       */
     /*-------------------------------*/
@@ -1125,8 +1145,7 @@ int ProcessDAAdvert(SLPMessage message,
 
     RESPOND:
     /* DAAdverts should never be replied to.  Set result buffer to empty*/
-    result->end = result->start;
-
+    result->end = result->start;  
 
     *sendbuf = result;
 
@@ -1337,8 +1356,9 @@ int SLPDProcessMessage(struct sockaddr_in* peerinfo,
 #endif
     if (errorcode == 0)
     {
-        /* TRICKY: Duplicate SRVREG recvbufs *before* parsing them   */
-        /*         it because we are going to keep them in the       */
+        /* TRICKY: Duplicate SRVREG recvbufs *before* parsing them     */
+        /*         we do this because we are going to keep track of    */
+        /*         in the registration database                        */
         if (header.functionid == SLP_FUNCT_SRVREG ||
             header.functionid == SLP_FUNCT_DAADVERT )
         {
@@ -1412,11 +1432,11 @@ int SLPDProcessMessage(struct sockaddr_in* peerinfo,
                 if (header.functionid == SLP_FUNCT_SRVREG ||
                     header.functionid == SLP_FUNCT_DAADVERT )
                 {
-                    /* TRICKY: If this is a reg or dereg message we do not
-             * free the message descriptor or duplicated recvbuf 
-             * because they are being kept in the database!
-             *
-             */
+                    /* TRICKY: If this is a reg or daadvert message we do not
+                    * free the message descriptor or duplicated recvbuf 
+                    * because they are being kept in the database!
+                    *
+                    */
                     if (errorcode == 0)
                     {
                         goto FINISHED;

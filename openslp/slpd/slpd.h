@@ -63,7 +63,7 @@
 /*=========================================================================*/
 /* Misc "adjustable" constants (I would not adjust the if I were you)      */
 /*=========================================================================*/
-#define SLPD_CONFIG_MAX_RECONN      1    /* max number tcp of reconnects   */
+#define SLPD_CONFIG_MAX_RECONN      2    /* max number tcp of reconnects   */
                                          /* to complete an outgoing        */
                                          /* transaction                    */
                                          
@@ -79,6 +79,12 @@
                                          
 #define SLPD_CONFIG_BUSY_CLOSE_CONN 30   /* max idle time (30 sec) when    */
                                          /* busy                           */
+                                         
+#define SLPD_CONFIG_DA_FIND         900  /* minimum delay between active   */
+                                         /* discovery requests (15 min)    */
+                                                                    
+#define SLPD_CONFIG_DA_BEAT         10800 /* default passive discover delay*/
+                                          /* 3 hours                       */
 
 #define SLPD_AGE_INTERVAL           15   /* age every 15 seconds           */
 

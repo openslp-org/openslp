@@ -3,7 +3,7 @@
 /* Project:     OpenSLP - OpenSource implementation of Service Location    */
 /*              Protocol                                                   */
 /*                                                                         */
-/* File:        slplib_knownda.c                                           */
+/* File:        libslp_knownda.c                                           */
 /*                                                                         */
 /* Abstract:    Internal implementation for generating unique XIDs.        */
 /*              Provides functions that are supposed to generate 16-bit    */
@@ -339,18 +339,30 @@ int KnownDADiscoverFromMulticast(int scopelistlen, const char* scopelist)
     int sockfd; 
     int result = 0;
 
-    if(SLPPropertyAsBoolean(SLPGetProperty("net.slp.activeDADetection")) &&
-       SLPPropertyAsInteger(SLPGetProperty("net.slp.DADiscoveryMaximumWait")))
+    /* if DAActiveDiscoveryInterval == 1 then we only want to discover on the
+     * first call 
+     */ 
+    if(SLPPropertyAsBoolean(SLPGetProperty("net.slp.DAActiveDiscoveryInterval")) == 1 &&
+       G_KnownDALastCacheRefresh)
     {
-        sockfd = NetworkConnectToMulticast(&peeraddr);
-        if(sockfd >= 0)
-        {
-            result = KnownDADiscoveryRqstRply(sockfd,
-                                              &peeraddr,
-                                              scopelistlen,
-                                              scopelist);
-            close(sockfd);
-        }
+        return 0;
+    }
+
+    /* if DAActiveDiscoveryInterval == 0 then we never want to discover */
+    if(SLPPropertyAsBoolean(SLPGetProperty("net.slp.activeDADetection")) == 0 ||
+       SLPPropertyAsBoolean(SLPGetProperty("net.slp.DAActiveDiscoveryInterval")) == 0)
+    {
+        return 0;
+    }
+    
+    sockfd = NetworkConnectToMulticast(&peeraddr);
+    if(sockfd >= 0)
+    {
+        result = KnownDADiscoveryRqstRply(sockfd,
+                                          &peeraddr,
+                                          scopelistlen,
+                                          scopelist);
+        close(sockfd);
     }
 
     return result;

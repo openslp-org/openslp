@@ -6,6 +6,10 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 
+11/13/01 matt@caldera.com
+Minor changes to the way that settings from /etc/slp.conf affect active and 
+passive discovery.
+
 11/10/01 matt@caldera.com
 Applied fix from Tim Zurcher that makes it so that errorcodes for
 service-agent and directory-agent SrvRqsts are returned correctly.
