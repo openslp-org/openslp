@@ -849,8 +849,27 @@ int SLPDDatabaseReInit(const char* regfile)
 /* Returns  - zero on success or non-zero on error.                        */
 /*=========================================================================*/
 {
-    return 0;
+    SLPDatabaseHandle   dh;
+    SLPDatabaseEntry*   entry;
+
+    dh = SLPDatabaseOpen(&G_SlpdDatabase.database);
+    if(dh)
+    {
+        while(1)
+        {
+            entry = SLPDatabaseEnum(dh);
+            if(entry == NULL) break;
+        
+            if(entry->msg->body.srvreg.source == SLP_REG_SOURCE_STATIC)
+            {
+                SLPDatabaseRemove(dh,entry);
+            }
+        }
+    }
+
+    return SLPDDatabaseInit(regfile);
 }
+
 
 #ifdef DEBUG
 /*=========================================================================*/

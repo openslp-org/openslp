@@ -145,7 +145,7 @@ typedef UINT32*         PUINT32;
 
 
 /*=========================================================================*/
-/* SLP Registration Source Flags                                           */
+/* SLP Registration Sources                                                */
 /*=========================================================================*/
 #define SLP_REG_SOURCE_UNKNOWN  0
 #define SLP_REG_SOURCE_REMOTE   1  /* from a remote host    */
