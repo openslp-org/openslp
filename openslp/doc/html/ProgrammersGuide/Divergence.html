@@ -13,8 +13,8 @@ Divergence from RFC 2614</h2>
 <hr WIDTH="100%">
 <h3>
 SLP Service URLs are required</h3>
-SLP&nbsp;Service URL syntax is required for all functions that accept url
-strings.&nbsp; The following is a list of affected functions:
+SLP Service URL syntax is required for all functions that accept url strings.&nbsp;
+The following is a list of affected functions:
 <ul>
 <li>
 <tt>SLPReg()</tt></li>
@@ -34,17 +34,46 @@ strings.&nbsp; The following is a list of affected functions:
 <li>
 <tt>SLPSrvURLCallback()</tt></li>
 </ul>
-The decision to require SLP&nbsp;Service URL syntax was made based on in
-part the following scenario:
+The decision to require SLP Service URL syntax was made based on in part
+the following scenario:
 <blockquote>Suppose that two calls were made to SLPReg() with a <tt>srvurl</tt>s
 and <tt>srvtype</tt>s of "192.168.100.2","http" and "192.168.100.2","ftp".&nbsp;
 Now the developer wants to deregister one service with out deregistering
 the other.&nbsp; How can it be done?&nbsp; The SLPDeReg() call does have
 a service type parameter so it would be impossible for the underlying implementation
 to distinguish between the two registrations.</blockquote>
-Since the service-type is encapsulated by the SLP&nbsp;Service URL syntax,
-this and several other problems are solved that would otherwise cause ambiguities
-between distinct registrations.
+OpenSLP requires strict Service URL syntax because a Service URL can be
+treated as a unique "database key" that identifies a registered service.&nbsp;&nbsp;
+Not requiring Service URL syntax allows for several ambiguities like the
+one mentioned above.
+<br>&nbsp;
+<h3>
+Scopelist may be the empty string&nbsp;("") or NULL</h3>
+In the calls where a scope list is accepted as a parameters, RFC 2614 says
+that this parameter may not be the empty string or&nbsp; NULL.&nbsp;&nbsp;
+OpenSLP allows scope list to be NULL or the empty string.&nbsp; If NULL
+of the empty string is passed in as a scopelist, then OpenSLP will use
+the scopelist the system administrator has configured for the machine.&nbsp;
+This saves 99%&nbsp;of all developers the time of calling SLPFindScopes()
+and parsing the result.
+<p>Scoping is almost entirely an administrative task that is only required
+for scalebility of the SLP&nbsp;wire protocol.&nbsp; Having to deal with
+and understand scopes will be a burdon to the large majority of programmers.&nbsp;
+Unless they are writing some sort of SLP&nbsp;browser, they will be very
+content to use the scope that the machine is configured to use.
+<br>&nbsp;
+<h3>
+NULL&nbsp;and empty string are acceptable parameters</h3>
+According to RFC 2614, NULL&nbsp;is not exceptable value for any parameter.&nbsp;
+Instead programmers are instructed to passed the empty string "".&nbsp;
+OpenSLP&nbsp;allows programmers to use either NULL or the empty string.&nbsp;&nbsp;
+It is very easy to deal with both NULL or empty string in the implementation,
+and allows developers to write more familiar and slightly more efficient
+code.&nbsp; There should not be any reason why the compiler should be required
+to pass a pointer to a static constant empty string when NULL&nbsp;will
+do just a well.&nbsp;&nbsp; This is why the vast majority of C APIs use
+NULL&nbsp;to indicate an ignored parameter or default value -- not the
+empth string ("").
 <br>&nbsp;
 <h3>
 The SLPSetProperty() is ignored</h3>
@@ -65,8 +94,8 @@ Some features are not implemented</h3>
 OpenSLP is a work in progress.&nbsp; Though usable, OpenSLP is lacking
 some of the features that are specified by the SLP RFCs.&nbsp; Make sure
 you know what features are not working, we tried to make note the features
-that effect the API in the "Status" sections of the OpenSLP&nbsp;Programmers
-Guide API&nbsp;documentation.
+that effect the API in the "Status" sections of the OpenSLP Programmers
+Guide API documentation.
 <p>Take a look at the <a href="http://www.openslp.org/HowCanIHelp.html">How
 Can I Help</a> section of the www.openslp.org web page to see a good list
 of the features are planned for completion.&nbsp; If a feature is missing
