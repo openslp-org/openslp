@@ -542,13 +542,8 @@ int SLPDIncomingInit()
 /* Returns  Zero on success non-zero on error                              */
 /*=========================================================================*/
 {
-//    char*                   begin = NULL;
-//    char*                   beginSave = NULL;
-//    char*                   end = NULL;
-//    int                     finished;
     struct sockaddr_storage myaddr;
     struct sockaddr_storage mcast4addr;
-    struct sockaddr_storage bcast4addr;
     struct sockaddr_storage lo4addr;
     struct sockaddr_storage lo6addr;
     struct sockaddr_storage srvloc6addr_node;
@@ -577,9 +572,6 @@ int SLPDIncomingInit()
     lo4addr.ss_family = AF_INET;
     ((struct sockaddr_in*) &lo4addr)->sin_family = AF_INET;
     ((struct sockaddr_in*) &lo4addr)->sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-    bcast4addr.ss_family = AF_INET;
-    ((struct sockaddr_in*) &bcast4addr)->sin_family = AF_INET;
-    ((struct sockaddr_in*) &bcast4addr)->sin_addr.s_addr = htonl(INADDR_BROADCAST);
     mcast4addr.ss_family = AF_INET;
     ((struct sockaddr_in*) &mcast4addr)->sin_family = AF_INET;
     ((struct sockaddr_in*) &mcast4addr)->sin_addr.s_addr = htonl(SLP_MCAST_ADDRESS);
