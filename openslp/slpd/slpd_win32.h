@@ -50,10 +50,10 @@
 #define SLPD_WIN32_H_INCLUDED
 
 #define WIN32_LEAN_AND_MEAN
-#include <windows.h>
 #include <stdio.h>
 #include <winsock2.h>
 #include <ws2tcpip.h> 
+#include <windows.h>
 #include <process.h>
 #include <ctype.h>
 #include <time.h>
