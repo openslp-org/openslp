@@ -175,8 +175,6 @@ int SLPDDatabaseReg(SLPSrvReg* srvreg,
     entry->scopelistlen = srvreg->scopelistlen;
     
     /* URL */
-    entry->url = (char*)memdup(srvreg->urlentry.url, srvreg->urlentry.urllen);
-    entry->urllen = srvreg->urlentry.urllen;
     if(entry->urllen >= srvreg->urlentry.urllen)
     {
         memcpy(entry->url,srvreg->urlentry.url,srvreg->urlentry.urllen);
@@ -187,6 +185,7 @@ int SLPDDatabaseReg(SLPSrvReg* srvreg,
         entry->url = (char*)memdup(srvreg->urlentry.url,srvreg->urlentry.urllen);
         if(entry->url == 0) goto FAILURE;
     }
+    entry->urllen = srvreg->urlentry.urllen;
     
     /* lifetime */
     entry->lifetime     = srvreg->urlentry.lifetime;
@@ -230,6 +229,7 @@ int SLPDDatabaseReg(SLPSrvReg* srvreg,
             entry->attrlist = memdup(srvreg->attrlist,srvreg->attrlistlen);
             if(entry->attrlist == 0) goto FAILURE;
         }
+        entry->attrlistlen = srvreg->attrlistlen;
         #endif 
     }
     
@@ -262,10 +262,8 @@ int SLPDDatabaseDeReg(SLPSrvDeReg* srvdereg)
 /*              file.                                                      */
 /*=========================================================================*/
 {
-    SLPDDatabaseEntry* del = 0;
     SLPDDatabaseEntry* entry = (SLPDDatabaseEntry*)G_DatabaseList.head;
-
-
+    
     while(entry)
     {
         if(SLPCompareString(entry->urllen,
@@ -280,20 +278,12 @@ int SLPDDatabaseDeReg(SLPSrvDeReg* srvdereg)
             {
                 /* Log deregistration registration */
                 SLPDLogTraceReg("Deregistered",entry);
-                
-                del = entry;
-
+                SLPDDatabaseEntryFree((SLPDDatabaseEntry*)SLPListUnlink(&G_DatabaseList,(SLPListItem*)entry));
                 break;
             }
         }
 
         entry = (SLPDDatabaseEntry*) entry->listitem.next;
-
-        if(del)
-        {
-            SLPDDatabaseEntryFree((SLPDDatabaseEntry*)SLPListUnlink(&G_DatabaseList,(SLPListItem*)del));
-            del = 0;
-        }
     }
 
     return 0;
