@@ -289,15 +289,6 @@ int main(int argc, char* argv[])
     int             highfd;
     int             fdcount         = 0;
     
-    /*------------------------------*/
-    /* Make sure we are root        */
-    /*------------------------------*/
-    if(getuid() != 0)
-    {
-        SLPFatal("slpd must be started by root\n");
-    }
-     
-    
     /*------------------------*/
     /* Parse the command line */
     /*------------------------*/
@@ -306,6 +297,13 @@ int main(int argc, char* argv[])
         SLPFatal("Invalid command line\n");
     }
 
+    /*------------------------------*/
+    /* Make sure we are root        */
+    /*------------------------------*/
+    if(getuid() != 0)
+    {
+        SLPFatal("slpd must be started by root\n");
+    }
     
     /*------------------------------*/
     /* Initialize the log file      */
