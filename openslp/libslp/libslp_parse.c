@@ -67,7 +67,7 @@ void SLPFree(void* pvMem)
 {
     if(pvMem)
     {
-        free(pvMem);
+        xfree(pvMem);
     }
 }
 

@@ -268,11 +268,11 @@ SLPError ProcessSrvReg(PSLPHandleInfo handle)
 
 
     FINISHED:
-    if(buf) free(buf);
+    if(buf) xfree(buf);
     
 #ifdef ENABLE_SECURITY
-    if(urlauth) free(urlauth);
-    if(attrauth) free(attrauth);
+    if(urlauth) xfree(urlauth);
+    if(attrauth) xfree(attrauth);
 #endif 
 
     return result;

@@ -146,7 +146,7 @@ SLPError SLPOpen(const char *pcLang, SLPBoolean isAsync, SLPHandle *phSLP)
         handle->langtag = (char*)xmalloc(handle->langtaglen + 1);
         if(handle->langtag == 0)
         {
-            free(handle);
+            xfree(handle);
             result =  SLP_PARAMETER_BAD;
             goto FINISHED;
         }
@@ -158,7 +158,7 @@ SLPError SLPOpen(const char *pcLang, SLPBoolean isAsync, SLPHandle *phSLP)
         handle->langtag = (char*)xmalloc(handle->langtaglen + 1);
         if(handle->langtag == 0)
         {
-            free(handle);
+            xfree(handle);
             result =  SLP_PARAMETER_BAD;
             goto FINISHED;
         }
@@ -242,7 +242,7 @@ void SLPClose(SLPHandle hSLP)
 
     if(handle->langtag)
     {
-        free(handle->langtag);
+        xfree(handle->langtag);
     }
 
     if(handle->dasock >=0)
@@ -252,7 +252,7 @@ void SLPClose(SLPHandle hSLP)
 
     if(handle->dascope)
     {
-        free(handle->dascope);
+        xfree(handle->dascope);
     }
 
     if(handle->sasock >=0)
@@ -262,7 +262,7 @@ void SLPClose(SLPHandle hSLP)
 
     if(handle->sascope)
     {
-        free(handle->sascope);
+        xfree(handle->sascope);
     }
 
 #ifdef ENABLE_SECURITY
@@ -271,7 +271,7 @@ void SLPClose(SLPHandle hSLP)
 
     handle->sig = 0;  /* If they use the handle again, it won't be valid */
 
-    free(hSLP);
+    xfree(hSLP);
 
     G_OpenSLPHandleCount --;
     

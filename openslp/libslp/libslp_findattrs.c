@@ -248,9 +248,9 @@ SLPError ProcessAttrRqst(PSLPHandleInfo handle)
 
 
     FINISHED:
-    if(buf) free(buf);
+    if(buf) xfree(buf);
 #ifdef ENABLE_SECURITY
-    if(spistr) free(spistr);
+    if(spistr) xfree(spistr);
 #endif
 
     return result;

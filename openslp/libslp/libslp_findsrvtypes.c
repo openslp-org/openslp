@@ -202,7 +202,7 @@ SLPError ProcessSrvTypeRqst(PSLPHandleInfo handle)
 
 
     FINISHED:
-    if(buf) free(buf);
+    if(buf) xfree(buf);
 
     return result;
 }                                   

@@ -312,7 +312,7 @@ int KnownDADiscoveryRqstRply(int sock,
                     KnownDADiscoveryCallback,
                     &result);
 
-    free(buf);
+    xfree(buf);
 
     return result;
 }
@@ -408,7 +408,7 @@ int KnownDADiscoverFromProperties()
             slider2++;
         }
 
-        free(temp);
+        xfree(temp);
     }
 
     return result;
@@ -543,7 +543,7 @@ int KnownDAConnect(PSLPHandleInfo handle,
 
 
 #ifdef ENABLE_SECURITY
-    if(spistr) free(spistr);
+    if(spistr) xfree(spistr);
 #endif
 
     return sock;
@@ -714,5 +714,7 @@ void KnownDAFreeAll()
             
             SLPDatabaseRemove(dh,entry);
         }
+
+        SLPDatabaseClose(dh);
     }       
 }

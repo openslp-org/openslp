@@ -197,7 +197,7 @@ int NetworkConnectToDA(PSLPHandleInfo handle,
                                         &(handle->daaddr));
         if(handle->dasock >= 0)
         {
-            if(handle->dascope) free(handle->dascope);
+            if(handle->dascope) xfree(handle->dascope);
             handle->dascope = memdup(scopelist,scopelistlen);
             handle->dascopelen = scopelistlen; 
             memcpy(peeraddr,&(handle->daaddr),sizeof(struct sockaddr_in));
@@ -268,7 +268,7 @@ int NetworkConnectToSA(PSLPHandleInfo handle,
         /*----------------------------------------------------------*/
         if(handle->sasock >= 0)
         {
-            if(handle->sascope) free(handle->sascope);
+            if(handle->sascope) xfree(handle->sascope);
             handle->sascope = memdup(scopelist,scopelistlen);
             handle->sascopelen = scopelistlen; 
             memcpy(peeraddr,&(handle->saaddr),sizeof(struct sockaddr_in));
@@ -571,7 +571,7 @@ SLPError NetworkRqstRply(int sock,
     /* Free resources */
     /*----------------*/
     CLEANUP:
-    if(prlist) free(prlist);
+    if(prlist) xfree(prlist);
     SLPBufferFree(sendbuf);
     SLPBufferFree(recvbuf);
     

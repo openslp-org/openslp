@@ -225,9 +225,9 @@ SLPError ProcessSrvDeReg(PSLPHandleInfo handle)
 
 
     FINISHED:
-    if(buf) free(buf);
+    if(buf) xfree(buf);
 #ifdef ENABLE_SECURITY
-    if(urlauth) free(urlauth);
+    if(urlauth) xfree(urlauth);
 #endif
 
     return result;
