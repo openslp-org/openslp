@@ -55,15 +55,7 @@
 #include <windows.h>
 #include <io.h>
 #include <errno.h>
-//#if(_WIN32_WINNT >= 0x0400 && _WIN32_WINNT < 0x0500) 
 #include <ws2tcpip.h>
-#include <iptypes.h>
-#include <iphlpapi.h>
-#ifndef IPPROTO_IPV6
-//#include <tpipv6.h> // For IPv6 Tech Preview.
-#endif
-
-//#endif
 #include "slp_win32.h"
 #define ETIMEDOUT 110
 #define ENOTCONN  107
