@@ -7,6 +7,14 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 
+*** TAG OpenSLP 0.8.1 ***
+
+12/19/00 mpeterson@caldera.com
+Changes as suggested by Olaf Kirch's security audit
+
+12/15/00 mpeterson@caldera.com
+modified GetHostName() so that a resolve occurs on retrun from gethostname()
+
 12/14/00 rganesan@myrealbox.com
 slpd.log and slpd.pid file locations now change depending on the prefix. 
 
