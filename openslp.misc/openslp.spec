@@ -1,6 +1,6 @@
 Name            : openslp
 Version         : 0.8.1
-Release         : 1
+Release         : 2
 Group           : Server/Network
 Summary         : OpenSLP implementation of Service Location Protocol V2
 Copyright       : Caldera Systems, Inc (BSD)
@@ -28,7 +28,7 @@ enterprise networks.
 ./configure --disable-predicates
 make
 cd ../slptool-%{Version}
-make LIBS=../openslp-%{Version}/libslp/.libs INCS=../openslp-%{Version}/libslp
+make LIBS=-L../openslp-%{Version}/libslp/.libs INCS=-I../openslp-%{Version}/libslp
 
 
 %Install
@@ -40,7 +40,8 @@ mkdir -p $DESTDIR/usr/bin
 install -m 755 ../slptool-%{Version}/slptool $DESTDIR/usr/bin/slptool
 
 if [ -d '/usr/lib/OpenLinux' ]; then 
-cat <<EOD  > /etc/sysconfig/daemons/slpd
+mkdir -p $DESTDIR/etc/sysconfig/daemons
+cat <<EOD  > $DESTDIR/etc/sysconfig/daemons/slpd
 IDENT=slp
 DESCRIPTIVE="SLP Service Agent"
 ONBOOT="yes"
