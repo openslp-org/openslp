@@ -75,8 +75,10 @@ MAKEINFO = @MAKEINFO@
 OBJDUMP = @OBJDUMP@
 PACKAGE = @PACKAGE@
 RANLIB = @RANLIB@
+RPM_PREFIX = @RPM_PREFIX@
 VERSION = @VERSION@
 prefix = @prefix@
+sysconfdir = @sysconfdir@
 
 lib_LTLIBRARIES = libslp.so
 INCLUDES = -I../common 
@@ -356,6 +358,8 @@ libtool: $(LIBTOOL_DEPS)
 	$(SHELL) ./config.status --recheck
 
 install-data-local:
+	mkdir -p $(libdir)
+	mkdir -p $(includedir)
 	cp -f $(lib_LTLIBRARIES) $(libdir)/libslp.so.$(VERSION)
 	cp -f slp.h	$(includedir)/
 	ln -f -s $(libdir)/libslp.so.$(VERSION) $(libdir)/libslp.so
