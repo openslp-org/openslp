@@ -1337,7 +1337,7 @@ int NetworkGetMcastAddrs(const char msgtype, const char *msg, SLPIfaceInfo *ifac
 			}
 			if (SLPNetIsIPV4()) {
 				struct in_addr mcastaddr;
-				mcastaddr.S_un.S_addr = SLP_MCAST_ADDRESS;
+				mcastaddr.s_addr = SLP_MCAST_ADDRESS;
 				SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count], AF_INET, SLP_RESERVED_PORT, (unsigned char *)&mcastaddr, sizeof(mcastaddr));
 				ifaceinfo->iface_count++;
 			}
@@ -1354,7 +1354,7 @@ int NetworkGetMcastAddrs(const char msgtype, const char *msg, SLPIfaceInfo *ifac
 			}
 			if (SLPNetIsIPV4()) {
 				struct in_addr mcastaddr;
-				mcastaddr.S_un.S_addr = SLP_MCAST_ADDRESS;
+				mcastaddr.s_addr = SLP_MCAST_ADDRESS;
 				SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count], AF_INET, SLP_RESERVED_PORT, (unsigned char *)&mcastaddr, sizeof(mcastaddr));
 
 				ifaceinfo->iface_count++;
@@ -1372,7 +1372,7 @@ int NetworkGetMcastAddrs(const char msgtype, const char *msg, SLPIfaceInfo *ifac
 			}
 			if (SLPNetIsIPV4()) {
 				struct in_addr mcastaddr;
-				mcastaddr.S_un.S_addr = SLP_MCAST_ADDRESS;
+				mcastaddr.s_addr = SLP_MCAST_ADDRESS;
 				SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count], AF_INET, SLP_RESERVED_PORT, (unsigned char *)&mcastaddr, sizeof(mcastaddr));
 				ifaceinfo->iface_count++;
 			}
@@ -1389,7 +1389,7 @@ if (SLPNetIsIPV6()) {
 			}
 			if (SLPNetIsIPV4()) {
 				struct in_addr mcastaddr;
-				mcastaddr.S_un.S_addr = SLP_MCAST_ADDRESS;
+				mcastaddr.s_addr = SLP_MCAST_ADDRESS;
 				SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count], AF_INET, SLP_RESERVED_PORT, (unsigned char *)&mcastaddr, sizeof(mcastaddr));
 				ifaceinfo->iface_count++;
 			}
