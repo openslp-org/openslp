@@ -5,7 +5,6 @@
  *  available for slpd to speed its access to values for predicate evaluation. 
  ****/
 
-
 /******************************************************************************
  *
  *                              Individual values
@@ -56,3 +55,23 @@ typedef struct xx_var_t {
 	SLPBoolean modified; /* Flag. Set to be true if the attribute should be included in the next freshen.  */
 } var_t;
 
+
+/******************************************************************************
+ *
+ *                             All the attributes. 
+ *
+ *****************************************************************************/
+
+/* The opaque struct representing a SLPAttributes handle.
+ */
+struct xx_SLPAttributes {
+	SLPBoolean strict; /* Are we using strict typing? */
+	char *lang; /* Language. */
+	var_t *attrs; /* List of vars to be sent. */
+	size_t attr_count; /* The number of attributes */
+};
+
+
+
+/* Finds a variable by its tag. */
+var_t *attr_val_find_str(struct xx_SLPAttributes *slp_attr, const char *tag, size_t tag_len); 

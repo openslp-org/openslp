@@ -709,15 +709,6 @@ SLPError var_insert(var_t *var, value_t *value, SLPInsertionPolicy policy) {
  *
  *****************************************************************************/
 
-/* The opaque struct representing a SLPAttributes handle.
- */
-struct xx_SLPAttributes {
-	SLPBoolean strict; /* Are we using strict typing? */
-	char *lang; /* Language. */
-	var_t *attrs; /* List of vars to be sent. */
-	size_t attr_count; /* The number of attributes */
-};
-
 
 /*
  * SLPAttrAlloc() creates and initializes a new instance of SLPAttributes. 
@@ -1496,7 +1487,7 @@ int internal_store( struct xx_SLPAttributes *slp_attr, char const *tag, size_t t
 
 	/***** Initialize var_t. *****/
 	var->tag_len = tag_len;
-	var->tag = (char *)(var + sizeof(var_t));
+	var->tag = ((char *)var) + sizeof(var_t);
 	memcpy((char *)var->tag, tag, var->tag_len);
 
 	var->type = type;
