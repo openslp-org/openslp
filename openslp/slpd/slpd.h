@@ -58,6 +58,7 @@
 #include <slp_logfile.h>
 #include <slp_property.h>
 #include <slp_linkedlist.h>
+#include <slp_da.h>
 
 
 #if(!defined MAX_PATH)
@@ -466,6 +467,36 @@ void SLPDLogTraceMsg(const char* prefix,
 
 /*=========================================================================*/
 void SLPDLogTraceReg(const char* prefix, SLPDDatabaseEntry* entry);
+/*=========================================================================*/
+
+
+/*=========================================================================*/
+void SLPDLogDATrafficMsg(const char* prefix,
+                         SLPDPeerInfo* peerinfo,
+                         SLPMessage daadvert);
+/*=========================================================================*/
+
+
+/*=========================================================================*/
+SLPDAEntry* KnownDAAddition(struct in_addr* addr,
+                            unsigned long bootstamp,
+                            const char* scopelist,
+                            int scopelistlen);
+/* Adds a DA to the known DA list.  If DA already exists, entry is updated */
+/*                                                                         */
+/* addr     (IN) pointer to in_addr of the DA to add                       */
+/*                                                                         */
+/* scopelist (IN) scope list of the DA to add                              */
+/*                                                                         */
+/* scopelistlen (IN) the length of the scope list                          */
+/*                                                                         */
+/* returns  Pointer to the added or updated                                */
+/*=========================================================================*/
+
+
+/*=========================================================================*/
+extern SLPDAEntry* G_KnownDAListHead;                                         
+/* The list of DAs known to slpd.                                          */
 /*=========================================================================*/
 
 #endif /* (!defined SLPD_H_INCLUDED) */

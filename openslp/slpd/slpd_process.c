@@ -567,9 +567,6 @@ void ProcessSrvReg(SLPDPeerInfo* peerinfo,
         errorcode = SLP_ERROR_SCOPE_NOT_SUPPORTED;
     }
 
-     
-
-
     /*------------------------------------------------------------*/
     /* ensure the buffer is big enough to handle the whole srvack */
     /*------------------------------------------------------------*/
@@ -836,13 +833,65 @@ void ProcessAttrRqst(SLPDPeerInfo* peerinfo,
     if(attrarray) free(attrarray);
 }        
 
+
 /*-------------------------------------------------------------------------*/
 void ProcessDAAdvert(SLPDPeerInfo* peerinfo,
                      SLPMessage message,
                      SLPBuffer result)
 /*-------------------------------------------------------------------------*/
 {
-
+    /* TODO: enable the following when we link to libslp and        */
+    /* have SLPParseSrvURL()                                        */
+    #if(0)
+    SLPSrvURL*      srvurl;
+    struct hostent* he;
+    #endif 
+    
+    /* DAAdverts should never be replied to.  Set result buffer to empty*/
+    result->end = result->start;
+    
+    /* Do not look at DAAdverts if we are a DA */
+    if(G_SlpdProperty.isDA == 0)
+    {
+    
+        /* Only process if errorcode is not set */
+        if(message->body.daadvert.errorcode == SLP_ERROR_OK)
+        {
+            
+            /* TODO: enable the following when we link to libslp and        */
+            /* have SLPParseSrvURL()                                        */
+            #if(0)  
+            /* yes, we could just get the host addr from peer info. Looking */
+            /* it up is safer                                               */
+            if(SLPParseSrvURL(message->body.daadvert.url, &srvurl) == 0)
+            {
+                he = gethostbyname(srvurl->s_pcHost);
+                if(he)
+                {
+                    /* Add the DA to a list of known DAs (ignore return)*/
+                    KnownDAAddition((struct in_addr*)(he->h_addr_list[0]),
+                                    message->body.daadvert.bootstamp,
+                                    message->body.daadvert.scopelist,
+                                    message->body.daadvert.scopelistlen);
+                }
+                
+                SLPFree(srvurl);
+            }
+            #endif
+            
+            /* TODO: the following is allows for easy DA masquarading (unsafe)*/
+            KnownDAAddition(&(peerinfo->peeraddr.sin_addr), 
+                            message->body.daadvert.bootstamp,
+                            message->body.daadvert.scopelist,
+                            message->body.daadvert.scopelistlen);
+        }
+                                   
+        /* If necessary log that we received a DAAdvert */
+        if(G_SlpdProperty.traceDATraffic)
+        {
+            SLPDLogDATrafficMsg("IN", peerinfo, message);
+        }
+    }
 }
 
 

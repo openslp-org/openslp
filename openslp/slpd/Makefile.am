@@ -15,7 +15,8 @@ slpd_SOURCES	= slpd_socket.c \
     slpd_cmdline.c  \
     slpd_property.c \
     slpd_regfile.c  \
-    slpd_log.c
+    slpd_log.c      \
+    slpd_knownda.c  
 slpd_LDADD	=  ../common/libcommonslpd.la
 
 

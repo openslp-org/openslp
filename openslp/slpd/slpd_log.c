@@ -216,8 +216,8 @@ void SLPDLogMessage(SLPMessage message)
 
 /*=========================================================================*/
 void SLPDLogTraceMsg(const char* prefix,
-		     SLPDPeerInfo* peerinfo,
-		     SLPBuffer buf)
+                     SLPDPeerInfo* peerinfo,
+                     SLPBuffer buf)
 /*=========================================================================*/
 {
     SLPMessage msg;
@@ -271,3 +271,18 @@ void SLPDLogTraceReg(const char* prefix, SLPDDatabaseEntry* entry)
     SLPLogBuffer(entry->attrlist, entry->attrlistlen);
     SLPLog("\n\n");
 }
+
+/*=========================================================================*/
+void SLPDLogDATrafficMsg(const char* prefix,
+                         SLPDPeerInfo* peerinfo,
+                         SLPMessage daadvert)
+/*=========================================================================*/
+{
+    SLPLog("----------------------------------------\n");
+    SLPLog("traceDATraffic %s:\n",prefix);
+    SLPLog("----------------------------------------\n");
+    SLPDLogPeerInfo(peerinfo);
+    SLPDLogMessage(daadvert);
+    SLPLog("\n")    ;
+}
+

@@ -46,21 +46,29 @@ typedef struct _SLPDAEntry
 {
     ListItem        listitem;
     struct in_addr  daaddr;
+    unsigned long   bootstamp;
     char*           scopelist;
     int             scopelistlen;
+    
 }SLPDAEntry;
+
 
 /*=========================================================================*/
 SLPDAEntry* SLPDAEntryCreate(struct in_addr* addr,
+                             unsigned long bootstamp,
                              const char* scopelist,
                              int scopelistlen);
 /* Creates a SLPDAEntry                                                    */
 /*                                                                         */
-/* addr     (IN) pointer to in_addr of the DA                              */
+/* addr     (IN) pointer to in_addr of the DA to create                    */
 /*                                                                         */
-/* daadvert (IN) pointer to a daadvert of the DA                           */
+/* bootstamp (IN) the DA's bootstamp                                       */
 /*                                                                         */
-/* returns  Pointer to new SLPDAEntry.                                     */
+/* scopelist (IN) scope list of the DA to create                           */
+/*                                                                         */
+/* scopelistlen (IN) the length of the scope list                          */
+/*                                                                         */
+/* returns  Pointer to the created SLPDAEntry.  Must be freed by caller.   */
 /*=========================================================================*/
 
 

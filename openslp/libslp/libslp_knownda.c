@@ -71,6 +71,7 @@ SLPBoolean KnownDADiscoveryCallback(SLPError errorcode,
                 if(he)
                 {
                     entry = SLPDAEntryCreate((struct in_addr*)(he->h_addr_list[0]),
+                                             msg->body.daadvert.bootstamp,
                                              msg->body.daadvert.scopelist,
                                              msg->body.daadvert.scopelistlen);
                     ListLink((PListItem*)&G_KnownDAListHead,(PListItem)entry);

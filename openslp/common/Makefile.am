@@ -16,7 +16,8 @@ libcommonslpd_la_SOURCES = \
 	slp_buffer.c	\
 	slp_message.c	\
 	slp_property.c	\
-	slp_linkedlist.c
+	slp_linkedlist.c \
+	slp_da.c
 
 noinst_HEADERS = \
 	slp_buffer.h	\
