@@ -1,7 +1,7 @@
-%define	ver 0.9.1
-%define	rel 2
+%define	ver 1.0.0pre1
+%define	rel 1
 %define	name openslp
-%define libver 0.0.3
+%define libver 1.0.0
 
 Name        	: openslp
 Version     	: %ver
@@ -65,6 +65,7 @@ rm -rf $RPM_BUILD_ROOT/usr
 %Post
 rm -f /usr/lib/libslp.so
 ln -s /usr/lib/libslp.so.%{libver} /usr/lib/libslp.so
+ln -s /usr/lib/libslp.so.%{libver} /usr/lib/libslp.so.0
 /sbin/ldconfig
 
 if [ -x /bin/lisa ]; then 
