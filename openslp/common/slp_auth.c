@@ -485,6 +485,8 @@ int ParseAuthBlock(SLPBuffer buffer, SLPAuthBlock* authblock);
 /*            SLP_ERROR_PARSE_ERROR.                                        */
 /*--------------------------------------------------------------------------*/
 
+#include "slp_buffer.h"
+
 int main(int argc, char* argv[])
 {
     SLPSpiHandle    hspi;
@@ -494,8 +496,9 @@ int main(int argc, char* argv[])
     char            teststr[] = "This is a test string";
     int             teststrlen = strlen(teststr);
     SLPAuthBlock    auth;
-    SLPBuffer       buf;
-
+    struct _SLPBuffer buffer;
+    SLPBuffer       buf = &buffer;   
+    
     hspi = SLPSpiOpen("test.spi",1);
     if(hspi == 0) return 0;
 
@@ -523,4 +526,10 @@ int main(int argc, char* argv[])
                                  teststr,
                                  1,
                                  &auth);
+
+    free(authblock);
+    SLPSpiClose(hspi);
 }
+
+
+

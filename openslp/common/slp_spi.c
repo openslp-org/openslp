@@ -117,6 +117,7 @@ SLPCryptoDSAKey* SLPSpiReadKeyFile(const char* keyfile, int keytype)
         {
             result =  PEM_read_DSAPrivateKey(fp, &result, NULL, NULL);
         }
+	fclose(fp);
     }
 
     return result;
@@ -221,16 +222,24 @@ SLPSpiEntry* SLPSpiReadSpiFile(FILE* fp, int keytype)
            result->key)
         {
             /* Good entry. Let's return it */
-            return result;
+	    goto SUCCESS;
         }
 
         if(result->spistr) free(result->spistr);
         if(result->key) SLPCryptoDSAKeyDestroy(result->key);
     }
 
-    if (result) free(result);
+    if (result)
+    { 
+        free(result);
+        result = 0;
+    }
+    
+SUCCESS:
 
-    return 0;
+    if (line) free(line);
+
+    return result;
 }
 
 /*=========================================================================*/
@@ -261,7 +270,8 @@ SLPSpiHandle SLPSpiOpen(const char* spifile, int cacheprivate)
             spientry = SLPSpiReadSpiFile(fp, cacheprivate ? SLPSPI_KEY_TYPE_NONE : SLPSPI_KEY_TYPE_PUBLIC);
             if(spientry == 0) break;
             SLPListLinkHead(&(result->cache),(SLPListItem*)spientry);
-        }   
+        }  
+        fclose(fp); 
     }
 
     return result;
@@ -346,7 +356,8 @@ SLPCryptoDSAKey* SLPSpiFetchPrivateDSAKey(SLPSpiHandle hspi,
             return 0;
         }
         tmp = SLPSpiReadSpiFile(fp, SLPSPI_KEY_TYPE_PRIVATE);
-        if(tmp == 0)
+        fclose(fp);
+	if(tmp == 0)
         {
             return 0;
         }
@@ -363,3 +374,16 @@ SLPCryptoDSAKey* SLPSpiFetchPrivateDSAKey(SLPSpiHandle hspi,
 
     return *key;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
