@@ -210,5 +210,7 @@ void SLPClose(SLPHandle hSLP)
         NetworkCloseSlpdSocket();
     }
 
+    handle->sig = 0;		/* If they give it to us again, it won't be valid */
+
     free(hSLP);
 }
