@@ -506,7 +506,7 @@ int SlpPerfTest1(int min_services,
     }
 
     printf("----------------------------------------------------------\n");
-    printf("Cleaning up %i registered services... \n", min_services);
+    printf("Cleaning up registered services... \n");
     result = SlpPerfTest1_slpderegall(hslp,
                                       &service_list,
                                       &ave_slpdereg,
