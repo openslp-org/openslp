@@ -6,8 +6,8 @@
 /* File:        slpd_incoming.c                                            */
 /*                                                                         */
 /* Abstract:    Handles "incoming" network conversations requests made by  */
-/*              other agents to slpd. (slpd_outgoing.c) handles reqests    */
-/*              made by slpd to other agents                               */
+/*              other agents to slpd. (slpd_outgoing.c handles reqests     */
+/*              made by slpd to other agents)                              */
 /*                                                                         */
 /*-------------------------------------------------------------------------*/
 /*                                                                         */
