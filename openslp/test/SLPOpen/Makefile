@@ -1,7 +1,7 @@
 CC		= gcc
 NAME	= SLPOpen
 OBJS	= SLPOpen.o 
-CFLAGS	= -ggdb3 -DDEBUG
+CFLAGS	= -Wall -ggdb3 -DDEBUG
 LIBPATH	= ../../libslp
 INCPATH	= ../
 LIBS	= slp
