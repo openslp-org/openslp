@@ -61,6 +61,11 @@ int SLPv1MessageParseHeader(SLPBuffer buffer, SLPHeader* header)
 /*            SLP_ERROR_PARSE_ERROR.                                       */
 /*=========================================================================*/
 {
+    if (buffer->end - buffer->start < 12)
+    {
+        /* invalid length 12 bytes is the smallest v1 message*/
+        return SLP_ERROR_PARSE_ERROR;
+    }
     header->version     = *(buffer->curpos);
     header->functionid  = *(buffer->curpos + 1);
 	
@@ -86,10 +91,8 @@ int SLPv1MessageParseHeader(SLPBuffer buffer, SLPHeader* header)
         return SLP_ERROR_CHARSET_NOT_UNDERSTOOD;
     }
 
-    if(header->length != buffer->end - buffer->start ||
-       header->length < 12)
+    if(header->length != buffer->end - buffer->start)
     {
-        /* invalid length 12 bytes is the smallest v1 message*/
         return SLP_ERROR_PARSE_ERROR;
     }
 
@@ -115,7 +118,7 @@ int v1ParseUrlEntry(SLPBuffer buffer, SLPHeader* header, SLPUrlEntry* urlentry)
     int result;
 
     /* make sure that min size is met */
-    if(buffer->end - buffer->curpos < 6)
+    if(buffer->end - buffer->curpos < 4)
     {
         return SLP_ERROR_PARSE_ERROR;
     }
@@ -161,7 +164,7 @@ int v1ParseSrvRqst(SLPBuffer buffer, SLPHeader* header, SLPSrvRqst* srvrqst)
     int result;
 
     /* make sure that min size is met */
-    if(buffer->end - buffer->curpos < 10)
+    if(buffer->end - buffer->curpos < 4)
     {
         return SLP_ERROR_PARSE_ERROR;
     }
@@ -169,7 +172,7 @@ int v1ParseSrvRqst(SLPBuffer buffer, SLPHeader* header, SLPSrvRqst* srvrqst)
     /* parse the prlist */
     srvrqst->prlistlen = AsUINT16(buffer->curpos);
     buffer->curpos = buffer->curpos + 2;
-    if(srvrqst->prlistlen > buffer->end - buffer->curpos)
+    if(srvrqst->prlistlen + 2 > buffer->end - buffer->curpos)
     {
         return SLP_ERROR_PARSE_ERROR;
     }
@@ -275,6 +278,10 @@ int v1ParseSrvReg(SLPBuffer buffer, SLPHeader* header, SLPSrvReg* srvreg)
     srvreg->srvtypelen = tmp - srvreg->srvtype;
 
     /* parse the attribute list */
+    if(buffer->end - buffer->curpos < 2)
+    {
+        return SLP_ERROR_PARSE_ERROR;
+    }
     srvreg->attrlistlen = AsUINT16(buffer->curpos);
     buffer->curpos = buffer->curpos + 2;
     if(srvreg->attrlistlen > buffer->end - buffer->curpos)
@@ -338,7 +345,7 @@ int v1ParseSrvDeReg(SLPBuffer buffer, SLPHeader* header, SLPSrvDeReg* srvdereg)
     srvdereg->urlentry.lifetime = 0; /* not present in SLPv1 */
     srvdereg->urlentry.urllen = AsUINT16(buffer->curpos);
     buffer->curpos += 2;
-    if(srvdereg->urlentry.urllen > buffer->end - buffer->curpos)
+    if(srvdereg->urlentry.urllen + 2 > buffer->end - buffer->curpos)
     {
         return SLP_ERROR_PARSE_ERROR;
     }
@@ -384,7 +391,7 @@ int v1ParseAttrRqst(SLPBuffer buffer, SLPHeader* header, SLPAttrRqst* attrrqst)
     /* parse the prlist */
     attrrqst->prlistlen = AsUINT16(buffer->curpos);
     buffer->curpos = buffer->curpos + 2;
-    if(attrrqst->prlistlen > buffer->end - buffer->curpos)
+    if(attrrqst->prlistlen + 2 > buffer->end - buffer->curpos)
     {
         return SLP_ERROR_PARSE_ERROR;
     }
@@ -399,7 +406,7 @@ int v1ParseAttrRqst(SLPBuffer buffer, SLPHeader* header, SLPAttrRqst* attrrqst)
     /* parse the url */
     attrrqst->urllen = AsUINT16(buffer->curpos);
     buffer->curpos = buffer->curpos + 2;
-    if(attrrqst->urllen > buffer->end - buffer->curpos)
+    if(attrrqst->urllen + 2 > buffer->end - buffer->curpos)
     {
         return SLP_ERROR_PARSE_ERROR;
     }
@@ -414,7 +421,7 @@ int v1ParseAttrRqst(SLPBuffer buffer, SLPHeader* header, SLPAttrRqst* attrrqst)
     /* parse the scope list */
     attrrqst->scopelistlen = AsUINT16(buffer->curpos);
     buffer->curpos = buffer->curpos + 2;
-    if(attrrqst->scopelistlen > buffer->end - buffer->curpos)
+    if(attrrqst->scopelistlen + 2 > buffer->end - buffer->curpos)
     {
         return SLP_ERROR_PARSE_ERROR;
     }
@@ -472,7 +479,7 @@ int v1ParseSrvTypeRqst(SLPBuffer buffer, SLPHeader* header,
     /* parse the prlist */
     srvtyperqst->prlistlen = AsUINT16(buffer->curpos);
     buffer->curpos += 2;
-    if(srvtyperqst->prlistlen > buffer->end - buffer->curpos)
+    if(srvtyperqst->prlistlen + 2 > buffer->end - buffer->curpos)
     {
         return SLP_ERROR_PARSE_ERROR;
     }
@@ -507,6 +514,10 @@ int v1ParseSrvTypeRqst(SLPBuffer buffer, SLPHeader* header,
     }
 
     /* parse the scope list */
+    if(buffer->end - buffer->curpos < 2)
+    {
+        return SLP_ERROR_PARSE_ERROR;
+    }
     srvtyperqst->scopelistlen = AsUINT16(buffer->curpos);
     buffer->curpos += 2;
     if(srvtyperqst->scopelistlen > buffer->end - buffer->curpos)

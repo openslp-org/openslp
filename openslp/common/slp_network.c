@@ -300,7 +300,7 @@ int SLPNetworkRecvMessage(int sockfd,
 /*               EINVAL parse error                                        */
 /*=========================================================================*/ 
 {
-    int         xferbytes;
+    int         xferbytes, recvlen;
     fd_set      readfds;
     char        peek[16];
     int         peeraddrlen = sizeof(struct sockaddr_in);
@@ -359,10 +359,14 @@ int SLPNetworkRecvMessage(int sockfd,
     /* Read the rest of the message */
     /*------------------------------*/
     /* check the version */
-    if(*peek == 2)
+    if(xferbytes >= 5 && *peek == 2)
     {
         /* allocate the recvmsg big enough for the whole message */
-        *buf = SLPBufferRealloc(*buf, AsUINT24(peek + 2));
+        recvlen = AsUINT24(peek + 2);
+        /* one byte is minimum */
+        if (recvlen <= 0)
+            recvlen = 1;
+        *buf = SLPBufferRealloc(*buf, recvlen);
         if(*buf)
         {
             while((*buf)->curpos < (*buf)->end)

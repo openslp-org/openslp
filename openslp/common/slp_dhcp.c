@@ -597,6 +597,7 @@ int DHCPParseSLPTags(int tag, void *optdata, size_t optdatasz, void *context)
 				cpysz = optdatasz < sizeof(ctxp->scopelist)? 
 						optdatasz: sizeof(ctxp->scopelist);
 				strncpy(ctxp->scopelist, (char*)p, cpysz);
+				ctxp->scopelist[sizeof(ctxp->scopelist) - 1] = 0;
 			}
 			else
 			{
@@ -621,6 +622,7 @@ int DHCPParseSLPTags(int tag, void *optdata, size_t optdatasz, void *context)
 					cpysz = optdatasz < sizeof(ctxp->scopelist)? 
 							optdatasz: sizeof(ctxp->scopelist);
 					strncpy(ctxp->scopelist, (char*)p, cpysz);
+					ctxp->scopelist[sizeof(ctxp->scopelist) - 1] = 0;
 				}
 			}
 			break;

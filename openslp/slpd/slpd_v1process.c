@@ -815,11 +815,16 @@ int SLPDv1ProcessMessage(struct sockaddr_in* peeraddr,
     {
         /* SLPv1 messages are handled only by DAs */
         errorcode = SLP_ERROR_VER_NOT_SUPPORTED;
+        return errorcode;
     }
 
     /* Parse just the message header the reset the buffer "curpos" pointer */
     recvbuf->curpos = recvbuf->start;
     errorcode = SLPv1MessageParseHeader(recvbuf, &header);
+    if (errorcode != 0)
+    {
+        return errorcode;
+    }
 
     /* TRICKY: Duplicate SRVREG recvbufs *before* parsing them   */
     /*         it because we are going to keep them in the       */

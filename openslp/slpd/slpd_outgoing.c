@@ -190,7 +190,7 @@ void OutgoingStreamReconnect(SLPList* socklist, SLPDSocket* sock)
 void OutgoingStreamRead(SLPList* socklist, SLPDSocket* sock)
 /*-------------------------------------------------------------------------*/
 {
-    int     bytesread;
+    int     bytesread, recvlen;
     char    peek[16];
     int     peeraddrlen = sizeof(struct sockaddr_in);
 
@@ -205,10 +205,14 @@ void OutgoingStreamRead(SLPList* socklist, SLPDSocket* sock)
                              MSG_PEEK,
                              (struct sockaddr *)&(sock->peeraddr),
                              &peeraddrlen);
-        if ( bytesread > 0 )
+        if ( bytesread >= 5 && *peek == 2 )
         {
+            recvlen = AsUINT24(peek + 2);
+            /* one byte is minimum */
+            if (recvlen <= 0)
+                recvlen = 1;
             /* allocate the recvbuf big enough for the whole message */
-            sock->recvbuf = SLPBufferRealloc(sock->recvbuf,AsUINT24(peek+2));
+            sock->recvbuf = SLPBufferRealloc(sock->recvbuf, recvlen);
             if ( sock->recvbuf )
             {
                 sock->state = STREAM_READ;
@@ -219,7 +223,7 @@ void OutgoingStreamRead(SLPList* socklist, SLPDSocket* sock)
                 sock->state = SOCKET_CLOSE;
             }
         }
-        else
+        else if ( bytesread == -1 )
         {
 #ifdef _WIN32
             if ( WSAEWOULDBLOCK != WSAGetLastError() )
@@ -232,6 +236,10 @@ void OutgoingStreamRead(SLPList* socklist, SLPDSocket* sock)
                 OutgoingStreamReconnect(socklist,sock);
             }
         }       
+        else
+	{
+            sock->state = SOCKET_CLOSE;
+	}
     }
 
     if ( sock->state == STREAM_READ )

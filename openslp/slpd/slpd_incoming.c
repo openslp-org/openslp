@@ -189,13 +189,16 @@ void IncomingStreamRead(SLPList* socklist, SLPDSocket* sock)
                              MSG_PEEK,
                              (struct sockaddr *)&(sock->peeraddr),
                              &peeraddrlen);
-        if (bytesread > 0)
+        if (bytesread > 0 && bytesread >= (*peek == 2 ? 5 : 4))
         {
 
             if (*peek == 2)
                 recvlen = AsUINT24(peek + 2);
             else if (*peek == 1) /* SLPv1 packet */
                 recvlen = AsUINT16(peek + 2);
+            /* one byte is minimum */
+            if (recvlen <= 0)
+                recvlen = 1;
             /* allocate the recvbuf big enough for the whole message */
             sock->recvbuf = SLPBufferRealloc(sock->recvbuf,recvlen);
             if (sock->recvbuf)
@@ -249,7 +252,7 @@ void IncomingStreamRead(SLPList* socklist, SLPDSocket* sock)
         }
         else
         {
-            /* error in recv() */
+            /* error in recv() or eof */
             sock->state = SOCKET_CLOSE;
         }
     }

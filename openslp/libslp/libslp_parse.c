@@ -168,7 +168,10 @@ SLPError SLPAPI SLPEscape(const char* pcInbuf,
         if((isTag) && strchr(ATTRIBUTE_BAD_TAG, *current_inbuf))
             return(SLP_PARSE_ERROR);
 
-        if(strchr(ATTRIBUTE_RESERVE_STRING, *current_inbuf))
+        if((strchr(ATTRIBUTE_RESERVE_STRING, *current_inbuf)) || 
+           ((*current_inbuf >= 0x00) && (*current_inbuf <= 0x1F)) ||
+           (*current_inbuf == 0x7F)
+          )
             amount_of_escape_characters++;
 
         current_inbuf++;
