@@ -276,13 +276,13 @@ void SLPClose(SLPHandle hSLP)
     G_OpenSLPHandleCount --;
     
 
-#if 0
+#if DEBUG
     /* Free additional resources if this is the last handle open */
     if(G_OpenSLPHandleCount <= 0)
     {
         G_OpenSLPHandleCount = 0;
 
-        SLPPropertyFreeAll()
+        SLPPropertyFreeAll();
         
         KnownDAFreeAll();
 

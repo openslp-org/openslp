@@ -102,7 +102,7 @@ SLPBoolean ColateSLPSrvURLCallback(SLPHandle hSLP,
         }
         collateditem = (SLPSrvUrlColatedItem*)collateditem->listitem.next;
     }
-
+                                     
     /* create a new item if none was found */
     if(collateditem == NULL)
     {
