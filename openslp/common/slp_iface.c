@@ -93,14 +93,23 @@ int SLPIfaceGetInfo(const char* useifaces,
  *=========================================================================*/
   {
 	#if defined(LINUX) || defined(AIX) || defined(SOLARIS) || defined(HPUX)
-    struct sockaddr_storage* sa;
+    struct sockaddr* sa;
     struct sockaddr_in* sin;
-    struct lifreq lifrlist[SLP_MAX_IFACES];
-    struct lifreq lifrflags;
-    struct lifconf lifc;
+    struct ifreq ifrlist[SLP_MAX_IFACES];
+    struct ifreq ifrflags;
+    struct ifconf ifc;
     int fd;
     int i;
     int useifaceslen;
+	#if HAVE_AFINET6
+    FILE *f;
+    char addr6[40], devname[20];
+    struct sockaddr_in6 sap;
+    int plen, scope, dad_status, if_idx;
+    char addr6p[8][5];
+	struct in6_addr netAddr6;
+	#endif
+
 
     #ifdef DEBUG
     if(ifaceinfo == NULL )
@@ -112,10 +121,8 @@ int SLPIfaceGetInfo(const char* useifaces,
     #endif
 
 
-    lifc.lifc_len = sizeof(struct lifreq) * SLP_MAX_IFACES ;
-	lifc.lifc_family = AF_UNSPEC;
-	lifc.lifc_flags = 0;
-    lifc.lifc_req = lifrlist;
+    ifc.ifc_len = sizeof(struct ifreq) * SLP_MAX_IFACES ;
+    ifc.ifc_req = ifrlist;
     
     fd = socket(AF_INET,SOCK_STREAM,0);
     if(fd == -1)
@@ -128,9 +135,9 @@ int SLPIfaceGetInfo(const char* useifaces,
     }
 
     #ifdef AIX
-    if (ioctl(fd,OSIOCGIFLCONF,&lifc) == -1)
+    if (ioctl(fd,OSIOCGIFCONF,&ifc) == -1)
     #else
-    if (ioctl(fd,SIOCGIFLCONF,&lifc) == -1)
+    if (ioctl(fd,SIOCGIFCONF,&ifc) == -1)
     #endif
     {
         perror("ioctl failed");
@@ -146,40 +153,81 @@ int SLPIfaceGetInfo(const char* useifaces,
         useifaceslen = 0;
     }
     memset(ifaceinfo,0,sizeof(SLPIfaceInfo));
-    for (i = 0; i < lifc.lifc_len/sizeof(struct lifreq); i++)
+    for (i = 0; i < ifc.ifc_len/sizeof(struct ifreq); i++)
     {
-
-		if ((lifrlist[i].ifa_addr->sa_family == AF_INET6) || (lifrlist[i].ifa_addr->sa_family == AF_INET)) {
-            /* skip the loopback interfaces */
-            if(lifrlist[i].lifr_flags & IFF_LOOPBACK) == 0) {
-               /* Only include those interfaces in the requested list */
-				char addrString[256];
-
-				SLPNetSockAddrStorageToString(lifrlist[i], addrString, sizeof(addrString));
+        sa = (struct sockaddr *)&(ifrlist[i].ifr_addr);
+        if(sa->sa_family == AF_INET)
+        {
+            /* Get interface flags */
+            memcpy(&ifrflags,&(ifrlist[i]),sizeof(struct ifreq));
+            if(ioctl(fd,SIOCGIFFLAGS, &ifrflags) == 0)
+            {
+                /* skip the loopback interfaces */
+                if((ifrflags.ifr_flags & IFF_LOOPBACK) == 0)
+                {
+                    /* Only include those interfaces in the requested list */
+                    sin = (struct sockaddr_in*)sa;
                     if(useifaceslen == 0 ||
                        SLPContainsStringList(useifaceslen,
                                              useifaces,
-                                             strlen(addrString),
-                                             addrString))
+                                             strlen(inet_ntoa(sin->sin_addr)),
+                                             inet_ntoa(sin->sin_addr)))
                     {
-						SLPNetCopyAddr(&(ifaceinfo->iface_addr[ifaceinfo->iface_count], &lifrlist[i].ifa_addr);
+                        memcpy(&(ifaceinfo->iface_addr[ifaceinfo->iface_count]),
+                               sin,
+                               sizeof(struct sockaddr_in));
+                    
                         #ifdef AIX
-                        if(ioctl(fd,OSIOCGIFBRDADDR,&(fifrlist[i])) == 0)
+                        if(ioctl(fd,OSIOCGIFBRDADDR,&(ifrlist[i])) == 0)
                         #else
-                        if(ioctl(fd,SIOCGIFBRDADDR,&(fifrlist[i])) == 0)
+                        if(ioctl(fd,SIOCGIFBRDADDR,&(ifrlist[i])) == 0)
                         #endif
                         {
-							SLPNetCopyAddr(&(ifaceinfo->bcast_addr[ifaceinfo->bcast_count], &lifrlist[i].ifa_addr);
-							ifaceinfo->bcast_count++;
+                            sin = (struct sockaddr_in *)&(ifrlist[i].ifr_broadaddr);
+                            memcpy(&(ifaceinfo->bcast_addr[ifaceinfo->iface_count]),
+                                   sin,
+                                   sizeof(struct sockaddr_in));
                         }
         
-                        ifaceinfo->iface_count++;
+                        ifaceinfo->iface_count ++;
                     }
                 }
             }
         }
     }
-#else
+	/* adding in ipv6 support for linux here - other OSes will need to add flavour variant code as well */
+	#if HAVE_AFINET6
+    /* swiped from interface.c from USAGI */
+    if ((f = fopen(_PATH_PROCNET_IFINET6, "r")) != NULL) {
+		while (fscanf(f, "%4s%4s%4s%4s%4s%4s%4s%4s %02x %02x %02x %02x %20s\n",
+					   addr6p[0], addr6p[1], addr6p[2], addr6p[3],
+					   addr6p[4], addr6p[5], addr6p[6], addr6p[7],
+					   &if_idx, &plen, &scope, &dad_status, devname) != EOF) {
+			sprintf(addr6, "%s:%s:%s:%s:%s:%s:%s:%s",
+				addr6p[0], addr6p[1], addr6p[2], addr6p[3],
+				addr6p[4], addr6p[5], addr6p[6], addr6p[7]);
+			if ((scope == 0 /* global */) || (scope == IPV6_ADDR_LINKLOCAL) || (scope == IPV6_ADDR_SITELOCAL)) {
+				/* ignore the IPV6_ADDR_COMPATv4 and IPV6_ADDR_LOOPBACK addresses */
+				if(useifaceslen == 0 ||
+						   SLPContainsStringList(useifaceslen,
+												 useifaces,
+												 strlen(addr6),
+												 addr6)) {
+					if (ifaceinfo->iface_count < SLP_MAX_IFACES) {
+						inet_pton(AF_INET6, addr6, &netAddr6);
+						SLPNetSetAddr(ifaceinfo->iface_addr[ifaceinfo->iface_count], AF_INET6, 0, &netAddr6, sizeof(netAddr6));
+						ifaceinfo->iface_count++;
+					}
+				}
+			}
+		}
+		fclose(f);
+    }
+	#endif  /* end of ifv6 stuff */
+    return 0;
+
+	#endif
+	#if defined (_WIN32) 
 	/* Windows implementation */
     char hostName[MAX_HOST_NAME];
     int sts = 0;
@@ -236,7 +284,7 @@ int SLPIfaceGetInfo(const char* useifaces,
         networkInterface = networkInterface->Next;
     }
     return(sts);
-#endif
+	#endif /* end of windows implementations */
 }
 /*=========================================================================*/
 int SLPIfaceSockaddrsToString(const struct sockaddr_storage* addrs,
