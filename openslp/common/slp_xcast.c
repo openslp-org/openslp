@@ -222,6 +222,7 @@ int SLPXcastSocketsClose(SLPXcastSockets* socks)
     return 0;
 }
 
+
 /*===========================================================================
  * TESTING CODE may be compiling with the following command line:
  *
