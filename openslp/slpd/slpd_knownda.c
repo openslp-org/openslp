@@ -260,33 +260,35 @@ void SLPDKnownDARegisterAll(SLPMessage daadvert, int immortalonly)
             srvreg = &(msg->body.srvreg);
 
             /*-----------------------------------------------*/
-            /* If so instructed, skip immortal registrations */
+            /* If so instructed, skip mortal registrations   */
             /*-----------------------------------------------*/
-            if ( !(immortalonly && 
-                   srvreg->urlentry.lifetime < SLP_LIFETIME_MAXIMUM) )
+            if ( immortalonly && 
+                 srvreg->urlentry.lifetime < SLP_LIFETIME_MAXIMUM ) 
             {
-                /*---------------------------------------------------------*/
-                /* Only pass on local (or static) registrations of scopes  */
-                /* supported by peer DA                     			   */
-                /*---------------------------------------------------------*/
-                if ( (srvreg->source == SLP_REG_SOURCE_LOCAL || 
-                      srvreg->source == SLP_REG_SOURCE_STATIC) &&
-                     SLPIntersectStringList(srvreg->scopelistlen,
-                                            srvreg->scopelist,
-                                            srvreg->scopelistlen,
-                                            srvreg->scopelist) )
+                continue;
+            }
+                
+            /*---------------------------------------------------------*/
+            /* Only register local (or static) registrations of scopes */
+            /* supported by peer DA                                    */
+            /*---------------------------------------------------------*/
+            if ( ( srvreg->source == SLP_REG_SOURCE_LOCAL || 
+                   srvreg->source == SLP_REG_SOURCE_STATIC ) &&
+                 SLPIntersectStringList(srvreg->scopelistlen,
+                                        srvreg->scopelist,
+                                        srvreg->scopelistlen,
+                                        srvreg->scopelist) )
+            {
+                sendbuf = SLPBufferDup(buf);
+                if ( sendbuf )
                 {
-                    sendbuf = SLPBufferDup(buf);
-                    if ( sendbuf )
+                    /*--------------------------------------------------*/
+                    /* link newly constructed buffer to socket sendlist */
+                    /*--------------------------------------------------*/
+                    SLPListLinkTail(&(sock->sendlist),(SLPListItem*)sendbuf);
+                    if ( sock->state == STREAM_CONNECT_IDLE )
                     {
-                        /*--------------------------------------------------*/
-                        /* link newly constructed buffer to socket sendlist */
-                        /*--------------------------------------------------*/
-                        SLPListLinkTail(&(sock->sendlist),(SLPListItem*)sendbuf);
-                        if ( sock->state == STREAM_CONNECT_IDLE )
-                        {
-                            sock->state = STREAM_WRITE_FIRST;
-                        }
+                        sock->state = STREAM_WRITE_FIRST;
                     }
                 }
             }
