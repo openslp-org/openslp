@@ -330,6 +330,14 @@ int SLPDRegFileReadSrvReg(FILE* fd,
                         result = SLP_ERROR_SCOPE_NOT_SUPPORTED;
                         goto CLEANUP;
                     }
+                    
+                    /* make sure there are no spaces in the scope list */
+                    if(strchr(slider2,' '))
+                    {
+                        result = SLP_ERROR_SCOPE_NOT_SUPPORTED;
+                        goto CLEANUP;
+                    }
+
                     scopelist=xstrdup(TrimWhitespace(slider2));
                     if(scopelist == 0)
                     {
@@ -561,7 +569,7 @@ CLEANUP:
         SLPDLog("\nERROR: Invalid reg file format near:\n   %s\n",line);
         break;
     case SLP_ERROR_SCOPE_NOT_SUPPORTED:
-        SLPDLog("\nERROR: Duplicate scopes for same registration near:\n   %s\n",line);
+        SLPDLog("\nERROR: Duplicate scopes or scope list with imbedded spaces near:\n   %s\n",line);
         break;
     default:
         break;
