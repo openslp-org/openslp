@@ -518,7 +518,6 @@ int SLPDKnownDADeinit()
 {
     SLPDatabaseHandle   dh;
     SLPDatabaseEntry*   entry;
-    
     dh = SLPDatabaseOpen(&G_SlpdKnownDAs);
     if(dh)
     {
