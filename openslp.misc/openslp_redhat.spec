@@ -1,6 +1,7 @@
 %define	ver 0.7.2
 %define	rel	1
 %define	name openslp
+%define libver 0.0.1
 
 Name        	: openslp
 Version     	: %ver
@@ -59,9 +60,7 @@ chkconfig --del slpd
 %config /etc/slp.reg
 %config /etc/sysconfig/daemons/slpd
 /etc/rc.d/init.d/slpd
-/usr/lib/libslp.so.1.0.0
-/usr/lib/libslp.so.1
-/usr/lib/libslp.so
+/usr/lib/libslp.so.%{libver}
 /usr/include/slp.h
 /usr/sbin/slpd
 
