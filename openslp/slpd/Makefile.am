@@ -5,7 +5,7 @@
 #     containing exacts functions which are required.
 #
 
-EXTRA_DIST = 
+EXTRA_DIST = slpd_win32.h slpd_win32.c
 sbin_PROGRAMS = slpd
 INCLUDES      = -I$(top_srcdir)/common -I$(top_srcdir)/libslpattr \
                 -I$(srcdir) -I$(top_srcdir)/libslp \
