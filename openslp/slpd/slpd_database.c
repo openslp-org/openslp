@@ -128,15 +128,19 @@ void SLPDDatabaseAge(int seconds)
 
     while(entry)
     {
-        entry->lifetime = entry->lifetime - seconds;
-        if(entry->lifetime <= 0)
-        {
-            del = entry;
-            entry = (SLPDDatabaseEntry*)entry->listitem.next;
-            ListUnlink((PListItem*)&G_DatabaseHead,(PListItem)del);               
-            FreeEntry(del);
-            continue;
-        }
+        /* don't age services with lifetime > SLP_LIFETIME_MAXIMUM */
+        if(entry->lifetime < 0xffff)
+	{
+            entry->lifetime = entry->lifetime - seconds;
+            if(entry->lifetime <= 0)
+            {
+                del = entry;
+                entry = (SLPDDatabaseEntry*)entry->listitem.next;
+                ListUnlink((PListItem*)&G_DatabaseHead,(PListItem)del);               
+                FreeEntry(del);
+                continue;
+            }
+	}
         entry = (SLPDDatabaseEntry*)entry->listitem.next;
     }
 }
