@@ -457,7 +457,7 @@ int SLPDKnownDAInit()
     struct hostent*     he;
     struct in_addr      daaddr;
     SLPDSocket*         sock;
-    SLPBuffer           buf     = 0;
+    SLPBuffer           buf;
 
     /*--------------------------------------*/
     /* Set initialize the DAAdvert database */
@@ -500,6 +500,7 @@ int SLPDKnownDAInit()
                     sock = SLPDOutgoingConnect(&daaddr);
                     if ( sock )
                     {
+                        buf = 0;
                         if ( MakeActiveDiscoveryRqst(0,&buf) == 0 )
                         {
                             if ( sock->state == STREAM_CONNECT_IDLE )
