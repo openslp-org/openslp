@@ -1,0 +1,27 @@
+DEPTH= ..
+include $(DEPTH)/defs.mk
+
+DLL_NAME= libslp
+
+CSRCS= libslp_delattrs.c \
+       libslp_dereg.c \
+       libslp_findattrs.c \
+       libslp_findscopes.c \
+       libslp_findsrvs.c \
+       libslp_findsrvtypes.c \
+       libslp_handle.c \
+       libslp_knownda.c \
+       libslp_network.c \
+       libslp_parse.c \
+       libslp_property.c \
+       libslp_reg.c \
+       libslp_thread.c
+
+EXPORT_INCLUDES = libslp.h
+
+APPLIBS = slp_common
+
+include $(DEPTH)/rules.mk
+
+build:: $(TARGETS)
+
