@@ -59,7 +59,7 @@ SLPBoolean KnownDADiscoveryCallback(SLPError errorcode,
     struct hostent* he;
     int*            count   = (int*)cookie;
         
-    if(msg->header.functionid == SLP_FUNCT_DAADVERT)
+    if(msg && msg->header.functionid == SLP_FUNCT_DAADVERT)
     {
         if(msg->body.srvrply.errorcode == 0)
         {
