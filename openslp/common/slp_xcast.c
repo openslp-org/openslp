@@ -113,7 +113,7 @@ int SLPBroadcastSend(const SLPIfaceInfo* ifaceinfo,
          socks->sock_count < ifaceinfo->iface_count; 
          socks->sock_count++)
     {
-        if (ifaceinfo[socks->sock_count].iface_addr->ss_family == PF_INET) {
+        if (ifaceinfo[socks->sock_count].iface_addr->ss_family == AF_INET) {
             socks->sock[socks->sock_count] = socket(ifaceinfo[socks->sock_count].iface_addr->ss_family, SOCK_DGRAM, 0);
 
             if (socks->sock[socks->sock_count] < 0)
@@ -133,7 +133,7 @@ int SLPBroadcastSend(const SLPIfaceInfo* ifaceinfo,
             }
             SLPNetCopyAddr(&(socks->peeraddr[socks->sock_count]), &(ifaceinfo->bcast_addr[socks->sock_count]));
 
-            SLPNetSetAddr(&(socks->peeraddr[socks->sock_count]), PF_INET, SLP_RESERVED_PORT, NULL, 0);
+            SLPNetSetAddr(&(socks->peeraddr[socks->sock_count]), AF_INET, SLP_RESERVED_PORT, NULL, 0);
             xferbytes = sendto(socks->sock[socks->sock_count], 
                             msg->start,
                             msg->end - msg->start,

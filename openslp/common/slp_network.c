@@ -69,10 +69,10 @@ int SLPNetworkConnectStream(struct sockaddr_storage *peeraddr,
     int result;
 
     /* TODO: Make this connect non-blocking so that it will timeout */
-    if (peeraddr->ss_family == PF_INET6) {
+    if (peeraddr->ss_family == AF_INET6) {
         result = socket(PF_INET6,SOCK_STREAM,0);
     }
-    else if (peeraddr->ss_family == PF_INET) {
+    else if (peeraddr->ss_family == AF_INET) {
         result = socket(PF_INET,SOCK_STREAM,0);
     }
     else {

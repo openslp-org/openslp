@@ -71,14 +71,14 @@ typedef struct _SLPInterfaceInfo
 /*=========================================================================*/
 {
     int iface_count;
+    int bcast_count;
     struct sockaddr_storage iface_addr[SLP_MAX_IFACES];
     struct sockaddr_storage bcast_addr[SLP_MAX_IFACES];
 }SLPIfaceInfo;
 
-
 /*=========================================================================*/
 int SLPIfaceGetInfo(const char* useifaces,
-                    SLPIfaceInfo* ifaces);
+                    SLPIfaceInfo* ifaceinfo, int family);
 /* Description:
  *    Get the network interface addresses for this host.  Exclude the
  *    loopback interface
@@ -89,6 +89,8 @@ int SLPIfaceGetInfo(const char* useifaces,
  *                    NULL or empty string to get all interfaces (except 
  *                    loopback)
  *     ifaceinfo (OUT) Information about requested interfaces.
+ *     family    (IN) Hint family to get info for - can be AF_INET, AF_INET6, 
+ *                    or AF_UNSPEC for both
  *
  * Returns:
  *     zero on success, non-zero (with errno set) on error.

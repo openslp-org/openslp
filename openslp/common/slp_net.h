@@ -79,17 +79,21 @@
 #define MAX_HOST_NAME 512
 
 /*-------------------------------------------------------------------------*/
-int SLPNetGetThisHostname(char* hostfdn, unsigned int hostfdnLen, int numeric_only);
+int SLPNetGetThisHostname(char* hostfdn, unsigned int hostfdnLen, int numeric_only, int family);
 /* 
  * Description:
- *    Returns a string represting this host (the FDN) or null.    
- *                                                       
+ *    Returns a string represting this host (the FDN) or null.                                                     
  *
  * Parameters:
- *    hostfdn   (IN/OUT) pointer to char buffer that is set to this machine's FDN.
- *    hostfdnLen (IN) size of hostfdn buffer
- *    numeric_only (IN) force return of numeric address.
+ *    hostfdn   (OUT) pointer to char pointer that is set to buffer 
+ *                    contining this machine's FDN.  Caller must free
+ *                    returned string with call to xfree()
+ *    numeric_only (IN) force return of numeric address.  
+ *
+ *     family    (IN) Hint family to get info for - can be AF_INET, AF_INET6, 
+ *                    or AF_UNSPEC for both
  *-------------------------------------------------------------------------*/
+
 
 
 /*-------------------------------------------------------------------------*/
@@ -178,7 +182,7 @@ int SLPNetSetAddr(struct sockaddr_storage *addr, const int family, const short p
  *
  * Parameters:
  *  (in/out) addr   Address of sockaddr_storage struct to be filled out
- *  (in) family     Protocol family (PF_INET for IPV4, PF_INET6 for IPV6)
+ *  (in) family     Protocol family (AF_INET for IPV4, AF_INET6 for IPV6)
  *  (in) port       Port for this address.  Note that appropriate host to network translations
                     will occur as part of this call.
  *  (in) address    The IP address for this sockaddr_storage struct.  If NULL this call will not
@@ -199,6 +203,51 @@ int SLPNetCopyAddr(struct sockaddr_storage *dst, const struct sockaddr_storage *
  *  (in) src        Source address to be copied from
  *
  * Returns: 0 if address set correctly, non-zero there were errors setting fields of dst
+ *-------------------------------------------------------------------------*/
+
+
+int SLPNetSetSockAddrStorageFromAddrInfo(struct sockaddr_storage *dst, struct addrinfo *src);
+/*
+ * Description:
+ *    Used to copy an addrinfo struct to a sockaddr_storage struct
+ *    
+ *
+ * Parameters:
+ *  (in/out) dst    Destination address to be filled in
+ *  (in) src        Source address to be copied from
+ *
+ * Returns: 0 if address set correctly, non-zero there were errors setting fields of dst
+ *-------------------------------------------------------------------------*/
+
+
+int SLPNetSockAddrStorageToString(struct sockaddr_storage *src, char *dst, int dstLen);
+/*
+ * Description:
+ *    Used to obtain a string representation of the network portion of a sockaddr_storage struct
+ *    
+ *
+ * Parameters:
+ *  (in) src        Source address to grab the network address from - family must be set
+ *  (in/out) dst    Destination address to be filled in with the address ("x.x.x.x" for ipv4,
+ *                   ("x:x:..:x" for IPV6)
+ *  (out) dstLen    The number of bytes that may be copied into dst
+ *
+ * Returns: 0 if address set correctly, non-zero there were errors setting dst
+ *-------------------------------------------------------------------------*/
+
+int SLPNetAddrInfoToString(struct addrinfo *src, char *dst, int dstLen);
+/*
+ * Description:
+ *    Used to obtain a string representation of the network portion of a addrinfo struct
+ *    
+ *
+ * Parameters:
+ *  (in) src        Source address to grab the network address from - family must be set
+ *  (in/out) dst    Destination address to be filled in with the address ("x.x.x.x" for ipv4,
+ *                   ("x:x:..:x" for IPV6)
+ *  (out) dstLen    The number of bytes that may be copied into dst
+ *
+ * Returns: 0 if address set correctly, non-zero there were errors setting dst
  *-------------------------------------------------------------------------*/
 
 #endif
