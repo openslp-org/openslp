@@ -343,9 +343,9 @@ void SLPDKnownDADeregisterAll(SLPMessage daadvert)
                 /*-------------------------------------------------------------*/
                 /* ensure the buffer is big enough to handle the whole srvdereg*/
                 /*-------------------------------------------------------------*/
-                size = msg->header.langtaglen + 24; /* 14 bytes for header     */
+                size = msg->header.langtaglen + 18; /* 14 bytes for header     */
                                                     /*  2 bytes for scopelen */
-                                                    /*  6 for static portions of urlentry  */
+                                                    /*  see below for URLEntry */
                                                     /*  2 bytes for taglist len */
                 if ( srvreg->urlentry.opaque )
                 {
@@ -353,7 +353,8 @@ void SLPDKnownDADeregisterAll(SLPMessage daadvert)
                 }
                 else
                 {
-                    size += srvreg->urlentry.urllen;
+                    size += 6; /* +6 for the static portion of the url-entry */
+		    size += srvreg->urlentry.urllen;
                 }
                 size += srvreg->scopelistlen;
                 /* taglistlen is always 0 */
