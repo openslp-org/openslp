@@ -22,7 +22,7 @@ case "$1" in
   [ -x $DAEMON ] || exit 0
 
   echo -n "Starting slpd daemon:"
-  ssd -S -b -n $NAME -x $DAEMON -- $OPTIONS
+  ssd -S -n $NAME -x $DAEMON -- $OPTIONS
 	
   echo "."
   touch $SVIlock
