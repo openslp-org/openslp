@@ -74,14 +74,14 @@ if test "$predicates" = "yes"; then
 fi
 
 dnl ***********************************************************************
-dnl Enable asyncronous support in libslp SLP API library 
+dnl Enable asynchronous support in libslp SLP API library 
 dnl ***********************************************************************
 AC_ARG_ENABLE(async-api,
-[  --enable-async-api      Turn on asyncronous support (default off)],
+[  --enable-async-api      Turn on asynchronous support (default off)],
 asyncapi=$enableval,
 asyncapi=no)
 
-dnl Conditional for optional asyncronous support in libslp SLP API library
+dnl Conditional for optional asynchronous support in libslp SLP API library
 AM_CONDITIONAL(ENABLE_ASYNC_API, test "$asyncapi" = "yes")
 
 if test "$asyncapi" = "yes"; then
