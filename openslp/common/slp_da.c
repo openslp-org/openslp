@@ -112,6 +112,7 @@ SLPBuffer BuildDASrvRqst(int mcast,
     return buf;
 }
 
+
 /*-------------------------------------------------------------------------*/
 int DiscoverDAsByMulticast(SLPDAEntry** dalisthead,
                            int scopelistlen,
@@ -154,7 +155,6 @@ int DiscoverDAsByName(SLPDAEntry** dalisthead,
     {
         return 0;
     }
-
     
     /*------------------------------------------------------------------*/
     /* resolve DA host names connect to DA, send SrvRqst, recv DAAdvert */
@@ -260,6 +260,7 @@ SLPDAEntry* SLPDAEntryCreate(struct in_addr* addr, SLPDAAdvert* daadvert)
     {
         return 0;
     }
+    memset(result,0,sizeof(SLPDAEntry));
     
     result->daaddr = *addr;
     memcpy(&(result->daadvert),daadvert,sizeof(SLPDAAdvert));
@@ -275,9 +276,9 @@ SLPDAEntry* SLPDAEntryCreate(struct in_addr* addr, SLPDAAdvert* daadvert)
     result->daadvert.autharray = 0;
     /* IGNORE DUPLICATION OF AUTHBLOCK BECAUSE IT WON'T BE USED*/
 
-    if(result->daadvert.url ||
-       result->daadvert.scopelist ||
-       result->daadvert.attrlist ||
+    if(result->daadvert.url == 0 ||
+       result->daadvert.scopelist == 0  ||
+       result->daadvert.attrlist == 0 ||
        result->daadvert.spilist == 0)
     {
         SLPDAEntryFree(result);
@@ -322,6 +323,15 @@ int SLPDiscoverDAs(SLPDAEntry** dalisthead,
 {
     int                 result  = 0;
 
+    /*---------------------*/
+    /* Check IPC with SLPD */
+    /*---------------------*/
+    /* TODO: put code to get DHCP options here when available */
+    if(result && flags & 0x00000002)
+    {
+        return result;
+    }
+
     /*-------------------*/
     /* Check DAAddresses */
     /*-------------------*/
@@ -345,7 +355,6 @@ int SLPDiscoverDAs(SLPDAEntry** dalisthead,
         return result;
     }
 
-
     /*---------------*/
     /* Use Multicast */
     /*---------------*/
@@ -355,6 +364,6 @@ int SLPDiscoverDAs(SLPDAEntry** dalisthead,
                                      flags,
                                      daaddresses,
                                      timeout);
-        
+
     return result;
 }

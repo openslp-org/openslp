@@ -43,7 +43,6 @@ SLPError ProcessAttrRqst(PSLPHandleInfo handle)
     struct sockaddr_in  peeraddr;
     
     SLPError            result      = 0;
-    const char*         bcastonly   = 0;
     char*               prlist      = 0;
     int                 prlistlen   = 0;
     int                 rplytot     = 0;
@@ -71,11 +70,7 @@ SLPError ProcessAttrRqst(PSLPHandleInfo handle)
         ismcast = 1;
         maxwait = atoi(SLPGetProperty("net.slp.multicastMaximumWait")) / 1000;
         wait    = 1;
-        bcastonly = SLPPropertyGet("net.slp.isBroadcastOnly"); 
-        if(*bcastonly == 'T' ||
-           *bcastonly == 't' ||
-           *bcastonly == 'Y' ||
-           *bcastonly == 'y')
+        if(SLPPropertyAsBoolean(SLPPropertyGet("net.slp.isBroadcastOnly"))) 
         {
             sock = SLPNetworkConnectToBroadcast(&peeraddr);
         }
