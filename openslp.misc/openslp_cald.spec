@@ -11,7 +11,8 @@ Copyright   	: Caldera Systems (LGPL)
 Packager    	: Matthew Peterson <mpeterson@calderasystems.com>
 URL         	: http://www.openslp.org/
 BuildRoot   	: /tmp/%{name}-%{ver}
-Source0			: ftp://openslp.org/pub/openslp/%{name}-%{ver}/%{name}-%{ver}.tar.gz
+Source0		: ftp://openslp.org/pub/openslp/%{name}-%{ver}/%{name}-%{ver}.tar.gz
+
 
 %Description
 Service Location Protocol is an IETF standards track protocol that
