@@ -25,6 +25,9 @@ NULL=
 NULL=nul
 !ENDIF 
 
+CPP=cl.exe
+RSC=rc.exe
+
 !IF  "$(CFG)" == "common - Win32 Release"
 
 OUTDIR=.\Release
@@ -52,40 +55,7 @@ CLEAN :
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
-CPP=cl.exe
-CPP_PROJ=/nologo /ML /W3 /GX /O2 /I ".\\" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /Fp"$(INTDIR)\common.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
-
-.c{$(INTDIR)}.obj::
-   $(CPP) @<<
-   $(CPP_PROJ) $< 
-<<
-
-.cpp{$(INTDIR)}.obj::
-   $(CPP) @<<
-   $(CPP_PROJ) $< 
-<<
-
-.cxx{$(INTDIR)}.obj::
-   $(CPP) @<<
-   $(CPP_PROJ) $< 
-<<
-
-.c{$(INTDIR)}.sbr::
-   $(CPP) @<<
-   $(CPP_PROJ) $< 
-<<
-
-.cpp{$(INTDIR)}.sbr::
-   $(CPP) @<<
-   $(CPP_PROJ) $< 
-<<
-
-.cxx{$(INTDIR)}.sbr::
-   $(CPP) @<<
-   $(CPP_PROJ) $< 
-<<
-
-RSC=rc.exe
+CPP_PROJ=/nologo /MT /W3 /GX /O2 /I ".\\" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_WINDOWS" /D "_USRDLL" /D "LIBSLP_EXPORTS" /Fp"$(INTDIR)\common.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
 BSC32=bscmake.exe
 BSC32_FLAGS=/nologo /o"$(OUTDIR)\common.bsc" 
 BSC32_SBRS= \
@@ -136,8 +106,30 @@ CLEAN :
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
-CPP=cl.exe
-CPP_PROJ=/nologo /MLd /W3 /Gm /GX /ZI /Od /I ".\\" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /Fp"$(INTDIR)\common.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
+CPP_PROJ=/nologo /MTd /W3 /Gm /GX /ZI /Od /I ".\\" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_WINDOWS" /D "_USRDLL" /D "LIBSLP_EXPORTS" /Fp"$(INTDIR)\common.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
+BSC32=bscmake.exe
+BSC32_FLAGS=/nologo /o"$(OUTDIR)\common.bsc" 
+BSC32_SBRS= \
+	
+LIB32=link.exe -lib
+LIB32_FLAGS=/nologo /out:"$(OUTDIR)\common.lib" 
+LIB32_OBJS= \
+	"$(INTDIR)\slp_buffer.obj" \
+	"$(INTDIR)\slp_compare.obj" \
+	"$(INTDIR)\slp_da.obj" \
+	"$(INTDIR)\slp_linkedlist.obj" \
+	"$(INTDIR)\slp_logfile.obj" \
+	"$(INTDIR)\slp_message.obj" \
+	"$(INTDIR)\slp_network.obj" \
+	"$(INTDIR)\slp_property.obj" \
+	"$(INTDIR)\slp_xid.obj"
+
+"$(OUTDIR)\common.lib" : "$(OUTDIR)" $(DEF_FILE) $(LIB32_OBJS)
+    $(LIB32) @<<
+  $(LIB32_FLAGS) $(DEF_FLAGS) $(LIB32_OBJS)
+<<
+
+!ENDIF 
 
 .c{$(INTDIR)}.obj::
    $(CPP) @<<
@@ -169,31 +161,6 @@ CPP_PROJ=/nologo /MLd /W3 /Gm /GX /ZI /Od /I ".\\" /D "WIN32" /D "_DEBUG" /D "_M
    $(CPP_PROJ) $< 
 <<
 
-RSC=rc.exe
-BSC32=bscmake.exe
-BSC32_FLAGS=/nologo /o"$(OUTDIR)\common.bsc" 
-BSC32_SBRS= \
-	
-LIB32=link.exe -lib
-LIB32_FLAGS=/nologo /out:"$(OUTDIR)\common.lib" 
-LIB32_OBJS= \
-	"$(INTDIR)\slp_buffer.obj" \
-	"$(INTDIR)\slp_compare.obj" \
-	"$(INTDIR)\slp_da.obj" \
-	"$(INTDIR)\slp_linkedlist.obj" \
-	"$(INTDIR)\slp_logfile.obj" \
-	"$(INTDIR)\slp_message.obj" \
-	"$(INTDIR)\slp_network.obj" \
-	"$(INTDIR)\slp_property.obj" \
-	"$(INTDIR)\slp_xid.obj"
-
-"$(OUTDIR)\common.lib" : "$(OUTDIR)" $(DEF_FILE) $(LIB32_OBJS)
-    $(LIB32) @<<
-  $(LIB32_FLAGS) $(DEF_FLAGS) $(LIB32_OBJS)
-<<
-
-!ENDIF 
-
 
 !IF "$(NO_EXTERNAL_DEPS)" != "1"
 !IF EXISTS("common.dep")
@@ -209,7 +176,7 @@ SOURCE=.\slp_buffer.c
 
 !IF  "$(CFG)" == "common - Win32 Release"
 
-CPP_SWITCHES=/nologo /ML /W3 /GX /O2 /I ".\\" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /Fp"$(INTDIR)\common.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
+CPP_SWITCHES=/nologo /MT /W3 /GX /O2 /I ".\\" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_WINDOWS" /D "_USRDLL" /D "LIBSLP_EXPORTS" /Fp"$(INTDIR)\common.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
 
 "$(INTDIR)\slp_buffer.obj" : $(SOURCE) "$(INTDIR)"
 	$(CPP) @<<
@@ -219,7 +186,7 @@ CPP_SWITCHES=/nologo /ML /W3 /GX /O2 /I ".\\" /D "WIN32" /D "NDEBUG" /D "_MBCS" 
 
 !ELSEIF  "$(CFG)" == "common - Win32 Debug"
 
-CPP_SWITCHES=/nologo /MLd /W3 /Gm /GX /ZI /Od /I ".\\" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
+CPP_SWITCHES=/nologo /MTd /W3 /Gm /GX /ZI /Od /I ".\\" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_WINDOWS" /D "_USRDLL" /D "LIBSLP_EXPORTS" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
 
 "$(INTDIR)\slp_buffer.obj" : $(SOURCE) "$(INTDIR)"
 	$(CPP) @<<
@@ -233,7 +200,7 @@ SOURCE=.\slp_compare.c
 
 !IF  "$(CFG)" == "common - Win32 Release"
 
-CPP_SWITCHES=/nologo /ML /W3 /GX /O2 /I ".\\" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /Fp"$(INTDIR)\common.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
+CPP_SWITCHES=/nologo /MT /W3 /GX /O2 /I ".\\" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_WINDOWS" /D "_USRDLL" /D "LIBSLP_EXPORTS" /Fp"$(INTDIR)\common.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
 
 "$(INTDIR)\slp_compare.obj" : $(SOURCE) "$(INTDIR)"
 	$(CPP) @<<
@@ -243,7 +210,7 @@ CPP_SWITCHES=/nologo /ML /W3 /GX /O2 /I ".\\" /D "WIN32" /D "NDEBUG" /D "_MBCS" 
 
 !ELSEIF  "$(CFG)" == "common - Win32 Debug"
 
-CPP_SWITCHES=/nologo /MLd /W3 /Gm /GX /ZI /Od /I ".\\" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
+CPP_SWITCHES=/nologo /MTd /W3 /Gm /GX /ZI /Od /I ".\\" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_WINDOWS" /D "_USRDLL" /D "LIBSLP_EXPORTS" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
 
 "$(INTDIR)\slp_compare.obj" : $(SOURCE) "$(INTDIR)"
 	$(CPP) @<<
@@ -257,7 +224,7 @@ SOURCE=.\slp_da.c
 
 !IF  "$(CFG)" == "common - Win32 Release"
 
-CPP_SWITCHES=/nologo /ML /W3 /GX /O2 /I ".\\" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /Fp"$(INTDIR)\common.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
+CPP_SWITCHES=/nologo /MT /W3 /GX /O2 /I ".\\" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_WINDOWS" /D "_USRDLL" /D "LIBSLP_EXPORTS" /Fp"$(INTDIR)\common.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
 
 "$(INTDIR)\slp_da.obj" : $(SOURCE) "$(INTDIR)"
 	$(CPP) @<<
@@ -267,7 +234,7 @@ CPP_SWITCHES=/nologo /ML /W3 /GX /O2 /I ".\\" /D "WIN32" /D "NDEBUG" /D "_MBCS" 
 
 !ELSEIF  "$(CFG)" == "common - Win32 Debug"
 
-CPP_SWITCHES=/nologo /MLd /W3 /Gm /GX /ZI /Od /I ".\\" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
+CPP_SWITCHES=/nologo /MTd /W3 /Gm /GX /ZI /Od /I ".\\" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_WINDOWS" /D "_USRDLL" /D "LIBSLP_EXPORTS" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
 
 "$(INTDIR)\slp_da.obj" : $(SOURCE) "$(INTDIR)"
 	$(CPP) @<<
@@ -281,7 +248,7 @@ SOURCE=.\slp_linkedlist.c
 
 !IF  "$(CFG)" == "common - Win32 Release"
 
-CPP_SWITCHES=/nologo /ML /W3 /GX /O2 /I ".\\" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /Fp"$(INTDIR)\common.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
+CPP_SWITCHES=/nologo /MT /W3 /GX /O2 /I ".\\" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_WINDOWS" /D "_USRDLL" /D "LIBSLP_EXPORTS" /Fp"$(INTDIR)\common.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
 
 "$(INTDIR)\slp_linkedlist.obj" : $(SOURCE) "$(INTDIR)"
 	$(CPP) @<<
@@ -291,7 +258,7 @@ CPP_SWITCHES=/nologo /ML /W3 /GX /O2 /I ".\\" /D "WIN32" /D "NDEBUG" /D "_MBCS" 
 
 !ELSEIF  "$(CFG)" == "common - Win32 Debug"
 
-CPP_SWITCHES=/nologo /MLd /W3 /Gm /GX /ZI /Od /I ".\\" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
+CPP_SWITCHES=/nologo /MTd /W3 /Gm /GX /ZI /Od /I ".\\" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_WINDOWS" /D "_USRDLL" /D "LIBSLP_EXPORTS" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
 
 "$(INTDIR)\slp_linkedlist.obj" : $(SOURCE) "$(INTDIR)"
 	$(CPP) @<<
@@ -305,7 +272,7 @@ SOURCE=.\slp_logfile.c
 
 !IF  "$(CFG)" == "common - Win32 Release"
 
-CPP_SWITCHES=/nologo /ML /W3 /GX /O2 /I ".\\" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /Fp"$(INTDIR)\common.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
+CPP_SWITCHES=/nologo /MT /W3 /GX /O2 /I ".\\" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_WINDOWS" /D "_USRDLL" /D "LIBSLP_EXPORTS" /Fp"$(INTDIR)\common.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
 
 "$(INTDIR)\slp_logfile.obj" : $(SOURCE) "$(INTDIR)"
 	$(CPP) @<<
@@ -315,7 +282,7 @@ CPP_SWITCHES=/nologo /ML /W3 /GX /O2 /I ".\\" /D "WIN32" /D "NDEBUG" /D "_MBCS" 
 
 !ELSEIF  "$(CFG)" == "common - Win32 Debug"
 
-CPP_SWITCHES=/nologo /MLd /W3 /Gm /GX /ZI /Od /I ".\\" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
+CPP_SWITCHES=/nologo /MTd /W3 /Gm /GX /ZI /Od /I ".\\" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_WINDOWS" /D "_USRDLL" /D "LIBSLP_EXPORTS" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
 
 "$(INTDIR)\slp_logfile.obj" : $(SOURCE) "$(INTDIR)"
 	$(CPP) @<<
@@ -329,7 +296,7 @@ SOURCE=.\slp_message.c
 
 !IF  "$(CFG)" == "common - Win32 Release"
 
-CPP_SWITCHES=/nologo /ML /W3 /GX /O2 /I ".\\" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /Fp"$(INTDIR)\common.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
+CPP_SWITCHES=/nologo /MT /W3 /GX /O2 /I ".\\" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_WINDOWS" /D "_USRDLL" /D "LIBSLP_EXPORTS" /Fp"$(INTDIR)\common.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
 
 "$(INTDIR)\slp_message.obj" : $(SOURCE) "$(INTDIR)"
 	$(CPP) @<<
@@ -339,7 +306,7 @@ CPP_SWITCHES=/nologo /ML /W3 /GX /O2 /I ".\\" /D "WIN32" /D "NDEBUG" /D "_MBCS" 
 
 !ELSEIF  "$(CFG)" == "common - Win32 Debug"
 
-CPP_SWITCHES=/nologo /MLd /W3 /Gm /GX /ZI /Od /I ".\\" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
+CPP_SWITCHES=/nologo /MTd /W3 /Gm /GX /ZI /Od /I ".\\" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_WINDOWS" /D "_USRDLL" /D "LIBSLP_EXPORTS" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
 
 "$(INTDIR)\slp_message.obj" : $(SOURCE) "$(INTDIR)"
 	$(CPP) @<<
@@ -353,7 +320,7 @@ SOURCE=.\slp_network.c
 
 !IF  "$(CFG)" == "common - Win32 Release"
 
-CPP_SWITCHES=/nologo /ML /W3 /GX /O2 /I ".\\" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /Fp"$(INTDIR)\common.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
+CPP_SWITCHES=/nologo /MT /W3 /GX /O2 /I ".\\" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_WINDOWS" /D "_USRDLL" /D "LIBSLP_EXPORTS" /Fp"$(INTDIR)\common.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
 
 "$(INTDIR)\slp_network.obj" : $(SOURCE) "$(INTDIR)"
 	$(CPP) @<<
@@ -363,7 +330,7 @@ CPP_SWITCHES=/nologo /ML /W3 /GX /O2 /I ".\\" /D "WIN32" /D "NDEBUG" /D "_MBCS" 
 
 !ELSEIF  "$(CFG)" == "common - Win32 Debug"
 
-CPP_SWITCHES=/nologo /MLd /W3 /Gm /GX /ZI /Od /I ".\\" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
+CPP_SWITCHES=/nologo /MTd /W3 /Gm /GX /ZI /Od /I ".\\" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_WINDOWS" /D "_USRDLL" /D "LIBSLP_EXPORTS" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
 
 "$(INTDIR)\slp_network.obj" : $(SOURCE) "$(INTDIR)"
 	$(CPP) @<<
@@ -377,7 +344,7 @@ SOURCE=.\slp_property.c
 
 !IF  "$(CFG)" == "common - Win32 Release"
 
-CPP_SWITCHES=/nologo /ML /W3 /GX /O2 /I ".\\" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /Fp"$(INTDIR)\common.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
+CPP_SWITCHES=/nologo /MT /W3 /GX /O2 /I ".\\" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_WINDOWS" /D "_USRDLL" /D "LIBSLP_EXPORTS" /Fp"$(INTDIR)\common.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
 
 "$(INTDIR)\slp_property.obj" : $(SOURCE) "$(INTDIR)"
 	$(CPP) @<<
@@ -387,7 +354,7 @@ CPP_SWITCHES=/nologo /ML /W3 /GX /O2 /I ".\\" /D "WIN32" /D "NDEBUG" /D "_MBCS" 
 
 !ELSEIF  "$(CFG)" == "common - Win32 Debug"
 
-CPP_SWITCHES=/nologo /MLd /W3 /Gm /GX /ZI /Od /I ".\\" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
+CPP_SWITCHES=/nologo /MTd /W3 /Gm /GX /ZI /Od /I ".\\" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_WINDOWS" /D "_USRDLL" /D "LIBSLP_EXPORTS" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
 
 "$(INTDIR)\slp_property.obj" : $(SOURCE) "$(INTDIR)"
 	$(CPP) @<<
@@ -401,7 +368,7 @@ SOURCE=.\slp_xid.c
 
 !IF  "$(CFG)" == "common - Win32 Release"
 
-CPP_SWITCHES=/nologo /ML /W3 /GX /O2 /I ".\\" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /Fp"$(INTDIR)\common.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
+CPP_SWITCHES=/nologo /MT /W3 /GX /O2 /I ".\\" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_WINDOWS" /D "_USRDLL" /D "LIBSLP_EXPORTS" /Fp"$(INTDIR)\common.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
 
 "$(INTDIR)\slp_xid.obj" : $(SOURCE) "$(INTDIR)"
 	$(CPP) @<<
@@ -411,7 +378,7 @@ CPP_SWITCHES=/nologo /ML /W3 /GX /O2 /I ".\\" /D "WIN32" /D "NDEBUG" /D "_MBCS" 
 
 !ELSEIF  "$(CFG)" == "common - Win32 Debug"
 
-CPP_SWITCHES=/nologo /MLd /W3 /Gm /GX /ZI /Od /I ".\\" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
+CPP_SWITCHES=/nologo /MTd /W3 /Gm /GX /ZI /Od /I ".\\" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_WINDOWS" /D "_USRDLL" /D "LIBSLP_EXPORTS" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
 
 "$(INTDIR)\slp_xid.obj" : $(SOURCE) "$(INTDIR)"
 	$(CPP) @<<
