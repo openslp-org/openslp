@@ -7,7 +7,9 @@
 
 
 #ifdef WIN32
+#ifndef strncasecmp 
     #define strncasecmp strnicmp
+#endif
 #endif
 
 

@@ -5,8 +5,8 @@
 #include <math.h>
 #include <ctype.h>
 
-#include <libslpattr.h>
-#include "libslpattr_internal.h"
+#include "../libslpattr/libslpattr.h"
+#include "../libslpattr/libslpattr_internal.h"
 
 /* The strings used to represent non-string variables. */
 #define BOOL_TRUE_STR "true"

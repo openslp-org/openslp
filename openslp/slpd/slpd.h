@@ -58,7 +58,7 @@
 #endif
 
 #ifdef USE_PREDICATES
-#include "libslpattr.h"
+#include "../libslpattr/libslpattr.h"
 #include <assert.h>
 #endif
 
