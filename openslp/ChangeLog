@@ -8,9 +8,11 @@ blank lines and include the date, developer's email, and change description.
 
 *** Tag OpenSLP 1.0.1 ***
 
+08/02/01 matt@caldera.com
+Fixed included strncasecmp() as suggested by Timothy Zurcher
+
 08/01/01 matt@caldera.com
-Applied change from solehmai@cc.helsinki.fi that fixes broadcast problem on
-Win32
+Applied change from Kai T Solehmainen that fix a broadcast problem on Win32
 
 08/01/01 matt@caldera.com
 Fixed bug in libslp that resulted in net.slp.activeDADetection and
