@@ -1,4 +1,4 @@
-%define	ver 0.7.5
+%define	ver 0.7.6
 %define	rel 1
 %define	name openslp
 %define libver 0.0.2
@@ -27,7 +27,7 @@ by RFC 2608 and RFC 2614.  This package include the daemon, libraries, header
 files and documentation
 
 %Prep
-%setup -n %{name}-%{ver}
+%setup
 
 %Build
 #./configure --with-RPM-prefix=$RPM_BUILD_ROOT
@@ -39,12 +39,6 @@ make
 %Install
 %{mkDESTDIR}
 make install 
-mkdir -p $DESTDIR/etc/sysconfig/daemons 
-cat <<EOD  > $DESTDIR/etc/sysconfig/daemons/slpd
-IDENT=slp
-DESCRIPTIVE="SLP Service Agent"
-ONBOOT="yes"
-EOD
 mkdir -p $DESTDIR/etc/rc.d/init.d
 install -m 755 etc/slpd.all_init $DESTDIR/etc/rc.d/init.d/slpd
 
@@ -55,9 +49,16 @@ rm -rf $RPM_BUILD_ROOT
 rm -f /usr/lib/libslp.so
 ln -s /usr/lib/libslp.so.%{libver} /usr/lib/libslp.so
 /sbin/ldconfig
-if [ -x /bin/lisa ]; then 
-  lisa --SysV-init install slpd S13 2:3:4:5 K87 0:1:6  
-elif [ -x /sbin/chkconfig ]; then
+
+if [ -d '/usr/lib/OpenLinux' ]; then 
+cat <<EOD  > /etc/sysconfig/daemons/slpd
+IDENT=slp
+DESCRIPTIVE="SLP Service Agent"
+ONBOOT="yes"
+EOD
+fi
+
+if [ -x /sbin/chkconfig ]; then
   chkconfig --add slpd
 else 
   for i in 2 3 4 5; do
@@ -69,11 +70,10 @@ else
 fi
 
 %PreUn
+rm -f /etc/sysconfig/daemons/slpd
 if [ "$1" = "0" ]; then
   if [ -x /sbin/chkconfig ]; then
     /sbin/chkconfig --del slpd
-  elif [ -x /bin/lisa ]; then
-    lisa --SysV-init remove slpd $1 
   else
     for i in 2 3 4 5; do
       rm -f /etc/rc.d/rc$i.d/S13slpd
@@ -93,10 +93,9 @@ fi
 
 %Files
 %defattr(-,root,root)
-%doc /usr/doc/openslp-%{ver}
+%doc AUTHORS COPYING INSTALL NEWS README doc/*
 %config /etc/slp.conf
 %config /etc/slp.reg
-%config /etc/sysconfig/daemons/slpd
 /etc/rc.d/init.d/slpd
 /usr/lib/libslp*
 /usr/include/slp.h
