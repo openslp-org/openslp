@@ -184,8 +184,7 @@ SLPError ProcessSrvRqst(PSLPHandleInfo handle)
             NetworkDisconnectDA(handle);
         }
      
-    }while(result);
-
+    }while(result == SLP_NETWORK_ERROR);
     
     FINISHED:
     if(buf) free(buf);

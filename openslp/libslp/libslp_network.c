@@ -478,12 +478,18 @@ SLPError NetworkRqstRply(int sock,
         {
             /* we could not send the message for some reason */
             /* we're done */
-            result = SLP_NETWORK_ERROR;
+            if(errno == ETIMEDOUT)
+            {
+                result = SLP_NETWORK_TIMED_OUT;
+            } 
+            else
+            {
+                result = SLP_NETWORK_ERROR;    
+            }
             goto FINISHED;
         }
-            
- 
-        /*----------------*/
+        
+         /*----------------*/
         /* Main recv loop */
         /*----------------*/
         do
@@ -494,8 +500,16 @@ SLPError NetworkRqstRply(int sock,
                                      &peeraddr,
                                      &timeout) != 0)
             {
-                /* An error occured while receiving the message */
-                /* probably a just time out error. Retry send.  */
+                /* An error occured while receiving the message        */
+                /* probably a just time out error. break for re-send.  */
+                if( errno == ETIMEDOUT)
+                {
+                    result = SLP_NETWORK_TIMED_OUT;
+                }
+                else
+                {
+                    result = SLP_NETWORK_ERROR;
+                }        
                 break;
             }
              
@@ -526,7 +540,7 @@ SLPError NetworkRqstRply(int sock,
             }
             strcat(prlist,inet_ntoa(peeraddr.sin_addr));
             prlistlen =  strlen(prlist);
-
+        
         }while(looprecv);
     }
 

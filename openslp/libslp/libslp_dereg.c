@@ -172,7 +172,7 @@ SLPError ProcessSrvDeReg(PSLPHandleInfo handle)
             NetworkDisconnectSA(handle);
         }
 
-    }while(result);
+    }while(result == SLP_NETWORK_ERROR);
     
     
     FINISHED:
