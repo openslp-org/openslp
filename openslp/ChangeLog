@@ -7,6 +7,9 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 
+11/2/00 mpeterson@caldera.com
+Removed ALL memory leaks from slpd and libslp (predicate code not done yet)
+
 10/31/00 mpeterson@caldera.com
 libslp now asks slpd for known DAs before multicasting requests
 
