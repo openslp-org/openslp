@@ -298,22 +298,27 @@ int SLPAuthSignString(SLPSpiHandle hspi,
 /*=========================================================================*/
 {
     SLPCryptoDSAKey*    key;
+    char*               spistr;
+    int                 spistrlen;
     int                 signaturelen;
     int                 result;
     unsigned char*      curpos;
     unsigned char       digest[20];
 
-    /* NULL out the authblock just to be safe */
+    /* NULL out the authblock and spistr just to be safe */
     *authblock = 0;
     *authblocklen = 0;
+    spistr = 0;
+    spistrlen = 0;
 
     /*--------------------------------*/
     /* Get a private key for the SPI  */
     /*--------------------------------*/
-    key = SLPSpiFetchPrivateDSAKey(hspi, &key);
+    key = SLPSpiFetchPrivateDSAKey(hspi, &spistrlen, &spistr, &key);
     if(key == 0)
     {
-        return SLP_ERROR_AUTHENTICATION_UNKNOWN;
+        result = SLP_ERROR_AUTHENTICATION_UNKNOWN;
+        goto ERROR;
     }
     
     /*----------------------------------------------*/
@@ -329,7 +334,8 @@ int SLPAuthSignString(SLPSpiHandle hspi,
     *authblock = (unsigned char*)malloc(*authblocklen);
     if(*authblock == 0)
     {
-        return  SLP_ERROR_INTERNAL_ERROR;
+        result = SLP_ERROR_INTERNAL_ERROR;
+        goto ERROR;
     }
     
     /*---------------------------------------------------------*/
@@ -374,6 +380,10 @@ int SLPAuthSignString(SLPSpiHandle hspi,
         goto ERROR;
     }
 
+    /*-----------------------------*/
+    /* Clean up and return success */
+    /*-----------------------------*/ 
+    if(spistr) free(spistr);
     return 0;
 
 
@@ -382,7 +392,8 @@ ERROR:
     /*-------------------------------*/
     /* Clean up and return errorcode */
     /*-------------------------------*/ 
-    free(*authblock);
+    if(spistr) free(spistr);
+    if(authblock)free(*authblock);
     *authblock = 0;
     *authblocklen = 0;
     
