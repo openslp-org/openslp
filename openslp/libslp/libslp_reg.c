@@ -256,7 +256,6 @@ SLPError ProcessSrvReg(PSLPHandleInfo handle)
         curpos += 4;
     }
 
-
     /*--------------------------*/
     /* Call the RqstRply engine */
     /*--------------------------*/
@@ -264,23 +263,28 @@ SLPError ProcessSrvReg(PSLPHandleInfo handle)
                               handle->params.reg.scopelist,
                               handle->params.reg.scopelistlen,
                               &peeraddr);
-    if(sock)
+    if(sock >= 0)
     {
         result = NetworkRqstRply(sock,
-                             &peeraddr,
-                             handle->langtag,
-                             extoffset,
-                             buf,
-                             SLP_FUNCT_SRVREG,
-                             bufsize,
-                             CallbackSrvReg,
-                             handle);
+				 &peeraddr,
+				 handle->langtag,
+				 extoffset,
+				 buf,
+				 SLP_FUNCT_SRVREG,
+				 bufsize,
+				 CallbackSrvReg,
+				 handle);
         if (result)
         {
             NetworkDisconnectSA(handle);
         }   
     }
+    else
+    {
+        result = SLP_NETWORK_INIT_FAILED;    
+    }
 
+   
     FINISHED:
     if(buf) xfree(buf);
     

@@ -192,8 +192,7 @@ SLPError ProcessSrvDeReg(PSLPHandleInfo handle)
     /* TODO: No tag list for now put in taglist stuff */
     ToUINT16(curpos,0);
 
-
-    
+   
     /*--------------------------*/
     /* Call the RqstRply engine */
     /*--------------------------*/
@@ -201,23 +200,29 @@ SLPError ProcessSrvDeReg(PSLPHandleInfo handle)
                               handle->params.reg.scopelist,
                               handle->params.reg.scopelistlen,
                               &peeraddr);
-    if(sock)
+    if(sock >= 0)
     {
         result = NetworkRqstRply(sock,
-                                 &peeraddr,
-                                 handle->langtag,
-                                 0,
-                                 buf,
-                                 SLP_FUNCT_SRVDEREG,
-                                 bufsize,
-                                 CallbackSrvDeReg,
-                                 handle);
+				 &peeraddr,
+				 handle->langtag,
+				 0,
+				 buf,
+				 SLP_FUNCT_SRVDEREG,
+				 bufsize,
+				 CallbackSrvDeReg,
+				 handle);
         if (result)
         {
             NetworkDisconnectSA(handle);
-        }   
+        }           
     }
-
+    else
+    {
+        result = SLP_NETWORK_INIT_FAILED;
+        goto FINISHED;
+    }
+    
+    
     FINISHED:
     if(buf) xfree(buf);
 #ifdef ENABLE_SLPv2_SECURITY
