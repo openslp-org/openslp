@@ -1372,7 +1372,7 @@ void SLPDKnownDADump()
     if(eh)
     {
         SLPDLog("========================================================================\n");
-        SLPDLog("\nDumping KnownDAs \n");
+        SLPDLog("Dumping KnownDAs \n");
         SLPDLog("========================================================================\n");
         while(SLPDKnownDAEnum(eh, &msg, &buf))
         {
