@@ -309,19 +309,19 @@ void OutgoingStreamWrite(SLPList* socklist, SLPDSocket* sock)
 
     if ( sock->state == STREAM_WRITE_FIRST )
     {
-        /* set sendbuf to the first item in the send list*/
-        sock->sendbuf = (SLPBuffer)sock->sendlist.head;
-        if ( sock->sendbuf == 0 )
+        /* set sendbuf to the first item in the send list if it is not set */
+        if(sock->sendbuf == NULL)
         {
-            /* there is nothing in the to do list */
-            sock->state = STREAM_CONNECT_IDLE;
-            /* reset the reconnect count because the socket */
-            /* appears to be healthy again                  */
-            sock->reconns = 0;
-            return;
+            sock->sendbuf = (SLPBuffer)sock->sendlist.head;
+            if ( sock->sendbuf == NULL )
+            {
+                /* there is nothing in the to do list */
+                sock->state = STREAM_CONNECT_IDLE;
+                return;
+            }
+            /* Unlink the send buffer we are sending from the send list */
+            SLPListUnlink(&(sock->sendlist),(SLPListItem*)(sock->sendbuf));
         }
-        /* Unlink the send buffer we are sending from the send list */
-        SLPListUnlink(&(sock->sendlist),(SLPListItem*)(sock->sendbuf));
 
         /* make sure that the start and curpos pointers are the same */
         sock->sendbuf->curpos = sock->sendbuf->start;
@@ -338,7 +338,7 @@ void OutgoingStreamWrite(SLPList* socklist, SLPDSocket* sock)
         {
             /* reset age because of activity */
             sock->age = 0; 
-
+            
             /* move buffer pointers */
             sock->sendbuf->curpos += byteswritten;
 
