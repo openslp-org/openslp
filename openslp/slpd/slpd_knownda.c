@@ -140,7 +140,8 @@ void SLPDKnownDARegisterAll(SLPDAEntry* daentry)
 /* Forks a child process to register all services with specified DA        */
 /*-------------------------------------------------------------------------*/
 {
-    fd_set              readfds;
+   #if(0)
+   fd_set              readfds;
     fd_set              writefds;
     int                 finished;
     SLPDDatabaseEntry*  dbentry;
@@ -209,6 +210,7 @@ void SLPDKnownDARegisterAll(SLPDAEntry* daentry)
     
     /* Exit the child process */
     exit(0);
+   #endif
 }  
 
 
