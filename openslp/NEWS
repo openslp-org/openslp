@@ -1,6 +1,11 @@
 NEWS - list of user-visible changes between releases of OpenSLP and other
 important events.
 
+New in openslp-1.0.11
+---------------------
+Minor bug fixes.  Most notably fixes that make code alias safe for new
+GCC optimizing compilers.  See Change Log for more details.
+
 New in openslp-1.0.9
 --------------------
 Very minor bug fixes.  1.0.x tree is frozen. See Change log for details.  

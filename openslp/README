@@ -16,18 +16,11 @@ The OpenSLP project is an effort to develop an open-source implementation of
 Service Location Protocol suitable for commercial and non-commercial 
 application.
 
-The latest stable version of OpenSLP is 1.0.9.  OpenSLP-1.0.9 contains
-a few minor bug fixes that some OpenSLP users will be interested in.
-Most of all, OpenSLP 1.0.9 probably represents the last official
-release of the 1.0.x branch.  Subsequent releases will only be made if
-serious bug fixes are needed.  Otherwise, all changes will be made to
-the development 1.1.x branch.   
-
 Those that are investigating OpenSLP as part of a development or
 porting project should look at the 1.1.x development releases.  This
 is where the development action will be.  Those that are deploying
 OpenSLP in production systems should continue to look at OpenSLP
-1.0.9 until the 1.1.x code becomes stable enought for production use.
+1.0.11 until the 1.1.x code becomes stable enought for production use.
 
 
 2 - Roadmap
