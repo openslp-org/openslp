@@ -1,5 +1,5 @@
 Name            : openslp
-Version         : 1.0.3
+Version         : 1.0.5
 Release         : 1
 Group           : Server/Network
 Summary     	: Open source implementation of Service Location Protocol V2.

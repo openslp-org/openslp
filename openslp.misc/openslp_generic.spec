@@ -1,4 +1,4 @@
-%define	ver 1.0.3
+%define	ver 1.0.5
 %define	rel 1
 %define	name openslp
 %define libver 1.0.0
