@@ -1,0 +1,54 @@
+#! /bin/sh
+#
+# slpd    Start/Stop the OpenSLP SA daemon (slpd).
+#
+# Author: Miquel van Smoorenburg, <miquels@drinkel.nl.mugnet.org>
+#         Modified for RHS Linux by Damien Neil
+#	  Modified for COL by Raymund Will, <ray@lst.de>
+# 	  Modified for OpenSLP by Matt Peterson <mpeterson@calderasystems.com>
+# 	  Modified for OSr5/UnixWare/OpenUNIX platform by Vince Seavello
+#		vinces@caldera.com
+#
+### BEGIN INIT INFO
+# Provides:
+# Required-Start:
+# Required-Stop:
+# Default-Start: <run level 2> <run level 3>
+# Default-Stop: <run level 0> <run level 1> <run level 6>
+# Description: slpd - Service Location Protocol daemon
+### END INIT INFO 
+
+NAME=slpd
+DAEMON=/usr/sbin/$NAME
+SVIlock=/var/run/$NAME.pid
+
+SVIscript=$0
+
+# See how we were called.
+case "$1" in
+ start)
+  [ -f $SVIlock ] && exit 1
+  [ -x $DAEMON ] || exit 0
+
+  echo -n "Starting slpd daemon..."
+  # ssd -S -n $NAME -x $DAEMON -- $OPTIONS
+  $DAEMON
+  echo
+  ;;
+
+ stop)
+  [ -f $SVIlock ] || exit 0
+
+  echo -n "Stopping slpd daemon..."
+  pid=`cat $SVIlock`
+  kill $pid
+  rm -f /var/run/$NAME.pid
+  echo
+  ;;
+
+ *)
+  echo "Usage: $SVIscript {start|stop}"
+  exit 1
+esac
+
+exit 0
