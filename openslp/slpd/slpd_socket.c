@@ -59,7 +59,7 @@ int EnableBroadcast(sockfd_t sockfd)
 
 /*-------------------------------------------------------------------------*/
 int JoinSLPMulticastGroup(sockfd_t sockfd, struct in_addr* maddr,
-			  struct in_addr* addr)
+                          struct in_addr* addr)
 /* Sets the socket options to receive multicast traffic from the specified */
 /* interface.                                                              */
 /*                                                                         */
@@ -90,7 +90,7 @@ int JoinSLPMulticastGroup(sockfd_t sockfd, struct in_addr* maddr,
 
 /*-------------------------------------------------------------------------*/
 int DropSLPMulticastGroup(sockfd_t sockfd, struct in_addr* maddr,
-			  struct in_addr* addr)
+                          struct in_addr* addr)
 /* Sets the socket options to not receive multicast traffic from the       */
 /* specified interface.                                                    */
 /*                                                                         */
@@ -140,16 +140,17 @@ int BindSocketToInetAddr(int sock, struct in_addr* addr)
 
     setsockopt(sock,SOL_SOCKET,SO_REUSEADDR,(const char *)&reuse,sizeof(reuse));
 
-    if (addr != NULL)
+    if(addr != NULL)
     {
         mysockaddr.sin_addr = *addr;
-    } else
+    }
+    else
     {
         mysockaddr.sin_addr.s_addr = INADDR_ANY;
     }
 
     result = bind(sock, (struct sockaddr *) &mysockaddr,sizeof(mysockaddr));
-    if (result == 0)
+    if(result == 0)
     {
         /* set the receive and send buffer low water mark to 18 bytes 
         (the length of the smallest slpv2 message) */
@@ -188,7 +189,7 @@ SLPDSocket* SLPDSocketAlloc()
     SLPDSocket* sock;
 
     sock = (SLPDSocket*)malloc(sizeof(SLPDSocket));
-    if (sock)
+    if(sock)
     {
         memset(sock,0,sizeof(SLPDSocket));
         sock->recvbuf = SLPBufferAlloc(SLP_MAX_DATAGRAM_SIZE);  
@@ -210,19 +211,20 @@ void SLPDSocketFree(SLPDSocket* sock)
     close(sock->fd);
 
     /* free receive buffer */
-    if (sock->recvbuf)
+    if(sock->recvbuf)
     {
         SLPBufferFree(sock->recvbuf);
     }
 
     /* free send buffer(s) */
-    if (sock->sendlist.count)
+    if(sock->sendlist.count)
     {
-        while (sock->sendlist.count)
+        while(sock->sendlist.count)
         {
             SLPBufferFree((SLPBuffer)SLPListUnlink(&(sock->sendlist), sock->sendlist.head));
         }
-    } else if (sock->sendbuf)
+    }
+    else if(sock->sendbuf)
     {
         SLPBufferFree(sock->sendbuf);                        
     }
@@ -247,17 +249,17 @@ SLPDSocket* SLPDSocketCreateDatagram(struct in_addr* peeraddr,
 {
     SLPDSocket*     sock;  
     sock = SLPDSocketAlloc();
-    if (sock)
+    if(sock)
     {
         sock->fd = socket(PF_INET, SOCK_DGRAM, 0);
-        if (sock->fd >=0)
+        if(sock->fd >=0)
         {
-            sock->peerinfo.peeraddr.sin_family = AF_INET;
-            sock->peerinfo.peeraddr.sin_addr = *peeraddr;
-            sock->peerinfo.peeraddr.sin_port = htons(SLP_RESERVED_PORT);
-            sock->peerinfo.peeraddrlen = sizeof(sock->peerinfo.peeraddr);
+            sock->peeraddr.sin_family = AF_INET;
+            sock->peeraddr.sin_addr = *peeraddr;
+            sock->peeraddr.sin_port = htons(SLP_RESERVED_PORT);
             sock->state = type;
-        } else
+        }
+        else
         {
             SLPDSocketFree(sock);
             sock = 0;
@@ -285,34 +287,28 @@ SLPDSocket* SLPDSocketCreateBoundDatagram(struct in_addr* myaddr,
     SLPDSocket*     sock;
     struct in_addr*  bindaddr;
 
-    if (type == DATAGRAM_MULTICAST)
-	bindaddr = NULL;	/* must bind to INADDR_ANY for multicast */
+    if(type == DATAGRAM_MULTICAST)
+        bindaddr = NULL;    /* must bind to INADDR_ANY for multicast */
     else
-	bindaddr = peeraddr;
+        bindaddr = peeraddr;
 
     sock = SLPDSocketAlloc();
-    if (sock)
+    if(sock)
     {
         sock->fd = socket(PF_INET, SOCK_DGRAM, 0);
-        if (sock->fd >=0)
+        if(sock->fd >=0)
         {
-            if (BindSocketToInetAddr(sock->fd, bindaddr) == 0)
+            if(BindSocketToInetAddr(sock->fd, bindaddr) == 0)
             {
                 if (peeraddr != NULL)
                 {
-                    sock->peerinfo.peeraddr.sin_addr = *peeraddr;
-                    sock->peerinfo.peeraddrlen = sizeof(sock->peerinfo.peeraddr);
-                } else
-                {
-                    sock->peerinfo.peeraddrlen = sizeof(struct sockaddr);
+                    sock->peeraddr.sin_addr = *peeraddr;
                 }
-
-                sock->peerinfo.peertype = SLPD_PEER_ACCEPTED;     
-
-                switch (type)
+                
+                switch(type)
                 {
                 case DATAGRAM_MULTICAST:
-                    if (JoinSLPMulticastGroup(sock->fd, peeraddr, myaddr) == 0)
+                    if(JoinSLPMulticastGroup(sock->fd, peeraddr, myaddr) == 0)
                     {
                         sock->state = DATAGRAM_MULTICAST;
                         goto SUCCESS;
@@ -320,7 +316,7 @@ SLPDSocket* SLPDSocketCreateBoundDatagram(struct in_addr* myaddr,
                     break;
 
                 case DATAGRAM_BROADCAST:
-                    if (EnableBroadcast(sock->fd) == 0)
+                    if(EnableBroadcast(sock->fd) == 0)
                     {
                         sock->state = DATAGRAM_BROADCAST;
                         goto SUCCESS;
@@ -331,14 +327,13 @@ SLPDSocket* SLPDSocketCreateBoundDatagram(struct in_addr* myaddr,
                 default:
                     sock->state = DATAGRAM_UNICAST;
                     goto SUCCESS;
-                    break;
-
+                    break;  
                 }
             }
         }
     }
 
-    if (sock)
+    if(sock)
     {
         SLPDSocketFree(sock);
     }
@@ -365,14 +360,14 @@ SLPDSocket* SLPDSocketCreateListen(struct in_addr* peeraddr)
     SLPDSocket* sock;
 
     sock = SLPDSocketAlloc();
-    if (sock)
+    if(sock)
     {
         sock->fd = socket(PF_INET, SOCK_STREAM, 0);
-        if (sock->fd >= 0)
+        if(sock->fd >= 0)
         {
-            if (BindSocketToInetAddr(sock->fd, peeraddr) >= 0)
+            if(BindSocketToInetAddr(sock->fd, peeraddr) >= 0)
             {
-                if (listen(sock->fd,5) == 0)
+                if(listen(sock->fd,5) == 0)
                 {
                     /* Set socket to non-blocking so subsequent calls to */
                     /* accept will *never* block                         */
@@ -391,7 +386,7 @@ SLPDSocket* SLPDSocketCreateListen(struct in_addr* peeraddr)
         }
     }
 
-    if (sock)
+    if(sock)
     {
         SLPDSocketFree(sock);
     }
@@ -421,14 +416,14 @@ SLPDSocket* SLPDSocketCreateConnected(struct in_addr* addr)
     SLPDSocket*         sock = 0;
 
     sock = SLPDSocketAlloc();
-    if (sock == 0)
+    if(sock == 0)
     {
         goto FAILURE;
     }
 
     /* create the stream socket */
     sock->fd = socket(PF_INET,SOCK_DGRAM,0);
-    if (sock->fd < 0)
+    if(sock->fd < 0)
     {
         goto FAILURE;                        
     }
@@ -442,12 +437,10 @@ SLPDSocket* SLPDSocketCreateConnected(struct in_addr* addr)
     fcntl(sock->fd,F_SETFL, fdflags | O_NONBLOCK);
 #endif
 
-
-
     /* zero then set peeraddr to connect to */
-    sock->peerinfo.peeraddr.sin_family = AF_INET;
-    sock->peerinfo.peeraddr.sin_port = htons(SLP_RESERVED_PORT);
-    sock->peerinfo.peeraddr.sin_addr = *addr;
+    sock->peeraddr.sin_family = AF_INET;
+    sock->peeraddr.sin_port = htons(SLP_RESERVED_PORT);
+    sock->peeraddr.sin_addr = *addr;
 
     /* set the receive and send buffer low water mark to 18 bytes 
     (the length of the smallest slpv2 message) */
@@ -456,23 +449,25 @@ SLPDSocket* SLPDSocketCreateConnected(struct in_addr* addr)
     setsockopt(sock->fd,SOL_SOCKET,SO_SNDLOWAT,&lowat,sizeof(lowat));
 
     /* non-blocking connect */
-    if (connect(sock->fd, 
-                (struct sockaddr *) &(sock->peerinfo.peeraddr), 
-                sizeof(sock->peerinfo.peeraddr)) == 0)
+    if(connect(sock->fd, 
+               (struct sockaddr *) &(sock->peeraddr), 
+               sizeof(sock->peeraddr)) == 0)
     {
         /* Connection occured immediately */
         sock->state = STREAM_CONNECT_IDLE;
-    } else
+    }
+    else
     {
 #ifdef WIN32
-        if (WSAEWOULDBLOCK == WSAGetLastError())
+        if(WSAEWOULDBLOCK == WSAGetLastError())
 #else
-        if (errno == EINPROGRESS)
+        if(errno == EINPROGRESS)
 #endif
         {
             /* Connect would have blocked */
             sock->state = STREAM_CONNECT_BLOCK;
-        } else
+        }
+        else
         {
             goto FAILURE;
         }                                
@@ -482,7 +477,7 @@ SLPDSocket* SLPDSocketCreateConnected(struct in_addr* addr)
 
     /* cleanup on failure */
     FAILURE:
-    if (sock)
+    if(sock)
     {
         CloseSocket(sock->fd);
         free(sock);

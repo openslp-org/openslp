@@ -35,10 +35,10 @@
 #include <limits.h>
 
 /*-------------------------------------------------------------------------*/
-int v1ProcessDASrvRqst(SLPDPeerInfo* peerinfo,
-		       SLPMessage message,
-		       SLPBuffer* sendbuf,
-		       int errorcode)
+int v1ProcessDASrvRqst(struct sockaddr_in* peeraddr,
+                       SLPMessage message,
+                       SLPBuffer* sendbuf,
+                       int errorcode)
 /*-------------------------------------------------------------------------*/
 {
     int size = 0, noscopes = 0, urllen = INT_MAX, scopeslen = INT_MAX;
@@ -177,7 +177,7 @@ FINISHED:
 
 
 /*-------------------------------------------------------------------------*/
-int v1ProcessSrvRqst(SLPDPeerInfo* peerinfo,
+int v1ProcessSrvRqst(struct sockaddr_in* peeraddr,
 		     SLPMessage message,
 		     SLPBuffer* sendbuf,
 		     int errorcode)
@@ -219,7 +219,7 @@ int v1ProcessSrvRqst(SLPDPeerInfo* peerinfo,
                          15,
                          "directory-agent") == 0)
     {
-        errorcode = v1ProcessDASrvRqst(peerinfo, message, sendbuf, errorcode);
+        errorcode = v1ProcessDASrvRqst(peeraddr, message, sendbuf, errorcode);
         return errorcode;
     }
 
@@ -355,7 +355,7 @@ FINISHED:
 }
 
 /*-------------------------------------------------------------------------*/
-int v1ProcessSrvReg(SLPDPeerInfo* peerinfo,
+int v1ProcessSrvReg(struct sockaddr_in* peeraddr,
 		    SLPMessage message,
 		    SLPBuffer* sendbuf,
 		    int errorcode)
@@ -462,7 +462,7 @@ FINISHED:
 
 
 /*-------------------------------------------------------------------------*/
-int v1ProcessSrvDeReg(SLPDPeerInfo* peerinfo,
+int v1ProcessSrvDeReg(struct sockaddr_in* peeraddr,
 		      SLPMessage message,
 		      SLPBuffer* sendbuf,
 		      int errorcode)
@@ -559,7 +559,7 @@ FINISHED:
 }
 
 /*-------------------------------------------------------------------------*/
-int v1ProcessAttrRqst(SLPDPeerInfo* peerinfo,
+int v1ProcessAttrRqst(struct sockaddr_in* peeraddr,
 		      SLPMessage message,
 		      SLPBuffer* sendbuf,
 		      int errorcode)
@@ -725,7 +725,7 @@ FINISHED:
 
 
 /*-------------------------------------------------------------------------*/
-int v1ProcessSrvTypeRqst(SLPDPeerInfo* peerinfo,
+int v1ProcessSrvTypeRqst(struct sockaddr_in* peeraddr,
 			 SLPMessage message,
 			 SLPBuffer* sendbuf,
 			 int errorcode)
@@ -881,7 +881,7 @@ FINISHED:
 }
 
 /*=========================================================================*/
-int SLPDv1ProcessMessage(SLPDPeerInfo* peerinfo,
+int SLPDv1ProcessMessage(struct sockaddr_in* peeraddr,
 			 SLPBuffer recvbuf,
 			 SLPBuffer* sendbuf,
 			 SLPMessage message,
@@ -911,31 +911,31 @@ int SLPDv1ProcessMessage(SLPDPeerInfo* peerinfo,
 
     if (G_SlpdProperty.traceMsg)
     {
-        SLPDLogTraceMsg("IN",peerinfo,recvbuf);
+        SLPDLogTraceMsg("IN",peeraddr,recvbuf);
     }
 
     switch (message->header.functionid)
     {
     case SLP_FUNCT_SRVRQST:
-        errorcode = v1ProcessSrvRqst(peerinfo, message, sendbuf, errorcode);
+        errorcode = v1ProcessSrvRqst(peeraddr, message, sendbuf, errorcode);
         break;
 
     case SLP_FUNCT_SRVREG:
-        errorcode = v1ProcessSrvReg(peerinfo, message, sendbuf, errorcode);
+        errorcode = v1ProcessSrvReg(peeraddr, message, sendbuf, errorcode);
 	/* We are a DA so there is no need to register with known DAs */
         break;
 
     case SLP_FUNCT_SRVDEREG:
-        errorcode = v1ProcessSrvDeReg(peerinfo, message, sendbuf, errorcode);
+        errorcode = v1ProcessSrvDeReg(peeraddr, message, sendbuf, errorcode);
 	/* We are a DA so there is no need to deregister with known DAs */
         break;
 
     case SLP_FUNCT_ATTRRQST:
-        errorcode = v1ProcessAttrRqst(peerinfo, message, sendbuf, errorcode);
+        errorcode = v1ProcessAttrRqst(peeraddr, message, sendbuf, errorcode);
         break;
 
     case SLP_FUNCT_SRVTYPERQST:
-        errorcode = v1ProcessSrvTypeRqst(peerinfo, message, sendbuf, errorcode);
+        errorcode = v1ProcessSrvTypeRqst(peeraddr, message, sendbuf, errorcode);
         break;
 
     case SLP_FUNCT_DAADVERT:
@@ -954,7 +954,7 @@ int SLPDv1ProcessMessage(SLPDPeerInfo* peerinfo,
     /* Log traceMsg of message was received and the one that will be sent */
     if (G_SlpdProperty.traceMsg)
     {
-        SLPDLogTraceMsg("OUT", peerinfo, *sendbuf);
+        SLPDLogTraceMsg("OUT", peeraddr, *sendbuf);
     }
 
     SLPMessageFree(message);

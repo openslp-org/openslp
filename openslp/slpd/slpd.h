@@ -212,7 +212,12 @@ typedef struct _SLPDDatabaseEntry
     char*               scopelist;
     int                 srvtypelen;
     char*               srvtype;
-	SLPAttributes		attr;
+#ifdef USE_PREDICATES
+    SLPAttributes		attr;
+#else
+    int                 attrlistlen;
+    char*               attrlist;
+#endif     
     /* TODO: we might need some authblock storage here */
 }SLPDDatabaseEntry;
 
@@ -359,31 +364,6 @@ SLPDDatabaseEntry* SLPDRegFileReadEntry(FILE* fd, SLPDDatabaseEntry** entry);
 
 
 /*=========================================================================*/
-typedef enum _SLPDPeerType
-/*=========================================================================*/
-{
-    SLPD_PEER_UNKNOWN   = 0,
-    SLPD_PEER_LIBSLP    = 1,
-    SLPD_PEER_ACCEPTED  = 2,
-    SLPD_PEER_CONNECTED = 3
-}SLPDPeerType;
-
-
-/*=========================================================================*/
-typedef struct _SLPDPeerInfo
-/* Structure representing a socket peer                                    */
-/*=========================================================================*/
-{
-    SLPDPeerType        peertype;
-    struct sockaddr_in  peeraddr;
-    socklen_t           peeraddrlen;
-    pid_t               peerpid;
-    uid_t               peeruid;
-    gid_t               peergid;
-}SLPDPeerInfo;
-
-
-/*=========================================================================*/
 typedef enum _SLPDSocketState
 /* Value representing a type or state of a socket                          */
 /*=========================================================================*/
@@ -413,8 +393,8 @@ typedef struct _SLPDSocket
     int                 fd;
     time_t              age;      
     SLPDSocketState     state;
-    SLPDPeerInfo        peerinfo;
-
+    struct sockaddr_in  peeraddr;
+    
     /* Incoming socket stuff */
     SLPBuffer           recvbuf;
     SLPBuffer           sendbuf;
@@ -590,7 +570,7 @@ extern SLPList G_OutgoingSocketList;
 
 
 /*=========================================================================*/
-int SLPDProcessMessage(SLPDPeerInfo* peerinfo,
+int SLPDProcessMessage(struct sockaddr_in* peeraddr,
                        SLPBuffer recvbuf,
                        SLPBuffer* sendbuf);
 /* Processes the recvbuf and places the results in sendbuf                 */
@@ -608,7 +588,7 @@ int SLPDProcessMessage(SLPDPeerInfo* peerinfo,
 
 /*=========================================================================*/
 void SLPDLogTraceMsg(const char* prefix,
-		     SLPDPeerInfo* peerinfo,
+                     struct sockaddr_in* peerinfo,
                      SLPBuffer buf);
 /*=========================================================================*/
 
@@ -620,8 +600,14 @@ void SLPDLogTraceReg(const char* prefix, SLPDDatabaseEntry* entry);
 
 /*=========================================================================*/
 void SLPDLogDATrafficMsg(const char* prefix,
-                         SLPDPeerInfo* peerinfo,
+                         struct sockaddr_in* peerinfo,
                          SLPMessage daadvert);
+/*=========================================================================*/
+
+
+/*=========================================================================*/
+void SLPDLogKnownDA(const char* prefix,
+                    struct in_addr* peeraddr);
 /*=========================================================================*/
 
 
@@ -650,11 +636,20 @@ SLPDAEntry* SLPDKnownDAAdd(struct in_addr* addr,
 /* returns  Pointer to the added or updated                                */
 /*=========================================================================*/
 
+/*=========================================================================*/
+void SLPDKnownDARemove(SLPDAEntry* daentry);
+/* Remove the specified entry from the list of KnownDAs                    */
+/*                                                                         */
+/* daentry (IN) the entry to remove.                                       */
+/*                                                                         */
+/* Warning! memory pointed to by daentry will be freed                     */
+/*=========================================================================*/
+
 
 /*=========================================================================*/
-void SLPDKnownDARegister(SLPDPeerInfo* peerinfo,
-			 SLPMessage msg,
-			 SLPBuffer buf);
+void SLPDKnownDARegister(struct sockaddr_in* peerinfo,
+                         SLPMessage msg,
+                         SLPBuffer buf);
 /* Echo a message to a known DA                                            */
 /*									   */
 /* peerinf (IN) the peer that the registration came from                   */    

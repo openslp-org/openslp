@@ -34,7 +34,7 @@
 #include "slpd.h"
 
 #if defined(ENABLE_SLPv1)
-extern int SLPDv1ProcessMessage(SLPDPeerInfo* peerinfo,
+extern int SLPDv1ProcessMessage(struct sockaddr_in* peeraddr,
                                 SLPBuffer recvbuf,
                                 SLPBuffer* sendbuf,
                                 SLPMessage message,
@@ -43,7 +43,7 @@ extern int SLPDv1ProcessMessage(SLPDPeerInfo* peerinfo,
 
 
 /*-------------------------------------------------------------------------*/
-int ProcessSASrvRqst(SLPDPeerInfo* peerinfo,
+int ProcessSASrvRqst(struct sockaddr_in* peeraddr,
                      SLPMessage message,
                      SLPBuffer* sendbuf,
                      int errorcode)
@@ -140,7 +140,7 @@ int ProcessSASrvRqst(SLPDPeerInfo* peerinfo,
 
 
 /*-------------------------------------------------------------------------*/
-int ProcessDASrvRqst(SLPDPeerInfo* peerinfo,
+int ProcessDASrvRqst(struct sockaddr_in* peeraddr,
                      SLPMessage message,
                      SLPBuffer* sendbuf,
                      int errorcode)
@@ -290,7 +290,7 @@ int ProcessDASrvRqst(SLPDPeerInfo* peerinfo,
 
 
 /*-------------------------------------------------------------------------*/
-int ProcessSrvRqst(SLPDPeerInfo* peerinfo,
+int ProcessSrvRqst(struct sockaddr_in* peeraddr,
                    SLPMessage message,
                    SLPBuffer* sendbuf,
                    int errorcode)
@@ -332,7 +332,7 @@ int ProcessSrvRqst(SLPDPeerInfo* peerinfo,
                         23,
                         "service:directory-agent") == 0)
     {
-        errorcode = ProcessDASrvRqst(peerinfo, message, sendbuf, errorcode);
+        errorcode = ProcessDASrvRqst(peeraddr, message, sendbuf, errorcode);
         return errorcode;
     }
     if(SLPCompareString(message->body.srvrqst.srvtypelen,
@@ -340,7 +340,7 @@ int ProcessSrvRqst(SLPDPeerInfo* peerinfo,
                         21,
                         "service:service-agent") == 0)
     {
-        errorcode = ProcessSASrvRqst(peerinfo, message, sendbuf, errorcode);
+        errorcode = ProcessSASrvRqst(peeraddr, message, sendbuf, errorcode);
         return errorcode;
     }
 
@@ -484,7 +484,7 @@ int ProcessSrvRqst(SLPDPeerInfo* peerinfo,
 }
 
 /*-------------------------------------------------------------------------*/
-int ProcessSrvReg(SLPDPeerInfo* peerinfo,
+int ProcessSrvReg(struct sockaddr_in* peeraddr,
                   SLPMessage message,
                   SLPBuffer* sendbuf,
                   int errorcode)
@@ -600,7 +600,7 @@ int ProcessSrvReg(SLPDPeerInfo* peerinfo,
 
 
 /*-------------------------------------------------------------------------*/
-int ProcessSrvDeReg(SLPDPeerInfo* peerinfo,
+int ProcessSrvDeReg(struct sockaddr_in* peeraddr,
                     SLPMessage message,
                     SLPBuffer* sendbuf,
                     int errorcode)
@@ -705,7 +705,7 @@ int ProcessSrvDeReg(SLPDPeerInfo* peerinfo,
 
 
 /*-------------------------------------------------------------------------*/
-int ProcessSrvAck(SLPDPeerInfo* peerinfo,
+int ProcessSrvAck(struct sockaddr_in* peeraddr,
                   SLPMessage message,
                   SLPBuffer* sendbuf,
                   int errorcode)
@@ -720,7 +720,7 @@ int ProcessSrvAck(SLPDPeerInfo* peerinfo,
 
 
 /*-------------------------------------------------------------------------*/
-int ProcessAttrRqst(SLPDPeerInfo* peerinfo,
+int ProcessAttrRqst(struct sockaddr_in* peeraddr,
                     SLPMessage message,
                     SLPBuffer* sendbuf,
                     int errorcode)
@@ -879,7 +879,7 @@ int ProcessAttrRqst(SLPDPeerInfo* peerinfo,
 
 
 /*-------------------------------------------------------------------------*/
-int ProcessDAAdvert(SLPDPeerInfo* peerinfo,
+int ProcessDAAdvert(struct sockaddr_in* peeraddr,
                     SLPMessage message,
                     SLPBuffer* sendbuf,
                     int errorcode)
@@ -945,7 +945,7 @@ int ProcessDAAdvert(SLPDPeerInfo* peerinfo,
 
             /* TODO: the following is allows for easy DA masquarading (unsafe) */
             /*       remove it when the above is fixed                         */
-            SLPDKnownDAAdd(&(peerinfo->peeraddr.sin_addr), 
+            SLPDKnownDAAdd(&(peeraddr->sin_addr), 
                            message->body.daadvert.bootstamp,
                            message->body.daadvert.scopelist,
                            message->body.daadvert.scopelistlen);
@@ -965,7 +965,7 @@ int ProcessDAAdvert(SLPDPeerInfo* peerinfo,
 
 
 /*-------------------------------------------------------------------------*/
-int ProcessSrvTypeRqst(SLPDPeerInfo* peerinfo,
+int ProcessSrvTypeRqst(struct sockaddr_in* peeraddr,
                        SLPMessage message,
                        SLPBuffer* sendbuf,
                        int errorcode)
@@ -1118,7 +1118,7 @@ int ProcessSrvTypeRqst(SLPDPeerInfo* peerinfo,
 }
 
 /*-------------------------------------------------------------------------*/
-int ProcessSAAdvert(SLPDPeerInfo* peerinfo,
+int ProcessSAAdvert(struct sockaddr_in* peerinfo,
                     SLPMessage message,
                     SLPBuffer* sendbuf,
                     int errorcode)
@@ -1129,7 +1129,7 @@ int ProcessSAAdvert(SLPDPeerInfo* peerinfo,
 
 
 /*=========================================================================*/
-int SLPDProcessMessage(SLPDPeerInfo* peerinfo,
+int SLPDProcessMessage(struct sockaddr_in* peerinfo,
                        SLPBuffer recvbuf,
                        SLPBuffer* sendbuf)
 /* Processes the recvbuf and places the results in sendbuf                 */

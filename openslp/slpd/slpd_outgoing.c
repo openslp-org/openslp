@@ -45,8 +45,8 @@ void OutgoingStreamReconnect(SLPList* socklist, SLPDSocket* sock)
 /*-------------------------------------------------------------------------*/
 {
     if(connect(sock->fd, 
-               (struct sockaddr *)&(sock->peerinfo.peeraddr), 
-               sizeof(sock->peerinfo.peeraddr)) == 0)   
+               (struct sockaddr *)&(sock->peeraddr), 
+               sizeof(struct sockaddr_in)) == 0)   
     {
         /* Connection occured immediately*/
         sock->state = STREAM_WRITE_FIRST;
@@ -64,6 +64,13 @@ void OutgoingStreamReconnect(SLPList* socklist, SLPDSocket* sock)
         }
         else
         {
+            /* TODO: if reconnect fails on known DA then we should remove  */
+            /*       the know DA                                           */
+            if(sock->daentry)
+            {
+                SLPDKnownDARemove(sock->daentry);
+                sock->daentry = 0;
+            }
             sock->state = SOCKET_CLOSE;
         }                                
     } 
@@ -75,6 +82,7 @@ void OutgoingStreamRead(SLPList* socklist, SLPDSocket* sock)
 {
     int     bytesread;
     char    peek[16];
+    int     peeraddrlen = sizeof(struct sockaddr_in);
 
     if (sock->state == STREAM_READ_FIRST)
     {
@@ -85,8 +93,8 @@ void OutgoingStreamRead(SLPList* socklist, SLPDSocket* sock)
                              peek,
                              16,
                              MSG_PEEK,
-                             (struct sockaddr *)&(sock->peerinfo.peeraddr),
-                             &(sock->peerinfo.peeraddrlen));
+                             (struct sockaddr *)&(sock->peeraddr),
+                             &peeraddrlen);
         if (bytesread > 0)
         {
             /* check the version */
@@ -112,7 +120,7 @@ void OutgoingStreamRead(SLPList* socklist, SLPDSocket* sock)
             {
                 SLPLog("Unsupported version %i received from %s\n",
                        *peek,
-                       inet_ntoa(sock->peerinfo.peeraddr.sin_addr));
+                       inet_ntoa(sock->peeraddr.sin_addr));
                 sock->state = SOCKET_CLOSE;
             }
         }
@@ -153,7 +161,7 @@ void OutgoingStreamRead(SLPList* socklist, SLPDSocket* sock)
             /* check to see if everything was read */
             if (sock->recvbuf->curpos == sock->recvbuf->end)
             {
-                switch(SLPDProcessMessage(&(sock->peerinfo),
+                switch(SLPDProcessMessage(&(sock->peeraddr),
                                           sock->recvbuf,
                                           &(sock->sendbuf)))
                 {
@@ -164,7 +172,7 @@ void OutgoingStreamRead(SLPList* socklist, SLPDSocket* sock)
                 case SLP_ERROR_PARSE_ERROR:
                 case SLP_ERROR_VER_NOT_SUPPORTED:
                     SLPLog("PARSE_ERROR / VER_NOT_SUPPORTED from %s\n",
-                           inet_ntoa(sock->peerinfo.peeraddr.sin_addr));
+                           inet_ntoa(sock->peeraddr.sin_addr));
                     sock->state = SOCKET_CLOSE;
                     break;
                 

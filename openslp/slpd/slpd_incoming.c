@@ -48,44 +48,44 @@ void IncomingDatagramRead(SLPList* socklist, SLPDSocket* sock)
     int                 bytesread;
     int                 bytestowrite;
     int                 byteswritten;
-	int                 err;
+    int                 err;
+    int                 peeraddrlen = sizeof(struct sockaddr_in);
 
     bytesread = recvfrom(sock->fd,
                          sock->recvbuf->start,
                          SLP_MAX_DATAGRAM_SIZE,
                          0,
-                         (struct sockaddr *) &(sock->peerinfo.peeraddr),
-                         &(sock->peerinfo.peeraddrlen));
+                         (struct sockaddr *) &(sock->peeraddr),
+                         &peeraddrlen);
     if (bytesread > 0)
     {
         sock->recvbuf->end = sock->recvbuf->start + bytesread;
 
-        if ((err = SLPDProcessMessage(&(sock->peerinfo),
-									 sock->recvbuf,
-									 &(sock->sendbuf))) == 0)
+        if ((err = SLPDProcessMessage(&(sock->peeraddr),
+                                      sock->recvbuf,
+                                      &(sock->sendbuf))) == 0)
         {
             /* check to see if we should send anything */
             bytestowrite = sock->sendbuf->end - sock->sendbuf->start;
             if (bytestowrite > 0)
             {
-                byteswritten = sendto(sock->fd,
-				      sock->sendbuf->start,
-				      bytestowrite,
-				      0,
-				      (struct sockaddr *)
-				      &(sock->peerinfo.peeraddr),
-				      sock->peerinfo.peeraddrlen);
+                byteswritten = sendto(sock->fd, 
+                                      sock->sendbuf->start,
+                                      bytestowrite,
+                                      0,
+                                      (struct sockaddr *)&(sock->peeraddr),
+                                      sizeof(struct sockaddr_in));
 		if (byteswritten != bytestowrite)
 		{
 		    SLPLog("An error occured while replying to a message "
 			   "from %s\n",
-			   inet_ntoa(sock->peerinfo.peeraddr.sin_addr));
+			   inet_ntoa(sock->peeraddr.sin_addr));
 		}
             }
         } else
         {
             SLPLog("An error (%d) occured while processing message from %s\n",
-                   err, inet_ntoa(sock->peerinfo.peeraddr.sin_addr));
+                   err, inet_ntoa(sock->peeraddr.sin_addr));
         } 
     }
 }
@@ -146,6 +146,7 @@ void IncomingStreamRead(SLPList* socklist, SLPDSocket* sock)
 {
     int     bytesread;
     char    peek[16];
+    int     peeraddrlen = sizeof(struct sockaddr_in);
 
     if (sock->state == STREAM_READ_FIRST)
     {
@@ -156,8 +157,8 @@ void IncomingStreamRead(SLPList* socklist, SLPDSocket* sock)
                              peek,
                              16,
                              MSG_PEEK,
-                             (struct sockaddr *)&(sock->peerinfo.peeraddr),
-                             &(sock->peerinfo.peeraddrlen));
+                             (struct sockaddr *)&(sock->peeraddr),
+                             &peeraddrlen);
         if (bytesread > 0)
         {
 
@@ -182,7 +183,7 @@ void IncomingStreamRead(SLPList* socklist, SLPDSocket* sock)
             {
                 SLPLog("Unsupported version %i received from %s\n",
                        *peek,
-                       inet_ntoa(sock->peerinfo.peeraddr.sin_addr));
+                       inet_ntoa(sock->peeraddr.sin_addr));
 
                 sock->state = SOCKET_CLOSE;
             }
@@ -210,7 +211,7 @@ void IncomingStreamRead(SLPList* socklist, SLPDSocket* sock)
             sock->recvbuf->curpos += bytesread;
             if (sock->recvbuf->curpos == sock->recvbuf->end)
             {
-                if (SLPDProcessMessage(&sock->peerinfo,
+                if (SLPDProcessMessage(&sock->peeraddr,
                                        sock->recvbuf,
                                        &(sock->sendbuf)) == 0)
                 {
@@ -220,7 +221,7 @@ void IncomingStreamRead(SLPList* socklist, SLPDSocket* sock)
                 {
                     /* An error has occured in SLPDProcessMessage() */
                     SLPLog("An error while processing message from %s\n",
-                           inet_ntoa(sock->peerinfo.peeraddr.sin_addr));
+                           inet_ntoa(sock->peeraddr.sin_addr));
                     sock->state = SOCKET_CLOSE;
                 }                                                          
             }
@@ -263,11 +264,9 @@ void IncomingSocketListen(SLPList* socklist, SLPDSocket* sock)
             if (connsock)
             {
                 /* setup the accepted socket */
-                connsock->fd                    = fd;
-	        connsock->peerinfo.peeraddrlen  = peeraddrlen;
-                connsock->peerinfo.peeraddr     = peeraddr;
-                connsock->peerinfo.peertype     = SLPD_PEER_ACCEPTED;
-                connsock->state                 = STREAM_READ_FIRST;
+                connsock->fd        = fd;
+                connsock->peeraddr  = peeraddr;
+                connsock->state     = STREAM_READ_FIRST;
 
                 /* Set the low water mark on the accepted socket */
                 setsockopt(connsock->fd,SOL_SOCKET,SO_RCVLOWAT,&lowat,sizeof(lowat));
@@ -281,7 +280,6 @@ void IncomingSocketListen(SLPList* socklist, SLPDSocket* sock)
                 fcntl(connsock->fd,F_SETFL, fdflags | O_NONBLOCK);
 #endif        
                 SLPListLinkHead(socklist,(SLPListItem*)connsock);
-                IncomingStreamRead(socklist, sock);
             }
         }
     }

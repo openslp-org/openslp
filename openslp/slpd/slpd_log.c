@@ -123,32 +123,12 @@ void SLPDLogSAAdvertMessage(SLPSAAdvert* saadvert)
 
 
 /*-------------------------------------------------------------------------*/
-void SLPDLogPeerInfo(SLPDPeerInfo* peerinfo)
+void SLPDLogPeerAddr(struct sockaddr_in* peeraddr)
 /*-------------------------------------------------------------------------*/
 {
-    switch(peerinfo->peertype)
-    {
-    case SLPD_PEER_ACCEPTED:
-        SLPLog("Peer UA:\n");
-        SLPLog("   IP address: %s\n",inet_ntoa(peerinfo->peeraddr.sin_addr));
-        break;
-    
-    case SLPD_PEER_CONNECTED:
-        SLPLog("Peer DA:\n");
-        SLPLog("   IP address: %s\n",inet_ntoa(peerinfo->peeraddr.sin_addr));
-        break;
-
-    case SLPD_PEER_LIBSLP:
-        SLPLog("Peer libslp:\n");
-        SLPLog("   pid = %i\n",peerinfo->peerpid);
-        SLPLog("   uid = %i\n",peerinfo->peeruid);
-        SLPLog("   gid = %i\n",peerinfo->peergid);
-        break;
-
-    default:
-        SLPLog("Peer Unknown:\n");
-        SLPLog("   This is really bad\n");
-    }
+    SLPLog("Peer Information:\n");
+    SLPLog("   IP address: %s\n",inet_ntoa(peeraddr->sin_addr));
+    SLPLog("   Port:       %i\n",peeraddr->sin_port); 
 }
 
 /*-------------------------------------------------------------------------*/
@@ -222,7 +202,7 @@ void SLPDLogMessage(SLPMessage message)
 
 /*=========================================================================*/
 void SLPDLogTraceMsg(const char* prefix,
-                     SLPDPeerInfo* peerinfo,
+                     struct sockaddr_in* peeraddr,
                      SLPBuffer buf)
 /*=========================================================================*/
 {
@@ -236,7 +216,7 @@ void SLPDLogTraceMsg(const char* prefix,
             SLPLog("----------------------------------------\n");
             SLPLog("traceMsg %s:\n",prefix);
             SLPLog("----------------------------------------\n");
-            SLPDLogPeerInfo(peerinfo);
+            SLPDLogPeerAddr(peeraddr);
             SLPDLogMessage(msg);
             SLPLog("\n");
         }
@@ -273,7 +253,9 @@ void SLPDLogTraceReg(const char* prefix, SLPDDatabaseEntry* entry)
     SLPLogBuffer(entry->scopelist, entry->scopelistlen);
     SLPLog("\nservice type = ");
     SLPLogBuffer(entry->srvtype, entry->srvtypelen);
-	{/* Print attributes. */
+	
+    #ifdef USE_PREDICATES
+    {/* Print attributes. */
 		char *str;
 		SLPError err;
 		err = SLPAttrSerialize(entry->attr, NULL, &str, SLP_FALSE);
@@ -285,22 +267,41 @@ void SLPDLogTraceReg(const char* prefix, SLPDDatabaseEntry* entry)
 		{
 			SLPLog("\nattributes = %s", str);
 			free(str);
-		}
+		}      
 	}
+    #else
+    SLPLog("\nAttributes = = ");
+    SLPLogBuffer(entry->attrlist, entry->attrlistlen);
+    #endif
     SLPLog("\n\n");
 }
 
 /*=========================================================================*/
 void SLPDLogDATrafficMsg(const char* prefix,
-                         SLPDPeerInfo* peerinfo,
+                         struct sockaddr_in* peeraddr,
                          SLPMessage daadvert)
 /*=========================================================================*/
 {
     SLPLog("----------------------------------------\n");
     SLPLog("traceDATraffic %s:\n",prefix);
     SLPLog("----------------------------------------\n");
-    SLPDLogPeerInfo(peerinfo);
+    SLPDLogPeerAddr(peeraddr);
     SLPDLogMessage(daadvert);
     SLPLog("\n")    ;
 }
+
+
+/*=========================================================================*/
+void SLPDLogKnownDA(const char* prefix,
+                    struct in_addr* peeraddr)
+/*=========================================================================*/
+{
+    SLPLog("----------------------------------------\n");
+    SLPLog("Known DA %s:\n",prefix);
+    SLPLog("----------------------------------------\n");
+    SLPLog("DA Peer\n");
+    SLPLog("   IP address: %s\n",inet_ntoa(*peeraddr));
+    SLPLog("\n");
+}
+
 

@@ -173,7 +173,23 @@ SLPDAEntry* SLPDKnownDAAdd(struct in_addr* addr,
 
 
 /*=========================================================================*/
-void SLPDKnownDARegister(SLPDPeerInfo* peerinfo,
+void SLPDKnownDARemove(SLPDAEntry* daentry)
+/* Remove the specified entry from the list of KnownDAs                    */
+/*                                                                         */
+/* daentry (IN) the entry to remove.                                       */
+/*                                                                         */
+/* Warning! memory pointed to by daentry will be freed                     */
+/*=========================================================================*/
+{
+    /* TODO put the following line back in!*/
+    SLPDLogKnownDA("Removed",&(daentry->daaddr));
+    SLPDAEntryFree((SLPDAEntry*)SLPListUnlink(&G_KnownDAList,(SLPListItem*)daentry));
+    
+}
+
+
+/*=========================================================================*/
+void SLPDKnownDARegister(struct sockaddr_in* peeraddr,
                          SLPMessage msg,
                          SLPBuffer buf)
 /* Echo a message to a known DA                                            */
@@ -194,37 +210,47 @@ void SLPDKnownDARegister(SLPDPeerInfo* peerinfo,
     daentry = (SLPDAEntry*)G_KnownDAList.head;
     while (daentry)
     {
+        
+        /* Check to see if we already have a connection to the Known DA */
         sock = (SLPDSocket*)G_OutgoingSocketList.head;
         while (sock)
         {
-            if (sock->peerinfo.peeraddr.sin_addr.s_addr == daentry->daaddr.s_addr)
+            if (sock->daentry == daentry)
             {
                 break;
             }
             sock = (SLPDSocket*)sock->listitem.next;
         }
 
+        /* if we don't have a connection to the known DA create one */
         if (sock == 0)
         {
-            /* Create a new socket to the known DA */
             sock = SLPDSocketCreateConnected(&(daentry->daaddr));
             if (sock)
             {
                 sock->daentry = daentry;
                 SLPListLinkTail(&G_OutgoingSocketList,(SLPListItem*)sock);
             }
+            else
+            {
+                /* TODO: what should we do abou an error creating socket */
+            }
         }
 
         /* Load the socket with the message to send */
-        dup = SLPBufferDup(buf);
-        if (dup)
+        if(sock)
         {
-            if (sock->state == STREAM_CONNECT_IDLE)
+            dup = SLPBufferDup(buf);
+            if (dup)
             {
-                sock->state = STREAM_WRITE_FIRST;
+                if (sock->state == STREAM_CONNECT_IDLE)
+                {
+                    sock->state = STREAM_WRITE_FIRST;
+                }
+                SLPListLinkTail(&(sock->sendlist),(SLPListItem*)dup);
             }
-            SLPListLinkTail(&(sock->sendlist),(SLPListItem*)dup);
         }
+        
         daentry = (SLPDAEntry*)daentry->listitem.next;
     }
 }
@@ -232,7 +258,7 @@ void SLPDKnownDARegister(SLPDPeerInfo* peerinfo,
 
 /*=========================================================================*/
 void SLPDKnownDAActiveDiscovery()
-/* Set outgoing socket list to send an active DA discovery SrvRqst         */
+/* Send an  active DA discovery SrvRqst                                    */
 /*									                                       */
 /* Returns:  none                                                          */
 /*=========================================================================*/
@@ -262,7 +288,7 @@ void SLPDKnownDAActiveDiscovery()
     if(G_SlpdProperty.isBroadcastOnly == 0)
     {
         peeraddr.s_addr = htonl(SLP_MCAST_ADDRESS);
-        sock = SLPDSocketCreateDatagram(&peeraddr,DATAGRAM_BROADCAST);
+        sock = SLPDSocketCreateDatagram(&peeraddr,DATAGRAM_MULTICAST);
     }
     else
     {   
@@ -310,6 +336,7 @@ void SLPDKnownDAActiveDiscovery()
     sock->sendbuf = SLPBufferRealloc(sock->sendbuf,bufsize);
     if(sock->sendbuf == 0)
     {
+        /* out of memory */
         return;
     }                            
 
@@ -364,8 +391,8 @@ void SLPDKnownDAActiveDiscovery()
                sock->sendbuf->start,
                sock->sendbuf->end - sock->sendbuf->start,
                0,
-               (struct sockaddr *) &(sock->peerinfo.peeraddr),
-               sock->peerinfo.peeraddrlen);
+               (struct sockaddr *) &(sock->peeraddr),
+               sizeof(struct sockaddr_in));
     }
 
 FINISHED:

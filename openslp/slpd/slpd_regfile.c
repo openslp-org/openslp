@@ -317,7 +317,9 @@ SLPDDatabaseEntry* SLPDRegFileReadEntry(FILE* fd, SLPDDatabaseEntry** entry)
 				end--;
 			}
 
-			SLPAttrSet_guess((*entry)->attr, tag, val, SLP_ADD);
+			#ifdef USE_PREDICATES
+            SLPAttrSet_guess((*entry)->attr, tag, val, SLP_ADD);
+            #endif
         }
     }
 
