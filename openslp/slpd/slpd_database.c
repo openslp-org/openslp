@@ -152,13 +152,27 @@ int SLPDDatabaseReg(SLPMessage msg, SLPBuffer buf)
     SLPSrvReg*          reg;
     int                 result;
     
+    /* reg is the SrvReg message being registered */
+    reg = &(msg->body.srvreg);
+   
+    /* check service-url syntax */
+    if(SLPCheckServiceUrlSyntax(reg->urlentry.url, reg->urlentry.urllen))
+    {
+        return SLP_ERROR_INVALID_REGISTRATION;
+    }
+          
+    /* check attr-list syntax */
+    if(reg->attrlistlen &&
+       SLPCheckAttributeListSyntax(reg->attrlist,reg->attrlistlen))
+    {
+        return SLP_ERROR_INVALID_REGISTRATION;
+    }     
+    
+   
     dh = SLPDatabaseOpen(&G_SlpdDatabase.database);
     if(dh)
     {
         
-        /* reg is the SrvReg message being registered */
-        reg = &(msg->body.srvreg);
-
         /*-----------------------------------------------------*/
         /* Check to see if there is already an identical entry */
         /*-----------------------------------------------------*/
@@ -197,8 +211,7 @@ int SLPDDatabaseReg(SLPMessage msg, SLPBuffer buf)
                         SLPDatabaseClose(dh);
                         return SLP_ERROR_AUTHENTICATION_FAILED;
                     }
-#endif
-                    
+#endif  
                     /* Remove the identical entry */
                     SLPDatabaseRemove(dh,entry);
                     break;

@@ -6,6 +6,9 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 06/12/01 mpeterson@caldera.com
+Fixed #432594 - Registrations not checked for syntax
+
+06/12/01 mpeterson@caldera.com
 Fixed 418877 - SegV when finding attrs on certain URLS
 
 06/12/01 mpeterson@caldera.com

@@ -212,4 +212,34 @@ int SLPSubsetStringList(int listlen,
 /* Returns -    non-zero is sublist is a subset of list.  Zero otherwise   */
 /*=========================================================================*/
 
+
+/*=========================================================================*/
+int SLPCheckServiceUrlSyntax(const char* srvurl,
+			     int srvurllen);
+/* Test if a service url conforms to accepted syntax
+ * 
+ * srvurl -     (IN) service url string to check
+ * 
+ * srvurllen -  (IN) length of srvurl in bytes
+ * 
+ * Returns - zero if srvurl has acceptable syntax, non-zero on failure
+ * 
+ *=========================================================================*/
+
+
+/*=========================================================================*/
+int SLPCheckAttributeListSyntax(const char* attrlist,
+				int attrlistlen);
+/* Test if a service url conforms to accepted syntax
+ * 
+ * attrlist -     (IN) attribute list string to check
+ * 
+ * attrlistlen -  (IN) length of attrlist in bytes
+ * 
+ * Returns - zero if srvurl has acceptable syntax, non-zero on failure
+ * 
+ *=========================================================================*/
+
+
+  
 #endif
