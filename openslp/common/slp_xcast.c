@@ -179,7 +179,7 @@ int SLPMulticastSend(const SLPIfaceInfo* ifaceinfo,
 {
     int             flags = 0;
     int             xferbytes;
-    DWORD           ad = SLP_MCAST_ADDRESS;
+    int           ad = SLP_MCAST_ADDRESS;
 
 #if defined(MSG_NOSIGNAL)
     flags = MSG_NOSIGNAL;
@@ -305,7 +305,7 @@ int SLPXcastRecvMessage(const SLPXcastSockets* sockets,
     int     recvloop;
     int     peeraddrlen = sizeof(struct sockaddr_storage);
     char    peek[16];
-    int     result;
+    int     result = 0;
 
     /* recv loop */
     recvloop = 1;

@@ -135,7 +135,7 @@ static int dhcpCreateBCSkt(struct sockaddr_storage *peeraddr)
 	if((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) >= 0)
 	{
 		struct sockaddr_storage localaddr;
-        DWORD add = INADDR_ANY;
+        int add = INADDR_ANY;
 
         SLPNetSetAddr(&localaddr, AF_INET, IPPORT_BOOTPC, (unsigned char *)&add, sizeof(add));
 
@@ -348,8 +348,8 @@ static int dhcpGetAddressInfo(unsigned char *ipaddr, unsigned char *chaddr,
 	
 	sin = (struct sockaddr *)&arpreq.arp_pa;
 	memset(sin, 0, sizeof(struct sockaddr));
-	sin->sin_family = AF_INET;
-	memcpy(&sin->sin_addr, ipaddr, sizeof(struct in_addr));
+	sin->sa_family = AF_INET;
+	memcpy(&sin->sa_data, ipaddr, sizeof(struct in_addr));
 	
 	if (ioctl(sockfd, SIOCGARP, &arpreq) >= 0 
 			&& (arpreq.arp_flags & ATF_COM))

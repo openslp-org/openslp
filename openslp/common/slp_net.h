@@ -92,7 +92,7 @@ extern const struct in6_addr in6addr_srvlocda_link;
 extern const struct in6_addr in6addr_srvlocda_site;
 extern const struct in6_addr in6addr_service_node_mask;
 extern const struct in6_addr in6addr_service_link_mask;
-extern const struct in6_addr in6addr_service_site_mask;
+/* extern const struct in6_addr in6addr_service_site_mask; */
 
 /* Scope definitions */
 #define SLP_SCOPE_NODE_LOCAL                0x01

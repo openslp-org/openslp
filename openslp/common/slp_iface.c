@@ -70,8 +70,6 @@ typedef unsigned int uint32_t;
 #endif
 #endif
 
-/* STILL NEED LINUX VERSION OF THIS FUNCTION!!! */
-#ifdef _WIN32
 /*=========================================================================*/
 int SLPIfaceGetInfo(const char* useifaces,
                     SLPIfaceInfo* ifaceinfo, int family)
@@ -93,11 +91,8 @@ int SLPIfaceGetInfo(const char* useifaces,
  * Returns:
  *     zero on success, non-zero (with errno set) on error.
  *=========================================================================*/
-{
-    /*---------------------------------------------------*/
-    /* Use gethostbyname(). Not necessarily the best way */
-    /*---------------------------------------------------*/
-    /* for windows only - but may work in linux, will try during linux development */
+  {
+#ifdef _WIN32
     char hostName[MAX_HOST_NAME];
     int sts = 0;
     int useifacesLen;
@@ -153,8 +148,12 @@ int SLPIfaceGetInfo(const char* useifaces,
         networkInterface = networkInterface->Next;
     }
     return(sts);
-}
+/* non-windows implamentations */
+#else
+
+    return(0);
 #endif
+}
 /*=========================================================================*/
 int SLPIfaceSockaddrsToString(const struct sockaddr_storage* addrs,
                               int addrcount,
@@ -195,7 +194,7 @@ int SLPIfaceSockaddrsToString(const struct sockaddr_storage* addrs,
     {
         char buf[1024];
 
-        buf[0]= '/0';
+        buf[0]= '\0';
 
         SLPNetSockAddrStorageToString((struct sockaddr_storage *) (&addrs[i]), buf, sizeof(buf));
         strcat(*addrstr, buf);
