@@ -4,6 +4,12 @@
 
 #include <string.h>
 
+
+#ifdef WIN32
+#define strncasecmp(String1, String2, Num) strnicmp(String1, String2, Num)
+#define strcasecmp(String1, String2, Num) stricmp(String1, String2, Num)
+#endif
+
 /* The character that is a wildcard. */
 #define WILDCARD ('*')
 

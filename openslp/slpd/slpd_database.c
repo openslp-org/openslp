@@ -35,10 +35,6 @@
 #include "slpd.h"
 #include <assert.h>
 
-#ifdef WIN32
-#define strncasecmp(String1, String2, Num) strnicmp(String1, String2, Num)
-#endif
-
 /*=========================================================================*/
 SLPList G_DatabaseList = {0,0,0};
 /*=========================================================================*/

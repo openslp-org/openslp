@@ -36,10 +36,6 @@
 #include "slpd.h"
 #include <ctype.h>
 
-#ifdef WIN32
-#define strncasecmp(String1, String2, Num) strnicmp(String1, String2, Num)
-#endif
-
 /*-------------------------------------------------------------------------*/
 char* TrimWhitespace(char* str)
 /*-------------------------------------------------------------------------*/

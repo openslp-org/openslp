@@ -38,6 +38,7 @@
 /* Include platform specific headers files */
 #ifdef WIN32
 #include "slpd_win32.h"
+#define strncasecmp(String1, String2, Num) strnicmp(String1, String2, Num)
 #else
 #include "slpd_unistd.h"
 #endif
