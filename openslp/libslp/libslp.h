@@ -166,7 +166,9 @@ typedef struct _SLPHandleInfo
     SLPBoolean          inUse;
     SLPBoolean          isAsync;
     int                 dasock;
+    struct sockaddr_in  daaddr;
     int                 sasock;
+    struct sockaddr_in  saaddr;
     int                 langtaglen;
     char*               langtag;
     SLPHandleCallParams params;

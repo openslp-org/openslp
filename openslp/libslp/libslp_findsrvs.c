@@ -81,7 +81,6 @@ SLPBoolean CallbackSrvRqst(SLPError errorcode, SLPMessage msg, void* cookie)
 SLPError ProcessSrvRqst(PSLPHandleInfo handle)
 /*-------------------------------------------------------------------------*/
 {
-    struct sockaddr_in  peeraddr;
     int                 bufsize     = 0;
     char*               buf         = 0;
     char*               curpos      = 0;
@@ -132,7 +131,7 @@ SLPError ProcessSrvRqst(PSLPHandleInfo handle)
     
     /* try first with existing DA socket */
     result = NetworkRqstRply(handle->dasock,
-                             &peeraddr,
+                             &handle->daaddr,
                              handle->langtag,
                              buf,
                              SLP_FUNCT_SRVRQST,
@@ -150,10 +149,10 @@ SLPError ProcessSrvRqst(PSLPHandleInfo handle)
 
         handle->dasock = NetworkConnectToDA(handle->params.findsrvs.scopelist,
                                             handle->params.findsrvs.scopelistlen,
-                                            &peeraddr);
+                                            &handle->daaddr);
         if(handle->dasock < 0)
         {
-            handle->dasock = NetworkConnectToMulticast(&peeraddr);
+            handle->dasock = NetworkConnectToMulticast(&handle->daaddr);
             if(handle->dasock < 0)
             {
                 result = SLP_NETWORK_INIT_FAILED;
@@ -162,7 +161,7 @@ SLPError ProcessSrvRqst(PSLPHandleInfo handle)
         }
 
         result = NetworkRqstRply(handle->dasock,
-                                 &peeraddr,
+                                 &handle->daaddr,
                                  handle->langtag,
                                  buf,
                                  SLP_FUNCT_SRVRQST,

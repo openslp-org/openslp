@@ -70,7 +70,6 @@ SLPBoolean CallbackSrvDeReg(SLPError errorcode, SLPMessage msg, void* cookie)
 SLPError ProcessSrvDeReg(PSLPHandleInfo handle)
 /*-------------------------------------------------------------------------*/
 {
-    struct sockaddr_in  peeraddr;
     int                 bufsize     = 0;
     char*               buf         = 0;
     char*               curpos      = 0;
@@ -130,7 +129,7 @@ SLPError ProcessSrvDeReg(PSLPHandleInfo handle)
     
     /* try first with existing SA socket */
     result = NetworkRqstRply(handle->sasock,
-                             &peeraddr,
+                             &handle->saaddr,
                              handle->langtag,
                              buf,
                              SLP_FUNCT_SRVDEREG,
@@ -146,12 +145,12 @@ SLPError ProcessSrvDeReg(PSLPHandleInfo handle)
             close(handle->sasock);
         }
 
-        handle->sasock = NetworkConnectToSlpd(&peeraddr);
+        handle->sasock = NetworkConnectToSlpd(&handle->saaddr);
         if(handle->sasock < 0)
         {
             handle->sasock = NetworkConnectToDA(handle->params.dereg.scopelist,
                                                 handle->params.dereg.scopelistlen,
-                                                &peeraddr);
+                                                &handle->saaddr);
             if(handle->sasock < 0)
             {
                 result = SLP_NETWORK_INIT_FAILED;
@@ -160,7 +159,7 @@ SLPError ProcessSrvDeReg(PSLPHandleInfo handle)
         }
         
         result = NetworkRqstRply(handle->sasock,
-                         &peeraddr,
+                         &handle->saaddr,
                          handle->langtag,
                          buf,
                          SLP_FUNCT_SRVDEREG,
