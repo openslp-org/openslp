@@ -78,13 +78,13 @@ SLPBoolean mySrvTypeCallback( SLPHandle hslp,
         {
             slider1 = slider2 = cpy;
             slider1 = strchr(slider2,',');
-	    while(slider1)
+       while(slider1)
             {
                 *slider1 = 0;
                 printf("%s\n",slider2);
                 slider1 ++;
                 slider2 = slider1;
-	        slider1 = strchr(slider2,',');
+           slider1 = strchr(slider2,',');
             }
 
             /* print the final itam */
@@ -108,19 +108,19 @@ void FindSrvTypes(SLPToolCommandLine* cmdline)
         if(cmdline->cmdparam1)
         {
             result = SLPFindSrvTypes(hslp,
-				     cmdline->cmdparam1,
-				     cmdline->scopes,
-				     mySrvTypeCallback,
-				     0);
-	}
+                 cmdline->cmdparam1,
+                 cmdline->scopes,
+                 mySrvTypeCallback,
+                 0);
+   }
         else
         {
-	    result = SLPFindSrvTypes(hslp,
-				     "*",
-				     cmdline->scopes,
-				     mySrvTypeCallback,
-				     0);
-	}
+       result = SLPFindSrvTypes(hslp,
+                 "*",
+                 cmdline->scopes,
+                 mySrvTypeCallback,
+                 0);
+   }
        
         if(result != SLP_OK)
         {
@@ -180,7 +180,7 @@ void FindSrvTypesUsingIFList(SLPToolCommandLine* cmdline)
 
     if(SLPOpen(cmdline->lang,SLP_FALSE,&hslp) == SLP_OK)
     {
-	if((result = SLPAssociateIFList(hslp, cmdline->cmdparam3)) != SLP_OK)
+   if((result = SLPAssociateIFList(hslp, cmdline->cmdparam3)) != SLP_OK)
         {
             printf("errorcode: %i\n",result);
             SLPClose(hslp);
@@ -194,15 +194,15 @@ void FindSrvTypesUsingIFList(SLPToolCommandLine* cmdline)
                                      cmdline->scopes,
                                      mySrvTypeCallback,
                                      0);
-	}
+   }
         else
         {
-	    result = SLPFindSrvTypes(hslp,
+       result = SLPFindSrvTypes(hslp,
                                      "*",
                                      cmdline->scopes,
                                      mySrvTypeCallback,
                                      0);
-	}
+   }
        
         if(result != SLP_OK)
         {
@@ -287,7 +287,7 @@ void FindAttrsUsingIFList(SLPToolCommandLine* cmdline)
 
     if(SLPOpen(cmdline->lang,SLP_FALSE,&hslp) == SLP_OK)
     {
-	if((result = SLPAssociateIFList(hslp, cmdline->cmdparam3)) != SLP_OK)
+   if((result = SLPAssociateIFList(hslp, cmdline->cmdparam3)) != SLP_OK)
         {
             printf("errorcode: %i\n",result);
             SLPClose(hslp);
@@ -353,7 +353,7 @@ void FindSrvsUsingIFList(SLPToolCommandLine* cmdline)
 
     if(SLPOpen(cmdline->lang,SLP_FALSE,&hslp) == SLP_OK)
     {
-	if((result = SLPAssociateIFList(hslp, cmdline->cmdparam3)) != SLP_OK)
+   if((result = SLPAssociateIFList(hslp, cmdline->cmdparam3)) != SLP_OK)
         {
             printf("errorcode: %i\n",result);
             SLPClose(hslp);
@@ -382,7 +382,7 @@ void UnicastFindSrvs(SLPToolCommandLine* cmdline)
     SLPHandle   hslp;
 
     if(SLPOpen(cmdline->lang,SLP_FALSE,&hslp) == SLP_OK) {
-	if((result = SLPAssociateIP(hslp, cmdline->cmdparam3)) != SLP_OK)
+   if((result = SLPAssociateIP(hslp, cmdline->cmdparam3)) != SLP_OK)
         {
             printf("errorcode: %i\n",result);
             SLPClose(hslp);
@@ -392,8 +392,8 @@ void UnicastFindSrvs(SLPToolCommandLine* cmdline)
         result = SLPFindSrvs(hslp,
                              cmdline->cmdparam1,
                              cmdline->scopes,
-			     cmdline->cmdparam2,
-			     mySrvUrlCallback,
+              cmdline->cmdparam2,
+              mySrvUrlCallback,
                              0);
         if(result != SLP_OK)
         {
@@ -414,10 +414,10 @@ void FindScopes(SLPToolCommandLine* cmdline)
     {
         result = SLPFindScopes(hslp,&scopes);
         if(result == SLP_OK)
-	{
-	   printf("%s\n",scopes);
-	   SLPFree(scopes);
-	}
+   {
+      printf("%s\n",scopes);
+      SLPFree(scopes);
+   }
        
         SLPClose(hslp);
     }               
@@ -437,13 +437,13 @@ void Register(SLPToolCommandLine* cmdline)
     int len = 0;
 
     if (strncasecmp(cmdline->cmdparam1, "service:", 8) == 0)
-	len = 8;
+   len = 8;
 
     s = strchr(cmdline->cmdparam1 + len, ':');
     if (!s)
     {
-	printf("Invalid URL: %s\n", cmdline->cmdparam1);
-	return;
+   printf("Invalid URL: %s\n", cmdline->cmdparam1);
+   return;
     }
     len = s - cmdline->cmdparam1;
     strncpy(srvtype, cmdline->cmdparam1, len);
@@ -477,9 +477,9 @@ void Deregister(SLPToolCommandLine* cmdline)
     {
 
         result = SLPDereg(hslp,
-			  cmdline->cmdparam1,
-			  mySLPRegReport,
-			  0);
+           cmdline->cmdparam1,
+           mySLPRegReport,
+           0);
         if(result != SLP_OK)
         {
             printf("errorcode: %i\n",result);
@@ -504,8 +504,8 @@ void GetProperty(SLPToolCommandLine* cmdline)
     
     propertyValue = SLPGetProperty(cmdline->cmdparam1);
     printf("%s = %s\n", 
-	   cmdline->cmdparam1,
-	   propertyValue == 0 ? "" : propertyValue);
+      cmdline->cmdparam1,
+      propertyValue == 0 ? "" : propertyValue);
 }
 
 int ParseCommandLine(int argc,char* argv[], SLPToolCommandLine* cmdline)
@@ -526,7 +526,7 @@ int ParseCommandLine(int argc,char* argv[], SLPToolCommandLine* cmdline)
             if(i < argc)
             {
                 cmdline->cmd = PRINT_VERSION;
-		return 0;
+      return 0;
             }
             else
             {
@@ -534,7 +534,7 @@ int ParseCommandLine(int argc,char* argv[], SLPToolCommandLine* cmdline)
             }
         }
         else if( strcasecmp(argv[i],"-s") == 0 ||
-		 strcasecmp(argv[i],"--scopes") == 0 )
+       strcasecmp(argv[i],"--scopes") == 0 )
         {
             i++;
             if(i < argc)
@@ -588,16 +588,16 @@ int ParseCommandLine(int argc,char* argv[], SLPToolCommandLine* cmdline)
         {
             cmdline->cmd = FINDSRVSUSINGIFLIST;
 
-	    /* (required) IFList */
-	    i++;
-	    if(i < argc)
-	    {
+       /* (required) IFList */
+       i++;
+       if(i < argc)
+       {
                 cmdline->cmdparam3 = argv[i];
-	    }
-	    else
-	    {
+       }
+       else
+       {
                 return 1;
-	    }
+       }
             
             /* service type */
             i++;
@@ -641,11 +641,11 @@ int ParseCommandLine(int argc,char* argv[], SLPToolCommandLine* cmdline)
             {
                 cmdline->cmdparam1 = argv[i];
             } else {
-		return 1;
-	    }
-	
-		/* optional filter */
-	    i++;
+      return 1;
+       }
+   
+      /* optional filter */
+       i++;
             if(i < argc)
             {
                 cmdline->cmdparam2 = argv[i];
@@ -716,7 +716,7 @@ int ParseCommandLine(int argc,char* argv[], SLPToolCommandLine* cmdline)
         {
             cmdline->cmd = FINDATTRSUSINGIFLIST;     
                   
-	    /* (required) IFList */
+       /* (required) IFList */
             i++;
             if(i < argc)
             {
@@ -806,8 +806,8 @@ int ParseCommandLine(int argc,char* argv[], SLPToolCommandLine* cmdline)
 #endif /* MI_NOT_SUPPORTED */
         else if(strcasecmp(argv[i],"findscopes") == 0)
         {
-	    cmdline->cmd = FINDSCOPES;
-	}
+       cmdline->cmd = FINDSCOPES;
+   }
         else if(strcasecmp(argv[i],"register") == 0)
         {
             cmdline->cmd = REGISTER;
@@ -829,11 +829,11 @@ int ParseCommandLine(int argc,char* argv[], SLPToolCommandLine* cmdline)
             {
                 cmdline->cmdparam2 = argv[i];
             }
-	    else
-	    {
-	        cmdline->cmdparam2 = cmdline->cmdparam1 + strlen(cmdline->cmdparam1);
+       else
+       {
+           cmdline->cmdparam2 = cmdline->cmdparam1 + strlen(cmdline->cmdparam1);
             }
-	   
+      
             break;
         }
         else if(strcasecmp(argv[i],"deregister") == 0)
@@ -846,24 +846,24 @@ int ParseCommandLine(int argc,char* argv[], SLPToolCommandLine* cmdline)
             {
                 cmdline->cmdparam1 = argv[i];
             }
-	    else
-	    {
-		return 1;
-	    }
+       else
+       {
+      return 1;
+       }
         }
         else if(strcasecmp(argv[i],"getproperty") == 0)
         {
-	    cmdline->cmd = GETPROPERTY;
-	    i++;
-	    if(i < argc)
-	    {
-	        cmdline->cmdparam1 = argv[i];
-	    }
-	    else
-	    {
-	        return 1;
-	    }
-	}
+       cmdline->cmd = GETPROPERTY;
+       i++;
+       if(i < argc)
+       {
+           cmdline->cmdparam1 = argv[i];
+       }
+       else
+       {
+           return 1;
+       }
+   }
         else
         {
             return 1;
@@ -951,9 +951,9 @@ int main(int argc, char* argv[])
         
         #ifndef UNICAST_NOT_SUPPORTED
         case UNICASTFINDSRVS:
-	    UnicastFindSrvs(&cmdline);
+       UnicastFindSrvs(&cmdline);
             break;
-	#endif
+   #endif
 
         case FINDATTRS:
             FindAttrs(&cmdline);
@@ -961,38 +961,38 @@ int main(int argc, char* argv[])
         
         #ifndef UNICAST_NOT_SUPPORTED
         case UNICASTFINDATTRS:
-	    UnicastFindAttrs(&cmdline);
+       UnicastFindAttrs(&cmdline);
             break;
-	#endif
+   #endif
 
         case FINDSRVTYPES:
             FindSrvTypes(&cmdline);
             break;
-	
+   
         #ifndef UNICAST_NOT_SUPPORTED
         case UNICASTFINDSRVTYPES:
-	    UnicastFindSrvTypes(&cmdline);
+       UnicastFindSrvTypes(&cmdline);
             break;
-	#endif
+   #endif
 
-	case FINDSCOPES:
-	    FindScopes(&cmdline);
-	    break;
-	   
+   case FINDSCOPES:
+       FindScopes(&cmdline);
+       break;
+      
         case GETPROPERTY:
             GetProperty(&cmdline);
             break;
 
-	 case REGISTER:
+    case REGISTER:
             Register(&cmdline);
             break;
 
-	 case DEREGISTER:
+    case DEREGISTER:
             Deregister(&cmdline);
             break;
 
 #ifndef MI_NOT_SUPPORTED
-	 case FINDSRVSUSINGIFLIST:
+    case FINDSRVSUSINGIFLIST:
             FindSrvsUsingIFList(&cmdline);
             break;
 
@@ -1005,12 +1005,12 @@ int main(int argc, char* argv[])
             break;
 #endif /* MI_NOT_SUPPORTED */
 
-	 case PRINT_VERSION:
-	    PrintVersion(&cmdline);
-	    break;
+    case PRINT_VERSION:
+       PrintVersion(&cmdline);
+       break;
 
-	 case DUMMY:
-	    break;
+    case DUMMY:
+       break;
         }
     }
     else

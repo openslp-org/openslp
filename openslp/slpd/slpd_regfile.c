@@ -211,16 +211,16 @@ int SLPDRegFileReadSrvReg(FILE* fd,
             goto CLEANUP;
         }
 
-	/* replace "$HOSTNAME" string in url */
-	while ((p = strchr(url, '$')) && !strncmp(p, "$HOSTNAME", 9))
-	{
-	    char *_url = (char*)malloc(strlen(url) - 9 + G_SlpdProperty.myHostnameLen + 1);
-	    strncpy(_url, url, p - url);
-	    strncpy(_url + (p - url), G_SlpdProperty.myHostname, G_SlpdProperty.myHostnameLen);
-	    strcpy(_url + (p - url) + G_SlpdProperty.myHostnameLen, url + (p - url) + 9);
-	    free(url);
-	    url = _url;
-	}
+   /* replace "$HOSTNAME" string in url */
+   while ((p = strchr(url, '$')) && !strncmp(p, "$HOSTNAME", 9))
+   {
+       char *_url = (char*)malloc(strlen(url) - 9 + G_SlpdProperty.myHostnameLen + 1);
+       strncpy(_url, url, p - url);
+       strncpy(_url + (p - url), G_SlpdProperty.myHostname, G_SlpdProperty.myHostnameLen);
+       strcpy(_url + (p - url) + G_SlpdProperty.myHostnameLen, url + (p - url) + 9);
+       free(url);
+       url = _url;
+   }
         urllen = strlen(url);
 
         /* derive srvtype from srvurl */
@@ -383,23 +383,23 @@ int SLPDRegFileReadSrvReg(FILE* fd,
                 result = SLP_ERROR_INTERNAL_ERROR;
                 goto CLEANUP;
             }
-	    
-	    /* we need special case for keywords (why do we need these)   */
-	    /* they seem like a waste of code.  Why not just use booleans */
-	    if(strchr(slider1,'='))
-	    {
-	        /* normal attribute (with '=') */
-	        strcat(attrlist,"(");
+       
+       /* we need special case for keywords (why do we need these)   */
+       /* they seem like a waste of code.  Why not just use booleans */
+       if(strchr(slider1,'='))
+       {
+           /* normal attribute (with '=') */
+           strcat(attrlist,"(");
                 strcat(attrlist,slider1);
                 strcat(attrlist,")");
-	    }
-	    else
-	    {
-	        /* keyword (no '=') */
-	        attrlistlen -= 2; /* subtract 2 bytes for no '(' or ')' */
-	        strcat(attrlist,slider1);	       
-	    }
-		
+       }
+       else
+       {
+           /* keyword (no '=') */
+           attrlistlen -= 2; /* subtract 2 bytes for no '(' or ')' */
+           strcat(attrlist,slider1);	       
+       }
+      
         }
     }
 

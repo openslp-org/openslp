@@ -134,22 +134,22 @@ tag				[^(),\\!<=>~\x00-\x1f]
 val				[^(),\\!<>~\x00-\x1f*_\r\n\t]
 
  /* 
-	this lexer cycles through three states. in the initial state, 
-	it is looking strictly for attribute tags. If, in the initial 
-	state it finds a '(' it anticipates an attribute-value pair 
-	and changes to ATTRIBUTE state .
+   this lexer cycles through three states. in the initial state, 
+   it is looking strictly for attribute tags. If, in the initial 
+   state it finds a '(' it anticipates an attribute-value pair 
+   and changes to ATTRIBUTE state .
 
-	in the ATTRIBUTE state is is looking for either a closing ')'
-	or a '='. If it sees a closing ')' it changes to the initial state. 
-	if it sees an '=' it changes to the VALUE state and looks for 
-	the attribute value. After seeing the attribute value, it looks
-	for a either a ')' or a ','. If it sees a ')' it closes the attribute
-	and returns to the initial state. 
+   in the ATTRIBUTE state is is looking for either a closing ')'
+   or a '='. If it sees a closing ')' it changes to the initial state. 
+   if it sees an '=' it changes to the VALUE state and looks for 
+   the attribute value. After seeing the attribute value, it looks
+   for a either a ')' or a ','. If it sees a ')' it closes the attribute
+   and returns to the initial state. 
 
-	if, during the VALUE state the lexer sees a ',' it decides it is 
-	looking at a multi-valued attribute and returns a special _MULTIVAL
-	token to the parser. The parser uses this to construct additional
-	attribute-value pairs for each value in the multi-val statement. 
+   if, during the VALUE state the lexer sees a ',' it decides it is 
+   looking at a multi-valued attribute and returns a special _MULTIVAL
+   token to the parser. The parser uses this to construct additional
+   attribute-value pairs for each value in the multi-val statement. 
  */ 
 %option noyywrap
 %x ATTR
@@ -161,8 +161,8 @@ val				[^(),\\!<>~\x00-\x1f*_\r\n\t]
 "," 			{ yylval._i = *yytext; return(yylval._i); }
 "("			{ BEGIN ATTR; yylval._i = *yytext; return(yylval._i); }
 {tag}+			{   
- 			   if (yyleng > 0) {
-			      if(NULL != (yylval._s = xstrdup(yytext)))
+            if (yyleng > 0) {
+               if(NULL != (yylval._s = xstrdup(yytext)))
                                  return(_TAG);
                               else
                                  return(0L);

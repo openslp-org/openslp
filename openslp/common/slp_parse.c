@@ -125,7 +125,7 @@ int SLPParseSrvUrl(int srvurllen,
     {
         if (isIpv6Host) {
             /* different condition here - must just get stuff inside beginning [ and ending ] */
-			slider1++;
+         slider1++;
             memcpy(buf,slider1,slider2-slider1-1);
             (*parsedurl)->host = buf;
             buf += slider2 - slider1;

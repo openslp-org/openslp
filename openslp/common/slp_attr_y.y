@@ -198,9 +198,9 @@ attr: _TAG
     while (!SLP_IS_HEAD($$))
     {
         $$->name = strdup($2); 
-	SLP_UNLINK($$);
-	SLP_INSERT_BEFORE($$, &inProcessAttr);
-	$$ = inProcessTag.next;
+   SLP_UNLINK($$);
+   SLP_INSERT_BEFORE($$, &inProcessAttr);
+   $$ = inProcessTag.next;
     }
 };
 

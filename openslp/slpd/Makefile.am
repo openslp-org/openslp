@@ -43,12 +43,12 @@ EXTRA_DIST = slpd_win32.h slpd_win32.c
 sbin_PROGRAMS = slpd
 
 INCLUDES = \
-	-I$(top_srcdir)/common \
-	-I$(top_srcdir)/libslpattr \
-	-I$(srcdir) \
-	-I$(top_srcdir)/libslp \
-	-DETCDIR=\"$(sysconfdir)\" \
-	-DVARDIR=\"$(localstatedir)\"
+   -I$(top_srcdir)/common \
+   -I$(top_srcdir)/libslpattr \
+   -I$(srcdir) \
+   -I$(top_srcdir)/libslp \
+   -DETCDIR=\"$(sysconfdir)\" \
+   -DVARDIR=\"$(localstatedir)\"
 
 if ENABLE_PREDICATES
 slp_predicate_SRCS = slpd_predicate.c
@@ -66,37 +66,37 @@ slpd_security_HDRS = slpd_spi.h
 endif
 
 slpd_SOURCES = \
-	$(slp_predicate_SRCS) \
-	$(slpd_v1process_SRCS) \
-	$(slpd_security_SRCS) \
-	slpd_cmdline.c \
-	slpd_database.c \
-	slpd_incoming.c \
-	slpd_knownda.c \
-	slpd_log.c \
-	slpd_main.c \
-	slpd_outgoing.c \
-	slpd_process.c \
-	slpd_property.c \
-	slpd_regfile.c \
-	slpd_socket.c
+   $(slp_predicate_SRCS) \
+   $(slpd_v1process_SRCS) \
+   $(slpd_security_SRCS) \
+   slpd_cmdline.c \
+   slpd_database.c \
+   slpd_incoming.c \
+   slpd_knownda.c \
+   slpd_log.c \
+   slpd_main.c \
+   slpd_outgoing.c \
+   slpd_process.c \
+   slpd_property.c \
+   slpd_regfile.c \
+   slpd_socket.c
 
 noinst_HEADERS = \
-	$(slp_predicate_HDRS) \
-	$(slpd_v1process_HDRS) \
-	$(slpd_security_HDRS) \
-	slpd.h \
-	slpd_knownda.h \
-	slpd_process.h \
-	slpd_unistd.h \
-	slpd_cmdline.h \
-	slpd_log.h \
-	slpd_property.h \
-	slpd_database.h \
-	slpd_outgoing.h \
-	slpd_regfile.h \
-	slpd_incoming.h \
-	slpd_socket.h
+   $(slp_predicate_HDRS) \
+   $(slpd_v1process_HDRS) \
+   $(slpd_security_HDRS) \
+   slpd.h \
+   slpd_knownda.h \
+   slpd_process.h \
+   slpd_unistd.h \
+   slpd_cmdline.h \
+   slpd_log.h \
+   slpd_property.h \
+   slpd_database.h \
+   slpd_outgoing.h \
+   slpd_regfile.h \
+   slpd_incoming.h \
+   slpd_socket.h
     
 #if you're building on Irix, exchange commented and uncommented lines
 #slpd_LDADD = ../common/libcommonslpd.a ../libslpattr/libslpattr.a

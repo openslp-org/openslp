@@ -299,7 +299,7 @@ int SLPMessageParseHeader(SLPBuffer buffer, SLPHeader* header)
 {
     header->version     = *(buffer->curpos);
     header->functionid  = *(buffer->curpos + 1);
-	
+   
     if(header->version != 2)
     {
         return SLP_ERROR_VER_NOT_SUPPORTED;

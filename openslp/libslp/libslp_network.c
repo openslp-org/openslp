@@ -63,91 +63,91 @@
  */
 int NetworkGetMcastAddrs(const char msgtype, const char *msg, SLPIfaceInfo *ifaceinfo)
 {
-	if (ifaceinfo == NULL)
-		return SLP_PARAMETER_BAD;
+   if (ifaceinfo == NULL)
+      return SLP_PARAMETER_BAD;
 
-	ifaceinfo->bcast_count = ifaceinfo->iface_count = 0;
-	switch (msgtype) {
-		case SLP_FUNCT_SRVRQST:
-			if (msg == NULL)
-				return SLP_PARAMETER_BAD;
-			if (SLPNetIsIPV6()) {
-				unsigned short srvtype_len = AsUINT16(msg);
-				/* Add IPv6 multicast groups in order they should appear. */
-				SLPNetGetSrvMcastAddr(msg+2, (unsigned long)srvtype_len, SLP_SCOPE_NODE_LOCAL, &ifaceinfo->iface_addr[ifaceinfo->iface_count]);
-				SLPNetSetPort(&ifaceinfo->iface_addr[ifaceinfo->iface_count], SLP_RESERVED_PORT);
-				ifaceinfo->iface_count++;
-				SLPNetGetSrvMcastAddr(msg+2, srvtype_len, SLP_SCOPE_LINK_LOCAL, &ifaceinfo->iface_addr[ifaceinfo->iface_count]);
-				SLPNetSetPort(&ifaceinfo->iface_addr[ifaceinfo->iface_count], SLP_RESERVED_PORT);
-				ifaceinfo->iface_count++;
-				SLPNetGetSrvMcastAddr(msg+2, srvtype_len, SLP_SCOPE_SITE_LOCAL, &ifaceinfo->iface_addr[ifaceinfo->iface_count]);
-				SLPNetSetPort(&ifaceinfo->iface_addr[ifaceinfo->iface_count], SLP_RESERVED_PORT);
-				ifaceinfo->iface_count++;
-			}
-			if (SLPNetIsIPV4()) {
-				struct in_addr mcastaddr;
-				mcastaddr.s_addr = SLP_MCAST_ADDRESS;
-				SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count], AF_INET, SLP_RESERVED_PORT, (unsigned char *)&mcastaddr, sizeof(mcastaddr));
-				ifaceinfo->iface_count++;
-			}
-			break;
-		case SLP_FUNCT_ATTRRQST:
-			if (SLPNetIsIPV6()) {
-				/* Add IPv6 multicast groups in order they should appear. */
-				SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count],AF_INET6, SLP_RESERVED_PORT, (char *)&in6addr_srvloc_node, sizeof(struct in6_addr));
-				ifaceinfo->iface_count++;
-				SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count],AF_INET6, SLP_RESERVED_PORT, (char *)&in6addr_srvloc_link, sizeof(struct in6_addr));
-				ifaceinfo->iface_count++;
-				SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count],AF_INET6, SLP_RESERVED_PORT, (char *)&in6addr_srvloc_site, sizeof(struct in6_addr));
-				ifaceinfo->iface_count++;
-			}
-			if (SLPNetIsIPV4()) {
-				struct in_addr mcastaddr;
-				mcastaddr.s_addr = SLP_MCAST_ADDRESS;
-				SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count], AF_INET, SLP_RESERVED_PORT, (unsigned char *)&mcastaddr, sizeof(mcastaddr));
+   ifaceinfo->bcast_count = ifaceinfo->iface_count = 0;
+   switch (msgtype) {
+      case SLP_FUNCT_SRVRQST:
+         if (msg == NULL)
+            return SLP_PARAMETER_BAD;
+         if (SLPNetIsIPV6()) {
+            unsigned short srvtype_len = AsUINT16(msg);
+            /* Add IPv6 multicast groups in order they should appear. */
+            SLPNetGetSrvMcastAddr(msg+2, (unsigned long)srvtype_len, SLP_SCOPE_NODE_LOCAL, &ifaceinfo->iface_addr[ifaceinfo->iface_count]);
+            SLPNetSetPort(&ifaceinfo->iface_addr[ifaceinfo->iface_count], SLP_RESERVED_PORT);
+            ifaceinfo->iface_count++;
+            SLPNetGetSrvMcastAddr(msg+2, srvtype_len, SLP_SCOPE_LINK_LOCAL, &ifaceinfo->iface_addr[ifaceinfo->iface_count]);
+            SLPNetSetPort(&ifaceinfo->iface_addr[ifaceinfo->iface_count], SLP_RESERVED_PORT);
+            ifaceinfo->iface_count++;
+            SLPNetGetSrvMcastAddr(msg+2, srvtype_len, SLP_SCOPE_SITE_LOCAL, &ifaceinfo->iface_addr[ifaceinfo->iface_count]);
+            SLPNetSetPort(&ifaceinfo->iface_addr[ifaceinfo->iface_count], SLP_RESERVED_PORT);
+            ifaceinfo->iface_count++;
+         }
+         if (SLPNetIsIPV4()) {
+            struct in_addr mcastaddr;
+            mcastaddr.s_addr = SLP_MCAST_ADDRESS;
+            SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count], AF_INET, SLP_RESERVED_PORT, (unsigned char *)&mcastaddr, sizeof(mcastaddr));
+            ifaceinfo->iface_count++;
+         }
+         break;
+      case SLP_FUNCT_ATTRRQST:
+         if (SLPNetIsIPV6()) {
+            /* Add IPv6 multicast groups in order they should appear. */
+            SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count],AF_INET6, SLP_RESERVED_PORT, (char *)&in6addr_srvloc_node, sizeof(struct in6_addr));
+            ifaceinfo->iface_count++;
+            SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count],AF_INET6, SLP_RESERVED_PORT, (char *)&in6addr_srvloc_link, sizeof(struct in6_addr));
+            ifaceinfo->iface_count++;
+            SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count],AF_INET6, SLP_RESERVED_PORT, (char *)&in6addr_srvloc_site, sizeof(struct in6_addr));
+            ifaceinfo->iface_count++;
+         }
+         if (SLPNetIsIPV4()) {
+            struct in_addr mcastaddr;
+            mcastaddr.s_addr = SLP_MCAST_ADDRESS;
+            SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count], AF_INET, SLP_RESERVED_PORT, (unsigned char *)&mcastaddr, sizeof(mcastaddr));
 
-				ifaceinfo->iface_count++;
-			}
-			break;
-		case SLP_FUNCT_SRVTYPERQST:
-			if (SLPNetIsIPV6()) {
-				/* Add IPv6 multicast groups in order they should appear. */
-				SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count],AF_INET6, SLP_RESERVED_PORT, (char *)&in6addr_srvloc_node, sizeof(struct in6_addr));
-				ifaceinfo->iface_count++;
-				SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count],AF_INET6, SLP_RESERVED_PORT, (char *)&in6addr_srvloc_link, sizeof(struct in6_addr));
-				ifaceinfo->iface_count++;
-				SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count],AF_INET6, SLP_RESERVED_PORT, (char *)&in6addr_srvloc_site, sizeof(struct in6_addr));
-				ifaceinfo->iface_count++;
-			}
-			if (SLPNetIsIPV4()) {
-				struct in_addr mcastaddr;
-				mcastaddr.s_addr = SLP_MCAST_ADDRESS;
-				SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count], AF_INET, SLP_RESERVED_PORT, (unsigned char *)&mcastaddr, sizeof(mcastaddr));
-				ifaceinfo->iface_count++;
-			}
-			break;
-		case SLP_FUNCT_DASRVRQST:
+            ifaceinfo->iface_count++;
+         }
+         break;
+      case SLP_FUNCT_SRVTYPERQST:
+         if (SLPNetIsIPV6()) {
+            /* Add IPv6 multicast groups in order they should appear. */
+            SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count],AF_INET6, SLP_RESERVED_PORT, (char *)&in6addr_srvloc_node, sizeof(struct in6_addr));
+            ifaceinfo->iface_count++;
+            SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count],AF_INET6, SLP_RESERVED_PORT, (char *)&in6addr_srvloc_link, sizeof(struct in6_addr));
+            ifaceinfo->iface_count++;
+            SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count],AF_INET6, SLP_RESERVED_PORT, (char *)&in6addr_srvloc_site, sizeof(struct in6_addr));
+            ifaceinfo->iface_count++;
+         }
+         if (SLPNetIsIPV4()) {
+            struct in_addr mcastaddr;
+            mcastaddr.s_addr = SLP_MCAST_ADDRESS;
+            SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count], AF_INET, SLP_RESERVED_PORT, (unsigned char *)&mcastaddr, sizeof(mcastaddr));
+            ifaceinfo->iface_count++;
+         }
+         break;
+      case SLP_FUNCT_DASRVRQST:
 if (SLPNetIsIPV6()) {
-				/* Add IPv6 multicast groups in order they should appear. */
-				SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count],AF_INET6, SLP_RESERVED_PORT, (char *)&in6addr_srvlocda_node, sizeof(struct in6_addr));
-				ifaceinfo->iface_count++;
-				SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count],AF_INET6, SLP_RESERVED_PORT, (char *)&in6addr_srvlocda_link, sizeof(struct in6_addr));
-				ifaceinfo->iface_count++;
-				SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count],AF_INET6, SLP_RESERVED_PORT, (char *)&in6addr_srvlocda_site, sizeof(struct in6_addr));
-				ifaceinfo->iface_count++;
-			}
-			if (SLPNetIsIPV4()) {
-				struct in_addr mcastaddr;
-				mcastaddr.s_addr = SLP_MCAST_ADDRESS;
-				SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count], AF_INET, SLP_RESERVED_PORT, (unsigned char *)&mcastaddr, sizeof(mcastaddr));
-				ifaceinfo->iface_count++;
-			}
-			break;
-		default:
-			return SLP_PARAMETER_BAD;
-	}
+            /* Add IPv6 multicast groups in order they should appear. */
+            SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count],AF_INET6, SLP_RESERVED_PORT, (char *)&in6addr_srvlocda_node, sizeof(struct in6_addr));
+            ifaceinfo->iface_count++;
+            SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count],AF_INET6, SLP_RESERVED_PORT, (char *)&in6addr_srvlocda_link, sizeof(struct in6_addr));
+            ifaceinfo->iface_count++;
+            SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count],AF_INET6, SLP_RESERVED_PORT, (char *)&in6addr_srvlocda_site, sizeof(struct in6_addr));
+            ifaceinfo->iface_count++;
+         }
+         if (SLPNetIsIPV4()) {
+            struct in_addr mcastaddr;
+            mcastaddr.s_addr = SLP_MCAST_ADDRESS;
+            SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count], AF_INET, SLP_RESERVED_PORT, (unsigned char *)&mcastaddr, sizeof(mcastaddr));
+            ifaceinfo->iface_count++;
+         }
+         break;
+      default:
+         return SLP_PARAMETER_BAD;
+   }
 
-	return SLP_OK;
+   return SLP_OK;
 }		
 
 /** Connects to slpd and provides a peeraddr to send to.
@@ -163,16 +163,16 @@ int NetworkConnectToSlpd(struct sockaddr_storage* peeraddr)
 {
     int sock = -1;
 
-	if (SLPNetIsIPV6()) {
-		if (SLPNetSetAddr(peeraddr, AF_INET6, SLP_RESERVED_PORT, (unsigned char *)&slp_in6addr_loopback, sizeof(struct in6_addr)) == 0)
-			sock = SLPNetworkConnectStream(peeraddr,NULL);
-	}
-	if (sock < 0 && SLPNetIsIPV4()) {
-		int tempAddr = INADDR_LOOPBACK;
-		if (SLPNetSetAddr(peeraddr, AF_INET, SLP_RESERVED_PORT, (unsigned char *)&tempAddr, sizeof(struct in_addr)) == 0)
-			sock = SLPNetworkConnectStream(peeraddr,NULL);
-	}
-	return sock;
+   if (SLPNetIsIPV6()) {
+      if (SLPNetSetAddr(peeraddr, AF_INET6, SLP_RESERVED_PORT, (unsigned char *)&slp_in6addr_loopback, sizeof(struct in6_addr)) == 0)
+         sock = SLPNetworkConnectStream(peeraddr,NULL);
+   }
+   if (sock < 0 && SLPNetIsIPV4()) {
+      int tempAddr = INADDR_LOOPBACK;
+      if (SLPNetSetAddr(peeraddr, AF_INET, SLP_RESERVED_PORT, (unsigned char *)&tempAddr, sizeof(struct in_addr)) == 0)
+         sock = SLPNetworkConnectStream(peeraddr,NULL);
+   }
+   return sock;
 }
 
 /** Disconnect from the connected DA.
@@ -186,9 +186,9 @@ void NetworkDisconnectDA(PSLPHandleInfo handle)
     if(handle->dasock)
     {
 #ifdef _WIN32
-	    closesocket(handle->dasock);
+       closesocket(handle->dasock);
 #else
-	    close(handle->dasock);
+       close(handle->dasock);
 #endif
         handle->dasock = -1;
     }
@@ -209,9 +209,9 @@ void NetworkDisconnectSA(PSLPHandleInfo handle)
     if(handle->sasock)
     {
 #ifdef _WIN32
-	    closesocket(handle->sasock);
+       closesocket(handle->sasock);
 #else
-	    close(handle->sasock);
+       close(handle->sasock);
 #endif
         handle->sasock = -1;
     }
@@ -253,9 +253,9 @@ int NetworkConnectToDA(PSLPHandleInfo handle,
         if(handle->dasock >= 0)
         {
 #ifdef _WIN32
-	        closesocket(handle->dasock);
+           closesocket(handle->dasock);
 #else
-	        close(handle->dasock);
+           close(handle->dasock);
 #endif
         }
 
@@ -321,9 +321,9 @@ int NetworkConnectToSA(PSLPHandleInfo handle,
         if(handle->sasock >= 0)
         {
 #ifdef _WIN32
-	        closesocket(handle->sasock);
+           closesocket(handle->sasock);
 #else
-	        close(handle->sasock);
+           close(handle->sasock);
 #endif
         }
 
@@ -551,13 +551,13 @@ SLPError NetworkRqstRply(int sock,
          * that it is from the beginning of the SLP message
          */
         if(extoffset != 0)
-	{
+   {
             ToUINT24(sendbuf->start + 7,extoffset + langtaglen + 14);
-	}
+   }
         else
         {
-	    ToUINT24(sendbuf->start + 7, 0);
-	}
+       ToUINT24(sendbuf->start + 7, 0);
+   }
         /*xid*/
         ToUINT16(sendbuf->start + 10,xid);
         /*lang tag len*/
@@ -610,7 +610,7 @@ SLPError NetworkRqstRply(int sock,
         /*----------------*/
         do
         {
-			peeraddr.ss_family = AF_UNSPEC;
+         peeraddr.ss_family = AF_UNSPEC;
 
             if(SLPNetworkRecvMessage(sock,
                                      socktype,
@@ -638,12 +638,12 @@ SLPError NetworkRqstRply(int sock,
                 {
                     rplycount += 1;
 
-					/* Check the family type of the peeraddr. If it is not set, 
+               /* Check the family type of the peeraddr. If it is not set, 
 					   assume the dstaddr is the peeraddr. peeraddr is only
 					   set on SOCK_DGM sockets in the SLPNetworkRecvMessage() 
 					   call. */
-					if (peeraddr.ss_family == AF_UNSPEC)
-						memcpy(&peeraddr, destaddr, sizeof(struct sockaddr_storage));
+               if (peeraddr.ss_family == AF_UNSPEC)
+                  memcpy(&peeraddr, destaddr, sizeof(struct sockaddr_storage));
 
                     /* Call the callback with the result and recvbuf */
                     if(callback(result,&peeraddr,recvbuf,cookie) == SLP_FALSE)
@@ -669,7 +669,7 @@ SLPError NetworkRqstRply(int sock,
                         else if (peeraddr.ss_family == AF_INET6) {
                             inet_ntop(peeraddr.ss_family, &((struct sockaddr_in6*) &peeraddr)->sin6_addr, peeraddrstr, INET6_ADDRSTRLEN);
                         }
-						if (strcmp(peeraddrstr, "") != 0) 
+                  if (strcmp(peeraddrstr, "") != 0) 
                         {
                             int peeraddrstrlen = strlen(peeraddrstr);
                             
@@ -774,10 +774,10 @@ SLPError NetworkMcastRqstRply(const char* langtag,
     int                 usebroadcast    = 0;
     int                 timeouts[MAX_RETRANSMITS];
     SLPIfaceInfo			dstifaceinfo;
-	SLPIfaceInfo			v4outifaceinfo;
-	SLPIfaceInfo			v6outifaceinfo;
+   SLPIfaceInfo			v4outifaceinfo;
+   SLPIfaceInfo			v6outifaceinfo;
     SLPXcastSockets     xcastsocks;
-	int						currIntf		= 0;
+   int						currIntf		= 0;
     int                     requestSent;
 
 #ifdef DEBUG
@@ -810,36 +810,36 @@ SLPError NetworkMcastRqstRply(const char* langtag,
         goto FINISHED;
     }
 
-	v4outifaceinfo.iface_count = 0;
-	v6outifaceinfo.iface_count = 0;
-	xcastsocks.sock_count = 0;
+   v4outifaceinfo.iface_count = 0;
+   v6outifaceinfo.iface_count = 0;
+   xcastsocks.sock_count = 0;
     
 #ifndef MI_NOT_SUPPORTED
-	/* Determine which multicast addresses to send to. */
-	NetworkGetMcastAddrs(buftype, buf, &dstifaceinfo);
-	/* Determine which interfaces to send out on. */
+   /* Determine which multicast addresses to send to. */
+   NetworkGetMcastAddrs(buftype, buf, &dstifaceinfo);
+   /* Determine which interfaces to send out on. */
     if(handle->McastIFList != NULL) 
     {
         #ifdef DEBUG
         fprintf(stderr, "McastIFList = %s\n", handle->McastIFList);
         #endif
         SLPIfaceGetInfo(handle->McastIFList, &v4outifaceinfo, AF_INET);
-		SLPIfaceGetInfo(handle->McastIFList, &v6outifaceinfo, AF_INET6);
+      SLPIfaceGetInfo(handle->McastIFList, &v6outifaceinfo, AF_INET6);
     }
-	else { 
+   else { 
 #endif /* MI_NOT_SUPPORTED */
-	if (SLPNetIsIPV4())
-		SLPIfaceGetInfo(SLPGetProperty("net.slp.interfaces"),&v4outifaceinfo, AF_INET);
-	if (SLPNetIsIPV6())
-	   SLPIfaceGetInfo(SLPGetProperty("net.slp.interfaces"),&v6outifaceinfo, AF_INET6);
-	if (v4outifaceinfo.iface_count == 0 && v6outifaceinfo.iface_count == 0) {
+   if (SLPNetIsIPV4())
+      SLPIfaceGetInfo(SLPGetProperty("net.slp.interfaces"),&v4outifaceinfo, AF_INET);
+   if (SLPNetIsIPV6())
+      SLPIfaceGetInfo(SLPGetProperty("net.slp.interfaces"),&v6outifaceinfo, AF_INET6);
+   if (v4outifaceinfo.iface_count == 0 && v6outifaceinfo.iface_count == 0) {
         result = SLP_NETWORK_ERROR;
         goto FINISHED;
     }
 
 
 #ifndef MI_NOT_SUPPORTED
-	}
+   }
 #endif
     usebroadcast = SLPPropertyAsBoolean(SLPGetProperty("net.slp.useBroadcast"));
 
@@ -881,259 +881,259 @@ SLPError NetworkMcastRqstRply(const char* langtag,
     prlistlen = 0; 
 
 #ifndef MI_NOT_SUPPORTED
-	/* Iterate through each multicast scope until we found a provider. */
-	while (currIntf < dstifaceinfo.iface_count) {
+   /* Iterate through each multicast scope until we found a provider. */
+   while (currIntf < dstifaceinfo.iface_count) {
 #endif
-		/*--------------------------*/
-		/* Main retransmission loop */
-		/*--------------------------*/
-		xmitcount = 0;
-		totaltimeout = 0;
+      /*--------------------------*/
+      /* Main retransmission loop */
+      /*--------------------------*/
+      xmitcount = 0;
+      totaltimeout = 0;
         requestSent = 0;
-		while(xmitcount <= MAX_RETRANSMITS)
-		{
-			xmitcount++;
+      while(xmitcount <= MAX_RETRANSMITS)
+      {
+         xmitcount++;
 
-			totaltimeout += timeouts[xmitcount];
-			if(totaltimeout >= maxwait ||  timeouts[xmitcount] == 0)
-			{
-				/* we are all done */
-				break;
-			}
-			timeout.tv_sec = timeouts[xmitcount] / 1000;
-			timeout.tv_usec = (timeouts[xmitcount] % 1000) * 1000;
-	        
-			/*------------------------------------------------------------------*/
-			/* re-allocate buffer and make sure that the send buffer does not   */
-			/* exceed MTU for datagram transmission                             */
-			/*------------------------------------------------------------------*/
-			size = 14 + langtaglen + bufsize;
-			if(buftype == SLP_FUNCT_SRVRQST ||
-			buftype == SLP_FUNCT_ATTRRQST ||
-			buftype == SLP_FUNCT_SRVTYPERQST)
-			{
-				/* add in room for the prlist */
-				size += 2 + prlistlen;
-			}
-			if(size > mtu)
-			{
-				if(xmitcount == 0)
-				{
-					result = SLP_BUFFER_OVERFLOW;
-				}
-				goto FINISHED;
-			}
-			if((sendbuf = SLPBufferRealloc(sendbuf,size)) == 0)
-			{
-				result = SLP_MEMORY_ALLOC_FAILED;
-				goto FINISHED;
-			}
+         totaltimeout += timeouts[xmitcount];
+         if(totaltimeout >= maxwait ||  timeouts[xmitcount] == 0)
+         {
+            /* we are all done */
+            break;
+         }
+         timeout.tv_sec = timeouts[xmitcount] / 1000;
+         timeout.tv_usec = (timeouts[xmitcount] % 1000) * 1000;
+           
+         /*------------------------------------------------------------------*/
+         /* re-allocate buffer and make sure that the send buffer does not   */
+         /* exceed MTU for datagram transmission                             */
+         /*------------------------------------------------------------------*/
+         size = 14 + langtaglen + bufsize;
+         if(buftype == SLP_FUNCT_SRVRQST ||
+         buftype == SLP_FUNCT_ATTRRQST ||
+         buftype == SLP_FUNCT_SRVTYPERQST)
+         {
+            /* add in room for the prlist */
+            size += 2 + prlistlen;
+         }
+         if(size > mtu)
+         {
+            if(xmitcount == 0)
+            {
+               result = SLP_BUFFER_OVERFLOW;
+            }
+            goto FINISHED;
+         }
+         if((sendbuf = SLPBufferRealloc(sendbuf,size)) == 0)
+         {
+            result = SLP_MEMORY_ALLOC_FAILED;
+            goto FINISHED;
+         }
 
-			/*-----------------------------------*/
-			/* Add the header to the send buffer */
-			/*-----------------------------------*/
-			/*version*/
-			*(sendbuf->start)       = 2;
-			/*function id*/
-			*(sendbuf->start + 1)   = buftype;
-			/*length*/
-			ToUINT24(sendbuf->start + 2, size);
-			/*flags*/
-			ToUINT16(sendbuf->start + 5, SLP_FLAG_MCAST);
-			/*ext offset*/
-			ToUINT24(sendbuf->start + 7,0);
-			/*xid*/
-			ToUINT16(sendbuf->start + 10,xid);
-			/*lang tag len*/
-			ToUINT16(sendbuf->start + 12,langtaglen);
-			/*lang tag*/
-	#ifndef MI_NOT_SUPPORTED
-			memcpy(sendbuf->start + 14, handle->langtag, langtaglen);
-	#else
-			memcpy(sendbuf->start + 14, langtag, langtaglen);
-	#endif /* MI_NOT_SUPPORTED */
-			sendbuf->curpos = sendbuf->start + langtaglen + 14 ;
+         /*-----------------------------------*/
+         /* Add the header to the send buffer */
+         /*-----------------------------------*/
+         /*version*/
+         *(sendbuf->start)       = 2;
+         /*function id*/
+         *(sendbuf->start + 1)   = buftype;
+         /*length*/
+         ToUINT24(sendbuf->start + 2, size);
+         /*flags*/
+         ToUINT16(sendbuf->start + 5, SLP_FLAG_MCAST);
+         /*ext offset*/
+         ToUINT24(sendbuf->start + 7,0);
+         /*xid*/
+         ToUINT16(sendbuf->start + 10,xid);
+         /*lang tag len*/
+         ToUINT16(sendbuf->start + 12,langtaglen);
+         /*lang tag*/
+   #ifndef MI_NOT_SUPPORTED
+         memcpy(sendbuf->start + 14, handle->langtag, langtaglen);
+   #else
+         memcpy(sendbuf->start + 14, langtag, langtaglen);
+   #endif /* MI_NOT_SUPPORTED */
+         sendbuf->curpos = sendbuf->start + langtaglen + 14 ;
 
-			/*-----------------------------------*/
-			/* Add the prlist to the send buffer */
-			/*-----------------------------------*/
-			if(prlist)
-			{
-				ToUINT16(sendbuf->curpos,prlistlen);
-				sendbuf->curpos = sendbuf->curpos + 2;
-				memcpy(sendbuf->curpos, prlist, prlistlen);
-				sendbuf->curpos = sendbuf->curpos + prlistlen;
-			}
+         /*-----------------------------------*/
+         /* Add the prlist to the send buffer */
+         /*-----------------------------------*/
+         if(prlist)
+         {
+            ToUINT16(sendbuf->curpos,prlistlen);
+            sendbuf->curpos = sendbuf->curpos + 2;
+            memcpy(sendbuf->curpos, prlist, prlistlen);
+            sendbuf->curpos = sendbuf->curpos + prlistlen;
+         }
 
-			/*-----------------------------*/
-			/* Add the rest of the message */
-			/*-----------------------------*/
-			memcpy(sendbuf->curpos, buf, bufsize);
+         /*-----------------------------*/
+         /* Add the rest of the message */
+         /*-----------------------------*/
+         memcpy(sendbuf->curpos, buf, bufsize);
 
-			/*----------------------*/
-			/* send the send buffer */
-			/*----------------------*/
-			if(usebroadcast)
-			{
-				result = SLPBroadcastSend(&v4outifaceinfo,sendbuf,&xcastsocks);
-			}
-			else
-			{
-				if (dstifaceinfo.iface_addr[currIntf].ss_family == AF_INET)
-					result = SLPMulticastSend(&v4outifaceinfo,sendbuf,&xcastsocks, &dstifaceinfo.iface_addr[currIntf]);
-				else if (dstifaceinfo.iface_addr[currIntf].ss_family == AF_INET6)
-					result = SLPMulticastSend(&v6outifaceinfo,sendbuf,&xcastsocks, &dstifaceinfo.iface_addr[currIntf]);
-			}
-			if(result == 0)
-			{
+         /*----------------------*/
+         /* send the send buffer */
+         /*----------------------*/
+         if(usebroadcast)
+         {
+            result = SLPBroadcastSend(&v4outifaceinfo,sendbuf,&xcastsocks);
+         }
+         else
+         {
+            if (dstifaceinfo.iface_addr[currIntf].ss_family == AF_INET)
+               result = SLPMulticastSend(&v4outifaceinfo,sendbuf,&xcastsocks, &dstifaceinfo.iface_addr[currIntf]);
+            else if (dstifaceinfo.iface_addr[currIntf].ss_family == AF_INET6)
+               result = SLPMulticastSend(&v6outifaceinfo,sendbuf,&xcastsocks, &dstifaceinfo.iface_addr[currIntf]);
+         }
+         if(result == 0)
+         {
                 requestSent = 1;
-			}
+         }
 
-			/*----------------*/
-			/* Main recv loop */
-			/*----------------*/
-			while(1)
-			{
-				#ifndef UNICAST_NOT_SUPPORTED
-				int retval = 0;
-			if((retval = SLPXcastRecvMessage(&xcastsocks,
-									&recvbuf,
-									&peeraddr,
-									&timeout)) != 0)
-				#else
-				
-			if(SLPXcastRecvMessage(&xcastsocks,
-									&recvbuf,
-									&peeraddr,
-									&timeout) != 0)
-				#endif
+         /*----------------*/
+         /* Main recv loop */
+         /*----------------*/
+         while(1)
+         {
+            #ifndef UNICAST_NOT_SUPPORTED
+            int retval = 0;
+         if((retval = SLPXcastRecvMessage(&xcastsocks,
+                           &recvbuf,
+                           &peeraddr,
+                           &timeout)) != 0)
+            #else
+            
+         if(SLPXcastRecvMessage(&xcastsocks,
+                           &recvbuf,
+                           &peeraddr,
+                           &timeout) != 0)
+            #endif
 
-				{
-					/* An error occured while receiving the message        */
-					/* probably a just time out error. break for re-send.  */
-					if(errno == ETIMEDOUT)
-					{
-						result = SLP_NETWORK_TIMED_OUT;
-					}
-					else
-					{
-						result = SLP_NETWORK_ERROR;
-					}
-	#ifndef UNICAST_NOT_SUPPORTED
-					/* retval = SLP_RETRY_UNICAST signifies that we received a
+            {
+               /* An error occured while receiving the message        */
+               /* probably a just time out error. break for re-send.  */
+               if(errno == ETIMEDOUT)
+               {
+                  result = SLP_NETWORK_TIMED_OUT;
+               }
+               else
+               {
+                  result = SLP_NETWORK_ERROR;
+               }
+   #ifndef UNICAST_NOT_SUPPORTED
+               /* retval = SLP_RETRY_UNICAST signifies that we received a
 			* multicast packet of size > MTU and hence we are now sending
 			* a unicast request to this IP-address
 			*/
-			if ( retval == SLP_RETRY_UNICAST ) 
-			{
-				int tcpsockfd, retval1, retval2, unicastwait = 0;
-				unicastwait = SLPPropertyAsInteger(SLPGetProperty("net.slp.unicastMaximumWait"));
-				timeout.tv_sec = unicastwait / 1000;
-				timeout.tv_usec = (unicastwait % 1000) * 1000;
-			
-				tcpsockfd = SLPNetworkConnectStream(&peeraddr, &timeout);
-				if ( tcpsockfd >= 0 ) 
-				{
-					ToUINT16(sendbuf->start + 5, SLP_FLAG_UCAST);
-				xid = SLPXidGenerate();
-				ToUINT16(sendbuf->start + 10,xid);
-				   
-				retval1 = SLPNetworkSendMessage(tcpsockfd, SOCK_STREAM, sendbuf, &peeraddr, &timeout);
-				if ( retval1 != 0 ) 
-				{
-					/* we could not send the message for some reason */
-					/* we close the TCP connection and break */
-					if(errno == ETIMEDOUT) 
-					{
-						result = SLP_NETWORK_TIMED_OUT;
-					} 
-					else 
-					{
-						result = SLP_NETWORK_ERROR;
-					}
+         if ( retval == SLP_RETRY_UNICAST ) 
+         {
+            int tcpsockfd, retval1, retval2, unicastwait = 0;
+            unicastwait = SLPPropertyAsInteger(SLPGetProperty("net.slp.unicastMaximumWait"));
+            timeout.tv_sec = unicastwait / 1000;
+            timeout.tv_usec = (unicastwait % 1000) * 1000;
+         
+            tcpsockfd = SLPNetworkConnectStream(&peeraddr, &timeout);
+            if ( tcpsockfd >= 0 ) 
+            {
+               ToUINT16(sendbuf->start + 5, SLP_FLAG_UCAST);
+            xid = SLPXidGenerate();
+            ToUINT16(sendbuf->start + 10,xid);
+               
+            retval1 = SLPNetworkSendMessage(tcpsockfd, SOCK_STREAM, sendbuf, &peeraddr, &timeout);
+            if ( retval1 != 0 ) 
+            {
+               /* we could not send the message for some reason */
+               /* we close the TCP connection and break */
+               if(errno == ETIMEDOUT) 
+               {
+                  result = SLP_NETWORK_TIMED_OUT;
+               } 
+               else 
+               {
+                  result = SLP_NETWORK_ERROR;
+               }
 #ifdef _WIN32
-	                closesocket(tcpsockfd);
+                   closesocket(tcpsockfd);
 #else
-	                close(tcpsockfd);
+                   close(tcpsockfd);
 #endif
-	                             
-					break;
-				}
-				    
-				retval2 = SLPNetworkRecvMessage(tcpsockfd, SOCK_STREAM, &recvbuf, &peeraddr, &timeout);
-				if ( retval2 != 0 ) 
-				{
-					/* An error occured while receiving the message */
-					/* probably a just time out error. break for re-send.  */
-					if(errno == ETIMEDOUT) 
-					{
-						result = SLP_NETWORK_TIMED_OUT;
-					} 
-					else 
-					{
-					result = SLP_NETWORK_ERROR;
-					}
-				
+                                
+               break;
+            }
+                
+            retval2 = SLPNetworkRecvMessage(tcpsockfd, SOCK_STREAM, &recvbuf, &peeraddr, &timeout);
+            if ( retval2 != 0 ) 
+            {
+               /* An error occured while receiving the message */
+               /* probably a just time out error. break for re-send.  */
+               if(errno == ETIMEDOUT) 
+               {
+                  result = SLP_NETWORK_TIMED_OUT;
+               } 
+               else 
+               {
+               result = SLP_NETWORK_ERROR;
+               }
+            
 #ifdef _WIN32
-	                closesocket(tcpsockfd);
+                   closesocket(tcpsockfd);
 #else
-	                close(tcpsockfd);
+                   close(tcpsockfd);
 #endif
-					break;
-				}
-				 
+               break;
+            }
+             
 #ifdef _WIN32
-	            closesocket(tcpsockfd);
+               closesocket(tcpsockfd);
 #else
-	            close(tcpsockfd);
+               close(tcpsockfd);
 #endif
-				result = SLP_OK;
-				goto SNEEK;			                        
-				} 
-				else 
-				{
-				/* Unsuccessful in opening a TCP connection */
-				/* just break and retry everything */
-				break;			                       
-				}               
-			}
-			else
-			{
-	#endif
-					break;
-	#ifndef UNICAST_NOT_SUPPORTED
-			}
-	#endif
-			}
-	#ifndef UNICAST_NOT_SUPPORTED
-				SNEEK:
-	#endif
-				/* Sneek in and check the XID */
-				if(AsUINT16(recvbuf->start+10) == xid)
-				{
-					char peeraddrstr[INET6_ADDRSTRLEN];
-					rplycount += 1;
+            result = SLP_OK;
+            goto SNEEK;			                        
+            } 
+            else 
+            {
+            /* Unsuccessful in opening a TCP connection */
+            /* just break and retry everything */
+            break;			                       
+            }               
+         }
+         else
+         {
+   #endif
+               break;
+   #ifndef UNICAST_NOT_SUPPORTED
+         }
+   #endif
+         }
+   #ifndef UNICAST_NOT_SUPPORTED
+            SNEEK:
+   #endif
+            /* Sneek in and check the XID */
+            if(AsUINT16(recvbuf->start+10) == xid)
+            {
+               char peeraddrstr[INET6_ADDRSTRLEN];
+               rplycount += 1;
 
-					/* Call the callback with the result and recvbuf */
-	#ifndef MI_NOT_SUPPORTED
-					if (cookie == NULL)
-					{
-						cookie = (PSLPHandleInfo)handle;
-					}
-	#endif /* MI_NOT_SUPPORTED */
-			        if(callback(result,&peeraddr,recvbuf,cookie) == SLP_FALSE)
-					{
-						/* Caller does not want any more info */
-						/* We are done!                       */
-						goto CLEANUP;
-					}
+               /* Call the callback with the result and recvbuf */
+   #ifndef MI_NOT_SUPPORTED
+               if (cookie == NULL)
+               {
+                  cookie = (PSLPHandleInfo)handle;
+               }
+   #endif /* MI_NOT_SUPPORTED */
+                 if(callback(result,&peeraddr,recvbuf,cookie) == SLP_FALSE)
+               {
+                  /* Caller does not want any more info */
+                  /* We are done!                       */
+                  goto CLEANUP;
+               }
                 if (prlistlen + 14 < mtu)
-		{ 
-					/* add the peer to the previous responder list */
-					if(prlistlen != 0)
-					{
-						strcat(prlist,",");
-					}
+      { 
+               /* add the peer to the previous responder list */
+               if(prlistlen != 0)
+               {
+                  strcat(prlist,",");
+               }
                     peeraddrstr[0] = '\0';
                     if (peeraddr.ss_family == AF_INET) {
                         inet_ntop(peeraddr.ss_family, &((struct sockaddr_in*) &peeraddr)->sin_addr, peeraddrstr, INET6_ADDRSTRLEN);
@@ -1141,19 +1141,19 @@ SLPError NetworkMcastRqstRply(const char* langtag,
                     else if (peeraddr.ss_family == AF_INET6) {
                         inet_ntop(peeraddr.ss_family, &((struct sockaddr_in6*) &peeraddr)->sin6_addr, peeraddrstr, INET6_ADDRSTRLEN);
                     }
-					if (strcmp(peeraddrstr, "") != 0) 
+               if (strcmp(peeraddrstr, "") != 0) 
                     {
-					    strcat(prlist, peeraddrstr);
-					    prlistlen = strlen(prlist);
+                   strcat(prlist, peeraddrstr);
+                   prlistlen = strlen(prlist);
                     }
-				}
-			}
-		}
-			SLPXcastSocketsClose(&xcastsocks);
-		}
+            }
+         }
+      }
+         SLPXcastSocketsClose(&xcastsocks);
+      }
 #ifndef MI_NOT_SUPPORTED
-		currIntf++;
-	}
+      currIntf++;
+   }
 #endif
 
 
@@ -1296,180 +1296,180 @@ SLPError NetworkUcastRqstRply(PSLPHandleInfo handle,
     timeout.tv_sec = timeouts[0] / 1000;
     timeout.tv_usec = (timeouts[0] % 1000) * 1000;
 
-	size = 14 + langtaglen + bufsize;
-	if(buftype == SLP_FUNCT_SRVRQST ||
-	   buftype == SLP_FUNCT_ATTRRQST ||
-	   buftype == SLP_FUNCT_SRVTYPERQST)
-	{
-	    /* add in room for the prlist */
-	    size += 2 + prlistlen;
-	}
-	
-	if((sendbuf = SLPBufferRealloc(sendbuf,size)) == 0)
-	{
-	    result = SLP_MEMORY_ALLOC_FAILED;
-	    goto FINISHED;
-	}
-	
-	/*-----------------------------------*/
-	/* Add the header to the send buffer */
-	/*-----------------------------------*/
-	/*version*/
-	*(sendbuf->start)       = 2;
-	/*function id*/
-	*(sendbuf->start + 1)   = buftype;
-	/*length*/
-	ToUINT24(sendbuf->start + 2, size);
-	/*flags*/
-	ToUINT16(sendbuf->start + 5, SLP_FLAG_UCAST);  /*this is a unicast */
-	/*ext offset*/
-	ToUINT24(sendbuf->start + 7,0);
-	/*xid*/
-	ToUINT16(sendbuf->start + 10,xid);
-	/*lang tag len*/
-	ToUINT16(sendbuf->start + 12,langtaglen);
-	/*lang tag*/
-	memcpy(sendbuf->start + 14, handle->langtag, langtaglen);
-	sendbuf->curpos = sendbuf->start + langtaglen + 14 ;
+   size = 14 + langtaglen + bufsize;
+   if(buftype == SLP_FUNCT_SRVRQST ||
+      buftype == SLP_FUNCT_ATTRRQST ||
+      buftype == SLP_FUNCT_SRVTYPERQST)
+   {
+       /* add in room for the prlist */
+       size += 2 + prlistlen;
+   }
+   
+   if((sendbuf = SLPBufferRealloc(sendbuf,size)) == 0)
+   {
+       result = SLP_MEMORY_ALLOC_FAILED;
+       goto FINISHED;
+   }
+   
+   /*-----------------------------------*/
+   /* Add the header to the send buffer */
+   /*-----------------------------------*/
+   /*version*/
+   *(sendbuf->start)       = 2;
+   /*function id*/
+   *(sendbuf->start + 1)   = buftype;
+   /*length*/
+   ToUINT24(sendbuf->start + 2, size);
+   /*flags*/
+   ToUINT16(sendbuf->start + 5, SLP_FLAG_UCAST);  /*this is a unicast */
+   /*ext offset*/
+   ToUINT24(sendbuf->start + 7,0);
+   /*xid*/
+   ToUINT16(sendbuf->start + 10,xid);
+   /*lang tag len*/
+   ToUINT16(sendbuf->start + 12,langtaglen);
+   /*lang tag*/
+   memcpy(sendbuf->start + 14, handle->langtag, langtaglen);
+   sendbuf->curpos = sendbuf->start + langtaglen + 14 ;
 
-	/*-----------------------------------*/
-	/* Add the prlist to the send buffer */
-	/*-----------------------------------*/
-	if(prlist)
-	{
-	    ToUINT16(sendbuf->curpos,prlistlen);
-	    sendbuf->curpos = sendbuf->curpos + 2;
-	    memcpy(sendbuf->curpos, prlist, prlistlen);
-	    sendbuf->curpos = sendbuf->curpos + prlistlen;
-	}
+   /*-----------------------------------*/
+   /* Add the prlist to the send buffer */
+   /*-----------------------------------*/
+   if(prlist)
+   {
+       ToUINT16(sendbuf->curpos,prlistlen);
+       sendbuf->curpos = sendbuf->curpos + 2;
+       memcpy(sendbuf->curpos, prlist, prlistlen);
+       sendbuf->curpos = sendbuf->curpos + prlistlen;
+   }
 
-	/*-----------------------------*/
-	/* Add the rest	of the message */
-	/*-----------------------------*/
-	memcpy(sendbuf->curpos,	buf, bufsize);
+   /*-----------------------------*/
+   /* Add the rest	of the message */
+   /*-----------------------------*/
+   memcpy(sendbuf->curpos,	buf, bufsize);
 
-	/*----------------------*/
-	/* send	the	send buffer	*/
-	/*----------------------*/
+   /*----------------------*/
+   /* send	the	send buffer	*/
+   /*----------------------*/
 
-	handle->unicastsock	= SLPNetworkConnectStream(&(handle->unicastaddr), &timeout);
-	if ( handle->unicastsock >=	0 )
+   handle->unicastsock	= SLPNetworkConnectStream(&(handle->unicastaddr), &timeout);
+   if ( handle->unicastsock >=	0 )
     {
-		retval1	= SLPNetworkSendMessage(handle->unicastsock, SOCK_STREAM, sendbuf, &(handle->unicastaddr), &timeout);
-		if ( retval1 !=	0 )
+      retval1	= SLPNetworkSendMessage(handle->unicastsock, SOCK_STREAM, sendbuf, &(handle->unicastaddr), &timeout);
+      if ( retval1 !=	0 )
         {
-			/* we could	not	send the message for some reason */
-			/* we close	the	TCP	connection and break */
-			if(errno ==	ETIMEDOUT)
+         /* we could	not	send the message for some reason */
+         /* we close	the	TCP	connection and break */
+         if(errno ==	ETIMEDOUT)
             {
-				result = SLP_NETWORK_TIMED_OUT;
-			}
+            result = SLP_NETWORK_TIMED_OUT;
+         }
             else
             {
-		        result = SLP_NETWORK_ERROR;
-	        }
+              result = SLP_NETWORK_ERROR;
+           }
 #ifdef _WIN32
-	        closesocket(handle->unicastsock);
+           closesocket(handle->unicastsock);
 #else
-	        close(handle->unicastsock);
+           close(handle->unicastsock);
 #endif
-	        goto FINISHED;
-	    }
-		
-		retval2	= SLPNetworkRecvMessage(handle->unicastsock, SOCK_STREAM, &recvbuf,	&(handle->unicastaddr),	&timeout);
-		if ( retval2 !=	0 )
+           goto FINISHED;
+       }
+      
+      retval2	= SLPNetworkRecvMessage(handle->unicastsock, SOCK_STREAM, &recvbuf,	&(handle->unicastaddr),	&timeout);
+      if ( retval2 !=	0 )
         {
-			/* An error	occured	while receiving	the	message	*/
-			/* probably	just a time	out	error.				*/
-			/* we close	the	TCP	connection and break */
-			if(errno ==	ETIMEDOUT)
+         /* An error	occured	while receiving	the	message	*/
+         /* probably	just a time	out	error.				*/
+         /* we close	the	TCP	connection and break */
+         if(errno ==	ETIMEDOUT)
             {
-				result = SLP_NETWORK_TIMED_OUT;
-	        }
+            result = SLP_NETWORK_TIMED_OUT;
+           }
             else
             {
-				result = SLP_NETWORK_ERROR;
+            result = SLP_NETWORK_ERROR;
             }
 #ifdef _WIN32
-	        closesocket(handle->unicastsock);
+           closesocket(handle->unicastsock);
 #else
-	        close(handle->unicastsock);
+           close(handle->unicastsock);
 #endif
-			goto FINISHED;
-		}
+         goto FINISHED;
+      }
 #ifdef _WIN32
-	    closesocket(handle->unicastsock);
+       closesocket(handle->unicastsock);
 #else
-	    close(handle->unicastsock);
+       close(handle->unicastsock);
 #endif
-		result = SLP_OK;
-	}
+      result = SLP_OK;
+   }
     else
     {
-		result = SLP_NETWORK_TIMED_OUT;
-		/* Unsuccessful	in opening a TCP connection	*/
-		/* just	break								*/
-		goto FINISHED;
-	}
-	/* Sneek in	and	check the XID */
-	if(AsUINT16(recvbuf->start+10) == xid)
-	{
-		char peeraddrstr[INET6_ADDRSTRLEN];
-		rplycount += 1;
-		/* Call	the	callback with the result and recvbuf */
-		if(callback(result,&peeraddr,recvbuf,cookie) ==	SLP_FALSE)
-		{
-			/* Caller does not want	any	more info */
-			/* We are done!						  */
-			goto CLEANUP;
-		}
-		/* add the peer	to the previous	responder list */
-		if(prlistlen !=	0)
-		{
-			strcat(prlist,",");
-		}
-		peeraddrstr[0] = '\0';
-		if (peeraddr.ss_family == AF_INET)
+      result = SLP_NETWORK_TIMED_OUT;
+      /* Unsuccessful	in opening a TCP connection	*/
+      /* just	break								*/
+      goto FINISHED;
+   }
+   /* Sneek in	and	check the XID */
+   if(AsUINT16(recvbuf->start+10) == xid)
+   {
+      char peeraddrstr[INET6_ADDRSTRLEN];
+      rplycount += 1;
+      /* Call	the	callback with the result and recvbuf */
+      if(callback(result,&peeraddr,recvbuf,cookie) ==	SLP_FALSE)
+      {
+         /* Caller does not want	any	more info */
+         /* We are done!						  */
+         goto CLEANUP;
+      }
+      /* add the peer	to the previous	responder list */
+      if(prlistlen !=	0)
+      {
+         strcat(prlist,",");
+      }
+      peeraddrstr[0] = '\0';
+      if (peeraddr.ss_family == AF_INET)
         {
-			inet_ntop(peeraddr.ss_family, &((struct	sockaddr_in*) &peeraddr)->sin_addr,	peeraddrstr, INET6_ADDRSTRLEN);
-		}
-		else if	(peeraddr.ss_family	== AF_INET6)
+         inet_ntop(peeraddr.ss_family, &((struct	sockaddr_in*) &peeraddr)->sin_addr,	peeraddrstr, INET6_ADDRSTRLEN);
+      }
+      else if	(peeraddr.ss_family	== AF_INET6)
         {
-			inet_ntop(peeraddr.ss_family, &((struct	sockaddr_in6*) &peeraddr)->sin6_addr, peeraddrstr, INET6_ADDRSTRLEN);
-		}
-		if (strcmp(peeraddrstr,	"")	!= 0) 
-		{
-			strcat(prlist, peeraddrstr);
-			prlistlen =	 strlen(prlist);
-		}
-	}
-		
-	FINISHED:
-	/*---------------------------------------------------------------------*/
-	/* Notify the callback with	SLP_LAST_CALL so that they know	we're done */
-	/*---------------------------------------------------------------------*/
-	if(rplycount ||	result == SLP_NETWORK_TIMED_OUT)
-	{
-		result = SLP_LAST_CALL;
-	}
+         inet_ntop(peeraddr.ss_family, &((struct	sockaddr_in6*) &peeraddr)->sin6_addr, peeraddrstr, INET6_ADDRSTRLEN);
+      }
+      if (strcmp(peeraddrstr,	"")	!= 0) 
+      {
+         strcat(prlist, peeraddrstr);
+         prlistlen =	 strlen(prlist);
+      }
+   }
+      
+   FINISHED:
+   /*---------------------------------------------------------------------*/
+   /* Notify the callback with	SLP_LAST_CALL so that they know	we're done */
+   /*---------------------------------------------------------------------*/
+   if(rplycount ||	result == SLP_NETWORK_TIMED_OUT)
+   {
+      result = SLP_LAST_CALL;
+   }
  
-	callback(result, NULL,NULL,cookie);
-	if(result == SLP_LAST_CALL)
-	{
-		result = SLP_OK;
-	}
+   callback(result, NULL,NULL,cookie);
+   if(result == SLP_LAST_CALL)
+   {
+      result = SLP_OK;
+   }
 
-	CLEANUP:
-	/*----------------*/
-	/* Free	resources */
-	/*----------------*/
-	if(prlist) xfree(prlist);
-	SLPBufferFree(sendbuf);
-	SLPBufferFree(recvbuf);
+   CLEANUP:
+   /*----------------*/
+   /* Free	resources */
+   /*----------------*/
+   if(prlist) xfree(prlist);
+   SLPBufferFree(sendbuf);
+   SLPBufferFree(recvbuf);
 
-	return result;
+   return result;
 
 }
 #endif
-	
+   
 /*=========================================================================*/

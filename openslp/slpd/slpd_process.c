@@ -1409,9 +1409,9 @@ int SLPDProcessMessage(struct sockaddr_storage* peerinfo,
 
     if(!*sendbuf)
     {
-	*sendbuf = SLPBufferAlloc(SLP_MAX_DATAGRAM_SIZE);
-	if (!*sendbuf)
-	    return SLP_ERROR_PARSE_ERROR;
+   *sendbuf = SLPBufferAlloc(SLP_MAX_DATAGRAM_SIZE);
+   if (!*sendbuf)
+       return SLP_ERROR_PARSE_ERROR;
     }
     /* set the sendbuf empty */
     (*sendbuf)->end = (*sendbuf)->start;

@@ -235,7 +235,7 @@ int SLPSubsetStringList(int listlen,
 
 /*=========================================================================*/
 int SLPCheckServiceUrlSyntax(const char* srvurl,
-			     int srvurllen);
+              int srvurllen);
 /* Test if a service url conforms to accepted syntax
  * 
  * srvurl -     (IN) service url string to check
@@ -249,7 +249,7 @@ int SLPCheckServiceUrlSyntax(const char* srvurl,
 
 /*=========================================================================*/
 int SLPCheckAttributeListSyntax(const char* attrlist,
-				int attrlistlen);
+            int attrlistlen);
 /* Test if a service url conforms to accepted syntax
  * 
  * attrlist -     (IN) attribute list string to check

@@ -86,26 +86,26 @@
 
 /* Tests a character to see if it reserved (as defined in RFC 2608, p11). */
 #define IS_RESERVED(x) \
-	(((x) == '(' || (x) == ')' || (x) == ',' || (x) == '\\' || (x) == '!' || (x) == '<' \
-	|| (x) == '=' || (x) == '>' || (x) == '~') || \
-	((((char)0x01 <= (x)) && ((char)0x1F >= (x))) || ((x) == (char)0x7F)))
+   (((x) == '(' || (x) == ')' || (x) == ',' || (x) == '\\' || (x) == '!' || (x) == '<' \
+   || (x) == '=' || (x) == '>' || (x) == '~') || \
+   ((((char)0x01 <= (x)) && ((char)0x1F >= (x))) || ((x) == (char)0x7F)))
 
 
 #define IS_INVALID_VALUE_CHAR(x) \
-	IS_RESERVED(x)
+   IS_RESERVED(x)
 
 #define IS_INVALID_TAG_CHAR(x) \
-	(IS_RESERVED(x) \
-	|| ((x) == '*') || \
-	((x) == (char)0x0D) || ((x) == (char)0x0A) || ((x) == (char)0x09) || ((x) == '_'))
+   (IS_RESERVED(x) \
+   || ((x) == '*') || \
+   ((x) == (char)0x0D) || ((x) == (char)0x0A) || ((x) == (char)0x09) || ((x) == '_'))
 
 #define IS_VALID_TAG_CHAR(x) !IS_INVALID_TAG_CHAR(x)
 
 /* Tests a character to see if it is in set of known hex characters. */
 #define IS_VALID_HEX(x) ( ((x >= '0') && (x <= '9')) /* Number */ \
-				|| ((x >= 'A') && (x <= 'F')) /* ABCDEF */ \
-				|| ((x >= 'a') && (x <= 'f')) /* abcdef */ \
-				)
+            || ((x >= 'A') && (x <= 'F')) /* ABCDEF */ \
+            || ((x >= 'a') && (x <= 'f')) /* abcdef */ \
+            )
 
 
 /* Tests a character to see if it's a digit. */
@@ -189,7 +189,7 @@ char *unescape_into(char *dest, const char *src, int len, int
              * not been truncated. 
              ***/
             if((i + 2 < len) && isxdigit((int) src[i+1])
-			   && isxdigit((int) src[i+2]))
+            && isxdigit((int) src[i+2]))
             {
                 *write = unescape(src[i+1], src[i+2]);
                 i += 2;
@@ -397,7 +397,7 @@ int find_value_list_end(char const *value, int *value_count, SLPType
 
     if (type_guess == TYPE_UNKNOWN)
     {
-	return 0;	/* empty */
+   return 0;	/* empty */
     }
 
     *type = type_guess;
@@ -444,7 +444,7 @@ int count_digits(int number)
 
     /* count number of digits required; this only works with integers */
     for ( ; number > 0; number /= 10) {
-	count++;
+   count++;
     }
 
     return count;
@@ -462,8 +462,8 @@ SLPBoolean is_valid_tag(const char *tag)
 /* A boolean expression that tests a character to see if it must be escaped.
  */
 #define ATTRIBUTE_RESERVED_TEST(x) \
-	(x == '(' || x == ')' || x == ',' || x == '\\' || x == '!' || x == '<' \
-	 || x == '=' || x == '<' || x == '=' || x == '>' || x == '~' || x == '\0')
+   (x == '(' || x == ')' || x == ',' || x == '\\' || x == '!' || x == '<' \
+    || x == '=' || x == '<' || x == '=' || x == '>' || x == '~' || x == '\0')
 /* Tests a character to see if it should be escaped. To be used for everything
  * but opaques. */
 SLPBoolean is_legal_slp_char(const char to_test)

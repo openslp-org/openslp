@@ -223,20 +223,20 @@ SLPError ProcessAttrRqst(PSLPHandleInfo handle)
     {
 
         #ifndef UNICAST_NOT_SUPPORTED
-	if ( handle->dounicast == 1 ) 
-	{
-	    void *cookie = (PSLPHandleInfo) handle;
-	    result = NetworkUcastRqstRply(handle,
+   if ( handle->dounicast == 1 ) 
+   {
+       void *cookie = (PSLPHandleInfo) handle;
+       result = NetworkUcastRqstRply(handle,
                                           buf,
                                           SLP_FUNCT_ATTRRQST,
-					  bufsize,
+                 bufsize,
                                           ProcessAttrRplyCallback,
-					  cookie);
-	    break;
-	}
-	else
-	#endif
-	sock = NetworkConnectToDA(handle,
+                 cookie);
+       break;
+   }
+   else
+   #endif
+   sock = NetworkConnectToDA(handle,
                                   handle->params.findattrs.scopelist,
                                   handle->params.findattrs.scopelistlen,
                                   &peeraddr);
@@ -252,7 +252,7 @@ SLPError ProcessAttrRqst(PSLPHandleInfo handle)
                                           ProcessAttrRplyCallback,
                                           NULL);
             #else	
-	    result = NetworkMcastRqstRply(handle->langtag,
+       result = NetworkMcastRqstRply(handle->langtag,
                                           buf,
                                           SLP_FUNCT_ATTRRQST,
                                           bufsize,

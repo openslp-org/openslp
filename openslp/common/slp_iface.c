@@ -162,176 +162,176 @@ int SLPIfaceContainsAddr(int listlen,
 int SLPIfaceGetInfo(const char* useifaces,
                     SLPIfaceInfo* ifaceinfo, int family)
 {
-	char *interfaceString;
-	char *bcastString;
-	int sts = 0;
-	int useifaceslen;
-	struct sockaddr_in v4addr;
+   char *interfaceString;
+   char *bcastString;
+   int sts = 0;
+   int useifaceslen;
+   struct sockaddr_in v4addr;
     long hostAddr;
-	struct sockaddr_in bcastAddr;
-	struct sockaddr_in6 v6addr;
-	struct sockaddr_in6 indexHack;
-	unsigned int fd;
-	int i;
+   struct sockaddr_in bcastAddr;
+   struct sockaddr_in6 v6addr;
+   struct sockaddr_in6 indexHack;
+   unsigned int fd;
+   int i;
 
     /* first try ipv6 addrs */
     ifaceinfo->iface_count = 0;
     ifaceinfo->bcast_count = 0;
 
-	if (useifaces) {
-		useifaceslen = strlen(useifaces);
-	}
-	else {
-		useifaceslen = 0;
-	}
+   if (useifaces) {
+      useifaceslen = strlen(useifaces);
+   }
+   else {
+      useifaceslen = 0;
+   }
 
-	/* attempt to retrieve the interfaces from the configuration file */
+   /* attempt to retrieve the interfaces from the configuration file */
     interfaceString = (char *) SLPPropertyGet("net.slp.interfaces");
-	if (*interfaceString == '\0') {
-		/* they don't have any setting in their conf file, so put in the default info */
-		if (SLPNetIsIPV6() && ((family == AF_INET6) || (family == AF_UNSPEC)) ){
-			struct sockaddr_storage storageaddr_any;
+   if (*interfaceString == '\0') {
+      /* they don't have any setting in their conf file, so put in the default info */
+      if (SLPNetIsIPV6() && ((family == AF_INET6) || (family == AF_UNSPEC)) ){
+         struct sockaddr_storage storageaddr_any;
 
-		    fd = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
-			if(fd != -1) {
-				for (i = 0; i < MAX_INTERFACE_TEST_INDEX; i++) {
-					SLPNetSetAddr((struct sockaddr_storage *) &indexHack, AF_INET6, 0, (char *) &slp_in6addr_any, sizeof(slp_in6addr_any));
-					indexHack.sin6_scope_id = i;
-					sts = bind(fd, (struct sockaddr *) &indexHack, sizeof(indexHack));
-					if (sts == 0) {
-						SLPNetSetAddr(&storageaddr_any, AF_INET6, 0, (char *) &slp_in6addr_any, sizeof(slp_in6addr_any));
-						SLPNetCopyAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count], &storageaddr_any);
-						ifaceinfo->iface_count++;
-						break;
-					}
-				}
-				#ifdef _WIN32 
-				closesocket(fd);
-				#else
-				close(fd);
-				#endif
-			}
-		}
-		if (SLPNetIsIPV4() && ((family == AF_INET) || (family == AF_UNSPEC)) ){
-			struct sockaddr_storage storageaddr_any;
-			unsigned int addrAny = INADDR_ANY;
+          fd = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
+         if(fd != -1) {
+            for (i = 0; i < MAX_INTERFACE_TEST_INDEX; i++) {
+               SLPNetSetAddr((struct sockaddr_storage *) &indexHack, AF_INET6, 0, (char *) &slp_in6addr_any, sizeof(slp_in6addr_any));
+               indexHack.sin6_scope_id = i;
+               sts = bind(fd, (struct sockaddr *) &indexHack, sizeof(indexHack));
+               if (sts == 0) {
+                  SLPNetSetAddr(&storageaddr_any, AF_INET6, 0, (char *) &slp_in6addr_any, sizeof(slp_in6addr_any));
+                  SLPNetCopyAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count], &storageaddr_any);
+                  ifaceinfo->iface_count++;
+                  break;
+               }
+            }
+            #ifdef _WIN32 
+            closesocket(fd);
+            #else
+            close(fd);
+            #endif
+         }
+      }
+      if (SLPNetIsIPV4() && ((family == AF_INET) || (family == AF_UNSPEC)) ){
+         struct sockaddr_storage storageaddr_any;
+         unsigned int addrAny = INADDR_ANY;
 
-		    fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-			if(fd != -1) {
-				v4addr.sin_family = AF_INET;
-				v4addr.sin_port = 0;
-				v4addr.sin_addr.s_addr = addrAny;
-				sts = bind(fd, (struct sockaddr *) &v4addr, sizeof(v4addr));
-				if (sts == 0) {
-					SLPNetSetAddr(&storageaddr_any, AF_INET, 0, (char *) &addrAny, sizeof(addrAny));
-					SLPNetCopyAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count], &storageaddr_any);
-					ifaceinfo->iface_count++;
-				}
-				#ifdef _WIN32 
-				closesocket(fd);
-				#else
-				close(fd);
-				#endif
-			}
-		}
-	}
-	else {
-		char *slider1, *slider2, *temp, *tempend;
-		/* attemp to use the settings from the file */
-	    slider1 = slider2 = temp = xstrdup(SLPPropertyGet("net.slp.interfaces"));
-		if(temp) {
-	        tempend = temp + strlen(temp);
-			while(slider1 != tempend) {
-	            while(*slider2 && *slider2 != ',') slider2++;
-		        *slider2 = 0;
-				if (*slider1 == '\0') {
-					slider1++;
-				}
-				/* should have slider1 pointing to a NULL terminated string for the ip address */
-				if (SLPIfaceContainsAddr(useifaceslen,
-										 useifaces,
-										 strlen(slider1),
-										 slider1)) {
-					/* check if an ipv4 address was given */
-					if (inet_pton(AF_INET, slider1, &v4addr.sin_addr) == 1) {
-						if (SLPNetIsIPV4() && ((family == AF_INET) || (family == AF_UNSPEC)) ) {
-						    fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-							if(fd != -1) {
-								v4addr.sin_family = AF_INET;
-								v4addr.sin_port = 0;
-								sts = bind(fd, (struct sockaddr *) &v4addr, sizeof(v4addr));
-								if (sts == 0) {
+          fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+         if(fd != -1) {
+            v4addr.sin_family = AF_INET;
+            v4addr.sin_port = 0;
+            v4addr.sin_addr.s_addr = addrAny;
+            sts = bind(fd, (struct sockaddr *) &v4addr, sizeof(v4addr));
+            if (sts == 0) {
+               SLPNetSetAddr(&storageaddr_any, AF_INET, 0, (char *) &addrAny, sizeof(addrAny));
+               SLPNetCopyAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count], &storageaddr_any);
+               ifaceinfo->iface_count++;
+            }
+            #ifdef _WIN32 
+            closesocket(fd);
+            #else
+            close(fd);
+            #endif
+         }
+      }
+   }
+   else {
+      char *slider1, *slider2, *temp, *tempend;
+      /* attemp to use the settings from the file */
+       slider1 = slider2 = temp = xstrdup(SLPPropertyGet("net.slp.interfaces"));
+      if(temp) {
+           tempend = temp + strlen(temp);
+         while(slider1 != tempend) {
+               while(*slider2 && *slider2 != ',') slider2++;
+              *slider2 = 0;
+            if (*slider1 == '\0') {
+               slider1++;
+            }
+            /* should have slider1 pointing to a NULL terminated string for the ip address */
+            if (SLPIfaceContainsAddr(useifaceslen,
+                               useifaces,
+                               strlen(slider1),
+                               slider1)) {
+               /* check if an ipv4 address was given */
+               if (inet_pton(AF_INET, slider1, &v4addr.sin_addr) == 1) {
+                  if (SLPNetIsIPV4() && ((family == AF_INET) || (family == AF_UNSPEC)) ) {
+                      fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+                     if(fd != -1) {
+                        v4addr.sin_family = AF_INET;
+                        v4addr.sin_port = 0;
+                        sts = bind(fd, (struct sockaddr *) &v4addr, sizeof(v4addr));
+                        if (sts == 0) {
                                     hostAddr = ntohl(v4addr.sin_addr.s_addr);
-									SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count], AF_INET, 0, (char *) &hostAddr, sizeof(v4addr.sin_addr));
-									ifaceinfo->iface_count++;
-								}
-								#ifdef _WIN32 
-								closesocket(fd);
-								#else
-								close(fd);
-								#endif
-							}
-						}
-					}
-					else if (inet_pton(AF_INET6, slider1, &v6addr.sin6_addr) == 1) {
-						if (SLPNetIsIPV6() && ((family == AF_INET6) || (family == AF_UNSPEC)) ) {
-							/* try and bind to verify the address is okay */
-						    fd = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
-							if(fd != -1) {
-								for (i = 0; i < MAX_INTERFACE_TEST_INDEX; i++) {
-									SLPNetSetAddr((struct sockaddr_storage *) &indexHack, AF_INET6, 0, (char *) &v6addr.sin6_addr, sizeof(v6addr.sin6_addr));
-									indexHack.sin6_scope_id = i;
-									sts = bind(fd, (struct sockaddr *) &indexHack, sizeof(indexHack));
-									if (sts == 0) {
-										memcpy(&ifaceinfo->iface_addr[ifaceinfo->iface_count], &indexHack, sizeof(indexHack));
-										ifaceinfo->iface_count++;
-										break;
-									}
-								}
-								#ifdef _WIN32 
-								closesocket(fd);
-								#else
-								close(fd);
-								#endif
-							}
-						}
-					}
-					else {
-						/* not v4, not v6 */
-						errno = EINVAL;
-						sts = 1;
-					}
-				}
-	            slider1 = slider2;
-		        slider2++;
-			}
+                           SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count], AF_INET, 0, (char *) &hostAddr, sizeof(v4addr.sin_addr));
+                           ifaceinfo->iface_count++;
+                        }
+                        #ifdef _WIN32 
+                        closesocket(fd);
+                        #else
+                        close(fd);
+                        #endif
+                     }
+                  }
+               }
+               else if (inet_pton(AF_INET6, slider1, &v6addr.sin6_addr) == 1) {
+                  if (SLPNetIsIPV6() && ((family == AF_INET6) || (family == AF_UNSPEC)) ) {
+                     /* try and bind to verify the address is okay */
+                      fd = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
+                     if(fd != -1) {
+                        for (i = 0; i < MAX_INTERFACE_TEST_INDEX; i++) {
+                           SLPNetSetAddr((struct sockaddr_storage *) &indexHack, AF_INET6, 0, (char *) &v6addr.sin6_addr, sizeof(v6addr.sin6_addr));
+                           indexHack.sin6_scope_id = i;
+                           sts = bind(fd, (struct sockaddr *) &indexHack, sizeof(indexHack));
+                           if (sts == 0) {
+                              memcpy(&ifaceinfo->iface_addr[ifaceinfo->iface_count], &indexHack, sizeof(indexHack));
+                              ifaceinfo->iface_count++;
+                              break;
+                           }
+                        }
+                        #ifdef _WIN32 
+                        closesocket(fd);
+                        #else
+                        close(fd);
+                        #endif
+                     }
+                  }
+               }
+               else {
+                  /* not v4, not v6 */
+                  errno = EINVAL;
+                  sts = 1;
+               }
+            }
+               slider1 = slider2;
+              slider2++;
+         }
         }
         xfree(temp);
     }
 
-	/* now stuff in a broadcast address */
-	if (SLPNetIsIPV4() && ((family == AF_INET) || (family == AF_UNSPEC)) ) { 
-	    bcastString = (char *) SLPPropertyGet("net.slp.broadcastAddr");
-		if (*bcastString == '\0') {
-			struct sockaddr_storage storageaddr_bcast;
-			unsigned int broadAddr = INADDR_BROADCAST;
+   /* now stuff in a broadcast address */
+   if (SLPNetIsIPV4() && ((family == AF_INET) || (family == AF_UNSPEC)) ) { 
+       bcastString = (char *) SLPPropertyGet("net.slp.broadcastAddr");
+      if (*bcastString == '\0') {
+         struct sockaddr_storage storageaddr_bcast;
+         unsigned int broadAddr = INADDR_BROADCAST;
 
-			SLPNetSetAddr(&storageaddr_bcast, AF_INET, 0, (char *) &broadAddr, sizeof(broadAddr));
-	        SLPNetCopyAddr(&ifaceinfo->bcast_addr[ifaceinfo->bcast_count], &storageaddr_bcast);
-			ifaceinfo->bcast_count++;
-		}
-		else {
-			struct sockaddr_storage storageaddr_bcast;
+         SLPNetSetAddr(&storageaddr_bcast, AF_INET, 0, (char *) &broadAddr, sizeof(broadAddr));
+           SLPNetCopyAddr(&ifaceinfo->bcast_addr[ifaceinfo->bcast_count], &storageaddr_bcast);
+         ifaceinfo->bcast_count++;
+      }
+      else {
+         struct sockaddr_storage storageaddr_bcast;
 
-			if (inet_pton(AF_INET, bcastString, &bcastAddr.sin_addr) == 1) {
-				SLPNetSetAddr(&storageaddr_bcast, AF_INET, 0, (char *) &bcastAddr.sin_addr, sizeof(bcastAddr.sin_addr));
-		        SLPNetCopyAddr(&ifaceinfo->bcast_addr[ifaceinfo->bcast_count], &storageaddr_bcast);
-				ifaceinfo->bcast_count++;
-			}
-		}
-	}
+         if (inet_pton(AF_INET, bcastString, &bcastAddr.sin_addr) == 1) {
+            SLPNetSetAddr(&storageaddr_bcast, AF_INET, 0, (char *) &bcastAddr.sin_addr, sizeof(bcastAddr.sin_addr));
+              SLPNetCopyAddr(&ifaceinfo->bcast_addr[ifaceinfo->bcast_count], &storageaddr_bcast);
+            ifaceinfo->bcast_count++;
+         }
+      }
+   }
 
-	return(sts);
+   return(sts);
 }
 
 /** Convert an array of sockaddr_storage buffers to a comma-delimited list.

@@ -107,8 +107,8 @@ int SLPCompareString(int str1len,
     /* TODO: fold whitespace and handle escapes*/
     if(str1len == str2len)
     {
-    	if (str1len <= 0)
-	    return(0);
+      if (str1len <= 0)
+       return(0);
         return strncasecmp(str1,str2,str1len);
     }
     else if(str1len > str2len)
@@ -155,7 +155,7 @@ int SLPCompareNamingAuth(int srvtypelen,
     /* stop search at colon after naming authority (if there is one) */
     dot = memchr(srvtype,':',srvtypelen);
     if (dot)
-	srvtypelen = dot - srvtype;
+   srvtypelen = dot - srvtype;
  
     dot = memchr(srvtype,'.',srvtypelen);
 
@@ -164,13 +164,13 @@ int SLPCompareNamingAuth(int srvtypelen,
 
     if (dot)
     {	    
-	int srvtypenalen = srvtypelen - (dot + 1 - srvtype);
+   int srvtypenalen = srvtypelen - (dot + 1 - srvtype);
 
-	if(srvtypenalen != namingauthlen)
-	    return 1;
+   if(srvtypenalen != namingauthlen)
+       return 1;
 
-	if(strncasecmp(dot + 1, namingauth, namingauthlen) == 0)
-	    return 0;
+   if(strncasecmp(dot + 1, namingauth, namingauthlen) == 0)
+       return 0;
     }	
 
     return 1;
@@ -512,7 +512,7 @@ int SLPSubsetStringList(int listlen,
 
 /*=========================================================================*/
 int SLPCheckServiceUrlSyntax(const char* srvurl,
-			     int srvurllen)
+              int srvurllen)
 /* Test if a service url conforms to accepted syntax
  *
  * srvurl -     (IN) service url string to check
@@ -547,7 +547,7 @@ int SLPCheckServiceUrlSyntax(const char* srvurl,
  
 /*=========================================================================*/
 int SLPCheckAttributeListSyntax(const char* attrlist,
-				int attrlistlen)
+            int attrlistlen)
 /* Test if a service url conforms to accepted syntax
  *
  * attrlist -     (IN) attribute list string to check
@@ -569,19 +569,19 @@ int SLPCheckAttributeListSyntax(const char* attrlist,
         {
             if(*slider == '(')
             {
-	        while(slider != end)
-	        {
-	            if(*slider == '=')
-	            {
-		        return 0;
-		    }
-		    slider++;
-	        }
-	    
-	        return 1;
-	    }
-	    slider++;
-	}
+           while(slider != end)
+           {
+               if(*slider == '=')
+               {
+              return 0;
+          }
+          slider++;
+           }
+       
+           return 1;
+       }
+       slider++;
+   }
     }    
     return 0;
 }

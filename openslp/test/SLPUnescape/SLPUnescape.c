@@ -46,23 +46,23 @@
 int
 main (int argc, char *argv[])
 {
-	SLPError	err;
-	char		*output_string;
+   SLPError	err;
+   char		*output_string;
 
-	if (argc != 2)
-	{
-		printf("SLPUnescape\n  This program tests the un-parsing of a service url.\n Usage:\n   SLPEscape <string>\n");
-		return(1);
-	} /* End If. */
+   if (argc != 2)
+   {
+      printf("SLPUnescape\n  This program tests the un-parsing of a service url.\n Usage:\n   SLPEscape <string>\n");
+      return(1);
+   } /* End If. */
 
-	err = SLPUnescape(argv[1], &output_string, SLP_TRUE); 
-	check_error_state(err, "Error parsing Service Tag");
+   err = SLPUnescape(argv[1], &output_string, SLP_TRUE); 
+   check_error_state(err, "Error parsing Service Tag");
 
-	printf("Input Tag = %s\n", argv[1]);
-	printf("Output Tag = ");
-	puts(output_string);
+   printf("Input Tag = %s\n", argv[1]);
+   printf("Output Tag = ");
+   puts(output_string);
 
-	return(0);
+   return(0);
 }
 
 /*=========================================================================*/ 

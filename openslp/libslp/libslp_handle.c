@@ -197,7 +197,7 @@ SLPError SLPAPI SLPOpen(const char *pcLang, SLPBoolean isAsync, SLPHandle *phSLP
 #ifndef UNICAST_NOT_SUPPORTED
     handle->unicastsock = -1;
 #endif
-		
+      
     G_OpenSLPHandleCount ++;  
 
     *phSLP = (SLPHandle)handle; 
@@ -358,7 +358,7 @@ SLPError SLPAssociateIP( SLPHandle hSLP, const char* unicast_ip)
 {
 
     PSLPHandleInfo				handle;
-	int							result=-1;
+   int							result=-1;
 
     /*------------------------------*/
     /* check for invalid parameters */
@@ -379,9 +379,9 @@ SLPError SLPAssociateIP( SLPHandle hSLP, const char* unicast_ip)
     handle->dounicast = 1;
 
    /** @todo Verify error conditions in associate ip address. */
-	result = SLPNetResolveHostToAddr(unicast_ip, &handle->unicastaddr);
-	if (SLPNetSetPort(&handle->unicastaddr, SLP_RESERVED_PORT) != 0)
-		return SLP_PARAMETER_BAD;
+   result = SLPNetResolveHostToAddr(unicast_ip, &handle->unicastaddr);
+   if (SLPNetSetPort(&handle->unicastaddr, SLP_RESERVED_PORT) != 0)
+      return SLP_PARAMETER_BAD;
     return SLP_OK;
 }
 #endif

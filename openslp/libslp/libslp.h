@@ -459,7 +459,7 @@ SLPError NetworkUcastRqstRply(PSLPHandleInfo handle,
                               NetworkRplyCallback callback,
                               void * cookie);
 #endif
-			      
+               
 int KnownDAConnect(PSLPHandleInfo handle,
                    int scopelistlen,
                    const char* scopelist,

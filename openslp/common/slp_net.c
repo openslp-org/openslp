@@ -197,9 +197,9 @@ int handlePreArea(char *start, char *result) {
 
     end = strstr(start, "::");
     if (end == NULL) {
-		end = strchr(start,',');
-		if (end == NULL)
-			end = start + strlen(start);
+      end = strchr(start,',');
+      if (end == NULL)
+         end = start + strlen(start);
     }
 
     if ((start == NULL) || end == NULL) {
@@ -310,7 +310,7 @@ int SLPNetIsIPV6() {
         return(1);
     }
     else {
-    	return(0);
+      return(0);
     }
 }
 
@@ -326,7 +326,7 @@ int SLPNetIsIPV4() {
         return(1);
     }
     else {
-    	return(0);
+      return(0);
     }
 }
 
@@ -390,7 +390,7 @@ int SLPNetIsMCast(const struct sockaddr_storage *addr) {
         struct sockaddr_in6 *v6 = (struct sockaddr_in6 *) addr;
         return(IN6_IS_ADDR_MULTICAST(&v6->sin6_addr));
     }
-	return(0);
+   return(0);
 }
 
 /** Determines if the specified address is on the local host.
@@ -415,7 +415,7 @@ int SLPNetIsLocal(const struct sockaddr_storage *addr) {
         struct sockaddr_in6 *v6 = (struct sockaddr_in6 *) addr;
         sts = IN6_IS_ADDR_LOOPBACK(&v6->sin6_addr);
     }
-	return(sts);
+   return(sts);
 }
 
 /** Determines if the specified address is a loopback address.
@@ -442,7 +442,7 @@ int SLPNetIsLoopback(const struct sockaddr_storage *addr) {
         struct sockaddr_in6 *v6 = (struct sockaddr_in6 *) addr;
         sts = SLP_IN6_IS_ADDR_LOOPBACK(&v6->sin6_addr);
     }
-	return(sts);
+   return(sts);
 }
 
 /** Fills in the fields of an address structure.
@@ -478,15 +478,15 @@ int SLPNetSetAddr(struct sockaddr_storage *addr, const int family, const short p
         v6->sin6_scope_id = 0;
         if (address == NULL) {
             memcpy(&v6->sin6_addr, &slp_in6addr_any, sizeof(struct in6_addr));
-		}
+      }
         else {
             memcpy(&v6->sin6_addr, address, min(addrLen, sizeof(v6->sin6_addr)));
-		}
+      }
     }
     else {
         sts = -1;
     }
-	return(sts);
+   return(sts);
 }
 
 /** Sets the family and port of an address structure.
@@ -515,7 +515,7 @@ int SLPNetSetParams(struct sockaddr_storage *addr, const int family, const short
     else {
         sts = -1;
     }
-	return(sts);
+   return(sts);
 }
 
 /** Sets the port value of an address structure.
@@ -526,16 +526,16 @@ int SLPNetSetParams(struct sockaddr_storage *addr, const int family, const short
  * @return Zero on success, or a non-zero value on failure.
  */
 int SLPNetSetPort(struct sockaddr_storage *addr, const short port) {
-	if (addr->ss_family == AF_INET) {
-		((struct sockaddr_in *)addr)->sin_port = htons(port);
+   if (addr->ss_family == AF_INET) {
+      ((struct sockaddr_in *)addr)->sin_port = htons(port);
     }
-	else if (addr->ss_family == AF_INET6) {
-		((struct sockaddr_in6 *)addr)->sin6_port = htons(port);
+   else if (addr->ss_family == AF_INET6) {
+      ((struct sockaddr_in6 *)addr)->sin6_port = htons(port);
     }
     else {
         return -1;
     }
-	return 0;
+   return 0;
 }
 
 /** Format an address structure as a displayable string.
@@ -579,34 +579,34 @@ char * SLPNetSockAddrStorageToString(struct sockaddr_storage *src, char *dst, in
  * @return Zero on success, or a non-zero value on failure.
  */
 unsigned long SLPNetGetSrvMcastAddr(const char *pSrvType, unsigned int len, int scope, struct sockaddr_storage *addr) {
-	unsigned long group_id = 0;
-	struct in6_addr *v6;
+   unsigned long group_id = 0;
+   struct in6_addr *v6;
 
-	if (addr == NULL || pSrvType == NULL)
-		return -1;
+   if (addr == NULL || pSrvType == NULL)
+      return -1;
 
-	/* Run Hash to get group id */
-	while (len-- != 0) {
-		group_id *= 33;
-		group_id += *pSrvType++;
-	}
-	group_id &= 0x3FF;
+   /* Run Hash to get group id */
+   while (len-- != 0) {
+      group_id *= 33;
+      group_id += *pSrvType++;
+   }
+   group_id &= 0x3FF;
 
-	v6 = &((struct sockaddr_in6 *) addr)->sin6_addr;
-	if (scope == SLP_SCOPE_NODE_LOCAL)
-		memcpy(v6, &in6addr_service_node_mask, sizeof(struct in6_addr));
-	else if (scope == SLP_SCOPE_LINK_LOCAL)
-		memcpy(v6, &in6addr_service_link_mask, sizeof(struct in6_addr));
-	else if (scope == SLP_SCOPE_SITE_LOCAL)
-		memcpy(v6, &in6addr_service_site_mask, sizeof(struct in6_addr));
-	else
-		return -1;
-	
-	v6->s6_addr[15] |= (group_id & 0xFF);
-	v6->s6_addr[14] |= (group_id >> 8);
-	addr->ss_family = AF_INET6;
+   v6 = &((struct sockaddr_in6 *) addr)->sin6_addr;
+   if (scope == SLP_SCOPE_NODE_LOCAL)
+      memcpy(v6, &in6addr_service_node_mask, sizeof(struct in6_addr));
+   else if (scope == SLP_SCOPE_LINK_LOCAL)
+      memcpy(v6, &in6addr_service_link_mask, sizeof(struct in6_addr));
+   else if (scope == SLP_SCOPE_SITE_LOCAL)
+      memcpy(v6, &in6addr_service_site_mask, sizeof(struct in6_addr));
+   else
+      return -1;
+   
+   v6->s6_addr[15] |= (group_id & 0xFF);
+   v6->s6_addr[14] |= (group_id >> 8);
+   addr->ss_family = AF_INET6;
 
-	return 0;
+   return 0;
 }
 
 /** Expands an IPv6 address from shorthand to full format notation.

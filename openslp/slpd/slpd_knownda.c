@@ -468,47 +468,47 @@ int SLPDKnownDAFromDHCP()
 /* returns  zero on success, Non-zero on failure                           */
 /*=========================================================================*/
 {
-	SLPBuffer			        buf;
-	DHCPContext			        ctx;
-	SLPDSocket*			        sock;
-	struct sockaddr_storage		daaddr;
-	unsigned char *	            alp;
-	unsigned char		        dhcpOpts[] = {TAG_SLP_SCOPE, TAG_SLP_DA};
+   SLPBuffer			        buf;
+   DHCPContext			        ctx;
+   SLPDSocket*			        sock;
+   struct sockaddr_storage		daaddr;
+   unsigned char *	            alp;
+   unsigned char		        dhcpOpts[] = {TAG_SLP_SCOPE, TAG_SLP_DA};
 
-	*ctx.scopelist = 0;
-	ctx.addrlistlen = 0;
+   *ctx.scopelist = 0;
+   ctx.addrlistlen = 0;
 
-	DHCPGetOptionInfo(dhcpOpts, sizeof(dhcpOpts), DHCPParseSLPTags, &ctx);
+   DHCPGetOptionInfo(dhcpOpts, sizeof(dhcpOpts), DHCPParseSLPTags, &ctx);
     
-	alp = ctx.addrlist;
-	while(ctx.addrlistlen >= 4)
-	{
+   alp = ctx.addrlist;
+   while(ctx.addrlistlen >= 4)
+   {
         daaddr.ss_family = AF_INET;
-		memcpy(&(((struct sockaddr_in*) &daaddr)->sin_addr.s_addr), alp, 4);
-		if (&(((struct sockaddr_in*) &daaddr)->sin_addr.s_addr))
-		{
-			/*--------------------------------------------------------
+      memcpy(&(((struct sockaddr_in*) &daaddr)->sin_addr.s_addr), alp, 4);
+      if (&(((struct sockaddr_in*) &daaddr)->sin_addr.s_addr))
+      {
+         /*--------------------------------------------------------
 				Get an outgoing socket to the DA and set it up to make
 				the service:directoryagent request
 			  --------------------------------------------------------*/
-			sock = SLPDOutgoingConnect(&daaddr);
-			if (sock)
-			{
-			   buf = 0;
-			   if (MakeActiveDiscoveryRqst(0,&buf) == 0)
-			   {
-					if (sock->state == STREAM_CONNECT_IDLE)
-						sock->state = STREAM_WRITE_FIRST;
-					SLPListLinkTail(&(sock->sendlist),(SLPListItem*)buf);
-					if (sock->state == STREAM_CONNECT_IDLE)
-						sock->state = STREAM_WRITE_FIRST;
-			   }
-			}
-		}
-		ctx.addrlistlen -= 4;
-		alp += 4;
-	}
-	return 0;
+         sock = SLPDOutgoingConnect(&daaddr);
+         if (sock)
+         {
+            buf = 0;
+            if (MakeActiveDiscoveryRqst(0,&buf) == 0)
+            {
+               if (sock->state == STREAM_CONNECT_IDLE)
+                  sock->state = STREAM_WRITE_FIRST;
+               SLPListLinkTail(&(sock->sendlist),(SLPListItem*)buf);
+               if (sock->state == STREAM_CONNECT_IDLE)
+                  sock->state = STREAM_WRITE_FIRST;
+            }
+         }
+      }
+      ctx.addrlistlen -= 4;
+      alp += 4;
+   }
+   return 0;
 }
 
 /*=========================================================================*/
@@ -518,40 +518,40 @@ int SLPKnownDAFromProperties()
 /* returns  zero on success, Non-zero on failure                           */
 /*=========================================================================*/
 {
-	char*                       temp;
-	char*                       tempend;
-	char*                       slider1;
-	char*                       slider2;
+   char*                       temp;
+   char*                       tempend;
+   char*                       slider1;
+   char*                       slider2;
     struct addrinfo*            ai;
     struct addrinfo*            ai_ref;
-	struct sockaddr_storage     daaddr;
+   struct sockaddr_storage     daaddr;
     int                         daaddr_isset;
-	SLPDSocket*                 sock;
-	SLPBuffer                   buf;
+   SLPDSocket*                 sock;
+   SLPBuffer                   buf;
 
-	if (G_SlpdProperty.DAAddresses && *G_SlpdProperty.DAAddresses)
-	{
-		temp = slider1 = xstrdup(G_SlpdProperty.DAAddresses);
-		if (temp)
-		{
-			tempend = temp + strlen(temp);
-			while (slider1 < tempend)
-			{
-				while (*slider1 && *slider1 == ' ') slider1++;
-				slider2 = slider1;
-				while (*slider2 && *slider2 != ',') slider2++;
-				*slider2++ = 0;
+   if (G_SlpdProperty.DAAddresses && *G_SlpdProperty.DAAddresses)
+   {
+      temp = slider1 = xstrdup(G_SlpdProperty.DAAddresses);
+      if (temp)
+      {
+         tempend = temp + strlen(temp);
+         while (slider1 < tempend)
+         {
+            while (*slider1 && *slider1 == ' ') slider1++;
+            slider2 = slider1;
+            while (*slider2 && *slider2 != ',') slider2++;
+            *slider2++ = 0;
 
                 daaddr_isset = 0;
                 if (inet_pton(AF_INET6, slider1, &((struct sockaddr_in6*) &daaddr)->sin6_addr) > 0)
                 {
-				    daaddr.ss_family = AF_INET6;
+                daaddr.ss_family = AF_INET6;
                     ((struct sockaddr_in6*) &daaddr)->sin6_family = AF_INET6;
                     daaddr_isset = 1;
                 }
                 else if (inet_pton(AF_INET, slider1, &((struct sockaddr_in*) &daaddr)->sin_addr) > 0)
                 {
-				    daaddr.ss_family = AF_INET;
+                daaddr.ss_family = AF_INET;
                     ((struct sockaddr_in*) &daaddr)->sin_family = AF_INET;
                     daaddr_isset = 1;
                 }
@@ -576,34 +576,34 @@ int SLPKnownDAFromProperties()
                     }
 
                     freeaddrinfo(ai);
-				}
-			    
-				if(daaddr_isset)
-				{
-					/*--------------------------------------------------------*/
-					/* Get an outgoing socket to the DA and set it up to make */
-					/* the service:directoryagent request                     */
-					/*--------------------------------------------------------*/
-					sock = SLPDOutgoingConnect(&daaddr);
-					if (sock)
-					{
-						buf = 0;
-						if (MakeActiveDiscoveryRqst(0,&buf) == 0)
-						{
-							if (sock->state == STREAM_CONNECT_IDLE)
-								sock->state = STREAM_WRITE_FIRST;
-							SLPListLinkTail(&(sock->sendlist),(SLPListItem*)buf);
-							if (sock->state == STREAM_CONNECT_IDLE)
-								sock->state = STREAM_WRITE_FIRST;
-						}
-					}
-				}
-				slider1 = slider2;
-			}
-			xfree(temp);
-		}
-	}
-	return 0;
+            }
+             
+            if(daaddr_isset)
+            {
+               /*--------------------------------------------------------*/
+               /* Get an outgoing socket to the DA and set it up to make */
+               /* the service:directoryagent request                     */
+               /*--------------------------------------------------------*/
+               sock = SLPDOutgoingConnect(&daaddr);
+               if (sock)
+               {
+                  buf = 0;
+                  if (MakeActiveDiscoveryRqst(0,&buf) == 0)
+                  {
+                     if (sock->state == STREAM_CONNECT_IDLE)
+                        sock->state = STREAM_WRITE_FIRST;
+                     SLPListLinkTail(&(sock->sendlist),(SLPListItem*)buf);
+                     if (sock->state == STREAM_CONNECT_IDLE)
+                        sock->state = STREAM_WRITE_FIRST;
+                  }
+               }
+            }
+            slider1 = slider2;
+         }
+         xfree(temp);
+      }
+   }
+   return 0;
 }
 
 /*=========================================================================*/

@@ -208,14 +208,14 @@ SLPError ProcessSrvDeReg(PSLPHandleInfo handle)
     if(sock >= 0)
     {
         result = NetworkRqstRply(sock,
-				 &peeraddr,
-				 handle->langtag,
-				 0,
-				 buf,
-				 SLP_FUNCT_SRVDEREG,
-				 bufsize,
-				 CallbackSrvDeReg,
-				 handle);
+             &peeraddr,
+             handle->langtag,
+             0,
+             buf,
+             SLP_FUNCT_SRVDEREG,
+             bufsize,
+             CallbackSrvDeReg,
+             handle);
         if (result)
         {
             NetworkDisconnectSA(handle);

@@ -137,7 +137,7 @@ SLPCryptoDSAKey* SLPSpiReadKeyFile(const char* keyfile, int keytype)
             result =  PEM_read_DSAPrivateKey(fp, &result, NULL, NULL);
         }
 
-	    fclose(fp);
+       fclose(fp);
     }
 
     return result;
@@ -414,8 +414,8 @@ SLPCryptoDSAKey* SLPSpiGetDSAKey(SLPSpiHandle hspi,
                 }
                 
                 tmp->key = SLPSpiReadKeyFile(tmp->keyfilename,keytype);
-		if (tmp->key == 0)
-		    return 0;
+      if (tmp->key == 0)
+          return 0;
             }
 
             *key = SLPCryptoDSAKeyDup(tmp->key);

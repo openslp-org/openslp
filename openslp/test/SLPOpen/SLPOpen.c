@@ -46,16 +46,16 @@
 int
 main (int argc, char *argv[])
 {
-	SLPError err;
-	SLPHandle hslp;
-	
-	err = SLPOpen ("en", SLP_FALSE, &hslp);
-	check_error_state(err,"Error opening slp handle");
+   SLPError err;
+   SLPHandle hslp;
+   
+   err = SLPOpen ("en", SLP_FALSE, &hslp);
+   check_error_state(err,"Error opening slp handle");
 
-	/* Now that we're done using slp, close the slp handle */
-	SLPClose (hslp);
-	
-	return(0);
+   /* Now that we're done using slp, close the slp handle */
+   SLPClose (hslp);
+   
+   return(0);
 }
 
 /*=========================================================================*/ 

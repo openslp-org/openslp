@@ -80,7 +80,7 @@ static int utftouni(unsigned *p, const char *s, size_t n)
 {
     long l;
     int c0, c;
-	size_t nc;
+   size_t nc;
     Tab *t;
 
     if(s == 0)

@@ -109,11 +109,11 @@ int SLPDParseCommandLine(int argc,char* argv[])
         if(strcmp(argv[i],"-install") == 0)
         {
             G_SlpdCommandLine.action = SLPD_INSTALL;
-				if (i+1 < argc && strcmp(argv[i+1], "auto") == 0)
-				{
-					i++;
-					G_SlpdCommandLine.autostart = 1;
-				}
+            if (i+1 < argc && strcmp(argv[i+1], "auto") == 0)
+            {
+               i++;
+               G_SlpdCommandLine.autostart = 1;
+            }
         }
         else if(strcmp(argv[i],"-remove") == 0)
         {
@@ -123,15 +123,15 @@ int SLPDParseCommandLine(int argc,char* argv[])
         {
             G_SlpdCommandLine.action = SLPD_DEBUG;
         }
-		  else if(strcmp(argv[i],"-start") == 0)
-		  {
-		  		G_SlpdCommandLine.action = SLPD_START;
-		  }
-		  else if(strcmp(argv[i],"-stop") == 0)
-		  {
-				G_SlpdCommandLine.action = SLPD_STOP;
-		  }
-		  else
+        else if(strcmp(argv[i],"-start") == 0)
+        {
+            G_SlpdCommandLine.action = SLPD_START;
+        }
+        else if(strcmp(argv[i],"-stop") == 0)
+        {
+            G_SlpdCommandLine.action = SLPD_STOP;
+        }
+        else
 #endif
         if(strcmp(argv[i],"-l") == 0)
         {

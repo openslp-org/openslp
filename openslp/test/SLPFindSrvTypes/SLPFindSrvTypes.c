@@ -45,8 +45,8 @@
 
 SLPBoolean
 MySLPSrvTypeCallback (SLPHandle hslp,
-		      const char *pcSrvTypes,
-		      SLPError errcode, void *cookie)
+            const char *pcSrvTypes,
+            SLPError errcode, void *cookie)
 {
     switch(errcode) {
     case SLP_OK:
@@ -72,7 +72,7 @@ main (int argc, char *argv[])
 
     if (argc != 2)
     {
-		printf("SLPFindSrvTypes\n  Finds a SLP service.\n Usage:\n   SLPFindSrvTypes\n     <naming authority>\n");
+      printf("SLPFindSrvTypes\n  Finds a SLP service.\n Usage:\n   SLPFindSrvTypes\n     <naming authority>\n");
         return (0);
     } /* End If. */
 
@@ -81,7 +81,7 @@ main (int argc, char *argv[])
 
     err = SLPFindSrvTypes (
                            hslp, 
-			   argv[1], /* naming authority */
+            argv[1], /* naming authority */
                            0,       /* use configured scopes */
                            MySLPSrvTypeCallback,
                            &callbackerr);

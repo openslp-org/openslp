@@ -280,14 +280,14 @@ SLPError ProcessSrvReg(PSLPHandleInfo handle)
     if(sock >= 0)
     {
         result = NetworkRqstRply(sock,
-				 &peeraddr,
-				 handle->langtag,
-				 extoffset,
-				 buf,
-				 SLP_FUNCT_SRVREG,
-				 bufsize,
-				 CallbackSrvReg,
-				 handle);
+             &peeraddr,
+             handle->langtag,
+             extoffset,
+             buf,
+             SLP_FUNCT_SRVREG,
+             bufsize,
+             CallbackSrvReg,
+             handle);
         if (result)
         {
             NetworkDisconnectSA(handle);

@@ -193,7 +193,7 @@ int v1ParseSrvRqst(SLPBuffer buffer, SLPHeader* header, SLPSrvRqst* srvrqst)
     /* Now split out the scope (if any) */
     /* Special case DA discovery, empty scope is allowed here */
     if(*srvrqst->predicate == '/' && SLPCompareString(srvrqst->srvtypelen, 
-	srvrqst->srvtype, 15, "directory-agent") != 0)
+   srvrqst->srvtype, 15, "directory-agent") != 0)
     {
         /* no scope - so set default scope */
         srvrqst->scopelist = "default";
@@ -558,7 +558,7 @@ int SLPv1MessageParseHeader(SLPBuffer buffer, SLPHeader* header)
 {
     header->version     = *(buffer->curpos);
     header->functionid  = *(buffer->curpos + 1);
-	
+   
     header->length      = AsUINT16(buffer->curpos + 2);
     header->flags       = *(buffer->curpos + 4);
     header->encoding    = AsUINT16(buffer->curpos + 8);
@@ -664,12 +664,12 @@ int SLPv1MessageParseBuffer(struct sockaddr_storage* peerinfo,
                                      &(message->body.attrrqst));
             break;
     
-	case SLP_FUNCT_DAADVERT:
-	    /* We are a SLPv2 DA, drop advertisements from other v1
+   case SLP_FUNCT_DAADVERT:
+       /* We are a SLPv2 DA, drop advertisements from other v1
 	       DAs (including ourselves). The message will be ignored
 	       by SLPDv1ProcessMessage(). */
-	    result = 0;
-	    break;
+       result = 0;
+       break;
 
         case SLP_FUNCT_SRVTYPERQST:
             result = v1ParseSrvTypeRqst(buffer, 

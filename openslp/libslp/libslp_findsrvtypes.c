@@ -291,19 +291,19 @@ SLPError ProcessSrvTypeRqst(PSLPHandleInfo handle)
     {
         #ifndef UNICAST_NOT_SUPPORTED
         if ( handle->dounicast == 1 ) 
-	{
+   {
             void *cookie = (PSLPHandleInfo) handle;
-	    result = NetworkUcastRqstRply(handle,
+       result = NetworkUcastRqstRply(handle,
                                           buf,
                                           SLP_FUNCT_SRVTYPERQST,
                                           bufsize,
-					  ProcessSrvTypeRplyCallback,
-					  cookie);
-	    break;
+                 ProcessSrvTypeRplyCallback,
+                 cookie);
+       break;
         }
-	else
-	#endif
-	sock = NetworkConnectToDA(handle,
+   else
+   #endif
+   sock = NetworkConnectToDA(handle,
                                   handle->params.findsrvtypes.scopelist,
                                   handle->params.findsrvtypes.scopelistlen,
                                   &peeraddr);
@@ -313,10 +313,10 @@ SLPError ProcessSrvTypeRqst(PSLPHandleInfo handle)
             #ifndef MI_NOT_SUPPORTED
             result = NetworkMcastRqstRply(handle,
                                           buf,
-					  SLP_FUNCT_SRVTYPERQST,
-					  bufsize,
+                 SLP_FUNCT_SRVTYPERQST,
+                 bufsize,
                                           ProcessSrvTypeRplyCallback,
-					  NULL);
+                 NULL);
             #else
             result = NetworkMcastRqstRply(handle->langtag,
                                           buf,

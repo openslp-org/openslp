@@ -410,11 +410,11 @@ int Daemonize(const char* pidfile)
            setuid(pwent->pw_uid) < 0)
         {
             /* TODO: should we log here and return fail */
-	    exit(1);
+       exit(1);
         }
     }
     else
-	exit(1);
+   exit(1);
 
     /*--------------------*/
     /* Set cwd to / (root)*/
@@ -659,11 +659,11 @@ int main(int argc, char* argv[])
             alarm(SLPD_AGE_INTERVAL);
         }
 #ifdef DEBUG
-	if (G_SIGINT)
-	{
-	    HandleSigInt();
-	    G_SIGINT = 0;
-	}			
+   if (G_SIGINT)
+   {
+       HandleSigInt();
+       G_SIGINT = 0;
+   }			
 #endif
 
     } /* End of main loop */

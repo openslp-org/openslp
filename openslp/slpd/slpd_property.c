@@ -143,15 +143,15 @@ int SLPDPropertyInit(const char* conffile)
     /*----------------------------*/
     if(SLPNetGetThisHostname(&myname,0) == 0)
     {
-	if (!myname && !G_SlpdProperty.myHostnameLen)
-	    myname = xstrdup("127.0.0.1");
-	if (myname)
-	{
-	    SLPPropertySet("net.slp.myHostname",myname);
-	    xfree(myname);
-	    G_SlpdProperty.myHostname = SLPPropertyGet("net.slp.myHostname");
-	    G_SlpdProperty.myHostnameLen = strlen(G_SlpdProperty.myHostname);
-	}
+   if (!myname && !G_SlpdProperty.myHostnameLen)
+       myname = xstrdup("127.0.0.1");
+   if (myname)
+   {
+       SLPPropertySet("net.slp.myHostname",myname);
+       xfree(myname);
+       G_SlpdProperty.myHostname = SLPPropertyGet("net.slp.myHostname");
+       G_SlpdProperty.myHostnameLen = strlen(G_SlpdProperty.myHostname);
+   }
     }
 
     /* NOTE! A portion of this code was merged from the 1.2.x line.
