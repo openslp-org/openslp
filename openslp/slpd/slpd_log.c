@@ -398,7 +398,7 @@ void SLPDLogMessage(const char* prefix,
     {
         /* Don't log localhost traffic since it is probably IPC */
         /* and don't log empty messages                         */
-        if(!ISLOCAL(peerinfo->sin_addr) || buf->end == buf->start)
+        if(!ISLOCAL(peerinfo->sin_addr) && buf->end != buf->start)
         {
             msg = SLPMessageAlloc();
             if(msg)
