@@ -119,7 +119,7 @@ SLPDAEntry* SLPDAEntryRead(int fd)
 }
 
 /*=========================================================================*/
-int SLPDAEntryListWrite(int fd, SLPDAEntry* head)
+int SLPDAEntryListWrite(int fd, SLPDAEntry** head)
 /* Returns: Number of entries written                                      */
 /*=========================================================================*/
 {
@@ -140,7 +140,7 @@ int SLPDAEntryListWrite(int fd, SLPDAEntry* head)
 }
 
 /*=========================================================================*/
-int SLPDAEntryListRead(int fd, SLPDAEntry* head)
+int SLPDAEntryListRead(int fd, SLPDAEntry** head)
 /* Returns: zero on success, -1 on error                                   */
 /*=========================================================================*/
 {
