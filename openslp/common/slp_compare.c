@@ -498,7 +498,7 @@ int SLPCheckServiceUrlSyntax(const char* srvurl,
     return 0;
     */
 
-    return 1;
+    return 0;
 }
  
  
