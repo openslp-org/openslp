@@ -17,7 +17,6 @@ Requires	: SysVinit-scripts >= 1.07
 
 Source0: openslp/openslp-%{Version}.tar.gz
 Source1: openslp/slptool-%{Version}.tar.gz
-Patch0: openslp-0.8.1cvs-SLPBuffer_init.patch
 
 %Description
 Service Location Protocol is an IETF standards track protocol that
@@ -57,7 +56,6 @@ duma empresa.
 
 %Prep
 %setup -b 1
-%patch0 -p1 
 
 %Build
 ./configure --disable-predicates
