@@ -4,7 +4,14 @@ echo "SLPFindSrvs"
 rm -f SLPFindSrvs.actual.output
 scriptdir=${srcdir}/SLPFindSrvs
 
-../slpd/slpd -r ${scriptdir}/slp.test.reg 
-./slpfindsrvs service:test >> SLPFindSrvs.actual.output
-if test -f /var/run/slpd.pid; then kill `cat /var/run/slpd.pid`; fi
+test -f ${srcdir}/slpd.pid && kill `cat ${srcdir}/slpd.pid` && rm ${srcdir}/slpd.pid
+../slpd/slpd -r ${scriptdir}/slp.test.reg -p ${srcdir}/slpd.pid
+RESULT=$?
+if test $RESULT != 0; then
+    echo "Unable to start slpd (error = $RESULT), test failed."
+    exit $RESULT
+fi
+
+./testslpfindsrvs service:test >> SLPFindSrvs.actual.output
+test -f ${srcdir}/slpd.pid && kill `cat ${srcdir}/slpd.pid` && rm ${srcdir}/slpd.pid
 diff -c ${scriptdir}/SLPFindSrvs.expected.output SLPFindSrvs.actual.output

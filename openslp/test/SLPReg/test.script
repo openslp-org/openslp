@@ -4,9 +4,16 @@ echo "SLPReg"
 rm -f SLPReg.actual.output
 scriptdir=${srcdir}/SLPReg
 
-../slpd/slpd 
-./slpreg service:valid 10.0.0.1 service:valid >>  SLPReg.actual.output
+test -f ${srcdir}/slpd.pid && kill `cat ${srcdir}/slpd.pid` && rm ${srcdir}/slpd.pid
+../slpd/slpd -p ${srcdir}/slpd.pid
+RESULT=$?
+if test $RESULT != 0; then
+    echo "Unable to start slpd (error = $RESULT), test failed."
+    exit $RESULT
+fi
+
+./testslpreg service:valid 10.0.0.1 service:valid >>  SLPReg.actual.output
 echo >> SLPReg.actual.output
-./slpreg service:valid 10.0.0.1 service:invalid >> SLPReg.actual.output
-if test -f /var/run/slpd.pid; then kill `cat /var/run/slpd.pid`; fi
+./testslpreg service:valid 10.0.0.1 service:invalid >> SLPReg.actual.output
+test -f ${srcdir}/slpd.pid && kill `cat ${srcdir}/slpd.pid` && rm ${srcdir}/slpd.pid
 diff -c ${scriptdir}/SLPReg.expected.output SLPReg.actual.output

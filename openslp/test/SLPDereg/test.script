@@ -4,11 +4,18 @@ echo "SLPDereg"
 rm -f SLPDereg.actual.output
 scriptdir=${srcdir}/SLPDereg
 
-../slpd/slpd -r ${scriptdir}/slp.test.reg 
-./slpdereg service:registered 10.0.0.1 service:registered 10.0.0.1 >>  SLPDereg.actual.output
+test -f ${srcdir}/slpd.pid && kill `cat ${srcdir}/slpd.pid` && rm ${srcdir}/slpd.pid
+../slpd/slpd -r ${scriptdir}/slp.test.reg -p ${srcdir}/slpd.pid
+RESULT=$?
+if test $RESULT != 0; then
+    echo "Unable to start slpd (error = $RESULT), test failed."
+    exit $RESULT
+fi
+
+./testslpdereg service:registered 10.0.0.1 service:registered 10.0.0.1 >>  SLPDereg.actual.output
 echo >> SLPDereg.actual.output
-./slpdereg service:registered 10.0.0.1 service:unregistered 10.0.0.1 >> SLPDereg.actual.output
+./testslpdereg service:registered 10.0.0.1 service:unregistered 10.0.0.1 >> SLPDereg.actual.output
 echo >> SLPDereg.actual.output
-./slpdereg service:test 10.0.0.1 >> SLPDereg.actual.output
-if test -f /var/run/slpd.pid; then kill `cat /var/run/slpd.pid`; fi
+./testslpdereg service:test 10.0.0.1 >> SLPDereg.actual.output
+test -f ${srcdir}/slpd.pid && kill `cat ${srcdir}/slpd.pid` && rm ${srcdir}/slpd.pid
 diff -c ${scriptdir}/SLPDereg.expected.output SLPDereg.actual.output
