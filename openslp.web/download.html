@@ -2,7 +2,7 @@
 <html>
 <head>
    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-15">
-   <meta name="GENERATOR" content="Mozilla/4.73C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.4.0 i686) [Netscape]">
+   <meta name="GENERATOR" content="Mozilla/4.75C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.2.14 i686) [Netscape]">
    <title>OpenSLP - Download</title>
 </head>
 <body text="#000000" bgcolor="#FFFFFF" link="#0000EE" vlink="#551A8B" alink="#FF0000">
@@ -22,44 +22,39 @@
 
 <hr WIDTH="100%">
 <h3>
-README 0.7.2</h3>
-OpenSLP 0.7.2 contains several important bug fixes, framework changes (that
-will continued through 1.0 release), and portability changes. OpenSLP now
-works on OpenSLP ported to Solaris (2.6/7), Linux Alpha, Compaq Tru64.
-Building is now possible on non-gcc compilers.
+README 0.7.4</h3>
+For several reasons, a public release of 0.7.3 will not be made available.
+Instead, all changes have been rolled into 0.7.4.&nbsp; Please be aware
+that in order to include the DA communication enhancements (detailed in
+the NEWS file) it was necessary to modify a good portion of the networking
+code.&nbsp; This new code is not as mature as the 0.7.2 code.&nbsp; Also,
+a fair amount of work was done to simplify internal data structures to
+make way for future enhancements.&nbsp; It is expected that some users
+may just want to stick with 0.7.2 release unless the new DA features are
+important.&nbsp; Be aware also that there are a few DA communication issues
+that are not fully resolved (like re-registration of existing services
+with a newly discovered DA)
 <h3>
-CHANGELOG 0.7.2</h3>
+NEWS 0.7.4</h3>
 
 <ul>
 <li>
-Made significant changes that streamline main execution loop of slpd.</li>
+Finally added SA &lt;--> DA communication resulting in an slpd that now
+acts as a much better SA and DA.</li>
 
 <li>
-Fixed several sneeky memory leaks and memory access bugs that delt with
-langtags in libslp. Fixes bug #111058 - Pointer issues in slpd.</li>
+slpd (as a DA) responds to active DA discovery requests.</li>
 
 <li>
-OpenSLP ported to Solaris (2.6/7) and Linux Alpha. Also functional on Compaq
-Tru64. Building is now possible on non-gcc compilers.</li>
+slpd (as an SA) performs active DA discovery, supports passive DA discovery,&nbsp;
+supports static DA configuration, registers and de-registers services with&nbsp;
+DAs.</li>
 
 <li>
-Documentation updates - codeset converted to iso-8859-1 and spell checked.</li>
-
-<li>
-Modified slpd command line parameter parsing to print version and help
-information</li>
-
-<li>
-Finalized the DA discovery routines in libslp</li>
-
-<li>
-Changed libslp versioning.&nbsp; (libslp versioning is being changed to
-be libtool compliant.&nbsp; This means that OpenSLP 0.7.2 will ship with
-libslp.0.0.1.&nbsp; The reason this looks weird is that we've been doing
-things the Linux way for so long that it is impossible to make the numbers
-match.&nbsp; Everything will be synced with OpenSLP 1.0&nbsp;&nbsp; Read
-<a href="http://www.gnu.org/software/libtool/manual.html#Versioning">libtool</a>
-versioning documentation for more reasoning</li>
+libslp now has the ability to register services with to the local slpd
+(SA), or a discovered DA.&nbsp; This eliminates the need to have slpd running
+on all machines in certain cases. libslp can now request services from
+a DA or via multicast or broadcast.</li>
 </ul>
 
 <h3>
@@ -67,7 +62,7 @@ Source Code</h3>
 
 <table NOSAVE >
 <tr NOSAVE>
-<td NOSAVE><a href="http://download.sourceforge.net/openslp/openslp-0.7.2.tar.gz">openslp-0.7.2.tar.gz</a></td>
+<td NOSAVE><a href="ftp://www.openslp.org/pub/openslp/openslp-0.7.4/openslp-0.7.4.tar.gz">openslp-0.7.4.tar.gz</a></td>
 
 <td>
 <blockquote>OpenSLP source code tarball</blockquote>
@@ -75,7 +70,7 @@ Source Code</h3>
 </tr>
 
 <tr NOSAVE>
-<td NOSAVE><a href="ftp://www.openslp.org/pub/openslp/openslp-0.7.2/openslp-0.7.2-2.src.rpm">openslp-0.7.2-2.src.rpm</a></td>
+<td NOSAVE><a href="ftp://www.openslp.org/pub/openslp/openslp-0.7.4/openslp-0.7.4-1.src.rpm">openslp-0.7.4-1.src.rpm</a></td>
 
 <td>
 <blockquote>OpenSLP source RPM</blockquote>
@@ -88,7 +83,7 @@ Binary Packages</h3>
 
 <table NOSAVE >
 <tr NOSAVE>
-<td NOSAVE><a href="ftp://www.openslp.org/pub/openslp/openslp-0.7.2/openslp-0.7.2-2.i386.rpm">openslp-0.7.2-2.i386.rpm</a></td>
+<td NOSAVE><a href="ftp://www.openslp.org/pub/openslp/openslp-0.7.4/openslp-0.7.4-1.i386.rpm">openslp-0.7.4-1.i386.rpm</a></td>
 
 <td>
 <blockquote>OpenSLP binary RPM for Linux (Caldera OpenLinux, RedHat, SUSE,
