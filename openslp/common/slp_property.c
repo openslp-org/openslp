@@ -92,7 +92,19 @@ int SLPPropertySet(const char *pcName,
             errno = ENOMEM;
             return -1;
         }
-        
+
+        /* set the pointers in the SLPProperty structure to point to areas of    */
+        /* the previously allocated block of memory                              */
+        newProperty->propertyName   = ((char*)newProperty) + sizeof(SLPProperty); 
+        newProperty->propertyValue  = newProperty->propertyName + pcNameSize;
+    
+        /* copy the passed in name and value */
+        memcpy(newProperty->propertyName,pcName,pcNameSize);
+        memcpy(newProperty->propertyValue,pcValue,pcValueSize);
+    
+        /* Link the new property into the list */
+        ListLink((PListItem*)&G_SLPPropertyListHead,
+                 (PListItem)newProperty);
     }
     else
     {    
@@ -104,21 +116,17 @@ int SLPPropertySet(const char *pcName,
             errno = ENOMEM;
             return -1;
         }
+       
+        /* set the pointers in the SLPProperty structure to point to areas of    */
+        /* the previously allocated block of memory                              */
+        newProperty->propertyName   = ((char*)newProperty) + sizeof(SLPProperty); 
+        newProperty->propertyValue  = newProperty->propertyName + pcNameSize;
+    
+        /* copy the passed in name and value */
+        memcpy(newProperty->propertyName,pcName,pcNameSize);
+        memcpy(newProperty->propertyValue,pcValue,pcValueSize);
     }
     
-    /* set the pointers in the SLPProperty structure to point to areas of    */
-    /* the previously allocated block of memory                              */
-    newProperty->propertyName   = ((char*)newProperty) + sizeof(SLPProperty); 
-    newProperty->propertyValue  = newProperty->propertyName + pcNameSize;
-
-    /* copy the passed in name and value */
-    memcpy(newProperty->propertyName,pcName,pcNameSize);
-    memcpy(newProperty->propertyValue,pcValue,pcValueSize);
-
-    /* Link the new property into the list */
-    ListLink((PListItem*)&G_SLPPropertyListHead,
-             (PListItem)newProperty);
-
     return 0;
 }
 
@@ -145,6 +153,10 @@ int SetDefaultValues()
     result |= SLPPropertySet("net.slp.multicastTTL","255");
     result |= SLPPropertySet("net.slp.MTU","1400");
     result |= SLPPropertySet("net.slp.useScopes","DEFAULT");
+    result |= SLPPropertySet("net.slp.traceMsg","false");
+    result |= SLPPropertySet("net.slp.traceReg","false");
+    result |= SLPPropertySet("net.slp.traceDrop","false");
+    result |= SLPPropertySet("net.slp.traceDATraffic","false");
     result |= SLPPropertySet("notfound","");
 
     return result;
@@ -193,60 +205,59 @@ int SLPPropertyReadFile(const char* conffile)
     {
         line = alloced;
 	
-	/* trim whitespace */
+    	/* trim whitespace */
         while(*line && *line <= 0x20)
-	{       	
-	    line++;
-	}
-
+    	{       	
+    	    line++;
+    	}
+    
         if(*line == 0)
-	{	
+    	{	
             continue;
-	}
-
+    	}
+    
         /* skip commented lines */
         if(*line == '#' || *line == ';') 
-	{
+    	{
             continue;
-	}
-        
+    	}
+            
         /* parse out the property name*/
         namestart = line;
         nameend = line;
-
-        while(*nameend && *nameend != '=') 
-			  nameend++;
-
+        nameend = strchr(nameend,'=');
+        
         if(*nameend == 0)
         {
-	    continue;
-	}
-	valuestart = nameend + 1;  /* start of value for later*/
-
+            continue;
+        }
+    	valuestart = nameend + 1;  /* start of value for later*/
+    
         while(*nameend <= 0x20 || *nameend == '=')
         {
             *nameend = 0;
             nameend --;
         }
-
+    
         /* parse out the property value */
         while(*valuestart <= 0x20) 
-	{
+    	{
             valuestart++;
-	}
-
+    	}
+    
         valueend = valuestart;
-
+    
         while(*valueend)
-	{
-	    valueend++;
-	}
+    	{
+    	    valueend++;
+    	}
+    
         while(*valueend <= 0x20)
         {
             *valueend = 0;
             valueend --;
         }
-
+    
         /* set the property */
         SLPPropertySet(namestart, valuestart);
     }   

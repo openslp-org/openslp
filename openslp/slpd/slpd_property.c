@@ -146,6 +146,10 @@ void SLPDPropertyInit(const char* conffile)
     G_SlpdProperty.multicastMaximumWait = atoi(SLPPropertyGet("net.slp.multicastMaximumWait"));
     G_SlpdProperty.unicastMaximumWait = atoi(SLPPropertyGet("net.slp.unicastMaximumWait"));
     G_SlpdProperty.randomWaitBound = atoi(SLPPropertyGet("net.slp.randomWaitBound"));
+    G_SlpdProperty.traceMsg = AsBoolean(SLPPropertyGet("net.slp.traceMsg"));
+    G_SlpdProperty.traceReg = AsBoolean(SLPPropertyGet("net.slp.traceReg"));
+    G_SlpdProperty.traceDrop = AsBoolean(SLPPropertyGet("net.slp.traceDrop"));
+    G_SlpdProperty.traceDATraffic = AsBoolean(SLPPropertyGet("net.slp.traceDATraffic"));
 }
 
 

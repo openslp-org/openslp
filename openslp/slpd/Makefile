@@ -14,7 +14,9 @@ SLPD_SRC = $(SLPD_DIR)/slpd_socket.c   \
 	   $(SLPD_DIR)/slpd_process.c  \
            $(SLPD_DIR)/slpd_cmdline.c  \
 	   $(SLPD_DIR)/slpd_property.c \
-	   $(SLPD_DIR)/slpd_regfile.c 
+	   $(SLPD_DIR)/slpd_regfile.c  \
+	   $(SLPD_DIR)/slpd_log.c 
+	   
 	          
 
 COMMON_SRC = $(COMMON_DIR)/slp_compare.c  \

@@ -8,10 +8,13 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 
 =============================================================================
+05/12/00 mpeterson@calderasystems.com
+Add framework to support traceMsg functionality.  Still needs a little 
+brushing up, but the main part is done.
 
-05/03/00 mtpeterson@calderasystems
+05/03/00 mpeterson@calderasystems.com
 This is another sample entry to show that entries should be separated by
 blank lines.
 
-05/03/00 mtpeterson@calderasystems
+05/03/00 mpeterson@calderasystems.com
 This is a sample entry.  Please make your entries look like this

@@ -139,3 +139,13 @@ void SLPFatal(const char* msg, ...)
     
     exit(1);
 }
+
+/*=========================================================================*/
+void SLPLogBuffer(const char* buf, int bufsize)
+/* Writes a buffer to the logfile                                          */
+/*=========================================================================*/
+{
+    fwrite(buf,bufsize,1,G_LogFile);
+    fflush(G_LogFile);
+}
+

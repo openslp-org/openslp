@@ -35,7 +35,9 @@
 
 
 /*-------------------------------------------------------------------------*/
-void ProcessSrvRqst(SLPMessage message, SLPBuffer result)
+void ProcessSrvRqst(SLPDPeerInfo* peerinfo,
+                    SLPMessage message,
+                    SLPBuffer result)
 /*-------------------------------------------------------------------------*/
 {
     int                     i;
@@ -191,7 +193,9 @@ void ProcessSrvRqst(SLPMessage message, SLPBuffer result)
 
 
 /*-------------------------------------------------------------------------*/
-void ProcessSrvReg(SLPMessage message, SLPBuffer result)
+void ProcessSrvReg(SLPDPeerInfo* peerinfo,
+                   SLPMessage message,
+                   SLPBuffer result)
 /*-------------------------------------------------------------------------*/
 {
     int errorcode;
@@ -224,6 +228,13 @@ void ProcessSrvReg(SLPMessage message, SLPBuffer result)
                            getpid(),
                            getuid()) == 0)
         {
+            if(G_SlpdProperty.traceReg)
+            {
+                SLPLog("----------------------------------------\n");
+                SLPLog("TRACEREG (registration):\n");
+                SLPDLogMessage(peerinfo, message);
+                SLPLog("----------------------------------------\n");
+            }   
             errorcode = 0;
         }
         else
@@ -273,7 +284,8 @@ void ProcessSrvReg(SLPMessage message, SLPBuffer result)
 
 
 /*-------------------------------------------------------------------------*/
-void ProcessSrvDeReg(SLPMessage message,
+void ProcessSrvDeReg(SLPDPeerInfo* peerinfo,
+                     SLPMessage message,
                      SLPBuffer result)
 /*-------------------------------------------------------------------------*/
 {
@@ -303,6 +315,13 @@ void ProcessSrvDeReg(SLPMessage message,
         /*--------------------------------------*/
         if(SLPDDatabaseDeReg(&(message->body.srvdereg)) == 0)
         {
+            if(G_SlpdProperty.traceReg)
+            {
+                SLPLog("----------------------------------------\n");
+                SLPLog("TRACEREG: de-registration\n");
+                SLPDLogMessage(peerinfo, message);
+                SLPLog("----------------------------------------\n");
+            }   
             errorcode = 0;
         }
         else
@@ -351,14 +370,18 @@ void ProcessSrvDeReg(SLPMessage message,
 
 
 /*-------------------------------------------------------------------------*/
-void ProcessSrvAck(SLPMessage message, SLPBuffer result)
+void ProcessSrvAck(SLPDPeerInfo* peerinfo,
+                   SLPMessage message,
+                   SLPBuffer result)
 /*-------------------------------------------------------------------------*/
 {
 }
 
 
 /*-------------------------------------------------------------------------*/
-void ProcessAttrRqst(SLPMessage message, SLPBuffer result)
+void ProcessAttrRqst(SLPDPeerInfo* peerinfo,
+                     SLPMessage message,
+                     SLPBuffer result)
 /*-------------------------------------------------------------------------*/
 {
     int                     i;
@@ -500,30 +523,39 @@ void ProcessAttrRqst(SLPMessage message, SLPBuffer result)
 }        
 
 /*-------------------------------------------------------------------------*/
-void ProcessDAAdvert(SLPMessage message, SLPBuffer result)
+void ProcessDAAdvert(SLPDPeerInfo* peerinfo,
+                     SLPMessage message,
+                     SLPBuffer result)
 /*-------------------------------------------------------------------------*/
 {
 }
 
 
 /*-------------------------------------------------------------------------*/
-void ProcessSrvTypeRqst(SLPMessage message, SLPBuffer result)
+void ProcessSrvTypeRqst(SLPDPeerInfo* peerinfo,
+                        SLPMessage message,
+                        SLPBuffer result)
 /*-------------------------------------------------------------------------*/
 {
 }
 
 
 /*-------------------------------------------------------------------------*/
-void ProcessSAAdvert(SLPMessage message, SLPBuffer result)
+void ProcessSAAdvert(SLPDPeerInfo* peerinfo,
+                     SLPMessage message,
+                     SLPBuffer result)
 /*-------------------------------------------------------------------------*/
 {
 }
 
 
 /*=========================================================================*/
-int SLPDProcessMessage(SLPBuffer recvbuf,
+int SLPDProcessMessage(SLPDPeerInfo* peerinfo,
+                       SLPBuffer recvbuf,
                        SLPBuffer sendbuf)
 /* Processes the recvbuf and places the results in sendbuf                 */
+/*                                                                         */
+/* recvfd   - the socket the message was received on                       */
 /*                                                                         */
 /* recvbuf  - message to process                                           */
 /*                                                                         */
@@ -533,59 +565,86 @@ int SLPDProcessMessage(SLPBuffer recvbuf,
 /*            SLP_ERROR_INTERNAL_ERROR on ENOMEM.                          */
 /*=========================================================================*/
 {
-    SLPMessage  message;
-    int         result = 0;
+    SLPMessage  inmsg   = 0;
+    SLPMessage  outmsg  = 0;    
+    int         result  = 0;
 
-    message = SLPMessageAlloc();
-    if(message == 0)
+    inmsg = SLPMessageAlloc();
+    if(inmsg == 0)
     {
         return SLP_ERROR_INTERNAL_ERROR;
     }
 
-    result = SLPMessageParseBuffer(recvbuf, message);
+    result = SLPMessageParseBuffer(recvbuf, inmsg);
     if(result == 0)
     {
-        switch(message->header.functionid)
+        switch(inmsg->header.functionid)
         {
         case SLP_FUNCT_SRVRQST:
-            ProcessSrvRqst(message,sendbuf);
+            ProcessSrvRqst(peerinfo,inmsg,sendbuf);
             break;
     
         case SLP_FUNCT_SRVREG:
-            ProcessSrvReg(message,sendbuf);
+            ProcessSrvReg(peerinfo,inmsg,sendbuf);
             break;
     
         case SLP_FUNCT_SRVDEREG:
-            ProcessSrvDeReg(message,sendbuf);
+            ProcessSrvDeReg(peerinfo,inmsg,sendbuf);
             break;
     
         case SLP_FUNCT_SRVACK:
-            ProcessSrvAck(message,sendbuf);        
+            ProcessSrvAck(peerinfo,inmsg,sendbuf);        
             break;
     
         case SLP_FUNCT_ATTRRQST:
-            ProcessAttrRqst(message,sendbuf);
+            ProcessAttrRqst(peerinfo,inmsg,sendbuf);
             break;
     
         case SLP_FUNCT_DAADVERT:
-            ProcessDAAdvert(message,sendbuf);
+            ProcessDAAdvert(peerinfo,inmsg,sendbuf);
             break;
     
         case SLP_FUNCT_SRVTYPERQST:
-            ProcessSrvTypeRqst(message,sendbuf);
+            ProcessSrvTypeRqst(peerinfo,inmsg,sendbuf);
             break;
     
         case SLP_FUNCT_SAADVERT:
-            ProcessSAAdvert(message,sendbuf);
+            ProcessSAAdvert(peerinfo,inmsg,sendbuf);
             break;
     
         default:
             /* this will NEVER happen */
             break;
         }
+
+        /* Log a trace the message was received and that will be send */
+        if(G_SlpdProperty.traceMsg)
+        {
+            SLPLog("----------------------------------------\n");
+            SLPLog("TRACEMSG (in):\n");
+            SLPDLogMessage(peerinfo,inmsg);
+            SLPLog("----------------------------------------\n");
+            
+            outmsg = SLPMessageAlloc();
+            if(outmsg)
+            {
+                if(SLPMessageParseBuffer(sendbuf, outmsg) == 0)
+                {
+                    SLPLog("----------------------------------------\n");
+                    SLPLog("TRACEMSG (out):\n");
+                    SLPDLogMessage(peerinfo,outmsg);
+                    SLPLog("----------------------------------------\n");
+                }
+                SLPMessageFree(outmsg);                              
+            }
+        }
+    }
+    else
+    {
+        /* TODO: Log here? */
     }
     
-    SLPMessageFree(message);
+    SLPMessageFree(inmsg);
 
     return result;
 }                

@@ -118,6 +118,10 @@ typedef struct _SLPDProperty
     int         multicastMaximumWait;
     int         unicastMaximumWait;  
     int         randomWaitBound;
+    int         traceMsg;
+    int         traceReg;
+    int         traceDrop;
+    int         traceDATraffic;
 }SLPDProperty;
 
 
@@ -317,20 +321,46 @@ SLPDDatabaseEntry* SLPDRegFileReadEntry(FILE* fd, SLPDDatabaseEntry** entry);
 /* Returns  *entry or null on error.                                       */
 /*=========================================================================*/
 
+
 /*=========================================================================*/
-typedef enum _SLPDSocketType
+typedef enum _SLPDPeerType
+/*=========================================================================*/
+{
+    SLPD_PEER_UNKNOWN   = 0,
+    SLPD_PEER_LOCAL     = 1,
+    SLPD_PEER_REMOTE    = 2
+}SLPDPeerType;
+
+
+/*=========================================================================*/
+typedef struct _SLPDPeerInfo
+/* Structure representing a socket                                         */
+/*=========================================================================*/
+{
+    SLPDPeerType        peertype;
+    struct sockaddr_in  peeraddr;
+    socklen_t           peeraddrlen;
+    pid_t               peerpid;
+    uid_t               peeruid;
+    gid_t               peergid;
+}SLPDPeerInfo;
+
+
+/*=========================================================================*/
+typedef enum _SLPDSocketState
 /* Value representing a type or state of a socket                          */
 /*=========================================================================*/
 {
-    TCP_LISTEN              = 0,
-    UDP                     = 1,
-    UDP_MCAST               = 2,
-    TCP_READ                = 3,
-    TCP_FIRST_READ          = 4,
-    TCP_WRITE               = 5,
-    TCP_FIRST_WRITE         = 6,
-    SOCKET_CLOSE            = 7
-}SLPSocketType;
+    SOCKET_LISTEN       = 0,
+    DATAGRAM_UNICAST    = 1,
+    DATAGRAM_MULTICAST  = 2,
+    STREAM_READ         = 3,
+    STREAM_FIRST_READ   = 4,
+    STREAM_WRITE        = 5,
+    STREAM_FIRST_WRITE  = 6,
+    SOCKET_CLOSE        = 7
+}SLPDSocketState;
+
 
 /*=========================================================================*/
 typedef struct _SLPDSocket
@@ -340,11 +370,10 @@ typedef struct _SLPDSocket
     ListItem            listitem;    
     int                 fd;
     time_t              timestamp;      
-    socklen_t           peeraddrlen;
-    struct sockaddr_in  peeraddr;
-    SLPSocketType       type;
+    SLPDSocketState     state;
     SLPBuffer           recvbuf;
     SLPBuffer           sendbuf;
+    SLPDPeerInfo        peerinfo;
 }SLPDSocket;
 
 
@@ -357,22 +386,21 @@ typedef struct _SLPDSocketList
     SLPDSocket*  head;
 }SLPDSocketList;
 
+
 /*=========================================================================*/
-SLPDSocket* SLPDSocketListAdd(SLPDSocketList* list, int fd, int type);  
+SLPDSocket* SLPDSocketListAdd(SLPDSocketList* list, SLPDSocket* addition);  
 /* Adds a free()s the specified socket from the specified list             */
 /*                                                                         */
-/* list     - pointer to the SLPSocketList to unlink the socket from.      */
+/* list     - pointer to the SLPSocketList to add the socket to.           */
 /*                                                                         */
-/* fd       - socket file descriptor                                       */
-/*                                                                         */
-/* type     - socket type                                                  */
+/* addition - a pointer to the socket to add                               */
 /*                                                                         */
 /* Returns  - pointer to the added socket or NULL on error                 */
 /*=========================================================================*/
 
 
 /*=========================================================================*/
-void SLPDSocketListRemove(SLPDSocketList* list, SLPDSocket* sock);
+SLPDSocket* SLPDSocketListRemove(SLPDSocketList* list, SLPDSocket* sock);
 /* Unlinks and free()s the specified socket from the specified list        */
 /*                                                                         */
 /* list     - pointer to the SLPSocketList to unlink the socket from.      */
@@ -384,38 +412,44 @@ void SLPDSocketListRemove(SLPDSocketList* list, SLPDSocket* sock);
 
 
 /*=========================================================================*/
-void SLPDSocketListRemoveAll(SLPDSocketList* list);
-/* Destroys all of the sockets from the specified list                     */
-/*                                                                         */
-/* list     - pointer to the SLPSocketList to destroy                      */
-/*                                                                         */
-/* Returns  - none                                                         */
-/*=========================================================================*/
-
-
-
-
-/*=========================================================================*/
 void SLPDSocketInit(SLPDSocketList* list);
 /* Adds SLPSockets (UDP and TCP) for all the interfaces and the loopback   */
 /*                                                                         */
-/* list     - pointer to SLPSocketList to which the SLPSockets will be     */
-/*            added                                                        */
+/* list     - pointer to SLPSocketList to initialize                       */
 /*                                                                         */
 /* Returns  - zero on success, -1 on failure.                              */
 /*=========================================================================*/
 
 
 /*=========================================================================*/
-int SLPDProcessMessage(SLPBuffer recvbuf,
+void SLPDSocketDeInit(SLPDSocketList* list);
+/* Adds SLPSockets (UDP and TCP) for all the interfaces and the loopback   */
+/*                                                                         */
+/* list     - pointer to SLPSocketList to deinitialize                     */
+/*                                                                         */
+/* Returns  - zero on success, -1 on failure.                              */
+/*=========================================================================*/
+
+
+/*=========================================================================*/
+int SLPDProcessMessage(SLPDPeerInfo* peerinfo,
+                       SLPBuffer recvbuf,
                        SLPBuffer sendbuf);
 /* Processes the recvbuf and places the results in sendbuf                 */
+/*                                                                         */
+/* recvfd   - the socket the message was received on                       */
 /*                                                                         */
 /* recvbuf  - message to process                                           */
 /*                                                                         */
 /* sendbuf  - results of the processed message                             */
 /*                                                                         */
-/* Returns  - zero on success errno on error.                              */
+/* Returns  - zero on success SLP_ERROR_PARSE_ERROR or                     */
+/*            SLP_ERROR_INTERNAL_ERROR on ENOMEM.                          */
 /*=========================================================================*/
+
+/*=========================================================================*/
+void SLPDLogMessage(SLPDPeerInfo* peerinfo, SLPMessage message);
+/*=========================================================================*/
+
 
 #endif /* (!defined SLPD_H_INCLUDED) */
