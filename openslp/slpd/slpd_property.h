@@ -51,6 +51,8 @@
 #ifndef SLPD_PROPERTY_H_INCLUDED
 #define SLPD_PROPERTY_H_INCLUDED
 
+#include "slpd.h"
+
 /*=========================================================================*/
 typedef struct _SLPDProperty
 /* structure that holds the value of all the properties slpd cares about   */

@@ -67,10 +67,11 @@ typedef struct _SLPSpiEntry
     int                 keytype;
 }SLPSpiEntry;
 
+
 /*-----------------*/
 /* Key type values */
 /*-----------------*/
-#define SLPSPI_KEY_TYPE_NONE    0
+#define SLPSPI_KEY_TYPE_ANY     0
 #define SLPSPI_KEY_TYPE_PUBLIC  1
 #define SLPSPI_KEY_TYPE_PRIVATE 2
 
@@ -82,7 +83,7 @@ typedef struct _SLPSpiHandle
     char*       spifile;
     int         cacheprivate;
     SLPList     cache;
-} *SLPSpiHandle;
+}* SLPSpiHandle;
 
 
 /*=========================================================================*/
@@ -105,30 +106,17 @@ void SLPSpiClose(SLPSpiHandle hspi);
 
 
 /*=========================================================================*/
-SLPCryptoDSAKey* SLPSpiFetchPublicDSAKey(SLPSpiHandle hspi,
-                                         int spistrlen,
-                                         const char* spistr);
-/* Fetches a pointer to public DSA key associated with the specified SPI   */
-/*                                                                         */
-/* Parameters: hspi      (IN)  handle obtained from call to SLPSpiOpen()   */
-/*             spistrlen (IN)  the length of the spistr                    */
-/*             spistr    (IN)  the SPI string                              */
-/*                                                                         */
-/* Returns: A valid pointer. NULL on failure.  Returned pointer is valid   */
-/*          for the life of the handle.  DO NOT free returned pointer      */
-/*=========================================================================*/
-
-
-/*=========================================================================*/
-SLPCryptoDSAKey* SLPSpiFetchPrivateDSAKey(SLPSpiHandle hspi,
-                                          int* spistrlen,
-                                          char** spistr,
-                                          SLPCryptoDSAKey **key);
+SLPCryptoDSAKey* SLPSpiGetDSAKey(SLPSpiHandle hspi,
+                                 int keytype,
+                                 int spistrlen,
+                                 const char* spistr,
+                                 SLPCryptoDSAKey **key);
 /* Fetches a copy of the private key file used to sign SLP messages.       */
 /*                                                                         */
 /* Parameters: hspi      (IN)  handle obtained from call to SLPSpiOpen()   */
-/*             spistrlen (OUT) the length of the spistr                    */
-/*             spistr    (OUT) spistr associated with the key              */
+/*             keytype   (IN)  the type of key desired                     */
+/*             spistrlen (IN)  the length of the spistr                    */
+/*             spistr    (IN)  spistr associated with the key              */
 /*             key       (OUT) the private key.  Caller should use         */
 /*                             SLPCryptoDSAKeyDestroy() to free key memory */
 /*                                                                         */
@@ -138,17 +126,50 @@ SLPCryptoDSAKey* SLPSpiFetchPrivateDSAKey(SLPSpiHandle hspi,
 
 
 /*=========================================================================*/
-int SLPSpiHaveSpi(SLPSpiHandle hspi,
-                  int spistrlen,
-                  const char* spistr);
+char* SLPSpiGetDefaultSPI(SLPSpiHandle hspi, 
+                          int keytype,
+                          int* spistrlen,
+                          char** spistr);
+/* Gets a reference to the default SPI string for the specified keytype    */
+/*                                                                         */
+/* Parameters: hspi      (IN) handle obtained from call to SLPSpiOpen()    */
+/*             keytype   (IN) type of key                                  */
+/*             spistrlen (OUT) length or the returned spistr               */
+/*             spistr    (OUT) pointer to spistr.  MUST be freed by        */
+/*                             caller!!                                    */
+/*                                                                         */
+/* Returns: Pointer to the default SPI string.  Pointer may *not* be NULL  */
+/*          terminated                                                     */
+/*=========================================================================*/
+
+
+/*=========================================================================*/
+int SLPSpiCanVerify(SLPSpiHandle hspi,
+                    int spistrlen,
+                    const char* spistr);
 /* Determine if we understand the specified SPI.  No SPI is always         */
-/* understood                                                              */
+/* returns true                                                            */
 /*                                                                         */
 /* Parameters: hspi      (IN)  handle obtained from call to SLPSpiOpen()   */
 /*             spistrlen (IN)  the length of the spistr                    */
 /*             spistr    (IN)  the SPI string                              */
 /*                                                                         */
-/* Returns     Non-zero if we handle the SPI                               */
+/* Returns     Non-zero if we verify specified the SPI                     */
+/*=========================================================================*/
+
+
+/*=========================================================================*/
+int SLPSpiCanSign(SLPSpiHandle hspi,
+                  int spistrlen,
+                  const char* spistr);
+/* Determine if we understand the specified SPI.  No SPI is always         */
+/* return true                                                             */
+/*                                                                         */
+/* Parameters: hspi      (IN)  handle obtained from call to SLPSpiOpen()   */
+/*             spistrlen (IN)  the length of the spistr                    */
+/*             spistr    (IN)  the SPI string                              */
+/*                                                                         */
+/* Returns     Non-zero if we sign using the specified SPI                 */
 /*=========================================================================*/
 
 #endif

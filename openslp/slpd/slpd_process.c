@@ -54,6 +54,9 @@
 #include "slpd_database.h"
 #include "slpd_knownda.h"
 #include "slpd_log.h"
+#ifdef ENABLE_AUTHENTICATION
+#include "slpd_spi.h"
+#endif
 
 
 /*=========================================================================*/
@@ -62,6 +65,9 @@
 #include "../common/slp_message.h"
 #include "../common/slp_da.h"
 #include "../common/slp_compare.h"
+#ifdef ENABLE_AUTHENTICATION
+#include "../common/slp_auth.h"
+#endif
 
 
 /*-------------------------------------------------------------------------*/
@@ -305,8 +311,7 @@ int ProcessSrvRqst(SLPMessage message,
     SLPBuffer                   result      = *sendbuf;
 
 #ifdef ENABLE_AUTHENTICATION
-    int                         authcount   = 0;
-    SLPAuthBlock*               authblock   = 0;
+    SLPAuthBlock*               authblock    = 0;
 #endif
     
     /*--------------------------------------------------------------*/
@@ -331,16 +336,20 @@ int ProcessSrvRqst(SLPMessage message,
         goto FINISHED;
     }
 
-    /*------------------------------------*/
-    /* Make sure that we handle the SPI   */
-    /*------------------------------------*/
+    /*------------------------------------------------------------------*/
+    /* Make sure that we handle at least verify registrations made with */
+    /* the requested SPI.  If we can't then have to return an error     */
+    /* because there is no way we can return URL entries that ares      */
+    /* signed in a way the requester can understand                     */
+    /*------------------------------------------------------------------*/
 #ifdef ENABLE_AUTHENTICATION
-    if(G_SlpdProperty.enableSecurity && 
-       SLPSpiCanVerify(SLPSpiHandle hspi,
-                       message->body.srvrqst.spistrlen,
-                       message->body.srvrqst.spistr) == 0)
+    if(G_SlpdProperty.securityEnabled)
+    {
+        if(SLPSpiCanVerify(G_SlpdSpiHandle,
+                           message->body.srvrqst.spistrlen,
+                           message->body.srvrqst.spistr) == 0)
         {
-            result = SLP_ERROR_AUTHENTICATION_UNKNOWN;
+            errorcode = SLP_ERROR_AUTHENTICATION_UNKNOWN;
             goto RESPOND;
         }
     }
@@ -424,18 +433,18 @@ int ProcessSrvRqst(SLPMessage message,
                                           /*  2 bytes for urllen   */
                                           /*  1 byte for authcount */
 #ifdef ENABLE_AUTHENTICATION
-            /* include the authblock that was asked for */
-            if(G_SlpdProperty.enableSecurity &&
+            /* make room to include the authblock that was asked for */
+            if(G_SlpdProperty.securityEnabled &&
                message->body.srvrqst.spistrlen )
             {
-                for(authcount=0;authcount < urlentry>authcount;authcount++)
+                for(i=0; i<urlentry->authcount;i++)
                 {
-                    authblock = &(urlentry->authblock[authcount]);
-                    if(SLPStringCompare(authblock->spistrlen,
-                                        authblock->spistr,
+                    if(SLPCompareString(urlentry->autharray[i].spistrlen,
+                                        urlentry->autharray[i].spistr,
                                         message->body.srvrqst.spistrlen,
                                         message->body.srvrqst.spistr) == 0)
                     {
+                        authblock = &(urlentry->autharray[i]);
                         size += authblock->length;
                         break;
                     }
@@ -496,16 +505,27 @@ int ProcessSrvRqst(SLPMessage message,
             /* urlentry is the url from the db result */
             urlentry = db->urlarray[i];
             
-            /* Use an opaque copy if available */
+
+
+#ifdef ENABLE_AUTHENTICATION
+            if(G_SlpdProperty.securityEnabled == 0 && 
+               urlentry->opaque)
+            {
+                /* Use an opaque copy if available (and authentication is not being used)*/
+            
+                memcpy(result->curpos,urlentry->opaque,urlentry->opaquelen);
+                result->curpos = result->curpos + urlentry->opaquelen;
+            }
+           else
+#else
+            /* Use an opaque copy if available (and authentication is not being used)*/
             if(urlentry->opaque)
             {
-                /* TODO: should we do this with authentication enabled? */
-                /*       by doing so we return ALL authblocks of the    */
-                /*       urlentry which may include ones not asked for  */
                 memcpy(result->curpos,urlentry->opaque,urlentry->opaquelen);
                 result->curpos = result->curpos + urlentry->opaquelen;
             }
             else
+#endif
             {
                 /* url-entry reserved */
                 *result->curpos = 0;        
@@ -522,30 +542,15 @@ int ProcessSrvRqst(SLPMessage message,
                 /* url-entry auths */
 #ifdef ENABLE_AUTHENTICATION
                 /* include an authblock if we should supply one */
-                /* authblock is set above (line ~434)           */
-                if(authblock)
+                /* authblock is set above (line ~436)           */
+                if(authblock && authblock->opaque)
                 {
                     /* authcount == 1 */
                     *result->curpos = 1;
                     result->curpos = result->curpos + 1;
-                    /* bsd */
-                    ToUINT16(result->curpos,authblock->bsd);
-                    result->curpos = result->curpos + 2;
-                    /* authblock length */
-                    ToUINT16(result->curpos,authblock->length);
-                    result->curpos = resuslt->curpos + 2;
-                    /* authblock timestamp */
-                    ToUINT32(result->curpos,authblock->timestamp);
-                    result->curpos = result->curpos + 4;
-                    /* authblock spistr */
-                    ToUINT16(result->curpos,authblock->spistrlen);
-                    result->curpos = result->curpos + 2;
-                    memcpy(result->curpos,authblock->spistr,authblock->spistrlen);
-                    result->curpos = result->curpos + authblock->spistrlen;
-                    /* authblock structured authenticator */
                     memcpy(result->curpos,
-                           authblock->authstruct,
-                           authblock->length - authblock->spistrlen - 10);
+                           authblock->opaque,
+                           authblock->opaquelen);
                 }
                 else
 #endif
@@ -601,12 +606,12 @@ int ProcessSrvReg(SLPMessage message,
         /*-------------------------------*/
         /* Validate the authblocks       */
         /*-------------------------------*/
-        errorcode = SLPAuthVerifyUrl(SLPSpiHandle hspi,
+        errorcode = SLPAuthVerifyUrl(G_SlpdSpiHandle,
                                      0,
                                      &(message->body.srvreg.urlentry));
         if(errorcode == 0)
         {
-            errorcode = SLPAuthVerifyString(SLPSpiHandle hspi,
+            errorcode = SLPAuthVerifyString(G_SlpdSpiHandle,
                                             0,
                                             message->body.srvreg.attrlistlen,
                                             message->body.srvreg.attrlist,
@@ -661,7 +666,6 @@ int ProcessSrvReg(SLPMessage message,
         goto FINISHED;
     }
 
-
     /*----------------*/
     /* Add the header */
     /*----------------*/
@@ -683,7 +687,7 @@ int ProcessSrvReg(SLPMessage message,
     memcpy(result->start + 14,
            message->header.langtag,
            message->header.langtaglen);
-
+    
     /*-------------------*/
     /* Add the errorcode */
     /*-------------------*/
@@ -728,7 +732,7 @@ int ProcessSrvDeReg(SLPMessage message,
         /*-------------------------------*/
         /* Validate the authblocks       */
         /*-------------------------------*/
-        errorcode = SLPAuthVerifyUrl(SLPSpiHandle hspi,
+        errorcode = SLPAuthVerifyUrl(G_SlpdSpiHandle,
                                      0,
                                      &(message->body.srvdereg.urlentry));
         if(errorcode == 0)
@@ -820,13 +824,16 @@ int ProcessAttrRqst(SLPMessage message,
                     int errorcode)
 /*-------------------------------------------------------------------------*/
 {
+    int                         i;
     SLPDDatabaseAttrRqstResult* db              = 0;
     int                         size            = 0;
     SLPBuffer                   result          = *sendbuf;
     
 #ifdef ENABLE_AUTHENTICATION
-    unsigned char*    attrauth       = 0;
-    int               attrauthlen    = 0;
+    unsigned char*    generatedauth       = 0;
+    int               generatedauthlen    = 0;
+    unsigned char*    opaqueauth          = 0;
+    int               opaqueauthlen       = 0;
 #endif
 
     /*--------------------------------------------------------------*/
@@ -860,33 +867,64 @@ int ProcessAttrRqst(SLPMessage message,
                               G_SlpdProperty.useScopesLen,
                               G_SlpdProperty.useScopes))
     {
-        /*------------------------------------*/
-        /* Make sure that we handle the SPI   */
-        /*------------------------------------*/
+        
+        /*------------------------------------------------------------------*/
+        /* Make sure that we handle at least verify registrations made with */
+        /* the requested SPI.  If we can't then have to return an error     */
+        /* because there is no way we can return URL entries that ares      */
+        /* signed in a way the requester can understand                     */
+        /*------------------------------------------------------------------*/
 #ifdef ENABLE_AUTHENTICATION
-        if(G_SlpdProperty.enableSecurity && 
-           SLPSpiCanSign(SLPSpiHandle hspi,
-                         message->body.attrrqst.spistrlen,
-                         message->body.attrrqst.spistr) == 0)
-            {
-                result = SLP_ERROR_AUTHENTICATION_UNKNOWN;
-                goto RESPOND;
-            }
-        }
-        else if(message->body.attrrqst.spistrlen == 0)
-#else
-        if(message->body.attrrqst.spistrlen == 0)
-#endif
+        if(G_SlpdProperty.securityEnabled)
         {
-            /*---------------------------------*/
-            /* Find attributes in the database */
-            /*---------------------------------*/
-            errorcode = SLPDDatabaseAttrRqstStart(message,&db);
+            if(message->body.attrrqst.taglistlen == 0)
+            { 
+                /* We can send back entire attribute strings without */
+                /* generating a new attribute authentication block   */
+                /* we just use the one sent by the registering agent */
+                /* which we have to have been able to verify         */
+                if(SLPSpiCanVerify(G_SlpdSpiHandle,
+                                   message->body.attrrqst.spistrlen,
+                                   message->body.attrrqst.spistr) == 0)
+                {
+                    errorcode = SLP_ERROR_AUTHENTICATION_UNKNOWN;
+                    goto RESPOND;
+                }
+            }
+            else
+            {
+                /* We have to be able to *generate* (sign) authentication */
+                /* blocks for attrrqst with taglists since it is possible */
+                /* that the returned attributes are a subset of what the  */
+                /* original registering agent sent                        */
+                if(SLPSpiCanSign(G_SlpdSpiHandle,
+                                 message->body.attrrqst.spistrlen,
+                                 message->body.attrrqst.spistr) == 0)
+                {
+                    errorcode = SLP_ERROR_AUTHENTICATION_UNKNOWN;
+                    goto RESPOND;
+                }
+            }
         }
         else
         {
-            errorcode = SLP_ERROR_AUTHENTICATION_UNKNOWN;
+            if(message->body.attrrqst.spistrlen)
+            {
+                errorcode = SLP_ERROR_AUTHENTICATION_UNKNOWN;
+                goto RESPOND;
+            }
         }
+#else
+        if(message->body.attrrqst.spistrlen)
+        {
+            errorcode = SLP_ERROR_AUTHENTICATION_UNKNOWN;
+            goto RESPOND;
+        }
+#endif
+        /*---------------------------------*/
+        /* Find attributes in the database */
+        /*---------------------------------*/
+        errorcode = SLPDDatabaseAttrRqstStart(message,&db);
     }
     else
     {
@@ -919,20 +957,43 @@ int ProcessAttrRqst(SLPMessage message,
     size += db->attrlistlen;
    
 #ifdef ENABLE_AUTHENTICATION
-    /*--------------------*/
-    /* Generate authblock */
-    /*--------------------*/
-    if(doauth)
+    /*------------------------------------------------------------------*/
+    /* Generate authblock if necessary or just use the one was included */
+    /* by registering agent.  Reserve sufficent space for either case.  */
+    /*------------------------------------------------------------------*/
+    if(G_SlpdProperty.securityEnabled &&
+       message->body.attrrqst.spistrlen )
     {
-        errorcode = SLPAuthSignString(message->body.attrrqst.spistrlen,
-                                      message->body.attrrqst.spistr,
-                                      attr.attrlistlen,
-                                      attr.attrlist,
-                                      &attrauthlen,
-                                      &attrauth);
-        size += attrauthlen;
+        if(message->body.attrrqst.taglistlen == 0)
+        {
+            for(i=0; i<db->authcount;i++)
+            {
+                if(SLPCompareString(db->autharray[i]->spistrlen,
+                                    db->autharray[i]->spistr,
+                                    message->body.attrrqst.spistrlen,
+                                    message->body.attrrqst.spistr) == 0)
+                {
+                    opaqueauth = db->autharray[i]->opaque;
+                    opaqueauthlen = db->autharray[i]->opaquelen;
+                    break;
+                }
+            }
+        }
+        else
+        {
+            errorcode = SLPAuthSignString(G_SlpdSpiHandle,
+                                          message->body.attrrqst.spistrlen,
+                                          message->body.attrrqst.spistr,
+                                          db->attrlistlen,
+                                          db->attrlist,
+                                          &generatedauthlen,
+                                          &generatedauth);
+            opaqueauthlen = generatedauthlen;
+            opaqueauth = generatedauth;
+        }
+        size += opaqueauthlen;
     }
-#endif                                    
+#endif
     
     /*-------------------*/
     /* Alloc the  buffer */
@@ -986,14 +1047,14 @@ int ProcessAttrRqst(SLPMessage message,
         result->curpos = result->curpos + db->attrlistlen;
         /* authentication block */
     #ifdef ENABLE_AUTHENTICATION
-        if(doauth && attrauth)
+        if(opaqueauth)
         {
             /* authcount */
             *(result->curpos) = 1;
-            result->curpos = result->curpos + 1;
-            /* authblock */
-            memcpy(result->curpos,attrauth,attrauthlen);
-            result->curpos = result->curpos + attrauthlen;
+            memcpy(result->curpos,
+                   opaqueauth,
+                   opaqueauthlen);
+            result->curpos = result->curpos + opaqueauthlen;
         }
         else
     #endif
@@ -1008,8 +1069,8 @@ int ProcessAttrRqst(SLPMessage message,
     FINISHED:
     
 #ifdef ENABLE_AUTHENTICATION    
-    /* free the authblock if any */
-    if(attrauth) free(attrauth);
+    /* free the generated authblock if any */
+    if(generatedauth) free(generatedauth);
 #endif
     
     if(db) SLPDDatabaseAttrRqstEnd(db);
@@ -1042,7 +1103,9 @@ int ProcessDAAdvert(SLPMessage message,
     /* Validate the authblocks       */
     /*-------------------------------*/
 #ifdef ENABLE_AUTHENTICATION
-    errorcode = SLPAuthVerifyDAAdvert(0,&(message->body.daadvert));
+    errorcode = SLPAuthVerifyDAAdvert(G_SlpdSpiHandle,
+                                      0,
+                                      &(message->body.daadvert));
     if(errorcode == 0);
 #endif
     {

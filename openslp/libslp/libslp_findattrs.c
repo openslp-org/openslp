@@ -78,7 +78,8 @@ SLPBoolean CallbackAttrRqst(SLPError errorcode, SLPMessage msg, void* cookie)
         /* Validate the authblocks       */
         /*-------------------------------*/
         if(SLPPropertyAsBoolean(SLPGetProperty("net.slp.securityEnabled")) &&
-           SLPAuthVerifyString(1,
+           SLPAuthVerifyString(handle->hspi,
+                               1,
                                msg->body.attrrply.attrlistlen,
                                msg->body.attrrply.attrlist,
                                msg->body.attrrply.authcount,

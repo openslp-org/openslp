@@ -19,9 +19,14 @@ if ENABLE_SLPv1
 slpd_v1process_SRCS = slpd_v1process.h slpd_v1process.c
 endif
 
+if ENABLE_AUTHENTICATION
+slpd_authentication_SRCS = slpd_spi.c slpd_spi.h
+endif
+
 slpd_SOURCES	= \
 $(slp_predicate_SRCS) \
 $(slpd_v1process_SRCS) \
+$(slpd_authentication_SRCS) \
 slpd_log.c \
 slpd_socket.c \
 slpd_database.c \

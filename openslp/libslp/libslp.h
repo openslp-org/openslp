@@ -79,7 +79,10 @@
 #include "../common/slp_network.h"
 #include "../common/slp_da.h"
 #include "../common/slp_compare.h"
+#ifdef ENABLE_AUTHENTICATION
 #include "../common/slp_auth.h"
+#include "../common/slp_spi.h"
+#endif
 
 #define MINIMUM_DISCOVERY_INTERVAL  300    /* 5 minutes */
 #define MAX_RETRANSMITS             5      /* we'll only re-xmit 5 times! */
@@ -88,8 +91,10 @@
 #if(!defined LIBSLP_CONFFILE)
 #ifdef WIN32
 #define LIBSLP_CONFFILE "%WINDIR%\\slp.conf"
+#define LIBSLP_SPIFILE  "%WINDIR%\\slp.spi"
 #else
 #define LIBSLP_CONFFILE "/etc/slp.conf"
+#define LIBSLP_SPIFILE "/etc/spi.conf"
 #endif
 #endif
 
@@ -230,6 +235,9 @@ typedef struct _SLPHandleInfo
     int                 sascopelen;
     int                 langtaglen;
     char*               langtag;
+#ifdef ENABLE_AUTHENTICATION
+    SLPSpiHandle        hspi;
+#endif
     SLPHandleCallParams params;
 }SLPHandleInfo, *PSLPHandleInfo; 
 

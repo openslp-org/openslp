@@ -51,7 +51,6 @@
 /* slpd includes                                                           */
 /*=========================================================================*/
 #include "slpd_property.h"
-#include "slpd.h"
 
 
 /*=========================================================================*/
@@ -197,7 +196,7 @@ int SLPDPropertyInit(const char* conffile)
     memset(&G_SlpdProperty,0,sizeof(G_SlpdProperty));
 
     /*-------------------------------------------------------------*/
-    /* Set the properties with out hard defaults                   */
+    /* Set the properties without hard defaults                    */
     /*-------------------------------------------------------------*/
     G_SlpdProperty.isDA = SLPPropertyAsBoolean(SLPPropertyGet("net.slp.isDA"));
     G_SlpdProperty.activeDADetection = SLPPropertyAsBoolean(SLPPropertyGet("net.slp.activeDADetection"));               
@@ -243,6 +242,7 @@ int SLPDPropertyInit(const char* conffile)
     }
     G_SlpdProperty.interfacesLen = strlen(G_SlpdProperty.interfaces);
 
+    
     /*---------------------------------------------------------*/
     /* Set the value used internally as the url for this agent */
     /*---------------------------------------------------------*/

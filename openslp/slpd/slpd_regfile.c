@@ -54,6 +54,17 @@
 #include "slpd_regfile.h"
 #include "slpd_property.h"
 #include "slpd_log.h"
+#ifdef ENABLE_AUTHENTICATION
+#include "slpd_spi.h"
+#endif
+
+/*=========================================================================*/
+/* common code includes                                                    */
+/*=========================================================================*/
+#ifdef ENABLE_AUTHENTICATION
+#include "../common/slp_auth.h"
+#endif
+
 
 
 /*-------------------------------------------------------------------------*/
@@ -150,6 +161,12 @@ int SLPDRegFileReadSrvReg(FILE* fd,
     char*   srvtype         = 0;
     int     attrlistlen     = 0;
     char*   attrlist        = 0;
+#ifdef ENABLE_AUTHENTICATION
+    unsigned char*  urlauth         = 0;
+    int             urlauthlen      = 0;
+    unsigned char*  attrauth        = 0;
+    int             attrauthlen     = 0;
+#endif
     
     
     /*-------------------------------------------*/
@@ -359,6 +376,29 @@ int SLPDRegFileReadSrvReg(FILE* fd,
         scopelistlen = G_SlpdProperty.useScopesLen;
     }
 
+ 
+#ifdef ENABLE_AUTHENTICATION
+    /*--------------------------------*/
+    /* Generate authentication blocks */
+    /*--------------------------------*/
+    SLPAuthSignUrl(G_SlpdSpiHandle,
+                   0,
+                   0,
+                   urllen,
+                   url,
+                   &urlauthlen,
+                   &urlauth);
+
+    SLPAuthSignString(G_SlpdSpiHandle,
+                      0,
+                      0,
+                      attrlistlen,
+                      attrlist,
+                      &attrauthlen,
+                      &attrauth);
+#endif
+
+
     /*----------------------------------------*/
     /* Allocate buffer for the SrvReg Message */
     /*----------------------------------------*/
@@ -502,11 +542,15 @@ CLEANUP:
         break;
     }
         
-    if(langtag)    free(langtag);
-    if(scopelist)   free(scopelist);
-    if(url)     free(url);
+    if(langtag) free(langtag);
+    if(scopelist) free(scopelist);
+    if(url) free(url);
     if(srvtype) free(srvtype);
     if(attrlist)free(attrlist);
+#ifdef ENABLE_AUTHENTICATION
+    if(urlauth) free(urlauth);
+    if(attrauth) free(attrauth);
+#endif
 
     return result;
 }

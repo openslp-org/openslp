@@ -47,6 +47,8 @@
 /*                                                                         */
 /***************************************************************************/
 
+#include <time.h>
+
 #include "slp_auth.h"
 #include "slp_crypto.h"
 
@@ -167,9 +169,11 @@ int SLPAuthVerifyString(SLPSpiHandle hspi,
         /*-------------------------------*/
         /* Get a public key for the SPI  */
         /*-------------------------------*/
-        key = SLPSpiFetchPublicDSAKey(hspi,
-                                      autharray[i].spistrlen,
-                                      autharray[i].spistr);
+        key = SLPSpiGetDSAKey(hspi,
+                              SLPSPI_KEY_TYPE_PUBLIC,
+                              autharray[i].spistrlen,
+                              autharray[i].spistr,
+                              &key);
         
         /* Continue if we have a key and if the authenticator is not */
         /* timed out                                                 */
@@ -281,6 +285,8 @@ int SLPAuthVerifySAAdvert(SLPSpiHandle hspi,
 
 /*=========================================================================*/
 int SLPAuthSignString(SLPSpiHandle hspi,
+                      int spistrlen,
+                      const char* spistr,
                       unsigned short stringlen,
                       const char* string,
                       int* authblocklen,
@@ -288,6 +294,8 @@ int SLPAuthSignString(SLPSpiHandle hspi,
 /* Generate an authblock signature for an attribute list                   */
 /*                                                                         */
 /* Parameters: hspi         (IN) open SPI handle                           */
+/*             spistrlen    (IN) length of the SPI string                  */
+/*             spistr       (IN) SPI to sign with                          */
 /*             attrlistlen  (IN) the length of the URL to sign             */
 /*             attrlist     (IN) the url to sign                           */
 /*             authblocklen (OUT) the length of the authblock signature    */
@@ -298,12 +306,13 @@ int SLPAuthSignString(SLPSpiHandle hspi,
 /*=========================================================================*/
 {
     SLPCryptoDSAKey*    key;
-    char*               spistr;
-    int                 spistrlen;
     int                 signaturelen;
     int                 result;
     unsigned char*      curpos;
     unsigned char       digest[20];
+    int                 defaultspistrlen    = 0;
+    char*               defaultspistr       = 0;
+
 
     /* NULL out the authblock and spistr just to be safe */
     *authblock = 0;
@@ -314,7 +323,31 @@ int SLPAuthSignString(SLPSpiHandle hspi,
     /*--------------------------------*/
     /* Get a private key for the SPI  */
     /*--------------------------------*/
-    key = SLPSpiFetchPrivateDSAKey(hspi, &spistrlen, &spistr, &key);
+    if(spistr)
+    {
+        key = SLPSpiGetDSAKey(hspi,
+                              SLPSPI_KEY_TYPE_PRIVATE,
+                              spistrlen, 
+                              spistr, 
+                              &key);
+    }
+    else
+    {
+        if(SLPSpiGetDefaultSPI(hspi,
+                               SLPSPI_KEY_TYPE_PRIVATE,
+                               &defaultspistrlen,
+                               &defaultspistr))
+        {
+            spistr = defaultspistr;
+            spistrlen = defaultspistrlen;
+            key = SLPSpiGetDSAKey(hspi,
+                                  SLPSPI_KEY_TYPE_PRIVATE,
+                                  spistrlen,
+                                  spistr,
+                                  &key);
+        }
+    }
+
     if(key == 0)
     {
         result = SLP_ERROR_AUTHENTICATION_UNKNOWN;
@@ -383,7 +416,8 @@ int SLPAuthSignString(SLPSpiHandle hspi,
     /*-----------------------------*/
     /* Clean up and return success */
     /*-----------------------------*/ 
-    if(spistr) free(spistr);
+    if(defaultspistr) free(defaultspistr);
+       
     return 0;
 
 
@@ -392,8 +426,8 @@ ERROR:
     /*-------------------------------*/
     /* Clean up and return errorcode */
     /*-------------------------------*/ 
-    if(spistr) free(spistr);
-    if(authblock)free(*authblock);
+    if(defaultspistr) free(defaultspistr);
+    if(authblock) free(*authblock);
     *authblock = 0;
     *authblocklen = 0;
     
@@ -401,9 +435,10 @@ ERROR:
 }
 
 
-
 /*=========================================================================*/
 int SLPAuthSignUrl(SLPSpiHandle hspi,
+                   int spistrlen,
+                   const char* spistr,
                    unsigned short urllen,
                    const char* url,
                    int* authblocklen,
@@ -411,6 +446,8 @@ int SLPAuthSignUrl(SLPSpiHandle hspi,
 /* Generate an authblock signature for a Url                               */
 /*                                                                         */
 /* Parameters: hspi         (IN) open SPI handle                           */
+/*             spistrlen    (IN) length of the SPI string                  */
+/*             spistr       (IN) SPI to sign with                          */
 /*             urllen       (IN) the length of the URL to sign             */
 /*             url          (IN) the url to sign                           */
 /*             authblocklen (OUT) the length of the authblock signature    */
@@ -421,6 +458,8 @@ int SLPAuthSignUrl(SLPSpiHandle hspi,
 /*=========================================================================*/
 {
     return  SLPAuthSignString(hspi,
+                              spistrlen,
+                              spistr,
                               urllen,
                               url,
                               authblocklen,

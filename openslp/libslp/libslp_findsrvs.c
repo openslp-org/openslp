@@ -85,7 +85,9 @@ SLPBoolean CallbackSrvRqst(SLPError errorcode, SLPMessage msg, void* cookie)
             /* Validate the authblocks       */
             /*-------------------------------*/
             if(securityenabled &&
-               SLPAuthVerifyUrl(1,&(msg->body.srvrply.urlarray[i])))
+               SLPAuthVerifyUrl(handle->hspi,
+                                1
+                                ,&(msg->body.srvrply.urlarray[i])))
             {
                 /* authentication failed */
                 continue;
@@ -132,7 +134,6 @@ SLPError ProcessSrvRqst(PSLPHandleInfo handle)
     if(SLPPropertyAsBoolean(SLPGetProperty("net.slp.securityEnabled")))
     {
         /*TODO: Figure out how to select an SPI */
-        
         spistrlen = 0;
         spistr    = 0;
     }

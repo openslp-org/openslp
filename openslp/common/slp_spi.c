@@ -59,6 +59,7 @@
 #define PUBLIC_TOKEN        "PUBLIC"
 #define PRIVATE_TOKEN       "PRIVATE"
 
+
 /*-------------------------------------------------------------------------*/
 void SLPSpiEntryFree(SLPSpiEntry* victim)
 /*-------------------------------------------------------------------------*/
@@ -73,7 +74,7 @@ SLPSpiEntry* SLPSpiEntryFind(SLPList* cache,
                              int keytype,
                              int spistrlen,
                              const char* spistr)
-/* pass in null spistr to find the first PRIVATE entry                     */
+/* pass in null spistr to find the first Cached entry                      */
 /*-------------------------------------------------------------------------*/
 {
     SLPSpiEntry* entry = (SLPSpiEntry*)cache->head;
@@ -82,7 +83,7 @@ SLPSpiEntry* SLPSpiEntryFind(SLPList* cache,
         if(spistr)
         {
             if (entry->spistrlen == spistrlen &&
-                strncmp(entry->spistr,spistr,spistrlen) == 0 &&
+                memcmp(entry->spistr,spistr,spistrlen) == 0 &&
                         entry->keytype == keytype)
             {
                 return entry;
@@ -90,7 +91,7 @@ SLPSpiEntry* SLPSpiEntryFind(SLPList* cache,
         }
         else
         {
-            if(entry->keytype == SLPSPI_KEY_TYPE_PRIVATE)
+            if(keytype == SLPSPI_KEY_TYPE_ANY || entry->keytype == keytype)
             {
                 return entry;
             }
@@ -256,6 +257,7 @@ SUCCESS:
     return result;
 }
 
+
 /*=========================================================================*/
 SLPSpiHandle SLPSpiOpen(const char* spifile, int cacheprivate)
 /* Initializes SLP SPI data storage.                                       */
@@ -281,10 +283,18 @@ SLPSpiHandle SLPSpiOpen(const char* spifile, int cacheprivate)
         result->cacheprivate = cacheprivate;
         while(1)
         {
-            spientry = SLPSpiReadSpiFile(fp, cacheprivate ? SLPSPI_KEY_TYPE_NONE : SLPSPI_KEY_TYPE_PUBLIC);
+            spientry = SLPSpiReadSpiFile(fp, SLPSPI_KEY_TYPE_ANY);
             if(spientry == 0) break;
+            if(spientry->keytype == SLPSPI_KEY_TYPE_PRIVATE &&
+               cacheprivate == 0)
+            {
+                /* destroy the key cause we're not suppose to cache it */
+                SLPCryptoDSAKeyDestroy(spientry->key);
+            }
+            
             SLPListLinkHead(&(result->cache),(SLPListItem*)spientry);
-        }  
+        } 
+
         fclose(fp); 
     }
 
@@ -298,54 +308,72 @@ void SLPSpiClose(SLPSpiHandle hspi)
 /* Parameters: hspi (IN) SLPSpiHandle to deinitialize                      */
 /*=========================================================================*/
 {
-    while(hspi->cache.count)
+    if(hspi)
     {
-        SLPSpiEntryFree((SLPSpiEntry*)SLPListUnlink(&(hspi->cache),hspi->cache.head));
+        if(hspi->spifile) free(hspi->spifile);
+        while(hspi->cache.count)
+        {
+            SLPSpiEntryFree((SLPSpiEntry*)SLPListUnlink(&(hspi->cache),hspi->cache.head));
+        }
+        
+        free(hspi);
     }
-    
-    if(hspi->spifile) free(hspi->spifile);
-    free(hspi);
 }
 
+
 /*=========================================================================*/
-SLPCryptoDSAKey* SLPSpiFetchPublicDSAKey(SLPSpiHandle hspi,
-                                         int spistrlen,
-                                         const char* spistr)
-/* Fetches a pointer to public DSA key associated with the specified SPI   */
+char* SLPSpiGetDefaultSPI(SLPSpiHandle hspi, 
+                          int keytype,
+                          int* spistrlen,
+                          char** spistr)
+/* Gets a reference to the default SPI string for the specified keytype    */
 /*                                                                         */
-/* Parameters: hspi      (IN)  handle obtained from call to SLPSpiOpen()   */
-/*             spistrlen (IN)  the length of the spistr                    */
-/*             spistr    (IN)  the SPI string                              */
+/* Parameters: hspi      (IN) handle obtained from call to SLPSpiOpen()    */
+/*             keytype   (IN) type of key                                  */
+/*             spistrlen (OUT) length or the returned spistr               */
+/*             spistr    (OUT) pointer to spistr.  MUST be freed by        */
+/*                             caller!!                                    */
 /*                                                                         */
-/* Returns: A valid pointer. NULL on failure.  Returned pointer is valid   */
-/*          for the life of the handle.  DO NOT free returned pointer      */
+/* Returns: Pointer to the default SPI string.  Pointer may *not* be NULL  */
+/*          terminated                                                     */
 /*=========================================================================*/
 {
-    SLPSpiEntry* result;
+    SLPSpiEntry* entry;
+    
+    *spistr = 0;
+    *spistrlen = 0;
 
-    result = SLPSpiEntryFind(&(hspi->cache), 
-                             SLPSPI_KEY_TYPE_PUBLIC,
-                             spistrlen, 
-                             spistr);
-    if(result)
+    if(hspi)
     {
-        return result->key;
-    } 
+            
+        entry = SLPSpiEntryFind(&(hspi->cache),keytype,0,0);
+        if(entry)
+        {
+            *spistr = malloc(entry->spistrlen);
+            if(*spistr)
+            {
+                memcpy(*spistr, entry->spistr, entry->spistrlen);
+                *spistrlen = entry->spistrlen;
+            }
+        }
+    }
 
-    return 0;
+    return *spistr;
 }
-
+    
 
 /*=========================================================================*/
-SLPCryptoDSAKey* SLPSpiFetchPrivateDSAKey(SLPSpiHandle hspi,
-                                          int* spistrlen,
-                                          char** spistr,
-                                          SLPCryptoDSAKey **key)
+SLPCryptoDSAKey* SLPSpiGetDSAKey(SLPSpiHandle hspi,
+                                 int keytype,
+                                 int spistrlen,
+                                 const char* spistr,
+                                 SLPCryptoDSAKey **key)
 /* Fetches a copy of the private key file used to sign SLP messages.       */
 /*                                                                         */
 /* Parameters: hspi      (IN)  handle obtained from call to SLPSpiOpen()   */
-/*             spistrlen (OUT) the length of the spistr                    */
-/*             spistr    (OUT) spistr associated with the key              */
+/*             keytype   (IN)  the type of key desired                     */
+/*             spistrlen (IN)  the length of the spistr                    */
+/*             spistr    (IN)  spistr associated with the key              */
 /*             key       (OUT) the private key.  Caller should use         */
 /*                             SLPCryptoDSAKeyDestroy() to free key memory */
 /*                                                                         */
@@ -353,64 +381,78 @@ SLPCryptoDSAKey* SLPSpiFetchPrivateDSAKey(SLPSpiHandle hspi,
 /*          SLPCryptoDSAKeyDestroy() to free key memory                    */ 
 /*=========================================================================*/
 {
-    FILE*           fp;
-    SLPSpiEntry*    tmp;
-    
+    SLPSpiEntry*    tmp = 0;
+        
     /* For safety NULL out the key from the beginning */
     *key = 0;
 
-    /*-------------------------------------------------------*/
-    /* check to see if private keys are cached in the handle */
-    /*-------------------------------------------------------*/
-    if(hspi->cacheprivate)
+    if(hspi)
     {
-        /* find the first private key entry */
-        tmp = SLPSpiEntryFind(&(hspi->cache),SLPSPI_KEY_TYPE_PRIVATE,0,0);
-    }
-    else
-    {  
-        /*-------------------------------------------------------*/
-        /* Private keys are not cached in the handle. We need to */
-        /* read them from the file                               */
-        /*-------------------------------------------------------*/
-        fp = fopen(hspi->spifile,"r");
-        if(fp)
+        tmp = SLPSpiEntryFind(&(hspi->cache),
+                              keytype,
+                              spistrlen,
+                              spistr);
+        if(tmp)
         {
-            /* iterate all entries in file */
-            while(1) 
+            if(keytype == SLPSPI_KEY_TYPE_PRIVATE && hspi->cacheprivate == 0)
             {
-                tmp = SLPSpiReadSpiFile(fp, SLPSPI_KEY_TYPE_PRIVATE);
-                if (tmp == 0)
-                {
-                    break;
-                }
-                
-                if(tmp->keytype == SLPSPI_KEY_TYPE_PRIVATE)
-                {
-                    break;
-                }
+                *key = SLPSpiReadKeyFile(tmp->keyfilename,SLPSPI_KEY_TYPE_PRIVATE);
             }
-    
-            fclose(fp);
+            else
+            {
+                *key = SLPCryptoDSAKeyDup(tmp->key);
+            }
         }
-    }
-    
-    if(tmp)
-    {
-        *key =  SLPCryptoDSAKeyDup(tmp->key);
-        *spistrlen = tmp->spistrlen;
-        *spistr = strdup(tmp->spistr);
-        if(*spistr == 0)
-        {
-            /* not enough memory to dup the spistr */
-            /* clean up and return NULL            */
-            if(*key) SLPCryptoDSAKeyDestroy(*key);
-            *key = 0;
-        }
-        /* clean up the temporary entry */
-        SLPSpiEntryFree(tmp);        
     }
 
     return *key;
 }
+
+
+/*=========================================================================*/
+int SLPSpiCanVerify(SLPSpiHandle hspi,
+                    int spistrlen,
+                    const char* spistr)
+/* Determine if we understand the specified SPI.  No SPI is always         */
+/* returns true                                                            */
+/*                                                                         */
+/* Parameters: hspi      (IN)  handle obtained from call to SLPSpiOpen()   */
+/*             spistrlen (IN)  the length of the spistr                    */
+/*             spistr    (IN)  the SPI string                              */
+/*                                                                         */
+/* Returns     Non-zero if we verify specified the SPI                     */
+/*=========================================================================*/
+{
+    if (hspi == 0)
+    {
+        return 0;
+    }
+
+    return (SLPSpiEntryFind(&(hspi->cache), 
+                            SLPSPI_KEY_TYPE_PUBLIC,
+                            spistrlen, 
+                            spistr) != 0);
+}
+
+
+/*=========================================================================*/
+int SLPSpiCanSign(SLPSpiHandle hspi,
+                  int spistrlen,
+                  const char* spistr)
+/* Determine if we understand the specified SPI.  No SPI is always         */
+/* return true                                                             */
+/*                                                                         */
+/* Parameters: hspi      (IN)  handle obtained from call to SLPSpiOpen()   */
+/*             spistrlen (IN)  the length of the spistr                    */
+/*             spistr    (IN)  the SPI string                              */
+/*                                                                         */
+/* Returns     Non-zero if we sign using the specified SPI                 */
+/*=========================================================================*/
+{
+    return (SLPSpiEntryFind(&(hspi->cache), 
+                            SLPSPI_KEY_TYPE_PRIVATE,
+                            spistrlen, 
+                            spistr) != 0);
+}
+
 

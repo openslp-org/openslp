@@ -90,8 +90,6 @@ SLPError ProcessSrvReg(PSLPHandleInfo handle)
     SLPError            result      = 0;
 
 #ifdef ENABLE_AUTHENTICATION
-    int                 spistrlen   = 0;
-    char*               spistr      = 0;
     int                 urlauthlen  = 0;
     unsigned char*      urlauth     = 0;
     int                 attrauthlen = 0;
@@ -99,26 +97,25 @@ SLPError ProcessSrvReg(PSLPHandleInfo handle)
 
     if(SLPPropertyAsBoolean(SLPGetProperty("net.slp.securityEnabled")))
     {
-        /*TODO: Figure out how to select an SPI */
-        
-        spistrlen = 0;
-        spistr    = 0;
-        
-        result = SLPAuthSignUrl(spistrlen,
-                                spistr,
+        result = SLPAuthSignUrl(handle->hspi,
+                                0,
+                                0,
                                 handle->params.reg.urllen,
                                 handle->params.reg.url,
                                 &urlauthlen,
                                 &urlauth);
         if(result == 0)
         {
-            result = SLPAuthSignUrl(spistrlen,
-                                    spistr,
+            result = SLPAuthSignUrl(handle->hspi,
+                                    0,
+                                    0,
                                     handle->params.reg.attrlistlen,
                                     handle->params.reg.attrlist,
                                     &attrauthlen,
                                     &attrauth);
         }
+        bufsize += urlauthlen;
+        bufsize += attrauthlen;
     }
 #endif
 
@@ -126,7 +123,7 @@ SLPError ProcessSrvReg(PSLPHandleInfo handle)
     /*-------------------------------------------------------------------*/
     /* determine the size of the fixed portion of the SRVREG             */
     /*-------------------------------------------------------------------*/
-    bufsize  = handle->params.reg.urllen + 6;       /*  1 byte for reserved  */
+    bufsize += handle->params.reg.urllen + 6;       /*  1 byte for reserved  */
                                                     /*  2 bytes for lifetime */
                                                     /*  2 bytes for urllen   */
                                                     /*  1 byte for authcount */
@@ -134,10 +131,6 @@ SLPError ProcessSrvReg(PSLPHandleInfo handle)
     bufsize += handle->params.reg.scopelistlen + 2; /*  2 bytes for len field */
     bufsize += handle->params.reg.attrlistlen + 2;  /*  2 bytes for len field */
     bufsize += 1;                                   /*  1 byte for authcount */
-#ifdef ENABLE_AUTHENTICATION
-    bufsize += urlauthlen;
-    bufsize += attrauthlen;
-#endif
 
     buf = curpos = (char*)malloc(bufsize);
     if(buf == 0)

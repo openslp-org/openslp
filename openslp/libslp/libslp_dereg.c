@@ -90,27 +90,23 @@ SLPError ProcessSrvDeReg(PSLPHandleInfo handle)
     SLPError            result      = 0;
 
 #ifdef ENABLE_AUTHENTICATION
-    int                 spistrlen   = 0;
-    char*               spistr      = 0;
     int                 urlauthlen  = 0;
     unsigned char*      urlauth     = 0;
     if(SLPPropertyAsBoolean(SLPGetProperty("net.slp.securityEnabled")))
     {
-        /*TODO: Figure out how to select an SPI */ 
-        spistrlen = 0;
-        spistr    = 0;
-
-        result = SLPAuthSignUrl(spistrlen,
-                                spistr,
+        result = SLPAuthSignUrl(handle->hspi,
+                                0,
+                                0,
                                 handle->params.dereg.urllen,
                                 handle->params.dereg.url,
                                 &urlauthlen,
                                 &urlauth);
+        bufsize += urlauthlen;
     }
 #endif
 
     /*-------------------------------------------------------------------*/
-    /* determine the size of the fixed portion of the SRVREG             */
+    /* determine the size of the fixed portion of the SRVDEREG           */
     /*-------------------------------------------------------------------*/
     bufsize += handle->params.dereg.scopelistlen + 2; /*  2 bytes for len field*/
     bufsize += handle->params.dereg.urllen + 8;       /*  1 byte for reserved  */
@@ -118,10 +114,10 @@ SLPError ProcessSrvDeReg(PSLPHandleInfo handle)
                                                       /*  2 bytes for urllen   */
                                                       /*  1 byte for authcount */
     bufsize += 2;                                     /*  2 bytes for taglistlen*/
-#ifdef ENABLE_AUTHENTICATION
-    bufsize += urlauthlen;
-#endif
     
+    /*--------------------------------------------*/
+    /* Allocate a buffer for the SRVDEREG message */
+    /*--------------------------------------------*/
     buf = curpos = (char*)malloc(bufsize);
     if(buf == 0)
     {
@@ -171,7 +167,7 @@ SLPError ProcessSrvDeReg(PSLPHandleInfo handle)
         *(curpos) = 0;
     } 
     /* tag list */
-    /* TODO: put in taglist stuff */
+    /* TODO: No tag list for now put in taglist stuff */
     ToUINT16(curpos,0);
 
 

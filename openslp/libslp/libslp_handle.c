@@ -124,9 +124,7 @@ SLPError SLPOpen(const char *pcLang, SLPBoolean isAsync, SLPHandle *phSLP)
         result =  SLP_NOT_IMPLEMENTED;
         goto FINISHED;
     }
-#endif
-
-
+#endif 
 
     /*------------------------------------*/
     /* allocate a SLPHandleInfo structure */
@@ -183,6 +181,10 @@ SLPError SLPOpen(const char *pcLang, SLPBoolean isAsync, SLPHandle *phSLP)
 #endif
         SLPXidSeed();
     }
+
+#ifdef ENABLE_AUTHENTICATION
+    handle->hspi = SLPSpiOpen(LIBSLP_SPIFILE,0);
+#endif
 
     handle->sig = SLP_HANDLE_SIG;
     handle->inUse = SLP_FALSE;
@@ -257,6 +259,10 @@ void SLPClose(SLPHandle hSLP)
     {
         free(handle->sascope);
     }
+
+#ifdef ENABLE_AUTHENTICATION
+    if(handle->hspi) SLPSpiClose(handle->hspi);
+#endif
 
     handle->sig = 0;  /* If they use the handle again, it won't be valid */
 
