@@ -66,11 +66,12 @@ host_alias = @host_alias@
 host_triplet = @host@
 AS = @AS@
 CC = @CC@
-CFLAGS = @CFLAGS@
 DLLTOOL = @DLLTOOL@
+LD = @LD@
 LIBTOOL = @LIBTOOL@
 LN_S = @LN_S@
 MAKEINFO = @MAKEINFO@
+NM = @NM@
 OBJDUMP = @OBJDUMP@
 PACKAGE = @PACKAGE@
 RANLIB = @RANLIB@
@@ -94,7 +95,7 @@ GZIP_ENV = --best
 all: all-redirect
 .SUFFIXES:
 $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
-	cd $(top_srcdir) && $(AUTOMAKE) --foreign Makefile
+	cd $(top_srcdir) && $(AUTOMAKE) --gnu Makefile
 
 Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status $(BUILT_SOURCES)
 	cd $(top_builddir) \
@@ -239,11 +240,11 @@ distdir: $(DISTFILES)
 	top_distdir=`cd $(distdir) && pwd`; \
 	distdir=`cd $(distdir) && pwd`; \
 	cd $(top_srcdir) \
-	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(top_srcdir) --output-dir=$$top_distdir --foreign Makefile
+	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(top_srcdir) --output-dir=$$top_distdir --gnu Makefile
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
 	  if test -d $$d/$$file; then \
-	    cp -pr $$/$$file $(distdir)/$$file; \
+	    cp -pr $$d/$$file $(distdir)/$$file; \
 	  else \
 	    test -f $(distdir)/$$file \
 	    || ln $$d/$$file $(distdir)/$$file 2> /dev/null \

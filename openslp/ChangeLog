@@ -9,6 +9,10 @@ blank lines and include the date, developer's email, and change description.
 =============================================================================
 
 08/04/00 rganesan@myrealbox.com
+OpenSLP ported to Solaris (2.6/7) and Linux Alpha. Also functional on
+Compaq Tru64. Building is now possible on non-gcc compilers.
+
+08/04/00 rganesan@myrealbox.com
 Documentation updates - codeset converted to iso-8859-1 and spell checked.
 
 08/04/00 david.mccormack@ottawa.com

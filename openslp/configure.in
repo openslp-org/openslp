@@ -18,12 +18,14 @@ dnl Take care of the debug stuff
 dnl ***********************************************************************
 AC_ARG_ENABLE(debug,
 [  --enable-debug          Turn on debugging],
-[case "${enableval}" in
-  yes) CFLAGS='-g -ggdb -DDEBUG -Wall' ;;
-  no)  CFLAGS+=;;
-  *) AC_MSG_ERROR(bad value ${enableval} for --enable-debug) ;;
-esac],[CFLAGS='-Wall -O3'])
-AC_SUBST(CFLAGS)
+debug=$enableval,
+debug=no)
+
+case "$debug" in
+  yes) CFLAGS='-g -DDEBUG -D_REENTRANT=1' ;;
+  no)  CFLAGS='-DNDEBUG -D_REENTRANT=1' ;;
+  *) AC_MSG_ERROR(bad value ${debug} for --enable-debug) ;;
+esac
 
 dnl ***********************************************************************
 dnl Checks for programs.
@@ -37,6 +39,36 @@ AC_ARG_PROGRAM
 AM_PROG_LIBTOOL
 
 dnl ***********************************************************************
+dnl Set C/C++ compiler specific warning/optimization flags
+dnl ***********************************************************************
+if test X"$GCC" = X"yes"; then	
+    CFLAGS="$CFLAGS -Wall"
+    if test X"$debug" = X"no"; then 
+       OPTFLAGS="-O3"
+    fi
+elif $CC -V 2>&1 | grep "WorkShop Compilers"; then
+    dnl Allow C++ style comments
+    CFLAGS="$CFLAGS -xCC" 
+    if test X"$debug" = X"no"; then
+        OPTFLAGS="-fast"
+	if echo $CC | grep "xarch=v9"; then
+            dnl "-fast" sets -xarch=v8 disabling 64-bit mode, enable it again
+	    OPTFLAGS="$OPTFLAGS -xarch=v9"
+	fi
+    fi
+elif echo $host_os | grep -i "osf" >/dev/null; then
+    CFLAGS="$CFLAGS -std"
+    if test X"$debug" = X"no"; then
+        OPTFLAGS="-O"
+    fi
+else
+    if test X"$debug" = X"no"; then
+        OPTFLAGS="-O"
+    fi
+fi
+CFLAGS="$CFLAGS $OPTFLAGS"
+
+dnl ***********************************************************************
 dnl Checks for header files.
 dnl ***********************************************************************
 AC_STDC_HEADERS
@@ -46,6 +78,7 @@ dnl ***********************************************************************
 dnl Checks for data types.
 dnl ***********************************************************************
 AC_OPENSLP_CHECK_TYPE(socklen_t, size_t)
+AC_OPENSLP_STRUCT_SA_RESTORER
 
 dnl ***********************************************************************
 dnl Checks for libraries.
