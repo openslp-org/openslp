@@ -2,7 +2,7 @@
 <html>
 <head>
    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-   <meta name="GENERATOR" content="Mozilla/4.72C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.2.14 i686) [Netscape]">
+   <meta name="GENERATOR" content="Mozilla/4.76C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.4.2 i686) [Netscape]">
    <title>OpenSLP Programmers Guide - SLPOpen</title>
 </head>
 <body text="#000000" bgcolor="#FFFFFF" link="#0000EF" vlink="#51188E" alink="#FF0000">
@@ -16,9 +16,10 @@ Include</h3>
 &nbsp;
 <h3>
 Declaration</h3>
-<tt>#include &lt;slp.h></tt><tt><a href="SLPError.html"></a></tt>
+<tt>#include &lt;slp.h></tt>
 <p><tt><a href="SLPError.html">SLPError</a> SLPOpen(const char* <a href="#lang">lang</a>,
-<a href="SLPTypes.html#SLPBoolean">SLPBoolean</a></tt> <a href="#isasync">isasync</a><tt>,
+<a href="SLPTypes.html#SLPBoolean">SLPBoolean</a></tt>
+<tt><a href="#isasync">isasync</a>,
 <a href="SLPTypes.html#SLPHandle">SLPHandle</a>*
 <a href="#phslp">phslp</a>)</tt>
 <br>&nbsp;
@@ -42,7 +43,16 @@ any outstanding calls on the handle. If an implementation is unable to
 support a asynchronous( resp. synchronous) operation, due to memory constraints
 or lack of threading support, the <tt>SLP_NOT_IMPLEMENTED </tt>flag may
 be returned when the isasync flag is <tt>SLP_TRUE</tt> (resp. <tt>SLP_FALSE</tt>).
-<br>&nbsp;
+<p>In the OpenSLP&nbsp;implementation, SLPHandles are used to cache information
+that is costly (in terms of network usage and time) to obtain.&nbsp;&nbsp;
+Since the RFC 2614 API does not specify APIs to initialize the implementation
+library, OpenSLP&nbsp;keeps track of the number of SLPHandles that are
+open.&nbsp;&nbsp; Several global library data structures are initialized
+when the first SLPHandle is opened and maintained until the last SLPHandle
+is closed.&nbsp; Therefore, it is most efficient to leave SLPHandles open
+for as long as you will need them (often for the entire life of a process).&nbsp;&nbsp;&nbsp;
+If you can help it, DO&nbsp;NOT&nbsp;make a habit of opening and closing
+SLPHandles frequently.
 <h3>
 Parameters</h3>
 
