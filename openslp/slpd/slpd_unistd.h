@@ -65,6 +65,7 @@
 #include <arpa/inet.h> 
 #include <ctype.h>   
 #include <stdarg.h> 
+#include <limits.h>
 
 #ifdef LINUX
 #include <net/if.h> 
