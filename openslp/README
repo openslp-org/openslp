@@ -1,87 +1,136 @@
+OpenSLP README
+===============
 
-README OpenSLP release 0.7.6
-----------------------------
-OpenSLP now supports predicate features of the SLPv2 protocol.  This feature
-is enabled by default which increases the slpd slightly.  If for some reason
-you would rather not compile this feature you can run ./configure with the
---disable-predicates
-
-
-README OpenSLP release 0.7.5
-----------------------------
-For thos of you that are interested in using OpenSLP on Windows.  Please
-read the README.W32 file that is included in the distribution for extra
-Win32 build and install instructions.
-
-Be aware that the libslp minor version was updated because of the code that
-was added to support SLPFindSrvTypes().  The additional code should probably
-not cause any dynamic linking problems as the libslp interface has not
-changed.
+1 - Introduction
+2 - Roadmap
+3 - Build 
+4 - Install 
+5 - Users Guide
+6 - Developers Guide
+7 - FAQ
 
 
-README OpenSLP release 0.7.4
-----------------------------
-For several reasons, a public release of 0.7.3 will not be made available.
-Instead, all changes have been rolled into 0.7.4.  Please be aware that 
-in order to include the DA communication enhancements (detailed in the NEWS 
-file) it was necessary to modify a good portion of the networking code.
-This new code is not as mature as the 0.7.2 code.  Also, a fair amount of
-work was done to simplify internal data structures to make way for future
-enhancements.  It is expected that some users may just want to stick with
-0.7.2 release unless the new DA features are important.  Be aware also that
-there are a few DA communication issues that are not fully resolved (like
-re-registration of existing services with a newly discovered DA)
+1 - Introduction
+-----------------
+The OpenSLP project is an effort to develop an open-source implementation of
+Service Location Protocol suitable for commercial and non-commercial 
+application.
+
+The latest version of OpenSLP is 0.7.7  Changes for this version and the 
+previous version consist of the following:
+
+    - Addition of SLPv1 backwards compatibility support
+    - TCP stream reusage in libslp and slpd
+    - Correction of many active DA discovery problems in slpd
 
 
-README OpenSLP release 0.7.3
-----------------------------
-
-Autoconf/Automake generated files are removed from CVS. If you are building
-OpenSLP from CVS, please run the script ./autogen.sh from the top of the CVS
-tree to re-generate these files.
-
-
-README OpenSLP release 0.7.2
-----------------------------
-
-OpenSLP 0.7.2 is again just slightly more stable than 0.7.1. For developers,
-the build system has been revamped build system to take full advantage
-automake and libtool integration. You can now build in a directory different
-from the source directory. The test suite has also been integrated into
-automake; you now need to run make check (instead of make test) to run the
-tests. 
+2 - Roadmap
+------------
+OpenSLP is getting very close to being release in alpha and beta form.  It
+is currently useable for most applications, but still lacks a few important
+features:
+    
+    - slpd does not honor the predicate in SrvRqst messages.  (this feature
+      is nearly finished but is still not ready for general use)
+    - slpd does not honor the honor taglist in AttrRqst messages
+    - slpd does not re-register all services with new DAs 
+    - libslp and slpd do not cooperate for efficiency in locating DAs
+    - libslp does not colate results for syncronous calls
+    - libslp does not support asyncronous calls
 
 
-README OpenSLP release 0.7.1
-----------------------------
+3 - Building OpenSLP
+---------------------
+Building OpenSLP requires the proper installation of automake, autoconf and
+libtool.  To build OpenSLP please use the following steps:
 
-As far as enhancements go OpenSLP release 0.7.1 just slightly more stable
-release of 0.7.0. Several bug fixes (that kept 0.7.0 from working in some
-cases) have been added.  For developers, OpenSLP 0.7.1 introduces a new make
-file system that uses automake/autoconf...  one step closer to our goal of
-making OpenSLP easier to port and maintain.
+    - Unzip and untar the openslp-x.x.x.tar.gz tarball.
+   
+      $ tar -zxf openslp-x.x.x.tar.gz 
+	  
+    - Run the autogen.sh script to generate configure script. Do not be
+      alarmed if the autogen script prints a few errors.  Try the resulting
+      configure (next step) script anyway.
+      
+      $ cd openslp-x.x.x
+      $ ./autogen.sh
+	  
+    - Run the configure script to create openslp make files.  Please note that
+      the configure script accepts several --enable-xxxx and --disable-xxxx
+      options that should be interesting to you.  Run ./configure --help and 
+      read the details of each of these switches. If the configure
+      script fails... now you have a problem.
+     
+      $ ./configure --help
+      $ ./configure
+	  
+    - Run the top level make file.
+    
+      $ make
+	  
+    - If the make is successful, look for the following binaries:
+      
+      slpd/slpd
+      libslp/.libs/libslp.so
+      test/.libs/*
 
 
-README OpenSLP release 0.7.0
-----------------------------
+4 - Installing OpenSLP       
+-----------------------
+To install OpenSLP make the install target in the top level make file
+    
+    $ make install
+    
+Installation of OpenSLP creates the following files:
+    
+    /usr/sbin/slpd 
+    /usr/lib/libslp.so.x.x (and several appropriate links)
+    /usr/lib/libslp.a 
+    /etc/slp.conf          (old slp.conf is renamed)
+    /etc/slp.reg           (old slp.reg is renamed)
+    
 
-OpenSLP release 0.7.0 contains significant code changes from the original is
-based on the original Caldera Systems source code snapshot from 
-April.  Additional features (such as DA support in the library and
-configuration enhancements have been added, but most of the changes to the 
-code were made to tighty things up in order to (hopefully) make OpenSLP
-easier to port and maintain. 
-
-The OpenSLP library is nearly complete (about 90%) which means that 
-for a few exceptions, it will change very little in the next major
-releases (0.8.x, 0.9.x and 1.0.x).  The OpenSLP daemon, on the other
-hand is only about 60% complete.  Look for major feature enhancement to 
-slpd in the future.
-
-Sufficient testing resources have not been available to properly test OpenSLP.
-Therefore, we can not currently give an accurate expectation with regard to
-stability and functionality.  Please send email to notify us of any bugs 
-<mpeterson@calderasystems.com>. 
+5 - OpenSLP Users Guide 
+------------------------
+Rather than be repetitive in this document, the reader is refered to a fairly
+complete OpenSLP users guide that is available in the doc/html directory
+of the OpenSLP distribution or on the web at:
+    
+    http://www.openslp.org/doc/html/UsersGuide
+    
+The OpenSLp users guide gives instruction on how network and system
+administrators should configure and use OpenSLP once it is installed
 
 
+6 - OpenSLP Programmers Guide
+------------------------------
+Again, to avoid repetition, the reader is refered to a the Programmers Guide
+available in the doc/html directory of the OpenSLP distribution or on the web 
+at:
+   
+    http://www.openslp.org/doc/html/ProgrammersGuide
+    
+    
+7 - FAQ
+--------
+A really compresensive FAQ is not yet available for OpenSLP so please send
+you questions to the OpenSLP mailing lists:
 
+    openslp-devel@lists.sourceforge.net
+    openslp-users@lists.sourceforge.net
+    
+Q: Where is the configure script?
+A: Did you read section 3 of this document?  You need to run autogen.sh to
+   generate the configure script.
+   
+Q: How do I build OpenSLP on Windows?  
+A: The MSVC project files used by the developers who ported OpenSLP to win32
+   available in the source directories.  If you do not use MSVC and you are a 
+   Windows developer, then you will be used to trying to get MSVC makes to
+   work with your tools
+   
+Q: Will OpenSLP work on my operating system
+A: Yes, the OpenSLP code has proven to be very portable.  It currently works
+   many operating systems including: Linux, BSD, Solaris, Tru64, HPUX, and
+   Windows
+   
