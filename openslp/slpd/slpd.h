@@ -722,7 +722,31 @@ int SLPDKnownDAEntryToDAAdvert(int errorcode,
 /* returns: zero on success, non-zero on error                             */
 /*=========================================================================*/
 
-
+#if defined(ENABLE_SLPv1)
+/*=========================================================================*/
+int SLPDv1KnownDAEntryToDAAdvert(int errorcode,
+				 int encoding,
+				 unsigned int xid,
+				 const SLPDAEntry* daentry,
+				 SLPBuffer* sendbuf);
+/* Pack a buffer with a v1 DAAdvert using information from a SLPDAentry    */
+/*                                                                         */
+/* errorcode (IN) the errorcode for the DAAdvert                           */
+/*                                                                         */
+/* encoding (IN) the SLPv1 language encoding for the DAAdvert              */
+/*                                                                         */
+/* xid (IN) the xid to for the DAAdvert                                    */
+/*                                                                         */
+/* daentry (IN) pointer to the daentry that contains the rest of the info  */
+/*              to make the DAAdvert                                       */
+/*                                                                         */
+/* sendbuf (OUT) pointer to the SLPBuffer that will be packed with a       */
+/*               DAAdvert                                                  */
+/*                                                                         */
+/* returns: zero on success, non-zero on error                             */
+/*=========================================================================*/
+#endif
+	
 /*=========================================================================*/
 int SLPDKnownDAEnum(void** handle,
                     SLPDAEntry** entry);

@@ -47,6 +47,7 @@
 /***************************************************************************/
 
 #include "slpd.h"
+#include <limits.h>
 
 /*=========================================================================*/
 SLPList G_KnownDAList = {0,0,0};                                         
@@ -277,6 +278,131 @@ int SLPDKnownDAEntryToDAAdvert(int errorcode,
 
     return errorcode;
 }
+
+
+#if defined(ENABLE_SLPv1)
+/*=========================================================================*/
+int SLPDv1KnownDAEntryToDAAdvert(int errorcode,
+				 int encoding,
+				 unsigned int xid,
+				 const SLPDAEntry* daentry,
+				 SLPBuffer* sendbuf)
+/* Pack a buffer with a v1 DAAdvert using information from a SLPDAentry    */
+/*                                                                         */
+/* errorcode (IN) the errorcode for the DAAdvert                           */
+/*                                                                         */
+/* encoding (IN) the SLPv1 language encoding for the DAAdvert              */
+/*                                                                         */
+/* xid (IN) the xid to for the DAAdvert                                    */
+/*                                                                         */
+/* daentry (IN) pointer to the daentry that contains the rest of the info  */
+/*              to make the DAAdvert                                       */
+/*                                                                         */
+/* sendbuf (OUT) pointer to the SLPBuffer that will be packed with a       */
+/*               DAAdvert                                                  */
+/*                                                                         */
+/* returns: zero on success, non-zero on error                             */
+/*=========================================================================*/
+{
+    int       size = 0;
+    int       urllen = INT_MAX;
+    int       scopelistlen = INT_MAX;
+    SLPBuffer result = *sendbuf;
+
+    /*-------------------------------------------------------------*/
+    /* ensure the buffer is big enough to handle the whole srvrply */
+    /*-------------------------------------------------------------*/
+    size = 18; /* 12 bytes for header     */
+               /*  2 errorcode  */
+               /*  2 bytes for url len */
+               /*  2 bytes for scope list len */
+
+    if (!errorcode)
+    {
+	errorcode = SLPv1ToEncoding(0, &urllen, encoding,
+				    daentry->url,
+				    daentry->urllen);
+	if (!errorcode)
+	{
+	    size += urllen;
+	    errorcode = SLPv1ToEncoding(0, &scopelistlen,
+					encoding,
+					daentry->scopelist,
+					daentry->scopelistlen);
+	    if (!errorcode)
+	    {
+		size += scopelistlen;
+	    }
+	}
+    }
+    else
+    {
+	/* don't add these */
+	urllen = scopelistlen = 0;
+    }
+
+    result = SLPBufferRealloc(result,size);
+    if(result == 0)
+    {
+        /* TODO: out of memory, what should we do here! */
+        errorcode = SLP_ERROR_INTERNAL_ERROR;
+        goto FINISHED;                       
+    }
+    
+    /*----------------*/
+    /* Add the header */
+    /*----------------*/
+    /*version*/
+    *(result->start)       = 1;
+    /*function id*/
+    *(result->start + 1)   = SLP_FUNCT_DAADVERT;
+    /*length*/
+    ToUINT16(result->start + 2, size);
+    /*flags - TODO we have to handle monoling and all that crap */
+    ToUINT16(result->start + 4,
+             size > SLP_MAX_DATAGRAM_SIZE ? SLPv1_FLAG_OVERFLOW : 0);
+    /*dialect*/
+    *(result->start + 5) = 0;
+    /*language code*/
+    if(daentry->langtag)
+    {
+	memcpy(result->start + 6, daentry->langtag, 2);
+    }
+    ToUINT16(result->start + 8, encoding);
+    /*xid*/
+    ToUINT16(result->start + 10,xid);
+
+    result->curpos = result->start + 12;
+
+    /*--------------------------*/
+    /* Add rest of the DAAdvert */
+    /*--------------------------*/
+    /* error code */
+    ToUINT16(result->curpos,errorcode);
+    result->curpos = result->curpos + 2;
+    ToUINT16(result->curpos, urllen);
+    result->curpos = result->curpos + 2;
+    /* url */
+    SLPv1ToEncoding(result->curpos, &urllen, encoding, 
+		    daentry->url,
+		    daentry->urllen);
+    result->curpos = result->curpos + urllen;
+    /* scope list len */
+    ToUINT16(result->curpos, daentry->scopelistlen);
+    result->curpos = result->curpos + 2;
+    /* scope list */
+    SLPv1ToEncoding(result->curpos, &scopelistlen,
+		    encoding,  
+		    daentry->scopelist,
+		    daentry->scopelistlen);
+    result->curpos = result->curpos + scopelistlen;
+
+    FINISHED:
+    *sendbuf = result;
+
+    return errorcode;
+}
+#endif
 
 /*-------------------------------------------------------------------------*/
 void SLPDKnownDARegisterAll(SLPDAEntry* daentry)
@@ -946,7 +1072,43 @@ void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead)
             {
                 SLPDOutgoingDatagramWrite(sock);
             }
-        }
+	    else
+	    {
+		SLPDSocketFree(sock);
+	    }
+#if defined(ENABLE_SLPv1)
+	    if (!dadead)	/* SLPv1 does not support shutdown messages */
+	    {
+		SLPDSocket *v1sock;
+		/*--------------------------------------------------*/
+		/* Create new DATAGRAM socket with appropriate peer */
+		/*--------------------------------------------------*/
+		if(G_SlpdProperty.isBroadcastOnly == 0)
+		{
+		    peeraddr.s_addr = htonl(SLPv1_DA_MCAST_ADDRESS);
+		    v1sock = SLPDSocketCreateDatagram(&peeraddr,
+						      DATAGRAM_MULTICAST);
+		}
+		else
+		{   
+		    peeraddr.s_addr = htonl(SLP_BCAST_ADDRESS);
+		    v1sock = SLPDSocketCreateDatagram(&peeraddr,
+						      DATAGRAM_BROADCAST);
+		}
+		if (v1sock)
+		{
+		    if(SLPDv1KnownDAEntryToDAAdvert(0,
+						    SLP_CHAR_UTF8,
+						    0,
+						    &daentry,
+						    &(v1sock->sendbuf)) == 0)
+		    {
+			SLPDOutgoingDatagramWrite(v1sock);
+		    }
+		}
+	    }
+#endif
+	}
     }
     else
     {
