@@ -10,7 +10,7 @@ INCLUDES			= -I../common
 libslp_so_LIBADD	=  $(top_srcdir)/common/libcommonlibslp.a
 AR					= gcc
 LIBTOOL_DEPS 		= @LIBTOOL_DEPS@
-CFLAGS				+= -shared
+libslp_so_LDFLAGS	+= -shared
 
 libtool: $(LIBTOOL_DEPS)
 	$(SHELL) ./config.status --recheck
