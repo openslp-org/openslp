@@ -6,6 +6,7 @@ Name        	: openslp
 Version     	: %ver
 Release     	: %rel
 Group       	: Server/Network
+Provides        : openslp libslp.so slpd
 Summary     	: OpenSLP implementation of Service Location Protocol V2 
 Copyright   	: Caldera Systems (LGPL)
 Packager    	: Matthew Peterson <mpeterson@calderasystems.com>
@@ -32,7 +33,16 @@ files and documentation
 make
 
 %Install
+%{mkDESTDIR}
 make install 
+mkdir -p $DESTDIR/etc/sysconfig/daemons 
+cat <<EOD  > $DESTDIR/etc/sysconfig/daemons/slpd
+IDENT=slp
+DESCRIPTIVE="SLP Service Agent"
+ONBOOT="yes"
+EOD
+mkdir -p $DESTDIR/etc/rc.d/init.d
+cp etc/slpd.caldera_init $DESTDIR/etc/rc.d/init.d/slpd
 
 %Clean
 rm -rf $RPM_BUILD_ROOT
@@ -41,21 +51,29 @@ rm -rf $RPM_BUILD_ROOT
 rm -f /usr/lib/libslp.so
 ln -s /usr/lib/libslp.so.%{ver} /usr/lib/libslp.so
 /sbin/ldconfig
+lisa --SysV-init install slpd S13 2:3:4:5 K87 0:1:6  
 
 %PostUn 
 rm -f /usr/lib/libslp.so
 /sbin/ldconfig
+lisa --SysV-init remove slpd $1 
 
 %Files
 %defattr(-,root,root)
 %doc /usr/doc/openslp-%{ver}
 %config /etc/slp.conf
 %config /etc/slp.reg
+%config /etc/sysconfig/daemons/slpd
+/etc/rc.d/init.d/slpd
 /usr/lib/libslp.so.%{ver}
 /usr/include/slp.h
 /usr/sbin/slpd
 
+
 %ChangeLog
+* Wed Jul 17 2000 mpeterson@calderasystems.com
+        Added lisa stuff
+	
 * Thu Jul 7 2000 david.mccormack@ottawa.com
 	Made it work with the new autoconf/automake scripts.
  
