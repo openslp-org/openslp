@@ -5,6 +5,9 @@ Please make entries to this log (in addition to the CVS log) that describe
 major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
+
+*** Tag OpenSLP-1.0.6 ***
+
 12/04/01 matt@caldera.com
 Applied patch from Tim Zurcher that sets FRESH flag for registrations.
 OpenSLP ignores this flag, but other DA implementations like K&A SLP do not.
