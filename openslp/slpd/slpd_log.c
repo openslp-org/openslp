@@ -54,6 +54,7 @@
 #include "slpd_log.h"
 #include "slpd_property.h"
 
+#include <time.h>
 
 /********************************************/
 /* TODO: Make these functions thread safe!! */

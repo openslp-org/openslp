@@ -49,7 +49,12 @@
 #ifndef SLP_XMALLOC_H_INCLUDED
 #define SLP_XMALLOC_H_INCLUDED
 
+#include <stdlib.h>
+
+#ifdef _WIN32
 #include <malloc.h>
+#endif
+
 #include <stdio.h>
 #include <string.h>
 
