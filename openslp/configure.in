@@ -2,7 +2,7 @@ dnl ***********************************************************************
 dnl Process this file with autoconf to produce a configure script.
 dnl ***********************************************************************
 AC_INIT(slpd/slpd_main.c)
-AM_INIT_AUTOMAKE(openslp, 0.9.1-pre1)
+AM_INIT_AUTOMAKE(openslp, 0.9.1)
 
 dnl ***********************************************************************
 dnl We don't want /usr/etc or /usr/var
@@ -88,7 +88,7 @@ fi
 dnl ***********************************************************************
 dnl Enable security support 
 dnl ***********************************************************************
-AC_ARG_ENABLE(security,
+AC_ARG_ENABLE(slpv2-security,
 [  --enable-slpv2-security Turn on security support (default off)],
 slpv2security=$enableval,
 slpv2security=no)
