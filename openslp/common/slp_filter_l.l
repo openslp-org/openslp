@@ -29,27 +29,57 @@
 #undef YYLMAX
 #define YYLMAX 2048
 
-//#include "../../lslp-common/lslp-common-defs.h"
+#define yymaxdepth    slp_filter_maxdepth
+#define yyparse       slp_filter_parse
+#define yylex         slp_filter_lex
+#define yyerror       slp_filter_error
+#define yylval        slp_filter_lval
+#define yychar        slp_filter_char
+#define yydebug       slp_filter_debug
+#define yypact        slp_filter_pact  
+#define yyr1          slp_filter_r1                    
+#define yyr2          slp_filter_r2                    
+#define yydef         slp_filter_def           
+#define yychk         slp_filter_chk           
+#define yypgo         slp_filter_pgo           
+#define yyact         slp_filter_act           
+#define yyexca        slp_filter_exca
+#define yyerrflag     slp_filter_errflag
+#define yynerrs       slp_filter_nerrs
+#define yyps          slp_filter_ps
+#define yypv          slp_filter_pv
+#define yys           slp_filter_s
+#define yy_yys        slp_filter_yys
+#define yystate       slp_filter_state
+#define yytmp         slp_filter_tmp
+#define yyv           slp_filter_v
+#define yy_yyv        slp_filter_yyv
+#define yyval         slp_filter_val
+#define yylloc        slp_filter_lloc
+#define yyreds        slp_filter_reds
+#define yytoks        slp_filter_toks
+#define yylhs         slp_filter_yylhs
+#define yylen         slp_filter_yylen
+#define yydefred      slp_filter_yydefred
+#define yydgoto       slp_filter_yydgoto
+#define yysindex      slp_filter_yysindex
+#define yyrindex      slp_filter_yyrindex
+#define yygindex      slp_filter_yygindex
+#define yytable       slp_filter_yytable
+#define yycheck       slp_filter_yycheck
+#define yyname        slp_filter_yyname
+#define yyrule        slp_filter_yyrule
+
+#include "slp_filter.h"
 #include "slp_filter_y.h"
 #include "slp_xmalloc.h"
 #include <stdarg.h>
 
-#define filterless yyless
-void filtererror(char *, ...);
-
-/*
-extern char *lslp_logPath;
-
-#define yyerror(s) 	_lslpMsgOut(lslp_logPath, lslpPrintSem, LSLP_LOG_ERRORS, NULL, 0, (s), __FILE__, __LINE__);
-*/
-static int heapIndex;
-static char heap[2052];
 static char buf[2052];
 
-static char *_lslp_strdup(char *s);
-void filter_close_lexer(unsigned int handle);
-uint filter_init_lexer(char *s);
-
+void slp_filter_error(char *, ...);
+void slp_filter_close_lexer(unsigned int handle);
+uint slp_filter_init_lexer(char *s);
 
 %}
 
@@ -67,10 +97,10 @@ not_reserved            [^()\&|!=<>~\n]
 %option noyywrap
 %%
 
-"\""                          { BEGIN QUOTED_STRING; filterless(0); }
+"\""                          { BEGIN QUOTED_STRING; yyless(0); }
 <QUOTED_STRING>[^()\&|!=<>~\n]+  {
                                  BEGIN INITIAL; 
-                                 if(NULL != (filterlval.filter_string =  _lslp_strdup(yytext)))
+                                 if(NULL != (yylval.filter_string =  xstrdup(yytext)))
                                     return(OPERAND) ; 
                                  else 
                                     return(0L) ;
@@ -78,42 +108,42 @@ not_reserved            [^()\&|!=<>~\n]
 
 
 [ \t\v\f]*                    { ; }
-"("                           { filterlval.filter_int = L_PAREN; return L_PAREN ; }
-")"                           { filterlval.filter_int = R_PAREN; return R_PAREN ; }
-"&"                           { filterlval.filter_int = OP_AND; return OP_AND ; }
-"|"                           { filterlval.filter_int = OP_OR; return OP_OR ; }
-"!"                           { filterlval.filter_int = OP_NOT; return OP_NOT ; }
-"="                           { filterlval.filter_int = OP_EQU; return OP_EQU ; }
-">="                          { filterlval.filter_int = OP_GT; return OP_GT ; }
-"<="                          { filterlval.filter_int = OP_LT; return OP_LT ; }
-"=*"                          { filterlval.filter_int = OP_PRESENT; return OP_PRESENT ; }
-"~="                          { filterlval.filter_int = OP_APPROX; return OP_APPROX ;  }
+"("                           { yylval.filter_int = L_PAREN; return L_PAREN ; }
+")"                           { yylval.filter_int = R_PAREN; return R_PAREN ; }
+"&"                           { yylval.filter_int = OP_AND; return OP_AND ; }
+"|"                           { yylval.filter_int = OP_OR; return OP_OR ; }
+"!"                           { yylval.filter_int = OP_NOT; return OP_NOT ; }
+"="                           { yylval.filter_int = OP_EQU; return OP_EQU ; }
+">="                          { yylval.filter_int = OP_GT; return OP_GT ; }
+"<="                          { yylval.filter_int = OP_LT; return OP_LT ; }
+"=*"                          { yylval.filter_int = OP_PRESENT; return OP_PRESENT ; }
+"~="                          { yylval.filter_int = OP_APPROX; return OP_APPROX ;  }
 
 
 [-+][0-9]+                  |
 [-+]"0"[xX]{hexdigit}+      { 
-                              filterlval.filter_int = strtol(yytext, (char **) 0, 0) ;
+                              yylval.filter_int = strtol(yytext, (char **) 0, 0) ;
                               return VAL_INT;
                             }
 
 [0-9]+                      |
 "0"[xX]{hexdigit}+          { 
-                              filterlval.filter_int = strtoul(yytext, (char **) 0, 0);
+                              yylval.filter_int = strtoul(yytext, (char **) 0, 0);
                               return VAL_INT;
                             }
 
 [tT][rR][uU][eE]            { 
-                               filterlval.filter_int = 1; return VAL_BOOL; 
+                               yylval.filter_int = 1; return VAL_BOOL; 
                             }
 
 
 [fF][aA][lL][sS][eE]        { 
-                               filterlval.filter_int = 0; return VAL_BOOL; 
+                               yylval.filter_int = 0; return VAL_BOOL; 
                             }
 
 
 [^()\&|!=<>~ \t\v\f]+       {
-                                 if(NULL != (filterlval.filter_string =  xstrdup(yytext)))
+                                 if(NULL != (yylval.filter_string =  xstrdup(yytext)))
                                     return(OPERAND) ; 
                                  else 
                                     return(0L) ;
@@ -129,39 +159,15 @@ void filter_close_lexer(uint handle)
   yy_delete_buffer((YY_BUFFER_STATE)handle);
 }
 
-
-uint filter_init_lexer(char *s)
+unsigned int slp_filter_init_lexer(char *s)
 {
   memset(&buf[0], 0x00, 2052);
-  memset(&heap[0], 0x00, 2052);
-  heapIndex = 0;
   strncpy(&buf[0], s, 2048);
   return((uint)yy_scan_buffer(&buf[0], strlen(s) + 2));
 }
 
-static char *xstrdup_strip_quotes(char *s)
+void slp_filter_error(char *s, ...)
 {
-  char *p = &heap[heapIndex];
-  do { if(*s != '"') heap[heapIndex++] = *s; } while ((*s != 0x00) && (heapIndex < 2049) && (++s));
-  return(p);
-}
-
-
-void filtererror(char *s, ...)
-{
-#ifdef TEST_HARNESS
-	va_list va;
-	va_start(va, s);
-	printf(s, va);
-#endif
 	return;
 }	
-
-/*
-int main(int argc, char *argv[])
-{
-
-}	
-
-*/
 

@@ -39,11 +39,11 @@ libcommonslpd_la_SOURCES = \
 	slp_iface.c \
 	slp_net.c \
 	slp_pid.c \
-	slp_filter_y.y \
-	slp_filter_l.l \
 	slp_attr_y.y \
 	slp_attr_l.l \
- 	$(slp_v1message_SRCS) \
+	slp_filter_y.y \
+	slp_filter_l.l \
+	$(slp_v1message_SRCS) \
 	$(slp_security_SRCS)
 	
 
@@ -67,3 +67,5 @@ noinst_HEADERS = \
 	slp_parse.h \
 	slp_net.h \
 	slp_pid.h
+	
+AM_YFLAGS = -d

@@ -32,7 +32,7 @@ typedef enum attrTypes
     head = -1,
     string,
     integer,
-    bool,
+    boolean,
     opaque,
     tag
 }lslpTypes;

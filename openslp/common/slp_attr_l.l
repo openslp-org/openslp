@@ -31,18 +31,60 @@
 #undef YYLMAX
 #define YYLMAX 2048
 
+#define yymaxdepth      slp_attr_maxdepth
+#define yyparse         slp_attr_parse
+#define yylex           slp_attr_lex
+#define yyerror         slp_attr_error
+#define yylval          slp_attr_lval
+#define yychar          slp_attr_char
+#define yydebug         slp_attr_debug
+#define yypact          slp_attr_pact  
+#define yyr1            slp_attr_r1                    
+#define yyr2            slp_attr_r2                    
+#define yydef           slp_attr_def           
+#define yychk           slp_attr_chk           
+#define yypgo           slp_attr_pgo           
+#define yyact           slp_attr_act           
+#define yyexca          slp_attr_exca
+#define yyerrflag       slp_attr_errflag
+#define yynerrs         slp_attr_nerrs
+#define yyps            slp_attr_ps
+#define yypv            slp_attr_pv
+#define yys             slp_attr_s
+#define yy_yys          slp_attr_yys
+#define yystate         slp_attr_state
+#define yytmp           slp_attr_tmp
+#define yyv             slp_attr_v
+#define yy_yyv          slp_attr_yyv
+#define yyval           slp_attr_val
+#define yylloc          slp_attr_lloc
+#define yyreds          slp_attr_reds
+#define yytoks          slp_attr_toks
+#define yylhs           slp_attr_yylhs
+#define yylen           slp_attr_yylen
+#define yydefred        slp_attr_yydefred
+#define yydgoto         slp_attr_yydgoto
+#define yysindex        slp_attr_yysindex
+#define yyrindex        slp_attr_yyrindex
+#define yygindex        slp_attr_yygindex
+#define yytable         slp_attr_yytable
+#define yycheck         slp_attr_yycheck
+#define yyname          slp_attr_yyname
+#define yyrule          slp_attr_yyrule
+
+#include "slp_attr.h"
 #include "slp_attr_y.h"
 #include "slp_xmalloc.h"
 
 static int heapIndex;
 static char heap[2052];
 static char buf[2052];
-void attrerror(char *, ...);
-int attrwrap(void);
-int attrlex(void);
-void attr_close_lexer(unsigned int handle);
-uint attr_init_lexer(char *s);
 
+void slp_attr_error(char *, ...);
+int slp_attr_wrap(void);
+int slp_attr_lex(void);
+void slp_attr_close_lexer(unsigned int handle);
+uint slp_attr_init_lexer(char *s);
 
 %}
 
@@ -81,11 +123,11 @@ val				[^(),\\!<>~\x00-\x1f*_\r\n\t]
 
 [ \t\v\f]*              { ; }
 
-"," 			{ attrlval._i = *yytext; return(attrlval._i); }
-"("			{ BEGIN ATTR; attrlval._i = *yytext; return(attrlval._i); }
+"," 			{ yylval._i = *yytext; return(yylval._i); }
+"("			{ BEGIN ATTR; yylval._i = *yytext; return(yylval._i); }
 {tag}+			{   
  			   if (yyleng > 0) {
-			      if(NULL != (attrlval._s = xstrdup(yytext)))
+			      if(NULL != (yylval._s = xstrdup(yytext)))
                                  return(_TAG);
                               else
                                  return(0L);
@@ -93,13 +135,13 @@ val				[^(),\\!<>~\x00-\x1f*_\r\n\t]
                         }
 
  /* anything else in the initial state is an error */
-.				{attrerror("error in lexer - initial state\n");}
+.				{yyerror("error in lexer - initial state\n");}
 
 <ATTR>[ \t\v\f]*        { ; }
-<ATTR>"="	        {BEGIN VALUE; attrlval._i = *yytext; return(attrlval._i);}
+<ATTR>"="	        {BEGIN VALUE; yylval._i = *yytext; return(yylval._i);}
 <ATTR>{tag}+	        {   
                           if (yyleng > 0 ) {
-                             if(NULL != (attrlval._s = xstrdup(yytext)))
+                             if(NULL != (yylval._s = xstrdup(yytext)))
                                 return(_TAG);
                              else
                                 return(0L);
@@ -107,19 +149,19 @@ val				[^(),\\!<>~\x00-\x1f*_\r\n\t]
                         }
 
  /* make it legal to have just an attr tag enclosed in parens */
-<ATTR>")"		{BEGIN INITIAL; attrlval._i = *yytext; return(attrlval._i); }
+<ATTR>")"		{BEGIN INITIAL; yylval._i = *yytext; return(yylval._i); }
 
  /* anything else in the attribute state is an error */
-<ATTR>.			{attrerror("error in lexer - attribute state\n");}
+<ATTR>.			{yyerror("error in lexer - attribute state\n");}
 
 <VALUE>[ \t\v\f]*       { ; }
-<VALUE>","  		{attrlval._i = *yytext; return(_MULTIVAL);}
+<VALUE>","  		{yylval._i = *yytext; return(_MULTIVAL);}
 
 <VALUE>[-+][0-9]+             |
-<VALUE>[-+]"0"[xX]{hexdigit}+ { attrlval._i = strtol(yytext, (char **) 0, 0); return _INT ;};
+<VALUE>[-+]"0"[xX]{hexdigit}+ { yylval._i = strtol(yytext, (char **) 0, 0); return _INT ;};
 
 <VALUE>[0-9]+                 |
-<VALUE>"0"[xX]{hexdigit}+     { attrlval._i = strtoul(yytext, (char **)0, 0); return _INT; };
+<VALUE>"0"[xX]{hexdigit}+     { yylval._i = strtoul(yytext, (char **)0, 0); return _INT; };
 
 
 <VALUE>[tT][rR][uU][eE] {return(_TRUE);}
@@ -127,7 +169,7 @@ val				[^(),\\!<>~\x00-\x1f*_\r\n\t]
 
 <VALUE>{val}+	        {	
                            if (yyleng > 0) {
-                              if(NULL != (attrlval._s = xstrdup(yytext)))
+                              if(NULL != (yylval._s = xstrdup(yytext)))
                                  return(_STRING);
                               else
                                  return(0L);
@@ -136,7 +178,7 @@ val				[^(),\\!<>~\x00-\x1f*_\r\n\t]
 
 <VALUE>{escaped}+       {	
                            if (yyleng > 0) {
-                              if(NULL != (attrlval._s = xstrdup(yytext)))
+                              if(NULL != (yylval._s = xstrdup(yytext)))
                                  return(_ESCAPED);
                               else
                                  return(0L);
@@ -144,10 +186,10 @@ val				[^(),\\!<>~\x00-\x1f*_\r\n\t]
                         }
 
 
-<VALUE>")"	        {BEGIN INITIAL; attrlval._i = *yytext; return(attrlval._i);}
+<VALUE>")"	        {BEGIN INITIAL; yylval._i = *yytext; return(yylval._i);}
 
  /* anything else in the value state is an error */
-<VALUE>.		{attrerror("error in lexer - value state\n");}
+<VALUE>.		{yyerror("error in lexer - value state\n");}
 
 %%
 
@@ -167,7 +209,7 @@ unsigned int attr_init_lexer(char *s)
 }
 
 
-void attrerror(char *s, ...)
+void yyerror(char *s, ...)
 {
 	
 #ifdef TEST_HARNESS

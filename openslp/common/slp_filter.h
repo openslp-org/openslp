@@ -29,7 +29,18 @@
 
 #include "slp_attr.h"
 
-struct ldap_filter_struct ;
+typedef enum ldap_operator_types
+{
+    ldap_and = 259,    /* to match token values assigned in y_filter.h */
+    ldap_or,
+    ldap_not,
+    expr_eq,
+    expr_gt,
+    expr_lt,
+    expr_present,
+    expr_approx
+} ldapOperatorTypes;
+
 typedef struct ldap_filter_struct_head
 {
     struct ldap_filter_struct_head  *next;
@@ -49,6 +60,11 @@ typedef struct ldap_filter_struct
     filterHead children;
     lslpAttrList attrs;
 } lslpLDAPFilter;
+
+lslpLDAPFilter *lslpAllocFilter(int operator);
+void lslpFreeFilter(lslpLDAPFilter *filter);
+void lslpFreeFilterList(lslpLDAPFilter *head, int static_flag);
+void lslpFreeFilterTree(lslpLDAPFilter *root) ;
 
 /*prototypes */
 lslpLDAPFilter *_lslpDecodeLDAPFilter(char *filter) ;

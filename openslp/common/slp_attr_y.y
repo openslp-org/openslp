@@ -41,17 +41,59 @@
 #define TRUE    (!FALSE)
 #endif
 
-int attrparse(void);
-unsigned int heapHandle;
-int bt = TRUE, bf = FALSE;
-void attr_close_lexer(unsigned int handle);
-unsigned int attr_init_lexer(char *s);
+#define yymaxdepth      slp_attr_maxdepth
+#define yyparse         slp_attr_parse
+#define yylex           slp_attr_lex
+#define yyerror         slp_attr_error
+#define yylval          slp_attr_lval
+#define yychar          slp_attr_char
+#define yydebug         slp_attr_debug
+#define yypact          slp_attr_pact  
+#define yyr1            slp_attr_r1                    
+#define yyr2            slp_attr_r2                    
+#define yydef           slp_attr_def           
+#define yychk           slp_attr_chk           
+#define yypgo           slp_attr_pgo           
+#define yyact           slp_attr_act           
+#define yyexca          slp_attr_exca
+#define yyerrflag       slp_attr_errflag
+#define yynerrs         slp_attr_nerrs
+#define yyps            slp_attr_ps
+#define yypv            slp_attr_pv
+#define yys             slp_attr_s
+#define yy_yys          slp_attr_yys
+#define yystate         slp_attr_state
+#define yytmp           slp_attr_tmp
+#define yyv             slp_attr_v
+#define yy_yyv          slp_attr_yyv
+#define yyval           slp_attr_val
+#define yylloc          slp_attr_lloc
+#define yyreds          slp_attr_reds
+#define yytoks          slp_attr_toks
+#define yylhs           slp_attr_yylhs
+#define yylen           slp_attr_yylen
+#define yydefred        slp_attr_yydefred
+#define yydgoto         slp_attr_yydgoto
+#define yysindex        slp_attr_yysindex
+#define yyrindex        slp_attr_yyrindex
+#define yygindex        slp_attr_yygindex
+#define yytable         slp_attr_yytable
+#define yycheck         slp_attr_yycheck
+#define yyname          slp_attr_yyname
+#define yyrule          slp_attr_yyrule
 
-lslpAttrList attrHead = {&attrHead, &attrHead, TRUE, NULL, head, {0L}};
+static int bt = TRUE;
+static int bf = FALSE;
+static lslpAttrList attrHead = {&attrHead, &attrHead, TRUE, NULL, head, {0L}};
+static lslpAttrList inProcessAttr = {&inProcessAttr, &inProcessAttr, TRUE, NULL, head, {0L}};
+static lslpAttrList inProcessTag = {&inProcessTag, &inProcessTag, TRUE, NULL, head, {0L}};
 
-lslpAttrList inProcessAttr = {&inProcessAttr, &inProcessAttr, TRUE, NULL, head, {0L}};
-
-lslpAttrList inProcessTag = {&inProcessTag, &inProcessTag, TRUE, NULL, head, {0L}};
+int slp_attr_parse(void);
+void slp_attr_error(char *, ...);
+int slp_attr_wrap(void);
+int slp_attr_lex(void);
+void slp_attr_close_lexer(unsigned int handle);
+unsigned int slp_attr_init_lexer(char *s);
 
 
 %}
@@ -143,11 +185,11 @@ attr_val_list: attr_val
 
 attr_val: _TRUE 
 {
-    $$ = lslpAllocAttr(NULL, bool, &bt, sizeof(int));
+    $$ = lslpAllocAttr(NULL, boolean, &bt, sizeof(int));
 }
 | _FALSE 
 {
-    $$ = lslpAllocAttr(NULL, bool, &bf, sizeof(int));
+    $$ = lslpAllocAttr(NULL, boolean, &bf, sizeof(int));
 }
 | _ESCAPED 
 { 
@@ -188,7 +230,7 @@ lslpAttrList *_lslpDecodeAttrString(char *s)
     {
         if ( NULL != (temp = lslpAllocAttrList()) )
         {
-            if ((0 != (lexer = attr_init_lexer(s))) &&  attrparse() )
+            if ((0 != (lexer = slp_attr_init_lexer(s))) &&  yyparse() )
             {
                 lslpFreeAttrList(temp);
 
@@ -211,7 +253,7 @@ lslpAttrList *_lslpDecodeAttrString(char *s)
                     lslpFreeAttr(temp);
                 }
 
-                attr_close_lexer(lexer);
+                slp_attr_close_lexer(lexer);
                 
                 return(NULL);
             }
