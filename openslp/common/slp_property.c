@@ -201,7 +201,7 @@ int SLPPropertyReadFile(const char* conffile)
 {
     char*   line;
     char*   alloced;
-    FILE*   fd;
+    FILE*   fp;
     char*   namestart;
     char*   nameend;
     char*   valuestart;
@@ -220,13 +220,13 @@ int SLPPropertyReadFile(const char* conffile)
         return -1;
     }
 
-    fd = fopen(conffile,"r");
-    if(fd < 0)
+    fp = fopen(conffile,"r");
+    if(!fp)
     {
         goto CLEANUP;
     }   
 
-    while(fgets(alloced,4096,fd))
+    while(fgets(alloced,4096,fp))
     {
         line = alloced;
 	
@@ -289,9 +289,9 @@ int SLPPropertyReadFile(const char* conffile)
 
 
     CLEANUP:
-    if(fd >=0)
+    if(fp)
     {
-        fclose(fd);
+        fclose(fp);
     }
 
     if(alloced)
