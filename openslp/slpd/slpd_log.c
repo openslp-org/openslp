@@ -126,18 +126,6 @@ int SLPDLogFileClose()
 
 
 /*=========================================================================*/
-void SLPDLogBuffer(const char* buf, int bufsize)
-/* Writes a buffer to the logfile                                          */
-/*=========================================================================*/
-{
-    if(G_SlpdLogFile)
-    {
-        fwrite(buf,bufsize,1,G_SlpdLogFile);
-        fflush(G_SlpdLogFile);
-    }
-}
-
-/*=========================================================================*/
 void SLPDLog(const char* msg, ...)
 /* Logs a message                                                          */
 /*=========================================================================*/
@@ -214,8 +202,25 @@ void SLPDLogSrvRegMessage(SLPSrvReg* srvreg)
 /*-------------------------------------------------------------------------*/
 {
     SLPDLog("Message SRVREG:\n");
-    SLPDLog("   type = \"%*s\"\n", srvreg->srvtypelen, srvreg->srvtype);
+    SLPDLog("   source type = ");
+    switch( srvreg->source)
+    {
+    case SLP_REG_SOURCE_REMOTE:
+        SLPDLog("REMOTE\n");
+        break;
+    case SLP_REG_SOURCE_LOCAL:
+        SLPDLog("LOCAL\n");
+        break;
+    case SLP_REG_SOURCE_STATIC:
+        SLPDLog("STATIC\n");
+        break;         
+    default:
+        SLPDLog("UNKNOWN\n");
+        break;         
+    }
+    SLPDLog("   srvtype = \"%*s\"\n", srvreg->srvtypelen, srvreg->srvtype);
     SLPDLog("   scope = \"%*s\"\n", srvreg->scopelistlen, srvreg->scopelist);
+    SLPDLog("   url = \"%*s\"\n", srvreg->urlentry.urllen, srvreg->urlentry.url);
     SLPDLog("   attributes = \"%*s\"\n", srvreg->attrlistlen, srvreg->attrlist);
 }
 
@@ -254,6 +259,9 @@ void SLPDLogDAAdvertMessage(SLPDAAdvert* daadvert)
 /*-------------------------------------------------------------------------*/
 {
     SLPDLog("Message DAADVERT:\n");
+    SLPDLog("   scope = \"%*s\"\n", daadvert->scopelistlen, daadvert->scopelist);
+    SLPDLog("   url = \"%*s\"\n", daadvert->urllen, daadvert->url);
+    SLPDLog("   attributes = \"%*s\"\n", daadvert->attrlistlen, daadvert->attrlist);
 }
 
 /*-------------------------------------------------------------------------*/
@@ -300,10 +308,8 @@ void SLPDLogMessageInternals(SLPMessage message)
     SLPDLog("   extoffset = %i\n",message->header.extoffset);
     SLPDLog("   xid = %i\n",message->header.xid);
     SLPDLog("   langtaglen = %i\n",message->header.langtaglen);
-    SLPDLog("   langtag = "); 
-    SLPDLogBuffer(message->header.langtag, message->header.langtaglen);
-    SLPDLog("\n");
-
+    SLPDLog("   langtag = %*s\n", message->header.langtaglen, message->header.langtag); 
+    
     switch(message->header.functionid)
     {
     case SLP_FUNCT_SRVRQST:
@@ -374,7 +380,7 @@ void SLPDLogMessage(const char* prefix, SLPMessage msg)
             SLPDLogTime();
             SLPDLog("Trace Message %s:\n",prefix);
             SLPDLogMessageInternals(msg);
-            SLPDLog("\n\n");
+            SLPDLog("\n");
     }
 }
 
@@ -421,23 +427,6 @@ void SLPDLogDAAdvertisement(const char* prefix,
         SLPDLogMessageInternals(daadvert);
         SLPDLog("\n\n");
     }
-}
-
-
-/*=========================================================================*/
-void SLPDLogKnownDA(const char* prefix,
-                    SLPMessage daadvert)
-/*=========================================================================*/
-{
-    SLPDLogTime();
-    SLPDLog("Known DA %s:\n",prefix);
-    SLPDLog("   url = ");
-    SLPDLogBuffer(daadvert->body.daadvert.url,
-                  daadvert->body.daadvert.urllen);
-    SLPDLog("\n   scope = ");
-    SLPDLogBuffer(daadvert->body.daadvert.scopelist, 
-                  daadvert->body.daadvert.scopelistlen);
-    SLPDLog("\n\n");
 }
 
 

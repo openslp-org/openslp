@@ -102,6 +102,11 @@ void SLPDLogTime();
 /*=========================================================================*/
 
 
+/*-------------------------------------------------------------------------*/
+void SLPDLogMessageInternals(SLPMessage message);
+/*-------------------------------------------------------------------------*/
+
+
 /*=========================================================================*/
 void SLPDLogMessage(const char* prefix, SLPMessage msg);
 /* Log record of receiving or sending an SLP Message.  Logging will only   */
@@ -141,13 +146,6 @@ void SLPDLogDAAdvertisement(const char* prefix,
 /* msg      (IN) the SrvReg message to log                                 */
 /*                                                                         */
 /* Returns: none                                                           */
-/*=========================================================================*/
-
-
-
-/*=========================================================================*/
-void SLPDLogKnownDA(const char* prefix,
-                    SLPMessage daadvert);
 /*=========================================================================*/
 
 #endif

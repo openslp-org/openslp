@@ -827,5 +827,23 @@ void SLPDDatabaseDump(void)
 /* Dumps currently valid service registrations present with slpd           */
 /*=========================================================================*/
 {
+    SLPMessage      msg;
+    SLPBuffer       buf;
+    void* eh;
+
+    eh = SLPDDatabaseEnumStart();
+    if(eh)
+    {
+        SLPDLog("\n========================================================================\n");
+        SLPDLog("Dumping Registrations\n");
+        SLPDLog("========================================================================\n");
+        while(SLPDDatabaseEnum(eh, &msg, &buf))
+        {
+            SLPDLogMessageInternals(msg);
+            SLPDLog("\n");
+        }
+
+        SLPDDatabaseEnumEnd(eh);
+    }
 }
 #endif

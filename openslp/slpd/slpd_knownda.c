@@ -1263,13 +1263,29 @@ void SLPDKnownDAImmortalRefresh(int seconds)
 }
 
 
-
 #ifdef DEBUG
 /*=========================================================================*/
 void SLPDKnownDADump()
 /*=========================================================================*/
 {
+    SLPMessage      msg;
+    SLPBuffer       buf;
+    void* eh;
 
+    eh = SLPDKnownDAEnumStart();
+    if(eh)
+    {
+        SLPDLog("========================================================================\n");
+        SLPDLog("\nDumping KnownDAs \n");
+        SLPDLog("========================================================================\n");
+        while(SLPDKnownDAEnum(eh, &msg, &buf))
+        {
+            SLPDLogMessageInternals(msg);
+            SLPDLog("\n");
+        }
+
+        SLPDKnownDAEnumEnd(eh);
+    }
 }
 #endif
 
