@@ -1392,7 +1392,7 @@ int SLPDProcessMessage(struct sockaddr_in* peerinfo,
             /* TRICKY: Do not free the message descriptor for SRVREGs */
             /*         because we are keeping them in the database    */
             /*         unless there is an error then we free memory   */
-            if(header.functionid == SLP_FUNCT_SRVREG && errorcode != 0 )
+            if(header.functionid != SLP_FUNCT_SRVREG && errorcode != 0 )
             {
                 SLPBufferFree(recvbuf);
                 SLPMessageFree(message);
