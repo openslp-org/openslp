@@ -208,12 +208,13 @@ int SLPIfaceGetInfo(const char* useifaces,
     /* Use gethostbyname(). Not necessarily the best way */
     /*---------------------------------------------------*/
     struct hostent* myhostent;
-    char*           myname;
+    char            myname[MAX_HOST_NAME];
     struct in_addr  ifaddr;
     uint32_t**      haddr;
     int             useifaceslen;
+
     
-    if(SLPNetGetThisHostname(&myname,0) == 0)
+    if(SLPNetGetThisHostname(myname,MAX_HOST_NAME, 0) == 0)
     {
         myhostent = gethostbyname(myname);
         if(myhostent != 0)

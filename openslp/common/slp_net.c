@@ -50,7 +50,7 @@
 #include "slp_net.h"
 #include "slp_xmalloc.h"
 /*-------------------------------------------------------------------------*/
-int SLPNetGetThisHostname(char** hostfdn, int numeric_only)
+int SLPNetGetThisHostname(char* hostfdn, unsigned int hostfdnLen, int numeric_only)
 /* 
  * Description:
  *    Returns a string represting this host (the FDN) or null. Caller must    
@@ -63,9 +63,6 @@ int SLPNetGetThisHostname(char** hostfdn, int numeric_only)
  *    numeric_only (IN) force return of numeric address.  
  *-------------------------------------------------------------------------*/
 {
-    /* TODO find a better constant for MAX_HOSTNAME */
-    #define MAX_HOST_NAME 256
-
     char            host[MAX_HOST_NAME];
     struct hostent* he;
     struct in_addr  ifaddr;
@@ -82,12 +79,12 @@ int SLPNetGetThisHostname(char** hostfdn, int numeric_only)
              */
             if(!numeric_only && strchr(he->h_name,'.'))
             {
-                *hostfdn = xstrdup(he->h_name);
+                 strncpy(hostfdn, he->h_name, hostfdnLen);
             }
             else
             {
                 ifaddr.s_addr = *((unsigned long*)he->h_addr);
-                *hostfdn = xstrdup(inet_ntoa(ifaddr));
+                strncpy(hostfdn, inet_ntoa(ifaddr), hostfdnLen);
             }
             
         }
@@ -98,7 +95,7 @@ int SLPNetGetThisHostname(char** hostfdn, int numeric_only)
 
 /*-------------------------------------------------------------------------*/
 int SLPNetResolveHostToAddr(const char* host,
-                            struct in_addr* addr)
+                            struct sockaddr_storage* addr)
 /* 
  * Description:
  *    Returns a string represting this host (the FDN) or null. Caller must    
@@ -114,7 +111,7 @@ int SLPNetResolveHostToAddr(const char* host,
     struct hostent* he;
     
     /* quick check for dotted quad IPv4 address */
-    if(inet_aton(host,addr))
+    if(inet_pton(addr->ss_family, host, addr))
     {
         return 0;
     }

@@ -74,24 +74,27 @@
 #include <errno.h>
 #endif
 
+
+/* TODO find a better constant for MAX_HOSTNAME */
+#define MAX_HOST_NAME 512
+
 /*-------------------------------------------------------------------------*/
-int SLPNetGetThisHostname(char** hostfdn, int numeric_only);
+int SLPNetGetThisHostname(char* hostfdn, unsigned int hostfdnLen, int numeric_only);
 /* 
  * Description:
- *    Returns a string represting this host (the FDN) or null. Caller must    
- *    free returned string                                                    
+ *    Returns a string represting this host (the FDN) or null.    
+ *                                                       
  *
  * Parameters:
- *    hostfdn   (OUT) pointer to char pointer that is set to buffer
- *                    contining this machine's FDN.  Caller must free
- *                    returned string with call to xfree()
+ *    hostfdn   (IN/OUT) pointer to char buffer that is set to this machine's FDN.
+ *    hostfdnLen (IN) size of hostfdn buffer
  *    numeric_only (IN) force return of numeric address.
  *-------------------------------------------------------------------------*/
 
 
 /*-------------------------------------------------------------------------*/
 int SLPNetResolveHostToAddr(const char* host,
-                            struct in_addr* addr);
+                            struct sockaddr_storage* addr);
 /*
  * Description:
  *    Returns a string represting this host (the FDN) or null. Caller must
@@ -99,7 +102,7 @@ int SLPNetResolveHostToAddr(const char* host,
  *
  * Parameters:
  *    host  (IN)  pointer to hostname to resolve
- *    addr  (OUT) pointer to in_addr that will be filled with address
+ *    addr  (OUT) pointer to addr that will be filled with address
  *
  * Returns: zero on success, non-zero on error;
  *-------------------------------------------------------------------------*/
