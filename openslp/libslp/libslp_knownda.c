@@ -85,6 +85,7 @@ SLPBoolean KnownDADiscoveryCallback(SLPError errorcode,
     return 1;
 }
 
+
 /*-------------------------------------------------------------------------*/
 int KnownDADiscoveryRqstRply(int sock, struct sockaddr_in* peeraddr)
 /*-------------------------------------------------------------------------*/
@@ -212,14 +213,14 @@ void KnownDADiscover(struct timeval* timeout)
 {
     int         fd;
     struct stat hintstat;
-    const char* hintfile = SLPGetProperty("net.slp.HintsFile");
-
-    
+    const char* hintfile;
+   
     /* TODO THIS FUNCTION MUST BE SYNCRONIZED !! */
     
     /*-------------------------------------------*/
     /* Check hints file to and load it if it     */
     /*-------------------------------------------*/
+    hintfile = SLPGetProperty("net.slp.HintsFile");
     if(stat(hintfile,&hintstat) == 0)
     {
         if(hintstat.st_mtime != G_HintStat.st_mtime)
@@ -233,18 +234,9 @@ void KnownDADiscover(struct timeval* timeout)
         }
     }
     
-    /* if (hints file changed)                   */
-    /* {                                         */
-    /*     if(load hints file)                   */
-    /*     {                                     */
-    /*         return;                           */
-    /*     }                                     */
-    /* }                                         */
-
     /* The logic of the following if(G_KnownDAListHead) statements is an   */
     /* attempt to reduce wasted time and network bandwidth due to unneeded */
     /* communication with DAs and multicast                                */
-    
     if(G_KnownDAListHead == 0)
     {
         /*----------------------------------------------------*/
@@ -281,16 +273,20 @@ void KnownDADiscover(struct timeval* timeout)
     /*---------------------*/
     /* Save the hints file */
     /*---------------------*/
-    fd = open(hintfile,
-              O_RDONLY | O_CREAT,
-              S_IROTH | S_IWOTH | S_IRGRP| S_IWGRP | S_IRUSR, S_IWUSR);
-    if(fd >= 0)
+    if(G_KnownDAListHead)
     {
-        SLPDAEntryListWrite(fd, &G_KnownDAListHead);
-        close(fd);
-        stat(hintfile,&G_HintStat);
-    } 
+        fd = open(hintfile,
+                  O_RDONLY | O_CREAT,
+                  S_IROTH | S_IWOTH | S_IRGRP| S_IWGRP | S_IRUSR, S_IWUSR);
+        if(fd >= 0)
+        {
+            SLPDAEntryListWrite(fd, &G_KnownDAListHead);
+            close(fd);
+            stat(hintfile,&G_HintStat);
+        } 
+    }
 }
+
 
 /*=========================================================================*/
 int KnownDAConnect(const char* scopelist, 
