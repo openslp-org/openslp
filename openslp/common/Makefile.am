@@ -70,6 +70,11 @@ noinst_HEADERS = \
 	slp_parse.h \
 	slp_net.h \
 	slp_pid.h \
+	slp_attr.h \
+	slp_attr_y.h \
+	slp_filter.h \
+	slp_filter_y.h \
+	slp_predicate.h \
 	slp_dhcp.h
 	
 AM_YFLAGS = -d
