@@ -23,57 +23,30 @@
 <hr WIDTH="100%">
 <br>&nbsp;
 <h3>
-Release Notes for 0.9.0</h3>
-Due to the need to make some significant changes to the code, we have decided
-to make one final major release before 1.0.x.&nbsp; Most of the changes
-in OpenSLP 0.9.0 were required to add SLPv2 authentication support.&nbsp;
-The most obvious difference between 0.9.0 and previous releases is a rewrite
-of the internal database used to store registrations and known DAs.&nbsp;
-Instead of copying fields from SrvReg and DAAdvert messages, the registration
-and known DA databases now save off the entire message along with the SLPMessage
-descriptor.&nbsp; This allows for slightly faster processing, but more
-importantly, it allows for storage of authentication information in a way
-that does not require the SA or DA to have to recalculate signatures for
-each reply.
-<p>The following is a shortened list changes for 0.9.0:
+Release Notes for 0.9.1</h3>
+OpenSLP 0.9.1 is a bug fix release.&nbsp; It does not offer any new features,
+but since some the fixed bugs were fairly serious it highly recommended
+that 0.9.0 users upgrade.
+<p>The following is a shortened list changes for 0.9.1:
 <ul>
 <li>
-Full SLPv2 Authentication support</li>
+Fixes all known bugs (SourceForge bug tracker http://sourceforge.net/tracker/?group_id=1730&amp;atid=101730
+for details)</li>
 
 <li>
-Minimal documentation of SLPv2 Authentication support (see <a href="http://www.openslp.org/UsersGuide/Security.html">http://www.openslp.org/UsersGuide/Security.html</a>
-and <a href="http://www.openslp.org/doc/html/ProgrammersGuide/Security.html">http://www.openslp.org/doc/html/ProgrammersGuide/Security.html</a>)</li>
+Minor build changes for BSD</li>
 
 <li>
-Completely new internal registration and knownDA database implementation</li>
+Fixed up broken SLPv1 support.</li>
 
 <li>
-Optional net.slp.checkSourceAddr security feature</li>
+Changed includes of the form "../common/header.h" to "header.h" because
+of potential breakage for non source directory builds.</li>
 
 <li>
-Support for net.slp.OpenSLPVersion</li>
-
-<li>
-Support for special service-types -- service:directory-agent and service:service-agent
-can now be used in calls to SLPFindSrvs()</li>
-
-<li>
-Changes to libslp to prepare for collation in 0.9.1</li>
-
-<li>
-Fixes for sever socket reconnect, reuse, and aging bugs</li>
-
-<li>
-Fixes for several slp.reg parsing errors.</li>
-
-<li>
-Fixed for "invalid predicate" SEGV</li>
-
-<li>
-Debug logging of registrations and known DAs on receipt of SIGINT</li>
-
-<li>
-Debug malloc wrappers</li>
+Added a EPM slp.list.in file and updated configure.in. EPM is an Easy Package
+Manager (http://www.easysw.com/epm) that allows easy creation of different
+packaging formats.)</li>
 </ul>
 
 <h3>
@@ -81,7 +54,7 @@ Source Code</h3>
 
 <table NOSAVE >
 <tr NOSAVE>
-<td NOSAVE><a href="http://ftp1.sourceforge.net/openslp/openslp-0.9.0.tar.gz">openslp-0.9.0.tar.gz</a></td>
+<td NOSAVE><a href="http://ftp1.sourceforge.net/openslp/openslp-0.9.1.tar.gz">openslp-0.9.1.tar.gz</a></td>
 
 <td NOSAVE>
 <blockquote>OpenSLP source code tarball</blockquote>
@@ -89,7 +62,7 @@ Source Code</h3>
 </tr>
 
 <tr NOSAVE>
-<td NOSAVE><a href="http://ftp1.sourceforge.net/openslp/openslp-0.9.0-1.src.rpm">openslp-0.9.0-1.src.rpm</a></td>
+<td NOSAVE><a href="http://ftp1.sourceforge.net/openslp/openslp-0.9.1-1.src.rpm">openslp-0.9.1-1.src.rpm</a></td>
 
 <td>
 <blockquote>OpenSLP source RPM</blockquote>
@@ -97,7 +70,7 @@ Source Code</h3>
 </tr>
 
 <tr>
-<td><a href="http://ftp1.sourceforge.net/openslp/openslp-contrib-0.9.0.tar.gz">openslp-contrib-0.9.0.tar.gz</a></td>
+<td><a href="http://ftp1.sourceforge.net/openslp/openslp-contrib-0.9.1.tar.gz">openslp-contrib-0.9.1.tar.gz</a></td>
 
 <td>
 <blockquote>Collection of SLP related utilities and tools</blockquote>
@@ -110,7 +83,7 @@ Binary Packages</h3>
 
 <table NOSAVE >
 <tr NOSAVE>
-<td NOSAVE><a href="http://ftp1.sourceforge.net/openslp/openslp-0.9.0-1.i386.rpm">openslp-0.9.0-1.i386.rpm</a></td>
+<td NOSAVE><a href="http://ftp1.sourceforge.net/openslp/openslp-0.9.1-1.i386.rpm">openslp-0.9.1-1.i386.rpm</a></td>
 
 <td>
 <blockquote>OpenSLP binary RPM for Linux (Caldera OpenLinux, RedHat, SUSE,
