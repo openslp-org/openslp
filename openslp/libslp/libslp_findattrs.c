@@ -55,7 +55,7 @@
 
 /*-------------------------------------------------------------------------*/
 SLPBoolean ProcessAttrRplyCallback(SLPError errorcode, 
-                                   struct sockaddr_in* peerinfo,
+                                   struct sockaddr_storage* peerinfo,
                                    SLPBuffer replybuf,
                                    void* cookie)
 /*-------------------------------------------------------------------------*/
@@ -88,7 +88,7 @@ SLPBoolean ProcessAttrRplyCallback(SLPError errorcode,
     replymsg = SLPMessageAlloc();
     if(replymsg)
     {
-        if(SLPMessageParseBuffer(peerinfo,replybuf,replymsg) == 0 &&
+        if(SLPMessageParseBuffer(peerinfo,NULL,replybuf,replymsg) == 0 &&
            replymsg->header.functionid == SLP_FUNCT_ATTRRPLY &&
            replymsg->body.attrrply.errorcode == 0)
         {
@@ -139,12 +139,12 @@ SLPBoolean ProcessAttrRplyCallback(SLPError errorcode,
 SLPError ProcessAttrRqst(PSLPHandleInfo handle)
 /*-------------------------------------------------------------------------*/
 {
-    int                 sock;
-    struct sockaddr_in  peeraddr;
-    int                 bufsize     = 0;
-    char*               buf         = 0;
-    char*               curpos      = 0;
-    SLPError            result      = 0;
+    int						sock;
+    struct sockaddr_storage peeraddr;
+    int						bufsize     = 0;
+    char*					buf         = 0;
+    char*					curpos      = 0;
+    SLPError				result      = 0;
 
 #ifdef ENABLE_SLPv2_SECURITY
     int                 spistrlen   = 0;

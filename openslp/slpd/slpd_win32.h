@@ -50,18 +50,15 @@
 #define SLPD_WIN32_H_INCLUDED
 
 #define WIN32_LEAN_AND_MEAN
-#include <windows.h>
 #include <stdio.h>
-#include <winsock.h>
+#include <winsock2.h>
+#include <ws2tcpip.h> 
+#include <windows.h>
 #include <process.h>
 #include <ctype.h>
 #include <time.h>
 #include <stdarg.h> 
 #include <limits.h>
-
-#if(_WIN32_WINNT >= 0x0400 && _WIN32_WINNT < 0x0500)
-#include <ws2tcpip.h> 
-#endif
 
 
 /*  internal name of the service  */
@@ -140,5 +137,4 @@ VOID SLPDCmdDebugService(int argc, char **argv);
 /* returns  none                                                           */
 /*=========================================================================*/
 #endif /* SLPD_WIN32_H_INCLUDED */
-
 

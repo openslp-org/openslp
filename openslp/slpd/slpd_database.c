@@ -68,6 +68,8 @@
 #include "slp_compare.h"
 #include "slp_xmalloc.h"
 #include "slp_pid.h"
+#include "slp_net.h"
+#include "slpd_incoming.h"
 
 
 /*=========================================================================*/
@@ -129,7 +131,7 @@ void SLPDDatabaseAge(int seconds, int ageall)
             if ( srvreg->urlentry.lifetime <= 0 )
             {
                 SLPDLogRegistration("Timeout",entry);
-		SLPDatabaseRemove(dh,entry);
+                SLPDatabaseRemove(dh,entry);
             }
         }
 
@@ -157,6 +159,8 @@ int SLPDDatabaseReg(SLPMessage msg, SLPBuffer buf)
     SLPSrvReg*          entryreg;
     SLPSrvReg*          reg;
     int                 result;
+    SLPIfaceInfo        ifaces;
+    int                 i;
 
     /* reg is the SrvReg message being registered */
     reg = &(msg->body.srvreg);
@@ -201,13 +205,22 @@ int SLPDDatabaseReg(SLPMessage msg, SLPBuffer buf)
 
                     /* Check to ensure the source addr is the same */
                     /* as the original */
-                    if ( G_SlpdProperty.checkSourceAddr &&
-                         memcmp(&(entry->msg->peer.sin_addr),
-                                &(msg->peer.sin_addr),
-                                sizeof(struct in_addr)) )
+                    if ( G_SlpdProperty.checkSourceAddr )
                     {
-                        SLPDatabaseClose(dh);
-                        return SLP_ERROR_AUTHENTICATION_FAILED;
+                        if ( (entry->msg->peer.ss_family == AF_INET &&
+                              msg->peer.ss_family == AF_INET &&
+                              memcmp(&(((struct sockaddr_in*) &(entry->msg->peer))->sin_addr),
+                                     &(((struct sockaddr_in*) &(msg->peer))->sin_addr),
+                                     sizeof(struct in_addr))) ||
+                             (entry->msg->peer.ss_family == AF_INET6 &&
+                              msg->peer.ss_family == AF_INET6 &&
+                              memcmp(&(((struct sockaddr_in6*) &(entry->msg->peer))->sin6_addr),
+                                     &(((struct sockaddr_in6*) &(msg->peer))->sin6_addr),
+                                     sizeof(struct in6_addr))) )
+                        {
+                            SLPDatabaseClose(dh);
+                            return SLP_ERROR_AUTHENTICATION_FAILED;
+                        }
                     }
 
 #ifdef ENABLE_SLPv2_SECURITY
@@ -234,7 +247,7 @@ int SLPDDatabaseReg(SLPMessage msg, SLPBuffer buf)
             /* set the source (allows for quicker aging ) */
             if ( msg->body.srvreg.source == SLP_REG_SOURCE_UNKNOWN )
             {
-                if ( ISLOCAL(msg->peer.sin_addr) )
+                if ( SLPNetIsLoopback(&(msg->peer)) )
                 {
                     msg->body.srvreg.source = SLP_REG_SOURCE_LOCAL; 
                 }
@@ -247,6 +260,20 @@ int SLPDDatabaseReg(SLPMessage msg, SLPBuffer buf)
             /* add to database */
             SLPDatabaseAdd(dh, entry);
             SLPDLogRegistration("Registration",entry);
+            
+            /* add a socket to listen for IPv6 requests */
+            if (SLPNetIsIPV6() && msg->peer.ss_family == AF_INET6) {
+                if (msg->body.srvreg.source == SLP_REG_SOURCE_LOCAL) {
+                    SLPIfaceGetInfo(G_SlpdProperty.interfaces, &ifaces, AF_INET6);
+                    for (i = 0; i < ifaces.iface_count; i++) {
+                        if (IN6_IS_ADDR_LINKLOCAL(&(((struct sockaddr_in6*) &ifaces.iface_addr[i])->sin6_addr)))
+                            SLPDIncomingAddService(msg->body.srvreg.srvtype, msg->body.srvreg.srvtypelen, &ifaces.iface_addr[i]);
+                    }
+                }
+                else {
+                    SLPDIncomingAddService(msg->body.srvreg.srvtype, msg->body.srvreg.srvtypelen, &msg->peer);
+                }
+            }
 
             /* SUCCESS! */
             result = 0;
@@ -277,9 +304,11 @@ int SLPDDatabaseDeReg(SLPMessage msg)
 /*=========================================================================*/
 {
     SLPDatabaseHandle   dh;
-    SLPDatabaseEntry*   entry;
+    SLPDatabaseEntry*   entry = NULL;
     SLPSrvReg*          entryreg;
     SLPSrvDeReg*        dereg;
+    char                srvtype[MAX_HOST_NAME];
+    int                 srvtypelen = 0;
 
     dh = SLPDatabaseOpen(&G_SlpdDatabase.database);
     if ( dh )
@@ -311,13 +340,22 @@ int SLPDDatabaseDeReg(SLPMessage msg)
 
                     /* Check to ensure the source addr is the same as */
                     /* the original */
-                    if ( G_SlpdProperty.checkSourceAddr &&
-                         memcmp(&(entry->msg->peer.sin_addr),
-                                &(msg->peer.sin_addr),
-                                sizeof(struct in_addr)) )
+                    if ( G_SlpdProperty.checkSourceAddr )
                     {
-                        SLPDatabaseClose(dh);
-                        return SLP_ERROR_AUTHENTICATION_FAILED;
+                        if ( (entry->msg->peer.ss_family == AF_INET &&
+                              msg->peer.ss_family == AF_INET &&
+                              memcmp(&(((struct sockaddr_in*) &(entry->msg->peer))->sin_addr),
+                                     &(((struct sockaddr_in*) &(msg->peer))->sin_addr),
+                                     sizeof(struct in_addr))) ||
+                             (entry->msg->peer.ss_family == AF_INET6 &&
+                              msg->peer.ss_family == AF_INET6 &&
+                              memcmp(&(((struct sockaddr_in6*) &(entry->msg->peer))->sin6_addr),
+                                     &(((struct sockaddr_in6*) &(msg->peer))->sin6_addr),
+                                     sizeof(struct in6_addr))) )
+                        {
+                            SLPDatabaseClose(dh);
+                            return SLP_ERROR_AUTHENTICATION_FAILED;
+                        }
                     }
 
 #ifdef ENABLE_SLPv2_SECURITY
@@ -328,9 +366,14 @@ int SLPDDatabaseDeReg(SLPMessage msg)
                         return SLP_ERROR_AUTHENTICATION_FAILED;
                     }
 #endif                    
+                    /* save the srvtype for later */
+                    strncpy(srvtype, entryreg->srvtype, entryreg->srvtypelen);
+                    srvtypelen = entryreg->srvtypelen;
+
                     /* remove the registration from the database */
                     SLPDLogRegistration("Deregistration",entry);
-		    SLPDatabaseRemove(dh,entry);
+		            SLPDatabaseRemove(dh,entry);
+
                     break;
                 }
             }
@@ -338,7 +381,40 @@ int SLPDDatabaseDeReg(SLPMessage msg)
 
         SLPDatabaseClose(dh);
 
-        if ( entry==NULL )
+        if ( entry!=NULL )
+        {
+
+            /* check to see if we can stop listening for service requests for this service */
+            dh = SLPDatabaseOpen(&G_SlpdDatabase.database);
+            if (dh)
+            {
+                while (1)
+                {
+                    entry = SLPDatabaseEnum(dh);
+                    if ( entry == NULL ) break;
+
+                    entryreg = &(entry->msg->body.srvreg);
+
+                    if ( SLPCompareString(entryreg->srvtypelen,
+                                          entryreg->srvtype,
+                                          srvtypelen,
+                                          srvtype) == 0 )
+                    {
+                        break;
+                    }
+                }
+            }
+
+            SLPDatabaseClose(dh);
+
+            /* okay, remove the listening sockets */
+            if ( entry == NULL )
+            {
+                SLPDIncomingRemoveService(srvtype, srvtypelen);
+            }
+
+        }
+        else
         {
             return SLP_ERROR_INVALID_REGISTRATION;
         }

@@ -68,6 +68,7 @@
 /*=========================================================================*/
 #include "slp_xmalloc.h"
 #include "slp_xid.h"
+#include "slp_net.h"
 
 
 /*==========================================================================*/
@@ -168,7 +169,14 @@ void HandleSigTerm()
     timeout.tv_usec = 0; 
 
     /* Do a dead DA passive advert to tell everyone we're goin' down */
-    SLPDKnownDAPassiveDAAdvert(0, 1);
+    if (SLPNetIsIPV4()) {
+        SLPDKnownDAPassiveDAAdvert(0, 1, 0);
+    }
+    if (SLPNetIsIPV6()) {
+        SLPDKnownDAPassiveDAAdvert(0, 1, SLP_SCOPE_NODE_LOCAL);
+        SLPDKnownDAPassiveDAAdvert(0, 1, SLP_SCOPE_LINK_LOCAL);
+        SLPDKnownDAPassiveDAAdvert(0, 1, SLP_SCOPE_SITE_LOCAL);
+    }
 
     /* if possible wait until all outgoing socket are done and closed */
     while(SLPDOutgoingDeinit(1))
@@ -244,8 +252,18 @@ void HandleSigAlrm()
     SLPDIncomingAge(SLPD_AGE_INTERVAL);
     SLPDOutgoingAge(SLPD_AGE_INTERVAL);
     SLPDKnownDAImmortalRefresh(SLPD_AGE_INTERVAL);
-    SLPDKnownDAPassiveDAAdvert(SLPD_AGE_INTERVAL,0);
-    SLPDKnownDAActiveDiscovery(SLPD_AGE_INTERVAL);
+    if (SLPNetIsIPV4()) {
+        SLPDKnownDAPassiveDAAdvert(SLPD_AGE_INTERVAL,0,0);
+        SLPDKnownDAActiveDiscovery(SLPD_AGE_INTERVAL,0);
+    }
+    if (SLPNetIsIPV6()) {
+        SLPDKnownDAPassiveDAAdvert(SLPD_AGE_INTERVAL,0,SLP_SCOPE_NODE_LOCAL);
+        SLPDKnownDAPassiveDAAdvert(SLPD_AGE_INTERVAL,0,SLP_SCOPE_LINK_LOCAL);
+        SLPDKnownDAPassiveDAAdvert(SLPD_AGE_INTERVAL,0,SLP_SCOPE_SITE_LOCAL);
+        SLPDKnownDAActiveDiscovery(SLPD_AGE_INTERVAL,SLP_SCOPE_NODE_LOCAL);
+        SLPDKnownDAActiveDiscovery(SLPD_AGE_INTERVAL,SLP_SCOPE_LINK_LOCAL);
+        SLPDKnownDAActiveDiscovery(SLPD_AGE_INTERVAL,SLP_SCOPE_SITE_LOCAL);
+    }
     SLPDDatabaseAge(SLPD_AGE_INTERVAL,G_SlpdProperty.isDA);
 }
 
@@ -540,7 +558,6 @@ int main(int argc, char* argv[])
         SLPDFatal("slpd initialization failed\n");
     }
     SLPDLog("Agent Interfaces = %s\n",G_SlpdProperty.interfaces);
-    SLPDLog("Agent URL = %s\n",G_SlpdProperty.myUrl);
 
     /*---------------------------*/
     /* make slpd run as a daemon */

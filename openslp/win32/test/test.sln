@@ -1,0 +1,103 @@
+Microsoft Visual Studio Solution File, Format Version 8.00
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SLP_attr_test", "SLP_attr_test.vcproj", "{62B4B84F-92DF-44C5-81BA-01E8EA379C05}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SLPD_predicate_test", "SLPD_predicate_test.vcproj", "{312EABDD-B037-4EB7-A199-AEE3023E7E58}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SLPEscape", "SLPEscape.vcproj", "{098F41E5-7836-4F3F-AF8D-6F19CFF6BA1D}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SLPFindAttrs", "SLPFindAttrs.vcproj", "{291204D7-417F-4D08-8DDF-0063DD6C315A}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SLPFindSrvs", "SLPFindSrvs.vcproj", "{7A8DCD74-772B-4442-8D8D-9B93E77F9EB6}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SLPOpen", "SLPOpen.vcproj", "{A2AE248B-EE94-4B4A-905C-77C12E0B515F}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SLPParseSrvURL", "SLPParseSrvURL.vcproj", "{1B8B1E54-AFDA-48B1-AD52-3CE2FCD4FB3F}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SLPReg", "SLPReg.vcproj", "{703BC25E-7DC9-4A05-9FB4-8B5A0437AA2B}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SLPUnescape", "SLPUnescape.vcproj", "{F3D8B7F7-3035-44E9-B601-7B2C33F71274}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SLPDereg", "SLPDereg.vcproj", "{D543736F-D27E-4045-A4A5-B0CF75BC46F0}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SLPFindSrvTypes", "SLPFindSrvTypes.vcproj", "{0D952545-A098-4F65-8056-DF431A5A54F0}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfiguration) = preSolution
+		Debug = Debug
+		Release = Release
+	EndGlobalSection
+	GlobalSection(ProjectConfiguration) = postSolution
+		{62B4B84F-92DF-44C5-81BA-01E8EA379C05}.Debug.ActiveCfg = Debug|Win32
+		{62B4B84F-92DF-44C5-81BA-01E8EA379C05}.Debug.Build.0 = Debug|Win32
+		{62B4B84F-92DF-44C5-81BA-01E8EA379C05}.Release.ActiveCfg = Release|Win32
+		{62B4B84F-92DF-44C5-81BA-01E8EA379C05}.Release.Build.0 = Release|Win32
+		{312EABDD-B037-4EB7-A199-AEE3023E7E58}.Debug.ActiveCfg = Debug|Win32
+		{312EABDD-B037-4EB7-A199-AEE3023E7E58}.Debug.Build.0 = Debug|Win32
+		{312EABDD-B037-4EB7-A199-AEE3023E7E58}.Release.ActiveCfg = Release|Win32
+		{312EABDD-B037-4EB7-A199-AEE3023E7E58}.Release.Build.0 = Release|Win32
+		{098F41E5-7836-4F3F-AF8D-6F19CFF6BA1D}.Debug.ActiveCfg = Debug|Win32
+		{098F41E5-7836-4F3F-AF8D-6F19CFF6BA1D}.Debug.Build.0 = Debug|Win32
+		{098F41E5-7836-4F3F-AF8D-6F19CFF6BA1D}.Release.ActiveCfg = Release|Win32
+		{098F41E5-7836-4F3F-AF8D-6F19CFF6BA1D}.Release.Build.0 = Release|Win32
+		{291204D7-417F-4D08-8DDF-0063DD6C315A}.Debug.ActiveCfg = Debug|Win32
+		{291204D7-417F-4D08-8DDF-0063DD6C315A}.Debug.Build.0 = Debug|Win32
+		{291204D7-417F-4D08-8DDF-0063DD6C315A}.Release.ActiveCfg = Release|Win32
+		{291204D7-417F-4D08-8DDF-0063DD6C315A}.Release.Build.0 = Release|Win32
+		{7A8DCD74-772B-4442-8D8D-9B93E77F9EB6}.Debug.ActiveCfg = Debug|Win32
+		{7A8DCD74-772B-4442-8D8D-9B93E77F9EB6}.Debug.Build.0 = Debug|Win32
+		{7A8DCD74-772B-4442-8D8D-9B93E77F9EB6}.Release.ActiveCfg = Release|Win32
+		{7A8DCD74-772B-4442-8D8D-9B93E77F9EB6}.Release.Build.0 = Release|Win32
+		{A2AE248B-EE94-4B4A-905C-77C12E0B515F}.Debug.ActiveCfg = Debug|Win32
+		{A2AE248B-EE94-4B4A-905C-77C12E0B515F}.Debug.Build.0 = Debug|Win32
+		{A2AE248B-EE94-4B4A-905C-77C12E0B515F}.Release.ActiveCfg = Release|Win32
+		{A2AE248B-EE94-4B4A-905C-77C12E0B515F}.Release.Build.0 = Release|Win32
+		{1B8B1E54-AFDA-48B1-AD52-3CE2FCD4FB3F}.Debug.ActiveCfg = Debug|Win32
+		{1B8B1E54-AFDA-48B1-AD52-3CE2FCD4FB3F}.Debug.Build.0 = Debug|Win32
+		{1B8B1E54-AFDA-48B1-AD52-3CE2FCD4FB3F}.Release.ActiveCfg = Release|Win32
+		{1B8B1E54-AFDA-48B1-AD52-3CE2FCD4FB3F}.Release.Build.0 = Release|Win32
+		{703BC25E-7DC9-4A05-9FB4-8B5A0437AA2B}.Debug.ActiveCfg = Debug|Win32
+		{703BC25E-7DC9-4A05-9FB4-8B5A0437AA2B}.Debug.Build.0 = Debug|Win32
+		{703BC25E-7DC9-4A05-9FB4-8B5A0437AA2B}.Release.ActiveCfg = Release|Win32
+		{703BC25E-7DC9-4A05-9FB4-8B5A0437AA2B}.Release.Build.0 = Release|Win32
+		{F3D8B7F7-3035-44E9-B601-7B2C33F71274}.Debug.ActiveCfg = Debug|Win32
+		{F3D8B7F7-3035-44E9-B601-7B2C33F71274}.Debug.Build.0 = Debug|Win32
+		{F3D8B7F7-3035-44E9-B601-7B2C33F71274}.Release.ActiveCfg = Release|Win32
+		{F3D8B7F7-3035-44E9-B601-7B2C33F71274}.Release.Build.0 = Release|Win32
+		{D543736F-D27E-4045-A4A5-B0CF75BC46F0}.Debug.ActiveCfg = Debug|Win32
+		{D543736F-D27E-4045-A4A5-B0CF75BC46F0}.Debug.Build.0 = Debug|Win32
+		{D543736F-D27E-4045-A4A5-B0CF75BC46F0}.Release.ActiveCfg = Release|Win32
+		{D543736F-D27E-4045-A4A5-B0CF75BC46F0}.Release.Build.0 = Release|Win32
+		{0D952545-A098-4F65-8056-DF431A5A54F0}.Debug.ActiveCfg = Debug|Win32
+		{0D952545-A098-4F65-8056-DF431A5A54F0}.Debug.Build.0 = Debug|Win32
+		{0D952545-A098-4F65-8056-DF431A5A54F0}.Release.ActiveCfg = Release|Win32
+		{0D952545-A098-4F65-8056-DF431A5A54F0}.Release.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionItems) = postSolution
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+	EndGlobalSection
+	GlobalSection(ExtensibilityAddIns) = postSolution
+	EndGlobalSection
+EndGlobal

@@ -90,7 +90,7 @@ int SLPDKnownDAAdd(SLPMessage msg, SLPBuffer buf);
 
 
 /*=========================================================================*/
-void SLPDKnownDARemove(struct in_addr* addr);
+void SLPDKnownDARemove(struct sockaddr_storage* addr);
 /* Removes known DAs that sent DAAdverts from the specified in_addr        */
 /*=========================================================================*/
 
@@ -131,11 +131,14 @@ void SLPDKnownDAEnumEnd(void* eh);
 
 
 /*=========================================================================*/
-int SLPDKnownDAGenerateMyDAAdvert(int errorcode,
+int SLPDKnownDAGenerateMyDAAdvert(struct sockaddr_storage* localaddr,
+                                  int errorcode,
                                   int deadda,
                                   int xid,
                                   SLPBuffer* sendbuf);
 /* Pack a buffer with a DAAdvert using information from a SLPDAentry       */
+/*                                                                         */
+/* localaddr (IN) the address of the DA to advertise                       */
 /*                                                                         */
 /* errorcode (IN) the errorcode for the DAAdvert                           */
 /*                                                                         */
@@ -186,7 +189,7 @@ void SLPDKnownDAEcho(SLPMessage msg, SLPBuffer buf);
 
 
 /*=========================================================================*/
-void SLPDKnownDAActiveDiscovery(int seconds);
+void SLPDKnownDAActiveDiscovery(int seconds, int scope);
 /* Add a socket to the outgoing list to do active DA discovery SrvRqst     */
 /*									                                       */
 /* Returns:  none                                                          */
@@ -194,7 +197,7 @@ void SLPDKnownDAActiveDiscovery(int seconds);
 
 
 /*=========================================================================*/
-void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead);
+void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead, int scope);
 /* Send passive daadvert messages if properly configured and running as    */
 /* a DA                                                                    */
 /*	                                                                       */

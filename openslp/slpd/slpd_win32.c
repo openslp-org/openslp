@@ -311,10 +311,8 @@ void ServiceStart (int argc, char **argv)
         goto cleanup_winsock;
     }
     SLPDLog("Agent Interfaces = %s\n",G_SlpdProperty.interfaces);
-    SLPDLog("Agent URL = %s\n",G_SlpdProperty.myUrl);
 
     /* Service is now running, perform work until shutdown    */
-
     if(!ReportStatusToSCMgr(SERVICE_RUNNING,       /* service state    */
                             NO_ERROR,              /* exit code    */
                             0))                    /* wait hint    */
@@ -376,11 +374,8 @@ void ServiceStart (int argc, char **argv)
 
     /* Got SIGTERM */
     HandleSigTerm();
-
     cleanup_winsock:
-    WSACleanup();
-
-    cleanup: 
+    WSACleanup();     cleanup: 
     ;
 } 
 
@@ -455,11 +450,8 @@ VOID WINAPI ServiceCtrl(DWORD dwCtrlCode)
 void WINAPI SLPDServiceMain(DWORD argc, LPTSTR *argv) 
 /*==========================================================================*/
 {
-
     /* register our service control handler:    */
-    sshStatusHandle = RegisterServiceCtrlHandler( G_SERVICENAME, ServiceCtrl); 
-
-    if(sshStatusHandle != 0)
+    sshStatusHandle = RegisterServiceCtrlHandler( G_SERVICENAME, ServiceCtrl);      if(sshStatusHandle != 0)
     {
         /* SERVICE_STATUS members that don't change    */
         ssStatus.dwServiceType = SERVICE_WIN32_OWN_PROCESS; 
@@ -592,17 +584,15 @@ void SLPDCmdRemoveService()
     if(schSCManager)
     {
         schService = OpenService(schSCManager, G_SERVICENAME, SERVICE_ALL_ACCESS); 
-
         if(schService)
         {
-				SLPDHlpStopService(schService);
+			SLPDHlpStopService(schService);
 
-				/* now remove the service    */
-            if(DeleteService(schService))
+			/* now remove the service    */
+	        if(DeleteService(schService))
                 printf("%s removed.\n", G_SERVICEDISPLAYNAME );
             else
                 printf("DeleteService failed - %s\n", GetLastErrorText(szErr,256)); 
-
 
             CloseServiceHandle(schService); 
         }
@@ -734,7 +724,3 @@ void __cdecl main(int argc, char **argv)
         break;
     } 
 } 
-
-
-
-

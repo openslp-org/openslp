@@ -54,6 +54,8 @@
 #include "slpd_log.h"
 #include "slpd_property.h"
 
+#include "slp_net.h"
+
 #include <time.h>
 
 /********************************************/
@@ -290,18 +292,22 @@ void SLPDLogSAAdvertMessage(SLPSAAdvert* saadvert)
 
 
 /*-------------------------------------------------------------------------*/
-void SLPDLogPeerAddr(struct sockaddr_in* peeraddr)
+void SLPDLogPeerAddr(struct sockaddr_storage* peeraddr)
 /*-------------------------------------------------------------------------*/
 {
-    SLPDLog("Peer IP address: %s\n", inet_ntoa(peeraddr->sin_addr));
+    char    addr_str[INET6_ADDRSTRLEN];
+
+    SLPDLog("Peer IP address: %s\n", SLPNetSockAddrStorageToString(peeraddr, addr_str, sizeof(addr_str)));
 }
 
 /*=========================================================================*/
 void SLPDLogMessageInternals(SLPMessage message)
 /*=========================================================================*/
 {
+    char    addr_str[INET6_ADDRSTRLEN];
+
     SLPDLog("Peer: \n");
-    SLPDLog("   IP address: %s\n", inet_ntoa(message->peer.sin_addr));
+    SLPDLog("   IP address: %s\n", SLPNetSockAddrStorageToString(&(message->peer), addr_str, sizeof(addr_str)));
     SLPDLog("Header:\n");
     SLPDLog("   version = %i\n",message->header.version);
     SLPDLog("   functionid = %i\n",message->header.functionid);
@@ -366,7 +372,8 @@ void SLPDLogMessageInternals(SLPMessage message)
 
 /*=========================================================================*/
 void SLPDLogMessage(int msglogflags,
-                    struct sockaddr_in* peerinfo,
+                    struct sockaddr_storage* peerinfo,
+                    struct sockaddr_storage* localaddr,
                     SLPBuffer buf)
 /* Log record of receiving or sending an SLP Message.  Logging will only   */
 /* occur if message logging is enabled G_SlpProperty.traceMsg != 0         */
@@ -375,12 +382,15 @@ void SLPDLogMessage(int msglogflags,
 /*                                                                         */
 /* peerinfo (IN) the source or destination peer                            */
 /*                                                                         */
+/* peerinfo (IN) the local address                                         */
+/*                                                                         */
 /* msg      (IN) the message to log                                        */
 /*                                                                         */
 /* Returns: none                                                           */
 /*=========================================================================*/
 {
     SLPMessage msg;
+    char addr_str[INET6_ADDRSTRLEN];
 
     if (peerinfo == NULL ||
         buf == NULL)
@@ -393,7 +403,7 @@ void SLPDLogMessage(int msglogflags,
     {
         /* Don't log localhost traffic since it is probably IPC */
         /* and don't log empty messages                         */
-        if (!ISLOCAL(peerinfo->sin_addr) && buf->end != buf->start)
+        if (!SLPNetIsLocal(peerinfo) && buf->end != buf->start)
         {
             msg = SLPMessageAlloc();
             if (msg)
@@ -418,7 +428,7 @@ void SLPDLogMessage(int msglogflags,
                     SLPDLog("\n");
                 }
 
-                if (SLPMessageParseBuffer(peerinfo,buf,msg) == 0)
+                if (SLPMessageParseBuffer(peerinfo,localaddr,buf,msg) == 0)
                 {
                     SLPDLogMessageInternals(msg);
                 }
@@ -426,7 +436,7 @@ void SLPDLogMessage(int msglogflags,
                 {
                     SLPDLog("Message parsing failed\n");
                     SLPDLog("Peer: \n");
-                    SLPDLog("   IP address: %s\n", inet_ntoa(msg->peer.sin_addr));          
+                    SLPDLog("   IP address: %s\n", SLPNetSockAddrStorageToString(&(msg->peer), addr_str, sizeof(addr_str)));
                 }
 
                 SLPMessageFree(msg);
@@ -449,6 +459,8 @@ void SLPDLogRegistration(const char* prefix, SLPDatabaseEntry* entry)
 /* Returns: none                                                           */
 /*=========================================================================*/
 {
+    char    addr_str[INET6_ADDRSTRLEN];
+
     if (prefix == NULL ||
         entry == NULL)
     {
@@ -467,7 +479,7 @@ void SLPDLogRegistration(const char* prefix, SLPDatabaseEntry* entry)
             SLPDLog("<unknown>\n");
             break;
         case SLP_REG_SOURCE_REMOTE:
-            SLPDLog("remote (%s)\n", inet_ntoa(entry->msg->peer.sin_addr));
+            SLPDLog("remote (%s)\n", SLPNetSockAddrStorageToString(&(entry->msg->peer), addr_str, sizeof(addr_str)));
             break;
         case SLP_REG_SOURCE_LOCAL:
             SLPDLog("IPC (libslp)\n");
@@ -502,6 +514,7 @@ void SLPDLogDAAdvertisement(const char* prefix,
 /* Returns: none                                                           */
 /*=========================================================================*/
 {
+    char    addr_str[INET6_ADDRSTRLEN];
 
     if (prefix == NULL ||
         entry == NULL)
@@ -514,7 +527,7 @@ void SLPDLogDAAdvertisement(const char* prefix,
         SLPDLog("\n");
         SLPDLogTime();
         SLPDLog("KNOWNDA - %s:\n",prefix);
-        SLPDLog("    DA address = %s\n",inet_ntoa(entry->msg->peer.sin_addr));
+        SLPDLog("    DA address = %s\n",SLPNetSockAddrStorageToString(&(entry->msg->peer), addr_str, sizeof(addr_str)));
         SLPDLogBuffer("    directory-agent-url = ",
                       entry->msg->body.daadvert.urllen,
                       entry->msg->body.daadvert.url);
@@ -534,7 +547,7 @@ void SLPDLogDAAdvertisement(const char* prefix,
 }
 
 /*=========================================================================*/
-void SLPDLogParseWarning(struct sockaddr_in* peeraddr, SLPBuffer buf)
+void SLPDLogParseWarning(struct sockaddr_storage* peeraddr, SLPBuffer buf)
 /* Log a parsing error warning and dumps the invalid message.              */
 /*=========================================================================*/  
 {

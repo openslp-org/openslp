@@ -52,8 +52,7 @@
 #include "slp_xmalloc.h"
 
 #ifdef _WIN32
-#include <winsock.h>
-#include <windows.h>
+#include <winsock2.h>
 #include <iphlpapi.h>
 #define ETIMEDOUT	110
 #define ENOTCONN	107
@@ -74,6 +73,7 @@
 #include <string.h>
 #include <time.h>
 #include <errno.h>
+#include "slp_net.h"
 
 /* UDP port numbers, server and client. */
 #define IPPORT_BOOTPS		67
@@ -115,7 +115,7 @@
 #define DHCP_MSG_INFORM		8
 
 /*=========================================================================*/ 
-static int dhcpCreateBCSkt(struct sockaddr_in* peeraddr) 
+static int dhcpCreateBCSkt(struct sockaddr_storage *peeraddr) 
 /*	Creates a socket and provides a broadcast addr to which DHCP requests
 	should be sent. Also binds the socket to the DHCP client port.
 
@@ -134,22 +134,19 @@ static int dhcpCreateBCSkt(struct sockaddr_in* peeraddr)
 	/* setup dhcp broadcast-to-server address structure */
 	if((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) >= 0)
 	{
-		struct sockaddr_in localaddr;
+		struct sockaddr_storage localaddr;
+        int add = INADDR_ANY;
 
-		localaddr.sin_family = AF_INET;
-		localaddr.sin_port = htons(IPPORT_BOOTPC);
-		localaddr.sin_addr.s_addr = htonl(INADDR_ANY);
+        SLPNetSetAddr(&localaddr, AF_INET, IPPORT_BOOTPC, (unsigned char *)&add, sizeof(add));
 
-		if(bind(sockfd, (struct sockaddr*)&localaddr, sizeof(localaddr))
+    	if(bind(sockfd, (struct sockaddr*)&localaddr, sizeof(localaddr))
 				|| setsockopt(sockfd, SOL_SOCKET, SO_BROADCAST,
 						(char*)&on, sizeof(on)))
 		{
 			closesocket(sockfd);
 			return -1;
 		}
-		peeraddr->sin_family = AF_INET;
-		peeraddr->sin_port = htons(IPPORT_BOOTPS);
-		peeraddr->sin_addr.s_addr = htonl(INADDR_BROADCAST);
+        SLPNetSetAddr(peeraddr, AF_INET, IPPORT_BOOTPS, (unsigned char *) &add, sizeof(add));
 	}
 	return sockfd;
 }
@@ -157,7 +154,7 @@ static int dhcpCreateBCSkt(struct sockaddr_in* peeraddr)
 
 /*=========================================================================*/ 
 static int dhcpSendRequest(int sockfd, void *buf, size_t bufsz,
-		struct sockaddr* peeraddr, struct timeval* timeout)
+		struct sockaddr_storage* peeraddr, struct timeval* timeout)
 /*	Sends a buffer to PEERADDR, times out after period specified in TIMEOUT
 
 	Returns  -		zero on success non-zero on failure
@@ -175,12 +172,12 @@ static int dhcpSendRequest(int sockfd, void *buf, size_t bufsz,
 #endif
 
 	FD_ZERO(&writefds);
-	FD_SET(sockfd, &writefds);
+	FD_SET((unsigned int) sockfd, &writefds);
 
 	if((xferbytes = select(sockfd + 1, 0, &writefds, 0, timeout)) > 0)
 	{
 		if((xferbytes = sendto(sockfd, (char*)buf, (int)bufsz, flags, 
-				peeraddr, sizeof(struct sockaddr_in))) <= 0)
+				(struct sockaddr *) peeraddr, sizeof(struct sockaddr_storage))) <= 0)
 		{
 			errno = EPIPE;
 			return -1;
@@ -217,7 +214,7 @@ static int dhcpRecvResponse(int sockfd, void *buf, size_t bufsz,
 	fd_set readfds;
 
 	FD_ZERO(&readfds);
-	FD_SET(sockfd, &readfds);
+	FD_SET( (unsigned int) sockfd, &readfds);
 
 	if((xferbytes = select(sockfd + 1, &readfds, 0 , 0, timeout)) > 0)
 	{
@@ -342,17 +339,17 @@ static int dhcpGetAddressInfo(unsigned char *ipaddr, unsigned char *chaddr,
 	
 	int sockfd;
 	struct arpreq arpreq;
-	struct sockaddr_in *sin;
+	struct sockaddr *sin;
 
 	if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
 		return -1;
 
 	*hlen = 0;
 	
-	sin = (struct sockaddr_in *)&arpreq.arp_pa;
-	memset(sin, 0, sizeof(struct sockaddr_in));
-	sin->sin_family = AF_INET;
-	memcpy(&sin->sin_addr, ipaddr, sizeof(struct in_addr));
+	sin = (struct sockaddr *)&arpreq.arp_pa;
+	memset(sin, 0, sizeof(struct sockaddr));
+	sin->sa_family = AF_INET;
+	memcpy(&sin->sa_data, ipaddr, sizeof(struct in_addr));
 	
 	if (ioctl(sockfd, SIOCGARP, &arpreq) >= 0 
 			&& (arpreq.arp_flags & ATF_COM))
@@ -447,7 +444,7 @@ int DHCPGetOptionInfo(unsigned char *dhcpOptCodes, int dhcpOptCodeCnt,
 	time_t timer;
 	struct timeval tv;
 	int sockfd, retries;
-	struct sockaddr_in sendaddr;
+	struct sockaddr_storage sendaddr;
 	unsigned char chaddr[MAX_MACADDR_SIZE];
 	unsigned char hlen, htype;
 	unsigned char sndbuf[512];
@@ -519,7 +516,7 @@ int DHCPGetOptionInfo(unsigned char *dhcpOptCodes, int dhcpOptCodeCnt,
 	while (retries++ < MAX_DHCP_RETRIES)
 	{
 		if(dhcpSendRequest(sockfd, sndbuf, p - sndbuf, 
-				(struct sockaddr *)&sendaddr, &tv) < 0)
+				(struct sockaddr_storage *)&sendaddr, &tv) < 0)
 		{
 			if (errno != ETIMEDOUT)
 			{

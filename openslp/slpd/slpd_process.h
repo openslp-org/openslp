@@ -58,12 +58,15 @@
    
 
 /*=========================================================================*/
-int SLPDProcessMessage(struct sockaddr_in* peerinfo,
+int SLPDProcessMessage(struct sockaddr_storage* peerinfo,
+                       struct sockaddr_storage* localaddr,
                        SLPBuffer recvbuf,
-                       SLPBuffer* sendbuf) ;
+                       SLPBuffer* sendbuf);
 /* Processes the recvbuf and places the results in sendbuf                 */
 /*                                                                         */
 /* peerinfo   - the socket the message was received on                     */
+/*                                                                         */
+/* localaddr  - the local address                                          */
 /*                                                                         */
 /* recvbuf  - message to process                                           */
 /*                                                                         */
@@ -75,12 +78,15 @@ int SLPDProcessMessage(struct sockaddr_in* peerinfo,
 
 #if defined(ENABLE_SLPv1)
 /*=========================================================================*/
-int SLPDv1ProcessMessage(struct sockaddr_in* peeraddr,
+int SLPDv1ProcessMessage(struct sockaddr_storage* peeraddr,
+                         struct sockaddr_storage* localaddr,
                          SLPBuffer recvbuf,
                          SLPBuffer* sendbuf);
 /* Processes the recvbuf and places the results in sendbuf                 */
 /*                                                                         */
 /* peerinfo   - the socket the message was received on                     */
+/*                                                                         */
+/* localaddr  - the local address                                          */
 /*                                                                         */
 /* recvbuf  - message to process                                           */
 /*                                                                         */

@@ -50,6 +50,7 @@
 #include "slp_xmalloc.h"
 #include "slp_compare.h"
 #include "slp_net.h"
+#include "slp_property.h"
 
 #include <errno.h>
 #include <stdio.h>
@@ -70,10 +71,12 @@ typedef unsigned int uint32_t;
 #endif
 #endif
 
-#if defined(LINUX) || defined(AIX) || defined(SOLARIS) || defined(HPUX)
+/* the max index for v6 address to test for valid scope ids */
+#define MAX_INTERFACE_TEST_INDEX 255
+
 /*=========================================================================*/
 int SLPIfaceGetInfo(const char* useifaces,
-                    SLPIfaceInfo* ifaceinfo)
+                    SLPIfaceInfo* ifaceinfo, int family)
 /* Description:
  *    Get the network interface addresses for this host.  Exclude the
  *    loopback interface
@@ -84,202 +87,196 @@ int SLPIfaceGetInfo(const char* useifaces,
  *                    NULL or empty string to get all interfaces (except 
  *                    loopback)
  *     ifaceinfo (OUT) Information about requested interfaces.
+ *     family    (IN) Hint for family to get info for - can be AF_INET, AF_INET6, 
+ *                    or AF_UNSPEC for both
+ *     scope     (IN) For IPV6 this specifies which scope to get an address for,
+ *                this can be SCOPE_GLO
  *
  * Returns:
  *     zero on success, non-zero (with errno set) on error.
  *=========================================================================*/
-{
-    struct sockaddr* sa;
-    struct sockaddr_in* sin;
-    struct ifreq ifrlist[SLP_MAX_IFACES];
-    struct ifreq ifrflags;
-    struct ifconf ifc;
-    int fd;
-    int i;
-    int useifaceslen;
+  {
+	char *interfaceString;
+	char *bcastString;
+	int sts = 0;
+	int useifaceslen;
+	struct sockaddr_in v4addr;
+    long hostAddr;
+	struct sockaddr_in bcastAddr;
+	struct sockaddr_in6 v6addr;
+	struct sockaddr_in6 indexHack;
+	unsigned int fd;
+	int i;
 
-    #ifdef DEBUG
-    if(ifaceinfo == NULL )
-    {
-        errno = EINVAL;
-        /* bad parameters */
-        return 1;
-    }
-    #endif
+    /* first try ipv6 addrs */
+    ifaceinfo->iface_count = 0;
+    ifaceinfo->bcast_count = 0;
 
+	if (useifaces) {
+		useifaceslen = strlen(useifaces);
+	}
+	else {
+		useifaceslen = 0;
+	}
 
-    ifc.ifc_len = sizeof(struct ifreq) * SLP_MAX_IFACES ;
-    ifc.ifc_req = ifrlist;
-    
-    fd = socket(AF_INET,SOCK_STREAM,0);
-    if(fd == -1)
-    {
-        /* failed to create socket */
-        #ifdef DEBUG
-        fprintf(stderr,"%s:%i Failed to created socket\n",__FILE__,__LINE__);
-        #endif
-        return 1;
-    }
+	/* attempt to retrieve the interfaces from the configuration file */
+    interfaceString = (char *) SLPPropertyGet("net.slp.interfaces");
+	if (*interfaceString == '\0') {
+		/* they don't have any setting in their conf file, so put in the default info */
+		if (SLPNetIsIPV6() && ((family == AF_INET6) || (family == AF_UNSPEC)) ){
+			struct sockaddr_storage storageaddr_any;
 
-    #ifdef AIX
-    if (ioctl(fd,OSIOCGIFCONF,&ifc) == -1)
-    #else
-    if (ioctl(fd,SIOCGIFCONF,&ifc) == -1)
-    #endif
-    {
-        perror("ioctl failed");
-        return 1;
-    }
+		    fd = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
+			if(fd != -1) {
+				for (i = 0; i < MAX_INTERFACE_TEST_INDEX; i++) {
+					SLPNetSetAddr((struct sockaddr_storage *) &indexHack, AF_INET6, 0, (char *) &slp_in6addr_any, sizeof(slp_in6addr_any));
+					indexHack.sin6_scope_id = i;
+					sts = bind(fd, (struct sockaddr *) &indexHack, sizeof(indexHack));
+					if (sts == 0) {
+						SLPNetSetAddr(&storageaddr_any, AF_INET6, 0, (char *) &slp_in6addr_any, sizeof(slp_in6addr_any));
+						SLPNetCopyAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count], &storageaddr_any);
+						ifaceinfo->iface_count++;
+						break;
+					}
+				}
+				#ifdef _WIN32 
+				closesocket(fd);
+				#else
+				close(fd);
+				#endif
+			}
+		}
+		if (SLPNetIsIPV4() && ((family == AF_INET) || (family == AF_UNSPEC)) ){
+			struct sockaddr_storage storageaddr_any;
+			unsigned int addrAny = INADDR_ANY;
 
-    if(useifaces && *useifaces)
-    {
-        useifaceslen = strlen(useifaces);
-    }
-    else
-    {
-        useifaceslen = 0;
-    }
-    memset(ifaceinfo,0,sizeof(SLPIfaceInfo));
-    for (i = 0; i < ifc.ifc_len/sizeof(struct ifreq); i++)
-    {
-        sa = (struct sockaddr *)&(ifrlist[i].ifr_addr);
-        if(sa->sa_family == AF_INET)
-        {
-            /* Get interface flags */
-            memcpy(&ifrflags,&(ifrlist[i]),sizeof(struct ifreq));
-            if(ioctl(fd,SIOCGIFFLAGS, &ifrflags) == 0)
-            {
-                /* skip the loopback interfaces */
-                if((ifrflags.ifr_flags & IFF_LOOPBACK) == 0)
-                {
-                    /* Only include those interfaces in the requested list */
-                    sin = (struct sockaddr_in*)sa;
-                    if(useifaceslen == 0 ||
-                       SLPContainsStringList(useifaceslen,
-                                             useifaces,
-                                             strlen(inet_ntoa(sin->sin_addr)),
-                                             inet_ntoa(sin->sin_addr)))
-                    {
-                        memcpy(&(ifaceinfo->iface_addr[ifaceinfo->iface_count]),
-                               sin,
-                               sizeof(struct sockaddr_in));
-                    
-                        #ifdef AIX
-                        if(ioctl(fd,OSIOCGIFBRDADDR,&(ifrlist[i])) == 0)
-                        #else
-                        if(ioctl(fd,SIOCGIFBRDADDR,&(ifrlist[i])) == 0)
-                        #endif
-                        {
-                            sin = (struct sockaddr_in *)&(ifrlist[i].ifr_broadaddr);
-                            memcpy(&(ifaceinfo->bcast_addr[ifaceinfo->iface_count]),
-                                   sin,
-                                   sizeof(struct sockaddr_in));
-                        }
-        
-                        ifaceinfo->iface_count ++;
-                    }
-                }
-            }
+		    fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+			if(fd != -1) {
+				v4addr.sin_family = AF_INET;
+				v4addr.sin_port = 0;
+				v4addr.sin_addr.s_addr = addrAny;
+				sts = bind(fd, (struct sockaddr *) &v4addr, sizeof(v4addr));
+				if (sts == 0) {
+					SLPNetSetAddr(&storageaddr_any, AF_INET, 0, (char *) &addrAny, sizeof(addrAny));
+					SLPNetCopyAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count], &storageaddr_any);
+					ifaceinfo->iface_count++;
+				}
+				#ifdef _WIN32 
+				closesocket(fd);
+				#else
+				close(fd);
+				#endif
+			}
+		}
+	}
+	else {
+		char *slider1, *slider2, *temp, *tempend;
+		/* attemp to use the settings from the file */
+	    slider1 = slider2 = temp = xstrdup(SLPPropertyGet("net.slp.interfaces"));
+		if(temp) {
+	        tempend = temp + strlen(temp);
+			while(slider1 != tempend) {
+	            while(*slider2 && *slider2 != ',') slider2++;
+		        *slider2 = 0;
+				if (*slider1 == '\0') {
+					slider1++;
+				}
+				/* should have slider1 pointing to a NULL terminated string for the ip address */
+				if (SLPContainsStringList(useifaceslen,
+											 useifaces,
+											 strlen(slider1),
+											 slider1)) {
+					/* check if an ipv4 address was given */
+					if (inet_pton(AF_INET, slider1, &v4addr.sin_addr) == 1) {
+						if (SLPNetIsIPV4() && ((family == AF_INET) || (family == AF_UNSPEC)) ) {
+						    fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+							if(fd != -1) {
+								v4addr.sin_family = AF_INET;
+								v4addr.sin_port = 0;
+								sts = bind(fd, (struct sockaddr *) &v4addr, sizeof(v4addr));
+								if (sts == 0) {
+                                    hostAddr = ntohl(v4addr.sin_addr.s_addr);
+									SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count], AF_INET, 0, (char *) &hostAddr, sizeof(v4addr.sin_addr));
+									ifaceinfo->iface_count++;
+								}
+								#ifdef _WIN32 
+								closesocket(fd);
+								#else
+								close(fd);
+								#endif
+							}
+						}
+					}
+					else if (inet_pton(AF_INET6, slider1, &v6addr.sin6_addr) == 1) {
+						if (SLPNetIsIPV6() && ((family == AF_INET6) || (family == AF_UNSPEC)) ) {
+							/* try and bind to verify the address is okay */
+						    fd = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
+							if(fd != -1) {
+								for (i = 0; i < MAX_INTERFACE_TEST_INDEX; i++) {
+									SLPNetSetAddr((struct sockaddr_storage *) &indexHack, AF_INET6, 0, (char *) &v6addr.sin6_addr, sizeof(v6addr.sin6_addr));
+									indexHack.sin6_scope_id = i;
+									sts = bind(fd, (struct sockaddr *) &indexHack, sizeof(indexHack));
+									if (sts == 0) {
+										memcpy(&ifaceinfo->iface_addr[ifaceinfo->iface_count], &indexHack, sizeof(indexHack));
+										ifaceinfo->iface_count++;
+										break;
+									}
+								}
+								#ifdef _WIN32 
+								closesocket(fd);
+								#else
+								close(fd);
+								#endif
+							}
+						}
+					}
+					else {
+						/* not v4, not v6 */
+						errno = EINVAL;
+						sts = 1;
+					}
+				}
+	            slider1 = slider2;
+		        slider2++;
+			}
         }
+        xfree(temp);
     }
 
-    return 0;
+	/* now stuff in a broadcast address */
+	if (SLPNetIsIPV4() && ((family == AF_INET) || (family == AF_UNSPEC)) ) { 
+	    bcastString = (char *) SLPPropertyGet("net.slp.broadcastAddr");
+		if (*bcastString == '\0') {
+			struct sockaddr_storage storageaddr_bcast;
+			unsigned int broadAddr = INADDR_BROADCAST;
+
+			SLPNetSetAddr(&storageaddr_bcast, AF_INET, 0, (char *) &broadAddr, sizeof(broadAddr));
+	        SLPNetCopyAddr(&ifaceinfo->bcast_addr[ifaceinfo->bcast_count], &storageaddr_bcast);
+			ifaceinfo->bcast_count++;
+		}
+		else {
+			struct sockaddr_storage storageaddr_bcast;
+
+			if (inet_pton(AF_INET, bcastString, &bcastAddr.sin_addr) == 1) {
+				SLPNetSetAddr(&storageaddr_bcast, AF_INET, 0, (char *) &bcastAddr.sin_addr, sizeof(bcastAddr.sin_addr));
+		        SLPNetCopyAddr(&ifaceinfo->bcast_addr[ifaceinfo->bcast_count], &storageaddr_bcast);
+				ifaceinfo->bcast_count++;
+			}
+		}
+	}
+
+	return(sts);
 }
-#else
 /*=========================================================================*/
-int SLPIfaceGetInfo(const char* useifaces,
-                    SLPIfaceInfo* ifaceinfo)
-/* Description:
- *    Get the network interface addresses for this host.  Exclude the
- *    loopback interface
- *
- * Parameters:
- *     useifaces (IN) Pointer to comma delimited string of interface IPv4
- *                    addresses to get interface information for.  Pass
- *                    NULL or empty string to get all interfaces (except 
- *                    loopback)
- *     ifaceinfo (OUT) Information about requested interfaces.
- *
- * Returns:
- *     zero on success, non-zero (with errno set) on error.
- *=========================================================================*/
-{
-    /*---------------------------------------------------*/
-    /* Use gethostbyname(). Not necessarily the best way */
-    /*---------------------------------------------------*/
-    struct hostent* myhostent;
-    char*           myname;
-    struct in_addr  ifaddr;
-    uint32_t**      haddr;
-    int             useifaceslen;
-    
-    if(SLPNetGetThisHostname(&myname,0) == 0)
-    {
-        myhostent = gethostbyname(myname);
-        if(myhostent != 0)
-        {
-            if(myhostent->h_addrtype == AF_INET)
-            {
-                if(useifaces && *useifaces)
-                {
-                    useifaceslen = strlen(useifaces);
-                }
-                else
-                {
-                    useifaceslen = 0;
-                }
-
-                ifaceinfo->iface_count = 0;
-                haddr = (uint32_t**)(myhostent->h_addr_list);
-                
-                /* count the interfaces */
-                while(*haddr)
-                {
-                    ifaddr.s_addr = **haddr;
-
-                    if(useifaceslen == 0 ||
-                       SLPContainsStringList(useifaceslen,
-                                             useifaces,
-                                             strlen(inet_ntoa(ifaddr)),
-                                             inet_ntoa(ifaddr)))
-                    {
-                        memcpy(&(ifaceinfo->iface_addr[ifaceinfo->iface_count].sin_addr),
-                               &ifaddr,
-                               sizeof(ifaddr));                    
-                        
-                        /* There is no way to deterine the broadcast address */
-                        /* Set it to global broadcast                        */
-                        ifaceinfo->bcast_addr[ifaceinfo->iface_count].sin_addr.s_addr = INADDR_BROADCAST;
-
-                        ifaceinfo->iface_count ++;
-
-                    } 
-
-                    haddr ++;
-                }
-            }
-        }
-
-        xfree(myname);    
-    }
-
-    return 0;
-}
-#endif
-
-
-
-
-/*=========================================================================*/
-int SLPIfaceSockaddrsToString(const struct sockaddr_in* addrs,
+int SLPIfaceSockaddrsToString(const struct sockaddr_storage* addrs,
                               int addrcount,
                               char** addrstr)
 /* Description:
- *    Get the comma delimited string of addresses from an array of sockaddrs
+ *    Get the comma delimited string of addresses from an array of sockaddr_storages
  *
  * Parameters:
- *     addrs (IN) Pointer to array of sockaddrs to convert
- *     addrcount (IN) Number of sockaddrs in addrs.
+ *     addrs (IN) Pointer to array of sockaddr_storages to convert
+ *     addrcount (IN) Number of sockaddr_storages in addrs.
  *     addrstr (OUT) pointer to receive malloc() allocated address string.
  *                   Caller must free() addrstr when no longer needed.
  *
@@ -300,15 +297,20 @@ int SLPIfaceSockaddrsToString(const struct sockaddr_in* addrs,
     }
     #endif
 
-    /* 16 is the maximum size of a string representation of
-     * an IPv4 address (including the comman for the list)
+    /* 40 is the maximum size of a string representation of
+     * an IPv6 address (including the comman for the list)
      */
-    *addrstr = (char *)xmalloc(addrcount * 16);
+    *addrstr = (char *)xmalloc(addrcount * 40);
     *addrstr[0] = 0;
     
     for (i=0;i<addrcount;i++)
     {
-        strcat(*addrstr,inet_ntoa(addrs[i].sin_addr));
+        char buf[1024];
+
+        buf[0]= '\0';
+
+        SLPNetSockAddrStorageToString((struct sockaddr_storage *) (&addrs[i]), buf, sizeof(buf));
+        strcat(*addrstr, buf);
         if (i != addrcount-1)
         {
             strcat(*addrstr,",");
@@ -321,18 +323,18 @@ int SLPIfaceSockaddrsToString(const struct sockaddr_in* addrs,
 
 /*=========================================================================*/
 int SLPIfaceStringToSockaddrs(const char* addrstr,
-                              struct sockaddr_in* addrs,
+                              struct sockaddr_storage* addrs,
                               int* addrcount)
 /* Description:
- *    Fill an array of struct sockaddrs from the comma delimited string of
+ *    Fill an array of struct sockaddr_storages from the comma delimited string of
  *    addresses.
  *
  * Parameters:
  *     addrstr (IN) Address string to convert.
- *     addrcount (OUT) sockaddr array to fill.
- *     addrcount (INOUT) The number of sockaddr stuctures in the addr array
+ *     addrcount (OUT) sockaddr_storage array to fill.
+ *     addrcount (INOUT) The number of sockaddr_storage stuctures in the addr array
  *                       on successful return will contain the number of
- *                       sockaddrs that were filled in the addr array
+ *                       sockaddr_storages that were filled in the addr array
  *
  * Returns:
  *     zero on success, non-zero (with errno set) on error.
@@ -378,9 +380,20 @@ int SLPIfaceStringToSockaddrs(const char* addrstr,
         {
             *slider2 = 0;
         }
-        
-        inet_aton(slider1, &(addrs[i].sin_addr));
-
+        // if it has a dot - try v4
+        if (strchr(slider1, '.')) {
+            struct sockaddr_in *d4 = (struct sockaddr_in *) &addrs[i];
+            inet_pton(AF_INET, slider1, &d4->sin_addr);
+            d4->sin_family = AF_INET;
+        }
+        else if (strchr(slider1, ':')) {
+            struct sockaddr_in6 *d6 = (struct sockaddr_in6 *) &addrs[i];
+            inet_pton(AF_INET6, slider1, &d6->sin6_addr);
+            d6->sin6_family = AF_INET6;
+        }
+        else {
+            return(-1);
+        }
         i++;
         if(i == *addrcount)
         {
@@ -403,45 +416,91 @@ int SLPIfaceStringToSockaddrs(const char* addrstr,
     return 0;
 }
 
-
-
 /*===========================================================================
  * TESTING CODE enabled by removing #define comment and compiling with the 
  * following command line:
  *
  * $ gcc -g -DDEBUG slp_iface.c slp_xmalloc.c slp_linkedlist.c slp_compare.c
  *==========================================================================*/
-/* #define SLP_IFACE_TEST  */
+/* #define SLP_IFACE_TEST */
 #ifdef SLP_IFACE_TEST 
 int main(int argc, char* argv[])
 {
     int i;
     int addrscount =  10;
-    struct sockaddr_in* addrs[10];
+    struct sockaddr_storage addrs[10];
     SLPIfaceInfo ifaceinfo;
     char* addrstr;
 
-    if(SLPIfaceGetInfo(NULL,&ifaceinfo) == 0)
+#ifdef _WIN32
+    WSADATA wsadata;
+    WSAStartup(MAKEWORD(2,2), &wsadata);
+#endif
+
+    if(SLPIfaceGetInfo(NULL,&ifaceinfo, AF_INET) == 0)
     {
         for(i=0;i<ifaceinfo.iface_count;i++)
         {
-            printf("found iface = %s\n",inet_ntoa(ifaceinfo.iface_addr[i].sin_addr));
-            printf("bcast addr = %s\n",inet_ntoa(ifaceinfo.bcast_addr[i].sin_addr));
+            char myname[MAX_HOST_NAME];
+
+
+            SLPNetSockAddrStorageToString(&ifaceinfo.iface_addr[i], myname, sizeof(myname));
+            printf("v4 found iface = %s\n", myname);
+            SLPNetSockAddrStorageToString(&ifaceinfo.bcast_addr[i], myname, sizeof(myname));
+            printf("v4 bcast addr = %s\n", myname);
         }
     }
 
+    if(SLPIfaceGetInfo(NULL,&ifaceinfo, AF_INET6) == 0)
+    {
+        for(i=0;i<ifaceinfo.iface_count;i++)
+        {
+            char myname[MAX_HOST_NAME];
+
+
+            SLPNetSockAddrStorageToString(&ifaceinfo.iface_addr[i], myname, sizeof(myname));
+            printf("v6 found iface = %s\n", myname);
+        }
+        for(i=0;i<ifaceinfo.bcast_count;i++)
+        {
+            char myname[MAX_HOST_NAME];
+            SLPNetSockAddrStorageToString(&ifaceinfo.bcast_addr[i], myname, sizeof(myname));
+            printf("v6 bcast addr = %s\n", myname);
+        }
+    }
+
+
+    SLPIfaceGetInfo("fec0:0:0:0001:0:0:0:3,5:6::7,10.0.25.82", &ifaceinfo, AF_INET6);
+    SLPIfaceGetInfo("fec0:0:0:0001:0:0:0:3,5:6::7,10.0.25.82", &ifaceinfo, AF_INET);
     if(SLPIfaceStringToSockaddrs("192.168.100.1,192.168.101.1",
-                                 (struct sockaddr_in*)&addrs,
+                                 addrs,
                                  &addrscount) == 0)
     {
-        if(SLPIfaceSockaddrsToString((struct sockaddr_in*)&addrs, 
+        if(SLPIfaceSockaddrsToString(addrs, 
                                          addrscount,
                                          &addrstr) == 0)
         {
-            printf("sock addr string = %s\n",addrstr);
+            printf("sock addr string v4 = %s\n",addrstr);
             xfree(addrstr);
         }
     }
+
+    if(SLPIfaceStringToSockaddrs("1:2:0:0:0::4,10:0:0:0:0:0:0:11",
+                                 addrs,
+                                 &addrscount) == 0)
+    {
+        if(SLPIfaceSockaddrsToString(addrs, 
+                                         addrscount,
+                                         &addrstr) == 0)
+        {
+            printf("sock addr string v6 = %s\n",addrstr);
+            xfree(addrstr);
+        }
+    }
+
+#ifdef _WIN32
+    WSACleanup();
+#endif
 }
 #endif
 

@@ -99,7 +99,7 @@ void SLPDOutgoingDatagramWrite(SLPDSocket* sock);
 
 
 /*=========================================================================*/
-SLPDSocket* SLPDOutgoingConnect(struct in_addr* addr);
+SLPDSocket* SLPDOutgoingConnect(struct sockaddr_storage* addr);
 /* Get a pointer to a connected socket that is associated with the         */
 /* outgoing socket list.  If a connected socket already exists on the      */
 /* outgoing list, a pointer to it is returned, otherwise a new connection  */

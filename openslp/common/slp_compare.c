@@ -49,9 +49,10 @@
 
 #include <string.h>
 #include <ctype.h>
-
+ 
 #include "slp_compare.h"
-
+#include "slp_net.h"
+#include "slp_iface.h"
 
 #ifdef _WIN32
 #else
@@ -227,6 +228,25 @@ int SLPCompareSrvType(int lsrvtypelen,
     return 1;
 }
 
+int SLPFormatAddress(char *src, char *dst, int dstSize) {
+    struct sockaddr_storage storage;
+    int storageCount = 1;
+    char *info;
+
+    if(SLPIfaceStringToSockaddrs(src, &storage, &storageCount) == 0) {
+        if(SLPIfaceSockaddrsToString(&storage, 1, &info) == 0) {
+            strncpy(dst, info, dstSize);
+            free(info);
+            return(0);
+        }
+        else {
+            return(-1);
+        }
+    }
+    else {
+        return(-1);
+    }
+}
 
 /*=========================================================================*/
 int SLPContainsStringList(int listlen, 
@@ -250,6 +270,7 @@ int SLPContainsStringList(int listlen,
     char* listend = (char*)list + listlen;
     char* itembegin = (char*)list;
     char* itemend = itembegin;
+    char ipv6Buffer[41]; /* must be at least 40 characters */
 
     while(itemend < listend)
     {
@@ -268,15 +289,24 @@ int SLPContainsStringList(int listlen,
 
             itemend ++;
         }
-
-        if(SLPCompareString(itemend - itembegin,
+        if (strchr(itembegin, ':')) {
+            SLPFormatAddress(itembegin, ipv6Buffer, sizeof(ipv6Buffer));
+            if(SLPCompareString(strlen(ipv6Buffer),
+                ipv6Buffer,
+                stringlen,
+                string) == 0) {
+                    return 1;
+                }
+        }
+        else {
+            if(SLPCompareString(itemend - itembegin,
                             itembegin,
                             stringlen,
                             string) == 0)
-        {
-            return 1;
+            {
+                return 1;
+            }
         }
-
         itemend ++;    
     }
 

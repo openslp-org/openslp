@@ -45,10 +45,25 @@ the scopes a DA must support. The default value is "DEFAULT".</blockquote>
  
 <p><b>net.slp.DAAddresses</b></p>
  
-<blockquote>Allows administrator to force UA and SA agents to use specific 
-DAs.&nbsp; If this setting is not used dynamic DA discovery will be used to
-determine which DAs to use.&nbsp; Default is to use dynamic DA discovery.</blockquote>
- <b>net.slp.isBroadcastOnly</b> 
+<blockquote>Allows administrator to force UA and SA agents to use specific DAs.&nbsp; 
+  If this setting is not used dynamic DA discovery will be used to determine which 
+  DAs to use.&nbsp; Default is to use dynamic DA discovery.</blockquote>
+ 
+<p><b>net.slp.interfaces</b></p>
+<blockquote> 
+  <p>A comma-separated list of interfaces (local IP addresses) that will be used. 
+    This parameter is optional for the UA, but required for an SA or DA to operate 
+    properly. Both IPv4 and IPv6 addresses may be specified. While site-local 
+    and global IPv6 addresses are allowed, a DA or SA can only receive IPv6 multicast 
+    on link-local addresses.</p>
+</blockquote>
+<p><b>net.slp.broadcastAddr</b></p>
+<blockquote> 
+  <p>This option is a string indicating the broadcast address to use when sending 
+    broadcast packets. This parameter is only applicable when the other broadcast 
+    configuration variables are set. The default value is &quot;255.255.255.255&quot;.</p>
+</blockquote>
+<p><b>net.slp.isBroadcastOnly</b> </p>
 <blockquote>Force broadcasts to be used instead of multicast. This setting 
 is seldom necessary since OpenSLP will automatically use broadcast if multicast 
 is unavailable. Default is false.</blockquote>
@@ -97,12 +112,24 @@ not run as a DA. Default is false.</blockquote>
  <b>net.slp.DAHeartBeat</b> 
 <blockquote>A 32 bit integer giving the number of seconds for the DA heartbeat.&nbsp; 
 Default is 3 hours (10800 seconds).&nbsp; Ignored if net.slp.isDA is false.</blockquote>
- net.slp.DAAttributes (currently ignored) 
-<blockquote>A comma-separated list of parenthesized attribute/value list pairs
-that the DA must advertise in DAAdverts.&nbsp; The property must be in the
-SLP attribute list wire format, including escapes for reserved characters.
-[7]</blockquote>
+ 
+<b>net.slp.DAAttributes</b> (currently ignored) 
+<blockquote>
+  <p>A comma-separated list of parenthesized attribute/value list pairs that the 
+    DA must advertise in DAAdverts.&nbsp; The property must be in the SLP attribute 
+    list wire format, including escapes for reserved characters. [7]</p>
+</blockquote>
   
+<p><b>net.slp.useIPV4</b></p>
+<blockquote> 
+  <p>This parameter specifies whether or not IPv4 should be used for SLP. This 
+    parameter defaults to true.</p>
+</blockquote>
+<p><b>net.slp.useIPV6</b></p>
+<blockquote> 
+  <p>This parameter specifies whether or not IPv6 should be used for SLP. This 
+    parameter defaults to true.</p>
+</blockquote>
 <h3> <a name="Divergance from RFC 2614"></a>Divergence from RFC 2614</h3>
  OpenSLP does not support all of the settings that are specified by RFC 2614.&nbsp;
 The reasons for not supporting some of the settings range from the implementors'

@@ -54,6 +54,7 @@
 #include "slp.h"
 #include "libslp.h"
 #include "slp_dhcp.h"
+#include "slp_net.h"
 
 #ifndef _WIN32
 #define closesocket close
@@ -84,7 +85,7 @@ SLPBoolean KnownDAListFind(int scopelistlen,
                            const char* scopelist,
                            int spistrlen,
                            const char* spistr,
-                           struct in_addr* daaddr)
+                           struct sockaddr_storage* daaddr)
 /* Returns: non-zero on success, zero if DA can not be found               */
 /*-------------------------------------------------------------------------*/
 {
@@ -118,8 +119,8 @@ SLPBoolean KnownDAListFind(int scopelistlen,
                 {
                     
                     memcpy(daaddr, 
-                           &(entry->msg->peer.sin_addr),
-                           sizeof(struct in_addr));
+                           &(entry->msg->peer),
+                           sizeof(struct sockaddr_storage));
     
                     result = SLP_TRUE;
                 }
@@ -194,14 +195,15 @@ int KnownDAAdd(SLPMessage msg, SLPBuffer buf)
 
 /*-------------------------------------------------------------------------*/
 SLPBoolean KnownDADiscoveryCallback(SLPError errorcode,
-                                    struct sockaddr_in* peerinfo,
+                                    struct sockaddr_storage* peerinfo,
                                     SLPBuffer rplybuf, 
                                     void* cookie)
 /*-------------------------------------------------------------------------*/
 {
     SLPMessage      replymsg;
     SLPBuffer       dupbuf;
-    struct hostent* he;
+    struct addrinfo* he;
+	struct addrinfo hints;
     SLPSrvURL*      srvurl;
     int*            count;
     SLPBoolean      result = SLP_TRUE;
@@ -216,7 +218,7 @@ SLPBoolean KnownDADiscoveryCallback(SLPError errorcode,
             replymsg = SLPMessageAlloc();
             if(replymsg)
             {
-                 if(SLPMessageParseBuffer(peerinfo,dupbuf,replymsg) == 0 &&
+                 if(SLPMessageParseBuffer(peerinfo,NULL,dupbuf,replymsg) == 0 &&
                     replymsg->header.functionid == SLP_FUNCT_DAADVERT)
                  {
                     if(replymsg->body.daadvert.errorcode == 0)
@@ -225,32 +227,49 @@ SLPBoolean KnownDADiscoveryCallback(SLPError errorcode,
                         ((char*)(replymsg->body.daadvert.url))[replymsg->body.daadvert.urllen] = 0;
                         if(SLPParseSrvURL(replymsg->body.daadvert.url, &srvurl) == 0)
                         {
-                            replymsg->peer.sin_addr.s_addr = 0;
-                            if(inet_aton(srvurl->s_pcHost, &(replymsg->peer.sin_addr)) == 0)
-                            {
-                                he = gethostbyname(srvurl->s_pcHost);
-                                if(he)
-                                {
-                                    /* Reset the peer to the one in the URL */
-                                    replymsg->peer.sin_addr.s_addr = *((unsigned int*)(he->h_addr_list[0]));
-                                }
-                            }
-                            
-                            SLPFree(srvurl);
+							int retval = -1;
+							/* Should call inet_pton with the same address family as was found in the
+							   DA url. */
+							if (replymsg->peer.ss_family == AF_INET && SLPNetIsIPV4()) {
+								memset(&((struct sockaddr_in *)&replymsg->peer)->sin_addr, 0, sizeof(struct in_addr));
+								retval = inet_pton(replymsg->peer.ss_family, srvurl->s_pcHost, &((struct sockaddr_in *)&replymsg->peer)->sin_addr);
+							}
+							else if (replymsg->peer.ss_family == AF_INET6 && SLPNetIsIPV6()) {
+								memset(&((struct sockaddr_in6 *)&replymsg->peer)->sin6_addr, 0, sizeof(struct in6_addr));
+								retval = inet_pton(replymsg->peer.ss_family, srvurl->s_pcHost, &((struct sockaddr_in6 *)&replymsg->peer)->sin6_addr);
+							}
 
-                            if(replymsg->peer.sin_addr.s_addr)
-                            {
-                                (*count) += 1;
-                                
-                                KnownDAAdd(replymsg,dupbuf);
-                                if(replymsg->header.flags & SLP_FLAG_MCAST)
-                                {
-                                    return SLP_FALSE;
-                                }
+							if(retval == 0)
+							{
+								hints.ai_family = replymsg->peer.ss_family;
+								getaddrinfo(srvurl->s_pcHost, NULL, &hints, &he);
+								if(he)
+								{
+									/* Reset the peer to the one in the URL */
+									if (replymsg->peer.ss_family == AF_INET && SLPNetIsIPV4())
+										memcpy(&((struct sockaddr_in *)&replymsg->peer)->sin_addr, &((struct sockaddr_in *)he->ai_addr)->sin_addr, sizeof(struct in_addr));
+									else if (replymsg->peer.ss_family == AF_INET6 && SLPNetIsIPV6())
+										memcpy(&((struct sockaddr_in6 *)&replymsg->peer)->sin6_addr, &((struct sockaddr_in6 *)he->ai_addr)->sin6_addr, sizeof(struct in6_addr));
+									retval = 1;
+									freeaddrinfo(he);
+								}
+							}
+	                        
+							SLPFree(srvurl);
 
-                                return SLP_TRUE;
-                            }
-                        }
+							if(retval > 0)
+							{
+								(*count) += 1;
+	                            
+								KnownDAAdd(replymsg,dupbuf);
+								if(replymsg->header.flags & SLP_FLAG_MCAST)
+								{
+									return SLP_FALSE;
+								}
+
+								return SLP_TRUE;
+							}
+						}
                      }
                      else if(replymsg->body.daadvert.errorcode == SLP_ERROR_INTERNAL_ERROR)
                      {
@@ -273,7 +292,7 @@ SLPBoolean KnownDADiscoveryCallback(SLPError errorcode,
 
 /*-------------------------------------------------------------------------*/
 int KnownDADiscoveryRqstRply(int sock, 
-                             struct sockaddr_in* peeraddr,
+                             struct sockaddr_storage* peeraddr,
 			     int scopelistlen,
 #ifndef MI_NOT_SUPPORTED
                              const char* scopelist,
@@ -403,8 +422,12 @@ int KnownDADiscoverFromDHCP()
 	DHCPContext ctx;
 	unsigned char *alp;
 	struct timeval timeout;
-	struct sockaddr_in peeraddr;
+	struct sockaddr_storage peeraddr;
 	unsigned char dhcpOpts[] = {TAG_SLP_SCOPE, TAG_SLP_DA};
+
+	/* only do DHCP discovery if IPv4 is enabled. */
+	if (!SLPNetIsIPV4())
+		return 0;
 
 	*ctx.scopelist = 0;
 	ctx.addrlistlen = 0;
@@ -419,9 +442,7 @@ int KnownDADiscoverFromDHCP()
 	}
 	scopelistlen = strlen(ctx.scopelist);
 
-	memset(&peeraddr,0,sizeof(peeraddr));
-	peeraddr.sin_family = AF_INET;
-	peeraddr.sin_port = htons(SLP_RESERVED_PORT);
+	SLPNetSetAddr(&peeraddr, AF_INET, SLP_RESERVED_PORT, NULL, 0);
 
 	timeout.tv_sec = SLPPropertyAsInteger(SLPGetProperty("net.slp.DADiscoveryMaximumWait"));
 	timeout.tv_usec = (timeout.tv_sec % 1000) * 1000;
@@ -431,8 +452,8 @@ int KnownDADiscoverFromDHCP()
 
 	while(ctx.addrlistlen >= 4)
 	{
-		memcpy(&peeraddr.sin_addr.s_addr, alp, 4);
-		if(peeraddr.sin_addr.s_addr)
+		memcpy(&(((struct sockaddr_in *)&peeraddr)->sin_addr.s_addr), alp, 4);
+		if(((struct sockaddr_in*)&peeraddr)->sin_addr.s_addr)
 		{
 			int sockfd;
 			if((sockfd = SLPNetworkConnectStream(&peeraddr, &timeout)) >= 0)
@@ -471,19 +492,14 @@ int KnownDADiscoverFromProperties(int scopelistlen,
 /* Returns: number of *new* DAs found                                      */
 /*-------------------------------------------------------------------------*/
 {
-    char*               temp;
-    char*               tempend;
-    char*               slider1;
-    char*               slider2;
-    int                 sockfd;
-    struct hostent*     he;
-    struct sockaddr_in  peeraddr;
-    struct timeval      timeout;
-    int                 result      = 0;
-
-    memset(&peeraddr,0,sizeof(peeraddr));
-    peeraddr.sin_family = AF_INET;
-    peeraddr.sin_port = htons(SLP_RESERVED_PORT);
+    char*					temp;
+    char*					tempend;
+    char*					slider1;
+    char*					slider2;
+    int						sockfd;
+    struct sockaddr_storage peeraddr;
+    struct timeval			timeout;
+    int						result      = 0;
 
     slider1 = slider2 = temp = xstrdup(SLPGetProperty("net.slp.DAAddresses"));
     if(temp)
@@ -498,18 +514,8 @@ int KnownDADiscoverFromProperties(int scopelistlen,
             while(*slider2 && *slider2 != ',') slider2++;
             *slider2 = 0;
 
-            peeraddr.sin_addr.s_addr = 0;
-            if(inet_aton(slider1, &(peeraddr.sin_addr)) == 0)
-            {
-                he = gethostbyname(slider1);
-                if(he)
-                {
-                    peeraddr.sin_addr.s_addr = *((unsigned int*)(he->h_addr_list[0]));
-                }
-            }
-            
-            if (peeraddr.sin_addr.s_addr)
-            {
+			if (SLPNetResolveHostToAddr(slider1, &peeraddr) == 0) {
+				SLPNetSetParams(&peeraddr, peeraddr.ss_family, SLP_RESERVED_PORT);
                 sockfd = SLPNetworkConnectStream(&peeraddr,&timeout);
                 if(sockfd >= 0)
                 {
@@ -553,7 +559,7 @@ int KnownDADiscoverFromIPC()
 /* Returns: number of *new* DAs found                                      */
 /*-------------------------------------------------------------------------*/
 {
-    struct sockaddr_in peeraddr;
+    struct sockaddr_storage peeraddr;
     int sockfd; 
     int result = 0;
 
@@ -577,10 +583,10 @@ SLPBoolean KnownDAFromCache(int scopelistlen,
                             int spistrlen,
                             const char* spistr,
 #ifndef MI_NOT_SUPPORTED
-                            struct in_addr* daaddr,
+                            struct sockaddr_storage* daaddr,
                             PSLPHandleInfo handle)
 #else
-                            struct in_addr* daaddr)
+                            struct sockaddr_storage* daaddr)
 #endif /* MI_NOT_SUPPORTED */
 /* Ask Slpd if it knows about a DA                                         */ 
 /*                                                                         */
@@ -630,7 +636,7 @@ SLPBoolean KnownDAFromCache(int scopelistlen,
 int KnownDAConnect(PSLPHandleInfo handle,
                    int scopelistlen,
                    const char* scopelist,
-                   struct sockaddr_in* peeraddr)
+                   struct sockaddr_storage* peeraddr)
 /* Get a connected socket to a DA that supports the specified scope        */
 /*                                                                         */
 /* scopelistlen (IN) stringlen of the scopelist                            */
@@ -664,31 +670,37 @@ int KnownDAConnect(PSLPHandleInfo handle,
 
     while(1)
     {
-        memset(peeraddr,0,sizeof(peeraddr));
+        memset(peeraddr,0,sizeof(struct sockaddr_storage));
         
         if(KnownDAFromCache(scopelistlen,
                             scopelist,
                             spistrlen,
                             spistr,
 #ifndef MI_NOT_SUPPORTED
-                            &(peeraddr->sin_addr),
+                            peeraddr,
                             handle) == 0)
 #else
-                            &(peeraddr->sin_addr)) == 0)
+                            peeraddr) == 0)
 #endif /* MI_NOT_SUPPORTED */
         {
             break;
         }
-        peeraddr->sin_family = PF_INET;
-        peeraddr->sin_port = htons(SLP_RESERVED_PORT);
+
+		if (peeraddr->ss_family == AF_INET6 && SLPNetIsIPV6()) {
+			SLPNetSetParams(peeraddr, AF_INET6, SLP_RESERVED_PORT);
+			sock = SLPNetworkConnectStream(peeraddr,&timeout);
+		}
+		if (peeraddr->ss_family == AF_INET && SLPNetIsIPV4()) {
+			SLPNetSetParams(peeraddr, AF_INET, SLP_RESERVED_PORT);
+			sock = SLPNetworkConnectStream(peeraddr,&timeout);
+		}
         
-        sock = SLPNetworkConnectStream(peeraddr,&timeout);
         if(sock >= 0)
         {
             break;
         }
 
-        KnownDABadDA(&(peeraddr->sin_addr));
+        KnownDABadDA(peeraddr);
     }
 
 
@@ -700,7 +712,7 @@ int KnownDAConnect(PSLPHandleInfo handle,
 }
 
 /*=========================================================================*/
-void KnownDABadDA(struct in_addr* daaddr)
+void KnownDABadDA(struct sockaddr_storage* daaddr)
 /* Mark a KnownDA as a Bad DA.                                             */
 /*                                                                         */
 /* daaddr (IN) address of the bad DA                                       */
@@ -723,7 +735,7 @@ void KnownDABadDA(struct in_addr* daaddr)
             if(entry == NULL) break;
             
             /* Assume DAs are identical if their in_addrs match */
-            if(memcmp(daaddr,&(entry->msg->peer.sin_addr),sizeof(struct in_addr)) == 0)
+            if(SLPNetCompareAddrs(daaddr,&(entry->msg->peer)) == 0)
             {
                 SLPDatabaseRemove(dh,entry);
                 break;            

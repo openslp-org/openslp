@@ -117,7 +117,7 @@ int SLPPropertyAsInteger(const char* property);
 
 /*=========================================================================*/
 int SLPPropertyAsIntegerVector(const char* property, 
-                               int* vector, 
+                               int* cvector, 
                                int vectorsize);
 /*=========================================================================*/
 

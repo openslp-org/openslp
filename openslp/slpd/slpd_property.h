@@ -59,8 +59,8 @@ typedef struct _SLPDProperty
 /* structure that holds the value of all the properties slpd cares about   */
 /*=========================================================================*/
 {
-    int             myUrlLen;
-    const char*     myUrl;
+    int             urlPrefixLen;
+    const char*     urlPrefix;
     int             useScopesLen;
     const char*     useScopes; 
     int             DAAddressesLen;

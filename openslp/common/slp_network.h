@@ -52,6 +52,8 @@
 
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
+#include <winsock2.h>
+#include <ws2tcpip.H>
 #include <windows.h>
 #include <io.h>
 #include <errno.h>
@@ -79,8 +81,11 @@
 #include "slp_xid.h"
 
 
+#define SLP_MULTICAST_SERVICE_TYPE_SRVLOC   0x01
+#define SLP_MULTICAST_SERVICE_TYPE_SRVLOCDA 0x02
+
 /*=========================================================================*/ 
-int SLPNetworkConnectStream(struct sockaddr_in* peeraddr,
+int SLPNetworkConnectStream(struct sockaddr_storage *peeraddr,
                             struct timeval* timeout);  
 /* Connect a TCP stream to the specified peer                              */
 /*                                                                         */
@@ -92,35 +97,12 @@ int SLPNetworkConnectStream(struct sockaddr_in* peeraddr,
 /*=========================================================================*/
 
 
-/*=========================================================================*/
-int SLPNetworkConnectToMulticast(struct sockaddr_in* peeraddr, int ttl); 
-/* Creates a socket and provides a peeraddr to send to                     */
-/*                                                                         */
-/* peeraddr         (OUT) pointer to receive the connected DA's address    */
-/*                                                                         */
-/* ttl              (IN)  ttl for the mcast socket                         */
-/*                                                                         */
-/* Returns          Valid socket or -1 if no DA connection can be made     */
-/*=========================================================================*/
-
-
-/*=========================================================================*/
-int SLPNetworkConnectToBroadcast(struct sockaddr_in* peeraddr);                                                        
-/* Creates a socket and provides a peeraddr to send to                     */
-/*                                                                         */
-/* peeraddr         (OUT) pointer to receive the connected DA's address    */
-/*                                                                         */
-/* peeraddrlen      (IN/OUT) Size of the peeraddr structure                */
-/*                                                                         */
-/* Returns          Valid socket or -1 if no DA connection can be made     */
-/*=========================================================================*/
-
 
 /*=========================================================================*/
 int SLPNetworkSendMessage(int sockfd,
                           int socktype,
                           SLPBuffer buf,
-                          struct sockaddr_in* peeraddr,
+                          struct sockaddr_storage* peeraddr,
                           struct timeval* timeout);  
 /* Sends a message                                                         */
 /*                                                                         */
@@ -135,7 +117,7 @@ int SLPNetworkSendMessage(int sockfd,
 int SLPNetworkRecvMessage(int sockfd,
                           int socktype,
                           SLPBuffer* buf,
-                          struct sockaddr_in* peeraddr,
+                          struct sockaddr_storage* peeraddr,
                           struct timeval* timeout); 
 /* Receives a message                                                      */
 /*                                                                         */

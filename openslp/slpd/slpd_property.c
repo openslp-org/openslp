@@ -71,9 +71,9 @@ SLPDProperty G_SlpdProperty;
 int SLPDPropertyInit(const char* conffile)
 /*=========================================================================*/
 {
-    char*               myname = 0;
-    char*               myinterfaces = 0;
-    char*               myurl = 0;
+    char*                   myinterfaces = 0;
+    char*                   urlPrefix[27];    /* 27 is the size of "service:directory-agent://(NULL)" */
+    int                     family = AF_UNSPEC;
     
     SLPPropertyReadFile(conffile);
 
@@ -125,7 +125,13 @@ int SLPDPropertyInit(const char* conffile)
     /*-------------------------------------*/
     /* Set the net.slp.interfaces property */
     /*-------------------------------------*/
-    if(SLPIfaceGetInfo(SLPPropertyGet("net.slp.interfaces"),&G_SlpdProperty.ifaceInfo) == 0)
+    if (SLPNetIsIPV4() && SLPNetIsIPV6())
+        family = AF_UNSPEC;
+    else if (SLPNetIsIPV4())
+        family = AF_INET;
+    else if (SLPNetIsIPV6())
+        family = AF_INET6;
+    if(SLPIfaceGetInfo(SLPPropertyGet("net.slp.interfaces"),&G_SlpdProperty.ifaceInfo,family) == 0)
     {
         if(SLPPropertyGet("net.slp.interfaces"))
         {
@@ -148,29 +154,20 @@ int SLPDPropertyInit(const char* conffile)
     /*---------------------------------------------------------*/
     /* Set the value used internally as the url for this agent */
     /*---------------------------------------------------------*/
-    /* 27 is the size of "service:directory-agent://(NULL)" */
-    if(SLPNetGetThisHostname(&myname,1) == 0)
+    if(G_SlpdProperty.isDA)
     {
-        myurl = (char*)xmalloc(27 + strlen(myname));
-        if(G_SlpdProperty.isDA)
-        {
-            strcpy(myurl,SLP_DA_SERVICE_TYPE);
-        }
-        else
-        {
-            strcpy(myurl,SLP_SA_SERVICE_TYPE);
-        }
-        strcat(myurl,"://");
-        strcat(myurl,myname);
-        
-        SLPPropertySet("net.slp.agentUrl",myurl);
-
-        G_SlpdProperty.myUrl = SLPPropertyGet("net.slp.agentUrl");
-        G_SlpdProperty.myUrlLen = strlen(G_SlpdProperty.myUrl);
-
-        xfree(myurl);
-        xfree(myname);
+        strcpy((char *) urlPrefix,SLP_DA_SERVICE_TYPE);
     }
+    else
+    {
+        strcpy((char *) urlPrefix,SLP_SA_SERVICE_TYPE);
+    }
+    strcat((char *) urlPrefix,"://");
+
+    SLPPropertySet("net.slp.urlPrefix",(char *) urlPrefix);
+
+    G_SlpdProperty.urlPrefix = SLPPropertyGet("net.slp.urlPrefix");
+    G_SlpdProperty.urlPrefixLen = strlen(G_SlpdProperty.urlPrefix);
 
     /*----------------------------------*/
     /* Set other values used internally */

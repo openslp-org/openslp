@@ -73,6 +73,24 @@ void SLPDIncomingAge(time_t seconds);
 
 
 /*=========================================================================*/
+int SLPDIncomingAddService(const char * srvtype, int len, struct sockaddr_storage* localaddr);
+/* Add sockets that will listen for service requests of the given type.    */
+/* This function only works for IPv6.                                      */
+/*                                                                         */
+/* Returns  Zero on success non-zero on error                              */
+/*=========================================================================*/
+
+
+/*=========================================================================*/
+int SLPDIncomingRemoveService(const char * srvtype, int len);
+/* Remove the sockets that listen for service requests of the given type.  */
+/* This function only works for IPv6.                                      */
+/*                                                                         */
+/* Returns  Zero on success non-zero on error                              */
+/*=========================================================================*/
+
+
+/*=========================================================================*/
 void SLPDIncomingHandler(int* fdcount,
                          fd_set* readfds,
                          fd_set* writefds);

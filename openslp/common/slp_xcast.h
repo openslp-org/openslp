@@ -56,7 +56,7 @@ typedef struct _SLPXcastSockets
 {
     int                 sock_count;
     int                 sock[SLP_MAX_IFACES];
-    struct sockaddr_in  peeraddr[SLP_MAX_IFACES];
+    struct sockaddr_storage  peeraddr[SLP_MAX_IFACES];
 }SLPXcastSockets;
 
 
@@ -84,7 +84,8 @@ int SLPBroadcastSend(const SLPIfaceInfo* ifaceinfo,
 /*========================================================================*/
 int SLPMulticastSend(const SLPIfaceInfo* ifaceinfo, 
                      SLPBuffer msg,
-                     SLPXcastSockets* socks);
+                     SLPXcastSockets* socks,
+                     struct sockaddr_storage *dst);
 /* Description:
  *    Multicast a message.
  *
@@ -97,6 +98,8 @@ int SLPMulticastSend(const SLPIfaceInfo* ifaceinfo,
  *                    responses.  MUST be close by caller using 
  *                    SLPXcastSocketsClose() 
  *
+ *   dst        (IN)  Address to send to if using ipv6 - can be NULL
+ *                    for v4.  
  * Returns:
  *    Zero on sucess.  Non-zero with errno set on error
  *========================================================================*/
@@ -105,7 +108,7 @@ int SLPMulticastSend(const SLPIfaceInfo* ifaceinfo,
 /*=========================================================================*/
 int SLPXcastRecvMessage(const SLPXcastSockets* sockets,
                         SLPBuffer* buf,
-                        struct sockaddr_in* peeraddr,
+                        struct sockaddr_storage* peeraddr,
                         struct timeval* timeout);
 /* Description: 
  *    Receives datagram messages from one of the sockets in the specified
@@ -116,7 +119,7 @@ int SLPXcastRecvMessage(const SLPXcastSockets* sockets,
  *                 which sockets to read messages from.
  *    buf     (OUT) Pointer to SLPBuffer that will contain the message upon
  *                  successful return.
- *    peeraddr (OUT) Pointer to struc sockaddr_in that will contain the
+ *    peeraddr (OUT) Pointer to struc sockaddr that will contain the
  *                   address of the peer that sent the received message.
  *    timeout (IN/OUT) pointer to the struct timeval that indicates how much
  *                     time to wait for a message to arrive

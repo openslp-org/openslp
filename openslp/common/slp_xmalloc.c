@@ -62,7 +62,7 @@ size_t  G_xmalloc_allocmem = 0;
 void _xmalloc_log(xallocation_t* x)
 /*-------------------------------------------------------------------------*/
 {
-    int i;
+    unsigned int i;
     if(G_xmalloc_fh)
     {   
         fprintf(G_xmalloc_fh,"xmalloced memory:\n");

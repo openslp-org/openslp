@@ -48,6 +48,7 @@
 
 #include "slp.h"
 #include "libslp.h"
+#include "slp_net.h"
 
 /*=========================================================================*/
 int G_OpenSLPHandleCount = 0;
@@ -250,7 +251,11 @@ void SLPAPI SLPClose(SLPHandle hSLP)
 
     if(handle->dasock >=0)
     {
+#ifdef _WIN32
+        closesocket(handle->dasock);
+#else
         close(handle->dasock);
+#endif
     }
 
     if(handle->dascope)
@@ -260,7 +265,11 @@ void SLPAPI SLPClose(SLPHandle hSLP)
 
     if(handle->sasock >=0)
     {
+#ifdef _WIN32
+        closesocket(handle->sasock);
+#else
         close(handle->sasock);
+#endif
     }
 
     if(handle->sascope)
@@ -358,7 +367,8 @@ SLPError SLPAssociateIP( SLPHandle hSLP, const char* unicast_ip)
 /*=========================================================================*/
 {
 
-    PSLPHandleInfo      handle;
+    PSLPHandleInfo				handle;
+	int							result=-1;
 
     /*------------------------------*/
     /* check for invalid parameters */
@@ -377,13 +387,10 @@ SLPError SLPAssociateIP( SLPHandle hSLP, const char* unicast_ip)
     fprintf(stderr, "SLPAssociateIP(): unicast_ip = %s\n", unicast_ip);
 #endif
     handle->dounicast = 1;
-    handle->unicastaddr.sin_family = AF_INET;
-    if (inet_aton(unicast_ip, ((struct in_addr *)(&handle->unicastaddr.sin_addr))) == 0 )
-    {
-        return SLP_PARAMETER_BAD;
-    }
-    handle->unicastaddr.sin_port = htons(SLP_RESERVED_PORT);
 
+	result = SLPNetResolveHostToAddr(unicast_ip, &handle->unicastaddr);
+	if (SLPNetSetPort(&handle->unicastaddr, SLP_RESERVED_PORT) != 0)
+		return SLP_PARAMETER_BAD;
     return SLP_OK;
 }
 #endif

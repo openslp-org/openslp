@@ -1041,7 +1041,8 @@ void SLPMessageFree(SLPMessage message)
 
 
 /*=========================================================================*/
-int SLPMessageParseBuffer(struct sockaddr_in* peerinfo,
+int SLPMessageParseBuffer(struct sockaddr_storage *peerinfo,
+                          struct sockaddr_storage *localaddr,
                           SLPBuffer buffer, 
                           SLPMessage message)
 /* Initializes a message descriptor by parsing the specified buffer.       */
@@ -1061,8 +1062,11 @@ int SLPMessageParseBuffer(struct sockaddr_in* peerinfo,
 {
     int result;
 
-    /* Copy in the peer info */
-    memcpy(&message->peer,peerinfo,sizeof(message->peer));
+    /* Copy in the address info */
+    if (peerinfo != NULL)
+        memcpy(&message->peer,peerinfo,sizeof(message->peer));
+    if (localaddr != NULL)
+        memcpy(&message->localaddr, localaddr, sizeof(message->localaddr));
 
     /* Get ready to parse */
     SLPMessageFreeInternals(message);

@@ -253,7 +253,7 @@ int SLPDatabaseCount(SLPDatabaseHandle dh)
     return dh->database->count;
 }
 
-
+//#define TEST_SLP_DATABASE_TEST
 #ifdef TEST_SLP_DATABASE_TEST
 
 int main(int argc, char* argv[])
@@ -261,6 +261,7 @@ int main(int argc, char* argv[])
     SLPDatabase         testdb;
     SLPDatabaseEntry*   testentry;
     
+    memset(&testdb, 0, sizeof(testdb));
     SLPDatabaseInit(&testdb);
     SLPDatabaseDeinit(&testdb);
 }

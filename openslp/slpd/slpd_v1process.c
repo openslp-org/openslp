@@ -46,6 +46,7 @@
 /*                                                                         */
 /***************************************************************************/
 
+#if defined(ENABLE_SLPv1)
 
 /*=========================================================================*/
 /* slpd includes                                                           */
@@ -65,12 +66,13 @@
 #include "slp_v1message.h"
 #include "slp_utf8.h"
 #include "slp_compare.h"
+#include "slp_net.h"
 
 #include <limits.h>
 
 
 /*-------------------------------------------------------------------------*/
-int v1ProcessDASrvRqst(struct sockaddr_in* peeraddr,
+int v1ProcessDASrvRqst(struct sockaddr_storage* peeraddr,
                        SLPMessage message,
                        SLPBuffer* sendbuf,
                        int errorcode)
@@ -97,7 +99,7 @@ int v1ProcessDASrvRqst(struct sockaddr_in* peeraddr,
     if (errorcode == 0)
     {
         if (message->header.flags & SLP_FLAG_MCAST ||
-            ISMCAST(peeraddr->sin_addr))
+            SLPNetIsMCast(peeraddr))
         {
             (*sendbuf)->end = (*sendbuf)->start;
             return errorcode;
@@ -109,7 +111,7 @@ int v1ProcessDASrvRqst(struct sockaddr_in* peeraddr,
 
 
 /*-------------------------------------------------------------------------*/
-int v1ProcessSrvRqst(struct sockaddr_in* peeraddr,
+int v1ProcessSrvRqst(struct sockaddr_storage* peeraddr,
                      SLPMessage message,
                      SLPBuffer* sendbuf,
                      int errorcode)
@@ -277,7 +279,7 @@ int v1ProcessSrvRqst(struct sockaddr_in* peeraddr,
 }
 
 /*-------------------------------------------------------------------------*/
-int v1ProcessSrvReg(struct sockaddr_in* peeraddr,
+int v1ProcessSrvReg(struct sockaddr_storage* peeraddr,
                     SLPMessage message,
                     SLPBuffer recvbuf,
                     SLPBuffer* sendbuf,
@@ -309,7 +311,7 @@ int v1ProcessSrvReg(struct sockaddr_in* peeraddr,
         /*---------------------------------*/
         /* put the service in the database */
         /*---------------------------------*/
-        if (ISLOCAL(message->peer.sin_addr))
+        if (SLPNetIsLocal(&(message->peer)))
         {
             message->body.srvreg.source= SLP_REG_SOURCE_LOCAL;
         }
@@ -377,7 +379,7 @@ int v1ProcessSrvReg(struct sockaddr_in* peeraddr,
 
 
 /*-------------------------------------------------------------------------*/
-int v1ProcessSrvDeReg(struct sockaddr_in* peeraddr,
+int v1ProcessSrvDeReg(struct sockaddr_storage* peeraddr,
                       SLPMessage message,
                       SLPBuffer* sendbuf,
                       int errorcode)
@@ -467,7 +469,7 @@ int v1ProcessSrvDeReg(struct sockaddr_in* peeraddr,
 }
 
 /*-------------------------------------------------------------------------*/
-int v1ProcessAttrRqst(struct sockaddr_in* peeraddr,
+int v1ProcessAttrRqst(struct sockaddr_storage* peeraddr,
                       SLPMessage message,
                       SLPBuffer* sendbuf,
                       int errorcode)
@@ -605,7 +607,7 @@ int v1ProcessAttrRqst(struct sockaddr_in* peeraddr,
 
 
 /*-------------------------------------------------------------------------*/
-int v1ProcessSrvTypeRqst(struct sockaddr_in* peeraddr,
+int v1ProcessSrvTypeRqst(struct sockaddr_storage* peeraddr,
                          SLPMessage message,
                          SLPBuffer* sendbuf,
                          int errorcode)
@@ -785,7 +787,7 @@ int v1ProcessSrvTypeRqst(struct sockaddr_in* peeraddr,
 }
 
 /*=========================================================================*/
-int SLPDv1ProcessMessage(struct sockaddr_in* peeraddr,
+int SLPDv1ProcessMessage(struct sockaddr_storage* peeraddr,
                          SLPBuffer recvbuf,
                          SLPBuffer* sendbuf)
 /* Processes the SLPv1 message and places the results in sendbuf           */
@@ -904,3 +906,5 @@ int SLPDv1ProcessMessage(struct sockaddr_in* peeraddr,
 
     return errorcode;
 }                
+
+#endif /* ENABLE_SLPv1 */

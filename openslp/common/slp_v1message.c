@@ -530,7 +530,7 @@ int v1ParseSrvTypeRqst(SLPBuffer buffer, SLPHeader* header,
 }
 
 /*=========================================================================*/
-int SLPv1MessageParseBuffer(struct sockaddr_in* peerinfo,
+int SLPv1MessageParseBuffer(struct sockaddr_storage* peerinfo,
                             SLPBuffer buffer, 
                             SLPMessage message) 
 /* Initializes a SLPv1 message descriptor by parsing the specified buffer. */

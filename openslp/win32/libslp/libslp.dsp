@@ -209,6 +209,10 @@ SOURCE=..\..\common\slp_v1message.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\common\slp_win32.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\common\slp_xcast.c
 # End Source File
 # Begin Source File
@@ -245,11 +249,11 @@ SOURCE=..\..\common\slp_dhcp.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\common\slp_iface.h
+SOURCE=\mpeterson\cvs\openslp\openslp.HEAD\common\slp_iface.h
 # End Source File
 # Begin Source File
 
-SOURCE=\mpeterson\cvs\openslp\openslp.HEAD\common\slp_iface.h
+SOURCE=..\..\common\slp_iface.h
 # End Source File
 # Begin Source File
 
@@ -289,11 +293,11 @@ SOURCE=..\..\common\slp_v1message.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\common\slp_xcast.h
+SOURCE=\mpeterson\cvs\openslp\openslp.HEAD\common\slp_xcast.h
 # End Source File
 # Begin Source File
 
-SOURCE=\mpeterson\cvs\openslp\openslp.HEAD\common\slp_xcast.h
+SOURCE=..\..\common\slp_xcast.h
 # End Source File
 # Begin Source File
 

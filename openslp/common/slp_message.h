@@ -54,11 +54,15 @@
 
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#include <winsock.h>
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#ifndef IPPROTO_IPV6
+//#include <tpipv6.h> // For IPv6 Tech Preview.
+#endif
+
 #ifndef UINT32_T_DEFINED
 #define UINT32_T_DEFINED
-typedef unsigned int uint32_t;
+typedef unsigned long uint32_t;
 #endif
 #else
 #include <sys/types.h>
@@ -393,7 +397,8 @@ typedef struct _SLPSAAdvert
 typedef struct _SLPMessage
 /*=========================================================================*/
 {
-    struct sockaddr_in    peer;
+    struct sockaddr_storage peer;
+    struct sockaddr_storage localaddr;
     SLPHeader             header;
     union _body
     {
@@ -453,25 +458,29 @@ int SLPMessageParseHeader(SLPBuffer buffer, SLPHeader* header);
 
 
 /*=========================================================================*/
-int SLPMessageParseBuffer(struct sockaddr_in* peerinfo,
+int SLPMessageParseBuffer(struct sockaddr_storage* peerinfo,
+                          struct sockaddr_storage* localaddr,
                           SLPBuffer buffer, 
                           SLPMessage message);
 /* Initializes a message descriptor by parsing the specified buffer.       */
 /*                                                                         */
-/* peerinfo - (IN) pointer to the network address information that sent    */ 
-/*                 buffer                                                  */
+/* peerinfo  - (IN) pointer to the network address information that sent   */ 
+/*                  buffer                                                 */
 /*                                                                         */
-/* buffer   - (IN) pointer the SLPBuffer to parse                          */
+/* localaddr - (IN) pointer to the local address of the socket on which    */ 
+/*                  the data was received                                  */
 /*                                                                         */
-/* message  - (OUT) set to describe the message from the buffer            */
+/* buffer    - (IN) pointer the SLPBuffer to parse                         */
 /*                                                                         */
-/* Returns  - Zero on success, SLP_ERROR_PARSE_ERROR, or                   */
-/*            SLP_ERROR_INTERNAL_ERROR if out of memory.  SLPMessage is    */
-/*            invalid return is not successful.                            */
+/* message   - (OUT) set to describe the message from the buffer           */
 /*                                                                         */
-/* WARNING  - If successful, pointers in the SLPMessage reference memory in*/ 
-/*            the parsed SLPBuffer.  If SLPBufferFree() is called then the */
-/*            pointers in SLPMessage will be invalidated.                  */
+/* Returns   - Zero on success, SLP_ERROR_PARSE_ERROR, or                  */
+/*             SLP_ERROR_INTERNAL_ERROR if out of memory.  SLPMessage is   */
+/*             invalid return is not successful.                           */
+/*                                                                         */
+/* WARNING   - If successful, pointers in the SLPMessage reference memory  */ 
+/*             in the parsed SLPBuffer.  If SLPBufferFree() is called then */
+/*             the pointers in SLPMessage will be invalidated.             */
 /*=========================================================================*/
 
 /*=========================================================================*/
@@ -487,24 +496,5 @@ void ToUINT16(char *charptr, unsigned int val);
 void ToUINT24(char *charptr, unsigned int val);
 void ToUINT32(char *charptr, unsigned int val);
 /*=========================================================================*/
-
-
-#ifdef i386
-
-/*=========================================================================*/
-/* Macros to check in_addr                                                 */
-#define ISLOCAL(addr) ((ntohl((addr).s_addr) & 0xff000000) == 0x7f000000)
-#define ISMCAST(addr) ((ntohl((addr).s_addr) & 0xff000000) >= 0xef000000)
-/*=========================================================================*/
-
-#else 
-
-/*=========================================================================*/
-/* Macros to check in_addr                                                 */
-#define ISLOCAL(addr) (((addr).s_addr & 0xff000000) == 0x7f000000)
-#define ISMCAST(addr) (((addr).s_addr & 0xff000000) >= 0xef000000)
-/*=========================================================================*/
-#endif
-
 
 #endif

@@ -1,4 +1,8 @@
+#if you're building on Irix, exchange commented and uncommented lines
+#noinst_LTLIBRARIES	= libcommonslpd.a libcommonlibslp.a
 noinst_LTLIBRARIES	= libcommonslpd.la libcommonlibslp.la
+
+
 EXTRA_DIST = 
 
 if ENABLE_SLPv1
@@ -9,8 +13,17 @@ if ENABLE_SLPv2_SECURITY
 slp_security_SRCS = slp_auth.c slp_crypto.c slp_spi.c
 endif
 
+#if you're building on Irix, exchange commented and uncommented lines
+#libcommonlibslp_a_SOURCES = \
+#
 libcommonlibslp_la_SOURCES = \
-	slp_compare.c \
+	slp_dhcp.c\
+	slp_iface.c\
+	slp_net.c\
+	slp_parse.c\
+	slp_pid.c\
+	slp_xcast.c\
+        slp_compare.c \
 	slp_buffer.c \
 	slp_message.c \
 	slp_property.c \
@@ -19,16 +32,19 @@ libcommonlibslp_la_SOURCES = \
 	slp_network.c \
 	slp_database.c \
 	slp_xmalloc.c \
-	slp_xcast.c \
-	slp_iface.c \
-	slp_parse.c \
-	slp_pid.c \
-	slp_dhcp.c \
 	$(slp_v1message_SRCS) \
 	$(slp_security_SRCS)
 
+#if you're building on Irix, exchange commented and uncommented lines
+#libcommonslpd_a_SOURCES = \
+#
 libcommonslpd_la_SOURCES = \
-	slp_compare.c \
+        slp_compare.c \
+	slp_dhcp.c\
+	slp_iface.c\
+	slp_net.c\
+	slp_parse.c\
+	slp_pid.c\
 	slp_buffer.c \
 	slp_message.c \
 	slp_property.c \
@@ -36,21 +52,20 @@ libcommonslpd_la_SOURCES = \
 	slp_xid.c \
 	slp_database.c \
 	slp_xmalloc.c \
-	slp_parse.c \
-	slp_iface.c \
-	slp_net.c \
-	slp_pid.c \
-	slp_attr_y.y \
-	slp_attr_l.l \
-	slp_filter_y.y \
-	slp_filter_l.l \
-	slp_predicate.c \
-	slp_dhcp.c \
 	$(slp_v1message_SRCS) \
 	$(slp_security_SRCS)
-	
 
 noinst_HEADERS = \
+	slp_attr.h\
+	slp_dhcp.h\
+	slp_filter.h\
+	slp_iface.h\
+	slp_net.h\
+	slp_parse.h\
+	slp_pid.h\
+	slp_predicate.h\
+	slp_win32.h\
+	slp_xcast.h\
 	slp_buffer.h \
 	slp_network.h \
 	slp_xid.h \
@@ -64,17 +79,4 @@ noinst_HEADERS = \
 	slp_auth.h \
 	slp_spi.h \
 	slp_xmalloc.h \
-	slp_utf8.h \
-	slp_xcast.h \
-	slp_iface.h \
-	slp_parse.h \
-	slp_net.h \
-	slp_pid.h \
-	slp_attr.h \
-	slp_attr_y.h \
-	slp_filter.h \
-	slp_filter_y.h \
-	slp_predicate.h \
-	slp_dhcp.h
-	
-AM_YFLAGS = -d
+	slp_utf8.h 

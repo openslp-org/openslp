@@ -1,6 +1,6 @@
 /***************************************************************************/
-/*									                                       */
-/* Project:     OpenSLP - OpenSource implementation of Service Location    */   
+/*                                                                         */
+/* Project:     OpenSLP - OpenSource implementation of Service Location    */
 /*              Protocol                                                   */
 /*                                                                         */
 /* File:        libslp.h                                                   */
@@ -18,7 +18,7 @@
 /*                                                                         */
 /* Redistribution and use in source and binary forms, with or without      */
 /* modification, are permitted provided that the following conditions are  */
-/* met:                                                                    */ 
+/* met:                                                                    */
 /*                                                                         */
 /*      Redistributions of source code must retain the above copyright     */
 /*      notice, this list of conditions and the following disclaimer.      */
@@ -52,7 +52,11 @@
 
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
+#include <Winsock2.h>
 #include <windows.h>
+
+#include <Ws2tcpip.h>
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -239,36 +243,36 @@ typedef struct _SLPHandleInfo
 /* a structSLPHandleInfo                                                 */
 /*=========================================================================*/
 {
-    unsigned int        sig;
-    SLPBoolean          inUse;
-    SLPBoolean          isAsync;
-    int                 dasock;
-    struct sockaddr_in  daaddr;
-    char*               dascope;
-    int                 dascopelen;
-    int                 sasock;
-    struct sockaddr_in  saaddr;
-    char*               sascope;
-    int                 sascopelen;
+    unsigned int			sig;
+    SLPBoolean				inUse;
+    SLPBoolean				isAsync;
+    int						dasock;
+    struct sockaddr_storage daaddr;
+    char*					dascope;
+    int						dascopelen;
+    int						sasock;
+    struct sockaddr_storage saaddr;
+    char*					sascope;
+    int						sascopelen;
 #ifndef MI_NOT_SUPPORTED
-    const char *McastIFList;
+    const char				*McastIFList;
 #endif /* MI_NOT_SUPPORTED */
 #ifndef UNICAST_NOT_SUPPORTED
-    int                 dounicast;
-    int                 unicastsock;
-    struct sockaddr_in  unicastaddr;
-    char*               unicastscope;
-    int                 unicastscopelen;
+    int						dounicast;
+    int						unicastsock;
+    struct sockaddr_storage unicastaddr;
+    char*					unicastscope;
+    int						unicastscopelen;
     #endif
-    int                 langtaglen;
-    char*               langtag;
-    int                 callbackcount;
-    SLPList             collatedsrvurls;
-    char*               collatedsrvtypes;
+    int						langtaglen;
+    char*					langtag;
+    int						callbackcount;
+    SLPList					collatedsrvurls;
+    char*					collatedsrvtypes;
 #ifdef ENABLE_SLPv2_SECURITY
-    SLPSpiHandle        hspi;
+    SLPSpiHandle			hspi;
 #endif
-    SLPHandleCallParams params;
+    SLPHandleCallParams		params;
 }SLPHandleInfo, *PSLPHandleInfo; 
 
 
@@ -291,12 +295,12 @@ SLPError ThreadCreate(ThreadStartProc startproc, void *arg);
 
 
 /*=========================================================================*/
-int NetworkConnectToMulticast(struct sockaddr_in* peeraddr);
+int NetworkConnectToMulticast(struct sockaddr_storage* peeraddr);
 /*=========================================================================*/
 
 
 /*=========================================================================*/
-int NetworkConnectToSlpd(struct sockaddr_in* peeraddr); 
+int NetworkConnectToSlpd(struct sockaddr_storage* peeraddr); 
 /* Connects to slpd and provides a peeraddr to send to                     */
 /*                                                                         */
 /* peeraddr         (OUT) pointer to receive the connected DA's address    */
@@ -325,7 +329,7 @@ void NetworkDisconnectSA(PSLPHandleInfo handle);
 int NetworkConnectToDA(PSLPHandleInfo handle,
                        const char* scopelist,
                        int scopelistlen,
-                       struct sockaddr_in* peeraddr); 
+                       struct sockaddr_storage* peeraddr); 
 /* Connects to slpd and provides a peeraddr to send to                     */
 /*                                                                         */
 /* handle           (IN) SLPHandle info (caches connection reuse info)     */
@@ -346,7 +350,7 @@ int NetworkConnectToDA(PSLPHandleInfo handle,
 int NetworkConnectToSA(PSLPHandleInfo handle,
                        const char* scopelist,
                        int scopelistlen,
-                       struct sockaddr_in* peeraddr); 
+                       struct sockaddr_storage* peeraddr); 
 /* Connects to slpd and provides a peeraddr to send to                     */
 /*                                                                         */
 /* handle           (IN) SLPHandle info  (caches connection info)          */
@@ -365,7 +369,7 @@ int NetworkConnectToSA(PSLPHandleInfo handle,
 
 /*=========================================================================*/
 typedef SLPBoolean NetworkRplyCallback(SLPError errorcode,
-                                       struct sockaddr_in* peerinfo,
+                                       struct sockaddr_storage* peerinfo,
                                        SLPBuffer replybuf,
                                        void* cookie);  
 /* Function called by NetworkRqstRply to notify caller of the replies      */
@@ -392,7 +396,7 @@ typedef SLPBoolean NetworkRplyCallback(SLPError errorcode,
 
 /*=========================================================================*/
 SLPError NetworkRqstRply(int sock,
-                         struct sockaddr_in* peeraddr,
+                         struct sockaddr_storage* peeraddr,
                          const char* langtag,
                          int extoffset,
                          char* buf,
@@ -472,7 +476,7 @@ SLPError NetworkUcastRqstRply(PSLPHandleInfo handle,
 int KnownDAConnect(PSLPHandleInfo handle,
                    int scopelistlen,
                    const char* scopelist,
-                   struct sockaddr_in* peeraddr);
+                   struct sockaddr_storage* peeraddr);
 /* handle           (IN) SLPHandle info  (caches connection info)          */
 /*                                                                         */
 /* Get a connected socket to a DA that supports the specified scope        */
@@ -489,7 +493,7 @@ int KnownDAConnect(PSLPHandleInfo handle,
 
 
 /*=========================================================================*/
-void KnownDABadDA(struct in_addr* daaddr);
+void KnownDABadDA(struct sockaddr_storage* daaddr);
 /* Mark a KnownDA as a Bad DA.                                             */
 /*                                                                         */
 /* peeraddr (IN) address of the bad DA                                     */

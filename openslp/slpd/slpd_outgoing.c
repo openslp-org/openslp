@@ -63,6 +63,7 @@
 /* common code includes                                                    */
 /*=========================================================================*/
 #include "slp_message.h"
+#include "slp_net.h"
 
 
 /*=========================================================================*/
@@ -75,19 +76,20 @@ void OutgoingDatagramRead(SLPList* socklist, SLPDSocket* sock)
 /*-------------------------------------------------------------------------*/
 {
     int                 bytesread;
-    int                 peeraddrlen = sizeof(struct sockaddr_in);
+    int                 peeraddrlen = sizeof(struct sockaddr_storage);
 
     bytesread = recvfrom(sock->fd,
                          sock->recvbuf->start,
                          SLP_MAX_DATAGRAM_SIZE,
                          0,
-                         (struct sockaddr *) &(sock->peeraddr),
+                         (struct sockaddr*) &(sock->peeraddr),
                          &peeraddrlen);
     if ( bytesread > 0 )
     {
         sock->recvbuf->end = sock->recvbuf->start + bytesread;
 
         SLPDProcessMessage(&(sock->peeraddr),
+                           &(sock->localaddr),
                            sock->recvbuf,
                            &(sock->sendbuf));
 
@@ -100,6 +102,7 @@ void OutgoingDatagramRead(SLPList* socklist, SLPDSocket* sock)
 void OutgoingStreamReconnect(SLPList* socklist, SLPDSocket* sock)
 /*-------------------------------------------------------------------------*/
 {
+    char                addr_str[INET6_ADDRSTRLEN];
 #ifdef _WIN32
     u_long              fdflags;
 #else    
@@ -119,7 +122,7 @@ void OutgoingStreamReconnect(SLPList* socklist, SLPDSocket* sock)
     /* Log that reconnect warning */
     SLPDLog("WARNING: Reconnect to agent at %s.  Agent may not be making efficient \n"
             "         use of TCP.\n",
-            inet_ntoa(sock->peeraddr.sin_addr));
+            SLPNetSockAddrStorageToString(&(sock->peeraddr), addr_str, sizeof(addr_str)));
     #endif
 
     /*----------------------------------------------------------------*/
@@ -133,7 +136,7 @@ void OutgoingStreamReconnect(SLPList* socklist, SLPDSocket* sock)
         sock->state = SOCKET_CLOSE;
         SLPDLog("WARNING: Reconnect tries to agent at %s exceeded maximum. It\n"
                 "         is possible that the agent is malicious.  Check it out!\n",
-                inet_ntoa(sock->peeraddr.sin_addr));
+                SLPNetSockAddrStorageToString(&(sock->peeraddr), addr_str, sizeof(addr_str)));
         return;
     }
 
@@ -142,7 +145,16 @@ void OutgoingStreamReconnect(SLPList* socklist, SLPDSocket* sock)
     /* socket                                                         */
     /*----------------------------------------------------------------*/
     CloseSocket(sock->fd);
-    sock->fd = socket(PF_INET,SOCK_STREAM,0);
+
+    if ( sock->peeraddr.ss_family == AF_INET )
+    {
+        sock->fd = socket(PF_INET,SOCK_STREAM,0);
+    }
+    else if (sock->peeraddr.ss_family == AF_INET6)
+    {
+        sock->fd = socket(PF_INET6,SOCK_STREAM,0);
+    }
+
     if ( sock->fd < 0 )
     {
         sock->state = SOCKET_CLOSE;
@@ -165,8 +177,8 @@ void OutgoingStreamReconnect(SLPList* socklist, SLPDSocket* sock)
     /* Connect a the new socket */
     /*--------------------------*/
     if ( connect(sock->fd, 
-                 (struct sockaddr *)&(sock->peeraddr), 
-                 sizeof(struct sockaddr_in)) )
+                 (struct sockaddr*) &(sock->peeraddr), 
+                 sizeof(struct sockaddr_storage)) )
     {
 #ifdef _WIN32
         if ( WSAEWOULDBLOCK == WSAGetLastError() )
@@ -192,7 +204,7 @@ void OutgoingStreamRead(SLPList* socklist, SLPDSocket* sock)
 {
     int     bytesread;
     char    peek[16];
-    int     peeraddrlen = sizeof(struct sockaddr_in);
+    int     peeraddrlen = sizeof(struct sockaddr_storage);
 
     if ( sock->state == STREAM_READ_FIRST )
     {
@@ -203,7 +215,7 @@ void OutgoingStreamRead(SLPList* socklist, SLPDSocket* sock)
                              peek,
                              16,
                              MSG_PEEK,
-                             (struct sockaddr *)&(sock->peeraddr),
+                             (struct sockaddr*) &(sock->peeraddr),
                              &peeraddrlen);
         if ( bytesread > 0 )
         {
@@ -255,6 +267,7 @@ void OutgoingStreamRead(SLPList* socklist, SLPDSocket* sock)
             if ( sock->recvbuf->curpos == sock->recvbuf->end )
             {
                 switch ( SLPDProcessMessage(&(sock->peeraddr),
+                                            &(sock->localaddr),
                                             sock->recvbuf,
                                             &(sock->sendbuf)) )
                 {
@@ -374,7 +387,7 @@ void OutgoingStreamWrite(SLPList* socklist, SLPDSocket* sock)
 }
 
 /*=========================================================================*/
-SLPDSocket* SLPDOutgoingConnect(struct in_addr* addr)
+SLPDSocket* SLPDOutgoingConnect(struct sockaddr_storage* addr)
 /* Get a pointer to a connected socket that is associated with the         */
 /* outgoing socket list.  If a connected socket already exists on the      */
 /* outgoing list, a pointer to it is returned, otherwise a new connection  */
@@ -391,7 +404,7 @@ SLPDSocket* SLPDOutgoingConnect(struct in_addr* addr)
         if ( sock->state == STREAM_CONNECT_IDLE ||
              sock->state > SOCKET_PENDING_IO )
         {
-            if ( sock->peeraddr.sin_addr.s_addr == addr->s_addr )
+            if (SLPNetCompareAddrs(&(sock->peeraddr),addr) == 0 )
             {
                 break;
             }
@@ -424,8 +437,8 @@ void SLPDOutgoingDatagramWrite(SLPDSocket* sock)
                 sock->sendbuf->start,
                 sock->sendbuf->end - sock->sendbuf->start,
                 0,
-                (struct sockaddr *) &(sock->peeraddr),
-                sizeof(struct sockaddr_in)) >= 0 )
+                (struct sockaddr*) &(sock->peeraddr),
+                sizeof(struct sockaddr_storage)) >= 0 )
     {
         /* Link the socket into the outgoing list so replies will be */
         /* processed                                                 */
@@ -543,7 +556,7 @@ void SLPDOutgoingAge(time_t seconds)
                 if ( sock->age > SLPD_CONFIG_BUSY_CLOSE_CONN )
                 {
                     /* Remove peer from KnownDAs since it might be dead */
-                    SLPDKnownDARemove(&(sock->peeraddr.sin_addr));
+                    SLPDKnownDARemove(&(sock->peeraddr));
                     del = sock;
                 }
             }
@@ -552,7 +565,7 @@ void SLPDOutgoingAge(time_t seconds)
                 if ( sock->age > SLPD_CONFIG_CLOSE_CONN )
                 {
                     /* Remove peer from KnownDAs since it might be dead */
-                    SLPDKnownDARemove(&(sock->peeraddr.sin_addr));
+                    SLPDKnownDARemove(&(sock->peeraddr));
                     del = sock;
                 }
             }

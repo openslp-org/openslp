@@ -156,7 +156,7 @@ SLPBoolean ColateSrvTypeCallback(SLPHandle hSLP,
 
 /*----------------------------------------------------------------------------*/
 SLPBoolean ProcessSrvTypeRplyCallback(SLPError errorcode, 
-                                      struct sockaddr_in* peerinfo,
+                                      struct sockaddr_storage* peerinfo,
                                       SLPBuffer replybuf,
                                       void* cookie)
 /*----------------------------------------------------------------------------*/
@@ -183,7 +183,7 @@ SLPBoolean ProcessSrvTypeRplyCallback(SLPError errorcode,
     replymsg = SLPMessageAlloc();
     if(replymsg)
     {
-        if(SLPMessageParseBuffer(peerinfo,replybuf,replymsg) == 0 &&
+        if(SLPMessageParseBuffer(peerinfo,NULL,replybuf,replymsg) == 0 &&
            replymsg->header.functionid == SLP_FUNCT_SRVTYPERPLY &&
            replymsg->body.srvtyperply.errorcode == 0)
         {
@@ -216,12 +216,12 @@ SLPBoolean ProcessSrvTypeRplyCallback(SLPError errorcode,
 SLPError ProcessSrvTypeRqst(PSLPHandleInfo handle)
 /*-------------------------------------------------------------------------*/
 {
-    int                 sock;
-    struct sockaddr_in  peeraddr;
-    int                 bufsize     = 0;
-    char*               buf         = 0;
-    char*               curpos      = 0;
-    SLPError            result      = 0;
+    int						sock;
+    struct sockaddr_storage peeraddr;
+    int						bufsize     = 0;
+    char*					buf         = 0;
+    char*					curpos      = 0;
+    SLPError				result      = 0;
 
     /*-------------------------------------------------------------------*/
     /* determine the size of the fixed portion of the SRVTYPERQST            */
