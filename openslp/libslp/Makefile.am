@@ -29,4 +29,4 @@ libslp_la_SOURCES = libslp_dereg.c   \
 #libslp_la_LIBADD = -L../common/libcommonlibslp
 libslp_la_LIBADD = ../common/libcommonlibslp.la
 
-libslp_la_LDFLAGS = -version-info 1:0:0
+libslp_la_LDFLAGS = -version-info 1:1:0

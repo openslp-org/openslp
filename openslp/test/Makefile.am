@@ -36,11 +36,8 @@ testslpd_predicate_test_SOURCES = SLPD_predicate_test/slpd_predicate_test.c
 clean-local:
 	-rm -f *.output
 
-# We have to manually copy files in the VPATH directories. 
+# We have to manually copy files in the TEST directories. 
 dist-hook:
-	@for d in `echo $(VPATH) | sed 's/:/ /g'`; do             \
-            if test $$d != $(srcdir); then                        \
-                cp -pr $$d $(distdir)/`basename $$d`;             \
-            fi;                                                   \
-        done
-
+	@for d in $(TESTS); do                               \
+	    cp -pr $(srcdir)/`dirname $$d`/* $(distdir)/`dirname $$d`; \
+	done
