@@ -57,7 +57,7 @@
 #include <winsock2.h>
 #ifndef UINT32_T_DEFINED
 #define UINT32_T_DEFINED
-typedef unsigned int uint32_t;
+typedef unsigned long uint32_t;
 #endif
 #else
 #include <sys/types.h>

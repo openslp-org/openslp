@@ -114,7 +114,8 @@ int SLPIfaceGetInfo(const char* useifaces,
         useifacesLen = 0;
     }
     sts = GetAdaptersAddresses(family,
-            GAA_FLAG_SKIP_FRIENDLY_NAME | GAA_FLAG_SKIP_DNS_SERVER,
+            //GAA_FLAG_SKIP_FRIENDLY_NAME | GAA_FLAG_SKIP_DNS_SERVER,
+			0,
             NULL,
             addresses,
             &addressesLen);
@@ -357,10 +358,8 @@ int main(int argc, char* argv[])
     }
 
 
-    if(SLPIfaceGetInfo("1:2:0:0:0:0:0:4,5:6::7", &ifaceinfo, AF_INET6) == 0)
-    {
-    
-    }
+    SLPIfaceGetInfo("fec0:0:0:0001:0:0:0:3,5:6::7,10.0.25.82", &ifaceinfo, AF_INET6);
+    SLPIfaceGetInfo("fec0:0:0:0001:0:0:0:3,5:6::7,10.0.25.82", &ifaceinfo, AF_INET);
     if(SLPIfaceStringToSockaddrs("192.168.100.1,192.168.101.1",
                                  addrs,
                                  &addrscount) == 0)

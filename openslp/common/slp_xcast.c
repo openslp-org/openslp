@@ -76,22 +76,6 @@
 #include "slp_message.h"
 #include "slp_net.h"
 
-LPSTR DecodeError(int ErrorCode)
-{
-    static char Message[1024];
-
-    // If this program was multi-threaded, we'd want to use
-    // FORMAT_MESSAGE_ALLOCATE_BUFFER instead of a static buffer here.
-    // (And of course, free the buffer when we were done with it)
-
-    FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS |
-                  FORMAT_MESSAGE_MAX_WIDTH_MASK,
-                  NULL, ErrorCode, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-                  (LPSTR)Message, 1024, NULL);
-    return Message;
-}
-
-
 /*========================================================================*/
 int SLPBroadcastSend(const SLPIfaceInfo* ifaceinfo, 
                      SLPBuffer msg,
@@ -235,7 +219,6 @@ int SLPMulticastSend(const SLPIfaceInfo* ifaceinfo,
             /* send via IPV6 multicast */
             if (bind(socks->sock[socks->sock_count], (struct sockaddr *) &socks->peeraddr[socks->sock_count], sizeof(struct sockaddr_storage)) != 0) {
                 /* error setting socket option */
-                printf("Error binding.  Error was %s\r\n", DecodeError(WSAGetLastError()));
                 return -1;
             }
             if (dst->ss_family == AF_INET6) {
@@ -258,7 +241,6 @@ int SLPMulticastSend(const SLPIfaceInfo* ifaceinfo,
         if (xferbytes <= 0)
         {
             /* error sending */
-            printf("Error sending.  Error was %s\r\n", DecodeError(WSAGetLastError()));
             return -1;
         }
     }
