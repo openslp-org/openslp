@@ -294,10 +294,6 @@ int BindSocketToInetAddr(int family, int sock, struct sockaddr_storage* addr)
         setsockopt(sock,SOL_SOCKET,SO_RCVLOWAT,&lowat,sizeof(lowat));
         setsockopt(sock,SOL_SOCKET,SO_SNDLOWAT,&lowat,sizeof(lowat));
     }
-    else {
-        printf("Bind error.\n");
-    }
-
     return result;
 }
 
