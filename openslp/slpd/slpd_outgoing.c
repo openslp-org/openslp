@@ -533,12 +533,14 @@ void SLPDOutgoingAge(time_t seconds)
         case STREAM_WRITE_FIRST:
             sock->age = 0;
             break;
+        
+        case STREAM_CONNECT_IDLE:
         case STREAM_CONNECT_BLOCK:
         case STREAM_READ:
         case STREAM_WRITE:
             if ( G_OutgoingSocketList.count > SLPD_COMFORT_SOCKETS )
             {
-                /* Accellerate ageing cause we are low on sockets */
+                /* Accelerate ageing cause we are low on sockets */
                 if ( sock->age > SLPD_CONFIG_BUSY_CLOSE_CONN )
                 {
                     SLPDKnownDARemove(&(sock->peeraddr.sin_addr));
@@ -555,8 +557,9 @@ void SLPDOutgoingAge(time_t seconds)
             }
             sock->age = sock->age + seconds;
             break;
-
+            
         case STREAM_WRITE_WAIT:
+            /* this when we are talking to a busy DA */
             sock->age = 0;
             sock->state = STREAM_WRITE_FIRST;
             break;
