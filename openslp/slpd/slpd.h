@@ -662,9 +662,9 @@ void SLPDKnownDARemove(SLPDAEntry* daentry);
 void SLPDKnownDARegister(struct sockaddr_in* peerinfo,
                          SLPMessage msg,
                          SLPBuffer buf);
-/* Echo a message to a known DA                                            */
-/*									   */
-/* peerinf (IN) the peer that the registration came from                   */    
+/* Echo a srvreg message to a known DA                                     */
+/*									                                       */
+/* peerinfo (IN) the peer that the registration came from                  */    
 /*                                                                         */ 
 /* msg (IN) the translated message to echo                                 */
 /*                                                                         */
@@ -685,8 +685,7 @@ void SLPDKnownDAActiveDiscovery();
 /*=========================================================================*/
 extern SLPList G_KnownDAList;                                         
 /* The list of DAs known to slpd.                                          */
-/*=========================================================================*/
-
+/*=========================================================================*/  
 
 
 #if(defined USE_PREDICATES)
@@ -740,8 +739,7 @@ int SLPDTestPredicate(SLPDPredicate predicate, SLPAttributes attr);
 /*          predicate string.                                              */
 /*=========================================================================*/
 
-#endif /* (defined USE_PREDICATES) */
-
+#endif /* (defined USE_PREDICATES) */ 
 
 
 #endif /*(!defined SLPD_H_INCLUDED) */

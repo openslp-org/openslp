@@ -223,12 +223,12 @@ void SLPDKnownDARemove(SLPDAEntry* daentry)
 
 
 /*=========================================================================*/
-void SLPDKnownDARegister(struct sockaddr_in* peeraddr,
-                         SLPMessage msg,
-                         SLPBuffer buf)
-/* Echo a message to a known DA                                            */
-/*									   */
-/* peerinfo (IN) the peer that the registration came from                   */    
+void SLPDKnownDAEcho(struct sockaddr_in* peeraddr,
+                     SLPMessage msg,
+                     SLPBuffer buf)
+/* Echo a srvreg message to a known DA                                     */
+/*									                                       */
+/* peerinfo (IN) the peer that the registration came from                  */    
 /*                                                                         */ 
 /* msg (IN) the translated message to echo                                 */
 /*                                                                         */
@@ -244,8 +244,38 @@ void SLPDKnownDARegister(struct sockaddr_in* peeraddr,
     daentry = (SLPDAEntry*)G_KnownDAList.head;
     while (daentry)
     {
+        /*-----------------------------------------------------*/
+        /* Do not echo to agents that do not support the scope */
+        /*-----------------------------------------------------*/
+        if(msg->header.functionid == SLP_FUNCT_SRVREG)
+        {
+            if(SLPIntersectStringList(daentry->scopelistlen,
+                                  daentry->scopelist,
+                                  msg->body.srvreg.scopelistlen,
+                                  msg->body.srvreg.scopelist) == 0)
+            {
+                continue;
+            }
+
+        }
+        else if(msg->header.functionid == SLP_FUNCT_SRVDEREG)
+        {
+            if(SLPIntersectStringList(daentry->scopelistlen,
+                                  daentry->scopelist,
+                                  msg->body.srvdereg.scopelistlen,
+                                  msg->body.srvdereg.scopelist) == 0)
+            {
+                continue;
+            }
+        }
+        else
+        {
+            continue;
+        } 
         
+        /*--------------------------------------------------------------*/
         /* Check to see if we already have a connection to the Known DA */
+        /*--------------------------------------------------------------*/
         sock = (SLPDSocket*)G_OutgoingSocketList.head;
         while (sock)
         {
@@ -256,7 +286,9 @@ void SLPDKnownDARegister(struct sockaddr_in* peeraddr,
             sock = (SLPDSocket*)sock->listitem.next;
         }
 
+        /*----------------------------------------------------------*/
         /* if we don't have a connection to the known DA create one */
+        /*--------------------------------------------------------------*/
         if (sock == 0)
         {
             sock = SLPDSocketCreateConnected(&(daentry->daaddr));
@@ -267,7 +299,9 @@ void SLPDKnownDARegister(struct sockaddr_in* peeraddr,
             }  
         }
 
+        /*------------------------------------------*/
         /* Load the socket with the message to send */
+        /*------------------------------------------*/
         if(sock)
         {
             dup = SLPBufferDup(buf);

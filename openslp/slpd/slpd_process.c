@@ -1176,7 +1176,7 @@ int SLPDProcessMessage(struct sockaddr_in* peerinfo,
 
     case SLP_FUNCT_SRVDEREG:
         errorcode = ProcessSrvDeReg(peerinfo, message,sendbuf, errorcode);
-        SLPDKnownDARegister(peerinfo, message, recvbuf);
+        SLPDKnownDADeRegister(peerinfo, message, recvbuf);
         break;
 
     case SLP_FUNCT_SRVACK:

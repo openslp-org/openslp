@@ -82,6 +82,7 @@ void SLPDPropertyInit(const char* conffile)
     G_SlpdProperty.traceDATraffic = SLPPropertyAsBoolean(SLPPropertyGet("net.slp.traceDATraffic"));
     G_SlpdProperty.DAAddresses = SLPPropertyGet("net.slp.DAAddresses");
     G_SlpdProperty.DAAddressesLen = strlen(G_SlpdProperty.DAAddresses);
+    /* TODO make sure that we are using scopes correctly.  What about DHCP, etc*/
     G_SlpdProperty.useScopes = SLPPropertyGet("net.slp.useScopes");
     G_SlpdProperty.useScopesLen = strlen(G_SlpdProperty.useScopes);
     G_SlpdProperty.locale = SLPPropertyGet("net.slp.locale");
