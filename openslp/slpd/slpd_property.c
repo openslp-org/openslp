@@ -60,26 +60,23 @@ char* GetHostname()
 /* free returned string                                                    */
 /*-------------------------------------------------------------------------*/
 {
-    char*   host    = 0;
+     /* TODO find a better constant for MAX_HOSTNAME */
+	#define MAX_HOST_NAME 256
+	
+	char   			host[MAX_HOST_NAME];
+	char*   		hostfdn = 0;
+	struct hostent* he;
 
-    /* TODO find a better constant for MAX_HOSTNAME */
-    #define MAX_HOST_NAME 1024    
-    host = (char*)malloc(MAX_HOST_NAME);
-    if(host == 0)
+    if(gethostname(host, MAX_HOST_NAME) == 0)
     {
-        return host;  
-    }
-    memset(host,0,MAX_HOST_NAME);
-    if (gethostname(host, MAX_HOST_NAME) != 0)
-    {
-        free(host);
-        host = 0;
+        he = gethostbyname(host);
+		if(he)
+		{
+			hostfdn = strdup(he->h_name);
+		}      
     }
 
-    /* fix for hostname stupidity.  Looks like hostname is not FQDN on  */
-    /* some systems */
-
-    return host;
+    return hostfdn;
 }
 
 
@@ -233,6 +230,7 @@ void SLPDPropertyInit(const char* conffile)
         G_SlpdProperty.interfaces = SLPPropertyGet("net.slp.interfaces");
     }
     G_SlpdProperty.interfacesLen = strlen(G_SlpdProperty.interfaces);
+	SLPLog("Agent Interfaces = %s\n",G_SlpdProperty.interfaces);
     
     
     /*---------------------------------------------------------*/
@@ -256,7 +254,8 @@ void SLPDPropertyInit(const char* conffile)
         G_SlpdProperty.myUrlLen = strlen(G_SlpdProperty.myUrl);
 
         free(myname);
-    }   
+    }
+	SLPLog("Agent URL = %s\n",G_SlpdProperty.myUrl);
 
     /*----------------------------------*/
     /* Set other values used internally */

@@ -377,13 +377,14 @@ int main(int argc, char* argv[])
         SLPFatal("Could not open logfile %s\n",G_SlpdCommandLine.logfile);
     }
    
-    /*---------------------*/
+  	/*---------------------*/
     /* Log startup message */
     /*---------------------*/
     SLPLog("****************************************\n");
-    SLPLog("*** SLPD daemon started              ***\n");
+    SLPLog("*** SLPD daemon started             ***\n");
     SLPLog("****************************************\n");
-    SLPLog("command line = %s\n",argv[0]);
+    SLPLog("Command line = %s\n",argv[0]);
+
 
     /*--------------------------------------------------*/
     /* Initialize for the first time                    */
@@ -422,7 +423,6 @@ int main(int argc, char* argv[])
     G_SIGALRM   = 0;
     G_SIGTERM   = 0;
     G_SIGHUP    = 0;    
-    SLPLog("Initialization complete\n\n");
     while(G_SIGTERM == 0)
     {
         /*--------------------------------------------------------*/
