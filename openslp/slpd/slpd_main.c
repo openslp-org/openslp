@@ -220,6 +220,17 @@ void HandleSigAlrm()
     SLPDDatabaseAge(SLPD_AGE_INTERVAL,G_SlpdProperty.isDA);
 }
 
+
+#ifdef DEBUG
+/*--------------------------------------------------------------------------*/
+void HandleSigInt()
+/*--------------------------------------------------------------------------*/
+{
+    SLPDDatabaseDump();
+}
+#endif
+
+
 #ifndef WIN32
 /*-------------------------------------------------------------------------*/
 int CheckPid(const char* pidfile)
@@ -351,15 +362,6 @@ int Daemonize(const char* pidfile)
 
     return 0;
 }
-
-#ifdef DEBUG
-
-void HandleSigInt()
-{
-	    SLPDDumpDatabase();
-}
-
-#endif
 
 
 /*--------------------------------------------------------------------------*/

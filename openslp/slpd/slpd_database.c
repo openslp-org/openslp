@@ -718,11 +718,10 @@ int SLPDDatabaseEnum(void** handle,
     return 0;
 }
 
-#ifdef DEBUG
-
+#ifdef DEBUG 
 /*=========================================================================*/
-void SLPDDumpDatabase (void)
-/* Dumps currently valid service registrations present with slpd             */
+void SLPDDatabaseDump(void)
+/* Dumps currently valid service registrations present with slpd           */
 /*=========================================================================*/
 {
 
@@ -751,5 +750,4 @@ void SLPDDumpDatabase (void)
 	    entry = (SLPDDatabaseEntry*)entry->listitem.next;
     }
 }
-
 #endif

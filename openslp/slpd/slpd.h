@@ -225,16 +225,10 @@ int SLPDPropertyInit(const char* conffile);
 /*=========================================================================*/
 
 #ifdef DEBUG
-
-
-
 /*=========================================================================*/
 void SLPDPropertyDeinit();
 /*=========================================================================*/
 #endif
-
-
-
 
 
 /*=========================================================================*/
@@ -329,18 +323,17 @@ int SLPDDatabaseReInit(const char* regfile);
 
 
 #ifdef DEBUG
+/*=========================================================================*/
+void SLPDDatabaseDump(void);
+/* Dumps currently valid service registrations present with slpd           */
+/*=========================================================================*/
 
-
-
+  
 /*=========================================================================*/
 void SLPDDatabaseDeinit();
 /* De-initialize the database.  Free all resources taken by registrations  */
 /*=========================================================================*/
 #endif
-
-
-
-
 
 /*=========================================================================*/
 SLPDDatabaseEntry *SLPDDatabaseEntryAlloc();
@@ -362,8 +355,8 @@ void SLPDDatabaseAge(int seconds, int ageall);
 /* Agea the database entries and clears new and deleted entry lists        */
 /*                                                                         */
 /* seconds  (IN) the number of seconds to age each entry by                */
-/*																		   */
-/* ageall   (IN) age even entries with SLP_LIFETIME_MAX					   */
+/*									   */
+/* ageall   (IN) age even entries with SLP_LIFETIME_MAX		           */
 /*                                                                         */
 /* Returns  - None                                                         */
 /*=========================================================================*/
@@ -772,13 +765,8 @@ int SLPDKnownDAEntryToDAAdvert(int errorcode,
 /* returns: zero on success, non-zero on error                             */
 /*=========================================================================*/
 
+
 #if defined(ENABLE_SLPv1)
-
-
-
-
-
-
 /*=========================================================================*/
 int SLPDv1KnownDAEntryToDAAdvert(int errorcode,
                                  int encoding,
@@ -802,11 +790,6 @@ int SLPDv1KnownDAEntryToDAAdvert(int errorcode,
 /* returns: zero on success, non-zero on error                             */
 /*=========================================================================*/
 #endif
-
-
-
-
-
 
 
 /*=========================================================================*/
@@ -840,7 +823,7 @@ void SLPDKnownDAEcho(struct sockaddr_in* peerinfo,
                      SLPMessage msg,
                      SLPBuffer buf);     
 /* Echo a srvreg message to a known DA                                     */
-/*									                                       */
+/*									   */
 /* peerinfo (IN) the peer that the registration came from                  */
 /*                                                                         */
 /* msg (IN) the translated message to echo                                 */
@@ -854,10 +837,10 @@ void SLPDKnownDAEcho(struct sockaddr_in* peerinfo,
 /*=========================================================================*/
 void SLPDKnownDAActiveDiscovery(int seconds);
 /* Set outgoing socket list to send an active DA discovery SrvRqst         */
-/*									                                       */
+/*									   */
 /* seconds (IN) number seconds that elapsed since the last call to this    */
 /*              function                                                   */
-/*									                                       */
+/*									   */
 /* Returns:  none                                                          */
 /*=========================================================================*/
 
@@ -866,7 +849,7 @@ void SLPDKnownDAActiveDiscovery(int seconds);
 void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead);
 /* Send passive daadvert messages if properly configured and running as    */
 /* a DA                                                                    */
-/*	                                                                       */
+/*	                                                                   */
 /* seconds (IN) number seconds that elapsed since the last call to this    */
 /*              function                                                   */
 /*                                                                         */
@@ -892,9 +875,6 @@ extern SLPList G_KnownDAList;
 
 
 #if(defined USE_PREDICATES)
-
-
-
 /*=========================================================================*/
 int SLPDPredicateTest(int predicatever, const char* predicate,
                       SLPAttributes attr); 
