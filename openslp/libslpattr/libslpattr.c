@@ -1888,6 +1888,12 @@ SLPError SLPAttrSerialize(SLPAttributes attr_h,
     /***** Find the size of string needed for the attribute string. *****/
     while(var_iter(slp_attr, &tag_cur, &tag_end, &var))
     {
+        /*** Skip bad tags? ***/
+        if(var == NULL)
+        {
+            continue;
+        }
+        
         /*** Skip old attributes. ***/
         if(find_delta == SLP_TRUE && var->modified == SLP_FALSE)
         {
@@ -1979,6 +1985,12 @@ SLPError SLPAttrSerialize(SLPAttributes attr_h,
     cur = build_str;
     while(var_iter(slp_attr, &tag_cur, &tag_end, &var))
     {
+        /*** Skip bad tags? ***/
+        if(var == NULL)
+        {
+            continue;
+        }
+        
         /*** Skip old attributes. ***/
         if(find_delta == SLP_TRUE && var->modified == SLP_FALSE)
         {
