@@ -60,6 +60,11 @@
 #include "slp_database.h"
 
 
+#define SLPDLOG_TRACEMSG     0x80000000
+#define SLPDLOG_TRACEDROP    0x40000000
+#define SLPDLOG_TRACEMSG_IN  (SLPDLOG_TRACEMSG | 0x00000001)
+#define SLPDLOG_TRACEMSG_OUT (SLPDLOG_TRACEMSG | 0x00000002)
+
 /*=========================================================================*/
 int SLPDLogFileOpen(const char* path, int append);
 /* Prepares the file at the specified path as the log file.                */
@@ -109,13 +114,13 @@ void SLPDLogMessageInternals(SLPMessage message);
 
 
 /*=========================================================================*/
-void SLPDLogMessage(const char* prefix, 
+void SLPDLogMessage(int msglogflags,
                     struct sockaddr_in* peerinfo,
                     SLPBuffer buf);
 /* Log record of receiving or sending an SLP Message.  Logging will only   */
 /* occur if message logging is enabled G_SlpProperty.traceMsg != 0         */
 /*                                                                         */
-/* prefix   (IN) an informative prefix for the log entry                   */
+/* msglogflags   (IN) What type of message to log                          */
 /*                                                                         */
 /* peerinfo (IN) the source or destination peer                            */
 /*                                                                         */
@@ -152,4 +157,11 @@ void SLPDLogDAAdvertisement(const char* prefix,
 /*                                                                         */
 /* Returns: none                                                           */
 /*=========================================================================*/
+
+
+/*=========================================================================*/
+void SLPDLogParseWarning(struct sockaddr_in* peeraddr, SLPBuffer buf);
+/* Log a parsing error warning and dumps the invalid message.              */
+/*=========================================================================*/
+
 #endif

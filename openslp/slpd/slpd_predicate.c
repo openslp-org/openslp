@@ -1000,7 +1000,8 @@ FilterResult filter(const char *start,
     const char *cur; /* Current working character. */
     const char *last_char; /* The last character in the working string. */
     FilterResult err = FR_UNSET; /* The result of an evaluation. */
-
+    FilterResult stop_condition = FR_UNSET;
+   
     if(recursion_depth <= 0)
     {
         return FR_PARSE_ERROR;
@@ -1040,8 +1041,6 @@ FilterResult filter(const char *start,
     case('&'): /***** And. *****/
     case('|'): /***** Or. *****/
         {
-            FilterResult stop_condition; /* Stop when this value is received. Used for short circuiting. */
-
             if(*cur == '&')
             {
                 stop_condition = FR_EVAL_FALSE;

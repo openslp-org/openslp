@@ -77,6 +77,7 @@ char* GetHostname(char** hostfdn)
 
     char            host[MAX_HOST_NAME];
     struct hostent* he;
+    struct in_addr  ifaddr;
 
     *hostfdn = 0;
 
@@ -85,7 +86,19 @@ char* GetHostname(char** hostfdn)
         he = gethostbyname(host);
         if(he)
         {
-            *hostfdn = xstrdup(he->h_name);
+            /* if the hostname has a '.' then it is probably a qualified 
+             * domain name.  If it is not then we better use the IP address
+             */
+            if(strchr(he->h_name,'.'))
+            {
+                *hostfdn = xstrdup(he->h_name);
+            }
+            else
+            {
+                ifaddr.s_addr = *((unsigned long*)he->h_addr);
+                *hostfdn = xstrdup(inet_ntoa(ifaddr));
+            }
+            
         }
     }
 

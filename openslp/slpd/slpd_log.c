@@ -77,13 +77,13 @@ int SLPDLogFileOpen(const char* path, int append)
 /* Returns  - zero on success. errno on failure.                           */
 /*=========================================================================*/
 {
-    if(G_SlpdLogFile)
+    if (G_SlpdLogFile)
     {
         /* logfile was already open close it */
         fclose(G_SlpdLogFile);
     }
 
-    if(*path == 0)
+    if (*path == 0)
     {
         /* Log to console. */
         G_SlpdLogFile = stdout;
@@ -92,10 +92,12 @@ int SLPDLogFileOpen(const char* path, int append)
     {
         /* Log to file. */
 #ifndef WIN32        
+
+
         /* only owner can read/write */
         umask(0077); 
 #endif        
-        if(append)
+        if (append)
         {
             G_SlpdLogFile = fopen(path,"a");
         }
@@ -104,7 +106,7 @@ int SLPDLogFileOpen(const char* path, int append)
             G_SlpdLogFile = fopen(path,"w");
         }
 
-        if(G_SlpdLogFile == 0)
+        if (G_SlpdLogFile == 0)
         {
             /* could not open the log file */
             return -1;
@@ -134,7 +136,7 @@ void SLPDLog(const char* msg, ...)
 {
     va_list ap;
 
-    if(G_SlpdLogFile)
+    if (G_SlpdLogFile)
     {
         va_start(ap,msg);
         vfprintf(G_SlpdLogFile,msg,ap); 
@@ -150,7 +152,7 @@ void SLPDFatal(const char* msg, ...)
 {
     va_list ap;
 
-    if(G_SlpdLogFile)
+    if (G_SlpdLogFile)
     {
         fprintf(G_SlpdLogFile,"A FATAL Error has occured:\n");
         va_start(ap,msg);
@@ -174,7 +176,7 @@ void SLPDLogBuffer(const char* prefix, int bufsize, const char* buf)
 /* Writes a buffer to the logfile                                          */
 /*=========================================================================*/
 {
-    if(G_SlpdLogFile)
+    if (G_SlpdLogFile)
     {
         fprintf(G_SlpdLogFile,"%s",prefix);
         fwrite(buf,bufsize,1,G_SlpdLogFile);
@@ -218,22 +220,6 @@ void SLPDLogSrvRegMessage(SLPSrvReg* srvreg)
 /*-------------------------------------------------------------------------*/
 {
     SLPDLog("Message SRVREG:\n");
-    SLPDLog("   source type = ");
-    switch( srvreg->source)
-    {
-    case SLP_REG_SOURCE_REMOTE:
-        SLPDLog("REMOTE\n");
-        break;
-    case SLP_REG_SOURCE_LOCAL:
-        SLPDLog("LOCAL\n");
-        break;
-    case SLP_REG_SOURCE_STATIC:
-        SLPDLog("STATIC\n");
-        break;         
-    default:
-        SLPDLog("UNKNOWN\n");
-        break;         
-    }
     SLPDLogBuffer("   srvtype = ", srvreg->srvtypelen, srvreg->srvtype);
     SLPDLogBuffer("   scope = ", srvreg->scopelistlen, srvreg->scopelist);
     SLPDLogBuffer("   url = ", srvreg->urlentry.urllen, srvreg->urlentry.url);
@@ -324,8 +310,8 @@ void SLPDLogMessageInternals(SLPMessage message)
     SLPDLog("   extoffset = %i\n",message->header.extoffset);
     SLPDLog("   xid = %i\n",message->header.xid);
     SLPDLogBuffer("   langtag = ", message->header.langtaglen, message->header.langtag); 
-    
-    switch(message->header.functionid)
+
+    switch (message->header.functionid)
     {
     case SLP_FUNCT_SRVRQST:
         SLPDLogSrvRqstMessage(&(message->body.srvrqst));
@@ -379,13 +365,13 @@ void SLPDLogMessageInternals(SLPMessage message)
 }
 
 /*=========================================================================*/
-void SLPDLogMessage(const char* prefix, 
+void SLPDLogMessage(int msglogflags,
                     struct sockaddr_in* peerinfo,
                     SLPBuffer buf)
 /* Log record of receiving or sending an SLP Message.  Logging will only   */
 /* occur if message logging is enabled G_SlpProperty.traceMsg != 0         */
 /*                                                                         */
-/* prefix   (IN) an informative prefix for the log entry                   */
+/* msglogflags   (IN) What type of message to log                          */
 /*                                                                         */
 /* peerinfo (IN) the source or destination peer                            */
 /*                                                                         */
@@ -395,28 +381,52 @@ void SLPDLogMessage(const char* prefix,
 /*=========================================================================*/
 {
     SLPMessage msg;
-    
-    if(G_SlpdProperty.traceMsg)
+
+    if (peerinfo == NULL ||
+        buf == NULL)
+    {
+        return;
+    }
+
+    if ((G_SlpdProperty.traceMsg && (msglogflags & SLPDLOG_TRACEMSG)) ||
+        (G_SlpdProperty.traceDrop && (msglogflags & SLPDLOG_TRACEDROP)) )
     {
         /* Don't log localhost traffic since it is probably IPC */
         /* and don't log empty messages                         */
-        if(!ISLOCAL(peerinfo->sin_addr) && buf->end != buf->start)
+        if (!ISLOCAL(peerinfo->sin_addr) && buf->end != buf->start)
         {
             msg = SLPMessageAlloc();
-            if(msg)
+            if (msg)
             {
                 SLPDLog("\n");
-    	        SLPDLogTime();
-                SLPDLog("MESSAGE - %s:\n",prefix);
-                if(SLPMessageParseBuffer(peerinfo,buf,msg) == 0)
+                SLPDLogTime();
+                SLPDLog("MESSAGE - ");
+                if (msglogflags == SLPDLOG_TRACEMSG_OUT)
+                {
+                    SLPDLog("Trace message (OUT)\n");
+                }
+                else if (msglogflags == SLPDLOG_TRACEMSG_IN)
+                {
+                    SLPDLog("Trace message (IN)\n");
+                }
+                else if (msglogflags == SLPDLOG_TRACEDROP)
+                {
+                    SLPDLog("Dropped message (following message silently ignored)\n");
+                }
+                else
+                {
+                    SLPDLog("\n");
+                }
+
+                if (SLPMessageParseBuffer(peerinfo,buf,msg) == 0)
                 {
                     SLPDLogMessageInternals(msg);
                 }
-                else 
+                else
                 {
                     SLPDLog("Message parsing failed\n");
-    	            SLPDLog("Peer: \n");
-                    SLPDLog("   IP address: %s\n", inet_ntoa(msg->peer.sin_addr));	        
+                    SLPDLog("Peer: \n");
+                    SLPDLog("   IP address: %s\n", inet_ntoa(msg->peer.sin_addr));          
                 }
 
                 SLPMessageFree(msg);
@@ -424,6 +434,7 @@ void SLPDLogMessage(const char* prefix,
         }
     }
 }
+
 
 /*=========================================================================*/
 void SLPDLogRegistration(const char* prefix, SLPDatabaseEntry* entry)
@@ -438,19 +449,25 @@ void SLPDLogRegistration(const char* prefix, SLPDatabaseEntry* entry)
 /* Returns: none                                                           */
 /*=========================================================================*/
 {
-    if(G_SlpdProperty.traceReg)
+    if (prefix == NULL ||
+        entry == NULL)
+    {
+        return;
+    }
+
+    if (G_SlpdProperty.traceReg)
     {
         SLPDLog("\n");
         SLPDLogTime();
         SLPDLog("DATABASE - %s:\n",prefix);
         SLPDLog("    SA address = ");
-        switch(entry->msg->body.srvreg.source)
+        switch (entry->msg->body.srvreg.source)
         {
         case SLP_REG_SOURCE_UNKNOWN:
             SLPDLog("<unknown>\n");
             break;
         case SLP_REG_SOURCE_REMOTE:
-            SLPDLog("%s\n", inet_ntoa(entry->msg->peer.sin_addr));
+            SLPDLog("remote (%s)\n", inet_ntoa(entry->msg->peer.sin_addr));
             break;
         case SLP_REG_SOURCE_LOCAL:
             SLPDLog("IPC (libslp)\n");
@@ -485,7 +502,14 @@ void SLPDLogDAAdvertisement(const char* prefix,
 /* Returns: none                                                           */
 /*=========================================================================*/
 {
-    if(G_SlpdProperty.traceDATraffic)
+
+    if (prefix == NULL ||
+        entry == NULL)
+    {
+        return;
+    }
+
+    if (G_SlpdProperty.traceDATraffic)
     {
         SLPDLog("\n");
         SLPDLogTime();
@@ -509,4 +533,45 @@ void SLPDLogDAAdvertisement(const char* prefix,
     }
 }
 
+/*=========================================================================*/
+void SLPDLogParseWarning(struct sockaddr_in* peeraddr, SLPBuffer buf)
+/* Log a parsing error warning and dumps the invalid message.              */
+/*=========================================================================*/  
+{
+    unsigned char* curpos;
+    int i = 0;
 
+    if (peeraddr == NULL ||
+        buf == NULL)
+    {
+        return;
+    }
+
+    SLPDLog("\n");
+    SLPDLogTime();
+    SLPDLog("*** WARNING Parse Error ***\n");
+    SLPDLogPeerAddr(peeraddr);
+    SLPDLog("message size = %i\n",buf->end - buf->start);
+    SLPDLog("message dump follows:\n");    
+    for (curpos = buf->start; curpos < buf->end; curpos++)
+    {
+        SLPDLog("0x%02x",*curpos);
+        if (*curpos < 0x20 || *curpos > 0x7f)
+        {
+            SLPDLog("(' ') ");
+        }
+        else
+        {
+            SLPDLog("('%c') ",*curpos);
+        }
+
+        /* newline every 70 columns */
+        i++;
+        if (i==10)
+        {
+            i=0;
+            SLPDLog("\n");
+        }
+    }    
+    SLPDLog("\n");
+}

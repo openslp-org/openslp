@@ -252,16 +252,6 @@ int NetworkConnectToSA(PSLPHandleInfo handle,
         /* Attempt to connect to slpd via loopback */
         /*-----------------------------------------*/
         handle->sasock = NetworkConnectToSlpd(&(handle->saaddr));
-        if(handle->sasock < 0)
-        {
-            /*----------------------------*/
-            /* Attempt to connect to a DA */
-            /*----------------------------*/
-            handle->sasock = NetworkConnectToDA(handle,
-                                                scopelist,
-                                                scopelistlen,
-                                                &(handle->saaddr));
-        }
 
         /*----------------------------------------------------------*/
         /* if we connected to something, cache scope and addr info  */
@@ -444,7 +434,7 @@ SLPError NetworkRqstRply(int sock,
             }
             goto FINISHED;
         }
-        if(SLPBufferRealloc(sendbuf,size) == 0)
+        if((sendbuf = SLPBufferRealloc(sendbuf,size)) == 0)
         {
             result = SLP_MEMORY_ALLOC_FAILED;
             goto CLEANUP;
