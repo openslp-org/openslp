@@ -283,7 +283,7 @@ int SLPNetSetAddr(struct sockaddr_storage *addr, const int family, const short p
         struct sockaddr_in *v4 = (struct sockaddr_in *) addr;
         v4->sin_family = family;
         v4->sin_port = htons(port);
-        memcpy(&(v4->sin_addr), address, min(addrLen, sizeof(v4->sin_addr)));
+        v4->sin_addr.s_addr = htonl(*((int *) address));
     }
     else if (family == AF_INET6) {
         struct sockaddr_in6 *v6 = (struct sockaddr_in6 *) addr;
