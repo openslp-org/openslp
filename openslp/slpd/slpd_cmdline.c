@@ -98,9 +98,9 @@ int SLPDParseCommandLine(int argc,char* argv[])
     strcpy(G_SlpdCommandLine.pidfile,SLPD_PIDFILE);
 #else
     ExpandEnvironmentStrings(SLPD_CONFFILE,G_SlpdCommandLine.cfgfile,MAX_PATH);
-    ExpandEnvironmentStrings(SLPD_LOGFILE,G_SlpdCommandLine.cfgfile,MAX_PATH);
-    ExpandEnvironmentStrings(SLPD_REGFILE,G_SlpdCommandLine.cfgfile,MAX_PATH);
-    ExpandEnvironmentStrings(SLPD_PIDFILE,G_SlpdCommandLine.cfgfile,MAX_PATH);
+    ExpandEnvironmentStrings(SLPD_LOGFILE,G_SlpdCommandLine.logfile,MAX_PATH);
+    ExpandEnvironmentStrings(SLPD_REGFILE,G_SlpdCommandLine.regfile,MAX_PATH);
+    ExpandEnvironmentStrings(SLPD_PIDFILE,G_SlpdCommandLine.pidfile,MAX_PATH);
     G_SlpdCommandLine.action = -1;
 #endif
 

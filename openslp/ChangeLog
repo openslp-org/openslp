@@ -7,6 +7,9 @@ blank lines and include the date, developer's email, and change description.
 =============================================================================
 
 03/01/01 mpeterson@caldera.com
+Patched up the MSVC build and tested slpd to make sure it works
+
+03/01/01 mpeterson@caldera.com
 Patched up the MSVC build and tested libslp.dll to make sure it works
 
 *** Tag OpenSLP 0.8.2 ***
