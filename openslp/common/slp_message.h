@@ -453,7 +453,7 @@ int SLPMessageParseHeader(SLPBuffer buffer, SLPHeader* header);
 
 
 /*=========================================================================*/
-int SLPMessageParseBuffer(struct sockaddr* peerinfo,
+int SLPMessageParseBuffer(struct sockaddr_storage* peerinfo,
                           SLPBuffer buffer, 
                           SLPMessage message);
 /* Initializes a message descriptor by parsing the specified buffer.       */
@@ -487,24 +487,5 @@ void ToUINT16(char *charptr, unsigned int val);
 void ToUINT24(char *charptr, unsigned int val);
 void ToUINT32(char *charptr, unsigned int val);
 /*=========================================================================*/
-
-
-#ifdef i386
-
-/*=========================================================================*/
-/* Macros to check in_addr                                                 */
-#define ISLOCAL(addr) ((ntohl((addr).s_addr) & 0xff000000) == 0x7f000000)
-#define ISMCAST(addr) ((ntohl((addr).s_addr) & 0xff000000) >= 0xef000000)
-/*=========================================================================*/
-
-#else 
-
-/*=========================================================================*/
-/* Macros to check in_addr                                                 */
-#define ISLOCAL(addr) (((addr).s_addr & 0xff000000) == 0x7f000000)
-#define ISMCAST(addr) (((addr).s_addr & 0xff000000) >= 0xef000000)
-/*=========================================================================*/
-#endif
-
 
 #endif
