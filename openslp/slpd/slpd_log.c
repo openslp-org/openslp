@@ -39,6 +39,9 @@ void SLPDLogSrvRqstMessage(SLPSrvRqst* srvrqst)
 /*-------------------------------------------------------------------------*/
 {
     SLPLog("Message SRVRQST:\n");
+    SLPLog("   srvtype = \"%*s\"\n", srvrqst->srvtypelen, srvrqst->srvtype);
+    SLPLog("   scopelist = \"%*s\"\n", srvrqst->scopelistlen, srvrqst->scopelist);
+    SLPLog("   predicate = \"%*s\"\n", srvrqst->predicatelen, srvrqst->predicate);
 }
 
 /*-------------------------------------------------------------------------*/
@@ -54,6 +57,9 @@ void SLPDLogSrvRegMessage(SLPSrvReg* srvreg)
 /*-------------------------------------------------------------------------*/
 {
     SLPLog("Message SRVREG:\n");
+	SLPLog("   type = \"%*s\"\n", srvreg->srvtypelen, srvreg->srvtype);
+	SLPLog("   scope = \"%*s\"\n", srvreg->scopelistlen, srvreg->scopelist);
+	SLPLog("   attributes = \"%*s\"\n", srvreg->attrlistlen, srvreg->attrlist);
 }
         
 /*-------------------------------------------------------------------------*/
@@ -267,8 +273,20 @@ void SLPDLogTraceReg(const char* prefix, SLPDDatabaseEntry* entry)
     SLPLogBuffer(entry->scopelist, entry->scopelistlen);
     SLPLog("\nservice type = ");
     SLPLogBuffer(entry->srvtype, entry->srvtypelen);
-    SLPLog("\nattributes = ");
-    SLPLogBuffer(entry->attrlist, entry->attrlistlen);
+	{/* Print attributes. */
+		char *str;
+		SLPError err;
+		err = SLPAttrSerialize(entry->attr, NULL, &str, SLP_FALSE);
+		if (err != SLP_OK) 
+		{
+    		SLPLog("\nerror %i when building attributes", err);
+		} 
+		else
+		{
+			SLPLog("\nattributes = %s", str);
+			free(str);
+		}
+	}
     SLPLog("\n\n");
 }
 
