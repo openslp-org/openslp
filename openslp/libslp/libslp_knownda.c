@@ -47,6 +47,91 @@ SLPList G_KnownDACache = {0,0,0};
  
 
 /*-------------------------------------------------------------------------*/
+SLPDAEntry* KnownDAListFindByScope(SLPList* dalist,
+                                   int scopelistlen,
+                                   const char* scopelist)
+/* Returns: pointer to found DA.                                           */
+/*-------------------------------------------------------------------------*/
+{
+    SLPDAEntry*     entry;
+    
+    entry = (SLPDAEntry*)dalist->head;
+    while(entry)
+    {
+        if(SLPCompareString(scopelistlen,
+                            scopelist,
+                            entry->scopelistlen,
+                            entry->scopelist) == 0)
+        {
+            break;
+        }   
+        
+        entry = (SLPDAEntry*) entry->listitem.next;
+    }
+
+    return entry;
+}
+
+
+/*-------------------------------------------------------------------------*/
+int KnownDAListAdd(SLPList* dalist, SLPDAEntry* addition)
+/* Add an entry to the KnownDA cache                                       */
+/*-------------------------------------------------------------------------*/
+{
+    SLPDAEntry*     entry;
+    
+    entry = (SLPDAEntry*)dalist->head;
+    while(entry)
+    {
+        if(SLPCompareString(addition->urllen,
+                            addition->url,
+                            entry->urllen,
+                            entry->url) == 0)
+        {
+            /* entry already in the list */
+            break;
+        }   
+
+        entry = (SLPDAEntry*) entry->listitem.next;
+    }
+
+    if(entry == 0)
+    {
+        /* Add the entry if it does not exist */
+        SLPListLinkHead(dalist,(SLPListItem*)entry);
+    }
+
+    return 0;
+}
+
+
+/*-------------------------------------------------------------------------*/
+int KnownDAListRemove(SLPList* dalist, SLPDAEntry* remove)
+/* Remove an entry to the KnownDA cach                                     */
+/*-------------------------------------------------------------------------*/
+{
+    SLPDAEntry*     entry;
+    
+    entry = (SLPDAEntry*)dalist->head;
+    while(entry)
+    {
+        if(SLPCompareString(remove->urllen,
+                            remove->url,
+                            entry->urllen,
+                            entry->url) == 0)
+        {
+            /* Remove entry from list and free it */
+            SLPDAEntryFree( (SLPDAEntry*)SLPListUnlink(dalist, (SLPListItem*)entry) );
+            break;
+        }
+
+        entry = (SLPDAEntry*) entry->listitem.next;
+    }
+
+    return 0;
+}
+
+/*-------------------------------------------------------------------------*/
 SLPBoolean KnownDADiscoveryCallback(SLPError errorcode, 
                                     SLPMessage msg, 
                                     void* cookie)
@@ -324,11 +409,11 @@ int KnownDAConnect(int scopelistlen,
 /* returns: valid socket file descriptor or -1 if no DA is found           */
 /*=========================================================================*/
 {
-    int             sock;
     struct timeval  timeout;
     SLPDAEntry*     daentry;
     int             cached = 0;
-    
+    int             sock = -1;
+
     timeout.tv_sec = SLPPropertyAsInteger(SLPGetProperty("net.slp.DADiscoveryMaximumWait"));
     timeout.tv_usec = (timeout.tv_sec % 1000) * 1000;
     timeout.tv_sec = timeout.tv_sec / 1000;
@@ -353,19 +438,16 @@ CONNECT:
         peeraddr->sin_addr   = daentry->daaddr;
     
         sock = SLPNetworkConnectStream(peeraddr,&timeout);
-        if (sock >= 0)
+        if(cached)
         {
-            KnownDAListAdd(&G_KnownDACache,daentry);
-        }
-        else
-        {
-            KnownDAListRemove(&G_KnownDACache,daentry);
-        }
-
-        /* Do not free cached entries because they are in the cache list */
-        if(cached == 0)
-        {
-            free(daentry);
+            if (sock >= 0)
+            {
+                KnownDAListAdd(&G_KnownDACache,daentry);
+            }
+            else
+            {
+                KnownDAListRemove(&G_KnownDACache,daentry);
+            }
         }
     }
 
