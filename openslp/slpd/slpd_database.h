@@ -99,7 +99,7 @@ typedef struct _SLPDDatabaseAttrRqstResult
     void*           reserved;
     char*           attrlist;
     int             attrlistlen;
-    SLPAuthBlock**  autharray;
+    SLPAuthBlock*   autharray;
     int             authcount;
 }SLPDDatabaseAttrRqstResult;       
 

@@ -970,15 +970,20 @@ int ProcessAttrRqst(SLPMessage message,
         {
             for(i=0; i<db->authcount;i++)
             {
-                if(SLPCompareString(db->autharray[i]->spistrlen,
-                                    db->autharray[i]->spistr,
+                if(SLPCompareString(db->autharray[i].spistrlen,
+                                    db->autharray[i].spistr,
                                     message->body.attrrqst.spistrlen,
                                     message->body.attrrqst.spistr) == 0)
                 {
-                    opaqueauth = db->autharray[i]->opaque;
-                    opaqueauthlen = db->autharray[i]->opaquelen;
+                    opaqueauth = db->autharray[i].opaque;
+                    opaqueauthlen = db->autharray[i].opaquelen;
                     break;
                 }
+            }
+            
+            if(i==db->authcount)
+            {
+                errorcode = SLP_ERROR_AUTHENTICATION_UNKNOWN;
             }
         }
         else

@@ -580,6 +580,8 @@ int SLPDDatabaseAttrRqstStart(SLPMessage msg,
                 {
                     (*result)->attrlistlen = entryreg->attrlistlen;
                     (*result)->attrlist = (char*)entryreg->attrlist;
+                    (*result)->authcount = entryreg->authcount;
+                    (*result)->autharray = entryreg->autharray;
                     break;
                 }
             }
