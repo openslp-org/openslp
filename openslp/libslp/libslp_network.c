@@ -286,6 +286,7 @@ SLPError NetworkRqstRply(int sock,
     int                 socktype        = 0;
 #endif
     int                 timeouts[MAX_RETRANSMITS];
+    unsigned short      flags;
 
 
     /*----------------------------------------------------*/
@@ -431,7 +432,12 @@ SLPError NetworkRqstRply(int sock,
         /*length*/
         ToUINT24(sendbuf->start + 2, size);
         /*flags*/
-        ToUINT16(sendbuf->start + 5, (ISMCAST(destaddr->sin_addr) ? SLP_FLAG_MCAST : 0));
+        flags = (ISMCAST(destaddr->sin_addr) ? SLP_FLAG_MCAST : 0);
+        if (buftype == SLP_FUNCT_SRVREG)
+        {
+            flags |= SLP_FLAG_FRESH;
+        }
+        ToUINT16(sendbuf->start + 5, flags);
         /*ext offset*/
         ToUINT24(sendbuf->start + 7,0);
         /*xid*/

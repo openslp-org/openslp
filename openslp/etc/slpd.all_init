@@ -85,6 +85,7 @@ DAEMON=/usr/sbin/$NAME
 SUSE=0
 
 # Change to root
+OLDDIR=`pwd`
 cd /
 
 # Source function library.
@@ -153,8 +154,10 @@ case "$1" in
     echo
     ;;
   reload|restart)
+    cd $OLDDIR
     $0 stop
     $0 start
+	 cd /
     RETVAL=$?
     ;;
   status)

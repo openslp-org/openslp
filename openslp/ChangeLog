@@ -6,6 +6,8 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 
+*** Tag merged OpenSLP 1.0.6 ***
+
 11/29/01 matt@caldera.com
 Finished the initial addition of all the new multicast code with significant
 help from Satya and Venu.
@@ -269,7 +271,7 @@ Fixed bug where certain services were being omitted from a SrvTypeRply
 12/06/00 rganesan@myrealbox.com
 Changed v1ProcessDASrvRqst to use SLPDAEntry. Added passive DAAdverts
 for SLPv1.
-	
+        
 *** TAG OpenSLP 0.8.0 ****
 
 11/30/00 matt@caldera.com
@@ -385,7 +387,7 @@ Merged Mattieu Desmons's Win32 port of OpenSLP
 
 09/05/00 rganesan@myrealbox.com
 SLPFindSrvTypes() implemented (both server and client side)
-	
+        
 *** TAG OpenSLP 0.7.4 ***
 
 8/30/00 matt@calderasystems.com
@@ -496,7 +498,7 @@ Fixed a major bug that caused the library to freeze when slp.conf was changed
 
 05/15/00 matt@calderasystems.com
 Brushed up traceMsg a little more.  Needs a little more work to be really
-useful.  The framework is there though.	 
+useful.  The framework is there though.         
  
 05/12/00 matt@calderasystems.com
 Add framework to support traceMsg functionality.  Still needs a little 

@@ -116,7 +116,7 @@ AM_PROG_LIBTOOL
 dnl ***********************************************************************
 dnl Set C/C++ compiler specific warning/optimization flags
 dnl ***********************************************************************
-if test X"$GCC" = X"yes"; then	
+if test X"$GCC" = X"yes"; then        
     CFLAGS="$CFLAGS -Wall"
     if test X"$debug" = X"yes"; then
        CFLAGS="$CFLAGS -Werror"
@@ -130,10 +130,10 @@ elif $CC -V 2>&1 | grep "WorkShop Compilers"; then
     CFLAGS="$CFLAGS -xCC" 
     if test X"$debug" = X"no"; then
         OPTFLAGS="-fast"
-	if echo $CC | grep "xarch=v9"; then
+        if echo $CC | grep "xarch=v9"; then
             dnl "-fast" sets -xarch=v8 disabling 64-bit mode, enable it again
-	    OPTFLAGS="$OPTFLAGS -xarch=v9"
-	fi
+            OPTFLAGS="$OPTFLAGS -xarch=v9"
+        fi
     fi
 elif echo $host_os | grep -i "osf" >/dev/null; then
     CFLAGS="$CFLAGS -std"

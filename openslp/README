@@ -51,7 +51,7 @@ libtool.  To build OpenSLP please use the following steps:
     - Unzip and untar the openslp-x.x.x.tar.gz tarball.
    
       $ tar -zxf openslp-x.x.x.tar.gz 
-	  
+          
     - Run the autogen.sh script to generate configure script. Do not be
       alarmed if the autogen script prints a few errors.  Try the resulting
       configure (next step) script anyway.  If the ./configure script already
@@ -59,7 +59,7 @@ libtool.  To build OpenSLP please use the following steps:
       
       $ cd openslp-x.x.x
       $ ./autogen.sh
-	  
+          
     - Run the configure script to create openslp make files.  Please note that
       the configure script accepts several --enable-xxxx and --disable-xxxx
       options that should be interesting to you.  Run ./configure --help and 
@@ -68,11 +68,11 @@ libtool.  To build OpenSLP please use the following steps:
      
       $ ./configure --help
       $ ./configure
-	  
+          
     - Run the top level make file (you need to use GNU make)
     
       $ make
-	  
+          
     - If the make is successful, look for the following binaries:
       
       slpd/slpd
