@@ -125,12 +125,14 @@ int SLPDDatabaseReg(SLPSrvReg* srvreg,
 /* islocal -    (IN) pass in nonzero if the registration is local to this  */
 /*              machine                                                    */
 /*                                                                         */
-/* Returns  -   Zero on success.  non-zero on error                        */
+/* Returns  -   Zero on success.  > 0 if something is wrong with srvreg    */
+/*              < 0 if out of memory                                       */
 /*                                                                         */
 /* NOTE:        All registrations are treated as fresh regardless of the   */
 /*              setting of the fresh parameter                             */
 /*=========================================================================*/
 {
+    int                result = -1; 
     SLPDDatabaseEntry* entry  = (SLPDDatabaseEntry*)G_DatabaseList.head;
 
     /* Check to see if there is already an identical entry */
@@ -223,6 +225,7 @@ int SLPDDatabaseReg(SLPSrvReg* srvreg,
         ((char*)srvreg->attrlist)[srvreg->attrlistlen] = 0;
         if( SLPAttrFreshen(entry->attr, srvreg->attrlist) != SLP_OK)
         {
+            result = 1;
             goto FAILURE;
         }
 
@@ -271,7 +274,7 @@ FAILURE:
         SLPDDatabaseEntryFree(entry);
     }
    
-    return -1;
+    return result;
 }
 
 

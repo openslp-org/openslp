@@ -63,7 +63,6 @@ void IncomingDatagramRead(SLPList* socklist, SLPDSocket* sock)
     int                 bytesread;
     int                 bytestowrite;
     int                 byteswritten;
-    int                 err;
     int                 peeraddrlen = sizeof(struct sockaddr_in);
 
     bytesread = recvfrom(sock->fd,
@@ -76,9 +75,9 @@ void IncomingDatagramRead(SLPList* socklist, SLPDSocket* sock)
     {
         sock->recvbuf->end = sock->recvbuf->start + bytesread;
 
-        if((err = SLPDProcessMessage(&(sock->peeraddr),
-                                     sock->recvbuf,
-                                     &(sock->sendbuf))) == 0)
+        if(SLPDProcessMessage(&(sock->peeraddr),
+                              sock->recvbuf,
+                              &(sock->sendbuf)) == 0)
         {
             /* check to see if we should send anything */
             bytestowrite = sock->sendbuf->end - sock->sendbuf->start;
@@ -92,17 +91,12 @@ void IncomingDatagramRead(SLPList* socklist, SLPDSocket* sock)
                                       sizeof(struct sockaddr_in));
                 if(byteswritten != bytestowrite)
                 {
-                    SLPLog("An error occured while replying to a message "
-                           "from %s\n",
+                    SLPLog("NETWORK_ERROR - %d replying %s\n",
+                           errno,
                            inet_ntoa(sock->peeraddr.sin_addr));
                 }
             }
         }
-        else
-        {
-            SLPLog("An error (%d) occured while processing message from %s\n",
-                   err, inet_ntoa(sock->peeraddr.sin_addr));
-        } 
     }
 }
 
@@ -195,16 +189,14 @@ void IncomingStreamRead(SLPList* socklist, SLPDSocket* sock)
                 }
                 else
                 {
-                    SLPLog("Slpd is out of memory!\n");
+                    SLPLog("INTERNAL_ERROR - out of memory!\n");
                     sock->state = SOCKET_CLOSE;
                 }
             }
             else
             {
-                SLPLog("Unsupported version %i received from %s\n",
-                       *peek,
+                SLPLog("VER_NOT_SUPPORTED from %s\n",
                        inet_ntoa(sock->peeraddr.sin_addr));
-
                 sock->state = SOCKET_CLOSE;
             }
         }
@@ -232,23 +224,19 @@ void IncomingStreamRead(SLPList* socklist, SLPDSocket* sock)
             sock->recvbuf->curpos += bytesread;
             if(sock->recvbuf->curpos == sock->recvbuf->end)
             {
-                err = SLPDProcessMessage(&sock->peeraddr,
-                                      sock->recvbuf,
-                                      &(sock->sendbuf));
-                if(err == 0)
-                {
+                switch(SLPDProcessMessage(&sock->peeraddr,
+                                          sock->recvbuf,
+                                          &(sock->sendbuf)))
+                {            
+                case SLP_ERROR_INTERNAL_ERROR:
+                case SLP_ERROR_PARSE_ERROR:
+                case SLP_ERROR_VER_NOT_SUPPORTED:
+                    sock->state = SOCKET_CLOSE;
+                    break;                    
+                default:
                     sock->state = STREAM_WRITE_FIRST;
                     IncomingStreamWrite(socklist, sock);
                 }
-                else
-                {
-                    /* An error has occured in SLPDProcessMessage() */
-                    SLPLog("An error (%d) while processing message from %s\n",
-                           err,
-                           inet_ntoa(sock->peeraddr.sin_addr));
-
-                    sock->state = SOCKET_CLOSE;
-                }                                                          
             }
         }
         else
@@ -469,8 +457,8 @@ int SLPDIncomingInit()
     }
     else
     {
-        SLPLog("ERROR: Could not listen on loopback\n");
-        SLPLog("ERROR: No SLPLIB support will be available\n");
+        SLPLog("NETWORK_ERROR - Could not listen on loopback\n");
+        SLPLog("INTERNAL_ERROR - No SLPLIB support will be available\n");
     }
 
     /*---------------------------------------------------------------------*/

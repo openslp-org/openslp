@@ -531,11 +531,12 @@ int ProcessSrvReg(struct sockaddr_in* peeraddr,
         /*---------------------------------*/
         /* put the service in the database */
         /*---------------------------------*/
-        if(SLPDDatabaseReg(&(message->body.srvreg),
-                           message->header.flags | SLP_FLAG_FRESH,
-                           ISLOCAL(peeraddr->sin_addr)) == 0)
+        errorcode = SLPDDatabaseReg(&(message->body.srvreg),
+                                    message->header.flags & SLP_FLAG_FRESH,
+                                    ISLOCAL(peeraddr->sin_addr));
+        if(errorcode > 0)
         {
-            errorcode = 0;
+            errorcode = SLP_ERROR_INVALID_REGISTRATION;
         }
         else
         {
@@ -1134,12 +1135,18 @@ int SLPDProcessMessage(struct sockaddr_in* peerinfo,
 
     case SLP_FUNCT_SRVREG:
         errorcode = ProcessSrvReg(peerinfo, message,sendbuf, errorcode);
-        SLPDKnownDAEcho(peerinfo, message, recvbuf);
+        if(errorcode)
+        {
+            SLPDKnownDAEcho(peerinfo, message, recvbuf);
+        }
         break;
 
     case SLP_FUNCT_SRVDEREG:
         errorcode = ProcessSrvDeReg(peerinfo, message,sendbuf, errorcode);
-        SLPDKnownDAEcho(peerinfo, message, recvbuf);
+        if(errorcode == 0)
+        {
+            SLPDKnownDAEcho(peerinfo, message, recvbuf);
+        }                                               
         break;
 
     case SLP_FUNCT_SRVACK:
@@ -1177,6 +1184,27 @@ int SLPDProcessMessage(struct sockaddr_in* peerinfo,
     SLPDLogTraceMsg("OUT",peerinfo,*sendbuf);
     
     SLPMessageFree(message);
+
+    /* Log reception of important errors */
+    switch(errorcode)
+    {
+    case SLP_ERROR_DA_BUSY_NOW:
+        SLPLog("DA_BUSY from %s\n",
+               inet_ntoa(peerinfo->sin_addr));
+        break;
+    case SLP_ERROR_INTERNAL_ERROR:
+        SLPLog("INTERNAL_ERROR from %s\n",
+               inet_ntoa(peerinfo->sin_addr));
+        break;
+    case SLP_ERROR_PARSE_ERROR:
+        SLPLog("PARSE_ERROR from %s\n",
+               inet_ntoa(peerinfo->sin_addr));
+        break;
+    case SLP_ERROR_VER_NOT_SUPPORTED:
+        SLPLog("VER_NOT_SUPPORTED from %s\n",
+               inet_ntoa(peerinfo->sin_addr));
+        break;                    
+    }
 
     return errorcode;
 }                

@@ -54,7 +54,9 @@ SLPBoolean CallbackSrvTypeRqst(SLPError errorcode, SLPMessage msg, void* cookie)
 {
     PSLPHandleInfo  handle      = (PSLPHandleInfo) cookie;
      
-    if(errorcode == SLP_LAST_CALL)
+    
+    
+    if(errorcode)
     {
         handle->params.findsrvtypes.callback((SLPHandle)handle,
                                              0,
@@ -63,27 +65,28 @@ SLPBoolean CallbackSrvTypeRqst(SLPError errorcode, SLPMessage msg, void* cookie)
         return 0; 
     }
 
-    if(msg->header.functionid == SLP_FUNCT_SRVTYPERPLY)
+    if(msg->header.functionid != SLP_FUNCT_SRVTYPERPLY)
     {
-        if(msg->body.srvtyperply.errorcode == 0)
-        {
-	    /* TRICKY: null terminate the srvtypelist, an extra byte
-	       is already allocated in the receive buffer */
-	    *((char*)(msg->body.srvtyperply.srvtypelist) +
-	      msg->body.srvtyperply.srvtypelistlen) = 0; 
-	}
-	    
-	if(handle->params.findsrvtypes.callback(
-                  (SLPHandle)handle,
-                  msg->body.srvtyperply.srvtypelist,
-                  msg->body.srvtyperply.errorcode,
-                  handle->params.findsrvtypes.cookie) == 0)
-	{
-	    return 0;
-	}
+        return 1;
     }
-            
-    return 1;
+
+    if(msg->body.srvtyperply.errorcode == 0)
+    {
+        if(msg->body.srvtyperply.srvtypelistlen > 0)
+        {
+            /* Skip blank replies */
+            return 1; 
+        }
+
+        /* TRICKY: null terminate the srvtypelist, an extra byte
+           is already allocated in the receive buffer */
+        *((char*)(msg->body.srvtyperply.srvtypelist) + msg->body.srvtyperply.srvtypelistlen) = 0; 
+    }
+
+    return handle->params.findsrvtypes.callback((SLPHandle)handle,
+                                                msg->body.srvtyperply.srvtypelist,
+                                                msg->body.srvtyperply.errorcode * -1,
+                                                handle->params.findsrvtypes.cookie);
 }
 
 /*-------------------------------------------------------------------------*/

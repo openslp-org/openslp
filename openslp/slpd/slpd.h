@@ -346,7 +346,8 @@ int SLPDDatabaseReg(SLPSrvReg* srvreg,
 /* islocal -    (IN) pass in nonzero if the registration is local to this  */
 /*              machine                                                    */
 /*                                                                         */
-/* Returns  -   Zero on success.  non-zero on error                        */
+/* Returns  -   Zero on success.  > 0 if something is wrong with srvreg    */
+/*              < 0 if out of memory                                       */
 /*                                                                         */
 /* NOTE:        All registrations are treated as fresh regardless of the   */
 /*              setting of the fresh parameter                             */

@@ -72,18 +72,9 @@ void OutgoingDatagramRead(SLPList* socklist, SLPDSocket* sock)
     {
         sock->recvbuf->end = sock->recvbuf->start + bytesread;
 
-        if ((err = SLPDProcessMessage(&(sock->peeraddr),
-                                      sock->recvbuf,
-                                      &(sock->sendbuf))) == 0)
-        {
-            /* Never return anything!  We started the converstation */
-
-        }
-        else
-        {
-            SLPLog("An error (%d) occured while processing message from %s\n",
-                   err, inet_ntoa(sock->peeraddr.sin_addr));
-        }
+        SLPDProcessMessage(&(sock->peeraddr),
+                           sock->recvbuf,
+                           &(sock->sendbuf));
     }
 }
 
@@ -154,14 +145,13 @@ void OutgoingStreamRead(SLPList* socklist, SLPDSocket* sock)
                 }
                 else
                 {
-                    SLPLog("Slpd is out of memory!\n");
+                    SLPLog("INTERNAL_ERROR - out of memory!\n");
                     sock->state = SOCKET_CLOSE;
                 }
             }
             else
             {
-                SLPLog("Unsupported version %i received from %s\n",
-                       *peek,
+                SLPLog("VER_NOT_SUPPORTED from %s\n",
                        inet_ntoa(sock->peeraddr.sin_addr));
                 sock->state = SOCKET_CLOSE;
             }
@@ -207,14 +197,10 @@ void OutgoingStreamRead(SLPList* socklist, SLPDSocket* sock)
                 case SLP_ERROR_DA_BUSY_NOW:
                     sock->state = STREAM_WRITE_WAIT;
                     break;
-                
                 case SLP_ERROR_PARSE_ERROR:
                 case SLP_ERROR_VER_NOT_SUPPORTED:
-                    SLPLog("PARSE_ERROR / VER_NOT_SUPPORTED from %s\n",
-                           inet_ntoa(sock->peeraddr.sin_addr));
                     sock->state = SOCKET_CLOSE;
                     break;
-                
                 default:
                     /* End of outgoing message exchange. Unlink   */
                     /* send buf from to do list and free it       */

@@ -57,29 +57,26 @@ SLPBoolean CallbackSrvDeReg(SLPError errorcode, SLPMessage msg, void* cookie)
 {
     PSLPHandleInfo  handle      = (PSLPHandleInfo) cookie;
     
-    if(errorcode == 0)
-    {
-        if(msg->header.functionid == SLP_FUNCT_SRVACK)
-        {
-            /* Call the callback function */
-            handle->params.dereg.callback((SLPHandle)handle,
-					  msg->body.srvack.errorcode,
-					  handle->params.dereg.cookie);
-        }
-        else
-        {
-            /* TODO: what should we do here? */
-        }
-    }
-    else
+    if(errorcode)
     {
         handle->params.dereg.callback((SLPHandle)handle,
-				      errorcode,
-				      handle->params.dereg.cookie);  
+                                      errorcode,
+                                      handle->params.dereg.cookie);
+        return 0;
+    }
+        
+    if(msg->header.functionid != SLP_FUNCT_SRVACK)
+    {
+        return 0;
     }
     
+    /* Call the callback function */
+    handle->params.dereg.callback((SLPHandle)handle,
+                                  msg->body.srvack.errorcode * -1,
+                                  handle->params.dereg.cookie);
     return 0;
 }
+
 
 /*-------------------------------------------------------------------------*/ 
 SLPError ProcessSrvDeReg(PSLPHandleInfo handle)

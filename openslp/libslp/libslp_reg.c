@@ -57,27 +57,23 @@ SLPBoolean CallbackSrvReg(SLPError errorcode, SLPMessage msg, void* cookie)
 {
     PSLPHandleInfo  handle      = (PSLPHandleInfo) cookie;
     
-    if(errorcode == 0)
+    if(errorcode)
     {
-        if(msg->header.functionid == SLP_FUNCT_SRVACK)
-        {
-            /* Call the callback function */
-            handle->params.reg.callback((SLPHandle)handle,
-                                        msg->body.srvack.errorcode,
-                                        handle->params.reg.cookie);
-        }
-        else
-        {
-            /* TODO: what should we do here? */
-        }
-    }
-    else
-    {
-	    handle->params.reg.callback((SLPHandle)handle,
+        handle->params.reg.callback((SLPHandle)handle,
                                     errorcode,
                                     handle->params.reg.cookie);
+        return 0;
+    }
+        
+    if(msg->header.functionid != SLP_FUNCT_SRVACK)
+    {
+        return 0;
     }
     
+    /* Call the callback function */
+    handle->params.reg.callback((SLPHandle)handle,
+                                msg->body.srvack.errorcode * -1,
+                                handle->params.reg.cookie);
     return 0;
 }
 

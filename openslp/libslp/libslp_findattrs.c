@@ -56,39 +56,37 @@ SLPBoolean CallbackAttrRqst(SLPError errorcode, SLPMessage msg, void* cookie)
 {
     PSLPHandleInfo  handle      = (PSLPHandleInfo) cookie;
     
-    if(errorcode == SLP_LAST_CALL)
+    if(errorcode)
     {
         handle->params.findattrs.callback((SLPHandle)handle,
-					  (msg ?
-					   msg->body.attrrply.attrlist : 0),
+                                          0,
                                           errorcode,
                                           handle->params.findattrs.cookie);
         return 0;    
     }
 
-
-    if(msg->header.functionid == SLP_FUNCT_ATTRRPLY)
+    if(msg->header.functionid != SLP_FUNCT_ATTRRPLY)
     {
-        if(msg->body.attrrply.errorcode == 0)
+        return 1;   
+    }
+
+    if(msg->body.attrrply.errorcode == 0)
+    {
+        if(msg->body.attrrply.attrlistlen == 0)
         {
-            if(msg->body.attrrply.attrlistlen)
-            {
-                /* TRICKY: null terminate the attrlist by setting the authcount to 0 */
-                *((char*)(msg->body.attrrply.attrlist)+msg->body.attrrply.attrlistlen) = 0;
-                
-                /* Call the callback function */
-                if(handle->params.findattrs.callback((SLPHandle)handle,
-						     msg->body.attrrply.attrlist,
-						     0,
-						     handle->params.findattrs.cookie) == 0)
-		{
-		    return 0;
-		}
-            }
+            /* Skip blank replies */
+            return 1;
         }
+
+        /* TRICKY: null terminate the attrlist by setting the authcount to 0 */
+        *((char*)(msg->body.attrrply.attrlist)+msg->body.attrrply.attrlistlen) = 0;
     }
     
-    return 1;    
+    /* Call the callback function */
+    return handle->params.findattrs.callback((SLPHandle)handle,
+                                             msg->body.attrrply.attrlist,
+                                             msg->body.attrrply.errorcode * -1,
+                                             handle->params.findattrs.cookie);
 }
 
 /*-------------------------------------------------------------------------*/
