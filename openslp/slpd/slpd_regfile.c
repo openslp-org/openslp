@@ -272,11 +272,27 @@ SLPDDatabaseEntry* SLPDRegFileReadEntry(FILE* fd, SLPDDatabaseEntry** entry)
         else
         {
             /* line contains an attribute (slow but it works)*/
-            /* TODO Fix this so it's faster! */
+            /* TODO Fix this so we do not have to realloc memory each time! */
             TrimWhitespace(line); 
             (*entry)->attrlistlen += strlen(line) + 2;
-            (*entry)->attrlist = realloc((*entry)->attrlist,(*entry)->attrlistlen + 1);
-            *(*entry)->attrlist = 0;
+            
+            if((*entry)->attrlist == 0)
+            {
+                (*entry)->attrlist = malloc((*entry)->attrlistlen + 1);
+                *(*entry)->attrlist = 0;
+            }
+            else
+            {
+                (*entry)->attrlist = realloc((*entry)->attrlist,
+                                             (*entry)->attrlistlen + 1);
+            }
+            
+            if((*entry)->attrlist == 0)
+            {
+                SLPLog("Out of memory adding DEFAULT scope\n");
+                goto ERROR;
+            }
+
             strcat((*entry)->attrlist,"(");
             strcat((*entry)->attrlist,line);
             strcat((*entry)->attrlist,")");
