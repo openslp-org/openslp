@@ -42,6 +42,8 @@
 #include "slpd_unistd.h"
 #endif
 
+#include "slpd_predicate.h"
+
 /* common includes */
 #include <slp_compare.h>
 #include <slp_buffer.h>
@@ -51,7 +53,6 @@
 #include <slp_linkedlist.h>
 #include <slp_da.h>
 
-#include "slpd_predicate.h"
 
 #if(!defined MAX_PATH)
 #define MAX_PATH    256
