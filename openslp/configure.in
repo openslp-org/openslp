@@ -29,10 +29,10 @@ dnl ***********************************************************************
 AC_ARG_ENABLE(debug,
 [  --enable-debug          Turn on debugging],
 [case "${enableval}" in
-  yes) CFLAGS='-g -ggdb -DDEBUG' ;;
-  no)  CFLAGS=;;
+  yes) CFLAGS='-g -ggdb -DDEBUG -Wall' ;;
+  no)  CFLAGS+=;;
   *) AC_MSG_ERROR(bad value ${enableval} for --enable-debug) ;;
-esac],[debug=false])
+esac],[CFLAGS='-Wall -O3'])
 AC_SUBST(CFLAGS)
 
 dnl ***********************************************************************
