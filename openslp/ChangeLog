@@ -8,6 +8,9 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 
+
+*** TAG OpenSLP 0.7.6 ***
+
 09/27/00 hughes@lab43.org
 Changed slpd's internal representation of attributes to use libslpattr. This
 gives  much finer control over attributes, paving the way for filter support

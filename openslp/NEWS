@@ -1,8 +1,15 @@
 NEWS - list of user-visible changes between releases of OpenSLP
 
-New in openslp-0.7.6: (2000-??-??)
+New in openslp-0.7.6: (2000-10-28)
 ----------------------------------
 * OpenSLP ported to FreeBSD. Compaq Tru64 support is also complete.
+* Full predicate support has been added to OpenSLP.  slpd will now correctly 
+  answer service requests containing LDAP filters
+* As part of the Windows port, the MSVC project files added.  This should
+  make it much easier for OpenSLP to be build on Win32 platform.
+* Most of slpd and libslp code was tested against a malloc debugger.  Several
+  bugs and memory leaks were fixed.
+
 
 New in openslp-0.7.5: (2000-09-08)
 ----------------------------------
