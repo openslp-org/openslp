@@ -177,7 +177,7 @@ int KnownDADiscoveryByProperties(struct timeval* timeout)
     peeraddr.sin_port = htons(SLP_RESERVED_PORT);
     
     slider1 = slider2 = temp = strdup(SLPGetProperty("net.slp.DAAddresses"));
-    while(1)
+    while(slider1 != slider2)
     {
         while(*slider2 && *slider2 != ',') slider2++;
         *slider2 = 0;
