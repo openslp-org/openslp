@@ -70,7 +70,7 @@ int EnableBroadcast(sockfd_t sockfd)
 /* returns  - zero on success                                              */
 /*-------------------------------------------------------------------------*/
 {
-#ifdef WIN32
+#ifdef __WIN32__
     const char on = 1;
 #else
     const int on = 1;                                                
@@ -96,7 +96,7 @@ int SetMulticastTTL(sockfd_t sockfd, int ttl)
 #endif
 
 
-#ifdef WIN32
+#ifdef __WIN32__
     BOOL Reuse = TRUE;
     int TTLArg;
     struct sockaddr_in  mysockaddr;
@@ -201,7 +201,7 @@ int BindSocketToInetAddr(int sock, struct in_addr* addr)
 /*-------------------------------------------------------------------------*/
 {
     int                 result;
-#ifdef WIN32
+#ifdef __WIN32__
     char                lowat;
     BOOL                reuse = TRUE;
 #else
@@ -485,7 +485,7 @@ SLPDSocket* SLPDSocketCreateListen(struct in_addr* peeraddr)
                 {
                     /* Set socket to non-blocking so subsequent calls to */
                     /* accept will *never* block                         */
-#ifdef WIN32
+#ifdef __WIN32__
                     fdflags = 1;
                     ioctlsocket(sock->fd, FIONBIO, &fdflags);
 #else
@@ -520,7 +520,7 @@ SLPDSocket* SLPDSocketCreateConnected(struct in_addr* addr)
 /*          be set to connect.  Return NULL on error                        */
 /*==========================================================================*/
 {
-#ifdef WIN32
+#ifdef __WIN32__
     char                lowat;
     u_long              fdflags;
 #else
@@ -543,7 +543,7 @@ SLPDSocket* SLPDSocketCreateConnected(struct in_addr* addr)
     }
 
     /* set the socket to non-blocking */
-#ifdef WIN32
+#ifdef __WIN32__
     fdflags = 1;
     ioctlsocket(sock->fd, FIONBIO, &fdflags);
 #else
@@ -572,7 +572,7 @@ SLPDSocket* SLPDSocketCreateConnected(struct in_addr* addr)
     }
     else
     {
-#ifdef WIN32
+#ifdef __WIN32__
         if(WSAEWOULDBLOCK == WSAGetLastError())
 #else
         if(errno == EINPROGRESS)

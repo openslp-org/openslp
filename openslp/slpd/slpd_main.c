@@ -263,7 +263,7 @@ void HandleSigInt()
 #endif
 
 
-#ifndef WIN32
+#ifndef __WIN32__
 /*-------------------------------------------------------------------------*/
 int CheckPid(const char* pidfile)
 /* Check a pid file to see if slpd is already running                      */
@@ -633,7 +633,7 @@ int main(int argc, char* argv[])
 
     return 0;
 }
-#endif /*ifndef WIN32 */
+#endif /*ifndef __WIN32__ */
 
 
 

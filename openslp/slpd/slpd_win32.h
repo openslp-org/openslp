@@ -59,7 +59,7 @@
 #include <stdarg.h> 
 #include <limits.h>
 
-#if(_WIN32_WINNT >= 0x0400) 
+#if(_WIN32_WINNT >= 0x0400 && _WIN32_WINNT < 0x0500)
 #include <ws2tcpip.h> 
 #endif
 
@@ -82,7 +82,7 @@ typedef SOCKET              sockfd_t;
 
 /* enum detailing what to do with SLPD when launching it :
    run in the console for debug, install it as a service or uninstall it */
-typedef enumSLPDAction
+typedef enum SLPDAction
 {
     SLPD_DEBUG   = 0,
     SLPD_INSTALL = 1,

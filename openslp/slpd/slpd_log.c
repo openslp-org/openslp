@@ -91,7 +91,7 @@ int SLPDLogFileOpen(const char* path, int append)
     else
     {
         /* Log to file. */
-#ifndef WIN32        
+#ifndef __WIN32__        
 
 
         /* only owner can read/write */

@@ -53,7 +53,7 @@
 /*=========================================================================*/
 /* Include platform specific headers files                                 */
 /*=========================================================================*/
-#ifdef WIN32
+#ifdef __WIN32__
 #include "slpd_win32.h"
 #else
 #include "slpd_unistd.h"

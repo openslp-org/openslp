@@ -54,7 +54,7 @@
 /*=========================================================================*/
 /* Filename constants                                                      */
 /*=========================================================================*/
-#ifndef WIN32
+#ifndef __WIN32__
 #define SLPD_CONFFILE ETCDIR "/slp.conf"
 #define SLPD_LOGFILE  VARDIR "/log/slpd.log"
 #define SLPD_REGFILE  ETCDIR "/slp.reg"

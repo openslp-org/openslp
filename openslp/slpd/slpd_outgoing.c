@@ -100,7 +100,7 @@ void OutgoingDatagramRead(SLPList* socklist, SLPDSocket* sock)
 void OutgoingStreamReconnect(SLPList* socklist, SLPDSocket* sock)
 /*-------------------------------------------------------------------------*/
 {
-#ifdef WIN32
+#ifdef __WIN32__
     u_long              fdflags;
 #else    
     int                 fdflags;
@@ -152,7 +152,7 @@ void OutgoingStreamReconnect(SLPList* socklist, SLPDSocket* sock)
     /*---------------------------------------------*/
     /* Set the new socket to enable nonblocking IO */
     /*---------------------------------------------*/
-#ifdef WIN32
+#ifdef __WIN32__
     fdflags = 1;
     ioctlsocket(sock->fd, FIONBIO, &fdflags);
 #else
@@ -168,7 +168,7 @@ void OutgoingStreamReconnect(SLPList* socklist, SLPDSocket* sock)
                  (struct sockaddr *)&(sock->peeraddr), 
                  sizeof(struct sockaddr_in)) )
     {
-#ifdef WIN32
+#ifdef __WIN32__
         if ( WSAEWOULDBLOCK == WSAGetLastError() )
 #else
         if ( errno == EINPROGRESS )
@@ -221,7 +221,7 @@ void OutgoingStreamRead(SLPList* socklist, SLPDSocket* sock)
         }
         else
         {
-#ifdef WIN32
+#ifdef __WIN32__
             if ( WSAEWOULDBLOCK != WSAGetLastError() )
 #else
             if ( errno != EWOULDBLOCK )
@@ -281,7 +281,7 @@ void OutgoingStreamRead(SLPList* socklist, SLPDSocket* sock)
         }
         else
         {
-#ifdef WIN32
+#ifdef __WIN32__
             if ( WSAEWOULDBLOCK != WSAGetLastError() )
 #else
             if ( errno != EWOULDBLOCK )
@@ -351,7 +351,7 @@ void OutgoingStreamWrite(SLPList* socklist, SLPDSocket* sock)
         }
         else
         {
-#ifdef WIN32
+#ifdef __WIN32__
             if ( WSAEWOULDBLOCK != WSAGetLastError() )
 #else
             if ( errno != EWOULDBLOCK )

@@ -1,0 +1,99 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<!-- C++Builder XML Project -->
+<PROJECT>
+  <MACROS>
+    <VERSION value="BCB.06.00"/>
+    <PROJECT value="slpd.exe"/>
+    <OBJFILES value="..\..\libslpattr\libslpattr.obj ..\..\common\slp_xid.obj 
+      ..\..\common\slp_buffer.obj ..\..\common\slp_compare.obj 
+      ..\..\common\slp_database.obj ..\..\common\slp_linkedlist.obj 
+      ..\..\common\slp_message.obj ..\..\common\slp_property.obj 
+      ..\..\common\slp_utf8.obj ..\..\common\slp_v1message.obj 
+      ..\..\slpd\slpd_win32.obj ..\..\slpd\slpd_cmdline.obj 
+      ..\..\slpd\slpd_database.obj ..\..\slpd\slpd_incoming.obj 
+      ..\..\slpd\slpd_knownda.obj ..\..\slpd\slpd_log.obj 
+      ..\..\slpd\slpd_main.obj ..\..\slpd\slpd_outgoing.obj 
+      ..\..\slpd\slpd_predicate.obj ..\..\slpd\slpd_process.obj 
+      ..\..\slpd\slpd_property.obj ..\..\slpd\slpd_regfile.obj 
+      ..\..\slpd\slpd_socket.obj ..\..\slpd\slpd_v1process.obj 
+      ..\..\common\slp_pid.obj ..\..\common\slp_iface.obj 
+      ..\..\common\slp_net.obj ..\..\common\slp_parse.obj"/>
+    <RESFILES value=""/>
+    <IDLFILES value=""/>
+    <IDLGENFILES value=""/>
+    <DEFFILE value=""/>
+    <RESDEPEN value="$(RESFILES)"/>
+    <LIBFILES value=""/>
+    <LIBRARIES value=""/>
+    <SPARELIBS value="vcl.lib rtl.lib"/>
+    <PACKAGES value="vcl.bpi rtl.bpi bcbie.bpi vclx.bpi dbrtl.bpi vcldb.bpi vclie.bpi 
+      xmlrtl.bpi inet.bpi inetdbbde.bpi inetdbxpress.bpi bcbsmp.bpi ibxpress.bpi 
+      bcb2kaxserver.bpi bdertl.bpi indy.bpi"/>
+    <PATHCPP value=".;..\..\libslpattr;..\..\common;..\..\common;..\..\common;..\..\common;..\..\common;..\..\common;..\..\common;..\..\common;..\..\common;..\..\slpd;..\..\slpd;..\..\slpd;..\..\slpd;..\..\slpd;..\..\slpd;..\..\slpd;..\..\slpd;..\..\slpd;..\..\slpd;..\..\slpd;..\..\slpd;..\..\slpd;..\..\slpd;..\..\common;..\..\common;..\..\common;..\..\common"/>
+    <PATHPAS value=".;"/>
+    <PATHRC value=".;"/>
+    <PATHASM value=".;"/>
+    <LINKER value="ilink32"/>
+    <USERDEFINES value="STRICT;SLP_VERSION=&quot;1.1.1&quot;;HAVE_STDINT_H"/>
+    <SYSDEFINES value="NO_STRICT;_NO_VCL;USEPACKAGES"/>
+    <MAINSOURCE value="slpd.bpf"/>
+    <INCLUDEPATH value="$(BCB)\include;..\..\libslpattr;..\..\common;..\..\slpd"/>
+    <LIBPATH value="$(BCB)\lib;$(BCB)\lib\obj;$(BCB)\lib\release;..\..\libslpattr;..\..\slpd;..\..\common"/>
+    <WARNINGS value="-w8092 -w8090 -w8089 -w8087 -wprc -wuse -wucp -wstv -wstu -wsig -wpin 
+      -wnod -wnak -w-8027 -w-8026 -wdef -wcln -wbbf -wasm -wamp -wamb"/>
+    <LISTFILE value=""/>
+    <OTHERFILES value=""/>
+  </MACROS>
+  <OPTIONS>
+    <IDLCFLAGS value="-I..\..\slpd -I..\..\common -I..\..\libslpattr -I$(BCB)\include 
+      -src_suffix cpp -DSTRICT -DSLP_VERSION=&quot;1.1.1&quot; -DHAVE_STDINT_H -boa"/>
+    <CFLAG1 value="-O2 -Q -X- -a8 -b- -k- -vi -tWC -tWM- -c"/>
+    <PFLAGS value="-$Y- -$L- -$D- -$A8 -v -JPHNE -M"/>
+    <AFLAGS value="/mx /w2 /zn"/>
+    <LFLAGS value="-D&quot;&quot; -ap -Tpe -Gn"/>
+    <OTHERFILES value=""/>
+  </OPTIONS>
+  <LINKER>
+    <ALLOBJ value="c0x32.obj $(PACKAGES) $(OBJFILES)"/>
+    <ALLRES value="$(RESFILES)"/>
+    <ALLLIB value="$(LIBFILES) $(LIBRARIES) import32.lib cw32.lib"/>
+    <OTHERFILES value=""/>
+  </LINKER>
+  <FILELIST>
+      <FILE FILENAME="slpd.bpf" FORMNAME="" UNITNAME="slpd" CONTAINERID="BPF" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\libslpattr\libslpattr.c" FORMNAME="" UNITNAME="libslpattr" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\common\slp_xid.c" FORMNAME="" UNITNAME="slp_xid.c" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\common\slp_buffer.c" FORMNAME="" UNITNAME="slp_buffer.c" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\common\slp_compare.c" FORMNAME="" UNITNAME="slp_compare.c" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\common\slp_database.c" FORMNAME="" UNITNAME="slp_database.c" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\common\slp_linkedlist.c" FORMNAME="" UNITNAME="slp_linkedlist.c" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\common\slp_message.c" FORMNAME="" UNITNAME="slp_message.c" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\common\slp_property.c" FORMNAME="" UNITNAME="slp_property.c" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\common\slp_utf8.c" FORMNAME="" UNITNAME="slp_utf8.c" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\common\slp_v1message.c" FORMNAME="" UNITNAME="slp_v1message.c" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\slpd\slpd_win32.c" FORMNAME="" UNITNAME="slpd_win32.c" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\slpd\slpd_cmdline.c" FORMNAME="" UNITNAME="slpd_cmdline.c" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\slpd\slpd_database.c" FORMNAME="" UNITNAME="slpd_database.c" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\slpd\slpd_incoming.c" FORMNAME="" UNITNAME="slpd_incoming.c" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\slpd\slpd_knownda.c" FORMNAME="" UNITNAME="slpd_knownda.c" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\slpd\slpd_log.c" FORMNAME="" UNITNAME="slpd_log.c" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\slpd\slpd_main.c" FORMNAME="" UNITNAME="slpd_main.c" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\slpd\slpd_outgoing.c" FORMNAME="" UNITNAME="slpd_outgoing.c" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\slpd\slpd_predicate.c" FORMNAME="" UNITNAME="slpd_predicate.c" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\slpd\slpd_process.c" FORMNAME="" UNITNAME="slpd_process.c" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\slpd\slpd_property.c" FORMNAME="" UNITNAME="slpd_property.c" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\slpd\slpd_regfile.c" FORMNAME="" UNITNAME="slpd_regfile.c" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\slpd\slpd_socket.c" FORMNAME="" UNITNAME="slpd_socket.c" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\slpd\slpd_v1process.c" FORMNAME="" UNITNAME="slpd_v1process.c" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\common\slp_pid.c" FORMNAME="" UNITNAME="slp_pid" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\common\slp_iface.c" FORMNAME="" UNITNAME="slp_iface" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\common\slp_net.c" FORMNAME="" UNITNAME="slp_net" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\common\slp_parse.c" FORMNAME="" UNITNAME="slp_parse" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+  </FILELIST>
+  <BUILDTOOLS>
+  </BUILDTOOLS>
+
+  <IDEOPTIONS>
+
+  </IDEOPTIONS>
+</PROJECT>

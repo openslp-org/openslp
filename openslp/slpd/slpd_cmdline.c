@@ -80,7 +80,7 @@ void SLPDPrintUsage()
 /*=========================================================================*/
 {
 
-#ifdef WIN32
+#ifdef __WIN32__
     fprintf(stderr,"USAGE: slpd -install|-remove|-debug [-d] [-c conf file] [-l log file] [-s spi file] [-r reg file] [-v version]\n");
 #else
     fprintf(stderr,"USAGE: slpd [-d] [-c conf file] [-l log file] [-r reg file] [-s spi file] [-v version]\n");
@@ -104,7 +104,7 @@ int SLPDParseCommandLine(int argc,char* argv[])
 
     /* Set defaults */
     memset(&G_SlpdCommandLine,0,sizeof(SLPDCommandLine));
-#ifndef WIN32
+#ifndef __WIN32__
     strcpy(G_SlpdCommandLine.cfgfile,SLPD_CONFFILE);
     strcpy(G_SlpdCommandLine.logfile,SLPD_LOGFILE);
     strcpy(G_SlpdCommandLine.regfile,SLPD_REGFILE);
@@ -127,7 +127,7 @@ int SLPDParseCommandLine(int argc,char* argv[])
 
     for(i=1; i<argc; i++)
     {
-#ifdef WIN32
+#ifdef __WIN32__
         if(strcmp(argv[i],"-install") == 0)
         {
             G_SlpdCommandLine.action = SLPD_INSTALL;
@@ -183,7 +183,7 @@ int SLPDParseCommandLine(int argc,char* argv[])
                 || (strcmp(argv[i], "--version") == 0)
                 || (strcmp(argv[i], "-version") == 0))
         {
-#ifdef WIN32
+#ifdef __WIN32__
             fprintf(stderr,"slpd version: %s\n", SLP_VERSION);
 #else /* UNIX */
             fprintf(stderr,"slpd version: %s\n", VERSION);

@@ -156,7 +156,7 @@ void IncomingStreamWrite(SLPList* socklist, SLPDSocket* sock)
         }
         else
         {
-#ifdef WIN32
+#ifdef __WIN32__
             if (WSAEWOULDBLOCK == WSAGetLastError())
 #else
             if (errno == EWOULDBLOCK)
@@ -265,7 +265,7 @@ void IncomingSocketListen(SLPList* socklist, SLPDSocket* sock)
     SLPDSocket*         connsock;
     struct sockaddr_in  peeraddr;
     socklen_t           peeraddrlen;
-#ifdef WIN32
+#ifdef __WIN32__
     const char   lowat = SLPD_SMALLEST_MESSAGE;
 #else    
     const int   lowat = SLPD_SMALLEST_MESSAGE;
@@ -294,7 +294,7 @@ void IncomingSocketListen(SLPList* socklist, SLPDSocket* sock)
                 setsockopt(connsock->fd,SOL_SOCKET,SO_RCVLOWAT,&lowat,sizeof(lowat));
                 setsockopt(connsock->fd,SOL_SOCKET,SO_SNDLOWAT,&lowat,sizeof(lowat)); 
                 /* set accepted socket to non blocking */
-#ifdef WIN32
+#ifdef __WIN32__
                 fdflags = 1;
                 ioctlsocket(connsock->fd, FIONBIO, &fdflags);
 #else
