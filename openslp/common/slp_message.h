@@ -35,11 +35,12 @@
 #if(!defined SLP_MESSAGE_H_INCLUDED)
 #define SLP_MESSAGE_H_INCLUDED
 
-#include <netinet/in.h>			/* for htonl() routines */
 #include <slp_buffer.h>
 
 #ifdef WIN32
 #include <windows.h>
+#else
+#include <netinet/in.h>			/* for htonl() routines */
 #endif
 
 typedef char            CHAR;
