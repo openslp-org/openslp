@@ -45,6 +45,8 @@
 
 #ifdef USE_PREDICATES   
 
+#include "libslpattr.h"
+
 /* The character that is a wildcard. */
 #define WILDCARD ('*')
 #define BRACKET_OPEN '('
@@ -216,16 +218,28 @@ int is_bool_string(const char *str, SLPBoolean *val)
 /*--------------------------------------------------------------------------*/
 typedef enum
 {
+	FR_UNSET /* Placeholder. Used to detect errors. */, 
+	FR_INTERNAL_SYSTEM_ERROR /* Internal error. */,
+	FR_PARSE_ERROR /* Parse error detected. */, 
+	FR_MEMORY_ALLOC_FAILED /* Ran out of memory. */, 
+	FR_EVAL_TRUE /* Expression successfully evaluated to true. */, 
+	FR_EVAL_FALSE /* Expression successfully evaluated to false. */
+} FilterResult;
+/*--------------------------------------------------------------------------*/
+
+
+/*--------------------------------------------------------------------------*/
+typedef enum
+{
     EQUAL, APPROX, GREATER, LESS, PRESENT, SUBSTRING
 } Operation;
 /*--------------------------------------------------------------------------*/
 
 /*--------------------------------------------------------------------------*/
-SLPError int_op(SLPAttributes slp_attr, 
+FilterResult int_op(SLPAttributes slp_attr, 
                 char *tag, 
                 char *rhs, 
-                Operation op, 
-                SLPBoolean *result)
+                Operation op)
 /* Perform an integer operation.                                            */
 /*--------------------------------------------------------------------------*/
 {
@@ -236,20 +250,20 @@ SLPError int_op(SLPAttributes slp_attr,
     size_t size; /* Length of tag_vals. */
     size_t i; /* Index into tag_vals. */
 
+	FilterResult result; /* Value to return. */
     SLPError slp_err;
 
     assert(op != PRESENT);
 
-    *result = SLP_FALSE; /* Be pessamistic. */
-
+	result = FR_UNSET; /* For verification. */ /* TODO Only do this in debug. */
+	
     /***** Verify and convert rhs. *****/
     rhs_val = strtol(rhs, &end, 10);
 
-    if (*end != '\0')
+    if (*end != 0)
     {
         /* Trying to compare an int with a non-int. */
-        *result = SLP_FALSE;
-        return SLP_OK;
+        return FR_EVAL_FALSE;
     }
 
     /***** Get tag value. *****/
@@ -258,65 +272,67 @@ SLPError int_op(SLPAttributes slp_attr,
     if (slp_err != SLP_OK)
     {
         /* TODO A more careful examination of return values. */
-        *result = SLP_FALSE;
-        return SLP_OK;
-    }
+    	return FR_EVAL_FALSE;
+	}
 
     /***** Compare. *****/
-    assert(op != PRESENT); 
+	assert(op != PRESENT); 
     switch (op)
-    {
+	{
     case(EQUAL):
-        for (i = 0; i < size; i++)
-        {
+	    for (i = 0; i < size; i++)
+    	{
             if (tag_vals[i] == rhs_val)
-            {
-                *result = SLP_TRUE;
-                break;
+	        {
+    	        result = FR_EVAL_TRUE;
+        	    break;
             }
-        }
-        break;
+	    }
+    	break;
     case(APPROX):
-        assert(0); /* TODO: Figure out how this works later. */
+	    assert(0); /* TODO: Figure out how this works later. */
+		result = FR_EVAL_FALSE; 
+		break;
     case(GREATER):
-        for (i = 0; i < size; i++)
-        {
+	    for (i = 0; i < size; i++)
+    	{
             if (tag_vals[i] >= rhs_val)
-            {
-                *result = SLP_TRUE;
-                break;
+	        {
+    	        result = FR_EVAL_TRUE;
+        	    break;
             }
-        }
-        break;
+	    }
+    	break;
     case(LESS):
-        for (i = 0; i < size; i++)
-        {
+	    for (i = 0; i < size; i++)
+    	{
             if (tag_vals[i] <= rhs_val)
-            {
-                *result = SLP_TRUE;
-                break;
+	        {
+    	        result = FR_EVAL_TRUE;
+        	    break;
             }
-        }
-        break;
+	    }
+    	break;
     case(SUBSTRING):
-        *result = SLP_FALSE; /* Can't do a substring search on an int. */
+	    result = FR_EVAL_FALSE; /* Can't do a substring search on an int. */
+		break;
     default:
-        assert(0);
+	    assert(0);
     }
 
     /***** Clean up. *****/
     free(tag_vals);
 
-    return SLP_OK;
+	assert(result != FR_UNSET);
+    return result;
 }
 
 
 /*--------------------------------------------------------------------------*/
-SLPError keyw_op(SLPAttributes slp_attr, 
+FilterResult keyw_op(SLPAttributes slp_attr, 
                  char *tag, 
                  char *rhs, 
-                 Operation op, 
-                 SLPBoolean *result)
+                 Operation op)
 /* Perform a keyword operation.                                             */
 /*--------------------------------------------------------------------------*/
 {
@@ -326,18 +342,16 @@ SLPError keyw_op(SLPAttributes slp_attr,
      * We are therefore quite justified in saying:
      */
     assert(op != PRESENT);
-    *result = SLP_FALSE; /* Because any illegal ops simply fail. */
-    return SLP_OK;
+	return FR_EVAL_FALSE;
 }
 
 
 
 /*--------------------------------------------------------------------------*/
-SLPError bool_op(SLPAttributes slp_attr, 
+FilterResult bool_op(SLPAttributes slp_attr, 
                  char *tag, 
                  char *rhs, 
-                 Operation op, 
-                 SLPBoolean *result)
+                 Operation op)
 /* Perform a boolean operation. */
 /*--------------------------------------------------------------------------*/
 {
@@ -345,20 +359,22 @@ SLPError bool_op(SLPAttributes slp_attr,
     SLPBoolean tag_val; /* The value associated with the tag. */
     SLPError slp_err;
 
+	FilterResult result;
+
     assert(op != PRESENT);
 
+	result = FR_UNSET;
+	
     /* Note that the only valid non-PRESENT operator is EQUAL. */
     if (op != EQUAL)
     {
-        *result = SLP_FALSE;
-        return SLP_OK;
+		return FR_EVAL_FALSE;
     }
 
     /***** Get and check the rhs value. *****/
     if (!is_bool_string(rhs, &rhs_val))
     {
-        *result = SLP_FALSE;
-        return SLP_OK;
+        return FR_EVAL_FALSE;
     }
 
     /***** Get the tag value. *****/
@@ -366,31 +382,30 @@ SLPError bool_op(SLPAttributes slp_attr,
 
     if (slp_err != SLP_OK)
     {
-        *result = SLP_FALSE;
-        return SLP_OK;
-    }
+		return FR_EVAL_FALSE;
+	}
 
     /***** Compare. *****/
-    if (tag_val == rhs_val)
+	if (tag_val == rhs_val)
     {
-        *result = SLP_TRUE; 
+	    result = FR_EVAL_TRUE; 
     }
-    else
+	else
     {
-        *result = SLP_FALSE;
+	    result = FR_EVAL_FALSE;
     }
-
-    return SLP_OK;
+	
+	assert(result != FR_UNSET);
+    return result;
 }
 
 
 
 /*--------------------------------------------------------------------------*/
-SLPError str_op(SLPAttributes slp_attr, 
+FilterResult str_op(SLPAttributes slp_attr, 
                 char *tag, 
                 char *rhs, 
-                Operation op, 
-                SLPBoolean *result)
+                Operation op)
 /* Perform a string operation.                                              */
 /*--------------------------------------------------------------------------*/
 {
@@ -400,11 +415,13 @@ SLPError str_op(SLPAttributes slp_attr,
     size_t size; /* Length of tag_vals. */
     size_t i; /* Index into tag_vals. */
 
+	FilterResult result;
+	
     SLPError slp_err;
 
     assert(op != PRESENT);
 
-    *result = SLP_FALSE; /* Be pessamistic. */
+   	result = FR_UNSET; 
 
     /***** Verify and convert rhs. *****/
     /* TODO: Unescape. */
@@ -416,11 +433,11 @@ SLPError str_op(SLPAttributes slp_attr,
     if (slp_err != SLP_OK)
     {
         /* TODO A more careful examination of return values. */
-        *result = SLP_FALSE;
-        return SLP_OK;
+		free(rhs_val);
+        return FR_EVAL_FALSE;
     }
-
-    /***** Compare. *****/
+    
+	/***** Compare. *****/
     assert(op != PRESENT); 
     i = 0;
     switch (op)
@@ -430,7 +447,7 @@ SLPError str_op(SLPAttributes slp_attr,
         {
             if (strcmp(tag_vals[i], rhs_val) <= 0)
             {
-                *result = SLP_TRUE;
+                result = FR_EVAL_TRUE;
                 break;
             }
             free(tag_vals[i]); /* Scorched earth. */
@@ -441,7 +458,7 @@ SLPError str_op(SLPAttributes slp_attr,
         {
             if (wildcard(rhs_val, tag_vals[i]) == 0)
             {
-                *result = SLP_TRUE;
+                result = FR_EVAL_TRUE;
                 break;
             }
             free(tag_vals[i]); /* Scorched earth. */
@@ -454,14 +471,14 @@ SLPError str_op(SLPAttributes slp_attr,
         {
             if (strcmp(tag_vals[i], rhs_val) >= 0)
             {
-                *result = SLP_TRUE;
+                result = FR_EVAL_TRUE;
                 break;
             }
             free(tag_vals[i]); /* Scorched earth. */
         }
         break;
     case(SUBSTRING):
-        *result = SLP_FALSE; /* Can't do a substring search on an int. */
+        result = FR_EVAL_TRUE; /* Can't do a substring search on an int. */
         free(tag_vals[i]);
         break;
     default:
@@ -481,7 +498,8 @@ SLPError str_op(SLPAttributes slp_attr,
 
     free(rhs_val);
 
-    return SLP_OK;
+	assert(result != FR_UNSET);
+    return result;
 }
 
 
@@ -587,10 +605,9 @@ struct pair
 
 
 /*--------------------------------------------------------------------------*/
-SLPError filter(const char *start, 
+FilterResult filter(const char *start, 
                 const char **end, 
                 SLPAttributes slp_attr, 
-                SLPBoolean *return_value, 
                 int recursion_depth)
 /* Parameters:                                                              */
 /* start -- (IN) The start of the string to work in.                        */
@@ -609,29 +626,26 @@ SLPError filter(const char *start,
     char *operator; /* Pointer to the operator substring. */
     const char *cur; /* Current working character. */
     const char *last_char; /* The last character in the working string. */
-    SLPError err = SLP_NETWORK_INIT_FAILED; 
-    /* Error code of a recursive call -- since nothing in here should ever  */
-    /* go off-machine, the value is set to SLP_NETWORK_INIT_FAILED. The     */
-    /* value of err must NOT be SLP_NETWORK_INIT_FAILED at exit.            */
-        SLPBoolean result;
+    FilterResult err = FR_UNSET; /* The result of an evaluation. */
+    SLPBoolean result;
     
     if (recursion_depth <= 0)
     {
-        return SLP_PARSE_ERROR;
+        return FR_PARSE_ERROR;
     }
 
     recursion_depth--;
 
     if (*start != BRACKET_OPEN)
     {
-        return SLP_PARSE_ERROR;
+        return FR_PARSE_ERROR;
     }
 
     /***** Get the current expression. *****/
     last_char = *end = find_bracket_end(start);
     if (*end == 0)
     {
-        return SLP_PARSE_ERROR;
+        return FR_PARSE_ERROR;
     }
     (*end)++; /* Move the end pointer past the closing bracket. */
 
@@ -642,7 +656,7 @@ SLPError filter(const char *start,
      ****/
     if (!(**end == BRACKET_OPEN || **end == BRACKET_CLOSE || **end == '\0'))
     {
-        return SLP_PARSE_ERROR;
+        return FR_PARSE_ERROR;
     }
 
     /***** check for boolean op. *****/
@@ -654,30 +668,32 @@ SLPError filter(const char *start,
     case('&'): /***** And. *****/
 	case('|'): /***** Or. *****/
 		{
-			SLPBoolean stop_condition; /* Stop when this value is returned. */
+			FilterResult stop_condition; /* Stop when this value is received. Used for short circuiting. */
 	
 			if (*cur == '&') 
 			{
-				stop_condition = SLP_FALSE;
+				stop_condition = FR_EVAL_FALSE;
 			}
 			else if (*cur == '|')
 			{
-				stop_condition = SLP_TRUE;
+				stop_condition = FR_EVAL_TRUE;
 			}
 			
 			cur++; /* Move past operator. */
 
 			/*** Ensure that we have at least one operator. ***/
-			if (*cur != BRACKET_OPEN) 
+			if (*cur != BRACKET_OPEN || cur >= last_char) 
 			{
-				return SLP_PARSE_ERROR;
+				return FR_PARSE_ERROR;
 			}
 			
-			while(*cur == BRACKET_OPEN && cur < last_char) 
+			/*** Evaluate each operand. ***/
+			/* NOTE: Due to the condition on the above "if", we are guarenteed that the first iteration of the loop is valid. */
+			do 
 			{
-	    	    err = filter(cur, &cur, slp_attr, &result, recursion_depth);
+	    	    err = filter(cur, &cur, slp_attr, recursion_depth);
 				/*** Propagate errors. ***/
-	    	    if (err != SLP_OK)
+	    	    if (err != FR_EVAL_TRUE && err != FR_EVAL_FALSE)
     	    	{
 	    	        return err;
 	    	    }
@@ -685,28 +701,31 @@ SLPError filter(const char *start,
 				/*** Short circuit. ***/
 				if (result == stop_condition) 
 				{
-					*return_value = stop_condition;
-					return SLP_OK;
+					return stop_condition;
 				}
-			}
+			} while(*cur == BRACKET_OPEN && cur < last_char); 
+			
+			
+			/*** If we ever get here, it means we've evaluated every operand without short circuiting -- meaning that the operation failed. ***/
+			return (stop_condition == FR_EVAL_TRUE ? FR_EVAL_FALSE : FR_EVAL_TRUE);
 		}
 		
-        *return_value = result;
-        return SLP_OK;
 
     case('!'): /***** Not. *****/
         /**** Child. ****/
         cur++;
-        err = filter(cur, &cur, slp_attr, &result, recursion_depth);
-        if (err != SLP_OK)
+        err = filter(cur, &cur, slp_attr, recursion_depth);
+		/*** Return errors. ***/
+        if (err != FR_EVAL_TRUE && err != FR_EVAL_FALSE)
         {
             return err;
         }
 
-        *return_value = ( result == SLP_TRUE ? SLP_FALSE : SLP_TRUE );
-        return SLP_OK;
+		/*** Perform "not". ***/
+        return (err == FR_EVAL_TRUE ? FR_EVAL_FALSE : FR_EVAL_FALSE );
 
     default: /***** Unknown operator. *****/
+		/* We don't do anything here because this will catch the first character of every leaf predicate. */
     }
 
     /***** Check for leaf operator. *****/
@@ -719,6 +738,7 @@ SLPError filter(const char *start,
         SLPType type;
         SLPError slp_err;
 
+		/**** Demux leaf op. ****/
         /* Since all search operators contain a "=", we look for the equals 
          * sign, and then poke around on either side of that for the real 
          * value. 
@@ -727,7 +747,7 @@ SLPError filter(const char *start,
         if (operator == 0)
         {
             /**** No search operator. ****/
-            return SLP_PARSE_ERROR;
+            return FR_PARSE_ERROR;
         }
 
         /* The rhs always follows the operator. (This doesn't really make 
@@ -738,7 +758,7 @@ SLPError filter(const char *start,
         operator pointer back to point at the start of the op. */
         if (operator == cur)
         {/* Check that we can poke back one char. */
-            return SLP_PARSE_ERROR;
+            return FR_PARSE_ERROR;
         }
 
         switch (*(operator - 1))
@@ -775,7 +795,7 @@ SLPError filter(const char *start,
         lhs = (char *)malloc(len + 1);
         if (lhs == 0)
         {
-            return SLP_MEMORY_ALLOC_FAILED;
+            return FR_MEMORY_ALLOC_FAILED;
         }
         strncpy(lhs, cur, len);
         lhs[len] = '\0';
@@ -785,7 +805,7 @@ SLPError filter(const char *start,
         rhs = (char *)malloc(len + 1);
         if (rhs == 0)
         {
-            return SLP_MEMORY_ALLOC_FAILED;
+            return FR_MEMORY_ALLOC_FAILED;
         }
         strncpy(rhs, val_start, len);
         rhs[len] = '\0';
@@ -795,9 +815,8 @@ SLPError filter(const char *start,
         slp_err = SLPAttrGetType(slp_attr, lhs, &type);
         if (slp_err == SLP_TAG_ERROR)
         { /* Tag  doesn't exist. */
-            *return_value = SLP_FALSE;
-            err = SLP_OK;
-        }
+        	return FR_EVAL_FALSE;
+		}
         else if (slp_err == SLP_OK)
         { /* Tag exists. */
             /**** Do operation. *****/
@@ -805,8 +824,7 @@ SLPError filter(const char *start,
             {
                 /*** Since the PRESENT operation is the same for all types, 
                 do that now. ***/
-                *return_value = SLP_TRUE;
-                err = SLP_OK;
+                return FR_EVAL_TRUE;
             }
             else
             {
@@ -814,25 +832,25 @@ SLPError filter(const char *start,
                 switch (type)
                 {
                 case(SLP_BOOLEAN):
-                    err = bool_op(slp_attr, lhs, rhs, op, return_value); 
+                    err = bool_op(slp_attr, lhs, rhs, op); 
                     break;
                 case(SLP_INTEGER):
-                    err = int_op(slp_attr, lhs, rhs, op, return_value); 
+                    err = int_op(slp_attr, lhs, rhs, op); 
                     break;
                 case(SLP_KEYWORD):
-                    err = keyw_op(slp_attr, lhs, rhs, op, return_value); 
+                    err = keyw_op(slp_attr, lhs, rhs, op); 
                     break;
                 case(SLP_STRING):
-                    err = str_op(slp_attr, lhs, rhs, op, return_value); 
+                    err = str_op(slp_attr, lhs, rhs, op); 
                     break;
                 case(SLP_OPAQUE):
-                    assert(0);
+                    assert(0); /* Opaque is not yet supported. */
                 }
             }
         }
         else
         { /* Some other tag-related error. */
-            err = SLP_INTERNAL_SYSTEM_ERROR;
+            err = FR_INTERNAL_SYSTEM_ERROR;
         }
 
         /***** Clean up. *****/
@@ -841,12 +859,12 @@ SLPError filter(const char *start,
         {
             free(rhs);
         }
-        assert(err != SLP_NETWORK_INIT_FAILED);
+        assert(err != FR_UNSET);
         return err;
     }
 
     /***** No operator. *****/
-    return SLP_PARSE_ERROR;
+    return FR_PARSE_ERROR;
 }
 
 
@@ -878,10 +896,10 @@ int SLPDTestPredicate(const char* predicate, SLPAttributes attr)
         return SLP_OK;
     }
 
-    err = filter(predicate, &end, attr, &result, SLPD_ATTR_RECURSION_DEPTH);
+    err = filter(predicate, &end, attr, SLPD_ATTR_RECURSION_DEPTH);
 
     /***** Check for trailing trash data. *****/
-    if (err == SLP_OK && *end != '\0')
+    if ((err == FR_EVAL_TRUE || err == FR_EVAL_FALSE)&& *end != 0)
     {
         return SLP_PARSE_ERROR;
     }
