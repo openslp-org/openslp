@@ -1,11 +1,10 @@
 # Painfully simple makefile for slptool
 
-
 slptool:
-	gcc -oslptool -lslp slptool.c
+	$(CC) -oslptool ${LIBDIR} -lslp slptool.c
 	
 debug:
-	gcc -g -oslptool -lslp slptool.c
+	$(CC) -g -oslptool ${LIBDIR} -lslp slptool.c
 
 clean:
 	rm -f *.o
