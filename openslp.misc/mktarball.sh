@@ -5,6 +5,7 @@ then
    mkdir /tmp/mktarball
    cd /tmp/mktarball
    cvs -z9 -dmpeterson@cvs.openslp.sourceforge.net:/cvsroot/openslp checkout openslp
+   openslp/autogen.sh
    rm -rf $(find -name CVS)
    mv openslp $1
    tar -cf $1.tar $1
