@@ -117,137 +117,6 @@ void LoadFdSets(SLPList* socklist,
     }
 }
 
-/*-------------------------------------------------------------------------*/
-int CheckPid(const char* pidfile)
-/* Check a pid file to see if slpd is already running                      */
-/*                                                                         */
-/* Returns: 0 on success.  non-zero on failure                             */
-/*-------------------------------------------------------------------------*/
-{
-    pid_t   pid;
-    FILE*   fd;
-    char    pidstr[14];
-
-    /*------------------------------------------*/
-    /* make sure that we're not running already */
-    /*------------------------------------------*/
-    /* read the pid from the file */
-    fd = fopen(pidfile,"r");
-    if(fd)
-    {
-        memset(pidstr,0,14);
-        fread(pidstr,13,1,fd);
-        pid = atoi(pidstr);
-        if(pid)
-        {
-            if(kill(pid,0) == 0)
-            {
-                /* we are already running */
-                return -1;
-            }
-        }
-
-        fclose(fd);
-    }
-
-    return 0;
-}
-
-
-/*-------------------------------------------------------------------------*/
-int WritePid(const char* pidfile, pid_t pid)
-/* Write the pid file                                                      */
-/*                                                                         */
-/* Returns: 0 on success.  non-zero on failure                             */
-/*-------------------------------------------------------------------------*/
-{
-    FILE*   fd;
-    char    pidstr[14];
-
-    /* write my pid to the pidfile */
-    fd = fopen(pidfile,"w");
-    if(fd)
-    {
-        sprintf(pidstr,"%i",(int)pid);
-        fwrite(pidstr,strlen(pidstr),1,fd);
-        fclose(fd);
-    }   
-
-    return 0;
-}
-
-
-/*-------------------------------------------------------------------------*/
-int Daemonize(const char* pidfile)
-/* Turn the calling process into a daemon (detach from tty setuid(), etc   */
-/*                                                                         */      
-/* Returns: zero on success non-zero if slpd could not daemonize (or if    */
-/*          slpd is already running                             .          */
-/*-------------------------------------------------------------------------*/
-{
-    FILE*   fd;
-    struct  passwd* pwent;
-    pid_t   pid;
-    char    pidstr[14];
-    
-    /* fork() if we should detach */
-    if(G_SlpdCommandLine.detach)
-    {
-        pid = fork();
-    }
-    else
-    {
-        pid = getpid();
-    }
-    
-    /* parent or child? */
-    switch(pid)
-    {
-    case -1:
-        return -1;
-    case 0:
-        /* child lives */
-        break;
-
-    default:
-        /* parent writes pid (or child) pid file and dies */
-        fd = fopen(pidfile,"w");
-        if(fd)
-        {
-            sprintf(pidstr,"%i",(int)pid);
-            fwrite(pidstr,strlen(pidstr),1,fd);
-            fclose(fd);
-        }
-        if(G_SlpdCommandLine.detach)
-        {
-            exit(0);
-        }
-        break;
-    }
-
-    close(0); 
-    close(1); 
-    close(2); 
-    setsid(); /* will only fail if we are already the process group leader */
-
-    /*----------------*/
-    /* suid to daemon */
-    /*----------------*/
-    /* TODO: why do the following lines mess up my signal handlers? */
-    pwent = getpwnam("daemon"); 
-    if(pwent)
-    {
-        if(setgroups(1, &pwent->pw_gid) < 0 ||
-           setgid(pwent->pw_gid) < 0 ||
-           setuid(pwent->pw_uid) < 0)
-        {
-            /* TODO: should we log here and return fail */
-        }
-    }
-
-    return 0;
-}
-
 
 /*------------------------------------------------------------------------*/
 void HandleSigTerm()
@@ -316,19 +185,19 @@ void HandleSigHup()
     SLPLogTime();
     SLPLog("SLPD daemon reset by SIGHUP\n");
     SLPLog("****************************************\n\n");
-    
+
     /* unregister with all DAs */
     SLPDKnownDADeinit();
-    
+
     /* re-read properties */
     SLPDPropertyInit(G_SlpdCommandLine.cfgfile);
-    
+
     /* Re-read the static registration file (slp.reg)*/
     SLPDDatabaseReInit(G_SlpdCommandLine.regfile);
 
     /* Rebuild Known DA database */
     SLPDKnownDAInit();
-    
+
     SLPLog("****************************************\n");
     SLPLogTime();
     SLPLog("SLPD daemon reset finished\n");
@@ -347,43 +216,137 @@ void HandleSigAlrm()
     SLPDKnownDAImmortalRefresh(SLPD_AGE_INTERVAL);
 }
 
-#ifdef WIN32
-void __cdecl main(int argc, char **argv) 
+#ifndef WIN32
+/*-------------------------------------------------------------------------*/
+int CheckPid(const char* pidfile)
+/* Check a pid file to see if slpd is already running                      */
+/*                                                                         */
+/* Returns: 0 on success.  non-zero on failure                             */
+/*-------------------------------------------------------------------------*/
 {
-    SERVICE_TABLE_ENTRY dispatchTable[] = 
-    { 
-        { G_SERVICENAME, (LPSERVICE_MAIN_FUNCTION)SLPDServiceMain}, 
-        { NULL, NULL} 
-    }; 
+    pid_t   pid;
+    FILE*   fd;
+    char    pidstr[14];
 
-    /*------------------------*/
-    /* Parse the command line */
-    /*------------------------*/
-    if(SLPDParseCommandLine(argc,argv))
+    /*------------------------------------------*/
+    /* make sure that we're not running already */
+    /*------------------------------------------*/
+    /* read the pid from the file */
+    fd = fopen(pidfile,"r");
+    if(fd)
     {
-        SLPFatal("Invalid command line\n");
+        memset(pidstr,0,14);
+        fread(pidstr,13,1,fd);
+        pid = atoi(pidstr);
+        if(pid)
+        {
+            if(kill(pid,0) == 0)
+            {
+                /* we are already running */
+                return -1;
+            }
+        }
+
+        fclose(fd);
     }
 
-    switch(G_SlpdCommandLine.action)
+    return 0;
+}
+
+
+/*-------------------------------------------------------------------------*/
+int WritePid(const char* pidfile, pid_t pid)
+/* Write the pid file                                                      */
+/*                                                                         */
+/* Returns: 0 on success.  non-zero on failure                             */
+/*-------------------------------------------------------------------------*/
+{
+    FILE*   fd;
+    char    pidstr[14];
+
+    /* write my pid to the pidfile */
+    fd = fopen(pidfile,"w");
+    if(fd)
     {
-    case SLPD_DEBUG:
-        SLPDCmdDebugService(argc, argv);
+        sprintf(pidstr,"%i",(int)pid);
+        fwrite(pidstr,strlen(pidstr),1,fd);
+        fclose(fd);
+    }
+
+    return 0;
+}
+
+
+/*-------------------------------------------------------------------------*/
+int Daemonize(const char* pidfile)
+/* Turn the calling process into a daemon (detach from tty setuid(), etc   */
+/*                                                                         */      
+/* Returns: zero on success non-zero if slpd could not daemonize (or if    */
+/*          slpd is already running                             .          */
+/*-------------------------------------------------------------------------*/
+{
+    FILE*   fd;
+    struct  passwd* pwent;
+    pid_t   pid;
+    char    pidstr[14];
+
+    /* fork() if we should detach */
+    if(G_SlpdCommandLine.detach)
+    {
+        pid = fork();
+    }
+    else
+    {
+        pid = getpid();
+    }
+
+    /* parent or child? */
+    switch(pid)
+    {
+    case -1:
+        return -1;
+    case 0:
+        /* child lives */
         break;
-    case SLPD_INSTALL:
-        SLPDCmdInstallService();
-        break;
-    case SLPD_REMOVE:
-        SLPDCmdRemoveService();
-        break;
+
     default:
-        SLPDPrintUsage();
-        StartServiceCtrlDispatcher(dispatchTable);
-
+        /* parent writes pid (or child) pid file and dies */
+        fd = fopen(pidfile,"w");
+        if(fd)
+        {
+            sprintf(pidstr,"%i",(int)pid);
+            fwrite(pidstr,strlen(pidstr),1,fd);
+            fclose(fd);
+        }
+        if(G_SlpdCommandLine.detach)
+        {
+            exit(0);
+        }
         break;
-    } 
-} 
+    }
 
-#else
+    close(0); 
+    close(1); 
+    close(2); 
+    setsid(); /* will only fail if we are already the process group leader */
+
+    /*----------------*/
+    /* suid to daemon */
+    /*----------------*/
+    /* TODO: why do the following lines mess up my signal handlers? */
+    pwent = getpwnam("daemon"); 
+    if(pwent)
+    {
+        if(setgroups(1, &pwent->pw_gid) < 0 ||
+           setgid(pwent->pw_gid) < 0 ||
+           setuid(pwent->pw_uid) < 0)
+        {
+            /* TODO: should we log here and return fail */
+        }
+    }
+
+    return 0;
+}
 
 /*--------------------------------------------------------------------------*/
 void SignalHandler(int signum)
@@ -586,4 +549,7 @@ int main(int argc, char* argv[])
 
     return 0;
 }
-#endif
+#endif /*ifndef WIN32 */
+
+
+

@@ -40,9 +40,10 @@ RSC=rc.exe
 # PROP Use_Debug_Libraries 0
 # PROP Output_Dir "Release"
 # PROP Intermediate_Dir "Release"
+# PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /YX /FD /c
-# ADD CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /YX /FD /c
+# ADD CPP /nologo /W3 /GX /O2 /D "NDEBUG" /D "ENABLE" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "ENABLE_SLPv1" /YX /FD /c
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
@@ -52,7 +53,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /machine:I386
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /machine:I386
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib wsock32.lib /nologo /subsystem:windows /machine:I386
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
 PostBuild_Cmds=copy ..\..\libslp\slp.h release
@@ -69,9 +70,10 @@ PostBuild_Cmds=copy ..\..\libslp\slp.h release
 # PROP Use_Debug_Libraries 1
 # PROP Output_Dir "Debug"
 # PROP Intermediate_Dir "Debug"
+# PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /YX /FD /GZ /c
-# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /YX /FD /GZ /c
+# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "ENABLE_SLPv1" /YX /FD /GZ /c
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
@@ -81,7 +83,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib wsock32.lib /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
 PostBuild_Desc=Copy slp.h ...
@@ -99,103 +101,99 @@ PostBuild_Cmds=copy ..\..\libslp\slp.h debug
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
-SOURCE=\mpeterson\cvs\openslp\common\slp_buffer.c
+SOURCE=..\..\common\slp_buffer.c
 # End Source File
 # Begin Source File
 
-SOURCE=\mpeterson\cvs\openslp\common\slp_compare.c
+SOURCE=..\..\common\slp_compare.c
 # End Source File
 # Begin Source File
 
-SOURCE=\mpeterson\cvs\openslp\common\slp_da.c
+SOURCE=..\..\common\slp_da.c
 # End Source File
 # Begin Source File
 
-SOURCE=\mpeterson\cvs\openslp\common\slp_linkedlist.c
+SOURCE=..\..\common\slp_linkedlist.c
 # End Source File
 # Begin Source File
 
-SOURCE=\mpeterson\cvs\openslp\common\slp_logfile.c
+SOURCE=..\..\common\slp_logfile.c
 # End Source File
 # Begin Source File
 
-SOURCE=\mpeterson\cvs\openslp\common\slp_message.c
+SOURCE=..\..\common\slp_message.c
 # End Source File
 # Begin Source File
 
-SOURCE=\mpeterson\cvs\openslp\slp_network.c
+SOURCE=..\..\common\slp_property.c
 # End Source File
 # Begin Source File
 
-SOURCE=\mpeterson\cvs\openslp\common\slp_property.c
+SOURCE=..\..\common\slp_utf8.c
 # End Source File
 # Begin Source File
 
-SOURCE=\mpeterson\cvs\openslp\common\slp_utf8.c
+SOURCE=..\..\common\slp_v1message.c
 # End Source File
 # Begin Source File
 
-SOURCE=\mpeterson\cvs\openslp\common\slp_v1message.c
+SOURCE=..\..\common\slp_xid.c
 # End Source File
 # Begin Source File
 
-SOURCE=\mpeterson\cvs\openslp\common\slp_xid.c
+SOURCE=..\..\slpd\slpd_cmdline.c
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\slpd\slpd_cmdline.c
+SOURCE=..\..\slpd\slpd_database.c
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\slpd\slpd_database.c
+SOURCE=..\..\slpd\slpd_incoming.c
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\slpd\slpd_incoming.c
+SOURCE=..\..\slpd\slpd_knownda.c
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\slpd\slpd_knownda.c
+SOURCE=..\..\slpd\slpd_log.c
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\slpd\slpd_log.c
+SOURCE=..\..\slpd\slpd_main.c
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\slpd\slpd_main.c
+SOURCE=..\..\slpd\slpd_outgoing.c
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\slpd\slpd_outgoing.c
+SOURCE=..\..\slpd\slpd_predicate.c
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\slpd\slpd_predicate.c
+SOURCE=..\..\slpd\slpd_process.c
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\slpd\slpd_process.c
+SOURCE=..\..\slpd\slpd_property.c
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\slpd\slpd_property.c
+SOURCE=..\..\slpd\slpd_regfile.c
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\slpd\slpd_regfile.c
+SOURCE=..\..\slpd\slpd_socket.c
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\slpd\slpd_socket.c
+SOURCE=..\..\slpd\slpd_v1process.c
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\slpd\slpd_v1process.c
-# End Source File
-# Begin Source File
-
-SOURCE=\openslp\slpd\slpd_win32.c
+SOURCE=..\..\slpd\slpd_win32.c
 # End Source File
 # End Group
 # Begin Group "Header Files"
@@ -203,59 +201,51 @@ SOURCE=\openslp\slpd\slpd_win32.c
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
 # Begin Source File
 
-SOURCE=\openslp\slpd\resource.h
+SOURCE=..\..\common\slp_buffer.h
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\common\slp_buffer.h
+SOURCE=..\..\common\slp_compare.h
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\common\slp_compare.h
+SOURCE=..\..\common\slp_da.h
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\common\slp_da.h
+SOURCE=..\..\common\slp_linkedlist.h
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\common\slp_linkedlist.h
+SOURCE=..\..\common\slp_logfile.h
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\common\slp_logfile.h
+SOURCE=..\..\common\slp_message.h
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\common\slp_message.h
+SOURCE=..\..\common\slp_network.h
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\common\slp_network.h
+SOURCE=..\..\common\slp_property.h
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\common\slp_property.h
+SOURCE=..\..\common\slp_v1message.h
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\common\slp_v1message.h
+SOURCE=..\..\common\slp_xid.h
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\common\slp_xid.h
+SOURCE=..\..\slpd\slpd.h
 # End Source File
 # Begin Source File
 
-SOURCE=\openslp\slpd\slpd.h
-# End Source File
-# Begin Source File
-
-SOURCE=\openslp\slpd\slpd_unistd.h
-# End Source File
-# Begin Source File
-
-SOURCE=\openslp\slpd\slpd_win32.h
+SOURCE=..\..\slpd\slpd_win32.h
 # End Source File
 # End Group
 # Begin Group "Resource Files"

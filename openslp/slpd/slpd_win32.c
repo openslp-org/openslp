@@ -3,7 +3,7 @@
 /* Project:     OpenSLP - OpenSource implementation of Service Location    */
 /*              Protocol Version 2                                         */
 /*                                                                         */
-/* File:        slpd_win32.c                                             */
+/* File:        slpd_win32.c                                               */
 /*                                                                         */
 /* Abstract:    Win32 specific part, to make SLPD run as a "service"       */
 /*                                                                         */
@@ -53,33 +53,37 @@ SERVICE_STATUS_HANDLE   sshStatusHandle;
 BOOL                    bDebug = FALSE; 
 TCHAR                   szErr[256];
 
-/*------------------------------------------------------------------------*/
-void LoadFdSets(SLPList* list, 
+/*-------------------------------------------------------------------------*/
+extern int G_SIGTERM;
+/* see slpd_main.c                                                         */
+/*-------------------------------------------------------------------------*/
+
+
+/*-------------------------------------------------------------------------*/
+void LoadFdSets(SLPList* socklist, 
                 int* highfd, 
                 fd_set* readfds, 
                 fd_set* writefds);
-/*------------------------------------------------------------------------*/
-
-
-/*------------------------------------------------------------------------*/
-void Shutdown();
-/*------------------------------------------------------------------------*/
-
-
-/* That function is called when the "Database Age" timer wakes up          */
+/* see slpd_main.c                                                         */
 /*-------------------------------------------------------------------------*/
-VOID CALLBACK TimerHandler( UINT Timer,      
-                            UINT Reserved,     
-                            DWORD Arg,  
-                            DWORD DontUse1,     
-                            DWORD DontUse2      
-                          )
-/*-------------------------------------------------------------------------*/
-{
-    G_SIGALRM = 1;
-}
-/*                                                                          */
-/*  FUNCTION: ReportStatusToSCMgr()                                         */
+
+
+/*------------------------------------------------------------------------*/
+void HandleSigTerm();
+/* see slpd_main.c                                                        */
+/*------------------------------------------------------------------------*/
+
+
+/*------------------------------------------------------------------------*/
+void HandleSigAlrm();
+/* see slpd_main.c                                                        */
+/*------------------------------------------------------------------------*/
+
+
+/*--------------------------------------------------------------------------*/
+BOOL ReportStatusToSCMgr(DWORD dwCurrentState, 
+                         DWORD dwWin32ExitCode, 
+                         DWORD dwWaitHint) 
 /*                                                                          */
 /*  PURPOSE: Sets the current status of the service and                     */
 /*           reports it to the Service Control Manager                      */
@@ -94,10 +98,6 @@ VOID CALLBACK TimerHandler( UINT Timer,
 /*    FALSE - failure                                                       */
 /*                                                                          */
 /*--------------------------------------------------------------------------*/
-BOOL ReportStatusToSCMgr(DWORD dwCurrentState, 
-                         DWORD dwWin32ExitCode, 
-                         DWORD dwWaitHint) 
-/*--------------------------------------------------------------------------*/
 {
     static DWORD dwCheckPoint = 1; 
     BOOL fResult = TRUE; 
@@ -106,9 +106,13 @@ BOOL ReportStatusToSCMgr(DWORD dwCurrentState,
     if(G_SlpdCommandLine.action != SLPD_DEBUG)
     {
         if(dwCurrentState == SERVICE_START_PENDING)
+        {
             ssStatus.dwControlsAccepted = 0;
+        }
         else
+        {
             ssStatus.dwControlsAccepted = SERVICE_ACCEPT_STOP; 
+        }
 
         ssStatus.dwCurrentState = dwCurrentState; 
         ssStatus.dwWin32ExitCode = dwWin32ExitCode; 
@@ -116,12 +120,15 @@ BOOL ReportStatusToSCMgr(DWORD dwCurrentState,
 
         if(( dwCurrentState == SERVICE_RUNNING ) || 
            ( dwCurrentState == SERVICE_STOPPED ))
+        {
             ssStatus.dwCheckPoint = 0;
+        }
         else
+        {
             ssStatus.dwCheckPoint = dwCheckPoint++; 
+        }   
 
-
-        /* Report the status of the service to the service control manager.    */
+        /* Report the status of the service to the service control manager.*/
 
         if(!(fResult = SetServiceStatus( sshStatusHandle, &ssStatus)))
         {
@@ -131,8 +138,9 @@ BOOL ReportStatusToSCMgr(DWORD dwCurrentState,
     return fResult; 
 } 
 
-/*                                                                          */
-/*  FUNCTION: GetLastErrorText                                              */
+
+/*--------------------------------------------------------------------------*/
+LPTSTR GetLastErrorText( LPTSTR lpszBuf, DWORD dwSize ) 
 /*                                                                          */
 /*  PURPOSE: copies error message text to string                            */
 /*                                                                          */
@@ -143,8 +151,6 @@ BOOL ReportStatusToSCMgr(DWORD dwCurrentState,
 /*  RETURN VALUE:                                                           */
 /*    destination buffer                                                    */
 /*                                                                          */
-/*--------------------------------------------------------------------------*/
-LPTSTR GetLastErrorText( LPTSTR lpszBuf, DWORD dwSize ) 
 /*--------------------------------------------------------------------------*/
 {
     DWORD dwRet; 
@@ -162,7 +168,9 @@ LPTSTR GetLastErrorText( LPTSTR lpszBuf, DWORD dwSize )
 
     /* supplied buffer is not long enough    */
     if(!dwRet || ( (long)dwSize < (long)dwRet+14 ))
+    {
         lpszBuf[0] = TEXT('\0');
+    }
     else
     {
         lpszTemp[lstrlen(lpszTemp)-2] = TEXT('\0');  
@@ -170,7 +178,9 @@ LPTSTR GetLastErrorText( LPTSTR lpszBuf, DWORD dwSize )
     } 
 
     if(lpszTemp)
+    {
         LocalFree((HLOCAL) lpszTemp );
+    }
 
     return lpszBuf; 
 } 
@@ -181,10 +191,9 @@ void ServiceStop()
 /*--------------------------------------------------------------------------*/
 {
     G_SIGTERM = 1;
-    ReportStatusToSCMgr(
-                       SERVICE_STOPPED,       /* service state    */
-                       NO_ERROR,              /* exit code    */
-                       3000);                 /* wait hint    */
+    ReportStatusToSCMgr(SERVICE_STOPPED,       /* service state */
+                        NO_ERROR,              /* exit code    */
+                        3000);                 /* wait hint    */
 } 
 
 
@@ -196,30 +205,19 @@ void ServiceStart (int argc, char **argv)
     fd_set          writefds;
     int             highfd;
     int             fdcount         = 0;
-    UINT            AgeTimer;
-    WSADATA wsaData; 
-    WORD    wVersionRequested = MAKEWORD(1,1); 
+    time_t          curtime;
+    time_t          alarmtime;
+    struct timeval  timeout;
+    WSADATA         wsaData; 
+    WORD            wVersionRequested = MAKEWORD(1,1); 
 
-    /* Service initialization    */
-
-
-    /* report the status to the service control manager.    */
-
-    if(!ReportStatusToSCMgr(SERVICE_START_PENDING, /* service state    */
+    /*------------------------*/
+    /* Service initialization */
+    /*------------------------*/
+    if(!ReportStatusToSCMgr(SERVICE_START_PENDING, /* service state*/
                             NO_ERROR,              /* exit code    */
                             3000))                 /* wait hint    */
-        goto cleanup;
-
-
-
-    /*------------------------*/
-    /* Parse the command line */
-    /*------------------------*/
-    if(SLPDParseCommandLine(argc,argv))
     {
-        ReportStatusToSCMgr(SERVICE_STOP_PENDING, /* service state    */
-                            NO_ERROR,              /* exit code    */
-                            0);                 /* wait hint    */
         goto cleanup;
     }
 
@@ -231,70 +229,87 @@ void ServiceStart (int argc, char **argv)
         goto cleanup;
     }
 
-    /* report the status to the service control manager.    */
-
-    if(!ReportStatusToSCMgr(
-                           SERVICE_START_PENDING, /* service state    */
-                           NO_ERROR,              /* exit code    */
-                           3000))                 /* wait hint    */
+    /*------------------------*/
+    /* Parse the command line */
+    /*------------------------*/
+    if(SLPDParseCommandLine(argc,argv))
+    {
+        ReportStatusToSCMgr(SERVICE_STOP_PENDING, /* service state    */
+                            NO_ERROR,             /* exit code    */
+                            0);                   /* wait hint    */
         goto cleanup_winsock;
-
+    }
+    if(!ReportStatusToSCMgr(SERVICE_START_PENDING, /* service state    */
+                            NO_ERROR,              /* exit code    */
+                            3000))                 /* wait hint    */
+    {
+        goto cleanup_winsock;
+    }
 
     /*------------------------------*/
     /* Initialize the log file      */
     /*------------------------------*/
-    SLPLogFileOpen(G_SlpdCommandLine.logfile, 0);
-
-    SLPLog("****************************************\n");
-    SLPLog("*** SLPD daemon started              ***\n");
-    SLPLog("****************************************\n");
-    SLPLog("command line = %s\n",argv[0]);
-
-    /* report the status to the service control manager.    */
-
-    if(!ReportStatusToSCMgr(
-                           SERVICE_START_PENDING, /* service state    */
-                           NO_ERROR,              /* exit code    */
-                           3000))                 /* wait hint    */
+    if(SLPLogFileOpen(G_SlpdCommandLine.logfile, 1))
+    {
+        SLPLog("Could not open logfile %s\n",G_SlpdCommandLine.logfile);
         goto cleanup_winsock;
+    }
+
+    /*------------------------*/
+    /* Seed the XID generator */
+    /*------------------------*/
+    SLPXidSeed();
+
+    /*---------------------*/
+    /* Log startup message */
+    /*---------------------*/
+    SLPLog("****************************************\n");
+    SLPLogTime();
+    SLPLog("SLPD daemon started\n");
+    SLPLog("****************************************\n");
+    SLPLog("Command line = %s\n",argv[0]);
+    SLPLog("Using configuration file = %s\n",G_SlpdCommandLine.cfgfile);
+    SLPLog("Using registration file = %s\n",G_SlpdCommandLine.regfile);
+    if(!ReportStatusToSCMgr(SERVICE_START_PENDING, /* service state    */
+                            NO_ERROR,              /* exit code    */
+                            3000))                 /* wait hint    */
+    {
+        goto cleanup_winsock;
+    }
+
 
     /*--------------------------------------------------*/
-    /* Initialize for the first timestamp                    */
+    /* Initialize for the first time                    */
     /*--------------------------------------------------*/
-    SLPDPropertyInit(G_SlpdCommandLine.cfgfile);
-    SLPDDatabaseInit(G_SlpdCommandLine.regfile);
-    SLPDIncomingInit();
-    SLPDOutgoingInit();
-    SLPDKnownDAInit();
-
-    timeBeginPeriod(SLPD_AGE_INTERVAL * 1000);
-    AgeTimer = timeSetEvent(SLPD_AGE_INTERVAL * 1000,
-                            100, /* accuracy of 100 miilliseconds is enough */
-                            TimerHandler, /* callback */
-                            0, /* arg of the callback */
-                            TIME_PERIODIC); 
-
-
-
-
-    /* End of initialization    */
-
+    if(SLPDPropertyInit(G_SlpdCommandLine.cfgfile) ||
+       SLPDDatabaseInit(G_SlpdCommandLine.regfile) ||
+       SLPDIncomingInit() ||
+       SLPDOutgoingInit() ||
+       SLPDKnownDAInit())
+    {
+        SLPLog("slpd initialization failed\n");
+        goto cleanup_winsock;
+    }
+    SLPLog("Agent Interfaces = %s\n",G_SlpdProperty.interfaces);
+    SLPLog("Agent URL = %s\n",G_SlpdProperty.myUrl);
 
     /* Service is now running, perform work until shutdown    */
 
-
-    /* report the status to the service control manager.    */
-
-
-    if(!ReportStatusToSCMgr(
-                           SERVICE_RUNNING,       /* service state    */
-                           NO_ERROR,              /* exit code    */
-                           0))                    /* wait hint    */
+    if(!ReportStatusToSCMgr(SERVICE_RUNNING,       /* service state    */
+                            NO_ERROR,              /* exit code    */
+                            0))                    /* wait hint    */
+    {
         goto cleanup_winsock;
+    }
+
 
     /*-----------*/
     /* Main loop */
     /*-----------*/
+    SLPLog("Startup complete entering main run loop ...\n\n");
+    G_SIGTERM   = 0;
+    curtime = time(&alarmtime);
+    alarmtime = curtime + SLPD_AGE_INTERVAL;
     while(G_SIGTERM == 0)
     {
         /*--------------------------------------------------------*/
@@ -306,69 +321,79 @@ void ServiceStart (int argc, char **argv)
         LoadFdSets(&G_IncomingSocketList, &highfd, &readfds,&writefds);
         LoadFdSets(&G_OutgoingSocketList, &highfd, &readfds,&writefds);
 
+        /*--------------------------------------------------*/
+        /* Before select(), check to see if we got a signal */
+        /*--------------------------------------------------*/
+        if(G_SIGALRM)
+        {
+            goto HANDLE_SIGNAL;
+        }
+
         /*-------------*/
         /* Main select */
         /*-------------*/
-        fdcount = select(highfd+1,&readfds,&writefds,0,0);
-        if(fdcount > 0) /* fdcount will be < 0 when interrupted by a signal */
+        timeout.tv_sec = SLPD_AGE_INTERVAL;
+        timeout.tv_usec = 0;
+        fdcount = select(highfd+1,&readfds,&writefds,0,&timeout);
+        if(fdcount > 0) /* fdcount will be < 0 when timed out */
         {
             SLPDIncomingHandler(&fdcount,&readfds,&writefds);
             SLPDOutgoingHandler(&fdcount,&readfds,&writefds);
         }
 
-        /*----------------------------------------------------------*/
-        /* Before select(), check to see if we should reinitialize  */
-        /*----------------------------------------------------------*/
-        if(G_SIGHUP)
+        /*----------------*/
+        /* Handle signals */
+        /*----------------*/
+        HANDLE_SIGNAL:
+        curtime = time(&curtime);
+        if(curtime >= alarmtime)
         {
-            /* Reinitialize */
-            SLPLog("****************************************\n");
-            SLPLog("*** SLPD daemon restarted            ***\n");
-            SLPLog("****************************************\n");
-            SLPLog("Got SIGHUP reinitializing... \n");
-
-            SLPDPropertyInit(G_SlpdCommandLine.cfgfile);
-            SLPDDatabaseInit(G_SlpdCommandLine.regfile);
-            SLPDOutgoingInit(); 
-            SLPDKnownDAInit();
-            G_SIGHUP = 0;
-
-            /* continue to top of loop so that fd_sets are loaded again */
-            continue; 
+            HandleSigAlrm();
+            alarmtime = curtime + SLPD_AGE_INTERVAL;
         }
 
-        /*--------------------------------------------------------------*/
-        /* Before select(), check to see if we should age the database  */
-        /*--------------------------------------------------------------*/
-        if(G_SIGALRM)
-        {
-            /* TODO: add call to do passive DAAdvert */
-            SLPDIncomingAge(SLPD_AGE_INTERVAL);
-            SLPDOutgoingAge(SLPD_AGE_INTERVAL);
-            SLPDDatabaseAge(SLPD_AGE_INTERVAL);
-            SLPDKnownDAActiveDiscovery(SLPD_AGE_INTERVAL);
-            G_SIGALRM = 0;
-            /* continue to top of loop so that fd_sets are loaded again */
-            continue;
-        }
-    }
+    } /* End of main loop */
 
-    Shutdown();
-
-
-    timeEndPeriod(SLPD_AGE_INTERVAL * 1000);
-    timeKillEvent(AgeTimer);
+    /* Got SIGTERM */
+    HandleSigTerm();
 
     cleanup_winsock:
-
     WSACleanup();
 
     cleanup: 
     ;
 } 
 
+/*==========================================================================*/
+BOOL WINAPI ControlHandler ( DWORD dwCtrlType ) 
 /*                                                                          */
-/*  FUNCTION: service_ctrl                                                  */
+/*  PURPOSE: Handled console control events                                 */
+/*                                                                          */
+/*  PARAMETERS:                                                             */
+/*    dwCtrlType - type of control event                                    */
+/*                                                                          */
+/*  RETURN VALUE:                                                           */
+/*    True - handled                                                        */
+/*    False - unhandled                                                     */
+/*                                                                          */
+/*==========================================================================*/
+{
+    switch(dwCtrlType)
+    {
+    case CTRL_BREAK_EVENT:  /* use Ctrl+C or Ctrl+Break to simulate    */
+    case CTRL_C_EVENT:      /* SERVICE_CONTROL_STOP in debug mode    */
+        printf("Stopping %s.\n", G_SERVICEDISPLAYNAME); 
+        ServiceStop(); 
+        return TRUE; 
+        break; 
+
+    } 
+    return FALSE; 
+} 
+
+
+/*==========================================================================*/
+VOID WINAPI ServiceCtrl(DWORD dwCtrlCode) 
 /*                                                                          */
 /*  PURPOSE: This function is called by the SCM whenever                    */
 /*           ControlService() is called on this service.                    */
@@ -379,9 +404,7 @@ void ServiceStart (int argc, char **argv)
 /*  RETURN VALUE:                                                           */
 /*    none                                                                  */
 /*                                                                          */
-/*--------------------------------------------------------------------------*/
-VOID WINAPI ServiceCtrl(DWORD dwCtrlCode) 
-/*--------------------------------------------------------------------------*/
+/*==========================================================================*/
 {
     /* Handle the requested control code.    */
     /*    */
@@ -408,9 +431,9 @@ VOID WINAPI ServiceCtrl(DWORD dwCtrlCode)
 } 
 
 
-/*--------------------------------------------------------------------------*/
+/*==========================================================================*/
 void WINAPI SLPDServiceMain(DWORD argc, LPTSTR *argv) 
-/*--------------------------------------------------------------------------*/
+/*==========================================================================*/
 {
 
     /* register our service control handler:    */
@@ -444,8 +467,7 @@ void WINAPI SLPDServiceMain(DWORD argc, LPTSTR *argv)
 } 
 
 
-
-/*--------------------------------------------------------------------------*/ 
+/*--------------------------------------------------------------------------*/
 void SLPDCmdInstallService() 
 /*--------------------------------------------------------------------------*/
 {
@@ -465,8 +487,8 @@ void SLPDCmdInstallService()
     schSCManager = OpenSCManager(
                                 NULL,                   /* machine (NULL == local)    */
                                 NULL,                   /* database (NULL == default)    */
-                                SC_MANAGER_ALL_ACCESS   /* access required    */
-                                ); 
+                                SC_MANAGER_ALL_ACCESS); /* access required    */
+
     if(schSCManager)
     {
         schService = CreateService(
@@ -501,7 +523,6 @@ void SLPDCmdInstallService()
 } 
 
 
-
 /*--------------------------------------------------------------------------*/
 void SLPDCmdRemoveService() 
 /*--------------------------------------------------------------------------*/
@@ -512,8 +533,7 @@ void SLPDCmdRemoveService()
     schSCManager = OpenSCManager(
                                 NULL,                   /* machine (NULL == local)    */
                                 NULL,                   /* database (NULL == default)    */
-                                SC_MANAGER_ALL_ACCESS   /* access required    */
-                                ); 
+                                SC_MANAGER_ALL_ACCESS); /* access required    */
     if(schSCManager)
     {
         schService = OpenService(schSCManager, G_SERVICENAME, SERVICE_ALL_ACCESS); 
@@ -563,39 +583,6 @@ void SLPDCmdRemoveService()
 } 
 
 
-
-
-
-/*                                                                          */
-/*  FUNCTION: ControlHandler ( DWORD dwCtrlType )                           */
-/*                                                                          */
-/*  PURPOSE: Handled console control events                                 */
-/*                                                                          */
-/*  PARAMETERS:                                                             */
-/*    dwCtrlType - type of control event                                    */
-/*                                                                          */
-/*  RETURN VALUE:                                                           */
-/*    True - handled                                                        */
-/*    False - unhandled                                                     */
-/*                                                                          */
-/*--------------------------------------------------------------------------*/
-BOOL WINAPI ControlHandler ( DWORD dwCtrlType ) 
-/*--------------------------------------------------------------------------*/
-{
-    switch(dwCtrlType)
-    {
-    case CTRL_BREAK_EVENT:  /* use Ctrl+C or Ctrl+Break to simulate    */
-    case CTRL_C_EVENT:      /* SERVICE_CONTROL_STOP in debug mode    */
-        printf("Stopping %s.\n", G_SERVICEDISPLAYNAME); 
-        ServiceStop(); 
-        return TRUE; 
-        break; 
-
-    } 
-    return FALSE; 
-} 
-
-
 /*--------------------------------------------------------------------------*/
 void SLPDCmdDebugService(int argc, char ** argv) 
 /*--------------------------------------------------------------------------*/
@@ -605,6 +592,43 @@ void SLPDCmdDebugService(int argc, char ** argv)
 
     SetConsoleCtrlHandler( ControlHandler, TRUE ); 
     ServiceStart( argc, argv ); 
+}
+
+/*==========================================================================*/
+void __cdecl main(int argc, char **argv) 
+/*==========================================================================*/
+{
+    SERVICE_TABLE_ENTRY dispatchTable[] = 
+    { 
+        { G_SERVICENAME, (LPSERVICE_MAIN_FUNCTION)SLPDServiceMain}, 
+        { NULL, NULL} 
+    }; 
+
+    /*------------------------*/
+    /* Parse the command line */
+    /*------------------------*/
+    if(SLPDParseCommandLine(argc,argv))
+    {
+        SLPFatal("Invalid command line\n");
+    }
+
+    switch(G_SlpdCommandLine.action)
+    {
+    case SLPD_DEBUG:
+        SLPDCmdDebugService(argc, argv);
+        break;
+    case SLPD_INSTALL:
+        SLPDCmdInstallService();
+        break;
+    case SLPD_REMOVE:
+        SLPDCmdRemoveService();
+        break;
+    default:
+        SLPDPrintUsage();
+        StartServiceCtrlDispatcher(dispatchTable);
+
+        break;
+    } 
 } 
 
 

@@ -67,6 +67,7 @@
 #include "../common/slp_linkedlist.h"
 #include "../common/slp_buffer.h"
 #include "../common/slp_message.h"
+#include "../common/slp_v1message.h"
 #include "../common/slp_logfile.h"
 #include "../common/slp_compare.h"
 #include "../common/slp_property.h"
@@ -211,10 +212,12 @@ int SLPDPropertyInit(const char* conffile);
 
 #ifdef DEBUG
 
+
 /*=========================================================================*/
 void SLPDPropertyDeinit();
 /*=========================================================================*/
 #endif
+
 
 
 
@@ -257,24 +260,24 @@ typedef struct _SLPDDatabaseEntry
 /* Structure representing an entry in slpd database (linked list)          */
 /*=========================================================================*/
 {
-    SLPListItem         listitem;
-    unsigned int        regtype;
-    char*               langtag;
-    unsigned int        langtaglen;
-    int                 lifetime;
-    unsigned int        urllen;
-    char*               url;
-    unsigned int        scopelistlen;
-    char*               scopelist;
-    unsigned int        srvtypelen;
-    char*               srvtype;
+    SLPListItem     listitem;
+    unsigned int    regtype;
+    char*           langtag;
+    int             langtaglen;
+    int             lifetime;
+    int             urllen;
+    char*           url;
+    int             scopelistlen;
+    char*           scopelist;
+    int             srvtypelen;
+    char*           srvtype;
 #ifdef USE_PREDICATES
-    SLPAttributes       attr;
+    SLPAttributes   attr;
 #endif
-    unsigned int        attrlistlen;
-    char*               attrlist;
-    unsigned int        partiallistlen;
-    char*               partiallist;
+    int    attrlistlen;
+    char*           attrlist;
+    int    partiallistlen;
+    char*           partiallist;
 
     /* TODO: we might need some authblock storage here */
 }SLPDDatabaseEntry;
@@ -311,11 +314,13 @@ int SLPDDatabaseReInit(const char* regfile);
 
 #ifdef DEBUG
 
+
 /*=========================================================================*/
 void SLPDDatabaseDeinit();
 /* De-initialize the database.  Free all resources taken by registrations  */
 /*=========================================================================*/
 #endif
+
 
 
 
@@ -754,6 +759,7 @@ int SLPDKnownDAEntryToDAAdvert(int errorcode,
 
 
 
+
 /*=========================================================================*/
 int SLPDv1KnownDAEntryToDAAdvert(int errorcode,
                                  int encoding,
@@ -777,6 +783,7 @@ int SLPDv1KnownDAEntryToDAAdvert(int errorcode,
 /* returns: zero on success, non-zero on error                             */
 /*=========================================================================*/
 #endif
+
 
 
 
@@ -865,6 +872,7 @@ extern SLPList G_KnownDAList;
 
 
 #if(defined USE_PREDICATES)
+
 
 /*=========================================================================*/
 int SLPDPredicateTest(int predicatever, const char* predicate,

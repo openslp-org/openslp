@@ -3,7 +3,7 @@
 /* Project:     OpenSLP - OpenSource implementation of Service Location    */
 /*              Protocol Version 2                                         */
 /*                                                                         */
-/* File:        slpd_process.c                                             */
+/* File:        slpd_v1process.c                                           */
 /*                                                                         */
 /* Abstract:    Processes incoming SLP messages                            */
 /*                                                                         */
@@ -327,6 +327,7 @@ int v1ProcessSrvReg(struct sockaddr_in* peeraddr,
 #else
         uid = getuid();
 #endif
+
 
 
 

@@ -55,8 +55,9 @@
 #include <winsock.h>
 #include <process.h>
 #include <ctype.h>
+#include <time.h>
 
-#define SLP_VERSION "0.7.5"
+#define SLP_VERSION "0.8.2"
 
 /*  internal name of the service  */
 #define G_SERVICENAME        "slpd"    
