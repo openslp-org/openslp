@@ -90,9 +90,8 @@ void OutgoingDatagramRead(SLPList* socklist, SLPDSocket* sock)
         SLPDProcessMessage(&(sock->peeraddr),
                            sock->recvbuf,
                            &(sock->sendbuf));
-/*       
-        SLPDSocketFree((SLPDSocket*)SLPListUnlink(socklist,(SLPListItem*)sock));
-*/
+
+        /* Completely ignore the message */
     }
 }
 
@@ -400,7 +399,10 @@ SLPDSocket* SLPDOutgoingConnect(struct in_addr* addr)
     if ( sock == 0 )
     {
         sock = SLPDSocketCreateConnected(addr);
-        SLPListLinkTail(&(G_OutgoingSocketList),(SLPListItem*)sock);
+        if(sock)
+        {
+            SLPListLinkTail(&(G_OutgoingSocketList),(SLPListItem*)sock);
+        }
     }
 
     return sock;
