@@ -285,7 +285,7 @@ void SLPClose(SLPHandle hSLP)
         SLPPropertyFreeAll();
         
         KnownDAFreeAll();
-
+        
         xmalloc_deinit();
     }
 #endif

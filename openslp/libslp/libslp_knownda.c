@@ -605,25 +605,17 @@ int KnownDAGetScopes(int* scopelistlen,
 /*=========================================================================*/
 {
     int                 newlen;
-    time_t              curtime;
     SLPDatabaseHandle   dh;
     SLPDatabaseEntry*   entry;
     
-    /* Refresh the cache if necessary */
-    curtime = time(&curtime);
-    if(G_KnownDALastCacheRefresh == 0 ||
-       curtime - G_KnownDALastCacheRefresh > MINIMUM_DISCOVERY_INTERVAL)
+    /* discover DAs */
+    if(KnownDADiscoverFromIPC() == 0)
     {
-        G_KnownDALastCacheRefresh = curtime;
-
-        /* discover DAs */
-        if(KnownDADiscoverFromIPC() == 0)
-        {
-            KnownDADiscoverFromDHCP();
-            KnownDADiscoverFromProperties();
-            KnownDADiscoverFromMulticast(0,"");
-        }
+        KnownDADiscoverFromDHCP();
+        KnownDADiscoverFromProperties();
+        KnownDADiscoverFromMulticast(0,"");
     }
+
 
     /* enumerate through all the knownda entries and generate a */
     /* scopelist                                                */
