@@ -16,38 +16,26 @@ The OpenSLP project is an effort to develop an open-source implementation of
 Service Location Protocol suitable for commercial and non-commercial 
 application.
 
-The latest version of OpenSLP is 0.9.0  Release notes for this version follow:
-Due to the need to make some significant changes to the code, we have
-decided to make one final major release before 1.0.x.  Most of the changes
-in OpenSLP 0.9.0 were required to add SLPv2
-authentication support.  The most obvious difference between 0.9.0 and
-previous releases is a rewrite of the internal database used to store
-registrations and known DAs.  Instead of copying fields
-from SrvReg and DAAdvert messages, the registration and known DA databases
-now save off the entire message along with the SLPMessage descriptor.  This
-allows for slightly faster processing, but
-more importantly, it allows for storage of authentication information in a
-way that does not require the SA or DA to have to recalculate signatures for
-each reply. 
+The latest version of OpenSLP is 0.9.1  Release notes for this version follow:
 
-The following is a shortened list changes for 0.9.0: 
+OpenSLP 0.9.1 is a bug fix release.  It does not offer any new features, but
+since some the fixed bugs were fairly serious it highly recommended that
+0.9.0 users upgrade. 
 
- - Full SLPv2 Authentication support
- - Completely new internal registration and knownDA database implementation 
- - Optional net.slp.checkSourceAddr security feature
- - Support for net.slp.OpenSLPVersion
- - Support for special service-types -- service:directory-agent and 
-   service:service-agent can now be used in calls to SLPFindSrvs()
- - Changes to libslp to prepare for collation in 0.9.1
- - Fixes for sever socket reconnect, reuse, and aging bugs
- - Fixes for several slp.reg parsing errors.
- - Fixed for "invalid predicate" SEGV
- - Debug logging of registrations and known DAs on receipt of SIGINT
- - Debug malloc wrappers       
+The following is a shortened list changes for 0.9.1: 
+- Fixes all known bugs (SourceForge bug tracker 
+  http://sourceforge.net/tracker/?group_id=1730&atid=101730 for details)
+- Minor build changes for BSD
+- Fixed up broken SLPv1 support.Changed includes of the form 
+  "../common/header.h" to "header.h" because of potential breakage for
+  non source directory builds.
+- Added a EPM slp.list.in file and updated configure.in. EPM is an Easy 
+  Package Manager (http://www.easysw.com/epm) that allows easy creation of 
+  different packaging formats.)
        
 2 - Roadmap
 ------------
-OpenSLP is getting very close to being released nd beta form.  It is 
+OpenSLP is getting very close to being released in beta form.  It is 
 currently useable for most applications, but still lacks a few important
 features:
     

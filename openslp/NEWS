@@ -1,8 +1,9 @@
 NEWS - list of user-visible changes between releases of OpenSLP and other
 important events.
 
-New in openslp-0.9.1 (2001-05-??)
+New in openslp-0.9.1 (2001-06-18)
 ---------------------------------
+* All known bugs are fixed.
 * SLPv1 backward compatibility support is back!
 * Easy Package Manager (EPM) list file added (EPM is a software packager
   that can generate different package formats from a single list file).
