@@ -1,200 +1,189 @@
-<!DOCTYPE html PUBLIC "-//w3c//dtd html 4.0 transitional//en">
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
 <html>
 <head>
-            
-  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-15">
-            
-  <meta name="GENERATOR" content="Mozilla/4.77C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.4.13 i686) [Netscape]">
-  <title>OpenSLP - Download</title>
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-15">
+   <meta name="GENERATOR" content="Mozilla/4.79 [en] (X11; U; Linux 2.4.18-3 i686) [Netscape]">
+   <title>OpenSLP - Download</title>
 </head>
- <body text="#000000" bgcolor="#ffffff" link="#0000ee" vlink="#551a8b" alink="#ff0000">
-       
-<table nosave="">
-   <tbody>
-      <tr align="Left" valign="CENTER" nosave="">
-   <td align="Left" nosave=""><img src="smalllogo.jpg" nosave="" height="106" width="317">
-        </td>
-    <td>               
-      <h1>                
-      <hr width="100%">Download               
-      <hr width="100%"></h1>
-   </td>
-   </tr>
-         
-  </tbody>  
+<body text="#000000" bgcolor="#FFFFFF" link="#0000EE" vlink="#551A8B" alink="#FF0000">
+&nbsp;
+<table NOSAVE >
+<caption>&nbsp;</caption>
+
+<tr ALIGN=LEFT VALIGN=CENTER NOSAVE>
+<td ALIGN=LEFT NOSAVE><img SRC="smalllogo.jpg" NOSAVE height=106 width=317></td>
+
+<td>
+<h1>
+
+<hr width="100%">Download&nbsp;
+<hr width="100%"></h1>
+</td>
+</tr>
 </table>
-      
-<hr width="100%"> <br>
-      
-<h3> Release Notes for 1.0.9a (stable)</h3>
-      
-<p>The latest stable version of OpenSLP is 1.0.9a.  OpenSLP-1.0.9a contains
- a few minor bug fixes that some OpenSLP users will be interested in. Most 
-of all, OpenSLP 1.0.9a probably represents the last official release of the 
-1.0.x branch.  Subsequent releases will only be made if serious bug fixes 
-are needed.  Otherwise, all changes will be made to the development 1.1.x 
-branch.<br>
-  <br>
-  Those that are investigating OpenSLP as part of a development or porting
- project should look at the 1.1.x development releases.  This is where the
- development action will be.  Those that are deploying OpenSLP in production
- systems should continue to look at OpenSLP 1.0.9a until the 1.1.x code becomes
- stable enought for production use.</p>
-<p>OpenSLP 1.0.9a replaces the previous 1.0.9 release which contained a innocent
-but very problematic bug.  <br>
-</p>
-<p>  </p>
-   
-<p> </p>
-      
-<h3></h3>
-<h3> Source Code</h3>
-      
-<table nosave="">
-   <tbody>
-      <tr nosave="">
-   <td nosave=""><a href="http://prdownloads.sourceforge.net/openslp/openslp-1.0.9a.tar.gz">
-  openslp-1.0.9a.tar.gz</a>
-        </td>
-    <td nosave="">               
-      <blockquote>OpenSLP source code tarball</blockquote>
-   </td>
-   </tr>
-    <tr nosave="">
-   <td nosave=""><a href="http://prdownloads.sourceforge.net/openslp/openslp-1.0.9a-1.src.rpm">
-  openslp-1.0.9a-1.src.rpm</a>
-          </td>
-    <td>                   
-        <blockquote>OpenSLP source RPM</blockquote>
-   </td>
-   </tr>
-    <tr>
-   <td><a href="http://prdownloads.sourceforge.net/openslp/openslp-contrib-1.0.9a.tar.gz">
-  openslp-contrib-1.0.9a.tar.gz</a>
-            </td>
-    <td>                       
-          <blockquote>Collection of SLP related utilities and tools</blockquote>
-   </td>
-   </tr>
-                     
-        </tbody>              
-      </table>
-                  
-      <h3> Binary Packages</h3>
-                  
-      <table nosave="">
-   <tbody>
-            <tr nosave="">
-   <td nosave=""><a href="http://prdownloads.sourceforge.net/openslp/openslp-1.0.9a-1.i386.rpm">
-  openslp-1.0.9a-1.i386.rpm</a>
-              </td>
-    <td>                           
-            <blockquote>OpenSLP binary RPM for Linux (Caldera OpenLinux,
-RedHat, SUSE, Turbo)</blockquote>
-   </td>
-   </tr>
-                         
-          </tbody>                  
-        </table>
-                      
-        <h3>                    
-        <hr width="100%"></h3>
-                      
-        <h3> <a name="development"></a>
-  Release Notes for 1.1.1 (development)</h3>
-   OpenSLP 1.1.x are a develper releases of the cutting edge OpenSLP code.  
- If you are looking for a stable release, you should download the latest revision
-of the 1.0.x series (above):                   
-        <p>OpenSLP 1.1.1 is the first release of the 1.1.x series.  Several 
- significant changes have been made that are not part of the 1.0.x releases.  
- A list of these changes as well as a list of known issues follows: <br>
-    </p>
-                   
-        <blockquote>Changes:                       
-          <ul>
-                             
-            <li> Significant changes have been made in multicasting send
-code.  These changes are highlighted by the addition of several new files
-and functions like those found in common/slp_iface.c common/slp_xcast.c,
-and libslp_network.c.</li>
-                              
-            <li> Several changes have been made to consolidate common code. 
- Please notice several new files in common directory</li>
-                              
-            <li> Significant changes were made to provide a PID watching
-feature.  In OpenSLP 1.1.x slpd will watch the "PIDs" of processes that register
- via the SLPReg() API.  If the registering process dies unexpectedly,    
-slpd  will automatically deregister the registered services.</li>
-                         
-          </ul>
-   Known Issues:                       
-          <ul>
-                             
-            <li> Much of the new code is not ported to platforms other than
- Linux.  Please feel free to send patches for your OS directly to me or to
- the <a href="mailto:openslp-devel@sourceforge.net">openslp-devel@sourceforge.net</a>
-   mailing list.</li>
-                         
-          </ul>
-   </blockquote>
-                          
-          <h3> Source Code</h3>
-                          
-          <table nosave="">
-   <tbody>
-                <tr nosave="">
-   <td nosave=""><a href="http://prdownloads.sourceforge.net/openslp/openslp-1.1.1.tar.gz">
-  openslp-1.1.1.tar.gz</a>
-                  </td>
-    <td nosave="">                                   
-                <blockquote>OpenSLP source code tarball</blockquote>
-   </td>
-   </tr>
-    <tr nosave="">
-   <td nosave="">openslp-1.1.1-1.src.rpm</td>
-    <td>                                       
-                  <blockquote>OpenSLP source RPM</blockquote>
-   </td>
-   </tr>
-    <tr>
-   <td>openslp-contrib-1.1.1.tar.gz</td>
-    <td>                                           
-                    <blockquote>Collection of SLP related utilities and tools</blockquote>
-   </td>
-   </tr>
-                                         
-                  </tbody>                                  
-                </table>
-                                      
-                <h3> Binary Packages</h3>
-                                      
-                <table nosave="">
-   <tbody>
-                      <tr nosave="">
-   <td nosave="">openslp-1.1.1-1.i386.rpm</td>
-    <td>                                               
-                      <blockquote>OpenSLP binary RPM for Linux (Caldera OpenLinux,
- RedHat, SUSE, Turbo)</blockquote>
-   </td>
-   </tr>
-                                             
-                    </tbody>                                      
-                  </table>
-                                          
-                  <h3>                                        
-                  <hr width="100%"></h3>
-                                           
-                  <p>  <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    </p>
-                                       
-                  </body>
-                  </html>
+
+<hr width="100%">
+<br>&nbsp;
+<h3>
+Release Notes for 1.0.10 (stable)</h3>
+The latest stable version of OpenSLP is 1.0.10.&nbsp; OpenSLP-1.0.10 contains
+a few minor bug fixes that some OpenSLP users will be interested in.&nbsp;
+See ChangeLog in tarball for details.
+<p>Those that are investigating OpenSLP as part of a development or porting
+project should look at the 1.1.x development releases.&nbsp; This is where
+the development action will be.&nbsp; Those that are deploying OpenSLP
+in production systems should continue to look at OpenSLP 1.0.10 until the
+1.1.x code becomes stable enought for production use.
+<br>&nbsp;
+<h3>
+Source Code</h3>
+
+<table NOSAVE >
+<caption>&nbsp;</caption>
+
+<tr NOSAVE>
+<td NOSAVE><a href="http://prdownloads.sourceforge.net/openslp/openslp-1.0.10.tar.gz">openslp-1.0.10.tar.gz</a></td>
+
+<td NOSAVE>
+<blockquote>OpenSLP source code tarball</blockquote>
+</td>
+</tr>
+
+<tr NOSAVE>
+<td NOSAVE><a href="http://prdownloads.sourceforge.net/openslp/openslp-1.0.10-1.src.rpm">openslp-1.0.10-1.src.rpm</a></td>
+
+<td>
+<blockquote>OpenSLP source RPM</blockquote>
+</td>
+</tr>
+
+<tr>
+<td><a href="http://prdownloads.sourceforge.net/openslp/openslp-contrib-1.0.10.tar.gz">openslp-contrib-1.0.10.tar.gz</a></td>
+
+<td>
+<blockquote>Collection of SLP related utilities and tools</blockquote>
+</td>
+</tr>
+</table>
+
+<h3>
+Binary Packages</h3>
+
+<table NOSAVE >
+<caption>&nbsp;</caption>
+
+<tr NOSAVE>
+<td NOSAVE><a href="http://prdownloads.sourceforge.net/openslp/openslp-1.0.10-1.i386.rpm">openslp-1.0.10-1.i386.rpm</a></td>
+
+<td>
+<blockquote>OpenSLP binary RPM for Linux (Caldera OpenLinux, RedHat, SUSE,
+Turbo)</blockquote>
+</td>
+</tr>
+</table>
+
+<h3>
+
+<hr width="100%"></h3>
+
+<h3>
+<a NAME="development"></a>Release Notes for 1.1.1 (development)</h3>
+OpenSLP 1.1.x are a develper releases of the cutting edge OpenSLP code.&nbsp;
+If you are looking for a stable release, you should download the latest
+revision of the 1.0.x series (above):
+<p>OpenSLP 1.1.1 is the first release of the 1.1.x series.&nbsp; Several
+significant changes have been made that are not part of the 1.0.x releases.&nbsp;
+A list of these changes as well as a list of known issues follows:
+<br>&nbsp;
+<blockquote>Changes:
+<ul>
+<li>
+Significant changes have been made in multicasting send code.&nbsp; These
+changes are highlighted by the addition of several new files and functions
+like those found in common/slp_iface.c common/slp_xcast.c, and libslp_network.c.</li>
+
+<li>
+Several changes have been made to consolidate common code.&nbsp; Please
+notice several new files in common directory</li>
+
+<li>
+Significant changes were made to provide a PID watching feature.&nbsp;
+In OpenSLP 1.1.x slpd will watch the "PIDs" of processes that register
+via the SLPReg() API.&nbsp; If the registering process dies unexpectedly,&nbsp;&nbsp;&nbsp;&nbsp;
+slpd will automatically deregister the registered services.</li>
+</ul>
+Known Issues:
+<ul>
+<li>
+Much of the new code is not ported to platforms other than Linux.&nbsp;
+Please feel free to send patches for your OS directly to me or to the <a href="mailto:openslp-devel@sourceforge.net">openslp-devel@sourceforge.net</a>
+mailing list.</li>
+</ul>
+</blockquote>
+
+<h3>
+Source Code</h3>
+
+<table NOSAVE >
+<caption>&nbsp;</caption>
+
+<tr NOSAVE>
+<td NOSAVE><a href="http://prdownloads.sourceforge.net/openslp/openslp-1.1.1.tar.gz">openslp-1.1.1.tar.gz</a></td>
+
+<td NOSAVE>
+<blockquote>OpenSLP source code tarball</blockquote>
+</td>
+</tr>
+
+<tr NOSAVE>
+<td NOSAVE>openslp-1.1.1-1.src.rpm</td>
+
+<td>
+<blockquote>OpenSLP source RPM</blockquote>
+</td>
+</tr>
+
+<tr>
+<td>openslp-contrib-1.1.1.tar.gz</td>
+
+<td>
+<blockquote>Collection of SLP related utilities and tools</blockquote>
+</td>
+</tr>
+</table>
+
+<h3>
+Binary Packages</h3>
+
+<table NOSAVE >
+<caption>&nbsp;</caption>
+
+<tr NOSAVE>
+<td NOSAVE>openslp-1.1.1-1.i386.rpm</td>
+
+<td>
+<blockquote>OpenSLP binary RPM for Linux (Caldera OpenLinux, RedHat, SUSE,
+Turbo)</blockquote>
+</td>
+</tr>
+</table>
+
+<h3>
+
+<hr width="100%"></h3>
+&nbsp;
+<p>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
+</body>
+</html>
