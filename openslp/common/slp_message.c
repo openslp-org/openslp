@@ -49,37 +49,45 @@ int ParseHeader(SLPBuffer buffer, SLPHeader* header)
 {
     header->version     = *(buffer->curpos);
     header->functionid  = *(buffer->curpos + 1);
+	
+#if defined(ENABLE_SLPv1)
+    if (header->version == 1)
+    {
+	return v1ParseHeader(buffer, header);
+    }
+#endif
+    
+    if (header->version != 2)
+    {
+        return SLP_ERROR_VER_NOT_SUPPORTED;
+    }
+
     header->length      = AsUINT24(buffer->curpos + 2);
     header->flags       = AsUINT16(buffer->curpos + 5);
+    header->encoding    = 0; /* not used for SLPv2 */
     header->extoffset   = AsUINT24(buffer->curpos + 7);
     header->xid         = AsUINT16(buffer->curpos + 10);
     header->langtaglen  = AsUINT16(buffer->curpos + 12);
     header->langtag     = buffer->curpos + 14;
 
-    if(header->version != 2)
-    {
-        return SLP_ERROR_VER_NOT_SUPPORTED;
-    }
-
     if(header->functionid > SLP_FUNCT_SAADVERT)
     {
-        /* invalid function id */
-        return SLP_ERROR_PARSE_ERROR;
+	/* invalid function id */
+	return SLP_ERROR_PARSE_ERROR;
     }
 
     if(header->length != buffer->end - buffer->start ||
        header->length < 18)
     {
-        /* invalid length 18 bytes is the smallest v2 message*/
+	/* invalid length 18 bytes is the smallest v2 message*/
         return SLP_ERROR_PARSE_ERROR;
     }
 
     if(header->flags & 0x1fff)
     {
-        /* invalid flags */
-        return SLP_ERROR_PARSE_ERROR;
+	/* invalid flags */
+	return SLP_ERROR_PARSE_ERROR;
     }
-
     buffer->curpos = buffer->curpos + header->langtaglen + 14;
 
     return 0;
@@ -689,7 +697,7 @@ int ParseSrvTypeRqst(SLPBuffer buffer, SLPSrvTypeRqst* srvtyperqst)
 {
     /* make sure that min size is met */
     #if(defined(PARANOID) || defined(DEBUG))
-    if(buffer->end - buffer->curpos < 10)
+    if(buffer->end - buffer->curpos < 6)
     {
         return SLP_ERROR_PARSE_ERROR;
     }
@@ -933,6 +941,12 @@ int SLPMessageParseBuffer(SLPBuffer buffer, SLPMessage message)
     result = ParseHeader(buffer,&(message->header));
     if(result == 0)
     {
+#if defined(ENABLE_SLPv1)
+	if(message->header.version == 1)
+	    return SLPv1MessageParseBuffer(buffer, &(message->header),
+					   message);
+#endif
+	
         /* switch on the function id to parse the body */
         switch(message->header.functionid)
         {
