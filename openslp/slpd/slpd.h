@@ -35,28 +35,11 @@
 #if(!defined SLPD_H_INCLUDED)
 #define SLPD_H_INCLUDED
 
-#ifdef WIN32 
-#include <windows.h>
-#include <winbase.h>
-#include <stdio.h>
-#include <winsock.h>
+/* Include platform specific headers files */
+#ifdef WIN32
+#include "slpd_win32.h"
 #else
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <signal.h>
-#include <pwd.h>
-#include <grp.h>
-#include <netdb.h>
-#include <string.h>
-#include <errno.h>
-#include <fcntl.h> 
-#include <sys/time.h>
-#include <sys/types.h>
-#include <sys/utsname.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h> 
+#include "slpd_unistd.h"
 #endif
 
 /* common includes */
@@ -69,34 +52,6 @@
 #include <slp_da.h>
 
 
-#ifdef WIN32
-
-#define G_SERVICENAME        "slpd"    /*  internal name of the service  */
-
-/*  displayed name of the service  */
-#define G_SERVICEDISPLAYNAME "Service Location Protocol"
-
-extern int G_SIGALRM;
-extern int G_SIGTERM;
-extern int G_SIGHUP;
-
-typedef DWORD               pid_t;
-typedef DWORD               uid_t;
-typedef int                 socklen_t;
-typedef DWORD               gid_t;
-typedef SOCKET              sockfd_t;
-
-#else
-/* we do a kind of abstraction layer for socket descriptors, since on NT
-   they're of type "SOCKET" */
-typedef int                 sockfd_t;
-#endif
-
-
-#if(!defined MAX_PATH)
-#define MAX_PATH    256
-#endif
-
 #define SLPDPROCESS_RESULT_COUNT   256  
 #define SLPD_SMALLEST_MESSAGE       18   /* 18 bytes is smallest SLPv2 msg */
 #define SLPD_MAX_SOCKETS            64   /* maximum number of sockets */
@@ -104,17 +59,11 @@ typedef int                 sockfd_t;
 #define SLPD_MAX_SOCKET_LIFETIME    3600 /* max idle time of socket - 60 min*/
 #define SLPD_AGE_INTERVAL           15   /* age every 15 seconds */
 
-/* enum detailing what to do with SLPD when launching it :
-   run in the console for debug, install it as a service or uninstall it */
-#ifdef WIN32
-typedef enum _SLPDAction
-{
-  SLPD_DEBUG   = 0,
-  SLPD_INSTALL = 1,
-  SLPD_REMOVE  = 2
-} SLPDAction;
 
-#endif
+/* Global variables representing signals */
+extern int G_SIGALRM;
+extern int G_SIGTERM;
+extern int G_SIGHUP;
 
 
 /*=========================================================================*/
@@ -126,9 +75,7 @@ typedef struct _SLPDCommandLine
     char   regfile[MAX_PATH];
     char   logfile[MAX_PATH];
     char   pidfile[MAX_PATH];
-#ifdef WIN32
-  int    action;
-#endif
+    int    action;
     int    detach;
 }SLPDCommandLine;
 
@@ -138,10 +85,12 @@ extern SLPDCommandLine G_SlpdCommandLine;
 /* Global variable containing command line options                         */
 /*=========================================================================*/
 
+
 /*=========================================================================*/
 void SLPDPrintUsage();
 /* Displays available command line options of SLPD                         */
 /*=========================================================================*/
+
 
 /*=========================================================================*/
 int SLPDParseCommandLine(int argc,char* argv[]);
@@ -451,7 +400,6 @@ typedef struct _SLPDSocket
 }SLPDSocket;
 
 
-
 /*==========================================================================*/
 SLPDSocket* SLPDSocketCreateConnected(struct in_addr* addr);
 /*                                                                          */
@@ -691,49 +639,4 @@ extern SLPList G_KnownDAList;
 /* The list of DAs known to slpd.                                          */
 /*=========================================================================*/
 
-#ifdef WIN32
-/*=========================================================================*/
-VOID WINAPI SLPDServiceMain(DWORD argc, LPTSTR *argv); 
-/* Performs actual initialization of the service                           */
-/* This routine performs the service initialization and then calls the     */
-/* user defined ServiceStart() routine to perform majority of the work     */
-/*                                                                         */
-/* argc (IN)   number of command line arguments                            */
-/*                                                                         */
-/* argv (IN)  array of command line arguments                              */
-/*                                                                         */
-/*  returns  none                                                          */
-/*                                                                         */
-/*=========================================================================*/
-
-
-/*=========================================================================*/
-VOID SLPDCmdInstallService(); 
-/* Installs the SLPD service in the system                                 */
-/*                                                                         */
-/* returns  none                                                           */
-/*=========================================================================*/
-
-
-/*=========================================================================*/
-VOID SLPDCmdRemoveService(); 
-/* Removes the SLPD service from the system                                */
-/*                                                                         */
-/* returns  none                                                           */
-/*=========================================================================*/
-
-
-/*=========================================================================*/
-VOID SLPDCmdDebugService(int argc, char **argv);
-/* Runs SLPD in a terminal, to help debugging                              */
-/*                                                                         */
-/* argc (IN)   number of command line arguments                            */
-/*                                                                         */
-/* argv (IN)  array of command line arguments                              */
-/*                                                                         */
-/* returns  none                                                           */
-/*=========================================================================*/
-#endif /* (WIN32) */
-
-
-#endif /* (!defined SLPD_H_INCLUDED) */
+#endif /*(!defined SLPD_H_INCLUDED) */

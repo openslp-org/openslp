@@ -3,7 +3,7 @@
 /* Project:     OpenSLP - OpenSource implementation of Service Location    */
 /*              Protocol Version 2                                         */
 /*                                                                         */
-/* File:        slpd_service.c                                             */
+/* File:        slpd_win32.c                                             */
 /*                                                                         */
 /* Abstract:    Win32 specific part, to make SLPD run as a "service"       */
 /*                                                                         */

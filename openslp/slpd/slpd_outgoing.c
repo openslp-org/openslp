@@ -70,71 +70,6 @@ void OutgoingStreamReconnect(SLPList* socklist, SLPDSocket* sock)
 }
 
 /*-------------------------------------------------------------------------*/
-void OutgoingStreamWrite(SLPList* socklist, SLPDSocket* sock)
-/*-------------------------------------------------------------------------*/
-{
-    int        byteswritten;
-    int        flags = 0;
-
-#if defined(MSG_DONTWAIT)
-    flags = MSG_DONTWAIT;
-#endif
-
-    if (sock->state == STREAM_WRITE_FIRST)
-    {
-        /* make sure that there is something to do list */
-        sock->sendbuf = (SLPBuffer)sock->sendlist.head;
-        if (sock->sendbuf == 0)
-        {
-            /* there is nothing in the to do list */
-            sock->state = STREAM_CONNECT_IDLE;
-            return;
-        }
-        
-        /* make sure that the start and curpos pointers are the same */
-        sock->sendbuf->curpos = sock->sendbuf->start;
-        sock->state = STREAM_WRITE;
-    }
-
-    if (sock->sendbuf->end - sock->sendbuf->start > 0)
-    {
-        byteswritten = send(sock->fd,
-                            sock->sendbuf->curpos,
-                            sock->sendbuf->end - sock->sendbuf->start,
-                            flags);
-        if (byteswritten > 0)
-        {
-            /* reset age because of activity */
-            sock->age = 0; 
-            
-            /* move buffer pointers */
-            sock->sendbuf->curpos += byteswritten;
-
-            /* check to see if everything was written */
-            if (sock->sendbuf->curpos == sock->sendbuf->end)
-            {
-                /* Message is completely sent. Set state to read the reply */
-                sock->state = STREAM_READ_FIRST;
-            }
-        }
-        else
-        {
-#ifdef WIN32
-      if (WSAEWOULDBLOCK == WSAGetLastError())
-#else
-        if(errno == EWOULDBLOCK)
-#endif
-            {
-                /* Error occured or connection was closed. Try to reconnect */
-                /* Socket will be closed if connect times out               */
-                OutgoingStreamReconnect(socklist,sock);
-            }
-        }    
-    }
-}
-
-
-/*-------------------------------------------------------------------------*/
 void OutgoingStreamRead(SLPList* socklist, SLPDSocket* sock)
 /*-------------------------------------------------------------------------*/
 {
@@ -262,6 +197,74 @@ void OutgoingStreamRead(SLPList* socklist, SLPDSocket* sock)
         }
     }
 }
+
+
+/*-------------------------------------------------------------------------*/
+void OutgoingStreamWrite(SLPList* socklist, SLPDSocket* sock)
+/*-------------------------------------------------------------------------*/
+{
+    int        byteswritten;
+    int        flags = 0;
+
+#if defined(MSG_DONTWAIT)
+    flags = MSG_DONTWAIT;
+#endif
+
+    if (sock->state == STREAM_WRITE_FIRST)
+    {
+        /* make sure that there is something to do list */
+        sock->sendbuf = (SLPBuffer)sock->sendlist.head;
+        if (sock->sendbuf == 0)
+        {
+            /* there is nothing in the to do list */
+            sock->state = STREAM_CONNECT_IDLE;
+            return;
+        }
+        
+        /* make sure that the start and curpos pointers are the same */
+        sock->sendbuf->curpos = sock->sendbuf->start;
+        sock->state = STREAM_WRITE;
+    }
+
+    if (sock->sendbuf->end - sock->sendbuf->start > 0)
+    {
+        byteswritten = send(sock->fd,
+                            sock->sendbuf->curpos,
+                            sock->sendbuf->end - sock->sendbuf->start,
+                            flags);
+        if (byteswritten > 0)
+        {
+            /* reset age because of activity */
+            sock->age = 0; 
+            
+            /* move buffer pointers */
+            sock->sendbuf->curpos += byteswritten;
+
+            /* check to see if everything was written */
+            if (sock->sendbuf->curpos == sock->sendbuf->end)
+            {
+                /* Message is completely sent. Set state to read the reply */
+                sock->state = STREAM_READ_FIRST;
+                OutgoingStreamRead(socklist, sock);
+            }
+        }
+        else
+        {
+#ifdef WIN32
+      if (WSAEWOULDBLOCK == WSAGetLastError())
+#else
+        if(errno == EWOULDBLOCK)
+#endif
+            {
+                /* Error occured or connection was closed. Try to reconnect */
+                /* Socket will be closed if connect times out               */
+                OutgoingStreamReconnect(socklist,sock);
+            }
+        }    
+    }
+}
+
+
 
 
 /*=========================================================================*/

@@ -40,49 +40,6 @@
 SLPList G_IncomingSocketList = {0,0,0};
 /*=========================================================================*/
 						 
-						 
-/*-------------------------------------------------------------------------*/
-void IncomingSocketListen(SLPList* socklist, SLPDSocket* sock)
-/*-------------------------------------------------------------------------*/
-{
-    SLPDSocket* connsock;
-#ifdef WIN32
-    const char   lowat = SLPD_SMALLEST_MESSAGE;
-#else    
-    const int   lowat = SLPD_SMALLEST_MESSAGE;
-#endif
-   
-    /* Only accept if we can. If we still maximum number of sockets, just*/
-    /* ignore the connection */
-    if(socklist->count < SLPD_MAX_SOCKETS)
-    {
-        connsock = SLPDSocketAlloc();
-        if(connsock)
-        {
-            connsock->peerinfo.peeraddrlen = sizeof(sock->peerinfo.peeraddr);
-            connsock->fd = accept(sock->fd,
-                                  (struct sockaddr *) 
-                                  &(connsock->peerinfo.peeraddr), 
-                                  &(connsock->peerinfo.peeraddrlen));
-            if(connsock->fd >= 0)
-            {
-                setsockopt(connsock->fd,SOL_SOCKET,SO_RCVLOWAT,&lowat,sizeof(lowat));
-                setsockopt(connsock->fd,SOL_SOCKET,SO_SNDLOWAT,&lowat,sizeof(lowat)); 
-                connsock->peerinfo.peertype = SLPD_PEER_ACCEPTED;
-                connsock->recvbuf = SLPBufferAlloc(SLP_MAX_DATAGRAM_SIZE);
-                connsock->sendbuf = SLPBufferAlloc(SLP_MAX_DATAGRAM_SIZE);
-                connsock->state = STREAM_READ_FIRST;
-                sock->age = 0;
-                SLPListLinkHead(socklist,(SLPListItem*)connsock);
-            }
-            else
-            {
-                SLPDSocketFree(connsock);
-            }
-        }
-    }
-}
-
 
 /*-------------------------------------------------------------------------*/
 void IncomingDatagramRead(SLPList* socklist, SLPDSocket* sock)
@@ -122,6 +79,56 @@ void IncomingDatagramRead(SLPList* socklist, SLPDSocket* sock)
             SLPLog("An error occured while processing message from %s\n",
                    inet_ntoa(sock->peerinfo.peeraddr.sin_addr));
         } 
+    }
+}
+
+
+/*-------------------------------------------------------------------------*/
+void IncomingStreamWrite(SLPList* socklist, SLPDSocket* sock)
+/*-------------------------------------------------------------------------*/
+{
+    int byteswritten, flags = 0;
+    
+#if defined(MSG_DONTWAIT)
+    flags = MSG_DONTWAIT;
+#endif
+
+    if(sock->state == STREAM_WRITE_FIRST)
+    {
+        /* make sure that the start and curpos pointers are the same */
+        sock->sendbuf->curpos = sock->sendbuf->start;
+        sock->state = STREAM_WRITE;
+    }
+
+    if(sock->sendbuf->end - sock->sendbuf->start != 0)
+    {
+        byteswritten = send(sock->fd,
+                            sock->sendbuf->curpos,
+                            sock->sendbuf->end - sock->sendbuf->start,
+                            flags);
+        if(byteswritten > 0)
+        {
+            /* reset lifetime to max because of activity */
+            sock->age = 0;
+            sock->sendbuf->curpos += byteswritten;
+            if(sock->sendbuf->curpos == sock->sendbuf->end)
+            {
+                /* message is completely sent */
+                sock->state = STREAM_READ_FIRST;
+             }
+        }
+        else
+        {
+#ifdef WIN32
+      if (WSAEWOULDBLOCK == WSAGetLastError())
+#else
+        if(errno == EWOULDBLOCK)
+#endif
+            {
+                /* Error occured or connection was closed */
+                sock->state = SOCKET_CLOSE;
+            }   
+        }    
     }
 }
 
@@ -208,6 +215,7 @@ void IncomingStreamRead(SLPList* socklist, SLPDSocket* sock)
                                       sock->sendbuf) == 0)
                 {
                     sock->state = STREAM_WRITE_FIRST;
+                    IncomingStreamWrite(socklist, sock);
                 }
                 else
                 {
@@ -226,53 +234,48 @@ void IncomingStreamRead(SLPList* socklist, SLPDSocket* sock)
     }
 }
 
-
+						 
 /*-------------------------------------------------------------------------*/
-void IncomingStreamWrite(SLPList* socklist, SLPDSocket* sock)
+void IncomingSocketListen(SLPList* socklist, SLPDSocket* sock)
 /*-------------------------------------------------------------------------*/
 {
-    int byteswritten, flags = 0;
-    
-#if defined(MSG_DONTWAIT)
-    flags = MSG_DONTWAIT;
-#endif
-
-    if(sock->state == STREAM_WRITE_FIRST)
-    {
-        /* make sure that the start and curpos pointers are the same */
-        sock->sendbuf->curpos = sock->sendbuf->start;
-        sock->state = STREAM_WRITE;
-    }
-
-    if(sock->sendbuf->end - sock->sendbuf->start != 0)
-    {
-        byteswritten = send(sock->fd,
-                            sock->sendbuf->curpos,
-                            sock->sendbuf->end - sock->sendbuf->start,
-                            flags);
-        if(byteswritten > 0)
-        {
-            /* reset lifetime to max because of activity */
-            sock->age = 0;
-            sock->sendbuf->curpos += byteswritten;
-            if(sock->sendbuf->curpos == sock->sendbuf->end)
-            {
-                /* message is completely sent */
-                sock->state = STREAM_READ_FIRST;
-             }
-        }
-        else
-        {
+    SLPDSocket* connsock;
 #ifdef WIN32
-      if (WSAEWOULDBLOCK == WSAGetLastError())
-#else
-        if(errno == EWOULDBLOCK)
+    const char   lowat = SLPD_SMALLEST_MESSAGE;
+#else    
+    const int   lowat = SLPD_SMALLEST_MESSAGE;
 #endif
+   
+    /* Only accept if we can. If we still maximum number of sockets, just*/
+    /* ignore the connection */
+    if(socklist->count < SLPD_MAX_SOCKETS)
+    {
+        connsock = SLPDSocketAlloc();
+        if(connsock)
+        {
+            connsock->peerinfo.peeraddrlen = sizeof(sock->peerinfo.peeraddr);
+            /*TODO make this accept non-blocking */
+            connsock->fd = accept(sock->fd,
+                                  (struct sockaddr *) 
+                                  &(connsock->peerinfo.peeraddr), 
+                                  &(connsock->peerinfo.peeraddrlen));
+            if(connsock->fd >= 0)
             {
-                /* Error occured or connection was closed */
-                sock->state = SOCKET_CLOSE;
-            }   
-        }    
+                setsockopt(connsock->fd,SOL_SOCKET,SO_RCVLOWAT,&lowat,sizeof(lowat));
+                setsockopt(connsock->fd,SOL_SOCKET,SO_SNDLOWAT,&lowat,sizeof(lowat)); 
+                connsock->peerinfo.peertype = SLPD_PEER_ACCEPTED;
+                connsock->recvbuf = SLPBufferAlloc(SLP_MAX_DATAGRAM_SIZE);
+                connsock->sendbuf = SLPBufferAlloc(SLP_MAX_DATAGRAM_SIZE);
+                connsock->state = STREAM_READ_FIRST;
+                sock->age = 0;
+                SLPListLinkHead(socklist,(SLPListItem*)connsock);
+                IncomingDatagramRead(socklist, sock);
+            }
+            else
+            {
+                SLPDSocketFree(connsock);
+            }
+        }
     }
 }
 
@@ -299,7 +302,6 @@ void SLPDIncomingHandler(int* fdcount,
         {
             switch(sock->state)
             {
-            
             case SOCKET_LISTEN:
                 IncomingSocketListen(&G_IncomingSocketList,sock);
                 break;
