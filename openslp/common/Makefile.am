@@ -1,4 +1,8 @@
+#if you're building on Irix, exchange commented and uncommented lines
+#noinst_LTLIBRARIES	= libcommonslpd.a libcommonlibslp.a
 noinst_LTLIBRARIES	= libcommonslpd.la libcommonlibslp.la
+
+
 EXTRA_DIST = 
 
 if ENABLE_SLPv1
@@ -9,8 +13,10 @@ if ENABLE_SLPv2_SECURITY
 slp_security_SRCS = slp_auth.c slp_crypto.c slp_spi.c
 endif
 
+#if you're building on Irix, exchange commented and uncommented lines
+#libcommonlibslp_a_SOURCES = \
 libcommonlibslp_la_SOURCES = \
-	slp_compare.c \
+        slp_compare.c \
 	slp_buffer.c \
 	slp_message.c \
 	slp_property.c \
@@ -22,8 +28,10 @@ libcommonlibslp_la_SOURCES = \
 	$(slp_v1message_SRCS) \
 	$(slp_security_SRCS)
 
+#if you're building on Irix, exchange commented and uncommented lines
+#libcommonslpd_a_SOURCES = \
 libcommonslpd_la_SOURCES = \
-	slp_compare.c \
+        slp_compare.c \
 	slp_buffer.c \
 	slp_message.c \
 	slp_property.c \

@@ -6,6 +6,9 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 04/26/02 matt@caldera.com
+Added commented instructions for building on Irix to Makefile.am files
+
+04/26/02 matt@caldera.com
 Added version and length sanity checks for incoming messages 
 
 04/26/02 matt@caldera.com

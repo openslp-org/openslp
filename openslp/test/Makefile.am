@@ -15,10 +15,16 @@ noinst_PROGRAMS = slpdereg slpescape slpfindattrs slpfindsrvtypes \
                   slpfindsrvs slpopen slpparsesrvurl slpreg slpunescape \
 		  slp_attr_test slpd_predicate_test
 
+#if you're building on Irix, exchange commented and uncommented lines
+#LDADD = ../libslp/libslp.a ../libslpattr/libslpattr.a
 LDADD = ../libslp/libslp.la ../libslpattr/libslpattr.la
 
 if ENABLE_PREDICATES
+
+#if you're building on Irix, exchange commented and uncommented lines
+#slpd_predicate_test_LDADD = $(LDADD) ../slpd/slpd_predicate.o ../common/libcommonslpd.a
 slpd_predicate_test_LDADD = $(LDADD) ../slpd/slpd_predicate.o ../common/libcommonslpd.la
+
 endif
 
 # Automake 1.4 doesn't allow subdirectory dependencies :-(, VPATH is a 
