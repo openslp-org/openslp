@@ -6,6 +6,9 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 
+11/1/01 matt@caldera.com
+Honor scopes in SrvRqsts for the special "service:directory-agent" type
+
 10/31/01 matt@caldera.com
 Fixed problem with SLPEscape() as patched by Timothy Zurcher
 
