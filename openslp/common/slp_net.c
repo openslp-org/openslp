@@ -389,22 +389,45 @@ int SLPNetAddrInfoToString(struct addrinfo *src, char *dst, int dstLen) {
 
 /*
  * Description:
- *    Returns the IPv6 multicast group for the specified Service Type.
+ *    Returns the IPv6 multicast address for the specified Service Type.
  *    
  *
  * Parameters:
  *  (in) pSrvType   The Service Type String
  *  (in) len		Length of pSrvType
+ *  (inout)addr		Sockaddr storage to return the multicast addr
  *
- * Returns: The group id for the specified Service Type.
+ * Returns: zero on success, non-zero on error;
  *-------------------------------------------------------------------------*/
-unsigned long SLPNetGetSrvGroupId(const char *pSrvType, unsigned int len) {
-	unsigned long h = 0;
+unsigned long SLPNetSetSrvMcastAddr(const char *pSrvType, unsigned int len, int scope, struct sockaddr_storage *addr) {
+	unsigned long group_id = 0;
+	struct in6_addr *v6;
+
+	if (addr == NULL || pSrvType == NULL)
+		return -1;
+
+	/* Run Hash to get group id */
 	while (len-- != 0) {
-		h *= 33;
-		h += *pc++;
+		group_id *= 33;
+		group_id += *pSrvType++;
 	}
-	return (0x3FF & h);
+	group_id &= 0x3FF;
+
+	v6 = &((struct sockaddr_in6 *) addr)->sin6_addr;
+	if (scope == SLP_SCOPE_NODE_LOCAL)
+		memcpy(v6, &in6addr_service_node_mask, sizeof(struct in6_addr));
+	else if (scope == SLP_SCOPE_LINK_LOCAL)
+		memcpy(v6, &in6addr_service_link_mask, sizeof(struct in6_addr));
+	else if (scope == SLP_SCOPE_SITE_LOCAL)
+		memcpy(v6, &in6addr_service_site_mask, sizeof(struct in6_addr));
+	else
+		return -1;
+	
+	v6->s6_addr[15] |= (group_id & 0xFF);
+	v6->s6_addr[14] |= (group_id >> 8);
+	addr->ss_family = AF_INET6;
+
+	return 0;
 }
 
 //#define SLP_NET_TEST

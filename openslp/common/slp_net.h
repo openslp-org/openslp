@@ -283,16 +283,19 @@ int SLPNetAddrInfoToString(struct addrinfo *src, char *dst, int dstLen);
  * Returns: 0 if address set correctly, non-zero there were errors setting dst
  *-------------------------------------------------------------------------*/
 
-unsigned long SLPNetGetSrvGroupId(const char *pSrvType, unsigned int len);
+unsigned long SLPNetGetSrvMcastAddr(const char *pSrvType, unsigned int len, int scope, struct sockaddr_storage *addr);
 /*
  * Description:
- *    Returns the IPv6 multicast group for the specified Service Type.
+ *    Returns the IPv6 multicast address for the specified Service Type.
  *    
  *
  * Parameters:
  *  (in) pSrvType   The Service Type String
  *  (in) len		Length of pSrvType
+ *  (in) scope		Scope of the multicast address
+ *  (inout)addr		Sockaddr storage to return the multicast addr
  *
- * Returns: The group id for the specified Service Type.
+ * Returns: zero on success, non-zero on error;
  *-------------------------------------------------------------------------*/
+
 #endif
