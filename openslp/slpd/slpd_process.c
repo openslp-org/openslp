@@ -62,14 +62,14 @@
 /*=========================================================================*/
 /* common code includes                                                    */
 /*=========================================================================*/
-#include "../common/slp_xmalloc.h"
-#include "../common/slp_message.h"
-#include "../common/slp_compare.h"
+#include "slp_xmalloc.h"
+#include "slp_message.h"
+#include "slp_compare.h"
 #ifdef ENABLE_SECURITY
-#include "../common/slp_auth.h"
+#include "slp_auth.h"
 #endif
 
-
+ 
 /*-------------------------------------------------------------------------*/
 int ProcessSASrvRqst(SLPMessage message,
                      SLPBuffer* sendbuf,
@@ -1243,7 +1243,7 @@ int SLPDProcessMessage(struct sockaddr_in* peerinfo,
                        SLPBuffer* sendbuf)
 /* Processes the recvbuf and places the results in sendbuf                 */
 /*                                                                         */
-/* recvfd   - the socket the message was received on                       */
+/* peerinfo   - the socket the message was received on                       */
 /*                                                                         */
 /* recvbuf  - message to process                                           */
 /*                                                                         */
@@ -1293,60 +1293,59 @@ int SLPDProcessMessage(struct sockaddr_in* peerinfo,
             errorcode = SLPMessageParseBuffer(peerinfo,recvbuf, message);
             if(errorcode == 0)
             {    
-
-                    /* Process messages based on type */
-                    switch(message->header.functionid)
-                    {
-                    case SLP_FUNCT_SRVRQST:
-                        errorcode = ProcessSrvRqst(message,sendbuf,errorcode);
-                        break;
+		/* Process messages based on type */
+		switch(message->header.functionid)
+		{
+		case SLP_FUNCT_SRVRQST:
+		    errorcode = ProcessSrvRqst(message,sendbuf,errorcode);
+		    break;
                 
-                    case SLP_FUNCT_SRVREG:
-                        errorcode = ProcessSrvReg(message,recvbuf,sendbuf,errorcode);
-                        if(errorcode == 0)
-                        {
-                            SLPDKnownDAEcho(message, recvbuf);
-                            SLPDLogRegistration("Service Registration",message);
-                        }
-                        break;
+		case SLP_FUNCT_SRVREG:
+		    errorcode = ProcessSrvReg(message,recvbuf,sendbuf,errorcode);
+		    if(errorcode == 0)
+		    {
+			SLPDKnownDAEcho(message, recvbuf);
+			SLPDLogRegistration("Service Registration",message);
+		    }
+		    break;
                 
-                    case SLP_FUNCT_SRVDEREG:
-                        errorcode = ProcessSrvDeReg(message,sendbuf,errorcode);
-                        if(errorcode == 0)
-                        {
-                            SLPDKnownDAEcho(message, recvbuf);
-                            SLPDLogRegistration("Service Deregistration",message);
-                        }
-                        break;
+		case SLP_FUNCT_SRVDEREG:
+		    errorcode = ProcessSrvDeReg(message,sendbuf,errorcode);
+		    if(errorcode == 0)
+		    {
+			SLPDKnownDAEcho(message, recvbuf);
+			SLPDLogRegistration("Service Deregistration",message);
+		    }
+		    break;
                 
-                    case SLP_FUNCT_SRVACK:
-                        errorcode = ProcessSrvAck(message,sendbuf, errorcode);        
-                        break;
+		case SLP_FUNCT_SRVACK:
+		    errorcode = ProcessSrvAck(message,sendbuf, errorcode);        
+		    break;
                 
-                    case SLP_FUNCT_ATTRRQST:
-                        errorcode = ProcessAttrRqst(message,sendbuf, errorcode);
-                        break;
+		case SLP_FUNCT_ATTRRQST:
+		    errorcode = ProcessAttrRqst(message,sendbuf, errorcode);
+		    break;
                 
-                    case SLP_FUNCT_DAADVERT:
-                        errorcode = ProcessDAAdvert(message,
-                                                    recvbuf,
-                                                    sendbuf,
-                                                    errorcode);
-                        SLPDLogDAAdvertisement("DA Advertisement", message);
-                        break;
+		case SLP_FUNCT_DAADVERT:
+		    errorcode = ProcessDAAdvert(message,
+						recvbuf,
+						sendbuf,
+						errorcode);
+		    SLPDLogDAAdvertisement("DA Advertisement", message);
+		    break;
                 
-                    case SLP_FUNCT_SRVTYPERQST:
-                        errorcode = ProcessSrvTypeRqst(message, sendbuf, errorcode);
-                        break;
+		case SLP_FUNCT_SRVTYPERQST:
+		    errorcode = ProcessSrvTypeRqst(message, sendbuf, errorcode);
+		    break;
                 
-                    case SLP_FUNCT_SAADVERT:
-                        errorcode = ProcessSAAdvert(message, sendbuf, errorcode);
-                        break;
+		case SLP_FUNCT_SAADVERT:
+		    errorcode = ProcessSAAdvert(message, sendbuf, errorcode);
+		    break;
                 
-                    default:
-                        /* Should never happen... but we're paranoid */
-                        errorcode = SLP_ERROR_PARSE_ERROR;
-                        break;
+		default:
+		    /* Should never happen... but we're paranoid */
+		    errorcode = SLP_ERROR_PARSE_ERROR;
+		    break;
                 }   
             }
     
