@@ -161,12 +161,12 @@ int SLPDDatabaseReg(SLPSrvReg* srvreg,
     /* Check to see if there is already an identical entry */
     while(entry)
     {
-        if(SLPStringCompare(entry->urllen,
+        if(SLPCompareString(entry->urllen,
                             entry->url,
                             srvreg->urlentry.urllen,
                             srvreg->urlentry.url) == 0)
         {
-            if(SLPStringListIntersect(entry->scopelistlen,
+            if(SLPIntersectStringList(entry->scopelistlen,
                                       entry->scopelist,
                                       srvreg->scopelistlen,
                                       srvreg->scopelist) > 0)
@@ -185,12 +185,12 @@ int SLPDDatabaseReg(SLPSrvReg* srvreg,
         entry  = G_NewEntries;
         while(entry)
         {
-            if(SLPStringCompare(entry->urllen,
+            if(SLPCompareString(entry->urllen,
                                 entry->url,
                                 srvreg->urlentry.urllen,
                                 srvreg->urlentry.url) == 0)
             {
-                if(SLPStringListIntersect(entry->scopelistlen,
+                if(SLPIntersectStringList(entry->scopelistlen,
                                           entry->scopelist,
                                           srvreg->scopelistlen,
                                           srvreg->scopelist) > 0)
@@ -268,12 +268,12 @@ int SLPDDatabaseDeReg(SLPSrvDeReg* srvdereg)
 
     while(entry)
     {
-        if(SLPStringCompare(entry->urllen,
+        if(SLPCompareString(entry->urllen,
                             entry->url,
                             srvdereg->urlentry.urllen,
                             srvdereg->urlentry.url) == 0)
         {
-            if(SLPStringListIntersect(entry->scopelistlen,
+            if(SLPIntersectStringList(entry->scopelistlen,
                                       entry->scopelist,
                                       srvdereg->scopelistlen,
                                       srvdereg->scopelist) > 0)
@@ -298,12 +298,12 @@ int SLPDDatabaseDeReg(SLPSrvDeReg* srvdereg)
         entry = G_NewEntries;
         while(entry)
         {
-            if(SLPStringCompare(entry->urllen,
+            if(SLPCompareString(entry->urllen,
                                 entry->url,
                                 srvdereg->urlentry.urllen,
                                 srvdereg->urlentry.url) == 0)
             {
-                if(SLPStringListIntersect(entry->scopelistlen,
+                if(SLPIntersectStringList(entry->scopelistlen,
                                           entry->scopelist,
                                           srvdereg->scopelistlen,
                                           srvdereg->scopelist) > 0)
@@ -352,30 +352,31 @@ int SLPDDatabaseFindSrv(SLPSrvRqst* srvrqst,
     entry = G_DatabaseHead;
     while(entry)
     {
-        if(SLPSrvTypeCompare(srvrqst->srvtypelen,
+        if(SLPCompareSrvType(srvrqst->srvtypelen,
                              srvrqst->srvtype,
                              entry->srvtypelen,
                              entry->srvtype) == 0)
         {
-            /*---------------------------------------*/
-            /* TODO: Add predicate query stuff later */
-            /*---------------------------------------*/
-            
-            if(SLPStringListIntersect(srvrqst->scopelistlen,
-                                      srvrqst->scopelist,
-                                      entry->scopelistlen,
-                                      entry->scopelist))
+            if(SLPComparePredicate(srvrqst->predicatelen,
+                                   srvrqst->predicate,
+                                   entry->attrlistlen,
+                                   entry->attrlist) != 0)
             {
-                result[found].lifetime = entry->lifetime;
-                result[found].urllen = entry->urllen;
-                result[found].url = entry->url;
-                found ++;
-                if(found >= count)
+                if(SLPIntersectStringList(srvrqst->scopelistlen,
+                                          srvrqst->scopelist,
+                                          entry->scopelistlen,
+                                          entry->scopelist))
                 {
-                    break;
+                    result[found].lifetime = entry->lifetime;
+                    result[found].urllen = entry->urllen;
+                    result[found].url = entry->url;
+                    found ++;
+                    if(found >= count)
+                    {
+                        break;
+                    }
                 }
             }
-
         }
 
         entry = (SLPDDatabaseEntry*)entry->listitem.next;
@@ -385,30 +386,31 @@ int SLPDDatabaseFindSrv(SLPSrvRqst* srvrqst,
     entry = G_NewEntries;
     while(entry)
     {
-        if(SLPSrvTypeCompare(srvrqst->srvtypelen,
+        if(SLPCompareSrvType(srvrqst->srvtypelen,
                              srvrqst->srvtype,
                              entry->srvtypelen,
                              entry->srvtype) == 0)
         {
-            /*---------------------------------------*/
-            /* TODO: Add predicate query stuff later */
-            /*---------------------------------------*/
-            
-            if(SLPStringListIntersect(srvrqst->scopelistlen,
-                                      srvrqst->scopelist,
-                                      entry->scopelistlen,
-                                      entry->scopelist))
+            if(SLPComparePredicate(srvrqst->predicatelen,
+                                   srvrqst->predicate,
+                                   entry->attrlistlen,
+                                   entry->attrlist) != 0)
             {
-                result[found].lifetime = entry->lifetime;
-                result[found].urllen = entry->urllen;
-                result[found].url = entry->url;
-                found ++;
-                if(found >= count)
+                if(SLPIntersectStringList(srvrqst->scopelistlen,
+                                          srvrqst->scopelist,
+                                          entry->scopelistlen,
+                                          entry->scopelist))
                 {
-                    break;
+                    result[found].lifetime = entry->lifetime;
+                    result[found].urllen = entry->urllen;
+                    result[found].url = entry->url;
+                    found ++;
+                    if(found >= count)
+                    {
+                        break;
+                    }
                 }
             }
-
         }
 
         entry = (SLPDDatabaseEntry*)entry->listitem.next;
@@ -467,16 +469,16 @@ int SLPDDatabaseFindAttr(SLPAttrRqst* attrrqst,
     entry = G_DatabaseHead;
     while(entry)
     {
-        if(SLPStringCompare(attrrqst->urllen,
+        if(SLPCompareString(attrrqst->urllen,
                             attrrqst->url,
                             entry->urllen,
                             entry->url) == 0 ||
-           SLPSrvTypeCompare(attrrqst->urllen,
+           SLPCompareSrvType(attrrqst->urllen,
                              attrrqst->url,
                              entry->srvtypelen,
                              entry->srvtype) == 0 )
         {
-            if(SLPStringListIntersect(attrrqst->scopelistlen,
+            if(SLPIntersectStringList(attrrqst->scopelistlen,
                                       attrrqst->scopelist,
                                       entry->scopelistlen,
                                       entry->scopelist))
@@ -496,16 +498,16 @@ int SLPDDatabaseFindAttr(SLPAttrRqst* attrrqst,
     entry = G_NewEntries;
     while(entry)
     {
-        if(SLPStringCompare(attrrqst->urllen,
+        if(SLPCompareString(attrrqst->urllen,
                             attrrqst->url,
                             entry->urllen,
                             entry->url) == 0 ||
-           SLPSrvTypeCompare(attrrqst->urllen,
+           SLPCompareSrvType(attrrqst->urllen,
                              attrrqst->url,
                              entry->srvtypelen,
                              entry->srvtype) == 0 )
         {
-            if(SLPStringListIntersect(attrrqst->scopelistlen,
+            if(SLPIntersectStringList(attrrqst->scopelistlen,
                                       attrrqst->scopelist,
                                       entry->scopelistlen,
                                       entry->scopelist))

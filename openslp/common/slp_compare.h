@@ -37,7 +37,7 @@
 
 
 /*=========================================================================*/
-int SLPStringCompare(int str1len,                                          
+int SLPCompareString(int str1len,                                          
                      const char* str1,
                      int str2len,
                      const char* str2);
@@ -59,7 +59,7 @@ int SLPStringCompare(int str1len,
 
 
 /*=========================================================================*/
-int SLPSrvTypeCompare(int srvtype1len,
+int SLPCompareSrvType(int srvtype1len,
                       const char* srvtype1,
                       int srvtype2len,
                       const char* srvtype2);
@@ -81,7 +81,7 @@ int SLPSrvTypeCompare(int srvtype1len,
 
 
 /*=========================================================================*/
-int SLPStringListContains(int listlen,
+int SLPContainsStringList(int listlen,
                           const char* list, 
                           int stringlen,
                           const char* string);
@@ -101,7 +101,7 @@ int SLPStringListContains(int listlen,
 
 
 /*=========================================================================*/
-int SLPStringListIntersect(int list1len,
+int SLPIntersectStringList(int list1len,
                            const char* list1,
                            int list2len,
                            const char* list2);
@@ -116,6 +116,28 @@ int SLPStringListIntersect(int list1len,
 /* list2len -   length in bytes of the list to be checked                  */
 /*                                                                         */
 /* Returns -    The number of common entries.                              */
+/*=========================================================================*/
+
+
+/*=========================================================================*/
+int SLPComparePredicate(int predicatelen, 
+                        const char* predicate, 
+                        int attrlistlen,
+                        const char* attrlist);
+/*                                                                         */
+/* Determine whether the specified attribute list satisfies                */
+/* the specified predicate                                                 */
+/*                                                                         */
+/* predicatelen (IN) the length of the predicate string                    */
+/*                                                                         */
+/* predicate    (IN) the predicate string                                  */
+/*                                                                         */
+/* attrlistlen  (IN) the length of the attribute list                      */
+/*                                                                         */
+/* attrlist     (IN) a comma delimited attribute list                      */
+/*                                                                         */
+/* Returns: Non-zero if predicate matches attribute list                   */
+/*          zero otherwise.                                                */
 /*=========================================================================*/
 
 #endif

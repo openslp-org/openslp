@@ -38,7 +38,7 @@
 
 
 /*=========================================================================*/
-int SLPStringCompare(int str1len,
+int SLPCompareString(int str1len,
                      const char* str1,
                      int str2len,
                      const char* str2)
@@ -73,7 +73,7 @@ int SLPStringCompare(int str1len,
 
 
 /*=========================================================================*/
-int SLPSrvTypeCompare(int lsrvtypelen,
+int SLPCompareSrvType(int lsrvtypelen,
                       const char* lsrvtype,
                       int rsrvtypelen,
                       const char* rsrvtype)
@@ -139,7 +139,7 @@ int SLPSrvTypeCompare(int lsrvtypelen,
 
 
 /*=========================================================================*/
-int SLPStringListContains(int listlen, 
+int SLPContainsStringList(int listlen, 
                           const char* list,
                           int stringlen,
                           const char* string)
@@ -179,7 +179,7 @@ int SLPStringListContains(int listlen,
             itemend ++;
         }
 
-        if(SLPStringCompare(itemend - itembegin,
+        if(SLPCompareString(itemend - itembegin,
                             itembegin,
                             stringlen,
                             string) == 0)
@@ -195,7 +195,7 @@ int SLPStringListContains(int listlen,
 
 
 /*=========================================================================*/
-int SLPStringListIntersect(int list1len,
+int SLPIntersectStringList(int list1len,
                            const char* list1,
                            int list2len,
                            const char* list2)
@@ -235,7 +235,7 @@ int SLPStringListIntersect(int list1len,
             itemend ++;
         }
 
-        if(SLPStringListContains(list2len,
+        if(SLPContainsStringList(list2len,
                                  list2,
                                  itemend - itembegin,
                                   itembegin))
@@ -247,4 +247,30 @@ int SLPStringListIntersect(int list1len,
     }
 
     return result;
+}
+
+/*=========================================================================*/
+int SLPComparePredicate(int predicatelen, 
+                        const char* predicate, 
+                        int attrlistlen,
+                        const char* attrlist)
+/*                                                                         */
+/* Determine whether the specified attribute list satisfies                */
+/* the specified predicate                                                 */
+/*                                                                         */
+/* predicatelen (IN) the length of the predicate string                    */
+/*                                                                         */
+/* predicate    (IN) the predicate string                                  */
+/*                                                                         */
+/* attrlistlen  (IN) the length of the attribute list                      */
+/*                                                                         */
+/* attrlist     (IN) a comma delimited attribute list                      */
+/*                                                                         */
+/* Returns: Non-zero if predicate matches attribute list                   */
+/*          zero otherwise.                                                */
+/*=========================================================================*/
+{
+    /* Everything matches until Evan Hughes puts code here */
+
+    return 1;
 }

@@ -125,7 +125,7 @@ void ProcessSASrvRqst(SLPDPeerInfo* peerinfo,
     }
    
     if(message->body.srvrqst.scopelistlen == 0 ||
-       SLPStringListIntersect(message->body.srvrqst.scopelistlen,
+       SLPIntersectStringList(message->body.srvrqst.scopelistlen,
                               message->body.srvrqst.scopelist,
                               G_SlpdProperty.useScopesLen,
                               G_SlpdProperty.useScopes) != 0 )
@@ -232,7 +232,7 @@ void ProcessDASrvRqst(SLPDPeerInfo* peerinfo,
     }
 
     if(message->body.srvrqst.scopelistlen == 0 ||
-       SLPStringListIntersect(message->body.srvrqst.scopelistlen,
+       SLPIntersectStringList(message->body.srvrqst.scopelistlen,
                               message->body.srvrqst.scopelist,
                               G_SlpdProperty.useScopesLen,
                               G_SlpdProperty.useScopes) != 0 )
@@ -354,7 +354,7 @@ void ProcessSrvRqst(SLPDPeerInfo* peerinfo,
     /*-------------------------------------------------*/
     /* Check for one of our IP addresses in the prlist */
     /*-------------------------------------------------*/
-    if(SLPStringListIntersect(message->body.srvrqst.prlistlen,
+    if(SLPIntersectStringList(message->body.srvrqst.prlistlen,
                               message->body.srvrqst.prlist,
                               G_SlpdProperty.interfacesLen,
                               G_SlpdProperty.interfaces))
@@ -366,7 +366,7 @@ void ProcessSrvRqst(SLPDPeerInfo* peerinfo,
     /*------------------------------------------------*/
     /* Check to to see if a this is a special SrvRqst */
     /*------------------------------------------------*/
-    if(SLPStringCompare(message->body.srvrqst.srvtypelen,
+    if(SLPCompareString(message->body.srvrqst.srvtypelen,
 			message->body.srvrqst.srvtype,
 			23,
 			"service:directory-agent") == 0)
@@ -376,7 +376,7 @@ void ProcessSrvRqst(SLPDPeerInfo* peerinfo,
                          result);
         goto FINISHED;
     }
-    if(SLPStringCompare(message->body.srvrqst.srvtypelen,
+    if(SLPCompareString(message->body.srvrqst.srvtypelen,
 			message->body.srvrqst.srvtype,
 			21,
 			"service:service-agent") == 0)
@@ -390,7 +390,7 @@ void ProcessSrvRqst(SLPDPeerInfo* peerinfo,
     /*------------------------------------*/
     /* Make sure that we handle the scope */
     /*------ -----------------------------*/
-    if(SLPStringListIntersect(message->body.srvrqst.scopelistlen,
+    if(SLPIntersectStringList(message->body.srvrqst.scopelistlen,
                               message->body.srvrqst.scopelist,
                               G_SlpdProperty.useScopesLen,
                               G_SlpdProperty.useScopes) != 0)
@@ -537,7 +537,7 @@ void ProcessSrvReg(SLPDPeerInfo* peerinfo,
     /*------------------------------------*/
     /* Make sure that we handle the scope */
     /*------ -----------------------------*/
-    if(SLPStringListIntersect(message->body.srvreg.scopelistlen,
+    if(SLPIntersectStringList(message->body.srvreg.scopelistlen,
                               message->body.srvreg.scopelist,
                               G_SlpdProperty.useScopesLen,
                               G_SlpdProperty.useScopes))
@@ -620,7 +620,7 @@ void ProcessSrvDeReg(SLPDPeerInfo* peerinfo,
     /*------------------------------------------*/
     /* TODO: make sure that we handle the scope */
     /*------------------------------------------*/
-    if(SLPStringListIntersect(message->body.srvdereg.scopelistlen,
+    if(SLPIntersectStringList(message->body.srvdereg.scopelistlen,
                               message->body.srvdereg.scopelist,
                               G_SlpdProperty.useScopesLen,
                               G_SlpdProperty.useScopes))
@@ -708,7 +708,7 @@ void ProcessAttrRqst(SLPDPeerInfo* peerinfo,
     /*-------------------------------------------------*/
     /* Check for one of our IP addresses in the prlist */
     /*-------------------------------------------------*/
-    if(SLPStringListIntersect(message->body.attrrqst.prlistlen,
+    if(SLPIntersectStringList(message->body.attrrqst.prlistlen,
                               message->body.attrrqst.prlist,
                               G_SlpdProperty.interfacesLen,
                               G_SlpdProperty.interfaces))
@@ -720,7 +720,7 @@ void ProcessAttrRqst(SLPDPeerInfo* peerinfo,
     /*------------------------------------*/
     /* Make sure that we handle the scope */
     /*------ -----------------------------*/
-    if(SLPStringListIntersect(message->body.attrrqst.scopelistlen,
+    if(SLPIntersectStringList(message->body.attrrqst.scopelistlen,
                               message->body.attrrqst.scopelist,
                               G_SlpdProperty.useScopesLen,
                               G_SlpdProperty.useScopes) == 0)

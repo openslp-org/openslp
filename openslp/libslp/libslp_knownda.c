@@ -318,7 +318,7 @@ int KnownDAConnect(const char* scopelist,
     entry = G_KnownDAListHead;
     while(entry)
     {
-        if(SLPStringListIntersect(entry->scopelistlen,
+        if(SLPIntersectStringList(entry->scopelistlen,
                                   entry->scopelist,
                                   scopelistlen,
                                   scopelist))
