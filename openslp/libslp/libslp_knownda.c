@@ -472,10 +472,10 @@ SLPBoolean KnownDAFromCache(int scopelistlen,
         }
 
         return KnownDAListFind(scopelistlen,
-                       scopelist,
-                       spistrlen,
-                       spistr,
-                       daaddr);
+                               scopelist,
+                               spistrlen,
+                               spistr,
+                               daaddr);
     }
 
     return SLP_TRUE; 
