@@ -105,7 +105,23 @@ int SLPParseSrvUrl(int srvurllen,
 
     /* parse out the host */
     slider2 = slider1 = slider2 + 3; /* + 3 skips the "://" */
-    while(slider2 < end && *slider2 != '/' && *slider2 != ':') slider2++;
+    /* check for IPV6 url with [] surrounding the host */
+    if (slider2 < end && *slider2 == '[') {
+        /* we have an ipv6 host address */
+        slider2 = strchr(slider2, ']');
+        if (slider2) {
+            /* get past the ending ] */
+            slider2++;
+        }
+        else {
+            // get to the next good character
+            slider2 = slider1;
+            while(slider2 < end && *slider2 != '/' && *slider2 != ':') slider2++;
+        }
+    }
+    else { /* ipv4 address */
+        while(slider2 < end && *slider2 != '/' && *slider2 != ':') slider2++;
+    }
     if(slider2-slider1 < 1)
     {
         /* no host part (this is okay according to RFC2609) */
@@ -169,6 +185,8 @@ int SLPParseSrvUrl(int srvurllen,
 
 #define TESTSRVTYPE1    "service:printer.x"
 #define TESTHOST1       "192.168.100.2"
+#define TESTHOST2       "[1111:2222:3333::4444]"
+#define TESTHOST3       "[1111:2222:3333::4444"
 #define TESTPORT1       "4563"
 #define TESTREMAINDER1  "/hello/good/world"
 
@@ -176,6 +194,8 @@ int SLPParseSrvUrl(int srvurllen,
 #define TESTURL2        TESTSRVTYPE1"://"TESTHOST1":"TESTPORT1
 #define TESTURL3        TESTSRVTYPE1"://"TESTHOST1
 #define TESTURL4        "service:badurl"
+#define TESTURL5        TESTSRVTYPE1"://"TESTHOST2":"TESTPORT1 TESTREMAINDER1
+#define TESTURL6        TESTSRVTYPE1"://"TESTHOST3":"TESTPORT1 TESTREMAINDER1
 
 int main(int argc, char* argv[])
 {
@@ -304,7 +324,61 @@ int main(int argc, char* argv[])
         printf("Success!\n");
     }
     if(parsedurl) xfree(parsedurl);
-    
+
+
+
+
+    /* TESTURL5 */
+    printf("Testing srvurl:   %s\n",TESTURL5);
+    if(SLPParseSrvUrl(strlen(TESTURL5),
+                      TESTURL5,
+                      &parsedurl) != 0)
+    {
+        printf("FAILURE: SLPParseSrvUrl returned error\n");
+        return -1;
+    }
+    if(strcmp(parsedurl->srvtype,TESTSRVTYPE1))
+    {
+        printf("FAILURE: wrong srvtype\n");
+    }
+    else if(strcmp(parsedurl->host,TESTHOST2))
+    {
+        printf("FAILURE: wrong host\n");
+    }
+    else if(parsedurl->port != atoi(TESTPORT1))
+    {
+        printf("FAILURE: wrong port\n");
+    }
+    else if(strcmp(parsedurl->remainder,TESTREMAINDER1))
+    {
+        printf("FAILURE: wrong remainder\n");
+    }
+    else if(*(parsedurl->family))
+    {
+           printf("FAILURE: wrong family\n");
+    }
+    else
+    {
+        printf("Success!\n");
+    }
+    if(parsedurl) xfree(parsedurl);
+
+
+    /* TESTURL6 - invalid ipv6 host */
+    printf("Testing srvurl:   %s\n",TESTURL6);
+    if(SLPParseSrvUrl(strlen(TESTURL6),
+                      TESTURL6,
+                      &parsedurl) != 0)
+    {
+        printf("FAILURE: SLPParseSrvUrl returned error\n");
+        return -1;
+    }
+    if(strcmp(parsedurl->srvtype,TESTSRVTYPE1))
+    {
+        printf("FAILURE: wrong srvtype\n");
+    }
+    if(parsedurl) xfree(parsedurl);
+
     return 0;
 }
 #endif
