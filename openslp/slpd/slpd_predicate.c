@@ -76,7 +76,7 @@
  *    "abc\2axyz" instead of "abc*xyz". 
  *  - No operations can be performed on opaque data types. 
  *********/
- 
+
 #include <assert.h>
 #include <ctype.h>
 
@@ -91,7 +91,7 @@
 #define BRACKET_CLOSE ')'
 
 #ifndef MIN
-#define MIN(x,y) (x < y ? x : y)
+    #define MIN(x,y) (x < y ? x : y)
 #endif
 
 /************************* <Lifted from slp_attr.c> ***********************/
@@ -163,7 +163,7 @@ int escaped_verify(char *escaped, int len, int *punescaped_len)
 {
     int i;
     int unescaped_len;
-    int seq_pos; /* Position in the current escape sequence. Set to zero when not in escape seq. */ 
+    int seq_pos; /* Position in the current escape sequence. Set to zero when not in escape seq. */
 
     seq_pos = 0;
 
@@ -315,15 +315,15 @@ FilterResult unescape_cmp(const char *escaped, int escaped_len, const char *verb
             unesc = escaped[esc_i];
         }
 
-        if(unesc != verbatim[ver_i])		/* quick check for equality*/
+        if(unesc != verbatim[ver_i])        /* quick check for equality*/
         {
-	    if(! isascii(unesc)			/* case insensitive check */
-	       || ! isalpha(unesc)
-	       || ! isalpha(verbatim[ver_i])
-	       || tolower(unesc) != tolower(verbatim[ver_i]))
-	    {
-		return FR_EVAL_FALSE;
-	    }
+            if(! isascii(unesc)         /* case insensitive check */
+               || ! isalpha(unesc)
+               || ! isalpha(verbatim[ver_i])
+               || tolower(unesc) != tolower(verbatim[ver_i]))
+            {
+                return FR_EVAL_FALSE;
+            }
         }
 
         unescaped_count++;
@@ -978,6 +978,232 @@ struct pair
 };
 /*--------------------------------------------------------------------------*/
 
+#if defined(ENABLE_SLPv1)
+
+
+/*--------------------------------------------------------------------------*/
+FilterResult filterv1(const char *start, 
+                      const char **end, 
+                      SLPAttributes slp_attr, 
+                      int recursion_depth)
+/* Parameters:                                                              */
+/* start -- (IN) The start of the string to work in.                        */
+/* end -- (OUT) The end of the string processed. After successful processing*/
+/*              (ie, no PARSE_ERRORs), this will be pointed at the character*/
+/*              following the last char in this level of the expression.    */
+/* slp_attr -- (IN) The attributes handle to compare on.                    */
+/* return_value -- (OUT) The result of the search. Only valid if SLP_OK was */
+/*                       returned.                                          */
+/*                                                                          */
+/* Returns: SLP_OK on successful search (ie, the search was do-able).       */
+/*          SLP_PARSE_ERROR on search error.  The end of the expression is  */
+/*          returned through end.                                           */
+/* NOTE: This attempt only implements one comparision operator (==)         */
+/*--------------------------------------------------------------------------*/
+{
+    char *operator; /* Pointer to the operator substring. */
+    const char *cur; /* Current working character. */
+    const char *last_char; /* The last character in the working string. */
+    FilterResult err = FR_UNSET; /* The result of an evaluation. */
+    FilterResult stop_condition = FR_UNSET;
+
+    if(recursion_depth <= 0)
+    {
+        return FR_PARSE_ERROR;
+    }
+
+    recursion_depth--;
+
+    if(*start == 0)
+    {
+        *end = start;
+        return FR_EVAL_TRUE;
+    }
+
+    if(*start != BRACKET_OPEN)
+    {
+        return FR_PARSE_ERROR;
+    }
+
+    /***** Get the current expression. *****/
+    last_char = *end = find_bracket_end(start);
+    if(*end == 0)
+    {
+        return FR_PARSE_ERROR;
+    }
+    (*end)++; /* Move the end pointer past the closing bracket. */
+
+    /**** 
+     * Check for the three legal characters that can follow an expression,
+     * if the following character isn't one of those, the following character 
+     * is trash.
+     ****/
+    if(!(**end == BRACKET_OPEN || **end == BRACKET_CLOSE || **end == '\0'))
+    {
+        return FR_PARSE_ERROR;
+    }
+
+    /***** check for boolean op. *****/
+    cur = start;
+    cur++;
+
+    switch(*cur)
+    {
+    case('&'): /***** And. *****/
+    case('|'): /***** Or. *****/
+        {
+            if(*cur == '&')
+            {
+                stop_condition = FR_EVAL_FALSE;
+            }
+            else if(*cur == '|')
+            {
+                stop_condition = FR_EVAL_TRUE;
+            }
+
+            cur++; /* Move past operator. */
+
+            /*** Ensure that we have at least one operator. ***/
+            if(*cur != BRACKET_OPEN || cur >= last_char)
+            {
+                return FR_PARSE_ERROR;
+            }
+
+            /*** Evaluate each operand. ***/
+            /* NOTE: Due to the condition on the above "if", we are guarenteed that the first iteration of the loop is valid. */
+            do 
+            {
+                err = filterv1(cur, &cur, slp_attr, recursion_depth);
+                /*** Propagate errors. ***/
+                if(err != FR_EVAL_TRUE && err != FR_EVAL_FALSE)
+                {
+                    return err;
+                }
+
+                /*** Short circuit. ***/
+                if(err == stop_condition)
+                {
+                    return stop_condition;
+                }
+            } while(*cur == BRACKET_OPEN && cur < last_char); 
+
+
+            /*** If we ever get here, it means we've evaluated every operand without short circuiting -- meaning that the operation failed. ***/
+            return(stop_condition == FR_EVAL_TRUE ? FR_EVAL_FALSE : FR_EVAL_TRUE);
+        }
+
+
+    case('!'): /***** Not. *****/
+        /**** Child. ****/
+        cur++;
+        err = filterv1(cur, &cur, slp_attr, recursion_depth);
+        /*** Return errors. ***/
+        if(err != FR_EVAL_TRUE && err != FR_EVAL_FALSE)
+        {
+            return err;
+        }
+
+        /*** Perform "not". ***/
+        return(err == FR_EVAL_TRUE ? FR_EVAL_FALSE : FR_EVAL_TRUE);
+
+    default: /***** Unknown operator. *****/
+        ;
+        /* We don't do anything here because this will catch the first character of every leaf predicate. */
+    }
+
+    /***** Check for leaf operator. *****/
+    if(IS_VALID_TAG_CHAR(*cur))
+    {
+        Operation op;
+        char *lhs, *rhs; /* The two operands. */
+        char *val_start; /* The character after the operator. ie, the start of the rhs. */
+        int lhs_len, rhs_len; /* Length of the lhs/rhs. */
+        SLPType type;
+        SLPError slp_err;
+
+        /**** Demux leaf op. ****/
+        /* Support only "==", we look for the equals 
+         * sign, and then poke around on either side of that for the real 
+         * value. 
+         */
+        operator = (char *)memchr(cur, '=', last_char - cur);
+        if(operator == 0 || *(operator + 1) != '=')
+        {
+            /**** No search operator. ****/
+            return FR_PARSE_ERROR;
+        }
+
+        /* The rhs always follows the operator. (This doesn't really make 
+        sense for PRESENT ops, but ignore that). */
+        val_start = operator + 2; 
+
+        if(operator == cur)
+        {/* Check that we can poke back one char. */
+            return FR_PARSE_ERROR;
+        }
+
+        op = EQUAL;
+
+        /***** Get operands. *****/
+        /**** Left. ****/
+        lhs_len = operator - cur;
+        lhs = (char *)cur;
+
+        /**** Right ****/
+        rhs_len = last_char - val_start;
+        rhs = val_start;
+
+        /***** Do leaf operation. *****/
+        /**** Check that tag exists. ****/
+        slp_err = SLPAttrGetType_len(slp_attr, lhs, lhs_len, &type);
+        if(slp_err == SLP_TAG_ERROR)
+        { /* Tag  doesn't exist. */
+            return FR_EVAL_FALSE;
+        }
+        else if(slp_err == SLP_OK)
+        { /* Tag exists. */
+            /**** Do operation. *****/
+            if(op == PRESENT)
+            {
+                /*** Since the PRESENT operation is the same for all types, 
+                do that now. ***/
+                return FR_EVAL_TRUE;
+            }
+            else
+            {
+                /*** A type-specific operation. ***/
+                switch(type)
+                {
+                case(SLP_BOOLEAN):
+                    err = bool_op(slp_attr, lhs, lhs_len, rhs, rhs_len, op); 
+                    break;
+                case(SLP_INTEGER):
+                    err = int_op(slp_attr, lhs, lhs_len, rhs, op); 
+                    break;
+                case(SLP_KEYWORD):
+                    err = keyw_op(slp_attr, lhs, rhs, op); 
+                    break;
+                case(SLP_STRING):
+                    err = str_op(slp_attr, lhs, lhs_len, rhs, rhs_len, op); 
+                    break;
+                case(SLP_OPAQUE):
+                    assert(0); /* Opaque is not yet supported. */
+                }
+            }
+        }
+        else
+        { /* Some other tag-related error. */
+            err = FR_INTERNAL_SYSTEM_ERROR;
+        }
+
+        assert(err != FR_UNSET);
+        return err;
+    }
+
+    /***** No operator. *****/
+    return FR_PARSE_ERROR;
+}
+#endif
 
 /*--------------------------------------------------------------------------*/
 FilterResult filter(const char *start, 
@@ -1003,7 +1229,7 @@ FilterResult filter(const char *start,
     const char *last_char; /* The last character in the working string. */
     FilterResult err = FR_UNSET; /* The result of an evaluation. */
     FilterResult stop_condition = FR_UNSET;
-   
+
     if(recursion_depth <= 0)
     {
         return FR_PARSE_ERROR;
@@ -1261,8 +1487,12 @@ int SLPDPredicateTest(int version,
         return 1;
     }
 
-    /*  We don't handle SLPv1 predicates yet.  We'll say they all match */
-    if(version != 2)
+    /* Attempt v1 too. */
+    if(version != 2 
+#if defined(ENABLE_SLPv1)        
+       && version != 1
+#endif
+      )
     {
         return 1;
     }
@@ -1279,14 +1509,24 @@ int SLPDPredicateTest(int version,
     ((char*)predicate)[predicatelen] = 0;
     attrnull = attrlist[attrlistlen];
     ((char*)attrlist)[attrlistlen] = 0;
-    
+
     /* Generate an SLPAttr from the comma delimited list */
     if(SLPAttrAlloc("en", NULL, SLP_FALSE, &attr) == 0)
     {
         if(SLPAttrFreshen(attr, attrlist) == 0)
         {
-            err = filter(predicate, &end, attr, SLPD_ATTR_RECURSION_DEPTH);
-            
+            switch(version)
+            {
+#if defined(ENABLE_SLPv1)
+            case 1:
+                err=filterv1(predicate, &end, attr, SLPD_ATTR_RECURSION_DEPTH);
+                break;
+#endif
+            default:
+                err=filter(predicate, &end, attr, SLPD_ATTR_RECURSION_DEPTH);
+                break;
+            }
+
             /* Check for trailing trash data. */
             if((err == FR_EVAL_TRUE || err == FR_EVAL_FALSE) && *end != 0)
             {
@@ -1297,7 +1537,7 @@ int SLPDPredicateTest(int version,
                 result = 1;
             }
         }
-        
+
         SLPAttrFree(attr);
     }
 
@@ -1338,10 +1578,10 @@ int SLPDFilterAttributes(int attrlistlen,
     FilterResult    err;
     char            attrnull;
     char            tagnull;
-    
+
     *result = 0;
     *resultlen = 0;
-    
+
     /* TRICKY: Temporarily NULL terminate the attribute list     */
     /*         and the tag string.  We can do this because       */
     /*         there is room in the corresponding SLPv2 SRVREG   */
@@ -1369,12 +1609,12 @@ int SLPDFilterAttributes(int attrlistlen,
                                    resultlen,
                                    SLP_FALSE);
         }
-        
+
         SLPAttrFree(attr);
     }
 
     /* SLPAttrSerialize counts the NULL terminator which we don't care about*/
-    if(*resultlen) 
+    if(*resultlen)
     {
         *resultlen -= 1;
     }
@@ -1383,5 +1623,5 @@ int SLPDFilterAttributes(int attrlistlen,
     ((char*)taglist)[taglistlen] = tagnull;
     ((char*)attrlist)[attrlistlen] = attrnull;
 
-    return (*resultlen == 0);
+    return(*resultlen == 0);
 }

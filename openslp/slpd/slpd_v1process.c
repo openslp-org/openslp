@@ -84,7 +84,7 @@ int v1ProcessDASrvRqst(struct sockaddr_in* peeraddr,
     {
         /* fill out real structure */
         errorcode = SLPDKnownDAGenerateMyV1DAAdvert(errorcode,
-                                                    SLP_CHAR_UTF8,
+                                                    message->header.encoding,
                                                     message->header.xid,
                                                     sendbuf);
     }
