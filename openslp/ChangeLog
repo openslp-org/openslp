@@ -8,6 +8,8 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 
+*** TAG OpenSLP 0.7.1 ***
+
 07/11/00 mpeterson@calderasystems.com
 Fixed 109269 - SLPFindSrvs callback no longer gives a LAST_CALL
 
