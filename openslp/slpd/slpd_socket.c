@@ -306,28 +306,37 @@ SLPDSocket* SLPDSocketCreateDatagram(struct in_addr* peeraddr,
     {
         sock->recvbuf = SLPBufferAlloc(SLP_MAX_DATAGRAM_SIZE);
         sock->sendbuf = SLPBufferAlloc(SLP_MAX_DATAGRAM_SIZE);
-        sock->fd = socket(PF_INET, SOCK_DGRAM, 0);
-        if(sock->fd >=0)
+        if(sock->recvbuf && sock->sendbuf)
         {
-            switch(type)
+        
+            sock->fd = socket(PF_INET, SOCK_DGRAM, 0);
+            if(sock->fd >=0)
             {
-            case DATAGRAM_BROADCAST:
-                EnableBroadcast(sock->fd);
-                break;
+                switch(type)
+                {
+                case DATAGRAM_BROADCAST:
+                    EnableBroadcast(sock->fd);
+                    break;
+                    
+                case DATAGRAM_MULTICAST:
+                    SetMulticastTTL(sock->fd,G_SlpdProperty.multicastTTL);
+                    break;
+    
+                default:
+                    break;
+                }
                 
-            case DATAGRAM_MULTICAST:
-                SetMulticastTTL(sock->fd,G_SlpdProperty.multicastTTL);
-                break;
-
-            default:
-                break;
+                sock->peeraddr.sin_family = AF_INET;
+                sock->peeraddr.sin_addr = *peeraddr;
+                sock->peeraddr.sin_port = htons(SLP_RESERVED_PORT);
+                sock->state = type;
+               
             }
-            
-            sock->peeraddr.sin_family = AF_INET;
-            sock->peeraddr.sin_addr = *peeraddr;
-            sock->peeraddr.sin_port = htons(SLP_RESERVED_PORT);
-            sock->state = type;
-           
+            else
+            {
+                SLPDSocketFree(sock);
+                sock = 0;
+            }
         }
         else
         {
