@@ -104,4 +104,84 @@ SLPListItem* SLPListLinkTail(SLPList* list, SLPListItem* item);
 /* Returns  pointer to the linked item                                     */
 /*=========================================================================*/
 
+
+  /********* circular list macros *********************/
+
+  /*---------------------------------------------------------------------**
+  ** structures used with these macros MUST have the following elements: **
+  ** struct type-name {                                                  **
+  ** 	struct type-name *next;                                            **
+  ** 	struct type-name *prev;                                            **
+  ** 	BOOL isHead;                                                       **
+  ** 	}                                                                  **
+  **---------------------------------------------------------------------*/
+
+  /*  is node x the head of the list? */
+  /* BOOL IS_HEAD(node *x); */
+#define _LSLP_IS_HEAD(x) ((x)->isHead )
+
+  /* where h is the head of the list */
+  /* BOOL _LSLP_IS_EMPTY(head);          */
+#define _LSLP_IS_EMPTY(h) \
+	((((h)->next == (h)) && ((h)->prev == (h)) ) ? TRUE : FALSE)
+
+  /* where n is the new node, insert it immediately after node x */
+  /* x can be the head of the list                               */
+  /* void _LSLP_INSERT(new, after);                                  */
+#define _LSLP_INSERT(n, x)   	\
+	{(n)->prev = (x); 		\
+	(n)->next = (x)->next; 	\
+	(x)->next->prev = (n); 	\
+	(x)->next = (n); }		
+
+#define _LSLP_INSERT_AFTER _LSLP_INSERT
+#define _LSLP_INSERT_BEFORE(n, x)   \
+	{(n)->next = (x);					\
+	(n)->prev = (x)->prev;				\
+	(x)->prev->next = (n);				\
+	(x)->prev = (n); }
+
+#define _LSLP_INSERT_WORKNODE_LAST(n, x)    \
+        {gettimeofday(&((n)->timer));  \
+	(n)->next = (x);	       \
+	(n)->prev = (x)->prev;	       \
+	(x)->prev->next = (n);	       \
+	(x)->prev = (n); }
+
+#define _LSLP_INSERT_WORKNODE_FIRST(n, x)    \
+        {gettimeofday(&((n)->timer));  \
+	(n)->prev = (x); 	       \
+	(n)->next = (x)->next; 	       \
+	(x)->next->prev = (n); 	       \
+	(x)->next = (n); }		
+
+
+  /* delete node x  - harmless if mib is empty */
+  /* void _LSLP_DELETE_(x);                        */
+#define _LSLP_UNLINK(x)				\
+	{(x)->prev->next = (x)->next;	\
+	(x)->next->prev = (x)->prev;}	
+
+  /* given the head of the list h, determine if node x is the last node */
+  /* BOOL _LSLP_IS_LAST(head, x);                                           */
+#define _LSLP_IS_LAST(h, x) \
+	(((x)->prev == (h) && (h)->prev == (x)) ? TRUE : FALSE)
+
+  /* given the head of the list h, determine if node x is the first node */
+  /* BOOL _LSLP_IS_FIRST(head, x);                                           */
+#define _LSLP_IS_FIRST(h, x) \
+	(((x)->prev == (h) && (h)->next == (x)) ? TRUE : FALSE)
+
+  /* given the head of the list h, determine if node x is the only node */
+  /* BOOL _LSLP_IS_ONLY(head, x);                                           */
+#define _LSLP_IS_ONLY(h, x) \
+	(((x)->next == (h) && (h)->prev == (x)) ? TRUE : FALSE)
+  /* void _LSLP_LINK_HEAD(dest, src); */
+#define _LSLP_LINK_HEAD(d, s) \
+	{(d)->next = (s)->next;  \
+	(d)->prev = (s)->prev;  \
+	(s)->next->prev = (d);  \
+	(s)->prev->next = (d); }
+
+
 #endif
