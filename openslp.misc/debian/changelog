@@ -1,3 +1,9 @@
+openslp (1.0.6-1) unstable; urgency=low
+
+  * New upstream release
+
+ -- Ganesan Rajagopal <rganesan@debian.org>  Sat, 15 Dec 2001 12:49:14 +0530
+
 openslp (1.0.5-1) unstable; urgency=low
 
   * New upstream release
