@@ -6,6 +6,12 @@ Please make entries to this log (in addition to the CVS log) that describe
 major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
+
+*** TAG OpenSLP 0.8.0 ****
+
+11/30/00 mpeterson@caldera.com
+Changed license comments in all source files
+
 11/28/00 mpeterson@caldera.com
 More efficient rewrite of code that selects a DA to satisfy API requests
 
