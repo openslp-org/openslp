@@ -133,6 +133,8 @@ void* _xmalloc(const char* file,
         }
         return NULL;
     }
+    SLPListLinkTail(&G_xmalloc_list, (SLPListItem*)x);
+
     x->size = size;
     snprintf(x->where,SLPXMALLOC_MAX_WHERE_LEN,"%s:%i",file,line);
     G_xmalloc_allocmem += size;
@@ -143,8 +145,7 @@ void* _xmalloc(const char* file,
         _xmalloc_log(x);
     }
     
-    SLPListLinkTail(&G_xmalloc_list, (SLPListItem*)x);
-
+    
     return x->buf;
 }
 
@@ -189,12 +190,69 @@ void* _xrealloc(const char* file,
                 size_t size)
 /*=========================================================================*/
 {
-    if(buf)
+    xallocation_t* x;
+
+    if(G_xmalloc_freemem &&
+       G_xmalloc_allocmem + size > G_xmalloc_freemem)
     {
-        _xfree(file,line,buf);
+        if(G_xmalloc_fh)
+        {
+            fprintf(G_xmalloc_fh,"\n*** Simulating out of memory error ***\n\n");
+        }
+        return NULL;
     }
 
-    return _xmalloc(file,line,size);
+    if(buf)
+    {
+        x =_xmalloc_find(buf);
+        if(x == NULL)
+        {
+            if(G_xmalloc_fh)
+            {
+                fprintf(G_xmalloc_fh, 
+                        "*** xrealloc called on non xmalloced memory ***\n");
+            }
+    
+            return NULL;
+        }
+        G_xmalloc_allocmem -= x->size;
+    }
+    else
+    {
+        x = malloc(sizeof(xallocation_t));
+        if(x == NULL)
+        {
+            if(G_xmalloc_fh)
+            {
+                fprintf(G_xmalloc_fh,"\n*** Real out of memory error ***\n\n");
+            }
+            return NULL;
+        }
+        
+        SLPListLinkTail(&G_xmalloc_list, (SLPListItem*)x);
+    }
+
+    x->buf = realloc(buf,size);
+    if(x->buf == NULL)
+    {
+        if(G_xmalloc_fh)
+        {
+            fprintf(G_xmalloc_fh,"\n*** Real out of memory error ***\n\n");
+        }
+        return NULL;
+    }
+    snprintf(x->where,SLPXMALLOC_MAX_WHERE_LEN,"%s:%i",file,line);
+    x->size = size;
+    
+    G_xmalloc_allocmem += size;
+
+    if(G_xmalloc_fh)
+    {
+        fprintf(G_xmalloc_fh,"Called xrealloc() %s:%i ", file, line);
+        _xmalloc_log(x);
+    }
+    
+    return x->buf;
 }
 
                      
