@@ -1,14 +1,68 @@
 
 #include <assert.h>
 
-#include <slpd_predicate.h>
 #include <libslpattr.h>
 
 #ifdef USE_PREDICATES
 
+typedef void* SLPDPredicate; 
+int SLPDTestPredicate(SLPDPredicate predicate, SLPAttributes attr);
 SLPError SLPAttrEvalPred(SLPAttributes slp_attr, SLPDPredicate *predicate, SLPBoolean *result, int recursion_depth); /* It's defined in slpd_predicate.c, but since we don't want to pollute namespaces, we put the prototype here. -- we use this so we don't have to calculate the string length, and so we can play with the recursion depth.*/
 
-int main(int argc, char *argv[]) {
+int wildcard(const char *pattern, const char *string);
+
+
+
+void test_wildcard() {
+	int err;
+
+	/* Test that initial tokens aren't ignored. */
+	err = wildcard("first*second*third*", "first string second third");
+	assert(err == 0);
+
+	/* Check that basic equality works. */
+	err = wildcard("first", "first");
+	assert(err == 0);
+
+	/* Check leading '*'. */
+	err = wildcard("*first", "first");
+	assert(err == 0);
+
+	/* Check trailing '*'. */
+	err = wildcard("first*", "first");
+	assert(err == 0);
+
+	/* Check infix '*'. */
+	err = wildcard("first*cat", "first dog cat");
+	assert(err == 0);
+
+	/* Check multiple infix '*'. */
+	err = wildcard("first*roach*cat", "first roach dog cat");
+	assert(err == 0);
+
+	/* Check correct substrings, but not anchored at end. */
+	err = wildcard("first*roach*cat", "first roach dog cat cheese");
+	assert(err == 1);
+
+	/* Check correct substrings, multiple matches, but anchored at end. */
+	err = wildcard("first*roach*cat", "first roach dog cat cheese cat");
+	assert(err == 0);
+
+	/* Check single wc. */
+	err = wildcard("*", "first roach dog cat cheese cat");
+	assert(err == 0);
+
+	/* Check single multiple. */
+	err = wildcard("****", "first roach dog cat cheese cat");
+	assert(err == 0);
+
+	/* Check substring check. */
+	err = wildcard("*ach*", "first roach dog cat cheese cat");
+	assert(err == 0);
+}
+
+
+void test_predicate() {
 	char *str;
 	int ierr;
 	SLPAttributes slp_attr;
@@ -27,47 +81,47 @@ int main(int argc, char *argv[]) {
 	
 	/* Test equals. */
 	str = "(&(&(int=23)(int=25))(int=26))";
-	ierr = SLPTestPredicate( str, slp_attr);
+	ierr = SLPDTestPredicate( str, slp_attr);
 	assert(ierr > 0); /* False. */
 	
 	str = "(&(&(int=24)(int=25))(int=26))";
-	ierr = SLPTestPredicate( str, slp_attr);
+	ierr = SLPDTestPredicate( str, slp_attr);
 	assert(ierr > 0); /* False. */
 	
 	str = "(&(&(int=24)(int=28))(int=26))";
-	ierr = SLPTestPredicate( str, slp_attr);
+	ierr = SLPDTestPredicate( str, slp_attr);
 	assert(ierr > 0); /* False. */
 
 	str = "(&(&(int=23)(int=25))(int=27))";
-	ierr = SLPTestPredicate( str, slp_attr);
+	ierr = SLPDTestPredicate( str, slp_attr);
 	assert(ierr == 0); /* True. */
 
 
 	/* Test greater. */
 	str = "(int>=29)";
-	ierr = SLPTestPredicate( str, slp_attr);
+	ierr = SLPDTestPredicate( str, slp_attr);
 	assert(ierr > 0); /* f. */
 	
 	str = "(int>=26)";
-	ierr = SLPTestPredicate( str, slp_attr);
+	ierr = SLPDTestPredicate( str, slp_attr);
 	assert(ierr == 0); /* T. */
 	
 	str = "(int>=24)";
-	ierr = SLPTestPredicate( str, slp_attr);
+	ierr = SLPDTestPredicate( str, slp_attr);
 	assert(ierr == 0); /* t. */
 	
 	str = "(int>=22)";
-	ierr = SLPTestPredicate( str, slp_attr);
+	ierr = SLPDTestPredicate( str, slp_attr);
 	assert(ierr == 0); /* t. */
 
 	
 	/* Test lesser. */
 	str = "(int<=22)";
-	ierr = SLPTestPredicate( str, slp_attr);
+	ierr = SLPDTestPredicate( str, slp_attr);
 	assert(ierr > 0); /* f */
 	
 	str = "(int<=23)";
-	ierr = SLPTestPredicate( str, slp_attr);
+	ierr = SLPDTestPredicate( str, slp_attr);
 	assert(ierr == 0); /* t */
 	
 	SLPAttrFree(slp_attr);
@@ -77,7 +131,7 @@ int main(int argc, char *argv[]) {
 	assert(err == SLP_OK);
 
 	str = "(a=1)";
-	ierr = SLPTestPredicate( str, slp_attr);
+	ierr = SLPDTestPredicate( str, slp_attr);
 	assert(ierr == 0); /* t */
 	
 	SLPAttrFree(slp_attr);
@@ -92,47 +146,47 @@ int main(int argc, char *argv[]) {
 
 	/* Test less (single-valued). */
 	str = "(str<=a)";
-	ierr = SLPTestPredicate( str, slp_attr);
+	ierr = SLPDTestPredicate( str, slp_attr);
 	assert(ierr > 0); /* f */
 	
 	str = "(str<=string)";
-	ierr = SLPTestPredicate( str, slp_attr);
+	ierr = SLPDTestPredicate( str, slp_attr);
 	assert(ierr == 0); /* t */
 	
 	str = "(str<=strinx)";
-	ierr = SLPTestPredicate( str, slp_attr);
+	ierr = SLPDTestPredicate( str, slp_attr);
 	assert(ierr == 0); /* t */
 
 
 	/* Test greater (single-valued). */
 	str = "(str>=a)";
-	ierr = SLPTestPredicate( str, slp_attr);
+	ierr = SLPDTestPredicate( str, slp_attr);
 	assert(ierr == 0); /* t */
 	
 	str = "(str>=string)";
-	ierr = SLPTestPredicate( str, slp_attr);
+	ierr = SLPDTestPredicate( str, slp_attr);
 	assert(ierr == 0); /* t */
 	
 	str = "(str>=strinx)";
-	ierr = SLPTestPredicate( str, slp_attr);
+	ierr = SLPDTestPredicate( str, slp_attr);
 	assert(ierr > 0); /* f */
 
 
 	/* Test equal (single valued). */
 	str = "(str=a)";
-	ierr = SLPTestPredicate( str, slp_attr);
+	ierr = SLPDTestPredicate( str, slp_attr);
 	assert(ierr > 0); /* f */
 	
 	str = "(str=*ing)";
-	ierr = SLPTestPredicate( str, slp_attr);
+	ierr = SLPDTestPredicate( str, slp_attr);
 	assert(ierr == 0); /* t */
 	
 	str = "(str=stri*)";
-	ierr = SLPTestPredicate( str, slp_attr);
+	ierr = SLPDTestPredicate( str, slp_attr);
 	assert(ierr == 0); /* t */
 	
 	str = "(str=*tri*)";
-	ierr = SLPTestPredicate( str, slp_attr);
+	ierr = SLPDTestPredicate( str, slp_attr);
 	assert(ierr == 0); /* t */
 
 
@@ -152,28 +206,28 @@ int main(int argc, char *argv[]) {
 
 	/* Test equal. */
 	str = "(bool=true)";
-	ierr = SLPTestPredicate( str, slp_attr);
+	ierr = SLPDTestPredicate( str, slp_attr);
 	assert(ierr == 0); /* t */
 
 	str = "(bool=false)";
-	ierr = SLPTestPredicate( str, slp_attr);
+	ierr = SLPDTestPredicate( str, slp_attr);
 	assert(ierr > 0); /* f */
 
 	/* Test bad strings. */
 	str = "(bool=falsew)";
-	ierr = SLPTestPredicate( str, slp_attr);
+	ierr = SLPDTestPredicate( str, slp_attr);
 	assert(ierr > 0); /* f */
 
 	str = "(bool=*false)";
-	ierr = SLPTestPredicate( str, slp_attr);
+	ierr = SLPDTestPredicate( str, slp_attr);
 	assert(ierr > 0); /* f */
 
 	str = "(bool=truee)";
-	ierr = SLPTestPredicate( str, slp_attr);
+	ierr = SLPDTestPredicate( str, slp_attr);
 	assert(ierr > 0); /* f */
 
 	str = "(bool= true)";
-	ierr = SLPTestPredicate( str, slp_attr);
+	ierr = SLPDTestPredicate( str, slp_attr);
 	assert(ierr > 0); /* f */
 
 	
@@ -190,15 +244,15 @@ int main(int argc, char *argv[]) {
 
 	/* Test present. */
 	str = "(keyw=*)";
-	ierr = SLPTestPredicate( str, slp_attr);
+	ierr = SLPDTestPredicate( str, slp_attr);
 	assert(ierr == 0); /* t */
 
 	str = "(keyw=sd)";
-	ierr = SLPTestPredicate( str, slp_attr);
+	ierr = SLPDTestPredicate( str, slp_attr);
 	assert(ierr > 0); /* f */
 
 	str = "(keyw<=adf)";
-	ierr = SLPTestPredicate( str, slp_attr);
+	ierr = SLPDTestPredicate( str, slp_attr);
 	assert(ierr > 0); /* f */
 
 	SLPAttrFree(slp_attr);
@@ -212,24 +266,24 @@ int main(int argc, char *argv[]) {
 
 
 	str = "(keyw=*)";
-	ierr = SLPTestPredicate( str, slp_attr);
+	ierr = SLPDTestPredicate( str, slp_attr);
 	assert(ierr == 0); /* t */
 
 	/* Test not. */
 	str = "(!(keyw=*))";
-	ierr = SLPTestPredicate( str, slp_attr);
+	ierr = SLPDTestPredicate( str, slp_attr);
 	assert(ierr > 0); /* f */
 
 	str = "(!(!(keyw=*)))";
-	ierr = SLPTestPredicate( str, slp_attr);
+	ierr = SLPDTestPredicate( str, slp_attr);
 	assert(ierr == 0); /* t */
 
 	str = "(!(!(!(keyw=*))))";
-	ierr = SLPTestPredicate( str, slp_attr);
+	ierr = SLPDTestPredicate( str, slp_attr);
 	assert(ierr > 0); /* f */
 
 	str = "(!(!(!(!(keyw=*)))))";
-	ierr = SLPTestPredicate( str, slp_attr);
+	ierr = SLPDTestPredicate( str, slp_attr);
 	assert(ierr == 0); /* t */
 
 	/* Build up to testing binary ops. */
@@ -238,43 +292,43 @@ int main(int argc, char *argv[]) {
 	
 	/* Test and. */
 	str = "(&(keyw=*)(bool=true))";
-	ierr = SLPTestPredicate( str, slp_attr);
+	ierr = SLPDTestPredicate( str, slp_attr);
 	assert(ierr == 0); /* t */
 
 	str = "(&(keyw=*)(bool=false))";
-	ierr = SLPTestPredicate( str, slp_attr);
+	ierr = SLPDTestPredicate( str, slp_attr);
 	assert(ierr > 0); /* f */
 
 	str = "(&(keyw=*)(!(bool=false)))";
-	ierr = SLPTestPredicate( str, slp_attr);
+	ierr = SLPDTestPredicate( str, slp_attr);
 	assert(ierr == 0); /* t */
 
 	str = "(&(keywx=*)(bool=true))";
-	ierr = SLPTestPredicate( str, slp_attr);
+	ierr = SLPDTestPredicate( str, slp_attr);
 	assert(ierr > 0); /* f */
 
 	str = "(&(!(keywx=*))(bool=true))";
-	ierr = SLPTestPredicate( str, slp_attr);
+	ierr = SLPDTestPredicate( str, slp_attr);
 	assert(ierr == 0); /* t */
 
 	str = "(&(lkeyw=*)(bool=false))";
-	ierr = SLPTestPredicate( str, slp_attr);
+	ierr = SLPDTestPredicate( str, slp_attr);
 	assert(ierr > 0); /* f */
 
 	str = "(&(!(lkeyw=*))(!(bool=false)))";
-	ierr = SLPTestPredicate( str, slp_attr);
+	ierr = SLPDTestPredicate( str, slp_attr);
 	assert(ierr == 0); /* t */
 
 	str = "(&(&(keyw=*)(bool=true))(&(keyw=*)(bool=true)))";
-	ierr = SLPTestPredicate( str, slp_attr);
+	ierr = SLPDTestPredicate( str, slp_attr);
 	assert(ierr == 0); /* t */
 
 	str = "(&(&(!(keyw=*))(bool=true))(&(keyw=*)(bool=true)))";
-	ierr = SLPTestPredicate( str, slp_attr);
+	ierr = SLPDTestPredicate( str, slp_attr);
 	assert(ierr > 0); /* f */
 
 	str = "(!(&(&(!(keyw=*))(bool=true))(&(keyw=*)(bool=true))))";
-	ierr = SLPTestPredicate( str, slp_attr);
+	ierr = SLPDTestPredicate( str, slp_attr);
 	assert(ierr == 0); /* t */
 
 	
@@ -282,80 +336,80 @@ int main(int argc, char *argv[]) {
 
 	/* No preceeding bracket. */
 	str = "asdf=log";
-	ierr = SLPTestPredicate( str, slp_attr);
+	ierr = SLPDTestPredicate( str, slp_attr);
 	assert(ierr < 0);
 
 	/* No trailing bracket. */
 	str = "(asdf=log";
-	ierr = SLPTestPredicate( str, slp_attr);
+	ierr = SLPDTestPredicate( str, slp_attr);
 	assert(ierr < 0);
 
 	/* Unbalanced brackets. */
 	str = "(asdf=log))";
-	ierr = SLPTestPredicate( str, slp_attr);
+	ierr = SLPDTestPredicate( str, slp_attr);
 	assert(ierr < 0);
 
 	str = "((asdf=log)";
-	ierr = SLPTestPredicate( str, slp_attr);
+	ierr = SLPDTestPredicate( str, slp_attr);
 	assert(ierr < 0);
 
 	/* Missing operators. */
 	str = "(asdflog)";
-	ierr = SLPTestPredicate( str, slp_attr);
+	ierr = SLPDTestPredicate( str, slp_attr);
 	assert(ierr < 0);
 
 	/* Check that the leaf operator isn't causing the problem. */
 	str = "(asdflog=q)";
-	ierr = SLPTestPredicate( str, slp_attr);
+	ierr = SLPDTestPredicate( str, slp_attr);
 	assert(ierr > 0);
 
 	/* Missing logical unary. */
 	str = "((asdflog=q))";
-	ierr = SLPTestPredicate( str, slp_attr);
+	ierr = SLPDTestPredicate( str, slp_attr);
 	assert(ierr < 0);
 
 	/* Missing logical binary. */
 	str = "((asdflog=q)(asdflog=q))";
-	ierr = SLPTestPredicate( str, slp_attr);
+	ierr = SLPDTestPredicate( str, slp_attr);
 	assert(ierr < 0);
 
 	/* Missing operands and operator. */
 	str = "()";
-	ierr = SLPTestPredicate( str, slp_attr);
+	ierr = SLPDTestPredicate( str, slp_attr);
 	assert(ierr < 0);
 	
 	/* Missing unary operands. */
 	str = "(!)";
-	ierr = SLPTestPredicate( str, slp_attr);
+	ierr = SLPDTestPredicate( str, slp_attr);
 	assert(ierr < 0);
 	
 	/* Missing binary operands. */
 	str = "(&)";
-	ierr = SLPTestPredicate( str, slp_attr);
+	ierr = SLPDTestPredicate( str, slp_attr);
 	assert(ierr < 0);
 	
 	/* Missing binary operands. */
 	str = "(=)";
-	ierr = SLPTestPredicate( str, slp_attr);
+	ierr = SLPDTestPredicate( str, slp_attr);
 	assert(ierr < 0);
 	
 	/* Missing binary operands. I _guess_ this is legal... */
 	str = "(thingy=)";
-	ierr = SLPTestPredicate( str, slp_attr);
+	ierr = SLPDTestPredicate( str, slp_attr);
 	assert(ierr > -1);
 
 	/* Trailing trash. */
 	str = "(&(a=b)(c=d))";
-	ierr = SLPTestPredicate( str, slp_attr);
+	ierr = SLPDTestPredicate( str, slp_attr);
 	assert(ierr > -1);
 
 	/* Check that the following test will not be short circuited. */
 	str = "(a=b)";
-	ierr = SLPTestPredicate( str, slp_attr);
+	ierr = SLPDTestPredicate( str, slp_attr);
 	assert(ierr > 0); /* f */
 	
 	str = "(|(a=b)(c=d)w)";
-	ierr = SLPTestPredicate( str, slp_attr);
+	ierr = SLPDTestPredicate( str, slp_attr);
 	assert(ierr < 0);
 
 	/* Check recursion depth. */
@@ -383,9 +437,15 @@ int main(int argc, char *argv[]) {
 	
 	SLPAttrFree(slp_attr);
 	
-	
-	return 0;
 }
+
+int main(int argc, char *argv[]) {
+	test_predicate();
+	test_wildcard();
+
+	return 1;
+}
+
 
 #else /* USE_PREDICATES */
 
