@@ -15,15 +15,15 @@ SLPD_SRC = $(SLPD_DIR)/slpd_socket.c   \
            $(SLPD_DIR)/slpd_cmdline.c  \
 	   $(SLPD_DIR)/slpd_property.c \
 	   $(SLPD_DIR)/slpd_regfile.c 
-	   
-	   
 	          
+
 COMMON_SRC = $(COMMON_DIR)/slp_compare.c  \
              $(COMMON_DIR)/slp_logfile.c \
 	     $(COMMON_DIR)/slp_buffer.c  \
 	     $(COMMON_DIR)/slp_message.c \
-	     $(COMMON_DIR)/slp_property.c
-
+	     $(COMMON_DIR)/slp_property.c \
+	     $(COMMON_DIR)/slp_linkedlist.c
+	     
 release:
 	gcc -O3 -o $(BINARY) -Wall -I$(COMMON_DIR) -I$(SLPD_DIR) $(SLPD_SRC) $(COMMON_SRC)
 	

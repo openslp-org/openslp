@@ -323,7 +323,7 @@ SLPError SLPReg(SLPHandle   hSLP,
     handle->params.reg.lifetime      = lifetime;
     handle->params.reg.urllen        = strlen(srvUrl);
     handle->params.reg.url           = srvUrl;
-    handle->params.reg.srvtype       = strchr(parsedurl->s_pcSrvType,':') + 1;
+    handle->params.reg.srvtype       = parsedurl->s_pcSrvType;
     handle->params.reg.srvtypelen    = strlen(handle->params.reg.srvtype);
     handle->params.reg.scopelist     = SLPGetProperty("net.slp.useScopes");
     if(handle->params.reg.scopelist)

@@ -14,15 +14,17 @@
 #if(!defined SLP_PROPERTY_H_INCLUDED)
 #define SLP_PROPERTY_H_INCLUDED
 
+#include <slp_linkedlist.h>
+
 /*=========================================================================*/
 typedef struct _SLPProperty
 /*=========================================================================*/
 {
-    struct _SLPProperty*    previous;
-    struct _SLPProperty*    next;
-    char*                   propertyName;
-    char*                   propertyValue;
+    ListItem        listitem;
+    char*           propertyName;
+    char*           propertyValue;
 }SLPProperty;
+
 
 /*=========================================================================*/
 const char* SLPPropertyGet(const char* pcName);

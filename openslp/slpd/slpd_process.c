@@ -548,17 +548,14 @@ int SLPDProcessMessage(SLPBuffer recvbuf,
         switch(message->header.functionid)
         {
         case SLP_FUNCT_SRVRQST:
-            SLPDebug("Processing  SrvRqst\n");
             ProcessSrvRqst(message,sendbuf);
             break;
     
         case SLP_FUNCT_SRVREG:
-            SLPDebug("Processing  SrvReg\n");
             ProcessSrvReg(message,sendbuf);
             break;
     
         case SLP_FUNCT_SRVDEREG:
-            SLPDebug("Processing  SrvDeReg\n");
             ProcessSrvDeReg(message,sendbuf);
             break;
     
@@ -567,7 +564,6 @@ int SLPDProcessMessage(SLPBuffer recvbuf,
             break;
     
         case SLP_FUNCT_ATTRRQST:
-            SLPDebug("Processing SrvAttrRqst\n");
             ProcessAttrRqst(message,sendbuf);
             break;
     

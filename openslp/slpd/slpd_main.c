@@ -137,7 +137,7 @@ int Daemonize(const char* pidfile)
             if(kill(pid,0) == 0)
             {
                 /* we are already running */
-                SLPError("slpd daemon is already running\n");
+                SLPFatal("slpd daemon is already running\n");
                 return -1;
             }
         }    
@@ -162,8 +162,7 @@ int Daemonize(const char* pidfile)
             setgid(pwent->pw_gid) < 0 ||
             setuid(pwent->pw_uid) < 0 )
         {
-            SLPError("Could not setuid() to \"daemon\" user\n");
-            return -1;
+            /* TODO: should we log here and return fail */
         }
     }
     
@@ -175,39 +174,19 @@ int Daemonize(const char* pidfile)
 void HandleTCPListen(SLPDSocketList* list, SLPDSocket* sock)
 /*-------------------------------------------------------------------------*/
 {
-    SLPDSocket* conn;
+    int                 fd;
+    struct sockaddr     peeraddr;
+    socklen_t           peeraddrlen;
 
-    if(list->count >= SLPD_MAX_SOCKETS)
+    /* check to see if we have accepted the maximum number of sockets */
+    if(list->count < SLPD_MAX_SOCKETS)
     {
-        return;
-    }
-
-    conn = (SLPDSocket*)malloc(sizeof(SLPDSocket));
-    if(conn)
-    {
-        memset(conn,0,sizeof(SLPDSocket));
-        conn->peeraddrlen = sizeof(conn->peeraddr);
-        conn->fd = accept(sock->fd,
-                          &(conn->peeraddr),
-                          &(conn->peeraddrlen));
-        if(conn->fd >= 0)
+        peeraddrlen = sizeof(peeraddr);
+        fd = accept(sock->fd, &peeraddr, &peeraddrlen);
+        if(fd >= 0)
         {
-            conn->type = TCP_FIRST_READ;
-            conn->recvbuf = SLPBufferAlloc(SLP_MAX_DATAGRAM_SIZE);
-            conn->sendbuf = SLPBufferAlloc(SLP_MAX_DATAGRAM_SIZE);
-            
-            /* TODO: set timestamp of API connections to zero so they */
-            /* will be permanent */
-
-            time(&(conn->timestamp));
-            SLPDebug("Accepted connection to %x\n",conn->peeraddr.sin_addr.s_addr);
-            SLPDSocketListLink(list,conn);
-        }
-        else
-        {
-            /* an error occured during accept()  */
-            /* LOG: should we log here   */
-            free(conn);
+            SLPDSocketListAdd(list,fd,TCP_FIRST_READ);
+            /* ignore return code */
         }
     }
 }
@@ -233,9 +212,6 @@ void HandleUDPRead(SLPDSocketList* list, SLPDSocket* sock)
                               &peeraddrlen);
         if(bytesread > 0)
         {
-            SLPDebug("Received UDP message from %s\n",
-                     inet_ntoa(peeraddr.sin_addr));
-            
             sock->recvbuf->end = sock->recvbuf->start + bytesread;
 
             if(SLPDProcessMessage(sock->recvbuf,sock->sendbuf) == 0)
@@ -244,22 +220,18 @@ void HandleUDPRead(SLPDSocketList* list, SLPDSocket* sock)
                 bytestowrite = sock->sendbuf->end - sock->sendbuf->start;
                 if(bytestowrite > 0)
                 {
-                    if(sendto(sock->fd,
-                          sock->sendbuf->start,
-                          sock->sendbuf->end - sock->sendbuf->start,
-                          0,
-                          &peeraddr,
-                          peeraddrlen) > 0)
-                    {
-                        SLPDebug("Sent UDP message to %s\n",
-                                 inet_ntoa(peeraddr.sin_addr));
-                    }   
+                    sendto(sock->fd,
+                           sock->sendbuf->start,
+                           sock->sendbuf->end - sock->sendbuf->start,
+                           0,
+                           &peeraddr,
+                           peeraddrlen);
                 }
             }
             else
             {
-                SLPError("An error occured while processing message from %s\n",
-                         inet_ntoa(peeraddr.sin_addr));
+                SLPLog("An error occured while processing message from %s\n",
+                       inet_ntoa(peeraddr.sin_addr));
             } 
         }
     }
@@ -268,7 +240,7 @@ void HandleUDPRead(SLPDSocketList* list, SLPDSocket* sock)
         /* we're out of memory, drop the UDP datagram */
         recv(sock->fd,&bytesread,4,0);  
         /* &bytesread serves as a (small) temporary bucket to drop data into */
-        SLPError("Slpd is out of memory!!\n");
+        SLPLog("Slpd is out of memory!!\n");
     }
 }
 
@@ -308,7 +280,7 @@ void HandleTCPRead(SLPDSocketList* list, SLPDSocket* sock)
                 }
                 else
                 {
-                    SLPError("Slpd is out of memory!!\n");
+                    SLPLog("Slpd is out of memory!\n");
                     sock->type = SOCKET_CLOSE;
                 }
             }
@@ -325,8 +297,6 @@ void HandleTCPRead(SLPDSocketList* list, SLPDSocket* sock)
         {
             if(errno != EWOULDBLOCK)
             {
-                SLPDebug("Closed connection to %s.  Error on recvfrom() %i\n", 
-                         inet_ntoa(sock->peeraddr.sin_addr),errno);
                 sock->type = SOCKET_CLOSE;
                 return;
             }
@@ -358,8 +328,8 @@ void HandleTCPRead(SLPDSocketList* list, SLPDSocket* sock)
                 else
                 {
                     /* An error has occured in SLPDProcessMessage() */
-                    SLPError("An error while processing message from %s\n",
-                             inet_ntoa(sock->peeraddr.sin_addr));
+                    SLPLog("An error while processing message from %s\n",
+                           inet_ntoa(sock->peeraddr.sin_addr));
                     sock->type = SOCKET_CLOSE;
                 }                                                          
             }
@@ -369,8 +339,6 @@ void HandleTCPRead(SLPDSocketList* list, SLPDSocket* sock)
             if(errno != EWOULDBLOCK)
             {
                 /* error in recv() */
-                SLPDebug("Closed connection to %s.  Error on recv() %i\n", 
-                         inet_ntoa(sock->peeraddr.sin_addr),errno);
                 sock->type = SOCKET_CLOSE;
             }
         }
@@ -416,9 +384,6 @@ void HandleTCPWrite(SLPDSocketList* list, SLPDSocket* sock)
             if(errno != EWOULDBLOCK)
             {
                 /* Error occured or connection was closed */
-                SLPDebug("Closed connection to %s.  Error on send()\n", 
-                         inet_ntoa(sock->peeraddr.sin_addr)); 
-    
                 sock->type = SOCKET_CLOSE;
             }   
         }    
@@ -435,8 +400,9 @@ int main(int argc, char* argv[])
     fd_set          writefds;
     int             highfd      = 0;
     int             fdcount     = 0;
-    SLPDSocket*      slpsocket   = 0;
-    SLPDSocketList   socketlist  = {0,0};
+    SLPDSocket*     sock        = 0;
+    SLPDSocket*     del         = 0;
+    SLPDSocketList  socketlist  = {0,0};
     
     /*------------------------------*/
     /* Make sure we are root        */
@@ -457,24 +423,13 @@ int main(int argc, char* argv[])
     /*------------------------------*/
     /* Initialize the log file      */
     /*------------------------------*/
-    #if(defined DEBUG)
-    SLPLogSetLevel(4);
-    if(SLPLogFileOpen(G_SlpdCommandLine.logfile, 0) != 0)
-    #else
-    SLPLogSetLevel(3);
-    if(SLPLogFileOpen(G_SlpdCommandLine.logfile, 1) != 0)
-    #endif                                     
-    {
-        SLPError("SLPD: Could not open logfile: %s. Logging disabled.\n",
-                 G_SlpdCommandLine.logfile);
-        SLPLogSetLevel(1);
-    }
+    SLPLogFileOpen(G_SlpdCommandLine.logfile, 0);
+
     SLPLog("****************************************\n");
     SLPLog("*** SLPD daemon started              ***\n");
     SLPLog("****************************************\n");
     SLPLog("command line = %s\n",argv[0]);
-    SLPDebug("RUNNING in DEBUG mode\n");         
-       
+    
     /*--------------------------------------------------*/
     /* Initialize for the first time                    */
     /*--------------------------------------------------*/
@@ -528,43 +483,43 @@ int main(int argc, char* argv[])
         highfd = 0;
         FD_ZERO(&readfds);
         FD_ZERO(&writefds);
-        slpsocket = socketlist.head;
-        while(slpsocket)
+        sock = socketlist.head;
+        while(sock)
         {
-            if(slpsocket->fd > highfd)
+            if(sock->fd > highfd)
             {
-                highfd = slpsocket->fd;
+                highfd = sock->fd;
             }
 
-            switch(slpsocket->type)
+            switch(sock->type)
             {
             case UDP:
             case UDP_MCAST:
-                FD_SET(slpsocket->fd,&readfds);
+                FD_SET(sock->fd,&readfds);
                 break;
                 
             case TCP_LISTEN:
                 if(socketlist.count < SLPD_MAX_SOCKETS)
                 {
-                    FD_SET(slpsocket->fd,&readfds);
+                    FD_SET(sock->fd,&readfds);
                 }
                 break;
     
             case TCP_READ:
             case TCP_FIRST_READ:
-                FD_SET(slpsocket->fd,&readfds);
+                FD_SET(sock->fd,&readfds);
                 break;
   
             case TCP_WRITE:
             case TCP_FIRST_WRITE:
-                FD_SET(slpsocket->fd,&writefds);
+                FD_SET(sock->fd,&writefds);
                 break;
 
             default:
                 break;
             }
     
-            slpsocket = slpsocket->next;
+            sock = (SLPDSocket*)sock->listitem.next;
         }
         
         /*-----------------------------------------------*/
@@ -585,26 +540,26 @@ int main(int argc, char* argv[])
         fdcount = select(highfd+1,&readfds,&writefds,0,0);
         if(fdcount > 0)
         {
-            slpsocket = socketlist.head;
-            while(slpsocket && fdcount)
+            sock = socketlist.head;
+            while(sock && fdcount)
             {
-                if(FD_ISSET(slpsocket->fd,&readfds))
+                if(FD_ISSET(sock->fd,&readfds))
                 {
-                    switch(slpsocket->type)
+                    switch(sock->type)
                     {
                     
                     case TCP_LISTEN:
-                        HandleTCPListen(&socketlist,slpsocket);
+                        HandleTCPListen(&socketlist,sock);
                         break;
 
                     case UDP:
                     case UDP_MCAST:
-                        HandleUDPRead(&socketlist,slpsocket);
+                        HandleUDPRead(&socketlist,sock);
                         break;                      
                 
                     case TCP_READ:
                     case TCP_FIRST_READ:
-                        HandleTCPRead(&socketlist,slpsocket);
+                        HandleTCPRead(&socketlist,sock);
                         break;
 
                     default:
@@ -614,21 +569,24 @@ int main(int argc, char* argv[])
                     fdcount --;
                 } 
 
-                if(FD_ISSET(slpsocket->fd,&writefds))
+                if(FD_ISSET(sock->fd,&writefds))
                 {
-                    HandleTCPWrite(&socketlist,slpsocket);
+                    HandleTCPWrite(&socketlist,sock);
                     fdcount --;
                 }   
 
                 /* TODO: Close aged sockets */
 
-                if(slpsocket->type == SOCKET_CLOSE)
+                
+                if(sock->type == SOCKET_CLOSE)
                 {
-                    slpsocket = SLPDSocketListDestroy(&socketlist,slpsocket);
+                    del = sock;
+                    sock = (SLPDSocket*)sock->listitem.next;
+                    SLPDSocketListRemove(&socketlist,del);
                 }
                 else
                 {
-                    slpsocket = slpsocket->next;
+                    sock = (SLPDSocket*)sock->listitem.next;
                 }
             }
         }

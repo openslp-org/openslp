@@ -53,46 +53,6 @@ void* memdup(const void* src, int srclen)
 }
 
 /*-------------------------------------------------------------------------*/
-SLPDDatabaseEntry* LinkEntry(SLPDDatabaseEntry* entry)
-/*-------------------------------------------------------------------------*/
-
-{
-    entry->previous = 0;
-    entry->next = G_DatabaseHead;
-    if(G_DatabaseHead)
-    {
-        G_DatabaseHead->previous = entry;
-    }
-    
-    G_DatabaseHead = entry;
-
-    return entry;
-}
-
-        
-/*-------------------------------------------------------------------------*/
-SLPDDatabaseEntry* UnlinkEntry(SLPDDatabaseEntry* entry)
-/*-------------------------------------------------------------------------*/
-{
-    if(entry->previous)
-    {
-        entry->previous->next = entry->next;
-    }
-
-    if(entry->next)
-    {
-        entry->next->previous = entry->previous;
-    }
-
-    if(entry == G_DatabaseHead)
-    {
-        G_DatabaseHead = entry->next;
-    }
-
-    return entry;
-}
-
-/*-------------------------------------------------------------------------*/
 void FreeEntry(SLPDDatabaseEntry* entry)
 /*-------------------------------------------------------------------------*/
 {
@@ -124,14 +84,13 @@ void RemoveEntry(int urllen,
                                       scopelistlen,
                                       scopelist) > 0)
             {
-                UnlinkEntry(entry);                
-                FreeEntry(entry);
-
+                ListUnlink((PListItem*)&G_DatabaseHead,(PListItem)entry);                
+                FreeEntry(entry);                                 
                 break;
             } 
         }             
         
-        entry = entry->next;
+        entry = (SLPDDatabaseEntry*) entry->listitem.next;
     }
 }
 
@@ -148,10 +107,10 @@ void RemoveAllEntries()
     while(entry)
     {
         del = entry;
-        entry = entry->next;
-        UnlinkEntry(del); 
+        entry = (SLPDDatabaseEntry*)entry->listitem.next;
+        ListUnlink((PListItem*)&G_DatabaseHead,(PListItem)del);               
+        FreeEntry(del);
     }
-    G_DatabaseHead = entry;
 }
 
 
@@ -173,11 +132,12 @@ void SLPDDatabaseAge(int seconds)
         if(entry->lifetime <= 0)
         {
             del = entry;
-            entry=entry->next;
-            UnlinkEntry(del); 
+            entry = (SLPDDatabaseEntry*)entry->listitem.next;
+            ListUnlink((PListItem*)&G_DatabaseHead,(PListItem)del);               
+            FreeEntry(del);
             continue;
         }
-        entry=entry->next;
+        entry = (SLPDDatabaseEntry*)entry->listitem.next;
     }
 }
 
@@ -218,17 +178,17 @@ int SLPDDatabaseReg(SLPSrvReg* srvreg,
     }
     memset(entry,0,sizeof(SLPDDatabaseEntry));
     
-    entry->pid              = pid;
-    entry->uid              = uid;
-    entry->scopelistlen     = srvreg->scopelistlen;
-    entry->scopelist        = (char*)memdup(srvreg->scopelist,srvreg->scopelistlen);
-    entry->lifetime  = srvreg->urlentry.lifetime;
-    entry->urllen    = srvreg->urlentry.urllen;
-    entry->url       = (char*)memdup(srvreg->urlentry.url, srvreg->urlentry.urllen);
-    entry->srvtypelen  = srvreg->srvtypelen;
-    entry->srvtype     = (char*)memdup(srvreg->srvtype,srvreg->srvtypelen);
-    entry->attrlistlen = srvreg->attrlistlen;
-    entry->attrlist    = (char*)memdup(srvreg->attrlist,srvreg->attrlistlen);
+    entry->pid          = pid;
+    entry->uid          = uid;
+    entry->scopelistlen = srvreg->scopelistlen;
+    entry->scopelist    = (char*)memdup(srvreg->scopelist,srvreg->scopelistlen);
+    entry->lifetime     = srvreg->urlentry.lifetime;
+    entry->urllen       = srvreg->urlentry.urllen;
+    entry->url          = (char*)memdup(srvreg->urlentry.url, srvreg->urlentry.urllen);
+    entry->srvtypelen   = srvreg->srvtypelen;
+    entry->srvtype      = (char*)memdup(srvreg->srvtype,srvreg->srvtypelen);
+    entry->attrlistlen  = srvreg->attrlistlen;
+    entry->attrlist     = (char*)memdup(srvreg->attrlist,srvreg->attrlistlen);
     
     
     if(entry->scopelist == 0 ||
@@ -240,7 +200,7 @@ int SLPDDatabaseReg(SLPSrvReg* srvreg,
         return -1;
     }
     
-    LinkEntry(entry);
+    ListLink((PListItem*)&G_DatabaseHead,(PListItem)entry);
     
     return result;
 }
@@ -317,7 +277,7 @@ int SLPDDatabaseFindSrv(SLPSrvRqst* srvrqst,
 
         }
 
-        entry = entry->next;
+        entry = (SLPDDatabaseEntry*)entry->listitem.next;
     }
         
     return found;
@@ -394,7 +354,7 @@ int SLPDDatabaseFindAttr(SLPAttrRqst* attrrqst,
             }       
         }
 
-        entry = entry->next;
+        entry = (SLPDDatabaseEntry*)entry->listitem.next;
 
     }
     return found;
@@ -432,7 +392,7 @@ int SLPDDatabaseInit(const char* regfile)
             {
                 entry->pid              = mypid;
                 entry->uid              = myuid;
-                LinkEntry(entry);
+                ListLink((PListItem*)&G_DatabaseHead,(PListItem)entry);
             }
 
             fclose(fd);

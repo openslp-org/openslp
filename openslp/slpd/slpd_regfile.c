@@ -122,7 +122,7 @@ SLPDDatabaseEntry* SLPDRegFileReadEntry(FILE* fd, SLPDDatabaseEntry** entry)
     *entry =  (SLPDDatabaseEntry*)malloc(sizeof(SLPDDatabaseEntry));
     if(entry == 0)
     {
-        SLPError("Out of memory allocating DatabaseEntry\n");
+        SLPFatal("Out of memory!\n");
         return 0;
     }
     memset(*entry,0,sizeof(SLPDDatabaseEntry));
@@ -138,7 +138,7 @@ SLPDDatabaseEntry* SLPDRegFileReadEntry(FILE* fd, SLPDDatabaseEntry** entry)
         (*entry)->url = strdup(TrimWhitespace(slider1));
         if((*entry)->url == 0)
         {
-            SLPError("Out of memory reading srvurl from regfile line ->%s",line);
+            SLPLog("Out of memory reading srvurl from regfile line ->%s",line);
             goto ERROR;
         }
         (*entry)->urllen = strlen((*entry)->url);
@@ -149,11 +149,11 @@ SLPDDatabaseEntry* SLPDRegFileReadEntry(FILE* fd, SLPDDatabaseEntry** entry)
             (*entry)->srvtype = strstr(slider1,"://");
             if((*entry)->srvtype == 0)
             {
-                SLPError("Looks like a bad url on regfile line ->%s",line);
+                SLPLog("Looks like a bad url on regfile line ->%s",line);
                 goto ERROR;   
             }
             *(*entry)->srvtype = 0;
-            (*entry)->srvtype=strdup(TrimWhitespace(slider1 + 8));
+            (*entry)->srvtype=strdup(TrimWhitespace(slider1));
             (*entry)->srvtypelen = strlen((*entry)->srvtype);
         }
         slider1 = slider2 + 1;
@@ -166,14 +166,14 @@ SLPDDatabaseEntry* SLPDRegFileReadEntry(FILE* fd, SLPDDatabaseEntry** entry)
             (*entry)->langtag = strdup(TrimWhitespace(slider1)); 
             if((*entry)->langtag == 0)
             {
-                SLPError("Out of memory reading langtag from regfile line ->%s",line);
+                SLPLog("Out of memory reading langtag from regfile line ->%s",line);
                 goto ERROR;
             }            (*entry)->langtaglen = strlen((*entry)->langtag);     
             slider1 = slider2 + 1;                                  
         }
         else
         {
-            SLPError("Expected language tag near regfile line ->%s\n",line);
+            SLPLog("Expected language tag near regfile line ->%s\n",line);
             goto ERROR;
         }
              
@@ -192,7 +192,7 @@ SLPDDatabaseEntry* SLPDRegFileReadEntry(FILE* fd, SLPDDatabaseEntry** entry)
         }
         if((*entry)->lifetime < 1 || (*entry)->lifetime > 0xffff)
         {
-            SLPError("Invalid lifetime near regfile line ->%s\n",line);
+            SLPLog("Invalid lifetime near regfile line ->%s\n",line);
             goto ERROR;
         }
         
@@ -202,13 +202,13 @@ SLPDDatabaseEntry* SLPDRegFileReadEntry(FILE* fd, SLPDDatabaseEntry** entry)
             (*entry)->srvtype = strdup(TrimWhitespace(slider1));
             if((*entry)->srvtype == 0)
             {
-                SLPError("Out of memory reading srvtype from regfile line ->%s",line);
+                SLPLog("Out of memory reading srvtype from regfile line ->%s",line);
                 goto ERROR;
             }
             (*entry)->srvtypelen = strlen((*entry)->srvtype);
             if((*entry)->srvtypelen == 0)
             {
-                SLPError("Expected to derive service-type near regfile line -> %s\n",line);
+                SLPLog("Expected to derive service-type near regfile line -> %s\n",line);
                 goto ERROR;
             }
         }   
@@ -216,7 +216,7 @@ SLPDDatabaseEntry* SLPDRegFileReadEntry(FILE* fd, SLPDDatabaseEntry** entry)
     }
     else
     {
-        SLPError("Expected to find srv-url near regfile line -> %s\n",line);
+        SLPLog("Expected to find srv-url near regfile line -> %s\n",line);
         goto ERROR;
     }
     
@@ -249,14 +249,14 @@ SLPDDatabaseEntry* SLPDRegFileReadEntry(FILE* fd, SLPDDatabaseEntry** entry)
                     /* just in case some idiot puts multiple scopes lines */
                     if((*entry)->scopelist)
                     {
-                        SLPError("scopes already defined previous to regfile line ->%s",line);
+                        SLPLog("scopes already defined previous to regfile line ->%s",line);
                         goto ERROR;
                     }
 
                     (*entry)->scopelist=strdup(TrimWhitespace(slider2));
                     if((*entry)->scopelist == 0)
                     {
-                        SLPError("Out of memory adding scopes from regfile line ->%s",line);
+                        SLPLog("Out of memory adding scopes from regfile line ->%s",line);
                         goto ERROR;
                     }
                     (*entry)->scopelistlen = strlen((*entry)->scopelist);
@@ -282,7 +282,7 @@ SLPDDatabaseEntry* SLPDRegFileReadEntry(FILE* fd, SLPDDatabaseEntry** entry)
         (*entry)->scopelist=strdup("DEFAULT");
         if((*entry)->scopelist == 0)
         {
-            SLPError("Out of memory adding DEFAULT scope\n");
+            SLPLog("Out of memory adding DEFAULT scope\n");
             goto ERROR;
         }
         (*entry)->scopelistlen = 7;
@@ -301,6 +301,6 @@ SLPDDatabaseEntry* SLPDRegFileReadEntry(FILE* fd, SLPDDatabaseEntry** entry)
         free(*entry);
         *entry = 0;
     }
-    
+
     return 0;
 }

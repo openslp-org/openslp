@@ -18,7 +18,7 @@ The official definition of Service Type strings can be found in <a href="../../r
 working with "well known" (IANA) service types, you should read it.&nbsp;
 If you are developing applications for "proprietary" services then you
 will probably be satisfied with the following explaination:
-<blockquote><b>Service-Type = &lt;abstract-type.naming-authority>":"&lt;concrete-type></b></blockquote>
+<blockquote><b>Service-Type = "service:"&lt;abstract-type.naming-authority>":"&lt;concrete-type></b></blockquote>
 The abstract-type is simple (hopefully short) descriptive string that describes
 the type of service.&nbsp; The naming-authority is the name (hopefully
 unique) name of the organization that named the service.&nbsp; The naming-authority
@@ -31,9 +31,9 @@ by IANA).
 <h4>
 Service Type Examples</h4>
 "weather.nasa:wtp"&nbsp; - A (ficticious) weather service type owned by
-NASA that uses Weather Transfer protocol
+NASA that uses WTP protocol
 <br>"weather.nasa:swtp" - A (ficticious) wether service type owned by NASA
-tha uses Simple Weather Transfer protocol.
+tha uses SWTP protocol.
 <br>"chat.superchat" - A chat service type owned by SuperChat
 <br>"printer.samba" - A samba printer service type
 <br>"ftp" - An IANA ftp service type
@@ -46,8 +46,8 @@ understand how OpenSLP compares services.&nbsp; Suppose that three services
 were registered with <tt><a href="SLPReg.html">SLPReg()</a></tt> using
 a <tt>srvtype</tt> of "printer:lpr", "printer" and "printer.acme".&nbsp;
 If a client program calls <tt><a href="SLPFindSrvs.html">SLPFindSrvs()</a></tt>
-with a <tt>srvtype</tt> of "printer" the urls for both "printer:lpr" and
-"printer" are returned ("printer.acme" is not).&nbsp; However, if <tt><a href="SLPFindSrvs.html">SLPFindSrvs()</a></tt>
+with a <tt>srvtype</tt> of "service:printer" the urls for both "printer:lpr"
+and "printer" are returned ("printer.acme" is not).&nbsp; However, if <tt><a href="SLPFindSrvs.html">SLPFindSrvs()</a></tt>
 is called with <tt>srvtype </tt>of "printer:lpr" or "printer.acme" then
 the urls for "printer:lpr" or "printer.acme" would be returned.&nbsp; In
 otherwords, if a concrete type is used, only services with same abstract

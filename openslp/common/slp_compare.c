@@ -72,8 +72,19 @@ int SLPSrvTypeCompare(int lsrvtypelen,
 /* Returns -    zero if srvtypes are equal. Nonzero if they are not        */
 /*=========================================================================*/
 {
-    /* TODO: fold whitespace and handle escapes*/ 
     char* colon;
+
+    /* Skip "service:" */
+    if(strncasecmp(lsrvtype,"service:",lsrvtypelen > 8 ? 8 : lsrvtypelen) == 0)
+    {
+        lsrvtypelen = lsrvtypelen - 8;
+        lsrvtype = lsrvtype + 8;
+    }
+    if(strncasecmp(rsrvtype,"service:",rsrvtypelen > 8 ? 8 : rsrvtypelen) == 0)
+    {
+        rsrvtypelen = rsrvtypelen - 8;
+        rsrvtype = rsrvtype + 8;
+    }
 
     if(memchr(lsrvtype,':',lsrvtypelen))
     {

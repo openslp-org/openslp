@@ -42,7 +42,6 @@
 
 /*=========================================================================*/
 static FILE*   G_LogFile    = 0;
-static int     G_LogLevel   = 2;
 /*=========================================================================*/
 
 
@@ -99,24 +98,21 @@ int SLPLogFileClose()
 
 
 /*=========================================================================*/
-void SLPLogSetLevel(int level)
+void SLPLog(const char* msg, ...)
+/* Logs a message                                                          */
 /*=========================================================================*/
 {
-    G_LogLevel = level;
-}
-                  
+    va_list ap;
 
-/*=========================================================================*/
-void SLPLogWrite(const char* prefix, const char* msg, va_list ap)
-/*=========================================================================*/
-{
     if(G_LogFile)
     {
-        fprintf(G_LogFile,"%s: ",prefix);
+        va_start(ap,msg);
         vfprintf(G_LogFile,msg,ap); 
+        va_end(ap);
         fflush(G_LogFile);
     }
 }
+
 
 /*=========================================================================*/
 void SLPFatal(const char* msg, ...)
@@ -125,17 +121,17 @@ void SLPFatal(const char* msg, ...)
 {
     va_list ap;
     
-    if(G_LogLevel < 1) return;
-
     if(G_LogFile)
     {
+        fprintf(G_LogFile,"A FATAL Error has occured:\n");
         va_start(ap,msg);
-        SLPLogWrite("FATAL",msg,ap);
+        vfprintf(G_LogFile,msg,ap); 
         va_end(ap);
+        fflush(G_LogFile);
     }
     else
     {
-        printf("FATAL: ");
+        printf("A FATAL Error has occured:\n");
         va_start(ap,msg);
         vprintf(msg,ap);
         va_end(ap);
@@ -143,48 +139,3 @@ void SLPFatal(const char* msg, ...)
     
     exit(1);
 }
-
-
-/*=========================================================================*/
-void SLPError(const char* msg, ...)
-/* Logs an error message                                                   */
-/*=========================================================================*/
-{
-    va_list ap;
-    
-    if(G_LogLevel < 2) return;
-    
-    va_start(ap,msg);
-    SLPLogWrite("ERROR",msg,ap);
-    va_end(ap);
-}
-
-
-/*=========================================================================*/
-void SLPLog(const char* msg, ...)
-/* Logs a message                                                          */
-/*=========================================================================*/
-{
-    va_list ap;
-    
-    if(G_LogLevel < 3) return;
-
-    va_start(ap,msg);
-    SLPLogWrite("MSG",msg,ap);
-    va_end(ap);     
-}
-
-/*=========================================================================*/
-void SLPDebug(const char* msg, ...)
-/* Logs a debug message                                                    */
-/*=========================================================================*/
-{
-    va_list ap;
-    
-    if(G_LogLevel < 4) return;
-
-    va_start(ap,msg);
-    SLPLogWrite("DEBUG",msg,ap);
-    va_end(ap);     
-}
-

@@ -57,6 +57,7 @@
 #include <slp_message.h>
 #include <slp_logfile.h>
 #include <slp_property.h>
+#include <slp_linkedlist.h>
 
 
 #if(!defined MAX_PATH)
@@ -174,9 +175,7 @@ typedef struct _SLPDDatabaseEntry
 /* Structure representing an entry in slpd database (linked list)          */
 /*=========================================================================*/
 { 
-    struct _SLPDDatabaseEntry*   previous;
-    struct _SLPDDatabaseEntry*   next;
-    
+    ListItem            listitem;
     int                 pid;        /* the pid that registered the entry */
     int                 uid;        /* the uid that registered the entry */
     char*               langtag;
@@ -337,11 +336,10 @@ typedef struct _SLPDSocket
 /* Structure representing a socket                                         */
 /*=========================================================================*/
 {
-    struct _SLPDSocket*  previous;
-    struct _SLPDSocket*  next;
+    ListItem            listitem;    
     int                 fd;
     time_t              timestamp;      
-    int                 peeraddrlen;
+    socklen_t           peeraddrlen;
     struct sockaddr_in  peeraddr;
     SLPSocketType       type;
     SLPBuffer           recvbuf;
@@ -358,33 +356,22 @@ typedef struct _SLPDSocketList
     SLPDSocket*  head;
 }SLPDSocketList;
 
-
 /*=========================================================================*/
-SLPDSocket* SLPDSocketListLink(SLPDSocketList* list, SLPDSocket* sock);
-/* Links the specified socket to the specified list                        */
-/*                                                                         */
-/* list     - pointer to the SLPSocketList to link the socket to.          */
-/*                                                                         */
-/* sock     - pointer to the SLPSocket to link to the list                 */
-/*                                                                         */
-/* Returns  - pointer to the linked socket                                 */
-/*=========================================================================*/
-
-
-/*=========================================================================*/
-SLPDSocket* SLPDSocketListUnlink(SLPDSocketList* list, SLPDSocket* sock);
-/* Unlinks the specified socket from the specified list                    */
+SLPDSocket* SLPDSocketListAdd(SLPDSocketList* list, int fd, int type);  
+/* Adds a free()s the specified socket from the specified list             */
 /*                                                                         */
 /* list     - pointer to the SLPSocketList to unlink the socket from.      */
 /*                                                                         */
-/* sock     - pointer to the SLPSocket to unlink to the list               */
+/* fd       - socket file descriptor                                       */
 /*                                                                         */
-/* Returns  - pointer to the unlinked socket                               */
+/* type     - socket type                                                  */
+/*                                                                         */
+/* Returns  - pointer to the added socket or NULL on error                 */
 /*=========================================================================*/
 
 
 /*=========================================================================*/
-SLPDSocket* SLPDSocketListDestroy(SLPDSocketList* list, SLPDSocket* sock);
+void SLPDSocketListRemove(SLPDSocketList* list, SLPDSocket* sock);
 /* Unlinks and free()s the specified socket from the specified list        */
 /*                                                                         */
 /* list     - pointer to the SLPSocketList to unlink the socket from.      */
@@ -396,13 +383,15 @@ SLPDSocket* SLPDSocketListDestroy(SLPDSocketList* list, SLPDSocket* sock);
 
 
 /*=========================================================================*/
-void SLPDSocketListDestroyAll(SLPDSocketList* list);
+void SLPDSocketListRemoveAll(SLPDSocketList* list);
 /* Destroys all of the sockets from the specified list                     */
 /*                                                                         */
 /* list     - pointer to the SLPSocketList to destroy                      */
 /*                                                                         */
 /* Returns  - none                                                         */
 /*=========================================================================*/
+
+
 
 
 /*=========================================================================*/

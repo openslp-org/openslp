@@ -79,19 +79,7 @@ int UseAllInterfaces()
 
                  result = 0;
              }
-             else
-             {
-                 SLPError("slpd does not support your network\n");
-             }
          }
-         else
-         {
-             SLPError("gethostbyname() failed \n");
-         }                                              
-    }
-    else
-    {
-        SLPError("Could not get this machines hostname\n");
     }
     
     G_SlpdProperty.interfacesLen = strlen(G_SlpdProperty.interfaces);

@@ -45,7 +45,7 @@ SLPProperty* Find(const char* pcName)
             break;
         }
 
-        curProperty = curProperty->next;
+        curProperty = (SLPProperty*)curProperty->listitem.next;
     }
 
     return curProperty;
@@ -95,15 +95,6 @@ int SLPPropertySet(const char *pcName,
             return -1;
         }
         
-        newProperty->previous = 0;
-        newProperty->next = G_SLPPropertyListHead;
-        if(G_SLPPropertyListHead)
-        {
-            G_SLPPropertyListHead->previous = newProperty;
-        }
-        
-        G_SLPPropertyListHead = newProperty;
-        
     }
     else
     {    
@@ -115,21 +106,6 @@ int SLPPropertySet(const char *pcName,
             errno = ENOMEM;
             return -1;
         }
-        
-        if(newProperty->previous)
-        {
-            newProperty->previous->next = newProperty;
-        }
-        else
-        {
-            G_SLPPropertyListHead = newProperty;
-        }
-
-        if(newProperty->next)
-        {
-            newProperty->next->previous = newProperty;
-        }
-        
     }
     
     /* set the pointers in the SLPProperty structure to point to areas of    */
@@ -140,6 +116,10 @@ int SLPPropertySet(const char *pcName,
     /* copy the passed in name and value */
     memcpy(newProperty->propertyName,pcName,pcNameSize);
     memcpy(newProperty->propertyValue,pcValue,pcValueSize);
+
+    /* Link the new property into the list */
+    ListLink((PListItem*)&G_SLPPropertyListHead,
+             (PListItem)newProperty);
 
     return 0;
 }
