@@ -3,7 +3,7 @@
 # 
 SONAME		= libslp
 MAJORVER	= 0
-MINORVER	= 6.4
+MINORVER	= 6.5
 BASE_DIR   	= .
 LIBSLP_DIR   	= $(BASE_DIR)
 COMMON_DIR 	= $(BASE_DIR)/../common
