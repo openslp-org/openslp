@@ -16,6 +16,21 @@
 
 #include <slp_buffer.h> 
 
+
+/*=========================================================================*/
+void* memdup(const void* src, int srclen)
+/*=========================================================================*/
+{
+    char* result;
+    result = (char*)malloc(srclen);
+    if(result)
+    {
+        memcpy(result,src,srclen);
+    }
+
+    return result;
+}
+
 /*=========================================================================*/
 SLPBuffer SLPBufferAlloc(int size)                                         
 /* Must be called to initially allocate a SLPBuffer                        */

@@ -82,7 +82,7 @@ SLPError ProcessAttrRqst(PSLPHandleInfo handle)
         else
         {
             sock = SLPNetworkConnectToMulticast(&peeraddr,
-                                                atoi(SLPGetProperty("net.slp.ttl")));
+                                                atoi(SLPGetProperty("net.slp.multicastTTL")));
         }
         
         if(sock < 0)
@@ -230,8 +230,8 @@ SLPError ProcessAttrRqst(PSLPHandleInfo handle)
         buf->curpos = buf->start;
         if(SLPNetworkSendMessage(sock,
                                  buf,
-                                 &timeout,
-                                 &peeraddr) != 0)
+                                 &peeraddr,
+                                 &timeout) != 0)
         {
             /* we could not send the message for some reason */
             /* we're done */
@@ -245,8 +245,8 @@ SLPError ProcessAttrRqst(PSLPHandleInfo handle)
             /* Recv the SrvAck */
             if(SLPNetworkRecvMessage(sock,
                                      buf,
-                                     &timeout,
-                                     &peeraddr) != 0)
+                                     &peeraddr,
+                                     &timeout) != 0)
             {
                 /* An error occured while receiving the message */
                 /* probably a just time out error. Retry send.  */

@@ -592,6 +592,13 @@ int ParseAttrRply(SLPBuffer buffer, SLPAttrRply* attrrply)
     return 0;
 }
 
+/*-------------------------------------------------------------------------*/
+int ParseDAAdvert(SLPBuffer buffer, SLPDAAdvert* daadvert)
+/*-------------------------------------------------------------------------*/
+{
+    return SLP_ERROR_PARSE_ERROR;
+}
+
 
 /*-------------------------------------------------------------------------*/
 void SLPMessageFreeInternals(SLPMessage message)
@@ -642,11 +649,12 @@ void SLPMessageFreeInternals(SLPMessage message)
     case SLP_FUNCT_ATTRRPLY:
         break;
         
-    /*
+    
     case SLP_FUNCT_DAADVERT:
-        result = ParseDAAdvert(start,end,&xlator->body.daadvert);
+        /* do I need to do anything here */
         break;
         
+    /*
     case SLP_FUNCT_SRVTYPERQST:
         result = ParseSrvTypeRqst(start,end,&xlator->body.srvtyperqst);
         break;
@@ -757,25 +765,26 @@ int SLPMessageParseBuffer(SLPBuffer buffer, SLPMessage message)
             result = ParseAttrRply(buffer,&(message->body.attrrply));
             break;
 
-/*    
-        case SLP_FUNCT_DAADVERT:
-            result = ParseDAAdvert(start,end,&xlator->body.daadvert);
-            break;
     
+        case SLP_FUNCT_DAADVERT:
+            result = ParseDAAdvert(buffer,&(message->body.daadvert));
+            break;
+/*    
+
         case SLP_FUNCT_SRVTYPERQST:
-            result = ParseSrvTypeRqst(start,end,&xlator->body.srvtyperqst);
+            result = ParseSrvTypeRqst(buffer,&(message->body.srvtyperqst));
             break;
     
         case SLP_FUNCT_SRVTYPERPLY:
-            result = ParseSrvTypeRply(start,end,&xlator->body.srvtyperply);
+            result = ParseSrvTypeRply(buffer,&(message->body.srvtyperply));
             break;
     
         case SLP_FUNCT_SAADVERT:
-            result = ParseSAAdvert(start,end,&xlator->body.saadvert);
+            result = ParseSAAdvert(buffer,&(message->body.saadvert));
             break;
 */
         default:
-            result = SLP_ERROR_PARSE_ERROR;
+            result = SLP_ERROR_MESSAGE_NOT_SUPPORTED;
         }
     }   
 

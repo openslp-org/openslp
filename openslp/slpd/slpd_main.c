@@ -323,8 +323,10 @@ void HandleStreamRead(SLPDSocketList* list, SLPDSocket* sock)
                 return;
             }
         }        
-
+    }
         
+    if(sock->state == STREAM_READ)
+    {
         /*------------------------------*/
         /* recv the rest of the message */
         /*------------------------------*/
@@ -332,7 +334,7 @@ void HandleStreamRead(SLPDSocketList* list, SLPDSocket* sock)
                          sock->recvbuf->curpos,
                          sock->recvbuf->end - sock->recvbuf->curpos,
                          0);              
-
+    
         if(bytesread > 0)
         {
             /*------------------------------*/

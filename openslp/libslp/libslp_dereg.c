@@ -161,14 +161,14 @@ SLPError ProcessSrvDeReg(PSLPHandleInfo handle)
     buf->curpos = buf->start;
     if(SLPNetworkSendMessage(slpdsock,
                              buf,
-                             &timeout,
-                             &slpdaddr) == 0)
+                             &slpdaddr,
+                             &timeout) == 0)
     {
         /* Recv the SrvAck */
         if(SLPNetworkRecvMessage(slpdsock,
                                  buf,
-                                 &timeout,
-                                 &peeraddr) == 0)
+                                 &peeraddr,
+                                 &timeout) == 0)
         {
             /* parse the SrvAck message */
             error = SLPMessageParseBuffer(buf,msg);

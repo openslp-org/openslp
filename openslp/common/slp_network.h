@@ -52,6 +52,19 @@
 #include <slp_message.h>
 
 /*=========================================================================*/ 
+int SLPNetworkConnectStream(struct sockaddr_in* peeraddr,
+                            struct timeval* timeout);
+/* Connect a TCP stream to the specified peer                              */
+/*                                                                         */
+/* peeraddr (IN) pointer to the peer to connect to                         */
+/*                                                                         */
+/* timeout  (IN) pointer to the maximum time to spend connecting           */
+/*                                                                         */
+/* returns: a connected socket or -1                                       */
+/*=========================================================================*/ 
+
+
+/*=========================================================================*/ 
 int SLPNetworkConnectToMulticast(struct sockaddr_in* peeraddr, int ttl);
 /* Creates a socket and provides a peeraddr to send to                     */
 /*                                                                         */
@@ -78,8 +91,8 @@ int SLPNetworkConnectToBroadcast(struct sockaddr_in* peeraddr);
 /*=========================================================================*/ 
 int SLPNetworkSendMessage(int sockfd,
                           SLPBuffer buf,
-                          struct timeval* timeout,
-                          struct sockaddr_in* peeraddr);
+                          struct sockaddr_in* peeraddr,
+                          struct timeval* timeout);
 /* Sends a message                                                         */
 /*                                                                         */
 /* Returns  -  zero on success non-zero on failure                         */
@@ -92,8 +105,8 @@ int SLPNetworkSendMessage(int sockfd,
 /*=========================================================================*/ 
 int SLPNetworkRecvMessage(int sockfd,
                           SLPBuffer buf,
-                          struct timeval* timeout,
-                          struct sockaddr_in* peeraddr);
+                          struct sockaddr_in* peeraddr,
+                          struct timeval* timeout);
 /* Receives a message                                                      */
 /*                                                                         */
 /* Returns  -    zero on success, non-zero on failure                      */

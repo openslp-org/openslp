@@ -42,20 +42,6 @@ SLPDDatabaseEntry*    G_DeletedEntries = 0;
 
 
 /*-------------------------------------------------------------------------*/
-void* memdup(const void* src, int srclen)
-/*-------------------------------------------------------------------------*/
-{
-    char* result;
-    result = (char*)malloc(srclen);
-    if(result)
-    {
-        memcpy(result,src,srclen);
-    }
-
-    return result;
-}
-
-/*-------------------------------------------------------------------------*/
 void FreeEntry(SLPDDatabaseEntry* entry)
 /*-------------------------------------------------------------------------*/
 {

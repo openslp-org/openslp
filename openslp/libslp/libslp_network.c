@@ -35,52 +35,16 @@
 #include "slp.h"
 #include "libslp.h"
 
-/*-------------------------------------------------------------------------*/
-int LocateDAviaProperty(char** daaddresses)
-/*-------------------------------------------------------------------------*/
-{
-    const char* property = SLPGetProperty("net.slp.DAAddresses");
-    if(property && *property)
-    {
-        *daaddresses = strdup(property);
-        if(*daaddresses)
-        {
-            return 0;
-        }
-    }
-    
-    return -1;
-}
-
-
-/*-------------------------------------------------------------------------*/
-int LocateDAviaDHCP(char** daaddresses)
-/*-------------------------------------------------------------------------*/
-{
-    return -1;
-}             
-
-/*-------------------------------------------------------------------------*/
-int LocateDAviaSlpd(char** daaddresses)
-/* Returns  zero if daaddresses found. <0 if slpd is not running and >0 if */
-/*          slpd is running but no DAs were found.                         */
-/*-------------------------------------------------------------------------*/
-{
-    return -1;
-}
-
-/*-------------------------------------------------------------------------*/
-int LocateDAviaMulticast(char** daaddresses)
-/*-------------------------------------------------------------------------*/
-{
-    return -1;
-}
+/*=========================================================================*/ 
+SLPDAEntry* G_KnownDAListHead = 0;
+time_t G_LastMulticast = 0;
+/*=========================================================================*/ 
 
 
 /*=========================================================================*/ 
 int NetworkConnectToDA(const char* scopelist,
-                          int scopelistlen,
-                          struct sockaddr_in* peeraddr)
+                       int scopelistlen,
+                       struct sockaddr_in* peeraddr)
 /* Connects to slpd and provides a peeraddr to send to                     */
 /*                                                                         */
 /* scopelist        (IN) Scope that must be supported by DA. Pass in NULL  */
@@ -94,85 +58,73 @@ int NetworkConnectToDA(const char* scopelist,
 /* Returns          Connected socket or -1 if no DA connection can be made */
 /*=========================================================================*/
 {
-    struct hostent*     dahostent;
-    char*               begin;
-    char*               end;
-    int                 finished;
-    int                 lowat;
-    int                 result      = -1;
-    char*               daaddresses = 0;
+    struct timeval      timeout;
+    time_t              curtime;
+    int                 interval;
+    int                 result  = -1;
+    SLPDAEntry*         entry   = 0;
 
-    
-    /*-------------*/
-    /* Locate a DA */
-    /*-------------*/
-    if(LocateDAviaProperty(&daaddresses) < 0)
+    timeout.tv_sec = atoi(SLPGetProperty("net.slp.multicastMaximumWait"));
+    timeout.tv_usec = timeout.tv_sec % 1000;
+    timeout.tv_sec = timeout.tv_sec / 1000;
+    interval = atoi(SLPGetProperty("net.slp.DAActiveDiscoveryInterval"));
+
+    memset(peeraddr,0,sizeof(struct sockaddr_in));
+    peeraddr->sin_family = AF_INET;
+    peeraddr->sin_port = htons(SLP_RESERVED_PORT);
+
+    entry = G_KnownDAListHead;
+    while(entry)
     {
-        if(LocateDAviaDHCP(&daaddresses) < 0)
+        peeraddr->sin_addr = entry->daaddr;
+        result = SLPNetworkConnectStream(peeraddr,&timeout);
+        if(result >= 0)
         {
-            if(LocateDAviaSlpd(&daaddresses) < 0)
+            /* hurray we connected */
+            break; 
+        }
+        else
+        {
+            /* remove DAs that we can't connect to */
+            ListUnlink((PListItem*)&G_KnownDAListHead,(PListItem)entry);
+            SLPDAEntryFree(entry);
+        }
+    }
+
+    if(result < 0)
+    {
+        time(&curtime);
+        if(interval && curtime - G_LastMulticast > interval) 
+        {
+            G_LastMulticast = curtime;
+            if(SLPDiscoverDAs(&G_KnownDAListHead,
+                              scopelistlen,
+                              scopelist,
+                              0x00000003,
+                              SLPGetProperty("net.slp.DAAddresses"),
+                              &timeout))
             {
-                if(LocateDAviaMulticast(&daaddresses) < 0)
+                entry = G_KnownDAListHead;
+                while(entry)
                 {
-                    return -1;
+                    peeraddr->sin_addr = entry->daaddr;
+                    result = SLPNetworkConnectStream(peeraddr,&timeout);
+                    if(result >= 0)
+                    {
+                        /* hurray we connected */
+                        break; 
+                    }
+                    else
+                    {
+                        /* remove DAs that we can't connect to */
+                        ListUnlink((PListItem*)&G_KnownDAListHead,(PListItem)entry);
+                        SLPDAEntryFree(entry);
+                    }
                 }
             }
         }
     }
 
-    /*------------------------------------------------*/
-    /* perform connect to the first da in daaddresses */
-    /*------------------------------------------------*/
-    result = socket(AF_INET,SOCK_STREAM,0);
-    if(result >= 0)
-    {
-        begin = (char*)daaddresses;
-        end = begin;
-        finished = 0;
-        while( finished == 0 )
-        {
-            while(*end && *end != ',') end ++;
-            if(*end == 0) finished = 1;
-            while(*end <=0x2f) 
-            {
-                *end = 0;
-                end--;
-            }
-             
-            memset(&peeraddr,0,sizeof(struct sockaddr_in));
-            peeraddr->sin_family = AF_INET;
-            peeraddr->sin_port = htons(SLP_RESERVED_PORT);
-            dahostent = gethostbyname(begin);
-            if(dahostent)
-            {
-                peeraddr->sin_addr.s_addr = *(unsigned long*)(dahostent->h_addr_list[0]);
-            }
-            else
-            {
-                peeraddr->sin_addr.s_addr = inet_addr(begin);
-            }
-    
-            /* TODO: Make this connect non-blocking so that it will timeout */
-            if(connect(result,(struct sockaddr*)&peeraddr,sizeof(peeraddr)) == 0)
-            {
-                /* set the receive and send buffer low water mark to 18 bytes 
-                (the length of the smallest slpv2 message) */
-                lowat = 18;
-                setsockopt(result,SOL_SOCKET,SO_RCVLOWAT,&lowat,sizeof(lowat));
-                setsockopt(result,SOL_SOCKET,SO_SNDLOWAT,&lowat,sizeof(lowat));
-                goto FINISHED;
-            }
-        }
-
-        close(result);
-    }
-    
-    FINISHED:
-    if(daaddresses)
-    {
-        free(daaddresses);
-    }
-    
     return result;
 }
 

@@ -28,7 +28,8 @@ COMMON_SRC = $(COMMON_DIR)/slp_buffer.c  \
 	     $(COMMON_DIR)/slp_property.c \
              $(COMMON_DIR)/slp_linkedlist.c \
 	     $(COMMON_DIR)/slp_xid.c \
-	     $(COMMON_DIR)/slp_network.c 
+	     $(COMMON_DIR)/slp_network.c \
+	     $(COMMON_DIR)/slp_da.c
 	     
 
 TEST_SRC   = $(TEST_DIR)/LIBSLP_test.c

@@ -28,6 +28,7 @@
 #include <slp_property.h>
 #include <slp_xid.h>
 #include <slp_network.h>
+#include <slp_da.h>
 
 /*=========================================================================*/
 typedef enum _SLPCallType

@@ -108,6 +108,23 @@ void ProcessSASrvRqst(SLPDPeerInfo* peerinfo,
 /*-------------------------------------------------------------------------*/
 {
     int size = 0;
+    
+    if(G_SlpdProperty.isDA)
+    {
+        /*----------------------------------------------------------------*/
+        /* Do not send error codes or empty replies to multicast requests */
+        /*----------------------------------------------------------------*/
+        if(message->header.flags & SLP_FLAG_MCAST)
+        {
+            result->end = result->start;
+            return;
+        }   
+
+        return ProcessSrvRqstError(message, 
+                                   result, 
+                                   SLP_ERROR_MESSAGE_NOT_SUPPORTED);
+
+    }
    
     if(message->body.srvrqst.scopelistlen == 0 ||
        SLPStringListIntersect(message->body.srvrqst.scopelistlen,
@@ -169,13 +186,13 @@ void ProcessSASrvRqst(SLPDPeerInfo* peerinfo,
         ToUINT16(result->curpos, G_SlpdProperty.myUrlLen);
         result->curpos = result->curpos + 2;
         /* url */
-        memcpy(result->start,G_SlpdProperty.myUrl,G_SlpdProperty.myUrlLen);
+        memcpy(result->curpos,G_SlpdProperty.myUrl,G_SlpdProperty.myUrlLen);
         result->curpos = result->curpos + G_SlpdProperty.myUrlLen;
         /* scope list len */
         ToUINT16(result->curpos, G_SlpdProperty.useScopesLen);
         result->curpos = result->curpos + 2;
         /* scope list */
-        memcpy(result->start,G_SlpdProperty.useScopes,G_SlpdProperty.useScopesLen);
+        memcpy(result->curpos,G_SlpdProperty.useScopes,G_SlpdProperty.useScopesLen);
         result->curpos = result->curpos + G_SlpdProperty.useScopesLen;
         /* attr list len */
         /* ToUINT16(result->curpos,G_SlpdProperty.SAAttributesLen) */
@@ -195,12 +212,29 @@ void ProcessSASrvRqst(SLPDPeerInfo* peerinfo,
 
 /*-------------------------------------------------------------------------*/
 void ProcessDASrvRqst(SLPDPeerInfo* peerinfo,
-		      SLPMessage message,
-		      SLPBuffer result)
+                      SLPMessage message,
+                      SLPBuffer result)
 /*-------------------------------------------------------------------------*/
 {
     int size = 0;
    
+    if(G_SlpdProperty.isDA == 0)
+    {
+        /*----------------------------------------------------------------*/
+        /* Do not send error codes or empty replies to multicast requests */
+        /*----------------------------------------------------------------*/
+        if(message->header.flags & SLP_FLAG_MCAST)
+        {
+            result->end = result->start;
+            return;
+        }   
+
+        return ProcessSrvRqstError(message, 
+                                   result, 
+                                   SLP_ERROR_MESSAGE_NOT_SUPPORTED);
+
+    }
+
     if(message->body.srvrqst.scopelistlen == 0 ||
        SLPStringListIntersect(message->body.srvrqst.scopelistlen,
                               message->body.srvrqst.scopelist,
@@ -278,25 +312,26 @@ void ProcessDASrvRqst(SLPDPeerInfo* peerinfo,
         ToUINT16(result->curpos, G_SlpdProperty.myUrlLen);
         result->curpos = result->curpos + 2;
         /* url */
-        memcpy(result->start,G_SlpdProperty.myUrl,G_SlpdProperty.myUrlLen);
+        memcpy(result->curpos,G_SlpdProperty.myUrl,G_SlpdProperty.myUrlLen);
         result->curpos = result->curpos + G_SlpdProperty.myUrlLen;
         /* scope list len */
         ToUINT16(result->curpos, G_SlpdProperty.useScopesLen);
         result->curpos = result->curpos + 2;
         /* scope list */
-        memcpy(result->start,G_SlpdProperty.useScopes,G_SlpdProperty.useScopesLen);
+        memcpy(result->curpos,G_SlpdProperty.useScopes,G_SlpdProperty.useScopesLen);
         result->curpos = result->curpos + G_SlpdProperty.useScopesLen;
         /* attr list len */
-        /* ToUINT16(result->curpos,G_SlpdProperty.SAAttributesLen) */
         ToUINT16(result->curpos, 0);
         result->curpos = result->curpos + 2;
         /* attr list */
-        /* memcpy(result->start,G_SlpdProperty.SAAttributes,G_SlpdProperty.SAAttributesLen) */
+        /* memcpy(result->start,G_SlpdProperty.DAAttributes,G_SlpdProperty.DAAttributesLen) */
+        /* result->curpos = result->curpos + G_SlpdProperty.DAAttributesLen */
         /* SPI List */
         ToUINT16(result->curpos,0);
         result->curpos = result->curpos + 2;
         /* authblock count */
         *(result->curpos) = 0;
+        result->curpos = result->curpos + 1;
     }
     else
     {
@@ -340,8 +375,8 @@ void ProcessSrvRqst(SLPDPeerInfo* peerinfo,
 			"service:directory-agent") == 0)
     {
         ProcessDASrvRqst(peerinfo,
-			 message,
-			 result);
+                         message,
+                         result);
         goto FINISHED;
     }
     if(SLPStringCompare(message->body.srvrqst.srvtypelen,
