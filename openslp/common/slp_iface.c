@@ -97,9 +97,11 @@ int SLPIfaceGetInfo(const char* useifaces,
  *=========================================================================*/
   {
 	char *interfaceString;
+	char *bcastString;
 	int sts = 0;
 	int useifaceslen;
 	struct sockaddr_in v4addr;
+	struct sockaddr_in bcastAddr;
 	struct sockaddr_in6 v6addr;
 	struct sockaddr_in6 indexHack;
 	unsigned int fd;
@@ -155,19 +157,19 @@ int SLPIfaceGetInfo(const char* useifaces,
 											 strlen(slider1),
 											 slider1)) {
 					/* check if an ipv4 address was given */
-					if (inet_pton(AF_INET, slider1, &v4addr) == 1) {
+					if (inet_pton(AF_INET, slider1, &v4addr.sin_addr) == 1) {
 						if (SLPNetIsIPV4() && ((family == AF_INET) || (family == AF_UNSPEC)) ) {
-							SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count], AF_INET, 0, (char *) &v4addr, sizeof(v4addr));
+							SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count], AF_INET, 0, (char *) &v4addr.sin_addr, sizeof(v4addr.sin_addr));
 							ifaceinfo->iface_count++;
 						}
 					}
-					else if (inet_pton(AF_INET6, slider1, &v6addr) == 1) {
+					else if (inet_pton(AF_INET6, slider1, &v6addr.sin6_addr) == 1) {
 						if (SLPNetIsIPV6() && ((family == AF_INET6) || (family == AF_UNSPEC)) ) {
 							/* try and bind to verify the address is okay */
 						    fd = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
 							if(fd != -1) {
 								for (i = 0; i < MAX_INTERFACE_TEST_INDEX; i++) {
-									SLPNetSetAddr((struct sockaddr_storage *) &indexHack, AF_INET6, 0, (char *) &v6addr, sizeof(v6addr));
+									SLPNetSetAddr((struct sockaddr_storage *) &indexHack, AF_INET6, 0, (char *) &v6addr.sin6_addr, sizeof(v6addr.sin6_addr));
 									indexHack.sin6_scope_id = i;
 									sts = bind(fd, (struct sockaddr *) &indexHack, sizeof(indexHack));
 									if (sts == 0) {
@@ -196,6 +198,29 @@ int SLPIfaceGetInfo(const char* useifaces,
         }
         xfree(temp);
     }
+
+	/* now stuff in a broadcast address */
+	if (SLPNetIsIPV4() && ((family == AF_INET) || (family == AF_UNSPEC)) ) { 
+	    bcastString = (char *) SLPPropertyGet("net.slp.broadcastAddr");
+		if (*bcastString == '\0') {
+			struct sockaddr_storage storageaddr_bcast;
+			unsigned int broadAddr = INADDR_BROADCAST;
+
+			SLPNetSetAddr(&storageaddr_bcast, AF_INET, 0, (char *) &broadAddr, sizeof(broadAddr));
+	        SLPNetCopyAddr(&ifaceinfo->bcast_addr[ifaceinfo->bcast_count], &storageaddr_bcast);
+			ifaceinfo->bcast_count++;
+		}
+		else {
+			struct sockaddr_storage storageaddr_bcast;
+
+			if (inet_pton(AF_INET, bcastString, &bcastAddr.sin_addr) == 1) {
+				SLPNetSetAddr(&storageaddr_bcast, AF_INET, 0, (char *) &bcastAddr.sin_addr, sizeof(bcastAddr.sin_addr));
+		        SLPNetCopyAddr(&ifaceinfo->bcast_addr[ifaceinfo->bcast_count], &storageaddr_bcast);
+				ifaceinfo->bcast_count++;
+			}
+		}
+	}
+
 	return(sts);
 }
 /*=========================================================================*/

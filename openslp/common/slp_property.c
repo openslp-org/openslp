@@ -215,6 +215,7 @@ int SetDefaultValues()
 #endif
     result |= SLPPropertySet("net.slp.useIPV4", "true");
     result |= SLPPropertySet("net.slp.useIPV6", "true");
+	result |= SLPPropertySet("net.slp.broadcastAddr", "255.255.255.255");
 
     return result;
 }
