@@ -72,12 +72,12 @@ int SLPDLogFileOpen(const char* path, int append);
 /* Returns  - zero on success. errno on failure.                           */
 /*=========================================================================*/
 
-
+#ifdef DEBUG
 /*=========================================================================*/
 int SLPDLogFileClose();
 /* Releases resources associated with the log file                         */
 /*=========================================================================*/
-
+#endif
 
 /*=========================================================================*/
 void SLPDLogBuffer(const char* prefix, int bufsize, const char* buf);
