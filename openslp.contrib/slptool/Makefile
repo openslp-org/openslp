@@ -1,5 +1,8 @@
 # Painfully simple makefile for slptool
 
+message:
+	cat README
+	
 slptool: slptool.c
 	$(CC) -oslptool ${LIBS} ${INCS} -lslp slptool.c
 

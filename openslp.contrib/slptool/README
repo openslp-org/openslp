@@ -1,0 +1,13 @@
+NOTICE
+------
+slptool is no longer being maintained in the openslp.contrib module. To find
+the latest version of slptool, look in the openslp CVS module where slptool
+is hopefully living a happy live with other core peices of OpenSLP.
+
+You can still build this older version of slptool (last shipped with OpenSLP
+0.8.1) by typing:
+
+$make slptool
+
+... though I don't know why you would not be more interested in the latest
+version that can be obtained from the latest OpenSLP.
