@@ -526,8 +526,8 @@ int KnownDAGetScopes(int* scopelistlen,
         /* discover DAs */
         if(KnownDADiscoverFromIPC() == 0)
 	{
-	    KnownDADiscoverFromProperties();
             KnownDADiscoverFromDHCP();
+	    KnownDADiscoverFromProperties();
             KnownDADiscoverFromMulticast(0,"");
         }
 
