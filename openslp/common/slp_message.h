@@ -55,7 +55,7 @@
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-#include <winsock.h>
+#include <winsock2.h>
 #ifndef UINT32_T_DEFINED
 #define UINT32_T_DEFINED
 typedef unsigned int uint32_t;
@@ -393,7 +393,7 @@ typedef struct _SLPSAAdvert
 typedef struct _SLPMessage
 /*=========================================================================*/
 {
-    struct sockaddr_in    peer;
+    struct sockaddr_storage peer;
     SLPHeader             header;
     union _body
     {
@@ -453,7 +453,7 @@ int SLPMessageParseHeader(SLPBuffer buffer, SLPHeader* header);
 
 
 /*=========================================================================*/
-int SLPMessageParseBuffer(struct sockaddr_in* peerinfo,
+int SLPMessageParseBuffer(struct sockaddr* peerinfo,
                           SLPBuffer buffer, 
                           SLPMessage message);
 /* Initializes a message descriptor by parsing the specified buffer.       */

@@ -55,9 +55,18 @@
 #endif
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-#include <winsock.h>
+#include <winsock2.h>
 #include <io.h>
 #include <errno.h>
+
+
+int inet_pton(int af, const char *src, void *dst);
+
+const char *inet_ntop(int af, const void *src,
+                            char *dst, size_t size);
+
+
+
 #define ETIMEDOUT 110
 #define ENOTCONN  107
 #else
@@ -101,6 +110,100 @@ int SLPNetResolveHostToAddr(const char* host,
  *    addr  (OUT) pointer to in_addr that will be filled with address
  *
  * Returns: zero on success, non-zero on error;
+ *-------------------------------------------------------------------------*/
+
+
+int SLPNetIsIPV6();
+/*
+ * Description:
+ *    Used to determine if IPV6 was enabled in the configuration file
+ *    
+ *
+ * Parameters:
+ *
+ * Returns: non-zero if IPV6 was configured, 0 if not configured
+ *-------------------------------------------------------------------------*/
+
+
+int SLPNetIsIPV4();
+/*
+ * Description:
+ *    Used to determine if IPV4 was enabled in the configuration file
+ *    
+ *
+ * Parameters:
+ *
+ * Returns: non-zero if IPV4 was configured, 0 if not configured
+ *-------------------------------------------------------------------------*/
+
+//char *SLPNetAddrToString(struct sockaddr_storage *addr); replaced with inet_pton
+//int SLPNetStringToAddr(char *str, struct sockaddr_storage *addr); replaced with inet_ntop
+
+int SLPNetCompareAddrs(const struct sockaddr_storage *addr1, const struct sockaddr_storage *addr2);
+/*
+ * Description:
+ *    Used to determine if two sockaddr_storage structures are equal
+ *    
+ *
+ * Parameters:
+ *  (in) addr1  First address to be compared
+ *  (in) addr2  Second address to be compared
+ *
+ * Returns: non-zero if not equal, 0 if equal
+ *-------------------------------------------------------------------------*/
+int SLPNetIsMCast(const struct sockaddr_storage *addr);
+/*
+ * Description:
+ *    Used to determine if the specified sockaddr_storage is a multicast address
+ *    
+ *
+ * Parameters:
+ *  (in) addr  Address to be tested to see if multicast
+ *
+ * Returns: non-zero if address is a multicast address, 0 if not multicast
+ *-------------------------------------------------------------------------*/
+
+int SLPNetIsLocal(const struct sockaddr_storage *addr);
+/*
+ * Description:
+ *    Used to determine if the specified sockaddr_storage is a local address
+ *    
+ *
+ * Parameters:
+ *  (in) addr  Address to be tested to see if local
+ *
+ * Returns: non-zero if address is a local address, 0 if not multicast
+ *-------------------------------------------------------------------------*/
+
+int SLPNetSetAddr(struct sockaddr_storage *addr, const int family, const short port, const unsigned char *address, const int addrLen);
+/*
+ * Description:
+ *    Used to set up the relevant fields of a sockaddr_storage structure
+ *    
+ *
+ * Parameters:
+ *  (in/out) addr   Address of sockaddr_storage struct to be filled out
+ *  (in) family     Protocol family (PF_INET for IPV4, PF_INET6 for IPV6)
+ *  (in) port       Port for this address.  Note that appropriate host to network translations
+                    will occur as part of this call.
+ *  (in) address    The IP address for this sockaddr_storage struct.  If NULL this call will not
+                    modify the existing address.
+ *  (in) addrLen    The length of the adddress to be set.
+ *
+ * Returns: 0 if address set correctly, non-zero there were errors setting fields of addr
+ *-------------------------------------------------------------------------*/
+
+int SLPNetCopyAddr(struct sockaddr_storage *dst, const struct sockaddr_storage *src);
+/*
+ * Description:
+ *    Used to copy one sockaddr_storage struct to another
+ *    
+ *
+ * Parameters:
+ *  (in/out) dst    Destination address to be filled in
+ *  (in) src        Source address to be copied from
+ *
+ * Returns: 0 if address set correctly, non-zero there were errors setting fields of dst
  *-------------------------------------------------------------------------*/
 
 #endif

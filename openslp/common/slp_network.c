@@ -48,9 +48,9 @@
 /***************************************************************************/
 
 #include "slp_network.h"
-
+#include "slp_net.h"
 /*=========================================================================*/ 
-int SLPNetworkConnectStream(struct sockaddr_in* peeraddr, 
+int SLPNetworkConnectStream(struct sockaddr_storage *peeraddr,   
                             struct timeval* timeout)
 /* Connect a TCP stream to the specified peer                              */
 /*                                                                         */
@@ -69,13 +69,17 @@ int SLPNetworkConnectStream(struct sockaddr_in* peeraddr,
     int result;
 
     /* TODO: Make this connect non-blocking so that it will timeout */
-
-    result = socket(AF_INET,SOCK_STREAM,0);
+    if (SLPNetIsIPV6()) {
+        result = socket(AF_INET6,SOCK_STREAM,0);
+    }
+    else {
+        result = socket(AF_INET,SOCK_STREAM,0);
+    }
     if(result >= 0)
     {
         if(connect(result,
-                   (struct sockaddr*)peeraddr,
-                   sizeof(struct sockaddr_in)) == 0)
+                   (struct sockaddr *)peeraddr,
+                   sizeof(struct sockaddr_storage)) == 0)
         {
             /* set the receive and send buffer low water mark to 18 bytes 
             (the length of the smallest slpv2 message) */
@@ -96,7 +100,7 @@ int SLPNetworkConnectStream(struct sockaddr_in* peeraddr,
 
 
 /*=========================================================================*/ 
-int SLPNetworkConnectToMulticast(struct sockaddr_in* peeraddr, int ttl)
+int SLPNetworkConnectToMulticast(struct sockaddr_storage *peeraddr, int ttl)
 /* Creates a socket and provides a peeraddr to send to                     */
 /*                                                                         */
 /* peeraddr  (OUT) pointer to receive the connected DA's address           */
@@ -121,57 +125,61 @@ int SLPNetworkConnectToMulticast(struct sockaddr_in* peeraddr, int ttl)
 #ifdef _WIN32
     BOOL Reuse = TRUE;
     int TTLArg;
-    struct sockaddr_in  mysockaddr;
+    struct sockaddr_storage  mysockaddr_storage;
 
-    memset(&mysockaddr, 0, sizeof(mysockaddr));
-    mysockaddr.sin_family = AF_INET;
-    mysockaddr.sin_port = 0;
+    memset(&mysockaddr_storage, 0, sizeof(mysockaddr_storage));
+    if (SLPNetIsIPV6()) {
+        SLPNetSetAddr(&mysockaddr_storage, PF_INET6, SLP_RESERVED_PORT, NULL, 0);
+    }
+    else {
+        SLPNetSetAddr(&mysockaddr_storage, PF_INET, SLP_RESERVED_PORT, NULL, 0);
+    }
 #endif
-
-
-
 
     /* setup multicast socket */
     sockfd = socket(AF_INET,SOCK_DGRAM,0);
     if(sockfd >= 0)
     {
-        peeraddr->sin_family = AF_INET;
-        peeraddr->sin_port = htons(SLP_RESERVED_PORT);
-        peeraddr->sin_addr.s_addr = htonl(SLP_MCAST_ADDRESS);
+        DWORD add = SLP_MCAST_ADDRESS;
+        if (SLPNetIsIPV6()) {
+            SLPNetSetAddr(peeraddr, PF_INET6, SLP_RESERVED_PORT, (unsigned char *) &add, sizeof(add));
+        }
+        else {
+            SLPNetSetAddr(peeraddr, PF_INET, SLP_RESERVED_PORT, (unsigned char *) &add, sizeof(add));
+        }
         optarg = ttl;
+    }
 
 
 #ifdef _WIN32
-        TTLArg = ttl;
-        if(setsockopt(sockfd,
-                      SOL_SOCKET,
-                      SO_REUSEADDR,
-                      (const char  *)&Reuse,
-                      sizeof(Reuse)) ||
-           bind(sockfd, 
-                (struct sockaddr *)&mysockaddr, 
-                sizeof(mysockaddr)) ||
-           setsockopt(sockfd,
-                      IPPROTO_IP,
-                      IP_MULTICAST_TTL,
-                      (char *)&TTLArg,
-                      sizeof(TTLArg)))
-        {
-            return -1;
-        }
-#else
-        if(setsockopt(sockfd,IPPROTO_IP,IP_MULTICAST_TTL,&optarg,sizeof(optarg)))
-        {
-            return -1;
-        }
-#endif
+    TTLArg = ttl;
+    if(setsockopt(sockfd,
+        SOL_SOCKET,
+        SO_REUSEADDR,
+        (const char  *)&Reuse,
+        sizeof(Reuse)) ||
+        bind(sockfd, 
+        (struct sockaddr *)&mysockaddr_storage, 
+        sizeof(mysockaddr_storage)) ||
+        setsockopt(sockfd,
+        IPPROTO_IP,
+        IP_MULTICAST_TTL,
+        (char *)&TTLArg,
+        sizeof(TTLArg)))
+    {
+        return -1;
     }
-
+#else
+    if(setsockopt(sockfd,IPPROTO_IP,IP_MULTICAST_TTL,&optarg,sizeof(optarg)))
+    {
+        return -1;
+    }
+#endif
     return sockfd;
 }
 
 /*=========================================================================*/ 
-int SLPNetworkConnectToBroadcast(struct sockaddr_in* peeraddr)
+int SLPNetworkConnectToBroadcast(struct sockaddr_storage *peeraddr)
 /* Creates a socket and provides a peeraddr to send to                     */
 /*                                                                         */
 /* peeraddr         (OUT) pointer to receive the connected DA's address    */                                                       
@@ -188,15 +196,15 @@ int SLPNetworkConnectToBroadcast(struct sockaddr_in* peeraddr)
 
 
 
-
+    if (SLPNetIsIPV6()) {
+        return(-1);
+    }
     /* setup broadcast */
     sockfd = socket(AF_INET, SOCK_DGRAM, 0);
     if(sockfd >= 0)
     {
-        peeraddr->sin_family = AF_INET;
-        peeraddr->sin_port = htons(SLP_RESERVED_PORT);
-        peeraddr->sin_addr.s_addr = htonl(SLP_BCAST_ADDRESS);
-
+        DWORD ad = SLP_BCAST_ADDRESS;
+        SLPNetSetAddr(peeraddr, PF_INET, SLP_RESERVED_PORT, (unsigned char *) &ad, sizeof(ad));
         if(setsockopt(sockfd, SOL_SOCKET, SO_BROADCAST, (char*)&on, sizeof(on)))
         {
             return -1;
@@ -211,7 +219,7 @@ int SLPNetworkConnectToBroadcast(struct sockaddr_in* peeraddr)
 int SLPNetworkSendMessage(int sockfd,
                           int socktype,
                           SLPBuffer buf,
-                          struct sockaddr_in* peeraddr,
+                          struct sockaddr_storage* peeraddr,
                           struct timeval* timeout)
 /* Sends a message                                                         */
 /*                                                                         */
@@ -246,7 +254,7 @@ int SLPNetworkSendMessage(int sockfd,
                                    buf->end - buf->curpos, 
                                    flags,
                                    (struct sockaddr *)peeraddr,
-                                   sizeof(struct sockaddr_in));
+                                   sizeof(struct sockaddr_storage));
             }
             else
             {
@@ -288,7 +296,7 @@ int SLPNetworkSendMessage(int sockfd,
 int SLPNetworkRecvMessage(int sockfd,
                           int socktype,
                           SLPBuffer* buf,
-                          struct sockaddr_in* peeraddr,
+                          struct sockaddr_storage* peeraddr,
                           struct timeval* timeout)
 /* Receives a message                                                      */
 /*                                                                         */
@@ -303,7 +311,7 @@ int SLPNetworkRecvMessage(int sockfd,
     int         xferbytes;
     fd_set      readfds;
     char        peek[16];
-    int         peeraddrlen = sizeof(struct sockaddr_in);
+    int         peeraddrlen = sizeof(struct sockaddr_storage);
 
     /*---------------------------------------------------------------*/
     /* take a peek at the packet to get version and size information */

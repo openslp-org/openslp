@@ -61,7 +61,7 @@
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-#include <winsock.h>
+#include <winsock2.h>
 #endif
 
 #define SLP_MAX_IFACES 10
@@ -71,8 +71,8 @@ typedef struct _SLPInterfaceInfo
 /*=========================================================================*/
 {
     int iface_count;
-    struct sockaddr_in iface_addr[SLP_MAX_IFACES];
-    struct sockaddr_in bcast_addr[SLP_MAX_IFACES];
+    struct sockaddr_storage iface_addr[SLP_MAX_IFACES];
+    struct sockaddr_storage bcast_addr[SLP_MAX_IFACES];
 }SLPIfaceInfo;
 
 
@@ -96,15 +96,15 @@ int SLPIfaceGetInfo(const char* useifaces,
 
 
 /*=========================================================================*/
-int SLPIfaceSockaddrsToString(const struct sockaddr_in* addrs,
+int SLPIfacesockaddr_storagesToString(const struct sockaddr* addrs,
                               int addrcount,
                               char** addrstr);
 /* Description:
- *    Get the comma delimited string of addresses from an array of sockaddrs
+ *    Get the comma delimited string of addresses from an array of sockaddr_storages
  *
  * Parameters:
- *     addrs (IN) Pointer to array of sockaddrs to convert
- *     addrcount (IN) Number of sockaddrs in addrs.
+ *     addrs (IN) Pointer to array of sockaddr_storages to convert
+ *     addrcount (IN) Number of sockaddr_storages in addrs.
  *     addrstr (OUT) pointer to receive xmalloc() allocated address string.
  *                   Caller must xfree() addrstr when no longer needed.
  *
@@ -116,18 +116,18 @@ int SLPIfaceSockaddrsToString(const struct sockaddr_in* addrs,
 
 /*=========================================================================*/
 int SLPIfaceStringToSockaddrs(const char* addrstr,
-                              struct sockaddr_in* addrs,
+                              struct sockaddr_storage* addrs,
                               int* addrcount);
 /* Description:
- *    Fill an array of struct sockaddrs from the comma delimited string of
+ *    Fill an array of struct sockaddr_storages from the comma delimited string of
  *    addresses.
  *
  * Parameters:
  *     addrstr (IN) Address string to convert.
- *     addrcount (OUT) sockaddr array to fill.
- *     addrcount (INOUT) The number of sockaddr stuctures in the addr array
+ *     addrcount (OUT) sockaddr_storage array to fill.
+ *     addrcount (INOUT) The number of sockaddr_storage stuctures in the addr array
  *                       on successful return will contain the number of
- *                       sockaddrs that were filled in the addr array
+ *                       sockaddr_storages that were filled in the addr array
  *
  * Returns:
  *     zero on success, non-zero (with errno set) on error.

@@ -143,3 +143,33 @@ int SLPNetResolveHostToAddr(const char* host,
     return -1;
 }
 
+int SLPNetIsIPV6() {
+	return(0);
+}
+
+int SLPNetIsIPV4() {
+    return(0);
+}
+
+int SLPNetCompareAddrs(const struct sockaddr_storage *addr1, const struct sockaddr_storage *addr2) {
+	return(0);
+}
+
+
+int SLPNetIsMCast(const struct sockaddr_storage *addr) {
+	return(0);
+}
+
+int SLPNetIsLocal(const struct sockaddr_storage *addr) {
+	return(0);
+}
+
+int SLPNetSetAddr(struct sockaddr_storage *addr, const int family, const short port, const unsigned char *address, const int addrLen) {
+	return(0);
+}
+
+int SLPNetCopyAddr(struct sockaddr_storage *dst, const struct sockaddr_storage *src) {
+	return(0);
+}
+
+

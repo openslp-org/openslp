@@ -73,7 +73,7 @@
 /*=========================================================================*/
 
 /*=========================================================================*/
-extern int SLPv1MessageParseBuffer(struct sockaddr_in* peerinfo,
+extern int SLPv1MessageParseBuffer(struct sockaddr_storage* peerinfo,
                                    SLPBuffer buffer, 
                                    SLPMessage message); 
 /* Initializes a SLPv1 message descriptor by parsing the specified buffer. */

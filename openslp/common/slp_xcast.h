@@ -56,7 +56,7 @@ typedef struct _SLPXcastSockets
 {
     int                 sock_count;
     int                 sock[SLP_MAX_IFACES];
-    struct sockaddr_in  peeraddr[SLP_MAX_IFACES];
+    struct sockaddr_storage  peeraddr[SLP_MAX_IFACES];
 }SLPXcastSockets;
 
 
@@ -105,7 +105,7 @@ int SLPMulticastSend(const SLPIfaceInfo* ifaceinfo,
 /*=========================================================================*/
 int SLPXcastRecvMessage(const SLPXcastSockets* sockets,
                         SLPBuffer* buf,
-                        struct sockaddr_in* peeraddr,
+                        struct sockaddr_storage* peeraddr,
                         struct timeval* timeout);
 /* Description: 
  *    Receives datagram messages from one of the sockets in the specified
@@ -116,7 +116,7 @@ int SLPXcastRecvMessage(const SLPXcastSockets* sockets,
  *                 which sockets to read messages from.
  *    buf     (OUT) Pointer to SLPBuffer that will contain the message upon
  *                  successful return.
- *    peeraddr (OUT) Pointer to struc sockaddr_in that will contain the
+ *    peeraddr (OUT) Pointer to struc sockaddr that will contain the
  *                   address of the peer that sent the received message.
  *    timeout (IN/OUT) pointer to the struct timeval that indicates how much
  *                     time to wait for a message to arrive

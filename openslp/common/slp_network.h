@@ -52,6 +52,8 @@
 
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
+#include <winsock2.h>
+#include <ws2tcpip.H>
 #include <windows.h>
 #include <io.h>
 #include <errno.h>
@@ -80,7 +82,7 @@
 
 
 /*=========================================================================*/ 
-int SLPNetworkConnectStream(struct sockaddr_in* peeraddr,
+int SLPNetworkConnectStream(struct sockaddr_storage *peeraddr,
                             struct timeval* timeout);  
 /* Connect a TCP stream to the specified peer                              */
 /*                                                                         */
@@ -93,7 +95,7 @@ int SLPNetworkConnectStream(struct sockaddr_in* peeraddr,
 
 
 /*=========================================================================*/
-int SLPNetworkConnectToMulticast(struct sockaddr_in* peeraddr, int ttl); 
+int SLPNetworkConnectToMulticast(struct sockaddr_storage *peeraddr, int ttl); 
 /* Creates a socket and provides a peeraddr to send to                     */
 /*                                                                         */
 /* peeraddr         (OUT) pointer to receive the connected DA's address    */
@@ -105,7 +107,7 @@ int SLPNetworkConnectToMulticast(struct sockaddr_in* peeraddr, int ttl);
 
 
 /*=========================================================================*/
-int SLPNetworkConnectToBroadcast(struct sockaddr_in* peeraddr);                                                        
+int SLPNetworkConnectToBroadcast(struct sockaddr_storage *peeraddr);                                                        
 /* Creates a socket and provides a peeraddr to send to                     */
 /*                                                                         */
 /* peeraddr         (OUT) pointer to receive the connected DA's address    */
@@ -120,7 +122,7 @@ int SLPNetworkConnectToBroadcast(struct sockaddr_in* peeraddr);
 int SLPNetworkSendMessage(int sockfd,
                           int socktype,
                           SLPBuffer buf,
-                          struct sockaddr_in* peeraddr,
+                          struct sockaddr_storage* peeraddr,
                           struct timeval* timeout);  
 /* Sends a message                                                         */
 /*                                                                         */
@@ -135,7 +137,7 @@ int SLPNetworkSendMessage(int sockfd,
 int SLPNetworkRecvMessage(int sockfd,
                           int socktype,
                           SLPBuffer* buf,
-                          struct sockaddr_in* peeraddr,
+                          struct sockaddr_storage* peeraddr,
                           struct timeval* timeout); 
 /* Receives a message                                                      */
 /*                                                                         */
