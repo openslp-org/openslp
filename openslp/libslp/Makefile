@@ -19,8 +19,10 @@ LIBSLP_SRC = $(LIBSLP_DIR)/libslp_dereg.c   \
 	     $(LIBSLP_DIR)/libslp_xid.c \
 	     $(LIBSLP_DIR)/libslp_network.c \
 	     $(LIBSLP_DIR)/libslp_thread.c \
-             $(LIBSLP_DIR)/libslp_findattrs.c\
-	     $(LIBSLP_DIR)/libslp_delattrs.c 
+             $(LIBSLP_DIR)/libslp_findattrs.c \
+	     $(LIBSLP_DIR)/libslp_delattrs.c \
+	     $(LIBSLP_DIR)/libslp_findsrvtypes.c \
+	      
        
 COMMON_SRC = $(COMMON_DIR)/slp_buffer.c  \
 	     $(COMMON_DIR)/slp_message.c \

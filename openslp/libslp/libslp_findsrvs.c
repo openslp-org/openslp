@@ -369,19 +369,20 @@ SLPError SLPFindSrvs(SLPHandle  hSLP,
 /* pcServiceType    The Service Type String, including authority string if */
 /*                  any, for the request, such as can be discovered using  */
 /*                  SLPSrvTypes(). This could be, for example              */
-/*                  "service:printer:lpr" or "service:nfs".  May not be the*/ 
-/*                  empty string or NULL.                                  */
+/*                  "service:printer:lpr" or "service:nfs".  May not be    */
+/*                  the empty string or NULL.                              */
+/*                                                                         */
 /*                                                                         */
 /* pcScopeList      A pointer to a char containing comma separated list of */
-/*                  scope names.  Pass in the empty string "" to find      */
-/*                  services in all the scopes the local host is           */
-/*                  configured query. May not be the NULL.                 */
+/*                  scope names.  Pass in the NULL or the empty string ""  */
+/*                  to find services in all the scopes the local host is   */
+/*                  configured query.                                      */
 /*                                                                         */
 /* pcSearchFilter   A query formulated of attribute pattern matching       */
 /*                  expressions in the form of a LDAPv3 Search Filter.     */
-/*                  If this filteris empty, i.e.  "", all services         */
-/*                  of the requested type in the specified scopes are      */
-/*                  returned.  May not be NULL.                            */
+/*                  If this filter is NULL or empty, i.e.  "", all         */
+/*                  services of the requested type in the specified scopes */
+/*                  are returned.                                          */
 /*                                                                         */
 /* callback         A callback function through which the results of the   */
 /*                  operation are reported. May not be NULL                */
@@ -391,6 +392,7 @@ SLPError SLPFindSrvs(SLPHandle  hSLP,
 /*                                                                         */
 /* Returns:         If an error occurs in starting the operation, one of   */
 /*                  the SLPError codes is returned.                        */
+/*                                                                         */
 /*=========================================================================*/
 {
     PSLPHandleInfo      handle;
@@ -402,8 +404,6 @@ SLPError SLPFindSrvs(SLPHandle  hSLP,
     if( hSLP            == 0 ||
         pcServiceType   == 0 ||
         *pcServiceType  == 0 ||  /* srvtype can't be empty string */
-        pcScopeList     == 0 ||
-        pcSearchFilter  == 0 ||
         callback        == 0) 
     {
         return SLP_PARAMETER_BAD;
@@ -430,7 +430,7 @@ SLPError SLPFindSrvs(SLPHandle  hSLP,
     /*-------------------------------------------*/
     handle->params.findsrvs.srvtypelen   = strlen(pcServiceType);
     handle->params.findsrvs.srvtype      = pcServiceType;
-    if(*pcScopeList)
+    if(pcScopeList && *pcScopeList)
     {   
         handle->params.findsrvs.scopelistlen = strlen(pcScopeList);
         handle->params.findsrvs.scopelist    = pcScopeList;
@@ -440,8 +440,17 @@ SLPError SLPFindSrvs(SLPHandle  hSLP,
         handle->params.findsrvs.scopelist    = SLPGetProperty("net.slp.useScopes");
         handle->params.findsrvs.scopelistlen = strlen(handle->params.findsrvs.scopelist);
     }
-    handle->params.findsrvs.predicatelen = strlen(pcSearchFilter);
-    handle->params.findsrvs.predicate    = pcSearchFilter;
+
+    if(pcSearchFilter)
+    {
+        handle->params.findsrvs.predicatelen = strlen(pcSearchFilter);
+        handle->params.findsrvs.predicate    = pcSearchFilter;
+    }
+    else
+    {   
+        handle->params.findsrvs.predicatelen = 0;
+        handle->params.findsrvs.predicate  = (char*)&handle->params.findsrvs.predicatelen;
+    }
     handle->params.findsrvs.callback     = callback;
     handle->params.findsrvs.cookie       = pvCookie; 
 

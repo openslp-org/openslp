@@ -377,7 +377,8 @@ SLPError SLPOpen(const char *pcLang, SLPBoolean isAsync, SLPHandle *phSLP);
 /*                                                                         */
 /* pcLang   A pointer to an array of characters containing the RFC 1766    */
 /*          Language Tag RFC 1766 for the natural language locale of       */
-/*          requests and registrations issued on the handle.               */
+/*          requests and registrations issued on the handle. Pass in NULL  */
+/*          or the empty string, "" to use the default locale              */
 /*                                                                         */
 /* isAsync  An SLPBoolean indicating whether the SLPHandle should be opened*/
 /*          for asynchronous operation or not.                             */
@@ -594,15 +595,15 @@ SLPError SLPFindSrvs(SLPHandle  hSLP,
 /*                                                                         */
 /*                                                                         */
 /* pcScopeList      A pointer to a char containing comma separated list of */
-/*                  scope names.  Pass in the empty string "" to find      */
-/*                  services in all the scopes the local host is           */
-/*                  configured query. May not be the NULL.                 */
+/*                  scope names.  Pass in the NULL or the empty string ""  */
+/*                  to find services in all the scopes the local host is   */
+/*                  configured query.                                      */
 /*                                                                         */
 /* pcSearchFilter   A query formulated of attribute pattern matching       */
 /*                  expressions in the form of a LDAPv3 Search Filter.     */
-/*                  If this filteris empty, i.e.  "", all services         */
-/*                  of the requested type in the specified scopes are      */
-/*                  returned.  May not be NULL.                            */
+/*                  If this filter is NULL or empty, i.e.  "", all         */
+/*                  services of the requested type in the specified scopes */
+/*                  are returned.                                          */
 /*                                                                         */
 /* callback         A callback function through which the results of the   */
 /*                  operation are reported. May not be NULL                */

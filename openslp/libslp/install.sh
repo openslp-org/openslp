@@ -8,8 +8,8 @@ if [ "$LIB" ]; then
       install slp.h /usr/include
       install ./$LIB /usr/lib
       cd /usr/lib
+      ln $LIB libslp.so
       ldconfig
-      cp slp.h /usr/include
       exit 0
    fi
    echo Must be root to install LIB in /usr/lib!

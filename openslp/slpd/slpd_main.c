@@ -62,6 +62,26 @@ void SignalHandler(int signum)
     }
 }
 
+/*-------------------------------------------------------------------------*/
+int SetUpSignalHandlers()
+/*-------------------------------------------------------------------------*/
+{
+    int result;
+    struct sigaction sa;
+
+    sa.sa_handler    = SignalHandler;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags      = 0;//SA_ONESHOT;
+    sa.sa_restorer   = 0;
+    
+    result = sigaction(SIGALRM,&sa,0);
+    result |= sigaction(SIGTERM,&sa,0);
+    result |= sigaction(SIGPIPE,&sa,0);
+    result |= sigaction(SIGHUP,&sa,0);
+
+    return result;
+}
+
 
                   
 /*-------------------------------------------------------------------------*/
@@ -310,7 +330,7 @@ void HandleTCPWrite(SLPDSocketList* list, SLPDSocket* sock)
             {
                 /* Error occured or connection was closed */
                 SLPDebug("Closed connection to %s.  Error on send()\n", 
-                         inet_ntoa(sock->peeraddr.sin_addr));
+                         inet_ntoa(sock->peeraddr.sin_addr)); 
     
                 sock->type = SOCKET_CLOSE;
             }   
@@ -320,9 +340,16 @@ void HandleTCPWrite(SLPDSocketList* list, SLPDSocket* sock)
 
 /*-------------------------------------------------------------------------*/
 int Daemonize(const char* pidfile)
-/* turn the calling process into a daemon (detach from tty setuid(), etc   */
+/* Turn the calling process into a daemon (detach from tty setuid(), etc   */
+/*                                                                         */      
+/* Returns: zero on success non-zero if slpd could not daemonize.          */
 /*-------------------------------------------------------------------------*/
 {
+    pid_t   pid;
+    FILE*   fd;
+    struct  passwd* pwent;
+    char    pidstr[13];
+
     #if(defined PARANOID)
     struct  passwd* p;
     #endif
@@ -332,39 +359,23 @@ int Daemonize(const char* pidfile)
     case -1:
         return -1;
     case 0:
-        close(0);
-        close(1);
-        close(2);
-
-        #if(defined PARANOID)
-        /* suid to daemon */
-        p = getpwnam("daemon"); 
-        if(p)
-        {
-            chown(pidfile, p->pw_uid, p->pw_gid);
-            setgid(p->pw_gid);
-            setuid(p->pw_uid);
-        }                    
-        #endif
-        
+        /* child livs */
         break;
+
     default:
+        /* parent dies */
         exit(0);
     }
     
-    return 0;
-}
+    setsid();
 
-/*-------------------------------------------------------------------------*/
-int CheckForRunningSlpd(const char* pidfile)
-/*-------------------------------------------------------------------------*/
-{
-    char    pidstr[13] = {0};
-    pid_t   pid = 0;
-    FILE*   fd = fopen(pidfile,"r");
+    /*------------------------------------------*/
+    /* make sure that we're not running already */
+    /*------------------------------------------*/
+    /* read the pid from the file */
+    fd = fopen(pidfile,"r");
     if(fd)
     {
-        /* read the pid from the file */
         fread(pidstr,13,1,fd);
         fclose(fd);
         pid = atoi(pidstr);
@@ -374,9 +385,8 @@ int CheckForRunningSlpd(const char* pidfile)
             {
                 return 1;
             }
-        }
+        }    
     }
-
     /* write my pid to the pidfile */
     fd = fopen(pidfile,"w");
     if(fd)
@@ -385,9 +395,30 @@ int CheckForRunningSlpd(const char* pidfile)
         fwrite(pidstr,strlen(pidstr),1,fd);
         fclose(fd);
     }
+    
+    /* suid to daemon */
+    /* TODO: why do the following lines mess up my signal handlers?
+    pwent = getpwnam("daemon"); 
+    if(pwent)
+    {
+        chown(pidfile, pwent->pw_uid, pwent->pw_gid);
+        setgid(pwent->pw_gid);
+        setuid(pwent->pw_uid);
+    }
+    */
+                        
+                                                                   
+    
+    /* close std file handles */
+    close(0);
+    close(1);
+    close(2);
+    
+    
 
     return 0;
 }
+
 
 /*=========================================================================*/
 int main(int argc, char* argv[])
@@ -417,14 +448,6 @@ int main(int argc, char* argv[])
         SLPFatal("Invalid command line\n");
     }
 
-    /*-----------------------------------------*/
-    /* Check to see if slpd is already running */
-    /*-----------------------------------------*/
-    if(CheckForRunningSlpd(G_SlpdCommandLine.pidfile))
-    {
-        SLPFatal("slpd appears to be running already\n");
-    }
-
     /*------------------------------*/
     /* Initialize the log file      */
     /*------------------------------*/
@@ -444,7 +467,7 @@ int main(int argc, char* argv[])
     SLPLog("*** SLPD daemon started              ***\n");
     SLPLog("****************************************\n");
     SLPLog("command line = %s\n",argv[0]);
-    
+    SLPDebug("RUNNING in DEBUG mode\n");         
        
     /*--------------------------------------------------*/
     /* Initialize for the first time                    */
@@ -453,26 +476,30 @@ int main(int argc, char* argv[])
     SLPDDatabaseInit(G_SlpdCommandLine.regfile);
     SLPDSocketInit(&socketlist);
     
-    
+    /*---------------------------*/
+    /* make slpd run as a daemon */
+    /*---------------------------*/
+    if(Daemonize(G_SlpdCommandLine.pidfile))
+    {
+        SLPFatal("Could not run as a daemon. slpd is probably already running\n");
+    }
+
     /*-----------------------*/
     /* Setup signal handlers */ 
     /*-----------------------*/
-    signal(SIGALRM,SignalHandler);
-    signal(SIGTERM,SignalHandler);
-    signal(SIGPIPE,SignalHandler);
-    signal(SIGHUP,SignalHandler);
-
-
-    /*------------------------------*/
-    /* Set up initial timeout stuff */
-    /*------------------------------*/
-    alarm(SLPD_AGE_TIMEOUT);
-    
-    if(Daemonize(G_SlpdCommandLine.pidfile) < 0)
+    if(SetUpSignalHandlers())
     {
-        SLPFatal("Could not run as a daemon\n");
+        SLPFatal("Could not set up signal handlers.\n");
     }
 
+    /*------------------------------*/
+    /* Set up alarm to age database */
+    /*------------------------------*/
+    alarm(SLPD_AGE_TIMEOUT);
+
+    /*-----------*/
+    /* Main loop */
+    /*-----------*/
     while(G_SIGTERM == 0)
     {
         if(G_SIGHUP)
@@ -488,6 +515,9 @@ int main(int argc, char* argv[])
             G_SIGHUP = 0;
         }
 
+        /*--------------------------------------------------------*/
+        /* Load the fdsets up with all of the sockets in the list */
+        /*--------------------------------------------------------*/
         highfd = 0;
         FD_ZERO(&readfds);
         FD_ZERO(&writefds);
@@ -530,7 +560,11 @@ int main(int argc, char* argv[])
             slpsocket = slpsocket->next;
         }
         
-        
+        /*-----------------------------------------------*/
+        /* Check to see if we we should age the database */
+        /*-----------------------------------------------*/
+        /* there is a reason this is here instead of somewhere else, but I */
+        /* can't remember what it was.                                     */
         if(G_SIGALRM)
         {
             SLPDDatabaseAge(SLPD_AGE_TIMEOUT);
@@ -538,6 +572,9 @@ int main(int argc, char* argv[])
             alarm(SLPD_AGE_TIMEOUT);
         }
         
+        /*-------------*/
+        /* Main select */
+        /*-------------*/
         fdcount = select(highfd+1,&readfds,&writefds,0,0);
         if(fdcount > 0)
         {
@@ -592,7 +629,9 @@ int main(int argc, char* argv[])
 
     SLPLog("Got SIGTERM.  Going down\n");
 
+    /*---------------------*/
     /* remove the pid file */
+    /*---------------------*/
     unlink(G_SlpdCommandLine.pidfile);
 
     return 0;

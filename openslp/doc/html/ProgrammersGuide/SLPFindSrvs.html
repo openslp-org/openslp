@@ -20,7 +20,8 @@ const char* <a href="#srvtype">srvtype</a>,</tt>
 const char* <a href="#scopelist">scopelist</a>,</tt>
 <br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 const char* <a href="#filter">filter</a>,</tt>
-<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
 <a href="SLPSrvURLCallback.html">SLPSrvURLCallback</a> callback,</tt>
 <br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 void* <a href="#cookie">cookie</a>)</tt>
@@ -51,17 +52,17 @@ Type syntax.&nbsp;</td>
 <tr VALIGN=TOP NOSAVE>
 <td><a NAME="scopelist"></a><tt>scopelist</tt></td>
 
-<td NOSAVE>A pointer to a comma separated list of scope names.&nbsp; <i>May
-be the empty string</i> if you wish to use scopes this machine is configured
-for.&nbsp; May not be NULL.</td>
+<td NOSAVE>A pointer to a comma separated list of scope names.&nbsp; Pass
+in NULL&nbsp;of the empty string, "" if you wish to use scopes this machine
+is configured for.&nbsp; May not be NULL.</td>
 </tr>
 
 <tr VALIGN=TOP NOSAVE>
 <td NOSAVE><a NAME="filter"></a><tt>filter</tt></td>
 
 <td>A query formulated of attribute pattern matching expressions in the
-form of an LDAPv3 search filter.&nbsp; Pass in the empty string, "" for
-all services of the requested type.&nbsp; May not be NULL. See <a href="Syntax.html">Syntax</a>
+form of an LDAPv3 search filter.&nbsp; Pass in NULL or the empty string,
+"" for all services of the requested type.&nbsp; See <a href="Syntax.html">Syntax</a>
 for more information on LDAP3 search filter syntax.</td>
 </tr>
 

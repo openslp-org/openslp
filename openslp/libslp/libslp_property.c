@@ -86,6 +86,8 @@ void SLPSetProperty(const char *pcName,
 /*          character encoding.                                            */
 /*=========================================================================*/
 {
+    /* Following commented out for threading reasons 
+    
     if(G_PropertyInit == 0)
     {
         if(SLPPropertyReadFile(LIBSLP_CONFFILE) == 0)
@@ -95,5 +97,7 @@ void SLPSetProperty(const char *pcName,
     }
 
     SLPPropertySet(pcName,pcValue);
+    
+    */
 }
 
