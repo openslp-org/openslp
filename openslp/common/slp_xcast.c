@@ -47,19 +47,30 @@
 /***************************************************************************/
 
 
-#include "slp_buffer.h"
-#include "slp_iface.h"
 #include "slp_xcast.h"
 #include "slp_message.h"
 
 
 /*========================================================================*/
-int SLPBroadcastSend(SLPInterfaceInfo *ifaceinfo, SLPBuffer msg)
-/*========================================================================*/
+int SLPBroadcastSend(const SLPInterfaceInfo* ifaceinfo, 
+                     SLPBuffer msg,
+                     SLPXcastSockets* socks)
+/* Description:
+ *    Broadcast a message.
+ *
+ * Parameters:
+ *    ifaceinfo (IN) Pointer to the SLPInterfaceInfo structure that contains
+ *                   information about the interfaces to send on
+ *    msg       (IN) Buffer to send
+ *
+ *   socks      (OUT) Sockets used broadcast multicast.  May be used to 
+ *                    recv() responses.  MUST be close by caller using 
+ *                    SLPXcastSocketsClose() 
+ *
+ * Returns:
+ *    Zero on sucess.  Non-zero with errno set on error
+ *========================================================================*/
 {
-    struct sockaddr_in  peeraddr;
-    int                 sockfd;
-    int                 iface_index;
     int                 xferbytes;
     int                 flags = 0;  
 
@@ -74,96 +85,141 @@ int SLPBroadcastSend(SLPInterfaceInfo *ifaceinfo, SLPBuffer msg)
     flags = MSG_NOSIGNAL;
 #endif
 
-    sockfd = socket(AF_INET, SOCK_DGRAM, 0);
-    if (sockfd < 0)
+    for (socks->sock_count = 0; 
+         socks->sock_count < ifaceinfo->iface_count; 
+         socks->sock_count++)
     {
-        return -1;
-    }
+        socks->sock[socks->sock_count] = socket(AF_INET, SOCK_DGRAM, 0);
+        if (socks->sock[socks->sock_count] < 0)
+        {
+            /* error creating socket */
+            return -1;
+        }
         
-    peeraddr.sin_family = AF_INET;
-    peeraddr.sin_port = htons(SLP_RESERVED_PORT);
-    if (setsockopt(sockfd, SOL_SOCKET, SO_BROADCAST, &on, sizeof(on)))
-    {
-        return -1;
-    }
-    
-    for (iface_index=0; iface_index < ifaceinfo->iface_count; iface_index++)
-    {
-        peeraddr.sin_addr.s_addr = ifaceinfo->bcast_addr[iface_index].sin_addr.s_addr;
+        if( (setsockopt(socks->sock[socks->sock_count],
+                        SOL_SOCKET, 
+                        SO_BROADCAST, 
+                        &on, 
+                        sizeof(on))) )
+        {
+            /* Error setting socket option */
+            return -1;
+        }
 
-        xferbytes = sendto(sockfd, 
+        socks->peeraddr[socks->sock_count].sin_family = AF_INET;
+        socks->peeraddr[socks->sock_count].sin_port = htons(SLP_RESERVED_PORT);
+        socks->peeraddr[socks->sock_count].sin_addr.s_addr = ifaceinfo->bcast_addr[socks->sock_count].sin_addr.s_addr;
+
+        xferbytes = sendto(socks->sock[socks->sock_count], 
                            msg->start,
                            msg->end - msg->start,
                            0,
-                           (struct sockaddr *) &peeraddr,
+                           (struct sockaddr *) &(socks->peeraddr[socks->sock_count]),
                            sizeof(struct sockaddr_in));
         if(xferbytes  < 0)
-        { dl380s2.
+        { 
             /* Error sending to broadcast */
             return -1;
         }
     }  
 
-
     return 0;
 }
 
-/*========================================================================*/
-int SLPMulticastSend(SLPInterfaceInfo *ifaceinfo, SLPBuffer msg)
-/*========================================================================*/
-{
 
-    struct sockaddr_in  peeraddr;
-    int                 sockfd;
-    int                 xferbytes;
-    int                 iface_index;
-    struct SLPBuffer*   buf;
-    struct in_addr      saddr;
-    int                 flags = 0;
+/*========================================================================*/
+int SLPMulticastSend(const SLPInterfaceInfo* ifaceinfo, 
+                     SLPBuffer msg,
+                     SLPXcastSockets* socks)
+/* Description:
+ *    Multicast a message.
+ *
+ * Parameters:
+ *    ifaceinfo (IN) Pointer to the SLPInterfaceInfo structure that contains
+ *                   information about the interfaces to send on
+ *    msg       (IN) Buffer to send
+ *
+ *   socks      (OUT) Sockets used to multicast.  May be used to recv() 
+ *                    responses.  MUST be close by caller using 
+ *                    SLPXcastSocketsClose() 
+ *
+ * Returns:
+ *    Zero on sucess.  Non-zero with errno set on error
+ *========================================================================*/
+{
+    int             flags = 0;
+    int             xferbytes;
+    struct in_addr  saddr;
+
 
 #if defined(MSG_NOSIGNAL)
     flags = MSG_NOSIGNAL;
 #endif
 
-    peeraddr.sin_family = AF_INET;
-    peeraddr.sin_port = htons(SLP_RESERVED_PORT);
-    peeraddr.sin_addr.s_addr = htonl(SLP_MCAST_ADDRESS);
-
-    sockfd = socket(AF_INET,SOCK_DGRAM,0);
-    if(sockfd < 0)
+    for (socks->sock_count = 0;
+         socks->sock_count < ifaceinfo->iface_count;
+         socks->sock_count++)
     {
-        return -1;
-    }
-
-    for (iface_index=0;iface_index<ifaceinfo->iface_count;iface_index++)
-    {
-        saddr.s_addr = ifaceinfo->iface_addr[iface_index].sin_addr.s_addr;
+        socks->sock[socks->sock_count] = socket(AF_INET, SOCK_DGRAM, 0);
+        if (socks->sock[socks->sock_count] < 0)
+        {
+            /* error creating socket */
+            return -1;
+        }
         
-        if( setsockopt(sockfd, 
+        saddr.s_addr = ifaceinfo->iface_addr[socks->sock_count].sin_addr.s_addr;
+        if( setsockopt(socks->sock[socks->sock_count], 
                        IPPROTO_IP, 
                        IP_MULTICAST_IF, 
                        &saddr, 
                        sizeof(struct in_addr)))
         {
+            /* error setting socket option */
             return -1;
         }
 
-        xferbytes = sendto(sockfd,
+        socks->peeraddr[socks->sock_count].sin_family = AF_INET;
+        socks->peeraddr[socks->sock_count].sin_port = htons(SLP_RESERVED_PORT);
+        socks->peeraddr[socks->sock_count].sin_addr.s_addr = htonl(SLP_MCAST_ADDRESS);
+
+        xferbytes = sendto(socks->sock[socks->sock_count],
                            msg->start,
                            msg->end - msg->start,
                            flags,
-                           (struct sockaddr *)&peeraddr,
+                           (struct sockaddr *) &(socks->peeraddr[socks->sock_count]),
                            sizeof(struct sockaddr_in));
         if (xferbytes <= 0)
         {
+            /* error sending */
             return -1;
         }
     }
-
-    close(sockfd);
-
+    
     return 0;
 
+}
+
+
+/*========================================================================*/
+int SLPXcastSocketsClose(SLPXcastSockets* socks)
+/* Description:
+ *    Closes sockets that were opened by calls to SLPMulticastSend() and
+ *    SLPBroadcastSend()
+ *
+ * Parameters:
+ *    socks (IN) Pointer to the SLPXcastSockets structure being close
+ *
+ * Returns:
+ *    Zero on sucess.  Non-zero with errno set on error
+ *========================================================================*/
+{
+    while(socks->sock_count)
+    {
+        socks->sock_count = socks->sock_count - 1;
+        close(socks->sock[socks->sock_count]);
+    }
+
+    return 0;
 }
 
 /*===========================================================================
@@ -176,6 +232,7 @@ int SLPMulticastSend(SLPInterfaceInfo *ifaceinfo, SLPBuffer msg)
 main()
 {
     SLPInterfaceInfo    ifaceinfo;
+    SLPXcastSockets      socks;
     SLPBuffer           buffer;
 
     buffer = SLPBufferAlloc(SLP_MAX_DATAGRAM_SIZE);
@@ -186,12 +243,14 @@ main()
     
         SLPInterfaceGetInformation(NULL,&ifaceinfo);
     
-        if (SLPBroadcastSend(&ifaceinfo, buffer) !=0)
+        if (SLPBroadcastSend(&ifaceinfo, buffer,&socks) !=0)
             printf("\n SLPBroadcastSend failed \n");
+        SLPXcastSocketsClose(&socks);
     
-        if (SLPMulticastSend(&ifaceinfo, buffer) !=0)
+        if (SLPMulticastSend(&ifaceinfo, buffer, &socks) !=0)
             printf("\n SLPMulticast failed \n");
-    
+        SLPXcastSocketsClose(&socks);
+
         printf("Success\n");
 
         SLPBufferFree(buffer);

@@ -49,9 +49,21 @@
 #ifndef SLP_XCAST_H_INCLUDED
 #define SLP_XCAST_H_INCLUDED
 
+#include "slp_iface.h"
+#include "slp_buffer.h"
+   
+typedef struct _SLPXcastSockets
+{
+    int                 sock_count;
+    int                 sock[SLP_MAX_IFACES];
+    struct sockaddr_in  peeraddr[SLP_MAX_IFACES];
+}SLPXcastSockets;
+                                
 
 /*========================================================================*/
-int SLPBroadcastSend(SLPInterfaceInfo* ifaceinfo, SLPBuffer msg);
+int SLPBroadcastSend(const SLPInterfaceInfo* ifaceinfo, 
+                     SLPBuffer msg,
+                     SLPXcastSockets* socks);
 /* Description:
  *    Broadcast a message.
  *
@@ -60,13 +72,19 @@ int SLPBroadcastSend(SLPInterfaceInfo* ifaceinfo, SLPBuffer msg);
  *                   information about the interfaces to send on
  *    msg       (IN) Buffer to send
  *
+ *   socks      (OUT) Sockets used broadcast multicast.  May be used to 
+ *                    recv() responses.  MUST be close by caller using 
+ *                    SLPXcastSocketsClose() 
+ *
  * Returns:
  *    Zero on sucess.  Non-zero with errno set on error
  *========================================================================*/
 
 
 /*========================================================================*/
-int SLPMulticastSend(SLPInterfaceInfo* ifaceinfo, SLPBuffer msg);
+int SLPMulticastSend(const SLPInterfaceInfo* ifaceinfo, 
+                     SLPBuffer msg,
+                     SLPXcastSockets* socks);
 /* Description:
  *    Multicast a message.
  *
@@ -75,8 +93,27 @@ int SLPMulticastSend(SLPInterfaceInfo* ifaceinfo, SLPBuffer msg);
  *                   information about the interfaces to send on
  *    msg       (IN) Buffer to send
  *
+ *   socks      (OUT) Sockets used to multicast.  May be used to recv() 
+ *                    responses.  MUST be close by caller using 
+ *                    SLPXcastSocketsClose() 
+ *
  * Returns:
  *    Zero on sucess.  Non-zero with errno set on error
  *========================================================================*/
+
+
+/*========================================================================*/
+int SLPXcastSocketsClose(SLPXcastSockets* socks);
+/* Description:
+ *    Closes sockets that were opened by calls to SLPMulticastSend() and
+ *    SLPBroadcastSend()
+ *
+ * Parameters:
+ *    socks (IN) Pointer to the SLPXcastSockets structure being close
+ *
+ * Returns:
+ *    Zero on sucess.  Non-zero with errno set on error
+ *========================================================================*/
+
 
 #endif
