@@ -39,6 +39,29 @@
 time_t      G_LastDADiscovery = 0;
 /*=========================================================================*/ 
 
+
+/*=========================================================================*/
+int NetworkConnectToMulticast(struct sockaddr_in* peeraddr)
+/*=========================================================================*/
+{
+    int                 sock;
+    
+    if(SLPPropertyAsBoolean(SLPGetProperty("net.slp.isBroadcastOnly")))
+    {
+        sock = SLPNetworkConnectToBroadcast(peeraddr);
+
+    }
+    else
+    {
+
+        sock = SLPNetworkConnectToMulticast(peeraddr, 
+                                            atoi(SLPGetProperty("net.slp.multicastTTL")));    
+    }
+
+    return sock;    
+}
+
+
 /*=========================================================================*/ 
 int NetworkConnectToDA(const char* scopelist,
                        int scopelistlen,
@@ -68,7 +91,7 @@ int NetworkConnectToDA(const char* scopelist,
         dinterval = atoi(SLPGetProperty("net.slp.DAActiveDiscoveryInterval"));
         if(curtime - G_LastDADiscovery > dinterval)
         {
-            KnownDADiscover();
+            KnownDADiscover(timeout);
 
             sock = KnownDAConnect(scopelist,scopelistlen,peeraddr,timeout);
         }   

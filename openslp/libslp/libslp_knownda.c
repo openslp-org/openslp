@@ -44,11 +44,211 @@
 SLPDAEntry* G_KnownDAListHead = 0;
 /*=========================================================================*/
 
+/*-------------------------------------------------------------------------*/
+SLPBoolean KnownDADiscoveryCallback(SLPMessage msg, void* cookie)
+/*-------------------------------------------------------------------------*/
+{
+    SLPSrvURL*      srvurl;
+    SLPDAEntry*     entry;
+    struct hostent* he;
+    int*            count = (int*)cookie;
+    
+    if(msg->header.functionid == SLP_FUNCT_DAADVERT)
+    {
+        if(msg->body.srvrply.errorcode == 0)
+        {
+            /* NULL terminate scopelist */ 
+            *((char*)msg->body.daadvert.scopelist + msg->body.daadvert.scopelistlen) = 0;
+            if(SLPParseSrvURL(msg->body.daadvert.url, &srvurl) == 0)
+            {
+                he = gethostbyname(srvurl->s_pcHost);
+                if(he)
+                {
+                    entry = SLPDAEntryCreate((struct in_addr*)(he->h_addr_list[0]),
+                                             msg->body.daadvert.scopelist,
+                                             msg->body.daadvert.scopelistlen);
+                    ListLink((PListItem*)&G_KnownDAListHead,(PListItem)entry);
+                    *count = *count + 1;
+                }
+                
+                SLPFree(srvurl);
+            }
+        }                
+    }
+    
+    return 1;
+}
+
+/*-------------------------------------------------------------------------*/
+int KnownDADiscoveryRqstRply(int sock, struct sockaddr_in* peeraddr)
+/*-------------------------------------------------------------------------*/
+{
+    int         result      = 0;
+    char*       buf;
+    char*       curpos;
+    int         bufsize;
+    
+    /*-------------------------------------------------------------------*/
+    /* determine the size of the fixed portion of the SRVRQST            */
+    /*-------------------------------------------------------------------*/
+    bufsize  = 31;  /*  2 bytes for the srvtype length */ 
+                    /* 23 bytes for "service:directory-agent" srvtype */
+                    /*  2 bytes for scopelistlen */
+                    /*  2 bytes for predicatelen */
+                    /*  2 bytes for sprstrlen */
+
+    /* TODO: make sure that we don't exceed the MTU */
+    buf = curpos = (char*)malloc(bufsize);
+    if(buf == 0)
+    {
+        return 0;
+    }
+    memset(buf,0,bufsize);
+    
+    /*------------------------------------------------------------*/
+    /* Build a buffer containing the fixed portion of the SRVRQST */
+    /*------------------------------------------------------------*/
+    /* service type */
+    ToUINT16(curpos,23);
+    curpos = curpos + 2;
+    memcpy(curpos,"service:directory-agent",23);
+    /* scope list zero length */
+    /* predicate zero length */
+    /* spi list zero length */
+
+    NetworkRqstRply(sock,
+                    peeraddr,
+                    "en",
+                    buf,
+                    SLP_FUNCT_SRVRQST,
+                    bufsize,
+                    KnownDADiscoveryCallback,
+                    &result);
+
+    free(buf);
+
+    return result;       
+}
+
+
+/*-------------------------------------------------------------------------*/
+int KnownDADiscoveryByMulticast(const char* scopelist, int scopelistlen)
+/* Locates  DAs via multicast convergence                                  */
+/*                                                                         */
+/* Returns  The number of DAs found                                        */
+/*-------------------------------------------------------------------------*/
+{
+    int                 result      = 0;
+    int                 sock;
+    struct sockaddr_in  peeraddr;
+    
+    sock = NetworkConnectToMulticast(&peeraddr);
+    if(sock >= 0)
+    {
+        result = KnownDADiscoveryRqstRply(sock, &peeraddr);
+        close(sock);
+    }
+    
+    return result;;
+}
+
+
+/*-------------------------------------------------------------------------*/
+int KnownDADiscoveryByName(const char* daaddresses,
+                           struct timeval* timeout)
+/* Locates DAs from a list of DA hostnames                                 */
+/*                                                                         */
+/* Returns  number of DAs discovered                                       */
+/*-------------------------------------------------------------------------*/
+{
+    int                 result      = 0;
+    char*               slider1;
+    char*               slider2;
+    char*               temp;
+    int                 sock;
+    struct hostent*     he;
+    struct sockaddr_in  peeraddr;
+
+    memset(&peeraddr,0,sizeof(peeraddr));
+    peeraddr.sin_family = AF_INET;
+    peeraddr.sin_port = htons(SLP_RESERVED_PORT);
+    
+    slider1 = slider2 = temp = strdup(daaddresses);
+    while(1)
+    {
+        while(*slider2 && *slider2 != ',') slider2++;
+        *slider2 = 0;
+        
+        he = gethostbyname(slider1);
+        if(he)
+        {
+            peeraddr.sin_addr.s_addr = *((unsigned long*)(he->h_addr_list[0]));
+            sock = SLPNetworkConnectStream(&peeraddr,timeout);
+            if(sock >= 0)
+            {
+                result += KnownDADiscoveryRqstRply(sock, &peeraddr);
+                close(sock);
+            }
+        }
+
+        if(*slider2 == 0) break;
+        slider2++;
+        slider1 = slider2;
+    }
+
+    free(temp);
+
+    return result;
+}
 
 /*=========================================================================*/
-void KnownDADiscover() 
+void KnownDADiscover(struct timeval* timeout) 
 /*=========================================================================*/
 {
+    const char* daaddresses; 
+
+    /*-------------------------------------------*/
+    /* Check hints file to and load it if it     */
+    /*-------------------------------------------*/
+    /* if (hints file changed)                   */
+    /* {                                         */
+    /*     if(load hints file)                   */
+    /*     {                                     */
+    /*         return;                           */
+    /*     }                                     */
+    /* }                                         */
+
+
+    /*----------------------------------------------------*/
+    /* Check values from the net.slp.DAAddresses property */
+    /*----------------------------------------------------*/
+    if(G_KnownDAListHead == 0)
+    {
+        daaddresses = SLPGetProperty("net.slp.DAAddresses");
+        if(daaddresses && *daaddresses)
+        {
+            KnownDADiscoveryByName(daaddresses,timeout);
+        }
+    }
+
+    /*------------------------------*/
+    /* Check data from DHCP Options */
+    /*------------------------------*/
+
+
+    /*-------------*/
+    /* IPC to slpd */
+    /*-------------*/
+
+    
+    /*-------------------*/
+    /* Multicast for DAs */
+    /*-------------------*/ 
+
+    
+    /*---------------------*/
+    /* Save the hints file */
+    /*---------------------*/
 }
 
 /*=========================================================================*/
@@ -79,6 +279,9 @@ int KnownDAConnect(const char* scopelist,
             {
                 return sock;
             }
+
+            ListUnlink((PListItem*)&G_KnownDAListHead,(PListItem)entry);
+            SLPDAEntryFree(entry);
         }
         
         entry = (SLPDAEntry*) entry->listitem.next;

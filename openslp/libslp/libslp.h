@@ -162,6 +162,11 @@ SLPError ThreadCreate(ThreadStartProc startproc, void *arg);
 /*=========================================================================*/
 
 
+/*=========================================================================*/
+int NetworkConnectToMulticast(struct sockaddr_in* peeraddr);
+/*=========================================================================*/
+
+
 /*=========================================================================*/ 
 int NetworkConnectToDA(const char* scopelist,
                        int scopelistlen,
@@ -207,8 +212,9 @@ SLPError NetworkRqstRply(int sock,
 
 
 /*=========================================================================*/
-void KnownDADiscover(); 
+void KnownDADiscover(struct timeval* timeout);
 /*=========================================================================*/
+
 
 /*=========================================================================*/
 int KnownDAConnect(const char* scopelist, 

@@ -48,6 +48,7 @@ SLPDAEntry* SLPDAEntryCreate(struct in_addr* addr,
     SLPDAEntry* entry;
     entry = (SLPDAEntry*)malloc(sizeof(SLPDAEntry)+scopelistlen);
     if(entry == 0) return 0;
+    memset(entry,0,sizeof(SLPDAEntry)+scopelistlen);
 
     entry->daaddr = *addr;
     entry->scopelist = (char*)(entry+1);

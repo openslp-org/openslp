@@ -48,7 +48,7 @@ SLPBoolean CallbackAttrRqst(SLPMessage msg, void* cookie)
             if(msg->body.attrrply.attrlistlen)
             {
                 /* TRICKY: null terminate the attrlist by setting the authcount to 0 */
-                msg->body.attrrply.authcount = 0;
+                *((char*)(msg->body.attrrply.attrlist)+msg->body.attrrply.attrlistlen) = 0;
                 
                 /* Call the callback function */
                 if(handle->params.findattrs.callback((SLPHandle)handle, 
@@ -131,36 +131,16 @@ SLPError ProcessAttrRqst(PSLPHandleInfo handle)
                               handle->params.findsrvs.scopelistlen,
                               &peeraddr,
                               &timeout);
-    if(sock >= 0)
+    if(sock < 0)
     {
-        /* Use Unicast */
-    }
-    else
-    {
-        if(SLPPropertyAsBoolean(SLPGetProperty("net.slp.isBroadcastOnly")))
-        {
-            sock = SLPNetworkConnectToBroadcast(&peeraddr);
-
-        }
-        else
-        {
-            
-            sock = SLPNetworkConnectToMulticast(&peeraddr, 
-                                                atoi(SLPGetProperty("net.slp.multicastTTL")));    
-        }
-
-        if(sock >= 0)
-        {
-            /* Use multicast */
-        }
-        else
+        sock = NetworkConnectToMulticast(&peeraddr);
+        if(sock < 0)
         {
             result = SLP_NETWORK_INIT_FAILED;
             goto FINISHED;
-        } 
-
+        }
     }
-    
+
     result = NetworkRqstRply(sock,
                              &peeraddr,
                              handle->langtag,

@@ -50,8 +50,8 @@ SLPBoolean CallbackSrvRqst(SLPMessage msg, void* cookie)
                 /* TODO: Check the authblock */
                 
                 /* TRICKY: null terminate the url by setting the authcount to 0 */
-                msg->body.srvrply.urlarray[i].authcount = 0;
-    
+                *((char*)(msg->body.srvrply.urlarray[i].url)+msg->body.srvrply.urlarray[i].urllen) = 0;
+                
                 if(handle->params.findsrvs.callback((SLPHandle)handle,
                                                     msg->body.srvrply.urlarray[i].url,
                                                     msg->body.srvrply.urlarray[i].lifetime,
@@ -133,32 +133,14 @@ SLPError ProcessSrvRqst(PSLPHandleInfo handle)
                               handle->params.findsrvs.scopelistlen,
                               &peeraddr,
                               &timeout);
-    if(sock >= 0)
+    if(sock < 0)
     {
-        /* Use Unicast */
-    }
-    else
-    {
-        if(SLPPropertyAsBoolean(SLPGetProperty("net.slp.isBroadcastOnly")))
-        {
-            sock = SLPNetworkConnectToBroadcast(&peeraddr);  
-        }
-        else
-        {
-            sock = SLPNetworkConnectToMulticast(&peeraddr, 
-                                                atoi(SLPGetProperty("net.slp.multicastTTL")));
-        }
-
-        if(sock >= 0)
-        {
-            /* Use multicast */
-        }
-        else
+        sock = NetworkConnectToMulticast(&peeraddr);
+        if(sock < 0)
         {
             result = SLP_NETWORK_INIT_FAILED;
             goto FINISHED;
-        } 
-
+        }
     }
     
     result = NetworkRqstRply(sock,
