@@ -2,7 +2,7 @@
 <html>
 <head>
    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-   <meta name="GENERATOR" content="Mozilla/4.72C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.2.14 i686) [Netscape]">
+   <meta name="GENERATOR" content="Mozilla/4.76C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.4.2 i686) [Netscape]">
    <title>An Introduction to SLP</title>
 </head>
 <body text="#000000" bgcolor="#FFFFFF" link="#0000EE" vlink="#551A8B" alink="#FF0000">
@@ -22,19 +22,19 @@ What Is SLP?</h3>
 provides a framework to allow networking applications to discover the existence,
 location, and configuration of networked services in enterprise networks.&nbsp;
 Traditionally, in order to locate services on the network, users of network
-applications have been required to supply the host name or network address of
-the machine that provides a desired service.&nbsp; Ensuring that users
+applications have been required to supply the host name or network address
+of the machine that provides a desired service.&nbsp; Ensuring that users
 and applications are supplied with the correct information has, in many
 cases, become an administrative nightmare.
-<p>Protocols that support service location are often taken for granted, mostly
-because they are already included (without fanfare) in many network operating
-systems. For example, without Microsoft's SMB service location facilities,
-"Network Neighborhood" could not discover services available for use on
-the network and Novell NetWare would be unable to locate NDS trees.&nbsp;
-Nevertheless, an IETF service location protocol was not standardized until
-the advent of SLP.&nbsp; Because it is not tied to a proprietary technology,
-SLP provides a service location solution that could become extremely
-important (especially on Unix) platforms.
+<p>Protocols that support service location are often taken for granted,
+mostly because they are already included (without fanfare) in many network
+operating systems. For example, without Microsoft's SMB service location
+facilities, "Network Neighborhood" could not discover services available
+for use on the network and Novell NetWare would be unable to locate NDS
+trees.&nbsp; Nevertheless, an IETF service location protocol was not standardized
+until the advent of SLP.&nbsp; Because it is not tied to a proprietary
+technology, SLP provides a service location solution that could become
+extremely important (especially on Unix) platforms.
 <br>&nbsp;
 <h3>
 About this Document</h3>
@@ -58,9 +58,9 @@ Protocol</blockquote>
 <h3>
 SLP for Users and Administrators</h3>
 SLP can eliminate the need for users to know the names of network hosts.&nbsp;
-With SLP, the user only needs to know the description of the service
-he is interested in.&nbsp; Based on this description, SLP is then able
-to return the URL of the desired service.
+With SLP, the user only needs to know the description of the service he
+is interested in.&nbsp; Based on this description, SLP is then able to
+return the URL of the desired service.
 <p>Consider the following example of a new employee setting up his workstation
 to use one of the department printers:
 <br>&nbsp;
@@ -83,23 +83,22 @@ that is close to his office.
 
 <h3>
 SLP for Software Developers</h3>
-In many cases, SLP can eliminate the need for software applications
-to prompt users for host names, or to read host names from configuration
-files.
+In many cases, SLP can eliminate the need for software applications to
+prompt users for host names, or to read host names from configuration files.
 <p>Consider the following example of a software engineer who is writing
 an LDAP-enabled application.
 <br>&nbsp;
 <blockquote><b><u>Traditional</u></b>
-<br>Currently, the only way to know the hostname of the LDAP&nbsp;server
-to use in the call to ldap_bind() is to read it from a configuration file.&nbsp;
+<br>Currently, the only way to know the hostname of the LDAP server to
+use in the call to ldap_init() is to read it from a configuration file.&nbsp;
 The configuration file must be created at install time and updated as the
 location of the LDAP server changes.&nbsp; Keeping this configuration file
 up to date becomes a real problem especially when the LDAP application
 is installed on a laptop that connects to various networks.
 <p><b><u>With SLP</u></b>
-<br>The developer uses SLP to obtain the host names and attributes of
-LDAP servers that are displayed to the user at install time and again if
-the user desires to connect to a different LDAP server.
+<br>The developer uses SLP to obtain the host names and attributes of LDAP
+servers that are displayed to the user at install time and again if the
+user desires to connect to a different LDAP server.
 <p>As illustrated in the example above, SLP does not always eliminate the
 need to prompt users for information.&nbsp; However, it does allow the
 software developer to present a descriptive list of services that can be
@@ -140,16 +139,16 @@ is available.
 <p><b>Service Deregister (SrvDeReg)</b>
 <br>Message sent by SAs to inform DAs that a service is no longer available.
 <p><b>Service Acknowledge (SrvAck)</b>
-<br>A generic acknowledgment that is sent by DAs to SAs as a reply to 
-SrvReg and SrvDeReg messages.
+<br>A generic acknowledgment that is sent by DAs to SAs as a reply to SrvReg
+and SrvDeReg messages.
 <p><b>Attribute Request (AttrRqst)</b>
 <br>Message sent by UAs to request the attributes of a service.
 <p><b>Attribute Reply (AttrRply)</b>
 <br>Message sent by SAs and DAs in reply to a AttrRqst.&nbsp; The AttrRply
 contains the list of attributes that were requested.
 <p><b>Service Type Request (SrvTypeRqst)</b>
-<br>Message sent by UAs to SAs and DAs requesting the types of services that
-are available.
+<br>Message sent by UAs to SAs and DAs requesting the types of services
+that are available.
 <p><b>Service Type Reply (SrvTypeRply)</b>
 <br>Message by SAs and DAs in reply to a SrvTypeRqst.&nbsp; The SrvTypeRply
 contains a list of requested service types.
@@ -169,10 +168,10 @@ broadcast messages are "heard" by <i>every</i> node on the network.&nbsp;
 Multicast differs from broadcast because multicast messages are only "heard"
 by the nodes on the network that have "joined the multicast group".
 <p>For obvious reasons network routers filter almost all broadcast traffic.&nbsp;
-This means that broadcasts that are generated on one subnet will not be "routed"
-or forwarded to any of the other subnets connected to the router (from
-the router's perspective, a subnet is all machines connected to one of its
-ports).&nbsp; Multicasts, on the other hand, are forwarded by routers.&nbsp;
+This means that broadcasts that are generated on one subnet will not be
+"routed" or forwarded to any of the other subnets connected to the router
+(from the router's perspective, a subnet is all machines connected to one
+of its ports).&nbsp; Multicasts, on the other hand, are forwarded by routers.&nbsp;
 Multicast traffic from a given group is forwarded by routers to all subnets
 that have at least one machine that is interested in receiving the multicast
 for that group.
@@ -180,11 +179,11 @@ for that group.
 <h3>
 Agent Dialog Examples</h3>
 Agent Initialization
-<br><img SRC="AgentInit.jpg" height=40>
+<br><img SRC="AgentInit.jpg" height=40 width=237>
 <p>Service Registration
-<br><img SRC="ServiceReg.jpg" height=40>
+<br><img SRC="ServiceReg.jpg" height=40 width=237>
 <p>Service Request/Reply
-<br><img SRC="ServiceRqst.jpg" height=40>
+<br><img SRC="ServiceRqst.jpg" height=40 width=237>
 <br>&nbsp;
 <h3>
 SLP API</h3>
@@ -225,7 +224,7 @@ location.&nbsp; It is not intended to be a solution for the global Internet.&nbs
 However as an enterprise solution, SLP can be configured to use "scopes"
 (see <a href="../../rfc/rfc2608.txt">RFC 2608</a> section 11) and DAs in
 ways that should allow it to scale well in very large networks.&nbsp; More
-concrete evidence of SLPv2 scalability will become available when SLP&nbsp;is
+concrete evidence of SLPv2 scalability will become available when SLP is
 more widely used.
 <p><b>Implementations</b>
 <br>The following is a list of SLP implementations:
