@@ -83,7 +83,10 @@ void SLPDPropertyInit(const char* conffile)
     G_SlpdProperty.traceDATraffic = AsBoolean(SLPPropertyGet("net.slp.traceDATraffic"));
     G_SlpdProperty.DAAddresses = SLPPropertyGet("net.slp.DAAddresses");
     G_SlpdProperty.DAAddressesLen = strlen(G_SlpdProperty.DAAddresses);
-   
+    G_SlpdProperty.useScopes = SLPPropertyGet("net.slp.useScopes");
+    G_SlpdProperty.useScopesLen = strlen(G_SlpdProperty.useScopes);
+
+    
     /*-------------------------------------*/
     /* Set the net.slp.interfaces property */
     /*-------------------------------------*/
@@ -118,7 +121,7 @@ void SLPDPropertyInit(const char* conffile)
                         }
                         strcat((char*)G_SlpdProperty.interfaces,inet_ntoa(ifaddr));
                     }
-		}
+		        }
             }
         }
     }
@@ -126,22 +129,6 @@ void SLPDPropertyInit(const char* conffile)
     {
         G_SlpdProperty.interfacesLen = strlen(G_SlpdProperty.interfaces);
     }
-   
-
-    /*------------------------------------*/
-    /* Set the net.slp.useScopes property */
-    /*------------------------------------*/
-    G_SlpdProperty.useScopes = SLPPropertyGet("net.slp.useScopes");
-    if(*G_SlpdProperty.useScopes == 0)
-    {
-        G_SlpdProperty.useScopes = (const char*)strdup("DEFAULT");
-        if( G_SlpdProperty.useScopes == 0)
-        {
-            SLPFatal("slpd is out of memory\n");
-	}
-    }
-    G_SlpdProperty.useScopesLen = strlen(G_SlpdProperty.useScopes);
-    
    
     /*---------------------------------------------------------*/
     /* Set the value used internally as the url for this agent */

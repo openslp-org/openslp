@@ -413,14 +413,15 @@ void HandleStreamWrite(SLPDSocketList* list, SLPDSocket* sock)
 int main(int argc, char* argv[])
 /*=========================================================================*/
 {
-    
+    fd_set          savedreadfds;
+    fd_set          savedwritefds;
     fd_set          readfds;
     fd_set          writefds;
-    int             highfd      = 0;
-    int             fdcount     = 0;
-    SLPDSocket*     sock        = 0;
-    SLPDSocket*     del         = 0;
-    SLPDSocketList  socketlist  = {0,0};
+    int             highfd          = 0;
+    int             fdcount         = 0;
+    SLPDSocket*     sock            = 0;
+    SLPDSocket*     del             = 0;
+    SLPDSocketList  uasockets       = {0,0};
     
     /*------------------------------*/
     /* Make sure we are root        */
@@ -453,7 +454,7 @@ int main(int argc, char* argv[])
     /*--------------------------------------------------*/
     SLPDPropertyInit(G_SlpdCommandLine.cfgfile);
     SLPDDatabaseInit(G_SlpdCommandLine.regfile);
-    SLPDSocketInit(&socketlist);
+    SLPDSocketInit(&uasockets);
     
     /*---------------------------*/
     /* make slpd run as a daemon */
@@ -476,12 +477,60 @@ int main(int argc, char* argv[])
     /*------------------------------*/
     alarm(SLPD_AGE_TIMEOUT);
 
+    /*----------------------------------------------------------*/
+    /* Load the fdsets up with all of the sockets in the list   */
+    /*----------------------------------------------------------*/
+    highfd = 0;
+    FD_ZERO(&savedreadfds);
+    FD_ZERO(&savedwritefds);
+    sock = uasockets.head;
+    while(sock)
+    {
+        if(sock->fd > highfd)
+        {
+            highfd = sock->fd;
+        }
+
+        switch(sock->state)
+        {
+        case DATAGRAM_UNICAST:
+        case DATAGRAM_MULTICAST:
+            FD_SET(sock->fd,&savedreadfds);
+            break;
+            
+        case SOCKET_LISTEN:
+            if(uasockets.count < SLPD_MAX_SOCKETS)
+            {
+                FD_SET(sock->fd,&savedreadfds);
+            }
+            break;
+
+        case STREAM_READ:
+        case STREAM_FIRST_READ:
+            FD_SET(sock->fd,&savedreadfds);
+            break;
+
+        case STREAM_WRITE:
+        case STREAM_FIRST_WRITE:
+            FD_SET(sock->fd,&savedwritefds);
+            break;
+
+        case SOCKET_CLOSE:
+        default:
+            break;
+        }
+
+        sock = (SLPDSocket*)sock->listitem.next;
+    }
     
     /*-----------*/
     /* Main loop */
     /*-----------*/
     while(G_SIGTERM == 0)
     {
+        readfds  = savedreadfds;
+        writefds = savedwritefds;
+
         if(G_SIGHUP)
         {
             /* Reinitialize */
@@ -491,56 +540,10 @@ int main(int argc, char* argv[])
             SLPLog("Got SIGHUP reinitializing... \n");
             SLPDPropertyInit(G_SlpdCommandLine.cfgfile);
             SLPDDatabaseInit(G_SlpdCommandLine.regfile);
-            SLPDSocketInit(&socketlist);                
+            SLPDSocketInit(&uasockets);                
             G_SIGHUP = 0;
         }
 
-        /*--------------------------------------------------------*/
-        /* Load the fdsets up with all of the sockets in the list */
-        /*--------------------------------------------------------*/
-        highfd = 0;
-        FD_ZERO(&readfds);
-        FD_ZERO(&writefds);
-        sock = socketlist.head;
-        while(sock)
-        {
-            if(sock->fd > highfd)
-            {
-                highfd = sock->fd;
-            }
-
-            switch(sock->state)
-            {
-            case DATAGRAM_UNICAST:
-            case DATAGRAM_MULTICAST:
-                FD_SET(sock->fd,&readfds);
-                break;
-                
-            case SOCKET_LISTEN:
-                if(socketlist.count < SLPD_MAX_SOCKETS)
-                {
-                    FD_SET(sock->fd,&readfds);
-                }
-                break;
-    
-            case STREAM_READ:
-            case STREAM_FIRST_READ:
-                FD_SET(sock->fd,&readfds);
-                break;
-  
-            case STREAM_WRITE:
-            case STREAM_FIRST_WRITE:
-                FD_SET(sock->fd,&writefds);
-                break;
-
-            case SOCKET_CLOSE:
-            default:
-                break;
-            }
-    
-            sock = (SLPDSocket*)sock->listitem.next;
-        }
-        
         /*-----------------------------------------------*/
         /* Check to see if we we should age the database */
         /*-----------------------------------------------*/
@@ -559,7 +562,7 @@ int main(int argc, char* argv[])
         fdcount = select(highfd+1,&readfds,&writefds,0,0);
         if(fdcount > 0)
         {
-            sock = socketlist.head;
+            sock = uasockets.head;
             while(sock && fdcount)
             {
                 if(FD_ISSET(sock->fd,&readfds))
@@ -568,17 +571,17 @@ int main(int argc, char* argv[])
                     {
                     
                     case SOCKET_LISTEN:
-                        HandleSocketListen(&socketlist,sock);
+                        HandleSocketListen(&uasockets,sock);
                         break;
 
                     case DATAGRAM_UNICAST:
                     case DATAGRAM_MULTICAST:
-                        HandleDatagramRead(&socketlist,sock);
+                        HandleDatagramRead(&uasockets,sock);
                         break;                      
                 
                     case STREAM_READ:
                     case STREAM_FIRST_READ:
-                        HandleStreamRead(&socketlist,sock);
+                        HandleStreamRead(&uasockets,sock);
                         break;
 
                     default:
@@ -590,7 +593,7 @@ int main(int argc, char* argv[])
 
                 if(FD_ISSET(sock->fd,&writefds))
                 {
-                    HandleStreamWrite(&socketlist,sock);
+                    HandleStreamWrite(&uasockets,sock);
                     fdcount --;
                 }   
 
@@ -601,7 +604,7 @@ int main(int argc, char* argv[])
                 {
                     del = sock;
                     sock = (SLPDSocket*)sock->listitem.next;
-                    HandleSocketClose(&socketlist,del);
+                    HandleSocketClose(&uasockets,del);
                 }
                 else
                 {

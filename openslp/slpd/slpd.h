@@ -105,26 +105,27 @@ typedef struct _SLPDProperty
 /* structure that holds the value of all the properties slpd cares about   */
 /*=========================================================================*/
 {
-    int         myUrlLen;
-    const char* myUrl;
-    int         useScopesLen;
-    const char* useScopes; 
-    int         DAAddressesLen;
-    const char* DAAddresses;
-    int         interfacesLen;
-    const char* interfaces; 
-    int         isBroadcastOnly;
-    int         passiveDADetection;
-    int         activeDADetection; 
-    int         multicastTTL;
-    int         multicastMaximumWait;
-    int         unicastMaximumWait;  
-    int         randomWaitBound;
-    int         traceMsg;
-    int         traceReg;
-    int         traceDrop;
-    int         traceDATraffic;
-    int         isDA;
+    int             myUrlLen;
+    const char*     myUrl;
+    int             useScopesLen;
+    const char*     useScopes; 
+    int             DAAddressesLen;
+    const char*     DAAddresses;
+    unsigned long   DATimestamp;  /* here for convenience */
+    int             interfacesLen;
+    const char*     interfaces; 
+    int             isBroadcastOnly;
+    int             passiveDADetection;
+    int             activeDADetection; 
+    int             multicastTTL;
+    int             multicastMaximumWait;
+    int             unicastMaximumWait;  
+    int             randomWaitBound;
+    int             traceMsg;
+    int             traceReg;
+    int             traceDrop;
+    int             traceDATraffic;
+    int             isDA;
 }SLPDProperty;
 
 

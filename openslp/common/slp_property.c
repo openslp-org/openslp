@@ -157,6 +157,7 @@ int SetDefaultValues()
     result |= SLPPropertySet("net.slp.traceReg","false");
     result |= SLPPropertySet("net.slp.traceDrop","false");
     result |= SLPPropertySet("net.slp.traceDATraffic","false");
+    result |= SLPPropertySet("net.slp.interfaces","");
     result |= SLPPropertySet("notfound","");
 
     return result;

@@ -9,6 +9,9 @@ blank lines and include the date, developer's email, and change description.
 
 =============================================================================
 
+06/12/00 mpeterson@calderasystems.com
+Fixed 107022 - Seg Fault when net.slp.interfaces specified in slp.conf
+
 05/30/00 mpeterson@calderasystems.com
 Fixed make files so that a make clean is done before a make install
 

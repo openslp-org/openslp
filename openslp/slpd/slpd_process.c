@@ -34,6 +34,74 @@
 #include "slpd.h"
 
 /*-------------------------------------------------------------------------*/
+void ProcessSrvRqstError(SLPMessage message, SLPBuffer result, int errorcode)
+/*-------------------------------------------------------------------------*/
+{
+    int size;
+
+    /*--------------------------------*/
+    /* Send back a SrvRply with error */
+    /*--------------------------------*/
+    if(message->header.flags & SLP_FLAG_MCAST)
+    {
+        /* drop multicast SrvRqsts we can not answer */
+        result->end = result->start;   
+    }
+    else
+    {
+        /*-------------------------------------------------------------*/
+        /* ensure the buffer is big enough to handle the whole srvrply */
+        /*-------------------------------------------------------------*/
+        size = message->header.langtaglen + 18; /* 14 bytes for header     */
+                                                /*  2 bytes for error code */
+                                                /*  2 bytes for url count  */ 
+    
+        result = SLPBufferRealloc(result,size);
+        if(result == 0)
+        {
+            /* TODO: out of memory, should we do anything else here! */
+            result->end = result->start; 
+            return;               
+        }
+
+        /*----------------*/
+        /* Add the header */
+        /*----------------*/
+        /*version*/
+        *(result->start)       = 2;
+        /*function id*/
+        *(result->start + 1)   = SLP_FUNCT_SRVRPLY;
+        /*length*/
+        ToUINT24(result->start + 2, size);
+        /*flags*/
+        ToUINT16(result->start + 5,
+        size > SLP_MAX_DATAGRAM_SIZE ? SLP_FLAG_OVERFLOW : 0);
+        /*ext offset*/
+        ToUINT24(result->start + 7,0);
+        /*xid*/
+        ToUINT16(result->start + 10,message->header.xid);
+        /*lang tag len*/
+        ToUINT16(result->start + 12,message->header.langtaglen);
+        /*lang tag*/
+        memcpy(result->start + 14,
+        message->header.langtag,
+        message->header.langtaglen);
+
+        /*------------------------------------------*/
+        /* Add rest of the SrvRply (with errorcode) */
+        /*------------------------------------------*/
+        result->curpos = result->start + 14 + message->header.langtaglen;
+        /* error code*/
+        ToUINT16(result->curpos, errorcode);
+        result->curpos = result->curpos + 2;
+        /* urlentry count */
+        ToUINT16(result->curpos, 0);
+        result->curpos = result->curpos + 2;
+    }
+
+}
+
+/*-------------------------------------------------------------------------*/
 void ProcessSASrvRqst(SLPDPeerInfo* peerinfo,
 		      SLPMessage message,
 		      SLPBuffer result)
@@ -120,64 +188,7 @@ void ProcessSASrvRqst(SLPDPeerInfo* peerinfo,
     }
     else
     {
-        /*--------------------------------*/
-        /* Send back a SrvRply with error */
-        /*--------------------------------*/
-        if(message->header.flags & SLP_FLAG_MCAST)
-	{
-	    /* drop multicast SrvRqsts we can not answer */
-	    result->end = result->start;   
-	}
-        else
-	{
-	    /*-------------------------------------------------------------*/
-            /* ensure the buffer is big enough to handle the whole srvrply */
-            /*-------------------------------------------------------------*/
-            size = message->header.langtaglen + 18; /* 14 bytes for header     */
-                                            /*  2 bytes for error code */
-                                            /*  2 bytes for url count  */ 
-   
-            result = SLPBufferRealloc(result,size);
-            if(result == 0)
-            {
-                /* TODO: out of memory, what should we do here! */
-	        return;               
-            }
-
-            /*----------------*/
-            /* Add the header */
-            /*----------------*/
-            /*version*/
-            *(result->start)       = 2;
-            /*function id*/
-            *(result->start + 1)   = SLP_FUNCT_SRVRPLY;
-            /*length*/
-            ToUINT24(result->start + 2, size);
-            /*flags*/
-            ToUINT16(result->start + 5,
-            size > SLP_MAX_DATAGRAM_SIZE ? SLP_FLAG_OVERFLOW : 0);
-            /*ext offset*/
-            ToUINT24(result->start + 7,0);
-            /*xid*/
-            ToUINT16(result->start + 10,message->header.xid);
-            /*lang tag len*/
-            ToUINT16(result->start + 12,message->header.langtaglen);
-            /*lang tag*/
-            memcpy(result->start + 14,
-            message->header.langtag,
-            message->header.langtaglen);
-    
-            /*-------------------------*/
-            /* Add rest of the SrvRply */
-            /*-------------------------*/
-            result->curpos = result->start + 14 + message->header.langtaglen;
-            /* error code*/
-            ToUINT16(result->curpos, SLP_ERROR_SCOPE_NOT_SUPPORTED);
-            result->curpos = result->curpos + 2;
-            /* urlentry count */
-            ToUINT16(result->curpos, 0);
-            result->curpos = result->curpos + 2;
-        }
+        ProcessSrvRqstError(message, result, SLP_ERROR_SCOPE_NOT_SUPPORTED);
     }
 }
 
@@ -188,9 +199,111 @@ void ProcessDASrvRqst(SLPDPeerInfo* peerinfo,
 		      SLPBuffer result)
 /*-------------------------------------------------------------------------*/
 {
-    /* ignore all requests for DAs for now */
-    result->end = result->start;
+    int size = 0;
+   
+    if(message->body.srvrqst.scopelistlen == 0 ||
+       SLPStringListIntersect(message->body.srvrqst.scopelistlen,
+                              message->body.srvrqst.scopelist,
+                              G_SlpdProperty.useScopesLen,
+                              G_SlpdProperty.useScopes) != 0 )
+    {
+        /*----------------------*/
+        /* Send back a DAAdvert */
+        /*----------------------*/
+
+        /* increment the value for DATimestamp */
+        G_SlpdProperty.DATimestamp += 1;
+        if(G_SlpdProperty.DATimestamp == 0) 
+        {
+           G_SlpdProperty.DATimestamp = 1;
+        }  
+
+        /*-------------------------------------------------------------*/
+        /* ensure the buffer is big enough to handle the whole srvrply */
+        /*-------------------------------------------------------------*/
+        size = message->header.langtaglen + 29; /* 14 bytes for header     */
+                                                /*  2 errorcode  */
+                                                /*  4 bytes for timestamp */
+                                                /*  2 bytes for url len */
+                                                /*  2 bytes for scope list len */
+                                                /*  2 bytes for attr list len */
+                                                /*  2 bytes for spi str len */
+                                                /*  1 byte for authblock count */
+
+        size += G_SlpdProperty.myUrlLen;
+        size += G_SlpdProperty.useScopesLen;
+        /* TODO:  - we don't use attributes yet */
+        /* size += G_SlpdProperty.SAAttributes; */
+       
+        result = SLPBufferRealloc(result,size);
+        if(result == 0)
+        {
+	        /* TODO: out of memory, what should we do here! */
+	        return;
+        }
+
+        /*----------------*/
+        /* Add the header */
+        /*----------------*/
+        /*version*/
+        *(result->start)       = 2;
+        /*function id*/
+        *(result->start + 1)   = SLP_FUNCT_DAADVERT;
+        /*length*/
+        ToUINT24(result->start + 2, size);
+        /*flags*/
+        ToUINT16(result->start + 5,
+        size > SLP_MAX_DATAGRAM_SIZE ? SLP_FLAG_OVERFLOW : 0);
+        /*ext offset*/
+        ToUINT24(result->start + 7,0);
+        /*xid*/
+        ToUINT16(result->start + 10,message->header.xid);
+        /*lang tag len*/
+        ToUINT16(result->start + 12,message->header.langtaglen);
+        /*lang tag*/
+        memcpy(result->start + 14,
+               message->header.langtag,
+               message->header.langtaglen);
+        
+        /*--------------------------*/
+        /* Add rest of the DAAdvert */
+        /*--------------------------*/
+        result->curpos = result->start + 14 + message->header.langtaglen;
+        /* error code */
+        ToUINT16(result->curpos,0);
+        result->curpos = result->curpos + 2;
+        /* timestamp */
+        ToUINT32(result->curpos,G_SlpdProperty.DATimestamp);
+        /* url len */
+        ToUINT16(result->curpos, G_SlpdProperty.myUrlLen);
+        result->curpos = result->curpos + 2;
+        /* url */
+        memcpy(result->start,G_SlpdProperty.myUrl,G_SlpdProperty.myUrlLen);
+        result->curpos = result->curpos + G_SlpdProperty.myUrlLen;
+        /* scope list len */
+        ToUINT16(result->curpos, G_SlpdProperty.useScopesLen);
+        result->curpos = result->curpos + 2;
+        /* scope list */
+        memcpy(result->start,G_SlpdProperty.useScopes,G_SlpdProperty.useScopesLen);
+        result->curpos = result->curpos + G_SlpdProperty.useScopesLen;
+        /* attr list len */
+        /* ToUINT16(result->curpos,G_SlpdProperty.SAAttributesLen) */
+        ToUINT16(result->curpos, 0);
+        result->curpos = result->curpos + 2;
+        /* attr list */
+        /* memcpy(result->start,G_SlpdProperty.SAAttributes,G_SlpdProperty.SAAttributesLen) */
+        /* SPI List */
+        ToUINT16(result->curpos,0);
+        result->curpos = result->curpos + 2;
+        /* authblock count */
+        *(result->curpos) = 0;
+    }
+    else
+    {
+        ProcessSrvRqstError(message, result, SLP_ERROR_SCOPE_NOT_SUPPORTED);
+    }
 }
+
 
 /*-------------------------------------------------------------------------*/
 void ProcessSrvRqst(SLPDPeerInfo* peerinfo,
@@ -423,6 +536,8 @@ void ProcessSrvReg(SLPDPeerInfo* peerinfo,
     }
 
      
+
+
     /*------------------------------------------------------------*/
     /* ensure the buffer is big enough to handle the whole srvack */
     /*------------------------------------------------------------*/
@@ -584,7 +699,6 @@ void ProcessAttrRqst(SLPDPeerInfo* peerinfo,
         result->end = result->start;
         return;
     }
-    
     
     /*-------------------------------*/
     /* Find attributes in the database */
