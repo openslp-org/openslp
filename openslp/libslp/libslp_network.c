@@ -647,7 +647,7 @@ SLPError NetworkMcastRqstRply(const char* langtag,
         result = SLP_MEMORY_ALLOC_FAILED;
         goto FINISHED;
     }
-    if(SLPInterfaceGetInformation(NULL,&ifaceinfo))
+    if(SLPInterfaceGetInformation(SLPGetProperty("net.slp.interfaces"),&ifaceinfo))
     {
         result = SLP_NETWORK_ERROR;
         goto FINISHED;

@@ -72,7 +72,8 @@ int SLPInterfaceGetInformation(const char* useifaces,
  * Parameters:
  *     useifaces (IN) Pointer to comma delimited string of interface IPv4
  *                    addresses to get interface information for.  Pass
- *                    NULL to get all interfaces (excluding NULL)..
+ *                    NULL or empty string to get all interfaces (except 
+ *                    loopback)
  *     ifaceinfo (OUT) Information about requested interfaces.
  *
  * Returns:
