@@ -145,7 +145,7 @@ SLPDDatabaseEntry* SLPDRegFileReadEntry(FILE* fd, SLPDDatabaseEntry** entry)
         if((*entry)->url == 0)
         {
             SLPLog("Out of memory reading srvurl from regfile line ->%s",line);
-            goto ERROR;
+            goto SLPD_ERROR;
         }
         (*entry)->urllen = strlen((*entry)->url);
         
@@ -154,7 +154,7 @@ SLPDDatabaseEntry* SLPDRegFileReadEntry(FILE* fd, SLPDDatabaseEntry** entry)
         if((*entry)->srvtype == 0)
         {
             SLPLog("Looks like a bad url on regfile line ->%s",line);
-            goto ERROR;   
+            goto SLPD_ERROR;   
         }
         *(*entry)->srvtype = 0;
         (*entry)->srvtype=strdup(TrimWhitespace(slider1));
@@ -170,14 +170,14 @@ SLPDDatabaseEntry* SLPDRegFileReadEntry(FILE* fd, SLPDDatabaseEntry** entry)
             if((*entry)->langtag == 0)
             {
                 SLPLog("Out of memory reading langtag from regfile line ->%s",line);
-                goto ERROR;
+                goto SLPD_ERROR;
             }            (*entry)->langtaglen = strlen((*entry)->langtag);     
             slider1 = slider2 + 1;                                  
         }
         else
         {
             SLPLog("Expected language tag near regfile line ->%s\n",line);
-            goto ERROR;
+            goto SLPD_ERROR;
         }
              
         /* ltime */
@@ -196,7 +196,7 @@ SLPDDatabaseEntry* SLPDRegFileReadEntry(FILE* fd, SLPDDatabaseEntry** entry)
         if((*entry)->lifetime < 1 || (*entry)->lifetime > 0xffff)
         {
             SLPLog("Invalid lifetime near regfile line ->%s\n",line);
-            goto ERROR;
+            goto SLPD_ERROR;
         }
         
         /* get the srvtype if one was not derived by the srvurl*/
@@ -206,13 +206,13 @@ SLPDDatabaseEntry* SLPDRegFileReadEntry(FILE* fd, SLPDDatabaseEntry** entry)
             if((*entry)->srvtype == 0)
             {
                 SLPLog("Out of memory reading srvtype from regfile line ->%s",line);
-                goto ERROR;
+                goto SLPD_ERROR;
             }
             (*entry)->srvtypelen = strlen((*entry)->srvtype);
             if((*entry)->srvtypelen == 0)
             {
                 SLPLog("Expected to derive service-type near regfile line -> %s\n",line);
-                goto ERROR;
+                goto SLPD_ERROR;
             }
         }   
 
@@ -220,7 +220,7 @@ SLPDDatabaseEntry* SLPDRegFileReadEntry(FILE* fd, SLPDDatabaseEntry** entry)
     else
     {
         SLPLog("Expected to find srv-url near regfile line -> %s\n",line);
-        goto ERROR;
+        goto SLPD_ERROR;
     }
     
     /*-------------------------------------------------*/
@@ -257,14 +257,14 @@ SLPDDatabaseEntry* SLPDRegFileReadEntry(FILE* fd, SLPDDatabaseEntry** entry)
                     if((*entry)->scopelist)
                     {
                         SLPLog("scopes already defined previous to regfile line ->%s",line);
-                        goto ERROR;
+                        goto SLPD_ERROR;
                     }
 
                     (*entry)->scopelist=strdup(TrimWhitespace(slider2));
                     if((*entry)->scopelist == 0)
                     {
                         SLPLog("Out of memory adding scopes from regfile line ->%s",line);
-                        goto ERROR;
+                        goto SLPD_ERROR;
                     }
                     (*entry)->scopelistlen = strlen((*entry)->scopelist);
                 }
@@ -341,7 +341,7 @@ SLPDDatabaseEntry* SLPDRegFileReadEntry(FILE* fd, SLPDDatabaseEntry** entry)
             if((*entry)->attrlist == 0)
             {
                 SLPLog("Out of memory adding DEFAULT scope\n");
-                goto ERROR;
+                goto SLPD_ERROR;
             }
 
             strcat((*entry)->attrlist,"(");
@@ -359,14 +359,14 @@ SLPDDatabaseEntry* SLPDRegFileReadEntry(FILE* fd, SLPDDatabaseEntry** entry)
         if((*entry)->scopelist == 0)
         {
             SLPLog("Out of memory adding DEFAULT scope\n");
-            goto ERROR;
+            goto SLPD_ERROR;
         }
         (*entry)->scopelistlen = 7;
     }
 
     return *entry;
 
-ERROR:
+SLPD_ERROR:
     if(*entry)
     {
         FreeEntry(*entry);
