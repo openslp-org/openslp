@@ -70,7 +70,7 @@ int NetworkConnectToSlpd(struct sockaddr_storage* peeraddr)
 	}
 	if (sock < 0 && SLPNetIsIPV4()) {
 		int tempAddr = INADDR_LOOPBACK;
-		if (SLPNetSetAddr(peeraddr, AF_INET, SLP_RESERVED_PORT, (unsigned char *)tempAddr, 0) == 0)
+		if (SLPNetSetAddr(peeraddr, AF_INET, SLP_RESERVED_PORT, (unsigned char *)&tempAddr, 0) == 0)
 			sock = SLPNetworkConnectStream(peeraddr,NULL);
 	}
 	return sock;
