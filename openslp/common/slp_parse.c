@@ -164,6 +164,7 @@ int SLPParseSrvUrl(int srvurllen,
  *
  * $ gcc -g -DSLP_PARSE_TEST -DDEBUG slp_parse.c slp_xmalloc.c slp_linkedlist.c
  *==========================================================================*/
+//#define SLP_PARSE_TEST
 #ifdef SLP_PARSE_TEST 
 
 #define TESTSRVTYPE1    "service:printer.x"

@@ -217,8 +217,8 @@ int SLPIfaceGetInfo(const char* useifaces,
     //struct sockaddr_storage  ifaddr;
     int             useifaceslen;
     int             sts = 0;
-    struct addrinfo *hostnames;
-    struct addrinfo *currenthost;
+    struct addrinfo *hostnames = NULL;
+    struct addrinfo *currenthost = NULL;
 
     if(SLPNetGetThisHostname(myname,MAX_HOST_NAME, 0, family) == 0)
     {
@@ -427,7 +427,7 @@ int SLPIfaceStringToSockaddrs(const char* addrstr,
  *
  * $ gcc -g -DDEBUG slp_iface.c slp_xmalloc.c slp_linkedlist.c slp_compare.c
  *==========================================================================*/
-#define SLP_IFACE_TEST
+//#define SLP_IFACE_TEST
 #ifdef SLP_IFACE_TEST 
 int main(int argc, char* argv[])
 {

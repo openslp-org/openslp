@@ -205,7 +205,7 @@ int SLPMulticastSend(const SLPIfaceInfo* ifaceinfo,
             /* error setting socket option */
             return -1;
         }
-        SLPNetSetAddr(&(socks->peeraddr[socks->sock_count]), ifaceinfo[socks->sock_count].iface_addr->ss_family, SLP_RESERVED_PORT, (unsigned char *) ad, sizeof(ad));
+//        SLPNetSetAddr(&(socks->peeraddr[socks->sock_count]), ifaceinfo[socks->sock_count].iface_addr->ss_family, SLP_RESERVED_PORT, saddr, sizeof(saddr));
         xferbytes = sendto(socks->sock[socks->sock_count],
                            msg->start,
                            msg->end - msg->start,
@@ -391,6 +391,7 @@ int SLPXcastRecvMessage(const SLPXcastSockets* sockets,
  * $ gcc -g -DDEBUG -DSLP_XMIT_TEST slp_xcast.c slp_iface.c slp_buffer.c 
  *   slp_linkedlist.c slp_compare.c slp_xmalloc.c
  *==========================================================================*/ 
+//#define SLP_XMIT_TEST
 #ifdef SLP_XMIT_TEST
 main()
 {
@@ -398,13 +399,18 @@ main()
     SLPXcastSockets      socks;
     SLPBuffer           buffer;
 
+    #ifdef _WIN32
+    WSADATA wsadata;
+    WSAStartup(MAKEWORD(2,2), &wsadata);
+    #endif
+
     buffer = SLPBufferAlloc(SLP_MAX_DATAGRAM_SIZE);
     if(buffer)
     {
         
         strcpy(buffer->start,"testdata");
     
-        SLPIfaceGetInfo(NULL,&ifaceinfo);
+        SLPIfaceGetInfo(NULL,&ifaceinfo, AF_INET);
     
         if (SLPBroadcastSend(&ifaceinfo, buffer,&socks) !=0)
             printf("\n SLPBroadcastSend failed \n");
@@ -418,6 +424,9 @@ main()
 
         SLPBufferFree(buffer);
     }
+    #ifdef _WIN32
+    WSACleanup();
+    #endif
 }
 
 #endif
