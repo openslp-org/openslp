@@ -515,7 +515,7 @@ int SLPDKnownDAInit()
         /* TODO: some day we may put something here for DA to DA communication */
         
         /* Perform first passive DAAdvert */
-        SLPDKnownDAPassiveDAAdvert(0);
+        SLPDKnownDAPassiveDAAdvert(0,0);
         return 0;
     }
     
@@ -599,6 +599,8 @@ int SLPDKnownDADeinit()
         entry = (SLPDAEntry*)entry->listitem.next;
 
         SLPDKnownDARemove(del);
+
+        /* broadcast that we are going down */
     }
 
     return 0;
@@ -858,12 +860,16 @@ void SLPDKnownDAActiveDiscovery(int seconds)
 
 
 /*=========================================================================*/
-void SLPDKnownDAPassiveDAAdvert(int seconds)
+void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead)
 /* Send passive daadvert messages if properly configured and running as    */
 /* a DA                                                                    */
 /*	                                                                       */
 /* seconds (IN) number seconds that elapsed since the last call to this    */
 /*              function                                                   */
+/*                                                                         */
+/* dadead  (IN) nonzero if the DA is dead and a bootstamp of 0 should be   */
+/*              sent                                                       */
+/*                                                                         */
 /* Returns:  none                                                          */
 /*=========================================================================*/
 {
@@ -877,7 +883,7 @@ void SLPDKnownDAPassiveDAAdvert(int seconds)
         return;
     }
 
-    if(G_SlpdProperty.nextPassiveDAAdvert <= 0)
+    if(G_SlpdProperty.nextPassiveDAAdvert <= 0 || dadead)
     {
         G_SlpdProperty.nextPassiveDAAdvert = SLP_CONFIG_DA_BEAT;
         
@@ -900,7 +906,15 @@ void SLPDKnownDAPassiveDAAdvert(int seconds)
             /*-----------------------------------------------------------*/
             /* Make the daadvert and add the socket to the outgoing list */
             /*-----------------------------------------------------------*/
-            daentry.bootstamp = G_SlpdProperty.DATimestamp;
+            if(dadead)
+            {
+                daentry.bootstamp = 0;
+            }
+            else
+            {
+                daentry.bootstamp = G_SlpdProperty.DATimestamp;
+            }
+            
             daentry.langtaglen = G_SlpdProperty.localeLen;
             daentry.langtag = (char*)G_SlpdProperty.locale;
             daentry.urllen = G_SlpdProperty.myUrlLen;

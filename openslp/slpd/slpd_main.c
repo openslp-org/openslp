@@ -126,6 +126,9 @@ void Shutdown()
     timeout.tv_sec  = 5;
     timeout.tv_usec = 0; 
 
+    /* Do a dead DA passive advert to tell everyone we're goin' down */
+    SLPDKnownDAPassiveDAAdvert(0, 1);
+
     /* if possible wait until all outgoing socket are done and closed */
     while(SLPDOutgoingDeinit(1))
     {
@@ -458,7 +461,7 @@ int main(int argc, char* argv[])
             SLPDIncomingAge(SLPD_AGE_INTERVAL);
             SLPDOutgoingAge(SLPD_AGE_INTERVAL);
             SLPDDatabaseAge(SLPD_AGE_INTERVAL);
-            SLPDKnownDAPassiveDAAdvert(SLPD_AGE_INTERVAL);
+            SLPDKnownDAPassiveDAAdvert(SLPD_AGE_INTERVAL, 0);
             SLPDKnownDAActiveDiscovery(SLPD_AGE_INTERVAL);
             G_SIGALRM = 0;
             alarm(SLPD_AGE_INTERVAL);

@@ -753,12 +753,16 @@ void SLPDKnownDAActiveDiscovery(int seconds);
 
 
 /*=========================================================================*/
-void SLPDKnownDAPassiveDAAdvert(int seconds);
+void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead);
 /* Send passive daadvert messages if properly configured and running as    */
 /* a DA                                                                    */
 /*	                                                                       */
 /* seconds (IN) number seconds that elapsed since the last call to this    */
 /*              function                                                   */
+/*                                                                         */
+/* dadead  (IN) nonzero if the DA is dead and a bootstamp of 0 should be   */
+/*              sent                                                       */
+/*                                                                         */
 /* Returns:  none                                                          */
 /*=========================================================================*/
 

@@ -7,6 +7,9 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 11/21/00 mpeterson@caldera.com
+Send dead DAAdvert as part of graceful shutdown
+
+11/21/00 mpeterson@caldera.com
 DAs now echo local registrations to other DAs (slpd as a DA also acts like
 an SA for local API callers)
 
