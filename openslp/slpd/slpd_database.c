@@ -93,25 +93,34 @@ void SLPDDatabaseAge(int seconds, int ageall)
     entry = (SLPDDatabaseEntry*)G_DatabaseList.head;
     while(entry)
     {
-        /* don't age services with lifetime > SLP_LIFETIME_MAXIMUM unless  */
-		/* explicitly told to                                              */
-        if(ageall ||
-		   entry->lifetime < SLP_LIFETIME_MAXIMUM)
+        /*-----------------------------------------------------------*/
+		/* OK, if an entry is local and has a lifetime of 			 */
+		/* SLP_LIFETIME_MAXIMUM then it must never ever ever be aged */
+        /*-----------------------------------------------------------*/
+		if(!(entry->local && entry->lifetime == SLP_LIFETIME_MAXIMUM))
         {
-            entry->lifetime = entry->lifetime - seconds;
-            if(entry->lifetime <= 0)
-            {
-                del = entry;
-            }
-        }
-
-        entry = (SLPDDatabaseEntry*)entry->listitem.next;
-
-        if(del)
-        {
-            SLPDDatabaseEntryFree((SLPDDatabaseEntry*)SLPListUnlink(&G_DatabaseList,(SLPListItem*)del));
-            del = 0;
-        }
+            /*---------------------------------------------------------*/
+			/* don't age services with lifetime > SLP_LIFETIME_MAXIMUM */
+			/* unless explicitly told to                               */
+			/*---------------------------------------------------------*/
+			if(ageall ||
+			   entry->lifetime < SLP_LIFETIME_MAXIMUM)
+			{
+				entry->lifetime = entry->lifetime - seconds;
+				if(entry->lifetime <= 0)
+				{
+					del = entry;
+				}
+			}
+	
+			entry = (SLPDDatabaseEntry*)entry->listitem.next;
+	
+			if(del)
+			{
+				SLPDDatabaseEntryFree((SLPDDatabaseEntry*)SLPListUnlink(&G_DatabaseList,(SLPListItem*)del));
+				del = 0;
+			}
+		}
     }
 }
 
