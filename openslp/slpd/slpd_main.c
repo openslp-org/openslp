@@ -103,6 +103,55 @@ void LoadFdSets(SLPList* socklist,
 }
 
 
+/*------------------------------------------------------------------------*/
+void Shutdown()
+/*------------------------------------------------------------------------*/
+{
+    struct timeval  timeout;
+    fd_set          readfds;
+    fd_set          writefds;
+    int             highfd;
+    int             fdcount         = 0;
+
+    SLPLog("****************************************\n");
+    SLPLog("*** SLPD daemon stopped              ***\n");
+    SLPLog("****************************************\n");
+
+    /* close all incoming sockets */
+    SLPDIncomingDeinit();
+    
+    /* unregister with all DAs */
+    SLPDKnownDADeinit();
+    
+    timeout.tv_sec  = 5;
+    timeout.tv_usec = 0; 
+
+    /* if possible wait until all outgoing socket are done and closed */
+    while(SLPDOutgoingDeinit(1))
+    {
+        FD_ZERO(&writefds);
+        FD_ZERO(&readfds);
+        LoadFdSets(&G_OutgoingSocketList, &highfd, &readfds,&writefds);
+        fdcount = select(highfd+1,&readfds,&writefds,0,&timeout);
+        if(fdcount == 0)
+        {
+            break;
+        }
+        
+        SLPDOutgoingHandler(&fdcount,&readfds,&writefds);
+    }
+
+    SLPDOutgoingDeinit(0);
+    
+#ifdef DEBUG
+    SLPDDatabaseDeinit();
+    SLPDPropertyDeinit();
+    printf("Number of calls to SLPBufferAlloc() = %i\n",G_Debug_SLPBufferAllocCount);
+    printf("Number of calls to SLPBufferFree() = %i\n",G_Debug_SLPBufferFreeCount);
+#endif
+
+}
+
 #ifdef WIN32
 void __cdecl main(int argc, char **argv) 
 {
@@ -275,55 +324,6 @@ int Daemonize(const char* pidfile)
     }
 
     return 0;
-}
-
-/*------------------------------------------------------------------------*/
-void Shutdown()
-/*------------------------------------------------------------------------*/
-{
-    struct timeval  timeout;
-    fd_set          readfds;
-    fd_set          writefds;
-    int             highfd;
-    int             fdcount         = 0;
-
-    SLPLog("****************************************\n");
-    SLPLog("*** SLPD daemon stopped              ***\n");
-    SLPLog("****************************************\n");
-
-    /* close all incoming sockets */
-    SLPDIncomingDeinit();
-    
-    /* unregister with all DAs */
-    SLPDKnownDADeinit();
-    
-    timeout.tv_sec  = 5;
-    timeout.tv_usec = 0; 
-
-    /* if possible wait until all outgoing socket are done and closed */
-    while(SLPDOutgoingDeinit(1))
-    {
-        FD_ZERO(&writefds);
-        FD_ZERO(&readfds);
-        LoadFdSets(&G_OutgoingSocketList, &highfd, &readfds,&writefds);
-        fdcount = select(highfd+1,&readfds,&writefds,0,&timeout);
-        if(fdcount == 0)
-        {
-            break;
-        }
-        
-        SLPDOutgoingHandler(&fdcount,&readfds,&writefds);
-    }
-
-    SLPDOutgoingDeinit(0);
-    
-#ifdef DEBUG
-    SLPDDatabaseDeinit();
-    SLPDPropertyDeinit();
-    printf("Number of calls to SLPBufferAlloc() = %i\n",G_Debug_SLPBufferAllocCount);
-    printf("Number of calls to SLPBufferFree() = %i\n",G_Debug_SLPBufferFreeCount);
-#endif
-
 }
 
 /*=========================================================================*/
