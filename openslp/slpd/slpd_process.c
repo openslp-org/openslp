@@ -379,8 +379,10 @@ int ProcessSrvRqst(SLPMessage message,
         errorcode = ProcessDASrvRqst(message, sendbuf, errorcode);
         if (errorcode == 0)
         {
-            // Since we have an errorcode of 0, we were successful,
-            // and have already formed a response packet; return now.
+           /*
+           * Since we have an errorcode of 0, we were successful,
+            * and have already formed a response packet; return now.
+           */
             return errorcode;
         }
 
@@ -395,8 +397,10 @@ int ProcessSrvRqst(SLPMessage message,
         errorcode = ProcessSASrvRqst(message, sendbuf, errorcode);
         if (errorcode == 0)
         {
-            // Since we have an errorcode of 0, we were successful,
-            // and have already formed a response packet; return now.
+           /*
+           * Since we have an errorcode of 0, we were successful,
+            * and have already formed a response packet; return now.
+           */
             return errorcode;
         }
 
