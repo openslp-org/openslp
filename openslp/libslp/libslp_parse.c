@@ -134,16 +134,17 @@ SLPError SLPParseSrvURL(const char *pcSrvURL,
     while(*slider3 && *slider3 != '/' && *slider3 != ':') slider3++;
     if(slider3-slider2 < 1)
     {
-        /* no host part */
-        free(*ppSrvURL);
-        *ppSrvURL = 0;
-        return SLP_PARSE_ERROR;
+        /* no host part (this is okay according to RFC2609) */
+	(*ppSrvURL)->s_pcHost = 0;
     }
-    memcpy(slider1,slider2,slider3-slider2);
-    (*ppSrvURL)->s_pcHost = slider1;
-    slider1 = slider1 + (slider3 - slider2);
-    *slider1 = 0;  /* null terminate */
-    slider1 = slider1 + 1;
+    else
+    {
+	memcpy(slider1,slider2,slider3-slider2);
+	(*ppSrvURL)->s_pcHost = slider1;
+	slider1 = slider1 + (slider3 - slider2);
+	*slider1 = 0;  /* null terminate */
+	slider1 = slider1 + 1;
+    }
 
     /* parse out the port */
     if(*slider3 == ':')
