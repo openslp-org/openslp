@@ -1,5 +1,5 @@
 %define	ver 0.9.1
-%define	rel 1
+%define	rel 2
 %define	name openslp
 %define libver 0.0.3
 
@@ -113,6 +113,7 @@ fi
 %config /etc/slp.reg
 /etc/rc.d/init.d/slpd
 /usr/sbin/slpd
+/usr/bin/slptool
 
 
 %ChangeLog
