@@ -94,6 +94,20 @@ int SLPDParseCommandLine(int argc,char* argv[])
         {
             G_SlpdCommandLine.detach = 0;
         }
+		else if((strcmp(argv[i], "-v") == 0) 
+				|| (strcmp(argv[i], "-V") == 0)
+			   	|| (strcmp(argv[i], "-version") == 0))
+		{
+			printf("slpd version: %s\n", VERSION);
+			exit(1);
+		}
+		else if((strcmp(argv[i], "-h") == 0) 
+			   	|| (strcmp(argv[i], "-help") == 0)
+			   	|| (strcmp(argv[i], "--help") == 0))
+		{
+    		printf("USAGE: slpd [-d] [-c conf file] [-l log file] [-r reg file] [-v version]\n");
+			exit(1);
+		}
         else
         {
             goto USAGE;
@@ -103,7 +117,7 @@ int SLPDParseCommandLine(int argc,char* argv[])
     return 0;
 
     USAGE:
-    printf("USAGE: slpd [-d] [-c conf file] [-l log file] [-r reg file] \n");
+    printf("USAGE: slpd [-d] [-c conf file] [-l log file] [-r reg file] [-v version]\n");
     
     return 1;
 }
