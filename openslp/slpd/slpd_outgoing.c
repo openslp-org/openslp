@@ -65,26 +65,6 @@ void OutgoingStreamReconnect(SLPList* socklist, SLPDSocket* sock)
     } 
 }
 
-
-/*-------------------------------------------------------------------------*/
-void OutgoingDatagramWrite(SLPList* socklist, SLPDSocket* sock)
-/*-------------------------------------------------------------------------*/
-{
-    size_t bytestowrite = sock->sendbuf->end - sock->sendbuf->start;
-    if(bytestowrite > 0)
-    {
-        sendto(sock->fd,
-               sock->sendbuf->start,
-               bytestowrite,
-               0,
-               &(sock->peerinfo.peeraddr),
-               sock->peerinfo.peeraddrlen);
-    }
-
-    sock->state = SOCKET_CLOSE;
-}
-
-
 /*-------------------------------------------------------------------------*/
 void OutgoingStreamWrite(SLPList* socklist, SLPDSocket* sock)
 /*-------------------------------------------------------------------------*/
@@ -336,13 +316,6 @@ void SLPDOutgoingAge(time_t seconds)
     {
         switch (sock->state)
         {
-        case DATAGRAM_UNICAST:
-        case DATAGRAM_MULTICAST:
-        case DATAGRAM_BROADCAST:
-            OutgoingDatagramWrite(&G_OutgoingSocketList,sock);
-            break;
-
-
         case STREAM_CONNECT_BLOCK:
             sock->age = sock->age + 1;
             if (sock->age > G_SlpdProperty.unicastMaximumWait)
