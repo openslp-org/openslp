@@ -1,2 +1,0 @@
-You must copy the debian directory to the top of the openslp project and
-run debian/rules binary to create debian packages.
