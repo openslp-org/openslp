@@ -63,7 +63,7 @@
 #include <winsock2.h>
 #endif
 
-#define SLP_MAX_IFACES 10
+#define SLP_MAX_IFACES 100
 
 /*=========================================================================*/
 typedef struct _SLPInterfaceInfo

@@ -57,6 +57,8 @@
 #include <errno.h>
 //#if(_WIN32_WINNT >= 0x0400 && _WIN32_WINNT < 0x0500) 
 #include <ws2tcpip.h>
+#include <iptypes.h>
+#include <iphlpapi.h>
 //#endif
 #include "slp_win32.h"
 #define ETIMEDOUT 110
@@ -98,24 +100,6 @@ extern const struct in6_addr in6addr_service_site_mask;
 #define SLP_SCOPE_SITE_LOCAL                0x03
 #define SLP_SCOPE_ORG_LOCAL                 0x04
 #define SLP_SCOPE_GLOBAL                    0x05
-
-/*-------------------------------------------------------------------------*/
-int SLPNetGetThisHostname(char* hostfdn, unsigned int hostfdnLen, int numeric_only, int family);
-/* 
- * Description:
- *    Returns a string represting this host (the FDN) or null.                                                     
- *
- * Parameters:
- *    hostfdn   (OUT) pointer to char pointer that is set to buffer 
- *                    contining this machine's FDN.  Caller must free
- *                    returned string with call to xfree()
- *    numeric_only (IN) force return of numeric address.  
- *
- *     family    (IN) Hint family to get info for - can be AF_INET, AF_INET6, 
- *                    or AF_UNSPEC for both
- *-------------------------------------------------------------------------*/
-
-
 
 /*-------------------------------------------------------------------------*/
 int SLPNetResolveHostToAddr(const char* host,
@@ -192,8 +176,21 @@ int SLPNetIsLocal(const struct sockaddr_storage *addr);
  * Parameters:
  *  (in) addr  Address to be tested to see if local
  *
- * Returns: non-zero if address is a local address, 0 if not multicast
+ * Returns: non-zero if address is a local address, 0 if not local
  *-------------------------------------------------------------------------*/
+
+int SLPNetIsLoopback(const struct sockaddr_storage *addr);
+/*
+ * Description:
+ *    Used to determine if the specified sockaddr_storage is a loopback address
+ *    
+ *
+ * Parameters:
+ *  (in) addr  Address to be tested to see if loopback
+ *
+ * Returns: non-zero if address is a local address, 0 if not loopback
+ *-------------------------------------------------------------------------*/
+
 
 int SLPNetSetAddr(struct sockaddr_storage *addr, const int family, const short port, const unsigned char *address, const int addrLen);
 /*

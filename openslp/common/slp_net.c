@@ -67,59 +67,6 @@ const struct in6_addr in6addr_service_link_mask = { 0xFF,0x2,0x0,0x0,0x0,0x0,0x0
 const struct in6_addr in6addr_service_site_mask = { 0xFF,0x5,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x1,0x00,0x00 };
 
 /*-------------------------------------------------------------------------*/
-int SLPNetGetThisHostname(char* hostfdn, unsigned int hostfdnLen, int numeric_only, int family)
-/* 
- * Description:
- *    Returns a string represting this host (the FDN) or null.                                                     
- *
- * Parameters:
- *    hostfdn   (OUT) pointer to char pointer that is set to buffer 
- *                    contining this machine's FDN.  Caller must free
- *                    returned string with call to xfree()
- *    numeric_only (IN) force return of numeric address.  
- *
- *     family    (IN) Hint family to get info for - can be AF_INET, AF_INET6, 
- *                    or AF_UNSPEC for both
- *     
- *-------------------------------------------------------------------------*/
-{
-    char host[MAX_HOST_NAME];
-    struct addrinfo *ifaddr;
-    struct addrinfo hints;
-    int sts = 0;
-
-    *hostfdn = 0;
-
-    memset(&hints, 0, sizeof(hints));
-    hints.ai_socktype = SOCK_STREAM;
-    hints.ai_family = family;
-    if(gethostname(host, MAX_HOST_NAME) == 0)
-    {
-        sts = getaddrinfo(host, NULL, &hints, &ifaddr);
-        if (sts == 0) {
-            /* if the hostname has a '.' then it is probably a qualified 
-             * domain name.  If it is not then we better use the IP address
-            */ 
-            if(!numeric_only && strchr(host, '.'))
-            {
-                 strncpy(hostfdn, host, hostfdnLen);
-            }
-            else
-            {   
-                sts = SLPNetAddrInfoToString(ifaddr,  hostfdn, hostfdnLen);
-            }
-            freeaddrinfo(ifaddr);
-        }
-    }
-    else {
-        /* problable cause - not calling wsastartup in windows */
-        assert(1);
-        sts = -1;
-    }
-    return(sts);
-}
-
-/*-------------------------------------------------------------------------*/
 int SLPNetResolveHostToAddr(const char* host,
                             struct sockaddr_storage* addr)
 /* 
@@ -220,25 +167,46 @@ int SLPNetIsMCast(const struct sockaddr_storage *addr) {
         }
     }
     else if (addr->ss_family == AF_INET6) {
-        IN6_IS_ADDR_MULTICAST((struct in6_addr *)addr);
+        struct sockaddr_in6 *v6 = (struct sockaddr_in6 *) addr;
+        IN6_IS_ADDR_MULTICAST(&v6->sin6_addr);
     }
 	return(0);
 }
 
 int SLPNetIsLocal(const struct sockaddr_storage *addr) {
+    DWORD sts = 0;
     if (addr->ss_family == AF_INET) {
         struct sockaddr_in *v4 = (struct sockaddr_in *) addr;
         if ((ntohl(v4->sin_addr.S_un.S_addr) & 0xff000000) == 0x7f000000) {
-            return(1);
+            sts = 1;
         }
         else {
-            return(0);
+            sts = 0;
         }
     }
     else if (addr->ss_family == AF_INET6) {
-        IN6_IS_ADDR_LINKLOCAL((struct in6_addr *)addr);
+        struct sockaddr_in6 *v6 = (struct sockaddr_in6 *) addr;
+        sts = IN6_IS_ADDR_LINKLOCAL(&v6->sin6_addr);
     }
-	return(0);
+	return(sts);
+}
+
+int SLPNetIsLoopback(const struct sockaddr_storage *addr) {
+    DWORD sts = 0;
+    if (addr->ss_family == AF_INET) {
+        struct sockaddr_in *v4 = (struct sockaddr_in *) addr;
+        if ((ntohl(v4->sin_addr.S_un.S_addr) == INADDR_LOOPBACK)) {
+            sts = 1;
+        }
+        else {
+            sts = 0;
+        }
+    }
+    else if (addr->ss_family == AF_INET6) {
+        struct sockaddr_in6 *v6 = (struct sockaddr_in6 *) addr;
+        sts = IN6_IS_ADDR_LOOPBACK(&v6->sin6_addr);
+    }
+	return(sts);
 }
 
 /* returns the ipv6 scope of the address */
