@@ -3,7 +3,7 @@
 <PROJECT>
   <MACROS>
     <VERSION value="BCB.06.00"/>
-    <PROJECT value="C:\SLTNG\bin\slp.dll"/>
+    <PROJECT value="slp.dll"/>
     <OBJFILES value="..\..\libslp\libslp_thread.obj ..\..\libslp\libslp_delattrs.obj 
       ..\..\libslp\libslp_dereg.obj ..\..\libslp\libslp_findattrs.obj 
       ..\..\libslp\libslp_findscopes.obj ..\..\libslp\libslp_findsrvs.obj 
@@ -47,8 +47,8 @@
     <OTHERFILES value=""/>
   </MACROS>
   <OPTIONS>
-    <IDLCFLAGS value="-I$(BCB)\include -I..\..\common -I..\..\libslp -src_suffix cpp -DSTRICT 
-      -DLIBSLP_EXPORTS -DSLP_VERSION=&quot;1.0.5&quot; -DHAVE_STDINT_H -D_DEBUG -boa"/>
+    <IDLCFLAGS value="-src_suffix cpp -DSTRICT -DLIBSLP_EXPORTS -DSLP_VERSION=&quot;1.0.5&quot; 
+      -DHAVE_STDINT_H -D_DEBUG -I$(BCB)\include -I..\..\common -I..\..\libslp -boa"/>
     <CFLAG1 value="-WD -Od -Vx -Ve -X- -r- -a8 -b- -k -y -v -vi- -tWD -tWM -c"/>
     <PFLAGS value="-$YD -$W -$O- -$A8 -v -JPHNE -M"/>
     <AFLAGS value="/mx /w2 /zi"/>
@@ -167,7 +167,7 @@ RunParams=
 Launcher=
 UseLauncher=0
 DebugCWD=
-HostApplication=c:\sltng\bin\slcontacts.exe
+HostApplication=
 RemoteHost=
 RemotePath=
 RemoteLauncher=
