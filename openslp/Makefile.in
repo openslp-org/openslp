@@ -73,8 +73,10 @@ LN_S = @LN_S@
 MAKEINFO = @MAKEINFO@
 OBJDUMP = @OBJDUMP@
 PACKAGE = @PACKAGE@
+RPM_PREFIX = @RPM_PREFIX@
 VERSION = @VERSION@
 prefix = @prefix@
+sysconfdir = @sysconfdir@
 
 SUBDIRS = common slpd libslp
 DOC_DIR = $(prefix)/doc/openslp-$(VERSION)
@@ -335,8 +337,9 @@ maintainer-clean-generic clean mostlyclean distclean maintainer-clean
 
 
 install-data-local:
-	cp -f etc/slp.reg	/etc
-	cp -f etc/slp.conf	/etc
+	mkdir -p $(sysconfdir)
+	cp -f etc/slp.reg	$(sysconfdir)
+	cp -f etc/slp.conf	$(sysconfdir)
 	rm -rf $(DOC_DIR)
 	mkdir -p $(DOC_DIR)/IntroductionToSLP
 	mkdir -p $(DOC_DIR)/UsersGuide

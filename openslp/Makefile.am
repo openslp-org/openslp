@@ -9,8 +9,9 @@ RANLIB	= @RANLIB@
 INCLUDEDIR	=	common/ slpd/	
 
 install-data-local:
-	cp -f etc/slp.reg	/etc
-	cp -f etc/slp.conf	/etc
+	mkdir -p $(sysconfdir)
+	cp -f etc/slp.reg	$(sysconfdir)
+	cp -f etc/slp.conf	$(sysconfdir)
 	rm -rf $(DOC_DIR)
 	mkdir -p $(DOC_DIR)/IntroductionToSLP
 	mkdir -p $(DOC_DIR)/UsersGuide

@@ -2,16 +2,27 @@ dnl ***********************************************************************
 dnl Process this file with autoconf to produce a configure script.
 dnl ***********************************************************************
 AC_INIT(slpd/slpd_main.c)
-AM_INIT_AUTOMAKE(slp, 0.7.0)
+AM_INIT_AUTOMAKE(slp, 0.7.1)
 
 dnl ***********************************************************************
-dnl Take care of directory stuff
+dnl Default location
 dnl ***********************************************************************
-prefix="/usr"
-AC_SUBST(prefix)
+ac_default_prefix=/usr
+
+dnl ***********************************************************************
+dnl Take care of directory stuff and rpm stuff
+dnl ***********************************************************************
 AC_ARG_WITH(rpm-prefix,
-[  --with-rpm-prefix=DIR      The prefix where rpm-devel was installed (/usr)],
-,[with_rpm_prefix=/usr])
+[  --with-rpm-prefix=DIR   prefix where rpm-devel was installed],
+)
+RPM_PREFIX="$with_rpm_prefix"
+AC_SUBST(RPM_PREFIX)
+prefix='${RPM_PREFIX}/usr'
+AC_SUBST(prefix)
+
+sysconfdir='${RPM_PREFIX}/etc'
+AC_SUBST(sysconfdir)
+
 
 dnl ***********************************************************************
 dnl Checks for programs.
