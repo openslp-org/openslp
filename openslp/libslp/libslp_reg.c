@@ -152,8 +152,8 @@ SLPError ProcessSrvReg(PSLPHandleInfo handle)
     {
         sock = NetworkConnectToDA(handle->params.reg.scopelist,
                                   handle->params.reg.scopelistlen,
-                                  &peeraddr);
-
+                                  &peeraddr); 
+        if(sock < 0)
         {
             result = SLP_NETWORK_INIT_FAILED;
             goto FINISHED;
