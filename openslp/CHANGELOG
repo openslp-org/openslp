@@ -9,6 +9,10 @@ blank lines and include the date, developer's email, and change description.
 
 =============================================================================
 
+06/13/00 david.mccormack@ottawa.com
+Added in SLPUnescape function, and changed the documentation to reflect 
+it.
+
 *** TAG OpenSLP 0.6.7 ***
 
 06/12/00 mpeterson@calderasystems.com
