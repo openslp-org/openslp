@@ -7,6 +7,14 @@
 #	  Modified for COL by Raymund Will, <ray@lst.de>
 # 	  Modified for OpenSLP by Matt Peterson <mpeterson@calderasystems.com>
 #
+### BEGIN INIT INFO
+# Provides:
+# Required-Start:
+# Required-Stop:
+# Default-Start: <run level 3> <run level 4> <run level 5>
+# Default-Stop: <run level 0> <run level 1> <run level 2> <run level 6>
+# Description: gpm - General Purpose Mouse
+### END INIT INFO 
 
 NAME=slpd
 DAEMON=/usr/sbin/$NAME
