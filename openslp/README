@@ -1,3 +1,15 @@
+README OpenSLP release 0.7.5
+----------------------------
+For thos of you that are interested in using OpenSLP on Windows.  Please
+read the README.W32 file that is included in the distribution for extra
+Win32 build and install instructions.
+
+Be aware that the libslp minor version was updated because of the code that
+was added to support SLPFindSrvTypes().  The additional code should probably
+not cause any dynamic linking problems as the libslp interface has not
+changed.
+
+
 README OpenSLP release 0.7.4
 ----------------------------
 For several reasons, a public release of 0.7.3 will not be made available.

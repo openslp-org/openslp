@@ -1,9 +1,11 @@
 NEWS - list of user-visible changes between releases of OpenSLP
 
-New in openslp-0.7.5: (2000-??-??)
+New in openslp-0.7.5: (2000-09-08)
 ----------------------------------
+* OpenSLP ported to Win32.
 * SLPFindSrvTypes() now works!
 * libslp minor version updated.
+
 
 New in openslp-0.7.4: (2000-09-01)
 ----------------------------------
