@@ -26,13 +26,14 @@
 Developer CVS Access via SSH</h3>
 Only project developers (developers approved by <a href="mailto:mpeterson@caldera.com">the
 OpenSLP Maintainer</a>) can access the CVS tree via this method.&nbsp;
-SSH1 must be installed on your client machine.&nbsp; Substitute modulename
-(see <a href="#cvs modules">CVS Modules</a> section below) and developername
+SSH1 must be installed on your client machine.&nbsp; Substitute <tt>modulename</tt>
+(see <a href="#cvs modules">CVS Modules</a> section below) and <tt>developername</tt>
 with the proper values. Enter your site password when prompted.
+<br>&nbsp;
 <blockquote><tt>$ export CVS_RSH=ssh</tt>
 <br><tt>$ cvs -z3 -d:ext:developername@cvs.openslp.sourceforge.net:/cvsroot/openslp
 co modulename</tt>
-<br>&nbsp;</blockquote>
+<br><tt></tt>&nbsp;</blockquote>
 
 <h3>
 Anonymous CVS Access</h3>
@@ -45,15 +46,15 @@ for anonymous, simply press the Enter key.
 login</tt>
 <br><tt>$ cvs -z3 -d:pserver:anonymous@cvs.openslp.sourceforge.net:/cvsroot/openslp
 co modulename</tt>
-<br>&nbsp;</blockquote>
+<br><tt></tt>&nbsp;</blockquote>
 
 <h3>
 CVS Branches</h3>
 There is currently one branch in the OpenSLP CVS.&nbsp; At the time of
-the OpenSLP 1.0.0 release, the main module (openslp)&nbsp;was branched
-to stable-1-0.&nbsp; In order to check out the stable branch, follow the
-instructions above but add a <tt>-rstable-1-0</tt> after the <tt>co</tt>
-command like this:
+the OpenSLP 1.0.0 release, the main module (openslp) was branched to stable-1-0.&nbsp;
+In order to check out the stable branch, follow the instructions above
+but add a <tt>-rstable-1-0</tt> after the <tt>co</tt> command like this:
+<br>&nbsp;
 <blockquote><tt>$ cvs -z3 -d:ext:developername@cvs.openslp.sourceforge.net:/cvsroot/openslp
 co -rstable-1-0 openslp</tt>
 <br><tt></tt>&nbsp;</blockquote>
@@ -87,7 +88,7 @@ links to browse CVS source):
 
 <tr NOSAVE>
 <td NOSAVE>
-<blockquote><a href="http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/openslp/openslp-contrib/">openslp-contrib</a></blockquote>
+<blockquote><a href="http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/openslp/openslp.contrib/">openslp-contrib</a></blockquote>
 </td>
 
 <td>
@@ -97,7 +98,7 @@ links to browse CVS source):
 
 <tr>
 <td>
-<blockquote><a href="http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/openslp/openslp-web/">openslp-web</a></blockquote>
+<blockquote><a href="http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/openslp/openslp.web/">openslp-web</a></blockquote>
 </td>
 
 <td>
@@ -107,7 +108,7 @@ links to browse CVS source):
 
 <tr>
 <td>
-<blockquote><a href="http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/openslp/openslp-misc">openslp-misc</a></blockquote>
+<blockquote><a href="http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/openslp/openslp.misc/">openslp-misc</a></blockquote>
 </td>
 
 <td>
