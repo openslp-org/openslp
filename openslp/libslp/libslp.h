@@ -307,4 +307,17 @@ int KnownDAConnect(int scopelistlen,
 /* returns: valid socket file descriptor or -1 if no DA is found           */
 /*=========================================================================*/
 
+/*=========================================================================*/
+int KnownDAGetScopes(int* scopelistlen,
+                     char** scopelist);
+/* Gets a list of scopes from the known DA list                            */
+/*                                                                         */
+/* scopelistlen (OUT) stringlen of the scopelist                           */
+/*                                                                         */
+/* scopelist (OUT) NULL terminated list of scopes                          */
+/*                                                                         */
+/* returns: zero on success, non-zero on failure                           */
+/*=========================================================================*/
+
+
 #endif

@@ -147,75 +147,104 @@ int ProcessDASrvRqst(struct sockaddr_in* peeraddr,
 /*-------------------------------------------------------------------------*/
 {
     SLPDAEntry      daentry;
+    SLPBuffer       tmp     = 0;
     SLPDAEntry*     entry   = 0;
+    void*           i       = 0;
 
+    /* set up local data */
     memset(&daentry,0,sizeof(daentry));
-    entry = &daentry;
-    
-    if(errorcode == 0)
-    {
-        if(ISLOCAL(peeraddr->sin_addr))
-        {        
-            /*---------------------------------------------------------------------*/
-            /* Special case for when libslp asks slpd (through the loopback) about */
-            /* a DA                                                                */
-            /*---------------------------------------------------------------------*/    
-            entry = SLPDKnownDAFindRandomEntry(message->body.srvrqst.scopelistlen,
-                                               message->body.srvrqst.scopelist); 
-            if(entry == 0)
+
+    /*---------------------------------------------------------------------*/
+    /* Special case for when libslp asks slpd (through the loopback) about */
+    /* a known DAs. Fill sendbuf with DAAdverts from all known DAs.        */
+    /*---------------------------------------------------------------------*/    
+    if(ISLOCAL(peeraddr->sin_addr))
+    {        
+        /* TODO: be smarter about how much memory is allocated here! */
+        /* 4096 may not be big enough to handle all DAAdverts        */
+        *sendbuf = SLPBufferRealloc(*sendbuf, 4096);
+        if(*sendbuf == 0)
+        {
+            errorcode = SLP_ERROR_INTERNAL_ERROR;
+        }
+        
+        if(errorcode == 0)
+        {
+            while(SLPDKnownDAEnum(&i,&entry) == 0)
             {
-                entry = &daentry;
+                  if(SLPDKnownDAEntryToDAAdvert(errorcode,
+                                                message->header.xid,
+                                                entry,
+                                                &tmp) == 0)
+                  {
+                      if(((*sendbuf)->curpos) + (tmp->end - tmp->start) > (*sendbuf)->end)
+                      {
+                          break;
+                      }
+    
+                      memcpy((*sendbuf)->curpos, tmp->start, tmp->end - tmp->start);
+                      (*sendbuf)->curpos = ((*sendbuf)->curpos) + (tmp->end - tmp->start);
+                  }
             }
+    
+            if(tmp)
+            {
+                SLPBufferFree(tmp);
+            }
+        }
+    
+        return errorcode;
+    }
+    
+    
+    /*---------------------------------------------------------------------*/
+    /* Normal case where a remote Agent asks for a DA                      */
+    /*---------------------------------------------------------------------*/    
+    if(G_SlpdProperty.isDA)
+    {
+        if(message->body.srvrqst.scopelistlen == 0 ||
+           SLPIntersectStringList(message->body.srvrqst.scopelistlen, 
+                                  message->body.srvrqst.scopelist,
+                                  G_SlpdProperty.useScopesLen,
+                                  G_SlpdProperty.useScopes) )
+        {
+            /* fill out real structure */
+            daentry.bootstamp = G_SlpdProperty.DATimestamp;
+            daentry.langtaglen = G_SlpdProperty.localeLen;
+            daentry.langtag = (char*)G_SlpdProperty.locale;
+            daentry.urllen = G_SlpdProperty.myUrlLen;
+            daentry.url = (char*)G_SlpdProperty.myUrl;
+            daentry.scopelistlen = G_SlpdProperty.useScopesLen;
+            daentry.scopelist = (char*)G_SlpdProperty.useScopes;
+            daentry.attrlistlen = 0;
+            daentry.attrlist = 0;
+            daentry.spilistlen = 0;
+            daentry.spilist = 0;
         }
         else
         {
-            if(G_SlpdProperty.isDA)
-            {
-                if(message->body.srvrqst.scopelistlen == 0 ||
-                   SLPIntersectStringList(message->body.srvrqst.scopelistlen, 
-                                          message->body.srvrqst.scopelist,
-                                          G_SlpdProperty.useScopesLen,
-                                          G_SlpdProperty.useScopes) )
-                {
-                    /* fill out real structure */
-                    daentry.bootstamp = G_SlpdProperty.DATimestamp;
-                    daentry.langtaglen = G_SlpdProperty.localeLen;
-                    daentry.langtag = (char*)G_SlpdProperty.locale;
-                    daentry.urllen = G_SlpdProperty.myUrlLen;
-                    daentry.url = (char*)G_SlpdProperty.myUrl;
-                    daentry.scopelistlen = G_SlpdProperty.useScopesLen;
-                    daentry.scopelist = (char*)G_SlpdProperty.useScopes;
-                    daentry.attrlistlen = 0;
-                    daentry.attrlist = 0;
-                    daentry.spilistlen = 0;
-                    daentry.spilist = 0;
-                }
-                else
-                {
-                    errorcode =  SLP_ERROR_SCOPE_NOT_SUPPORTED;
-                }
-            }
-            else
-            {
-                errorcode = SLP_ERROR_MESSAGE_NOT_SUPPORTED;       
-            }
+            errorcode =  SLP_ERROR_SCOPE_NOT_SUPPORTED;
         }
-    } 
-
+    }
+    else
+    {
+        errorcode = SLP_ERROR_MESSAGE_NOT_SUPPORTED;       
+    }
+    
     /* don't return errorcodes to multicast messages */
-    if(errorcode)
+    if(errorcode == 0)
     {
         if(message->header.flags & SLP_FLAG_MCAST ||
            ISMCAST(peeraddr->sin_addr) )
         {
             (*sendbuf)->end = (*sendbuf)->start;
-            return 0;  
+             return errorcode;
         }
     }
 
     errorcode = SLPDKnownDAEntryToDAAdvert(errorcode,
                                            message->header.xid,
-                                           entry,
+                                           &daentry,
                                            sendbuf);
 
     return errorcode;

@@ -272,11 +272,7 @@ SLPError NetworkRqstRply(int sock,
     SLPBuffer           recvbuf         = 0;
     SLPMessage          msg             = 0;
     SLPError            result          = 0;
-#ifdef WIN32 /* on WIN32 setsockopt takes a const char * argument */
-    char                socktype        = 0;
-#else
-    int                 socktype        = 0;
-#endif
+    int                 looprecv        = 0;
     int                 langtaglen      = 0;
     int                 prlistlen       = 0;
     char*               prlist          = 0;
@@ -287,6 +283,11 @@ SLPError NetworkRqstRply(int sock,
     int                 rplycount       = 0;
     int                 maxwait         = 0;
     int                 totaltimeout    = 0;
+#ifdef WIN32 /* on WIN32 setsockopt takes a const char * argument */
+    char                socktype        = 0;
+#else
+    int                 socktype        = 0;
+#endif
     int                 timeouts[MAX_RETRANSMITS];
 
     
@@ -303,18 +304,6 @@ SLPError NetworkRqstRply(int sock,
         goto CLEANUP;
     }
 
-    if(buftype == SLP_FUNCT_DASRVRQST)
-    {
-        /* do something special for SRVRQST that will be discovering DAs */
-        maxwait = SLPPropertyAsInteger(SLPGetProperty("net.slp.DADiscoveryMaximumWait"));
-        SLPPropertyAsIntegerVector(SLPGetProperty("net.slp.DADiscovertTimeouts"),
-                                   timeouts,
-                                   MAX_RETRANSMITS );
-        /* SLP_FUNCT_DASRVRQST is a fake function.  We really want to */
-        /* send a SRVRQST                                             */
-        buftype = SLP_FUNCT_SRVRQST;
-    }
-     
     /* Figure unicast/multicast,TCP/UDP, wait and time out stuff */
     if(ISMCAST(destaddr->sin_addr) )
     {
@@ -323,8 +312,9 @@ SLPError NetworkRqstRply(int sock,
         SLPPropertyAsIntegerVector(SLPGetProperty("net.slp.multicastTimeouts"), 
                                    timeouts, 
                                    MAX_RETRANSMITS );
-        socktype = SOCK_DGRAM;
         xmitcount = 0;
+        looprecv = 1;
+        socktype = SOCK_DGRAM;
     }
     else
     {
@@ -337,25 +327,47 @@ SLPError NetworkRqstRply(int sock,
         if(socktype == SOCK_DGRAM)
         {
             xmitcount = 0;
+            looprecv  = 1;
         }
         else
         {
             xmitcount = MAX_RETRANSMITS;
+            looprecv  = 0;
         }
-    }   
+    }
+
+    /* Special case for fake SLP_FUNCT_DASRVRQST */
+    if(buftype == SLP_FUNCT_DASRVRQST)
+    {
+        /* do something special for SRVRQST that will be discovering DAs */
+        maxwait = SLPPropertyAsInteger(SLPGetProperty("net.slp.DADiscoveryMaximumWait"));
+        SLPPropertyAsIntegerVector(SLPGetProperty("net.slp.DADiscovertTimeouts"),
+                                   timeouts,
+                                   MAX_RETRANSMITS );
+        /* SLP_FUNCT_DASRVRQST is a fake function.  We really want to */
+        /* send a SRVRQST                                             */
+        buftype  = SLP_FUNCT_SRVRQST;
+        looprecv = 1;
+    }
     
     
     /*--------------------------------*/
     /* Allocate memory for the prlist */
     /*--------------------------------*/
-    prlist = (char*)malloc(mtu);
-    if(prlist == 0)
+    if( buftype == SLP_FUNCT_SRVRQST ||
+        buftype == SLP_FUNCT_ATTRRQST ||
+        buftype == SLP_FUNCT_SRVTYPERQST)
     {
-        result = SLP_MEMORY_ALLOC_FAILED;
-        goto CLEANUP;
+        prlist = (char*)malloc(mtu);
+        if(prlist == 0)
+        {
+            result = SLP_MEMORY_ALLOC_FAILED;
+            goto CLEANUP;
+        }
+        *prlist = 0;
+        prlistlen = 0;
     }
-    *prlist = 0;
-    prlistlen = 0;
+    
     
     /*--------------------------*/
     /* Main retransmission loop */
@@ -384,6 +396,9 @@ SLPError NetworkRqstRply(int sock,
             timeout.tv_usec = (maxwait % 1000) * 1000;
         }
         
+        /*--------------------*/
+        /* re-allocate buffer */
+        /*--------------------*/
         size = 14 + langtaglen + 2 + prlistlen + bufsize;
         if(SLPBufferRealloc(sendbuf,size) == 0)
         {
@@ -401,7 +416,7 @@ SLPError NetworkRqstRply(int sock,
         /*length*/
         ToUINT24(sendbuf->start + 2, size);
         /*flags*/
-        ToUINT16(sendbuf->start + 5, socktype == SOCK_STREAM ? 0 : SLP_FLAG_MCAST);
+        ToUINT16(sendbuf->start + 5, ISMCAST(destaddr->sin_addr) ? SLP_FLAG_MCAST : 0);
         /*ext offset*/
         ToUINT24(sendbuf->start + 7,0);
         /*xid*/
@@ -415,9 +430,7 @@ SLPError NetworkRqstRply(int sock,
         /*-----------------------------------*/
         /* Add the prlist to the send buffer */
         /*-----------------------------------*/
-        if( buftype == SLP_FUNCT_SRVRQST ||
-            buftype == SLP_FUNCT_ATTRRQST ||
-            buftype == SLP_FUNCT_SRVTYPERQST)
+        if(prlist)
         {
             ToUINT16(sendbuf->curpos,prlistlen);
             sendbuf->curpos = sendbuf->curpos + 2;
@@ -450,9 +463,8 @@ SLPError NetworkRqstRply(int sock,
         /*----------------*/
         /* Main recv loop */
         /*----------------*/
-        while(1)
+        do
         {
-            
             if(SLPNetworkRecvMessage(sock,
                                      socktype,
                                      &recvbuf,
@@ -484,19 +496,15 @@ SLPError NetworkRqstRply(int sock,
                 }
             }
             
-            if(socktype == SOCK_STREAM)
-            {
-                goto FINISHED;
-            }
-
             /* add the peer to the previous responder list */
             if(prlistlen != 0)
             {
                 strcat(prlist,",");
             }
             strcat(prlist,inet_ntoa(peeraddr.sin_addr));
-            prlistlen =  strlen(prlist); 
-        }
+            prlistlen =  strlen(prlist);
+
+        }while(looprecv);
     }
 
     FINISHED:

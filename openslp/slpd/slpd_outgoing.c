@@ -159,10 +159,7 @@ void OutgoingStreamRead(SLPList* socklist, SLPDSocket* sock)
         if(errno != EWOULDBLOCK)
 #endif
             {
-                /* TODO: */
-                /* Stream was probably closed.  Try to re connect */
-                sock->state = SOCKET_CLOSE;
-                return;
+                OutgoingStreamReconnect(socklist,sock);
             }
         }        
     }
@@ -215,13 +212,11 @@ void OutgoingStreamRead(SLPList* socklist, SLPDSocket* sock)
         else
         {
 #ifdef  WIN32
-            if (WSAEWOULDBLOCK == WSAGetLastError())
+            if (WSAEWOULDBLOCK != WSAGetLastError())
 #else
-            if(errno == EWOULDBLOCK)
+            if(errno != EWOULDBLOCK)
 #endif
             {
-                /* Error occured or connection was closed. Try to reconnect */
-                /* Socket will be closed if connect times out               */
                 OutgoingStreamReconnect(socklist,sock);
             }
         }
@@ -280,19 +275,15 @@ void OutgoingStreamWrite(SLPList* socklist, SLPDSocket* sock)
         else
         {
 #ifdef WIN32
-            if (WSAEWOULDBLOCK == WSAGetLastError())
+            if (WSAEWOULDBLOCK != WSAGetLastError())
 #else
-            if(errno == EWOULDBLOCK)
+            if(errno != EWOULDBLOCK)
 #endif
             {
                 /* Error occured or connection was closed. Try to reconnect */
                 /* Socket will be closed if connect times out               */
                 OutgoingStreamReconnect(socklist,sock);
-            }
-            else
-            {
-                sock->state = SOCKET_CLOSE;
-            }
+            } 
         }
     }
 }

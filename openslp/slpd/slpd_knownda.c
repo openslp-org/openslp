@@ -608,40 +608,38 @@ int SLPDKnownDADeinit()
 
 
 /*=========================================================================*/
-SLPDAEntry* SLPDKnownDAFindRandomEntry(int scopelistlen,
-                                       const char* scopelist)
-/* Find a known DA that supports the specified scope list                  */
+int SLPDKnownDAEnum(void** handle,
+                    SLPDAEntry** entry)
+/* Enumerate through all entries of the database                           */
+/*                                                                         */
+/* handle (IN/OUT) pointer to opaque data that is used to maintain         */
+/*                 enumerate entries.  Pass in a pointer to NULL to start  */
+/*                 enumeration.                                            */
+/*                                                                         */
+/* entry (OUT) pointer to an entry structure pointer that will point to    */
+/*             the next entry on valid return                              */
+/*                                                                         */
+/* returns: >0 if end of enumeration, 0 on success, <0 on error            */
 /*=========================================================================*/
 {
-    SLPDAEntry* entry;
-    SLPDAEntry* lastentry;
-
-    lastentry = 0;
-    entry = (SLPDAEntry*)G_KnownDAList.head;
-    while (entry)
+    if(*handle == 0)
     {
-        /* check to see if a common scope is supported */
-        if (SLPIntersectStringList(entry->scopelistlen,
-                                   entry->scopelist,
-                                   scopelistlen,
-                                   scopelist))
-        {
-            lastentry = entry;
-            if(rand() % 2)
-            {
-                break;
-            }
-        }
-
-        entry = (SLPDAEntry*)entry->listitem.next;
+        *entry = (SLPDAEntry*)G_KnownDAList.head; 
+    }
+    else
+    {
+        *entry = (SLPDAEntry*)*handle;
+        *entry = (SLPDAEntry*)(*entry)->listitem.next;
     }
 
-    if(entry == 0)
+    *handle = (void*)*entry;
+
+    if(*handle == 0)
     {
-        entry = lastentry;
+        return 1;
     }
 
-    return entry;
+    return 0;
 }
 
 
