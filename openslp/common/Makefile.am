@@ -45,6 +45,7 @@ libcommonslpd_la_SOURCES = \
 	slp_filter_y.y \
 	slp_filter_l.l \
 	slp_predicate.c \
+	slp_dhcp.c \
 	$(slp_v1message_SRCS) \
 	$(slp_security_SRCS)
 	

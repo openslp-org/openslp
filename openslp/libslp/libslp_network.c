@@ -546,14 +546,14 @@ SLPError NetworkRqstRply(int sock,
                     {
                         /* calculate the peeraddr string and length */
                         char* peeraddrstr = NULL;
-                        char* peeraddrstrlen = 0;
+                        int peeraddrstrlen = 0;
                         peeraddrstr = inet_ntoa(peeraddr.sin_addr);
                         if(peeraddrstr)
                         {
                             peeraddrstrlen = strlen(peeraddrstr);
                             
                             /* Append to the prlist if we won't overflow */
-                            if(prlistlen + peeraddrstrlen + 1) < mtu )
+                            if((prlistlen + peeraddrstrlen + 1) < mtu )
                             {
                                 /* append comma if necessary */
                                 if(prlistlen != 0)
@@ -562,7 +562,7 @@ SLPError NetworkRqstRply(int sock,
                                     prlistlen ++;
                                 }
                                 /* append address string */
-                                strcat(prlist,peeraddr_str);
+                                strcat(prlist,peeraddrstr);
                                 prlistlen += peeraddrstrlen;
                             }
                         }

@@ -67,6 +67,7 @@
 #include <sys/ioctl.h>
 #include <net/if_arp.h>
 #include <bits/ioctls.h>
+#include <sys/time.h>
 #endif
 
 #include <stdlib.h>
@@ -472,7 +473,7 @@ int DHCPGetOptionInfo(unsigned char *dhcpOptCodes, int dhcpOptCodeCnt,
 	*p++ = BOOTREQUEST;			/* opcode */
 	*p++ = htype;
 	*p++ = hlen;
-	*p++;								/* hops */
+	p++;								/* hops */
 	ToUINT32(p, xid);
 	p += 2 * sizeof(UINT32);	/* xid, secs, flags */
 	memcpy(p, hep->h_addr, 4);
