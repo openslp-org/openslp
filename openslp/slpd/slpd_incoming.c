@@ -198,9 +198,7 @@ void IncomingStreamRead(SLPList* socklist, SLPDSocket* sock)
             else if (*peek == 1) /* SLPv1 packet */
                 recvlen = AsUINT16(peek + 2);
             /* allocate the recvbuf big enough for the whole message */
-            /* +1 is to make room for possible NULL termination of   */
-            /* the last field of certain messages                    */
-            sock->recvbuf = SLPBufferRealloc(sock->recvbuf,recvlen + 1);
+            sock->recvbuf = SLPBufferRealloc(sock->recvbuf,recvlen);
             if (sock->recvbuf)
             {
                 sock->state = STREAM_READ; 

@@ -208,7 +208,7 @@ void OutgoingStreamRead(SLPList* socklist, SLPDSocket* sock)
         if ( bytesread > 0 )
         {
             /* allocate the recvbuf big enough for the whole message */
-            sock->recvbuf = SLPBufferRealloc(sock->recvbuf,AsUINT24(peek+2) + 1);
+            sock->recvbuf = SLPBufferRealloc(sock->recvbuf,AsUINT24(peek+2));
             if ( sock->recvbuf )
             {
                 sock->state = STREAM_READ;

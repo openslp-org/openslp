@@ -328,10 +328,8 @@ SLPDSocket* SLPDSocketCreateDatagram(struct in_addr* peeraddr,
     {
         /* SLP_MAX_DATAGRAM_SIZE is as big as a datagram SLP     */
         /* can be.                                               */
-        /* +1 is to make room for possible NULL termination of   */
-        /* the last field of certain messages                    */
-        sock->recvbuf = SLPBufferAlloc(SLP_MAX_DATAGRAM_SIZE + 1);
-        sock->sendbuf = SLPBufferAlloc(SLP_MAX_DATAGRAM_SIZE + 1);
+        sock->recvbuf = SLPBufferAlloc(SLP_MAX_DATAGRAM_SIZE);
+        sock->sendbuf = SLPBufferAlloc(SLP_MAX_DATAGRAM_SIZE);
         if(sock->recvbuf && sock->sendbuf)
         {
 
