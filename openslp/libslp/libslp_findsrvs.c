@@ -48,6 +48,7 @@
 
 #include "slp.h"
 #include "libslp.h"
+#include "slp_net.h"
 
 /*-------------------------------------------------------------------------*/
 SLPBoolean ColateSLPSrvURLCallback(SLPHandle hSLP,
@@ -148,7 +149,7 @@ CLEANUP:
 
 /*-------------------------------------------------------------------------*/
 SLPBoolean ProcessSrvRplyCallback(SLPError errorcode,
-                                  struct sockaddr_in* peerinfo,
+                                  struct sockaddr_storage* peerinfo,
                                   SLPBuffer replybuf,
                                   void* cookie)
 /*-------------------------------------------------------------------------*/
@@ -280,12 +281,12 @@ SLPBoolean ProcessSrvRplyCallback(SLPError errorcode,
 SLPError ProcessSrvRqst(PSLPHandleInfo handle)
 /*-------------------------------------------------------------------------*/
 {
-    struct sockaddr_in  peeraddr;
-    int                 sock        = -1;
-    int                 bufsize     = 0;
-    char*               buf         = 0;
-    char*               curpos      = 0;
-    SLPError            result      = 0;
+    struct sockaddr_storage peeraddr;
+    int						sock        = -1;
+    int						bufsize     = 0;
+    char*					buf         = 0;
+    char*					curpos      = 0;
+    SLPError				result      = 0;
 
 #ifdef ENABLE_SLPv2_SECURITY
     int                 spistrlen   = 0;

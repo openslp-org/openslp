@@ -49,10 +49,11 @@
 
 #include "slp.h"
 #include "libslp.h"
+#include "slp_net.h"
 
 
 /*=========================================================================*/
-int NetworkConnectToSlpd(struct sockaddr_in* peeraddr)
+int NetworkConnectToSlpd(struct sockaddr_storage* peeraddr)
 /* Connects to slpd and provides a peeraddr to send to                     */
 /*                                                                         */
 /* peeraddr         (OUT) pointer to receive the connected DA's address    */
@@ -70,15 +71,17 @@ int NetworkConnectToSlpd(struct sockaddr_in* peeraddr)
     result = socket(AF_INET,SOCK_STREAM,0);
     if(result >= 0)
     {
-        peeraddr->sin_family      = AF_INET;
-        peeraddr->sin_port        = htons(SLP_RESERVED_PORT);
-        peeraddr->sin_addr.s_addr = htonl(LOOPBACK_ADDRESS);
+		memset(peeraddr, 0, sizeof(peeraddr));
+		((struct sockaddr_in *)peeraddr)->sin_family = AF_INET;
+		((struct sockaddr_in *)peeraddr)->sin_port =  htons(SLP_RESERVED_PORT);
+		((struct sockaddr_in *)peeraddr)->sin_addr.S_un.S_addr = htonl(INADDR_LOOPBACK);
+		
 
-        /* TODO: the following connect() could block for a long time.  */
+		/* TODO: the following connect() could block for a long time.  */
 
         if(connect(result,
-                   (struct sockaddr*)peeraddr,
-                   sizeof(struct sockaddr_in)) == 0)
+                   (struct sockaddr *)peeraddr,
+                   sizeof(peeraddr)) == 0)
         {
             /* set the receive and send buffer low water mark to 18 bytes
            (the length of the smallest slpv2 message) */
@@ -111,7 +114,7 @@ void NetworkDisconnectDA(PSLPHandleInfo handle)
     }
 
     /* Mark this DA as bad */
-    KnownDABadDA(&(handle->daaddr.sin_addr));
+    KnownDABadDA(&(handle->daaddr));
 }
 
 
@@ -133,7 +136,7 @@ void NetworkDisconnectSA(PSLPHandleInfo handle)
 int NetworkConnectToDA(PSLPHandleInfo handle,
                        const char* scopelist,
                        int scopelistlen,
-                       struct sockaddr_in* peeraddr)
+                       struct sockaddr_storage* peeraddr)
 /* Connects to slpd and provides a peeraddr to send to                     */
 /*                                                                         */
 /* handle           (IN) SLPHandle info  (caches connection info           */
@@ -160,7 +163,7 @@ int NetworkConnectToDA(PSLPHandleInfo handle,
                         scopelistlen,
                         scopelist) == 0)
     {
-        memcpy(peeraddr,&(handle->daaddr),sizeof(struct sockaddr_in));
+        memcpy(peeraddr,&(handle->daaddr),sizeof(peeraddr));
     }
     else
     {
@@ -180,7 +183,7 @@ int NetworkConnectToDA(PSLPHandleInfo handle,
             if(handle->dascope) xfree(handle->dascope);
             handle->dascope = memdup(scopelist,scopelistlen);
             handle->dascopelen = scopelistlen; 
-            memcpy(peeraddr,&(handle->daaddr),sizeof(struct sockaddr_in));
+            memcpy(peeraddr,&(handle->daaddr),sizeof(peeraddr));
         }
     }
 
@@ -191,7 +194,7 @@ int NetworkConnectToDA(PSLPHandleInfo handle,
 int NetworkConnectToSA(PSLPHandleInfo handle,
                        const char* scopelist,
                        int scopelistlen,
-                       struct sockaddr_in* peeraddr)
+                       struct sockaddr_storage* peeraddr)
 /* Connects to slpd and provides a peeraddr to send to                     */
 /*                                                                         */
 /* handle           (IN) SLPHandle info  (caches connection info)          */
@@ -218,7 +221,7 @@ int NetworkConnectToSA(PSLPHandleInfo handle,
                         scopelistlen,
                         scopelist) == 0)
     {
-        memcpy(peeraddr,&(handle->saaddr),sizeof(struct sockaddr_in));
+        memcpy(peeraddr,&(handle->saaddr),sizeof(peeraddr));
     }
     else
     {
@@ -241,7 +244,7 @@ int NetworkConnectToSA(PSLPHandleInfo handle,
             if(handle->sascope) xfree(handle->sascope);
             handle->sascope = memdup(scopelist,scopelistlen);
             handle->sascopelen = scopelistlen; 
-            memcpy(peeraddr,&(handle->saaddr),sizeof(struct sockaddr_in));
+            memcpy(peeraddr,&(handle->saaddr),sizeof(peeraddr));
         }
     }
 
@@ -252,7 +255,7 @@ int NetworkConnectToSA(PSLPHandleInfo handle,
 
 /*=========================================================================*/ 
 SLPError NetworkRqstRply(int sock,
-                         struct sockaddr_in* destaddr,
+                         struct sockaddr_storage* destaddr,
                          const char* langtag,
                          int extoffset,
                          char* buf,
@@ -265,29 +268,29 @@ SLPError NetworkRqstRply(int sock,
 /* Returns  -    SLP_OK on success                                         */
 /*=========================================================================*/ 
 {
-    struct timeval      timeout;
-    struct sockaddr_in  peeraddr;
-    SLPBuffer           sendbuf         = 0;
-    SLPBuffer           recvbuf         = 0;
-    SLPError            result          = 0;
-    int                 looprecv        = 0;
-    int                 langtaglen      = 0;
-    int                 prlistlen       = 0;
-    char*               prlist          = 0;
-    int                 xid             = 0;
-    int                 mtu             = 0;
-    int                 size            = 0;
-    int                 xmitcount       = 0;
-    int                 rplycount       = 0;
-    int                 maxwait         = 0;
-    int                 totaltimeout    = 0;
+    struct timeval			timeout;
+    struct sockaddr_storage  peeraddr;
+    SLPBuffer				sendbuf         = 0;
+    SLPBuffer				recvbuf         = 0;
+    SLPError				result          = 0;
+    int						looprecv        = 0;
+    int						langtaglen      = 0;
+    int						prlistlen       = 0;
+    char*					prlist          = 0;
+    int						xid             = 0;
+    int						mtu             = 0;
+    int						size            = 0;
+    int						xmitcount       = 0;
+    int						rplycount       = 0;
+    int						maxwait         = 0;
+    int						totaltimeout    = 0;
 #ifdef _WIN32 /* on WIN32 setsockopt takes a const char * argument */
-    char                socktype        = 0;
+    char					socktype        = 0;
 #else
-    int                 socktype        = 0;
+    int						socktype        = 0;
 #endif
-    int                 timeouts[MAX_RETRANSMITS];
-    unsigned short      flags;
+    int						timeouts[MAX_RETRANSMITS];
+    unsigned short			flags;
 
 
     /*----------------------------------------------------*/
@@ -304,7 +307,7 @@ SLPError NetworkRqstRply(int sock,
     }
 
     /* Figure unicast/multicast,TCP/UDP, wait and time out stuff */
-    if(ISMCAST(destaddr->sin_addr))
+    if(SLPNetIsMCast(destaddr))
     {
         /* Multicast or broadcast */
         maxwait = SLPPropertyAsInteger(SLPGetProperty("net.slp.multicastMaximumWait"));
@@ -433,7 +436,7 @@ SLPError NetworkRqstRply(int sock,
         /*length*/
         ToUINT24(sendbuf->start + 2, size);
         /*flags*/
-        flags = (ISMCAST(destaddr->sin_addr) ? SLP_FLAG_MCAST : 0);
+        flags = (SLPNetIsMCast(destaddr) ? SLP_FLAG_MCAST : 0);
         if (buftype == SLP_FUNCT_SRVREG)
         {
             flags |= SLP_FLAG_FRESH;
@@ -545,12 +548,10 @@ SLPError NetworkRqstRply(int sock,
                     if(prlist && socktype == SOCK_DGRAM)
                     {
                         /* calculate the peeraddr string and length */
-                        char* peeraddrstr = NULL;
-                        int peeraddrstrlen = 0;
-                        peeraddrstr = inet_ntoa(peeraddr.sin_addr);
-                        if(peeraddrstr)
+                        char peeraddrstr[INET6_ADDRSTRLEN];
+						if (inet_ntop(peeraddr.ss_family, &peeraddr, peeraddrstr, INET6_ADDRSTRLEN) == NULL)
                         {
-                            peeraddrstrlen = strlen(peeraddrstr);
+                            int peeraddrstrlen = strlen(peeraddrstr);
                             
                             /* Append to the prlist if we won't overflow */
                             if((prlistlen + peeraddrstrlen + 1) < mtu )
@@ -584,7 +585,7 @@ SLPError NetworkRqstRply(int sock,
         result = SLP_LAST_CALL; 
     }
     
-    if(result == SLP_NETWORK_TIMED_OUT && ISMCAST(destaddr->sin_addr))
+    if(result == SLP_NETWORK_TIMED_OUT && SLPNetIsMCast(destaddr))
     {
         result = SLP_LAST_CALL;
     }
@@ -640,25 +641,25 @@ SLPError NetworkMcastRqstRply(const char* langtag,
 /* Returns  -    SLP_OK on success. SLP_ERROR on failure                   */
 /*=========================================================================*/ 
 {
-    struct timeval      timeout;
-    struct sockaddr_in  peeraddr;
-    SLPBuffer           sendbuf         = 0;
-    SLPBuffer           recvbuf         = 0;
-    SLPError            result          = 0;
-    int                 langtaglen      = 0;
-    int                 prlistlen       = 0;
-    char*               prlist          = 0;
-    int                 xid             = 0;
-    int                 mtu             = 0;
-    int                 size            = 0;
-    int                 xmitcount       = 0;
-    int                 rplycount       = 0;
-    int                 maxwait         = 0;
-    int                 totaltimeout    = 0;
-    int                 usebroadcast    = 0;
-    int                 timeouts[MAX_RETRANSMITS];
-    SLPIfaceInfo        ifaceinfo;
-    SLPXcastSockets     xcastsocks;
+    struct timeval			timeout;
+    struct sockaddr_storage peeraddr;
+    SLPBuffer				sendbuf         = 0;
+    SLPBuffer				recvbuf         = 0;
+    SLPError				result          = 0;
+    int						langtaglen      = 0;
+    int						prlistlen       = 0;
+    char*					prlist          = 0;
+    int						xid             = 0;
+    int						mtu             = 0;
+    int						size            = 0;
+    int						xmitcount       = 0;
+    int						rplycount       = 0;
+    int						maxwait         = 0;
+    int						totaltimeout    = 0;
+    int						usebroadcast    = 0;
+    int						timeouts[MAX_RETRANSMITS];
+    SLPIfaceInfo			ifaceinfo;
+    SLPXcastSockets			xcastsocks;
 
 #ifdef DEBUG
     /* This function only supports multicast or broadcast of the following
@@ -956,6 +957,7 @@ SLPError NetworkMcastRqstRply(const char* langtag,
             /* Sneek in and check the XID */
             if(AsUINT16(recvbuf->start+10) == xid)
             {
+                char peeraddrstr[INET6_ADDRSTRLEN];
                 rplycount += 1;
 
                 /* Call the callback with the result and recvbuf */
@@ -977,8 +979,9 @@ SLPError NetworkMcastRqstRply(const char* langtag,
                 {
                     strcat(prlist,",");
                 }
-                strcat(prlist,inet_ntoa(peeraddr.sin_addr));
-                prlistlen =  strlen(prlist);
+				inet_ntop(peeraddr.ss_family, &peeraddr, peeraddrstr, INET6_ADDRSTRLEN);
+				strcat(prlist, peeraddrstr);
+				prlistlen =  strlen(prlist);
             }
         }
 
@@ -1050,21 +1053,21 @@ SLPError NetworkUcastRqstRply(PSLPHandleInfo handle,
 /* Returns  -    SLP_OK on success. SLP_ERROR on failure                   */
 /*=========================================================================*/
 {
-    struct timeval      timeout;
-    struct sockaddr_in  peeraddr;
-    SLPBuffer           sendbuf         = 0;
-    SLPBuffer           recvbuf         = 0;
-    SLPError            result          = 0;
-    int                 langtaglen      = 0;
-    int                 prlistlen       = 0;
-    char*               prlist          = 0;
-    int                 xid             = 0;
-    int                 mtu             = 0;
-    int                 size            = 0;
-    int                 rplycount       = 0;
-    int                 maxwait         = 0;
-    int                 timeouts[MAX_RETRANSMITS];
-    int                        retval1, retval2;
+    struct timeval			timeout;
+    struct sockaddr_storage peeraddr;
+    SLPBuffer				sendbuf         = 0;
+    SLPBuffer				recvbuf         = 0;
+    SLPError				result          = 0;
+    int						langtaglen      = 0;
+    int						prlistlen       = 0;
+    char*					prlist          = 0;
+    int						xid             = 0;
+    int						mtu             = 0;
+    int						size            = 0;
+    int						rplycount       = 0;
+    int						maxwait         = 0;
+    int						timeouts[MAX_RETRANSMITS];
+    int                     retval1, retval2;
 #ifdef DEBUG
     /* This function only supports unicast of the following messages
      */
@@ -1229,6 +1232,7 @@ SLPError NetworkUcastRqstRply(PSLPHandleInfo handle,
 	/* Sneek in and check the XID */
 	if(AsUINT16(recvbuf->start+10) == xid)
 	{
+        char peeraddrstr[INET6_ADDRSTRLEN];
 	    rplycount += 1;
             /* Call the callback with the result and recvbuf */
             if(callback(result,&peeraddr,recvbuf,cookie) == SLP_FALSE)
@@ -1242,7 +1246,9 @@ SLPError NetworkUcastRqstRply(PSLPHandleInfo handle,
 	    {
 	        strcat(prlist,",");
 	    }
-	    strcat(prlist,inet_ntoa(peeraddr.sin_addr));
+
+		inet_ntop(peeraddr.ss_family, &peeraddr, peeraddrstr, INET6_ADDRSTRLEN);
+		strcat(prlist, peeraddrstr);
 	    prlistlen =  strlen(prlist);
 	}
     }

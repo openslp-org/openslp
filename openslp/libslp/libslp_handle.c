@@ -48,6 +48,7 @@
 
 #include "slp.h"
 #include "libslp.h"
+#include "slp_net.h"
 
 /*=========================================================================*/
 int G_OpenSLPHandleCount = 0;
@@ -377,13 +378,10 @@ SLPError SLPAssociateIP( SLPHandle hSLP, const char* unicast_ip)
     fprintf(stderr, "SLPAssociateIP(): unicast_ip = %s\n", unicast_ip);
 #endif
     handle->dounicast = 1;
-    handle->unicastaddr.sin_family = AF_INET;
-    if (inet_aton(unicast_ip, ((struct in_addr *)(&handle->unicastaddr.sin_addr))) == 0 )
+    if (SLPNetSetAddr(&handle->unicastaddr, AF_INET, htons(SLP_RESERVED_PORT), unicast_ip,  strlen(unicast_ip)) == 0)
     {
         return SLP_PARAMETER_BAD;
     }
-    handle->unicastaddr.sin_port = htons(SLP_RESERVED_PORT);
-
     return SLP_OK;
 }
 #endif
