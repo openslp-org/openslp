@@ -420,6 +420,7 @@ FilterResult wildcard_wc_str(char *pattern, size_t pattern_len, char *str, size_
 			return result;
 		}
 	}
+	/*NOTREACHED*/
 	assert(0);
 }
 
@@ -1037,6 +1038,7 @@ FilterResult filter(const char *start,
         return (err == FR_EVAL_TRUE ? FR_EVAL_FALSE : FR_EVAL_TRUE);
 
     default: /***** Unknown operator. *****/
+		;
 		/* We don't do anything here because this will catch the first character of every leaf predicate. */
     }
 

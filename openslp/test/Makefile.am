@@ -7,7 +7,7 @@ TESTS = SLPOpen/test.script SLPFindSrvTypes/test.script  \
 XFAIL_TESTS = SLPFindAttrs/test.script
 
 INCLUDES = -I$(top_srcdir)/libslp -I$(top_srcdir)/libslpattr \
-           -I$(top_srcdir)/slpd
+           -I$(top_srcdir)/common -I$(top_srcdir)/slpd
 
 noinst_PROGRAMS = slpdereg slpescape slpfindattrs slpfindsrvtypes \
                   slpfindsrvs slpopen slpparsesrvurl slpreg slpunescape \
