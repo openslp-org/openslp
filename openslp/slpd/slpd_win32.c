@@ -38,14 +38,17 @@ SERVICE_STATUS_HANDLE   sshStatusHandle;
 BOOL                    bDebug = FALSE; 
 TCHAR                   szErr[256];
 
-
+/*------------------------------------------------------------------------*/
 void LoadFdSets(SLPList* list, 
                 int* highfd, 
                 fd_set* readfds, 
                 fd_set* writefds);
+/*------------------------------------------------------------------------*/
 
 
-
+/*------------------------------------------------------------------------*/
+void Shutdown();
+/*------------------------------------------------------------------------*/
 
 
 /* That function is called when the "Database Age" timer wakes up          */
@@ -337,15 +340,13 @@ void ServiceStart (int argc, char **argv)
       /* continue to top of loop so that fd_sets are loaded again */
       continue;
     }
-        
-
-
   }
+
+  Shutdown();
+
 
   timeEndPeriod(SLPD_AGE_INTERVAL * 1000);
   timeKillEvent(AgeTimer);
-
-  SLPLog("Going down\n");
 
   cleanup_winsock:
   
@@ -353,8 +354,6 @@ void ServiceStart (int argc, char **argv)
 
   cleanup: 
   ;
-  
-  
 } 
  
 /*                                                                          */

@@ -7,6 +7,8 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 
+*** TAG OpenSLP 0.7.8 ***
+
 11/2/00 mpeterson@caldera.com
 Added graceful shutdown code
 
