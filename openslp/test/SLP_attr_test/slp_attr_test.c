@@ -263,20 +263,21 @@ int test_string(SLPAttributes attr, char *name, ...) {
 int main(int argc, char *argv[]) {
 	SLPAttributes attr;
 	SLPError err;
-	SLPBoolean bool;
-	char data[] = STR;
+	char *str, *str2;
 	size_t len;
+
+#ifdef USE_PREDICATES	
+	char data[] = STR;
+	SLPBoolean bool;
 	long *int_arr;
 	char **str_arr;
 	SLPType type;
-	char *str, *tag, *str2;
+	char *tag, *str2;
 	SLPAttrIterator iter;
 	
 	len = strlen(data);
 	data[4] = '\0';
 	
-#ifdef USE_PREDICATES
-
 	printf("Predicates enabled. Performing full test for libslpattr.c\n");
 	
 	/****** Test Simple boolean set and get. *****/
