@@ -1,21 +1,30 @@
 #!/bin/sh
 
-if ! grep "CONFIG_IP_MULTICAST=y" /boot/config-`uname -r` >/dev/null
+
+if [ "$1" = "configure" ]
 then
-    echo "WARNING: The kernel version that you are currently running does not support" 
-    echo "multicast. You must use a kernel with multicast enabled for OpenSLP to"
-    echo "function correctly."
+    ldconfig
 fi
 
-if ! netstat -rn | grep 224 >/dev/null 
+if [ "$1" = "configure" ]
 then
-    echo "WARNING: You do not have a multicast routing configured. You need to add a "
-    echo "multicast route by running the command:"
-    echo
-    echo "route add -net 224.0.0.0 netmask 240.0.0.0 dev <interface>"
-    echo
-    echo "You can add this command to your network init scripts to do this automatically"
-    echo "at startup."
+    if ! grep "CONFIG_IP_MULTICAST=y" /boot/config-`uname -r` >/dev/null
+    then
+        echo "WARNING: The kernel version that you are currently running does not support" 
+        echo "multicast. You must use a kernel with multicast enabled for OpenSLP to"
+        echo "function correctly."
+    fi
+
+    if ! netstat -rn | grep 224 >/dev/null 
+    then
+        echo "WARNING: You do not have a multicast routing configured. You need to add a "
+        echo "multicast route by running the command:"
+        echo
+        echo "route add -net 224.0.0.0 netmask 240.0.0.0 dev <interface>"
+        echo
+        echo "You can add this command to your network init scripts to do this automatically"
+        echo "at startup."
+    fi
 fi
 
 #DEBHELPER#

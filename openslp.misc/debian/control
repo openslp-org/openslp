@@ -55,6 +55,7 @@ Priority: extra
 Architecture: any
 Depends: libslp1 (= ${Source-Version}), libc6-dev
 Suggests: openslp-doc (= ${Source-Version})
+Conflicts: libxdelta3-dev
 Description: OpenSLP development libraries
  SLPv2 (RFC 2608) is a IETF standard protocol (RFC 2608) that is used to
  discover/advertise services on the network. You can use SLP for anything

@@ -1,3 +1,27 @@
+openslp (1.0.5-1) unstable; urgency=low
+
+  * New upstream release
+  * libslp-dev now conflicts libxdelta3-dev because /usr/include/slp.h
+    exists in both packages. (Closes: #115460, #115461)	
+
+ -- Ganesan Rajagopal <rganesan@debian.org>  Sat, 24 Nov 2001 12:52:28 +0530
+
+openslp (1.0.4-1) unstable; urgency=low
+
+  * New upstream release
+  * Added /etc/slp.spi as a conf file
+  * Fixed lintian warning about unsafe ldconfig in libslp1 postinst.
+
+ -- Ganesan Rajagopal <rganesan@debian.org>  Tue, 30 Oct 2001 16:28:16 +0530
+
+openslp (1.0.3-1) unstable; urgency=low
+
+  * New upstream release
+  * Updated config.{guess,sub} from ftp://ftp.gnu.org/pub/gnu/config
+    (Closes: #115013)
+
+ -- Ganesan Rajagopal <rganesan@debian.org>  Fri, 12 Oct 2001 13:58:58 +0530
+
 openslp (1.0.2-2) unstable; urgency=low
 
   * Updated package descriptions so that they're .. well, more descriptive.
