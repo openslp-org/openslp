@@ -101,6 +101,7 @@ int SLPIfaceGetInfo(const char* useifaces,
 	int sts = 0;
 	int useifaceslen;
 	struct sockaddr_in v4addr;
+    long hostAddr;
 	struct sockaddr_in bcastAddr;
 	struct sockaddr_in6 v6addr;
 	struct sockaddr_in6 indexHack;
@@ -194,7 +195,8 @@ int SLPIfaceGetInfo(const char* useifaces,
 								v4addr.sin_port = 0;
 								sts = bind(fd, (struct sockaddr *) &v4addr, sizeof(v4addr));
 								if (sts == 0) {
-									SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count], AF_INET, 0, (char *) &v4addr.sin_addr, sizeof(v4addr.sin_addr));
+                                    hostAddr = ntohl(v4addr.sin_addr.s_addr);
+									SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count], AF_INET, 0, (char *) &hostAddr, sizeof(v4addr.sin_addr));
 									ifaceinfo->iface_count++;
 								}
 								#ifdef _WIN32 
