@@ -405,7 +405,7 @@ int SLPDv1KnownDAEntryToDAAdvert(int errorcode,
 #endif
 
 /*-------------------------------------------------------------------------*/
-void SLPDKnownDARegisterAll(SLPDAEntry* daentry, int onlylocals)
+void SLPDKnownDARegisterAll(SLPDAEntry* daentry)
 /* registers all services with specified DA                                */
 /*-------------------------------------------------------------------------*/
 {
