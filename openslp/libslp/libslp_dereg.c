@@ -110,22 +110,6 @@ SLPError ProcessSrvDeReg(PSLPHandleInfo handle)
     char*               curpos      = 0;
     SLPError            result      = 0;
 
-#ifdef ENABLE_SLPv2_SECURITY
-    int                 urlauthlen  = 0;
-    unsigned char*      urlauth     = 0;
-    if(SLPPropertyAsBoolean(SLPGetProperty("net.slp.securityEnabled")))
-    {
-        result = SLPAuthSignUrl(handle->hspi,
-                                0,
-                                0,
-                                handle->params.dereg.urllen,
-                                handle->params.dereg.url,
-                                &urlauthlen,
-                                &urlauth);
-        bufsize += urlauthlen;
-    }
-#endif
-
     /*-------------------------------------------------------------------*/
     /* determine the size of the fixed portion of the SRVDEREG           */
     /*-------------------------------------------------------------------*/
@@ -170,24 +154,11 @@ SLPError ProcessSrvDeReg(PSLPHandleInfo handle)
            handle->params.dereg.url,
            handle->params.dereg.urllen);
     curpos = curpos + handle->params.dereg.urllen;
-    /* url-entry authcount */
-#ifdef ENABLE_SLPv2_SECURITY
-    if(urlauth)
-    {
-        /* authcount */
-        *(curpos) = 1;
-        curpos = curpos + 1;
-        /* authblock */
-        memcpy(curpos,urlauth,urlauthlen);
-        curpos = curpos + urlauthlen;
-    }
-    else
-#endif
-    {
-        /* authcount */
-        *(curpos) = 0;
-        curpos = curpos + 1;
-    } 
+
+    /* authcount */
+    *(curpos) = 0;
+    curpos = curpos + 1;
+
     /* tag list */
     /* TODO: No tag list for now put in taglist stuff */
     ToUINT16(curpos,0);
@@ -225,9 +196,6 @@ SLPError ProcessSrvDeReg(PSLPHandleInfo handle)
     
     FINISHED:
     if(buf) xfree(buf);
-#ifdef ENABLE_SLPv2_SECURITY
-    if(urlauth) xfree(urlauth);
-#endif
 
     return result;
 }

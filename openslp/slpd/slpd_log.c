@@ -525,11 +525,6 @@ void SLPDLogDAAdvertisement(const char* prefix,
         SLPDLogBuffer("    attributes = ",
                       entry->msg->body.daadvert.attrlistlen,
                       entry->msg->body.daadvert.attrlist);
-#ifdef ENABLE_SLPV2_SECURITY
-        SLPDLogBuffer("    SPI list = ",
-                      entry->msg->body.daadvert.spilistlen,
-                      entry->msg->body.daadvert.spilist);
-#endif /*ENABLE_SLPV2_SECURITY*/
     }
 }
 

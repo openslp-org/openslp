@@ -57,9 +57,6 @@
 #include "slpd_socket.h"
 #include "slpd_outgoing.h"
 #include "slpd_log.h"
-#ifdef ENABLE_SLPv2_SECURITY
-    #include "slpd_spi.h"
-#endif
 
 /*=========================================================================*/
 /* common code includes                                                    */
@@ -71,10 +68,6 @@
 #include "slp_xid.h"
 #include "slp_parse.h"
 #include "slp_net.h"
-#ifdef ENABLE_SLPv2_SECURITY
-    #include "slp_auth.h"
-    #include "slp_spi.h"
-#endif
 
 #include <limits.h>
 
@@ -670,8 +663,6 @@ int SLPDKnownDAAdd(SLPMessage msg, SLPBuffer buf)
                               daadvert->urllen,
                               daadvert->url) == 0 )
         {
-
-#ifdef ENABLE_SLPv2_SECURITY                
             if ( G_SlpdProperty.checkSourceAddr &&
                  memcmp(&(entry->msg->peer.sin_addr),
                         &(msg->peer.sin_addr),
@@ -681,19 +672,7 @@ int SLPDKnownDAAdd(SLPMessage msg, SLPBuffer buf)
                 result = SLP_ERROR_AUTHENTICATION_FAILED;
                 goto CLEANUP;
             }
-
-            /* make sure an unauthenticated DAAdvert can't replace */
-            /* an authenticated one                                */
-            if ( entrydaadvert->authcount &&
-                 entrydaadvert->authcount != daadvert->authcount )
-            {
-                SLPDatabaseClose(dh);
-                result = SLP_ERROR_AUTHENTICATION_FAILED;
-                goto CLEANUP;
-            } 
-            
-#endif
-            
+    
             if ( daadvert->bootstamp != 0 &&
                  daadvert->bootstamp <= entrydaadvert->bootstamp )
             {
@@ -896,43 +875,7 @@ int SLPDKnownDAGenerateMyDAAdvert(int errorcode,
     int       size;
     SLPBuffer result = *sendbuf;
 
-#ifdef ENABLE_SLPv2_SECURITY
-    int                 daadvertauthlen  = 0;
-    unsigned char*      daadvertauth     = 0;
-    int                 spistrlen   = 0;
-    char*               spistr      = 0;  
-
     G_SlpdProperty.DATimestamp += 1;
-
-    if ( G_SlpdProperty.securityEnabled )
-    {
-        SLPSpiGetDefaultSPI(G_SlpdSpiHandle,
-                            SLPSPI_KEY_TYPE_PRIVATE,
-                            &spistrlen,
-                            &spistr);
-
-        SLPAuthSignDAAdvert(G_SlpdSpiHandle,
-                            spistrlen,
-                            spistr,
-                            G_SlpdProperty.DATimestamp,
-                            G_SlpdProperty.myUrlLen,
-                            G_SlpdProperty.myUrl,
-                            0,
-                            0,
-                            G_SlpdProperty.useScopesLen,
-                            G_SlpdProperty.useScopes,
-                            spistrlen,
-                            spistr,
-                            &daadvertauthlen,
-                            &daadvertauth);
-    }
-#else
-    G_SlpdProperty.DATimestamp += 1;
-#endif
-
-
-
-
 
     /*-------------------------------------------------------------*/
     /* ensure the buffer is big enough to handle the whole srvrply */
@@ -947,10 +890,6 @@ int SLPDKnownDAGenerateMyDAAdvert(int errorcode,
                                            /*  1 byte for authblock count */
     size += G_SlpdProperty.myUrlLen;
     size += G_SlpdProperty.useScopesLen;
-#ifdef ENABLE_SLPv2_SECURITY
-    size += spistrlen;
-    size += daadvertauthlen; 
-#endif
 
     result = SLPBufferRealloc(result, size);
     if ( result == 0 )
@@ -1025,42 +964,16 @@ int SLPDKnownDAGenerateMyDAAdvert(int errorcode,
         /* memcpy(result->start, ???, 0);                          */
         /* result->curpos = result->curpos + daentry->attrlistlen; */
         /* SPI List */
-#ifdef ENABLE_SLPv2_SECURITY
-        ToUINT16(result->curpos,spistrlen);
-        result->curpos = result->curpos + 2;
-        memcpy(result->curpos,spistr,spistrlen);
-        result->curpos = result->curpos + spistrlen;
-#else
         ToUINT16(result->curpos,0);
         result->curpos = result->curpos + 2;
-#endif
-
-
 
         /* authblock count */
-#ifdef ENABLE_SLPv2_SECURITY
-        if ( daadvertauth )
-        {
-            /* authcount */
-            *(result->curpos) = 1;
-            result->curpos = result->curpos + 1;
-            /* authblock */
-            memcpy(result->curpos,daadvertauth,daadvertauthlen);
-            result->curpos = result->curpos + daadvertauthlen;
-        }
-        else
-#endif
-        {
-            *(result->curpos) = 0;
-            result->curpos = result->curpos + 1;
-        }
+        *(result->curpos) = 0;
+        result->curpos = result->curpos + 1;
     }
 
     FINISHED:
-#ifdef ENABLE_SLPv2_SECURITY
-    if ( daadvertauth ) xfree(daadvertauth);
-    if ( spistr ) xfree(spistr);
-#endif
+    
     *sendbuf = result;
 
     return errorcode;

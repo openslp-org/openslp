@@ -159,11 +159,6 @@ SLPBoolean ProcessSrvRplyCallback(SLPError errorcode,
     PSLPHandleInfo  handle      = (PSLPHandleInfo) cookie;
     SLPBoolean      result      = SLP_TRUE;
 
-#ifdef ENABLE_SLPv2_SECURITY  
-    int             securityenabled;
-    securityenabled = SLPPropertyAsBoolean(SLPGetProperty("net.slp.securityEnabled"));
-#endif
-
     /*-------------------------------------------*/
     /* Check the errorcode and bail if it is set */
     /*-------------------------------------------*/
@@ -190,21 +185,7 @@ SLPBoolean ProcessSrvRplyCallback(SLPError errorcode,
                 urlentry = replymsg->body.srvrply.urlarray;
             
                 for(i=0;i<replymsg->body.srvrply.urlcount;i++)
-                {
-                    
-#ifdef ENABLE_SLPv2_SECURITY
-                    /*-------------------------------*/
-                    /* Validate the authblocks       */
-                    /*-------------------------------*/
-                    if(securityenabled &&
-                       SLPAuthVerifyUrl(handle->hspi,
-                                        1,
-                                        &(urlentry[i])))
-                    {
-                        /* authentication failed skip this URLEntry */
-                        continue;
-                    }
-#endif
+                {               
                     /*--------------------------------*/
                     /* Send the URL to the API caller */
                     /*--------------------------------*/
@@ -225,18 +206,6 @@ SLPBoolean ProcessSrvRplyCallback(SLPError errorcode,
             else if(replymsg->header.functionid == SLP_FUNCT_DAADVERT &&
                     replymsg->body.daadvert.errorcode == 0)
             {
-#ifdef ENABLE_SLPv2_SECURITY
-                if(securityenabled &&
-                   SLPAuthVerifyDAAdvert(handle->hspi,
-                                         1,
-                                         &(replymsg->body.daadvert)))
-                {
-                    /* Verification failed. Ignore message */
-                    SLPMessageFree(replymsg);
-                    return SLP_TRUE;
-                }
-#endif
-
                 ((char*)(replymsg->body.daadvert.url))[replymsg->body.daadvert.urllen] = 0;
                 result = ColateSLPSrvURLCallback((SLPHandle)handle,
                                                  replymsg->body.daadvert.url,
@@ -246,19 +215,6 @@ SLPBoolean ProcessSrvRplyCallback(SLPError errorcode,
             }
             else if(replymsg->header.functionid == SLP_FUNCT_SAADVERT)
             {
-
-#ifdef ENABLE_SLPv2_SECURITY
-                if(securityenabled &&
-                   SLPAuthVerifySAAdvert(handle->hspi,
-                                         1,
-                                         &(replymsg->body.saadvert)))
-                {
-                    /* Verification failed. Ignore message */
-                    SLPMessageFree(replymsg);
-                    return SLP_TRUE;
-                }
-#endif
-
                 ((char*)(replymsg->body.saadvert.url))[replymsg->body.saadvert.urllen] = 0;
                 result = ColateSLPSrvURLCallback((SLPHandle)handle,
                                                  replymsg->body.saadvert.url,
@@ -287,11 +243,6 @@ SLPError ProcessSrvRqst(PSLPHandleInfo handle)
     char*               curpos      = 0;
     SLPError            result      = 0;
 
-#ifdef ENABLE_SLPv2_SECURITY
-    int                 spistrlen   = 0;
-    char*               spistr      = 0;
-#endif
-
     /*------------------------------------------*/
     /* Is this a special attempt to locate DAs? */
     /*------------------------------------------*/
@@ -303,16 +254,6 @@ SLPError ProcessSrvRqst(PSLPHandleInfo handle)
         goto FINISHED;
     }
 
-#ifdef ENABLE_SLPv2_SECURITY
-    if(SLPPropertyAsBoolean(SLPGetProperty("net.slp.securityEnabled")))
-    {
-        SLPSpiGetDefaultSPI(handle->hspi,
-                            SLPSPI_KEY_TYPE_PUBLIC,
-                            &spistrlen,
-                            &spistr);
-    }
-#endif
-
     /*-------------------------------------------------------------------*/
     /* determine the size of the fixed portion of the SRVRQST            */
     /*-------------------------------------------------------------------*/
@@ -320,9 +261,6 @@ SLPError ProcessSrvRqst(PSLPHandleInfo handle)
     bufsize += handle->params.findsrvs.scopelistlen + 2; /*  2 bytes for len field */
     bufsize += handle->params.findsrvs.predicatelen + 2; /*  2 bytes for len field */
     bufsize += 2;    /*  2 bytes for spistr len*/
-#ifdef ENABLE_SLPv2_SECURITY
-    bufsize += spistrlen;
-#endif
     
     buf = curpos = (char*)xmalloc(bufsize);
     if(buf == 0)
@@ -355,14 +293,8 @@ SLPError ProcessSrvRqst(PSLPHandleInfo handle)
            handle->params.findsrvs.predicate,
            handle->params.findsrvs.predicatelen);
     curpos = curpos + handle->params.findsrvs.predicatelen;
-#ifdef ENABLE_SLPv2_SECURITY
-    ToUINT16(curpos,spistrlen);
-    curpos = curpos + 2;
-    memcpy(curpos,spistr,spistrlen);
-    curpos = curpos + spistrlen;
-#else
+    /* SPI len */
     ToUINT16(curpos,0);
-#endif
 
     /*--------------------------*/
     /* Call the RqstRply engine */
@@ -409,9 +341,6 @@ SLPError ProcessSrvRqst(PSLPHandleInfo handle)
 
     FINISHED:
     if(buf) xfree(buf);
-#ifdef ENABLE_SLPv2_SECURITY
-    if(spistr) xfree(spistr);
-#endif
 
     return result;
 }   

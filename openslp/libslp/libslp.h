@@ -86,10 +86,6 @@
 #include "slp_iface.h"
 #include "slp_xcast.h"
 #include "slp_pid.h"
-#ifdef ENABLE_SLPv2_SECURITY
-#include "slp_auth.h"
-#include "slp_spi.h"
-#endif
 
 #define MINIMUM_DISCOVERY_INTERVAL  300    /* 5 minutes */
 #define MAX_RETRANSMITS             5      /* we'll only re-xmit 5 times! */
@@ -254,9 +250,6 @@ typedef struct _SLPHandleInfo
     int                 callbackcount;
     SLPList             collatedsrvurls;
     char*               collatedsrvtypes;
-#ifdef ENABLE_SLPv2_SECURITY
-    SLPSpiHandle        hspi;
-#endif
     SLPHandleCallParams params;
 }SLPHandleInfo, *PSLPHandleInfo; 
 

@@ -65,10 +65,6 @@ SLPBoolean ProcessAttrRplyCallback(SLPError errorcode,
     PSLPHandleInfo  handle      = (PSLPHandleInfo) cookie;
     SLPBoolean      result      = SLP_TRUE;
 
-#ifdef ENABLE_SLPv2_SECURITY 
-    int             securityenabled;
-    securityenabled = SLPPropertyAsBoolean(SLPGetProperty("net.slp.securityEnabled"));
-#endif
 
     /*-------------------------------------------*/
     /* Check the errorcode and bail if it is set */
@@ -97,23 +93,6 @@ SLPBoolean ProcessAttrRplyCallback(SLPError errorcode,
             if(attrrply->attrlistlen)
             {
      
-#ifdef ENABLE_SLPv2_SECURITY
-                /*-------------------------------*/
-                /* Validate the authblocks       */
-                /*-------------------------------*/
-                if(SLPPropertyAsBoolean(SLPGetProperty("net.slp.securityEnabled")) &&
-                   SLPAuthVerifyString(handle->hspi,
-                                       1,
-                                       attrrply->attrlistlen,
-                                       attrrply->attrlist,
-                                       attrrply->authcount,
-                                       attrrply->autharray))
-                {
-                    /* Could not verify the attr auth block */
-                    SLPMessageFree(replymsg);
-                    return result;
-                }
-#endif
                 /*---------------------------------------*/
                 /* Send the attribute list to the caller */
                 /*---------------------------------------*/
@@ -146,19 +125,6 @@ SLPError ProcessAttrRqst(PSLPHandleInfo handle)
     char*               curpos      = 0;
     SLPError            result      = 0;
 
-#ifdef ENABLE_SLPv2_SECURITY
-    int                 spistrlen   = 0;
-    char*               spistr      = 0;
-
-    if(SLPPropertyAsBoolean(SLPGetProperty("net.slp.securityEnabled")))
-    {
-        SLPSpiGetDefaultSPI(handle->hspi,
-                            SLPSPI_KEY_TYPE_PUBLIC,
-                            &spistrlen,
-                            &spistr);
-    }
-#endif
-
     /*-------------------------------------------------------------------*/
     /* determine the size of the fixed portion of the ATTRRQST           */
     /*-------------------------------------------------------------------*/
@@ -166,9 +132,6 @@ SLPError ProcessAttrRqst(PSLPHandleInfo handle)
     bufsize += handle->params.findattrs.scopelistlen + 2; /*  2 bytes for len field */
     bufsize += handle->params.findattrs.taglistlen + 2;   /*  2 bytes for len field */
     bufsize += 2;    /*  2 bytes for spistr len*/
-#ifdef ENABLE_SLPv2_SECURITY
-    bufsize += spistrlen;
-#endif
 
     buf = curpos = (char*)xmalloc(bufsize);
     if(buf == 0)
@@ -201,15 +164,8 @@ SLPError ProcessAttrRqst(PSLPHandleInfo handle)
            handle->params.findattrs.taglist,
            handle->params.findattrs.taglistlen);
     curpos = curpos + handle->params.findattrs.taglistlen;
-#ifdef ENABLE_SLPv2_SECURITY
-    ToUINT16(curpos,spistrlen);
-    curpos = curpos + 2;
-    memcpy(curpos,spistr,spistrlen);
-    curpos = curpos + spistrlen;
-#else
+    /* SPI len */
     ToUINT16(curpos,0);
-#endif
-
 
     /*--------------------------*/
     /* Call the RqstRply engine */
@@ -251,9 +207,6 @@ SLPError ProcessAttrRqst(PSLPHandleInfo handle)
 
     FINISHED:
     if(buf) xfree(buf);
-#ifdef ENABLE_SLPv2_SECURITY
-    if(spistr) xfree(spistr);
-#endif
 
     return result;
 }

@@ -54,19 +54,12 @@
 #include "slpd_regfile.h"
 #include "slpd_property.h"
 #include "slpd_log.h"
-#ifdef ENABLE_SLPv2_SECURITY
-#include "slpd_spi.h"
-#endif
 
 /*=========================================================================*/
 /* common code includes                                                    */
 /*=========================================================================*/
 #include "slp_xmalloc.h"
 #include "slp_compare.h"
-#ifdef ENABLE_SLPv2_SECURITY
-#include "slp_auth.h"
-#endif
-
 
 
 /*-------------------------------------------------------------------------*/
@@ -169,13 +162,7 @@ int SLPDRegFileReadSrvReg(FILE* fd,
     char*   srvtype         = 0;
     int     attrlistlen     = 0;
     char*   attrlist        = 0;
-#ifdef ENABLE_SLPv2_SECURITY
-    unsigned char*  urlauth         = 0;
-    int             urlauthlen      = 0;
-    unsigned char*  attrauth        = 0;
-    int             attrauthlen     = 0;
-#endif
-    
+
     
     /*-------------------------------------------*/
     /* give the out params an initial NULL value */
@@ -406,33 +393,6 @@ int SLPDRegFileReadSrvReg(FILE* fd,
         scopelistlen = G_SlpdProperty.useScopesLen;
     }
 
- 
-#ifdef ENABLE_SLPv2_SECURITY
-    /*--------------------------------*/
-    /* Generate authentication blocks */
-    /*--------------------------------*/
-    if(G_SlpdProperty.securityEnabled)
-    {
-        
-        SLPAuthSignUrl(G_SlpdSpiHandle,
-                       0,
-                       0,
-                       urllen,
-                       url,
-                       &urlauthlen,
-                       &urlauth);
-    
-        SLPAuthSignString(G_SlpdSpiHandle,
-                          0,
-                          0,
-                          attrlistlen,
-                          attrlist,
-                          &attrauthlen,
-                          &attrauth);
-    }
-#endif
-
-
     /*----------------------------------------*/
     /* Allocate buffer for the SrvReg Message */
     /*----------------------------------------*/
@@ -445,10 +405,6 @@ int SLPDRegFileReadSrvReg(FILE* fd,
     bufsize += scopelistlen + 2;/*  2 bytes for len field */
     bufsize += attrlistlen + 2; /*  2 bytes for len field */
     bufsize += 1;               /*  1 byte for authcount  */
-    #ifdef ENABLE_SLPv2_SECURITY
-    bufsize += urlauthlen;
-    bufsize += attrauthlen;
-    #endif  
     *buf = SLPBufferAlloc(bufsize);
     if(*buf == 0)
     {
@@ -488,24 +444,9 @@ int SLPDRegFileReadSrvReg(FILE* fd,
     /* url-entry url */
     memcpy((*buf)->curpos,url,urllen);
     (*buf)->curpos = (*buf)->curpos + urllen;
-    /* url-entry authblock */
-#ifdef ENABLE_SLPv2_SECURITY
-    if(urlauth)
-    {
-        /* authcount */
-        *(*buf)->curpos = 1;
-        (*buf)->curpos = (*buf)->curpos + 1;
-        /* authblock */
-        memcpy((*buf)->curpos,urlauth,urlauthlen);
-        (*buf)->curpos = (*buf)->curpos + urlauthlen;
-    }
-    else
-#endif
-    {
-        /* authcount */
-        *(*buf)->curpos = 0;
-        (*buf)->curpos += 1;
-    } 
+    /* authcount */
+    *(*buf)->curpos = 0;
+    (*buf)->curpos += 1;
     /* service type */
     ToUINT16((*buf)->curpos,srvtypelen);
     (*buf)->curpos = (*buf)->curpos + 2;
@@ -521,24 +462,9 @@ int SLPDRegFileReadSrvReg(FILE* fd,
     (*buf)->curpos = (*buf)->curpos + 2;
     memcpy((*buf)->curpos,attrlist,attrlistlen);
     (*buf)->curpos = (*buf)->curpos + attrlistlen;
-    /* attribute auth block */
-#ifdef ENABLE_SLPv2_SECURITY
-    if(attrauth)
-    {
-        /* authcount */
-        *(*buf)->curpos = 1;
-        (*buf)->curpos = (*buf)->curpos + 1;
-        /* authblock */
-        memcpy((*buf)->curpos,attrauth,attrauthlen);
-        (*buf)->curpos = (*buf)->curpos + attrauthlen;
-    }
-    else
-#endif
-    {
-        /* authcount */
-        *(*buf)->curpos = 0;
-        (*buf)->curpos = (*buf)->curpos + 1;
-    }
+    /* authcount */
+    *(*buf)->curpos = 0;
+    (*buf)->curpos = (*buf)->curpos + 1;
 
     /*------------------------------------------------*/
     /* Ok Now comes the really stupid (and lazy part) */
@@ -581,10 +507,6 @@ CLEANUP:
     if(url) xfree(url);
     if(srvtype) xfree(srvtype);
     if(attrlist)xfree(attrlist);
-#ifdef ENABLE_SLPv2_SECURITY
-    if(urlauth) xfree(urlauth);
-    if(attrauth) xfree(attrauth);
-#endif
 
     return result;
 }

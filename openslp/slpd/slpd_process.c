@@ -54,9 +54,6 @@
 #include "slpd_database.h"
 #include "slpd_knownda.h"
 #include "slpd_log.h"
-#ifdef ENABLE_SLPv2_SECURITY
-    #include "slpd_spi.h"
-#endif
 
 
 /*=========================================================================*/
@@ -65,9 +62,6 @@
 #include "slp_xmalloc.h"
 #include "slp_message.h"
 #include "slp_compare.h"
-#ifdef ENABLE_SLPv2_SECURITY
-    #include "slp_auth.h"
-#endif
 
 
 /*-------------------------------------------------------------------------*/
@@ -310,11 +304,6 @@ int ProcessSrvRqst(SLPMessage message,
     int                         size        = 0;
     SLPBuffer                   result      = *sendbuf;
 
-#ifdef ENABLE_SLPv2_SECURITY
-    SLPAuthBlock*               authblock    = 0;
-    int                          j;
-#endif
-
 
     /*--------------------------------------------------------------*/
     /* If errorcode is set, we can not be sure that message is good */
@@ -344,29 +333,11 @@ int ProcessSrvRqst(SLPMessage message,
     /* because there is no way we can return URL entries that ares      */
     /* signed in a way the requester can understand                     */
     /*------------------------------------------------------------------*/
-#ifdef ENABLE_SLPv2_SECURITY
-    if (G_SlpdProperty.securityEnabled)
-    {
-        if (SLPSpiCanVerify(G_SlpdSpiHandle,
-                            message->body.srvrqst.spistrlen,
-                            message->body.srvrqst.spistr) == 0)
-        {
-            errorcode = SLP_ERROR_AUTHENTICATION_UNKNOWN;
-            goto RESPOND;
-        }
-    }
-    else if (message->body.srvrqst.spistrlen)
-    {
-        errorcode = SLP_ERROR_AUTHENTICATION_UNKNOWN;
-        goto RESPOND;
-    }
-#else
     if (message->body.srvrqst.spistrlen)
     {
         errorcode = SLP_ERROR_AUTHENTICATION_UNKNOWN;
         goto RESPOND;
     }
-#endif
 
     /*------------------------------------------------*/
     /* Check to to see if a this is a special SrvRqst */
@@ -452,26 +423,6 @@ int ProcessSrvRqst(SLPMessage message,
                                           /*  2 bytes for lifetime */
                                           /*  2 bytes for urllen   */
                                           /*  1 byte for authcount */
-#ifdef ENABLE_SLPv2_SECURITY
-
-            /* make room to include the authblock that was asked for */
-            if (G_SlpdProperty.securityEnabled &&
-                message->body.srvrqst.spistrlen )
-            {
-                for (j=0; j<urlentry->authcount;j++)
-                {
-                    if (SLPCompareString(urlentry->autharray[j].spistrlen,
-                                         urlentry->autharray[j].spistr,
-                                         message->body.srvrqst.spistrlen,
-                                         message->body.srvrqst.spistr) == 0)
-                    {
-                        authblock = &(urlentry->autharray[j]);
-                        size += authblock->length;
-                        break;
-                    }
-                }
-            }
-#endif 
         }
     }
 
@@ -604,43 +555,22 @@ int ProcessSrvReg(SLPMessage message,
                                G_SlpdProperty.useScopes))
     {
 
-#ifdef ENABLE_SLPv2_SECURITY
+        /*--------------------------------------------------------------*/
+        /* Put the registration in the                                  */
+        /*--------------------------------------------------------------*/
+        /* TRICKY: Remember the recvbuf was duplicated back in          */
+        /*         SLPDProcessMessage()                                 */
 
-        /*-------------------------------*/
-        /* Validate the authblocks       */
-        /*-------------------------------*/
-        errorcode = SLPAuthVerifyUrl(G_SlpdSpiHandle,
-                                     0,
-                                     &(message->body.srvreg.urlentry));
-        if (errorcode == 0)
+        if (ISLOCAL(message->peer.sin_addr))
         {
-            errorcode = SLPAuthVerifyString(G_SlpdSpiHandle,
-                                            0,
-                                            message->body.srvreg.attrlistlen,
-                                            message->body.srvreg.attrlist,
-                                            message->body.srvreg.authcount,
-                                            message->body.srvreg.autharray);
+            message->body.srvreg.source= SLP_REG_SOURCE_LOCAL;
         }
-        if (errorcode == 0)
-#endif
+        else
         {
-            /*--------------------------------------------------------------*/
-            /* Put the registration in the                                  */
-            /*--------------------------------------------------------------*/
-            /* TRICKY: Remember the recvbuf was duplicated back in          */
-            /*         SLPDProcessMessage()                                 */
-
-            if (ISLOCAL(message->peer.sin_addr))
-            {
-                message->body.srvreg.source= SLP_REG_SOURCE_LOCAL;
-            }
-            else
-            {
-                message->body.srvreg.source = SLP_REG_SOURCE_REMOTE;
-            }
-
-            errorcode = SLPDDatabaseReg(message, recvbuf);
+            message->body.srvreg.source = SLP_REG_SOURCE_REMOTE;
         }
+
+        errorcode = SLPDDatabaseReg(message, recvbuf);
     }
     else
     {
@@ -731,22 +661,10 @@ int ProcessSrvDeReg(SLPMessage message,
                                G_SlpdProperty.useScopesLen,
                                G_SlpdProperty.useScopes))
     {
-#ifdef ENABLE_SLPv2_SECURITY
-
-        /*-------------------------------*/
-        /* Validate the authblocks       */
-        /*-------------------------------*/
-        errorcode = SLPAuthVerifyUrl(G_SlpdSpiHandle,
-                                     0,
-                                     &(message->body.srvdereg.urlentry));
-        if (errorcode == 0)
-#endif
-        {
-            /*--------------------------------------*/
-            /* remove the service from the database */
-            /*--------------------------------------*/
-            errorcode = SLPDDatabaseDeReg(message);
-        }
+        /*--------------------------------------*/
+        /* remove the service from the database */
+        /*--------------------------------------*/
+        errorcode = SLPDDatabaseDeReg(message);
     }
     else
     {
@@ -831,15 +749,6 @@ int ProcessAttrRqst(SLPMessage message,
     int                         size            = 0;
     SLPBuffer                   result          = *sendbuf;
 
-#ifdef ENABLE_SLPv2_SECURITY
-    int               i;
-    unsigned char*    generatedauth       = 0;
-    int               generatedauthlen    = 0;
-    unsigned char*    opaqueauth          = 0;
-    int               opaqueauthlen       = 0;
-#endif
-
-
     /*--------------------------------------------------------------*/
     /* If errorcode is set, we can not be sure that message is good */
     /* Go directly to send response code                            */
@@ -872,59 +781,12 @@ int ProcessAttrRqst(SLPMessage message,
                                G_SlpdProperty.useScopes))
     {
 
-        /*------------------------------------------------------------------*/
-        /* Make sure that we handle at least verify registrations made with */
-        /* the requested SPI.  If we can't then have to return an error     */
-        /* because there is no way we can return URL entries that ares      */
-        /* signed in a way the requester can understand                     */
-        /*------------------------------------------------------------------*/
-#ifdef ENABLE_SLPv2_SECURITY
-        if (G_SlpdProperty.securityEnabled)
-        {
-            if (message->body.attrrqst.taglistlen == 0)
-            {
-                /* We can send back entire attribute strings without */
-                /* generating a new attribute authentication block   */
-                /* we just use the one sent by the registering agent */
-                /* which we have to have been able to verify         */
-                if (SLPSpiCanVerify(G_SlpdSpiHandle,
-                                    message->body.attrrqst.spistrlen,
-                                    message->body.attrrqst.spistr) == 0)
-                {
-                    errorcode = SLP_ERROR_AUTHENTICATION_UNKNOWN;
-                    goto RESPOND;
-                }
-            }
-            else
-            {
-                /* We have to be able to *generate* (sign) authentication */
-                /* blocks for attrrqst with taglists since it is possible */
-                /* that the returned attributes are a subset of what the  */
-                /* original registering agent sent                        */
-                if (SLPSpiCanSign(G_SlpdSpiHandle,
-                                  message->body.attrrqst.spistrlen,
-                                  message->body.attrrqst.spistr) == 0)
-                {
-                    errorcode = SLP_ERROR_AUTHENTICATION_UNKNOWN;
-                    goto RESPOND;
-                }
-            }
-        }
-        else
-        {
-            if (message->body.attrrqst.spistrlen)
-            {
-                errorcode = SLP_ERROR_AUTHENTICATION_UNKNOWN;
-                goto RESPOND;
-            }
-        }
-#else
         if (message->body.attrrqst.spistrlen)
         {
             errorcode = SLP_ERROR_AUTHENTICATION_UNKNOWN;
             goto RESPOND;
         }
-#endif
+
         /*---------------------------------*/
         /* Find attributes in the database */
         /*---------------------------------*/
@@ -959,46 +821,6 @@ int ProcessAttrRqst(SLPMessage message,
                                             /*  2 bytes for attr-list len */
                                             /*  1 byte for the authcount */
     size += db->attrlistlen;
-
-#ifdef ENABLE_SLPv2_SECURITY
-
-    /*------------------------------------------------------------------*/
-    /* Generate authblock if necessary or just use the one was included */
-    /* by registering agent.  Reserve sufficent space for either case.  */
-    /*------------------------------------------------------------------*/
-    if (G_SlpdProperty.securityEnabled &&
-        message->body.attrrqst.spistrlen )
-    {
-        if (message->body.attrrqst.taglistlen == 0)
-        {
-            for (i=0; i<db->authcount;i++)
-            {
-                if (SLPCompareString(db->autharray[i].spistrlen,
-                                     db->autharray[i].spistr,
-                                     message->body.attrrqst.spistrlen,
-                                     message->body.attrrqst.spistr) == 0)
-                {
-                    opaqueauth = db->autharray[i].opaque;
-                    opaqueauthlen = db->autharray[i].opaquelen;
-                    break;
-                }
-            }
-        }
-        else
-        {
-            errorcode = SLPAuthSignString(G_SlpdSpiHandle,
-                                          message->body.attrrqst.spistrlen,
-                                          message->body.attrrqst.spistr,
-                                          db->attrlistlen,
-                                          db->attrlist,
-                                          &generatedauthlen,
-                                          &generatedauth);
-            opaqueauthlen = generatedauthlen;
-            opaqueauth = generatedauth;
-        }
-        size += opaqueauthlen;
-    }
-#endif
 
     /*-------------------*/
     /* Alloc the  buffer */
@@ -1052,19 +874,6 @@ int ProcessAttrRqst(SLPMessage message,
         result->curpos = result->curpos + db->attrlistlen;
 
         /* authentication block */
-#ifdef ENABLE_SLPv2_SECURITY
-        if (opaqueauth)
-        {
-            /* authcount */
-            *(result->curpos) = 1;
-            result->curpos = result->curpos + 1;
-            memcpy(result->curpos,
-                   opaqueauth,
-                   opaqueauthlen);
-            result->curpos = result->curpos + opaqueauthlen;
-        }
-        else
-#endif
         {
             /* authcount */
             *(result->curpos) = 0;
@@ -1074,11 +883,6 @@ int ProcessAttrRqst(SLPMessage message,
 
 
     FINISHED:
-
-#ifdef ENABLE_SLPv2_SECURITY    
-    /* free the generated authblock if any */
-    if (generatedauth) xfree(generatedauth);
-#endif
 
     if (db) SLPDDatabaseAttrRqstEnd(db);
 
@@ -1126,21 +930,10 @@ int ProcessDAAdvert(SLPMessage message,
         goto RESPOND;
     } 
 
-    /*-------------------------------*/
-    /* Validate the authblocks       */
-    /*-------------------------------*/
-#ifdef ENABLE_SLPv2_SECURITY
-    errorcode = SLPAuthVerifyDAAdvert(G_SlpdSpiHandle,
-                                      0,
-                                      &(message->body.daadvert));
-    if (errorcode == 0);
-#endif
+    /* Only process if errorcode is not set */
+    if (message->body.daadvert.errorcode == SLP_ERROR_OK)
     {
-        /* Only process if errorcode is not set */
-        if (message->body.daadvert.errorcode == SLP_ERROR_OK)
-        {
-            errorcode = SLPDKnownDAAdd(message,recvbuf);
-        }
+        errorcode = SLPDKnownDAAdd(message,recvbuf);
     }
 
     RESPOND:

@@ -89,23 +89,6 @@ if test "$asyncapi" = "yes"; then
 fi
 
 dnl ***********************************************************************
-dnl Enable security support 
-dnl ***********************************************************************
-AC_ARG_ENABLE(slpv2-security,
-[  --enable-slpv2-security Turn on security support (default off)],
-slpv2security=$enableval,
-slpv2security=no)
-
-dnl Conditional for optional security support in libslp SLP API library
-AM_CONDITIONAL(ENABLE_SLPv2_SECURITY, test "$slpv2security" = "yes")
-if test "$slpv2security" = "yes"; then
-    AC_CHECK_LIB(crypto,DSA_sign) 
-    AC_CHECK_FUNCS(DSA_verify DSA_size DSA_free SHA1)
-    AC_DEFINE(ENABLE_SLPv2_SECURITY)
-fi
-
-
-dnl ***********************************************************************
 dnl Checks for programs.
 dnl ***********************************************************************
 AC_PROG_CC
