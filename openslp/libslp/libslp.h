@@ -217,18 +217,4 @@ int NetworkConnectToSlpBroadcast(struct sockaddr_in* peeraddr);
 /* Returns  - Valid file descriptor on success, -1 on failure w/ errno set.*/
 /*=========================================================================*/ 
 
-
-/*=========================================================================*/
-void XidSeed();
-/* Seeds the XID generator.  Should only be called 1 time per process!     */
-/* currently called when the first handle is opened.                       */
-/*=========================================================================*/
-
-
-/*=========================================================================*/
-unsigned short XidGenerate();
-/*                                                                         */
-/* Returns: A hopefully unique 16-bit value                                */
-/*=========================================================================*/
-
 #endif
