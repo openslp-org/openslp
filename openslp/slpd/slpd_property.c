@@ -45,26 +45,36 @@ char* GetHostname()
 /* free returned string                                                    */
 /*-------------------------------------------------------------------------*/
 {
-    char*   result = 0;
+    char*   host    = 0;
+    int     hostlen;
 
-#ifdef WIN32
     /* TODO find a better constant for MAX_HOSTNAME */
-    #define MAX_HOSTNAME 256
-    result = (char*)malloc(MAX_HOST_NAME);
-    if (gethostname(myname, MAX_HOST_NAME) != 0)
+    #define MAX_HOST_NAME 1024    
+    host = (char*)malloc(MAX_HOST_NAME);
+    if(host == 0)
     {
-        free(result);
-        result = 0;
+        return host;  
     }
-#else
-    struct utsname myname;
-    if(uname(&myname) >= 0)
+    memset(host,0,MAX_HOST_NAME);
+    if (gethostname(host, MAX_HOST_NAME) != 0)
     {
-        result = strdup(myname.nodename);
-    }    
-#endif
+        free(host);
+        host = 0;
+    }
 
-    return result;
+    /* fix for hostname stupidity.  Looks like hostname is not FQDN on  */
+    /* some systems */
+    if(strchr(host,'.'))
+    {
+        hostlen = strlen(host);
+        if(getdomainname(host + hostlen + 1,
+                         MAX_HOST_NAME - hostlen - 1) == 0)
+        {
+            host[hostlen] = '.'; /* slip in the dot */
+        }
+    }
+
+    return host;
 }
 
 
