@@ -6,6 +6,9 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 
+08/31/02 aaron@clove.org
+Fixed parsing bug for service URL strings. Made the port default to 80.
+
 08/21/02 aaron@clove.org
 Added support for Darwin 6.0 (Mac OS X 10.2)
 
