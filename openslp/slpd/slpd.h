@@ -43,9 +43,6 @@
 #endif
 
 /* common includes */
-/* eh */
-#include <slp_attr.h>
-
 #include <slp_compare.h>
 #include <slp_buffer.h>
 #include <slp_message.h>
