@@ -17,33 +17,6 @@ double ElapsedTime(struct timeval* start, struct timeval* stop)
 }
 
 
-
-/*-------------------------------------------------------------------------*/
-void test_callback(SLPHandle hslp, SLPError errcode, void* cookie) 
-/*-------------------------------------------------------------------------*/
-{
-}
-
-void test()
-{
-    int i;
-    SLPError errorcode;
-    SLPHandle hslp;
-
-    SLPOpen("en",SLP_FALSE,&hslp);
-    
-
-    for (i = 1;i<10;i++)
-    {
-        errorcode = SLPDereg(hslp,
-                             "hello://1.2.3.4",
-                             test_callback,
-                             0);
-    }
-
-    SLPClose(hslp);
-}
-
 int main(int argc, char* argv[])
 {
     int result;
@@ -69,9 +42,7 @@ int main(int argc, char* argv[])
         }
         
         break;
-    case 2:
-         test();
-         break;
+
     default:
         goto USAGE;
         
