@@ -37,7 +37,7 @@ features:
     - slpd does not honor the honor taglist in AttrRqst messages
     - slpd does not re-register all services with new DAs 
     - libslp and slpd do not cooperate for efficiency in locating DAs
-    - libslp does not colate results for syncronous calls
+    - libslp does not collate results for syncronous calls
     - libslp does not support asyncronous calls
 
 
@@ -66,7 +66,7 @@ libtool.  To build OpenSLP please use the following steps:
       $ ./configure --help
       $ ./configure
 	  
-    - Run the top level make file.
+    - Run the top level make file (you need to use GNU make)
     
       $ make
 	  
