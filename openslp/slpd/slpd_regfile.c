@@ -233,7 +233,6 @@ SLPDDatabaseEntry* SLPDRegFileReadEntry(FILE* fd, SLPDDatabaseEntry** entry)
                 goto SLPD_ERROR;
             }
         }   
-
     }
     else
     {
@@ -353,7 +352,8 @@ SLPDDatabaseEntry* SLPDRegFileReadEntry(FILE* fd, SLPDDatabaseEntry** entry)
             else
             {
                 (*entry)->attrlist = realloc((*entry)->attrlist,
-                                             (*entry)->attrlistlen + 1);
+                                             (*entry)->attrlistlen + 2);
+				strcat((*entry)->attrlist,",");
             }
             
             if((*entry)->attrlist == 0)
