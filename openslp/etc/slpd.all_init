@@ -83,7 +83,6 @@ case "$1" in
     RETVAL=$?
     ;;
   status)
-# This won't work in Caldera since they are not LSB compliant.
     status /usr/sbin/slpd
     RETVAL=$?
     ;;
