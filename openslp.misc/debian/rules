@@ -9,8 +9,8 @@
 export DH_COMPAT=1
 
 # shared library versions, option 1
-version=0.0.3
-major=0
+version=1.0.0
+major=1
 
 build: build-stamp
 build-stamp:
