@@ -71,7 +71,6 @@ void SLPFree(void* pvMem)
     }
 }
 
-
 /*=========================================================================*/
 SLPError SLPParseSrvURL(const char *pcSrvURL,
                         SLPSrvURL** ppSrvURL)
@@ -100,87 +99,16 @@ SLPError SLPParseSrvURL(const char *pcSrvURL,
 /*          appropriate error code is returned.                            */
 /*=========================================================================*/
 {
-    char*   empty;   /* always points to an empty string */
-    char*   slider1; /* points to location in the SLPSrvURL buffer */
-    char*   slider2;
-    char*   slider3;
-
-    /* Check for bad parameters */
-    if(pcSrvURL == 0 ||
-       ppSrvURL == 0)
+    int result = SLPParseSrvUrl(strlen(pcSrvURL),
+                                pcSrvURL,
+                                (SLPParsedSrvURL**) ppSrvURL);
+    switch(result)
     {
-        return SLP_PARAMETER_BAD;
-    }
-
-    /* Allocate memory and set up sliders */
-    *ppSrvURL = (SLPSrvURL*)xmalloc(strlen(pcSrvURL) + sizeof(SLPSrvURL) + 5);
-    /* +5 ensures space for 5 null terminations */
-    if(*ppSrvURL == 0)
-    {
+    case ENOMEM:
         return SLP_MEMORY_ALLOC_FAILED;
-    }
-    memset(*ppSrvURL,0,strlen(pcSrvURL) + sizeof(SLPSrvURL) + 5);    
-    slider1 = ((char*)*ppSrvURL) + sizeof(SLPSrvURL);
-    slider2 = slider3 = (char*)pcSrvURL;
-    
-    /* Set empty */
-    empty = slider1;
-    slider1 ++;
-     
-    /* parse out the service type */
-    slider3 = (char*)strstr(slider2,":/");
-    if(slider3 == 0)
-    {
-        xfree(*ppSrvURL);
-        *ppSrvURL = 0;
+    case EINVAL:
         return SLP_PARSE_ERROR;
-    }    
-    memcpy(slider1,slider2,slider3-slider2);
-    (*ppSrvURL)->s_pcSrvType = slider1;
-    slider1 += (slider3 - slider2) + 1;
-
-    /* parse out the host */
-    slider3 = slider2 = slider3 + 3; /* + 3 skips the "://" */
-    while(*slider3 && *slider3 != '/' && *slider3 != ':') slider3++;
-    if(slider3-slider2 < 1)
-    {
-        /* no host part (this is okay according to RFC2609) */
-        (*ppSrvURL)->s_pcHost = empty;
-    }
-    else
-    {
-        memcpy(slider1,slider2,slider3-slider2);
-        (*ppSrvURL)->s_pcHost = slider1;
-        slider1 += (slider3 - slider2) + 1;
-    }
-
-    /* parse out the port */
-    if(*slider3 == ':')
-    {
-        slider3 = slider2 = slider3 + 1; /* + 3 skips the ":" */
-        while(*slider3 && *slider3 != '/') slider3++;
-        memcpy(slider1,slider2,slider3-slider2);
-        (*ppSrvURL)->s_iPort = atoi(slider1);
-        slider1 += (slider3-slider2) + 1;
-    }
-
-    /* parse out the remainder of the url */
-    if(*slider3)
-    {
-        slider2 = slider3;
-        while(*slider3) slider3 ++;
-        memcpy(slider1,slider2,slider3-slider2);
-        (*ppSrvURL)->s_pcSrvPart = slider1;
-        slider1 += (slider3 - slider2) + 1;
-    }
-    else
-    {
-        /* no remainder portion */
-        (*ppSrvURL)->s_pcSrvPart = empty;
-    }
-
-    /* set  the net family to always be an empty string for IP */
-    (*ppSrvURL)->s_pcNetFamily = empty;
+    } 
 
     return SLP_OK;
 }
