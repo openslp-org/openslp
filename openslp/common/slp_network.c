@@ -49,6 +49,7 @@
 
 #include "slp_network.h"
 #include "slp_net.h"
+
 /*=========================================================================*/ 
 int SLPNetworkConnectStream(struct sockaddr_storage *peeraddr,   
                             struct timeval* timeout)

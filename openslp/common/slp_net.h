@@ -202,10 +202,25 @@ int SLPNetSetAddr(struct sockaddr_storage *addr, const int family, const short p
  *  (in/out) addr   Address of sockaddr_storage struct to be filled out
  *  (in) family     Protocol family (AF_INET for IPV4, AF_INET6 for IPV6)
  *  (in) port       Port for this address.  Note that appropriate host to network translations
-                    will occur as part of this call.
- *  (in) address    The IP address for this sockaddr_storage struct.  If NULL this call will not
-                    modify the existing address.
+ *                  will occur as part of this call.
+ *  (in) address    The IP address for this sockaddr_storage struct.  If NULL this call will 
+ *                  set the address to IN_ADDR_ANY.
  *  (in) addrLen    The length of the adddress to be set.
+ *
+ * Returns: 0 if address set correctly, non-zero there were errors setting fields of addr
+ *-------------------------------------------------------------------------*/
+
+int SLPNetSetParams(struct sockaddr_storage *addr, const int family, const short port);
+/*
+ * Description:
+ *    Used to set the port and family of a sockaddr_storage
+ *    
+ *
+ * Parameters:
+ *  (in/out) addr   Address of sockaddr_storage struct to be filled out
+ *  (in) family     Protocol family (AF_INET for IPV4, AF_INET6 for IPV6)
+ *  (in) port       Port for this address.  Note that appropriate host to network translations
+ *                  will occur as part of this call.
  *
  * Returns: 0 if address set correctly, non-zero there were errors setting fields of addr
  *-------------------------------------------------------------------------*/

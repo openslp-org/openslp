@@ -189,22 +189,14 @@ int SLPNetCompareAddrs(const struct sockaddr_storage *addr1, const struct sockad
             struct sockaddr_in *v41 = (struct sockaddr_in *) addr1;
             struct sockaddr_in *v42 = (struct sockaddr_in *) addr2;
             if (v41->sin_family == v42->sin_family) {
-                if (v41->sin_port == v42->sin_port) {
-                    sts = memcmp(&v41->sin_addr, &v42->sin_addr, sizeof(v41->sin_addr));
-                }
+                sts = memcmp(&v41->sin_addr, &v42->sin_addr, sizeof(v41->sin_addr));
             }
         }
         else if (addr1->ss_family == AF_INET6) {
             struct sockaddr_in6 *v61 = (struct sockaddr_in6 *) addr1;
             struct sockaddr_in6 *v62 = (struct sockaddr_in6 *) addr2;
             if (v61->sin6_family == v62->sin6_family) {
-                if (v61->sin6_flowinfo == v62->sin6_flowinfo) {
-                    if (v61->sin6_port == v62->sin6_port) {
-                        if (v61->sin6_scope_id == v62->sin6_scope_id) {
-                            sts = memcmp(&v61->sin6_addr, &v62->sin6_addr, sizeof(v61->sin6_addr));
-                        }
-                    }
-                }
+                sts = memcmp(&v61->sin6_addr, &v62->sin6_addr, sizeof(v61->sin6_addr));
             }
         }
         else {
@@ -218,6 +210,41 @@ int SLPNetCompareAddrs(const struct sockaddr_storage *addr1, const struct sockad
     return(sts);
 }
 
+int SLPNetCompareStructs(const struct sockaddr_storage *addr1, const struct sockaddr_storage *addr2) {
+    int sts = -1;
+    if (addr1->ss_family == addr2->ss_family) {
+        if (addr1->ss_family == AF_INET) {
+            struct sockaddr_in *v41 = (struct sockaddr_in *) addr1;
+            struct sockaddr_in *v42 = (struct sockaddr_in *) addr2;
+            if (v41->sin_family == v42->sin_family) {
+                if (v41->sin_port == v42->sin_port) {
+                    sts = memcmp(&v41->sin_addr, &v42->sin_addr, sizeof(v41->sin_addr));
+                }
+            }
+        }
+        else if (addr1->ss_family == AF_INET6) {
+            struct sockaddr_in6 *v61 = (struct sockaddr_in6 *) addr1;
+            struct sockaddr_in6 *v62 = (struct sockaddr_in6 *) addr2;
+            if (v61->sin6_family == v62->sin6_family) {
+                //if (v61->sin6_flowinfo == v62->sin6_flowinfo) {
+                    if (v61->sin6_port == v62->sin6_port) {
+                        if (v61->sin6_scope_id == v62->sin6_scope_id) {
+                            sts = memcmp(&v61->sin6_addr, &v62->sin6_addr, sizeof(v61->sin6_addr));
+                        }
+                    }
+                //}
+            }
+        }
+        else {
+            // don't know how to decode - use memcmp for now
+            sts = memcmp(addr1, addr2, sizeof(struct sockaddr_storage));
+        }
+    }
+    else {
+        sts = -1;
+    }
+    return(sts);
+}
 
 int SLPNetIsMCast(const struct sockaddr_storage *addr) {
     if (addr->ss_family == AF_INET) {
@@ -325,10 +352,33 @@ int SLPNetSetAddr(struct sockaddr_storage *addr, const int family, const short p
         v6->sin6_flowinfo = 0;
         v6->sin6_port = htons(port);
         v6->sin6_scope_id = 0;
-        if (address == NULL)
+        if (address == NULL) {
             memcpy(&v6->sin6_addr, &in6addr_any, sizeof(struct in6_addr));
-        else
+		}
+        else {
             memcpy(&v6->sin6_addr, address, min(addrLen, sizeof(v6->sin6_addr)));
+		}
+    }
+    else {
+        sts = -1;
+    }
+	return(sts);
+}
+
+int SLPNetSetParams(struct sockaddr_storage *addr, const int family, const short port) {
+    int sts = 0;
+    addr->ss_family = family;
+    if (family == AF_INET) {
+        struct sockaddr_in *v4 = (struct sockaddr_in *) addr;
+        v4->sin_family = family;
+        v4->sin_port = htons(port);
+    }
+    else if (family == AF_INET6) {
+        struct sockaddr_in6 *v6 = (struct sockaddr_in6 *) addr;
+        v6->sin6_family = family;
+        v6->sin6_flowinfo = 0;
+        v6->sin6_port = htons(port);
+        v6->sin6_scope_id = 0;
     }
     else {
         sts = -1;
