@@ -120,7 +120,7 @@ void SLPDLogSrvTypeRqstMessage(SLPSrvTypeRqst* srvtyperqst)
 {
     SLPLog("Message SRVTYPERQST:\n");
 }
-
+ 
 /*-------------------------------------------------------------------------*/
 void SLPDLogSrvTypeRplyMessage(SLPSrvTypeRply* srvtyperply)
 /*-------------------------------------------------------------------------*/ 
@@ -141,8 +141,7 @@ void SLPDLogSAAdvertMessage(SLPSAAdvert* saadvert)
 void SLPDLogPeerAddr(struct sockaddr_in* peeraddr)
 /*-------------------------------------------------------------------------*/
 {
-    SLPLog("Peer Information:\n");
-    SLPLog("   IP address: %s\n",inet_ntoa(peeraddr->sin_addr));
+    SLPLog("Peer IP address: %s\n", inet_ntoa(peeraddr->sin_addr));
 }
 
 /*-------------------------------------------------------------------------*/
@@ -228,9 +227,8 @@ void SLPDLogTraceMsg(const char* prefix,
         {
             if(SLPMessageParseBuffer(buf,msg) == 0)
             {
-                SLPLog("----------------------------------------\n");
-                SLPLog("traceMsg %s:\n",prefix);
-                SLPLog("----------------------------------------\n");
+                SLPLogTime();
+                SLPLog("Trace Message %s:\n",prefix);
                 SLPDLogPeerAddr(peeraddr);
                 SLPDLogMessage(msg);
                 SLPLog("\n");
@@ -257,9 +255,8 @@ void SLPDLogTraceReg(const char* prefix, SLPDDatabaseEntry* entry)
 {
     if(G_SlpdProperty.traceReg)
     {
-        SLPLog("----------------------------------------\n");
-        SLPLog("traceReg %s:\n",prefix);
-        SLPLog("----------------------------------------\n");
+        SLPLogTime();
+        SLPLog("Trace Registration %s:\n",prefix);
         SLPLog("language tag = ");
         SLPLogBuffer(entry->langtag, entry->langtaglen);
         SLPLog("\nlifetime = %i\n",entry->lifetime); 
@@ -283,9 +280,8 @@ void SLPDLogDATrafficMsg(const char* prefix,
 {
     if(G_SlpdProperty.traceDATraffic)
     {
-        SLPLog("----------------------------------------\n");
-        SLPLog("traceDATraffic %s:\n",prefix);
-        SLPLog("----------------------------------------\n");
+        SLPLogTime();
+        SLPLog("Trace DA Traffic %s:\n",prefix);
         SLPDLogPeerAddr(peeraddr);
         SLPDLogMessage(daadvert);
         SLPLog("\n\n");
@@ -298,9 +294,8 @@ void SLPDLogKnownDA(const char* prefix,
                     SLPDAEntry* daentry)
 /*=========================================================================*/
 {
-    SLPLog("----------------------------------------\n");
+    SLPLogTime();
     SLPLog("Known DA %s:\n",prefix);
-    SLPLog("----------------------------------------\n");
     SLPLog("   url = ");
     SLPLogBuffer(daentry->url, daentry->urllen);
     SLPLog("\n   scope = ");

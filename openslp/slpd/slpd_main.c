@@ -129,7 +129,8 @@ void Shutdown()
     int             fdcount         = 0;
 
     SLPLog("****************************************\n");
-    SLPLog("*** SLPD daemon stopped              ***\n");
+    SLPLogTime();
+    SLPLog("SLPD daemon stopped\n");
     SLPLog("****************************************\n");
 
     /* close all incoming sockets */
@@ -257,44 +258,16 @@ int SetUpSignalHandlers()
     return result;
 }
 
-
 /*-------------------------------------------------------------------------*/
-int Daemonize(const char* pidfile)
-/* Turn the calling process into a daemon (detach from tty setuid(), etc   */
-/*                                                                         */      
-/* Returns: zero on success non-zero if slpd could not daemonize (or if    */
-/*          slpd is already running                             .          */
+int CheckPid(const char* pidfile)
+/* Check a pid file to see if slpd is already running                      */
+/*                                                                         */
+/* Returns: 0 on success.  non-zero on failure                             */
 /*-------------------------------------------------------------------------*/
 {
     pid_t   pid;
     FILE*   fd;
-    struct  passwd* pwent;
     char    pidstr[14];
-
-    if(G_SlpdCommandLine.detach)
-    {
-
-        /*-------------------------------------------*/
-        /* Release the controlling tty and std files */
-        /*-------------------------------------------*/
-        switch(fork())
-        {
-        case -1:
-            return -1;
-        case 0:
-            /* child lives */
-            break;
-
-        default:
-            /* parent dies */
-            exit(0);
-        }
-
-        close(0); 
-        close(1); 
-        close(2); 
-        setsid(); /* will only fail if we are already the process group leader */
-    }
 
     /*------------------------------------------*/
     /* make sure that we're not running already */
@@ -305,26 +278,98 @@ int Daemonize(const char* pidfile)
     {
         memset(pidstr,0,14);
         fread(pidstr,13,1,fd);
-        fclose(fd);
         pid = atoi(pidstr);
         if(pid)
         {
             if(kill(pid,0) == 0)
             {
                 /* we are already running */
-                SLPFatal("slpd daemon is already running\n");
                 return -1;
             }
         }
+
+        fclose(fd);
     }
+
+    return 0;
+}
+
+
+/*-------------------------------------------------------------------------*/
+int WritePid(const char* pidfile, pid_t pid)
+/* Write the pid file                                                      */
+/*                                                                         */
+/* Returns: 0 on success.  non-zero on failure                             */
+/*-------------------------------------------------------------------------*/
+{
+    FILE*   fd;
+    char    pidstr[14];
+
     /* write my pid to the pidfile */
     fd = fopen(pidfile,"w");
     if(fd)
     {
-        sprintf(pidstr,"%i",(int)getpid());
+        sprintf(pidstr,"%i",(int)pid);
         fwrite(pidstr,strlen(pidstr),1,fd);
         fclose(fd);
+    }   
+
+    return 0;
+}
+
+
+/*-------------------------------------------------------------------------*/
+int Daemonize(const char* pidfile)
+/* Turn the calling process into a daemon (detach from tty setuid(), etc   */
+/*                                                                         */      
+/* Returns: zero on success non-zero if slpd could not daemonize (or if    */
+/*          slpd is already running                             .          */
+/*-------------------------------------------------------------------------*/
+{
+    FILE*   fd;
+    struct  passwd* pwent;
+    pid_t   pid;
+    char    pidstr[14];
+    
+    /* fork() if we should detach */
+    if(G_SlpdCommandLine.detach)
+    {
+        pid = fork();
     }
+    else
+    {
+        pid = getpid();
+    }
+    
+    /* parent or child? */
+    switch(pid)
+    {
+    case -1:
+        return -1;
+    case 0:
+        /* child lives */
+        break;
+
+    default:
+        /* parent writes pid (or child) pid file and dies */
+        fd = fopen(pidfile,"w");
+        if(fd)
+        {
+            sprintf(pidstr,"%i",(int)pid);
+            fwrite(pidstr,strlen(pidstr),1,fd);
+            fclose(fd);
+        }
+        if(G_SlpdCommandLine.detach)
+        {
+            exit(0);
+        }
+        break;
+    }
+
+    close(0); 
+    close(1); 
+    close(2); 
+    setsid(); /* will only fail if we are already the process group leader */
 
     /*----------------*/
     /* suid to daemon */
@@ -343,6 +388,7 @@ int Daemonize(const char* pidfile)
 
     return 0;
 }
+
 
 /*=========================================================================*/
 int main(int argc, char* argv[])
@@ -369,10 +415,19 @@ int main(int argc, char* argv[])
         SLPFatal("slpd must be started by root\n");
     }
 
+    /*--------------------------------------*/
+    /* Make sure we are not already running */
+    /*--------------------------------------*/
+    if(CheckPid(G_SlpdCommandLine.pidfile))
+    {
+        SLPFatal("slpd is already running. Check %s\n",
+                 G_SlpdCommandLine.pidfile);
+    }
+
     /*------------------------------*/
     /* Initialize the log file      */
     /*------------------------------*/
-    if(SLPLogFileOpen(G_SlpdCommandLine.logfile, 0))
+    if(SLPLogFileOpen(G_SlpdCommandLine.logfile, 1))
     {
         SLPFatal("Could not open logfile %s\n",G_SlpdCommandLine.logfile);
     }
@@ -381,7 +436,8 @@ int main(int argc, char* argv[])
     /* Log startup message */
     /*---------------------*/
     SLPLog("****************************************\n");
-    SLPLog("*** SLPD daemon started             ***\n");
+    SLPLogTime();
+    SLPLog("SLPD daemon started\n");
     SLPLog("****************************************\n");
     SLPLog("Command line = %s\n",argv[0]);
 
@@ -397,7 +453,7 @@ int main(int argc, char* argv[])
     {
         SLPFatal("slpd initialization failed\n");
     }
-
+    
     /*---------------------------*/
     /* make slpd run as a daemon */
     /*---------------------------*/
@@ -422,6 +478,7 @@ int main(int argc, char* argv[])
     /*-----------*/
     /* Main loop */
     /*-----------*/
+    SLPLog("Startup complete entering main run loop ...\n\n");
     G_SIGALRM   = 0;
     G_SIGTERM   = 0;
     G_SIGHUP    = 0;    
@@ -462,10 +519,10 @@ int main(int argc, char* argv[])
         {
             /* Reinitialize */
             SLPLog("****************************************\n");
-            SLPLog("*** SLPD daemon restarted            ***\n");
-            SLPLog("****************************************\n");
-            SLPLog("Got SIGHUP reinitializing... \n");
-
+            SLPLogTime();
+            SLPLog("SLPD daemon reset by SIGHUP\n");
+            SLPLog("****************************************\n\n");
+            
             /* re-read properties */
             SLPDPropertyInit(G_SlpdCommandLine.cfgfile);
 

@@ -52,6 +52,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <errno.h>
+#include <time.h> 
 
 #include <slp_logfile.h>
 
@@ -163,6 +164,15 @@ void SLPFatal(const char* msg, ...)
     }
 
     exit(1);
+}
+
+/*=========================================================================*/
+void SLPLogTime()
+/* Logs a timestamp                                                        */
+/*=========================================================================*/
+{
+    time_t curtime = time(NULL);
+    SLPLog("%s",ctime(&curtime)); 
 }
 
 /*=========================================================================*/
