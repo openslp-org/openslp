@@ -252,7 +252,7 @@ SLPError ProcessSrvReg(PSLPHandleInfo handle)
         curpos += 2;
         ToUINT24(curpos,0);
         curpos += 3;
-        ToUINT32(curpos,getpid());
+        ToUINT32(curpos,SLPPidGet());
         curpos += 4;
     }
 

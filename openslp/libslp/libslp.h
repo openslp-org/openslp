@@ -85,6 +85,7 @@
 #include "slp_parse.h"
 #include "slp_iface.h"
 #include "slp_xcast.h"
+#include "slp_pid.h"
 #ifdef ENABLE_SLPv2_SECURITY
 #include "slp_auth.h"
 #include "slp_spi.h"

@@ -67,6 +67,8 @@
 /*=========================================================================*/
 #include "slp_compare.h"
 #include "slp_xmalloc.h"
+#include "slp_pid.h"
+
 
 /*=========================================================================*/
 SLPDDatabase G_SlpdDatabase;
@@ -128,13 +130,10 @@ void SLPDDatabaseAge(int seconds, int ageall)
                  * that we'll get an EPERM since we've droped root 
                  * permissions)
                  */
-                if(kill(srvreg->pid,SIGUSR2))
+                if(SLPPidExists(srvreg->pid))
                 {
-                    if(errno == ESRCH)
-                    {
-                        srvreg->urlentry.lifetime = 0;
-                        SLPDKnownDADeRegisterWithAllDas(entry->msg,entry->buf);
-                    }
+                    srvreg->urlentry.lifetime = 0;
+                    SLPDKnownDADeRegisterWithAllDas(entry->msg,entry->buf);
                 }
             }
 
