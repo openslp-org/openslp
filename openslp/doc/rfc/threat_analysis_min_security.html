@@ -2,10 +2,84 @@
 <html>
 <head>
    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-   <meta name="GENERATOR" content="Mozilla/4.76C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.4.2 i686) [Netscape]">
+   <meta name="GENERATOR" content="Mozilla/4.77C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.4.2 i686) [Netscape]">
 </head>
 <body>
 
+<h3>
+Introduction</h3>
+&nbsp;
+<h3>
+The SLP&nbsp;Security Problem</h3>
+The SLP security problem can be divided into three categories:&nbsp; SLP
+security attacks, security configuration and management problems, and ignorance
+of secure SLPv2 usage.&nbsp; The following is an introduction to problems
+that will be examined in more detail later in this document.
+<p>The obvious SLP security problems are those that are similar to the
+one that is described by the following example from <a href="broken_link.html">SLPv2
+Authentication - Is it worth the trouble</a> ):
+<blockquote><tt>Imagine that in an enterprise environment there is a malicious
+or overly curious individual that would like to obtain confidential information.&nbsp;&nbsp;&nbsp;
+SLP could be exploited to obtain information from software that was otherwise
+secured only by virtue of manual configuration.&nbsp;&nbsp;&nbsp; For example,
+an OpenSource help desk application consisting of "server" and "client"
+software is SLP enabled because the network administrators got tired of
+helping employees set up the "client" software with location and configuration
+information used to connect with the "server" software.</tt><tt></tt>
+<p><tt>Since the source code is readily available, a sneaky employee makes
+a few modifications to the server code that allows him to obtain user names
+and passwords.&nbsp; He recompiles the source and brings up the "rogue"
+help desk server.&nbsp; Since the "rogue" help desk server and the real
+help desk server both have similar SLP registerations, it is possible that
+clients may connect to the "rogue" server instead of the real one.&nbsp;
+When the users log in, the "rogue" server saves off a copies of user names
+and passwords.&nbsp; The malicious employee can use these user names and
+passwords later to impersonate other people.</tt></blockquote>
+The obvious solution to this and other related SLP security problems is
+to build security features into the SLP protocol itself.&nbsp;&nbsp; This
+is the approach that is taken by SLPv2 and it is indeed successful in preventing
+nearly all of the SLP security attacks in a way that requires very little
+effort on the part of user and application developer.&nbsp; However, it
+places a huge security configuration and management burdon on the system
+administrator and makes (application level) interoperability between SLP
+implementations difficult if not impossible.&nbsp; In other words, the
+SLPv2 security specification does a great job at solving most SLP&nbsp;security
+problems from a protocol perspective, but in most applications, it creates
+a configuration and management nighmare that challenges the fundamental
+SLP usability claim"
+<blockquote><tt>"Using this protocol, computers using the [network] need
+little or no static configuration of network services for network based
+applications."&nbsp; -- RFC 2608 (abstract)</tt></blockquote>
+SLPv2 uses public key cryptography to generate signatures that ensure integrity
+of SLP messages.&nbsp;&nbsp;&nbsp; Authenticity of SLP message signatures
+is established by the relationship of SPI and keys -- unfortunately this
+is a relationship that has to be established manually or by some other
+trusted PKI framework.&nbsp;&nbsp; Another unfortunate reality is that
+there are no standards for PKI frameworks to which SLP protocol implementors
+can write nor are there any standard for manual configuration.&nbsp;&nbsp;
+The result is that none of the secure SLPv2 security implementations are
+interoperable from a security configuration or management standpoint.&nbsp;
+With out security configuration and management standards, software developers
+have a difficult time writing management software and System administrators
+are stuck with the prospect of having to manually configure key distibution
+and SPI configuration.
+<p>Finally, very little information is given in RFC 2608 or in RFC 2614
+(especially) to educates developers of SLP software about the subelties
+of SLP&nbsp;security and how SLP must be used in order to be secure.&nbsp;
+It turns out that there many things that developers can do to write software
+that is resistant to SLP related attacks that do not require use of SLPv2
+protocol security features.&nbsp;&nbsp; As discussed later in this document,
+it may be possible for educated developers to write acceptibly secure SLP
+enabled software that does not require any security configuration or management
+overhead.
+<br>&nbsp;
+<br>&nbsp;
+<h3>
+SLP Security Solutions</h3>
+Currently
+<h3>
+</h3>
+&nbsp;
 <h3>
 SLP Security Attacks</h3>
 The following is a list of attacks that could affect SLP enabled software
@@ -24,13 +98,13 @@ specification.
 
 <td>An unauthorized directory agent could be installed on the network with
 the intention of sending incorrect information to UAs.&nbsp;&nbsp; A malicious
-DA could disrupt the operation of SLP&nbsp;enabled applications by returning
+DA could disrupt the operation of SLP enabled applications by returning
 unauthorized service URLs, by returning unauthorized attributes, or by
 simply not returning any results at all.&nbsp; Since UAs are required to
-use a DA&nbsp;if it exists, it is possible that it might attach to the
-unauthorized DA and receive service URLs that point to rogue services,&nbsp;
-receive attributes that disrupt normal operation, or&nbsp; not receive
-any service location information at all</td>
+use a DA if it exists, it is possible that it might attach to the unauthorized
+DA and receive service URLs that point to rogue services,&nbsp; receive
+attributes that disrupt normal operation, or&nbsp; not receive any service
+location information at all</td>
 </tr>
 
 <tr>
@@ -38,11 +112,11 @@ any service location information at all</td>
 
 <td>An unauthorized service agent could be installed on the network with
 the intention of duplicating a registrations made by authorized SAs.&nbsp;
-In environments involving DAs, unauthorized SA&nbsp;would cause the unauthorized
+In environments involving DAs, unauthorized SA would cause the unauthorized
 registration, deregistration, and registration problems described below.&nbsp;&nbsp;
 In a multicast environments an unauthorized SA could&nbsp; cause duplicate
-replies to be sent to service, attribute and service type requests.&nbsp;
-&nbsp;Duplicate replies may cause problems when several differing attributes
+replies to be sent to service, attribute and service type requests.&nbsp;&nbsp;
+Duplicate replies may cause problems when several differing attributes
 lists are returned for the same service URL.&nbsp;&nbsp; UAs would be unable
 to tell which attributes are really valid.</td>
 </tr>
@@ -82,14 +156,14 @@ registration with modified attributes.&nbsp;</td>
 <td>Man-in-the-middle Replay</td>
 
 <td>"transport-time" retransmission of SLP registration, or reply messages
-that were previously "sniffed"&nbsp;from the network.</td>
+that were previously "sniffed" from the network.</td>
 </tr>
 
 <tr>
 <td>Man-in-the-middle Scrambling</td>
 
 <td>Blind "transport-time" modification of messages that makes them invalid
-so that they will be rejected by the valid SLP&nbsp;implementations.</td>
+so that they will be rejected by the valid SLP implementations.</td>
 </tr>
 </table>
 
@@ -183,7 +257,7 @@ the vulnerability of SLPv2 to attack:
 <tr>
 <td>Man-in-the-middle Scrambling</td>
 
-<td><b><font color="#CC0000">VULNERABLE</font><font color="#FFFF00">&nbsp;</font></b></td>
+<td><b><font color="#CC0000">VULNERABLE</font></b></td>
 
 <td><b><font color="#CC0000">VULNERABLE</font></b></td>
 
@@ -200,8 +274,8 @@ SLP software</font>
 - Attack can not be prevented entirely, but can be deterred</font>
 <br><b><font color="#CC0000">VULNERABLE</font></b><font color="#000000">
 - Attack can not be prevented, deterred or detected</font>
-<br><font color="#000000"></font>&nbsp;
-<br><font color="#000000"></font>&nbsp;
-<br><font color="#000000"></font>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
 </body>
 </html>
