@@ -1,0 +1,10 @@
+# KDE Config File
+[Breakpoint 0]
+Enabled=true
+Temporary=false
+File=slpd_process.c
+Line=37
+[General]
+WorkingDirectory=
+FileVersion=1
+ProgramArgs=
