@@ -1,22 +1,53 @@
-Name            : openslp
-Version         : 1.0.5
-Release         : 1
-Group           : Server/Network
-Summary     	: Open source implementation of Service Location Protocol V2.
-Summary(de) 	: Open source Implementierung des Service Location Protocols V2.
-Summary(es) 	: Implementación open source del Service Location Protocol V2.
-Summary(fr) 	: Implémentation Open Source du Service Location Protocol V2.
-Summary(it) 	: Implementazione open source del Service Location Protocol V2.
-Summary(pt) 	: Implementação 'open source' do protocolo Service Location Protocol V2.
-Copyright       : Caldera Systems, Inc (BSD)
-Packager        : Matthew Peterson <mpeterson@caldera.com>
-URL             : http://www.openslp.org
-BuildRoot       : /var/tmp/%{Name}-%{Version}
+# -----------------------------------------------
+# --------- BEGIN VARIABLE DEFINITIONS ----------
+# -----------------------------------------------
 
-Provides	: libslp.so
-Requires	: SysVinit-scripts >= 1.07, libtool
+%define name openslp
+%define ver 1.0.10
+%define rel 4
 
-Source0		: %{Name}-%{Version}.tar.gz
+%define libver 1.0.0
+%define initscript slpd
+
+# Needed to set up and remove init symlinks when all else fails...
+%define startnum 13
+%define killnum 87
+
+%define lsbdocdir /usr/share/doc/packages
+%define lsbmandir /usr/share/man/en
+%define lsbinit /etc/init.d
+%define rhdocdir /usr/share/doc
+%define rhmandir /usr/share/man
+%define rhinit /etc/init.d
+%define destdir /opt/lsb-caldera.com-volution
+
+%define _defaultdocdir %{lsbdocdir}
+
+%define libver 1.0.0
+
+# ---------------------------------------------
+# -------- END OF VARIABLE DEFINITIONS --------
+# ---------------------------------------------
+
+# ---------------------------------------------
+# ---------- BEGIN RPM HEADER INFO ------------
+# ---------------------------------------------
+
+Name        	: %{name}
+Summary     	: OpenSLP implementation of Service Location Protocol V2 
+
+Version     	: %{ver}
+Release     	: %{rel}
+Copyright   	: Caldera Systems (BSD)
+Group       	: System Environment/Daemons
+Packager    	: Erik Ratcliffe <eratcliffe@volutiontech.com>
+URL         	: http://www.openslp.org/
+
+BuildRoot	: %{_tmppath}/%{name}-root
+Provides        : openslp libslp.so libslp.so.0 slpd
+Obsoletes	: openslp-server
+
+Source0		: ftp://openslp.org/pub/openslp/%{name}-%{ver}/%{name}-%{ver}.tar.gz
 Source1		: slpd.init
 
 %Description
@@ -25,124 +56,250 @@ provides a framework to allow networking applications to discover the
 existence, location, and configuration of networked services in
 enterprise networks.
 
-%Description -l de
-Das Service Location Protocol ist ein IETF standard Protokoll welches ein Gerüst
-bereitstellt um es Netzwerk-fähigen Anwendungen zu ermöglichen die Existenz,
-den Ort und die Konfiguration von Netzwerkdiensten in Unternehmensnetzwerken zu
-entdecken.
+OpenSLP is an open source implementation of the SLPv2 protocol as defined 
+by RFC 2608 and RFC 2614.  This package include the daemon, libraries, header 
+files and documentation
 
-%Description -l es
-El Protocolo de Localización de Servicios es un protocolo de seguimiento acorde
-al estándar IETF que proporciona un entorno para permitir a las aplicaciones de
-red descubrir la existencia, localización y configuración de servicios de red 
-en redes empresariales.
+# ---------------------------------------------
+# ---------- END OF RPM HEADER INFO -----------
+# ---------------------------------------------
 
-%Description -l fr
-Service Location Protocol est un protocole de suivi des normes IETF
-qui fournit un cadre permettant à des applications réseau de 
-découvrir l'existence, l'emplacement et la configuration de 
-services de réseau dans les réseaux d'entreprise.
+# ---------------------------------------------
+# ------------ BEGIN BUILD SECTION ------------
+# ---------------------------------------------
 
-%Description -l it
-Il Service Location Protocol (protocollo di localizzazione di servizi)
-è un protocollo standard IETF che fornisce un'infrastruttura per
-permettere alle applicazioni di rete di scoprire l'esistenza, la localizzazione
-e la configurazione dei servizi nelle reti delle aziende.
+%prep
+%setup -n %{name}-%{ver}
 
-%Description -l pt
-O Service Location Protocol é um protocolo normalizado pelo IETF que
-oferece uma plataforma para permitir às aplicações de rede que descubram
-a existência, localização e a configuração dos serviços de rede nas redes
-duma empresa.
-
-%Prep
-%setup 
-
-%Build
-./configure --disable-predicates
+%build
+libtoolize --force
+aclocal
+automake
+autoconf
+./configure
 make
 
-%Install
-%{mkDESTDIR}
+# ---------------------------------------------
+# ----------- END OF BUILD SECTION ------------
+# ---------------------------------------------
 
-mkdir -p $DESTDIR/etc
-mkdir -p $DESTDIR%{SVIdir}
-mkdir -p $DESTDIR/usr/{sbin,lib,bin,include}
-mkdir -p $DESTDIR/etc/sysconfig/daemons 
-mkdir -p $DESTDIR%{_defaultdocdir}/%{Name}-%{Version}
+# ---------------------------------------------
+# ----------- BEGIN INSTALL SECTION -----------
+# ---------------------------------------------
 
-cp etc/slp.conf $DESTDIR/etc
-cp etc/slp.reg $DESTDIR/etc
-cp libslp/slp.h $DESTDIR/usr/include
-cp -a doc/* $DESTDIR%{_defaultdocdir}/%{Name}-%{Version}
+%install
+[ "${RPM_BUILD_ROOT}" != "/" ] && rm -rf ${RPM_BUILD_ROOT}
 
-libtool install slpd/slpd $DESTDIR/usr/sbin 
-libtool install slptool/slptool $DESTDIR/usr/bin
-libtool install libslp/libslp.la $DESTDIR/usr/lib
-ln -s libslp.so.%{libver} $DESTDIR/usr/lib/libslp.so.0
+mkdir -p ${RPM_BUILD_ROOT}/etc
+cp etc/slp.conf ${RPM_BUILD_ROOT}/etc
+cp etc/slp.reg ${RPM_BUILD_ROOT}/etc
 
-cat <<EOD  > $DESTDIR/etc/sysconfig/daemons/slpd
+mkdir -p ${RPM_BUILD_ROOT}/usr/lib
+libtool install libslp/libslp.la ${RPM_BUILD_ROOT}/usr/lib
+ln -s libslp.so.%{libver} ${RPM_BUILD_ROOT}/usr/lib/libslp.so.0
+
+mkdir -p  ${RPM_BUILD_ROOT}/usr/sbin
+libtool install slpd/slpd ${RPM_BUILD_ROOT}/usr/sbin 
+
+mkdir -p ${RPM_BUILD_ROOT}/usr/bin
+libtool install slptool/slptool ${RPM_BUILD_ROOT}/usr/bin
+
+mkdir -p ${RPM_BUILD_ROOT}/usr/include
+cp libslp/slp.h ${RPM_BUILD_ROOT}/usr/include
+
+mkdir -p ${RPM_BUILD_ROOT}%{lsbdocdir}/%{name}-%{ver}
+cp -a doc/* ${RPM_BUILD_ROOT}%{lsbdocdir}/%{name}-%{ver}
+
+
+mkdir -p ${RPM_BUILD_ROOT}%{lsbinit}
+install -m 755 %{SOURCE1} ${RPM_BUILD_ROOT}%{lsbinit}/%{initscript}
+
+# ---------------------------------------------
+# ---------- END OF INSTALL SECTION -----------
+# ---------------------------------------------
+
+# ---------------------------------------------
+# ------ BEGIN PRE/POST-INSTALL SECTION -------
+# ---------------------------------------------
+
+%pre
+rm -f /usr/lib/libslp*
+
+# Who started this /etc/rc.d/init.d stuff anyway??  It's WRONG!
+#
+# Assume that if %{lsbinit} exists it's either the proper init
+# script directory for the distro or it's a symlink already set up
+# to fix this issue.
+if [ ! -e %{lsbinit} ] && [ -d /etc/rc.d/init.d ]; then
+     ln -s /etc/rc.d/init.d %{lsbinit}
+fi 
+
+# ---------------------------------------------
+
+%post
+if [ -e /usr/lib/libslp.so ]; then rm -f /usr/lib/libslp.so; fi
+
+ln -s libslp.so.%{libver} /usr/lib/libslp.so
+/sbin/ldconfig
+
+# Set up the SysV runlevel links.  First try the LSB compatible
+# method, then the Red Hat method, then the OpenLinux method, then
+# a non-LSB SuSE method, if all else fails use the medieval method...
+if [ -x /usr/lib/lsb/install_initd ]; then
+       /usr/lib/lsb/install_initd %{initscript} > /dev/null 2>&1
+elif [ -x /sbin/chkconfig ]; then
+       /sbin/chkconfig --add %{initscript} > /dev/null 2>&1
+elif [ -x /usr/lib/LSB/init-install ]; then
+       /usr/lib/LSB/init-install %{initscript} > /dev/null 2>&1
+elif [ -e /etc/SuSE-release ]; then
+  for i in 0 1 6; do
+    ln -sf ../%{initscript} %{lsbinit}/rc$i.d/K%{killnum}%{initscript}
+  done
+  for i in 2 3 4 5; do
+    ln -sf ../%{initscript} %{lsbinit}/rc$i.d/S%{startnum}%{initscript}
+  done
+else
+  for i in 0 1 2 6; do
+    ln -sf ../init.d/%{initscript} \
+       /etc/rc.d/rc$i.d/K%{killnum}%{initscript}
+  done
+  for i in 3 4 5; do
+    ln -sf ../init.d/%{initscript} \
+       /etc/rc.d/rc$i.d/S%{startnum}%{initscript}
+  done
+fi
+
+# You only need to do this on OpenLinux systems.
+# Be sure to UN-do this in the %postun section...
+if grep OpenLinux /etc/.installed > /dev/null 2>&1; then
+cat <<EOD  > /etc/sysconfig/daemons/slpd
 IDENT=slp
 DESCRIPTIVE="SLP Service Agent"
 ONBOOT="yes"
-OPTIONS=""
 EOD
-
-install -m 755 %{SOURCE1} $DESTDIR%{SVIdir}/slpd
-
-%{fixManPages}
-%{fixInfoPages}
-%{fixUP} -T $DESTDIR/%{SVIdir} -e 's:\@SVIdir\@:%{SVIdir}:' 
-
-
-%Clean
-%{rmDESTDIR}
-
-
-%Post
-if [ -e /usr/lib/libslp.so ]; then
-	rm -f /usr/lib/libslp.so
 fi
-ln -s /usr/lib/libslp.so.%{libver} /usr/lib/libslp.so
-libtool --finish /usr/lib > /dev/null 2>&1
 
-/usr/lib/LSB/init-install slpd
+# The following code snippet is useful for making installed 
+# docs in an LSB compatible location available in Red Hat. 
+# If there's a better way to see if you're on Red Hat, do tell...
+if grep "Red Hat" /etc/redhat-release > /dev/null 2>&1; then
+ln -s %{_defaultdocdir}/%{name}-%{ver} \
+    %{rhdocdir}/%{name}-%{ver}
+fi
 
+# ---------------------------------------------
+# ------ END OF PRE/POST-INSTALL SECTION ------
+# ---------------------------------------------
 
-%PreUn
-%{SVIdir}/slpd stop > /dev/null 2>&1
-/usr/lib/LSB/init-remove slpd
+# ---------------------------------------------
+# ----- BEGIN PRE/POST-UN-INSTALL SECTION -----
+# ---------------------------------------------
 
+%preun 
+if [ "$1" = "0" ]; then
+    # Remove any SysV runlevel links.
+    if [ -x /usr/lib/lsb/remove_initd ]; then
+            /usr/lib/lsb/remove_initd %{initscript} > /dev/null 2>&1
+    elif [ -x /sbin/chkconfig ]; then
+           /sbin/chkconfig --del %{initscript} > /dev/null 2>&1
+    elif [ -x /usr/lib/LSB/init-remove ]; then
+           /usr/lib/LSB/init-remove %{initscript} > /dev/null 2>&1
+    elif [ -e /etc/SuSE-release ]; then
+       for i in 0 1 6; do
+           rm -f %{lsbinit}/rc$i.d/K%{killnum}%{initscript}
+       done
+       for i in 2 3 4 5; do
+           rm -f %{lsbinit}/rc$i.d/S%{startnum}%{initscript}
+       done
+    else
+       for i in 0 1 2 6; do
+           rm -f /etc/rc.d/rc$i.d/K%{killnum}%{initscript}
+       done
+       for i in 3 4 5; do
+           rm -f /etc/rc.d/rc$i.d/S%{startnum}%{initscript}
+       done
+    fi
+    %{lsbinit}/%{initscript} stop > /dev/null 2>&1
+fi
 
-%PostUn 
+# ---------------------------------------------
+
+%postun 
+if [ "$1" = "0" ]; then
+    if [ -e /usr/lib/libslp.so ]; then rm -f /usr/lib/libslp.so; fi
+fi
+
+# Remember that file we created in %post just for OpenLinux systems?...
+if [ -e /etc/sysconfig/daemons/%{initscript} ]; then
+    rm -f /etc/sysconfig/daemons/%{initscript}
+fi
+
+# ...and that symlink we set up for doc dirs on Red Hat?...
+rm -f %{rhdocdir}/%{name}-%{ver}
+
 /sbin/ldconfig
 
+# -----------------------------------------------
+# ----- END OF PRE/POST-UN-INSTALL SECTION ------
+# -----------------------------------------------
 
-%Files
+%clean
+[ "${RPM_BUILD_ROOT}" != "/" ] && rm -rf ${RPM_BUILD_ROOT}
+
+# -----------------------------------------------
+# ----- END OF BUILD SYSTEM CLEANING SECTION ----
+# -----------------------------------------------
+
+# -----------------------------------------------
+# ------------ BEGIN FILES SECTION --------------
+# -----------------------------------------------
+
+%files
 %defattr(-,root,root)
+%doc doc/*
 %config /etc/slp.conf
-%config /etc/slp.reg
-%config /etc/sysconfig/daemons/slpd
-%{SVIdir}/slpd
-%{_defaultdocdir}/%{Name}-%{Version}/*
 /usr/lib/libslp*
 /usr/include/slp.h
+%config /etc/slp.reg
+%{lsbinit}/%{initscript}
 /usr/sbin/slpd
 /usr/bin/slptool
 
+# -----------------------------------------------
+# ------------ END OF FILES SECTION -------------
+# -----------------------------------------------
 
-%ChangeLog
-* Mon Dec 18 2000 mpeterson@caldera.com
-        Added LSB init stuff
+# -----------------------------------------------
+# ---------- BEGIN CHANGELOG SECTION ------------
+# -----------------------------------------------
+
+%changeLog
+* Tue Jan 14 2003 eratcliffe@volutiontech.com
+	Removed RPM_BUILD_ROOT from a %post routine.  I must have been tired
+	that day...
+
+* Fri Jan 03 2003 eratcliffe@volutiontech.com
+    Altered spec file to be more distro agnostic
+    Adjusted init script for the same reason.
+
+* Wed Feb 06 2002 alain.richard@equation.fr
+	Adapted to enable build under redhat 7.x (uses BuildRoot macro,
+	install instead of installtool for non libraries objects,
+	protected rm -r for install & clean)
+
+* Wed Jun 13 2001 matt@caldera.com
+    Removed server stuff.  We want on binary rpm again
 	
-* Wed Nov 28 2000 mpeterson@caldera.com
-        Removed lisa stuff and RPM_BUILD_ROOT
-	
-* Wed Jul 17 2000 mpeterson@caldera.com
-        Added lisa stuff
+* Wed Jul 17 2000 mpeterson@calderasystems.com
+    Added lisa stuff
 	
 * Thu Jul 7 2000 david.mccormack@ottawa.com
 	Made it work with the new autoconf/automake scripts.
  
 * Wed Apr 27 2000 mpeterson
-	Started
+	started
+
+# -----------------------------------------------
+# ---------- END OF CHANGELOG SECTION -----------
+# -----------------------------------------------
+
