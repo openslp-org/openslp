@@ -49,6 +49,7 @@
 
 #include "slp_net.h"
 #include "slp_xmalloc.h"
+#include <assert.h>
 /*-------------------------------------------------------------------------*/
 int SLPNetGetThisHostname(char* hostfdn, unsigned int hostfdnLen, int numeric_only)
 /* 
@@ -63,30 +64,31 @@ int SLPNetGetThisHostname(char* hostfdn, unsigned int hostfdnLen, int numeric_on
  *    numeric_only (IN) force return of numeric address.  
  *-------------------------------------------------------------------------*/
 {
-    char            host[MAX_HOST_NAME];
-    struct hostent* he;
-    struct in_addr  ifaddr;
+    char host[MAX_HOST_NAME];
+    struct addrinfo  *ifaddr;
+    int res;
 
     *hostfdn = 0;
 
     if(gethostname(host, MAX_HOST_NAME) == 0)
     {
-        he = gethostbyname(host);
-        if(he)
-        {
+        res = getaddrinfo(host, NULL, NULL, &ifaddr);
+        if (res == 0) {
             /* if the hostname has a '.' then it is probably a qualified 
              * domain name.  If it is not then we better use the IP address
-             */
-            if(!numeric_only && strchr(he->h_name,'.'))
+            */ 
+            if(!numeric_only && strchr(ifaddr->ai_canonname, '.'))
             {
-                 strncpy(hostfdn, he->h_name, hostfdnLen);
+                 strncpy(hostfdn, ifaddr->ai_canonname, hostfdnLen);
             }
             else
             {
-                ifaddr.s_addr = *((unsigned long*)he->h_addr);
-                strncpy(hostfdn, inet_ntoa(ifaddr), hostfdnLen);
+                strncpy(hostfdn, ifaddr->ai_canonname, hostfdnLen);
             }
-            
+            freeaddrinfo(ifaddr);
+        }
+        else {
+            assert(1);
         }
     }
 

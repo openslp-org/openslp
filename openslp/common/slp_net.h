@@ -50,14 +50,14 @@
 #define SLP_NET_H_INCLUDED
 
 #ifdef _WIN32
-#if(_WIN32_WINNT >= 0x0400 && _WIN32_WINNT < 0x0500) 
-#include <ws2tcpip.h>
-#endif
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <winsock2.h>
 #include <io.h>
 #include <errno.h>
+//#if(_WIN32_WINNT >= 0x0400 && _WIN32_WINNT < 0x0500) 
+#include <ws2tcpip.h>
+//#endif
 #include "slp_win32.h"
 #define ETIMEDOUT 110
 #define ENOTCONN  107

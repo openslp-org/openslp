@@ -96,7 +96,7 @@ int SLPIfaceGetInfo(const char* useifaces,
 
 
 /*=========================================================================*/
-int SLPIfacesockaddr_storagesToString(const struct sockaddr* addrs,
+int SLPIfaceStoragesToString(const struct sockaddr_storage* addrs,
                               int addrcount,
                               char** addrstr);
 /* Description:

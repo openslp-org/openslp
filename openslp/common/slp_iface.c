@@ -209,7 +209,7 @@ int SLPIfaceGetInfo(const char* useifaces,
     /*---------------------------------------------------*/
     struct hostent* myhostent;
     char            myname[MAX_HOST_NAME];
-    struct in_addr  ifaddr;
+    struct sockaddr_storage  ifaddr;
     uint32_t**      haddr;
     int             useifaceslen;
 
@@ -219,7 +219,7 @@ int SLPIfaceGetInfo(const char* useifaces,
         myhostent = gethostbyname(myname);
         if(myhostent != 0)
         {
-            if(myhostent->h_addrtype == AF_INET)
+            if(myhostent->h_addrtype == (AF_INET || AF_INET6))
             {
                 if(useifaces && *useifaces)
                 {
@@ -236,13 +236,15 @@ int SLPIfaceGetInfo(const char* useifaces,
                 /* count the interfaces */
                 while(*haddr)
                 {
-                    ifaddr.s_addr = **haddr;
+                    char ifaddrs[255];
+                    SLPNetSetAddr(&ifaddr,  myhostent->h_addrtype, 0, (char *)*haddr, myhostent->h_length);
+                    inet_ntop(myhostent->h_addrtype, &ifaddr, ifaddrs, sizeof(ifaddrs));
 
                     if(useifaceslen == 0 ||
                        SLPContainsStringList(useifaceslen,
                                              useifaces,
-                                             strlen(inet_ntoa(ifaddr)),
-                                             inet_ntoa(ifaddr)))
+                                             strlen(ifaddrs),
+                                             ifaddrs))
                     {
                         if (SLPNetIsIPV6()) {
                         }
@@ -318,12 +320,7 @@ int SLPIfaceSockaddrsToString(const struct sockaddr_storage* addrs,
 
         buf[0]= '/0';
 
-        if (SLPNetIsIPV6()) {
-            inet_ntop(PF_INET6, &addrs[i], buf, sizeof(buf));
-        }
-        else {
-            inet_ntop(PF_INET, &addrs[i], buf, sizeof(buf));
-        }
+        inet_ntop(addrs[i].ss_family, &addrs[i], buf, sizeof(buf));
         strcat(*addrstr, buf);
         if (i != addrcount-1)
         {
@@ -394,14 +391,10 @@ int SLPIfaceStringToSockaddrs(const char* addrstr,
         {
             *slider2 = 0;
         }
-        
-        if (SLPNetIsIPV6()) {
-            inet_pton(PF_INET6, slider1, &(addrs[i]));
-        }
-        else {
+        if (inet_pton(PF_INET6, slider1, &(addrs[i])) == 0) {
+            // try ipv4
             inet_pton(PF_INET, slider1, &(addrs[i]));
         }
-
         i++;
         if(i == *addrcount)
         {
