@@ -32,14 +32,12 @@
 /***************************************************************************/
 
 #include "slpd.h"
-#include <grp.h>
 
 /*==========================================================================*/
-int G_SIGALRM   = 0;
-int G_SIGTERM   = 0;
-int G_SIGHUP    = 0;
+int G_SIGALRM;
+int G_SIGTERM;
+int G_SIGHUP;
 /*==========================================================================*/                                                                                                 
-
 
 /*--------------------------------------------------------------------------*/
 void SignalHandler(int signum)
@@ -62,6 +60,7 @@ void SignalHandler(int signum)
         return;
     }
 }
+
 
 /*-------------------------------------------------------------------------*/
 int SetUpSignalHandlers()
@@ -175,246 +174,55 @@ int Daemonize(const char* pidfile)
 
 
 /*-------------------------------------------------------------------------*/
-void HandleStreamConnect(SLPDSocketList* list, SLPDSocket*sock)
+void LoadFdSets(SLPDSocketList* list, 
+                int* highfd, 
+                fd_set* readfds, 
+                fd_set* writefds)
 /*-------------------------------------------------------------------------*/
 {
-    /* TODO add a lot of stuff here */
-}
-                  
-
-/*-------------------------------------------------------------------------*/
-void HandleSocketClose(SLPDSocketList* list, SLPDSocket* sock)
-/*-------------------------------------------------------------------------*/
-{
-    SLPDSocketListRemove(list,sock);
-    close(sock->fd);
-    if(sock->recvbuf) SLPBufferFree(sock->recvbuf);
-    if(sock->sendbuf) SLPBufferFree(sock->sendbuf);                        
-    free(sock);
-}
-
-
-/*-------------------------------------------------------------------------*/
-void HandleSocketListen(SLPDSocketList* list, SLPDSocket* sock)
-/*-------------------------------------------------------------------------*/
-{
-    SLPDSocket* connsock;
-    const int   lowat = SLPD_SMALLEST_MESSAGE;
+    SLPDSocket* sock;
     
-    /* Only accept if we can. If we still maximum number of sockets, just*/
-    /* ignore the connection */
-    if(list->count < SLPD_MAX_SOCKETS)
+    sock = list->head;
+    while(sock)
     {
-        connsock = (SLPDSocket*) malloc(sizeof(SLPDSocket));
-        memset(connsock,0,sizeof(SLPDSocket));
-        
-        connsock->peerinfo.peeraddrlen = sizeof(sock->peerinfo.peeraddr);
-        connsock->fd = accept(sock->fd,
-                              &(connsock->peerinfo.peeraddr), 
-                              &(connsock->peerinfo.peeraddrlen));
-        if(connsock->fd >= 0)
+        if(sock->fd > *highfd)
         {
-            setsockopt(connsock->fd,SOL_SOCKET,SO_RCVLOWAT,&lowat,sizeof(lowat));
-            setsockopt(connsock->fd,SOL_SOCKET,SO_SNDLOWAT,&lowat,sizeof(lowat)); 
-            connsock->peerinfo.peertype = SLPD_PEER_UA;
-            connsock->recvbuf = SLPBufferAlloc(SLP_MAX_DATAGRAM_SIZE);
-            connsock->sendbuf = SLPBufferAlloc(SLP_MAX_DATAGRAM_SIZE);
-            connsock->state = STREAM_FIRST_READ;
-            time(&(connsock->timestamp));
-            SLPDSocketListAdd(list,connsock);
+            *highfd = sock->fd;
         }
-        else
+
+        switch(sock->state)
         {
-            free(connsock);
-        }
-    }
-}
-
-
-/*-------------------------------------------------------------------------*/
-void HandleDatagramRead(SLPDSocketList* list, SLPDSocket* sock)
-/*-------------------------------------------------------------------------*/
-{
-    int                 bytesread;
-    int                 bytestowrite;
-    
-    bytesread = recvfrom(sock->fd,
-                         sock->recvbuf->start,
-                         SLP_MAX_DATAGRAM_SIZE,
-                         0,
-                         &(sock->peerinfo.peeraddr),
-                         &(sock->peerinfo.peeraddrlen));
-    if(bytesread > 0)
-    {
-        sock->recvbuf->end = sock->recvbuf->start + bytesread;
-
-        if(SLPDProcessMessage(&(sock->peerinfo),
-                              sock->recvbuf,
-                              sock->sendbuf) == 0)
-        {
-            /* check to see if we should send anything */
-            bytestowrite = sock->sendbuf->end - sock->sendbuf->start;
-            if(bytestowrite > 0)
+        case DATAGRAM_UNICAST:
+        case DATAGRAM_MULTICAST:
+        case DATAGRAM_BROADCAST:
+            FD_SET(sock->fd,readfds);
+            break;
+            
+        case SOCKET_LISTEN:
+            if(list->count < SLPD_MAX_SOCKETS)
             {
-                sendto(sock->fd,
-                       sock->sendbuf->start,
-                       sock->sendbuf->end - sock->sendbuf->start,
-                       0,
-                       &(sock->peerinfo.peeraddr),
-                       sock->peerinfo.peeraddrlen);
+                FD_SET(sock->fd,readfds);
             }
+            break;
+
+        case STREAM_READ:
+        case STREAM_FIRST_READ:
+            FD_SET(sock->fd,readfds);
+            break;
+
+        case STREAM_WRITE:
+        case STREAM_FIRST_WRITE:
+        case STREAM_CONNECT:
+            FD_SET(sock->fd,writefds);
+            break;
+
+        case SOCKET_CLOSE:
+        default:
+            sock = SLPDSocketListRemove(list, sock); 
+            break;
         }
-        else
-        {
-            SLPLog("An error occured while processing message from %s\n",
-                   inet_ntoa(sock->peerinfo.peeraddr.sin_addr));
-        } 
-    }
 
-}
-
-
-/*-------------------------------------------------------------------------*/
-void HandleStreamRead(SLPDSocketList* list, SLPDSocket* sock)
-/*-------------------------------------------------------------------------*/
-{
-    int     fdflags;
-    int     bytesread;
-    char    peek[16];
-    
-    if(sock->state == STREAM_FIRST_READ)
-    {
-        fdflags = fcntl(sock->fd, F_GETFL, 0);
-        fcntl(sock->fd,F_SETFL, fdflags | O_NONBLOCK);
-        
-        /*---------------------------------------------------------------*/
-        /* take a peek at the packet to get version and size information */
-        /*---------------------------------------------------------------*/
-        bytesread = recvfrom(sock->fd,
-                             peek,
-                             16,
-                             MSG_PEEK,
-                             &(sock->peerinfo.peeraddr),
-                             &(sock->peerinfo.peeraddrlen));
-        if(bytesread > 0)
-        {
-            /* check the version */
-            if(*peek == 2)
-            {
-                /* allocate the recvbuf big enough for the whole message */
-                sock->recvbuf = SLPBufferRealloc(sock->recvbuf,AsUINT24(peek+2));
-                if(sock->recvbuf)
-                {
-                    sock->state = STREAM_READ; 
-                }
-                else
-                {
-                    SLPLog("Slpd is out of memory!\n");
-                    sock->state = SOCKET_CLOSE;
-                }
-            }
-            else
-            {
-                SLPLog("Unsupported version %i received from %s\n",
-                       *peek,
-                       inet_ntoa(sock->peerinfo.peeraddr.sin_addr));
-
-                sock->state = SOCKET_CLOSE;
-            }
-        }
-        else
-        {
-            if(errno != EWOULDBLOCK)
-            {
-                sock->state = SOCKET_CLOSE;
-                return;
-            }
-        }        
-    }
-        
-    if(sock->state == STREAM_READ)
-    {
-        /*------------------------------*/
-        /* recv the rest of the message */
-        /*------------------------------*/
-        bytesread = recv(sock->fd,
-                         sock->recvbuf->curpos,
-                         sock->recvbuf->end - sock->recvbuf->curpos,
-                         0);              
-    
-        if(bytesread > 0)
-        {
-            time(&(sock->timestamp)); /* Reset the timestamp */
-            sock->recvbuf->curpos += bytesread;
-            if(sock->recvbuf->curpos == sock->recvbuf->end)
-            {
-                if(SLPDProcessMessage(&sock->peerinfo,
-                                      sock->recvbuf,
-                                      sock->sendbuf) == 0)
-                {
-                    sock->state = STREAM_FIRST_WRITE;
-                }
-                else
-                {
-                    /* An error has occured in SLPDProcessMessage() */
-                    SLPLog("An error while processing message from %s\n",
-                           inet_ntoa(sock->peerinfo.peeraddr.sin_addr));
-                    sock->state = SOCKET_CLOSE;
-                }                                                          
-            }
-        }
-        else
-        {
-            if(errno != EWOULDBLOCK)
-            {
-                /* error in recv() */
-                sock->state = SOCKET_CLOSE;
-            }
-        }
-    }
-}
-
-
-/*-------------------------------------------------------------------------*/
-void HandleStreamWrite(SLPDSocketList* list, SLPDSocket* sock)
-/*-------------------------------------------------------------------------*/
-{
-    int byteswritten, flags = 0;
-    
-#if defined(MSG_DONTWAIT)
-    flags = MSG_DONTWAIT;
-#endif
-    if(sock->state == STREAM_FIRST_WRITE)
-    {
-        /* make sure that the start and curpos pointers are the same */
-        sock->sendbuf->curpos = sock->sendbuf->start;
-        sock->state = STREAM_WRITE;
-    }
-
-    if(sock->sendbuf->end - sock->sendbuf->start != 0)
-    {
-        byteswritten = send(sock->fd,
-                            sock->sendbuf->curpos,
-                            sock->sendbuf->end - sock->sendbuf->start,
-                            flags);
-        if(byteswritten > 0)
-        {
-            time(&(sock->timestamp)); /* Reset the timestamp */
-            sock->sendbuf->curpos += byteswritten;
-            if(sock->sendbuf->curpos == sock->sendbuf->end)
-            {
-                /* message is completely sent */
-                sock->state = STREAM_FIRST_READ;
-             }
-        }
-        else
-        {
-            if(errno != EWOULDBLOCK)
-            {
-                /* Error occured or connection was closed */
-                sock->state = SOCKET_CLOSE;
-            }   
-        }    
+        sock = (SLPDSocket*)sock->listitem.next;
     }
 }
 
@@ -423,15 +231,13 @@ void HandleStreamWrite(SLPDSocketList* list, SLPDSocket* sock)
 int main(int argc, char* argv[])
 /*=========================================================================*/
 {
-    time_t          timestamp;
-    time_t          lifetime;
     fd_set          readfds;
     fd_set          writefds;
-    int             highfd          = 0;
+    int             highfd;
     int             fdcount         = 0;
-    SLPDSocket*     sock            = 0;
-    SLPDSocket*     del             = 0;
-    SLPDSocketList  sockets       = {0,0};
+    SLPDSocketList  incoming        = {0,0};
+    SLPDSocketList  outgoing        = {0,0};
+        
     
     /*------------------------------*/
     /* Make sure we are root        */
@@ -440,6 +246,7 @@ int main(int argc, char* argv[])
     {
         SLPFatal("slpd must be started by root\n");
     }
+     
     
     /*------------------------*/
     /* Parse the command line */
@@ -449,23 +256,27 @@ int main(int argc, char* argv[])
         SLPFatal("Invalid command line\n");
     }
 
+    
     /*------------------------------*/
     /* Initialize the log file      */
     /*------------------------------*/
     SLPLogFileOpen(G_SlpdCommandLine.logfile, 0);
-
     SLPLog("****************************************\n");
     SLPLog("*** SLPD daemon started              ***\n");
     SLPLog("****************************************\n");
     SLPLog("command line = %s\n",argv[0]);
+    
     
     /*--------------------------------------------------*/
     /* Initialize for the first time                    */
     /*--------------------------------------------------*/
     SLPDPropertyInit(G_SlpdCommandLine.cfgfile);
     SLPDDatabaseInit(G_SlpdCommandLine.regfile);
-    SLPDSocketInit(&sockets);
+    SLPDIncomingInit(&incoming);
+    /* TODO SLPDOutgoingInit(&outgoing); */
+    /* TODO: Check error codes on all init functions */
     SLPDKnownDAInit();
+    
     
     /*---------------------------*/
     /* make slpd run as a daemon */
@@ -475,6 +286,7 @@ int main(int argc, char* argv[])
         SLPFatal("Could not run as daemon\n");
     }
     
+
     /*-----------------------*/
     /* Setup signal handlers */ 
     /*-----------------------*/
@@ -483,6 +295,7 @@ int main(int argc, char* argv[])
         SLPFatal("Could not set up signal handlers.\n");
     }
 
+    
     /*------------------------------*/
     /* Set up alarm to age database */
     /*------------------------------*/
@@ -492,57 +305,24 @@ int main(int argc, char* argv[])
     /*-----------*/
     /* Main loop */
     /*-----------*/
+    G_SIGALRM   = 0;
+    G_SIGTERM   = 0;
+    G_SIGHUP    = 0;    
     while(G_SIGTERM == 0)
     {
-        /*----------------------------------------------------------*/
-        /* Load the fdsets up with all of the sockets in the list   */
-        /*----------------------------------------------------------*/
+        
+        /*--------------------------------------------------------*/
+        /* Load the fdsets up with all valid sockets in the list  */
+        /*--------------------------------------------------------*/
         highfd = 0;
         FD_ZERO(&readfds);
         FD_ZERO(&writefds);
-        sock = sockets.head;
-        while(sock)
-        {
-            if(sock->fd > highfd)
-            {
-                highfd = sock->fd;
-            }
-    
-            switch(sock->state)
-            {
-            case DATAGRAM_UNICAST:
-            case DATAGRAM_MULTICAST:
-            case DATAGRAM_BROADCAST:
-                FD_SET(sock->fd,&readfds);
-                break;
-                
-            case SOCKET_LISTEN:
-                if(sockets.count < SLPD_MAX_SOCKETS)
-                {
-                    FD_SET(sock->fd,&readfds);
-                }
-                break;
-    
-            case STREAM_READ:
-            case STREAM_FIRST_READ:
-                FD_SET(sock->fd,&readfds);
-                break;
-    
-            case STREAM_WRITE:
-            case STREAM_FIRST_WRITE:
-            case STREAM_CONNECT:
-            case STREAM_FIRST_CONNECT:
-                FD_SET(sock->fd,&writefds);
-                break;
-    
-            case SOCKET_CLOSE:
-            default:
-                break;
-            }
-    
-            sock = (SLPDSocket*)sock->listitem.next;
-        }
-
+        LoadFdSets(&incoming, &highfd, &readfds,&writefds);
+        LoadFdSets(&outgoing, &highfd, &readfds,&writefds);
+        
+        /*----------------------------------------------------------*/
+        /* Before select(), check to see if we should reinitialize  */
+        /*----------------------------------------------------------*/
         if(G_SIGHUP)
         {
             /* Reinitialize */
@@ -550,135 +330,54 @@ int main(int argc, char* argv[])
             SLPLog("*** SLPD daemon restarted            ***\n");
             SLPLog("****************************************\n");
             SLPLog("Got SIGHUP reinitializing... \n");
-            
+        
             SLPDPropertyInit(G_SlpdCommandLine.cfgfile);
             SLPDDatabaseInit(G_SlpdCommandLine.regfile);
-            SLPDSocketInit(&sockets);                
+            SLPDIncomingInit(&incoming);
+            /* TODO SLPDOutgoingInit(&outgoing); */
+                
             SLPDKnownDAInit();
             G_SIGHUP = 0;
+            
+            /* continue to top of loop so that fd_sets are loaded again */
+            continue; 
         }
 
-        /*-----------------------------------------------*/
-        /* Check to see if we should age the database    */
-        /*-----------------------------------------------*/
+        /*--------------------------------------------------------------*/
+        /* Before select(), check to see if we should age the database  */
+        /*--------------------------------------------------------------*/
         if(G_SIGALRM)
         {
-            /* TODO: put call to echo net registrations here */
             /* TODO: add call to do passive DAAdvert */
-            
+            SLPDSocketAge(&incoming, SLPD_AGE_INTERVAL);
+            SLPDSocketAge(&outgoing, SLPD_AGE_INTERVAL);
             SLPDDatabaseAge(SLPD_AGE_INTERVAL);
             G_SIGALRM = 0;
             alarm(SLPD_AGE_INTERVAL);
+            
+            /* continue to top of loop so that fd_sets are loaded again */
+            continue;
         }
         
         /*-------------*/
         /* Main select */
         /*-------------*/
         fdcount = select(highfd+1,&readfds,&writefds,0,0);
-        if(fdcount > 0)
+        if(fdcount > 0) /* fdcount will be < 0 when interrupted by a signal */
         {
-            /* determine the lifetime of a socket */
-            if(sockets.count > SLPD_COMFORT_SOCKETS)
-            {
-                lifetime = G_SlpdProperty.unicastMaximumWait;
-            }
-            else
-            {
-                lifetime = SLPD_MAX_SOCKET_LIFETIME;
-            }
-            time(&timestamp);
-
-            /* check fd_set */
-            sock = sockets.head;
-            while(sock && fdcount)
-            {
-                if(FD_ISSET(sock->fd,&readfds))
-                {
-                    switch(sock->state)
-                    {
-                    
-                    case SOCKET_LISTEN:
-                        HandleSocketListen(&sockets,sock);
-                        break;
-
-                    case DATAGRAM_UNICAST:
-                    case DATAGRAM_MULTICAST:
-                    case DATAGRAM_BROADCAST:
-                        HandleDatagramRead(&sockets,sock);
-                        break;                      
-                
-                    case STREAM_READ:
-                    case STREAM_FIRST_READ:
-                        HandleStreamRead(&sockets,sock);
-                        break;
-
-                    default:
-                        break;
-                    }
-
-                    fdcount --;
-                }
-                else if(FD_ISSET(sock->fd,&writefds))
-                {
-                    switch(sock->state)
-                    {
-                    case STREAM_WRITE:
-                    case STREAM_FIRST_WRITE:
-                        HandleStreamWrite(&sockets,sock);
-                        break;
-
-                    case STREAM_CONNECT:
-                    case STREAM_FIRST_CONNECT:
-                       HandleStreamConnect(&sockets,sock);
-                       break;
-                        
-                    default:
-                        break;
-                    }
-                    
-                    fdcount --;
-                }   
-
-                /* Mark old sockets/connections for close */
-                //if(sock->state != SOCKET_LISTEN)
-		        if(sock->timestamp)
-                {
-                    if(sock->timestamp > timestamp)
-                    {
-                        if(sock->timestamp - timestamp > lifetime)
-                        {
-                            sock->state = SOCKET_CLOSE;
-                        }
-                    }
-                    else
-                    {
-                        if(timestamp - sock->timestamp > lifetime)
-                        {
-                            sock->state = SOCKET_CLOSE;
-                        }
-                    }
-                }
-                
-                /* Close marked sockets */
-                if(sock->state == SOCKET_CLOSE )
-                {
-                    del = sock;
-                    sock = (SLPDSocket*)sock->listitem.next;
-                    HandleSocketClose(&sockets,del);
-                }
-                else
-                {
-                    sock = (SLPDSocket*)sock->listitem.next;
-                }
-            }
+            SLPDIncomingHandler(&incoming, &fdcount,&readfds,&writefds);
+            SLPDOutgoingHandler(&outgoing, &fdcount,&readfds,&writefds);
         }
-    }
+
+        /*--------------------------------*/
+        /* Echo registrations to KnownDAs */
+        /*--------------------------------*/ 
+        /* TODO: Put call to SLPDKnownDARegister() here */
+
+
+    } /* End of main loop */
 
     SLPLog("Got SIGTERM.  Going down\n");
 
     return 0;
 }
-
-
-
-

@@ -40,6 +40,7 @@
 #include <unistd.h>
 #include <signal.h>
 #include <pwd.h>
+#include <grp.h>
 #include <netdb.h>
 #include <string.h>
 #include <errno.h>
@@ -69,8 +70,8 @@
 #define SLPD_SMALLEST_MESSAGE       18   /* 18 bytes is smallest SLPv2 msg */
 #define SLPD_MAX_SOCKETS            64   /* maximum number of sockets */
 #define SLPD_COMFORT_SOCKETS        32   /* a comfortable number of sockets */
-#define SLPD_MAX_SOCKET_LIFETIME    3600 /* max idle time of a socket */
-#define SLPD_AGE_INTERVAL           15   /* age every 15 seconds */
+#define SLPD_MAX_SOCKET_LIFETIME    3600 /* max idle time of socket - 60 min*/
+#define SLPD_AGE_INTERVAL           3600   /* age every 15 seconds */
 
 
 /*=========================================================================*/
@@ -336,8 +337,8 @@ typedef enum _SLPDPeerType
 {
     SLPD_PEER_UNKNOWN   = 0,
     SLPD_PEER_LIBSLP    = 1,
-    SLPD_PEER_UA        = 2,
-    SLPD_PEER_DA        = 3
+    SLPD_PEER_ACCEPTED  = 2,
+    SLPD_PEER_CONNECTED = 3
 }SLPDPeerType;
 
 
@@ -364,13 +365,12 @@ typedef enum _SLPDSocketState
     DATAGRAM_UNICAST        = 1,
     DATAGRAM_MULTICAST      = 2,
     DATAGRAM_BROADCAST      = 3,
-    STREAM_FIRST_CONNECT    = 4,
-    STREAM_CONNECT          = 5,
-    STREAM_READ             = 6,
-    STREAM_FIRST_READ       = 7,
-    STREAM_WRITE            = 8,
-    STREAM_FIRST_WRITE      = 9,
-    SOCKET_CLOSE            = 10
+    STREAM_CONNECT          = 4,
+    STREAM_READ             = 5,
+    STREAM_FIRST_READ       = 6,
+    STREAM_WRITE            = 7,
+    STREAM_FIRST_WRITE      = 8,
+    SOCKET_CLOSE            = 9
 }SLPDSocketState;
 
 
@@ -381,7 +381,7 @@ typedef struct _SLPDSocket
 {
     ListItem            listitem;    
     int                 fd;
-    time_t              timestamp;      
+    time_t              age;      
     SLPDSocketState     state;
     SLPBuffer           recvbuf;
     SLPBuffer           sendbuf;
@@ -394,9 +394,48 @@ typedef struct _SLPDSocketList
 /* Structure representing a list of SLPDSockets                            */
 /*=========================================================================*/
 {
-    int         count;
-    SLPDSocket*  head;
+    int             count;
+    SLPDSocket*     head;
 }SLPDSocketList;
+
+
+/*==========================================================================*/
+SLPDSocket* SLPDSocketCreateConnected(struct in_addr* addr);
+/*                                                                          */
+/* addr - (IN) the address of the peer to connect to                        */
+/*                                                                          */
+/* Returns: A connected socket or a socket in the process of being connected*/
+/*          if the socket was connected the SLPDSocket->state will be set   */
+/*          to writable.  If the connect would block, SLPDSocket->state will*/
+/*          be set to connect.  Return NULL on error                        */
+/*==========================================================================*/
+
+
+/*==========================================================================*/
+SLPDSocket* SLPDSocketCreateListen(struct in_addr* peeraddr);
+/*                                                                          */
+/* peeraddr - (IN) the address of the peer to connect to                    */
+/*                                                                          */
+/* type (IN) DATAGRAM_UNICAST, DATAGRAM_MULTICAST, DATAGRAM_BROADCAST       */
+/*                                                                          */
+/* Returns: A listening socket. SLPDSocket->state will be set to            */
+/*          SOCKET_LISTEN.   Returns NULL on error                          */
+/*==========================================================================*/
+
+
+/*==========================================================================*/
+SLPDSocket* SLPDSocketCreateDatagram(struct in_addr* myaddr,
+                                     struct in_addr* peeraddr,
+                                     int type);
+/* myaddr - (IN) the address of the interface to join mcast on              */                                                                          
+/*                                                                          */
+/* peeraddr - (IN) the address of the peer to connect to                    */
+/*                                                                          */
+/* type (IN) DATAGRAM_UNICAST, DATAGRAM_MULTICAST, DATAGRAM_BROADCAST       */
+/*                                                                          */
+/* Returns: A datagram socket SLPDSocket->state will be set to              */
+/*          DATAGRAM_UNICAST, DATAGRAM_MULTICAST, or DATAGRAM_BROADCAST     */
+/*==========================================================================*/
 
 
 /*=========================================================================*/
@@ -419,27 +458,66 @@ SLPDSocket* SLPDSocketListRemove(SLPDSocketList* list, SLPDSocket* sock);
 /*                                                                         */
 /* sock     - pointer to the SLPSocket to unlink to the list               */
 /*                                                                         */
-/* Returns  - pointer to the removed socket                                */
+/* Returns  - pointer to the next socket (may be NULL)                     */
 /*=========================================================================*/
 
 
 /*=========================================================================*/
-void SLPDSocketInit(SLPDSocketList* list);
-/* Adds SLPSockets (UDP and TCP) for all the interfaces and the loopback   */
+void SLPDSocketAge(SLPDSocketList* list, time_t seconds);
+/* Age the sockets in the list by the specified number of seconds.  If     */
+/* SLPDSocket->lifetime <= 0 it is removed from the list                   */
 /*                                                                         */
-/* list     - pointer to SLPSocketList to initialize                       */
+/* list (IN) pointer to the list to age                                    */
 /*                                                                         */
-/* Returns  - zero on success, -1 on failure.                              */
+/* seconds (IN) seconds to age each entry of the list                      */
 /*=========================================================================*/
 
 
 /*=========================================================================*/
-void SLPDSocketDeInit(SLPDSocketList* list);
-/* Adds SLPSockets (UDP and TCP) for all the interfaces and the loopback   */
+void SLPDIncomingHandler(SLPDSocketList* list, 
+                         int* fdcount,
+                         fd_set* readfds,
+                         fd_set* writefds);
+/* Handles all outgoing requests that are pending on the specified file    */
+/* discriptors                                                             */
 /*                                                                         */
-/* list     - pointer to SLPSocketList to deinitialize                     */
+/* list     (IN) list of incoming sockets                                  */
 /*                                                                         */
-/* Returns  - zero on success, -1 on failure.                              */
+/* fdcount  (IN/OUT) number of file descriptors marked in fd_sets          */
+/*                                                                         */
+/* readfds  (IN) file descriptors with pending read IO                     */
+/*                                                                         */
+/* writefds  (IN) file descriptors with pending read IO                    */
+/*=========================================================================*/
+
+
+/*=========================================================================*/
+int SLPDIncomingInit(SLPDSocketList* list);
+/* Initialize incoming socket list to have appropriate sockets for all     */
+/* network interfaces                                                      */
+/*                                                                         */
+/* list     (IN/OUT) pointer to a socket list to be filled with sockets    */
+/*                                                                         */
+/* Returns  Zero on success non-zero on error                              */
+/*=========================================================================*/
+
+
+/*=========================================================================*/
+void SLPDOutgoingHandler(SLPDSocketList* list, 
+                         int* fdcount,
+                         fd_set* readfds,
+                         fd_set* writefds);
+
+/* Handles all incoming requests that are pending on the specified file    */
+/* discriptors                                                             */
+/*                                                                         */
+/* list     (IN) list of incoming sockets                                  */
+/*                                                                         */
+/* fdcount  (IN/OUT) number of file descriptors marked in fd_sets          */
+/*                                                                         */
+/* readfds  (IN) file descriptors with pending read IO                     */
+/*                                                                         */
+/* writefds  (IN) file descriptors with pending read IO                    */
 /*=========================================================================*/
 
 
@@ -489,10 +567,10 @@ int SLPDKnownDAInit();
 
 
 /*=========================================================================*/
-SLPDAEntry* SLPDKnownDAAddition(struct in_addr* addr,
-                                unsigned long bootstamp,
-                                const char* scopelist,
-                                int scopelistlen);
+SLPDAEntry* SLPDKnownDAAdd(struct in_addr* addr,
+                           unsigned long bootstamp,
+                           const char* scopelist,
+                           int scopelistlen);
 /* Adds a DA to the known DA list.  If DA already exists, entry is updated */
 /*                                                                         */
 /* addr     (IN) pointer to in_addr of the DA to add                       */
@@ -502,6 +580,15 @@ SLPDAEntry* SLPDKnownDAAddition(struct in_addr* addr,
 /* scopelistlen (IN) the length of the scope list                          */
 /*                                                                         */
 /* returns  Pointer to the added or updated                                */
+/*=========================================================================*/
+
+
+/*=========================================================================*/
+SLPDAEntry* SLPDKnownDARemove(SLPDAEntry* entry);
+/*                                                                         */
+/* entry- (IN) pointer to entry to remove                                  */
+/*                                                                         */
+/* Returns: The next SLPDAEntry (may be null).                             */
 /*=========================================================================*/
 
 

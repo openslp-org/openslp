@@ -122,12 +122,12 @@ void SLPDLogPeerInfo(SLPDPeerInfo* peerinfo)
 {
     switch(peerinfo->peertype)
     {
-    case SLPD_PEER_UA:
+    case SLPD_PEER_ACCEPTED:
         SLPLog("Peer UA:\n");
         SLPLog("   IP address: %s\n",inet_ntoa(peerinfo->peeraddr.sin_addr));
         break;
     
-    case SLPD_PEER_DA:
+    case SLPD_PEER_CONNECTED:
         SLPLog("Peer DA:\n");
         SLPLog("   IP address: %s\n",inet_ntoa(peerinfo->peeraddr.sin_addr));
         break;

@@ -5,7 +5,7 @@
 /*                                                                         */
 /* File:        slpd_process.c                                             */
 /*                                                                         */
-/* Abstract:    Processes slp messages                                     */
+/* Abstract:    Processes incomming SLP messages                           */
 /*                                                                         */
 /*-------------------------------------------------------------------------*/
 /*                                                                         */
@@ -870,10 +870,10 @@ void ProcessDAAdvert(SLPDPeerInfo* peerinfo,
                 if(he)
                 {
                     /* Add the DA to a list of known DAs (ignore return)*/
-                    SLPDKnownDAAddition((struct in_addr*)(he->h_addr_list[0]),
-                                        message->body.daadvert.bootstamp,
-                                        message->body.daadvert.scopelist,
-                                        message->body.daadvert.scopelistlen);
+                    SLPDKnownDAAdd((struct in_addr*)(he->h_addr_list[0]),
+                                   message->body.daadvert.bootstamp,
+                                   message->body.daadvert.scopelist,
+                                   message->body.daadvert.scopelistlen);
                 }
                 
                 SLPFree(srvurl);
@@ -882,10 +882,10 @@ void ProcessDAAdvert(SLPDPeerInfo* peerinfo,
             
             /* TODO: the following is allows for easy DA masquarading (unsafe) */
             /*       remove it when the above is fixed                         */
-            SLPDKnownDAAddition(&(peerinfo->peeraddr.sin_addr), 
-                                message->body.daadvert.bootstamp,
-                                message->body.daadvert.scopelist,
-                                message->body.daadvert.scopelistlen);
+            SLPDKnownDAAdd(&(peerinfo->peeraddr.sin_addr), 
+                           message->body.daadvert.bootstamp,
+                           message->body.daadvert.scopelist,
+                           message->body.daadvert.scopelistlen);
         }
                                    
         /* If necessary log that we received a DAAdvert */

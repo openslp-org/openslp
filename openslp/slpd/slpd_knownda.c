@@ -51,10 +51,29 @@ int SLPDKnownDAInit()
 
 
 /*=========================================================================*/
-SLPDAEntry* SLPDKnownDAAddition(struct in_addr* addr,
-                                unsigned long bootstamp,
-                                const char* scopelist,
-                                int scopelistlen)
+SLPDAEntry* SLPDKnownDARemove(SLPDAEntry* entry)
+/*                                                                         */
+/* entry- (IN) pointer to entry to remove                                  */
+/*                                                                         */
+/* Returns: The previous SLPDAEntry (may be null).                         */
+/*=========================================================================*/
+{
+    SLPDAEntry* del = entry;
+    entry = (SLPDAEntry*)entry->listitem.next;
+    ListUnlink((PListItem*)&G_KnownDAListHead,(PListItem)del);               
+    if(entry == 0)
+    {
+        entry = G_KnownDAListHead;
+    }
+    SLPDAEntryFree(del);
+    return entry;
+}
+
+/*=========================================================================*/
+SLPDAEntry* SLPDKnownDAAdd(struct in_addr* addr,
+                           unsigned long bootstamp,
+                           const char* scopelist,
+                           int scopelistlen)
 /* Adds a DA to the known DA list.  If DA already exists, entry is updated */
 /*                                                                         */
 /* addr     (IN) pointer to in_addr of the DA to add                       */
@@ -100,6 +119,8 @@ SLPDAEntry* SLPDKnownDAAddition(struct in_addr* addr,
 
             return entry;
         }
+
+        entry = (SLPDAEntry*)entry->listitem.next;
     }
 
     /* Create and link in a new entry */    
@@ -109,3 +130,80 @@ SLPDAEntry* SLPDKnownDAAddition(struct in_addr* addr,
     
     return entry;
 }
+
+
+/*=========================================================================*/
+void SLPDKnownDARegister(SLPDDatabaseEntry* dbhead, SLPDSocketList* sockets)
+/*                                                                         */
+/* Modify the specified socket list to register all entries of the         */
+/* specified database list with all known DAs                              */
+/*                                                                         */
+/* Returns:  Zero on success, non-zero on error                            */
+/*=========================================================================*/
+{
+    SLPDDatabaseEntry*  dbentry;
+    SLPDSocket*         sockentry;
+    SLPDAEntry*         daentry;
+
+    
+    if(dbhead)
+    {
+        daentry = G_KnownDAListHead;
+        while(daentry)
+        {
+            /* check to see if a socket is already connected to this DA */
+            sockentry = sockets->head;
+            while(sockentry)
+            {
+                if(sockentry->peerinfo.peertype == SLPD_PEER_CONNECTED)
+                {
+                    if (memcmp(&sockentry->peerinfo.peeraddr.sin_addr,
+                               &daentry->daaddr,
+                               sizeof(daentry->daaddr)) == 0)
+                    {
+                        break;
+                    }
+                }
+                sockentry = (SLPDSocket*)sockentry->listitem.next;                                                            
+            }
+
+            if(sockentry == 0)
+            {
+                /* Could not find a connected socket */
+                /* Create a connected socket         */
+                sockentry = SLPDSocketCreateConnected(&daentry->daaddr);
+                if(sockentry == 0)
+                {
+                    /* Could not create connected socket */
+                    
+                    /* TODO: should we log here?         */
+
+                    /* Remove the  known DA entry we could not connect to */
+                    daentry = SLPDKnownDARemove(daentry);
+                }
+                else
+                {
+                    SLPDSocketListAdd(sockets, sockentry);   
+                }
+                                                             
+            }
+
+            if(sockentry != 0)
+            {
+                /* Load the send buffer with reg stuff */
+                dbentry = dbhead;
+                while(dbentry)
+                {
+                    
+                    /* TODO: put a whole bunch of registration stuff here */
+
+                    dbentry = (SLPDDatabaseEntry*)dbentry->listitem.next;
+                }
+            }
+            
+            daentry = (SLPDAEntry*)daentry->listitem.next;
+        } 
+    }
+}
+
+

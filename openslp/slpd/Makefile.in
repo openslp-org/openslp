@@ -82,7 +82,7 @@ VERSION = @VERSION@
 sbin_PROGRAMS = slpd
 INCLUDES = -I$(top_srcdir)/common -I$(srcdir)
 
-slpd_SOURCES = slpd_socket.c     slpd_database.c     slpd_main.c         slpd_process.c      slpd_cmdline.c      slpd_property.c     slpd_regfile.c      slpd_log.c          slpd_knownda.c  
+slpd_SOURCES = slpd_socket.c     slpd_database.c     slpd_main.c         slpd_process.c      slpd_cmdline.c      slpd_property.c     slpd_regfile.c      slpd_log.c          slpd_knownda.c      slpd_incoming.c     slpd_outgoing.c 
 
 slpd_LDADD = ../common/libcommonslpd.la
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
@@ -95,7 +95,8 @@ CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 slpd_OBJECTS =  slpd_socket.o slpd_database.o slpd_main.o slpd_process.o \
-slpd_cmdline.o slpd_property.o slpd_regfile.o slpd_log.o slpd_knownda.o
+slpd_cmdline.o slpd_property.o slpd_regfile.o slpd_log.o slpd_knownda.o \
+slpd_incoming.o slpd_outgoing.o
 slpd_DEPENDENCIES =  ../common/libcommonslpd.la
 slpd_LDFLAGS = 
 CFLAGS = @CFLAGS@
@@ -111,9 +112,9 @@ DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 TAR = tar
 GZIP_ENV = --best
 DEP_FILES =  .deps/slpd_cmdline.P .deps/slpd_database.P \
-.deps/slpd_knownda.P .deps/slpd_log.P .deps/slpd_main.P \
-.deps/slpd_process.P .deps/slpd_property.P .deps/slpd_regfile.P \
-.deps/slpd_socket.P
+.deps/slpd_incoming.P .deps/slpd_knownda.P .deps/slpd_log.P \
+.deps/slpd_main.P .deps/slpd_outgoing.P .deps/slpd_process.P \
+.deps/slpd_property.P .deps/slpd_regfile.P .deps/slpd_socket.P
 SOURCES = $(slpd_SOURCES)
 OBJECTS = $(slpd_OBJECTS)
 
