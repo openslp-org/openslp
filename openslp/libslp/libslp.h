@@ -1,5 +1,5 @@
 /***************************************************************************/
-/*																		   */
+/*                                                                         */
 /* Project:     OpenSLP - OpenSource implementation of Service Location    */
 /*              Protocol                                                   */
 /*                                                                         */
