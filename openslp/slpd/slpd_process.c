@@ -818,14 +818,7 @@ int ProcessDAAdvert(struct sockaddr_in* peeraddr,
     {
         goto RESPOND;
     }
-
-    if(errorcode)
-    {
-        /* TODO: log something here? */
-        goto FINISHED;
-    }
-
-    
+ 
     /* Only process if errorcode is not set */
     if(message->body.daadvert.errorcode == SLP_ERROR_OK)
     {
@@ -851,7 +844,6 @@ int ProcessDAAdvert(struct sockaddr_in* peeraddr,
     result->end = result->start;
 
 
-    FINISHED:
     *sendbuf = result;
     return errorcode;
 }
