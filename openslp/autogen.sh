@@ -39,7 +39,7 @@ test $TEST_TYPE $FILE || {
 
 aclocal $ACLOCAL_FLAGS
 
-libtoolize --force --copy
+libtoolize --copy
 autoheader
 automake --add-missing --copy $am_opt
 autoconf
