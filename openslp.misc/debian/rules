@@ -35,7 +35,7 @@ clean:
 install: build
 	dh_testdir
 	dh_testroot
-	dh_clean -k
+#	dh_clean -k
 	dh_installdirs
 
 	# Add here commands to install the package into debian/tmp.
@@ -48,7 +48,7 @@ binary-indep: build install
 
 # Build architecture-dependent files here.
 binary-arch: build install
-#	dh_testversion
+	dh_testversion
 	dh_testdir
 	dh_testroot
 	dh_installinit
@@ -76,22 +76,17 @@ binary-arch: build install
 
 	dh_installexamples
 #	dh_installmenu
-#	dh_installemacsen
-#	dh_installpam
 #	dh_installcron
 #	dh_installmanpages
-#	dh_installinfo
-	dh_undocumented slpd.8 slptool.1
+	dh_undocumented slpd.8
+	dh_undocumented -plibslp-dev slptool.1
 	dh_installchangelogs ChangeLog
 	dh_link
 	dh_strip
 	dh_compress
 	dh_fixperms
-	# You may want to make some executables suid here.
-#	dh_suidregister
 	dh_makeshlibs
 	dh_installdeb
-#	dh_perl
 	dh_shlibdeps
 	dh_gencontrol
 	dh_md5sums
