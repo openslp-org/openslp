@@ -413,8 +413,6 @@ void HandleStreamWrite(SLPDSocketList* list, SLPDSocket* sock)
 int main(int argc, char* argv[])
 /*=========================================================================*/
 {
-    fd_set          savedreadfds;
-    fd_set          savedwritefds;
     fd_set          readfds;
     fd_set          writefds;
     int             highfd          = 0;
@@ -477,60 +475,58 @@ int main(int argc, char* argv[])
     /*------------------------------*/
     alarm(SLPD_AGE_TIMEOUT);
 
-    /*----------------------------------------------------------*/
-    /* Load the fdsets up with all of the sockets in the list   */
-    /*----------------------------------------------------------*/
-    highfd = 0;
-    FD_ZERO(&savedreadfds);
-    FD_ZERO(&savedwritefds);
-    sock = uasockets.head;
-    while(sock)
-    {
-        if(sock->fd > highfd)
-        {
-            highfd = sock->fd;
-        }
-
-        switch(sock->state)
-        {
-        case DATAGRAM_UNICAST:
-        case DATAGRAM_MULTICAST:
-        case DATAGRAM_BROADCAST:
-            FD_SET(sock->fd,&savedreadfds);
-            break;
-            
-        case SOCKET_LISTEN:
-            if(uasockets.count < SLPD_MAX_SOCKETS)
-            {
-                FD_SET(sock->fd,&savedreadfds);
-            }
-            break;
-
-        case STREAM_READ:
-        case STREAM_FIRST_READ:
-            FD_SET(sock->fd,&savedreadfds);
-            break;
-
-        case STREAM_WRITE:
-        case STREAM_FIRST_WRITE:
-            FD_SET(sock->fd,&savedwritefds);
-            break;
-
-        case SOCKET_CLOSE:
-        default:
-            break;
-        }
-
-        sock = (SLPDSocket*)sock->listitem.next;
-    }
     
     /*-----------*/
     /* Main loop */
     /*-----------*/
     while(G_SIGTERM == 0)
     {
-        readfds  = savedreadfds;
-        writefds = savedwritefds;
+        /*----------------------------------------------------------*/
+        /* Load the fdsets up with all of the sockets in the list   */
+        /*----------------------------------------------------------*/
+        highfd = 0;
+        FD_ZERO(&readfds);
+        FD_ZERO(&writefds);
+        sock = uasockets.head;
+        while(sock)
+        {
+            if(sock->fd > highfd)
+            {
+                highfd = sock->fd;
+            }
+    
+            switch(sock->state)
+            {
+            case DATAGRAM_UNICAST:
+            case DATAGRAM_MULTICAST:
+            case DATAGRAM_BROADCAST:
+                FD_SET(sock->fd,&readfds);
+                break;
+                
+            case SOCKET_LISTEN:
+                if(uasockets.count < SLPD_MAX_SOCKETS)
+                {
+                    FD_SET(sock->fd,&readfds);
+                }
+                break;
+    
+            case STREAM_READ:
+            case STREAM_FIRST_READ:
+                FD_SET(sock->fd,&readfds);
+                break;
+    
+            case STREAM_WRITE:
+            case STREAM_FIRST_WRITE:
+                FD_SET(sock->fd,&writefds);
+                break;
+    
+            case SOCKET_CLOSE:
+            default:
+                break;
+            }
+    
+            sock = (SLPDSocket*)sock->listitem.next;
+        }
 
         if(G_SIGHUP)
         {
