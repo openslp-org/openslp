@@ -836,15 +836,13 @@ int SLPDv1ProcessMessage(struct sockaddr_in* peeraddr,
 /*=========================================================================*/
 {
 
+    SLPDLogTraceMsg("IN",peeraddr,recvbuf);
+    
     if(!G_SlpdProperty.isDA)
     {
         /* SLPv1 messages are handled only by DAs */
         errorcode = SLP_ERROR_VER_NOT_SUPPORTED;
     }
-
-    /* Log trace message */
-    SLPDLogTraceMsg("IN",peeraddr,recvbuf);
-
 
     switch(message->header.functionid)
     {
@@ -878,16 +876,10 @@ int SLPDv1ProcessMessage(struct sockaddr_in* peeraddr,
     default:
         /* This may happen on a really early parse error or version not */
         /* supported error */
-
-        /* TODO log errorcode here */
-
         break;
     }
 
-    /* Log traceMsg of message was received and the one that will be sent */
-    SLPDLogTraceMsg("OUT", peeraddr, *sendbuf);
-
-    SLPMessageFree(message);
+    SLPDLogTraceMsg("OUT",peeraddr,*sendbuf);
 
     return errorcode;
 }                

@@ -1127,75 +1127,77 @@ int SLPDProcessMessage(struct sockaddr_in* peerinfo,
     }
 
     errorcode = SLPMessageParseBuffer(recvbuf, message);
-
-#if defined(ENABLE_SLPv1)
-    if(message->header.version == 1)
-        return SLPDv1ProcessMessage(peerinfo, recvbuf, sendbuf,
-                                    message, errorcode);
-#endif
-
-
-
-
-
-    /* Log trace message */
-    SLPDLogTraceMsg("IN",peerinfo,recvbuf);
-
-    switch(message->header.functionid)
+    if(errorcode == 0)
     {
-    case SLP_FUNCT_SRVRQST:
-        errorcode = ProcessSrvRqst(peerinfo, message, sendbuf, errorcode);
-        break;
-
-    case SLP_FUNCT_SRVREG:
-        errorcode = ProcessSrvReg(peerinfo, message,sendbuf, errorcode);
-        if(errorcode == 0)
+#if defined(ENABLE_SLPv1)
+        if(message->header.version == 1)
         {
-            SLPDKnownDAEcho(peerinfo, message, recvbuf);
+            errorcode = SLPDv1ProcessMessage(peerinfo, 
+                                             recvbuf, 
+                                             sendbuf, 
+                                             message, 
+                                             errorcode);
         }
-        break;
-
-    case SLP_FUNCT_SRVDEREG:
-        errorcode = ProcessSrvDeReg(peerinfo, message,sendbuf, errorcode);
-        if(errorcode == 0)
+        else
+#endif
         {
-            SLPDKnownDAEcho(peerinfo, message, recvbuf);
-        }
-        break;
-
-    case SLP_FUNCT_SRVACK:
-        errorcode = ProcessSrvAck(peerinfo, message,sendbuf, errorcode);        
-        break;
-
-    case SLP_FUNCT_ATTRRQST:
-        errorcode = ProcessAttrRqst(peerinfo, message,sendbuf, errorcode);
-        break;
-
-    case SLP_FUNCT_DAADVERT:
-        errorcode = ProcessDAAdvert(peerinfo, message, sendbuf, errorcode);
-        /* If necessary log that we received a DAAdvert */
-        SLPDLogDATrafficMsg("IN", peerinfo, message);
-        break;
-
-    case SLP_FUNCT_SRVTYPERQST:
-        errorcode = ProcessSrvTypeRqst(peerinfo, message, sendbuf, errorcode);
-        break;
-
-    case SLP_FUNCT_SAADVERT:
-        errorcode = ProcessSAAdvert(peerinfo, message, sendbuf, errorcode);
-        break;
-
-    default:
-        /* This may happen on a really early parse error or version not */
-        /* supported error */
-
-        /* TODO log errorcode here */
-
-        break;
+            /* Log trace message */
+            SLPDLogTraceMsg("IN",peerinfo,recvbuf);
+        
+            switch(message->header.functionid)
+            {
+            case SLP_FUNCT_SRVRQST:
+                errorcode = ProcessSrvRqst(peerinfo, message, sendbuf, errorcode);
+                break;
+        
+            case SLP_FUNCT_SRVREG:
+                errorcode = ProcessSrvReg(peerinfo, message,sendbuf, errorcode);
+                if(errorcode == 0)
+                {
+                    SLPDKnownDAEcho(peerinfo, message, recvbuf);
+                }
+                break;
+        
+            case SLP_FUNCT_SRVDEREG:
+                errorcode = ProcessSrvDeReg(peerinfo, message,sendbuf, errorcode);
+                if(errorcode == 0)
+                {
+                    SLPDKnownDAEcho(peerinfo, message, recvbuf);
+                }
+                break;
+        
+            case SLP_FUNCT_SRVACK:
+                errorcode = ProcessSrvAck(peerinfo, message,sendbuf, errorcode);        
+                break;
+        
+            case SLP_FUNCT_ATTRRQST:
+                errorcode = ProcessAttrRqst(peerinfo, message,sendbuf, errorcode);
+                break;
+        
+            case SLP_FUNCT_DAADVERT:
+                errorcode = ProcessDAAdvert(peerinfo, message, sendbuf, errorcode);
+                /* If necessary log that we received a DAAdvert */
+                SLPDLogDATrafficMsg("IN", peerinfo, message);
+                break;
+        
+            case SLP_FUNCT_SRVTYPERQST:
+                errorcode = ProcessSrvTypeRqst(peerinfo, message, sendbuf, errorcode);
+                break;
+        
+            case SLP_FUNCT_SAADVERT:
+                errorcode = ProcessSAAdvert(peerinfo, message, sendbuf, errorcode);
+                break;
+        
+            default:
+                /* This may happen on a really early parse error or version not */
+                /* supported error */
+                break;
+            }
+            
+            /* Log traceMsg of message was received and the one that will be sent */
+            SLPDLogTraceMsg("OUT",peerinfo,*sendbuf);
+        }   
     }
-
-    /* Log traceMsg of message was received and the one that will be sent */
-    SLPDLogTraceMsg("OUT",peerinfo,*sendbuf);
 
     SLPMessageFree(message);
 
@@ -1219,6 +1221,6 @@ int SLPDProcessMessage(struct sockaddr_in* peerinfo,
                inet_ntoa(peerinfo->sin_addr));
         break;                    
     }
-
+    
     return errorcode;
 }                
