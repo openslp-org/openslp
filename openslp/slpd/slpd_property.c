@@ -190,17 +190,16 @@ void SLPDPropertyInit(const char* conffile)
     /* Set the properties with out hard defaults                   */
     /*-------------------------------------------------------------*/
     G_SlpdProperty.isDA = SLPPropertyAsBoolean(SLPPropertyGet("net.slp.isDA"));
+    G_SlpdProperty.activeDADetection = SLPPropertyAsBoolean(SLPPropertyGet("net.slp.activeDADetection"));               
     if(G_SlpdProperty.isDA)
     {
-        /* DAs do not do active DA Detection */
-        G_SlpdProperty.activeDADetection = 0;
+        /* DAs do perform passiveDADetection */
         G_SlpdProperty.passiveDADetection = SLPPropertyAsBoolean(SLPPropertyGet("net.slp.passiveDADetection"));                   
     }
     else
     {
         /* SAs do not do passiveDADetection */
         G_SlpdProperty.passiveDADetection = 0;
-        G_SlpdProperty.activeDADetection = SLPPropertyAsBoolean(SLPPropertyGet("net.slp.activeDADetection"));               
     }
     
     G_SlpdProperty.isBroadcastOnly = SLPPropertyAsBoolean(SLPPropertyGet("net.slp.isBroadcastOnly"));

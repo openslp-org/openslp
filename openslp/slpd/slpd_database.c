@@ -99,12 +99,16 @@ void SLPDDatabaseAge(int seconds)
 
 /*=========================================================================*/
 int SLPDDatabaseReg(SLPSrvReg* srvreg,
-                    int fresh)
+                    int fresh,
+                    int islocal)
 /* Add a service registration to the database                              */
 /*                                                                         */
 /* srvreg   -   (IN) pointer to the SLPSrvReg to be added to the database  */
 /*                                                                         */
 /* fresh    -   (IN) pass in nonzero if the registration is fresh.         */
+/*                                                                         */
+/* islocal -    (IN) pass in nonzero if the registration is local to this  */
+/*              machine                                                    */
 /*                                                                         */
 /* Returns  -   Zero on success.  non-zero on error                        */
 /*                                                                         */
@@ -179,6 +183,9 @@ int SLPDDatabaseReg(SLPSrvReg* srvreg,
     /* lifetime */
     entry->lifetime     = srvreg->urlentry.lifetime;
     
+    /* is local */
+    entry->islocal      = islocal;
+
     /* SrvType */
     if(entry->srvtypelen >= srvreg->srvtypelen)
     {

@@ -257,15 +257,6 @@ int ProcessSrvRqst(struct sockaddr_in* peeraddr,
         goto FINISHED;
     }
 
-    /*---------------------------------------------------------------------*/
-    /* We do not handle any authentication. Send errorcode  if spi is used */
-    /*---------------------------------------------------------------------*/
-    if(message->body.srvrqst.spistrlen)
-    {
-        errorcode = SLP_ERROR_AUTHENTICATION_UNKNOWN;
-        goto RESPOND;
-    }
-
     /*------------------------------------------------*/
     /* Check to to see if a this is a special SrvRqst */
     /*------------------------------------------------*/
@@ -476,7 +467,8 @@ int ProcessSrvReg(struct sockaddr_in* peeraddr,
         /* put the service in the database */
         /*---------------------------------*/
         if(SLPDDatabaseReg(&(message->body.srvreg),
-                           message->header.flags | SLP_FLAG_FRESH) == 0)
+                           message->header.flags | SLP_FLAG_FRESH,
+                           ISLOCAL(peeraddr->sin_addr)) == 0)
         {
             errorcode = 0;
         }
@@ -700,14 +692,8 @@ int ProcessAttrRqst(struct sockaddr_in* peeraddr,
         goto FINISHED;
     }
     
-    /*---------------------------------------------------------------------*/
-    /* We do not handle any authentication. Send errorcode  if spi is used */
-    /*---------------------------------------------------------------------*/
-    if(message->body.attrrqst.spistrlen)
-    {
-        errorcode = SLP_ERROR_AUTHENTICATION_UNKNOWN;
-        goto RESPOND;
-    } 
+    /* TODO: check the spi list of the message and return                  */
+    /*       AUTHENTICATION_UNKNOWN since we do not do authentication yet  */ 
     
     /*------------------------------------*/
     /* Make sure that we handle the scope */
@@ -824,14 +810,6 @@ int ProcessDAAdvert(struct sockaddr_in* peeraddr,
     SLPDAEntry daentry;
     SLPBuffer result = *sendbuf;
 
-    /* TODO: enable the following when we link to libslp and        */
-    /* have SLPParseSrvURL()                                        */
-#if(0)
-    SLPSrvURL*      srvurl;
-    struct hostent* he;
-#endif 
-
-
     /*--------------------------------------------------------------*/
     /* If errorcode is set, we can not be sure that message is good */
     /* Go directly to send response code                            */
@@ -841,45 +819,40 @@ int ProcessDAAdvert(struct sockaddr_in* peeraddr,
         goto RESPOND;
     }
 
-    /* Do not look at DAAdverts unless we are not a DA */
-    if(G_SlpdProperty.isDA == 0)
+    if(errorcode)
     {
-
-        /*----------------------------------------------------------*/
-        /* We do not handle any authentication. Bail if spi is used */
-        /*----------------------------------------------------------*/
-        if(message->body.daadvert.spilistlen)
-        {
-            errorcode = SLP_ERROR_AUTHENTICATION_UNKNOWN;
-            goto RESPOND;
-        }
-        
-        /* Only process if errorcode is not set */
-        if(message->body.daadvert.errorcode == SLP_ERROR_OK)
-        {
-            /* TODO: Authentication stuff here */
-
-            
-            daentry.langtaglen = message->header.langtaglen;
-            daentry.langtag = message->header.langtag;
-            daentry.bootstamp = message->body.daadvert.bootstamp;
-            daentry.urllen = message->body.daadvert.urllen;
-            daentry.url = message->body.daadvert.url;
-            daentry.scopelistlen = message->body.daadvert.scopelistlen;
-            daentry.scopelist = message->body.daadvert.scopelist;
-            daentry.attrlistlen = message->body.daadvert.attrlistlen;
-            daentry.attrlist = message->body.daadvert.attrlist;
-            daentry.spilistlen = message->body.daadvert.spilistlen;
-            daentry.spilist = message->body.daadvert.spilist;
-            SLPDKnownDAAdd(&(peeraddr->sin_addr),&daentry);
-        }
+        /* TODO: log something here? */
+        goto FINISHED;
     }
 
+    
+    /* Only process if errorcode is not set */
+    if(message->body.daadvert.errorcode == SLP_ERROR_OK)
+    {
+        /* TODO: Authentication stuff here */
+
+        
+        daentry.langtaglen = message->header.langtaglen;
+        daentry.langtag = message->header.langtag;
+        daentry.bootstamp = message->body.daadvert.bootstamp;
+        daentry.urllen = message->body.daadvert.urllen;
+        daentry.url = message->body.daadvert.url;
+        daentry.scopelistlen = message->body.daadvert.scopelistlen;
+        daentry.scopelist = message->body.daadvert.scopelist;
+        daentry.attrlistlen = message->body.daadvert.attrlistlen;
+        daentry.attrlist = message->body.daadvert.attrlist;
+        daentry.spilistlen = message->body.daadvert.spilistlen;
+        daentry.spilist = message->body.daadvert.spilist;
+        SLPDKnownDAAdd(&(peeraddr->sin_addr),&daentry);
+    }
+    
     RESPOND:
     /* DAAdverts should never be replied to.  Set result buffer to empty*/
     result->end = result->start;
+
+
+    FINISHED:
     *sendbuf = result;
-    
     return errorcode;
 }
 
@@ -911,6 +884,8 @@ int ProcessSrvTypeRqst(struct sockaddr_in* peeraddr,
         goto FINISHED;
     }
 
+    /* TODO: check the spi list of the message and return                  */
+    /*       AUTHENTICATION_UNKNOWN since we do not do authentication yet  */ 
     
     /*------------------------------------*/
     /* Make sure that we handle the scope */
@@ -956,7 +931,6 @@ int ProcessSrvTypeRqst(struct sockaddr_in* peeraddr,
         errorcode = SLP_ERROR_SCOPE_NOT_SUPPORTED;
     }
 
-    
     /*----------------------------------------------------------------*/
     /* Do not send error codes or empty replies to multicast requests */
     /*----------------------------------------------------------------*/

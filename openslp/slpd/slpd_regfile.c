@@ -133,6 +133,9 @@ SLPDDatabaseEntry* SLPDRegFileReadEntry(FILE* fd, SLPDDatabaseEntry** entry)
         return 0;
     }
 
+    /* entries read from the .reg file are always local */
+    (*entry)->islocal = 1;
+
     /*---------------------*/
     /* Parse the url-props */
     /*---------------------*/

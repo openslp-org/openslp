@@ -400,7 +400,8 @@ int v1ProcessSrvReg(struct sockaddr_in* peeraddr,
         /* put the service in the database */
         /*---------------------------------*/
         if (SLPDDatabaseReg(&(message->body.srvreg),
-                            message->header.flags | SLP_FLAG_FRESH) == 0)
+                            message->header.flags | SLP_FLAG_FRESH,
+                            ISLOCAL(peeraddr->sin_addr)) == 0)
         {
             errorcode = 0;
         }
