@@ -10,6 +10,10 @@ blank lines and include the date, developer's email, and change description.
 =============================================================================
 
 07/06/00 david.mccormack@ottawa.com
+Removed all old Makefile and install scripts and replaced them with 
+Automake/Autoconf ones.
+
+07/06/00 david.mccormack@ottawa.com
 Added in a NEWS file
 
 06/28/00 mpeterson@calderasystems.com
