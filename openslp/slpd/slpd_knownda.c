@@ -566,12 +566,24 @@ int SLPDKnownDAAdd(SLPMessage msg, SLPBuffer buf)
                                 daadvert->urllen,
                                 daadvert->url) == 0)
             {
+                if(daadvert->bootstamp != 0 &&
+                   daadvert->bootstamp <= entrydaadvert->bootstamp)
+                {
+                    /* Advertising DA must have went down then came back up */
+                    SLPDKnownDARegisterAll(entry->msg,0);
+                }
+                
                 SLPDatabaseRemove(dh,entry);
                 break;
             }
         }
+        if(entry == 0)
+        {
+            /* Advertising DA is new to us */
+            SLPDKnownDARegisterAll(entry->msg,0);
+        }
 
-        /* Check to see if DA is going down */
+        /* Make sure the DA is not dying */
         if(daadvert->bootstamp != 0)
         {
             /* Create and link in a new entry */
