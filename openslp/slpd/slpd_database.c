@@ -564,3 +564,39 @@ SLPDDatabaseEntry *SLPDDatabaseEntryAlloc()
     
     return entry;
 }
+
+
+/*=========================================================================*/
+int SLPDDatabaseEnum(void** handle,
+                     SLPDDatabaseEntry** entry)
+/* Enumerate through all entries of the database                           */
+/*                                                                         */
+/* handle (IN/OUT) pointer to opaque data that is used to maintain         */
+/*                 enumerate entries.  Pass in a pointer to NULL to start  */
+/*                 enumeration.                                            */
+/*                                                                         */
+/* entry (OUT) pointer to an entry structure pointer that will point to    */
+/*             the next entry on valid return                              */
+/*                                                                         */
+/* returns: >0 if end of enumeration, 0 on success, <0 on error            */
+/*=========================================================================*/
+{
+    if(*handle == 0)
+    {
+        *entry = (SLPDDatabaseEntry*)G_DatabaseList.head; 
+    }
+    else
+    {
+        *entry = (SLPDDatabaseEntry*)*handle;
+        *entry = (SLPDDatabaseEntry*)(*entry)->listitem.next;
+    }
+
+    *handle = (void*)*entry;
+
+    if(*handle == 0)
+    {
+        return 1;
+    }
+
+    return 0;
+}

@@ -7,6 +7,9 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 
+10/25/00 mpeterson@caldera.com
+Slpd running as an SA now re-registers all services with a new DA
+
 10/17/00 mpeterson@caldera.com
 Added code to database to utilized revised libslpattr call.  Now taglists in
 AttrRqsts are honored

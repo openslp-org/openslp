@@ -263,6 +263,22 @@ void SLPDDatabaseAge(int seconds);
 
 
 /*=========================================================================*/
+int SLPDDatabaseEnum(void** handle,
+                     SLPDDatabaseEntry** entry);
+/* Enumerate through all entries of the database                           */
+/*                                                                         */
+/* handle (IN/OUT) pointer to opaque data that is used to maintain         */
+/*                 enumerate entries.  Pass in a pointer to NULL to start  */
+/*                 enumeration.                                            */
+/*                                                                         */
+/* entry (OUT) pointer to an entry structure pointer that will point to    */
+/*             the next entry on valid return                              */
+/*                                                                         */
+/* returns: >0 if end of enumeration, 0 on success, <0 on error            */
+/*=========================================================================*/
+
+
+/*=========================================================================*/
 int SLPDDatabaseReg(SLPSrvReg* srvreg,
                     int fresh);
 /* Add a service registration to the database                              */

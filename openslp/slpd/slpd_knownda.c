@@ -40,11 +40,96 @@ SLPList G_KnownDAList = {0,0,0};
 
 
 /*-------------------------------------------------------------------------*/
-void LoadSocketFromDatabaseEntry(SLPDSocket* sock, 
-                                 SLPDDatabaseEntry* dbentry)
+void LoadSocketFromDatabaseEntry(SLPDSocket* sock, SLPDDatabaseEntry* dbentry)
 /*-------------------------------------------------------------------------*/
 {
-      
+    SLPBuffer result;
+    size_t    size;
+
+    /*-------------------------------------------------------------*/
+    /* ensure the buffer is big enough to handle the whole srvrply */
+    /*-------------------------------------------------------------*/
+    size = dbentry->langtaglen + 29; /* 14 bytes for header     */
+                                     /*  6 for static portions of urlentry  */
+                                     /*  2 bytes for srvtypelen */
+                                     /*  2 bytes for scopelen */
+                                     /*  2 bytes for attr list len */
+                                     /*  1 byte for authblock count */
+    size += dbentry->srvtypelen;
+    size += dbentry->scopelistlen;
+    size += dbentry->attrlistlen;
+    
+    /* TODO: room for authstuff */
+    
+    sock->sendbuf = SLPBufferRealloc(sock->sendbuf,size);
+    if(sock->sendbuf == 0)
+    {
+        /* TODO: out of memory, what should we do here! */
+        return;                       
+    }
+
+    result = sock->sendbuf;
+
+    /*----------------*/
+    /* Add the header */
+    /*----------------*/
+    /*version*/
+    *(result->start)       = 2;
+    /*function id*/
+    *(result->start + 1)   = SLP_FUNCT_SRVREG;
+    /*length*/
+    ToUINT24(result->start + 2, size);
+    /*flags*/
+    ToUINT16(result->start + 5,
+             size > SLP_MAX_DATAGRAM_SIZE ? SLP_FLAG_OVERFLOW : 0);
+    /*ext offset*/
+    ToUINT24(result->start + 7,0);
+    /*xid*/
+    ToUINT16(result->start + 10,rand());
+    /*lang tag len*/
+    ToUINT16(result->start + 12,dbentry->langtaglen);
+    /*lang tag*/
+    memcpy(result->start + 14,
+           dbentry->langtag,
+           dbentry->langtaglen);
+    result->curpos = result->start + 14 + dbentry->langtaglen;
+
+    /*--------------------------*/
+    /* Add rest of the SrvReg   */
+    /*--------------------------*/ 
+    /* url-entry reserved */
+    *result->curpos = 0;        
+    result->curpos = result->curpos + 1;
+    /* url-entry lifetime */
+    ToUINT16(result->curpos,dbentry->lifetime);
+    result->curpos = result->curpos + 2;
+    /* url-entry urllen */
+    ToUINT16(result->curpos,dbentry->urllen);
+    result->curpos = result->curpos + 2;
+    /* url-entry url */
+    memcpy(result->curpos,dbentry->url,dbentry->urllen);
+    result->curpos = result->curpos + dbentry->urllen;
+    /* url-entry authcount */
+    *result->curpos = 0;        
+    result->curpos = result->curpos + 1;
+    /* srvtype */
+    ToUINT16(result->curpos,dbentry->srvtypelen);
+    result->curpos = result->curpos + 2;
+    memcpy(result->curpos,dbentry->srvtype,dbentry->srvtypelen);
+    result->curpos = result->curpos + dbentry->srvtypelen;
+    /* scope list */
+    ToUINT16(result->curpos, dbentry->scopelistlen);
+    result->curpos = result->curpos + 2;
+    memcpy(result->curpos,dbentry->scopelist,dbentry->scopelistlen);
+    result->curpos = result->curpos + dbentry->scopelistlen;
+    /* attr list */
+    ToUINT16(result->curpos, dbentry->attrlistlen);
+    result->curpos = result->curpos + 2;
+    memcpy(result->curpos,dbentry->attrlist,dbentry->attrlistlen);
+    result->curpos = result->curpos + dbentry->attrlistlen;;
+    /* authblock count */
+    *(result->curpos) = 0;
+    result->curpos = result->curpos + 1;
 }
 
 
@@ -53,11 +138,11 @@ void SLPDKnownDARegisterAll(SLPDAEntry* daentry)
 /* Forks a child process to register all services with specified DA        */
 /*-------------------------------------------------------------------------*/
 {
-    #if(0)
     fd_set              readfds;
     fd_set              writefds;
     int                 finished;
     SLPDDatabaseEntry*  dbentry;
+    void*               handle      = 0;
     SLPDSocket*         sock        = 0;
 
     /* Fork child process */
@@ -79,12 +164,6 @@ void SLPDKnownDARegisterAll(SLPDAEntry* daentry)
         break;
     }
 
-    /* Set up to iterate through the database */
-
-    /* TODO: we really need to change the database API to be a more usable */
-    /*       iterator based API                                            */
-    dbentry = (SLPDDatabaseEntry*)G_DatabaseList.head;
-
     /* Child process performs a random delay */
     srand(G_SlpdProperty.randomWaitSeed);
     usleep(1+(int)(10.0*rand()/(G_SlpdProperty.randomWaitBound + 1.0)));
@@ -96,28 +175,23 @@ void SLPDKnownDARegisterAll(SLPDAEntry* daentry)
         finished = 0;
         while(finished == 0)
         {
-            FD_ZERO(readfds);
-            FD_ZERO(writefds);
-    
+            FD_ZERO(&readfds);
+            FD_ZERO(&writefds);
+            
             switch(sock->state)
             {
             case STREAM_READ:
             case STREAM_READ_FIRST:
-                FD_SET(sock->fd,readfds);
+                FD_SET(sock->fd,&readfds);
                 break;
             
-            case STREAM_FIRST_WRITE:
-                if(dbentry == 0)
-                {
-                    finished = 1;
-                    break;
-                }
+            case STREAM_WRITE_FIRST:
+                finished = SLPDDatabaseEnum(&handle,&dbentry);
                 LoadSocketFromDatabaseEntry(sock,dbentry);
-                dbentry = dbentry->next;
                 /* no break here on purpose */
             case STREAM_WRITE:
             case STREAM_CONNECT_BLOCK:
-                FD_SET(sock->fd,writefds);
+                FD_SET(sock->fd,&writefds);
                 break;
             
             default:
@@ -131,8 +205,6 @@ void SLPDKnownDARegisterAll(SLPDAEntry* daentry)
     
     /* Exit the child process */
     exit(0);
-
-    #endif
 }  
 
 
