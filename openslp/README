@@ -1,3 +1,11 @@
+README OpenSLP release 0.7.3
+----------------------------
+
+Autoconf/Automake generated files are removed from CVS. If you are building
+OpenSLP from CVS, please run the script ./autogen.sh from the top of the CVS
+tree to re-generate these files.
+
+
 README OpenSLP release 0.7.2
 ----------------------------
 
@@ -35,7 +43,7 @@ releases (0.8.x, 0.9.x and 1.0.x).  The OpenSLP daemon, on the other
 hand is only about 60% complete.  Look for major feature enhancement to 
 slpd in the future.
 
-Sufficent testing resources have not been available to properly test OpenSLP.
+Sufficient testing resources have not been available to properly test OpenSLP.
 Therefore, we can not currently give an accurate expectation with regard to
 stability and functionality.  Please send email to notify us of any bugs 
 <mpeterson@calderasystems.com>. 
