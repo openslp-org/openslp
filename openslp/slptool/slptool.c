@@ -305,8 +305,11 @@ void PrintVersion(SLPToolCommandLine* cmdline)
 #else
 	printf("slptool version = %s\n",VERSION);
 #endif
-    printf("OpenSLP version = %s\n", 
-	   SLPGetProperty("net.slp.OpenSLPVersion"));
+    printf("libslp version = %s\n", 
+           SLPGetProperty("net.slp.OpenSLPVersion"));
+
+    printf("libslp configuration file = %s\n",
+           SLPGetProperty("net.slp.OpenSLPConfigFile"));
 }
 
 /*=========================================================================*/
