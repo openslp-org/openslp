@@ -32,198 +32,37 @@
 
 #include <slp_da.h>
 
-
-/*-------------------------------------------------------------------------*/
-SLPBuffer BuildDASrvRqst(int mcast,
-                         int scopelistlen, 
-                         const char* scopelist,
-                         int prlistlen,
-                         const char* prlist)
-/*-------------------------------------------------------------------------*/
+/*=========================================================================*/
+SLPDAEntry* SLPDAEntryCreate(struct in_addr* addr,
+                             unsigned long bootstamp,
+                             const char* scopelist,
+                             int scopelistlen)
+/* Creates a SLPDAEntry                                                    */
+/*                                                                         */
+/* addr     (IN) pointer to in_addr of the DA to create                    */
+/*                                                                         */
+/* bootstamp (IN) the DA's bootstamp                                       */
+/*                                                                         */
+/* scopelist (IN) scope list of the DA to create                           */
+/*                                                                         */
+/* scopelistlen (IN) the length of the scope list                          */
+/*                                                                         */
+/* returns  Pointer to the created SLPDAEntry.  Must be freed by caller.   */
+/*=========================================================================*/
 {
-    SLPBuffer   buf;
-    int         size;
+    SLPDAEntry* entry;
+    entry = (SLPDAEntry*)malloc(sizeof(SLPDAEntry)+scopelistlen);
+    if(entry == 0) return 0;
+    memset(entry,0,sizeof(SLPDAEntry)+scopelistlen);
 
-    /*--------------------------------------------------------------------*/
-    /* allocate a buffer big enough to handle the directory-agent srvrqst */
-    /*--------------------------------------------------------------------*/
-    size = 49;  /* 16 bytes for header (including langtag) */
-                /*  2 bytes for prlistlen  */
-                /*  2 bytes for srvtype len field */
-                /* 23 bytes for "service:directory-agent" */
-                /*  2 bytes for scopelist len field */
-                /*  2 bytes for predicate len field */
-                /*  2 bytes for spistr len*/ 
-    size += scopelistlen + prlistlen;
+    entry->daaddr = *addr;
+    entry->bootstamp = bootstamp;
+    entry->scopelist = (char*)(entry+1);
+    memcpy(entry->scopelist,scopelist,scopelistlen);
+    entry->scopelistlen = scopelistlen;
 
-    buf = SLPBufferAlloc(size);
-    if(buf == 0)
-    {
-        return 0;
-    }
-    
-    /*----------------*/
-    /* Add the header */
-    /*----------------*/
-    /*version*/
-    *(buf->start)       = 2;
-    /*function id*/
-    *(buf->start + 1)   = SLP_FUNCT_SRVRQST;
-    /*length*/
-    ToUINT24(buf->start + 2, size);
-    /*flags*/
-    ToUINT16(buf->start + 5, mcast ? SLP_FLAG_MCAST : 0);
-    /*ext offset*/
-    ToUINT24(buf->start + 7, 0);
-    /*xid*/
-    ToUINT16(buf->start + 10, SLPXidGenerate());
-    /*lang tag len*/
-    ToUINT16(buf->start + 12, 2);
-    buf->curpos = buf->start + 14;
-    /*lang tag*/
-    ToUINT16( buf->curpos + 14, 0x656e); /* "en" */
-    buf->curpos = buf->curpos + 2 ;
-
-    /*-------------------------*/
-    /* Add rest of the SrvRqst */
-    /*-------------------------*/
-    /* prlist */
-    ToUINT16(buf->curpos, prlistlen);
-    buf->curpos = buf->curpos + 2;
-    memcpy(buf->curpos, prlist, prlistlen);
-    buf->curpos = buf->curpos + prlistlen;
-    /* service type */
-    ToUINT16(buf->curpos, 23);
-    buf->curpos = buf->curpos + 2;
-    memcpy(buf->curpos, "service:directory-agent", 23);
-    buf->curpos = buf->curpos + 23;
-    /* scope list */
-    ToUINT16(buf->curpos, scopelistlen);
-    buf->curpos = buf->curpos + 2;
-    memcpy(buf->curpos, scopelist, scopelistlen);
-    buf->curpos = buf->curpos + scopelistlen;
-    /* predicate */
-    ToUINT16(buf->curpos, 0);
-    buf->curpos = buf->curpos + 2;
-    /* spi list len */
-    ToUINT16(buf->curpos,0);
-    buf->curpos = buf->curpos + 2;
-
-    return buf;
+    return entry;
 }
-
-/*-------------------------------------------------------------------------*/
-int DiscoverDAsByMulticast(SLPDAEntry** dalisthead,
-                           int scopelistlen,
-                           const char* scopelist,
-                           unsigned long flags,
-                           const char* daaddresses,
-                           struct timeval* timeout)
-/*-------------------------------------------------------------------------*/
-{
-    return 0;
-}
-
-
-/*-------------------------------------------------------------------------*/
-int DiscoverDAsByName(SLPDAEntry** dalisthead,
-                      int scopelistlen,
-                      const char* scopelist,
-                      unsigned long flags,
-                      const char* daaddresses,
-                      struct timeval* timeout)
-/*-------------------------------------------------------------------------*/
-{
-    struct sockaddr_in  peeraddr;
-    SLPBuffer           buf         = 0;
-    SLPMessage          msg         = 0;
-    SLPDAEntry*         entry       = 0;
-    struct hostent*     dahostent   = 0;
-    char*               begin       = 0;
-    char*               end         = 0;
-    int                 sock        = 0;
-    int                 finished    = 0;
-    int                 result      = 0;
-
-    memset(&peeraddr,0,sizeof(struct sockaddr_in));
-    peeraddr.sin_family = AF_INET;
-    peeraddr.sin_port = htons(SLP_RESERVED_PORT);
-
-    buf = BuildDASrvRqst(0,scopelistlen,scopelist,0,0);
-    if(buf == 0)
-    {
-        return 0;
-    }
-
-    
-    /*------------------------------------------------------------------*/
-    /* resolve DA host names connect to DA, send SrvRqst, recv DAAdvert */
-    /*------------------------------------------------------------------*/
-    result = 0;
-    begin = (char*)daaddresses;
-    end = begin;
-    finished = 0;
-    while( finished == 0 )
-    {
-        while(*end && *end != ',') end ++;
-        if(*end == 0) finished = 1;
-        while(*end <=0x2f) 
-        {
-            *end = 0;
-            end--;
-        }
-         
-        dahostent = gethostbyname(begin);
-        if(dahostent)
-        {
-            peeraddr.sin_addr.s_addr = *(unsigned long*)(dahostent->h_addr_list[0]);
-        }
-        else
-        {
-            peeraddr.sin_addr.s_addr = inet_addr(begin);
-        }
-
-        sock = SLPNetworkConnectStream(&peeraddr,timeout);
-        if(sock >= 0)
-        {
-            if(SLPNetworkSendMessage(sock, buf, &peeraddr, timeout) == 0)
-            {
-                if(SLPNetworkRecvMessage(sock, buf, &peeraddr, timeout) == 0)
-                {
-                    msg = SLPMessageAlloc();
-                    if(msg == 0)
-                    {
-                        return 0;
-                    }
-                    if(SLPMessageParseBuffer(buf, msg) == 0)
-                    {
-                        if(msg->body.daadvert.errorcode == 0)
-                        {
-                            entry = SLPDAEntryCreate(&peeraddr.sin_addr,&(msg->body.daadvert));
-                            if(entry)
-                            {
-                                ListLink((PListItem*)dalisthead,(PListItem)entry);
-                                result ++;
-                                if(flags & 0x00000001)
-                                {
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                    
-                    SLPMessageFree(msg);
-                }
-            }
-            close(sock);
-        }  
-    }
-
-    SLPBufferFree(buf);
-    
-    return result;
-}
-
 
 /*=========================================================================*/
 void SLPDAEntryFree(SLPDAEntry* entry)
@@ -234,127 +73,90 @@ void SLPDAEntryFree(SLPDAEntry* entry)
 /* returns  none                                                           */
 /*=========================================================================*/
 {
-    if(entry->daadvert.url) free((void*)entry->daadvert.url);    
-    if(entry->daadvert.scopelist) free((void*)entry->daadvert.scopelist);
-    if(entry->daadvert.attrlist) free((void*)entry->daadvert.attrlist);
-    if(entry->daadvert.spilist) free((void*)entry->daadvert.spilist);
-    free((void*)entry);
+    if(entry)
+    {
+        free(entry);
+    }
 }
 
-
 /*=========================================================================*/
-SLPDAEntry* SLPDAEntryCreate(struct in_addr* addr, SLPDAAdvert* daadvert)
-/* Creates a SLPDAEntry                                                    */
-/*                                                                         */
-/* addr     (IN) pointer to in_addr of the DA                              */
-/*                                                                         */
-/* daadvert (IN) pointer to a daadvert of the DA                           */
-/*                                                                         */
-/* returns  Pointer to new SLPDAEntry.                                     */
+int SLPDAEntryWrite(int fd, SLPDAEntry* entry)
 /*=========================================================================*/
 {
-    SLPDAEntry* result;
-     
-    result = (SLPDAEntry*)malloc(sizeof(SLPDAEntry));
-    if(result == 0)
-    {
-        return 0;
-    }
-    
-    result->daaddr = *addr;
-    memcpy(&(result->daadvert),daadvert,sizeof(SLPDAAdvert));
-    result->daadvert.url = memdup(result->daadvert.url,
-                                  result->daadvert.urllen);
-    result->daadvert.scopelist = memdup(result->daadvert.scopelist,
-                                        result->daadvert.scopelistlen);
-    result->daadvert.attrlist = memdup(result->daadvert.attrlist,
-                                       result->daadvert.attrlistlen);
-    result->daadvert.spilist = memdup(result->daadvert.spilist,
-                                      result->daadvert.spilistlen);
-    result->daadvert.authcount = 0;
-    result->daadvert.autharray = 0;
-    /* IGNORE DUPLICATION OF AUTHBLOCK BECAUSE IT WON'T BE USED*/
+    int byteswritten;
+    int size = entry->scopelistlen + sizeof(SLPDAEntry);
+    byteswritten = write(fd,&size,sizeof(size));
+    if(byteswritten == 0) return 0;
+    byteswritten = write(fd,entry,size);
+    return byteswritten;
+}
 
-    if(result->daadvert.url ||
-       result->daadvert.scopelist ||
-       result->daadvert.attrlist ||
-       result->daadvert.spilist == 0)
+/*=========================================================================*/
+SLPDAEntry* SLPDAEntryRead(int fd)
+/*=========================================================================*/
+{   
+    int bytesread;
+    int size;
+    SLPDAEntry* entry;
+
+    bytesread = read(fd,&size,sizeof(size));
+    if(bytesread == 0) return 0;
+    if(size > 4096) return 0;  /* paranoia */
+
+    entry = malloc(size + sizeof(SLPDAEntry));
+    if(entry == 0) return 0;
+
+    bytesread = read(fd,entry,size);
+    if(bytesread < size)
     {
-        SLPDAEntryFree(result);
+        free(entry);
         return 0;
     }
+
+    entry->scopelist = (char*)(entry+1);
+  
+    return entry;
+}
+
+/*=========================================================================*/
+int SLPDAEntryListWrite(int fd, SLPList* dalist)
+/* Returns: Number of entries written                                      */
+/*=========================================================================*/
+{
+    int         result = 0;
+    SLPDAEntry* entry = (SLPDAEntry*)dalist->head;
     
+    while(entry)
+    {
+        if(SLPDAEntryWrite(fd, entry) == 0)
+        {
+            break;
+        } 
+        result += 1;
+        entry = (SLPDAEntry*)entry->listitem.next;
+    }
+
     return result;
 }
 
-
 /*=========================================================================*/
-int SLPDiscoverDAs(SLPDAEntry** dalisthead,
-                   int scopelistlen,
-                   const char* scopelist,
-                   unsigned long flags,
-                   const char* daaddresses,
-                   struct timeval* timeout)
-/* Discover all known DAs.  Use the net.slp.DAAddresses property, DHCP,    */
-/* IPC with slpd, and finally active DA discovery via multicast.  The      */
-/* list is NOT emptied before the newly discovered SLPDAEntrys are added.  */
-/* Duplicate are discarded.                                                */
-/*                                                                         */
-/* dalisthead   (IN/OUT) pointer to the head of the list to add to         */
-/*                                                                         */
-/* scopelistlen (IN) length in bytes of scopelist                          */
-/*                                                                         */
-/* scopelist    (IN) find DAs of the specified scope.  NULL means find     */
-/*                   DAs in all scopes                                     */
-/*                                                                         */
-/* flags        (IN) Discovery flags:                                      */
-/*                   0x000000001 = First DA sufficient                     */
-/*                   0x000000002 = First discovery method sufficient       */
-/*                                                                         */
-/* daaddresses  (IN) value of net.slp.DAAddresses                          */
-/*                                                                         */
-/* timeout      (IN) Maximum time to wait for discovery                    */
-/*                                                                         */
-/* Returns:     number of DAs found. -1 on error.                          */
-/*                                                                         */
-/* WARNING:     This function may block for a *long* time                  */
+int SLPDAEntryListRead(int fd, SLPList* dalist)
+/* Returns: zero on success, -1 on error                                   */
 /*=========================================================================*/
 {
-    int                 result  = 0;
+    int         result = 0;
+    SLPDAEntry* entry;
 
-    /*-------------------*/
-    /* Check DAAddresses */
-    /*-------------------*/
-    result += DiscoverDAsByName(dalisthead,
-                                scopelistlen,
-                                scopelist,
-                                flags,
-                                daaddresses,
-                                timeout); 
-    if(result && flags & 0x00000002)
+    while(1)
     {
-        return result;
+        entry = SLPDAEntryRead(fd);
+        if(entry == 0)
+        {
+            break;
+        }
+        result += 1;
+        SLPListLinkHead(dalist,(SLPListItem*)entry);
     }
 
-    /*------------*/
-    /* Check DHCP */
-    /*------------*/
-    /* TODO: put code to get DHCP options here when available */
-    if(result && flags & 0x00000002)
-    {
-        return result;
-    }
-
-
-    /*---------------*/
-    /* Use Multicast */
-    /*---------------*/
-    result += DiscoverDAsByMulticast(dalisthead,
-                                     scopelistlen,
-                                     scopelist,
-                                     flags,
-                                     daaddresses,
-                                     timeout);
-        
     return result;
 }

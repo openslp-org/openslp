@@ -2,28 +2,70 @@ dnl ***********************************************************************
 dnl Process this file with autoconf to produce a configure script.
 dnl ***********************************************************************
 AC_INIT(slpd/slpd_main.c)
-AM_INIT_AUTOMAKE(slp, 0.7.0)
+AM_INIT_AUTOMAKE(slp, 0.7.4)
+
+dnl We don't want /usr/etc or /usr/var
+test "$prefix" = NONE && prefix=/usr
+if test "$prefix" = '/usr'; then 
+    # We don't want /usr/etc and /usr/var
+    test "$sysconfdir" = '${prefix}/etc' && sysconfdir=/etc
+    test "$sharedstatedir" = '${prefix}/com' && localstatedir=/var
+    test "$localstatedir" = '${prefix}/var' && localstatedir=/var
+fi
 
 dnl ***********************************************************************
-dnl Take care of directory stuff
+dnl Take care of the debug stuff
 dnl ***********************************************************************
-prefix="/usr"
-AC_SUBST(prefix)
-AC_ARG_WITH(rpm-prefix,
-[  --with-rpm-prefix=DIR      The prefix where rpm-devel was installed (/usr)],
-,[with_rpm_prefix=/usr])
+AC_ARG_ENABLE(debug,
+[  --enable-debug          Turn on debugging],
+debug=$enableval,
+debug=no)
+
+case "$debug" in
+  yes) CFLAGS='-g -DDEBUG -D_REENTRANT=1' ;;
+  no)  CFLAGS='-DNDEBUG -D_REENTRANT=1' ;;
+  *) AC_MSG_ERROR(bad value ${debug} for --enable-debug) ;;
+esac
 
 dnl ***********************************************************************
 dnl Checks for programs.
 dnl ***********************************************************************
 AC_PROG_CC
-AC_PROG_RANLIB 
 AC_PROG_INSTALL
 AC_ISC_POSIX
 AC_PROG_CC
 AC_ARG_PROGRAM
 AM_PROG_LIBTOOL
-AC_SUBST(LIBTOOL_DEPS)
+
+dnl ***********************************************************************
+dnl Set C/C++ compiler specific warning/optimization flags
+dnl ***********************************************************************
+if test X"$GCC" = X"yes"; then	
+    CFLAGS="$CFLAGS -Wall -Werror"
+    if test X"$debug" = X"no"; then 
+       OPTFLAGS="-O3"
+    fi
+elif $CC -V 2>&1 | grep "WorkShop Compilers"; then
+    dnl Allow C++ style comments
+    CFLAGS="$CFLAGS -xCC" 
+    if test X"$debug" = X"no"; then
+        OPTFLAGS="-fast"
+	if echo $CC | grep "xarch=v9"; then
+            dnl "-fast" sets -xarch=v8 disabling 64-bit mode, enable it again
+	    OPTFLAGS="$OPTFLAGS -xarch=v9"
+	fi
+    fi
+elif echo $host_os | grep -i "osf" >/dev/null; then
+    CFLAGS="$CFLAGS -std"
+    if test X"$debug" = X"no"; then
+        OPTFLAGS="-O"
+    fi
+else
+    if test X"$debug" = X"no"; then
+        OPTFLAGS="-O"
+    fi
+fi
+CFLAGS="$CFLAGS $OPTFLAGS"
 
 dnl ***********************************************************************
 dnl Checks for header files.
@@ -32,10 +74,15 @@ AC_STDC_HEADERS
 AC_HAVE_HEADERS(string.h) 
 
 dnl ***********************************************************************
-dnl Create these Makefiles
+dnl Checks for data types.
 dnl ***********************************************************************
-AC_OUTPUT([Makefile 
-	common/Makefile 
-	libslp/Makefile
-	slpd/Makefile
-])
+AC_OPENSLP_CHECK_TYPE(socklen_t, size_t)
+AC_OPENSLP_STRUCT_SA_RESTORER
+
+dnl ***********************************************************************
+dnl Checks for libraries.
+dnl ***********************************************************************
+AC_CHECK_LIB(socket, main)
+AC_CHECK_LIB(nsl, gethostbyname)
+
+AC_OUTPUT(Makefile common/Makefile libslp/Makefile slpd/Makefile test/Makefile)

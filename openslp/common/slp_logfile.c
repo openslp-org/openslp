@@ -41,8 +41,7 @@
 #include <slp_logfile.h>
 
 /*=========================================================================*/
-static char*   G_LogFilePath    = 0;
-static int     G_LogLevel       = 2;
+static FILE*   G_LogFile    = 0;
 /*=========================================================================*/
 
 
@@ -62,48 +61,28 @@ int SLPLogFileOpen(const char* path, int append)
 /* Returns  - zero on success. errno on failure.                           */
 /*=========================================================================*/
 {
-    FILE*       stream;
-    int         result = 0;
-    
-    #if(defined DEBUG)
-    if(path == 0)
+    if(G_LogFile)
     {
-        SLPFatal("SLPOpenLogFile() was passed a null pointer");
+        /* logfile was already open close it */
+        fclose(G_LogFile);
     }
-    #endif
-    
-    if(G_LogFilePath == 0)
+
+    if(append)
     {
-        if(append)
-        {
-            stream = fopen(path,"a");
-        }
-        else
-        {
-            stream = fopen(path,"w");
-        }
-    
-        if(stream != 0)
-        {
-           G_LogFilePath = (char*)realloc((void*)G_LogFilePath,strlen(path) + 1);
-           if(G_LogFilePath)
-           {
-                strcpy(G_LogFilePath,path);
-           }
-           else
-           {
-               result = ENOMEM;
-           }   
-           
-           fclose(stream);
-        }                              
-        else
-        {
-            result = EINVAL;
-        }
+        G_LogFile = fopen(path,"a");
+    }
+    else
+    {
+        G_LogFile = fopen(path,"w");
     }
     
-    return result;                     
+    if(G_LogFile == 0)
+    {
+        /* could not open the log file */
+        return -1;
+    }
+    
+    return 0;
 }
 
 
@@ -112,88 +91,9 @@ int SLPLogFileClose()
 /* Releases resources associated with the log file                         */
 /*=========================================================================*/
 {
-    if(G_LogFilePath)
-    {
-        free(G_LogFilePath);
-        G_LogFilePath = 0;
-    }
-
+    fclose(G_LogFile);
+    
     return 0;
-}
-
-
-/*=========================================================================*/
-void SLPLogSetLevel(int level)
-/*=========================================================================*/
-{
-    G_LogLevel = level;
-}
-                  
-
-/*=========================================================================*/
-void SLPFatal(const char* msg, ...)
-/* Logs a message and halts the process                                    */
-/*=========================================================================*/
-{
-    FILE*   stream;
-    va_list ap;
-    
-    if(G_LogLevel < 1) return;
-
-    if(G_LogFilePath)
-    {
-        stream = fopen(G_LogFilePath,"a");
-        if(stream)
-        {
-            fprintf(stream,"FATAL: ");
-            va_start(ap,msg);
-            vfprintf(stream,msg,ap);
-            va_end(ap);
-            fclose(stream);   
-        }
-    }
-    else
-    {
-        printf("FATAL: ");
-        va_start(ap,msg);
-        vprintf(msg,ap);
-        va_end(ap);
-    }
-    
-    exit(1);
-}
-
-
-/*=========================================================================*/
-void SLPError(const char* msg, ...)
-/* Logs an error message                                                   */
-/*=========================================================================*/
-{
-    FILE*   stream;
-    va_list ap;
-    
-    
-    if(G_LogLevel < 2) return;
-
-    if(G_LogFilePath)
-    {
-        stream = fopen(G_LogFilePath,"a");
-        if(stream)
-        {
-            fprintf(stream,"ERROR: ");
-            va_start(ap,msg);
-            vfprintf(stream,msg,ap);
-            va_end(ap);
-            fclose(stream);
-        }
-    }
-    else
-    {
-        printf("ERROR: ");
-        va_start(ap,msg);
-        vprintf(msg,ap);
-        va_end(ap);
-    }   
 }
 
 
@@ -202,61 +102,50 @@ void SLPLog(const char* msg, ...)
 /* Logs a message                                                          */
 /*=========================================================================*/
 {
-    FILE*   stream;
+    va_list ap;
+
+    if(G_LogFile)
+    {
+        va_start(ap,msg);
+        vfprintf(G_LogFile,msg,ap); 
+        va_end(ap);
+        fflush(G_LogFile);
+    }
+}
+
+
+/*=========================================================================*/
+void SLPFatal(const char* msg, ...)
+/* Logs a message and halts the process                                    */
+/*=========================================================================*/
+{
     va_list ap;
     
-    if(G_LogLevel < 3) return;
-
-    if(G_LogFilePath)
+    if(G_LogFile)
     {
-        stream = fopen(G_LogFilePath,"a");
-        if(stream)
-        {
-            fprintf(stream,"MSG: ");
-            va_start(ap,msg);
-            vfprintf(stream,msg,ap);
-            va_end(ap);
-            fclose(stream);
-        }
+        fprintf(G_LogFile,"A FATAL Error has occured:\n");
+        va_start(ap,msg);
+        vfprintf(G_LogFile,msg,ap); 
+        va_end(ap);
+        fflush(G_LogFile);
     }
     else
     {
-        printf("MSG: ");
+        printf("A FATAL Error has occured:\n");
         va_start(ap,msg);
         vprintf(msg,ap);
         va_end(ap);
-    }   
+    }
     
+    exit(1);
 }
 
 /*=========================================================================*/
-void SLPDebug(const char* msg, ...)
-/* Logs a debug message                                                    */
+void SLPLogBuffer(const char* buf, int bufsize)
+/* Writes a buffer to the logfile                                          */
 /*=========================================================================*/
 {
-    FILE*   stream;
-    va_list ap;
-    
-    if(G_LogLevel < 4) return;
-
-    if(G_LogFilePath)
-    {
-        stream = fopen(G_LogFilePath,"a");
-        if(stream)
-        {
-            fprintf(stream,"DEBUG: ");
-            va_start(ap,msg);
-            vfprintf(stream,msg,ap);
-            va_end(ap);
-            fclose(stream);
-        }
-    }
-    else
-    {
-        printf("DEBUG: ");
-        va_start(ap,msg);
-        vprintf(msg,ap);
-        va_end(ap);
-    }
+    fwrite(buf,bufsize,1,G_LogFile);
+    fflush(G_LogFile);
 }
 

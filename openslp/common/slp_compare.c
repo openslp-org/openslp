@@ -8,7 +8,27 @@
 /* Abstract:    Various functions that deal with SLP strings and           */
 /*              string-lists                                               */
 /*                                                                         */
-/* Author(s):   Matthew Peterson                                           */
+/*-------------------------------------------------------------------------*/
+/*                                                                         */
+/* Copyright (c) 1995, 1999  Caldera Systems, Inc.                         */
+/*                                                                         */
+/* This program is free software; you can redistribute it and/or modify it */
+/* under the terms of the GNU Lesser General Public License as published   */
+/* by the Free Software Foundation; either version 2.1 of the License, or  */
+/* (at your option) any later version.                                     */
+/*                                                                         */
+/*     This program is distributed in the hope that it will be useful,     */
+/*     but WITHOUT ANY WARRANTY; without even the implied warranty of      */
+/*     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the       */
+/*     GNU Lesser General Public License for more details.                 */
+/*                                                                         */
+/*     You should have received a copy of the GNU Lesser General Public    */
+/*     License along with this program; see the file COPYING.  If not,     */
+/*     please obtain a copy from http://www.gnu.org/copyleft/lesser.html   */
+/*                                                                         */
+/*-------------------------------------------------------------------------*/
+/*                                                                         */
+/*     Please submit patches to http://www.openslp.org                     */
 /*                                                                         */
 /***************************************************************************/
 
@@ -16,9 +36,12 @@
 
 #include <slp_compare.h>
 
+#ifdef WIN32
+#define strncasecmp(string1, string2, n) strnicmp(string1, string2, n)
+#endif
 
 /*=========================================================================*/
-int SLPStringCompare(int str1len,
+int SLPCompareString(int str1len,
                      const char* str1,
                      int str2len,
                      const char* str2)
@@ -53,7 +76,7 @@ int SLPStringCompare(int str1len,
 
 
 /*=========================================================================*/
-int SLPSrvTypeCompare(int lsrvtypelen,
+int SLPCompareSrvType(int lsrvtypelen,
                       const char* lsrvtype,
                       int rsrvtypelen,
                       const char* rsrvtype)
@@ -72,8 +95,19 @@ int SLPSrvTypeCompare(int lsrvtypelen,
 /* Returns -    zero if srvtypes are equal. Nonzero if they are not        */
 /*=========================================================================*/
 {
-    /* TODO: fold whitespace and handle escapes*/ 
     char* colon;
+
+    /* Skip "service:" */
+    if(strncasecmp(lsrvtype,"service:",lsrvtypelen > 8 ? 8 : lsrvtypelen) == 0)
+    {
+        lsrvtypelen = lsrvtypelen - 8;
+        lsrvtype = lsrvtype + 8;
+    }
+    if(strncasecmp(rsrvtype,"service:",rsrvtypelen > 8 ? 8 : rsrvtypelen) == 0)
+    {
+        rsrvtypelen = rsrvtypelen - 8;
+        rsrvtype = rsrvtype + 8;
+    }
 
     if(memchr(lsrvtype,':',lsrvtypelen))
     {
@@ -108,7 +142,7 @@ int SLPSrvTypeCompare(int lsrvtypelen,
 
 
 /*=========================================================================*/
-int SLPStringListContains(int listlen, 
+int SLPContainsStringList(int listlen, 
                           const char* list,
                           int stringlen,
                           const char* string)
@@ -148,7 +182,7 @@ int SLPStringListContains(int listlen,
             itemend ++;
         }
 
-        if(SLPStringCompare(itemend - itembegin,
+        if(SLPCompareString(itemend - itembegin,
                             itembegin,
                             stringlen,
                             string) == 0)
@@ -164,7 +198,7 @@ int SLPStringListContains(int listlen,
 
 
 /*=========================================================================*/
-int SLPStringListIntersect(int list1len,
+int SLPIntersectStringList(int list1len,
                            const char* list1,
                            int list2len,
                            const char* list2)
@@ -204,7 +238,7 @@ int SLPStringListIntersect(int list1len,
             itemend ++;
         }
 
-        if(SLPStringListContains(list2len,
+        if(SLPContainsStringList(list2len,
                                  list2,
                                  itemend - itembegin,
                                   itembegin))
@@ -217,3 +251,30 @@ int SLPStringListIntersect(int list1len,
 
     return result;
 }
+
+/*=========================================================================*/
+int SLPComparePredicate(int predicatelen, 
+                        const char* predicate, 
+                        int attrlistlen,
+                        const char* attrlist)
+/*                                                                         */
+/* Determine whether the specified attribute list satisfies                */
+/* the specified predicate                                                 */
+/*                                                                         */
+/* predicatelen (IN) the length of the predicate string                    */
+/*                                                                         */
+/* predicate    (IN) the predicate string                                  */
+/*                                                                         */
+/* attrlistlen  (IN) the length of the attribute list                      */
+/*                                                                         */
+/* attrlist     (IN) a comma delimited attribute list                      */
+/*                                                                         */
+/* Returns: Non-zero if predicate matches attribute list                   */
+/*          zero otherwise.                                                */
+/*=========================================================================*/
+{
+    /* Everything matches until Evan Hughes puts code here */
+
+    return 1;
+}
+

@@ -8,22 +8,36 @@
 /* Abstract:    Header file that defines structures and constants that are */
 /*              specific to the SLP wire protocol messages.                */
 /*                                                                         */
-/* Author(s):   Matthew Peterson                                           */
+/*-------------------------------------------------------------------------*/
+/*                                                                         */
+/* Copyright (c) 1995, 1999  Caldera Systems, Inc.                         */
+/*                                                                         */
+/* This program is free software; you can redistribute it and/or modify it */
+/* under the terms of the GNU Lesser General Public License as published   */
+/* by the Free Software Foundation; either version 2.1 of the License, or  */
+/* (at your option) any later version.                                     */
+/*                                                                         */
+/*     This program is distributed in the hope that it will be useful,     */
+/*     but WITHOUT ANY WARRANTY; without even the implied warranty of      */
+/*     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the       */
+/*     GNU Lesser General Public License for more details.                 */
+/*                                                                         */
+/*     You should have received a copy of the GNU Lesser General Public    */
+/*     License along with this program; see the file COPYING.  If not,     */
+/*     please obtain a copy from http://www.gnu.org/copyleft/lesser.html   */
+/*                                                                         */
+/*-------------------------------------------------------------------------*/
+/*                                                                         */
+/*     Please submit patches to http://www.openslp.org                     */
 /*                                                                         */
 /***************************************************************************/
 
 #include <slp_message.h>
 
+#ifndef WIN32
 #include <malloc.h>
 #include <netinet/in.h>
-
-/*-------------------------------------------------------------------------*/
-#define AsUINT16(charptr)   ( ntohs(*((PUINT16)(charptr))) )
-#define AsUINT24(charptr)   ( ntohl(*((PUINT32)(charptr)))>>8 )
-#define AsUINT32(charptr)   ( ntohl(*((PUINT32)(charptr))) )
-/* Macros used to parse SLPBuffers                                         */
-/*-------------------------------------------------------------------------*/
-
+#endif
 
 /*-------------------------------------------------------------------------*/
 int ParseHeader(SLPBuffer buffer, SLPHeader* header)
@@ -572,6 +586,103 @@ int ParseAttrRply(SLPBuffer buffer, SLPAttrRply* attrrply)
     return 0;
 }
 
+/*-------------------------------------------------------------------------*/
+int ParseDAAdvert(SLPBuffer buffer, SLPDAAdvert* daadvert)
+/*-------------------------------------------------------------------------*/
+{
+    int             result;
+    int             i;
+    
+    /* make sure that min size is met */
+    #if(defined(PARANOID) || defined(DEBUG))
+    if(buffer->end - buffer->curpos < 4)
+    {
+        return SLP_ERROR_PARSE_ERROR;
+    }
+    #endif
+
+    /* parse out the error code */
+    daadvert->errorcode = AsUINT16(buffer->curpos);
+    buffer->curpos = buffer->curpos + 2;
+
+    /* parse out the bootstamp */
+    daadvert->bootstamp = AsUINT32(buffer->curpos);
+    buffer->curpos = buffer->curpos + 4;
+
+    /* parse out the url */
+    daadvert->urllen = AsUINT16(buffer->curpos);
+    buffer->curpos = buffer->curpos + 2;
+    #if(defined(PARANOID) || defined(DEBUG))
+    if(daadvert->urllen > buffer->end - buffer->curpos)
+    {
+        return SLP_ERROR_PARSE_ERROR;
+    }
+    #endif
+    daadvert->url = buffer->curpos;
+    buffer->curpos = buffer->curpos + daadvert->urllen;
+
+    /* parse the scope list */
+    daadvert->scopelistlen = AsUINT16(buffer->curpos);
+    buffer->curpos = buffer->curpos + 2;
+    #if(defined(PARANOID) || defined(DEBUG))
+    if(daadvert->scopelistlen > buffer->end - buffer->curpos)
+    {
+        return SLP_ERROR_PARSE_ERROR;
+    }
+    #endif
+    daadvert->scopelist = buffer->curpos;
+    buffer->curpos = buffer->curpos + daadvert->scopelistlen;  
+
+    /* parse the attr list */
+    daadvert->attrlistlen = AsUINT16(buffer->curpos);
+    buffer->curpos = buffer->curpos + 2;
+    #if(defined(PARANOID) || defined(DEBUG))
+    if(daadvert->attrlistlen > buffer->end - buffer->curpos)
+    {
+        return SLP_ERROR_PARSE_ERROR;
+    }
+    #endif
+    daadvert->attrlist = buffer->curpos;
+    buffer->curpos = buffer->curpos + daadvert->attrlistlen;
+
+    /* parse the SPI list */
+    daadvert->spilistlen = AsUINT16(buffer->curpos);
+    buffer->curpos = buffer->curpos + 2;
+    #if(defined(PARANOID) || defined(DEBUG))
+    if(daadvert->spilistlen > buffer->end - buffer->curpos)
+    {
+        return SLP_ERROR_PARSE_ERROR;
+    }
+    #endif
+    daadvert->spilist = buffer->curpos;
+    buffer->curpos = buffer->curpos + daadvert->spilistlen;
+
+
+     /* parse out auth block count */
+    daadvert->authcount = *(buffer->curpos);
+    buffer->curpos = buffer->curpos + 1;
+
+    /* parse out the auth block (if any) */
+    if(daadvert->authcount)
+    {
+        daadvert->autharray = (SLPAuthBlock*)malloc(sizeof(SLPAuthBlock) * daadvert->authcount);
+        if(daadvert->autharray == 0)
+        {
+            return SLP_ERROR_INTERNAL_ERROR;
+        }
+        memset(daadvert->autharray,0,sizeof(SLPAuthBlock) * daadvert->authcount);
+
+        for(i=0;i<daadvert->authcount;i++)
+        {
+            result = ParseAuthBlock(buffer,&(daadvert->autharray[i]));
+            if(result) return result;
+        }
+    }       
+
+    return 0;
+}
+
+
 
 /*-------------------------------------------------------------------------*/
 void SLPMessageFreeInternals(SLPMessage message)
@@ -616,17 +727,22 @@ void SLPMessageFreeInternals(SLPMessage message)
         }
         break;
           
-    case SLP_FUNCT_ATTRRQST:
-        break;
-        
     case SLP_FUNCT_ATTRRPLY:
+        if(message->body.attrrply.autharray)
+        {
+            free(message->body.attrrply.autharray);
+        }
         break;
         
-    /*
+    
     case SLP_FUNCT_DAADVERT:
-        result = ParseDAAdvert(start,end,&xlator->body.daadvert);
-        break;
-        
+        if(message->body.daadvert.autharray)
+        {
+            free(message->body.daadvert.autharray);
+        }
+        break; 
+
+    /*
     case SLP_FUNCT_SRVTYPERQST:
         result = ParseSrvTypeRqst(start,end,&xlator->body.srvtyperqst);
         break;
@@ -640,6 +756,7 @@ void SLPMessageFreeInternals(SLPMessage message)
         break;
         */
     
+    case SLP_FUNCT_ATTRRQST:
     case SLP_FUNCT_SRVACK:
     case SLP_FUNCT_SRVRQST:
     default:
@@ -667,6 +784,30 @@ SLPMessage SLPMessageAlloc()
 
 
 /*=========================================================================*/
+SLPMessage SLPMessageRealloc(SLPMessage msg)
+/* Reallocates memory for a SLP message descriptor                         */
+/*                                                                         */
+/* Returns   - A newly allocated SLPMessage pointer of NULL on ENOMEM      */
+/*=========================================================================*/
+{
+    if(msg == 0)
+    {
+        msg = SLPMessageAlloc();
+        if(msg == 0)
+        {
+            return 0;
+        }
+    }
+    else
+    {
+        SLPMessageFreeInternals(msg);
+    }
+
+    return msg;
+}
+
+
+/*=========================================================================*/
 void SLPMessageFree(SLPMessage message)
 /* Frees memory that might have been allocated by the SLPMessage for       */
 /* UrlEntryLists or AuthBlockLists.                                        */
@@ -674,8 +815,11 @@ void SLPMessageFree(SLPMessage message)
 /* message  - (IN) the SLPMessage to free                                  */
 /*=========================================================================*/
 {
-    SLPMessageFreeInternals(message);
-    free(message);
+    if(message)
+    {
+        SLPMessageFreeInternals(message);
+        free(message);
+    }
 }
 
 
@@ -703,6 +847,7 @@ int SLPMessageParseBuffer(SLPBuffer buffer, SLPMessage message)
     buffer->curpos = buffer->start;
 
     /* parse the header first */
+    
     result = ParseHeader(buffer,&(message->header));
     if(result == 0)
     {
@@ -737,34 +882,83 @@ int SLPMessageParseBuffer(SLPBuffer buffer, SLPMessage message)
             result = ParseAttrRply(buffer,&(message->body.attrrply));
             break;
 
-/*    
         case SLP_FUNCT_DAADVERT:
-            result = ParseDAAdvert(start,end,&xlator->body.daadvert);
+            result = ParseDAAdvert(buffer,&(message->body.daadvert));
             break;
-    
+/*    
         case SLP_FUNCT_SRVTYPERQST:
-            result = ParseSrvTypeRqst(start,end,&xlator->body.srvtyperqst);
+            result = ParseSrvTypeRqst(buffer,&(message->body.srvtyperqst));
             break;
     
         case SLP_FUNCT_SRVTYPERPLY:
-            result = ParseSrvTypeRply(start,end,&xlator->body.srvtyperply);
+            result = ParseSrvTypeRply(buffer,&(message->body.srvtyperply));
             break;
     
         case SLP_FUNCT_SAADVERT:
-            result = ParseSAAdvert(start,end,&xlator->body.saadvert);
+            result = ParseSAAdvert(buffer,&(message->body.saadvert));
             break;
 */
         default:
-            result = SLP_ERROR_PARSE_ERROR;
+            result = SLP_ERROR_MESSAGE_NOT_SUPPORTED;
         }
-    }   
+    }
 
     return result;
 }
 
+#if !defined(i386)
+/* Functions used to parse buffers                                         */
+/*-------------------------------------------------------------------------*/
+unsigned short AsUINT16(const char *charptr)
+/*-------------------------------------------------------------------------*/
+{
+    unsigned char *ucp = (unsigned char *) charptr;
+    return (ucp[0] << 8) | ucp[1];
+}
 
+/*-------------------------------------------------------------------------*/
+unsigned int AsUINT24(const char *charptr)
+/*-------------------------------------------------------------------------*/
+{
+    unsigned char *ucp = (unsigned char *) charptr;
+    return (ucp[0] << 16) | (ucp[1] << 8) |  ucp[2];
+}
 
+/*-------------------------------------------------------------------------*/
+unsigned int AsUINT32(const char *charptr)
+/*-------------------------------------------------------------------------*/
+{
+    unsigned char *ucp = (unsigned char *) charptr;
+    return (ucp[0] << 24) | (ucp[1] << 16) | (ucp[2] << 8) | ucp[3]; 
+}
+/*=========================================================================*/
 
+/*=========================================================================*/
+/* Functions used to set buffers                                           */
+/*-------------------------------------------------------------------------*/
+void ToUINT16(char *charptr, unsigned int val)
+/*-------------------------------------------------------------------------*/
+{
+    charptr[0] = (val >> 8) & 0xff;
+    charptr[1] = val & 0xff;
+}
 
+/*-------------------------------------------------------------------------*/
+void ToUINT24(char *charptr, unsigned int val)
+/*-------------------------------------------------------------------------*/
+{
+    charptr[0] = (val >> 16) & 0xff;
+    charptr[1] = (val >> 8) & 0xff;
+    charptr[2] = val & 0xff;
+}
 
- 
+/*-------------------------------------------------------------------------*/
+void ToUINT32(char *charptr, unsigned int val)
+/*-------------------------------------------------------------------------*/
+{
+    charptr[0] = (val >> 24) & 0xff;
+    charptr[1] = (val >> 16) & 0xff;
+    charptr[2] = (val >> 8) & 0xff;
+    charptr[3] = val & 0xff;
+}
+#endif

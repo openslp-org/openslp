@@ -1,4 +1,45 @@
-openslp-0.7.0:	(2000-07-06)
-    - Now uses Autoconf/Automake
-    - Addition of NEWS file
-    - Move of CHANGELOG to ChangeLog
+NEWS - list of user-visible changes between releases of OpenSLP
+
+New in openslp-0.7.4
+---------------------
+* Finally added SA <--> DA communication resulting in an slpd that now acts as
+  a much better SA and DA.  
+* slpd (as a DA) responds to active DA discovery requests.
+* slpd (as an SA) performs active DA discovery, supports passive DA discovery,
+  supports static DA configuration, registers and de-registers services with 
+  DAs.
+* libslp now has the ability to register services with to the local slpd
+  (SA), or a discovered DA.  This eliminates the need to have slpd running on
+  all machines in certain cases. libslp can now request services from a DA 
+  or via multicast or broadcast.
+  
+
+New in openslp-0.7.3:
+---------------------
+* openslp-0.7.3 will not be released.
+
+
+New in openslp-0.7.2: (2000-08-17)
+* Revamped build system.
+  Takes advantage of libtool/automake integration.
+  libslp versioning changed to be compatible with libtool.
+  Building with non-GCC compilers is now possible.
+  Build directory can be different from source directory.
+  Test suite integrated with automake, run make check to run the test suite.
+* Fixed several sneaky memory leaks and memory access bugs that dealt with
+  langtags in libslp 
+* Modified slpd command line parameter parsing to print version and help
+  information  
+* Ported to Solaris (2.6/7) and Linux Alpha.
+* Documentation cleaned up (code set changed to iso8859-1 and spell checked).
+
+New in openslp-0.7.1:
+---------------------
+* Several bug fixes.
+* Now uses Autoconf/Automake.
+
+
+New in openslp-0.7.0: (2000-07-06)
+----------------------------------
+* Addition of NEWS file.
+* Move of CHANGELOG to ChangeLog.

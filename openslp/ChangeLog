@@ -6,8 +6,58 @@ OpenSLP Change Log
 Please make entries to this log (in addition to the CVS log) that describe 
 major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
-
 =============================================================================
+
+*** TAG OpenSLP 0.7.4 ***
+
+8/30/00 mpeterson@calderasystems.com
+Finally added functionality to slpd so that as an SA  it will find and 
+register with all known DAs.  
+
+*** TAG OpenSLP 0.7.2 ****
+
+08/16/00 mpeterson@calderasystems.com
+Made significant changes that streamline main execution loop of slpd. 
+
+08/11/00 mpeterson@calderassystems.com
+Fixed several sneeky memory leaks and memory access bugs that delt with
+langtags in libslp. Fixes bug #111058 - Pointer issues in slpd.
+
+08/04/00 rganesan@myrealbox.com
+OpenSLP ported to Solaris (2.6/7) and Linux Alpha. Also functional on
+Compaq Tru64. Building is now possible on non-gcc compilers.
+
+08/04/00 rganesan@myrealbox.com
+Documentation updates - codeset converted to iso-8859-1 and spell checked.
+
+08/04/00 david.mccormack@ottawa.com
+Modified slpd command line parameter parsing to print version and help 
+information
+
+08/02/00 rganesan@myrealbox.com
+Build changes to take advantage of automake/libtool integration. Building 
+with builddir != srcdir works. DESTDIR is supported for make install to
+ease packaging. Test suites are integrated and run using 'make check'.  
+
+07/17/00 mpeterson@calderasystems.com
+Finalized the DA discovery routines in libslp
+
+*** TAG OpenSLP 0.7.1 ***
+
+07/11/00 mpeterson@calderasystems.com
+Fixed 109269 - SLPFindSrvs callback no longer gives a LAST_CALL
+
+07/11/00 david.mccormack@ottawa.com
+Added a --enable-debug parameter to the configure script.  This option 
+when activated allows for all the debug parameters to be set.
+
+07/10/00 david.mccormack@ottawa.com
+Fixxed a short coming of SLPEscape, it did not handle CTL, which it now 
+does.
+
+07/06/00 david.mccormack@ottawa.com
+Removed all old Makefile and install scripts and replaced them with 
+Automake/Autoconf ones.
 
 07/06/00 david.mccormack@ottawa.com
 Added in a NEWS file

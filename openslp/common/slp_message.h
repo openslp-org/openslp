@@ -8,7 +8,27 @@
 /* Abstract:    Header file that defines structures and constants that are */
 /*              specific to the SLP wire protocol messages.                */
 /*                                                                         */
-/* Author(s):   Matthew Peterson                                           */
+/*-------------------------------------------------------------------------*/
+/*                                                                         */
+/* Copyright (c) 1995, 1999  Caldera Systems, Inc.                         */
+/*                                                                         */
+/* This program is free software; you can redistribute it and/or modify it */
+/* under the terms of the GNU Lesser General Public License as published   */
+/* by the Free Software Foundation; either version 2.1 of the License, or  */
+/* (at your option) any later version.                                     */
+/*                                                                         */
+/*     This program is distributed in the hope that it will be useful,     */
+/*     but WITHOUT ANY WARRANTY; without even the implied warranty of      */
+/*     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the       */
+/*     GNU Lesser General Public License for more details.                 */
+/*                                                                         */
+/*     You should have received a copy of the GNU Lesser General Public    */
+/*     License along with this program; see the file COPYING.  If not,     */
+/*     please obtain a copy from http://www.gnu.org/copyleft/lesser.html   */
+/*                                                                         */
+/*-------------------------------------------------------------------------*/
+/*                                                                         */
+/*     Please submit patches to http://www.openslp.org                     */
 /*                                                                         */
 /***************************************************************************/
 
@@ -17,12 +37,17 @@
 
 #include <slp_buffer.h>
 
-
+#ifdef WIN32
+#include <windows.h>
+#endif
 
 typedef char            CHAR;
 typedef unsigned char   UINT8;
 typedef unsigned short  UINT16;
+
+#ifndef WIN32
 typedef unsigned long   UINT32;
+#endif
 
 typedef CHAR*           PCHAR;
 typedef UINT8*          PUINT8;
@@ -35,8 +60,12 @@ typedef UINT32*         PUINT32;
 /*=========================================================================*/
 #define SLP_RESERVED_PORT       427
 #define SLP_MCAST_ADDRESS       0xeffffffd  /* 239.255.255.253 */
+#define SLP_BCAST_ADDRESS       0xffffffff  /* 255.255.255.255 */
 #define LOOPBACK_ADDRESS        0x7f000001  /* 127.0.0.1 */
 #define SLP_MAX_DATAGRAM_SIZE   1400
+#if(!defined SLP_LIFETIME_MAXIMUM) 
+#define SLP_LIFETIME_MAXIMUM    0xffff
+#endif
 
 
 /*=========================================================================*/
@@ -68,6 +97,7 @@ typedef UINT32*         PUINT32;
 #define SLP_ERROR_AUTHENTICATION_FAILED    7
 #define SLP_ERROR_VER_NOT_SUPPORTED        9
 #define SLP_ERROR_INTERNAL_ERROR           10
+#define SLP_ERROR_DA_BUSY_NOW              11
 #define SLP_ERROR_INVALID_UPDATE           13
 #define SLP_ERROR_MESSAGE_NOT_SUPPORTED    14
 #define SLP_ERROR_REFRESH_REJECTED         15
@@ -323,6 +353,14 @@ SLPMessage SLPMessageAlloc();
 
 
 /*=========================================================================*/
+SLPMessage SLPMessageRealloc(SLPMessage msg);
+/* Reallocates memory for a SLP message descriptor                         */
+/*                                                                         */
+/* Returns   - A newly allocated SLPMessage pointer of NULL on ENOMEM      */
+/*=========================================================================*/
+
+
+/*=========================================================================*/
 void SLPMessageFree(SLPMessage message);
 /* Frees memory that might have been allocated by the SLPMessage for       */
 /* UrlEntryLists or AuthBlockLists.                                        */
@@ -348,6 +386,7 @@ int SLPMessageParseBuffer(SLPBuffer buffer, SLPMessage message);
 /*            pointers in SLPMessage will be invalidated.                  */
 /*=========================================================================*/
 
+#ifdef i386
 /*=========================================================================*/
 #define AsUINT16(charptr)   ( ntohs(*((PUINT16)(charptr))) )
 #define AsUINT24(charptr)   ( ntohl(*((PUINT32)(charptr)))>>8 )
@@ -355,12 +394,25 @@ int SLPMessageParseBuffer(SLPBuffer buffer, SLPMessage message);
 /* Macros used to parse buffers                                            */
 /*=========================================================================*/
 
-
 /*=========================================================================*/
 #define ToUINT16(charptr,val)   ( *((PUINT16)(charptr)) =  htons((val)) )
 #define ToUINT24(charptr,val)   ( *((PUINT32)(charptr)) =  htonl((val)<<8) )
 #define ToUINT32(charptr,val)   ( *((PUINT32)(charptr)) =  htonl((val)) )
 /* Macros used to set buffers                                              */
 /*=========================================================================*/
+#else
+/*=========================================================================*/
+unsigned short AsUINT16(const char *charptr);
+unsigned int AsUINT24(const char *charptr);
+unsigned int AsUINT32(const char *charptr);
+/* Functions used to parse buffers                                         */
+/*=========================================================================*/
 
+/*=========================================================================*/
+void ToUINT16(char *charptr, unsigned int val);
+void ToUINT24(char *charptr, unsigned int val);
+void ToUINT32(char *charptr, unsigned int val);
+/* Functions used to set buffers                                           */
+/*=========================================================================*/
+#endif
 #endif

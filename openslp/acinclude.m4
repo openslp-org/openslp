@@ -23,3 +23,17 @@ if test $ac_cv_type_$1 = no; then
   AC_DEFINE($1, $2)
 fi
 ])
+
+dnl Check for the presence of SA_RESTORER field in struct sigaction.
+dnl
+dnl AC_OPENSLP_STRUCT_SA_RESTORER
+AC_DEFUN(AC_OPENSLP_STRUCT_SA_RESTORER,
+[AC_CACHE_CHECK([for sa_restorer in struct sigaction], 
+ac_cv_struct_sa_restorer,
+[AC_TRY_COMPILE([#include <sys/types.h>
+#include <sys/signal.h>], [struct sigaction s; s.sa_restorer;],
+ac_cv_struct_sa_restorer=yes, ac_cv_struct_sa_restorer=no)])
+if test $ac_cv_struct_sa_restorer = yes; then
+  AC_DEFINE(HAVE_SA_RESTORER)
+fi
+])

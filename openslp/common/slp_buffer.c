@@ -12,12 +12,25 @@
 /*                                                                         */
 /***************************************************************************/
 
-#include <malloc.h>
-
 #include <slp_buffer.h> 
 
 /*=========================================================================*/
-SLPBuffer SLPBufferAlloc(int size)                                         
+void* memdup(const void* src, int srclen)
+/* Generic memdup analogous to strdup()                                    */
+/*=========================================================================*/
+{
+    char* result;
+    result = (char*)malloc(srclen);
+    if(result)
+    {
+        memcpy(result,src,srclen);
+    }
+
+    return result;
+}
+
+/*=========================================================================*/
+SLPBuffer SLPBufferAlloc(size_t size)                                         
 /* Must be called to initially allocate a SLPBuffer                        */
 /*                                                                         */
 /* size     - (IN) number of bytes to reallocate                           */ 
@@ -27,34 +40,24 @@ SLPBuffer SLPBufferAlloc(int size)
 {
    SLPBuffer result;
 
-   result = (SLPBuffer)malloc(sizeof(struct _SLPBuffer));
+   result = (SLPBuffer)malloc(sizeof(struct _SLPBuffer) + size);
    if(result)
    {
-       if(size)
-       {   
-           result->start = (char*)malloc(size);
-           if(result->start)
-           {
-               #if(defined DEBUG)
-               memset(result->start,0xff,size);
-               #endif
-               
-               result->curpos = result->start;
-               result->end = result->start + size;
-           }
-           else
-           { 
-               free(result);
-               result = 0;
-           }
-       }
+       result->allocated = size;
+       result->start = (char*)(result + 1);
+       result->curpos = result->start;
+       result->end = result->start + size; 
+       
+       #if(defined DEBUG)
+       memset(result->start,0xff,size);
+       #endif
    }
-
+   
    return result;
 }
 
 /*=========================================================================*/
-SLPBuffer SLPBufferRealloc(SLPBuffer buf, int size)
+SLPBuffer SLPBufferRealloc(SLPBuffer buf, size_t size)
 /* Must be called to initially allocate a SLPBuffer                        */
 /*                                                                         */
 /* size     - (IN) number of bytes to allocate                             */
@@ -62,35 +65,59 @@ SLPBuffer SLPBufferRealloc(SLPBuffer buf, int size)
 /* returns  - a newly allocated SLPBuffer or NULL on ENOMEM                */
 /*=========================================================================*/
 {
-   
+   SLPBuffer result;
    if(buf)
    {
-       if(size)
+       if(buf->allocated >= size)
        {
-           buf->start = (char*)realloc(buf->start,size);
-           if(buf->start)
-           {
-               #if(defined DEBUG)
-               memset(buf->start,0xff,size);
-               #endif
-               buf->curpos = buf->start;
-               buf->end = buf->start + size;
-           }
-           else
-           { 
-               free(buf);
-               buf = 0;
-           }
+           result = buf;
+       }
+       else
+       {
+           result = (SLPBuffer)realloc(buf,sizeof(struct _SLPBuffer) + size);
+           result->allocated = size;
+       }
+       
+       if(result)
+       {
+    	   result->start = (char*)(result + 1);
+    	   result->curpos = result->start;
+    	   result->end = result->start + size;
+    	   
+    	   #if(defined DEBUG)
+    	   memset(result->start,0xff,size);
+    	   #endif
        }
    }
    else
    {
-       buf = SLPBufferAlloc(size);
+       result = SLPBufferAlloc(size);
    }
 
-   return buf;
+   return result;
 }
 
+
+/*=========================================================================*/
+SLPBuffer SLPBufferDup(SLPBuffer buf)
+/* Returns a duplicate buffer.  Duplicate buffer must be freed by a call   */
+/* to SLPBufferFree()                                                      */
+/*                                                                         */
+/* size     - (IN) number of bytes to allocate                             */
+/*                                                                         */
+/* returns  - a newly allocated SLPBuffer or NULL on ENOMEM                */
+/*=========================================================================*/
+{
+    SLPBuffer dup;
+
+    dup = SLPBufferAlloc(buf->end - buf->start);
+    if(dup)
+    {
+	    memcpy(dup->start,buf->start,buf->end - buf->start);       
+    }
+    
+    return dup;
+}
 
 
 /*=========================================================================*/
@@ -104,7 +131,6 @@ void SLPBufferFree(SLPBuffer buf)
 {
     if(buf)
     {
-        free(buf->start);
         free(buf);
     }
 }
