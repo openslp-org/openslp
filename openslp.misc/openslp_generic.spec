@@ -1,5 +1,5 @@
 %define	ver 1.0.2
-%define	rel 1
+%define	rel 2
 %define	name openslp
 %define libver 1.0.0
 
@@ -98,6 +98,7 @@ if [ "$1" = "0" ]; then
       rm -f /etc/rc.d/rc$i.d/K87slpd
     done
   fi
+  /etc/rc.d/init.d/slpd stop
 fi
 
 %PostUn 
