@@ -126,10 +126,12 @@ class SLPException:
     def __init__(self, errcode):
         self.errcode = errcode
         
-cdef void MySLPRegReport(SLPHandle hslp, SLPError errcode, void *cookie):
-    """Callback for register() and deregister() methods in SLPConn."""
-    if errcode != SLP_OK:
-        raise SLPException(errcode)
+cdef void MyErrReport(SLPHandle hslp, SLPError errcode, void *cookie):
+    """Callback for register(), deregister() and delattrs() methods in
+    SLPConn."""
+    cdef int *cberrp
+    cberrp = <int *> cookie
+    cberrp[0] = errcode
 
 cdef SLPBoolean MySLPSrvTypeCallback(SLPHandle slph, char *srvtype,
                                      SLPError errcode, void *cookie):
@@ -196,33 +198,41 @@ cdef class SLPConn:
             raise SLPException(err)
 
     def __del__(self):
-        if self.slph != <void *>0:
+        if self.slph != NULL:
             SLPClose(self.slph)
 
     def close(self):
         """Close the SLP Handle"""
         SLPClose(self.slph)
-        self.slph = <void *>0
+        self.slph = NULL
 
+    # srvurl parameter is qualified with the type object because it conflicts
+    # with struct srvurl above.
     def register(self, object srvurl, lifetime, attrs = "", fresh = 1):
         """register an SLP service"""
+        cdef int cberr
         attrstr = slpstr(attrs)
         err = SLPReg(self.slph, srvurl, lifetime, "", attrstr,
-                     fresh, MySLPRegReport, <void *>0)
+                     fresh, MyErrReport, &cberr)
         if err != SLP_OK:
             raise SLPException(err)
+        if cberr != SLP_OK:
+            raise SLPException(cberr)
                  
     def deregister(self, object srvurl):
         """deregister an SLP service"""
-        err = SLPDereg(self.slph, srvurl, MySLPRegReport, <void *>0)
+        cdef int cberr
+        err = SLPDereg(self.slph, srvurl, MyErrReport, &cberr)
         if err != SLP_OK:
             raise SLPException(err)
+        if cberr != SLP_OK:
+            raise SLPException(cberr)
         
     def delattrs(self, object srvurl, attrs = ""):
         """delete attributes from a SLP service URL"""
+        cdef int cberr
         attrstr = slpstr(attrs)
-        err = SLPDelAttrs(self.slph, srvurl, attrstr,
-                          MySLPRegReport, <void *>0)
+        err = SLPDelAttrs(self.slph, srvurl, attrstr, MyErrReport, NULL)
         if err != SLP_OK:
             raise SLPException(err)
 
