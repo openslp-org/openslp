@@ -50,7 +50,7 @@
 
 #include "slp_crypto.h"
 #include "slp_message.h"
-
+  
 /*=========================================================================*/
 int SLPCryptoSHA1Digest(const unsigned char* data,
                         int datalen,
@@ -75,40 +75,30 @@ int SLPCryptoSHA1Digest(const unsigned char* data,
 
 
 /*=========================================================================*/
-SLPCryptoDSAKey* SLPCryptoDSAReadPrivateKey(FILE* fp)
-/* Read a private DSA key from the specified PEM encoded key file.         */
+SLPCryptoDSAKey* SLPCryptoDSAKeyDup(SLPCryptoDSAKey* dsa)
+/* Duplicates the specified key                                            */
 /*                                                                         */
-/* Parameters:  fp (IN) open PEM encoded key file                          */
+/* Parameters: dsa (IN) the key to duplicate                               */
 /*                                                                         */
-/* Returns: pointer to calid DSA key which the caller must destroy         */
-/*          (see SLPCryptoDSAKeyDestroy()).  Returns null on failure       */   
+/* Returns: Pointer to the duplicated key.  NULL on failure. Caller is     */
+/*          responsible for SLPCryptoDSAKeyDestroy()ing the returned       */
+/*          pointer                                                        */
 /*=========================================================================*/
 {
-    DSA* result;
+    SLPCryptoDSAKey* result;
     
-    result =  PEM_read_DSAPrivateKey(fp, &result, NULL, NULL);
+    result = malloc(sizeof(DSA));
+    if(result)
+    {
+        result->p = BN_dup(dsa->p);
+        result->q = BN_dup(dsa->q);
+        result->g = BN_dup(dsa->g);
+        result->priv_key = BN_dup(dsa->priv_key);
+        result->pub_key = BN_dup(dsa->pub_key);
+    }
 
     return result;
 }
-                                       
-
-/*=========================================================================*/
-SLPCryptoDSAKey* SLPCryptoDSAReadPublicKey(FILE* fp)
-/* Read a public DSA key from the specified PEM encoded key file.          */
-/*                                                                         */
-/* Parameters:  fp (IN) open PEM encoded key file                          */
-/*                                                                         */
-/* Returns: pointer to calid DSA key which the caller must destroy         */
-/*          (see SLPCryptoDSAKeyDestroy()).  Returns null on failure       */   
-/*=========================================================================*/
-{
-    DSA* result;
-    
-    result = PEM_read_DSA_PUBKEY(fp, &result, NULL, NULL);
-    
-    return result;
-}
-
 
 /*=========================================================================*/
 void SLPCryptoDSAKeyDestroy(SLPCryptoDSAKey* dsa)

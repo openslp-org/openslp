@@ -53,12 +53,11 @@
 
 #include <openssl/dsa.h>
 #include <openssl/sha.h>
-#include <openssl/pem.h>
-
 
 /*=========================================================================*/
 typedef DSA SLPCryptoDSAKey;
 /*=========================================================================*/
+            
 
 
 /*=========================================================================*/
@@ -77,24 +76,13 @@ int SLPCryptoSHA1Digest(const unsigned char* data,
 
 
 /*=========================================================================*/
-SLPCryptoDSAKey* SLPCryptoDSAReadPrivateKey(FILE* fp);
-/* Read a private DSA key from the specified PEM encoded key file.         */
+SLPCryptoDSAKey* SLPCryptoDSAKeyDup(SLPCryptoDSAKey* dsa);
+/* Duplicates the specified key                                            */
 /*                                                                         */
-/* Parameters:  fp (IN) open PEM encoded key file                          */
+/* Parameters: dsa (IN) the key to duplicate                               */
 /*                                                                         */
-/* Returns: pointer to calid DSA key which the caller must destroy         */
-/*          (see SLPCryptoDSAKeyDestroy()).  Returns null on failure       */   
-/*=========================================================================*/
-                                       
-
-/*=========================================================================*/
-SLPCryptoDSAKey* SLPCryptoDSAReadPublicKey(FILE* fp);
-/* Read a public DSA key from the specified PEM encoded key file.          */
-/*                                                                         */
-/* Parameters:  fp (IN) open PEM encoded key file                          */
-/*                                                                         */
-/* Returns: pointer to calid DSA key which the caller must destroy         */
-/*          (see SLPCryptoDSAKeyDestroy()).  Returns null on failure       */   
+/* Returns: Pointer to the duplicated key.  Caller is responsible for      */
+/*          SLPCryptoDSAKeyDestroy()ing the returned pointer               */
 /*=========================================================================*/
 
 
