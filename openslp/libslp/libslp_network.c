@@ -670,6 +670,9 @@ SLPError NetworkMcastRqstRply(const char* langtag,
         result = SLP_MEMORY_ALLOC_FAILED;
         goto FINISHED;
     }
+
+	v4outifaceinfo.iface_count = 0;
+	v6outifaceinfo.iface_count = 0;
     
 #ifndef MI_NOT_SUPPORTED
     if(handle->McastIFList != NULL) 
@@ -833,8 +836,8 @@ SLPError NetworkMcastRqstRply(const char* langtag,
 			{
 				if (dstifaceinfo.iface_addr[currIntf].ss_family == AF_INET)
 					result = SLPMulticastSend(&v4outifaceinfo,sendbuf,&xcastsocks, &dstifaceinfo.iface_addr[currIntf]);
-				else if (dstifaceinfo.iface_addr[currIntf].ss_family == AF_INET6)
-					result = SLPMulticastSend(&v6outifaceinfo,sendbuf,&xcastsocks, &dstifaceinfo.iface_addr[currIntf]);
+//				else if (dstifaceinfo.iface_addr[currIntf].ss_family == AF_INET6)
+//					result = SLPMulticastSend(&v6outifaceinfo,sendbuf,&xcastsocks, &dstifaceinfo.iface_addr[currIntf]);
 			}
 			if(result != 0)
 			{
