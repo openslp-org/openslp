@@ -345,7 +345,8 @@ int SLPDDatabaseFindType(SLPSrvTypeRqst* srvtyperqst,
 	    {
 		for (i = 0; i < found; i++)
 		{
-		    if (strcmp(result[i].type, entry->srvtype) == 0)
+		    if (strncasecmp(result[i].type, entry->srvtype,
+				    entry->srvtypelen) == 0) 
 		    {
 			break;
 		    }
@@ -354,7 +355,7 @@ int SLPDDatabaseFindType(SLPSrvTypeRqst* srvtyperqst,
 		{
 		    result[found].type = entry->srvtype;
 		    result[found].typelen = entry->srvtypelen;
-		    found ++;
+		    found++;
 		    if(found >= count)
 		    {
 			break;
