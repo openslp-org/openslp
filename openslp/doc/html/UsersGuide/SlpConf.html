@@ -50,11 +50,12 @@ is unavailable. Default is false.</blockquote>
 <b>net.slp.passiveDADetection</b>
 <blockquote>A boolean indicating whether passive DA detection should be
 use. Default is true.</blockquote>
-<b>net.slp.activeDADetection</b>
-<blockquote>A boolean indicating whether active DA dection should be used.
-Note that if both passive and active DA detection are disabled, DAs will
-not be used unless they are statically configured using the net.slp.DAAddresses
-property. Default is true.</blockquote>
+<b>net.slp.DAActiveDiscoveryInterval</b>
+<blockquote>A 16 bit positive integer giving the number of seconds between
+DA active discovery queries.&nbsp; Default is 900 seconds (15 minutes).&nbsp;
+If the property is set to zero, active discovery is turned off.&nbsp; This
+is useful when the DAs available are explicitly restricted to those obtained
+from DHCP or the net.slp.DAAddresses property.</blockquote>
 <b>net.slp.multicastTTL</b>
 <blockquote>A positive integer that is less than or equal to 255.&nbsp;
 The default is&nbsp; 255.</blockquote>
@@ -108,18 +109,18 @@ list of options that OpenSLP has no plans to support.
 <p><b>net.slp.serializedRegURL</b>
 <blockquote>slpd accepts the [-r] command line parameter that specifies
 the serialized registration file to use.</blockquote>
-<b>net.slp.DAActiveDiscoveryInterval</b>
-<blockquote>OpenSLP does not honor this parameter unless it is set to zero.&nbsp;
-When set to zero active discovery is turned off.&nbsp; See net.slp.activeDADetection</blockquote>
 <b>net.slp.multicastTimeouts</b>
-<blockquote>OpenSLP does not honor this parameter.&nbsp; Multicast timeouts
-are generated internally based on the .net.slp.multicastMaximumWait parameter.</blockquote>
+<blockquote>OpenSLP does not honor this parameter.&nbsp; Currently multicast
+timeouts are generated internally based on the net.slp.multicastMaximumWait
+parameter.</blockquote>
 <b>net.slp.DADiscoveryTimeouts</b>
-<blockquote>OpenSLP does not honor this parameter.&nbsp; Multicast timeouts
-are generated internally based on the .net.slp.multicastMaximumWait parameter.</blockquote>
+<blockquote>OpenSLP does not honor this parameter.&nbsp; Currently multicast
+timeouts are generated internally based on the net.slp.multicastMaximumWait
+parameter.</blockquote>
 <b>net.slp.datagramTimeouts</b>
-<blockquote>OpenSLP does not honor this parameter.&nbsp; Unicast timeouts
-are generated internal based on the net.slp.unicastMaximumWait parameter.</blockquote>
+<blockquote>OpenSLP does not honor this parameter.&nbsp; Currently unicast
+timeouts are generated internal based on the net.slp.unicastMaximumWait
+parameter.</blockquote>
 
 <br>&nbsp;
 </body>
