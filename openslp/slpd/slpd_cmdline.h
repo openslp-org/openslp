@@ -59,11 +59,13 @@
 #define SLPD_LOGFILE  VARDIR "/log/slpd.log"
 #define SLPD_REGFILE  ETCDIR "/slp.reg"
 #define SLPD_PIDFILE  VARDIR "/run/slpd.pid"
+#define SLPD_SPIFILE  ETCDIR "/slp.spi"
 #else
 #define SLPD_CONFFILE "%WINDIR%\\slp.conf"
 #define SLPD_LOGFILE  "%WINDIR%\\slpd.log"
 #define SLPD_REGFILE  "%WINDIR%\\slp.reg"
 #define SLPD_PIDFILE  "%WINDIR%\\slpd.pid"
+#define SLPD_SPIFILE  "%WINDIR%\\slp.spi"
 #endif
 
 
@@ -84,6 +86,9 @@ typedef struct _SLPDCommandLine
     char   regfile[MAX_PATH];
     char   logfile[MAX_PATH];
     char   pidfile[MAX_PATH];
+#ifdef ENABLE_AUTHENTICATION
+    char   spifile[MAX_PATH];
+#endif
     int    action;
     int    detach;
 }SLPDCommandLine;

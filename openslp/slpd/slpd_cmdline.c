@@ -81,9 +81,9 @@ void SLPDPrintUsage()
 {
 
 #ifdef WIN32
-    printf("USAGE: slpd -install|-remove|-debug [-d] [-c conf file] [-l log file] [-r reg file] [-v version]\n");
+    printf("USAGE: slpd -install|-remove|-debug [-d] [-c conf file] [-l log file] [-s spi file] [-r reg file] [-v version]\n");
 #else
-    printf("USAGE: slpd [-d] [-c conf file] [-l log file] [-r reg file] [-v version]\n");
+    printf("USAGE: slpd [-d] [-c conf file] [-l log file] [-r reg file] [-s spi file] [-v version]\n");
 #endif
 
 }
@@ -109,11 +109,17 @@ int SLPDParseCommandLine(int argc,char* argv[])
     strcpy(G_SlpdCommandLine.logfile,SLPD_LOGFILE);
     strcpy(G_SlpdCommandLine.regfile,SLPD_REGFILE);
     strcpy(G_SlpdCommandLine.pidfile,SLPD_PIDFILE);
+    #ifdef ENABLE_AUTHENTICATION
+    strcpy(G_SlpdCommandLine.spifile,SLPD_SPIFILE);
+    #endif
 #else
     ExpandEnvironmentStrings(SLPD_CONFFILE,G_SlpdCommandLine.cfgfile,MAX_PATH);
     ExpandEnvironmentStrings(SLPD_LOGFILE,G_SlpdCommandLine.logfile,MAX_PATH);
     ExpandEnvironmentStrings(SLPD_REGFILE,G_SlpdCommandLine.regfile,MAX_PATH);
     ExpandEnvironmentStrings(SLPD_PIDFILE,G_SlpdCommandLine.pidfile,MAX_PATH);
+    #ifdef ENABLE_AUTHENTICATION
+    ExpandEnvironmentStrings(SLPD_SPIFILE,G_SlpdCommandLine.spifile,MAX_PATH);
+    #endif
     G_SlpdCommandLine.action = -1;
 #endif
 
@@ -154,6 +160,14 @@ int SLPDParseCommandLine(int argc,char* argv[])
             if(i >= argc) goto USAGE;
             strncpy(G_SlpdCommandLine.cfgfile,argv[i],MAX_PATH-1);        
         }
+   #ifdef ENABLE_AUTHENTICATION
+        else if(strcmp(argv[i],"-s") == 0)
+        {
+            i++;
+            if(i >= argc) goto USAGE;
+            strncpy(G_SlpdCommandLine.spifile,argv[i],MAX_PATH-1);        
+        }
+   #endif
         else if(strcmp(argv[i],"-p") == 0)
         {
             i++;

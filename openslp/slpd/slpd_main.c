@@ -59,7 +59,9 @@
 #include "slpd_cmdline.h"
 #include "slpd_knownda.h"
 #include "slpd_property.h"
-
+#ifdef ENABLE_AUTHENTICATION
+#include "slpd_spi.h"
+#endif
 
 /*=========================================================================*/
 /* common code includes                                                    */
@@ -504,6 +506,9 @@ int main(int argc, char* argv[])
     /*--------------------------------------------------*/
     if(SLPDPropertyInit(G_SlpdCommandLine.cfgfile) ||
        SLPDDatabaseInit(G_SlpdCommandLine.regfile) ||
+#ifdef ENABLE_AUTHENTICATION
+       SLPDSpiInit(G_SlpdCommandLine.spifile) ||
+#endif
        SLPDIncomingInit() ||
        SLPDOutgoingInit() ||
        SLPDKnownDAInit())

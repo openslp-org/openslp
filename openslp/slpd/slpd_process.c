@@ -824,12 +824,12 @@ int ProcessAttrRqst(SLPMessage message,
                     int errorcode)
 /*-------------------------------------------------------------------------*/
 {
-    int                         i;
     SLPDDatabaseAttrRqstResult* db              = 0;
     int                         size            = 0;
     SLPBuffer                   result          = *sendbuf;
     
 #ifdef ENABLE_AUTHENTICATION
+    int               i;
     unsigned char*    generatedauth       = 0;
     int               generatedauthlen    = 0;
     unsigned char*    opaqueauth          = 0;
