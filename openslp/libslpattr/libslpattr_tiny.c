@@ -24,7 +24,7 @@
 /* The tiny attribute structure. */
 struct xx_TinyAttr {
 	char *attributes; /* A null terminated attribute string. */
-	size_t attr_len; /* The length of the attributes member. */
+	int attr_len; /* The length of the attributes member. */
 };
 
 SLPError SLPAttrAlloc(
@@ -91,8 +91,8 @@ SLPError SLPAttrFreshen(SLPAttributes attr_h, const char *new_attrs) {
 SLPError SLPAttrSerialize(SLPAttributes attr_h,
 		const char* tags /* NULL terminated */,
 		char **out_buffer /* Where to write. if *out_buffer == NULL, space is alloc'd */,
-		size_t bufferlen, /* Size of buffer. */
-		size_t* count, /* Bytes needed/written. */
+		int bufferlen, /* Size of buffer. */
+		int* count, /* Bytes needed/written. */
 		SLPBoolean find_delta
 ) {
 	struct xx_TinyAttr *slp_attr = (struct xx_TinyAttr*)attr_h;
@@ -222,7 +222,7 @@ SLPError SLPAttrGet_int(
 		SLPAttributes attr_h,
 		const char *tag,
 		int *val[],
-		size_t *size
+		int *size
 ) {
 	return SLP_NOT_IMPLEMENTED;
 }
@@ -232,7 +232,7 @@ SLPError SLPAttrGet_str(
 		SLPAttributes attr_h,
 		const char *tag,
 		char ***val,
-		size_t *size
+		int *size
 )  {
 	return SLP_NOT_IMPLEMENTED;
 }
@@ -243,7 +243,7 @@ SLPError SLPAttrGet_opaque(
 		SLPAttributes attr_h,
 		const char *tag,
 		SLPOpaque ***val,
-		size_t *size
+		int *size
 ) {
 	return SLP_NOT_IMPLEMENTED;
 }
