@@ -4,7 +4,7 @@ dnl macro only checks in standard headers. This one checks in sys/socket.h
 dnl also. This code has been copied from Unix Network Programming examples
 dnl by W. Richard Stevens
 dnl
-dnl OPENSLP_CHECK_TYPE(TYPE, DEFAULT)
+dnl OPENSLP_CHECK_TYPE(TYPE, DEFAULT, DESCRIPTION)
 AC_DEFUN([OPENSLP_CHECK_TYPE],
 [AC_REQUIRE([AC_HEADER_STDC])dnl
 AC_MSG_CHECKING(for $1)
@@ -20,7 +20,7 @@ changequote([,]), [#include <sys/types.h>
 #include <sys/socket.h>], ac_cv_type_$1=yes, ac_cv_type_$1=no)])dnl
 AC_MSG_RESULT($ac_cv_type_$1)
 if test $ac_cv_type_$1 = no; then
-  AC_DEFINE($1, $2)
+  AC_DEFINE($1, $2, $3)
 fi
 ])
 
@@ -34,6 +34,6 @@ ac_cv_struct_sa_restorer,
 #include <sys/signal.h>], [struct sigaction s; s.sa_restorer;],
 ac_cv_struct_sa_restorer=yes, ac_cv_struct_sa_restorer=no)])
 if test $ac_cv_struct_sa_restorer = yes; then
-  AC_DEFINE(HAVE_SA_RESTORER)
+  AC_DEFINE(HAVE_SA_RESTORER, 1, [defined if struct sigaction has member sa_restorer])
 fi
 ])

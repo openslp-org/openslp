@@ -146,6 +146,17 @@ int SLPCompareNamingAuth(int srvtypelen,
     if(namingauthlen == 0xffff) /* match all naming authorities */
         return 0;
 
+    /* Skip "service:" */
+    if ((srvtypelen > 8) && (strncasecmp(srvtype,"service:",8) == 0))
+    {
+        srvtypelen -= 8;
+        srvtype += 8;
+    }
+    /* stop search at colon after naming authority (if there is one) */
+    dot = memchr(srvtype,':',srvtypelen);
+    if (dot)
+	srvtypelen = dot - srvtype;
+ 
     dot = memchr(srvtype,'.',srvtypelen);
 
     if(!namingauthlen)     /* IANA naming authority */

@@ -1,8 +1,12 @@
 dnl ***********************************************************************
 dnl Process this file with autoconf to produce a configure script.
 dnl ***********************************************************************
-AC_INIT(slpd/slpd_main.c)
-AM_INIT_AUTOMAKE(openslp, 1.1.5)
+AC_PREREQ(2.50)
+AC_INIT(openslp, 1.2.1)
+AC_CONFIG_SRCDIR(slpd/slpd_main.c)
+AM_INIT_AUTOMAKE
+
+#AM_CONFIG_HEADER(config.h)
 
 dnl ***********************************************************************
 dnl We don't want /usr/etc or /usr/var
@@ -57,7 +61,7 @@ dnl Conditional for optional SLPv1 support
 AM_CONDITIONAL(ENABLE_SLPv1, test "$slpv1" = "yes")
 
 if test "$slpv1" = "yes"; then
-    AC_DEFINE(ENABLE_SLPv1)
+    AC_DEFINE(ENABLE_SLPv1, 1, [defined if struct sigaction has member sa_restorer])
 fi
 
 dnl ***********************************************************************
@@ -72,7 +76,7 @@ dnl Conditional for optional predicates support
 AM_CONDITIONAL(ENABLE_PREDICATES, test "$predicates" = "yes")
 
 if test "$predicates" = "yes"; then
-    AC_DEFINE(ENABLE_PREDICATES)
+    AC_DEFINE(ENABLE_PREDICATES, 1, [defined if predicates are enabled])
 fi
 
 dnl ***********************************************************************
@@ -87,7 +91,7 @@ dnl Conditional for optional asyncronous support in libslp SLP API library
 AM_CONDITIONAL(ENABLE_ASYNC_API, test "$asyncapi" = "yes")
 
 if test "$asyncapi" = "yes"; then
-    AC_DEFINE(ENABLE_ASYNC_API)
+    AC_DEFINE(ENABLE_ASYNC_API, 1, [defined if the async SLP API support is enabled])
 fi
 
 dnl ***********************************************************************
@@ -104,7 +108,7 @@ AC_CHECK_FUNCS(DSA_verify DSA_size DSA_free SHA1)
 dnl Conditional for optional security support in libslp SLP API library
 AM_CONDITIONAL(ENABLE_SLPv2_SECURITY, test "$slpv2security" = "yes")
 if test "$slpv2security" = "yes"; then
-    AC_DEFINE(ENABLE_SLPv2_SECURITY)
+    AC_DEFINE(ENABLE_SLPv2_SECURITY, 1, [defined if the SLPv2 authentication support is enabled])
 fi
 
 
@@ -160,7 +164,7 @@ AC_HAVE_HEADERS(string.h sys/types.h stdint.h netinet/in.h)
 dnl ***********************************************************************
 dnl Checks for data types.
 dnl ***********************************************************************
-OPENSLP_CHECK_TYPE(socklen_t, int)
+OPENSLP_CHECK_TYPE(socklen_t, int, [defined to size_t if <sys/socket.h> does not support socklen_t data type])
 OPENSLP_STRUCT_SA_RESTORER
 
 dnl ***********************************************************************

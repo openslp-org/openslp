@@ -1633,14 +1633,14 @@ void SLPDKnownDARegisterWithAllDas(SLPMessage msg, SLPBuffer buf)
 /* known DAs                                                               */
 /*                                                                         */
 /* msg (IN) A message descriptor for a SrvReg or SrvDereg message to       */
-/*          deregister                                                     */
+/*          register                                                       */
 /*                                                                         */
 /* buf (IN) Message buffer associated with msg                             */
 /*                                                                         */
 /* Returns: None                                                           */
 /*=========================================================================*/
 {
-    if (msg->header.functionid == SLP_FUNCT_SRVDEREG)
+    if (msg->header.functionid == SLP_FUNCT_SRVREG)
     {
         /* Simply echo the message through as is */
         SLPDKnownDAEcho(msg,buf);

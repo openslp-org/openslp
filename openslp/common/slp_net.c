@@ -67,6 +67,8 @@ int SLPNetGetThisHostname(char** hostfdn, int numeric_only)
  *                    contining this machine's FDN.  Caller must free
  *                    returned string with call to xfree()
  *    numeric_only (IN) force return of numeric address.  
+ *
+ * Returns: zero on success, non-zero on error;
  *-------------------------------------------------------------------------*/
 {
     /* TODO find a better constant for MAX_HOSTNAME */
@@ -76,11 +78,24 @@ int SLPNetGetThisHostname(char** hostfdn, int numeric_only)
     struct hostent* he;
     struct in_addr  ifaddr;
 
-    *hostfdn = 0;
+    if ((hostfdn != NULL) && (gethostname(host, MAX_HOST_NAME) == 0))
+    {
+        *hostfdn = NULL;
 
-    if(gethostname(host, MAX_HOST_NAME) == 0)
+        /* Windows compatibility */
+        if (inet_aton(host, &ifaddr))
+        {
+            if (numeric_only)
+            {
+                *hostfdn = xstrdup(inet_ntoa(ifaddr));
+                return 0;
+            }
+            he = gethostbyaddr((char *)&ifaddr, sizeof(ifaddr), AF_INET);
+        }
+        else
     {
         he = gethostbyname(host);
+        }
         if(he)
         {
             /* if the hostname has a '.' then it is probably a qualified 
@@ -95,11 +110,11 @@ int SLPNetGetThisHostname(char** hostfdn, int numeric_only)
                 ifaddr.s_addr = *((unsigned long*)he->h_addr);
                 *hostfdn = xstrdup(inet_ntoa(ifaddr));
             }
-            
+            return 0;
         }
     }
 
-    return 0;
+    return -1;
 }
 
 /*-------------------------------------------------------------------------*/
