@@ -262,7 +262,10 @@ SLPError SLPEscape(const char* pcInbuf,
 	while (*current_inbuf != '\0')
 	{
 		/* Check to see if it is an escape character. */
-		if (strchr(ATTRIBUTE_RESERVE_STRING, *current_inbuf))
+		if ((strchr(ATTRIBUTE_RESERVE_STRING, *current_inbuf)) || 
+			((*current_inbuf >= 0x00) && (*current_inbuf <= 0x1F)) ||
+			(*current_inbuf == 0x7F)
+		)
 		{
 			/* Insert the escape character. */
 			*current_outBuf = ESCAPE_CHARACTER;
