@@ -292,7 +292,7 @@ int SLPNetAddrInfoToString(struct addrinfo *src, char *dst, int dstLen) {
     return(0);
 }
 
-#define SLP_NET_TEST
+//#define SLP_NET_TEST
 #ifdef SLP_NET_TEST
 int main(int argc, char* argv[]) {
     char hostfdn[1024];
