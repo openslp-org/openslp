@@ -52,10 +52,8 @@ void KnownDASaveHints()
 /*-------------------------------------------------------------------------*/
 {
     int         fd;
-    const char* hintfile;
 
-
-    fd = creat(hintfile,
+    fd = creat(SLPGetProperty("net.slp.HintsFile"),
                S_IROTH | S_IWOTH | S_IRGRP| S_IWGRP | S_IRUSR | S_IWUSR);
     if (fd >= 0)
     {
@@ -304,7 +302,6 @@ int KnownDAConnect(const char* scopelist,
                    struct timeval* timeout)
 /*=========================================================================*/
 {
-    int                 fd;
     int                 sock;
     SLPDAEntry*         entry;
     SLPDAEntry*         del   = 0;
@@ -338,17 +335,7 @@ int KnownDAConnect(const char* scopelist,
         if (del)
         {
             SLPDAEntryFree((SLPDAEntry*)SLPListUnlink(&G_KnownDAList,(SLPListItem*)del));
-
-            /*---------------------------------------------------*/
-            /* Save the hints file because something was removed */
-            /*---------------------------------------------------*/
-            fd = creat(SLPGetProperty("net.slp.HintsFile"),
-                       S_IROTH | S_IWOTH | S_IRGRP| S_IWGRP | S_IRUSR | S_IWUSR);
-            if (fd >= 0)
-            {
-                SLPDAEntryListWrite(fd, &G_KnownDAList);
-                close(fd);
-            }
+            KnownDASaveHints();
         }
     }
 

@@ -139,6 +139,7 @@ int NetworkConnectToSlpd(struct sockaddr_in* peeraddr)
         {
               /* Could not connect to the slpd through the loopback */
               close(result);
+              result = -1;
         }
     }    
     

@@ -63,7 +63,7 @@ typedef struct _SLPBuffer
                                   
 
 /*=========================================================================*/
-SLPBuffer SLPBufferAlloc(int size);
+SLPBuffer SLPBufferAlloc(size_t size);
 /* Must be called to initially allocate a SLPBuffer                        */           
 /*                                                                         */
 /* size     - (IN) number of bytes to allocate                             */
@@ -73,7 +73,7 @@ SLPBuffer SLPBufferAlloc(int size);
 
 
 /*=========================================================================*/
-SLPBuffer SLPBufferRealloc(SLPBuffer buf, int size);
+SLPBuffer SLPBufferRealloc(SLPBuffer buf, size_t size);
 /* Must be called to initially allocate a SLPBuffer                        */ 
 /*                                                                         */
 /* size     - (IN) number of bytes to allocate                             */

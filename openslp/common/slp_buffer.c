@@ -30,7 +30,7 @@ void* memdup(const void* src, int srclen)
 }
 
 /*=========================================================================*/
-SLPBuffer SLPBufferAlloc(int size)                                         
+SLPBuffer SLPBufferAlloc(size_t size)                                         
 /* Must be called to initially allocate a SLPBuffer                        */
 /*                                                                         */
 /* size     - (IN) number of bytes to reallocate                           */ 
@@ -44,7 +44,7 @@ SLPBuffer SLPBufferAlloc(int size)
    if(result)
    {
        result->allocated = size;
-       result->start = result + 1;
+       result->start = (char*)(result + 1);
        result->curpos = result->start;
        result->end = result->start + size; 
        
@@ -57,7 +57,7 @@ SLPBuffer SLPBufferAlloc(int size)
 }
 
 /*=========================================================================*/
-SLPBuffer SLPBufferRealloc(SLPBuffer buf, int size)
+SLPBuffer SLPBufferRealloc(SLPBuffer buf, size_t size)
 /* Must be called to initially allocate a SLPBuffer                        */
 /*                                                                         */
 /* size     - (IN) number of bytes to allocate                             */
@@ -80,7 +80,7 @@ SLPBuffer SLPBufferRealloc(SLPBuffer buf, int size)
        
        if(result)
        {
-    	   result->start = result + 1;
+    	   result->start = (char*)(result + 1);
     	   result->curpos = result->start;
     	   result->end = result->start + size;
     	   
