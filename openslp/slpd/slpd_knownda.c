@@ -345,7 +345,14 @@ void SLPDKnownDADeregisterAll(SLPMessage daadvert)
                                                     /*  2 bytes for scopelen */
                                                     /*  6 for static portions of urlentry  */
                                                     /*  2 bytes for taglist len */
-                size += srvreg->urlentry.urllen;
+                if(srvreg->urlentry.opaque)
+		{
+		    size += srvreg->urlentry.opaquelen;
+		}
+	        else
+		{
+	            size += srvreg->urlentry.urllen;
+		}
                 size += srvreg->scopelistlen;
                 /* taglistlen is always 0 */
 
@@ -382,15 +389,9 @@ void SLPDKnownDADeregisterAll(SLPMessage daadvert)
                     memcpy(sendbuf->curpos,srvreg->scopelist,srvreg->scopelistlen);
                     sendbuf->curpos = sendbuf->curpos + srvreg->scopelistlen;
                     /* the urlentry */
-                    if(srvreg->urlentry.opaque)
-                    {
-                        memcpy(sendbuf->curpos,
-                               srvreg->urlentry.opaque,
-                               srvreg->urlentry.opaquelen);
-                        sendbuf->curpos = sendbuf->curpos + srvreg->urlentry.opaquelen;
-                    }
-                    else
-                    {
+#ifdef ENABLE_SLPv1
+		   if(srvreg->urlentry.opaque == 0)
+		    {
                         /* url-entry reserved */
                         *sendbuf->curpos = 0;        
                         sendbuf->curpos = sendbuf->curpos + 1;
@@ -405,10 +406,19 @@ void SLPDKnownDADeregisterAll(SLPMessage daadvert)
                                srvreg->urlentry.url,
                                srvreg->urlentry.urllen);
                         sendbuf->curpos = sendbuf->curpos + srvreg->urlentry.urllen;
-                        /* url-entry authcount */
-                        *sendbuf->curpos = 0;        
+                        /* url-entry authcount */                        
+		        *sendbuf->curpos = 0;        
                         sendbuf->curpos = sendbuf->curpos + 1;
                     }
+		    else
+#endif ENABLE_SLPv1
+                    {
+                        memcpy(sendbuf->curpos,
+                               srvreg->urlentry.opaque,
+                               srvreg->urlentry.opaquelen);
+                        sendbuf->curpos = sendbuf->curpos + srvreg->urlentry.opaquelen;
+                    }
+                                        
                     /* taglist (always 0) */
                     ToUINT16(sendbuf->curpos,0);
                     

@@ -499,28 +499,8 @@ int ProcessSrvRqst(SLPMessage message,
             /* urlentry is the url from the db result */
             urlentry = db->urlarray[i]; 
 
-#ifdef ENABLE_AUTHENTICATION
-            if(G_SlpdProperty.securityEnabled == 0 && 
-               urlentry->opaque)
-            {
-                /* Use an opaque copy if available (and authentication is not being used)*/
-                /* TRICKY: fix up the lifetime */
-                ToUINT16(urlentry->opaque + 1,urlentry->lifetime);
-                memcpy(result->curpos,urlentry->opaque,urlentry->opaquelen);
-                result->curpos = result->curpos + urlentry->opaquelen;
-            }
-           else
-#else
-            if(urlentry->opaque)
-            {
-                /* Use an opaque copy if available (and authentication is not being used)*/
-                /* TRICKY: fix up the lifetime */
-                ToUINT16(urlentry->opaque + 1,urlentry->lifetime);
-                memcpy(result->curpos,urlentry->opaque,urlentry->opaquelen);
-                result->curpos = result->curpos + urlentry->opaquelen;
-            }
-            else
-#endif
+#ifdef ENABLE_SLPv1
+            if(urlentry->opaque == 0)
             {
                 /* url-entry reserved */
                 *result->curpos = 0;        
@@ -535,25 +515,17 @@ int ProcessSrvRqst(SLPMessage message,
                 memcpy(result->curpos,urlentry->url,urlentry->urllen);
                 result->curpos = result->curpos + urlentry->urllen;
                 /* url-entry auths */
-#ifdef ENABLE_AUTHENTICATION
-                /* include an authblock if we should supply one */
-                /* authblock is set above (line ~436)           */
-                if(authblock && authblock->opaque)
-                {
-                    /* authcount == 1 */
-                    *result->curpos = 1;
-                    result->curpos = result->curpos + 1;
-                    memcpy(result->curpos,
-                           authblock->opaque,
-                           authblock->opaquelen);
-                }
-                else
+                *result->curpos = 0;
+                result->curpos = result->curpos + 1;
+            }
+	    else
 #endif
-                {
-                    /* authcount == 0 */
-                    *result->curpos = 0;
-                    result->curpos = result->curpos + 1;
-                }
+	    {
+                /* Use an opaque copy if available (and authentication is not being used)*/
+                /* TRICKY: fix up the lifetime */
+                ToUINT16(urlentry->opaque + 1,urlentry->lifetime);
+                memcpy(result->curpos,urlentry->opaque,urlentry->opaquelen);
+                result->curpos = result->curpos + urlentry->opaquelen;
             }
         }
     }

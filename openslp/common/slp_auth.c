@@ -395,7 +395,7 @@ int SLPAuthVerifyString(SLPSpiHandle hspi,
     int                 signaturelen;
     int                 result;
     unsigned long       timestamp;
-    SLPCryptoDSAKey*    key;
+    SLPCryptoDSAKey*    key = 0;
     unsigned char       digest[SLPAUTH_SHA1_DIGEST_SIZE];
     
     /*-----------------------------------*/
@@ -472,6 +472,8 @@ int SLPAuthVerifyString(SLPSpiHandle hspi,
         }
     }
     
+    if(key) SLPCryptoDSAKeyDestroy(key);
+   
     return result;
 }
 
@@ -521,7 +523,7 @@ int SLPAuthVerifyDAAdvert(SLPSpiHandle hspi,
     unsigned long       timestamp;
     const SLPAuthBlock* autharray;
     int                 authcount;
-    SLPCryptoDSAKey*    key;
+    SLPCryptoDSAKey*    key = 0;
     unsigned char       digest[SLPAUTH_SHA1_DIGEST_SIZE];
     
     /*-----------------------------------*/
@@ -607,6 +609,8 @@ int SLPAuthVerifyDAAdvert(SLPSpiHandle hspi,
         }
     }
     
+    if(key) SLPCryptoDSAKeyDestroy(key);
+   
     return result;
 }
 
@@ -729,7 +733,7 @@ ERROR:
     /* Cleanup */
     /*---------*/ 
     if(defaultspistr) xfree(defaultspistr);
-
+    if(key) SLPCryptoDSAKeyDestroy(key);
     return result;
 }
 
@@ -885,7 +889,7 @@ ERROR:
     /* Cleanup */
     /*---------*/ 
     if(defaultspistr) xfree(defaultspistr);
-
+    if(key) SLPCryptoDSAKeyDestroy(key);
     return result;
 }
 
