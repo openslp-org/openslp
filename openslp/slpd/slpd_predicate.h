@@ -75,4 +75,30 @@ int SLPDPredicateTest(int version,
 /*          or if there is a parse error in the predicate string           */
 /*=========================================================================*/
 
+
+
+/*=========================================================================*/
+int SLPDFilterAttributes(int attrlistlen,
+                         const char* attrlist,
+                         int taglistlen,
+                         const char* taglist,
+                         int* resultlen,
+                         char* result);
+/* Copies attributes from the specified attribute list to a result string  */
+/* according to the taglist as described by section 10.4. of RFC 2608      */
+/*                                                                         */
+/* version    (IN) SLP version of the predicate string (should always be   */
+/*                 2 since we don't handle SLPv1 predicates yet)           */
+/*                                                                         */
+/* attrlistlen  (IN) length of attrlist                                    */
+/*                                                                         */
+/* attr         (IN) attribute list to test                                */
+/*                                                                         */
+/* predicatelen (IN) length of the predicate string                        */
+/*                                                                         */
+/* predicate    (IN) the predicate string                                  */
+/*                                                                         */
+/* Returns: Boolean value.  Zero of test fails.  Non-zero if test fails    */
+/*          or if there is a parse error in the predicate string           */
+/*=========================================================================*/
 #endif 

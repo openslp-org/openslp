@@ -2,7 +2,7 @@ dnl ***********************************************************************
 dnl Process this file with autoconf to produce a configure script.
 dnl ***********************************************************************
 AC_INIT(slpd/slpd_main.c)
-AM_INIT_AUTOMAKE(openslp, 0.8.3)
+AM_INIT_AUTOMAKE(openslp, 0.9.0)
 
 dnl ***********************************************************************
 dnl We don't want /usr/etc or /usr/var
@@ -115,7 +115,7 @@ dnl ***********************************************************************
 dnl Set C/C++ compiler specific warning/optimization flags
 dnl ***********************************************************************
 if test X"$GCC" = X"yes"; then	
-    CFLAGS="$CFLAGS -Wall"
+    CFLAGS="$CFLAGS -Wall -Werror"
     if test X"$debug" = X"no"; then 
        OPTFLAGS="-O3"
     fi

@@ -1299,5 +1299,3 @@ int SLPDPredicateTest(int version,
 
     return result;
 }
-
-

@@ -62,7 +62,6 @@
 #include "../common/slp_message.h"
 #include "../common/slp_da.h"
 #include "../common/slp_compare.h"
-#include "../common/slp_message.h"
 
 
 /*-------------------------------------------------------------------------*/

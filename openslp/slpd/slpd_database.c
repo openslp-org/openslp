@@ -55,6 +55,9 @@
 #include "slpd_database.h"
 #include "slpd_log.h"
 #include "slpd_regfile.h"
+#ifdef ENABLE_PREDICATES
+#include "slpd_predicate.h"
+#endif
 
 
 /*=========================================================================*/
@@ -350,10 +353,11 @@ int SLPDDatabaseSrvRqstStart(SLPMessage msg,
                                           srvrqst->scopelist) > 0 )
                 { 
 #ifdef ENABLE_PREDICATES
-                    if(SLPDPredicateTest(entryreg->attrlistlen,
+                    if(SLPDPredicateTest(msg->header.version,
+                                         entryreg->attrlistlen,
                                          entryreg->attrlist,
-                                         srvrqst->predicate,
-                                         srvrqst->predicatelen) )
+                                         srvrqst->predicatelen,
+                                         srvrqst->predicate) )
 #endif
                     {
                         if((*result)->urlcount + 1 > G_SlpdDatabase.urlcount)
