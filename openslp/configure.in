@@ -6,7 +6,7 @@ AC_INIT(openslp, 1.2.1)
 AC_CONFIG_SRCDIR(slpd/slpd_main.c)
 AM_INIT_AUTOMAKE
 
-#AM_CONFIG_HEADER(config.h)
+AC_CONFIG_HEADER(config.h)
 
 dnl ***********************************************************************
 dnl We don't want /usr/etc or /usr/var

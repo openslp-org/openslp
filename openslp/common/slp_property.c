@@ -51,6 +51,13 @@
 #include <string.h>
 #include <errno.h>
 
+#ifndef _WIN32
+# ifdef HAVE_CONFIG_H
+#  include "config.h"
+#  define SLP_VERSION VERSION
+# endif
+#endif
+
 #include "slp_property.h"
 #include "slp_xmalloc.h"
 
@@ -208,11 +215,7 @@ int SetDefaultValues()
 
     result |= SLPPropertySet("net.slp.securityEnabled","false");
     result |= SLPPropertySet("net.slp.checkSourceAddr","true");
-#ifdef _WIN32
     result |= SLPPropertySet("net.slp.OpenSLPVersion", SLP_VERSION);
-#else /* UNIX */
-    result |= SLPPropertySet("net.slp.OpenSLPVersion", VERSION);
-#endif
 
     return result;
 }
