@@ -31,10 +31,16 @@
 /*                                                                         */
 /***************************************************************************/
 
+#ifndef SLPD_WIN32_H_INCLUDED
+#define SLPD_WIN32_H_INCLUDED
+
 #include <windows.h>
 #include <winbase.h>
 #include <stdio.h>
 #include <winsock.h>
+#include <process.h>
+
+#define SLP_VERSION "0.7.5"
 
 /*  internal name of the service  */
 #define G_SERVICENAME        "slpd"    
