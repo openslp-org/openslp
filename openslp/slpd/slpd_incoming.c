@@ -85,13 +85,13 @@ void IncomingDatagramRead(SLPList* socklist, SLPDSocket* sock)
                          0,
                          (struct sockaddr *) &(sock->peeraddr),
                          &peeraddrlen);
-    if(bytesread > 0)
+    if (bytesread > 0)
     {
         sock->recvbuf->end = sock->recvbuf->start + bytesread;
 
-        switch(SLPDProcessMessage(&sock->peeraddr,
-                              sock->recvbuf,
-                              &(sock->sendbuf)))
+        switch (SLPDProcessMessage(&sock->peeraddr,
+                                   sock->recvbuf,
+                                   &(sock->sendbuf)))
         {
         case SLP_ERROR_PARSE_ERROR:
         case SLP_ERROR_VER_NOT_SUPPORTED:
@@ -101,7 +101,7 @@ void IncomingDatagramRead(SLPList* socklist, SLPDSocket* sock)
         default:
             /* check to see if we should send anything */
             bytestowrite = sock->sendbuf->end - sock->sendbuf->start;
-            if(bytestowrite > 0)
+            if (bytestowrite > 0)
             {
                 byteswritten = sendto(sock->fd, 
                                       sock->sendbuf->start,
@@ -109,11 +109,11 @@ void IncomingDatagramRead(SLPList* socklist, SLPDSocket* sock)
                                       0,
                                       (struct sockaddr *)&(sock->peeraddr),
                                       sizeof(struct sockaddr_in));
-                if(byteswritten != bytestowrite)
+                if (byteswritten != bytestowrite)
                 {
                     SLPDLog("NETWORK_ERROR - %d replying %s\n",
-                           errno,
-                           inet_ntoa(sock->peeraddr.sin_addr));
+                            errno,
+                            inet_ntoa(sock->peeraddr.sin_addr));
                 }
             }
         }
@@ -131,25 +131,25 @@ void IncomingStreamWrite(SLPList* socklist, SLPDSocket* sock)
     flags = MSG_DONTWAIT;
 #endif
 
-    if(sock->state == STREAM_WRITE_FIRST)
+    if (sock->state == STREAM_WRITE_FIRST)
     {
         /* make sure that the start and curpos pointers are the same */
         sock->sendbuf->curpos = sock->sendbuf->start;
         sock->state = STREAM_WRITE;
     }
 
-    if(sock->sendbuf->end - sock->sendbuf->start != 0)
+    if (sock->sendbuf->end - sock->sendbuf->start != 0)
     {
         byteswritten = send(sock->fd,
                             sock->sendbuf->curpos,
                             sock->sendbuf->end - sock->sendbuf->start,
                             flags);
-        if(byteswritten > 0)
+        if (byteswritten > 0)
         {
             /* reset lifetime to max because of activity */
             sock->age = 0;
             sock->sendbuf->curpos += byteswritten;
-            if(sock->sendbuf->curpos == sock->sendbuf->end)
+            if (sock->sendbuf->curpos == sock->sendbuf->end)
             {
                 /* message is completely sent */
                 sock->state = STREAM_READ_FIRST;
@@ -158,9 +158,9 @@ void IncomingStreamWrite(SLPList* socklist, SLPDSocket* sock)
         else
         {
 #ifdef WIN32
-            if(WSAEWOULDBLOCK == WSAGetLastError())
+            if (WSAEWOULDBLOCK == WSAGetLastError())
 #else
-            if(errno == EWOULDBLOCK)
+            if (errno == EWOULDBLOCK)
 #endif
             {
                 /* Error occured or connection was closed */
@@ -179,7 +179,7 @@ void IncomingStreamRead(SLPList* socklist, SLPDSocket* sock)
     char    peek[16];
     int     peeraddrlen = sizeof(struct sockaddr_in);
 
-    if(sock->state == STREAM_READ_FIRST)
+    if (sock->state == STREAM_READ_FIRST)
     {
         /*---------------------------------------------------*/
         /* take a peek at the packet to get size information */
@@ -190,16 +190,16 @@ void IncomingStreamRead(SLPList* socklist, SLPDSocket* sock)
                              MSG_PEEK,
                              (struct sockaddr *)&(sock->peeraddr),
                              &peeraddrlen);
-        if(bytesread > 0)
+        if (bytesread > 0)
         {
 
-	    if (*peek == 2)	
-		recvlen = AsUINT24(peek + 2);
-	    else if (*peek == 1) /* SLPv1 packet */
-		recvlen = AsUINT16(peek + 2);
-             /* allocate the recvbuf big enough for the whole message */
+            if (*peek == 2)
+                recvlen = AsUINT24(peek + 2);
+            else if (*peek == 1) /* SLPv1 packet */
+                recvlen = AsUINT16(peek + 2);
+            /* allocate the recvbuf big enough for the whole message */
             sock->recvbuf = SLPBufferRealloc(sock->recvbuf,recvlen);
-            if(sock->recvbuf)
+            if (sock->recvbuf)
             {
                 sock->state = STREAM_READ; 
             }
@@ -216,7 +216,7 @@ void IncomingStreamRead(SLPList* socklist, SLPDSocket* sock)
         }        
     }
 
-    if(sock->state == STREAM_READ)
+    if (sock->state == STREAM_READ)
     {
         /*------------------------------*/
         /* recv the rest of the message */
@@ -226,16 +226,16 @@ void IncomingStreamRead(SLPList* socklist, SLPDSocket* sock)
                          sock->recvbuf->end - sock->recvbuf->curpos,
                          0);              
 
-        if(bytesread > 0)
+        if (bytesread > 0)
         {
             /* reset age to max because of activity */
             sock->age = 0;
             sock->recvbuf->curpos += bytesread;
-            if(sock->recvbuf->curpos == sock->recvbuf->end)
+            if (sock->recvbuf->curpos == sock->recvbuf->end)
             {
-                switch(SLPDProcessMessage(&sock->peeraddr,
-                                          sock->recvbuf,
-                                          &(sock->sendbuf)))
+                switch (SLPDProcessMessage(&sock->peeraddr,
+                                           sock->recvbuf,
+                                           &(sock->sendbuf)))
                 {
                 case SLP_ERROR_PARSE_ERROR:
                 case SLP_ERROR_VER_NOT_SUPPORTED:
@@ -271,19 +271,20 @@ void IncomingSocketListen(SLPList* socklist, SLPDSocket* sock)
 #else    
     const int   lowat = SLPD_SMALLEST_MESSAGE;
 #endif
-   
+
+
     /* Only accept if we can. If we still maximum number of sockets, just*/
     /* ignore the connection */
-    if(socklist->count < SLPD_MAX_SOCKETS)
+    if (socklist->count < SLPD_MAX_SOCKETS)
     {
         peeraddrlen = sizeof(peeraddr);
         fd = accept(sock->fd,
                     (struct sockaddr *) &peeraddr, 
                     &peeraddrlen);
-        if(fd >= 0)
+        if (fd >= 0)
         {
             connsock = SLPDSocketAlloc();
-            if(connsock)
+            if (connsock)
             {
                 /* setup the accepted socket */
                 connsock->fd        = fd;
@@ -324,11 +325,11 @@ void SLPDIncomingHandler(int* fdcount,
 {
     SLPDSocket* sock;
     sock = (SLPDSocket*) G_IncomingSocketList.head;
-    while(sock && *fdcount)
+    while (sock && *fdcount)
     {
-        if(FD_ISSET(sock->fd,readfds))
+        if (FD_ISSET(sock->fd,readfds))
         {
-            switch(sock->state)
+            switch (sock->state)
             {
             case SOCKET_LISTEN:
                 IncomingSocketListen(&G_IncomingSocketList,sock);
@@ -351,9 +352,9 @@ void SLPDIncomingHandler(int* fdcount,
 
             *fdcount = *fdcount - 1;
         }
-        else if(FD_ISSET(sock->fd,writefds))
+        else if (FD_ISSET(sock->fd,writefds))
         {
-            switch(sock->state)
+            switch (sock->state)
             {
             case STREAM_WRITE:
             case STREAM_WRITE_FIRST:
@@ -378,25 +379,25 @@ void SLPDIncomingAge(time_t seconds)
 {
     SLPDSocket* del  = 0;
     SLPDSocket* sock = (SLPDSocket*)G_IncomingSocketList.head;
-    while(sock)
+    while (sock)
     {
-        switch(sock->state)
+        switch (sock->state)
         {
         case STREAM_READ_FIRST:
         case STREAM_READ:
         case STREAM_WRITE_FIRST:
         case STREAM_WRITE:
-            if(G_IncomingSocketList.count > SLPD_COMFORT_SOCKETS)
+            if (G_IncomingSocketList.count > SLPD_COMFORT_SOCKETS)
             {
                 /* Accellerate ageing cause we are low on sockets */
-                if(sock->age > SLPD_CONFIG_BUSY_CLOSE_CONN)
+                if (sock->age > SLPD_CONFIG_BUSY_CLOSE_CONN)
                 {
                     del = sock;
                 }
             }
             else
             {
-                if(sock->age > SLPD_CONFIG_CLOSE_CONN)
+                if (sock->age > SLPD_CONFIG_CLOSE_CONN)
                 {
                     del = sock;
                 }
@@ -411,7 +412,7 @@ void SLPDIncomingAge(time_t seconds)
 
         sock = (SLPDSocket*)sock->listitem.next;
 
-        if(del)
+        if (del)
         {
             SLPDSocketFree((SLPDSocket*)SLPListUnlink(&G_IncomingSocketList,(SLPListItem*)del));
             del = 0;
@@ -441,7 +442,7 @@ int SLPDIncomingInit()
     /*------------------------------------------------------------*/
     /* First, remove all of the sockets that might be in the list */
     /*------------------------------------------------------------*/
-    while(G_IncomingSocketList.count)
+    while (G_IncomingSocketList.count)
     {
         SLPDSocketFree((SLPDSocket*)SLPListUnlink(&G_IncomingSocketList,G_IncomingSocketList.head));
     }
@@ -458,7 +459,7 @@ int SLPDIncomingInit()
     /* Create SOCKET_LISTEN socket for LOOPBACK for the library to talk to*/
     /*--------------------------------------------------------------------*/
     sock = SLPDSocketCreateListen(&loaddr);
-    if(sock)
+    if (sock)
     {
         SLPListLinkTail(&G_IncomingSocketList,(SLPListItem*)sock);
         SLPDLog("Listening on loopback...\n");
@@ -478,7 +479,7 @@ int SLPDIncomingInit()
     /*   string in a safety way                                            */
     /*---------------------------------------------------------------------*/
 
-    if(G_SlpdProperty.interfaces != NULL)
+    if (G_SlpdProperty.interfaces != NULL)
     {
         begin = xstrdup((char *) G_SlpdProperty.interfaces);
         beginSave = begin;  /* save pointer for free() operation later */
@@ -491,12 +492,12 @@ int SLPDIncomingInit()
                       /* don't even enter the parsing loop */
     }
 
-    for(; (finished == 0); begin = ++end)
+    for (; (finished == 0); begin = ++end)
     {
-        while(*end && *end != ',') end ++;
-        if(*end == 0) finished = 1;
+        while (*end && *end != ',') end ++;
+        if (*end == 0) finished = 1;
         *end = 0;                      /* Terminate string. */
-        if(end <= begin) continue;    /* Skip empty entries */
+        if (end <= begin) continue;    /* Skip empty entries */
 
         /* begin now points to a null terminated ip address string */
         myaddr.s_addr = inet_addr(begin);
@@ -505,7 +506,7 @@ int SLPDIncomingInit()
         /* Create TCP_LISTEN that will handle unicast TCP */
         /*------------------------------------------------*/
         sock =  SLPDSocketCreateListen(&myaddr);
-        if(sock)
+        if (sock)
         {
             SLPListLinkTail(&G_IncomingSocketList,(SLPListItem*)sock);
             SLPDLog("Listening on %s ...\n",inet_ntoa(myaddr));
@@ -519,19 +520,19 @@ int SLPDIncomingInit()
         sock =  SLPDSocketCreateBoundDatagram(&myaddr,
                                               &mcastaddr,
                                               DATAGRAM_MULTICAST);
-        if(sock)
+        if (sock)
         {
             SLPListLinkTail(&G_IncomingSocketList,(SLPListItem*)sock);
             SLPDLog("Multicast socket on %s ready\n",inet_ntoa(myaddr));
         }
-	else
-	{
-	    SLPDLog("Couldn't bind to multicast for interface %s (%s)\n",
-		    inet_ntoa(myaddr), strerror(errno));
-	}
+        else
+        {
+            SLPDLog("Couldn't bind to multicast for interface %s (%s)\n",
+                    inet_ntoa(myaddr), strerror(errno));
+        }
 
 #if defined(ENABLE_SLPv1)
-        if(G_SlpdProperty.isDA)
+        if (G_SlpdProperty.isDA)
         {
             /*------------------------------------------------------------*/
             /* Create socket that will handle multicast UDP for SLPv1 DA  */
@@ -541,11 +542,11 @@ int SLPDIncomingInit()
             sock =  SLPDSocketCreateBoundDatagram(&myaddr,
                                                   &mcastaddr,
                                                   DATAGRAM_MULTICAST);
-            if(sock)
+            if (sock)
             {
                 SLPListLinkTail(&G_IncomingSocketList,(SLPListItem*)sock);
                 SLPDLog("SLPv1 DA Discovery Multicast socket on %s ready\n",
-			inet_ntoa(myaddr));
+                        inet_ntoa(myaddr));
             }
         }
 #endif
@@ -556,14 +557,14 @@ int SLPDIncomingInit()
         sock =  SLPDSocketCreateBoundDatagram(&myaddr,
                                               &myaddr,
                                               DATAGRAM_UNICAST);
-        if(sock)
+        if (sock)
         {
             SLPListLinkTail(&G_IncomingSocketList,(SLPListItem*)sock);
             SLPDLog("Unicast socket on %s ready\n",inet_ntoa(myaddr));
         }
     }     
 
-    if(beginSave) xfree(beginSave);
+    if (beginSave) xfree(beginSave);
 
 
     /*--------------------------------------------------------*/
@@ -572,13 +573,13 @@ int SLPDIncomingInit()
     sock =  SLPDSocketCreateBoundDatagram(&myaddr,
                                           &bcastaddr,
                                           DATAGRAM_BROADCAST);
-    if(sock)
+    if (sock)
     {
         SLPListLinkTail(&G_IncomingSocketList,(SLPListItem*)sock);
         SLPDLog("Broadcast socket for %s ready\n", inet_ntoa(bcastaddr));
     }
 
-    if(G_IncomingSocketList.count == 0)
+    if (G_IncomingSocketList.count == 0)
     {
         SLPDLog("No usable interfaces\n");
         return 1;
@@ -598,11 +599,11 @@ int SLPDIncomingDeinit()
 {
     SLPDSocket* del  = 0;
     SLPDSocket* sock = (SLPDSocket*)G_IncomingSocketList.head;
-    while(sock)
+    while (sock)
     {
         del = sock;
         sock = (SLPDSocket*)sock->listitem.next;
-        if(del)
+        if (del)
         {
             SLPDSocketFree((SLPDSocket*)SLPListUnlink(&G_IncomingSocketList,(SLPListItem*)del));
             del = 0;
