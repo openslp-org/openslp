@@ -91,7 +91,7 @@ SLPError SLPOpen(const char *pcLang, SLPBoolean isAsync, SLPHandle *phSLP)
     }
     
     /* assign out param to zero in just for paranoia */
-    *phSLP == 0;
+    *phSLP = 0;
     
 
     /*-------------------------------------------------------*/
