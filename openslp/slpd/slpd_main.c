@@ -468,10 +468,10 @@ int main(int argc, char* argv[])
     /*------------------------------*/
     alarm(SLPD_AGE_TIMEOUT);
     
-//    if(Daemonize(G_SlpdCommandLine.pidfile) < 0)
-//    {
-//        SLPFatal("Could not run as a daemon\n");
-//    }
+    if(Daemonize(G_SlpdCommandLine.pidfile) < 0)
+    {
+        SLPFatal("Could not run as a daemon\n");
+    }
 
     while(G_SIGTERM == 0)
     {

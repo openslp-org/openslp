@@ -1,11 +1,13 @@
 #!/bin/sh
 
-LIB=`ls libslp.so* | grep ls libslp.so*`
+LIB=`ls libslp.so* | grep libslp.so*`
 
 if [ "$LIB" ]; then 
    echo Installing OpenSLP Library LIB ...
    if [ $UID = 0 ]; then
-      install ./$SLPD /usr/sbin
+      install ./$LIB /usr/lib
+      cd /usr/lib
+      ldconfig
       exit 0
    fi
    echo Must be root to install LIB in /usr/lib!
