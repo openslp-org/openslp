@@ -114,7 +114,7 @@ int SLPDLogFileOpen(const char* path, int append)
     return 0;
 }
 
-
+#ifdef DEBUG
 /*=========================================================================*/
 int SLPDLogFileClose()
 /* Releases resources associated with the log file                         */
@@ -124,6 +124,7 @@ int SLPDLogFileClose()
 
     return 0;
 }
+#endif
 
 
 /*=========================================================================*/

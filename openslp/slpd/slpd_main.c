@@ -198,6 +198,7 @@ void HandleSigTerm()
     #endif
     SLPDDatabaseDeinit();
     SLPDPropertyDeinit();
+    SLPDLogFileClose();
     xmalloc_deinit();    
 #endif
 
