@@ -399,15 +399,16 @@ void SLPDOutgoingDatagramWrite(SLPDSocket* sock)
                 sizeof(struct sockaddr_in)) >= 0 )
     {
         /* Link the socket into the outgoing list so replies will be */
-        /* proccessed                                                */
-        SLPListLinkHead(&G_OutgoingSocketList,(SLPListItem*)sock);
+        /* processed                                                 */
+        SLPListLinkHead(&G_OutgoingSocketList,(SLPListItem*)(sock));
     }
     else
     {
-        /* Data could not even be sent to peer, do not add to list */
-        /* free socket instead                                     */
+        #ifdef DEBUG
+        SLPDLog("ERROR: Data could not send() in SLPDOutgoingDatagramWrite()");
+        #endif
         SLPDSocketFree(sock);
-    }                       
+    }   
 }
 
 
