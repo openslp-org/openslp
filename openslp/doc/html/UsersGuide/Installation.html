@@ -7,65 +7,81 @@
 </head>
 <body text="#000000" bgcolor="#FFFFFF" link="#0000EE" vlink="#551A8B" alink="#FF0000">
 
-<h2>
-Installing OpenSLP on Linux</h2>
+<h2> Installing OpenSLP on Linux</h2>
 
 <hr WIDTH="100%">
 <h3>
-Simple Installation</h3>
+Installation </h3>
 Installing the latest distribution of OpenSLP is easy.&nbsp; Pay attention
-to the following step and you should not have any problems:
-<ul>
-<li>
-Download the latest tarball(.tar.gz) file from <a href="http://www.openslp.org">www.openslp.org</a></li>
-</ul>
+to the following step and you should not have any problems.<p>
+<OL>
+<LI>RPM Installation<BR>
 
 <ul>
+<LI>
+Download the latest RPM file from <a href="http://www.openslp.org">www.openslp.org</a>.  
+Select the appropriate distribution.</li><P>
+
+<li>
+Become root (root is usually the only user that can install packages).</li><P>
+
+<li>
+Install the package.  This is typically done with:
+
+<ul><tt>rpm -Uvh openslp-x.x.x.tar.gz</tt>
+<br><tt></tt>&nbsp;</ul></li>
+
+<li>
+Make any configuration changes to the <tt>/etc/slp.conf</tt> file that
+you think you need. (see <a href="SlpConf.html">Configuration</a> for details)</li><p>
+
+<li>
+Set up static registrations in the <tt>/etc/slp.reg</tt> file if you need
+them. (see <a href="SlpReg.html">Static Registrations</a> for details)</li><p>
+
+<li>
+Start the OpenSLP daemon.</li>
+<ul><tt>/usr/sbin/slpd</tt></ul><p>
+
+
+</UL>
+<LI>Tarball Installation<br>
+<ul>
+<li>
+Download the latest tarball(.tar.gz) file from <a href="http://www.openslp.org">www.openslp.org</a></li><p>
+
 <li>
 Unzip and untar the file into an appropriate directory.</li>
-</ul>
 
-<ul>
-<ul><tt>tar -zxf openslp-x.x.x.tar.gz</tt>
-<br><tt></tt>&nbsp;</ul>
+<ul><tt>tar -zxf openslp-x.x.x.tar.gz</tt></ul><p>
 
 <li>
 Become root (root is usually the only user that can install daemons and
-libraries).</li>
-
-<ul>&nbsp;
-<br>su root
-<br>&nbsp;</ul>
+libraries).
+<ul>su root</ul></li><p>
 
 <li>
-Enter the extracted openslp directory build and install the OpenSLP binaries
-using the top level make file.</li>
-</ul>
+Enter the extracted openslp directory build and install the OpenSLP binaries:
+</li>
 
-<ul>
-<ul><tt>make install</tt></ul>
-</ul>
+<ul><tt>./configure</tt></ul>
+<ul><tt>make</tt></ul>
+<ul><tt>make install</ul><p>
 
-<ul>
 <li>
 Make any configuration changes to the <tt>/etc/slp.conf</tt> file that
-you think you need. (see <a href="SlpConf.html">Configuration</a> for details)</li>
-</ul>
+you think you need. (see <a href="SlpConf.html">Configuration</a> for details)</li><p>
 
-<ul>
 <li>
 Set up static registrations in the <tt>/etc/slp.reg</tt> file if you need
-them. (see <a href="SlpReg.html">Static Registrations</a> for details)</li>
-</ul>
+them. (see <a href="SlpReg.html">Static Registrations</a> for details)</li><p>
 
-<ul>
 <li>
 Start the OpenSLP daemon.</li>
-</ul>
 
-<ul>
 <ul><tt>/usr/sbin/slpd</tt></ul>
 </ul>
+</ol>
 
 <h3>
 Making slpd start on boot</h3>
@@ -83,5 +99,6 @@ by the <tt>tar -zxf openslp-x.x.x.tar.gz</tt> command.&nbsp; During installation
 all of the important files were copied out of this directory to the appropriate
 places on you machines file system so it can be deleted with out ruining
 OpenSLP.
+</OL>
 </body>
 </html>
