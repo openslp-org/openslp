@@ -75,6 +75,8 @@ SLPBoolean CallbackSrvTypeRqst(SLPError errorcode, SLPMessage msg, void* cookie)
 SLPError ProcessSrvTypeRqst(PSLPHandleInfo handle)
 /*-------------------------------------------------------------------------*/
 {
+    int                 sock;
+    struct sockaddr_in  peeraddr;
     int                 bufsize     = 0;
     char*               buf         = 0;
     char*               curpos      = 0;
@@ -119,47 +121,48 @@ SLPError ProcessSrvTypeRqst(PSLPHandleInfo handle)
            handle->params.findsrvtypes.scopelistlen);
     curpos = curpos + handle->params.findsrvtypes.scopelistlen;
     
-    /* try first with existing DA socket */
-    result = NetworkRqstRply(handle->dasock,
-                             &handle->daaddr,
-                             handle->langtag,
-                             buf,
-                             SLP_FUNCT_SRVTYPERQST,
-                             bufsize,
-                             CallbackSrvTypeRqst,
-                             handle);
-
-    /* Connect / Re-connect and try again on error*/
-    if(result)
+    
+    /*--------------------------*/
+    /* Call the RqstRply engine */
+    /*--------------------------*/
+    do
     {
-        if(handle->dasock >= 0)
+        sock = NetworkConnectToDA(handle,
+                                  handle->params.findsrvtypes.scopelist,
+                                  handle->params.findsrvtypes.scopelistlen,
+                                  &peeraddr);
+        if(sock == -1)
         {
-            close(handle->dasock);
+            /* use multicast as a last resort */
+            sock = NetworkConnectToMulticast(&peeraddr);
+            result = NetworkRqstRply(sock,
+                                 &peeraddr,
+                                 handle->langtag,
+                                 buf,
+                                 SLP_FUNCT_SRVTYPERQST,
+                                 bufsize,
+                                 CallbackSrvTypeRqst,
+                                 handle);
+            close(sock);
+            break;
         }
 
-        handle->dasock = NetworkConnectToDA(handle->params.findsrvtypes.scopelist,
-                                            handle->params.findsrvtypes.scopelistlen,
-                                            &handle->daaddr);
-        if(handle->dasock < 0)
+        result = NetworkRqstRply(sock,
+                                 &peeraddr,
+                                 handle->langtag,
+                                 buf,
+                                 SLP_FUNCT_SRVTYPERQST,
+                                 bufsize,
+                                 CallbackSrvTypeRqst,
+                                 handle);
+        if(result)
         {
-            handle->dasock = NetworkConnectToMulticast(&handle->daaddr);
-            if(handle->dasock < 0)
-            {
-                result = SLP_NETWORK_INIT_FAILED;
-                goto FINISHED;
-            }
+            NetworkDisconnectDA(handle);
         }
-        
-        result = NetworkRqstRply(handle->dasock,
-                         &handle->daaddr,
-                         handle->langtag,
-                         buf,
-                         SLP_FUNCT_SRVTYPERQST,
-                         bufsize,
-                         CallbackSrvTypeRqst,
-                         handle);
-    }
 
+    }while(result);
+
+    
     FINISHED:
     if(buf) free(buf);
 

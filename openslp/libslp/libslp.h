@@ -167,8 +167,12 @@ typedef struct _SLPHandleInfo
     SLPBoolean          isAsync;
     int                 dasock;
     struct sockaddr_in  daaddr;
+    char*               dascope;
+    int                 dascopelen;
     int                 sasock;
     struct sockaddr_in  saaddr;
+    char*               sascope;
+    int                 sascopelen;
     int                 langtaglen;
     char*               langtag;
     SLPHandleCallParams params;
@@ -204,11 +208,40 @@ int NetworkConnectToMulticast(struct sockaddr_in* peeraddr);
 /*=========================================================================*/
 
 
-/*=========================================================================*/ 
-int NetworkConnectToDA(const char* scopelist,
-                       int scopelistlen,
-                       struct sockaddr_in* peeradd);
+/*=========================================================================*/
+int NetworkConnectToSlpd(struct sockaddr_in* peeraddr);
 /* Connects to slpd and provides a peeraddr to send to                     */
+/*                                                                         */
+/* peeraddr         (OUT) pointer to receive the connected DA's address    */
+/*                                                                         */
+/* Returns          Connected socket or -1 if no DA connection can be made */
+/*=========================================================================*/
+
+
+/*=========================================================================*/ 
+void NetworkDisconnectDA(PSLPHandleInfo handle);
+/* Called after DA fails to respond                                        */
+/*                                                                         */
+/* handle   (IN) a handle previously passed to NetworkConnectToDA()        */
+/*=========================================================================*/ 
+
+
+/*=========================================================================*/ 
+void NetworkDisconnectSA(PSLPHandleInfo handle);
+/* Called after SA fails to respond                                        */
+/*                                                                         */
+/* handle   (IN) a handle previously passed to NetworkConnectToSA()        */
+/*=========================================================================*/ 
+
+
+/*=========================================================================*/ 
+int NetworkConnectToDA(PSLPHandleInfo handle,
+                       const char* scopelist,
+                       int scopelistlen,
+                       struct sockaddr_in* peeraddr);
+/* Connects to slpd and provides a peeraddr to send to                     */
+/*                                                                         */
+/* handle           (IN) SLPHandle info (caches connection reuse info)     */
 /*                                                                         */
 /* scopelist        (IN) Scope that must be supported by DA. Pass in NULL  */
 /*                       for any scope                                     */
@@ -223,15 +256,26 @@ int NetworkConnectToDA(const char* scopelist,
 
 
 /*=========================================================================*/ 
-int NetworkConnectToSlpd(struct sockaddr_in* peeraddr);       
+int NetworkConnectToSA(PSLPHandleInfo handle,
+                       const char* scopelist,
+                       int scopelistlen,
+                       struct sockaddr_in* peeraddr);
 /* Connects to slpd and provides a peeraddr to send to                     */
 /*                                                                         */
-/* peeraddr         (OUT) pointer to receive the connected DA's address    */
+/* handle           (IN) SLPHandle info  (caches connection info)          */
 /*                                                                         */
-/* Returns          Connected socket or -1 if no DA connection can be made */
+/* scopelist        (IN) Scope that must be supported by SA. Pass in NULL  */
+/*                       for any scope                                     */
+/*                                                                         */
+/* scopelistlen     (IN) Length of the scope list in bytes.  Ignored if    */
+/*                       scopelist is NULL                                 */
+/*                                                                         */
+/* peeraddr         (OUT) pointer to receive the connected SA's address    */
+/*                                                                         */
+/* Returns          Connected socket or -1 if no SA connection can be made */
 /*=========================================================================*/
 
-
+ 
 /*=========================================================================*/ 
 SLPError NetworkRqstRply(int sock,
                          struct sockaddr_in* peeraddr,

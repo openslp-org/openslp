@@ -56,29 +56,8 @@ int NetworkConnectToMulticast(struct sockaddr_in* peeraddr)
     return sock;    
 }
 
-
-/*=========================================================================*/ 
-int NetworkConnectToDA(const char* scopelist,
-                       int scopelistlen,
-                       struct sockaddr_in* peeraddr)
-/* Connects to slpd and provides a peeraddr to send to                     */
-/*                                                                         */
-/* scopelist        (IN) Scope that must be supported by DA. Pass in NULL  */
-/*                       for any scope                                     */
-/*                                                                         */
-/* scopelistlen     (IN) Length of the scope list in bytes.  Ignored if    */
-/*                       scopelist is NULL                                 */
-/*                                                                         */
-/* peeraddr         (OUT) pointer to receive the connected DA's address    */
-/*                                                                         */
-/* Returns          Connected socket or -1 if no DA connection can be made */
 /*=========================================================================*/
-{
-    return KnownDAConnect(scopelistlen,scopelist,peeraddr);
-}
-
-/*=========================================================================*/ 
-int NetworkConnectToSlpd(struct sockaddr_in* peeraddr)       
+int NetworkConnectToSlpd(struct sockaddr_in* peeraddr)
 /* Connects to slpd and provides a peeraddr to send to                     */
 /*                                                                         */
 /* peeraddr         (OUT) pointer to receive the connected DA's address    */
@@ -91,7 +70,7 @@ int NetworkConnectToSlpd(struct sockaddr_in* peeraddr)
 #else
     int lowat;
 #endif
-    int result;     
+    int result;
 
     result = socket(AF_INET,SOCK_STREAM,0);
     if(result >= 0)
@@ -106,8 +85,8 @@ int NetworkConnectToSlpd(struct sockaddr_in* peeraddr)
                    (struct sockaddr*)peeraddr,
                    sizeof(struct sockaddr_in)) == 0)
         {
-             /* set the receive and send buffer low water mark to 18 bytes 
-            (the length of the smallest slpv2 message) */   
+             /* set the receive and send buffer low water mark to 18 bytes
+            (the length of the smallest slpv2 message) */
             lowat = 18;
             setsockopt(result,SOL_SOCKET,SO_RCVLOWAT,&lowat,sizeof(lowat));
             setsockopt(result,SOL_SOCKET,SO_SNDLOWAT,&lowat,sizeof(lowat));
@@ -118,9 +97,158 @@ int NetworkConnectToSlpd(struct sockaddr_in* peeraddr)
               close(result);
               result = -1;
         }
-    }    
-    
+    }
+
     return result;
+}
+
+/*=========================================================================*/ 
+void NetworkDisconnectDA(PSLPHandleInfo handle)
+/* Called after DA fails to respond                                        */
+/*                                                                         */
+/* handle   (IN) a handle previously passed to NetworkConnectToDA()        */
+/*=========================================================================*/ 
+{
+    if(handle->dasock) 
+    {
+        close(handle->dasock);
+        handle->dasock = -1;
+    }
+    
+}
+
+
+/*=========================================================================*/ 
+void NetworkDisconnectSA(PSLPHandleInfo handle)
+/* Called after SA fails to respond                                        */
+/*                                                                         */
+/* handle   (IN) a handle previously passed to NetworkConnectToSA()        */
+/*=========================================================================*/ 
+{
+    if(handle->sasock) 
+    {
+        close(handle->sasock);
+        handle->sasock = -1;
+    }
+    
+}
+
+/*=========================================================================*/ 
+int NetworkConnectToDA(PSLPHandleInfo handle,
+                       const char* scopelist,
+                       int scopelistlen,
+                       struct sockaddr_in* peeraddr)
+/* Connects to slpd and provides a peeraddr to send to                     */
+/*                                                                         */
+/* handle           (IN) SLPHandle info  (caches connection info           */
+/*                                                                         */
+/* scopelist        (IN) Scope that must be supported by DA. Pass in NULL  */
+/*                       for any scope                                     */
+/*                                                                         */
+/* scopelistlen     (IN) Length of the scope list in bytes.  Ignored if    */
+/*                       scopelist is NULL                                 */
+/*                                                                         */
+/* peeraddr         (OUT) pointer to receive the connected DA's address    */
+/*                                                                         */
+/* Returns          Connected socket or -1 if no DA connection can be made */
+/*=========================================================================*/
+{
+    /*-----------------------------------------------------------------*/
+    /* attempt to use a cached socket if scope is supported  otherwise */
+    /* discover a DA that supports the scope                           */
+    /*-----------------------------------------------------------------*/
+    if(handle->dasock >= 0 &&
+       handle->dascope &&
+       SLPCompareString(handle->dascopelen,
+                        handle->dascope,
+                        scopelistlen,
+                        scopelist) == 0)
+    {
+        memcpy(peeraddr,&(handle->daaddr),sizeof(struct sockaddr_in));
+    }
+    else
+    {
+        if( handle->dasock > 0)
+        {
+            close(handle->dasock);
+        }
+
+        handle->dasock = KnownDAConnect(scopelistlen,scopelist,&(handle->daaddr));
+        if(handle->dasock)
+        {
+            if(handle->dascope) free(handle->dascope);
+            handle->dascope = memdup(scopelist,scopelistlen);
+            handle->dascopelen = scopelistlen; 
+            memcpy(peeraddr,&(handle->daaddr),sizeof(struct sockaddr_in));
+        }
+    }
+
+    return handle->dasock;
+}
+
+/*=========================================================================*/ 
+int NetworkConnectToSA(PSLPHandleInfo handle,
+                       const char* scopelist,
+                       int scopelistlen,
+                       struct sockaddr_in* peeraddr)
+/* Connects to slpd and provides a peeraddr to send to                     */
+/*                                                                         */
+/* handle           (IN) SLPHandle info  (caches connection info)          */
+/*                                                                         */
+/* scopelist        (IN) Scope that must be supported by SA. Pass in NULL  */
+/*                       for any scope                                     */
+/*                                                                         */
+/* scopelistlen     (IN) Length of the scope list in bytes.  Ignored if    */
+/*                       scopelist is NULL                                 */
+/*                                                                         */
+/* peeraddr         (OUT) pointer to receive the connected SA's address    */
+/*                                                                         */
+/* Returns          Connected socket or -1 if no SA connection can be made */ 
+{
+    
+    /*-----------------------------------------------------------------*/
+    /* attempt to use a cached socket if scope is supported  otherwise */
+    /* look to connect to local slpd or a DA that supports the scope   */
+    /*-----------------------------------------------------------------*/
+    if(handle->sasock >= 0 &&
+       handle->sascope && 
+       SLPCompareString(handle->sascopelen,
+                        handle->sascope,
+                        scopelistlen,
+                        scopelist) == 0)
+    {
+        memcpy(peeraddr,&(handle->saaddr),sizeof(struct sockaddr_in));
+    }
+    else
+    {
+        /*-----------------------------------------*/
+        /* Attempt to connect to slpd via loopback */
+        /*-----------------------------------------*/
+        handle->sasock = NetworkConnectToSlpd(&(handle->saaddr));
+        if(handle->sasock < 0)
+        {
+            /*----------------------------*/
+            /* Attempt to connect to a DA */                        
+            /*----------------------------*/  
+            handle->sasock = NetworkConnectToDA(handle,
+                                                scopelist,
+                                                scopelistlen,
+                                                &(handle->saaddr));
+        }
+
+        /*----------------------------------------------------------*/
+        /* if we connected to something, cache scope and addr info  */
+        /*----------------------------------------------------------*/
+        if(handle->sasock >= 0)
+        {
+            if(handle->sascope) free(handle->sascope);
+            handle->sascope = memdup(scopelist,scopelistlen);
+            handle->sascopelen = scopelistlen; 
+            memcpy(peeraddr,&(handle->saaddr),sizeof(struct sockaddr_in));
+        }                                                                 
+    }
+    
+    return handle->sasock;
 }
 
 
@@ -161,14 +289,7 @@ SLPError NetworkRqstRply(int sock,
     int                 totaltimeout    = 0;
     int                 timeouts[MAX_RETRANSMITS];
 
-    /*----------------------------------------------------*/
-    /* Quick check to see if socket is valid              */
-    /*----------------------------------------------------*/
-    if(sock == -1)
-    {
-        return SLP_NETWORK_ERROR;
-    }
-
+    
     /*----------------------------------------------------*/
     /* Save off a few things we don't want to recalculate */
     /*----------------------------------------------------*/

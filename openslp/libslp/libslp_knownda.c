@@ -44,7 +44,13 @@
 SLPList G_KnownDACache = {0,0,0};
 /* The cache list of known DAs.                                            */
 /*=========================================================================*/
- 
+
+
+/*=========================================================================*/
+time_t G_KnownDALastMcast = 0;
+/* The time of the last Multicast for known DAs                            */
+/*=========================================================================*/
+
 
 /*-------------------------------------------------------------------------*/
 SLPDAEntry* KnownDAListFindByScope(SLPList* dalist,
@@ -257,21 +263,28 @@ SLPDAEntry* KnownDADiscoverFromMulticast(int scopelistlen,
 /*-------------------------------------------------------------------------*/
 {
     struct sockaddr_in peeraddr;
+    time_t curtime;
     int sockfd; 
     SLPDAEntry* result = 0;
 
     if (SLPPropertyAsBoolean(SLPGetProperty("net.slp.activeDADetection")) &&
         SLPPropertyAsInteger(SLPGetProperty("net.slp.DAActiveDiscoveryInterval")))
     {
-        sockfd = NetworkConnectToMulticast(&peeraddr);
-        if (sockfd >= 0)
+        curtime = time(&curtime);
+        if(G_KnownDALastMcast == 0 ||
+           curtime - G_KnownDALastMcast > MINIMUM_DISCOVERY_INTERVAL )
         {
-            result = KnownDADiscoveryRqstRply(sockfd, 
-                                              &peeraddr,
-                                              scopelistlen,
-                                              scopelist);
-            close(sockfd);
-        }               
+            G_KnownDALastMcast = curtime;
+            sockfd = NetworkConnectToMulticast(&peeraddr);
+            if (sockfd >= 0)
+            {
+                result = KnownDADiscoveryRqstRply(sockfd, 
+                                                  &peeraddr,
+                                                  scopelistlen,
+                                                  scopelist);
+                close(sockfd);
+            }               
+        }
     }
 
     return result;

@@ -207,6 +207,7 @@ void SLPClose(SLPHandle hSLP)
     {
         /* TODO: stop the usage of this handle (kill threads, etc) */
     }
+
     if(handle->langtag)
     {
         free(handle->langtag);
@@ -217,9 +218,19 @@ void SLPClose(SLPHandle hSLP)
         close(handle->dasock);
     }
 
+    if(handle->dascope)
+    {
+        free(handle->dascope);
+    }
+
     if(handle->sasock >=0)
     {
         close(handle->sasock);
+    }
+
+    if(handle->sascope)
+    {
+        free(handle->sascope);
     }
 
     handle->sig = 0;  /* If they use the handle again, it won't be valid */

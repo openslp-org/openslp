@@ -71,6 +71,8 @@ SLPBoolean CallbackSrvReg(SLPError errorcode, SLPMessage msg, void* cookie)
 SLPError ProcessSrvReg(PSLPHandleInfo handle)
 /*-------------------------------------------------------------------------*/
 {
+    int                 sock;
+    struct sockaddr_in  peeraddr;
     int                 bufsize     = 0;
     char*               buf         = 0;
     char*               curpos      = 0;
@@ -142,47 +144,36 @@ SLPError ProcessSrvReg(PSLPHandleInfo handle)
     /* attr auths*/
     *(curpos) = 0;
     
-    /* try first with existing SA socket */
-    result = NetworkRqstRply(handle->sasock,
-                             &handle->saaddr,
-                             handle->langtag,
-                             buf,
-                             SLP_FUNCT_SRVREG,
-                             bufsize,
-                             CallbackSrvReg,
-                             handle);
-
-    /* Connect / Re-connect and try again */
-    if(result)
-    {
-        if(handle->sasock >= 0)
-        {
-            close(handle->sasock);
-        }
-
-        handle->sasock = NetworkConnectToSlpd(&handle->saaddr);
-        if(handle->sasock < 0)
-        {
-            handle->sasock = NetworkConnectToDA(handle->params.reg.scopelist,
-                                                handle->params.reg.scopelistlen,
-                                                &handle->saaddr);
     
-            if(handle->sasock < 0)
-            {
-                result = SLP_NETWORK_INIT_FAILED;
-                goto FINISHED;
-            }
+    /*--------------------------*/
+    /* Call the RqstRply engine */
+    /*--------------------------*/
+    do
+    {
+        sock = NetworkConnectToSA(handle,
+                                  handle->params.reg.scopelist,
+                                  handle->params.reg.scopelistlen,
+                                  &peeraddr);
+        if(sock == -1)
+        {
+            break;
         }
-        
-        result = NetworkRqstRply(handle->sasock,
-                         &handle->saaddr,
-                         handle->langtag,
-                         buf,
-                         SLP_FUNCT_SRVREG,
-                         bufsize,
-                         CallbackSrvReg,
-                         handle);
-    }
+
+        result = NetworkRqstRply(sock,
+                                 &peeraddr,
+                                 handle->langtag,
+                                 buf,
+                                 SLP_FUNCT_SRVREG,
+                                 bufsize,
+                                 CallbackSrvReg,
+                                 handle);
+        if(result)
+        {
+            NetworkDisconnectSA(handle);
+        }
+
+    }while(result);
+
     
     FINISHED:
     if(buf) free(buf);
