@@ -173,8 +173,9 @@ int SLPMulticastSend(const SLPIfaceInfo* ifaceinfo,
     int             flags = 0;
     int             xferbytes;
     struct in_addr  saddr;
+    /* Solaris, HP/UX want unsigned char,
+     * Linux prefers int, but can cope with unsigned char as well */
     unsigned char   optarg;
-
 
 #if defined(MSG_NOSIGNAL)
     flags = MSG_NOSIGNAL;
