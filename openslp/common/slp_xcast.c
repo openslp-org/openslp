@@ -173,14 +173,15 @@ int SLPMulticastSend(const SLPIfaceInfo* ifaceinfo,
     int             flags = 0;
     int             xferbytes;
     struct in_addr  saddr;
-    int		    optarg;
+    unsigned char   optarg;
 
 
 #if defined(MSG_NOSIGNAL)
     flags = MSG_NOSIGNAL;
 #endif
 
-    optarg = atoi(SLPPropertyGet("net.slp.multicastTTL"));
+    /* restrict net.slp.multicastTTL to one byte */
+    optarg = (unsigned char) (atoi(SLPPropertyGet("net.slp.multicastTTL")) & 0xFF);
 
     for (socks->sock_count = 0;
          socks->sock_count < ifaceinfo->iface_count;
@@ -194,19 +195,19 @@ int SLPMulticastSend(const SLPIfaceInfo* ifaceinfo,
         }
         
         saddr.s_addr = ifaceinfo->iface_addr[socks->sock_count].sin_addr.s_addr;
-        if( setsockopt(socks->sock[socks->sock_count], 
+        if (setsockopt(socks->sock[socks->sock_count], 
                        IPPROTO_IP, 
                        IP_MULTICAST_IF, 
-                       (char*)&saddr, 
+                       (char*) &saddr, 
                        sizeof(struct in_addr)))
         {
             /* error setting socket option */
             return -1;
         }
-        if(setsockopt(socks->sock[socks->sock_count],
+        if (setsockopt(socks->sock[socks->sock_count],
                       IPPROTO_IP,
                       IP_MULTICAST_TTL,
-                      (char*)&optarg,
+                      &optarg,
                       sizeof(optarg)))
         {
             return -1;
