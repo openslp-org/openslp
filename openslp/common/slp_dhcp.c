@@ -65,6 +65,10 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/ioctl.h>
+#if defined (_AIX)
+# include <net/if.h>
+# include <netinet/in.h>
+#endif /* defined (_AIX) */
 #include <net/if_arp.h>
 #include <sys/time.h>
 #endif
