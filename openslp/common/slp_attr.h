@@ -51,41 +51,41 @@
 
 typedef enum attrTypes
 {
-    head = -1,
-    string,
-    integer,
-    boolean,
-    opaque,
-    tag
-}SLPTypes;
+   head           = -1,
+   string,
+   integer,
+   boolean,
+   opaque,
+   tag
+} SLPTypes;
 
-typedef union SLP_attr_value 
+typedef union SLP_attr_value
 {
-    char *stringVal;
-    unsigned long intVal;
-    int boolVal;
-    void *opaqueVal;
-}SLPAttrVal;
+   char * stringVal;
+   unsigned long intVal;
+   int boolVal;
+   void * opaqueVal;
+} SLPAttrVal;
 
-typedef struct SLP_attr_list 
+typedef struct SLP_attr_list
 {
-    struct SLP_attr_list *next;
-    struct SLP_attr_list *prev;
-    int isHead;
-    unsigned char *name;
-    SLPTypes type;
-    SLPAttrVal val;
-}SLPAttrList;
+   struct SLP_attr_list * next;
+   struct SLP_attr_list * prev;
+   int isHead;
+   unsigned char * name;
+   SLPTypes type;
+   SLPAttrVal val;
+} SLPAttrList;
 
-SLPAttrList *SLPAllocAttr(char *name, SLPTypes type, void *val, int len);
-SLPAttrList *SLPAllocAttrList(void);
-void SLPFreeAttr(SLPAttrList *attr);
-void SLPFreeAttrList(SLPAttrList *list, int staticFlag);
+SLPAttrList * SLPAllocAttr(char * name, SLPTypes type, void * val, int len);
+SLPAttrList * SLPAllocAttrList(void);
+void SLPFreeAttr(SLPAttrList * attr);
+void SLPFreeAttrList(SLPAttrList * list, int staticFlag);
 
-SLPAttrList *SLPDecodeAttrString(char *s);
+SLPAttrList * SLPDecodeAttrString(char * s);
 
 /*! @} */
 
-#endif /* SLP_ATTR_H_INCLUDED */
+#endif   /* SLP_ATTR_H_INCLUDED */
 
 /*=========================================================================*/
