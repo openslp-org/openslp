@@ -49,14 +49,11 @@
  */
 
 #include "slpd.h"
-
 #include "slp_buffer.h"
+#include "slp_socket.h"
 
-/** Misc constants 
- */
-#define SLPD_SMALLEST_MESSAGE       18
-/*!< 18 bytes is smallest SLPv2 msg.
- */
+/* Misc constants */
+#define SLPD_SMALLEST_MESSAGE       18   /* 18 bytes is smallest SLPv2 msg */
 
 /* Values representing a type or state of a socket */
 #define SOCKET_PENDING_IO       100
@@ -74,18 +71,12 @@
 #define STREAM_WRITE_FIRST      11  + SOCKET_PENDING_IO
 #define STREAM_WRITE_WAIT       12  + SOCKET_PENDING_IO
 
-#ifdef _WIN32
-# define CloseSocket(Arg) closesocket(Arg)
-#else
-# define CloseSocket(Arg) close(Arg)
-#endif
-
 /** Structure representing a socket
  */
 typedef struct _SLPDSocket
 {
    SLPListItem listitem;    
-   int fd;
+   sockfd_t fd;
    time_t age;    /* in seconds */
    int state;
 
@@ -103,21 +94,15 @@ typedef struct _SLPDSocket
    SLPList sendlist;
 } SLPDSocket;
 
-SLPDSocket* SLPDSocketCreateConnected(struct sockaddr_storage* addr);
-
-SLPDSocket* SLPDSocketCreateListen(struct sockaddr_storage* peeraddr);
-
-int SLPDSocketIsMcastOn(SLPDSocket* sock, struct sockaddr_storage* addr);
-
-SLPDSocket* SLPDSocketCreateDatagram(struct sockaddr_storage* peeraddr, int type); 
-
-SLPDSocket* SLPDSocketCreateBoundDatagram(struct sockaddr_storage* myaddr,
-                                          struct sockaddr_storage* peeraddr,
-                                          int type);                                                                          
-
-SLPDSocket* SLPDSocketAlloc();
-
-void SLPDSocketFree(SLPDSocket* sock);
+SLPDSocket * SLPDSocketCreateConnected(struct sockaddr_storage * addr);
+SLPDSocket * SLPDSocketCreateListen(struct sockaddr_storage * peeraddr);
+int SLPDSocketIsMcastOn(SLPDSocket * sock, struct sockaddr_storage * addr);
+SLPDSocket * SLPDSocketCreateDatagram(struct sockaddr_storage * peeraddr, 
+      int type); 
+SLPDSocket * SLPDSocketCreateBoundDatagram(struct sockaddr_storage * myaddr,
+      struct sockaddr_storage * peeraddr, int type);
+SLPDSocket * SLPDSocketAlloc(void);
+void SLPDSocketFree(SLPDSocket * sock);
 
 /*! @} */
 

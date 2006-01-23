@@ -44,12 +44,12 @@
  * @ingroup    CommonCode
  */
 
+#include "slp_xmalloc.h"
+#include <string.h>
+
 #ifdef DEBUG
 
-#include "slp_xmalloc.h"
-
 #include <stdlib.h>
-#include <string.h>
 #include <stdio.h>
 
 #ifdef _WIN32
@@ -88,7 +88,7 @@ static void _xmalloc_log(xallocation_t * x)
  * @param[in] ptr - The user address of the block for which to search.
  * 
  * @return A pointer to the debug allocator address of the block, if
- *    found, or 0 if not.
+ *    found, or NULL if not.
  *
  * @internal
  */
@@ -187,7 +187,7 @@ void * _xcalloc(const char * file, int line, int numblks, size_t size)
  *
  * @remarks This routine emulates the standard library routine, 
  *    realloc, including esoteric functionality, such as passing
- *    0 for @p buf actually allocates a new buffer, passing 0 
+ *    NULL for @p buf actually allocates a new buffer, passing 0 
  *    for @p size actually allocates a new buffer.
  */
 void * _xrealloc(const char * file, int line, void * ptr, size_t size)
@@ -229,7 +229,7 @@ void * _xrealloc(const char * file, int line, void * ptr, size_t size)
  * @param[in] line - The line number where @e xmemdup was called.
  * @param[in] str - A pointer to the string to be duplicated.
  * 
- * @return A pointer to the duplicated string, or 0 on memory
+ * @return A pointer to the duplicated string, or NULL on memory
  *    allocation failure.
  */
 char * _xstrdup(const char * file, int line, const char * str)
@@ -248,7 +248,7 @@ char * _xstrdup(const char * file, int line, const char * str)
  * @param[in] ptr - A pointer to the memory block to be duplicated.
  * @param[in] size - The size of @p ptr in bytes.
  * 
- * @return A pointer to the duplicated memory block, or 0 on memory
+ * @return A pointer to the duplicated memory block, or NULL on memory
  *    allocation failure.
  */
 void * _xmemdup(const char * file, int line, const void * ptr, size_t size)
@@ -339,7 +339,7 @@ void xmalloc_deinit(void)
    if (G_xmalloc_fh)
    {
       fclose(G_xmalloc_fh);
-      G_xmalloc_fh = 0;
+      G_xmalloc_fh = NULL;
    }
    while (G_xmalloc_list.count)
       free(SLPListUnlink(&G_xmalloc_list, G_xmalloc_list.head));
@@ -354,7 +354,7 @@ void xmalloc_deinit(void)
  * @param[in] ptr - A pointer to the memory block to be duplicated.
  * @param[in] size - The size of @p ptr in bytes.
  * 
- * @return A pointer to the duplicated memory block, or 0 on memory
+ * @return A pointer to the duplicated memory block, or NULL on memory
  *    allocation failure.
  */
 void * memdup(const void * ptr, size_t size)

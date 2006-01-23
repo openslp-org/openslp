@@ -43,11 +43,15 @@
 
 #include "slp.h"
 #include "libslp.h"
+#include "slp_message.h"
+#include "slp_property.h"
+#include "slp_xmalloc.h"
+#include "slp_pid.h"
 
 /** SLPReg callback routine for NetworkRqstRply.
  *
  * @param[in] errorcode - The network operation SLPError result.
- * @param[in] peerinfo - The network address of the responder.
+ * @param[in] peeraddr - The network address of the responder.
  * @param[in] replybuf - The response buffer from the network request.
  * @param[in] cookie - Callback context data from ProcessSrvReg.
  *
@@ -63,39 +67,33 @@
  *
  * @internal
  */
-SLPBoolean CallbackSrvReg(SLPError errorcode, 
-      struct sockaddr_storage * peerinfo, SLPBuffer replybuf, 
-      void * cookie)
+static SLPBoolean CallbackSrvReg(SLPError errorcode, 
+      void * peeraddr, SLPBuffer replybuf, void * cookie)
 {
-   SLPMessage replymsg;
-   PSLPHandleInfo handle = (PSLPHandleInfo)cookie;
+   SLPHandleInfo * handle = (SLPHandleInfo *)cookie;
 
-   /*-------------------------------------------*/
-   /* Check the errorcode and bail if it is set */
-   /*-------------------------------------------*/
+   /* Check the errorcode and bail if it is set. */
    if (errorcode == 0)
    {
-      /*--------------------*/
-      /* Parse the replybuf */
-      /*--------------------*/
-      replymsg = SLPMessageAlloc();
+      /* Parse the replybuf into a message. */
+      SLPMessage replymsg = SLPMessageAlloc();
       if (replymsg)
       {
-         errorcode = SLPMessageParseBuffer(peerinfo, 0, replybuf, replymsg);
-         if (errorcode == 0)
-            if (replymsg->header.functionid == SLP_FUNCT_SRVACK)
-               errorcode = replymsg->body.srvack.errorcode * -1;
-
+         errorcode = (SLPError)(-SLPMessageParseBuffer(
+               peeraddr, 0, replybuf, replymsg));
+         if (errorcode == 0 
+               && replymsg->header.functionid == SLP_FUNCT_SRVACK)
+            errorcode = (SLPError)(-replymsg->body.srvack.errorcode);
+         else
+            errorcode = SLP_NETWORK_ERROR;
          SLPMessageFree(replymsg);
       }
       else
          errorcode = SLP_MEMORY_ALLOC_FAILED;
    }
 
-   /*----------------------------*/
-   /* Call the callback function */
-   /*----------------------------*/
-   handle->params.reg.callback((SLPHandle)handle, errorcode,
+   /* Call the user's callback function. */
+   handle->params.reg.callback(handle, errorcode, 
          handle->params.reg.cookie);
 
    return SLP_FALSE;
@@ -108,166 +106,125 @@ SLPBoolean CallbackSrvReg(SLPError errorcode,
  *
  * @return Zero on success, or an SLP API error code.
  */
-SLPError ProcessSrvReg(PSLPHandleInfo handle)
+static SLPError ProcessSrvReg(SLPHandleInfo * handle)
 {
-   int sock;
-   struct sockaddr_storage peeraddr;
-   int bufsize = 0;
-   char * buf = 0;
-   char * curpos = 0;
-   SLPError result = 0;
-   int extoffset = 0;
+   sockfd_t sock;
+   uint8_t * buf;
+   uint8_t * curpos;
+   SLPError serr;
+   size_t extoffset = 0;
+   size_t urlauthlen = 0;
+   uint8_t * urlauth = 0;
+   size_t attrauthlen = 0;
+   uint8_t * attrauth = 0;
+   SLPBoolean watchRegPID;
+   struct sockaddr_storage saaddr;
 
 #ifdef ENABLE_SLPv2_SECURITY
-   int urlauthlen  = 0;
-   unsigned char * urlauth = 0;
-   int attrauthlen = 0;
-   unsigned char * attrauth = 0;
-
    if (SLPPropertyAsBoolean(SLPGetProperty("net.slp.securityEnabled")))
    {
-      result = SLPAuthSignUrl(handle->hspi, 0, 0, handle->params.reg.urllen,
+      int err = SLPAuthSignUrl(handle->hspi, 0, 0, handle->params.reg.urllen,
             handle->params.reg.url, &urlauthlen, &urlauth);
-      if (result == 0)
-      {
-         result = SLPAuthSignString(handle->hspi, 0, 0,
+      if (err == 0)
+         err = SLPAuthSignString(handle->hspi, 0, 0,
                handle->params.reg.attrlistlen, handle->params.reg.attrlist,
                &attrauthlen, &attrauth);
-      }
-      bufsize += urlauthlen;
-      bufsize += attrauthlen;
+      if (err != 0)
+         return SLP_AUTHENTICATION_ABSENT;
    }
 #endif
 
-   /*-------------------------------------------------------------------*/
-   /* determine the size of the fixed portion of the SRVREG             */
-   /*-------------------------------------------------------------------*/
-   bufsize += handle->params.reg.urllen + 6;       /*  1 byte for reserved  */
-   /*  2 bytes for lifetime */
-   /*  2 bytes for urllen   */
-   /*  1 byte for authcount */
-   bufsize += handle->params.reg.srvtypelen + 2;   /*  2 bytes for len field */
-   bufsize += handle->params.reg.scopelistlen + 2; /*  2 bytes for len field */
-   bufsize += handle->params.reg.attrlistlen + 2;  /*  2 bytes for len field */
-   bufsize += 1;                                   /*  1 byte for authcount */
-   if (SLPPropertyAsBoolean(SLPGetProperty("net.slp.watchRegistrationPID")))
-      bufsize += 9;  /* 2 bytes for extid      */
-                     /* 3 bytes for nextoffset */
-                     /* 4 bytes for pid        */
+   /* Should we send the "Watch Registration PID" extension? */
+   watchRegPID = SLPPropertyAsBoolean(SLPGetProperty(
+         "net.slp.watchRegistrationPID"));
 
-   buf = curpos = (char *)xmalloc(bufsize);
+/*  0                   1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                          <URL-Entry>                          \
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   | length of service type string |        <service-type>         \
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |     length of <scope-list>    |         <scope-list>          \
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |  length of attr-list string   |          <attr-list>          \
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |# of AttrAuths |(if present) Attribute Authentication Blocks...\
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ 
+   |    WATCH-PID extension ID     |    next extension offset      \
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ 
+   |  nxo (cont)   |     process identifier to be monitored        \
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ 
+   |  PID (cont)   |
+   +-+-+-+-+-+-+-+-+ */
+
+   buf = curpos = xmalloc(
+         + SizeofURLEntry(handle->params.reg.urllen, urlauthlen)
+         + 2 + handle->params.reg.srvtypelen
+         + 2 + handle->params.reg.scopelistlen
+         + 2 + handle->params.reg.attrlistlen
+         + 1 + attrauthlen 
+         + (watchRegPID? (2 + 3 + 4): 0));
    if (buf == 0)
    {
-      result = SLP_MEMORY_ALLOC_FAILED;
-      goto FINISHED;
+      xfree(urlauth);
+      xfree(attrauth);
+      return SLP_MEMORY_ALLOC_FAILED;
    }
 
-   /*------------------------------------------------------------*/
-   /* Build a buffer containing the fixed portion of the SRVREG  */
-   /*------------------------------------------------------------*/
-   /* url-entry reserved */
-   *curpos= 0;
-   curpos = curpos + 1;
-   /* url-entry lifetime */
-   ToUINT16(curpos, handle->params.reg.lifetime);
-   curpos = curpos + 2;
-   /* url-entry urllen */
-   ToUINT16(curpos, handle->params.reg.urllen);
-   curpos = curpos + 2;
-   /* url-entry url */
-   memcpy(curpos, handle->params.reg.url, handle->params.reg.urllen);
-   curpos = curpos + handle->params.reg.urllen;
-   /* url-entry authblock */
-#ifdef ENABLE_SLPv2_SECURITY
-   if (urlauth)
-   {
-      /* authcount */
-      *curpos = 1;
-      curpos = curpos + 1;
-      /* authblock */
-      memcpy(curpos, urlauth, urlauthlen);
-      curpos = curpos + urlauthlen;
-   }
-   else
-#endif
-   {
-      /* authcount */
-      *curpos = 0;
-      curpos = curpos + 1;
-   }
-   /* service type */
-   ToUINT16(curpos, handle->params.reg.srvtypelen);
-   curpos = curpos + 2;
+   /* URL entry */
+   PutURLEntry(&curpos, handle->params.reg.url, 
+         handle->params.reg.urllen, urlauth, urlauthlen);
+
+   /* <service-type> */
+   PutUINT16(&curpos, handle->params.reg.srvtypelen);
    memcpy(curpos, handle->params.reg.srvtype, handle->params.reg.srvtypelen);
-   curpos = curpos + handle->params.reg.srvtypelen;
-   /* scope list */
-   ToUINT16(curpos, handle->params.reg.scopelistlen);
-   curpos = curpos + 2;
+   curpos += handle->params.reg.srvtypelen;
+
+   /* <scope-list> */
+   PutUINT16(&curpos, handle->params.reg.scopelistlen);
    memcpy(curpos, handle->params.reg.scopelist, 
          handle->params.reg.scopelistlen);
-   curpos = curpos + handle->params.reg.scopelistlen;
-   /* attr list */
-   ToUINT16(curpos, handle->params.reg.attrlistlen);
-   curpos = curpos + 2;
-   memcpy(curpos, handle->params.reg.attrlist,
-         handle->params.reg.attrlistlen);
-   curpos = curpos + handle->params.reg.attrlistlen;
-   /* attribute auth block */
-#ifdef ENABLE_SLPv2_SECURITY
-   if (attrauth)
-   {
-      /* authcount */
-      *curpos = 1;
-      curpos = curpos + 1;
-      /* authblock */
-      memcpy(curpos, attrauth, attrauthlen);
-      curpos = curpos + attrauthlen;
-   }
-   else
-#endif
-   {
-      /* authcount */
-      *curpos = 0;
-      curpos = curpos + 1;
-   }
+   curpos += handle->params.reg.scopelistlen;
 
-   /* Put in the SLP_EXTENSION_ID_REG_PID */
-   if (SLPPropertyAsBoolean(SLPGetProperty("net.slp.watchRegistrationPID")))
+   /* <attr-list> */
+   PutUINT16(&curpos, handle->params.reg.attrlistlen);
+   memcpy(curpos, handle->params.reg.attrlist, 
+         handle->params.reg.attrlistlen);
+   curpos += handle->params.reg.attrlistlen;
+
+   /* Attribute Authentication Blocks */
+   *curpos++ = attrauth? 1: 0;
+   memcpy(curpos, attrauth, attrauthlen);
+   curpos += attrauthlen;
+
+   /* SLP_EXTENSION_ID_REG_PID */
+   if (watchRegPID)
    {
       extoffset = curpos - buf;
-      ToUINT16(curpos, SLP_EXTENSION_ID_REG_PID);
-      curpos += 2;
-      ToUINT24(curpos, 0);
-      curpos += 3;
-      ToUINT32(curpos, SLPPidGet());
-      curpos += 4;
+      PutUINT16(&curpos, SLP_EXTENSION_ID_REG_PID);
+      PutUINT24(&curpos, 0);
+      PutUINT32(&curpos, SLPPidGet());
    }
 
-   /*--------------------------*/
-   /* Call the RqstRply engine */
-   /*--------------------------*/
+   /* Call the Request-Reply engine. */
    sock = NetworkConnectToSA(handle, handle->params.reg.scopelist,
-         handle->params.reg.scopelistlen, &peeraddr);
-   if (sock >= 0)
+         handle->params.reg.scopelistlen, &saaddr);
+   if (sock != SLP_INVALID_SOCKET)
    {
-      result = NetworkRqstRply(sock, &peeraddr, handle->langtag, extoffset,
-            buf, SLP_FUNCT_SRVREG, bufsize, CallbackSrvReg, handle);
-      if (result)
+      serr = NetworkRqstRply(sock, &saaddr, handle->langtag, extoffset,
+            buf, SLP_FUNCT_SRVREG, curpos - buf, CallbackSrvReg, handle);
+      if (serr)
          NetworkDisconnectSA(handle);
    }
    else
-      result = SLP_NETWORK_INIT_FAILED;
+      serr = SLP_NETWORK_INIT_FAILED;    
 
-FINISHED:
+   xfree(buf);
+   xfree(urlauth);
+   xfree(attrauth);
 
-   if (buf) xfree(buf);
-
-#ifdef ENABLE_SLPv2_SECURITY
-   if (urlauth) xfree(urlauth);
-   if (attrauth) xfree(attrauth);
-#endif 
-
-   return result;
+   return serr;
 }
 
 #ifdef ENABLE_ASYNC_API
@@ -280,18 +237,15 @@ FINISHED:
  *
  * @internal
  */
-SLPError AsyncProcessSrvReg(PSLPHandleInfo handle)
+static SLPError AsyncProcessSrvReg(SLPHandleInfo * handle)
 {
-   SLPError result = ProcessSrvReg(handle);
-
-   xfree((void*)handle->params.reg.url);
-   xfree((void*)handle->params.reg.srvtype);
-   xfree((void*)handle->params.reg.scopelist);
-   xfree((void*)handle->params.reg.attrlist);
-
-   handle->inUse = SLP_FALSE;
-
-   return result;
+   SLPError serr = ProcessSrvReg(handle);
+   xfree(handle->params.reg.url);
+   xfree(handle->params.reg.srvtype);
+   xfree(handle->params.reg.scopelist);
+   xfree(handle->params.reg.attrlist);
+   SLPReleaseSpinLock(&handle->inUse);
+   return serr;
 }
 #endif
 
@@ -319,7 +273,7 @@ SLPError AsyncProcessSrvReg(PSLPHandleInfo handle)
  * @param[in] hSLP - The language-specific SLPHandle on which to register
  *    the advertisement.
  * @param[in] srvUrl - The URL to register. May not be the empty string. 
- *    May not be 0. Must conform to SLP Service URL syntax. 
+ *    May not be NULL. Must conform to SLP Service URL syntax. 
  *    SLP_INVALID_REGISTRATION will be returned if not.
  * @param[in] lifetime - An unsigned short giving the life time of the 
  *    service advertisement, in seconds. The value must be an unsigned
@@ -346,121 +300,113 @@ SLPError AsyncProcessSrvReg(PSLPHandleInfo handle)
  * @param[in] callback - A callback to report the operation completion 
  *    status.
  * @param[in] cookie - Memory passed to the callback code from the 
- *    client. May be 0.
+ *    client. May be NULL.
  *
  * @return If an error occurs in starting the operation, one of the 
  *    SLPError codes is returned.
  */
-SLPError SLPAPI SLPReg(
-      SLPHandle hSLP, 
+SLPEXP SLPError SLPAPI SLPReg(
+      SLPHandle hSLP,
       const char * srvUrl,
-      const unsigned short lifetime,
+      unsigned short lifetime,
       const char * srvType,
       const char * attrList,
       SLPBoolean fresh,
       SLPRegReport callback,
       void * cookie)
 {
-   PSLPHandleInfo handle = 0;
-   SLPError result = SLP_OK;
+   bool inuse;
+   SLPError serr;
    SLPSrvURL * parsedurl = 0;
+   SLPHandleInfo * handle = hSLP;
 
-   /*------------------------------*/
-   /* check for invalid parameters */
-   /*------------------------------*/
-   if (hSLP == 0 || *(unsigned int*)hSLP != SLP_HANDLE_SIG 
-         || srvUrl == 0 || *srvUrl == 0
-         || lifetime == 0 || attrList == 0 || callback == 0)
+   /** @todo Add code to accept non- "service:" scheme 
+    * URL's - normalize with srvType parameter info. 
+    */
+   (void)srvType; /* not used yet */
+
+   /* Check for invalid parameters. */
+   SLP_ASSERT(handle != 0);
+   SLP_ASSERT(handle->sig == SLP_HANDLE_SIG);
+   SLP_ASSERT(srvUrl != 0);
+   SLP_ASSERT(*srvUrl != 0);
+   SLP_ASSERT(lifetime != 0);
+   SLP_ASSERT(attrList != 0);
+   SLP_ASSERT(callback != 0);
+
+   if (handle == 0 || handle->sig != SLP_HANDLE_SIG 
+         || srvUrl == 0 || *srvUrl == 0 
+         || lifetime == 0
+         || attrList == 0 
+         || callback == 0)
       return SLP_PARAMETER_BAD;
 
-   /*---------------------------------------------*/
-   /* We don't handle non-fresh registrations     */
-   /*---------------------------------------------*/
+   /** @todo Handle non-fresh registrations in SLPReg. */
    if (fresh == SLP_FALSE)
       return SLP_NOT_IMPLEMENTED;
 
-   /*-----------------------------------------*/
-   /* cast the SLPHandle into a SLPHandleInfo */
-   /*-----------------------------------------*/
-   handle = (PSLPHandleInfo)hSLP;
-
-   /*-----------------------------------------*/
-   /* Check to see if the handle is in use    */
-   /*-----------------------------------------*/
-   if (handle->inUse == SLP_TRUE)
+   /* Check to see if the handle is in use. */
+   inuse = SLPTryAcquireSpinLock(&handle->inUse);
+   SLP_ASSERT(!inuse);
+   if (inuse)
       return SLP_HANDLE_IN_USE;
 
-   handle->inUse = SLP_TRUE;
-
-   /*------------------*/
-   /* Parse the srvurl */
-   /*------------------*/
-   result = SLPParseSrvURL(srvUrl,&parsedurl);
-   if (result)
+   /* Parse the srvurl - mainly for service type info. */
+   serr = SLPParseSrvURL(srvUrl, &parsedurl);
+   if (serr)
    {
-      if (result == SLP_PARSE_ERROR)
-         result = SLP_INVALID_REGISTRATION;
-
-      if (parsedurl) SLPFree(parsedurl);
-      handle->inUse = SLP_FALSE;
-      return result;
+      SLPReleaseSpinLock(&handle->inUse);
+      return serr == SLP_PARSE_ERROR? SLP_INVALID_REGISTRATION: serr;
    }
 
-   /*-------------------------------------------*/
-   /* Set the handle up to reference parameters */
-   /*-------------------------------------------*/
-   handle->params.reg.fresh         = fresh;
-   handle->params.reg.lifetime      = lifetime;
-   handle->params.reg.urllen        = strlen(srvUrl);
-   handle->params.reg.url           = srvUrl;
-   handle->params.reg.srvtype       = parsedurl->s_pcSrvType;
-   handle->params.reg.srvtypelen    = strlen(handle->params.reg.srvtype);
-   handle->params.reg.scopelist     = SLPGetProperty("net.slp.useScopes");
-   if (handle->params.reg.scopelist)
-      handle->params.reg.scopelistlen  = strlen(handle->params.reg.scopelist);
-   handle->params.reg.attrlistlen   = strlen(attrList);
-   handle->params.reg.attrlist      = attrList;
-   handle->params.reg.callback      = callback;
-   handle->params.reg.cookie        = cookie;
+   /* Set the handle up to reference parameters. */
+   handle->params.reg.fresh = fresh;
+   handle->params.reg.lifetime = lifetime;
+   handle->params.reg.urllen = strlen(srvUrl);
+   handle->params.reg.url = srvUrl;
+   handle->params.reg.srvtype = parsedurl->s_pcSrvType;
+   handle->params.reg.srvtypelen = strlen(handle->params.reg.srvtype);
+   handle->params.reg.scopelist = SLPGetProperty("net.slp.useScopes");
+   handle->params.reg.scopelistlen = strlen(handle->params.reg.scopelist);
+   handle->params.reg.attrlistlen = strlen(attrList);
+   handle->params.reg.attrlist = attrList;
+   handle->params.reg.callback = callback;
+   handle->params.reg.cookie = cookie; 
 
 #ifdef ENABLE_ASYNC_API
-   /*----------------------------------------------*/
-   /* Check to see if we should be async or sync   */
-   /*----------------------------------------------*/
    if (handle->isAsync)
    {
-      /* Copy all of the referenced parameters before making thread */
+      /* Copy all of the referenced parameters before creating thread. */
       handle->params.reg.url = xstrdup(handle->params.reg.url);
       handle->params.reg.srvtype = xstrdup(handle->params.reg.url);
       handle->params.reg.scopelist = xstrdup(handle->params.reg.scopelist);
       handle->params.reg.attrlist = xstrdup(handle->params.reg.attrlist);
 
-      /* make sure that the strdups did not fail */
-      if (handle->params.reg.url && handle->params.reg.srvtype 
-            && handle->params.reg.scopelist && handle->params.reg.attrlist)
-         result = ThreadCreate((ThreadStartProc)AsyncProcessSrvReg,handle);
-      else
-         result = SLP_MEMORY_ALLOC_FAILED;
-
-      if (result)
+      /* Ensure strdups and thread create succeed. */
+      if (handle->params.reg.url == 0
+            || handle->params.reg.srvtype == 0
+            || handle->params.reg.scopelist == 0
+            || handle->params.reg.attrlist == 0
+            || (handle->th = ThreadCreate((ThreadStartProc)
+                  AsyncProcessSrvReg, handle)) == 0)
       {
-         if (handle->params.reg.url) xfree((void*)handle->params.reg.url);
-         if (handle->params.reg.srvtype) xfree((void*)handle->params.reg.srvtype);
-         if (handle->params.reg.scopelist) xfree((void*)handle->params.reg.scopelist);
-         if (handle->params.reg.attrlist) xfree((void*)handle->params.reg.attrlist);
-         handle->inUse = SLP_FALSE;
+         serr = SLP_MEMORY_ALLOC_FAILED;    
+         xfree(handle->params.reg.url);
+         xfree(handle->params.reg.srvtype);
+         xfree(handle->params.reg.scopelist);
+         xfree(handle->params.reg.attrlist);
+         SLPReleaseSpinLock(&handle->inUse);
       }
    }
    else
-#endif //ffdef ENABLE_ASYNC_API    
+#endif
    {
-      result = ProcessSrvReg(handle);
-      handle->inUse = SLP_FALSE;
+      /* Reference all the parameters. */
+      serr = ProcessSrvReg(handle);            
+      SLPReleaseSpinLock(&handle->inUse);
    }
-
-   if (parsedurl) SLPFree(parsedurl);
-
-   return result;
+   SLPFree(parsedurl);
+   return serr;
 }
 
 /*=========================================================================*/

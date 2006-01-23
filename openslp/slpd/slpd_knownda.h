@@ -49,52 +49,33 @@
  */
 
 #include "slpd.h"
-
 #include "slp_buffer.h"
 #include "slp_message.h"
 
-int SLPDKnownDAInit();
-
-int SLPDKnownDADeinit();
-
+int SLPDKnownDAInit(void);
+int SLPDKnownDADeinit(void);
 int SLPDKnownDAAdd(SLPMessage msg, SLPBuffer buf);
-
-void SLPDKnownDARemove(struct sockaddr_storage* addr);
-
-void* SLPDKnownDAEnumStart();
-
-SLPMessage SLPDKnownDAEnum(void* eh, SLPMessage* msg, SLPBuffer* buf);
-
-void SLPDKnownDAEnumEnd(void* eh);
-
-int SLPDKnownDAGenerateMyDAAdvert(struct sockaddr_storage* localaddr,
-                                  int errorcode,
-                                  int deadda,
-                                  int xid,
-                                  SLPBuffer* sendbuf);
+void SLPDKnownDARemove(struct sockaddr_storage * addr);
+void * SLPDKnownDAEnumStart(void);
+SLPMessage SLPDKnownDAEnum(void * eh, SLPMessage * msg, SLPBuffer * buf);
+void SLPDKnownDAEnumEnd(void * eh);
+int SLPDKnownDAGenerateMyDAAdvert(struct sockaddr_storage * localaddr,
+      int errorcode, int deadda, int xid, SLPBuffer * sendbuf);
 
 #if defined(ENABLE_SLPv1)
-int SLPDKnownDAGenerateMyV1DAAdvert(struct sockaddr_storage* localaddr,
-                                    int errorcode,
-                                    int encoding,
-                                    unsigned int xid,
-                                    SLPBuffer* sendbuf);
+int SLPDKnownDAGenerateMyV1DAAdvert(struct sockaddr_storage * localaddr,
+      int errorcode, int encoding, unsigned int xid, SLPBuffer * sendbuf);
 #endif
 
 void SLPDKnownDAEcho(SLPMessage msg, SLPBuffer buf);
-
 void SLPDKnownDAActiveDiscovery(int seconds, int scope);
-
 void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead, int scope);
-
 void SLPDKnownDAImmortalRefresh(int seconds);
-
 void SLPDKnownDADeRegisterWithAllDas(SLPMessage msg, SLPBuffer buf);
-
 void SLPDKnownDARegisterWithAllDas(SLPMessage msg, SLPBuffer buf);
 
 #ifdef DEBUG
-void SLPDKnownDADump();
+void SLPDKnownDADump(void);
 #endif
 
 /*! @} */

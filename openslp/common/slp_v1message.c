@@ -35,15 +35,6 @@
  * This file contains buffer parsing routines specific to version 1 of 
  * the SLP wire protocol.
  *
- * @note This file duplicates the parsing routines in slp_message.c. Even
- * though the format of the messages are mostly identical, handling of
- * the character encoding makes it enough of a problem to keep this
- * code independent.
- *
- * @note Unicode handling is currently a hack. We assume that we have enough
- * space the UTF-8 string in place instead of the unicode string. This
- * assumption is not always correct 16-bit unicode encoding.
- *
  * @file       slp_v1message.c
  * @author     Matthew Peterson, Ganesan Rajagopal, 
  *             John Calcote (jcalcote@novell.com)
@@ -51,23 +42,17 @@
  * @ingroup    CommonCode
  */
 
+#include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 
-#ifndef _WIN32
-# include <stdlib.h>
-# include <sys/types.h>
-# include <netinet/in.h>
-#endif
-
 #include "slp_v1message.h"
 #include "slp_utf8.h"
-#include "slp_compare.h"
 
 /** Parse an SLPv1 URL entry.
  *
  * @param[in] buffer - The buffer containing the data to be parsed.
- * @param[in] header - The message header parsed from @p buffer.
+ * @param[in] encoding - The language encoding of the message.
  * @param[out] urlentry - The URL entry object into which 
  *    @p buffer should be parsed.
  *
@@ -76,37 +61,45 @@
  *
  * @internal
  */
-int v1ParseUrlEntry(SLPBuffer buffer, SLPHeader * header, 
+static int v1ParseUrlEntry(const SLPBuffer buffer, int encoding,
       SLPUrlEntry * urlentry)
 {
+/*  0                   1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |           Lifetime            |        Length of URL          |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                                                               |
+   \                              URL                              \
+   |                                                               |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |              (if present) URL Authentication Block .....
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ */
+
    int result;
 
-   /* make sure that min size is met */
+   /* Make sure that min size is met. */
    if (buffer->end - buffer->curpos < 6)
       return SLP_ERROR_PARSE_ERROR;
 
-   /* no reserved stuff for SLPv1 */
+   /* No reserved stuff for SLPv1. */
    urlentry->reserved = 0;
 
-   /* parse out lifetime */
-   urlentry->lifetime = AsUINT16(buffer->curpos);
-   buffer->curpos = buffer->curpos + 2;
+   /* Parse out lifetime. */
+   urlentry->lifetime = GetUINT16(&buffer->curpos);
 
-   /* parse out url */
-   urlentry->urllen = AsUINT16(buffer->curpos);
-   buffer->curpos = buffer->curpos + 2;
-   if (urlentry->urllen > buffer->end - buffer->curpos)
+   /* Parse out URL. */
+   urlentry->urllen = GetUINT16(&buffer->curpos);
+   urlentry->url = GetStrPtr(&buffer->curpos, urlentry->urllen);
+   if (buffer->curpos > buffer->end)
       return SLP_ERROR_PARSE_ERROR;
 
-   urlentry->url = buffer->curpos;
-   buffer->curpos = buffer->curpos + urlentry->urllen;
-
-   result = SLPv1AsUTF8(header->encoding, (char *) urlentry->url,
-         &urlentry->urllen);
-   if (result)
+   result = SLPv1AsUTF8(encoding, (char *)urlentry->url,
+         &urlentry->urllen); 
+   if (result != 0)
       return result;
 
-   /* we don't support auth blocks for SLPv1 - no one uses them anyway */
+   /* We don't support auth blocks for SLPv1 - no one uses them anyway. */
    urlentry->authcount = 0;
    urlentry->autharray = 0;
 
@@ -116,7 +109,7 @@ int v1ParseUrlEntry(SLPBuffer buffer, SLPHeader * header,
 /** Parse an SLPv1 Service Request message.
  *
  * @param[in] buffer - The buffer containing the data to be parsed.
- * @param[in] header - The message header parsed from @p buffer.
+ * @param[in] encoding - The language encoding of the message.
  * @param[out] srvrqst - The service request object into which 
  *    @p buffer should be parsed.
  *
@@ -125,67 +118,71 @@ int v1ParseUrlEntry(SLPBuffer buffer, SLPHeader * header,
  *
  * @internal
  */
-int v1ParseSrvRqst(SLPBuffer buffer, SLPHeader * header, SLPSrvRqst * srvrqst)
+static int v1ParseSrvRqst(const SLPBuffer buffer, int encoding,
+      SLPSrvRqst * srvrqst)
 {
+/*  0                   1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |length of prev resp list string|<Previous Responders Addr Spec>|
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                                                               |
+   \                  <Previous Responders Addr Spec>              \
+   |                                                               |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |  length of predicate string   |  Service Request <predicate>  |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                                                               |
+   \               Service Request <predicate>, contd.             \
+   |                                                               |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ */
+  
    char * tmp;
    int result;
 
-   /* make sure that min size is met */
-   if (buffer->end - buffer->curpos < 10)
+   /* Enforce SLPv1 service request size limits. */
+   if (buffer->end - buffer->curpos < 4)
       return SLP_ERROR_PARSE_ERROR;
 
-   /* parse the prlist */
-   srvrqst->prlistlen = AsUINT16(buffer->curpos);
-   buffer->curpos = buffer->curpos + 2;
-   if (srvrqst->prlistlen > buffer->end - buffer->curpos)
+   /* Parse the PRList. */
+   srvrqst->prlistlen = GetUINT16(&buffer->curpos);
+   srvrqst->prlist = GetStrPtr(&buffer->curpos, srvrqst->prlistlen);
+   if (buffer->curpos > buffer->end)
       return SLP_ERROR_PARSE_ERROR;
-
-   srvrqst->prlist = buffer->curpos;
-   buffer->curpos = buffer->curpos + srvrqst->prlistlen;
-
-   result = SLPv1AsUTF8(header->encoding, (char *) srvrqst->prlist,
-         &srvrqst->prlistlen);
-   if (result)
+   if ((result = SLPv1AsUTF8(encoding, (char *) srvrqst->prlist,
+         &srvrqst->prlistlen)) != 0)
       return result;
 
-   /* parse the predicate string */
-   srvrqst->predicatelen = AsUINT16(buffer->curpos);
-   buffer->curpos = buffer->curpos + 2;
-   if (srvrqst->predicatelen > buffer->end - buffer->curpos)
+   /* Parse the predicate string. */
+   srvrqst->predicatelen = GetUINT16(&buffer->curpos);
+   srvrqst->predicate = GetStrPtr(&buffer->curpos, srvrqst->predicatelen);
+   if (buffer->curpos > buffer->end)
       return SLP_ERROR_PARSE_ERROR;
-
-   srvrqst->predicate = buffer->curpos;
-   buffer->curpos = buffer->curpos + srvrqst->predicatelen;
-
-   result = SLPv1AsUTF8(header->encoding, (char *) srvrqst->predicate,
-         &srvrqst->predicatelen);
-   if (result)
+   if ((result = SLPv1AsUTF8(encoding, (char *) srvrqst->predicate,
+         &srvrqst->predicatelen)) != 0)
       return result;
 
-   /* null terminate the predicate */
-   *(char *)(srvrqst->predicate + srvrqst->predicatelen) = '\0';
+   /* Terminate the predicate string. */
+   *(char *)&srvrqst->predicate[srvrqst->predicatelen] = 0; 
 
-   /* Now split out the service type */
+   /* Now split out the service type. */
    srvrqst->srvtype = srvrqst->predicate;
    tmp = strchr(srvrqst->srvtype, '/');
    if (!tmp)
       return SLP_ERROR_PARSE_ERROR;
-
-   *tmp = 0;           /* null terminate service type */
+   *tmp = 0;           /* Terminate service type string. */
    srvrqst->srvtypelen = tmp - srvrqst->srvtype;
 
-   /* Parse out the predicate */
-   srvrqst->predicatever = 1;  /* SLPv1 predicate (a bit messy) */
+   /* Parse out the predicate. */
+   srvrqst->predicatever = 1;  /* SLPv1 predicate. */
    srvrqst->predicatelen -= srvrqst->srvtypelen + 1;
    srvrqst->predicate += srvrqst->srvtypelen + 1;
 
-   /* Now split out the scope (if any) */
-   /* Special case DA discovery, empty scope is allowed here */
-   if (*srvrqst->predicate == '/' && SLPCompareString(srvrqst->srvtypelen, 
-         srvrqst->srvtype, 15, "directory-agent") != 0)
+   /* Now split out the scope (if any). */
+   if (*srvrqst->predicate == '/')
    {
-      /* no scope - so set default scope */
-      srvrqst->scopelist = "default";
+      /* No scope, so set default scope. */
+      srvrqst->scopelist = "DEFAULT";
       srvrqst->scopelistlen = 7;
       srvrqst->predicate++;
       srvrqst->predicatelen--;
@@ -196,21 +193,17 @@ int v1ParseSrvRqst(SLPBuffer buffer, SLPHeader * header, SLPSrvRqst * srvrqst)
       tmp = strchr(srvrqst->scopelist, '/');
       if (!tmp)
          return SLP_ERROR_PARSE_ERROR;
-
-      /* null terminate scope list */
-      *tmp = 0;
+      *tmp = 0;   /* Terminate scope list. */
 
       srvrqst->scopelistlen = tmp - srvrqst->scopelist;
       srvrqst->predicate += srvrqst->scopelistlen + 1;
       srvrqst->predicatelen -= srvrqst->scopelistlen + 1;
    }
    srvrqst->predicatelen--;
-   tmp = (char*)(srvrqst->predicate + srvrqst->predicatelen);
+   tmp = (char *)&srvrqst->predicate[srvrqst->predicatelen]; 
+   *tmp = 0;   /* Terminate the predicate. */
 
-   /* null term. pred */
-   *tmp = 0;
-
-   /* SLPv1 service requests don't have SPI strings */
+   /* SLPv1 service requests don't have SPI strings. */
    srvrqst->spistrlen = 0;
    srvrqst->spistr = 0;
 
@@ -220,7 +213,7 @@ int v1ParseSrvRqst(SLPBuffer buffer, SLPHeader * header, SLPSrvRqst * srvrqst)
 /** Parse an SLPv1 Service Registration message.
  *
  * @param[in] buffer - The buffer containing the data to be parsed.
- * @param[in] header - The message header parsed from @p buffer.
+ * @param[in] encoding - The language encoding of the message.
  * @param[out] srvreg - The service registration object into which 
  *    @p buffer should be parsed.
  *
@@ -229,60 +222,72 @@ int v1ParseSrvRqst(SLPBuffer buffer, SLPHeader * header, SLPSrvRqst * srvrqst)
  *
  * @internal
  */
-int v1ParseSrvReg(SLPBuffer buffer, SLPHeader * header, SLPSrvReg * srvreg)
+static int v1ParseSrvReg(const SLPBuffer buffer, int encoding,
+      SLPSrvReg * srvreg)
 {
+/*  0                   1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                                                               |
+   \                          <URL-Entry>                          \
+   |                                                               |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |  Length of Attr List String   |          <attr-list>          |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                                                               |
+   \                    <attr-list>, Continued.                    \
+   |                                                               |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |    (if present) Attribute Authentication Block ...
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ */
+
    char * tmp;
    int result;
 
-   /* Parse out the url entry */
-   result = v1ParseUrlEntry(buffer, header, &(srvreg->urlentry));
-   if (result)
+   /* Parse the <URL-Entry>, and convert fields to UTF-8. */
+   if ((result = v1ParseUrlEntry(buffer, encoding, &srvreg->urlentry)) != 0)
       return result;
 
    /* SLPv1 registration requests don't have a separate service type.
-   They must be parsed from the url */
+    * They must be parsed from the URL.
+    */
    srvreg->srvtype = srvreg->urlentry.url;
-   tmp = strstr(srvreg->srvtype, ":/");
+   tmp = strstr(srvreg->srvtype, "://");
    if (!tmp)
       return SLP_ERROR_PARSE_ERROR;
-
    srvreg->srvtypelen = tmp - srvreg->srvtype;
 
-   /* parse the attribute list */
-   srvreg->attrlistlen = AsUINT16(buffer->curpos);
-   buffer->curpos = buffer->curpos + 2;
-   if (srvreg->attrlistlen > buffer->end - buffer->curpos)
+   /* Parse the <attr-list>, and convert to UTF-8. */
+   srvreg->attrlistlen = GetUINT16(&buffer->curpos);
+   srvreg->attrlist = GetStrPtr(&buffer->curpos, srvreg->attrlistlen);
+   if (buffer->curpos > buffer->end)
       return SLP_ERROR_PARSE_ERROR;
-
-   srvreg->attrlist = buffer->curpos;
-   buffer->curpos = buffer->curpos + srvreg->attrlistlen;
-
-   result = SLPv1AsUTF8(header->encoding, 
-         (char *) srvreg->attrlist, &srvreg->attrlistlen);
-   if (result)
+   if ((result = SLPv1AsUTF8(encoding, (char *)srvreg->attrlist,
+         &srvreg->attrlistlen)) != 0)
       return result;
 
    /* SLPv1 registration requests don't include a scope either.
-    * The scope is included in the attribute list 
+    * The scope is included in the attribute list.
     */
-   if ((tmp = strstr(srvreg->attrlist, "SCOPE")) 
-         || (tmp = strstr(srvreg->attrlist, "scope")))
+   if ((tmp = strstr(srvreg->attrlist, "SCOPE")) != 0
+         || (tmp = strstr(srvreg->attrlist, "scope")) != 0)
    {
-      tmp += 5;       /* go past the scope */
-      while (*tmp && (isspace((unsigned char)*tmp) || *tmp == '='))
-         tmp++;      /* go past = and white space */
+      tmp += 5;
+      while (*tmp && (isspace(*tmp) || *tmp == '='))
+         tmp++;      /* Find start of scope string. */
       srvreg->scopelist = tmp;
-      while (*tmp && !isspace((unsigned char)*tmp) && *tmp != ')')
-         tmp++;      /* find end of scope */
+      while (*tmp && !isspace(*tmp) && *tmp != ')')
+         tmp++;      /* Find end of scope string. */
       srvreg->scopelistlen = tmp - srvreg->scopelist;
+      /** @todo Should we convert to UTF-8 here? */
    }
    else
    {
-      srvreg->scopelist = "default";
+      srvreg->scopelist = "DEFAULT";
       srvreg->scopelistlen = 7;
    }
 
-   /* we don't support auth blocks for SLPv1 - no one uses them anyway */
+   /* We don't support auth blocks for SLPv1 - no one uses them anyway. */
    srvreg->authcount = 0;
    srvreg->autharray = 0;
 
@@ -292,7 +297,7 @@ int v1ParseSrvReg(SLPBuffer buffer, SLPHeader * header, SLPSrvReg * srvreg)
 /** Parse an SLPv1 Service Deregister message.
  *
  * @param[in] buffer - The buffer containing the data to be parsed.
- * @param[in] header - The message header parsed from @p buffer.
+ * @param[in] encoding - The language encoding of the message.
  * @param[out] srvdereg - The service deregister object into which 
  *    @p buffer should be parsed.
  *
@@ -301,47 +306,64 @@ int v1ParseSrvReg(SLPBuffer buffer, SLPHeader * header, SLPSrvReg * srvreg)
  *
  * @internal
  */
-int v1ParseSrvDeReg(SLPBuffer buffer, SLPHeader * header, 
+static int v1ParseSrvDeReg(const SLPBuffer buffer, int encoding,
       SLPSrvDeReg * srvdereg)
 {
+/*  0                   1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |         length of URL         |              URL              |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                                                               |
+   \              URL of Service to Deregister, contd.             \
+   |                                                               |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |             (if present) authentication block .....
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |  length of <tag spec> string  |            <tag spec>         |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                                                               |
+   \                     <tag spec>, continued                     \
+   |                                                               |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ */
+
    int result;
 
-   /* make sure that min size is met */
+   /* Enforce SLPv1 service deregistration size limits. */
    if (buffer->end - buffer->curpos < 4)
       return SLP_ERROR_PARSE_ERROR;
 
-   /* SLPv1 deregistrations do not have a separate scope list */
+   /* Parse the URL, and convert to UTF-8. */
+   srvdereg->urlentry.urllen = GetUINT16(&buffer->curpos);
+   srvdereg->urlentry.url = GetStrPtr(&buffer->curpos, 
+         srvdereg->urlentry.urllen);
+   if (buffer->curpos > buffer->end)
+      return SLP_ERROR_PARSE_ERROR;
+   if ((result = SLPv1AsUTF8(encoding, (char *)srvdereg->urlentry.url,
+         &srvdereg->urlentry.urllen)) != 0)
+      return result;
+
+   /* URL Entry reserved and lifetime fields don't exist in SLPv1. */
+   srvdereg->urlentry.reserved = 0;
+   srvdereg->urlentry.lifetime = 0;
+
+   /* Almost no one used SLPv1 security, so we'll just ignore it for 
+    * now, and hope we never have to parse an SLPv1 request with security
+    * enabled.
+    */
+
+   /* Parse the <tag spec>, and convert to UTF-8. */
+   srvdereg->taglistlen = GetUINT16(&buffer->curpos);
+   srvdereg->taglist = GetStrPtr(&buffer->curpos, srvdereg->taglistlen);
+   if (buffer->curpos > buffer->end)
+      return SLP_ERROR_PARSE_ERROR;
+   if ((result = SLPv1AsUTF8(encoding, (char *)srvdereg->taglist,
+         &srvdereg->taglistlen)) != 0)
+      return result;
+
+   /* SLPv1 deregistrations do not have a separate scope list. */
    srvdereg->scopelistlen = 0;
    srvdereg->scopelist = 0;
-
-   /* parse the url */
-   srvdereg->urlentry.reserved = 0; /* not present in SLPv1 */
-   srvdereg->urlentry.lifetime = 0; /* not present in SLPv1 */
-   srvdereg->urlentry.urllen = AsUINT16(buffer->curpos);
-   buffer->curpos += 2;
-   if (srvdereg->urlentry.urllen > buffer->end - buffer->curpos)
-      return SLP_ERROR_PARSE_ERROR;
-
-   srvdereg->urlentry.url = buffer->curpos;
-   buffer->curpos += srvdereg->urlentry.urllen;
-   result = SLPv1AsUTF8(header->encoding, (char *) srvdereg->urlentry.url,
-         &srvdereg->urlentry.urllen);
-   if (result)
-      return result;
-
-   /* parse the tag list */
-   srvdereg->taglistlen = AsUINT16(buffer->curpos);
-   buffer->curpos = buffer->curpos + 2;
-   if (srvdereg->taglistlen > buffer->end - buffer->curpos)
-      return SLP_ERROR_PARSE_ERROR;
-
-   srvdereg->taglist = buffer->curpos;
-   buffer->curpos = buffer->curpos + srvdereg->taglistlen;
-
-   result = SLPv1AsUTF8(header->encoding, (char *) srvdereg->taglist,
-         &srvdereg->taglistlen);
-   if (result)
-      return result;
 
    return 0;
 }
@@ -349,7 +371,7 @@ int v1ParseSrvDeReg(SLPBuffer buffer, SLPHeader * header,
 /** Parse an SLPv1 Attribute Request message.
  *
  * @param[in] buffer - The buffer containing the data to be parsed.
- * @param[in] header - The message header parsed from @p buffer.
+ * @param[in] encoding - The language encoding of the message.
  * @param[out] attrrqst - The attribute request object into which 
  *    @p buffer should be parsed.
  *
@@ -358,79 +380,90 @@ int v1ParseSrvDeReg(SLPBuffer buffer, SLPHeader * header,
  *
  * @internal
  */
-int v1ParseAttrRqst(SLPBuffer buffer, SLPHeader * header, 
+static int v1ParseAttrRqst(const SLPBuffer buffer, int encoding,
       SLPAttrRqst * attrrqst)
 {
+/*  0                   1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |length of prev resp list string|<Previous Responders Addr Spec>|
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                                                               |
+   \         <Previous Responders Addr Spec>, continued            \
+   |                                                               |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |         length of URL         |              URL              |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                                                               |
+   \                         URL, continued                        \
+   |                                                               |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |        length of <Scope>      |           <Scope>             |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                                                               |
+   \                      <Scope>, continued                       \
+   |                                                               |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |   length of <select-list>     |        <select-list>          |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                                                               |
+   \                   <select-list>, continued                    \
+   |                                                               |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ */
+
    int result;
 
-   /* make sure that min size is met */
-   if (buffer->end - buffer->curpos < 10)
+   /* Enforce SLPv1 attribute request size limits. */
+   if (buffer->end - buffer->curpos < 8)
       return SLP_ERROR_PARSE_ERROR;
 
-   /* parse the prlist */
-   attrrqst->prlistlen = AsUINT16(buffer->curpos);
-   buffer->curpos = buffer->curpos + 2;
-   if (attrrqst->prlistlen > buffer->end - buffer->curpos)
+   /* Parse the <Previous Responders Addr Spec>, and convert to UTF-8. */
+   attrrqst->prlistlen = GetUINT16(&buffer->curpos);
+   attrrqst->prlist = GetStrPtr(&buffer->curpos, 
+         attrrqst->prlistlen);
+   if (buffer->curpos > buffer->end)
       return SLP_ERROR_PARSE_ERROR;
-
-   attrrqst->prlist = buffer->curpos;
-   buffer->curpos = buffer->curpos + attrrqst->prlistlen;
-
-   result = SLPv1AsUTF8(header->encoding, (char *) attrrqst->prlist,
-         &attrrqst->prlistlen);
-   if (result)
+   if ((result = SLPv1AsUTF8(encoding, (char *)attrrqst->prlist,
+         &attrrqst->prlistlen)) != 0)
       return result;
 
-   /* parse the url */
-   attrrqst->urllen = AsUINT16(buffer->curpos);
-   buffer->curpos = buffer->curpos + 2;
-   if (attrrqst->urllen > buffer->end - buffer->curpos)
+   /* Parse the URL, and convert to UTF-8. */
+   attrrqst->urllen = GetUINT16(&buffer->curpos);
+   attrrqst->url = GetStrPtr(&buffer->curpos, attrrqst->urllen);
+   if (buffer->curpos > buffer->end)
       return SLP_ERROR_PARSE_ERROR;
-
-   attrrqst->url = buffer->curpos;
-   buffer->curpos = buffer->curpos + attrrqst->urllen;
-
-   result = SLPv1AsUTF8(header->encoding, (char *) attrrqst->url,
-         &attrrqst->urllen);
-   if (result)
+   if ((result = SLPv1AsUTF8(encoding, (char *)attrrqst->url,
+         &attrrqst->urllen)) != 0)
       return result;
 
-   /* parse the scope list */
-   attrrqst->scopelistlen = AsUINT16(buffer->curpos);
-   buffer->curpos = buffer->curpos + 2;
-   if (attrrqst->scopelistlen > buffer->end - buffer->curpos)
-      return SLP_ERROR_PARSE_ERROR;
-
+   /* Parse the <Scope>, and convert to UTF-8. */
+   attrrqst->scopelistlen = GetUINT16(&buffer->curpos);
    if (attrrqst->scopelistlen)
    {
-      attrrqst->scopelist = buffer->curpos;
-      buffer->curpos += attrrqst->scopelistlen;
-      result = SLPv1AsUTF8(header->encoding, (char *) attrrqst->scopelist,
-            &attrrqst->scopelistlen);
-      if (result)
+      attrrqst->scopelist = GetStrPtr(&buffer->curpos, 
+            attrrqst->scopelistlen);
+      if (buffer->curpos > buffer->end)
+         return SLP_ERROR_PARSE_ERROR;
+      if ((result = SLPv1AsUTF8(encoding, (char *)attrrqst->scopelist,
+            &attrrqst->scopelistlen)) != 0)
          return result;
    }
    else
    {
-      attrrqst->scopelist = "default";
+      attrrqst->scopelist = "DEFAULT";
       attrrqst->scopelistlen = 7;
    }
 
-   /* parse the taglist string */
-   attrrqst->taglistlen = AsUINT16(buffer->curpos);
-   buffer->curpos = buffer->curpos + 2;
-   if (attrrqst->taglistlen > buffer->end - buffer->curpos)
+   /* Parse the <select-list>, and convert to UTF-8. */
+   attrrqst->taglistlen = GetUINT16(&buffer->curpos);
+   attrrqst->taglist = GetStrPtr(&buffer->curpos, attrrqst->taglistlen);
+   if (buffer->curpos > buffer->end)
       return SLP_ERROR_PARSE_ERROR;
-
-   attrrqst->taglist = buffer->curpos;
-   buffer->curpos = buffer->curpos + attrrqst->taglistlen;
-
-   result = SLPv1AsUTF8(header->encoding, (char *) attrrqst->taglist,
-         &attrrqst->taglistlen);
-   if (result)
+   if ((result = SLPv1AsUTF8(encoding, (char *)attrrqst->taglist,
+         &attrrqst->taglistlen)) != 0)
       return result;
 
-   /* SLPv1 service requests don't have SPI strings */
+   /* SLPv1 attribute requests don't have SPI strings. */
    attrrqst->spistrlen = 0;
    attrrqst->spistr = 0;
 
@@ -440,7 +473,7 @@ int v1ParseAttrRqst(SLPBuffer buffer, SLPHeader * header,
 /** Parse an SLPv1 Service Type Request message.
  *
  * @param[in] buffer - The buffer containing the data to be parsed.
- * @param[in] header - The message header parsed from @p buffer.
+ * @param[in] encoding - The language encoding of the message.
  * @param[out] srvtyperqst - The service type request object into which 
  *    @p buffer should be parsed.
  *
@@ -449,67 +482,76 @@ int v1ParseAttrRqst(SLPBuffer buffer, SLPHeader * header,
  *
  * @internal
  */
-int v1ParseSrvTypeRqst(SLPBuffer buffer, SLPHeader * header,
+static int v1ParseSrvTypeRqst(const SLPBuffer buffer, int encoding,
       SLPSrvTypeRqst * srvtyperqst)
 {
+/*  0                   1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |  length of prev resp string   |<Previous Responders Addr Spec>|
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                                                               |
+   \                  <Previous Responders Addr Spec>              \
+   |                                                               |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |   length of naming authority  |   <Naming Authority String>   |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                                                               |
+   \            <Naming Authority String>, continued               \
+   |                                                               |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |     length of Scope String    |         <Scope String>        |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                                                               |
+   \                   <Scope String>, continued                   \
+   |                                                               |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ */
+
    int result;
 
-   /* make sure that min size is met */
+   /* Enforce SLPv1 service type request size limits. */
    if (buffer->end - buffer->curpos < 6)
       return SLP_ERROR_PARSE_ERROR;
 
-   /* parse the prlist */
-   srvtyperqst->prlistlen = AsUINT16(buffer->curpos);
-   buffer->curpos += 2;
-   if (srvtyperqst->prlistlen > buffer->end - buffer->curpos)
+   /* Parse the <Previous Responders Addr Spec>, and convert to UTF-8. */
+   srvtyperqst->prlistlen = GetUINT16(&buffer->curpos);
+   srvtyperqst->prlist = GetStrPtr(&buffer->curpos, srvtyperqst->prlistlen);
+   if (buffer->curpos > buffer->end)
       return SLP_ERROR_PARSE_ERROR;
-
-   srvtyperqst->prlist = srvtyperqst->prlistlen ? buffer->curpos : 0;
-   buffer->curpos += srvtyperqst->prlistlen;
-
-   result = SLPv1AsUTF8(header->encoding, (char *) srvtyperqst->prlist,
-         &srvtyperqst->prlistlen);
-   if (result)
+   if ((result = SLPv1AsUTF8(encoding, (char *)srvtyperqst->prlist,
+         &srvtyperqst->prlistlen)) != 0)
       return result;
 
-   /* parse the naming authority if present */
-   srvtyperqst->namingauthlen = AsUINT16(buffer->curpos);
-   buffer->curpos += 2;
+   /* Parse the <Naming Authority String>, and convert to UTF-8. */
+   srvtyperqst->namingauthlen = GetUINT16(&buffer->curpos);
    if (!srvtyperqst->namingauthlen || srvtyperqst->namingauthlen == 0xffff)
       srvtyperqst->namingauth = 0;
    else
    {
-      if (srvtyperqst->namingauthlen > buffer->end - buffer->curpos)
+      srvtyperqst->namingauth = GetStrPtr(&buffer->curpos, 
+            srvtyperqst->namingauthlen);
+      if (buffer->curpos > buffer->end)
          return SLP_ERROR_PARSE_ERROR;
-
-      srvtyperqst->namingauth = buffer->curpos;
-      buffer->curpos += srvtyperqst->namingauthlen;
-      result = SLPv1AsUTF8(header->encoding,
-            (char *) srvtyperqst->namingauth,
-            &srvtyperqst->namingauthlen);
-      if (result)
+      if ((result = SLPv1AsUTF8(encoding, (char *)srvtyperqst->namingauth,
+            &srvtyperqst->namingauthlen)) != 0)
          return result;
    }
 
-   /* parse the scope list */
-   srvtyperqst->scopelistlen = AsUINT16(buffer->curpos);
-   buffer->curpos += 2;
-   if (srvtyperqst->scopelistlen > buffer->end - buffer->curpos)
-      return SLP_ERROR_PARSE_ERROR;
-
+   /* Parse the <Scope String>, and convert to UTF-8. */
+   srvtyperqst->scopelistlen = GetUINT16(&buffer->curpos);
    if (srvtyperqst->scopelistlen)
    {
-      srvtyperqst->scopelist = buffer->curpos;
-      buffer->curpos += srvtyperqst->scopelistlen;
-      result = SLPv1AsUTF8(header->encoding,
-            (char *) srvtyperqst->scopelist,
-            &srvtyperqst->scopelistlen);
-      if (result)
+      srvtyperqst->scopelist = GetStrPtr(&buffer->curpos, 
+            srvtyperqst->scopelistlen);
+      if (buffer->curpos > buffer->end)
+         return SLP_ERROR_PARSE_ERROR;
+      if ((result = SLPv1AsUTF8(encoding, (char *)srvtyperqst->scopelist,
+            &srvtyperqst->scopelistlen)) != 0)
          return result;
    }
    else
    {
-      srvtyperqst->scopelist = "default";
+      srvtyperqst->scopelist = "DEFAULT";
       srvtyperqst->scopelistlen = 7;
    }
    return 0;
@@ -526,36 +568,50 @@ int v1ParseSrvTypeRqst(SLPBuffer buffer, SLPHeader * header,
  *
  * @todo Add more flag constraints.
  */
-int SLPv1MessageParseHeader(SLPBuffer buffer, SLPHeader * header)
+int SLPv1MessageParseHeader(const SLPBuffer buffer, SLPHeader * header)
 {
-   header->version     = *(buffer->curpos);
-   header->functionid  = *(buffer->curpos + 1);
-   header->length      = AsUINT16(buffer->curpos + 2);
-   header->flags       = *(buffer->curpos + 4);
-   header->encoding    = AsUINT16(buffer->curpos + 8);
-   header->extoffset   = 0; /* not used for SLPv1 */
-   header->xid         = AsUINT16(buffer->curpos + 10);
-   header->langtaglen  = 2;
-   header->langtag     = buffer->curpos + 6;
+/*  0                   1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |    Version    |    Function   |            Length             |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |O|M|U|A|F| rsvd|    Dialect    |        Language Code          |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |        Char Encoding          |              XID              |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ */
 
-   if (header->functionid > SLP_FUNCT_SRVTYPERQST)
-      return SLP_ERROR_PARSE_ERROR; /* invalid function id */
+   /* Check for invalid length - 12 bytes is the smallest SLPv1 message. */
+   if (buffer->end - buffer->start < 12)
+      return SLP_ERROR_PARSE_ERROR;
 
-   if (header->encoding != SLP_CHAR_ASCII 
+   /* Parse header fields. */
+   header->version = *buffer->curpos++;
+   header->functionid = *buffer->curpos++;
+   header->length = GetUINT16(&buffer->curpos);
+   header->flags = *buffer->curpos++;
+/* header->dialect = */ buffer->curpos++;  /* dialect */
+   header->encoding = AS_UINT16(buffer->curpos);
+   header->langtaglen = 2;
+   header->langtag = GetStrPtr(&buffer->curpos, header->langtaglen);
+/* header->chartag = */ GetUINT16(&buffer->curpos); /* character encoding */
+   header->extoffset = 0; /* not used for SLPv1 */
+   header->xid = GetUINT16(&buffer->curpos);
+
+   /* Enforce function id value range. */
+   if (header->functionid < SLP_FUNCT_SRVRQST 
+         || header->functionid > SLP_FUNCT_SRVTYPERPLY)
+      return SLP_ERROR_PARSE_ERROR;
+
+   /* Enforce language encoding limits. */
+   if (header->encoding != SLP_CHAR_ASCII
          && header->encoding != SLP_CHAR_UTF8
          && header->encoding != SLP_CHAR_UNICODE16
          && header->encoding != SLP_CHAR_UNICODE32)
       return SLP_ERROR_CHARSET_NOT_UNDERSTOOD;
 
-   if (header->length != buffer->end - buffer->start
-         || header->length < 12)
-      return SLP_ERROR_PARSE_ERROR; /* 12 bytes is the smallest v1 message */
-
-   /* @todo Do something about the other flags. */
+   /* Enforce reserved flags constraint. */
    if (header->flags & 0x07)
-      return SLP_ERROR_PARSE_ERROR; /* invalid flags */
-
-   buffer->curpos += 12;
+      return SLP_ERROR_PARSE_ERROR;
 
    return 0;
 }
@@ -566,7 +622,6 @@ int SLPv1MessageParseHeader(SLPBuffer buffer, SLPHeader * header)
  * need to implement the entire SLPv1 specification. Only those portions
  * that are necessary for v1 backward-compatibility.
  *
- * @param[in] peerinfo - The network address of the remote client.
  * @param[in] buffer - The buffer from which data should be parsed.
  * @param[out] message - The message into which @p buffer should be parsed.
  *
@@ -581,60 +636,48 @@ int SLPv1MessageParseHeader(SLPBuffer buffer, SLPHeader * header)
  *    routine and has already reset the message to accomodate new buffer
  *    data.
  */
-int SLPv1MessageParseBuffer(struct sockaddr_storage * peerinfo,
-      SLPBuffer buffer, SLPMessage message)
+int SLPv1MessageParseBuffer(const SLPBuffer buffer, SLPMessage message)
 {
    int result;
 
-   /* Copy in the peer info */
-   memcpy(&message->peer, peerinfo, sizeof(message->peer));
-
-   /* Get ready to parse */
-   SLPMessageFreeInternals(message);
-   buffer->curpos = buffer->start;
-
    /* parse the header first */
-   result = SLPv1MessageParseHeader(buffer, &(message->header));
+   result = SLPv1MessageParseHeader(buffer, &message->header);
    if (result == 0)
    {
       /* switch on the function id to parse the body */
       switch (message->header.functionid)
       {
          case SLP_FUNCT_SRVRQST:
-            result = v1ParseSrvRqst(buffer, 
-                  &(message->header), 
-                  &(message->body.srvrqst));
+            result = v1ParseSrvRqst(buffer, message->header.encoding,
+                  &message->body.srvrqst);
             break;
 
          case SLP_FUNCT_SRVREG:
-            result = v1ParseSrvReg(buffer,
-                  &(message->header),
-                  &(message->body.srvreg));
+            result = v1ParseSrvReg(buffer, message->header.encoding,
+                  &message->body.srvreg);
             break;
 
          case SLP_FUNCT_SRVDEREG:
-            result = v1ParseSrvDeReg(buffer,
-                  &(message->header),
-                  &(message->body.srvdereg));
+            result = v1ParseSrvDeReg(buffer, message->header.encoding,
+                  &message->body.srvdereg);
             break;
 
          case SLP_FUNCT_ATTRRQST:
-            result = v1ParseAttrRqst(buffer, 
-                  &(message->header),
-                  &(message->body.attrrqst));
+            result = v1ParseAttrRqst(buffer, message->header.encoding,
+                  &message->body.attrrqst);
             break;
 
          case SLP_FUNCT_DAADVERT:
             /* We are a SLPv2 DA, drop advertisements from other v1
-                   DAs (including ourselves). The message will be ignored
-                   by SLPDv1ProcessMessage(). */
+             * DAs (including our own). The message will be ignored
+             * by SLPDv1ProcessMessage(). 
+             */
             result = 0;
             break;
 
          case SLP_FUNCT_SRVTYPERQST:
-            result = v1ParseSrvTypeRqst(buffer, 
-                  &(message->header),
-                  &(message->body.srvtyperqst));
+            result = v1ParseSrvTypeRqst(buffer, message->header.encoding,
+                  &message->body.srvtyperqst);
             break;
 
          default:
@@ -645,3 +688,4 @@ int SLPv1MessageParseBuffer(struct sockaddr_storage * peerinfo,
 }
 
 /*=========================================================================*/
+

@@ -48,7 +48,7 @@
  * @{
  */
 
-#include "slpd.h"
+#include "slp_types.h"
 
 #ifndef _WIN32
 # define SLPD_CONFFILE ETCDIR "/slp.conf"
@@ -64,19 +64,24 @@
 # define SLPD_SPIFILE  "%WINDIR%\\slp.spi"
 #endif
 
-#ifndef MAX_PATH
-# define MAX_PATH 256
-#endif
+typedef enum
+{
+   SLPD_INSTALL,
+   SLPD_REMOVE,
+   SLPD_DEBUG,
+   SLPD_START,
+   SLPD_STOP,
+} SLPDAction;
 
+/** Holds  values of parameters read from the command line.
+ */
 typedef struct _SLPDCommandLine
 {
    char cfgfile[MAX_PATH];
    char regfile[MAX_PATH];
    char logfile[MAX_PATH];
    char pidfile[MAX_PATH];
-#ifdef ENABLE_SLPv2_SECURITY
    char spifile[MAX_PATH];
-#endif
    int action;
    int autostart;
    int detach;
@@ -84,9 +89,8 @@ typedef struct _SLPDCommandLine
 
 extern SLPDCommandLine G_SlpdCommandLine;
 
-void SLPDPrintUsage();
-
-int SLPDParseCommandLine(int argc,char* argv[]);
+void SLPDPrintUsage(void);
+int SLPDParseCommandLine(int argc, char * argv[]);
 
 /*! @} */
 

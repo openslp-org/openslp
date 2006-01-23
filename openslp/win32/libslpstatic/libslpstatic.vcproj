@@ -1,109 +1,141 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.10"
+	Version="8.00"
 	Name="slpstatic"
-	ProjectGUID="{3DB1EB4E-5A42-4742-989E-9967E820CF0D}"
-	SccProjectName=""
-	SccLocalPath="">
+	ProjectGUID="{226ECB7D-B7BE-4B62-9E0C-8DA35480753A}"
+	>
 	<Platforms>
 		<Platform
-			Name="Win32"/>
+			Name="Win32"
+		/>
 	</Platforms>
+	<ToolFiles>
+	</ToolFiles>
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)\obj"
+			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="4"
-			UseOfMFC="0"
-			ATLMinimizesCRunTimeLibraryUsage="FALSE"
-			CharacterSet="0">
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../common"
-				PreprocessorDefinitions="SLP_VERSION=\&quot;1.3.0\&quot;, LIBSLP_STATIC, DEBUG"
+				AdditionalIncludeDirectories="..\..\common"
+				PreprocessorDefinitions="_CRT_SECURE_NO_DEPRECATE;SLP_VERSION=\&quot;2.0.0\&quot;;ENABLE_SLPv1;LIBSLP_STATIC;_DEBUG"
 				RuntimeLibrary="3"
-				PrecompiledHeaderThrough=""
-				PrecompiledHeaderFile=""
-				ProgramDataBaseFileName="$(OutDir)/$(ProjectName).pdb"
-				BrowseInformationFile=""
+				ProgramDataBaseFileName="$(IntDir)\slpstatic.pdb"
 				WarningLevel="4"
-				WarnAsError="TRUE"
-				Detect64BitPortabilityProblems="TRUE"
-				DebugInformationFormat="4"
-				CompileAs="0"/>
+				WarnAsError="true"
+				Detect64BitPortabilityProblems="true"
+				DebugInformationFormat="3"
+				CompileAs="0"
+			/>
 			<Tool
-				Name="VCCustomBuildTool"/>
-			<Tool
-				Name="VCLibrarianTool"/>
-			<Tool
-				Name="VCMIDLTool"/>
-			<Tool
-				Name="VCPostBuildEventTool"/>
-			<Tool
-				Name="VCPreBuildEventTool"/>
-			<Tool
-				Name="VCPreLinkEventTool"/>
+				Name="VCManagedResourceCompilerTool"
+			/>
 			<Tool
 				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="_DEBUG"
-				Culture="1033"/>
+			/>
 			<Tool
-				Name="VCWebServiceProxyGeneratorTool"/>
+				Name="VCPreLinkEventTool"
+			/>
 			<Tool
-				Name="VCXMLDataGeneratorTool"/>
+				Name="VCLibrarianTool"
+			/>
 			<Tool
-				Name="VCManagedWrapperGeneratorTool"/>
+				Name="VCALinkTool"
+			/>
 			<Tool
-				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)\obj"
+			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="4"
-			UseOfMFC="0"
-			ATLMinimizesCRunTimeLibraryUsage="FALSE"
-			CharacterSet="0">
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="../../common"
-				PreprocessorDefinitions="SLP_VERSION=\&quot;1.3.0\&quot;, LIBSLP_STATIC"
+				Optimization="2"
+				AdditionalIncludeDirectories="..\..\common"
+				PreprocessorDefinitions="_CRT_SECURE_NO_DEPRECATE;SLP_VERSION=\&quot;2.0.0\&quot;;ENABLE_SLPv1;LIBSLP_STATIC;NDEBUG"
 				RuntimeLibrary="2"
-				PrecompiledHeaderThrough=""
-				PrecompiledHeaderFile=""
-				ProgramDataBaseFileName="$(OutDir)/$(ProjectName).pdb"
+				ProgramDataBaseFileName="$(IntDir)\slpstatic.pdb"
 				WarningLevel="4"
-				WarnAsError="TRUE"
-				Detect64BitPortabilityProblems="TRUE"
+				WarnAsError="true"
+				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="3"
-				CompileAs="0"/>
+				CompileAs="0"
+			/>
 			<Tool
-				Name="VCCustomBuildTool"/>
-			<Tool
-				Name="VCLibrarianTool"/>
-			<Tool
-				Name="VCMIDLTool"/>
-			<Tool
-				Name="VCPostBuildEventTool"/>
-			<Tool
-				Name="VCPreBuildEventTool"/>
-			<Tool
-				Name="VCPreLinkEventTool"/>
+				Name="VCManagedResourceCompilerTool"
+			/>
 			<Tool
 				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="NDEBUG"
-				Culture="1033"/>
+			/>
 			<Tool
-				Name="VCWebServiceProxyGeneratorTool"/>
+				Name="VCPreLinkEventTool"
+			/>
 			<Tool
-				Name="VCXMLDataGeneratorTool"/>
+				Name="VCLibrarianTool"
+			/>
 			<Tool
-				Name="VCManagedWrapperGeneratorTool"/>
+				Name="VCALinkTool"
+			/>
 			<Tool
-				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
 		</Configuration>
 	</Configurations>
 	<References>
@@ -111,52 +143,74 @@
 	<Files>
 		<Filter
 			Name="Source Files"
-			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
+			Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
+			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
+			>
 			<File
-				RelativePath="..\..\libslp\libslp_delattrs.c">
+				RelativePath="..\..\libslp\libslp_delattrs.c"
+				>
 			</File>
 			<File
-				RelativePath="..\..\libslp\libslp_dereg.c">
+				RelativePath="..\..\libslp\libslp_dereg.c"
+				>
 			</File>
 			<File
-				RelativePath="..\..\libslp\libslp_findattrs.c">
+				RelativePath="..\..\libslp\libslp_findattrs.c"
+				>
 			</File>
 			<File
-				RelativePath="..\..\libslp\libslp_findscopes.c">
+				RelativePath="..\..\libslp\libslp_findscopes.c"
+				>
 			</File>
 			<File
-				RelativePath="..\..\libslp\libslp_findsrvs.c">
+				RelativePath="..\..\libslp\libslp_findsrvs.c"
+				>
 			</File>
 			<File
-				RelativePath="..\..\libslp\libslp_findsrvtypes.c">
+				RelativePath="..\..\libslp\libslp_findsrvtypes.c"
+				>
 			</File>
 			<File
-				RelativePath="..\..\libslp\libslp_handle.c">
+				RelativePath="..\..\libslp\libslp_handle.c"
+				>
 			</File>
 			<File
-				RelativePath="..\..\libslp\libslp_knownda.c">
+				RelativePath="..\..\libslp\libslp_knownda.c"
+				>
 			</File>
 			<File
-				RelativePath="..\..\libslp\libslp_network.c">
+				RelativePath="..\..\libslp\libslp_network.c"
+				>
 			</File>
 			<File
-				RelativePath="..\..\libslp\libslp_parse.c">
+				RelativePath="..\..\libslp\libslp_parse.c"
+				>
 			</File>
 			<File
-				RelativePath="..\..\libslp\libslp_property.c">
+				RelativePath="..\..\libslp\libslp_property.c"
+				>
 			</File>
 			<File
-				RelativePath="..\..\libslp\libslp_reg.c">
+				RelativePath="..\..\libslp\libslp_reg.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libslp\libslp_thread.c"
+				>
 			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
-			Filter="h;hpp;hxx;hm;inl">
+			Filter="h;hpp;hxx;hm;inl;inc;xsd"
+			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
+			>
 			<File
-				RelativePath="..\..\libslp\libslp.h">
+				RelativePath="..\..\libslp\libslp.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\libslp\slp.h">
+				RelativePath="..\..\libslp\slp.h"
+				>
 			</File>
 		</Filter>
 	</Files>

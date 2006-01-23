@@ -45,6 +45,6 @@ INCLUDES = -I$(top_srcdir)/libslp
 
 slptool_SOURCES = slptool.c slptool.h
 slptool_LDADD = \
-   ../libslp/libslp.la \
-   ../common/libcommonlibslp.la \
-   ../common/libcommonslpd.la
+	../libslp/libslp.la \
+	../common/libcommonlibslp.la \
+	../common/libcommonslpd.la

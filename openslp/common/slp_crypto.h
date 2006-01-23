@@ -52,32 +52,29 @@
  * @{
  */
 
+#ifdef ENABLE_SLPv2_SECURITY
+
 #include <openssl/dsa.h>
 #include <openssl/sha.h>
 
 typedef DSA SLPCryptoDSAKey;
 
-int SLPCryptoSHA1Digest(const unsigned char* data,
-                        int datalen,
-                        unsigned char* digest);
+int SLPCryptoSHA1Digest(const unsigned char * data, int datalen, 
+      unsigned char * digest);
 
-SLPCryptoDSAKey* SLPCryptoDSAKeyDup(SLPCryptoDSAKey* dsa);
+SLPCryptoDSAKey * SLPCryptoDSAKeyDup(SLPCryptoDSAKey * dsa);
 
-void SLPCryptoDSAKeyDestroy(SLPCryptoDSAKey* dsa);
+void SLPCryptoDSAKeyDestroy(SLPCryptoDSAKey * dsa);
 
-int SLPCryptoDSASignLen(SLPCryptoDSAKey* key);
+int SLPCryptoDSASignLen(SLPCryptoDSAKey * key);
 
-int SLPCryptoDSASign(SLPCryptoDSAKey* key,
-                     const unsigned char* digest,
-                     int digestlen,
-                     unsigned char* signature,
-                     int* signaturelen);
+int SLPCryptoDSASign(SLPCryptoDSAKey * key, const unsigned char * digest,
+      int digestlen, unsigned char * signature, int * signaturelen);
 
-int SLPCryptoDSAVerify(SLPCryptoDSAKey* key,
-                       const unsigned char* digest,
-                       int digestlen,
-                       const unsigned char* signature,
-                       int signaturelen);
+int SLPCryptoDSAVerify(SLPCryptoDSAKey * key, const unsigned char * digest,
+      int digestlen, const unsigned char * signature, int signaturelen);
+
+#endif   /* ENABLE_SLPv2_SECURITY */
 
 /*! @} */
 

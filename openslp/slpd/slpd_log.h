@@ -49,7 +49,6 @@
  */
 
 #include "slpd.h"
-
 #include "slp_message.h"
 #include "slp_database.h"
 
@@ -58,33 +57,22 @@
 #define SLPDLOG_TRACEMSG_IN  (SLPDLOG_TRACEMSG | 0x00000001)
 #define SLPDLOG_TRACEMSG_OUT (SLPDLOG_TRACEMSG | 0x00000002)
 
-int SLPDLogFileOpen(const char* path, int append);
+int SLPDLogFileOpen(const char * path, int append);
 
 #ifdef DEBUG
-int SLPDLogFileClose();
+int SLPDLogFileClose(void);
 #endif
 
-void SLPDLogBuffer(const char* prefix, int bufsize, const char* buf);
-
-void SLPDLog(const char* msg, ...);
-
-void SLPDFatal(const char* msg, ...);
-
-void SLPDLogTime();
-
+void SLPDLogBuffer(const char * prefix, size_t bufsize, const char * buf);
+void SLPDLog(const char * msg, ...);
+void SLPDFatal(const char * msg, ...);
+void SLPDLogTime(void);
 void SLPDLogMessageInternals(SLPMessage message);
-
-void SLPDLogMessage(int msglogflags,
-                    struct sockaddr_storage* peerinfo,
-                    struct sockaddr_storage* localaddr,
-                    SLPBuffer buf);
-
-void SLPDLogRegistration(const char* prefix, SLPDatabaseEntry* entry);
-
-void SLPDLogDAAdvertisement(const char* prefix,
-                            SLPDatabaseEntry* entry);
-
-void SLPDLogParseWarning(struct sockaddr_storage* peeraddr, SLPBuffer buf);
+void SLPDLogMessage(int msglogflags, struct sockaddr_storage * peerinfo,
+      struct sockaddr_storage * localaddr, SLPBuffer buf);
+void SLPDLogRegistration(const char * prefix, SLPDatabaseEntry * entry);
+void SLPDLogDAAdvertisement(const char * prefix, SLPDatabaseEntry * entry);
+void SLPDLogParseWarning(struct sockaddr_storage * peeraddr, SLPBuffer buf);
 
 /*! @} */
 

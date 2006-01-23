@@ -54,68 +54,61 @@
  * @{
  */
 
+#ifdef ENABLE_SLPv2_SECURITY
+
 typedef struct _SLPSpiEntry
 {
+   /** Make an SPI entry object list-able. */
    SLPListItem listitem;
-   /*!< @brief Make an SPI entry object list-able. 
-    */
+
+   /** The length of the spi string member. */
    int spistrlen;
-   /*!< @brief The length of the spi string member.
-    */
+
+   /** The SPI string. */
    char * spistr;
-   /*!< @brief The SPI string.
-    */
+
+   /** The key file name. */
    char * keyfilename;
-   /*!< @brief The key file name.
-    */
+
+   /** The cryptographic key material. */
    SLPCryptoDSAKey * key;
-   /*!< @brief The cryptographic key material.
-    */
+
+   /** The type of key material stored in the key member. */
    int keytype;
-   /*!< @brief The type of key material stored in the key member.
-    */
 } SLPSpiEntry;
 
 /* Key type values */
-#define SLPSPI_KEY_TYPE_ANY     0
-#define SLPSPI_KEY_TYPE_PUBLIC  1
-#define SLPSPI_KEY_TYPE_PRIVATE 2
+#define SLPSPI_KEY_TYPE_ANY      0
+#define SLPSPI_KEY_TYPE_PUBLIC   1
+#define SLPSPI_KEY_TYPE_PRIVATE  2
 
 typedef struct _SLPSpiHandle
 {
+   /** The SPI file name. */
    char * spifile;
-   /*!< @brief The SPI file name.
-    */
+
+   /** A flag indicating whether to privately cache the SPI information. */
    int cacheprivate;
-   /*!< @brief A flag indicating whether to privately cache the SPI information.
-    */
+
+   /** The cache (used only if the cacheprivate member is true). */
    SLPList cache;
-   /*!< @brief The cache (used only if the cacheprivate member is true).
-    */
 } * SLPSpiHandle;
 
-SLPSpiHandle SLPSpiOpen(const char* spifile, int cacheprivate);
+SLPSpiHandle SLPSpiOpen(const char * spifile, int cacheprivate);
 
 void SLPSpiClose(SLPSpiHandle hspi);
 
-SLPCryptoDSAKey* SLPSpiGetDSAKey(SLPSpiHandle hspi,
-                                 int keytype,
-                                 int spistrlen,
-                                 const char* spistr,
-                                 SLPCryptoDSAKey **key);
+SLPCryptoDSAKey * SLPSpiGetDSAKey(SLPSpiHandle hspi, int keytype, 
+      size_t spistrlen, const char * spistr, SLPCryptoDSAKey ** key);
 
-char* SLPSpiGetDefaultSPI(SLPSpiHandle hspi, 
-                          int keytype,
-                          int* spistrlen,
-                          char** spistr);
+char * SLPSpiGetDefaultSPI(SLPSpiHandle hspi, int keytype, 
+      size_t * spistrlen, char ** spistr);
 
-int SLPSpiCanVerify(SLPSpiHandle hspi,
-                    int spistrlen,
-                    const char* spistr);
+int SLPSpiCanVerify(SLPSpiHandle hspi, size_t spistrlen, const char * spistr);
 
-int SLPSpiCanSign(SLPSpiHandle hspi,
-                  int spistrlen,
-                  const char* spistr);
+int SLPSpiCanSign(SLPSpiHandle hspi, size_t spistrlen, const char * spistr);
+
+#endif   /* ENABLE_SLPv2_SECURITY */
 
 /*! @} */
 

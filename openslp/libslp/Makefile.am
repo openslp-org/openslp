@@ -30,37 +30,30 @@
 #  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 #  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #----------------------------------------------------------------------------
-#
-# Makefile.am
-#   Automake File
-#     The linked in library libcommonlibslp, which is from ../common
-#     containing exacts functions which are required.
-#
-#----------------------------------------------------------------------------
 
 EXTRA_DIST = 
 
 lib_LTLIBRARIES = libslp.la
 include_HEADERS = slp.h
-INCLUDES	= -I$(top_srcdir)/common 
+INCLUDES	= -I$(top_srcdir)/common
 
 libslp_la_SOURCES = \
-   libslp_delattrs.c \
-   libslp_dereg.c \
-   libslp_findattrs.c \
-   libslp_findscopes.c \
-   libslp_findsrvs.c \
-   libslp_findsrvtypes.c \
-   libslp_handle.c  \
-   libslp_knownda.c \
-   libslp_network.c \
-   libslp_parse.c \
-   libslp_property.c  \
-   libslp_reg.c \
-   libslp_thread.c
+	libslp_delattrs.c \
+	libslp_dereg.c \
+	libslp_findattrs.c \
+	libslp_findscopes.c \
+	libslp_findsrvs.c \
+	libslp_findsrvtypes.c \
+	libslp_handle.c  \
+	libslp_knownda.c \
+	libslp_network.c \
+	libslp_parse.c \
+	libslp_property.c  \
+	libslp_reg.c \
+	libslp_thread.c
 
 noinst_HEADERS = \
-   libslp.h
+	libslp.h
 
 #if you're building on Irix, exchange commented and uncommented lines
 #libslp_la_LIBADD = -L../common/libcommonlibslp

@@ -63,11 +63,9 @@
 #define SLPv1_FLAG_ATTRAUTH   0x10
 #define SLPv1_FLAG_FRESH      0x08
 
-int SLPv1MessageParseBuffer(struct sockaddr_storage* peerinfo,
-                                   SLPBuffer buffer, 
-                                   SLPMessage message); 
+int SLPv1MessageParseHeader(const SLPBuffer buffer, SLPHeader * header);
 
-int SLPv1MessageParseHeader(SLPBuffer buffer, SLPHeader* header);
+int SLPv1MessageParseBuffer(const SLPBuffer buffer, SLPMessage message); 
 
 /*! @} */
 

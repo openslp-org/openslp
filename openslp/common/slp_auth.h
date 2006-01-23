@@ -53,74 +53,46 @@
  * @{
  */
 
+#ifdef ENABLE_SLPv2_SECURITY
+
 #define SLPAUTH_SHA1_DIGEST_SIZE    20
 
-int SLPAuthVerifyString(SLPSpiHandle hspi,
-                        int emptyisfail,
-                        unsigned short stringlen,
-                        const char* string,
-                        int authcount,
-                        const SLPAuthBlock* autharray);
+int SLPAuthVerifyString(SLPSpiHandle hspi, int emptyisfail, 
+      unsigned short stringlen, const char * string, int authcount, 
+      const SLPAuthBlock * autharray);
 
+int SLPAuthVerifyUrl(SLPSpiHandle hspi, int emptyisfail,
+      const SLPUrlEntry * urlentry);
 
-int SLPAuthVerifyUrl(SLPSpiHandle hspi,
-                     int emptyisfail,
-                     const SLPUrlEntry* urlentry);
+int SLPAuthVerifyDAAdvert(SLPSpiHandle hspi, int emptyisfail, 
+      const SLPDAAdvert * daadvert);
 
+int SLPAuthVerifySAAdvert(SLPSpiHandle hspi, int emptyisfail, 
+      const SLPSAAdvert * saadvert);
 
-int SLPAuthVerifyDAAdvert(SLPSpiHandle hspi,
-                          int emptyisfail,
-                          const SLPDAAdvert* daadvert);
+int SLPAuthSignString(SLPSpiHandle hspi, int spistrlen, 
+      const char * spistr, unsigned short stringlen, 
+      const char * string, int * authblocklen,
+      unsigned char ** authblock);
 
+int SLPAuthSignUrl(SLPSpiHandle hspi, int spistrlen, const char * spistr,
+      unsigned short urllen, const char * url, int * authblocklen,
+      unsigned char ** authblock);
 
-int SLPAuthVerifySAAdvert(SLPSpiHandle hspi,
-                          int emptyisfail,
-                          const SLPSAAdvert* saadvert);
+int SLPAuthSignDAAdvert(SLPSpiHandle hspi, unsigned short spistrlen, 
+      const char * spistr, unsigned long bootstamp, unsigned short urllen,
+      const char * url, unsigned short attrlistlen, const char * attrlist,
+      unsigned short scopelistlen, const char * scopelist, 
+      unsigned short daspistrlen, const char * daspistr, 
+      int * authblocklen, unsigned char ** authblock);
 
+int SLPAuthSignSAAdvert(unsigned short spistrlen, const char * spistr,
+      unsigned short urllen, const char * url, unsigned short attrlistlen,
+      const char * attrlist, unsigned short scopelistlen, 
+      const char * scopelist, int * authblocklen, 
+      unsigned char ** authblock);
 
-int SLPAuthSignString(SLPSpiHandle hspi,
-                      int spistrlen,
-                      const char* spistr,
-                      unsigned short stringlen,
-                      const char* string,
-                      int* authblocklen,
-                      unsigned char** authblock);
-
-
-int SLPAuthSignUrl(SLPSpiHandle hspi,
-                   int spistrlen,
-                   const char* spistr,
-                   unsigned short urllen,
-                   const char* url,
-                   int* authblocklen,
-                   unsigned char** authblock);
-
-
-int SLPAuthSignDAAdvert(SLPSpiHandle hspi,
-                        unsigned short spistrlen,
-                        const char* spistr,
-                        unsigned long bootstamp,
-                        unsigned short urllen,
-                        const char* url,
-                        unsigned short attrlistlen,
-                        const char* attrlist,
-                        unsigned short scopelistlen,
-                        const char* scopelist,
-                        unsigned short daspistrlen,
-                        const char* daspistr,
-                        int* authblocklen,
-                        unsigned char** authblock);
-
-int SLPAuthSignSAAdvert(unsigned short spistrlen,
-                        const char* spistr,
-                        unsigned short urllen,
-                        const char* url,
-                        unsigned short attrlistlen,
-                        const char* attrlist,
-                        unsigned short scopelistlen,
-                        const char* scopelist,
-                        int* authblocklen,
-                        unsigned char** authblock);
+#endif   /* ENABLE_SLPv2_SECURITY */
 
 /*! @} */
 

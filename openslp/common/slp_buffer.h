@@ -41,13 +41,14 @@
  * @ingroup    CommonCode
  */
 
-#if(!defined SLP_BUFFER_H_INCLUDED)
+#ifndef SLP_BUFFER_H_INCLUDED
 #define SLP_BUFFER_H_INCLUDED
 
 #include <stdlib.h>
 #include <memory.h>
 
 #include "slp_linkedlist.h"
+#include "slp_types.h"
 
 /*!@defgroup CommonCodeBuffers Message Buffers */
 
@@ -58,30 +59,14 @@
 
 /** Buffer object holds SLP messages.
  */
-typedef struct _SLPBuffer                                                  
+typedef struct _SLPBuffer
 {
-   SLPListItem listitem;
-   /*!< @brief Allows SLPBuffers to be linked.
-    */
-   size_t allocated;       
-   /*!< @brief Allocated size of buffer.
-    * The allocated size of this buffer (the actual xmalloc'd size is
-    * one byte more than this to null terminate C strings) 
-    */
-   unsigned char * start;
-   /*!< @brief Points to start of space.
-    * ALWAYS points to the start of the xmalloc() buffer
-    */
-   unsigned char * curpos;
-   /*!< @brief @p start < @c @p curpos < @p end.
-    * "slider" pointer.  Range is ALWAYS (start < curpos < end)
-    */
-   unsigned char * end;
-   /*!< @brief Points to buffer limit.
-    * ALWAYS set to point to the byte after the last meaningful byte
-    * Data beyond this index may not be valid 
-    */
-} * SLPBuffer;   
+   SLPListItem listitem;   /*!< @brief Allows SLPBuffers to be linked. */
+   size_t allocated;       /*!< @brief Allocated size of buffer. */
+   uint8_t * start;        /*!< @brief Points to start of space. */
+   uint8_t * curpos;       /*!< @brief @p start < @c @p curpos < @p end */
+   uint8_t * end;          /*!< @brief Points to buffer limit. */
+} * SLPBuffer;
 
 SLPBuffer SLPBufferAlloc(size_t size);
 
@@ -94,8 +79,6 @@ void SLPBufferFree(SLPBuffer buf);
 SLPBuffer SLPBufferListRemove(SLPBuffer * list, SLPBuffer buf);
 
 SLPBuffer SLPBufferListAdd(SLPBuffer * list, SLPBuffer buf);
-
-void * memdup(const void * src, int srclen);
 
 /*! @} */
 

@@ -49,13 +49,10 @@
  */
 
 #include "slpd.h"
-
 #include "slp_buffer.h"
 #include "slp_message.h"
 
-int SLPDRegFileReadSrvReg(FILE* fd,
-                          SLPMessage* msg,
-                          SLPBuffer* buf);
+int SLPDRegFileReadSrvReg(FILE * fd, SLPMessage * msg, SLPBuffer * buf);
 
 /*! @} */
 

@@ -43,6 +43,8 @@
 
 #include "slp_iface.h"
 #include "slp_buffer.h"
+#include "slp_socket.h"
+#include "slp_types.h"
 
 /*!@defgroup CommonCodeXCast Multicast Messages */
 
@@ -53,33 +55,27 @@
 
 typedef struct _SLPXcastSockets
 {
+   /** The number of sock array. */
    int sock_count;
-   /*!< @brief The number of sock array.
-    */
-   int sock[SLP_MAX_IFACES];
-   /*!< @brief An array of sockets managed by this structure.
-    */
+
+   /** An array of sockets managed by this structure. */
+   sockfd_t sock[SLP_MAX_IFACES];
+
+   /** An array of addresses that matches each socket in the sock array. */
    struct sockaddr_storage peeraddr[SLP_MAX_IFACES];
-   /*!< @brief An array of addresses that matches each socket in the sock 
-    * array.
-    */
+
 } SLPXcastSockets;
 
-int SLPBroadcastSend(const SLPIfaceInfo* ifaceinfo, 
-                     SLPBuffer msg,
-                     SLPXcastSockets* socks);
+int SLPBroadcastSend(const SLPIfaceInfo * ifaceinfo, const SLPBuffer msg,
+      SLPXcastSockets * socks);
 
-int SLPMulticastSend(const SLPIfaceInfo* ifaceinfo, 
-                     SLPBuffer msg,
-                     SLPXcastSockets* socks,
-                     struct sockaddr_storage *dst);
+int SLPMulticastSend(const SLPIfaceInfo * ifaceinfo, const SLPBuffer msg,
+      SLPXcastSockets * socks, const void * dst);
 
-int SLPXcastRecvMessage(const SLPXcastSockets* sockets,
-                        SLPBuffer* buf,
-                        struct sockaddr_storage* peeraddr,
-                        struct timeval* timeout);
+int SLPXcastRecvMessage(const SLPXcastSockets * sockets, SLPBuffer * buf, 
+      void * peeraddr, struct timeval * timeout);
 
-int SLPXcastSocketsClose(SLPXcastSockets* socks);
+int SLPXcastSocketsClose(SLPXcastSockets * socks);
 
 /*! @} */
 

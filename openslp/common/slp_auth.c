@@ -41,6 +41,12 @@
  * @attention  Please submit patches to http://www.openslp.org
  * @ingroup    CommonCode
  */
+#ifdef _WIN32
+// nonstandard extension used : translation unit is empty
+# pragma warning (disable : 4206) 
+#endif
+
+#ifdef ENABLE_SLPv2_SECURITY
 
 #include <time.h>
 
@@ -67,54 +73,37 @@
  *
  * @internal
  */
-int SLPAuthDigestString(int spistrlen, const char * spistr, int stringlen,
-      const char * string, unsigned long timestamp, unsigned char * digest)
+static int SLPAuthDigestString(int spistrlen, const char * spistr, 
+      int stringlen, const char * string, unsigned long timestamp, 
+      unsigned char * digest)
 {
-   int result;
-   int tmpbufsize;
-   unsigned char * tmpbuf;
-   unsigned char * curpos;
+   int result = 0;   /* assume success */
+   uint8_t * tmpbuf;
+   uint8_t * curpos;
 
-   /* assume success */
-   result = 0;
-
-   /*-------------------------------------------------------*/
-   /* Allocate temporary buffer for contiguous data         */
-   /*-------------------------------------------------------*/
-   /* +8 makes room for:  stringlen (2 bytes)               */
-   /*                     autharray[i].spistrlen (2 bytes)  */
-   /*                     timestamp 4 bytes                 */
-   tmpbufsize = stringlen + spistrlen + 8;
-   tmpbuf = xmalloc(tmpbufsize);
+   /* allocate temp buffer for contiguous data */
+   curpos = tmpbuf = xmalloc(2 + spistrlen + 2 + stringlen + 4);
    if (tmpbuf == 0)
       return SLP_ERROR_INTERNAL_ERROR;
 
-   /*-----------------------------------*/
-   /* Copy data into continguous buffer */
-   /*-----------------------------------*/
-   curpos = tmpbuf;
-
-   ToUINT16(curpos,spistrlen);
-   curpos = curpos + 2;
+   /* insert SPI string */
+   PutUINT16(&curpos, spistrlen);
    memcpy(curpos, spistr, spistrlen);
-   curpos = curpos + spistrlen;
+   curpos += spistrlen;
 
-   ToUINT16(curpos,stringlen);
-   curpos = curpos + 2;
+   /* insert string (attribute string or URL) */ 
+   PutUINT16(&curpos, stringlen);
    memcpy(curpos, string, stringlen);
-   curpos = curpos + stringlen;
+   curpos += stringlen;
 
-   ToUINT32(curpos, timestamp);
+   /* insert time stamp */
+   PutUINT32(&curpos, timestamp);
 
-   /*---------------------*/
-   /* Generate the digest */
-   /*---------------------*/
-   if (SLPCryptoSHA1Digest(tmpbuf, tmpbufsize, digest))
+   /* generate the digest */
+   if (SLPCryptoSHA1Digest(tmpbuf, curpos - tmpbuf, digest))
       result = SLP_ERROR_INTERNAL_ERROR;
 
-   /*------------------------------*/
-   /* Cleanup the temporary buffer */
-   /*------------------------------*/
+   /* cleanup the temporary buffer */
    xfree(tmpbuf);
 
    return result;
@@ -140,82 +129,58 @@ int SLPAuthDigestString(int spistrlen, const char * spistr, int stringlen,
  *
  * @internal
  */
-int SLPAuthDigestDAAdvert(unsigned short spistrlen, const char * spistr,
-      unsigned long timestamp, unsigned long bootstamp, unsigned short urllen,
-      const char * url, unsigned short attrlistlen, const char * attrlist,
-      unsigned short scopelistlen, const char * scopelist,
-      unsigned short daspistrlen, const char * daspistr,
-      unsigned char * digest)
+static int SLPAuthDigestDAAdvert(unsigned short spistrlen, 
+      const char * spistr, unsigned long timestamp, 
+      unsigned long bootstamp, unsigned short urllen, 
+      const char * url, unsigned short attrlistlen, 
+      const char * attrlist, unsigned short scopelistlen, 
+      const char * scopelist, unsigned short daspistrlen, 
+      const char * daspistr, unsigned char * digest)
 {
    int result;
-   int tmpbufsize;
-   unsigned char * tmpbuf;
-   unsigned char * curpos;
+   char * tmpbuf;
+   char * curpos;
 
    /* assume success */
    result = 0;
 
-   /*-------------------------------------------------------*/
-   /* Allocate temporary buffer for contiguous data         */
-   /*-------------------------------------------------------*/
-   /* +18 makes room for:  spistrlen   (2 bytes)            */
-   /*                      bootstamp   (4 bytes)            */
-   /*                      urllen      (2 bytes)            */
-   /*                      scopelistlen(2 bytes)            */
-   /*                      attrlistlen (2 bytes)            */
-   /*                      daspistrlen (2 bytes)            */
-   /*                      timestamp   (4 bytes)            */
-   tmpbufsize = spistrlen + urllen + scopelistlen + attrlistlen + daspistrlen + 18;
-   tmpbuf = xmalloc(tmpbufsize);
+   /* allocate temporary buffer for contiguous storage */
+   curpos = tmpbuf = xmalloc(2 + spistrlen + 4 + 2 + urllen + 2 
+         + attrlistlen + 2 + scopelistlen + 2 + daspistrlen + 4);
    if (tmpbuf == 0)
       return SLP_ERROR_INTERNAL_ERROR;
 
-   /*-----------------------------------*/
-   /* Copy data into continguous buffer */
-   /*-----------------------------------*/
-   curpos = tmpbuf;
-
-   ToUINT16(curpos,spistrlen);
-   curpos += 2;
+   /* copy data into continguous buffer */
+   PutUINT16(&curpos, spistrlen);
    memcpy(curpos, spistr, spistrlen);
    curpos += spistrlen;
 
-   ToUINT32(curpos,bootstamp);
-   curpos += 4;
+   PutUINT32(&curpos, bootstamp);
 
-   ToUINT16(curpos,urllen);
-   curpos += 2;
+   PutUINT16(&curpos, urllen);
    memcpy(curpos, url, urllen);
    curpos += urllen;
 
-   ToUINT16(curpos,scopelistlen);
-   curpos += 2;
+   PutUINT16(&curpos, scopelistlen);
    memcpy(curpos, scopelist, scopelistlen);
    curpos += scopelistlen;
 
-   ToUINT16(curpos,attrlistlen);
-   curpos += 2;
+   PutUINT16(&curpos, attrlistlen);
    memcpy(curpos, attrlist, attrlistlen);
    curpos += attrlistlen;
 
-   ToUINT16(curpos,daspistrlen);
-   curpos += 2;
+   PutUINT16(&curpos, daspistrlen);
    memcpy(curpos, daspistr, daspistrlen);
    curpos += daspistrlen;
 
-   ToUINT32(curpos,timestamp);
+   PutUINT32(&curpos, timestamp);
 
-   /*---------------------*/
    /* Generate the digest */
-   /*---------------------*/
-   if (SLPCryptoSHA1Digest(tmpbuf, tmpbufsize, digest))
+   if (SLPCryptoSHA1Digest(tmpbuf, curpos - tmpbuf, digest))
       result = SLP_ERROR_INTERNAL_ERROR;
 
-   /*------------------------------*/
-   /* Cleanup the temporary buffer */
-   /*------------------------------*/
+   /* cleanup the temporary buffer */
    xfree(tmpbuf);
-
    return result;
 }
 
@@ -234,7 +199,7 @@ int SLPAuthDigestDAAdvert(unsigned short spistrlen, const char * spistr,
  *
  * @internal
  */
-int SLPAuthSignDigest(int spistrlen, const char * spistr, 
+static int SLPAuthSignDigest(int spistrlen, const char * spistr,
       SLPCryptoDSAKey * key, unsigned char * digest, int * authblocklen,
       unsigned char ** authblock)
 {
@@ -242,14 +207,13 @@ int SLPAuthSignDigest(int spistrlen, const char * spistr,
    int result;
    unsigned char * curpos;
 
-   /*----------------------------------------------*/
-   /* Allocate memory for the authentication block */
-   /*----------------------------------------------*/
-   /* +10 makes room for:                          */
-   /*     - the bsd (2 bytes)                      */
-   /*     - the the authblock length (2 bytes)     */
-   /*     - the spi string length (2 bytes)        */
-   /*     - the timestamp (4 bytes)                */
+   /* Allocate memory for the authentication block
+    *   +10 makes room for:
+    *       - the bsd (2 bytes)
+    *       - the the authblock length (2 bytes)
+    *       - the spi string length (2 bytes)
+    *       - the timestamp (4 bytes) 
+    */
    signaturelen = SLPCryptoDSASignLen(key);
    *authblocklen = spistrlen + signaturelen + 10;
    *authblock = (unsigned char*)xmalloc(*authblocklen);
@@ -259,41 +223,30 @@ int SLPAuthSignDigest(int spistrlen, const char * spistr,
       goto ERROR;
    }
 
-   /*---------------------------------------------------------*/
-   /* Fill in the Authblock with everything but the signature */
-   /*---------------------------------------------------------*/
-   curpos = *authblock;
-   ToUINT16(curpos,0x0002); /* the BSD for DSA-SHA1 */
-   curpos += 2;
-   ToUINT16(curpos,*authblocklen);
-   curpos += 2;
-   ToUINT32(curpos,0xffffffff); /* very long expiration (for now) */
-   curpos += 4;
-   ToUINT16(curpos, spistrlen);
-   curpos += 2;
+   /* fill in the Authblock with everything but the signature */
+   curpos =  *authblock;
+   PutUINT16(&curpos, 0x0002); /* the BSD for DSA-SHA1 */
+   PutUINT16(&curpos,  *authblocklen);
+   PutUINT32(&curpos, 0xffffffff); /* very long expiration (for now) */
+   PutUINT16(&curpos, spistrlen);
    memcpy(curpos, spistr, spistrlen);
    curpos += spistrlen;
 
-   /*---------------------------------------------*/
-   /* Sign the digest and put it in the authblock */
-   /*---------------------------------------------*/
-   if (SLPCryptoDSASign(key, digest, SLPAUTH_SHA1_DIGEST_SIZE,
+   /* sign the digest and put it in the authblock */
+   if (SLPCryptoDSASign(key, digest, SLPAUTH_SHA1_DIGEST_SIZE, 
          curpos, &signaturelen))
    {
       result = SLP_ERROR_INTERNAL_ERROR;
       goto ERROR;
    }
-   return 0;
+   return 0; /* success */
 
-ERROR:
+ERROR: 
 
-   /*-------------------------------*/
    /* Clean up and return errorcode */
-   /*-------------------------------*/
-   if (authblock) xfree(*authblock);
+   xfree(*authblock);
    *authblock = 0;
    *authblocklen = 0;
-
    return result;
 }
 
@@ -312,56 +265,45 @@ ERROR:
  *
  * @internal
  */
-int SLPVerifyDigest(SLPSpiHandle hspi, int emptyisfail, SLPCryptoDSAKey * key,
-      unsigned char * digest, int authcount, const SLPAuthBlock * autharray)
+static int SLPVerifyDigest(SLPSpiHandle hspi, int emptyisfail,
+      SLPCryptoDSAKey * key, unsigned char * digest, int authcount, 
+      const SLPAuthBlock * autharray)
 {
    int i;
    int signaturelen;
    int result;
    unsigned long timestamp;
 
-   /*-----------------------------------*/
-   /* Should we fail on emtpy authblock */
-   /*-----------------------------------*/
+   /* should we fail on emtpy authblock */
    if (emptyisfail)
       result = SLP_ERROR_AUTHENTICATION_FAILED;
    else
       result = SLP_ERROR_OK;
 
-   /*-----------------*/
-   /* Get a timestamp */
-   /*-----------------*/
+   /* get a timestamp */
    timestamp = time(0);
 
-   /*------------------------------------------------------*/
-   /* Iterate and check all authentication blocks          */
-   /*------------------------------------------------------*/
-   /* If any one of the authblocks can be verified then we */
-   /* accept it                                            */
-   for (i = 0 ; i < authcount; i++)
+   /* Iterate and check all authentication blocks
+    * If any one of the authblocks can be verified then we
+    * accept it 
+    */
+   for (i = 0; i < authcount; i++)
    {
-      /*-------------------------------*/
-      /* Get a public key for the SPI  */
-      /*-------------------------------*/
+      /* get a public key for the SPI  */
       key = SLPSpiGetDSAKey(hspi, SLPSPI_KEY_TYPE_PUBLIC,
             autharray[i].spistrlen, autharray[i].spistr, &key);
 
-      /* Continue if we have a key and if the authenticator is not
-       * timed out.
-       */
+      /* Continue if we have a key and if the authenticator is not timed out */
       if (key && timestamp <= autharray[i].timestamp)
       {
-         /*------------------------------------------------------------*/
-         /* Calculate the size of the DSA signature from the authblock */
-         /*------------------------------------------------------------*/
-         /* we have to calculate the signature length since            */
-         /* autharray[i].length is (stupidly) the length of the entire */
-         /* authblock                                                  */
+         /* Calculate the size of the DSA signature from the authblock
+          * we have to calculate the signature length since
+          * autharray[i].length is (stupidly) the length of the entire
+          * authblock 
+          */
          signaturelen = autharray[i].length - (autharray[i].spistrlen + 10);
 
-         /*----------------------*/
-         /* Verify the signature */
-         /*----------------------*/
+         /* verify the signature */
          if (SLPCryptoDSAVerify(key, digest, SLPAUTH_SHA1_DIGEST_SIZE,
                autharray[i].authstruct, signaturelen))
             break;
@@ -384,8 +326,8 @@ int SLPVerifyDigest(SLPSpiHandle hspi, int emptyisfail, SLPCryptoDSAKey * key,
  * 
  * @return Zero on success, or an SLP error code on failure.
  */
-int SLPAuthVerifyString(SLPSpiHandle hspi, int emptyisfail,
-      unsigned short stringlen, const char * string, int authcount,
+int SLPAuthVerifyString(SLPSpiHandle hspi, int emptyisfail, 
+      unsigned short stringlen, const char * string, int authcount, 
       const SLPAuthBlock * autharray)
 {
    int i;
@@ -395,59 +337,43 @@ int SLPAuthVerifyString(SLPSpiHandle hspi, int emptyisfail,
    SLPCryptoDSAKey * key = 0;
    unsigned char digest[SLPAUTH_SHA1_DIGEST_SIZE];
 
-   /*-----------------------------------*/
-   /* Should we fail on emtpy authblock */
-   /*-----------------------------------*/
+   /* should we fail on emtpy authblock */
    if (emptyisfail)
       result = SLP_ERROR_AUTHENTICATION_FAILED;
    else
       result = SLP_ERROR_OK;
 
-   /*-----------------*/
-   /* Get a timestamp */
-   /*-----------------*/
+   /* get a timestamp */
    timestamp = time(0);
 
-   /*------------------------------------------------------*/
-   /* Iterate and check all authentication blocks          */
-   /*------------------------------------------------------*/
-
-   /* If any one of the authblocks can be verified then we
-    * accept it
+   /* Iterate and check all authentication blocks
+    *  If any one of the authblocks can be verified then we
+    *  accept it
     */
-   for (i=0;i<authcount;i++)
+   for (i = 0; i < authcount; i++)
    {
-      /*-------------------------------*/
-      /* Get a public key for the SPI  */
-      /*-------------------------------*/
+      /* get a public key for the SPI  */
       key = SLPSpiGetDSAKey(hspi, SLPSPI_KEY_TYPE_PUBLIC,
             autharray[i].spistrlen, autharray[i].spistr, &key);
 
-      /* Continue if we have a key and if the authenticator is not
-       * timed out.
-       */
+      /* Continue if we have a key and if the authenticator is not timed out */
       if (key && timestamp <= autharray[i].timestamp)
       {
-         /*--------------------------*/
-         /* Generate the SHA1 digest */
-         /*--------------------------*/
+
+         /* generate the SHA1 digest */
          result = SLPAuthDigestString(autharray[i].spistrlen,
                autharray[i].spistr, stringlen, string, 
                autharray[i].timestamp, digest);
          if (result == 0)
          {
-            /*------------------------------------------------------------*/
-            /* Calculate the size of the DSA signature from the authblock */
-            /*------------------------------------------------------------*/
-            /* we have to calculate the signature length since
+            /* Calculate the size of the DSA signature from the authblock
+             * we have to calculate the signature length since
              * autharray[i].length is (stupidly) the length of the entire
-             * authblock.
+             * authblock 
              */
             signaturelen = autharray[i].length - (autharray[i].spistrlen + 10);
 
-            /*----------------------*/
-            /* Verify the signature */
-            /*----------------------*/
+            /* verify the signature */
             if (SLPCryptoDSAVerify(key, digest, sizeof(digest),
                   autharray[i].authstruct, signaturelen))
                break;
@@ -456,9 +382,7 @@ int SLPAuthVerifyString(SLPSpiHandle hspi, int emptyisfail,
          }
       }
    }
-
-   if (key) SLPCryptoDSAKeyDestroy(key);
-
+   SLPCryptoDSAKeyDestroy(key);
    return result;
 }
 
@@ -471,7 +395,7 @@ int SLPAuthVerifyString(SLPSpiHandle hspi, int emptyisfail,
  * 
  * @return Zero on success, or an SLP error code on failure.
  */
-int SLPAuthVerifyUrl(SLPSpiHandle hspi, int emptyisfail,
+int SLPAuthVerifyUrl(SLPSpiHandle hspi, int emptyisfail, 
       const SLPUrlEntry * urlentry)
 {
    return SLPAuthVerifyString(hspi, emptyisfail, urlentry->urllen, 
@@ -487,7 +411,7 @@ int SLPAuthVerifyUrl(SLPSpiHandle hspi, int emptyisfail,
  * 
  * @return Zero on success, or an SLP error code on failure.
  */
-int SLPAuthVerifyDAAdvert(SLPSpiHandle hspi, int emptyisfail,
+int SLPAuthVerifyDAAdvert(SLPSpiHandle hspi, int emptyisfail, 
       const SLPDAAdvert * daadvert)
 {
    int i;
@@ -499,63 +423,47 @@ int SLPAuthVerifyDAAdvert(SLPSpiHandle hspi, int emptyisfail,
    SLPCryptoDSAKey * key = 0;
    unsigned char digest[SLPAUTH_SHA1_DIGEST_SIZE];
 
-   /*-----------------------------------*/
-   /* Should we fail on emtpy authblock */
-   /*-----------------------------------*/
+   /* should we fail on emtpy authblock */
    if (emptyisfail)
       result = SLP_ERROR_AUTHENTICATION_FAILED;
    else
       result = SLP_ERROR_OK;
 
-   /*-----------------*/
-   /* Get a timestamp */
-   /*-----------------*/
+   /* get a timestamp */
    timestamp = time(0);
 
-   /*------------------------------------------------------*/
-   /* Iterate and check all authentication blocks          */
-   /*------------------------------------------------------*/
-   /* If any one of the authblocks can be verified then we
-    * accept it.
+   /* Iterate and check all authentication blocks
+    * If any one of the authblocks can be verified then we
+    * accept it 
     */
    authcount = daadvert->authcount;
    autharray = daadvert->autharray;
    for (i = 0; i < authcount; i++)
    {
-      /*-------------------------------*/
-      /* Get a public key for the SPI  */
-      /*-------------------------------*/
+      /* get a public key for the SPI  */
       key = SLPSpiGetDSAKey(hspi, SLPSPI_KEY_TYPE_PUBLIC,
             autharray[i].spistrlen, autharray[i].spistr, &key);
 
-      /* Continue if we have a key and if the authenticator is not
-       * timed out.
-       */
+      /* Continue if we have a key and if authenticator is not timed out */
       if (key && timestamp <= autharray[i].timestamp)
       {
-         /*--------------------------*/
-         /* Generate the SHA1 digest */
-         /*--------------------------*/
+         /* generate the SHA1 digest */
          result = SLPAuthDigestDAAdvert(autharray[i].spistrlen,
-               autharray[i].spistr, autharray[i].timestamp,
-               daadvert->bootstamp, daadvert->urllen, daadvert->url,
-               daadvert->attrlistlen, daadvert->attrlist,
-               daadvert->scopelistlen, daadvert->scopelist,
+               autharray[i].spistr, autharray[i].timestamp, 
+               daadvert->bootstamp, daadvert->urllen, daadvert->url, 
+               daadvert->attrlistlen, daadvert->attrlist, 
+               daadvert->scopelistlen, daadvert->scopelist, 
                daadvert->spilistlen, daadvert->spilist, digest);
          if (result == 0)
          {
-            /*------------------------------------------------------------*/
-            /* Calculate the size of the DSA signature from the authblock */
-            /*------------------------------------------------------------*/
-            /* we have to calculate the signature length since
+            /* calculate the size of the DSA signature from the authblock
+             * we have to calculate the signature length since
              * autharray[i].length is (stupidly) the length of the entire
-             * authblock.
+             * authblock 
              */
             signaturelen = autharray[i].length - (autharray[i].spistrlen + 10);
 
-            /*----------------------*/
-            /* Verify the signature */
-            /*----------------------*/
+            /* verify the signature */
             if (SLPCryptoDSAVerify(key, digest, sizeof(digest),
                   autharray[i].authstruct, signaturelen))
                break;
@@ -564,9 +472,7 @@ int SLPAuthVerifyDAAdvert(SLPSpiHandle hspi, int emptyisfail,
          }
       }
    }
-
-   if (key) SLPCryptoDSAKeyDestroy(key);
-
+   SLPCryptoDSAKeyDestroy(key);
    return result;
 }
 
@@ -579,7 +485,7 @@ int SLPAuthVerifyDAAdvert(SLPSpiHandle hspi, int emptyisfail,
  * 
  * @return Zero on success, or an SLP error code on failure.
  */
-int SLPAuthVerifySAAdvert(SLPSpiHandle hspi, int emptyisfail,
+int SLPAuthVerifySAAdvert(SLPSpiHandle hspi, int emptyisfail, 
       const SLPSAAdvert * saadvert)
 {
    return 0;
@@ -611,55 +517,40 @@ int SLPAuthSignString(SLPSpiHandle hspi, int spistrlen, const char * spistr,
    int defaultspistrlen = 0;
    char * defaultspistr = 0;
 
-   /* 0 out the authblock and spistr just to be safe */
+   /* NULL out the authblock and spistr just to be safe */
    key = 0;
    *authblock = 0;
    *authblocklen = 0;
-   spistr = 0;
-   spistrlen = 0;
 
-   /*--------------------------------*/
-   /* Get a private key for the SPI  */
-   /*--------------------------------*/
-   if (spistr)
-      key = SLPSpiGetDSAKey(hspi, SLPSPI_KEY_TYPE_PRIVATE, spistrlen, 
-            spistr, &key);
-   else if (SLPSpiGetDefaultSPI(hspi, SLPSPI_KEY_TYPE_PRIVATE,
+   /* get a private key for the SPI  */
+   if (spistr == 0 && SLPSpiGetDefaultSPI(hspi, SLPSPI_KEY_TYPE_PRIVATE,
          &defaultspistrlen, &defaultspistr))
    {
       spistr = defaultspistr;
       spistrlen = defaultspistrlen;
-      key = SLPSpiGetDSAKey(hspi, SLPSPI_KEY_TYPE_PRIVATE, spistrlen, 
-            spistr, &key);
    }
-
+   key = SLPSpiGetDSAKey(hspi, SLPSPI_KEY_TYPE_PRIVATE, 
+         spistrlen, spistr, &key);
    if (key == 0)
    {
       result = SLP_ERROR_AUTHENTICATION_UNKNOWN;
       goto ERROR;
    }
 
-   /*--------------------------*/
-   /* Generate the SHA1 digest */
-   /*--------------------------*/
+   /* Generate the SHA1 digest - use a very long expiration for now */
    result = SLPAuthDigestString(spistrlen, spistr, stringlen, string,
-         0xffffffff, /* very long expiration (for now) */ digest);
+      0xffffffff, digest);
 
-   /*---------------------------------------------*/
-   /* Sign the digest and put it in the authblock */
-   /*---------------------------------------------*/
+   /* sign the digest and put it in the authblock */
    if (result == 0)
       result = SLPAuthSignDigest(spistrlen, spistr, key, digest, 
             authblocklen, authblock);
 
-ERROR:
+ERROR: 
 
-   /*---------*/
-   /* Cleanup */
-   /*---------*/
-   if (defaultspistr) xfree(defaultspistr);
-   if (key) SLPCryptoDSAKeyDestroy(key);
-
+   /* cleanup */
+   xfree(defaultspistr);
+   SLPCryptoDSAKeyDestroy(key);
    return result;
 }
 
@@ -678,10 +569,10 @@ ERROR:
  * @return Zero on success, or an SLP error code on failure.
  */
 int SLPAuthSignUrl(SLPSpiHandle hspi, int spistrlen, const char * spistr,
-      unsigned short urllen, const char * url, int * authblocklen,
+      unsigned short urllen, const char * url, int * authblocklen, 
       unsigned char ** authblock)
 {
-   return  SLPAuthSignString(hspi, spistrlen, spistr, urllen, url, 
+   return SLPAuthSignString(hspi, spistrlen, spistr, urllen, url,
          authblocklen, authblock);
 }
 
@@ -706,10 +597,10 @@ int SLPAuthSignUrl(SLPSpiHandle hspi, int spistrlen, const char * spistr,
  *
  * @return Zero on success, or an SLP error code on failure.
  */
-int SLPAuthSignDAAdvert(SLPSpiHandle hspi, unsigned short spistrlen,
-      const char * spistr, unsigned long bootstamp, unsigned short urllen,
-      const char * url, unsigned short attrlistlen, const char * attrlist,
-      unsigned short scopelistlen, const char * scopelist,
+int SLPAuthSignDAAdvert(SLPSpiHandle hspi, unsigned short spistrlen, 
+      const char * spistr, unsigned long bootstamp, unsigned short urllen, 
+      const char * url, unsigned short attrlistlen, const char * attrlist, 
+      unsigned short scopelistlen, const char * scopelist, 
       unsigned short daspistrlen, const char * daspistr, 
       int * authblocklen, unsigned char ** authblock)
 {
@@ -719,56 +610,47 @@ int SLPAuthSignDAAdvert(SLPSpiHandle hspi, unsigned short spistrlen,
    int defaultspistrlen = 0;
    char * defaultspistr = 0;
 
-   /* 0 out the authblock and spistr just to be safe */
+   /* NULL out the authblock and spistr just to be safe */
    key = 0;
    *authblock = 0;
    *authblocklen = 0;
    spistr = 0;
    spistrlen = 0;
 
-   /*--------------------------------*/
-   /* Get a private key for the SPI  */
-   /*--------------------------------*/
+   /* get a private key for the SPI  */
    if (spistr)
       key = SLPSpiGetDSAKey(hspi, SLPSPI_KEY_TYPE_PRIVATE, spistrlen, 
             spistr, &key);
-   else if (SLPSpiGetDefaultSPI(hspi, SLPSPI_KEY_TYPE_PRIVATE,
-            &defaultspistrlen, &defaultspistr))
+   else
    {
-      spistr = defaultspistr;
-      spistrlen = defaultspistrlen;
-      key = SLPSpiGetDSAKey(hspi, SLPSPI_KEY_TYPE_PRIVATE, spistrlen,
-            spistr, &key);
+      if (SLPSpiGetDefaultSPI(hspi, SLPSPI_KEY_TYPE_PRIVATE,
+            &defaultspistrlen, &defaultspistr))
+      {
+         spistr = defaultspistr;
+         spistrlen = defaultspistrlen;
+         key = SLPSpiGetDSAKey(hspi, SLPSPI_KEY_TYPE_PRIVATE, 
+               spistrlen, spistr, &key);
+      }
    }
-
    if (key == 0)
    {
       result = SLP_ERROR_AUTHENTICATION_UNKNOWN;
       goto ERROR;
    }
 
-   /*--------------------------*/
-   /* Generate the SHA1 digest */
-   /*--------------------------*/
+   /* generate the SHA1 digest */
    result = SLPAuthDigestDAAdvert(spistrlen, spistr, 0xffffffff, bootstamp,
          urllen, url, attrlistlen, attrlist, scopelistlen, scopelist,
          daspistrlen, daspistr, digest);
+   if (result == 0)   /* sign the digest and put it in the authblock */
+      result = SLPAuthSignDigest(spistrlen, spistr, key, digest, authblocklen,
+         authblock);
 
-   /*---------------------------------------------*/
-   /* Sign the digest and put it in the authblock */
-   /*---------------------------------------------*/
-   if (result == 0)
-      result = SLPAuthSignDigest(spistrlen, spistr, key, digest, 
-            authblocklen, authblock);
+ERROR: 
 
-ERROR:
-
-   /*---------*/
-   /* Cleanup */
-   /*---------*/
-   if (defaultspistr) xfree(defaultspistr);
-   if (key) SLPCryptoDSAKeyDestroy(key);
-
+   /* cleanup */
+   xfree(defaultspistr);
+   SLPCryptoDSAKeyDestroy(key);
    return result;
 }
 
@@ -790,8 +672,8 @@ ERROR:
  * @return Zero on success, or an SLP error code on failure.
  */
 int SLPAuthSignSAAdvert(unsigned short spistrlen, const char * spistr,
-      unsigned short urllen, const char * url, unsigned short attrlistlen,
-      const char * attrlist, unsigned short scopelistlen,
+      unsigned short urllen, const char * url, unsigned short attrlistlen, 
+      const char * attrlist, unsigned short scopelistlen, 
       const char * scopelist, int * authblocklen, 
       unsigned char ** authblock)
 {
@@ -800,4 +682,6 @@ int SLPAuthSignSAAdvert(unsigned short spistrlen, const char * spistr,
    return 0;
 }
 
-/*=========================================================================*/
+#endif   /* ENABLE_SLPv2_SECURITY */
+
+/*=========================================================================*/ 

@@ -44,27 +44,13 @@
 #include "slp_buffer.h" 
 #include "slp_xmalloc.h"
 
-/*=========================================================================*/
-void * memdup(const void * src, int srclen)
-/* Generic memdup analogous to strdup()                                    */
-/*=========================================================================*/
-{
-   char * result;
-
-   result = (unsigned char *)xmalloc(srclen);
-   if (result)
-      memcpy(result, src, srclen);
-
-   return result;
-}
-
 /** Allocates an SLP message buffer.
  *
  * This routines must be called to initially allocate a SLPBuffer.
  *
  * @param[in] size The size of the buffer to be allocated.
  *
- * @return A newly allocated SLPBuffer, or 0 on memory allocation
+ * @return A newly allocated SLPBuffer, or NULL on memory allocation
  *    failure.
  *
  * @remarks An extra byte is allocated to store the terminating null for
@@ -75,19 +61,21 @@ SLPBuffer SLPBufferAlloc(size_t size)
 {
    SLPBuffer result;
 
-   /* allocate an extra byte for null terminating strings */
-   result = (SLPBuffer)xmalloc(sizeof(struct _SLPBuffer) + size + 1);
+   /* Allocate one extra byte for null terminating strings that 
+    * occupy the last field of the buffer.
+    */
+   result = xmalloc(sizeof(struct _SLPBuffer) + size + 1);
    if (result)
    {
       result->allocated = size;
-      result->start = (unsigned char *)(result + 1);
+      result->start = (uint8_t *) (result + 1);
       result->curpos = result->start;
       result->end = result->start + size;
 
 #ifdef DEBUG
-      memset(result->start,0x4d,size + 1);
+      memset(result->start, 0x4d, size + 1);
 #endif
-   }
+   } 
    return result;
 }
 
@@ -100,7 +88,7 @@ SLPBuffer SLPBufferAlloc(size_t size)
  * @param[in] size   The new size to reallocate for @p buf.
  *
  * @return A pointer to the newly allocated, or resized buffer is 
- *    returned, or 0 on memory allocation failure.
+ *    returned, or NULL on memory allocation failure.
  *
  * @sa See the @b remarks section for SLPBufferAlloc.
  */
@@ -113,25 +101,25 @@ SLPBuffer SLPBufferRealloc(SLPBuffer buf, size_t size)
          result = buf;
       else
       {
-         /* allocate an extra byte for null terminating strings */
-         result = (SLPBuffer)xrealloc(buf, 
-               sizeof(struct _SLPBuffer) + size + 1);
+         /* Allocate one extra byte for null terminating strings that 
+          * occupy the last field of the buffer.
+          */
+         result = xrealloc(buf, sizeof(struct _SLPBuffer) + size + 1);
          result->allocated = size;
       }
       if (result)
       {
-         result->start = (unsigned char *)(result + 1);
+         result->start = (uint8_t *)(result + 1);
          result->curpos = result->start;
          result->end = result->start + size;
 
 #ifdef DEBUG
          memset(result->start, 0x4d, size + 1);
-#endif
+#endif 
       }
    }
    else
       result = SLPBufferAlloc(size);
-
    return result;
 }
 
@@ -142,16 +130,13 @@ SLPBuffer SLPBufferRealloc(SLPBuffer buf, size_t size)
  * @param[in] buf The @c SLPBuffer to be duplicated.
  *
  * @return A newly allocated SLPBuffer that is a byte-for-byte copy
- *    of @p buf, or 0 on memory allocation failure.
+ *    of @p buf, or NULL on memory allocation failure.
  */
 SLPBuffer SLPBufferDup(SLPBuffer buf)
 {
-   SLPBuffer dup;
-
-   dup = SLPBufferAlloc(buf->end - buf->start);
-   if (dup)
+   SLPBuffer dup = 0;
+   if (buf && (dup = SLPBufferAlloc(buf->end - buf->start)) != 0)
       memcpy(dup->start, buf->start, buf->end - buf->start);
-
    return dup;
 }
 
@@ -164,8 +149,7 @@ SLPBuffer SLPBufferDup(SLPBuffer buf)
  */
 void SLPBufferFree(SLPBuffer buf)
 {
-   if (buf)
-      xfree(buf);
+   xfree(buf);
 }
 
 /*=========================================================================*/

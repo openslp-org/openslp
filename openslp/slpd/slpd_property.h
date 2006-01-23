@@ -55,20 +55,17 @@
  */
 typedef struct _SLPDProperty
 {
-   int urlPrefixLen;
+   size_t urlPrefixLen;
    const char * urlPrefix;
-   int myHostnameLen;
-   const char * myHostname;
-   int useScopesLen;
+   size_t useScopesLen;
    const char * useScopes; 
-   int DAAddressesLen;
+   size_t DAAddressesLen;
    const char * DAAddresses;
-   unsigned long DATimestamp;  /* here for convenience */
+   uint32_t DATimestamp;  /* here for convenience */
    SLPIfaceInfo ifaceInfo;
-   int interfacesLen;
+   size_t interfacesLen;
    const char * interfaces;
-   int updateIfaces;
-   int localeLen;
+   size_t localeLen;
    const char * locale;
    int isBroadcastOnly;
    int passiveDADetection;
@@ -94,10 +91,10 @@ typedef struct _SLPDProperty
 
 extern SLPDProperty G_SlpdProperty;
 
-int SLPDPropertyInit(const char* conffile); 
+int SLPDPropertyInit(const char * conffile); 
 
 #ifdef DEBUG
-void SLPDPropertyDeinit();
+void SLPDPropertyDeinit(void);
 #endif
 
 /*! @} */

@@ -43,30 +43,29 @@
 #include <slp_debug.h>
 #include <stdio.h>
 
-SLPBoolean
-MySLPSrvURLCallback(SLPHandle hslp,
-      const char *srvurl,
-      unsigned short lifetime, SLPError errcode, void *cookie)
+SLPBoolean MySLPSrvURLCallback(SLPHandle hslp, const char * srvurl,
+      unsigned short lifetime, SLPError errcode, void * cookie)
 {
+   (void)hslp;
    switch (errcode)
    {
       case SLP_OK:
          printf("Service URL     = %s\n", srvurl);
          printf("Service Timeout = %i\n", lifetime);
-         *(SLPError *) cookie = SLP_OK;
+         *(SLPError *)cookie = SLP_OK;
          break;
+
       case SLP_LAST_CALL:
          break;
-      default:
-         *(SLPError *) cookie = errcode;
-         break;
-   } /* End switch. */
 
+      default:
+         *(SLPError *)cookie = errcode;
+         break;
+   }
    return SLP_TRUE;
 }
 
-int
-main(int argc, char *argv[])
+int main(int argc, char * argv[])
 {
    SLPError err;
    SLPError callbackerr;
@@ -74,26 +73,21 @@ main(int argc, char *argv[])
 
    if (argc != 2)
    {
-      printf("SLPFindSrvs\n  Finds a SLP service.\n Usage:\n   SLPFindSrvs\n     <service type>\n");
-      return (0);
-   } /* End If. */
-
+      printf("SLPFindSrvs\n  Finds a SLP service.\n"
+            " Usage:\n   SLPFindSrvs\n     <service type>\n");
+      return 0;
+   }
    err = SLPOpen("en", SLP_FALSE, &hslp);
-   check_error_state(err,"Error opening slp handle.");
+   check_error_state(err, "Error opening slp handle.");
 
-   err = SLPFindSrvs(
-         hslp, 
-         argv[1],
-         0,    /* use configured scopes */
-         0,    /* no attr filter        */
-         MySLPSrvURLCallback,
-         &callbackerr);
+   err = SLPFindSrvs(hslp, argv[1], 0, 0,
+         MySLPSrvURLCallback, &callbackerr);
    check_error_state(err, "Error registering service with slp.");
 
    /* Now that we're done using slp, close the slp handle */
    SLPClose(hslp);
 
-   return (0);
+   return 0;
 }
 
-/*=========================================================================*/
+/*=========================================================================*/ 

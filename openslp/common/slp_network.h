@@ -48,50 +48,25 @@
  * @{
  */
 
-#ifdef _WIN32
-# define WIN32_LEAN_AND_MEAN
-# include <winsock2.h>
-# include <ws2tcpip.h>
-# include <windows.h>
-# include <io.h>
-# include <errno.h>
-# define ETIMEDOUT 110
-# define ENOTCONN  107
-#else
-# include <stdlib.h>
-# include <unistd.h>
-# include <string.h>
-# include <sys/socket.h>
-# include <sys/time.h>
-# include <netinet/in.h>
-# include <arpa/inet.h> 
-# include <netdb.h> 
-# include <fcntl.h> 
-# include <errno.h>
-#endif
+#include <stdlib.h>
+#include <string.h>
+#include <errno.h>
 
+#include "slp_types.h"
 #include "slp_buffer.h"
 #include "slp_property.h"
 #include "slp_message.h"
 #include "slp_xid.h"
 
-#define SLP_MULTICAST_SERVICE_TYPE_SRVLOC   0x01
-#define SLP_MULTICAST_SERVICE_TYPE_SRVLOCDA 0x02
+#define SLP_MULTICAST_SERVICE_TYPE_SRVLOC    0x01
+#define SLP_MULTICAST_SERVICE_TYPE_SRVLOCDA  0x02
 
-int SLPNetworkConnectStream(struct sockaddr_storage *peeraddr,
-                            struct timeval* timeout);  
-
-int SLPNetworkSendMessage(int sockfd,
-                          int socktype,
-                          SLPBuffer buf,
-                          struct sockaddr_storage* peeraddr,
-                          struct timeval* timeout);  
-
-int SLPNetworkRecvMessage(int sockfd,
-                          int socktype,
-                          SLPBuffer* buf,
-                          struct sockaddr_storage* peeraddr,
-                          struct timeval* timeout); 
+sockfd_t SLPNetworkConnectStream(void * peeraddr, struct timeval * timeout);  
+int SLPNetworkSendMessage(sockfd_t sockfd, int socktype, const SLPBuffer buf, 
+      size_t bufsz, void * peeraddr, struct timeval * timeout);  
+int SLPNetworkRecvMessage(sockfd_t sockfd, int socktype, SLPBuffer * buf,
+      void * peeraddr, struct timeval * timeout); 
+const char * saddr_ntop(const void * src, char * dst, size_t dstsz);
 
 /*! @} */
 

@@ -72,7 +72,7 @@ typedef struct SLP_attr_list
    struct SLP_attr_list * next;
    struct SLP_attr_list * prev;
    int isHead;
-   unsigned char * name;
+   char * name;
    SLPTypes type;
    SLPAttrVal val;
 } SLPAttrList;

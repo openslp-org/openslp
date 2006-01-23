@@ -44,69 +44,77 @@
 #include <stdio.h>
 #include <string.h>
 
-SLPBoolean
-MySLPSrvURLCallback(SLPHandle hslp,
-      const char *srvurl,
-      unsigned short lifetime, SLPError errcode, void *cookie)
+#ifdef _WIN32
+# define strdup _strdup
+#endif
+
+SLPBoolean MySLPSrvURLCallback(SLPHandle hslp, const char * srvurl,
+      unsigned short lifetime, SLPError errcode, void * cookie)
 {
+   (void)hslp;
+   (void)lifetime;
    switch (errcode)
    {
       case SLP_OK:
          printf("Service URL                   = %s\n", srvurl);
-         *(SLPError *) cookie = SLP_OK;
+         *(SLPError *)cookie = SLP_OK;
          break;
+
       case SLP_LAST_CALL:
          break;
-      default:
-         *(SLPError *) cookie = errcode;
-         break;
-   } /* End switch. */
 
+      default:
+         *(SLPError *)cookie = errcode;
+         break;
+   }
    return SLP_TRUE;
 }
-void MySLPRegReport(SLPHandle hslp, SLPError errcode, void* cookie)
+
+void MySLPRegReport(SLPHandle hslp, SLPError errcode, void * cookie)
 {
-   /* return the error code in the cookie */
-   *(SLPError*)cookie = errcode;
+   (void)hslp;
+   *(SLPError *)cookie = errcode; /* return the error code in the cookie */
 }
 
-SLPBoolean 
-MySLPAttrCallback(SLPHandle hslp,
-      const char* attrlist, 
-      SLPError errcode, 
-      void* cookie)
+SLPBoolean MySLPAttrCallback(SLPHandle hslp, const char * attrlist,
+      SLPError errcode, void * cookie)
 {
+   (void)hslp;
    switch (errcode)
    {
       case SLP_OK:
          printf("Service Attributes            = %s\n", attrlist);
-         *(SLPError *) cookie = SLP_OK;
+         *(SLPError *)cookie = SLP_OK;
          break;
+
       case SLP_LAST_CALL:
          break;
+
       default:
          check_error_state(errcode, "Error on Attribute Callback.");
-         *(SLPError *) cookie = errcode;
+         *(SLPError *)cookie = errcode;
          break;
-   } /* End switch. */
-   return (1);
+   }
+   return 1;
 }
 
-int
-main(int argc, char *argv[])
+int main(int argc, char * argv[])
 {
    SLPError err;
    SLPError callbackerr;
    SLPHandle hslp;
 
-   char  server_url[4096];
-   char  *attrids;
-   char  reg_string[MAX_STRING_LENGTH];
+   char server_url[4096];
+   char * attrids;
+   char reg_string[MAX_STRING_LENGTH];
 
    if ((argc != 4) && (argc != 5))
    {
-      printf("SLPFindAttrs\n  This test the SLP Find Attributes.\n Usage:\n   SLPFindAttrs <srv name> <srv adr> <atrb name = value> <atrb query>\n   SLPFindAttrs <srv name> <srv adr> <atrb query>\n");
-      return (0);
+      printf("SLPFindAttrs\n  This test the SLP Find Attributes.\n"
+            " Usage:\n   SLPFindAttrs <srv name> <srv adr>"
+            " <atrb name = value> <atrb query>\n"
+            "   SLPFindAttrs <srv name> <srv adr> <atrb query>\n");
+      return 0;
    }
 
    err = SLPOpen("en", SLP_FALSE, &hslp);
@@ -115,30 +123,18 @@ main(int argc, char *argv[])
    if (argc == 5)
    {
       sprintf(reg_string, "%s://%s", argv[1], argv[2]);
-      printf("Registering                   = %s\n",reg_string);
+      printf("Registering                   = %s\n", reg_string);
       /* Register a service with SLP */
-      err = SLPReg(hslp,
-            reg_string,
-            SLP_LIFETIME_MAXIMUM,
-            0,
-            argv[3],
-            SLP_TRUE,
-            MySLPRegReport,
-            &callbackerr);
+      err = SLPReg(hslp, reg_string, SLP_LIFETIME_MAXIMUM, NULL, argv[3],
+                  SLP_TRUE, MySLPRegReport, &callbackerr);
 
       check_error_state(err, "Error registering service with slp.");
       check_error_state(callbackerr, "Error registering service with slp.");
-   } /* End If. */
+   }
 
    // Check to ensure the service we want to ask about is actually there.
-   printf("Querying                      = %s\n",argv[1]);
-   err = SLPFindSrvs(
-         hslp, 
-         argv[1],
-         0,    /* use configured scopes */
-         0,    /* no attr filter        */
-         MySLPSrvURLCallback,
-         &callbackerr);
+   printf("Querying                      = %s\n", argv[1]);
+   err = SLPFindSrvs(hslp, argv[1], 0, 0, MySLPSrvURLCallback, &callbackerr);
    check_error_state(err, "Error verifying service with slp.");
    check_error_state(callbackerr, "Error verifying service with slp.");
 
@@ -149,19 +145,14 @@ main(int argc, char *argv[])
       attrids = (char *) strdup(argv[4]);
    sprintf(server_url, "%s://%s", argv[1], argv[2]);
    printf("Querying Attributes           = %s\n", attrids);
-   err = SLPFindAttrs(
-         hslp,
-         server_url,
-         0,
-         attrids,
-         MySLPAttrCallback,
-         &callbackerr);
+   err = SLPFindAttrs(hslp, server_url, 0, attrids, 
+         MySLPAttrCallback, &callbackerr);
    check_error_state(err, "Error find service attributes.");
 
    /* Now that we're done using slp, close the slp handle */
    SLPClose(hslp);
 
-   return (0);
+   return 0;
 }
 
-/*=========================================================================*/
+/*=========================================================================*/ 

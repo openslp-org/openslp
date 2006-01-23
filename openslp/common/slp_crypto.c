@@ -41,9 +41,13 @@
  * @ingroup    CommonCode
  */
 
+int G_Dummy_Enable_SLPv2_Security_Crypto;
+
+#ifdef ENABLE_SLPv2_SECURITY
+
 #include "slp_crypto.h"
 #include "slp_message.h"
-
+  
 /** Generate a SHA1 digest for the specified block data.
  *
  * @param[in] data - The data block to be hashed.
@@ -55,10 +59,12 @@
  * @remarks The @p digest parameter must point to a buffer of at least 
  *    20 bytes.
  */
-int SLPCryptoSHA1Digest(const unsigned char * data, int datalen,
+int SLPCryptoSHA1Digest(const unsigned char * data, int datalen, 
       unsigned char * digest)
 {
-   return SHA1(data,datalen,digest)? 0: 1;
+   if (SHA1(data, datalen, digest))
+      return 0;
+   return -1;
 }
 
 /** Duplicates a key.
@@ -125,9 +131,7 @@ int SLPCryptoDSASignLen(SLPCryptoDSAKey * key)
 int SLPCryptoDSASign(SLPCryptoDSAKey * key, const unsigned char * digest,
       int digestlen, unsigned char * signature, int * signaturelen)
 {
-   /* @todo check out the logic on this routine's return value. */
-
-   /* it doesn't look like the type param is used? */
+   /* it does not look like the type param is used? */
    return DSA_sign(0, digest, digestlen, signature, signaturelen, key) == 0;
 }
 
@@ -149,5 +153,7 @@ int SLPCryptoDSAVerify(SLPCryptoDSAKey * key, const unsigned char * digest,
    return DSA_verify(0, digest, digestlen, (unsigned char *)signature,
          signaturelen, key);
 }
+
+#endif   /* ENABLE_SLPv2_SECURITY */
 
 /*=========================================================================*/

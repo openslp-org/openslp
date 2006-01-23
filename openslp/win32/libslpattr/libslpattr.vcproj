@@ -1,94 +1,138 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.10"
+	Version="8.00"
 	Name="slpattr"
-	ProjectGUID="{BAA13384-29A1-4FAE-88ED-F6C1FC9CD153}"
-	RootNamespace="slpattr"
-	Keyword="Win32Proj">
+	ProjectGUID="{10BA6C88-BEBE-4B8F-B50E-FA13C65C87B5}"
+	>
 	<Platforms>
 		<Platform
-			Name="Win32"/>
+			Name="Win32"
+		/>
 	</Platforms>
+	<ToolFiles>
+	</ToolFiles>
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)\obj"
+			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="4"
-			CharacterSet="0">
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				PreprocessorDefinitions="SLP_VERSION=\&quot;1.3.0\&quot;, ENABLE_SLPv1, DEBUG"
+				PreprocessorDefinitions="_CRT_SECURE_NO_DEPRECATE;SLP_VERSION=\&quot;2.0.0\&quot;;ENABLE_SLPv1;_DEBUG"
 				RuntimeLibrary="3"
-				ProgramDataBaseFileName="$(OutDir)/$(ProjectName).pdb"
+				ProgramDataBaseFileName="$(IntDir)\slpattr.pdb"
 				WarningLevel="4"
-				WarnAsError="TRUE"
-				Detect64BitPortabilityProblems="TRUE"
-				DebugInformationFormat="4"
-				CompileAs="0"/>
+				WarnAsError="true"
+				Detect64BitPortabilityProblems="true"
+				DebugInformationFormat="3"
+				CompileAs="0"
+			/>
 			<Tool
-				Name="VCCustomBuildTool"/>
+				Name="VCManagedResourceCompilerTool"
+			/>
 			<Tool
-				Name="VCLibrarianTool"/>
+				Name="VCResourceCompilerTool"
+			/>
 			<Tool
-				Name="VCMIDLTool"/>
+				Name="VCPreLinkEventTool"
+			/>
 			<Tool
-				Name="VCPostBuildEventTool"/>
+				Name="VCLibrarianTool"
+			/>
 			<Tool
-				Name="VCPreBuildEventTool"/>
+				Name="VCALinkTool"
+			/>
 			<Tool
-				Name="VCPreLinkEventTool"/>
+				Name="VCXDCMakeTool"
+			/>
 			<Tool
-				Name="VCResourceCompilerTool"/>
+				Name="VCBscMakeTool"
+			/>
 			<Tool
-				Name="VCWebServiceProxyGeneratorTool"/>
+				Name="VCFxCopTool"
+			/>
 			<Tool
-				Name="VCXMLDataGeneratorTool"/>
-			<Tool
-				Name="VCManagedWrapperGeneratorTool"/>
-			<Tool
-				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+				Name="VCPostBuildEventTool"
+			/>
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)\obj"
+			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="4"
-			CharacterSet="0">
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				PreprocessorDefinitions="SLP_VERSION=\&quot;1.3.0\&quot;, ENABLE_SLPv1"
+				PreprocessorDefinitions="_CRT_SECURE_NO_DEPRECATE;SLP_VERSION=\&quot;2.0.0\&quot;;ENABLE_SLPv1;NDEBUG"
 				RuntimeLibrary="2"
-				ProgramDataBaseFileName="$(OutDir)/$(ProjectName).pdb"
+				ProgramDataBaseFileName="$(IntDir)\slpattr.pdb"
 				WarningLevel="4"
-				WarnAsError="TRUE"
-				Detect64BitPortabilityProblems="TRUE"
+				WarnAsError="true"
+				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="3"
-				CompileAs="0"/>
+				CompileAs="0"
+			/>
 			<Tool
-				Name="VCCustomBuildTool"/>
+				Name="VCManagedResourceCompilerTool"
+			/>
 			<Tool
-				Name="VCLibrarianTool"/>
+				Name="VCResourceCompilerTool"
+			/>
 			<Tool
-				Name="VCMIDLTool"/>
+				Name="VCPreLinkEventTool"
+			/>
 			<Tool
-				Name="VCPostBuildEventTool"/>
+				Name="VCLibrarianTool"
+			/>
 			<Tool
-				Name="VCPreBuildEventTool"/>
+				Name="VCALinkTool"
+			/>
 			<Tool
-				Name="VCPreLinkEventTool"/>
+				Name="VCXDCMakeTool"
+			/>
 			<Tool
-				Name="VCResourceCompilerTool"/>
+				Name="VCBscMakeTool"
+			/>
 			<Tool
-				Name="VCWebServiceProxyGeneratorTool"/>
+				Name="VCFxCopTool"
+			/>
 			<Tool
-				Name="VCXMLDataGeneratorTool"/>
-			<Tool
-				Name="VCManagedWrapperGeneratorTool"/>
-			<Tool
-				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+				Name="VCPostBuildEventTool"
+			/>
 		</Configuration>
 	</Configurations>
 	<References>
@@ -96,31 +140,28 @@
 	<Files>
 		<Filter
 			Name="Source Files"
-			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx"
-			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}">
+			Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
+			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
+			>
 			<File
-				RelativePath="..\..\libslpattr\libslpattr.c">
+				RelativePath="..\..\libslpattr\libslpattr.c"
+				>
 			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
-			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}">
+			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
+			>
 			<File
-				RelativePath="..\..\libslpattr\libslpattr.h">
+				RelativePath="..\..\libslpattr\libslpattr.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\libslpattr\libslpattr_internal.h">
+				RelativePath="..\..\libslpattr\libslpattr_internal.h"
+				>
 			</File>
 		</Filter>
-		<Filter
-			Name="Resource Files"
-			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx"
-			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}">
-		</Filter>
-		<File
-			RelativePath=".\ReadMe.txt">
-		</File>
 	</Files>
 	<Globals>
 	</Globals>

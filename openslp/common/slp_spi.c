@@ -40,6 +40,12 @@
  * @attention  Please submit patches to http://www.openslp.org
  * @ingroup    CommonCode
  */
+#ifdef _WIN32
+// nonstandard extension used : translation unit is empty
+# pragma warning (disable : 4206) 
+#endif
+
+#ifdef ENABLE_SLPv2_SECURITY
 
 #include "slp_spi.h"
 #include "slp_xmalloc.h"
@@ -59,15 +65,12 @@
  * 
  * @internal
  */
-void SLPSpiEntryFree(SLPSpiEntry * victim)
+static void SLPSpiEntryFree(SLPSpiEntry * victim)
 {
-   if (victim)
-   {
-      if (victim->keyfilename) xfree(victim->keyfilename);
-      if (victim->spistr) xfree(victim->spistr);
-      if (victim->key) SLPCryptoDSAKeyDestroy(victim->key);
-      xfree(victim);
-   }
+   xfree(victim->keyfilename);
+   xfree(victim->spistr);
+   SLPCryptoDSAKeyDestroy(victim->key);
+   xfree(victim);
 }
 
 /** Locates a specific SPI entry in an SPI cache.
@@ -83,24 +86,22 @@ void SLPSpiEntryFree(SLPSpiEntry * victim)
  *
  * @internal
  */
-SLPSpiEntry * SLPSpiEntryFind(SLPList * cache, int keytype, int spistrlen,
-      const char * spistr)
+static SLPSpiEntry * SLPSpiEntryFind(SLPList * cache, int keytype, 
+      size_t spistrlen, const char * spistr)
 {
    SLPSpiEntry * entry = (SLPSpiEntry *)cache->head;
    while (entry)
    {
       if (spistr)
       {
-         if (entry->spistrlen == spistrlen
-               && memcmp(entry->spistr,spistr,spistrlen) == 0
+         if (entry->spistrlen == spistrlen 
+               && memcmp(entry->spistr,spistr,spistrlen) == 0 
                && entry->keytype == keytype)
             return entry;
       }
-      else 
-         if (keytype == SLPSPI_KEY_TYPE_ANY || entry->keytype == keytype)
-            return entry;
-
-      entry = (SLPSpiEntry *)entry->listitem.next;
+      else if (keytype == SLPSPI_KEY_TYPE_ANY || entry->keytype == keytype)
+         return entry;
+      entry = (SLPSpiEntry*)entry->listitem.next;
    }
    return 0;
 }
@@ -114,7 +115,7 @@ SLPSpiEntry * SLPSpiEntryFind(SLPList * cache, int keytype, int spistrlen,
  * 
  * @internal
  */
-SLPCryptoDSAKey * SLPSpiReadKeyFile(const char * keyfile, int keytype)
+static SLPCryptoDSAKey * SLPSpiReadKeyFile(const char * keyfile, int keytype)
 {
    FILE * fp;
    SLPCryptoDSAKey * result = 0;
@@ -126,7 +127,6 @@ SLPCryptoDSAKey * SLPSpiReadKeyFile(const char * keyfile, int keytype)
          result = PEM_read_DSA_PUBKEY(fp, &result, 0, 0);
       else if (keytype == SLPSPI_KEY_TYPE_PRIVATE)
          result =  PEM_read_DSAPrivateKey(fp, &result, 0, 0);
-
       fclose(fp);
    }
    return result;
@@ -143,7 +143,7 @@ SLPCryptoDSAKey * SLPSpiReadKeyFile(const char * keyfile, int keytype)
  *
  * @internal
  */
-SLPSpiEntry * SLPSpiReadSpiFile(FILE * fp, int keytype)
+static SLPSpiEntry * SLPSpiReadSpiFile(FILE * fp, int keytype)
 {
    SLPSpiEntry * result;
    char tmp;
@@ -151,89 +151,96 @@ SLPSpiEntry * SLPSpiReadSpiFile(FILE * fp, int keytype)
    char * slider1;
    char * slider2;
 
-   /* Allocate memory for result */
+   /* allocate memory for result */
    line = (char *)xmalloc(MAX_SPI_ENTRY_LEN);
-   result = (SLPSpiEntry*) xmalloc(sizeof(SLPSpiEntry));
+   result = (SLPSpiEntry *)xmalloc(sizeof(SLPSpiEntry));
    if (result == 0 || line == 0)
+   {
+      xfree(line);
       return 0;
-
+   }
    memset(result, 0, sizeof(SLPSpiEntry));
 
-   /* Read the next valid entry */
+   /* read the next valid entry */
    while (fgets(line, MAX_SPI_ENTRY_LEN, fp))
    {
       /* read the first token */
       slider1 = line;
       /* skip leading whitespace */
-      while (*slider1 && *slider1 <= 0x20) slider1++;
+      while (*slider1 && *slider1 <= 0x20) 
+         slider1++;
       /* skip all white lines */
-      if (*slider1 == 0) continue;
+      if (*slider1 == 0) 
+         continue;
       /* skip commented lines */
-      if (*slider1 == '#') continue;
+      if (*slider1 == '#') 
+         continue;
       /* PUBLIC|PRIVATE */
       slider2 = slider1;
-      while (*slider2 && *slider2 > 0x20) slider2++;
+      while (*slider2 && *slider2 > 0x20) 
+         slider2++;
       if (strncasecmp(PUBLIC_TOKEN,slider1,slider2-slider1) == 0)
       {
-         if (keytype == SLPSPI_KEY_TYPE_PRIVATE) continue;
+         if (keytype == SLPSPI_KEY_TYPE_PRIVATE) 
+            continue;
          result->keytype = SLPSPI_KEY_TYPE_PUBLIC;
       }
-      else if (strncasecmp(PRIVATE_TOKEN,slider1,slider2-slider1) == 0)
+      else if (strncasecmp(PRIVATE_TOKEN, slider1, slider2-slider1) == 0)
       {
-         if (keytype == SLPSPI_KEY_TYPE_PUBLIC) continue;
+         if (keytype == SLPSPI_KEY_TYPE_PUBLIC) 
+            continue;
          result->keytype = SLPSPI_KEY_TYPE_PRIVATE;
       }
       else
-         continue; /* unknown token */
+         continue;   /* unknown token */
 
       /* read the second token */
       slider1=slider2;
       /* skip leading whitespace */
-      while (*slider1 && *slider1 <= 0x20) slider1++;
+      while (*slider1 && *slider1 <= 0x20) 
+         slider1++;
       /* SPI string */
       slider2 = slider1;
-      while (*slider2 && *slider2 > 0x20) slider2++;
+      while (*slider2 && *slider2 > 0x20) 
+         slider2++;
       /* SPI string is at slider1 length slider2 - slider1 */
 
-      result->spistr = (char*)xmalloc(slider2-slider1);
+      result->spistr = (char *)xmalloc(slider2-slider1);
       if (result->spistr)
       {
-         memcpy(result->spistr,slider1,slider2-slider1);
-         result->spistrlen = slider2-slider1;
-      }
+         memcpy(result->spistr, slider1, slider2-slider1);
+         result->spistrlen = slider2-slider1;    
+      }   
 
       /* read the third token */
       slider1=slider2;
       /* skip leading whitespace */
-      while (*slider1 && *slider1 <= 0x20) slider1++;
+      while (*slider1 && *slider1 <= 0x20) 
+         slider1++;
       /* SPI string */
       slider2 = slider1;
-      while (*slider2 && *slider2 > 0x20) slider2++;
+      while (*slider2 && *slider2 > 0x20) 
+         slider2++;
       /* key file path is at slider1 length slider2 - slider1 */
-      tmp = *slider2;
+      tmp = *slider2; 
       *slider2 = 0;
       result->keyfilename = xstrdup(slider1);
-      result->key = 0; /* read it later */
+      result->key = 0; /* read it later */ 
       *slider2 = tmp;
 
       /* See what we got */
       if (result && result->spistr && result->keyfilename)
          goto SUCCESS;
 
-      if (result->keyfilename) xfree(result->keyfilename);
-      if (result->spistr) xfree(result->spistr);
+      xfree(result->keyfilename);
+      xfree(result->spistr);
    }
-
-   if (result)
-   {
-      xfree(result);
-      result = 0;
-   }
+   xfree(result);
+   result = 0;
 
 SUCCESS:
 
-   if (line) xfree(line);
-
+   xfree(line);
    return result;
 }
 
@@ -249,16 +256,15 @@ SLPSpiHandle SLPSpiOpen(const char * spifile, int cacheprivate)
 {
    FILE * fp;
    SLPSpiHandle result = 0;
-   SLPSpiEntry * spientry;
+   SLPSpiEntry * spientry;      
 
    fp = fopen(spifile,"r");
    if (fp)
    {
-      result = xmalloc(sizeof(struct _SLPSpiHandle));
+      result = xmalloc(sizeof(structSLPSpiHandle));
       if (result == 0) 
          return 0;
-
-      memset(result, 0, sizeof(struct _SLPSpiHandle));
+      memset(result, 0, sizeof(structSLPSpiHandle));
 
       result->spifile = xstrdup(spifile);
       result->cacheprivate = cacheprivate;
@@ -268,14 +274,13 @@ SLPSpiHandle SLPSpiOpen(const char * spifile, int cacheprivate)
          if (spientry == 0) 
             break;
 
-         /* destroy the key cause we're not suppose to cache it */
-         if (spientry->keytype == SLPSPI_KEY_TYPE_PRIVATE 
-               && cacheprivate == 0)
+         /* destroy the key if we're not suppose to cache it */
+         if (spientry->keytype == SLPSPI_KEY_TYPE_PRIVATE && cacheprivate == 0)
             SLPCryptoDSAKeyDestroy(spientry->key);
 
-         SLPListLinkHead(&(result->cache),(SLPListItem*)spientry);
-      }
-      fclose(fp);
+         SLPListLinkHead(&result->cache, (SLPListItem *)spientry);
+      } 
+      fclose(fp); 
    }
    return result;
 }
@@ -290,11 +295,10 @@ void SLPSpiClose(SLPSpiHandle hspi)
 {
    if (hspi)
    {
-      if (hspi->spifile) xfree(hspi->spifile);
+      xfree(hspi->spifile);
       while (hspi->cache.count)
          SLPSpiEntryFree((SLPSpiEntry *)
-               SLPListUnlink(&hspi->cache, hspi->cache.head));
-
+               SLPListUnlink(&hspi->cache,hspi->cache.head));
       xfree(hspi);
    }
 }
@@ -313,8 +317,8 @@ void SLPSpiClose(SLPSpiHandle hspi)
  * @note The pointer returned may NOT be null-terminated. Use the length 
  *    returned to properly access the memory in the buffer.
  */
-char * SLPSpiGetDefaultSPI(SLPSpiHandle hspi, int keytype, int * spistrlen,
-      char ** spistr)
+char * SLPSpiGetDefaultSPI(SLPSpiHandle hspi, int keytype, 
+      size_t * spistrlen, char ** spistr)
 {
    SLPSpiEntry * entry;
 
@@ -336,7 +340,7 @@ char * SLPSpiGetDefaultSPI(SLPSpiHandle hspi, int keytype, int * spistrlen,
    }
    return *spistr;
 }
-
+    
 /** Fetches a copy of the DA's private key file.
  *
  * @param[in] hspi - An open SPI handle.
@@ -349,12 +353,12 @@ char * SLPSpiGetDefaultSPI(SLPSpiHandle hspi, int keytype, int * spistrlen,
  *
  * @note SLPCryptoDSAKeyDestroy should be used to free key memory.
  */
-SLPCryptoDSAKey * SLPSpiGetDSAKey(SLPSpiHandle hspi, int keytype,
-      int spistrlen, const char * spistr, SLPCryptoDSAKey ** key)
+SLPCryptoDSAKey * SLPSpiGetDSAKey(SLPSpiHandle hspi, int keytype, 
+      size_t spistrlen, const char * spistr, SLPCryptoDSAKey ** key)
 {
    SLPSpiEntry * tmp = 0;
 
-   /* For safety 0 out the key from the beginning */
+   /* For safety NULL out the key from the beginning */
    *key = 0;
 
    if (hspi)
@@ -370,10 +374,7 @@ SLPCryptoDSAKey * SLPSpiGetDSAKey(SLPSpiHandle hspi, int keytype,
                      SLPSPI_KEY_TYPE_PRIVATE);
                return *key;
             }
-
-            tmp->key = SLPSpiReadKeyFile(tmp->keyfilename, keytype);
-            if (tmp->key == 0)
-               return 0;
+            tmp->key = SLPSpiReadKeyFile(tmp->keyfilename,keytype);
          }
          *key = SLPCryptoDSAKeyDup(tmp->key);
       }
@@ -392,12 +393,12 @@ SLPCryptoDSAKey * SLPSpiGetDSAKey(SLPSpiHandle hspi, int keytype,
  *
  * @note No SPI always returns True.
  */
-int SLPSpiCanVerify(SLPSpiHandle hspi, int spistrlen, const char * spistr)
+int SLPSpiCanVerify(SLPSpiHandle hspi, size_t spistrlen, const char * spistr)
 {
    if (hspi == 0)
       return 0;
 
-   if (spistrlen == 0 || spistr == 0)
+   if (spistrlen == 0 || spistr == NULL)
       return 1;
 
    return SLPSpiEntryFind(&hspi->cache, SLPSPI_KEY_TYPE_PUBLIC, 
@@ -415,10 +416,12 @@ int SLPSpiCanVerify(SLPSpiHandle hspi, int spistrlen, const char * spistr)
  *
  * @note No SPI always returns True.
  */
-int SLPSpiCanSign(SLPSpiHandle hspi, int spistrlen, const char * spistr)
+int SLPSpiCanSign(SLPSpiHandle hspi, size_t spistrlen, const char * spistr)
 {
-   return SLPSpiEntryFind(&hspi->cache, SLPSPI_KEY_TYPE_PRIVATE,
+   return SLPSpiEntryFind(&hspi->cache, SLPSPI_KEY_TYPE_PRIVATE, 
          spistrlen, spistr) != 0;
 }
+
+#endif   /* ENABLE_SLPv2_SECURITY */
 
 /*=========================================================================*/

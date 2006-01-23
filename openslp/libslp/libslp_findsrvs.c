@@ -43,14 +43,16 @@
 #include "slp.h"
 #include "libslp.h"
 #include "slp_net.h"
+#include "slp_property.h"
+#include "slp_xmalloc.h"
+#include "slp_message.h"
 
 /** Collates response data to user callback for SLPFindSrv requests.
  *
  * @param[in] hSLP - The SLP handle object associated with the request.
  * @param[in] pcSrvURL - The service URL for this pass.
  * @param[in] sLifetime - The lifetime value for @p pcSrvURL.
- * @param[in] errCode - The error code received on this pass.
- * @param[in] pvCookie - An opaque value passed through from the caller.
+ * @param[in] errorcode - The error code received on this pass.
  *
  * @return An SLP boolean value; SLP_TRUE indicates we are finished; 
  *    SLP_FALSE indicates we should continue.
@@ -60,66 +62,62 @@
  *
  * @internal
  */
-SLPBoolean ColateSLPSrvURLCallback(SLPHandle hSLP, const char * pcSrvURL, 
-      unsigned short sLifetime,SLPError errCode, void * pvCookie)
+static SLPBoolean CollateToSLPSrvURLCallback(SLPHandle hSLP, 
+      const char * pcSrvURL, unsigned short sLifetime, 
+      SLPError errorcode)
 {
-   SLPSrvUrlColatedItem * collateditem;
-   PSLPHandleInfo handle;
+   SLPHandleInfo * handle = hSLP;
+   SLPSrvUrlCollatedItem * collateditem;
 
-   handle = (PSLPHandleInfo)hSLP;
-   handle->callbackcount++;
-
-#ifdef ENABLE_ASYNC_API
-   /* Do not colate for async calls */
+   /* Do not collate for async calls. */
    if (handle->isAsync)
-   {
-      return handle->params.findsrvs.callback(hSLP, pcSrvURL, sLifetime,
-            errCode, pvCookie);
-   }
-#endif
+      return handle->params.findsrvs.callback(hSLP, pcSrvURL, 
+            sLifetime, errorcode, handle->params.findsrvs.cookie);
 
-   if (errCode == SLP_LAST_CALL || handle->callbackcount 
-         > SLPPropertyAsInteger(SLPGetProperty("net.slp.maxResults")))
+   if (errorcode == SLP_LAST_CALL || handle->callbackcount > 
+         SLPPropertyAsInteger(SLPGetProperty("net.slp.maxResults")))
    {
       /* We are done so call the caller's callback for each
-       * service URL colated item and clean up the colation list 
+       * service URL collated item and clean up the collation list.
        */
-      handle->params.findsrvs.callback((SLPHandle)handle, 0, 0, 
+      handle->params.findsrvs.callback(handle, 0, 0, 
             SLP_LAST_CALL, handle->params.findsrvs.cookie);
       goto CLEANUP;
    }
-   else if (errCode != SLP_OK)
+   else if (errorcode != SLP_OK)
       return SLP_TRUE;
 
-   /* Add the service URL to the colation list */
-   collateditem = (SLPSrvUrlColatedItem*) handle->collatedsrvurls.head;
+   /* We're adding another result - increment result count. */
+   handle->callbackcount++;
+
+   /* Add the service URL to the colation list. */
+   collateditem = (SLPSrvUrlCollatedItem *)handle->collatedsrvurls.head;
    while (collateditem)
    {
-      if (strcmp(collateditem->srvurl,pcSrvURL) == 0)
+      if (strcmp(collateditem->srvurl, pcSrvURL) == 0)
          break;
-
-      collateditem = (SLPSrvUrlColatedItem*)collateditem->listitem.next;
+      collateditem = (SLPSrvUrlCollatedItem *)collateditem->listitem.next;
    }
 
-   /* create a new item if none was found */
+   /* Create a new item if none was found. */
    if (collateditem == 0)
    {
-      collateditem = (SLPSrvUrlColatedItem*)xmalloc(sizeof(SLPSrvUrlColatedItem) 
+      collateditem = xmalloc(sizeof(SLPSrvUrlCollatedItem) 
             + strlen(pcSrvURL) + 1);
       if (collateditem)
       {
-         memset(collateditem, 0, sizeof(SLPSrvUrlColatedItem));
+         memset(collateditem, 0, sizeof(SLPSrvUrlCollatedItem));
          collateditem->srvurl = (char *)(collateditem + 1);
          strcpy(collateditem->srvurl, pcSrvURL);
          collateditem->lifetime = sLifetime;
 
-         /* Add the new item to the collated list */
-         SLPListLinkTail(&handle->collatedsrvurls,
-               (SLPListItem*)collateditem);
+         /* Add the new item to the collated list. */
+         SLPListLinkTail(&handle->collatedsrvurls, 
+               (SLPListItem *)collateditem);
 
-         /* Call the caller's callback */
-         if (handle->params.findsrvs.callback((SLPHandle)handle, pcSrvURL, 
-               sLifetime, SLP_OK, handle->params.findsrvs.cookie) == SLP_FALSE)
+         /* Call the caller's callback. */
+         if (handle->params.findsrvs.callback(handle, pcSrvURL, sLifetime, 
+               SLP_OK, handle->params.findsrvs.cookie) == SLP_FALSE)
             goto CLEANUP;
       }
    }
@@ -127,13 +125,13 @@ SLPBoolean ColateSLPSrvURLCallback(SLPHandle hSLP, const char * pcSrvURL,
 
 CLEANUP:
 
-   /* free the collation list */
+   /* Free the collation list. */
    while (handle->collatedsrvurls.count)
    {
-      collateditem = (SLPSrvUrlColatedItem*)SLPListUnlink(
+      collateditem = (SLPSrvUrlCollatedItem *)SLPListUnlink(
             &handle->collatedsrvurls, handle->collatedsrvurls.head);
       xfree(collateditem);
-   }
+   }   
    handle->callbackcount = 0;
 
    return SLP_FALSE;
@@ -142,7 +140,7 @@ CLEANUP:
 /** SLPFindSrvs callback routine for NetworkRqstRply.
  *
  * @param[in] errorcode - The network operation error code.
- * @param[in] peerinfo - The network address of the responder.
+ * @param[in] peeraddr - The network address of the responder.
  * @param[in] replybuf - The response buffer from the network request.
  * @param[in] cookie - Callback context data from ProcessSrvReg.
  *
@@ -150,101 +148,78 @@ CLEANUP:
  *
  * @internal
  */
-SLPBoolean ProcessSrvRplyCallback(SLPError errorcode, 
-      struct sockaddr_storage * peerinfo, SLPBuffer replybuf, void * cookie)
+static SLPBoolean ProcessSrvRplyCallback(SLPError errorcode, 
+      void * peeraddr, SLPBuffer replybuf, void * cookie)
 {
-   int i;
-   SLPUrlEntry * urlentry;
    SLPMessage replymsg;
-   PSLPHandleInfo handle = (PSLPHandleInfo)cookie;
    SLPBoolean result = SLP_TRUE;
+   SLPHandleInfo * handle = (SLPHandleInfo *)cookie;
 
-#ifdef ENABLE_SLPv2_SECURITY  
-   int securityenabled;
-   securityenabled = SLPPropertyAsBoolean(SLPGetProperty("net.slp.securityEnabled"));
+#ifdef ENABLE_SLPv2_SECURITY
+   SLPBoolean securityEnabled = SLPPropertyAsBoolean(
+         SLPGetProperty("net.slp.securityEnabled"));
 #endif
 
-   /*-------------------------------------------*/
-   /* Check the errorcode and bail if it is set */
-   /*-------------------------------------------*/
+   /* Check the errorcode and bail if it is set. */
    if (errorcode != SLP_OK)
-      return ColateSLPSrvURLCallback((SLPHandle)handle, 0, 0, errorcode,
-            handle->params.findsrvs.cookie);
+      return CollateToSLPSrvURLCallback(handle, 0, 0, errorcode);
 
-   /*--------------------*/
-   /* Parse the replybuf */
-   /*--------------------*/
+   /* parse the replybuf */
    replymsg = SLPMessageAlloc();
    if (replymsg)
    {
-      if (SLPMessageParseBuffer(peerinfo, 0, replybuf, replymsg) == 0)
+      if (!SLPMessageParseBuffer(peeraddr, 0, replybuf, replymsg))
       {
          if (replymsg->header.functionid == SLP_FUNCT_SRVRPLY 
                && replymsg->body.srvrply.errorcode == 0)
          {
-            urlentry = replymsg->body.srvrply.urlarray;
+            int i;
+            SLPUrlEntry * urlentry = replymsg->body.srvrply.urlarray;
 
             for (i = 0; i < replymsg->body.srvrply.urlcount; i++)
             {
-
 #ifdef ENABLE_SLPv2_SECURITY
-               /*-------------------------------*/
-               /* Validate the authblocks       */
-               /*-------------------------------*/
-               if (securityenabled && SLPAuthVerifyUrl(handle->hspi, 1,
-                     &(urlentry[i]))) /* auth failed - skip this URLEntry */
-                  continue;
+               /* Validate the service authblocks. */
+               if (securityEnabled 
+                     && SLPAuthVerifyUrl(handle->hspi, 1, &urlentry[i]))
+                  continue; /* Authentication failed, skip this URLEntry. */
 #endif
-               /*--------------------------------*/
-               /* Send the URL to the API caller */
-               /*--------------------------------*/
-               /* TRICKY: null terminate the url by setting the authcount to 0 */
-               ((char*)(urlentry[i].url))[urlentry[i].urllen] = 0;
-
-               result = ColateSLPSrvURLCallback((SLPHandle)handle,
-                     urlentry[i].url, (unsigned short)urlentry[i].lifetime,
-                     SLP_OK, handle->params.findsrvs.cookie);
+               result = CollateToSLPSrvURLCallback(handle, urlentry[i].url, 
+                     (unsigned short)urlentry[i].lifetime, SLP_OK);
                if (result == SLP_FALSE)
                   break;
-            }
+            } 
          }
          else if (replymsg->header.functionid == SLP_FUNCT_DAADVERT 
                && replymsg->body.daadvert.errorcode == 0)
          {
 #ifdef ENABLE_SLPv2_SECURITY
-            if (securityenabled && SLPAuthVerifyDAAdvert(handle->hspi, 1,
-                  &replymsg->body.daadvert))
+            if (securityEnabled && SLPAuthVerifyDAAdvert(handle->hspi, 
+                  1, &replymsg->body.daadvert))
             {
-               /* Verification failed. Ignore message */
+               /* Verification failed. Ignore message. */
                SLPMessageFree(replymsg);
                return SLP_TRUE;
             }
 #endif
-
-            /* TRICKY... */
-            ((char*)(replymsg->body.daadvert.url))[replymsg->body.daadvert.urllen] = 0;
-            result = ColateSLPSrvURLCallback((SLPHandle)handle,
-                  replymsg->body.daadvert.url, SLP_LIFETIME_MAXIMUM, SLP_OK,
-                  handle->params.findsrvs.cookie);
+            result = CollateToSLPSrvURLCallback(handle, 
+                  replymsg->body.daadvert.url, SLP_LIFETIME_MAXIMUM, 
+                  SLP_OK);
          }
          else if (replymsg->header.functionid == SLP_FUNCT_SAADVERT)
          {
-
 #ifdef ENABLE_SLPv2_SECURITY
-            if (securityenabled && SLPAuthVerifySAAdvert(handle->hspi, 1,
-                  &(replymsg->body.saadvert)))
+            if (securityEnabled && SLPAuthVerifySAAdvert(handle->hspi, 1, 
+                  &replymsg->body.saadvert))
             {
-               /* Verification failed. Ignore message */
+               /* Verification failed. Ignore message. */
                SLPMessageFree(replymsg);
                return SLP_TRUE;
             }
 #endif
-
-            /* TRICKY... */
-            ((char*)(replymsg->body.saadvert.url))[replymsg->body.saadvert.urllen] = 0;
-            result = ColateSLPSrvURLCallback((SLPHandle)handle,
-                  replymsg->body.saadvert.url, SLP_LIFETIME_MAXIMUM,
-                  SLP_OK, handle->params.findsrvs.cookie);
+            result = CollateToSLPSrvURLCallback(handle, 
+                  replymsg->body.saadvert.url, SLP_LIFETIME_MAXIMUM, 
+                  SLP_OK);
          }
       }
       SLPMessageFree(replymsg);
@@ -259,135 +234,114 @@ SLPBoolean ProcessSrvRplyCallback(SLPError errorcode,
  *
  * @return Zero on success, or an SLP API error code.
  */
-SLPError ProcessSrvRqst(PSLPHandleInfo handle)
+static SLPError ProcessSrvRqst(SLPHandleInfo * handle)
 {
+   uint8_t * buf;
+   uint8_t * curpos;
+   SLPError serr;
+   size_t spistrlen = 0;
+   uint8_t * spistr = 0;
    struct sockaddr_storage peeraddr;
-   int sock = -1;
-   int bufsize = 0;
-   char * buf = 0;
-   char * curpos = 0;
-   SLPError result = 0;
+   sockfd_t sock = SLP_INVALID_SOCKET;
 
-#ifdef ENABLE_SLPv2_SECURITY
-   int spistrlen = 0;
-   char * spistr = 0;
-#endif
-
-   /*------------------------------------------*/
    /* Is this a special attempt to locate DAs? */
-   /*------------------------------------------*/
-   if (strncasecmp(handle->params.findsrvs.srvtype, SLP_DA_SERVICE_TYPE, 
+   if (strncasecmp(handle->params.findsrvs.srvtype, SLP_DA_SERVICE_TYPE,
          handle->params.findsrvs.srvtypelen) == 0)
    {
       KnownDAProcessSrvRqst(handle);
-      goto FINISHED;
+      return 0;
    }
 
 #ifdef ENABLE_SLPv2_SECURITY
    if (SLPPropertyAsBoolean(SLPGetProperty("net.slp.securityEnabled")))
-      SLPSpiGetDefaultSPI(handle->hspi, SLPSPI_KEY_TYPE_PUBLIC,
+      SLPSpiGetDefaultSPI(handle->hspi, SLPSPI_KEY_TYPE_PUBLIC, 
             &spistrlen, &spistr);
 #endif
 
-   /*-------------------------------------------------------------------*/
-   /* determine the size of the fixed portion of the SRVRQST            */
-   /*-------------------------------------------------------------------*/
-   bufsize  = handle->params.findsrvs.srvtypelen + 2;   /*  2 bytes for len field */
-   bufsize += handle->params.findsrvs.scopelistlen + 2; /*  2 bytes for len field */
-   bufsize += handle->params.findsrvs.predicatelen + 2; /*  2 bytes for len field */
-   bufsize += 2;    /*  2 bytes for spistr len*/
-#ifdef ENABLE_SLPv2_SECURITY
-   bufsize += spistrlen;
-#endif
+/*  0                   1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |   length of <service-type>    |    <service-type> String      \
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |    length of <scope-list>     |     <scope-list> String       \
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |  length of predicate string   |  Service Request <predicate>  \
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |  length of <SLP SPI> string   |       <SLP SPI> String        \
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ */
 
-   buf = curpos = (char*)xmalloc(bufsize);
+   buf = curpos = xmalloc(
+         + 2 + handle->params.findsrvs.srvtypelen
+         + 2 + handle->params.findsrvs.scopelistlen
+         + 2 + handle->params.findsrvs.predicatelen
+         + 2 + spistrlen);
    if (buf == 0)
    {
-      result = SLP_MEMORY_ALLOC_FAILED;
-      goto FINISHED;
+      xfree(spistr);
+      return SLP_MEMORY_ALLOC_FAILED;
    }
 
-   /*------------------------------------------------------------*/
-   /* Build a buffer containing the fixed portion of the SRVRQST */
-   /*------------------------------------------------------------*/
-   /* service type */
-   ToUINT16(curpos,handle->params.findsrvs.srvtypelen);
-   curpos = curpos + 2;
-   memcpy(curpos, handle->params.findsrvs.srvtype,
+   /* <service-type> */
+   PutUINT16(&curpos, handle->params.findsrvs.srvtypelen);
+   memcpy(curpos, handle->params.findsrvs.srvtype, 
          handle->params.findsrvs.srvtypelen);
-   curpos = curpos + handle->params.findsrvs.srvtypelen;
-   /* scope list */
-   ToUINT16(curpos,handle->params.findsrvs.scopelistlen);
-   curpos = curpos + 2;
+   curpos += handle->params.findsrvs.srvtypelen;
+
+   /* <scope-list> */
+   PutUINT16(&curpos, handle->params.findsrvs.scopelistlen);
    memcpy(curpos, handle->params.findsrvs.scopelist,
          handle->params.findsrvs.scopelistlen);
-   curpos = curpos + handle->params.findsrvs.scopelistlen;
-   /* predicate */
-   ToUINT16(curpos,handle->params.findsrvs.predicatelen);
-   curpos = curpos + 2;
+   curpos += handle->params.findsrvs.scopelistlen;
+
+   /* predicate string */
+   PutUINT16(&curpos, handle->params.findsrvs.predicatelen);
    memcpy(curpos, handle->params.findsrvs.predicate,
          handle->params.findsrvs.predicatelen);
-   curpos = curpos + handle->params.findsrvs.predicatelen;
-#ifdef ENABLE_SLPv2_SECURITY
-   ToUINT16(curpos,spistrlen);
-   curpos = curpos + 2;
-   memcpy(curpos, spistr, spistrlen);
-   curpos = curpos + spistrlen;
-#else
-   ToUINT16(curpos,0);
-#endif
+   curpos += handle->params.findsrvs.predicatelen;
 
-   /*--------------------------*/
-   /* Call the RqstRply engine */
-   /*--------------------------*/
+   /* <SLP SPI> */
+   PutUINT16(&curpos, spistrlen);
+   memcpy(curpos, spistr, spistrlen);
+   curpos += spistrlen;
+
+   /* Call the RqstRply engine. */
    do
    {
-
 #ifndef UNICAST_NOT_SUPPORTED
-      if (handle->dounicast == 1)
+      if (handle->dounicast == 1) 
       {
-         void * cookie = (PSLPHandleInfo)handle;
-         result = NetworkUcastRqstRply(handle, buf, SLP_FUNCT_SRVRQST,
-               bufsize, ProcessSrvRplyCallback, cookie);
+         serr = NetworkUcastRqstRply(handle, buf, SLP_FUNCT_SRVRQST, 
+               curpos - buf, ProcessSrvRplyCallback, handle);
          break;
       }
-      else
 #endif
-         if (strncasecmp(handle->params.findsrvs.srvtype, SLP_SA_SERVICE_TYPE, 
-               handle->params.findsrvs.srvtypelen))
-            sock = NetworkConnectToDA(handle, handle->params.findsrvs.scopelist,
-                  handle->params.findsrvs.scopelistlen, &peeraddr);
 
-      if (sock == -1)
+      if (strncasecmp(handle->params.findsrvs.srvtype, SLP_SA_SERVICE_TYPE,
+            handle->params.findsrvs.srvtypelen) != 0)
+         sock = NetworkConnectToDA(handle, handle->params.findsrvs.scopelist,
+               handle->params.findsrvs.scopelistlen, &peeraddr);
+
+      if (sock == SLP_INVALID_SOCKET)
       {
-         /* use multicast as a last resort */
-#ifndef MI_NOT_SUPPORTED
-         result = NetworkMcastRqstRply(handle, buf, SLP_FUNCT_SRVRQST,
-               bufsize, ProcessSrvRplyCallback, 0);
-#else    
-         result = NetworkMcastRqstRply(handle->langtag, buf, SLP_FUNCT_SRVRQST,
-               bufsize, ProcessSrvRplyCallback, handle);
-#endif
+         /* Use multicast as a last resort. */
+         serr = NetworkMcastRqstRply(handle, buf, SLP_FUNCT_SRVRQST, 
+               curpos - buf, ProcessSrvRplyCallback, 0);
          break;
       }
 
-      result = NetworkRqstRply(sock, &peeraddr, handle->langtag, 0, buf,
-            SLP_FUNCT_SRVRQST, bufsize, ProcessSrvRplyCallback, handle);
-      if (result)
+      serr = NetworkRqstRply(sock, &peeraddr, handle->langtag, 0, buf, 
+            SLP_FUNCT_SRVRQST, curpos - buf, ProcessSrvRplyCallback, 
+            handle);
+      if (serr)
          NetworkDisconnectDA(handle);
 
-   } while (result == SLP_NETWORK_ERROR);
+   } while (serr == SLP_NETWORK_ERROR);
 
-FINISHED:
+   xfree(buf);
+   xfree(spistr);
 
-   if (buf) xfree(buf);
-
-#ifdef ENABLE_SLPv2_SECURITY
-   if (spistr) xfree(spistr);
-#endif
-
-   return result;
-}
+   return serr;
+}   
 
 #ifdef ENABLE_ASYNC_API
 /** Thread start procedure for asynchronous find services request.
@@ -399,16 +353,14 @@ FINISHED:
  *
  * @internal
  */
-SLPError AsyncProcessSrvRqst(PSLPHandleInfo handle)
+static SLPError AsyncProcessSrvRqst(SLPHandleInfo * handle)
 {
-   SLPError result = ProcessSrvRqst(handle);
-
+   SLPError serr = ProcessSrvRqst(handle);
    xfree(handle->params.findsrvs.srvtype);
    xfree(handle->params.findsrvs.scopelist);
    xfree(handle->params.findsrvs.predicate);
-   handle->inUse = SLP_FALSE;
-
-   return result;
+   SLPReleaseSpinLock(&handle->inUse);
+   return serr;
 }
 #endif
 
@@ -423,115 +375,101 @@ SLPError AsyncProcessSrvRqst(PSLPHandleInfo handle)
  * @param[in] pcServiceType - The Service Type String, including authority 
  *    string if any, for the request, such as can be discovered using 
  *    SLPSrvTypes. This could be, for example "service:printer:lpr" or
- *    "service:nfs". May not be the empty string or 0.
+ *    "service:nfs". May not be the empty string or NULL.
  * @param[in] pcScopeList - A pointer to a char containing a comma-separated 
- *    list of scope names. Pass in 0 or the empty string ("") to find 
+ *    list of scope names. Pass in NULL or the empty string ("") to find 
  *    services in all the scopes the local host is configured to query.
  * @param[in] pcSearchFilter - A query formulated of attribute pattern 
  *    matching expressions in the form of a LDAPv3 Search Filter, see 
- *    [RFC 2254]. If this filter is empty, i.e. "" or 0, all services 
+ *    [RFC 2254]. If this filter is empty, i.e. "" or NULL, all services 
  *    of the requested type in the specified scopes are returned.
  * @param[in] callback - A callback function through which the results of 
  *    the operation are reported.
  * @param[in] pvCookie - Memory passed to the @p callback code from the 
- *    client. May be 0.
+ *    client. May be NULL.
  *
  * @return If an error occurs in starting the operation, one of the SLPError
  *    codes is returned.
  */
-SLPError SLPAPI SLPFindSrvs(SLPHandle hSLP, const char * pcServiceType,
-      const char * pcScopeList, const char * pcSearchFilter,
-      SLPSrvURLCallback callback, void * pvCookie)
+SLPEXP SLPError SLPAPI SLPFindSrvs(
+      SLPHandle hSLP,
+      const char * pcServiceType,
+      const char * pcScopeList,
+      const char * pcSearchFilter,
+      SLPSrvURLCallback callback,
+      void * pvCookie)
 {
-   PSLPHandleInfo handle;
-   SLPError result;
+   bool inuse;
+   SLPError serr;
+   SLPHandleInfo * handle = hSLP;
 
-   /*------------------------------*/
-   /* check for invalid parameters */
-   /*------------------------------*/
-   if (hSLP == 0 || *(unsigned int *)hSLP != SLP_HANDLE_SIG 
-         || pcServiceType == 0 || *pcServiceType  == 0 
+   /* Check for invalid parameters. */
+   SLP_ASSERT(handle != 0);
+   SLP_ASSERT(handle->sig == SLP_HANDLE_SIG);
+   SLP_ASSERT(pcServiceType != 0);
+   SLP_ASSERT(*pcServiceType != 0);
+   SLP_ASSERT(callback != 0);
+
+   if (handle == 0 || handle->sig != SLP_HANDLE_SIG 
+         || pcServiceType == 0 || *pcServiceType == 0 
          || callback == 0)
       return SLP_PARAMETER_BAD;
 
-   /*-----------------------------------------*/
-   /* cast the SLPHandle into a SLPHandleInfo */
-   /*-----------------------------------------*/
-   handle = (PSLPHandleInfo)hSLP;
-
-   /*-----------------------------------------*/
-   /* Check to see if the handle is in use    */
-   /*-----------------------------------------*/
-   if (handle->inUse == SLP_TRUE)
+   /* Check to see if the handle is in use. */
+   inuse = SLPTryAcquireSpinLock(&handle->inUse);
+   SLP_ASSERT(!inuse);
+   if (inuse)
       return SLP_HANDLE_IN_USE;
 
-   handle->inUse = SLP_TRUE;
+   /* Get a scope list if not supplied. */
+   if (pcScopeList == 0 || *pcScopeList == 0)
+      pcScopeList = SLPGetProperty("net.slp.useScopes");
 
-   /*-------------------------------------------*/
-   /* Set the handle up to reference parameters */
-   /*-------------------------------------------*/
+   /* Get a search filter if not supplied */
+   if (pcSearchFilter == 0)
+      pcSearchFilter = "";
+
+   /* Set the handle up to reference parameters. */
    handle->params.findsrvs.srvtypelen = strlen(pcServiceType);
    handle->params.findsrvs.srvtype = pcServiceType;
-   if (pcScopeList && *pcScopeList)
-   {
-      handle->params.findsrvs.scopelistlen   = strlen(pcScopeList);
-      handle->params.findsrvs.scopelist      = pcScopeList;
-   }
-   else
-   {
-      handle->params.findsrvs.scopelist      = SLPGetProperty("net.slp.useScopes");
-      handle->params.findsrvs.scopelistlen   = strlen(handle->params.findsrvs.scopelist);
-   }
+   handle->params.findsrvs.scopelistlen = strlen(pcScopeList);
+   handle->params.findsrvs.scopelist = pcScopeList;
+   handle->params.findsrvs.predicatelen = strlen(pcSearchFilter);
+   handle->params.findsrvs.predicate = pcSearchFilter;
+   handle->params.findsrvs.callback = callback;
+   handle->params.findsrvs.cookie = pvCookie; 
 
-   if (pcSearchFilter)
-   {
-      handle->params.findsrvs.predicatelen   = strlen(pcSearchFilter);
-      handle->params.findsrvs.predicate      = pcSearchFilter;
-   }
-   else
-   {
-      handle->params.findsrvs.predicatelen   = 0;
-      handle->params.findsrvs.predicate      = (char*)&handle->params.findsrvs.predicatelen;
-   }
-   handle->params.findsrvs.callback          = callback;
-   handle->params.findsrvs.cookie            = pvCookie;
-
-
-   /*----------------------------------------------*/
-   /* Check to see if we should be async or sync   */
-   /*----------------------------------------------*/
+   /* Check to see if we should be async or sync. */
 #ifdef ENABLE_ASYNC_API
    if (handle->isAsync)
    {
-      /* COPY all the referenced parameters */
+      /* Copy all of the referenced parameters before creating thread. */
       handle->params.findsrvs.srvtype = xstrdup(handle->params.findsrvs.srvtype);
       handle->params.findsrvs.scopelist = xstrdup(handle->params.findsrvs.scopelist);
       handle->params.findsrvs.predicate = xstrdup(handle->params.findsrvs.predicate);
 
-      /* make sure strdups did not fail */
-      if (handle->params.findsrvs.srvtype 
-            && handle->params.findsrvs.scopelist 
-            && handle->params.findsrvs.predicate)
-         result = ThreadCreate((ThreadStartProc)AsyncProcessSrvRqst,handle);
-      else
-         result = SLP_MEMORY_ALLOC_FAILED;
-
-      if (result)
+      /* Ensure strdups and thread create succeed. */
+      if (handle->params.findsrvs.srvtype == 0
+            || handle->params.findsrvs.scopelist == 0
+            || handle->params.findsrvs.predicate == 0
+            || (handle->th = ThreadCreate((ThreadStartProc)
+                  AsyncProcessSrvRqst, handle)) == 0)
       {
-         if (handle->params.findsrvs.srvtype) xfree((void*)handle->params.findsrvs.srvtype);
-         if (handle->params.findsrvs.scopelist) xfree((void*)handle->params.findsrvs.scopelist);
-         if (handle->params.findsrvs.predicate) xfree((void*)handle->params.findsrvs.predicate);
-         handle->inUse = SLP_FALSE;
+         serr = SLP_MEMORY_ALLOC_FAILED;    
+         xfree(handle->params.findsrvs.srvtype);
+         xfree(handle->params.findsrvs.scopelist);
+         xfree(handle->params.findsrvs.predicate);
+         SLPReleaseSpinLock(&handle->inUse);
       }
    }
    else
-#endif /* ifdef ENABLE_ASYNC_API */
+#endif
    {
-      /* Leave all parameters REFERENCED */
-      result = ProcessSrvRqst(handle);
-      handle->inUse = SLP_FALSE;
+      /* Leave all parameters referenced. */
+      serr = ProcessSrvRqst(handle);
+      SLPReleaseSpinLock(&handle->inUse);
    }
-   return result;
+   return serr;
 }
 
 /*=========================================================================*/

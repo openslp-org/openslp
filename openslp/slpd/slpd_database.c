@@ -57,8 +57,9 @@
 #include "slp_net.h"
 #include "slpd_incoming.h"
 
-/** The slpd static global database object. */
-SLPDDatabase G_SlpdDatabase;
+/** The slpd static global database object.
+ */
+static SLPDDatabase G_SlpdDatabase;
 
 /** Ages the database entries and clears new and deleted entry lists
  *
@@ -77,7 +78,7 @@ void SLPDDatabaseAge(int seconds, int ageall)
       while (1)
       {
          entry = SLPDatabaseEnum(dh);
-         if (entry == 0) 
+         if (entry == 0)
             break;
 
          /* srvreg is the SrvReg message from the database */
@@ -88,19 +89,16 @@ void SLPDDatabaseAge(int seconds, int ageall)
             if (srvreg->source == SLP_REG_SOURCE_LOCAL 
                   || srvreg->source == SLP_REG_SOURCE_STATIC)
             {
-               /* entries that were made from local registrations
-                * and entries made from static registration file
-                * that have a lifetime of SLP_LIFETIME_MAXIMUM must
-                * NEVER be aged.
-                */
+               /* entries that were made from local registrations    */
+               /* and entries made from static registration file     */
+               /* that have a lifetime of SLP_LIFETIME_MAXIMUM must  */
+               /* NEVER be aged                                      */
                continue;
             }
-
             if (ageall == 0)
             {
-               /* Don't age any services that have a lifetime of
-                * SLP_LIFETIME_MAXIMUM unless explicitly told to
-                */
+               /* Don't age any services that have a lifetime of     */
+               /* SLP_LIFETIME_MAXIMUM unless explicitly told to     */
                continue;
             }
          }
@@ -142,7 +140,7 @@ int SLPDDatabaseReg(SLPMessage msg, SLPBuffer buf)
    int i;
 
    /* reg is the SrvReg message being registered */
-   reg = &(msg->body.srvreg);
+   reg = &msg->body.srvreg;
 
    /* check service-url syntax */
    if (SLPCheckServiceUrlSyntax(reg->urlentry.url, reg->urlentry.urllen))
@@ -156,43 +154,47 @@ int SLPDDatabaseReg(SLPMessage msg, SLPBuffer buf)
    dh = SLPDatabaseOpen(&G_SlpdDatabase.database);
    if (dh)
    {
-      /*-----------------------------------------------------*/
-      /* Check to see if there is already an identical entry */
-      /*-----------------------------------------------------*/
+      /* check to see if there is already an identical entry */
       while (1)
       {
          entry = SLPDatabaseEnum(dh);
-         if (entry == 0) break;
+         if (entry == 0) 
+            break;
 
          /* entry reg is the SrvReg message from the database */
-         entryreg = &(entry->msg->body.srvreg);
+         entryreg = &entry->msg->body.srvreg;
 
-         if (SLPCompareString(entryreg->urlentry.urllen, entryreg->urlentry.url,
-               reg->urlentry.urllen, reg->urlentry.url) == 0)
+         if (SLPCompareString(entryreg->urlentry.urllen, 
+               entryreg->urlentry.url, reg->urlentry.urllen,
+               reg->urlentry.url) == 0)
          {
-            if (SLPIntersectStringList(entryreg->scopelistlen,
-                  entryreg->scopelist, eg->scopelistlen, reg->scopelist) > 0)
+            if (SLPIntersectStringList(entryreg->scopelistlen, 
+                  entryreg->scopelist, reg->scopelistlen,reg->scopelist) > 0)
             {
-               /* Check to ensure the source addr is the same
-                * as the original 
-                */
+               /* check to ensure the source addr is the same
+                  as the original */
                if (G_SlpdProperty.checkSourceAddr)
                {
                   if ((entry->msg->peer.ss_family == AF_INET 
-                           && msg->peer.ss_family == AF_INET 
-                           && memcmp(&(((struct sockaddr_in *)&(entry->msg->peer))->sin_addr),
-                                 &(((struct sockaddr_in*) &(msg->peer))->sin_addr),
-                                 sizeof(struct in_addr))) 
+                        && msg->peer.ss_family == AF_INET 
+                        && memcmp(&(((struct sockaddr_in *)
+                              &(entry->msg->peer))->sin_addr),
+                              &(((struct sockaddr_in *)
+                                    &(msg->peer))->sin_addr),
+                              sizeof(struct in_addr))) 
                         || (entry->msg->peer.ss_family == AF_INET6 
-                           && msg->peer.ss_family == AF_INET6 
-                           && memcmp(&(((struct sockaddr_in6 *)&(entry->msg->peer))->sin6_addr),
-                                 &(((struct sockaddr_in6*) &(msg->peer))->sin6_addr),
-                                 sizeof(struct in6_addr))))
+                              && msg->peer.ss_family == AF_INET6 
+                              && memcmp(&(((struct sockaddr_in6 *)
+                                    &(entry->msg->peer))->sin6_addr),
+                                    &(((struct sockaddr_in6 *)
+                                          &(msg->peer))->sin6_addr),
+                                    sizeof(struct in6_addr))))
                   {
                      SLPDatabaseClose(dh);
                      return SLP_ERROR_AUTHENTICATION_FAILED;
                   }
                }
+
 #ifdef ENABLE_SLPv2_SECURITY
                if (entryreg->urlentry.authcount 
                      && entryreg->urlentry.authcount != reg->urlentry.authcount)
@@ -202,25 +204,23 @@ int SLPDDatabaseReg(SLPMessage msg, SLPBuffer buf)
                }
 #endif  
                /* Remove the identical entry */
-               SLPDatabaseRemove(dh,entry);
+               SLPDatabaseRemove(dh, entry);
                break;
             }
          }
       }
 
-      /*------------------------------------*/
-      /* Add the new srvreg to the database */
-      /*------------------------------------*/
-      entry = SLPDatabaseEntryCreate(msg,buf);
+      /* add the new srvreg to the database */
+      entry = SLPDatabaseEntryCreate(msg, buf);
       if (entry)
       {
          /* set the source (allows for quicker aging ) */
          if (msg->body.srvreg.source == SLP_REG_SOURCE_UNKNOWN)
          {
             if (SLPNetIsLoopback(&(msg->peer)))
-               msg->body.srvreg.source = SLP_REG_SOURCE_LOCAL;
+               msg->body.srvreg.source = SLP_REG_SOURCE_LOCAL; 
             else
-               msg->body.srvreg.source = SLP_REG_SOURCE_REMOTE;
+               msg->body.srvreg.source = SLP_REG_SOURCE_REMOTE;     
          }
 
          /* add to database */
@@ -228,25 +228,25 @@ int SLPDDatabaseReg(SLPMessage msg, SLPBuffer buf)
          SLPDLogRegistration("Registration",entry);
 
          /* add a socket to listen for IPv6 requests */
-         if (SLPNetIsIPV6() && msg->peer.ss_family == AF_INET6)
+         if (SLPNetIsIPV6() && msg->peer.ss_family == AF_INET6) 
          {
-            if (msg->body.srvreg.source == SLP_REG_SOURCE_LOCAL)
+            if (msg->body.srvreg.source == SLP_REG_SOURCE_LOCAL) 
             {
                SLPIfaceGetInfo(G_SlpdProperty.interfaces, &ifaces, AF_INET6);
-               for (i = 0; i < ifaces.iface_count; i++)
-                  if (IN6_IS_ADDR_LINKLOCAL(&(((struct sockaddr_in6*) &ifaces.iface_addr[i])->sin6_addr)))
-                     SLPDIncomingAddService(msg->body.srvreg.srvtype, msg->body.srvreg.srvtypelen, &ifaces.iface_addr[i]);
+               for (i = 0; i < ifaces.iface_count; i++) 
+                  if (IN6_IS_ADDR_LINKLOCAL(&(((struct sockaddr_in6 *)
+                        &ifaces.iface_addr[i])->sin6_addr)))
+                     SLPDIncomingAddService(msg->body.srvreg.srvtype, 
+                           msg->body.srvreg.srvtypelen, &ifaces.iface_addr[i]);
             }
-            else
-               SLPDIncomingAddService(msg->body.srvreg.srvtype, msg->body.srvreg.srvtypelen, &msg->peer);
+            else 
+               SLPDIncomingAddService(msg->body.srvreg.srvtype, 
+                     msg->body.srvreg.srvtypelen, &msg->peer);
          }
-
-         /* SUCCESS! */
-         result = 0;
+         result = 0; /* SUCCESS! */
       }
       else
          result = SLP_ERROR_INTERNAL_ERROR;
-
       SLPDatabaseClose(dh);
    }
    else
@@ -268,7 +268,7 @@ int SLPDDatabaseDeReg(SLPMessage msg)
    SLPSrvReg * entryreg;
    SLPSrvDeReg * dereg;
    char srvtype[MAX_HOST_NAME];
-   int srvtypelen = 0;
+   size_t srvtypelen = 0;
 
    dh = SLPDatabaseOpen(&G_SlpdDatabase.database);
    if (dh)
@@ -276,9 +276,7 @@ int SLPDDatabaseDeReg(SLPMessage msg)
       /* dereg is the SrvDereg being deregistered */
       dereg = &msg->body.srvdereg;
 
-      /*---------------------------------------------*/
-      /* Check to see if there is an identical entry */
-      /*---------------------------------------------*/
+      /* check to see if there is an identical entry */
       while (1)
       {
          entry = SLPDatabaseEnum(dh);
@@ -288,7 +286,7 @@ int SLPDDatabaseDeReg(SLPMessage msg)
          /* entry reg is the SrvReg message from the database */
          entryreg = &entry->msg->body.srvreg;
 
-         if (SLPCompareString(entryreg->urlentry.urllen,
+         if (SLPCompareString(entryreg->urlentry.urllen, 
                entryreg->urlentry.url, dereg->urlentry.urllen,
                dereg->urlentry.url) == 0)
          {
@@ -296,35 +294,39 @@ int SLPDDatabaseDeReg(SLPMessage msg)
                   entryreg->scopelist, dereg->scopelistlen,
                   dereg->scopelist) > 0)
             {
-
-               /* Check to ensure the source addr is the same as
-                * the original 
-                */
+               /* Check to ensure the source addr is the same as */
+               /* the original */
                if (G_SlpdProperty.checkSourceAddr)
                {
                   if ((entry->msg->peer.ss_family == AF_INET 
-                           && msg->peer.ss_family == AF_INET 
-                           && memcmp(&(((struct sockaddr_in*) &(entry->msg->peer))->sin_addr),
-                                 &(((struct sockaddr_in*) &(msg->peer))->sin_addr),
-                                 sizeof(struct in_addr))) 
+                        && msg->peer.ss_family == AF_INET 
+                        && memcmp(&(((struct sockaddr_in *)
+                              &(entry->msg->peer))->sin_addr),
+                              &(((struct sockaddr_in *)&(msg->peer))->sin_addr),
+                              sizeof(struct in_addr))) 
                         || (entry->msg->peer.ss_family == AF_INET6 
-                           && msg->peer.ss_family == AF_INET6 
-                           && memcmp(&(((struct sockaddr_in6*) &(entry->msg->peer))->sin6_addr),
-                                 &(((struct sockaddr_in6*) &(msg->peer))->sin6_addr),
-                                 sizeof(struct in6_addr))))
+                              && msg->peer.ss_family == AF_INET6 
+                              && memcmp(&(((struct sockaddr_in6 *)
+                                    &(entry->msg->peer))->sin6_addr),
+                                    &(((struct sockaddr_in6 *)
+                                          &(msg->peer))->sin6_addr),
+                                    sizeof(struct in6_addr))))
                   {
                      SLPDatabaseClose(dh);
                      return SLP_ERROR_AUTHENTICATION_FAILED;
                   }
                }
+
 #ifdef ENABLE_SLPv2_SECURITY
                if (entryreg->urlentry.authcount 
-                     && entryreg->urlentry.authcount != dereg->urlentry.authcount)
+                     && entryreg->urlentry.authcount 
+                           != dereg->urlentry.authcount)
                {
                   SLPDatabaseClose(dh);
                   return SLP_ERROR_AUTHENTICATION_FAILED;
                }
 #endif                    
+
                /* save the srvtype for later */
                strncpy(srvtype, entryreg->srvtype, entryreg->srvtypelen);
                srvtypelen = entryreg->srvtypelen;
@@ -337,12 +339,10 @@ int SLPDDatabaseDeReg(SLPMessage msg)
             }
          }
       }
-
       SLPDatabaseClose(dh);
 
-      if (entry!=0)
+      if (entry != 0)
       {
-
          /* check to see if we can stop listening for service requests for this service */
          dh = SLPDatabaseOpen(&G_SlpdDatabase.database);
          if (dh)
@@ -353,10 +353,9 @@ int SLPDDatabaseDeReg(SLPMessage msg)
                if (entry == 0) 
                   break;
 
-               entryreg = &(entry->msg->body.srvreg);
-
-               if (SLPCompareString(entryreg->srvtypelen, 
-                     entryreg->srvtype, srvtypelen, srvtype) == 0)
+               entryreg = &entry->msg->body.srvreg;
+               if (SLPCompareString(entryreg->srvtypelen, entryreg->srvtype,
+                     srvtypelen, srvtype) == 0)
                   break;
             }
          }
@@ -376,6 +375,7 @@ int SLPDDatabaseDeReg(SLPMessage msg)
 /** Find services in the database.
  *
  * @param[in] msg - The SrvRqst to find.
+ *
  * @param[out] result - The address of storage for the returned 
  *    result structure
  *
@@ -396,7 +396,7 @@ int SLPDDatabaseSrvRqstStart(SLPMessage msg,
    int i;
 #endif
 
-   /* start with the result set to 0 just to be safe */
+   /* start with the result set to NULL just to be safe */
    *result = 0;
 
    dh = SLPDatabaseOpen(&G_SlpdDatabase.database);
@@ -407,11 +407,9 @@ int SLPDDatabaseSrvRqstStart(SLPMessage msg,
 
       while (1)
       {
-         /*-----------------------------------------------------------*/
-         /* Allocate result with generous array of url entry pointers */
-         /*-----------------------------------------------------------*/
+         /* allocate result with generous array of url entry pointers */
          *result = (SLPDDatabaseSrvRqstResult *)xrealloc(*result, 
-               sizeof(SLPDDatabaseSrvRqstResult) + (sizeof(SLPUrlEntry *) 
+               sizeof(SLPDDatabaseSrvRqstResult) + (sizeof(SLPUrlEntry*) 
                      * G_SlpdDatabase.urlcount));
          if (*result == 0)
          {
@@ -419,18 +417,14 @@ int SLPDDatabaseSrvRqstStart(SLPMessage msg,
             SLPDatabaseClose(dh);
             return SLP_ERROR_INTERNAL_ERROR;
          }
-         (*result)->urlarray = (SLPUrlEntry**)((*result) + 1);
+         (*result)->urlarray = (SLPUrlEntry **)((*result) + 1);
          (*result)->urlcount = 0;
          (*result)->reserved = dh;
 
-         /*-------------------------------------------------*/
-         /* Rewind enumeration in case we had to reallocate */
-         /*-------------------------------------------------*/
+         /* rewind enumeration in case we had to reallocate */
          SLPDatabaseRewind(dh);
 
-         /*-----------------------------------------*/
          /* Check to see if there is matching entry */
-         /*-----------------------------------------*/
          while (1)
          {
             entry = SLPDatabaseEnum(dh);
@@ -438,30 +432,33 @@ int SLPDDatabaseSrvRqstStart(SLPMessage msg,
                return 0; /* This is the only successful way out */
 
             /* entry reg is the SrvReg message from the database */
-            entryreg = &(entry->msg->body.srvreg);
+            entryreg = &entry->msg->body.srvreg;
 
             /* check the service type */
             if (SLPCompareSrvType(srvrqst->srvtypelen, srvrqst->srvtype,
-                     entryreg->srvtypelen, entryreg->srvtype) == 0 
-                  && SLPIntersectStringList(entryreg->scopelistlen,
-                     entryreg->scopelist, srvrqst->scopelistlen,
-                     srvrqst->scopelist) > 0)
+                  entryreg->srvtypelen, entryreg->srvtype) == 0 
+                  && SLPIntersectStringList(entryreg->scopelistlen, 
+                        entryreg->scopelist, srvrqst->scopelistlen,
+                        srvrqst->scopelist) > 0)
             {
+
 #ifdef ENABLE_PREDICATES
-               if (SLPDPredicateTest(msg->header.version, entryreg->attrlistlen,
-                     entryreg->attrlist, srvrqst->predicatelen, srvrqst->predicate))
+               if (SLPDPredicateTest(msg->header.version, 
+                     entryreg->attrlistlen, entryreg->attrlist, 
+                     srvrqst->predicatelen, srvrqst->predicate))
 #endif
                {
+
 #ifdef ENABLE_SLPv2_SECURITY
                   if (srvrqst->spistrlen)
                   {
                      for (i = 0; i < entryreg->urlentry.authcount; i++)
-                     {
-                        if (SLPCompareString(srvrqst->spistrlen, srvrqst->spistr,
-                              entryreg->urlentry.autharray[i].spistrlen,
-                              entryreg->urlentry.autharray[i].spistr) == 0)
+                        if (SLPCompareString(srvrqst->spistrlen, 
+                              srvrqst->spistr, entryreg->urlentry.autharray
+                                    [i].spistrlen, entryreg->urlentry.autharray
+                                    [i].spistr) == 0)
                            break;
-                     }
+
                      if (i == entryreg->urlentry.authcount)
                         continue;
                   }
@@ -472,9 +469,9 @@ int SLPDDatabaseSrvRqstStart(SLPMessage msg,
                      G_SlpdDatabase.urlcount *= 2;
                      break;
                   }
-
-                  (*result)->urlarray[(*result)->urlcount] = &entryreg->urlentry;
-                  (*result)->urlcount++;
+                  (*result)->urlarray[(*result)->urlcount] 
+                        = &entryreg->urlentry;
+                  (*result)->urlcount ++;
                }
             }
          }
@@ -523,23 +520,21 @@ int SLPDDatabaseSrvTypeRqstStart(SLPMessage msg,
 
       while (1)
       {
-         /*-----------------------------------------------------------------*/
-         /* Allocate result with generous srvtypelist of url entry pointers */
-         /*-----------------------------------------------------------------*/
+         /* allocate result with generous srvtypelist of url entry pointers */
          *result = (SLPDDatabaseSrvTypeRqstResult *)xrealloc(*result, 
-               sizeof(SLPDDatabaseSrvTypeRqstResult) + G_SlpdDatabase.srvtypelistlen);
+               sizeof(SLPDDatabaseSrvTypeRqstResult) 
+                     + G_SlpdDatabase.srvtypelistlen);
          if (*result == 0)
          {
+            /* out of memory */
             SLPDatabaseClose(dh);
             return SLP_ERROR_INTERNAL_ERROR;
          }
-         (*result)->srvtypelist = (char *)((*result) + 1);
+         (*result)->srvtypelist = (char*)((*result) + 1);
          (*result)->srvtypelistlen = 0;
          (*result)->reserved = dh;
 
-         /*-------------------------------------------------*/
-         /* Rewind enumeration in case we had to reallocate */
-         /*-------------------------------------------------*/
+         /* rewind enumeration in case we had to reallocate */
          SLPDatabaseRewind(dh);
 
          while (1)
@@ -552,7 +547,7 @@ int SLPDDatabaseSrvTypeRqstStart(SLPMessage msg,
             entryreg = &entry->msg->body.srvreg;
 
             if (SLPCompareNamingAuth(entryreg->srvtypelen, entryreg->srvtype,
-                        srvtyperqst->namingauthlen, srvtyperqst->namingauth) == 0 
+                     srvtyperqst->namingauthlen, srvtyperqst->namingauth) == 0 
                   && SLPIntersectStringList(srvtyperqst->scopelistlen,
                         srvtyperqst->scopelist, entryreg->scopelistlen,
                         entryreg->scopelist) 
@@ -561,7 +556,8 @@ int SLPDDatabaseSrvTypeRqstStart(SLPMessage msg,
                         entryreg->srvtype) == 0)
             {
                /* Check to see if we allocated a big enough srvtypelist */
-               if ((*result)->srvtypelistlen + entryreg->srvtypelen > G_SlpdDatabase.srvtypelistlen)
+               if ((*result)->srvtypelistlen + entryreg->srvtypelen 
+                     > G_SlpdDatabase.srvtypelistlen)
                {
                   /* Oops we did not allocate a big enough result */
                   G_SlpdDatabase.srvtypelistlen *= 2;
@@ -574,6 +570,7 @@ int SLPDDatabaseSrvTypeRqstStart(SLPMessage msg,
                   (*result)->srvtypelist[(*result)->srvtypelistlen] = ',';
                   (*result)->srvtypelistlen += 1;
                }
+
                /* Append the service type */
                memcpy(((*result)->srvtypelist) + (*result)->srvtypelistlen,
                      entryreg->srvtype, entryreg->srvtypelen);
@@ -613,7 +610,7 @@ void SLPDDatabaseSrvTypeRqstEnd(SLPDDatabaseSrvTypeRqstResult * result)
  *    SLPDDatabaseAttrRqstEnd to free it.
  */
 int SLPDDatabaseAttrRqstStart(SLPMessage msg,
-      SLPDDatabaseAttrRqstResult** result)
+      SLPDDatabaseAttrRqstResult ** result)
 {
    SLPDatabaseHandle dh;
    SLPDatabaseEntry * entry;
@@ -629,14 +626,13 @@ int SLPDDatabaseAttrRqstStart(SLPMessage msg,
       return SLP_ERROR_INTERNAL_ERROR;
 
    memset(*result, 0, sizeof(SLPDDatabaseAttrRqstResult));
-
    dh = SLPDatabaseOpen(&G_SlpdDatabase.database);
    if (dh)
    {
       (*result)->reserved = dh;
 
       /* attrrqst is the AttrRqst being made */
-      attrrqst = &(msg->body.attrrqst);
+      attrrqst = &msg->body.attrrqst;
 
       while (1)
       {
@@ -645,15 +641,16 @@ int SLPDDatabaseAttrRqstStart(SLPMessage msg,
             return 0;
 
          /* entry reg is the SrvReg message from the database */
-         entryreg = &(entry->msg->body.srvreg);
+         entryreg = &entry->msg->body.srvreg;
 
-         if (SLPCompareString(attrrqst->urllen, attrrqst->url,
-                     entryreg->urlentry.urllen, entryreg->urlentry.url) == 0 
-               || SLPCompareSrvType(attrrqst->urllen, attrrqst->url,
+         if (SLPCompareString(attrrqst->urllen, attrrqst->url, 
+                  entryreg->urlentry.urllen, entryreg->urlentry.url) == 0 
+               || SLPCompareSrvType(attrrqst->urllen, attrrqst->url, 
                      entryreg->srvtypelen, entryreg->srvtype) == 0)
          {
-            if (SLPIntersectStringList(attrrqst->scopelistlen, attrrqst->scopelist,
-                  entryreg->scopelistlen, entryreg->scopelist))
+            if (SLPIntersectStringList(attrrqst->scopelistlen, 
+                  attrrqst->scopelist, entryreg->scopelistlen, 
+                  entryreg->scopelist))
             {
                if (attrrqst->taglistlen == 0)
                {
@@ -661,12 +658,12 @@ int SLPDDatabaseAttrRqstStart(SLPMessage msg,
                   if (attrrqst->spistrlen)
                   {
                      for (i = 0; i < entryreg->authcount; i++)
-                     {
-                        if (SLPCompareString(attrrqst->spistrlen, attrrqst->spistr,
-                              entryreg->autharray[i].spistrlen, 
+                        if (SLPCompareString(attrrqst->spistrlen, 
+                              attrrqst->spistr, 
+                              entryreg->autharray[i].spistrlen,
                               entryreg->autharray[i].spistr) == 0)
                            break;
-                     }
+
                      if (i == entryreg->authcount)
                         continue;
                   }
@@ -675,14 +672,15 @@ int SLPDDatabaseAttrRqstStart(SLPMessage msg,
                   (*result)->attrlistlen = entryreg->attrlistlen;
                   (*result)->attrlist = (char*)entryreg->attrlist;
                   (*result)->authcount = entryreg->authcount;
-                  (*result)->autharray = entryreg->autharray;
+                  (*result)->autharray = entryreg->autharray;                        
                }
 #ifdef ENABLE_PREDICATES
                else
                {
                   /* Send back a partial list as specified by taglist */
-                  if (SLPDFilterAttributes(entryreg->attrlistlen, entryreg->attrlist,
-                        attrrqst->taglistlen, attrrqst->taglist, &(*result)->attrlistlen,
+                  if (SLPDFilterAttributes(entryreg->attrlistlen, 
+                        entryreg->attrlist, attrrqst->taglistlen,
+                        attrrqst->taglist, &(*result)->attrlistlen,
                         &(*result)->attrlist) == 0)
                   {
                      (*result)->ispartial = 1;
@@ -707,7 +705,8 @@ void SLPDDatabaseAttrRqstEnd(SLPDDatabaseAttrRqstResult * result)
    if (result)
    {
       SLPDatabaseClose((SLPDatabaseHandle)result->reserved);
-      if (result->ispartial && result->attrlist) free(result->attrlist);
+      if (result->ispartial && result->attrlist) 
+         xfree(result->attrlist);
       xfree(result);
    }
 }
@@ -721,13 +720,13 @@ void SLPDDatabaseAttrRqstEnd(SLPDDatabaseAttrRqstResult * result)
  */
 void * SLPDDatabaseEnumStart(void)
 {
-   return SLPDatabaseOpen(&G_SlpdDatabase.database);
+   return SLPDatabaseOpen(&G_SlpdDatabase.database);   
 }
 
 /** Enumerate through all entries of the database.
  *
  * @param[in] eh - A pointer to opaque data that is used to maintain
- *    enumerate entries. Pass in a pointer to 0 to start the process.
+ *    enumerate entries. Pass in a pointer to NULL to start the process.
  *
  * @param[out] msg - The address of storage for a SrvReg message object.
  * @param[out] buf - The address of storage for a SrvReg buffer object.
@@ -737,8 +736,7 @@ void * SLPDDatabaseEnumStart(void)
 SLPMessage SLPDDatabaseEnum(void * eh, SLPMessage * msg, SLPBuffer * buf)
 {
    SLPDatabaseEntry * entry;
-
-   entry = SLPDatabaseEnum((SLPDatabaseHandle) eh);
+   entry = SLPDatabaseEnum((SLPDatabaseHandle)eh);
    if (entry)
    {
       *msg = entry->msg;
@@ -789,7 +787,7 @@ int SLPDDatabaseIsEmpty(void)
 int SLPDDatabaseInit(const char * regfile)
 {
    /* Set initial values */
-   memset(&G_SlpdDatabase, 0, sizeof(G_SlpdDatabase));
+   memset(&G_SlpdDatabase,0,sizeof(G_SlpdDatabase));
    G_SlpdDatabase.urlcount = SLPDDATABASE_INITIAL_URLCOUNT;
    G_SlpdDatabase.srvtypelistlen = SLPDDATABASE_INITIAL_SRVTYPELISTLEN;
    SLPDatabaseInit(&G_SlpdDatabase.database);
@@ -812,31 +810,27 @@ int SLPDDatabaseReInit(const char * regfile)
    SLPBuffer buf;
    FILE * fd;
 
-   /*------------------------------------------------------------------*/
-   /* open the database handle and remove all the static registrations */
-   /* (the registrations from the /etc/slp.reg) file.                  */
-   /*------------------------------------------------------------------*/
+   /* open the database handle and remove all the static registrations
+      (the registrations from the /etc/slp.reg) file. */
    dh = SLPDatabaseOpen(&G_SlpdDatabase.database);
    if (dh)
    {
       while (1)
       {
          entry = SLPDatabaseEnum(dh);
-         if (entry == 0) 
+         if (entry == 0)
             break;
 
          if (entry->msg->body.srvreg.source == SLP_REG_SOURCE_STATIC)
-            SLPDatabaseRemove(dh,entry);
+            SLPDatabaseRemove(dh, entry);
       }
       SLPDatabaseClose(dh);
    }
 
-   /*--------------------------------------*/
-   /* Read static registration file if any */
-   /*--------------------------------------*/
+   /* read static registration file if any */
    if (regfile)
    {
-      fd = fopen(regfile,"rb");
+      fd = fopen(regfile, "rb");
       if (fd)
       {
          while (SLPDRegFileReadSrvReg(fd, &msg, &buf) == 0)

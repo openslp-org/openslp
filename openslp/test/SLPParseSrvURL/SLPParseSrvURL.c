@@ -44,19 +44,19 @@
 #include <slp_debug.h>
 #include <string.h>
 
-int
-main(int argc, char *argv[])
+int main (int argc, char * argv[])
 {
    SLPError err;
-   SLPSrvURL   *parsedurl;
+   SLPSrvURL * parsedurl;
 
    if (argc != 2)
    {
-      printf("SLPParseSrvURL\n  This program tests the parsing of a service url.\n Usage:\n   SLPParseSrvURL <serivce url>\n");
-      return (1);
-   } /* End If. */
+      printf("SLPParseSrvURL\n  This program tests the parsing of a "
+            "service url.\n Usage:\n   SLPParseSrvURL <serivce url>\n");
+      return 1;
+   }
 
-   err = SLPParseSrvURL(argv[1], &parsedurl);
+   err = SLPParseSrvURL(argv[1], &parsedurl); 
    check_error_state(err, "Error parsing SrvURL");
 
    printf("Service Type = %s\n", parsedurl->s_pcSrvType);
@@ -65,7 +65,7 @@ main(int argc, char *argv[])
    printf("Family = %s\n", ((strlen(parsedurl->s_pcNetFamily)==0)?"IP":"Other"));
    printf("URL Remainder = %s\n", parsedurl->s_pcSrvPart);
 
-   return (0);
+   return 0;
 }
 
-/*=========================================================================*/
+/*=========================================================================*/ 

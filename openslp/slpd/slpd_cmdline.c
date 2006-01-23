@@ -40,8 +40,9 @@
 
 #include "slpd_cmdline.h"
 
-/* Make sure ETCDIR, VARDIR and VERSION are defined
- */
+#include <stdlib.h>
+#include <stdio.h>
+
 #ifndef ETCDIR
 # define ETCDIR "/etc"
 #endif
@@ -50,23 +51,32 @@
 # define VARDIR "/var"
 #endif
 
-#ifndef VERSION
-# define VERSION "unknown"
+#ifndef SLP_VERSION
+# define SLP_VERSION "unknown"
 #endif
 
-SLPDCommandLine G_SlpdCommandLine;
-/*!< Global variable containing command line options.
+#ifdef _WIN32
+# define strnenv(d,s,n) ExpandEnvironmentStrings(s,d,n)
+# define SLPD_USAGE_STRING                                           \
+         "-install [auto]|-remove|-start|-stop"                      \
+         "|-debug [-d] [-c conf file] [-l log file] [-s spi file] "  \
+         "[-r reg file] [-v version]"
+#else
+# define strnenv strncpy
+# define SLPD_USAGE_STRING                                           \
+         "[-d] [-c conf file] [-l log file] "                        \
+         "[-r reg file] [-s spi file] [-v version]"
+#endif
+
+/** Global variable containing command line options.
  */
+SLPDCommandLine G_SlpdCommandLine;
 
 /** Displays available command line options of SLPD
  */
 void SLPDPrintUsage(void)
 {
-#ifdef _WIN32
-   fprintf(stderr,"USAGE: slpd -install [auto]|-remove|-start|-stop|-debug [-d] [-c conf file] [-l log file] [-s spi file] [-r reg file] [-v version]\n");
-#else
-   fprintf(stderr,"USAGE: slpd [-d] [-c conf file] [-l log file] [-r reg file] [-s spi file] [-v version]\n");
-#endif
+   fprintf(stderr, "USAGE: slpd " SLPD_USAGE_STRING "\n");
 }
 
 /** Must be called to initialize the command line
@@ -82,95 +92,92 @@ int SLPDParseCommandLine(int argc, char * argv[])
 
    /* Set defaults */
    memset(&G_SlpdCommandLine, 0, sizeof(SLPDCommandLine));
-#ifndef _WIN32
-   strcpy(G_SlpdCommandLine.cfgfile, SLPD_CONFFILE);
-   strcpy(G_SlpdCommandLine.logfile, SLPD_LOGFILE);
-   strcpy(G_SlpdCommandLine.regfile, SLPD_REGFILE);
-   strcpy(G_SlpdCommandLine.pidfile, SLPD_PIDFILE);
-# ifdef ENABLE_SLPv2_SECURITY
-   strcpy(G_SlpdCommandLine.spifile, SLPD_SPIFILE);
-# endif
-#else
-   ExpandEnvironmentStrings(SLPD_CONFFILE, G_SlpdCommandLine.cfgfile, MAX_PATH);
-   ExpandEnvironmentStrings(SLPD_LOGFILE, G_SlpdCommandLine.logfile, MAX_PATH);
-   ExpandEnvironmentStrings(SLPD_REGFILE, G_SlpdCommandLine.regfile, MAX_PATH);
-   ExpandEnvironmentStrings(SLPD_PIDFILE, G_SlpdCommandLine.pidfile, MAX_PATH);
-# ifdef ENABLE_SLPv2_SECURITY
-   ExpandEnvironmentStrings(SLPD_SPIFILE, G_SlpdCommandLine.spifile, MAX_PATH);
-# endif
-   G_SlpdCommandLine.action = -1;
+   strnenv(G_SlpdCommandLine.cfgfile, SLPD_CONFFILE, MAX_PATH - 1);
+   strnenv(G_SlpdCommandLine.logfile, SLPD_LOGFILE, MAX_PATH - 1);
+   strnenv(G_SlpdCommandLine.regfile, SLPD_REGFILE, MAX_PATH - 1);
+   strnenv(G_SlpdCommandLine.pidfile, SLPD_PIDFILE, MAX_PATH - 1);
+#ifdef ENABLE_SLPv2_SECURITY
+   strnenv(G_SlpdCommandLine.spifile, SLPD_SPIFILE, MAX_PATH - 1);
 #endif
+   G_SlpdCommandLine.action = -1;
 
    G_SlpdCommandLine.detach = 1;
 
    for (i = 1; i < argc; i++)
    {
 #ifdef _WIN32
-      if (strcmp(argv[i],"-install") == 0)
+      if (strcmp(argv[i], "-install") == 0)
       {
          G_SlpdCommandLine.action = SLPD_INSTALL;
-         if (i+1 < argc && strcmp(argv[i+1], "auto") == 0)
+         if (i + 1 < argc && strcmp(argv[i + 1], "auto") == 0)
          {
             i++;
             G_SlpdCommandLine.autostart = 1;
          }
       }
-      else if (strcmp(argv[i],"-remove") == 0)
+      else if (strcmp(argv[i], "-remove") == 0)
+      {
          G_SlpdCommandLine.action = SLPD_REMOVE;
-      else if (strcmp(argv[i],"-debug") == 0)
+      }
+      else if (strcmp(argv[i], "-debug") == 0)
+      {
          G_SlpdCommandLine.action = SLPD_DEBUG;
-      else if (strcmp(argv[i],"-start") == 0)
+      }
+      else if (strcmp(argv[i], "-start") == 0)
+      {
          G_SlpdCommandLine.action = SLPD_START;
-      else if (strcmp(argv[i],"-stop") == 0)
+      }
+      else if (strcmp(argv[i], "-stop") == 0)
+      {
          G_SlpdCommandLine.action = SLPD_STOP;
+      }
       else
 #endif
-      if (strcmp(argv[i],"-l") == 0)
+      if (strcmp(argv[i], "-l") == 0)
       {
          i++;
-         if (i >= argc) goto USAGE;
+         if (i >= argc) 
+            goto USAGE;
          strncpy(G_SlpdCommandLine.logfile,argv[i],MAX_PATH-1);
       }
-      else if (strcmp(argv[i],"-r") == 0)
+      else if(strcmp(argv[i],"-r") == 0)
       {
          i++;
-         if (i >= argc) goto USAGE;
+         if (i >= argc) 
+            goto USAGE;
          strncpy(G_SlpdCommandLine.regfile,argv[i],MAX_PATH-1);
       }
-      else if (strcmp(argv[i],"-c") == 0)
+      else if (strcmp(argv[i], "-c") == 0)
       {
          i++;
-         if (i >= argc) goto USAGE;
-         strncpy(G_SlpdCommandLine.cfgfile,argv[i],MAX_PATH-1);
+         if (i >= argc) 
+            goto USAGE;
+         strncpy(G_SlpdCommandLine.cfgfile, argv[i], MAX_PATH - 1);
       }
 #ifdef ENABLE_SLPv2_SECURITY
-      else if (strcmp(argv[i],"-s") == 0)
+      else if (strcmp(argv[i], "-s") == 0)
       {
          i++;
-         if (i >= argc) goto USAGE;
-         strncpy(G_SlpdCommandLine.spifile,argv[i],MAX_PATH-1);
+         if (i >= argc) 
+            goto USAGE;
+         strncpy(G_SlpdCommandLine.spifile, argv[i], MAX_PATH - 1);        
       }
 #endif
-      else if (strcmp(argv[i],"-p") == 0)
+      else if (strcmp(argv[i], "-p") == 0)
       {
          i++;
-         if (i >= argc) goto USAGE;
-         strncpy(G_SlpdCommandLine.pidfile,argv[i],MAX_PATH-1);
+         if (i >= argc) 
+            goto USAGE;
+         strncpy(G_SlpdCommandLine.pidfile, argv[i], MAX_PATH - 1);
       }
-      else if (strcmp(argv[i],"-d") == 0)
-      {
+      else if (strcmp(argv[i], "-d") == 0)
          G_SlpdCommandLine.detach = 0;
-      }
-      else if ((strcmp(argv[i], "-v") == 0) 
-            || (strcmp(argv[i], "-V") == 0)
+      else if (strcmp(argv[i], "-v") == 0 || (strcmp(argv[i], "-V") == 0)
             || (strcmp(argv[i], "--version") == 0)
             || (strcmp(argv[i], "-version") == 0))
       {
-#ifdef _WIN32
-         fprintf(stderr,"slpd version: %s\n", SLP_VERSION);
-#else    /* UNIX */
-         fprintf(stderr,"slpd version: %s\n", VERSION);
-#endif
+         fprintf(stderr, "slpd version: %s\n", SLP_VERSION);
+
          /* Show options. */
          fprintf(stderr,"compile options:\n"
                "   debugging:            "
@@ -178,29 +185,30 @@ int SLPDParseCommandLine(int argc, char * argv[])
                "enabled"
 #else
                "disabled"
-#endif /* NDEBUG */
-               "\n"
+#endif
+               "\n"                    
                "   predicates:           "
 #ifdef ENABLE_PREDICATES
                "enabled"
 #else 
                "disabled"
-#endif /* ENABLE_PREDICATES */
+#endif
                "\n"
                "   slpv1 compatability:  "
 #ifdef ENABLE_SLPv1
                "enabled"
 #else
                "disabled"
-#endif /* ENABLE_SLPv1 */
+#endif
                "\n"
                "   slpv2 security:       "
 #ifdef ENABLE_SLPv2_SECURITY
                "enabled"
 #else
                "disabled"
-#endif /* ENABLE_SLPv2_SECURITY */
-               "\n");
+#endif
+               "\n"
+         );
          exit(1);
       }
       else

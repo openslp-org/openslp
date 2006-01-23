@@ -49,27 +49,23 @@
  */
 
 #include "slpd.h"
-
 #include "slp_linkedlist.h"
+#include "slp_types.h"
+
+#include <time.h>
 
 extern SLPList G_IncomingSocketList;
 
 void SLPDIncomingAge(time_t seconds);
-
-int SLPDIncomingAddService(const char * srvtype, int len, struct sockaddr_storage* localaddr);
-
-int SLPDIncomingRemoveService(const char * srvtype, int len);
-
-void SLPDIncomingHandler(int* fdcount,
-                         fd_set* readfds,
-                         fd_set* writefds);
-
-int SLPDIncomingInit();
-
-int SLPDIncomingDeinit();
+int SLPDIncomingAddService(const char * srvtype, size_t len, 
+      struct sockaddr_storage * localaddr);
+int SLPDIncomingRemoveService(const char * srvtype, size_t len);
+void SLPDIncomingHandler(int * fdcount, fd_set * readfds, fd_set * writefds);
+int SLPDIncomingInit(void);
+int SLPDIncomingDeinit(void);
 
 #ifdef DEBUG
-void SLPDIncomingSocketDump();
+void SLPDIncomingSocketDump(void);
 #endif
 
 /*! @} */

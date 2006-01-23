@@ -48,44 +48,11 @@
  * @{
  */
 
+#include <limits.h>
+
 #include "slp_buffer.h"
-
-#ifdef HAVE_CONFIG_H
-# include "config.h"
-#endif
-#ifdef _WIN32
-# define WIN32_LEAN_AND_MEAN
-# include <winsock2.h>
-# include <ws2tcpip.h>
-# ifndef UINT32_T_DEFINED
-#  define UINT32_T_DEFINED
-typedef unsigned long uint32_t;
-# endif
-#else
-# include <sys/types.h>
-# ifdef __FreeBSD__
-#  include <sys/param.h>		/* for limits.h - INT_MAX slpd*/
-# endif
-# include <netinet/in.h>		/* for htonl() routines */
-# ifdef HAVE_STDINT_H
-#  include <stdint.h>
-# else
-#  include <inttypes.h>
-# endif
-#endif
-
-typedef char            CHAR;
-typedef unsigned char   UINT8;
-typedef unsigned short  UINT16;
-
-#ifndef _WIN32
-typedef unsigned long   UINT32;
-#endif
-
-typedef CHAR*           PCHAR;
-typedef UINT8*          PUINT8;
-typedef UINT16*         PUINT16;
-typedef UINT32*         PUINT32;
+#include "slp_socket.h"
+#include "slp_types.h"
 
 /* SLP Important constants */
 #define SLP_RESERVED_PORT       427
@@ -95,7 +62,7 @@ typedef UINT32*         PUINT32;
 #define LOOPBACK_ADDRESS        0x7f000001  /* 127.0.0.1 */
 #define SLP_MAX_DATAGRAM_SIZE   1400 
 
-#ifndef SLP_LIFETIME_MAXIMUM
+#if !defined(SLP_LIFETIME_MAXIMUM)
 # define SLP_LIFETIME_MAXIMUM   0xffff
 #endif
 
@@ -138,7 +105,7 @@ typedef UINT32*         PUINT32;
 #define SLP_FLAG_FRESH            0x4000
 #define SLP_FLAG_MCAST            0x2000
 
-#ifndef UNICAST_NOT_SUPPORTED
+#if !defined(UNICAST_NOT_SUPPORTED)
 # define SLP_FLAG_UCAST           0x0000
 #endif
 
@@ -208,217 +175,208 @@ typedef UINT32*         PUINT32;
          (((uint8_t *)(p))[3] = (uint8_t)(((v)      ) & 0xff))    \
       )
 
-unsigned short AsUINT16(const char *charptr);
-unsigned int AsUINT24(const char *charptr);
-unsigned int AsUINT32(const char *charptr);
+/* buffer-based wire routines */
+uint16_t GetUINT16(const uint8_t ** cpp);
+uint32_t GetUINT24(const uint8_t ** cpp);
+uint32_t GetUINT32(const uint8_t ** cpp);
+char * GetStrPtr(const uint8_t ** cpp, size_t length);
 
-void ToUINT16(char *charptr, unsigned int val);
-void ToUINT24(char *charptr, unsigned int val);
-void ToUINT32(char *charptr, unsigned int val);
+void PutUINT16(uint8_t ** cpp, size_t val);
+void PutUINT24(uint8_t ** cpp, size_t val);
+void PutUINT32(uint8_t ** cpp, size_t val);
 
 /* SLPHeader structure and associated functions */
 typedef struct _SLPHeader
 {
-    int             version;
-    int             functionid;
-    int             length;       
-    int             flags;
-    int             encoding;   /* language encoding, valid only for SLPv1 */
-    int             extoffset;    
-    int             xid;
-    int             langtaglen;
-    const char*     langtag; /* points into the translated message */
+   int version;
+   int functionid;
+   size_t length;       
+   int flags;
+   int encoding;           /* language encoding, valid only for SLPv1 */
+   int extoffset;    
+   uint16_t xid;
+   size_t langtaglen;
+   const char * langtag;   /* points into the translated message */
 } SLPHeader;
 
 /* SLPAuthBlock structure and associated functions */
 typedef struct _SLPAuthBlock
 {
-    unsigned int            bsd;
-    int                     length;
-    unsigned int            timestamp;
-    int                     spistrlen;
-    const char*             spistr;
-    const unsigned char*    authstruct;
-    /* The following are not part of the RFC protocol.  They are used by   */
-    /* the OpenSLP implementation for convenience                          */
-    int                     opaquelen;
-    char*                   opaque;
+   uint16_t bsd;
+   size_t length;
+   uint32_t timestamp;
+   size_t spistrlen;
+   const char * spistr;
+   const char * authstruct;
+   size_t opaquelen; /* convenience */
+   uint8_t * opaque; /* convenience */
 } SLPAuthBlock;
 
 /* SLPUrlEntry structure and associated functions */
 typedef struct _SLPUrlEntry
 {
-    char                    reserved;       /* This will always be 0 */
-    int                     lifetime;
-    int                     urllen;
-    const char*             url;
-    int                     authcount;
-    SLPAuthBlock*           autharray; 
-    /* The following are not part of the RFC protocol.  They are used by   */
-    /* the OpenSLP implementation for convenience                          */
-    int                     opaquelen;
-    char*                   opaque;
+   char reserved; /* always 0 */
+   int lifetime;
+   size_t urllen;
+   const char * url;
+   int authcount;
+   SLPAuthBlock * autharray; 
+   size_t opaquelen; /* convenience */
+   uint8_t * opaque; /* convenience */
 } SLPUrlEntry;
 
 /* SLPSrvRqst structure and associated functions */
 typedef struct _SLPSrvRqst
 {
-    int             prlistlen;
-    const char*     prlist;
-    int             srvtypelen;
-    const char*     srvtype;
-    int             scopelistlen;
-    const char*     scopelist;
-    int             predicatever;
-    int             predicatelen;
-    const char*     predicate;
-    int             spistrlen;
-    const char*     spistr;
+   size_t prlistlen;
+   const char * prlist;
+   size_t srvtypelen;
+   const char * srvtype;
+   size_t scopelistlen;
+   const char * scopelist;
+   int predicatever;
+   size_t predicatelen;
+   const char * predicate;
+   size_t spistrlen;
+   const char * spistr;
 } SLPSrvRqst;
 
 typedef struct _SLPSrvRply                                                 
 {
-    int             errorcode;
-    int             urlcount;
-    SLPUrlEntry*    urlarray;
+   int errorcode;
+   int urlcount;
+   SLPUrlEntry * urlarray;
 } SLPSrvRply;
 
 typedef struct _SLPSrvReg
 {
-    SLPUrlEntry         urlentry;
-    int                 srvtypelen;
-    const char*         srvtype;
-    int                 scopelistlen;
-    const char*         scopelist;
-    int                 attrlistlen;
-    const char*         attrlist;
-    int                 authcount;
-    SLPAuthBlock*       autharray;
-    /* The following are used for OpenSLP specific extensions */
-    uint32_t            pid;
-    /* The following are not part of the RFC protocol.  They are used by   */
-    /* the OpenSLP implementation for convenience                          */
-    int                 source;
+   SLPUrlEntry urlentry;
+   size_t srvtypelen;
+   const char * srvtype;
+   size_t scopelistlen;
+   const char * scopelist;
+   size_t attrlistlen;
+   const char * attrlist;
+   int authcount;
+   SLPAuthBlock * autharray;
+   /* The following are used for OpenSLP specific extensions */
+   uint32_t pid;
+   int source; /* convenience */
 } SLPSrvReg;
 
 typedef struct _SLPSrvDeReg
 {
-    int                 scopelistlen;
-    const char*         scopelist;
-    SLPUrlEntry         urlentry;
-    int                 taglistlen;
-    const char*         taglist;
+   size_t scopelistlen;
+   const char * scopelist;
+   SLPUrlEntry urlentry;
+   size_t taglistlen;
+   const char * taglist;
 } SLPSrvDeReg;
 
 typedef struct _SLPSrvAck
 {
-    int errorcode;
+   int errorcode;
 } SLPSrvAck;
 
 typedef struct _SLPDAAdvert
 {
-    int                 errorcode;
-    unsigned int        bootstamp;
-    int                 urllen;
-    const char*         url;
-    int                 scopelistlen;
-    const char*         scopelist;
-    int                 attrlistlen;
-    const char*         attrlist;
-    int                 spilistlen;
-    const char*         spilist;
-    int                 authcount;
-    SLPAuthBlock*       autharray;
+   int errorcode;
+   uint32_t bootstamp;
+   size_t urllen;
+   const char * url;
+   size_t scopelistlen;
+   const char * scopelist;
+   size_t attrlistlen;
+   const char * attrlist;
+   size_t spilistlen;
+   const char * spilist;
+   int authcount;
+   SLPAuthBlock * autharray;
 } SLPDAAdvert;
 
 typedef struct _SLPAttrRqst
 {
-    int             prlistlen;
-    const char*     prlist;
-    int             urllen;
-    const char*     url;
-    int             scopelistlen;
-    const char*     scopelist;
-    int             taglistlen;
-    const char*     taglist;
-    int             spistrlen;
-    const char*     spistr;
+   size_t prlistlen;
+   const char * prlist;
+   size_t urllen;
+   const char * url;
+   size_t scopelistlen;
+   const char * scopelist;
+   size_t taglistlen;
+   const char * taglist;
+   size_t spistrlen;
+   const char * spistr;
 } SLPAttrRqst;
 
 typedef struct _SLPAttrRply
 {
-    int             errorcode;
-    int             attrlistlen;
-    const char*     attrlist;
-    int             authcount;
-    SLPAuthBlock*   autharray;
+   int errorcode;
+   size_t attrlistlen;
+   const char * attrlist;
+   int authcount;
+   SLPAuthBlock * autharray;
 } SLPAttrRply;
 
 typedef struct _SLPSrvTypeRqst
 {
-    int             prlistlen;
-    const char*     prlist;
-    int             namingauthlen;
-    const char*     namingauth;
-    int             scopelistlen;
-    const char*     scopelist;
+   size_t prlistlen;
+   const char * prlist;
+   size_t namingauthlen;
+   const char * namingauth;
+   size_t scopelistlen;
+   const char * scopelist;
 } SLPSrvTypeRqst;
 
 typedef struct _SLPSrvTypeRply
 {
-    int             errorcode;
-    int             srvtypelistlen;
-    const char*     srvtypelist;
+   int errorcode;
+   size_t srvtypelistlen;
+   const char * srvtypelist;
 } SLPSrvTypeRply;
 
 typedef struct _SLPSAAdvert
 {
-    int             urllen;
-    const char*     url;
-    int             scopelistlen;
-    const char*     scopelist;
-    int             attrlistlen;
-    const char*     attrlist;
-    int             authcount;
-    SLPAuthBlock*   autharray;
+   size_t urllen;
+   const char * url;
+   size_t scopelistlen;
+   const char * scopelist;
+   size_t attrlistlen;
+   const char * attrlist;
+   int authcount;
+   SLPAuthBlock * autharray;
 } SLPSAAdvert;
 
+/* SLP wire protocol message management structures and prototypes */
 typedef struct _SLPMessage
 {
-    struct sockaddr_storage peer;
-    struct sockaddr_storage localaddr;
-    SLPHeader             header;
-    union _body
-    {
-        SLPSrvRqst        srvrqst;
-        SLPSrvRply        srvrply;
-        SLPSrvReg         srvreg;
-        SLPSrvDeReg       srvdereg;
-        SLPSrvAck         srvack;
-        SLPDAAdvert       daadvert;
-        SLPAttrRqst       attrrqst;
-        SLPAttrRply       attrrply;
-        SLPSrvTypeRqst    srvtyperqst;
-        SLPSrvTypeRply    srvtyperply;
-        SLPSAAdvert       saadvert;
-    } body;
-
+   struct sockaddr_storage peer;
+   struct sockaddr_storage localaddr;
+   SLPHeader header;
+   union _body
+   {
+      SLPSrvRqst     srvrqst;
+      SLPSrvRply     srvrply;
+      SLPSrvReg      srvreg;
+      SLPSrvDeReg    srvdereg;
+      SLPSrvAck      srvack;
+      SLPDAAdvert    daadvert;
+      SLPAttrRqst    attrrqst;
+      SLPAttrRply    attrrply;
+      SLPSrvTypeRqst srvtyperqst;
+      SLPSrvTypeRply srvtyperply;
+      SLPSAAdvert    saadvert;
+   } body; 
 } * SLPMessage;
 
 void SLPMessageFreeInternals(SLPMessage message);
-
-SLPMessage SLPMessageAlloc();
-
-SLPMessage SLPMessageRealloc(SLPMessage msg);
-
+SLPMessage SLPMessageAlloc(void);
+SLPMessage SLPMessageRealloc(SLPMessage message);
 void SLPMessageFree(SLPMessage message);
 
-int SLPMessageParseHeader(SLPBuffer buffer, SLPHeader* header);
-
-int SLPMessageParseBuffer(struct sockaddr_storage* peerinfo,
-                          struct sockaddr_storage* localaddr,
-                          SLPBuffer buffer, 
-                          SLPMessage message);
+/* Message parsing routines */
+int SLPMessageParseHeader(const SLPBuffer buffer, SLPHeader * header);
+int SLPMessageParseBuffer(void * peeraddr, const void * localaddr, 
+      const SLPBuffer buffer, SLPMessage message);
 
 /*! @} */
 

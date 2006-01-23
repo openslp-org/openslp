@@ -48,6 +48,8 @@
  * @{
  */
 
+#include <stddef.h>
+
 #ifdef DEBUG
 
 #include "slp_linkedlist.h"

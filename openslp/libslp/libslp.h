@@ -47,48 +47,13 @@
  * @{
  */
 
-#ifdef _WIN32
-# define WIN32_LEAN_AND_MEAN
-# include <windows.h>
-# include <sys/types.h>
-# include <sys/stat.h>
-# include <fcntl.h>
-# include <time.h>
-# include <limits.h>
-#else
-# include <stdlib.h>
-# include <unistd.h>
-# include <string.h>
-# include <sys/socket.h>
-# include <sys/time.h>
-# include <netinet/in.h>
-# include <arpa/inet.h> 
-# include <netdb.h> 
-# include <fcntl.h> 
-# include <errno.h>
-# include <sys/types.h>
-# include <sys/stat.h>
-# include <fcntl.h> 
-# include <ctype.h> 
-#endif
-
 #include "slp_buffer.h"
-#include "slp_message.h"
-#include "slp_property.h"
-#include "slp_xid.h"
-#include "slp_network.h"
-#include "slp_database.h"
-#include "slp_compare.h"
-#include "slp_xmalloc.h"
-#include "slp_parse.h"
-#include "slp_iface.h"
-#include "slp_xcast.h"
-#include "slp_pid.h"
-
-#ifdef ENABLE_SLPv2_SECURITY
-# include "slp_auth.h"
-# include "slp_spi.h"
-#endif
+#include "slp_linkedlist.h"
+#include "slp_socket.h"
+#include "slp_types.h"
+#include "slp_atomic.h"
+#include "slp_thread.h"
+#include "slp_debug.h"
 
 #define MINIMUM_DISCOVERY_INTERVAL  300    /* 5 minutes */
 #define MAX_RETRANSMITS             5      /* we'll only re-xmit 5 times! */
@@ -104,11 +69,7 @@
 # endif
 #endif
 
-#if (!defined MAX_PATH)
-# define MAX_PATH 256
-#endif
-
-typedef enum _SLPCallType
+typedef enum
 {
    SLPREG = 0,
    SLPDEREG,
@@ -118,169 +79,83 @@ typedef enum _SLPCallType
    SLPDELATTRS
 } SLPCallType;
 
-/** Used to colate Service URLS
+/** Used to collate Service URLS.
  */
-typedef struct _SLPSrvUrlColatedItem
+typedef struct _SLPSrvUrlCollatedItem
 {
-   SLPListItem listitem;   
-   /*!< @brief Makes this a list item.
-    */
-   char * srvurl;          
-   /*!< @brief The item's service URL.
-    */
-   unsigned short lifetime;
-   /*!< @brief The item's lifetime.
-    */
-} SLPSrvUrlColatedItem;
+   SLPListItem listitem;         /*!< Makes this a list item. */
+   char * srvurl;                /*!< The item's service URL. */
+   unsigned short lifetime;      /*!< The item's lifetime. */
+} SLPSrvUrlCollatedItem;
 
 /** Used to pass all user parameters for "registration" requests.
  */
 typedef struct _SLPRegParams
 {
-   int lifetime;
-   /*!< The desired registration lifetime.
-    */
-   int fresh;
-   /*!< New or renewed registration.
-    */
-   int urllen;
-   /*!< The length of @e url in bytes.
-    */
-   const char * url;
-   /*!< The service: URL to register.
-    */
-   int srvtypelen;
-   /*!< The length of @e srvtype in bytes.
-    */
-   const char * srvtype;
-   /*!< The service type to register.
-    */
-   int scopelistlen;
-   /*!< The length of @e scopelist in bytes.
-    */
-   const char * scopelist;
-   /*!< The scopes in which to register.
-    */
-   int attrlistlen;
-   /*!< The length of @e attrlist in bytes.
-    */
-   const char * attrlist;
-   /*!< The list of attributes to register.
-    */
-   SLPRegReport * callback;
-   /*!< The users's results callback function.
-    */
-   void * cookie;
-   /*!< The users's opaque pass-through data.
-    */
+   int lifetime;                 /*!< The desired registration lifetime. */
+   int fresh;                    /*!< New or renewed registration. */
+   size_t urllen;                /*!< The length of @e url in bytes. */
+   const char * url;             /*!< The service: URL to register. */
+   size_t srvtypelen;            /*!< The length of @e srvtype in bytes. */
+   const char * srvtype;         /*!< The service type to register. */
+   size_t scopelistlen;          /*!< The length of @e scopelist in bytes. */
+   const char * scopelist;       /*!< The scopes in which to register. */
+   size_t attrlistlen;           /*!< The length of @e attrlist in bytes. */
+   const char * attrlist;        /*!< The list of attributes to register. */
+   SLPRegReport * callback;      /*!< The users's results callback function. */
+   void * cookie;                /*!< The users's opaque pass-through data. */
 } SLPRegParams, * PSLPRegParams;
 
 /** Used to pass all user parameters for "deregistration" requests.
  */
 typedef struct _SLPDeRegParams
 {
-   int scopelistlen;
-   /*!< The length of @e scopelist in bytes.
-    */
-   const char * scopelist;
-   /*!< The scopes to deregister from.
-    */
-   int urllen;
-   /*!< The length of @e url in bytes.
-    */
-   const char * url;
-   /*!< The service: URL to deregister.
-    */
-   SLPRegReport * callback;
-   /*!< The users's results callback function.
-    */
-   void * cookie;
-   /*!< The users's opaque pass-through data.
-    */
+   size_t scopelistlen;          /*!< The length of @e scopelist in bytes. */
+   const char * scopelist;       /*!< The scopes to deregister from. */
+   size_t urllen;                /*!< The length of @e url in bytes. */
+   const char * url;             /*!< The service: URL to deregister. */
+   SLPRegReport * callback;      /*!< The users's results callback function. */
+   void * cookie;                /*!< The users's opaque pass-through data. */
 } SLPDeRegParams, * PSLPDeRegParams;
 
 /** Used to pass all user parameters for "find service types" requests.
  */
 typedef struct _SLPFindSrvTypesParams
 {
-   int namingauthlen;
-   /*!< The length of @e namingauth in bytes.
-    */
-   const char * namingauth;
-   /*!< The naming authority to search type in.
-    */
-   int scopelistlen;
-   /*!< The length of @e scopelist in bytes.
-    */
-   const char * scopelist;
-   /*!< The scopes in which to search for types.
-    */
-   SLPSrvTypeCallback * callback;
-   /*!< The users's results callback function.
-    */
-   void * cookie;
-   /*!< The users's opaque pass-through data.
-    */
+   size_t namingauthlen;         /*!< The length of @e namingauth in bytes. */
+   const char * namingauth;      /*!< The naming authority to search type in. */
+   size_t scopelistlen;          /*!< The length of @e scopelist in bytes. */
+   const char * scopelist;       /*!< The scopes in which to search for types. */
+   SLPSrvTypeCallback * callback;/*!< The users's results callback function. */
+   void * cookie;                /*!< The users's opaque pass-through data. */
 } SLPFindSrvTypesParams, * PSLPFindSrvTypesParams;
 
 /** Used to pass all user parameters for "find services" requests.
  */
 typedef struct _SLPFindSrvsParams
 {
-   int srvtypelen;
-   /*!< The length of @e url in bytes.
-    */
-   const char * srvtype;
-   /*!< The URL for which to find attributes.
-    */
-   int scopelistlen;
-   /*!< The length of @e scopelist in bytes.
-    */
-   const char * scopelist;
-   /*!< The associated scope list.
-    */
-   int predicatelen;
-   /*!< The length of @e taglist in bytes.
-    */
-   const char * predicate;
-   /*!< The associated attribute tag list.
-    */
-   SLPSrvURLCallback * callback;
-   /*!< The user's results callback function.
-    */
-   void * cookie;
-   /*!< The users's opaque pass-through data.
-    */
+   size_t srvtypelen;            /*!< The length of @e srvtype in bytes. */
+   const char * srvtype;         /*!< The service type to locate. */
+   size_t scopelistlen;          /*!< The length of @e scopelist in bytes. */
+   const char * scopelist;       /*!< The scopes in which to search. */
+   size_t predicatelen;          /*!< The length of @e predicate in bytes. */
+   const char * predicate;       /*!< The predicate associated with the find. */
+   SLPSrvURLCallback * callback; /*!< The user's results callback function. */
+   void * cookie;                /*!< The users's opaque pass-through data. */
 } SLPFindSrvsParams, * PSLPFindSrvsParams;
 
 /** Used to pass all user parameters for "find attributes" requests.
  */
 typedef struct _SLPFindAttrsParams
 {
-   int urllen;
-   /*!< The length of @e url in bytes.
-    */
-   const char * url;
-   /*!< The URL for which to find attributes.
-    */
-   int scopelistlen;
-   /*!< The length of @e scopelist in bytes.
-    */
-   const char * scopelist;
-   /*!< The associated scope list.
-    */
-   int taglistlen;
-   /*!< The length of @e taglist in bytes.
-    */
-   const char * taglist;
-   /*!< The associated attribute tag list.
-    */
-   SLPAttrCallback * callback;
-   /*!< The user's results callback function.
-    */
-   void * cookie;
-   /*!< The users's opaque pass-through data.
-    */
+   size_t urllen;                /*!< The length of @e url in bytes. */
+   const char * url;             /*!< The URL for which to find attributes. */
+   size_t scopelistlen;          /*!< The length of @e scopelist in bytes. */
+   const char * scopelist;       /*!< The associated scope list. */
+   size_t taglistlen;            /*!< The length of @e taglist in bytes. */
+   const char * taglist;         /*!< The associated attribute tag list. */
+   SLPAttrCallback * callback;   /*!< The user's results callback function. */
+   void * cookie;                /*!< The users's opaque pass-through data. */
 } SLPFindAttrsParams, * PSLPFindAttrsParams;
 
 /** A union of parameter structures. 
@@ -291,22 +166,12 @@ typedef struct _SLPFindAttrsParams
  */
 typedef union _SLPHandleCallParams
 {
-   SLPRegParams reg;
-   /*!< Registration parameters.
-    */
-   SLPDeRegParams dereg;
-   /*!< Deregistration parameters.
-    */
-   SLPFindSrvTypesParams findsrvtypes;
-   /*!< Find Service Type parameters.
-    */
-   SLPFindSrvsParams findsrvs;
-   /*!< Find Service parameters.
-    */
-   SLPFindAttrsParams findattrs;
-   /*!< Find Attribute parameters.
-    */
-} SLPHandleCallParams, * PSLPHandleCallParams;
+   SLPRegParams reg;             /*!< Registration parameters. */
+   SLPDeRegParams dereg;         /*!< Deregistration parameters. */
+   SLPFindSrvTypesParams findsrvtypes; /*!< Find Service Type parameters. */
+   SLPFindSrvsParams findsrvs;   /*!< Find Service parameters. */
+   SLPFindAttrsParams findattrs; /*!< Find Attribute parameters. */
+} SLPHandleCallParams;
 
 /** OpenSLP handle state information.
  *
@@ -317,169 +182,88 @@ typedef union _SLPHandleCallParams
 typedef struct _SLPHandleInfo
 {
 #  define SLP_HANDLE_SIG 0xbeeffeed
-   unsigned int sig;
-   /*!< A handle signature value.
-    */
-   SLPBoolean inUse;
-   /*!< A lock used to control access.
-    */
-   SLPBoolean isAsync;
-   /*!< Is operation sync or async?
-    */
-   int dasock;
-   /*!< A cached DA socket.
-    */
-   struct sockaddr_storage daaddr;
-   /*!< A cached DA address.
-    */
-   char * dascope;
-   /*!< A cached DA scope.
-    */
-   int dascopelen;
-   /*!< The length of @p dascope in bytes.
-    */
-   int sasock;
-   /*!< A cached SA socket.
-    */
-   struct sockaddr_storage saaddr;
-   /*!< A cached SA address.
-    */
-   char * sascope;
-   /*!< A cached SA scope.
-    */
-   int sascopelen;
-   /*!< The length of @p sascope in bytes.
-    */
+   unsigned int sig;             /*!< A handle signature value. */
+   intptr_t inUse;               /*!< A lock used to control access. */
 
-#ifndef MI_NOT_SUPPORTED
-   const char * McastIFList;
-   /*!< A list of multi-cast interfaces.
-    */
-#endif /* MI_NOT_SUPPORTED */
-
-#ifndef UNICAST_NOT_SUPPORTED
-   int dounicast;
-   /*!< A boolean flag - should I unicast?
-    */
-   int unicastsock;
-   /*!< A cached unicast socket.
-    */
-   struct sockaddr_storage unicastaddr;
-   /*!< A cached unicast address.
-    */
-   char * unicastscope;
-   /*!< The unicast scope list.
-    */
-   int unicastscopelen;
-   /*!< The length in bytes of @p unicastscope.
-    */
+#ifndef ENABLE_ASYNC_API
+   SLPBoolean isAsync;           /*!< Is operation sync or async? */
+   ThreadHandle th;              /*!< The async operation thread handle. */
 #endif
 
-   int langtaglen;
-   /*!< The length in bytes of @p langtag.
-    */
-   char * langtag;
-   /*!< The language tag assoicated.
-    */
-   int callbackcount;
-   /*!< The callbacks made in this request.
-    */
-   SLPList collatedsrvurls;
-   /*!< The list of collated service URLs.
-    */
-   char * collatedsrvtypes;
-   /*!< The list of collated service types.
-    */
+   sockfd_t dasock;              /*!< A cached DA socket. */
+   struct sockaddr_storage daaddr; /*!< A cached DA address. */
+   char * dascope;               /*!< A cached DA scope. */
+   size_t dascopelen;            /*!< The length of @p dascope in bytes. */
+   sockfd_t sasock;              /*!< A cached SA socket. */
+   struct sockaddr_storage saaddr; /*!< A cached SA address. */
+   char * sascope;               /*!< A cached SA scope. */
+   size_t sascopelen;            /*!< The length of @p sascope in bytes. */
+
+#ifndef MI_NOT_SUPPORTED
+   const char * McastIFList;     /*!< A list of multi-cast interfaces. */
+#endif
+
+#ifndef UNICAST_NOT_SUPPORTED
+   SLPBoolean dounicast;         /*!< A boolean flag - should I unicast? */
+   sockfd_t unicastsock;         /*!< A cached unicast socket. */
+   struct sockaddr_storage ucaddr; /*!< A cached unicast address. */
+   char * unicastscope;          /*!< The unicast scope list. */
+   size_t unicastscopelen;       /*!< The length in bytes of @p unicastscope. */
+#endif
+
+   size_t langtaglen;            /*!< The length in bytes of @p langtag. */
+   char * langtag;               /*!< The language tag assoicated. */
+   int callbackcount;            /*!< The callbacks made in this request. */
+   SLPList collatedsrvurls;      /*!< The list of collated service URLs. */
+   char * collatedsrvtypes;      /*!< The list of collated service types. */
 
 #ifdef ENABLE_SLPv2_SECURITY
-   SLPSpiHandle hspi;
-   /*!< The Security Parameter Index value.
-    */
+   SLPSpiHandle hspi;            /*!< The Security Parameter Index value. */
 #endif
 
-   SLPHandleCallParams params;
-   /*!< A union of parameter structures.
-    */
-} SLPHandleInfo, * PSLPHandleInfo; 
+   SLPHandleCallParams params;   /*!< A union of parameter structures. */
+} SLPHandleInfo; 
 
-#ifdef ENABLE_ASYNC_API
-typedef void* (*ThreadStartProc)(void *);  
-SLPError ThreadCreate(ThreadStartProc startproc, void *arg);
-#endif
-
-int NetworkConnectToMulticast(struct sockaddr_storage* peeraddr);
-
-int NetworkConnectToSlpd(struct sockaddr_storage* peeraddr); 
-
-void NetworkDisconnectDA(PSLPHandleInfo handle);  
-
-void NetworkDisconnectSA(PSLPHandleInfo handle);  
-
-int NetworkConnectToDA(PSLPHandleInfo handle,
-                       const char* scopelist,
-                       int scopelistlen,
-                       struct sockaddr_storage* peeraddr); 
-
-int NetworkConnectToSA(PSLPHandleInfo handle,
-                       const char* scopelist,
-                       int scopelistlen,
-                       struct sockaddr_storage* peeraddr); 
+sockfd_t NetworkConnectToSlpd(void * peeraddr);
+void NetworkDisconnectDA(SLPHandleInfo * handle);
+void NetworkDisconnectSA(SLPHandleInfo * handle);
+sockfd_t NetworkConnectToDA(SLPHandleInfo * handle, const char * scopelist,
+      size_t scopelistlen, void * peeraddr);
+sockfd_t NetworkConnectToSA(SLPHandleInfo * handle, const char * scopelist,
+      size_t scopelistlen, void * saaddr);
 
 typedef SLPBoolean NetworkRplyCallback(SLPError errorcode,
-                                       struct sockaddr_storage* peerinfo,
-                                       SLPBuffer replybuf,
-                                       void* cookie);  
+      void * peeraddr, SLPBuffer replybuf, void * cookie);
 
-SLPError NetworkRqstRply(int sock,
-                         struct sockaddr_storage* peeraddr,
-                         const char* langtag,
-                         int extoffset,
-                         char* buf,
-                         char buftype,
-                         int bufsize,
-                         NetworkRplyCallback callback,
-                         void * cookie); 
+SLPError NetworkRqstRply(sockfd_t sock, void * peeraddr,
+      const char * langtag, size_t extoffset, void * buf, char buftype,
+      size_t bufsize, NetworkRplyCallback callback, void * cookie); 
 
-#ifndef MI_NOT_SUPPORTED
-SLPError NetworkMcastRqstRply(PSLPHandleInfo handle,
-#else
-SLPError NetworkMcastRqstRply(const char* langtag,
-#endif /* MI_NOT_SUPPORTED */
-                              char* buf,
-                              char buftype,
-                              int bufsize,
-                              NetworkRplyCallback callback,
-                              void * cookie);
+SLPError NetworkMcastRqstRply(SLPHandleInfo * handle,
+      void * buf, char buftype, size_t bufsize, 
+      NetworkRplyCallback callback, void * cookie);
 
 #ifndef UNICAST_NOT_SUPPORTED
-SLPError NetworkUcastRqstRply(PSLPHandleInfo handle,
-                              char* buf,
-                              char buftype,
-                              int bufsize,
-                              NetworkRplyCallback callback,
-                              void * cookie);
+SLPError NetworkUcastRqstRply(SLPHandleInfo * handle, void * buf, 
+      char buftype, size_t bufsize, NetworkRplyCallback callback, 
+      void * cookie);
 #endif
-               
-int KnownDAConnect(PSLPHandleInfo handle,
-                   int scopelistlen,
-                   const char* scopelist,
-                   struct sockaddr_storage* peeraddr);
 
-void KnownDABadDA(struct sockaddr_storage* daaddr);
+sockfd_t KnownDAConnect(SLPHandleInfo * handle, size_t scopelistlen, 
+      const char * scopelist, void * peeraddr);
 
-int KnownDAGetScopes(int* scopelistlen,
-#ifndef MI_NOT_SUPPORTED
-                     char** scopelist,
-                     PSLPHandleInfo handle);
-#else
-                     char** scopelist);
-#endif /* MI_NOT_SUPPORTED */
-
-void KnownDAProcessSrvRqst(PSLPHandleInfo handle);
+void KnownDABadDA(void * daaddr);
+int KnownDAGetScopes(size_t * scopelistlen, char ** scopelist, 
+      SLPHandleInfo * handle);
+void KnownDAProcessSrvRqst(SLPHandleInfo * handle);
 
 #ifdef DEBUG
 void KnownDAFreeAll(void);
 #endif
+
+size_t SizeofURLEntry(size_t urllen, size_t urlauthlen);
+void PutURLEntry(uint8_t ** cpp, const char * url, size_t urllen, 
+      const uint8_t * urlauth, size_t urlauthlen);
 
 /*! @} */
 

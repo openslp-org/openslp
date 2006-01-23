@@ -45,24 +45,25 @@
 
 #ifdef ENABLE_PREDICATES
 
-typedef void* SLPDPredicate;
+typedef void * SLPDPredicate; 
 int SLPDPredicateTest(SLPDPredicate predicate, SLPAttributes attr);
 
 typedef enum
 {
-   FR_UNSET /* Placeholder. Used to detect errors. */, 
-         FR_INTERNAL_SYSTEM_ERROR /* Internal error. */,
-         FR_PARSE_ERROR /* Parse error detected. */, 
-         FR_MEMORY_ALLOC_FAILED /* Ran out of memory. */, 
-         FR_EVAL_TRUE /* Expression successfully evaluated to true. */, 
-         FR_EVAL_FALSE /* Expression successfully evaluated to false. */
+   FR_UNSET,                  /* Placeholder. Used to detect errors. */
+   FR_INTERNAL_SYSTEM_ERROR,  /* Internal error. */
+   FR_PARSE_ERROR,            /* Parse error detected. */
+   FR_MEMORY_ALLOC_FAILED,    /* Ran out of memory. */
+   FR_EVAL_TRUE,              /* Expression successfully evaluated to true. */
+   FR_EVAL_FALSE,             /* Expression successfully evaluated to false. */
 } FilterResult;
 
-FilterResult wildcard(const char *pattern, int pattern_len, const char *str, int str_len);
+FilterResult wildcard(const char * pattern, int pattern_len, 
+      const char * str, int str_len);
 
 #define ez_WILDCARD(x,y) wildcard(x, (int) strlen(x), y, (int) strlen(y))
 
-void test_wildcard()
+void test_wildcard(void)
 {
 #ifdef ENABLE_PREDICATES
    int err;
@@ -138,25 +139,23 @@ void test_wildcard()
 #else /* ENABLE_PREDICATES */
    puts("Predicates disabled. Skipping.");
 #endif /* ENABLE_PREDICATES */
-
 }
 
-void test_predicate()
+void test_predicate(void)
 {
-   char *str;
+   char * str;
    int ierr;
    SLPAttributes slp_attr;
    SLPError err;
 
-
    /******************** Test int stuff. *********************/
 
-   err = SLPAttrAlloc("en", 0, SLP_FALSE, &slp_attr);
+   err = SLPAttrAlloc("en", NULL, SLP_FALSE, &slp_attr);
    assert(err == SLP_OK);
 
-   SLPAttrSet_int(slp_attr, "int", (int)23, SLP_ADD);
-   SLPAttrSet_int(slp_attr, "int", (int)25, SLP_ADD);
-   SLPAttrSet_int(slp_attr, "int", (int)27, SLP_ADD);
+   SLPAttrSet_int(slp_attr, "int", (int) 23, SLP_ADD);
+   SLPAttrSet_int(slp_attr, "int", (int) 25, SLP_ADD);
+   SLPAttrSet_int(slp_attr, "int", (int) 27, SLP_ADD);
 
    /* Test equals. */
    str = "(&(&(int=23)(int=25))(int=26))";
@@ -206,7 +205,7 @@ void test_predicate()
    SLPAttrFree(slp_attr);
 
    /* Simple equality. */
-   err = SLPAttrAllocStr("en", 0, SLP_FALSE, &slp_attr, "(a=1)");
+   err = SLPAttrAllocStr("en", NULL, SLP_FALSE, &slp_attr, "(a=1)");
    assert(err == SLP_OK);
 
    str = "(a=1)";
@@ -215,15 +214,13 @@ void test_predicate()
 
    SLPAttrFree(slp_attr);
 
-
    /******************** Test opaque stuff. *********************/
 
-   err = SLPAttrAlloc("en", 0, SLP_FALSE, &slp_attr);
+   err = SLPAttrAlloc("en", NULL, SLP_FALSE, &slp_attr);
    assert(err == SLP_OK);
 
    err = SLPAttrSet_str(slp_attr, "op", "\\00\\12\\24\\36", SLP_REPLACE);
    assert(err == SLP_OK);
-
 
    /* Test less (single-valued). */
    str = "(op<=\\00\\12\\10\\43)";
@@ -244,15 +241,13 @@ void test_predicate()
 
    SLPAttrFree(slp_attr);
 
-
    /******************** Test string stuff. *********************/
 
-   err = SLPAttrAlloc("en", 0, SLP_FALSE, &slp_attr);
+   err = SLPAttrAlloc("en", NULL, SLP_FALSE, &slp_attr);
    assert(err == SLP_OK);
 
    err = SLPAttrSet_str(slp_attr, "str", "string", SLP_REPLACE);
    assert(err == SLP_OK);
-
 
    /* Test less (single-valued). */
    str = "(str<=a)";
@@ -267,7 +262,6 @@ void test_predicate()
    ierr = SLPDPredicateTest(str, slp_attr);
    assert(ierr == 0); /* t */
 
-
    /* Test greater (single-valued). */
    str = "(str>=a)";
    ierr = SLPDPredicateTest(str, slp_attr);
@@ -280,7 +274,6 @@ void test_predicate()
    str = "(str>=strinx)";
    ierr = SLPDPredicateTest(str, slp_attr);
    assert(ierr > 0); /* f */
-
 
    /* Test equal (single valued). */
    str = "(str=a)";
@@ -331,7 +324,6 @@ void test_predicate()
    ierr = SLPDPredicateTest(str, slp_attr);
    assert(ierr == 0); /* t */
 
-
    /* TODO Test escaped '*'s. */
    /* TODO Test multivalued. */
 
@@ -339,12 +331,11 @@ void test_predicate()
 
    /******************** Test boolean stuff. *********************/
 
-   err = SLPAttrAlloc("en", 0, SLP_FALSE, &slp_attr);
+   err = SLPAttrAlloc("en", NULL, SLP_FALSE, &slp_attr);
    assert(err == SLP_OK);
 
    err = SLPAttrSet_bool(slp_attr, "bool", SLP_TRUE);
    assert(err == SLP_OK);
-
 
    /* Test equal. */
    str = "(bool=true)";
@@ -372,13 +363,11 @@ void test_predicate()
    ierr = SLPDPredicateTest(str, slp_attr);
    assert(ierr > 0); /* f */
 
-
    SLPAttrFree(slp_attr);
-
 
    /******************** Test keyword stuff. *********************/
 
-   err = SLPAttrAlloc("en", 0, SLP_FALSE, &slp_attr);
+   err = SLPAttrAlloc("en", NULL, SLP_FALSE, &slp_attr);
    assert(err == SLP_OK);
 
    err = SLPAttrSet_keyw(slp_attr, "keyw");
@@ -400,12 +389,11 @@ void test_predicate()
    SLPAttrFree(slp_attr);
 
    /********************* Test boolean operators. *********************/
-   err = SLPAttrAlloc("en", 0, SLP_FALSE, &slp_attr);
+   err = SLPAttrAlloc("en", NULL, SLP_FALSE, &slp_attr);
    assert(err == SLP_OK);
 
    err = SLPAttrSet_keyw(slp_attr, "keyw");
    assert(err == SLP_OK);
-
 
    str = "(keyw=*)";
    ierr = SLPDPredicateTest(str, slp_attr);
@@ -472,7 +460,6 @@ void test_predicate()
    str = "(!(&(&(!(keyw=*))(bool=true))(&(keyw=*)(bool=true))))";
    ierr = SLPDPredicateTest(str, slp_attr);
    assert(ierr == 0); /* t */
-
 
    /* Test sytax errors. */
 
@@ -556,46 +543,50 @@ void test_predicate()
 
    SLPAttrFree(slp_attr);
 
-
    /* Check multiple (more than two) subexpressions. */
-   err = SLPAttrAlloc("en", 0, SLP_FALSE, &slp_attr);
+   err = SLPAttrAlloc("en", NULL, SLP_FALSE, &slp_attr);
    assert(err == SLP_OK);
 
    err = SLPAttrSet_int(slp_attr, "x", 1, SLP_ADD);
    assert(err == SLP_OK);
 
    str = "(&(x=1)(!(x=1)))";
-   ierr = SLPDPredicateTest((SLPDPredicate)str, slp_attr);
+   ierr = SLPDPredicateTest((SLPDPredicate) str, slp_attr);
    assert(ierr > 0); /* f */
 
    str = "(&(x=1))";
-   ierr = SLPDPredicateTest((SLPDPredicate)str, slp_attr);
+   ierr = SLPDPredicateTest((SLPDPredicate) str, slp_attr);
    assert(ierr == 0); /* t */
 
    str = "(&(x=1)(x=1)(x=1))";
-   ierr = SLPDPredicateTest((SLPDPredicate)str, slp_attr);
+   ierr = SLPDPredicateTest((SLPDPredicate) str, slp_attr);
    assert(ierr == 0); /* t */
 
    SLPAttrFree(slp_attr);
 }
 
-int main(int argc, char *argv[])
+int main(int argc, char * argv[])
 {
+   (void)argc;
+   (void)argv;
+
    test_predicate();
    test_wildcard();
 
    return 0;
 }
 
-
 #else /* ENABLE_PREDICATES */
 
-int main(int argc, char *argv[])
+int main(int argc, char * argv[])
 {
+   (void)argc;
+   (void)argv;
+
    puts("Predicates disabled. Not testing.");
    return 0;
 }
 
 #endif /* ENABLE_PREDICATES */
 
-/*=========================================================================*/
+/*=========================================================================*/ 

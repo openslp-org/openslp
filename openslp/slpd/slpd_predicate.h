@@ -50,22 +50,17 @@
 
 #include "slpd.h"
 
-#define SLPD_ATTR_RECURSION_DEPTH   50
-/*!< The maximum recursion depth for the attribute parser.
+/** The maximum recursion depth for the attribute parser.
  */
+#define SLPD_ATTR_RECURSION_DEPTH   50
                                         
-int SLPDPredicateTest(int version,
-                      int attrlistlen,
-                      const char* attrlist,
-                      int predicatelen,
-                      const char* predicate);
+int SLPDPredicateTest(int version, size_t attrlistlen, 
+      const char * attrlist, size_t predicatelen, 
+      const char * predicate);
 
-int SLPDFilterAttributes(int attrlistlen,
-                         const char* attrlist,
-                         int taglistlen,
-                         const char* taglist,
-                         int* resultlen,
-                         char** result);
+int SLPDFilterAttributes(int attrlistlen, const char * attrlist, 
+      size_t taglistlen, const char * taglist, size_t * resultlen, 
+      char ** result);
 
 /*! @} */
 

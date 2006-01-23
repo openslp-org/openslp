@@ -54,72 +54,35 @@
 
 typedef enum _SLPToolCommand
 {
-    FINDSRVS = 1,
-    FINDATTRS,
-    FINDSRVTYPES,
-    FINDSCOPES,
-    GETPROPERTY,
-    REGISTER,
-    DEREGISTER,
-    PRINT_VERSION,
-#ifndef MI_NOT_SUPPORTED
-    FINDSRVSUSINGIFLIST,
-    FINDATTRSUSINGIFLIST,
-    FINDSRVTYPESUSINGIFLIST,
-#endif /* MI_NOT_SUPPORTED */
-#ifndef UNICAST_NOT_SUPPORTED
-    UNICASTFINDSRVS,
-    UNICASTFINDATTRS,
-    UNICASTFINDSRVTYPES,
-#endif
-    DUMMY
+   FINDSRVS = 1,
+   FINDATTRS,
+   FINDSRVTYPES,
+   FINDSCOPES,
+   GETPROPERTY,
+   REGISTER,
+   DEREGISTER,
+   PRINT_VERSION,
+   DUMMY
 } SLPToolCommand;
 
 typedef struct _SLPToolCommandLine
 {
-    SLPToolCommand  cmd;
-    const char*     lang;
-    const char*     scopes;
-    const char*     cmdparam1;
-    const char*     cmdparam2;
-    const char*     cmdparam3;
+   SLPToolCommand cmd;
+   const char * lang;
+   const char * interfaces;
+   const char * unicastifc;
+   const char * scopes;
+   const char * cmdparam1;
+   const char * cmdparam2;
+   const char * cmdparam3;
 } SLPToolCommandLine;
 
-void FindSrvs(SLPToolCommandLine* cmdline);
-
-#ifndef MI_NOT_SUPPORTED
-void FindSrvsUsingIFList(SLPToolCommandLine* cmdline);
-#endif
-
-#ifndef UNICAST_NOT_SUPPORTED
-void UnicastFindSrvs(SLPToolCommandLine* cmdline);
-#endif
-
-void FindAttrs(SLPToolCommandLine* cmdline);
-
-#ifndef UNICAST_NOT_SUPPORTED
-void UnicastFindAttrs(SLPToolCommandLine* cmdline);
-#endif
-
-#ifndef MI_NOT_SUPPORTED
-void FindAttrsUsingIFList(SLPToolCommandLine* cmdline);
-#endif
-
-void FindSrvTypes(SLPToolCommandLine* cmdline);
-
-#ifndef UNICAST_NOT_SUPPORTED
-void UnicastFindSrvTypes(SLPToolCommandLine* cmdline);
-#endif
-
-#ifndef MI_NOT_SUPPORTED
-void FindSrvTypesUsingIFList(SLPToolCommandLine* cmdline);
-#endif
-
-void GetProperty(SLPToolCommandLine* cmdline);
-
-void Register(SLPToolCommandLine* cmdline);
-
-void Deregister(SLPToolCommandLine* cmdline);
+void FindSrvs(SLPToolCommandLine * cmdline);
+void FindAttrs(SLPToolCommandLine * cmdline);
+void FindSrvTypes(SLPToolCommandLine * cmdline);
+void GetProperty(SLPToolCommandLine * cmdline);
+void Register(SLPToolCommandLine * cmdline);
+void Deregister(SLPToolCommandLine * cmdline);
 
 /*! @} */
 

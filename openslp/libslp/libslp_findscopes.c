@@ -62,28 +62,39 @@
  * @return If no error occurs, returns SLP_OK, otherwise, the appropriate 
  *    error code.
  */
-SLPError SLPAPI SLPFindScopes(SLPHandle hSLP, char ** ppcScopeList)
+SLPEXP SLPError SLPAPI SLPFindScopes(
+      SLPHandle hSLP,
+      char ** ppcScopeList)
 {
-   int scopelistlen;
+   bool inuse;
+   size_t scopelistlen;
+   SLPError serr = SLP_OK;
+   SLPHandleInfo * handle = hSLP;
 
-   /*------------------------------*/
-   /* check for invalid parameters */
-   /*------------------------------*/
-   if (hSLP == 0 || *(unsigned int *)hSLP != SLP_HANDLE_SIG 
-         || ppcScopeList  == 0)
+   /* Check for invalid parameters. */
+   SLP_ASSERT(handle != 0);
+   SLP_ASSERT(handle->sig == SLP_HANDLE_SIG);
+   SLP_ASSERT(ppcScopeList != 0);
+
+   if (handle == 0 || handle->sig != SLP_HANDLE_SIG 
+         || !ppcScopeList)
       return SLP_PARAMETER_BAD;
 
-   /* start with nothing */
+   /* Start with nothing. */
    *ppcScopeList = 0;
 
-#ifndef MI_NOT_SUPPORTED
-   if (KnownDAGetScopes(&scopelistlen, ppcScopeList, hSLP))
-#else
-      if (KnownDAGetScopes(&scopelistlen, ppcScopeList))
-#endif
-         return SLP_MEMORY_ALLOC_FAILED;
+   /* Check to see if the handle is in use. */
+   inuse = SLPTryAcquireSpinLock(&handle->inUse);
+   SLP_ASSERT(!inuse);
+   if (inuse)
+      return SLP_HANDLE_IN_USE;
 
-   return SLP_OK;
+   if (KnownDAGetScopes(&scopelistlen, ppcScopeList, hSLP) != 0)
+      serr = SLP_MEMORY_ALLOC_FAILED;
+
+   SLPReleaseSpinLock(&handle->inUse);
+
+   return serr;
 }
 
 /** Returns the refresh intervals configured on the server.
@@ -98,7 +109,7 @@ SLPError SLPAPI SLPFindScopes(SLPHandle hSLP, char ** ppcScopeList)
  *    DAs (a positive integer). If no DA advertises a min-refresh-interval
  *    attribute, or if an error occurs, returns 0.
  */
-unsigned short SLPAPI SLPGetRefreshInterval(void)
+SLPEXP unsigned short SLPAPI SLPGetRefreshInterval(void)
 {
    /** @todo Implement min-refresh attribute code. */
    return 0;

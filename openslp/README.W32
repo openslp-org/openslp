@@ -1,11 +1,39 @@
-Announcement (Updated 8 Feb 2005)
+Announcement (Updated 20 Jan 2006)
 ---------------------------------
 
 The reasons for full Win32 support are _still_ valid: Namely, primarily that
 Microsoft insists on supporting location protocols other than the one 
 designed by the IETF. The hope is that by offering a really good port of 
-OpenSLP, Microsoft enslaved developers and partners will have some 
+OpenSLP, Microsoft enslaved developers and partners will have some
 ammunition to fight proprietary or otherwise non-interoperable protocols.
+
+Microsoft did one thing right, however, when they started to give their C++
+compiler away. And with each new major version the free tool set has gotten 
+better and better. Visual Studio 2005 Exress, Visual C++ component comes
+with a full IDE, and 32-bit compiler toolset. There is no longer any reason 
+not to upgrade as soon as prudence requires, as there's effectively no end-
+user cost associated with the process (short of the time it takes to 
+download the 450 MB CD image). 
+
+The OpenSLP will now upgrade project and make files for the latest version
+of Visual Studio Express (read "free") with each new minor version of the
+OpenSLP project. This new policy begins with OpenSLP version 2.0, which
+requires Visual Studio 2005 Express, Visual C++ component. Please download
+this product from Microsoft at: 
+
+    http://msdn.microsoft.com/vstudio/express/visualC/default.aspx
+
+Since OpenSLP is built as a native Win32 application, you will need to get
+the latest Windows Platform SDK (currently Windows Server 2003 Platform SDK, 
+SP1) from the associated link on the page above, or directly from here:
+
+    http://www.microsoft.com/downloads/details.aspx?
+        FamilyId=A55B6B43-E24F-4EA3-A93E-40C0EC4F68E5&displaylang=en
+
+Connect your installation of VC++ 2005 Express to your platform SDK as 
+specified at this URL:
+
+    http://msdn.microsoft.com/vstudio/express/visualc/usingpsdk/default.aspx
 
 Current State
 -------------
@@ -14,8 +42,8 @@ functionality as OpenSLP on Linux, with one exception. The lex/yacc files
 that were originally written by Michael Day, which define the attribute 
 language parser are not used on Win32 (for lack of tools). Rather, the 
 original hand-coded version of this parser is being used. I'd be grateful
-if someone would please help me get a version of the gbod stuff working -
-one way or another :)
+if someone would please help me get a version of the good stuff working -
+one way or another. :)
 
 Schedule
 --------
@@ -60,7 +88,16 @@ to the service registry, so it's easy as 1, 2, 3 (literally):
 2. Copy slpd.exe to %SystemRoot%/System32
 3. From this location, execute: "slpd.exe --install [auto]"
 
-Note that the log file (slpd.log) will be created in %SystemRoot%.
+Note that the log file (slpd.log) will be created in %SystemRoot%. This can 
+be changed, but it's not obvious how to do it unless you happen to know a
+fair amount about how Win32 services work. Essentially, you have to specify
+the log file option on the service command line, rather than on the 
+slpd -start command line like this: Open Control Panel | Administrative 
+Tools | Services. Right-click on the "Service Location Protocol" service
+and choose "Properties". Stop the service if it's running. Add the log file
+option ("-l <my path>") to the "Service Parameters" edit box. Restart the 
+service. This parameter change is persistent, so you need do this only once.
+This note applies to all Win32 service startup parameters for slpd.exe.
 
 Credits
 -------

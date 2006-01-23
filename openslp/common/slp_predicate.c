@@ -43,25 +43,60 @@
 
 #include <string.h>
 #include <stdio.h>
-#include <fnmatch.h> 
 
 #include "slp_predicate.h"
 #include "slp_linkedlist.h"
 
-#ifndef FALSE
-#define FALSE   0
+#ifdef _WIN32
+# define FNM_CASEFOLD 1
+# define FNM_NOMATCH  1
+/** Unix standard fnmatch routine.
+ *
+ * Performs a basic wildcard match between a pattern and a string.
+ * This version doesn't do nearly what the GNU version does, but it's 
+ * sufficient for our needs.
+ *
+ * @param[in] pattern - The pattern to match against.
+ * @param[in] string - The string to match.
+ * @param[in] flags - Control flags that change behaviour.
+ *
+ * @return Zero on success, or FNM_NOMATCH on mismatch.
+ *
+ * @internal
+ */
+static int fnmatch(const char * pattern, const char * string, int flags)
+{
+   while (*pattern && *string) 
+   {
+      switch (*pattern) 
+      {
+         case '*':
+            for (pattern++; *string; string++)
+               if (fnmatch(pattern, string, flags) == 0)
+                  return 0;
+            break;
+
+         default:
+            if (((*pattern ^ *string) 
+                  & ~((flags & FNM_CASEFOLD)? 0x20: 0)) != 0)
+               return FNM_NOMATCH;
+            pattern++, string++;
+      }
+   }
+   if (*string)
+      return FNM_NOMATCH;
+   while (*pattern)
+      if (*pattern++ != '*')
+         return FNM_NOMATCH;
+   return 0;
+}
+#else
+# include <fnmatch.h>
+# ifndef FNM_CASEFOLD
+#  define FNM_CASEFOLD 0
+# endif
 #endif
 
-#ifndef TRUE
-#define TRUE   (!FALSE)
-#endif
-
-/* for those platforms without FNM_CASEFOLD */
-#ifndef FNM_CASEFOLD
-#define FNM_CASEFOLD 0
-#endif
-
-/* the usual */
 #define SLP_MIN(a, b) ((a) < (b) ? (a) : (b))
 #define SLP_MAX(a, b) ((a) > (b) ? (a) : (b))
 
@@ -97,14 +132,14 @@ void dumpAttrList(int level, const SLPAttrList * attrs)
             printf("%s = %lu (integer) \n", attrs->name, attrs->val.intVal);
             break;
          case boolean:
-            printf("%s = %s (boolean) \n", 
-                  attrs->name, 
+            printf("%s = %s (boolean) \n", attrs->name,
                   (attrs->val.boolVal ? " TRUE " : " FALSE "));
             break;
          case opaque:
          case head:
          default:
-            printf("%s = %s\n", attrs->name, "illegal or unknown attribute type");
+            printf("%s = %s\n", attrs->name,
+                  "illegal or unknown attribute type");
             break;
       }
       attrs = attrs->next;
@@ -120,27 +155,36 @@ void dumpAttrList(int level, const SLPAttrList * attrs)
  *
  * @internal
  */
-void printOperator(int op)
+static void printOperator(int op)
 {
    switch (op)
    {
-      case ldap_or: printf(" OR ");
+      case ldap_or:
+         printf(" OR ");
          break;
-      case ldap_and: printf(" AND ");
+      case ldap_and:
+         printf(" AND ");
          break;
-      case ldap_not: printf(" NOT ");
+      case ldap_not:
+         printf(" NOT ");
          break;
-      case expr_eq: printf(" EQUAL ");
+      case expr_eq:
+         printf(" EQUAL ");
          break;
-      case expr_gt: printf(" GREATER THAN ");
+      case expr_gt:
+         printf(" GREATER THAN ");
          break;
-      case expr_lt: printf(" LESS THAN ");
+      case expr_lt:
+         printf(" LESS THAN ");
          break;
-      case expr_present: printf(" PRESENT ");
+      case expr_present:
+         printf(" PRESENT ");
          break;
-      case expr_approx: printf(" APPROX ");
+      case expr_approx:
+         printf(" APPROX ");
          break;
-      case -1: printf(" list head ");
+      case -1:
+         printf(" list head ");
          break;
       default:
          printf(" unknown operator value %i ", op);
@@ -159,24 +203,25 @@ void printOperator(int op)
  */
 void dumpFilterTree(const SLPLDAPFilter * filter)
 {
-   int i;
+   int i; 
 
    for (i = 0; i < filter->nestingLevel; i++)
       printf("\t");
 
    printOperator(filter->operator);
 
-   printf("%s (level %i) \n", 
-         (filter->logical_value ? " TRUE " : " FALSE "), 
+   printf("%s (level %i) \n", (filter->logical_value ? " TRUE " : " FALSE "),
          filter->nestingLevel);
 
-   dumpAttrList(filter->nestingLevel, &(filter->attrs));
+   dumpAttrList(filter->nestingLevel, &filter->attrs);
 
-   if (!SLP_IS_EMPTY(&(filter->children)))
-      dumpFilterTree((SLPLDAPFilter *)filter->children.next) ;
+   if (!SLP_IS_EMPTY(&filter->children))
+      dumpFilterTree((SLPLDAPFilter *) filter->children.next) ;
 
    if ((!SLP_IS_HEAD(filter->next)) && (!SLP_IS_EMPTY(filter->next)))
       dumpFilterTree(filter->next);
+
+   return;
 }
 #endif   /* DEBUG */
 
@@ -189,29 +234,33 @@ void dumpFilterTree(const SLPLDAPFilter * filter)
  *
  * @internal
  */
-int SLPEvaluateOperation(int compare_result, int operation)
+static int SLPEvaluateOperation(int compare_result, int operation)
 {
    switch (operation)
    {
       case expr_eq:
-         if (compare_result == 0)      /* a == b */
-            return TRUE;
+         if (compare_result == 0)   /*  a == b */
+            return 1;
          break;
+
       case expr_gt:
-         if (compare_result >= 0)      /* a >= b */
-            return TRUE;
+         if (compare_result >= 0)   /*  a >= b  */
+            return 1;
          break;
-      case expr_lt:                    /* a <= b */
+
+      case expr_lt:
+         /* a <= b  */
          if (compare_result <= 0)
-            return TRUE;
+            return 1;
          break;
+
       case expr_present:
       case expr_approx:
       default:
-         return TRUE;
+         return 1;
          break;
    }
-   return FALSE;
+   return 0;
 }
 
 /** Evaluates attribute values.
@@ -225,39 +274,43 @@ int SLPEvaluateOperation(int compare_result, int operation)
  *
  * @internal
  */
-int SLPEvaluateAttributes(const SLPAttrList * a, 
+static int SLPEvaluateAttributes(const SLPAttrList * a, 
       const SLPAttrList * b, int op)
 {
    /* first ensure they are the same type  */
    if (a->type == b->type)
-   {
       switch (a->type)
       {
          case string:
-            return SLPEvaluateOperation(fnmatch(a->val.stringVal, 
+            return SLPEvaluateOperation(fnmatch(a->val.stringVal,
                   b->val.stringVal, FNM_CASEFOLD), op);
+
          case integer:
             return SLPEvaluateOperation(a->val.intVal - b->val.intVal, op);
-         case tag:                   /* equivalent to a presence test  */
-            return TRUE;
+
+         case tag:
+            /* equivalent to a presence test  */
+            return 1;
+
          case boolean:
             if ((a->val.boolVal != 0) && (b->val.boolVal != 0))
-               return TRUE;
+               return 1;
             if ((a->val.boolVal == 0) && (b->val.boolVal == 0))
-               return TRUE;
+               return 1;
             break;
+
          case opaque:
-            if (! memcmp((((char *)(a->val.opaqueVal)) + 4), 
+            if (!memcmp((((char *) (a->val.opaqueVal)) + 4),
                   (((char *)(b->val.opaqueVal)) + 4),
-                  SLP_MIN((*((int *)a->val.opaqueVal)), 
+                  SLP_MIN((*((int *)a->val.opaqueVal)),
                         (*((int *)a->val.opaqueVal)))))
-               return TRUE;
-            break;
+               ;
+            return 1;
+
          default:
             break;
       }
-   }
-   return FALSE;
+   return 0;
 }
 
 /** Evaluates an entire LDAPv3 filter tree.
@@ -273,41 +326,43 @@ int SLPEvaluateAttributes(const SLPAttrList * a,
  *
  * @internal
  */
-int SLPEvaluateFilterTree(SLPLDAPFilter * filter, const SLPAttrList * attrs)
+static int SLPEvaluateFilterTree(SLPLDAPFilter * filter, 
+      const SLPAttrList * attrs)
 {
-   if (!SLP_IS_EMPTY(&(filter->children)))
-      SLPEvaluateFilterTree((SLPLDAPFilter *)filter->children.next, attrs);
+   if (!SLP_IS_EMPTY(&filter->children))
+      SLPEvaluateFilterTree((SLPLDAPFilter *) filter->children.next, attrs);
 
-   if (! (SLP_IS_HEAD(filter->next)) && (!SLP_IS_EMPTY(filter->next)))
+   if (!SLP_IS_HEAD(filter->next) && !SLP_IS_EMPTY(filter->next))
       SLPEvaluateFilterTree(filter->next, attrs);
 
-   if (filter->operator == ldap_and 
-         || filter->operator == ldap_or 
+
+   if (filter->operator == ldap_and
+         || filter->operator == ldap_or
          || filter->operator == ldap_not)
    {
-      /* evaluate ldap logical operators by evaluating filter->children 
-       * as a list of filters 
-       */
-      SLPLDAPFilter * child_list = (SLPLDAPFilter *)filter->children.next;
+      /* evaluate ldap logical operators by evaluating filter->children as 
+         *  a list of filters 
+         */
+      SLPLDAPFilter * child_list = (SLPLDAPFilter *) filter->children.next;
 
       /* initialize  the filter's logical value to true */
       if (filter->operator == ldap_or)
-         filter->logical_value = FALSE;
+         filter->logical_value = 0;
       else
-         filter->logical_value = TRUE;
+         filter->logical_value = 1;
 
       while (!SLP_IS_HEAD(child_list))
       {
-         if (child_list->logical_value == TRUE)
+         if (child_list->logical_value == 1)
          {
             if (filter->operator == ldap_or)
             {
-               filter->logical_value = TRUE;
+               filter->logical_value = 1;
                break;
             }
             if (filter->operator == ldap_not)
             {
-               filter->logical_value = FALSE;
+               filter->logical_value = 0;
                break;
             }
             /* for an & operator keep going  */
@@ -317,7 +372,7 @@ int SLPEvaluateFilterTree(SLPLDAPFilter * filter, const SLPAttrList * attrs)
             /* child is false */
             if (filter->operator == ldap_and)
             {
-               filter->logical_value = FALSE;
+               filter->logical_value = 0;
                break;
             }
          }
@@ -327,24 +382,22 @@ int SLPEvaluateFilterTree(SLPLDAPFilter * filter, const SLPAttrList * attrs)
    else
    {
       /* find the first matching attribute and set the logical value */
-      filter->logical_value = FALSE;
+      filter->logical_value = 0;
       if (!SLP_IS_HEAD(filter->attrs.next))
       {
          attrs = attrs->next;
-         while ((!SLP_IS_HEAD(attrs)) 
-               && fnmatch(filter->attrs.next->name,
-                     attrs->name, FNM_CASEFOLD) == FNM_NOMATCH)
-            attrs = attrs->next;
+         while (!SLP_IS_HEAD(attrs)
+               && fnmatch(filter->attrs.next->name, attrs->name, FNM_CASEFOLD)
+                     == FNM_NOMATCH)
+            attrs = attrs->next ;
 
-         /* either we have traversed the list or found the first 
-          * matching attribute
-          */
+         /* either we have traversed the list or found the first matching attribute */
          if (!SLP_IS_HEAD(attrs))
          {
             /* we found the first matching attribute, now do the comparison */
-            if (filter->operator == expr_present 
+            if (filter->operator == expr_present
                   || filter->operator == expr_approx)
-               filter->logical_value = TRUE;
+               filter->logical_value = 1;
             else
                filter->logical_value = SLPEvaluateAttributes(
                      filter->attrs.next, attrs, filter->operator);
@@ -367,8 +420,8 @@ int SLP_predicate_match(const SLPAttrList * attrlist, const char * filter)
    int ccode;
    SLPLDAPFilter * ftree;
 
-   if (filter == 0 || strlen(filter) == 0)
-      return TRUE;   /*  no predicate - aways tests TRUE  */
+   if (filter == 0 || !strlen(filter))
+      return 1;   /* no predicate - aways tests TRUE */
 
    if ((ftree = SLPDecodeLDAPFilter(filter)) != 0)
    {
@@ -376,7 +429,7 @@ int SLP_predicate_match(const SLPAttrList * attrlist, const char * filter)
       SLPFreeFilterTree(ftree);
       return ccode;
    }
-   return FALSE;
+   return 0;
 }
 
 /*=========================================================================*/

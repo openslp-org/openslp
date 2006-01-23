@@ -52,28 +52,12 @@
  * @{
  */
 
-#ifdef _WIN32
-# define WIN32_LEAN_AND_MEAN
-# include <winsock2.h>
-# include <windows.h>
-# include <io.h>
-# include <errno.h>
-# include <ws2tcpip.h>
-# include "slp_win32.h"
-# define ETIMEDOUT 110
-# define ENOTCONN  107
-#else
-# include <stdlib.h>
-# include <unistd.h>
-# include <string.h>
-# include <sys/socket.h>
-# include <sys/time.h>
-# include <netinet/in.h>
-# include <arpa/inet.h> 
-# include <netdb.h> 
-# include <fcntl.h> 
-# include <errno.h>
-#endif
+#include <stdlib.h>
+#include <string.h>
+#include <errno.h>
+
+#include "slp_socket.h"
+#include "slp_types.h"
 
 /** @todo Find a better constant for MAX_HOSTNAME. */
 #define MAX_HOST_NAME 512
@@ -102,43 +86,24 @@ extern const struct in6_addr slp_in6addr_loopback;
 #define SLP_SCOPE_ORG_LOCAL   0x04
 #define SLP_SCOPE_GLOBAL      0x05
 
-int SLPNetGetThisHostname(char* hostfdn, unsigned int hostfdnLen, int numeric_only, int family);
-
-int SLPNetResolveHostToAddr(const char* host,
-                            struct sockaddr_storage* addr);
-
-int SLPNetIsIPV6();
-
-int SLPNetIsIPV4();
-
-//char *SLPNetAddrToString(struct sockaddr_storage *addr); replaced with inet_pton
-//int SLPNetStringToAddr(char *str, struct sockaddr_storage *addr); replaced with inet_ntop
-
-int SLPNetCompareAddrs(const struct sockaddr_storage *addr1, const struct sockaddr_storage *addr2);
-
-int SLPNetIsMCast(const struct sockaddr_storage *addr);
-
-int SLPNetIsLocal(const struct sockaddr_storage *addr);
-
-int SLPNetIsLoopback(const struct sockaddr_storage *addr);
-
-int SLPNetSetAddr(struct sockaddr_storage *addr, const int family, const short port, const unsigned char *address, const int addrLen);
-
-int SLPNetSetParams(struct sockaddr_storage *addr, const int family, const short port);
-
-int SLPNetCopyAddr(struct sockaddr_storage *dst, const struct sockaddr_storage *src);
-
-int SLPNetSetSockAddrStorageFromAddrInfo(struct sockaddr_storage *dst, struct addrinfo *src);
-
-int SLPNetSetPort(struct sockaddr_storage *addr, const short port);
-
-char * SLPNetSockAddrStorageToString(struct sockaddr_storage *src, char *dst, int dstLen);
-
-int SLPNetAddrInfoToString(struct addrinfo *src, char *dst, int dstLen);
-
-unsigned long SLPNetGetSrvMcastAddr(const char *pSrvType, unsigned int len, int scope, struct sockaddr_storage *addr);
-
-int SLPNetExpandIpv6Addr(char *ipv6Addr, char *result, int resultSize);
+int SLPNetResolveHostToAddr(const char * host, 
+      struct sockaddr_storage * addr);
+int SLPNetIsIPV6(void);
+int SLPNetIsIPV4(void);
+int SLPNetCompareAddrs(const void * addr1, const void * addr2);
+int SLPNetIsMCast(const void * addr);
+int SLPNetIsLocal(const void * addr);
+int SLPNetIsLoopback(const void * addr);
+int SLPNetSetAddr(void * addr, int family, uint16_t port, 
+      const void * address);
+int SLPNetSetParams(void * addr, int family, uint16_t port);
+int SLPNetSetPort(void * addr, uint16_t port);
+char * SLPNetSockAddrStorageToString(const void * src, char * dst, 
+      size_t dstLen);
+int SLPNetGetSrvMcastAddr(const char * pSrvType, size_t len, 
+      int scope, void * addr);
+int SLPNetExpandIpv6Addr(const char * ipv6Addr, char * result, 
+      size_t resultSize);
 
 /*! @} */
 

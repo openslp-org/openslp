@@ -59,13 +59,17 @@
  * @param[in] callback - A callback to report the operation completion 
  *    status.
  * @param[in] pvCookie - Memory passed to the callback code from the 
- *    client. May be 0.
+ *    client. May be NULL.
  *
  * @return If an error occurs in starting the operation, one of the 
  *    SLPError codes is returned.
  */
-SLPEXP SLPError SLPAPI SLPDelAttrs(SLPHandle hSLP, const char * pcURL,
-      const char * pcAttrs, SLPRegReport callback, void * pvCookie)
+SLPEXP SLPError SLPAPI SLPDelAttrs(
+      SLPHandle hSLP,
+      const char * pcURL,
+      const char * pcAttrs,
+      SLPRegReport callback,
+      void * pvCookie)
 {
    SLPHandleInfo * handle = hSLP;
 
@@ -79,7 +83,7 @@ SLPEXP SLPError SLPAPI SLPDelAttrs(SLPHandle hSLP, const char * pcURL,
 
    /* Check for invalid parameters. */
    if (handle == 0 || handle->sig != SLP_HANDLE_SIG
-         || pcURL == 0 || *pcURL == 0
+         || pcURL == 0 || *pcURL == 0 
          || pcAttrs == 0 || *pcAttrs == 0
          || callback == 0)
       return SLP_PARAMETER_BAD;

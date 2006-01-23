@@ -1,93 +1,138 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.10"
+	Version="8.00"
 	Name="slpcommon"
-	ProjectGUID="{DA3858AE-96B4-4FAB-B66E-129D9D0C507B}"
-	Keyword="Win32Proj">
+	ProjectGUID="{5CC2FD5F-C4D3-4F4C-B6BF-319ED69C3777}"
+	>
 	<Platforms>
 		<Platform
-			Name="Win32"/>
+			Name="Win32"
+		/>
 	</Platforms>
+	<ToolFiles>
+	</ToolFiles>
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)\obj"
+			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="4"
-			CharacterSet="0">
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				PreprocessorDefinitions="SLP_VERSION=\&quot;1.3.0\&quot;, ENABLE_SLPv1, DEBUG"
+				PreprocessorDefinitions="_CRT_SECURE_NO_DEPRECATE;SLP_VERSION=\&quot;2.0.0\&quot;;ENABLE_SLPv1;_DEBUG"
 				RuntimeLibrary="3"
-				ProgramDataBaseFileName="$(OutDir)/$(ProjectName).pdb"
+				ProgramDataBaseFileName="$(IntDir)\slpcommon.pdb"
 				WarningLevel="4"
-				WarnAsError="TRUE"
-				Detect64BitPortabilityProblems="TRUE"
-				DebugInformationFormat="4"
-				CompileAs="0"/>
+				WarnAsError="true"
+				Detect64BitPortabilityProblems="true"
+				DebugInformationFormat="3"
+				CompileAs="0"
+			/>
 			<Tool
-				Name="VCCustomBuildTool"/>
+				Name="VCManagedResourceCompilerTool"
+			/>
 			<Tool
-				Name="VCLibrarianTool"/>
+				Name="VCResourceCompilerTool"
+			/>
 			<Tool
-				Name="VCMIDLTool"/>
+				Name="VCPreLinkEventTool"
+			/>
 			<Tool
-				Name="VCPostBuildEventTool"/>
+				Name="VCLibrarianTool"
+			/>
 			<Tool
-				Name="VCPreBuildEventTool"/>
+				Name="VCALinkTool"
+			/>
 			<Tool
-				Name="VCPreLinkEventTool"/>
+				Name="VCXDCMakeTool"
+			/>
 			<Tool
-				Name="VCResourceCompilerTool"/>
+				Name="VCBscMakeTool"
+			/>
 			<Tool
-				Name="VCWebServiceProxyGeneratorTool"/>
+				Name="VCFxCopTool"
+			/>
 			<Tool
-				Name="VCXMLDataGeneratorTool"/>
-			<Tool
-				Name="VCManagedWrapperGeneratorTool"/>
-			<Tool
-				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+				Name="VCPostBuildEventTool"
+			/>
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)\obj"
+			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="4"
-			CharacterSet="0">
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				PreprocessorDefinitions="SLP_VERSION=\&quot;1.3.0\&quot;, ENABLE_SLPv1"
+				PreprocessorDefinitions="_CRT_SECURE_NO_DEPRECATE;SLP_VERSION=\&quot;2.0.0\&quot;;ENABLE_SLPv1;NDEBUG"
 				RuntimeLibrary="2"
-				ProgramDataBaseFileName="$(OutDir)/$(ProjectName).pdb"
+				ProgramDataBaseFileName="$(IntDir)\slpcommon.pdb"
 				WarningLevel="4"
-				WarnAsError="TRUE"
-				Detect64BitPortabilityProblems="TRUE"
+				WarnAsError="true"
+				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="3"
-				CompileAs="0"/>
+				CompileAs="0"
+			/>
 			<Tool
-				Name="VCCustomBuildTool"/>
+				Name="VCManagedResourceCompilerTool"
+			/>
 			<Tool
-				Name="VCLibrarianTool"/>
+				Name="VCResourceCompilerTool"
+			/>
 			<Tool
-				Name="VCMIDLTool"/>
+				Name="VCPreLinkEventTool"
+			/>
 			<Tool
-				Name="VCPostBuildEventTool"/>
+				Name="VCLibrarianTool"
+			/>
 			<Tool
-				Name="VCPreBuildEventTool"/>
+				Name="VCALinkTool"
+			/>
 			<Tool
-				Name="VCPreLinkEventTool"/>
+				Name="VCXDCMakeTool"
+			/>
 			<Tool
-				Name="VCResourceCompilerTool"/>
+				Name="VCBscMakeTool"
+			/>
 			<Tool
-				Name="VCWebServiceProxyGeneratorTool"/>
+				Name="VCFxCopTool"
+			/>
 			<Tool
-				Name="VCXMLDataGeneratorTool"/>
-			<Tool
-				Name="VCManagedWrapperGeneratorTool"/>
-			<Tool
-				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+				Name="VCPostBuildEventTool"
+			/>
 		</Configuration>
 	</Configurations>
 	<References>
@@ -95,177 +140,235 @@
 	<Files>
 		<Filter
 			Name="Source Files"
-			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx"
-			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}">
+			Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
+			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
+			>
 			<File
-				RelativePath="..\..\common\slp_atomic.c">
+				RelativePath="..\..\common\slp_atomic.c"
+				>
 			</File>
 			<File
-				RelativePath="..\..\common\slp_buffer.c">
+				RelativePath="..\..\common\slp_auth.c"
+				>
 			</File>
 			<File
-				RelativePath="..\..\common\slp_compare.c">
+				RelativePath="..\..\common\slp_buffer.c"
+				>
 			</File>
 			<File
-				RelativePath="..\..\common\slp_database.c">
+				RelativePath="..\..\common\slp_compare.c"
+				>
 			</File>
 			<File
-				RelativePath="..\..\common\slp_debug.c">
+				RelativePath="..\..\common\slp_crypto.c"
+				>
 			</File>
 			<File
-				RelativePath="..\..\common\slp_dhcp.c">
+				RelativePath="..\..\common\slp_database.c"
+				>
 			</File>
 			<File
-				RelativePath="..\..\common\slp_iface.c">
+				RelativePath="..\..\common\slp_debug.c"
+				>
 			</File>
 			<File
-				RelativePath="..\..\common\slp_linkedlist.c">
+				RelativePath="..\..\common\slp_dhcp.c"
+				>
 			</File>
 			<File
-				RelativePath="..\..\common\slp_message.c">
+				RelativePath="..\..\common\slp_iface.c"
+				>
 			</File>
 			<File
-				RelativePath="..\..\common\slp_net.c">
+				RelativePath="..\..\common\slp_linkedlist.c"
+				>
 			</File>
 			<File
-				RelativePath="..\..\common\slp_network.c">
+				RelativePath="..\..\common\slp_message.c"
+				>
 			</File>
 			<File
-				RelativePath="..\..\common\slp_parse.c">
+				RelativePath="..\..\common\slp_net.c"
+				>
 			</File>
 			<File
-				RelativePath="..\..\common\slp_pid.c">
+				RelativePath="..\..\common\slp_network.c"
+				>
 			</File>
 			<File
-				RelativePath="..\..\common\slp_predicate.c">
+				RelativePath="..\..\common\slp_parse.c"
+				>
 			</File>
 			<File
-				RelativePath="..\..\common\slp_property.c">
+				RelativePath="..\..\common\slp_pid.c"
+				>
 			</File>
 			<File
-				RelativePath="..\..\common\slp_thread.c">
+				RelativePath="..\..\common\slp_predicate.c"
+				>
 			</File>
 			<File
-				RelativePath="..\..\common\slp_utf8.c">
+				RelativePath="..\..\common\slp_property.c"
+				>
 			</File>
 			<File
-				RelativePath="..\..\common\slp_v1message.c">
+				RelativePath="..\..\common\slp_spi.c"
+				>
 			</File>
 			<File
-				RelativePath="..\..\common\slp_v2message.c">
+				RelativePath="..\..\common\slp_thread.c"
+				>
 			</File>
 			<File
-				RelativePath="..\..\common\slp_win32.c">
+				RelativePath="..\..\common\slp_utf8.c"
+				>
 			</File>
 			<File
-				RelativePath="..\..\common\slp_xcast.c">
+				RelativePath="..\..\common\slp_v1message.c"
+				>
 			</File>
 			<File
-				RelativePath="..\..\common\slp_xid.c">
+				RelativePath="..\..\common\slp_v2message.c"
+				>
 			</File>
 			<File
-				RelativePath="..\..\common\slp_xmalloc.c">
+				RelativePath="..\..\common\slp_win32.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\common\slp_xcast.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\common\slp_xid.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\common\slp_xmalloc.c"
+				>
 			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
-			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}">
+			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
+			>
 			<File
-				RelativePath="..\..\common\slp_atomic.h">
+				RelativePath="..\..\common\slp_atomic.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\common\slp_attr.h">
+				RelativePath="..\..\common\slp_attr.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\common\slp_auth.h">
+				RelativePath="..\..\common\slp_auth.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\common\slp_buffer.h">
+				RelativePath="..\..\common\slp_buffer.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\common\slp_compare.h">
+				RelativePath="..\..\common\slp_compare.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\common\slp_crypto.h">
+				RelativePath="..\..\common\slp_crypto.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\common\slp_database.h">
+				RelativePath="..\..\common\slp_database.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\common\slp_debug.h">
+				RelativePath="..\..\common\slp_debug.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\common\slp_dhcp.h">
+				RelativePath="..\..\common\slp_dhcp.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\common\slp_filter.h">
+				RelativePath="..\..\common\slp_filter.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\common\slp_iface.h">
+				RelativePath="..\..\common\slp_iface.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\common\slp_linkedlist.h">
+				RelativePath="..\..\common\slp_linkedlist.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\common\slp_message.h">
+				RelativePath="..\..\common\slp_message.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\common\slp_net.h">
+				RelativePath="..\..\common\slp_net.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\common\slp_network.h">
+				RelativePath="..\..\common\slp_network.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\common\slp_parse.h">
+				RelativePath="..\..\common\slp_parse.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\common\slp_pid.h">
+				RelativePath="..\..\common\slp_pid.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\common\slp_predicate.h">
+				RelativePath="..\..\common\slp_predicate.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\common\slp_property.h">
+				RelativePath="..\..\common\slp_property.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\common\slp_socket.h">
+				RelativePath="..\..\common\slp_socket.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\common\slp_spi.h">
+				RelativePath="..\..\common\slp_spi.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\common\slp_thread.h">
+				RelativePath="..\..\common\slp_thread.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\common\slp_types.h">
+				RelativePath="..\..\common\slp_types.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\common\slp_utf8.h">
+				RelativePath="..\..\common\slp_utf8.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\common\slp_v1message.h">
+				RelativePath="..\..\common\slp_v1message.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\common\slp_v2message.h">
+				RelativePath="..\..\common\slp_v2message.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\common\slp_win32.h">
+				RelativePath="..\..\common\slp_xcast.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\common\slp_xcast.h">
+				RelativePath="..\..\common\slp_xid.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\common\slp_xid.h">
+				RelativePath="..\..\common\slp_xmalloc.h"
+				>
 			</File>
-			<File
-				RelativePath="..\..\common\slp_xmalloc.h">
-			</File>
-		</Filter>
-		<Filter
-			Name="Resource Files"
-			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx"
-			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}">
 		</Filter>
 	</Files>
 	<Globals>

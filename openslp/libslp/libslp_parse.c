@@ -43,10 +43,81 @@
 
 #include "slp.h"
 #include "libslp.h"
+#include "slp_net.h"
+#include "slp_xmalloc.h"
+#include "slp_parse.h"
+#include "slp_message.h"
 
-#ifdef _WIN32 /* on Win32 strncasecmp is named strnicmp, but behaves the same */
-# define strncasecmp(String1, String2, Num) strnicmp(String1, String2, Num)
-#endif
+/** Calculate the size of a URL Entry.
+ *
+ * @param[in] urllen - the length of the URL.
+ * @param[in] urlauthlen - the length of the URL authentication block.
+ *
+ * @return A number of bytes representing the total URL Entry size.
+ */
+size_t SizeofURLEntry(size_t urllen, size_t urlauthlen) 
+{
+   /* reserved(1) + lifetime(2) + urllen(2) + url + #auths(2) + authlen */
+   return 1 + 2 + 2 + urllen + 2 + urlauthlen;
+}
+
+/** Write a URL Entry to a network buffer.
+ *
+ * This routine inserts all the fields of a URL entry (as defined by 
+ * RFC 2608, Section 4.3 URL Entries) into a buffer starting at the
+ * location specified by the address stored in @p cpp, returning an
+ * updated address value in @p cpp, such that on exit it points to 
+ * the next location in the buffer after the last byte of the URL 
+ * entry.
+ *
+ * @param[in,out] cpp - The address of a buffer pointer.
+ * @param[in] url - The URL to write.
+ * @param[in] urllen - The length of @p url.
+ * @param[in] urlauth - The URL authentication block to write.
+ * @param[in] urlauthlen - The length of @p urlauth.
+ *
+ * @remarks The pointer contained in @p cpp is updated to reflect the
+ *    next buffer position after the URL Entry written on exit.
+ *
+ * @remarks Currently OpenSLP only handles a single authentication 
+ *    block. To handle more than this, PutURLEntry would have to take
+ *    arrays of @p urlauth and @p urlauthlen values.
+ */
+void PutURLEntry(uint8_t ** cpp, const char * url, size_t urllen, 
+      const uint8_t * urlauth, size_t urlauthlen)
+{
+   uint8_t * curpos = *cpp;
+
+/*  0                   1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |   Reserved    |          Lifetime             |   URL Length  |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |URL len, contd.|            URL (variable length)              \
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |# of URL auths |            Auth. blocks (if any)              \
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ */
+
+   /* Reserved */
+   *curpos++ = 0;
+
+   /* Lifetime */
+   PutUINT16(&curpos, 0);
+
+   /* URL Length */
+   PutUINT16(&curpos, urllen);
+
+   /* URL */
+   memcpy(curpos, url, urllen);
+   curpos += urllen;
+
+   /* # of URL auths / Auth. blocks */
+   *curpos++ = urlauth? 1: 0;
+   memcpy(curpos, urlauth, urlauthlen);
+   curpos += urlauthlen;
+
+   *cpp = curpos;
+}
 
 /** Free a block of memory acquired through the OpenSLP interface.
  *
@@ -55,9 +126,9 @@
  *
  * @param[in] pvMem - A pointer to the storage allocated by the 
  *    SLPParseSrvURL, SLPEscape, SLPUnescape, or SLPFindScopes functions.
- *    Ignored if 0.
+ *    Ignored if NULL.
  */
-void SLPAPI SLPFree(void * pvMem)
+void SLPAPI SLPFree(void * pvMem)                                                  
 {
    if (pvMem)
       xfree(pvMem);
@@ -71,7 +142,7 @@ void SLPAPI SLPFree(void * pvMem)
  * modified during the parse and used to fill in the fields of the
  * return structure. The structure returned in ppSrvURL should be freed
  * with SLPFreeURL. If the URL has no service part, the s_pcSrvPart
- * string is the empty string, "", i.e. not 0. If pcSrvURL is not a
+ * string is the empty string, "", i.e. not NULL. If pcSrvURL is not a
  * service: URL, then the s_pcSrvType field in the returned data
  * structure is the URL's scheme, which might not be the same as the
  * service type under which the URL was registered. If the transport is
@@ -90,18 +161,20 @@ void SLPAPI SLPFree(void * pvMem)
  * @return If no error occurs, the return value is SLP_OK. Otherwise, the
  *    appropriate error code is returned.
  */
-SLPError SLPAPI SLPParseSrvURL(const char * pcSrvURL, SLPSrvURL ** ppSrvURL)
+SLPEXP SLPError SLPAPI SLPParseSrvURL(
+      const char * pcSrvURL,
+      SLPSrvURL ** ppSrvURL)
 {
    int result = SLPParseSrvUrl(strlen(pcSrvURL), pcSrvURL, 
-         (SLPParsedSrvUrl **)ppSrvURL);
-   switch (result)
+         (SLPParsedSrvUrl **)ppSrvURL); 
+   switch(result)
    {
       case ENOMEM:
          return SLP_MEMORY_ALLOC_FAILED;
 
       case EINVAL:
          return SLP_PARSE_ERROR;
-   }
+   } 
    return SLP_OK;
 }
 
@@ -132,7 +205,9 @@ SLPError SLPAPI SLPParseSrvURL(const char * pcSrvURL, SLPSrvURL ** ppSrvURL)
  *    and the isTag flag is true, otherwise SLP_OK, or the appropriate error
  *    code if another error occurs.
  */
-SLPError SLPAPI SLPEscape(const char * pcInbuf, char ** ppcOutBuf, 
+SLPEXP SLPError SLPAPI SLPEscape(
+      const char * pcInbuf,
+      char ** ppcOutBuf,
       SLPBoolean isTag)
 {
    char * current_inbuf, * current_outBuf;
@@ -140,43 +215,40 @@ SLPError SLPAPI SLPEscape(const char * pcInbuf, char ** ppcOutBuf,
    char hex_digit;
 
    /* Ensure that the parameters are good. */
-   if ((pcInbuf == 0) || ((isTag != SLP_TRUE) && (isTag != SLP_FALSE)))
+   if (!pcInbuf || isTag != SLP_TRUE && isTag != SLP_FALSE)
       return SLP_PARAMETER_BAD;
 
-   /* 
-    * Loop thru the string, counting the number of reserved characters 
+   /* Loop thru the string, counting the number of reserved characters 
     * and checking for bad tags when required.  This is also used to 
     * calculate the size of the new string to create.
-    * ASSUME: that pcInbuf is a 0 terminated string. 
+    * ASSUME: that pcInbuf is a NULL terminated string. 
     */
    current_inbuf = (char *)pcInbuf;
    amount_of_escape_characters = 0;
 
-   while (*current_inbuf != 0)
+   while (*current_inbuf)
    {
       /* Ensure that there are no bad tags when it is a tag. */
-      if ((isTag) && strchr(ATTRIBUTE_BAD_TAG, *current_inbuf))
+      if (isTag && strchr(ATTRIBUTE_BAD_TAG, *current_inbuf))
          return SLP_PARSE_ERROR;
-
       if (strchr(ATTRIBUTE_RESERVE_STRING, *current_inbuf))
          amount_of_escape_characters++;
-
       current_inbuf++;
    }
 
    /* Allocate the string. */
-   *ppcOutBuf = (char *)xmalloc(sizeof(char) * (strlen(pcInbuf) 
-         + (amount_of_escape_characters * 2) + 1));
+   *ppcOutBuf = xmalloc(sizeof(char) * (strlen(pcInbuf) 
+         + amount_of_escape_characters * 2 + 1));
 
-   if (ppcOutBuf == 0)
+   if (!ppcOutBuf)
       return SLP_MEMORY_ALLOC_FAILED;
 
-   /* Go over it, again.  Replace each of the escape characters with their 
-    * \hex equivalent.
+   /* Go over it, again. Replace each of the escape characters with their 
+    * hex equivalent. 
     */
    current_inbuf = (char *)pcInbuf;
    current_outBuf = *ppcOutBuf;
-   while (*current_inbuf != 0)
+   while (*current_inbuf)
    {
       /* Check to see if it is an escape character. */
       if ((strchr(ATTRIBUTE_RESERVE_STRING, *current_inbuf)) 
@@ -189,7 +261,7 @@ SLPError SLPAPI SLPEscape(const char * pcInbuf, char ** ppcOutBuf,
 
          /* Do the first digit. */
          hex_digit = (*current_inbuf & 0xF0) / 0x0F;
-         if ((hex_digit >= 0) && (hex_digit <= 9))
+         if (hex_digit >= 0 && hex_digit <= 9)
             *current_outBuf = hex_digit + '0';
          else
             *current_outBuf = hex_digit + 'A' - 0x0A;
@@ -198,7 +270,7 @@ SLPError SLPAPI SLPEscape(const char * pcInbuf, char ** ppcOutBuf,
 
          /* Do the last digit. */
          hex_digit = *current_inbuf & 0x0F;
-         if ((hex_digit >= 0) && (hex_digit <= 9))
+         if (hex_digit >= 0 && hex_digit <= 9)
             *current_outBuf = hex_digit + '0';
          else
             *current_outBuf = hex_digit + 'A' - 0x0A;
@@ -209,10 +281,7 @@ SLPError SLPAPI SLPEscape(const char * pcInbuf, char ** ppcOutBuf,
       current_outBuf += sizeof(char);
       current_inbuf += sizeof(char);
    }
-
-   /* Make sure that the string is properly terminated. */
    *current_outBuf = 0;
-
    return SLP_OK;
 }
 
@@ -239,29 +308,31 @@ SLPError SLPAPI SLPEscape(const char * pcInbuf, char ** ppcOutBuf,
  *    and the isTag flag is true, otherwise SLP_OK, or the appropriate 
  *    error code if another error occurs.
  */
-SLPError SLPAPI SLPUnescape(const char * pcInbuf, char ** ppcOutBuf,
+SLPEXP SLPError SLPAPI SLPUnescape(
+      const char * pcInbuf,
+      char ** ppcOutBuf,
       SLPBoolean isTag)
 {
-   int output_buffer_size;
+   size_t output_buffer_size;
    char * current_Inbuf, * current_OutBuf;
    char escaped_digit[2];
 
    /* Ensure that the parameters are good. */
-   if ((pcInbuf == 0) || ((isTag != SLP_TRUE) && (isTag != SLP_FALSE)))
+   if (!pcInbuf || isTag != SLP_TRUE && isTag != SLP_FALSE)
       return SLP_PARAMETER_BAD;
 
    /* Loop thru the string, counting the number of escape characters 
     * and checking for bad tags when required.  This is also used to 
     * calculate the size of the new string to create.
-    * ASSUME: that pcInbuf is a 0 terminated string. 
+    * ASSUME: that pcInbuf is a NULL terminated string. 
     */
    current_Inbuf = (char *)pcInbuf;
    output_buffer_size = strlen(pcInbuf);
 
-   while (*current_Inbuf != 0)
+   while(*current_Inbuf)
    {
       /* Ensure that there are no bad tags when it is a tag. */
-      if ((isTag) && strchr(ATTRIBUTE_BAD_TAG, *current_Inbuf))
+      if (isTag && strchr(ATTRIBUTE_BAD_TAG, *current_Inbuf))
          return SLP_PARSE_ERROR;
 
       if (strchr(ESCAPE_CHARACTER_STRING, *current_Inbuf))
@@ -273,13 +344,13 @@ SLPError SLPAPI SLPUnescape(const char * pcInbuf, char ** ppcOutBuf,
    /* Allocate the string. */
    *ppcOutBuf = (char *)xmalloc((sizeof(char) * output_buffer_size) + 1);
 
-   if (ppcOutBuf == 0)
+   if (!ppcOutBuf)
       return SLP_MEMORY_ALLOC_FAILED;
 
    current_Inbuf = (char *)pcInbuf;
    current_OutBuf = *ppcOutBuf;
 
-   while (*current_Inbuf != 0)
+   while (*current_Inbuf)
    {
       /* Check to see if it is an escape character. */
       if (strchr(ESCAPE_CHARACTER_STRING, *current_Inbuf))
@@ -288,16 +359,16 @@ SLPError SLPAPI SLPUnescape(const char * pcInbuf, char ** ppcOutBuf,
          escaped_digit[0] = *(current_Inbuf + sizeof(char));
          escaped_digit[1] = *(current_Inbuf + (sizeof(char) * 2));
 
-         if ((escaped_digit[0] >= 'A') && (escaped_digit[0] <= 'F'))
+         if (escaped_digit[0] >= 'A' && escaped_digit[0] <= 'F')
             escaped_digit[0] = escaped_digit[0] - 'A' + 0x0A;
-         else if ((escaped_digit[0] >= '0') && (escaped_digit[0] <= '9'))
+         else if (escaped_digit[0] >= '0' && escaped_digit[0] <= '9')
             escaped_digit[0] = escaped_digit[0] - '0';
          else
             return SLP_PARSE_ERROR;
 
-         if ((escaped_digit[1] >= 'A') && (escaped_digit[1] <= 'F'))
+         if (escaped_digit[1] >= 'A' && escaped_digit[1] <= 'F')
             escaped_digit[1] = escaped_digit[1] - 'A' + 0x0A;
-         else if ((escaped_digit[1] >= '0') && (escaped_digit[1] <= '9'))
+         else if (escaped_digit[1] >= '0' && escaped_digit[1] <= '9')
             escaped_digit[1] = escaped_digit[1] - '0';
          else
             return SLP_PARSE_ERROR;
@@ -312,10 +383,7 @@ SLPError SLPAPI SLPUnescape(const char * pcInbuf, char ** ppcOutBuf,
       current_OutBuf++;
       current_Inbuf++;
    }
-
-   /* Make sure we terminate the string properly. */
    *current_OutBuf = 0;
-
    return SLP_OK;
 }
 
@@ -336,15 +404,17 @@ SLPError SLPAPI SLPUnescape(const char * pcInbuf, char ** ppcOutBuf,
  * @return Returns SLP_PARSE_ERROR if an attribute of the specified id
  *    was not found otherwise SLP_OK.
  */
-SLPError SLPAPI SLPParseAttrs(const char * pcAttrList, const char * pcAttrId,
+SLPEXP SLPError SLPAPI SLPParseAttrs(
+      const char * pcAttrList,
+      const char * pcAttrId,
       char ** ppcAttrVal)
 {
-   const char * slider1;
-   const char * slider2;
-   int attridlen;
+   const char* slider1;
+   const char* slider2;
+   size_t      attridlen;
 
-   /* Check for bad parameters */
-   if (pcAttrList == 0 || pcAttrId == 0 || ppcAttrVal == 0)
+   /* Check for bad parameters. */
+   if (!pcAttrList || !pcAttrId || !ppcAttrVal)
       return SLP_PARAMETER_BAD;
 
    attridlen = strlen(pcAttrId);
@@ -353,38 +423,38 @@ SLPError SLPAPI SLPParseAttrs(const char * pcAttrList, const char * pcAttrId,
    {
       while (*slider1 != '(')
       {
-         if (*slider1 == 0)
+         if (!*slider1)
             return SLP_PARSE_ERROR;
          slider1++;
       }
       slider1++;
-      slider2=slider1;
+      slider2 = slider1;
 
-      while (*slider2 && *slider2 != '=' && *slider2 !=')') 
+      while (*slider2 && *slider2 != '=' && *slider2 !=')')
          slider2++;
 
-      if (attridlen == slider2-slider1 
+      if (attridlen == (unsigned)(slider2 - slider1) 
             && strncasecmp(slider1, pcAttrId, slider2 - slider1) == 0)
       {
-         /* found the attribute id */
+         /* Found the attribute id. */
          slider1 = slider2;
          if (*slider1 == '=') 
             slider1++;
          while (*slider2 && *slider2 !=')') 
             slider2++;
 
-         *ppcAttrVal = (char*)xmalloc((slider2 - slider1) + 1);
-         if (*ppcAttrVal == 0)
+         *ppcAttrVal = xmalloc((slider2 - slider1) + 1);
+         if (!*ppcAttrVal)
             return SLP_MEMORY_ALLOC_FAILED;
 
          memcpy(*ppcAttrVal, slider1, slider2 - slider1);
-         (*ppcAttrVal)[slider2 - slider1] = 0;
+         (*ppcAttrVal)[slider2-slider1] = 0;
 
          return SLP_OK;
       }
    }
 
-   /* attrid does not exist */
+   /* The attribute id does not exist. */
    return SLP_PARSE_ERROR;
 }
 

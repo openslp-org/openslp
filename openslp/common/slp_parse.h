@@ -48,49 +48,54 @@
  * @{
  */
 
+#include "slp_types.h"
+
 /** A parsed Universal Resource Locator (URL).
  */
 typedef struct _SLPParsedSrvUrl
 {
-   char * srvtype;
-   /*!< @brief The service type.
+   /** The service type.
     *
     * A pointer to a character string containing the service
     * type name, including naming authority.  The service type
     * name includes the "service:" if the URL is of the service:
     * scheme.
     */
-   char * host;
-   /*!< @brief The host name.
+   char * srvtype;
+
+   /** The host name.
     *
     * A pointer to a character string containing the host
     * identification information.
     */
-   int port;
-   /*!< @brief The port number.
+   char * host;
+
+   /** The port number.
     *
     * The port number, or zero if none.  The port is only available
     * if the transport is IP.
     *
     */
-   char * family;
-   /*!< @brief The address family identifier.
+   uint16_t port;
+
+   /** The address family identifier.
     *
     * A pointer to a character string containing the network address
     * family identifier.  Possible values are "ipx" for the IPX
     * family, "at" for the Appletalk family, and "" (i.e. the empty
     * string) for the IP address family.
     */
-   char * remainder;
-   /*!< @brief Everything following the "scheme://hostname:port/"
+   char * family;
+
+   /** Everything following the "scheme://hostname:port/"
     *
     * The remainder of the URL, after the host identification.
     */
+   char * remainder;
 } SLPParsedSrvUrl;
 
-int SLPParseSrvUrl(int srvurllen,
-                   const char* srvurl,
-                   SLPParsedSrvUrl** parsedurl);
+int SLPParseSrvUrl(size_t srvurllen, const char * srvurl, 
+      SLPParsedSrvUrl ** parsedurl);
 
 /*! @} */
 

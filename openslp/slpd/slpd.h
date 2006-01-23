@@ -49,54 +49,37 @@
  * @{
  */
 
-/* Include platform specific headers files                                 */
-#ifdef _WIN32
-# include "slpd_win32.h"
-# include "slp_win32.h"
-#else
-# ifdef HAVE_CONFIG_H
-#  include "config.h"
-# endif
-# include "slpd_unistd.h"
-#endif
+/* Misc "adjustable" constants (I would not adjust them if I were you) */
 
-/* Misc "adjustable" constants (I would not adjust the if I were you)      */
-
+/** Maximum number tcp of reconnects to complete an outgoing transaction.
+ */
 #define SLPD_CONFIG_MAX_RECONN 2 
-/*!< Maximum number tcp of reconnects to complete an outgoing transaction.
- */
                                          
-#define SLPD_MAX_SOCKETS 128
-/*!< Maximum number of sockets.
+/** Maximum number of sockets.
  */
+#define SLPD_MAX_SOCKETS 128
 
-#define SLPD_COMFORT_SOCKETS 64
-/*!< A "comfortable" number of sockets.
+/** A "comfortable" number of sockets.
  *
  * Exceeding this number will indicate a busy.
  */
+#define SLPD_COMFORT_SOCKETS 64
 
+/** Maximum idle time (60 min) when not busy.
+ */
 #define SLPD_CONFIG_CLOSE_CONN 900
-/*!< Maximum idle time (60 min) when not busy.
- */
                                          
+/** Maximum idle time (30 sec) when busy.
+ */
 #define SLPD_CONFIG_BUSY_CLOSE_CONN 30
-/*!< Maximum idle time (30 sec) when busy.
- */
                                          
+/** Minimum delay between active discovery requests (15 min).
+ */
 #define SLPD_CONFIG_DA_FIND 900
-/*!< Minimum delay between active discovery requests (15 min).
- */
 
+/** Age every 15 seconds.
+ */
 #define SLPD_AGE_INTERVAL 15
-/*!< Age every 15 seconds.
- */
-
-/* Global variables representing signals */
-extern int G_SIGALRM;
-extern int G_SIGTERM;
-extern int G_SIGHUP;
-extern int G_SIGINT;
 
 /*! @} */
 

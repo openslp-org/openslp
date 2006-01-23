@@ -48,21 +48,7 @@
  * @{
  */
 
-#ifdef _WIN32
-# ifndef UINT32_T_DEFINED
-#  define UINT32_T_DEFINED
-typedef unsigned int uint32_t;
-# endif
-#else
-# ifdef HAVE_CONFIG_H
-#  include "config.h"
-# endif
-# ifdef HAVE_STDINT_H
-#  include <stdint.h>
-# else
-#  include <inttypes.h>
-# endif
-#endif    
+#include "slp_types.h"
 
 uint32_t SLPPidGet(void);
 

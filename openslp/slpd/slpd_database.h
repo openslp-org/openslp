@@ -49,79 +49,60 @@
  */
 
 #include "slpd.h"
-
-/*=========================================================================*/
-/* Common code includes                                                    */
-/*=========================================================================*/
 #include "slp_database.h"
-
 
 #define SLPDDATABASE_INITIAL_URLCOUNT           256
 #define SLPDDATABASE_INITIAL_SRVTYPELISTLEN     2048
 
 typedef struct _SLPDDatabase
 {
-    SLPDatabase database;
-    int         urlcount;
-    int         srvtypelistlen;
+   SLPDatabase database;
+   int urlcount;
+   size_t srvtypelistlen;
 } SLPDDatabase;
 
 typedef struct _SLPDDatabaseSrvRqstResult
 {
-    void*             reserved;
-    SLPUrlEntry**     urlarray;
-    int               urlcount;
+   void * reserved;
+   SLPUrlEntry ** urlarray;
+   int urlcount;
 } SLPDDatabaseSrvRqstResult;
 
 typedef struct _SLPDDatabaseSrvTypeRqstResult
 {
-    void*           reserved;
-    char*           srvtypelist;
-    int             srvtypelistlen;
+   void * reserved;
+   char * srvtypelist;
+   size_t srvtypelistlen;
 } SLPDDatabaseSrvTypeRqstResult;       
 
 typedef struct _SLPDDatabaseAttrRqstResult
 {
-    void*           reserved;
-    char*           attrlist;
-    int             attrlistlen;
-    SLPAuthBlock*   autharray;
-    int             authcount;
-    int             ispartial;
+   void * reserved;
+   char * attrlist;
+   size_t attrlistlen;
+   SLPAuthBlock * autharray;
+   int authcount;
+   int ispartial;
 } SLPDDatabaseAttrRqstResult;       
 
 void SLPDDatabaseAge(int seconds, int ageall);
-
 int SLPDDatabaseReg(SLPMessage msg, SLPBuffer buf);
-
 int SLPDDatabaseDeReg(SLPMessage msg);
-
-int SLPDDatabaseSrvRqstStart(SLPMessage msg,
-                             SLPDDatabaseSrvRqstResult** result);
-
-void SLPDDatabaseSrvRqstEnd(SLPDDatabaseSrvRqstResult* result);
-
-int SLPDDatabaseSrvTypeRqstStart(SLPMessage msg,
-                                 SLPDDatabaseSrvTypeRqstResult** result);
-
-void SLPDDatabaseSrvTypeRqstEnd(SLPDDatabaseSrvTypeRqstResult* result);
-
-int SLPDDatabaseAttrRqstStart(SLPMessage msg,
-                              SLPDDatabaseAttrRqstResult** result);
-
-void SLPDDatabaseAttrRqstEnd(SLPDDatabaseAttrRqstResult* result);
-
-void* SLPDDatabaseEnumStart();
-
-SLPMessage SLPDDatabaseEnum(void* eh, SLPMessage* msg, SLPBuffer* buf);
-
-void SLPDDatabaseEnumEnd(void* eh);
-
-int SLPDDatabaseIsEmpty();
-
-int SLPDDatabaseInit(const char* regfile);
-
-int SLPDDatabaseReInit(const char* regfile);
+int SLPDDatabaseSrvRqstStart(SLPMessage msg, 
+      SLPDDatabaseSrvRqstResult ** result);
+void SLPDDatabaseSrvRqstEnd(SLPDDatabaseSrvRqstResult * result);
+int SLPDDatabaseSrvTypeRqstStart(SLPMessage msg, 
+      SLPDDatabaseSrvTypeRqstResult ** result);
+void SLPDDatabaseSrvTypeRqstEnd(SLPDDatabaseSrvTypeRqstResult * result);
+int SLPDDatabaseAttrRqstStart(SLPMessage msg, 
+      SLPDDatabaseAttrRqstResult ** result);
+void SLPDDatabaseAttrRqstEnd(SLPDDatabaseAttrRqstResult * result);
+void * SLPDDatabaseEnumStart(void);
+SLPMessage SLPDDatabaseEnum(void * eh, SLPMessage * msg, SLPBuffer * buf);
+void SLPDDatabaseEnumEnd(void * eh);
+int SLPDDatabaseIsEmpty(void);
+int SLPDDatabaseInit(const char * regfile);
+int SLPDDatabaseReInit(const char * regfile);
 
 #ifdef DEBUG
 void SLPDDatabaseDeinit(void);

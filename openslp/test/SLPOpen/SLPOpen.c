@@ -43,19 +43,21 @@
 #include <slp.h>
 #include <slp_debug.h>
 
-int
-main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
    SLPError err;
    SLPHandle hslp;
+   
+   (void)argc;
+   (void)argv;
 
    err = SLPOpen("en", SLP_FALSE, &hslp);
-   check_error_state(err,"Error opening slp handle");
+   check_error_state(err, "Error opening slp handle");
 
    /* Now that we're done using slp, close the slp handle */
-   SLPClose(hslp);
-
-   return (0);
+   SLPClose (hslp);
+   
+   return 0;
 }
 
-/*=========================================================================*/
+/*=========================================================================*/ 

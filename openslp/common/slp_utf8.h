@@ -52,10 +52,10 @@
  * @{
  */
 
-int SLPv1ToEncoding(char *string, int *len, int encoding, 
-                    const char *utfstring, int utflen); 
+int SLPv1ToEncoding(char * string, size_t * len, int encoding, 
+      const char * utfstring, size_t utflen); 
 
-int SLPv1AsUTF8(int encoding, char *string, int *len);
+int SLPv1AsUTF8(int encoding, char * string, size_t * len);
 
 /*! @} */
 

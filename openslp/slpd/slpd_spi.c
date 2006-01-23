@@ -37,6 +37,12 @@
  * @attention  Please submit patches to http://www.openslp.org
  * @ingroup    SlpdCode
  */
+#ifdef _WIN32
+// nonstandard extension used : translation unit is empty
+# pragma warning (disable : 4206) 
+#endif
+
+#ifdef ENABLE_SLPv2_SECURITY
 
 #include "slpd_spi.h"
 
@@ -55,9 +61,8 @@ int SLPDSpiInit(const char * spifile)
       SLPSpiClose(G_SlpdSpiHandle);
       G_SlpdSpiHandle = 0;
    }
-
    G_SlpdSpiHandle = SLPSpiOpen(spifile,1);
-   return (G_SlpdSpiHandle == 0);
+   return G_SlpdSpiHandle == 0;
 }
 
 #ifdef DEBUG
@@ -68,5 +73,7 @@ void SLPDSpiDeinit(void)
    SLPSpiClose(G_SlpdSpiHandle);
 }
 #endif
+
+#endif   /* ENABLE_SLPv2_SECURITY */
 
 /*=========================================================================*/

@@ -44,15 +44,15 @@
  */
 
 #include "slp_pid.h"
+#include "slp_types.h"
 
 #ifdef _WIN32
 # define WIN32_LEAN_AND_MEAN
 # include <windows.h>
 #else
-# include <unistd.h>
-# include <signal.h>
-# include <errno.h>
 # include <sys/types.h>
+# include <unistd.h>
+# include <errno.h>
 #endif
 
 /** Return a 32-bit process identifier value for the current process.
@@ -68,16 +68,14 @@ uint32_t SLPPidGet(void)
 #endif
 }
 
-/** Determine if a process is alive. Quickly determine if a specified 
- *    process is still alive.
- *
- * @param[in] pid - A 32-bit integer identifier for the process to check.
- *
- * @return A boolean true (1) if the process is alive, or false (0) if not.
- *
- * @note The Win32 OpenProcess API requires rights, but we'll most often 
- *    be running as a Win32 service with system context rights anyway.
- */
+/** Determine if a process is alive.
+*
+* Quickly determine if a specified process is still alive.
+*
+* @param[in] pid - A 32-bit integer identifier for the process to check.
+*
+* @return A boolean true (1) if the process is alive, or false (0) if not.
+*/
 int SLPPidExists(uint32_t pid)
 {
 #ifndef _WIN32

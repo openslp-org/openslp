@@ -58,41 +58,38 @@
 
 typedef struct _SLPDatabaseEntry
 {
-    SLPListItem listitem;
-    SLPMessage  msg;
-    SLPBuffer   buf;
+   SLPListItem listitem;
+   SLPMessage msg;
+   SLPBuffer buf;
 } SLPDatabaseEntry;
 
 typedef SLPList SLPDatabase;
 
 typedef struct _SLPDatabaseHandle
 {
-    SLPDatabase*      database;
-    SLPDatabaseEntry* current;
+   SLPDatabase * database;
+   SLPDatabaseEntry * current;
 } * SLPDatabaseHandle;
 
 int SLPDatabaseInit(SLPDatabase* database);
 
-void SLPDatabaseDeinit(SLPDatabase* database);
+void SLPDatabaseDeinit(SLPDatabase * database);
 
-SLPDatabaseEntry* SLPDatabaseEntryCreate(SLPMessage msg,
-                                         SLPBuffer buf);
+SLPDatabaseEntry * SLPDatabaseEntryCreate(SLPMessage msg, SLPBuffer buf);
 
-void SLPDatabaseEntryDestroy(SLPDatabaseEntry* entry);
+void SLPDatabaseEntryDestroy(SLPDatabaseEntry * entry);
 
-SLPDatabaseHandle SLPDatabaseOpen(SLPDatabase* database);
+SLPDatabaseHandle SLPDatabaseOpen(SLPDatabase * database);
 
-SLPDatabaseEntry* SLPDatabaseEnum(SLPDatabaseHandle dh);
+SLPDatabaseEntry * SLPDatabaseEnum(SLPDatabaseHandle dh);
 
 void SLPDatabaseRewind(SLPDatabaseHandle dh);
 
 void SLPDatabaseClose(SLPDatabaseHandle dh);
 
-void SLPDatabaseRemove(SLPDatabaseHandle dh, 
-                       SLPDatabaseEntry* entry);
+void SLPDatabaseRemove(SLPDatabaseHandle dh, SLPDatabaseEntry * entry);
 
-void SLPDatabaseAdd(SLPDatabaseHandle dh,
-                    SLPDatabaseEntry* entry);
+void SLPDatabaseAdd(SLPDatabaseHandle dh, SLPDatabaseEntry * entry);
 
 int SLPDatabaseCount(SLPDatabaseHandle dh);
 

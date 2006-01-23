@@ -49,14 +49,12 @@
  */
 
 #include "slpd.h"
-
-#include "slp_spi.h"  
+#include "slp_spi.h"
 
 extern SLPSpiHandle G_SlpdSpiHandle;
 
-int SLPDSpiInit(const char* spifile);
-
-void SLPDSpiDeinit();
+int SLPDSpiInit(const char * spifile);
+void SLPDSpiDeinit(void);
 
 /*! @} */
 

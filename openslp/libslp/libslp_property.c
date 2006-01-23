@@ -42,6 +42,7 @@
 
 #include "slp.h"
 #include "libslp.h"
+#include "slp_property.h"
 
 /** Returns a string value for a specified property.
  *
@@ -53,27 +54,28 @@
  *
  * @return If no error, returns a pointer to a character buffer 
  *    containing the property value. If the property was not set, 
- *    returns the default value. If an error occurs, returns 0. 
+ *    returns the default value. If an error occurs, returns NULL. 
  *    The returned string MUST NOT be freed.
  */
-const char * SLPAPI SLPGetProperty(const char * pcName)
+SLPEXP const char * SLPAPI SLPGetProperty(const char * pcName)
 {
-   char conffile[MAX_PATH];
+   char conffile[MAX_PATH]; 
 
    memset(conffile, 0, MAX_PATH);
 
 #ifdef _WIN32
-   ExpandEnvironmentStrings(LIBSLP_CONFFILE, conffile, MAX_PATH);
+	ExpandEnvironmentStrings((LPCTSTR)LIBSLP_CONFFILE,
+			(LPTSTR)conffile, MAX_PATH);   
 #else
    strncpy(conffile, LIBSLP_CONFFILE, MAX_PATH - 1);
 #endif
 
-   if (G_SLPPropertyList.head == 0)
-      if (SLPPropertyReadFile(conffile) != 0)
-         return 0;
+   if (G_SLPPropertyList.head == 0 
+         && SLPPropertyReadFile(conffile) != 0)
+      return 0;
 
    return SLPPropertyGet(pcName);
-}
+} 
 
 /** Set a property value by name. 
  *
@@ -97,17 +99,22 @@ const char * SLPAPI SLPGetProperty(const char * pcName)
  *    could be expensive, memory-wise, depending on the nature of the 
  *    application using this library.
  */
-void SLPAPI SLPSetProperty(const char * pcName, const char * pcValue)
+SLPEXP void SLPAPI SLPSetProperty(
+      const char * pcName, 
+      const char * pcValue)
 {
-/* Following commented out for threading reasons 
+   (void)pcName;
+   (void)pcValue;
 
-   if (G_PropertyInit.head == 0)
+   /* Following commented out for threading reasons 
+
+   if (G_PropertyInit.head == NULL)
       if (SLPPropertyReadFile(LIBSLP_CONFFILE) == 0)
          G_PropertyInit = 1;
 
-   SLPPropertySet(pcName,pcValue);
+   SLPPropertySet(pcName, pcValue);
 
-*/
+   */
 }
 
 /*=========================================================================*/

@@ -42,21 +42,20 @@
  * @ingroup    CommonCode
  */
 
-#ifdef _WIN32
-# define WIN32_LEAN_AND_MEAN
-# include <windows.h>
-# include <stdlib.h>
-#else
-# include <stdlib.h>
-# include <unistd.h>
-#endif
+#include <stdlib.h>
+#include <time.h>
 
 #include "slp_xid.h"
 #include "slp_pid.h"
 
+#ifndef _WIN32
+# define srand srandom
+# define rand  random
+#endif
+
 /** The last returned transaction id (XID) value. 
  */
-static int G_Xid = 0;
+static uint16_t G_Xid = 0;
 
 /** Seeds the transaction id (XID) generator.
  *
@@ -64,14 +63,8 @@ static int G_Xid = 0;
  */
 void SLPXidSeed(void)
 {
-   /* Generate a random start */
-#ifdef _WIN32
-   srand(SLPPidGet() | G_Xid);
-   G_Xid = (unsigned short)rand();
-#else
-   srandom(SLPPidGet() | G_Xid);
-   G_Xid = (unsigned short)random();
-#endif
+   srand((unsigned)(SLPPidGet() | time(0)));
+   G_Xid = (uint16_t)rand();
 }
 
 /** Returns the next serial transaction id (XID).
@@ -80,10 +73,6 @@ void SLPXidSeed(void)
  *
  * @todo Needs an atomic to be thread-safe.
  */
-unsigned short SLPXidGenerate(void)
-{
-   G_Xid++;
-   return G_Xid;
-}
+uint16_t SLPXidGenerate(void) { return ++G_Xid; }
 
 /*=========================================================================*/

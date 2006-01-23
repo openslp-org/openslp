@@ -49,18 +49,15 @@
  */
 
 #include "slpd.h"  
-
 #include "slp_buffer.h"
 
-int SLPDProcessMessage(struct sockaddr_storage* peerinfo,
-                       struct sockaddr_storage* localaddr,
-                       SLPBuffer recvbuf,
-                       SLPBuffer* sendbuf) ;
+int SLPDProcessMessage(struct sockaddr_storage * peerinfo,
+      struct sockaddr_storage * localaddr, SLPBuffer recvbuf, 
+      SLPBuffer * sendbuf);
 
 #if defined(ENABLE_SLPv1)
-int SLPDv1ProcessMessage(struct sockaddr_storage* peeraddr,
-                         SLPBuffer recvbuf,
-                         SLPBuffer* sendbuf);
+int SLPDv1ProcessMessage(struct sockaddr_storage * peeraddr, 
+      SLPBuffer recvbuf, SLPBuffer * sendbuf);
 #endif                                                                       
 
 /*! @} */

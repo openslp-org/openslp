@@ -48,46 +48,28 @@
  * @{
  */
 
-#ifdef HAVE_CONFIG_H
-# include "config.h"
-#endif
-#ifdef HAVE_SYS_TYPES_H
-# include <sys/types.h>
-#endif
-#ifdef HAVE_STDINT_H
-# include <stdint.h>
-#endif
-#ifdef HAVE_NETINET_IN_H
-# include <netinet/in.h>
-#endif
-#ifdef _WIN32
-# define WIN32_LEAN_AND_MEAN
-# include <winsock2.h>
-# include <ws2tcpip.h>
-#endif
-
 #include "slp_net.h"
+#include "slp_socket.h"
+#include "slp_types.h"
 
 #define SLP_MAX_IFACES 100
 
 typedef struct _SLPInterfaceInfo
 {
-    int iface_count;
-    int bcast_count;
-    struct sockaddr_storage iface_addr[SLP_MAX_IFACES];
-    struct sockaddr_storage bcast_addr[SLP_MAX_IFACES];
+   int iface_count;
+   int bcast_count;
+   struct sockaddr_storage iface_addr[SLP_MAX_IFACES];
+   struct sockaddr_storage bcast_addr[SLP_MAX_IFACES];
 } SLPIfaceInfo;
 
-int SLPIfaceGetInfo(const char* useifaces,
-                    SLPIfaceInfo* ifaceinfo, int family);
+int SLPIfaceGetInfo(const char * useifaces, SLPIfaceInfo * ifaceinfo, 
+      int family);
 
-int SLPIfaceSockaddrsToString(const struct sockaddr_storage* addrs,
-                              int addrcount,
-                              char** addrstr);
+int SLPIfaceSockaddrsToString(const struct sockaddr_storage * addrs, 
+      int addrcount, char ** addrstr);
 
-int SLPIfaceStringToSockaddrs(const char* addrstr,
-                              struct sockaddr_storage* addrs,
-                              int* addrcount);
+int SLPIfaceStringToSockaddrs(const char * addrstr, 
+      struct sockaddr_storage * addrs, int * addrcount);
 
 /*! @} */
 

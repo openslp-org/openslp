@@ -54,31 +54,28 @@ extern SLPList G_SLPPropertyList;
 
 typedef struct _SLPProperty
 {
+   /** Make the SLPProperty class list-able. */
    SLPListItem listitem;
-   /*!< @brief Make the SLPProperty class list-able.
-    */
+
+   /** The name of this property. */
    char * propertyName;
-   /*!< @brief The name of this property.
-    */
+
+   /** The value of this property. */
    char * propertyValue;
-   /*!< @brief The value of this property.
-    */
 } SLPProperty;
 
-const char* SLPPropertyGet(const char* pcName); 
+const char * SLPPropertyGet(const char * pcName); 
 
-int SLPPropertySet(const char *pcName,                                     
-                   const char *pcValue);
+int SLPPropertySet(const char * pcName, const char * pcValue);
 
-int SLPPropertyReadFile(const char* conffile);                             
+int SLPPropertyReadFile(const char * conffile);
 
-int SLPPropertyAsBoolean(const char* property);
+int SLPPropertyAsBoolean(const char * property);
 
-int SLPPropertyAsInteger(const char* property);
+int SLPPropertyAsInteger(const char * property);
 
-int SLPPropertyAsIntegerVector(const char* property, 
-                               int* vector, 
-                               int vectorsize);
+int SLPPropertyAsIntegerVector(const char * property, 
+      int * cvector, int vectorsize);
 
 #ifdef DEBUG
 void SLPPropertyFreeAll(void);

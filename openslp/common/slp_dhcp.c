@@ -13,9 +13,9 @@
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
  *
- *    Neither the name of Caldera Systems nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+ *    Neither the name of Novell nor the names of its contributors 
+ *    may be used to endorse or promote products derived from this 
+ *    software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * `AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -41,30 +41,13 @@
 #include "slp_dhcp.h"
 #include "slp_message.h"
 #include "slp_xmalloc.h"
-
-#ifdef _WIN32
-# include <winsock2.h>
-# include <iphlpapi.h>
-# define ETIMEDOUT   110
-# define ENOTCONN 107
-#else
-/* non-win32 platforms close sockets with 'close' */
-# define closesocket close
-# include <unistd.h>
-# include <netdb.h>
-# include <sys/types.h>
-# include <sys/socket.h>
-# include <sys/ioctl.h>
-# include <net/if_arp.h>
-# include <bits/ioctls.h>
-# include <sys/time.h>
-#endif
+#include "slp_net.h"
+#include "slp_types.h"
 
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
 #include <errno.h>
-#include "slp_net.h"
 
 /* UDP port numbers, server and client. */
 #define IPPORT_BOOTPS      67
@@ -115,34 +98,26 @@
  *
  * @return A valid socket, or -1 if no DA connection can be made.
  */
-static int dhcpCreateBCSkt(struct sockaddr_storage * peeraddr)
+static sockfd_t dhcpCreateBCSkt(void * peeraddr) 
 {
-   int sockfd;
-
-#ifdef _WIN32
-   BOOL on = 1;
-#else
-   int on = 1;
-#endif
+   sockfd_t sockfd;
+   so_bool_t on = 1;
 
    /* setup dhcp broadcast-to-server address structure */
-   if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) >= 0)
+   if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) != SLP_INVALID_SOCKET)
    {
+      int addr = INADDR_ANY;
       struct sockaddr_storage localaddr;
-      int add = INADDR_ANY;
 
-      SLPNetSetAddr(&localaddr, AF_INET, IPPORT_BOOTPC, 
-            (unsigned char *)&add, sizeof(add));
-
-      if (bind(sockfd, (struct sockaddr*)&localaddr, sizeof(localaddr))
+      SLPNetSetAddr(&localaddr, AF_INET, IPPORT_BOOTPC, &addr);
+      if (bind(sockfd, (struct sockaddr *)&localaddr, sizeof(localaddr))
             || setsockopt(sockfd, SOL_SOCKET, SO_BROADCAST,
-            (char*)&on, sizeof(on)))
+                  (char *)&on, sizeof(on)))
       {
          closesocket(sockfd);
-         return -1;
+         return SLP_INVALID_SOCKET;
       }
-      SLPNetSetAddr(peeraddr, AF_INET, IPPORT_BOOTPS, 
-            (unsigned char *)&add, sizeof(add));
+      SLPNetSetAddr(peeraddr, AF_INET, IPPORT_BOOTPS, &addr);
    }
    return sockfd;
 }
@@ -160,9 +135,9 @@ static int dhcpCreateBCSkt(struct sockaddr_storage * peeraddr)
  *
  * @return Zero on success; non-zero on failure, and errno is set to 
  *    either EPIPE (for write error), or ETIMEDOUT (on timeout).
- */
-static int dhcpSendRequest(int sockfd, void * buf, size_t bufsz,
-      struct sockaddr_storage * peeraddr, struct timeval * timeout)
+ */ 
+static int dhcpSendRequest(sockfd_t sockfd, void * buf, size_t bufsz,
+      void * addr, size_t addrsz, struct timeval * timeout)
 {
    fd_set writefds;
    int xferbytes;
@@ -173,13 +148,12 @@ static int dhcpSendRequest(int sockfd, void * buf, size_t bufsz,
 #endif
 
    FD_ZERO(&writefds);
-   FD_SET((unsigned int) sockfd, &writefds);
+   FD_SET(sockfd, &writefds);
 
-   if ((xferbytes = select(sockfd + 1, 0, &writefds, 0, timeout)) > 0)
+   if ((xferbytes = select((int)sockfd + 1, 0, &writefds, 0, timeout)) > 0)
    {
-      if ((xferbytes = sendto(sockfd, (char*)buf, 
-            (int)bufsz, flags, (struct sockaddr *) peeraddr, 
-            sizeof(struct sockaddr_storage))) <= 0)
+      if ((xferbytes = sendto(sockfd, (char *)buf, (int)bufsz, flags, 
+            addr, (int)addrsz)) <= 0)
       {
          errno = EPIPE;
          return -1;
@@ -212,19 +186,18 @@ static int dhcpSendRequest(int sockfd, void * buf, size_t bufsz,
  * @return Zero on success; non-zero on failure with errno set to
  *    ENOTCONN (socket not connected), or ETIMEDOUT (on timeout error).
  */
-static int dhcpRecvResponse(int sockfd, void * buf, size_t bufsz,
+static int dhcpRecvResponse(sockfd_t sockfd, void * buf, size_t bufsz,
       struct timeval * timeout)
 {
    int xferbytes;
    fd_set readfds;
 
    FD_ZERO(&readfds);
-   FD_SET((unsigned int) sockfd, &readfds);
+   FD_SET(sockfd, &readfds);
 
-   if ((xferbytes = select(sockfd + 1, &readfds, 0 , 0, timeout)) > 0)
+   if ((xferbytes = select((int)sockfd + 1, &readfds, 0 , 0, timeout)) > 0)
    {
-      if ((xferbytes = recvfrom(sockfd, (char *)buf, 
-            (int)bufsz, 0, 0, 0)) <= 0)
+      if ((xferbytes = recvfrom(sockfd, (char *)buf, (int)bufsz, 0, 0, 0)) <= 0)
       {
          errno = ENOTCONN;
          return -1;
@@ -258,7 +231,7 @@ static int dhcpProcessOptions(unsigned char * data, size_t datasz,
    unsigned char tag;
 
    /* validate vendor data header */
-   if (datasz < 4
+   if (datasz < 4 
          || *data++ != DHCP_COOKIE1 || *data++ != DHCP_COOKIE2 
          || *data++ != DHCP_COOKIE3 || *data++ != DHCP_COOKIE4) 
       return -1;        /* invalid dhcp response */
@@ -266,21 +239,21 @@ static int dhcpProcessOptions(unsigned char * data, size_t datasz,
    datasz -= 4;         /* account for DHCP cookie values */
 
    /* validate and process each tag in the vendor data */
-   while (datasz-- > 0 && (tag = *data++) != TAG_END)
+   while (datasz-- > 0 && (tag = *data++) != TAG_END) 
    {
-      if (tag != TAG_PAD)
+      if (tag != TAG_PAD) 
       {
          if (!datasz-- || (taglen = *data++) > (int)datasz) 
             return -1;  /* tag length greater than total data length */
 
-         if ((err = dhcpInfoCB(tag, data, taglen, context)))
+         if ((err = dhcpInfoCB(tag, data, taglen, context)) != 0)
             return err;
 
          datasz -= taglen;
          data += taglen;
       }
    }
-   return 0;
+   return 0;   
 }
 
 /** Determines the hardware MAC address for the specified IP address.
@@ -291,26 +264,24 @@ static int dhcpProcessOptions(unsigned char * data, size_t datasz,
  * @param[out] htype - The address type returned in @p chaddr.
  *
  * @return Zero on success; non-zero on failure.
- *
- * @internal
  */
 static int dhcpGetAddressInfo(unsigned char * ipaddr, unsigned char * chaddr, 
       unsigned char * hlen, unsigned char * htype)
 {
+#if defined(_WIN32)
 
-#ifdef _WIN32
-   HMODULE hmod;
-   DWORD(WINAPI *pGetAdaptersInfo)(
-         PIP_ADAPTER_INFO pAdapterInfo, PULONG pOutBufLen);
+   HMODULE hmod;  
+   DWORD (WINAPI * pGetAdaptersInfo)(PIP_ADAPTER_INFO pAdapterInfo, 
+         PULONG pOutBufLen);
    char ipastr[16];
 
    *hlen = 0;
 
    sprintf(ipastr, "%d.%d.%d.%d", ipaddr[0], ipaddr[1], ipaddr[2], ipaddr[3]);
-
+   
    if ((hmod = LoadLibrary("iphlpapi.dll")) != 0)
    {
-      if ((pGetAdaptersInfo = (DWORD(WINAPI *)(PIP_ADAPTER_INFO,PULONG))
+      if ((pGetAdaptersInfo = (DWORD(WINAPI *)(PIP_ADAPTER_INFO, PULONG))
             GetProcAddress(hmod, "GetAdaptersInfo")) != 0)
       {
          DWORD dwerr;
@@ -320,17 +291,17 @@ static int dhcpGetAddressInfo(unsigned char * ipaddr, unsigned char * chaddr,
                && (aip = (IP_ADAPTER_INFO *)xmalloc(bufsz)) != 0
                && (dwerr = (*pGetAdaptersInfo)(aip, &bufsz)) == ERROR_SUCCESS)
          {
-            IP_ADAPTER_INFO *pcur;
+            IP_ADAPTER_INFO * pcur;
             for (pcur = aip; pcur && !*hlen; pcur = pcur->Next)
             {
-               IP_ADDR_STRING *caddrp;
-               for (caddrp = &pcur->IpAddressList; caddrp && !*hlen; 
-                     caddrp = caddrp->Next)
+               IP_ADDR_STRING * caddrp;
+               for (caddrp = &pcur->IpAddressList; 
+                     caddrp && !*hlen; caddrp = caddrp->Next)
                {
                   if (strcmp(ipastr, caddrp->IpAddress.String) == 0)
                   {
-                     *hlen = pcur->AddressLength;
-                     *htype = pcur->Type; /* win32 returns iana ARP values */
+                     *hlen = (uint8_t)pcur->AddressLength;
+                     *htype = (uint8_t)pcur->Type; /* win32 returns iana ARP values */
                      memcpy(chaddr, pcur->Address, pcur->AddressLength);
                      break;
                   }
@@ -338,8 +309,8 @@ static int dhcpGetAddressInfo(unsigned char * ipaddr, unsigned char * chaddr,
             }
             if (!*hlen) /* couldn't find the one we wanted, just use the first */
             {
-               *hlen = aip->AddressLength;
-               *htype = aip->Type;
+               *hlen = (uint8_t)aip->AddressLength;
+               *htype = (uint8_t)aip->Type;
                memcpy(chaddr, aip->Address, aip->AddressLength);
             }
          }
@@ -347,25 +318,25 @@ static int dhcpGetAddressInfo(unsigned char * ipaddr, unsigned char * chaddr,
       }
       FreeLibrary(hmod);
    }
+
 #elif defined(SIOCGARP)
 
    /* Query the ARP cache for our hardware address */
-
    int sockfd;
    struct arpreq arpreq;
-   struct sockaddr *sin;
+   struct sockaddr * sin;
 
-   if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
+   if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == SLP_INVALID_SOCKET)
       return -1;
 
    *hlen = 0;
-
+   
    sin = (struct sockaddr *)&arpreq.arp_pa;
    memset(sin, 0, sizeof(struct sockaddr));
    sin->sa_family = AF_INET;
    memcpy(&sin->sa_data, ipaddr, sizeof(struct in_addr));
-
-   if (ioctl(sockfd, SIOCGARP, &arpreq) >= 0
+   
+   if (ioctl(sockfd, SIOCGARP, &arpreq) >= 0 
          && (arpreq.arp_flags & ATF_COM))
    {
       *hlen = 6;  /* assume IEEE802 compatible */
@@ -373,15 +344,16 @@ static int dhcpGetAddressInfo(unsigned char * ipaddr, unsigned char * chaddr,
       memcpy(chaddr, arpreq.arp_ha.sa_data, 6);
    }
    closesocket(sockfd);
+
 #else
 
    /* figure out another way ... */
-
    (void)ipaddr;
    (void)chaddr;
    (void)htype;
 
    *hlen = 0;
+
 #endif
 
    return *hlen? 0: -1;
@@ -405,43 +377,53 @@ static int dhcpGetAddressInfo(unsigned char * ipaddr, unsigned char * chaddr,
 int DHCPGetOptionInfo(unsigned char * dhcpOptCodes, int dhcpOptCodeCnt, 
       DHCPInfoCallBack * dhcpInfoCB, void * context)
 {
-   UINT32 xid;
+   uint32_t xid;
    time_t timer;
    struct timeval tv;
-   int sockfd, retries;
+   sockfd_t sockfd; 
+   int retries;
    struct sockaddr_storage sendaddr;
    unsigned char chaddr[MAX_MACADDR_SIZE];
    unsigned char hlen, htype;
-   unsigned char sndbuf[512];
-   unsigned char rcvbuf[512];
+   uint8_t sndbuf[512];
+   uint8_t rcvbuf[512];
    struct hostent * hep;
-   unsigned char * p;
+   uint8_t * p;
    size_t rcvbufsz = 0;
    char host[256];
 
    /* Get our IP and MAC addresses */
    if (gethostname(host, (int)sizeof(host))
-         || !(hep = gethostbyname(host))
+         || (hep = gethostbyname(host)) == 0
          || dhcpGetAddressInfo((unsigned char *)hep->h_addr, 
                chaddr, &hlen, &htype))
       return -1;
 
    /* get a reasonably random transaction id value */
-   xid = (UINT32)time(&timer);
+   xid = (uint32_t)time(&timer);
 
    /* BOOTP request header */
-   memset(sndbuf, 0, 236);    /* clear bootp header */
    p = sndbuf;
    *p++ = BOOTREQUEST;        /* opcode */
    *p++ = htype;
    *p++ = hlen;
-   p++;                       /* hops */
-   ToUINT32(p, xid);
-   p += 2 * sizeof(UINT32);   /* xid, secs, flags */
-   memcpy(p, hep->h_addr, 4);
-   p += 4 * sizeof(UINT32);   /* ciaddr, yiaddr, siaddr, giaddr */
-   memcpy(p, chaddr, hlen);
-   p += 16 + 64 + 128;        /* chaddr, sname and file */
+   *p++ = 0;                  /* hops */
+   PutUINT32(&p, xid);
+   PutUINT16(&p, 0);          /* seconds */
+   PutUINT16(&p, 0);          /* flags */
+   memcpy(p, hep->h_addr, 4); /* ciaddr */
+   p += 4;
+   PutUINT32(&p, 0);          /* yiaddr */
+   PutUINT32(&p, 0);          /* siaddr */
+   PutUINT32(&p, 0);          /* giaddr */
+   memcpy(p, chaddr, hlen);   /* chaddr */
+   p += hlen;
+   memset(p, 0, 16-hlen);     /* remaining chaddr space */
+   p += 16-hlen;
+   memset(p, 0, 64 + 128);    /* server host name, boot file */
+   p += 64 + 128;
+
+   /* BOOTP options field */
    *p++ = DHCP_COOKIE1;       /* options, cookies 1-4 */
    *p++ = DHCP_COOKIE2;
    *p++ = DHCP_COOKIE3;
@@ -469,7 +451,7 @@ int DHCPGetOptionInfo(unsigned char * dhcpOptCodes, int dhcpOptCodeCnt,
    *p++ = TAG_END;
 
    /* get a broadcast send/recv socket and address */
-   if ((sockfd = dhcpCreateBCSkt(&sendaddr)) < 0)
+   if ((sockfd = dhcpCreateBCSkt(&sendaddr)) == SLP_INVALID_SOCKET)
       return -1;
 
    /* setup select timeout */
@@ -481,7 +463,7 @@ int DHCPGetOptionInfo(unsigned char * dhcpOptCodes, int dhcpOptCodeCnt,
    while (retries++ < MAX_DHCP_RETRIES)
    {
       if (dhcpSendRequest(sockfd, sndbuf, p - sndbuf, 
-            (struct sockaddr_storage *)&sendaddr, &tv) < 0)
+            &sendaddr, sizeof(sendaddr), &tv) < 0)
       {
          if (errno != ETIMEDOUT)
          {
@@ -498,11 +480,12 @@ int DHCPGetOptionInfo(unsigned char * dhcpOptCodes, int dhcpOptCodeCnt,
             return -1;
          }
       }
-      else if (rcvbufsz >= 236 && AsUINT32(&rcvbuf[4]) == xid)
+      else if (rcvbufsz >= 236 && AS_UINT32(&rcvbuf[4]) == xid)
          break;
 
       /* exponential backoff randomized by a 
-      uniform number between -1 and 1 */
+       * uniform number between -1 and 1 
+      */
       tv.tv_usec = tv.tv_usec * 2 + (rand() % 3) - 1;
       tv.tv_sec = tv.tv_usec / USECS_PER_SEC;
       tv.tv_usec %= USECS_PER_SEC;
@@ -525,37 +508,38 @@ int DHCPGetOptionInfo(unsigned char * dhcpOptCodes, int dhcpOptCodeCnt,
  * @return Zero on success, or a non-zero value to stop the caller from 
  *    continuing to parse the buffer and call this routine.
  */
-int DHCPParseSLPTags(int tag, void * optdata, size_t optdatasz, void * context)
+int DHCPParseSLPTags(int tag, void * optdata, size_t optdatasz, 
+      void * context)
 {
-   int cpysz, bufsz;
+   size_t cpysz, bufsz, dasize;
    DHCPContext * ctxp = (DHCPContext *)context;
    unsigned char * p = (unsigned char *)optdata;
-   unsigned char flags, dasize;
+   unsigned char flags;
    int encoding;
 
    /* filter out zero length options */
    if (!optdatasz)
       return 0;
 
-   switch (tag)
+   switch(tag)
    {
       case TAG_SLP_SCOPE:
 
          /* Draft 3 format is only supported for ASCII and UNICODE
-         character encodings - UTF8 encodings must use rfc2610 format.
-         To determine the format, we parse 2 bytes and see if the result
-         is a valid encoding. If so it's draft 3, otherwise rfc2610. */
-
-         encoding = (optdatasz > 1)? AsUINT16(p): 0;
+         *  character encodings - UTF8 encodings must use rfc2610 format.
+         *  To determine the format, we parse 2 bytes and see if the result
+         *  is a valid encoding. If so it's draft 3, otherwise rfc2610. 
+         */
+         encoding = (optdatasz > 1)? AS_UINT16(p): 0;
          if (encoding != CT_ASCII && encoding != CT_UNICODE)
          {
             /* rfc2610 format */
 
-            /* UA's should ignore statically configured scopes for this 
-             * interface - add code to handle this later... 
-             */
             if (optdatasz == 1)
-               break;
+               break;      /* UA's should ignore statically configured
+                           *  scopes for this interface - 
+                           *  add code to handle this later... 
+                           */
 
             flags = *p++;  /* pick up the mandatory flag... */
             optdatasz--;
@@ -564,20 +548,21 @@ int DHCPParseSLPTags(int tag, void * optdata, size_t optdatasz, void * context)
                ;           /* ...and add code to handle it later... */
 
             /* copy utf8 string into return buffer */
-            cpysz = optdatasz < sizeof(ctxp->scopelist)?
+            cpysz = optdatasz < sizeof(ctxp->scopelist)? 
                   optdatasz: sizeof(ctxp->scopelist);
             strncpy(ctxp->scopelist, (char*)p, cpysz);
          }
          else
          {
             /* draft 3 format: defined to configure scopes for SA's only
-               so we should flag the scopes to be used only as registration
-               filter scopes - add code to handle this case later...
-
-               offs     len      name        description
-               0        2        encoding    character encoding used 
-               2        n        scopelist   list of scopes as asciiz string.
-             */
+            *  so we should flag the scopes to be used only as registration
+            *  filter scopes - add code to handle this case later...
+            *
+            *  offs     len      name        description
+            *  0        2        encoding    character encoding used 
+            *  2        n        scopelist   list of scopes as asciiz string.
+            *
+            */
             optdatasz -= 2;   /* skip encoding bytes */
             p += 2;
 
@@ -586,7 +571,7 @@ int DHCPParseSLPTags(int tag, void * optdata, size_t optdatasz, void * context)
                wcstombs(ctxp->scopelist, (wchar_t*)p, sizeof(ctxp->scopelist));
             else
             {
-               cpysz = optdatasz < sizeof(ctxp->scopelist)?
+               cpysz = optdatasz < sizeof(ctxp->scopelist)? 
                      optdatasz: sizeof(ctxp->scopelist);
                strncpy(ctxp->scopelist, (char*)p, cpysz);
             }
@@ -598,17 +583,18 @@ int DHCPParseSLPTags(int tag, void * optdata, size_t optdatasz, void * context)
          optdatasz--;
 
          /* If the flags byte has the high bit set, we know we are
-            using draft 3 format, otherwise rfc2610 format. */
-
+         *  using draft 3 format, otherwise rfc2610 format. 
+         */
          if (!(flags & DA_NAME_PRESENT))
          {
             /* rfc2610 format */
             if (flags)
             {
                /* If the mandatory byte is non-zero, indicate that 
-                  multicast is not to be used to dynamically discover 
-                  directory agents on this interface by setting the 
-                  LACBF_STATIC_DA flag in the LACB for this interface. */
+               *  multicast is not to be used to dynamically discover 
+               *  directory agents on this interface by setting the 
+               *  LACBF_STATIC_DA flag in the LACB for this interface. 
+               */
 
                /* skip this for now - deal with it later... */
             }
@@ -616,33 +602,32 @@ int DHCPParseSLPTags(int tag, void * optdata, size_t optdatasz, void * context)
             bufsz = sizeof(ctxp->addrlist) - ctxp->addrlistlen;
             cpysz = (int)optdatasz < bufsz? optdatasz: bufsz;
             memcpy(ctxp->addrlist + ctxp->addrlistlen, p, cpysz);
-            ctxp->addrlistlen += cpysz;
+            ctxp->addrlistlen += (int)cpysz;
          }
          else
          {
             /* pre-rfc2610 (draft 3) format:
-               offs     len      name     description
-               0        1        flags    contains 4 flags (defined above)
-               1        1        dasize   name or addr length
-               2        dasize   daname   da name or ip address (flags)
-             */
+            *     offs     len      name     description
+            *     0        1        flags    contains 4 flags (defined above)
+            *     1        1        dasize   name or addr length
+            *     2        dasize   daname   da name or ip address (flags)
+            */
             dasize = *p++;
             optdatasz--;
 
             if (dasize > optdatasz)
                dasize = optdatasz;
             if (flags & DA_NAME_IS_DNS)
-               ;  /* DA name contains dns name - must resolve - later... */
+               ;  /* DA name contains dns name - we have to resolve - later... */
             else
-            {
-               /* DA name is one 4-byte ip address */
+            {     /* DA name is one 4-byte ip address */
                if (dasize < 4)
                   break;   /* oops, bad option format */
                dasize = 4;
                bufsz = sizeof(ctxp->addrlist) - ctxp->addrlistlen;
                cpysz = dasize < bufsz? dasize: bufsz;
                memcpy(ctxp->addrlist + ctxp->addrlistlen, p, cpysz);
-               ctxp->addrlistlen += cpysz;
+               ctxp->addrlistlen += (int)cpysz;
             }
             if (flags & DISABLE_DA_MCAST)
                ;  /* this is the equivalent of the rfc2610 mandatory bit */
