@@ -1,2 +1,4 @@
-slpd.map
-slpd.tds
+Debug
+Release
+*.vcproj.*.user
+

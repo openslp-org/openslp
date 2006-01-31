@@ -1,2 +1,4 @@
-slptool.map
-slptool.tds
+Debug
+Release
+*.vcproj.*.user
+

@@ -16,7 +16,6 @@ missing
 Makefile
 Makefile.in                       
 configure                         
-slptool/Makefile.in
 debian
 slp.list
 ylwrap
