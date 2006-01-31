@@ -33,6 +33,8 @@
 
 EXTRA_DIST = slp_debug.h
 
+AM_CFLAGS = -Werror
+
 TESTS = \
 	SLPOpen/test.script SLPFindSrvTypes/test.script \
 	SLPFindSrvs/test.script SLPReg/test.script \
@@ -68,6 +70,7 @@ LDADD = \
 	../common/libcommonslpd.la
 
 if ENABLE_PREDICATES
+testslpd_predicate_test_SOURCES = SLPD_predicate_test/slpd_predicate_test.c
 testslpd_predicate_test_LDADD = \
 	$(LDADD) \
 	../slpd/slpd_predicate.o \

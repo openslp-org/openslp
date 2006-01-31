@@ -178,7 +178,7 @@ int SLPNetworkRecvMessage(sockfd_t sockfd, int socktype,
    {
       if (socktype == SOCK_DGRAM)
       {
-         int addrlen = sizeof(struct sockaddr_storage);
+         socklen_t addrlen = sizeof(struct sockaddr_storage);
          xferbytes = recvfrom(sockfd, peek, 16, MSG_PEEK,
                peeraddr, &addrlen);
       }

@@ -33,6 +33,8 @@
 
 EXTRA_DIST =
 
+AM_CFLAGS = -Werror
+
 sbin_PROGRAMS = slpd
 
 INCLUDES = \
@@ -50,7 +52,7 @@ endif
 
 if ENABLE_SLPv1
 slpd_v1process_SRCS = slpd_v1process.c
-slpd_v1process_HDRS = slpd_v1process.h
+slpd_v1process_HDRS = 
 endif
 
 if ENABLE_SLPv2_SECURITY
@@ -81,7 +83,6 @@ noinst_HEADERS = \
 	slpd.h \
 	slpd_knownda.h \
 	slpd_process.h \
-	slpd_unistd.h \
 	slpd_cmdline.h \
 	slpd_log.h \
 	slpd_property.h \
@@ -91,7 +92,6 @@ noinst_HEADERS = \
 	slpd_incoming.h \
 	slpd_socket.h
     
-#if you're building on Irix, exchange commented and uncommented lines
-#slpd_LDADD = ../common/libcommonslpd.a ../libslpattr/libslpattr.a
+#if you're building on Irix, replace .la with .a below
 slpd_LDADD = ../common/libcommonslpd.la ../libslpattr/libslpattr.la
 

@@ -49,6 +49,7 @@
 #include "slp_net.h"
 #include "slp_iface.h"
 
+#ifdef HAVE_ICU
 /* --- ICU header stuff - so we don't have to include their headers. --- */
 #define u_strFromUTF8 u_strFromUTF8_3_2
 #define u_strncasecmp u_strncasecmp_3_2
@@ -63,6 +64,7 @@ UChar * u_strFromUTF8(UChar * dest, int32_t destCapacity,
 int32_t u_strncasecmp(const UChar * s1, const UChar * s2,
       int32_t n, uint32_t options);
 /* --- End of ICU header stuff --- */
+#endif	/* HAVE_ICU */
 
 #ifndef _WIN32
 # ifndef HAVE_STRNCASECMP
@@ -133,7 +135,7 @@ int strcasecmp(const char * s1, const char * s2)
 static int ishex(int c)	
 {
    c = usaupr(c); 
-   return c >= '0' && c <= '9' || c >= 'A' && c <= 'F'? 1: 0;
+   return (c >= '0' && c <= '9') || ((c >= 'A' && c <= 'F')? 1: 0);
 }
 
 /** Converts a valid hexadecimal character into its binary equivalent.
@@ -229,6 +231,7 @@ static int SLPFoldWhiteSpace(size_t len, char * str)
 static int SLPCompareNormalizedString(const char * str1,
       const char * str2, size_t length)
 {
+#ifdef HAVE_ICU
    int result;
    UErrorCode uerr = 0;
    UChar * ustr1 = xmalloc((length + 1) * sizeof(UChar));
@@ -247,6 +250,9 @@ static int SLPCompareNormalizedString(const char * str1,
    xfree(ustr1);
    xfree(ustr2);
    return result;
+#else
+   return strncasecmp(str1, str2, length);
+#endif /* HAVE_ICU */
 }
 
 /** Compares two non-normalized strings. 

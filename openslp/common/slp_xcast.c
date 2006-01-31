@@ -164,7 +164,7 @@ int SLPMulticastSend(const SLPIfaceInfo * ifaceinfo, const SLPBuffer msg,
          return -1;  /* error binding socket to address */
       if (s6dst->sin6_family == AF_INET6) 
          SLPNetSetAddr(&socks->peeraddr[socks->sock_count], AF_INET6, 
-               SLP_RESERVED_PORT, &s6dst->sin6_addr.u);
+               SLP_RESERVED_PORT, &s6dst->sin6_addr);
       else 
          return -1;
    }
@@ -185,7 +185,7 @@ int SLPMulticastSend(const SLPIfaceInfo * ifaceinfo, const SLPBuffer msg,
  *
  * Receives messages from one of the sockets in the specified 
  * SLPXcastsSockets structure, @p sockets.
- *  
+ * 
  * @param[in] sockets - A pointer to the SOPXcastSockets structure that 
  *    describes the sockets from which to read messages.
  * @param[out] buf - A pointer to an SLPBuffer that will contain the 
@@ -206,7 +206,6 @@ int SLPXcastRecvMessage(const SLPXcastSockets * sockets, SLPBuffer * buf,
    int readable;
    int bytesread;
    int recvloop;
-   int peeraddrlen = sizeof(struct sockaddr_storage);
    char peek[16];
    int result = 0;
 
@@ -234,6 +233,7 @@ int SLPXcastRecvMessage(const SLPXcastSockets * sockets, SLPBuffer * buf,
             if (FD_ISSET(sockets->sock[i], &readfds))
             {
                /* Peek at the first 16 bytes of the header */
+   	       socklen_t peeraddrlen = sizeof(struct sockaddr_storage);
                bytesread = recvfrom(sockets->sock[i], peek, 16, MSG_PEEK, 
                      peeraddr, &peeraddrlen);
                if (bytesread == 16

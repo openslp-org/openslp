@@ -122,7 +122,7 @@
  *
  * @internal
  */
-static const char * substr(const char * haystack, const char * needle, 
+/* static */ const char * substr(const char * haystack, const char * needle, 
       size_t needle_len)
 {
    const char * hs_cur; 
@@ -782,7 +782,7 @@ static FilterResult str_op(SLPAttributes slp_attr, char * tag,
  *
  * @internal
  */
-static FilterResult opaque_op(SLPAttributes slp_attr, char * tag, 
+/* static */ FilterResult opaque_op(SLPAttributes slp_attr, char * tag, 
       size_t tag_len, char * rhs, size_t rhs_len, Operation op)
 {
    char * str_val; /* Converted value of rhs. */
@@ -854,7 +854,7 @@ static FilterResult opaque_op(SLPAttributes slp_attr, char * tag,
  *
  * @internal
  */
-static int is_int_string(const char * str)
+/* static */ int is_int_string(const char * str)
 {
    int i;
 
@@ -875,7 +875,7 @@ static int is_int_string(const char * str)
  *
  * @internal
  */
-static char * find_substr(char * src, size_t src_len, char * to_find)
+/* static */ char * find_substr(char * src, size_t src_len, char * to_find)
 {
    unsigned i;
 

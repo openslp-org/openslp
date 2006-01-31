@@ -68,7 +68,7 @@
  *
  * @internal
  */
-static int NetworkGetMcastAddrs(const char msgtype, const uint8_t * msg, 
+static int NetworkGetMcastAddrs(const char msgtype, uint8_t * msg, 
       SLPIfaceInfo * ifaceinfo)
 {
    if (!ifaceinfo)
@@ -393,7 +393,7 @@ SLPError NetworkRqstRply(sockfd_t sock, void * peeraddr,
    else
    {
       /* Unicast/stream target address. */
-      int stypesz = sizeof(socktype);
+      socklen_t stypesz = sizeof(socktype);
       maxwait = SLPPropertyAsInteger(
             SLPGetProperty("net.slp.unicastMaximumWait"));
       SLPPropertyAsIntegerVector(SLPGetProperty("net.slp.unicastTimeouts"),
@@ -654,8 +654,8 @@ SLPError NetworkRqstRply(sockfd_t sock, void * peeraddr,
 FINISHED:
 
    /* Notify the callback that we're done. */
-   if (rplycount != 0 || result == SLP_NETWORK_TIMED_OUT 
-         && SLPNetIsMCast(peeraddr))
+   if (rplycount != 0 || (result == SLP_NETWORK_TIMED_OUT 
+         && SLPNetIsMCast(peeraddr)))
       result = SLP_LAST_CALL; 
 
    callback(result, &addr, recvbuf, cookie);
@@ -1057,7 +1057,7 @@ CLEANUP:
  *
  * @return SLP_OK on success. SLP_ERROR on failure.
  */
-SLPError NetworkUcastRqstRply(SLPHandleInfo * handle, uint8_t * buf, 
+SLPError NetworkUcastRqstRply(SLPHandleInfo * handle, void * buf, 
       char buftype, size_t bufsize, NetworkRplyCallback callback, 
       void * cookie)
 {

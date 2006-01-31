@@ -400,7 +400,7 @@ static char * unescape_into(char * dest, const char * src, size_t len,
  *
  * Returns: see find_tag_end().
  */
-static char * find_value_end(char * value)
+/* static */ char * find_value_end(char * value)
 {
    char * cur = value; /* Pointer  into the value string. */
 
@@ -2300,11 +2300,11 @@ static SLPError attr_destringify(struct xx_SLPAttributes * slp_attr,
    return SLP_OK;
 }
 
-static void destringify(SLPAttributes slp_attr_h, const char * str)
-{
-   attr_destringify((struct xx_SLPAttributes *) slp_attr_h, (char *) str,
-         SLP_ADD);
-}
+//static void destringify(SLPAttributes slp_attr_h, const char * str)
+//{
+//   attr_destringify((struct xx_SLPAttributes *) slp_attr_h, (char *) str,
+//         SLP_ADD);
+//}
 
 
 /* Adds the tags named in attrs to the receiver. Note that the new attributes 
@@ -2367,48 +2367,48 @@ SLPError SLPAttrFreshen(SLPAttributes slp_attr_h, const char * str)
 //
 // return err;
 //}
-
-
-struct hop_attr
-{
-   SLPAttrObjCallback * cb;
-   void * cookie;
-};
-
-
-static SLPBoolean attr_callback(SLPHandle hslp, const char * attrlist,
-      SLPError errcode, void * cookie)
-{
-   struct hop_attr * hop = (struct hop_attr *) cookie;
-   SLPAttributes attr;
-   SLPBoolean result;
-
-   assert(errcode == SLP_OK || errcode == SLP_LAST_CALL);
-
-   if (errcode == SLP_OK)
-   {
-      if (SLPAttrAlloc("en", 0, SLP_FALSE, &attr) != SLP_OK)
-      {
-         /* FIXME Ummm, should prolly tell application about the internal
-          * error.  
-          */
-         return SLP_FALSE;
-      }
-
-      destringify(attr, attrlist);
-      result = hop->cb(hslp, attr, errcode, hop->cookie);
-      assert(result == SLP_TRUE || result == SLP_FALSE);
-      SLPAttrFree(attr);
-   }
-   else if (errcode == SLP_LAST_CALL)
-      result = hop->cb(hslp, 0, errcode, hop->cookie);
-   else
-      result = hop->cb(hslp, 0, errcode, hop->cookie);
-
-   return result;
-}
-
-
+//
+//
+//struct hop_attr
+//{
+//   SLPAttrObjCallback * cb;
+//   void * cookie;
+//};
+//
+//
+//static SLPBoolean attr_callback(SLPHandle hslp, const char * attrlist,
+//      SLPError errcode, void * cookie)
+//{
+//   struct hop_attr * hop = (struct hop_attr *) cookie;
+//   SLPAttributes attr;
+//   SLPBoolean result;
+//
+//   assert(errcode == SLP_OK || errcode == SLP_LAST_CALL);
+//
+//   if (errcode == SLP_OK)
+//   {
+//      if (SLPAttrAlloc("en", 0, SLP_FALSE, &attr) != SLP_OK)
+//      {
+//         /* FIXME Ummm, should prolly tell application about the internal
+//          * error.  
+//          */
+//         return SLP_FALSE;
+//      }
+//
+//      destringify(attr, attrlist);
+//      result = hop->cb(hslp, attr, errcode, hop->cookie);
+//      assert(result == SLP_TRUE || result == SLP_FALSE);
+//      SLPAttrFree(attr);
+//   }
+//   else if (errcode == SLP_LAST_CALL)
+//      result = hop->cb(hslp, 0, errcode, hop->cookie);
+//   else
+//      result = hop->cb(hslp, 0, errcode, hop->cookie);
+//
+//   return result;
+//}
+//
+//
 /* Find the attributes of a given service. */
 //SLPError SLPFindAttrObj(
 //    SLPHandle hslp, 

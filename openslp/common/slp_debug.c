@@ -54,7 +54,7 @@ int SLPAssertionFailed(const char * assertion, const char * file, int line)
 #else
    fprintf(stderr, "Debug assertion \"%s\" failed."
          "\n\tLine %d of file %s.\n", assertion, line, file);
-   exit(-1);
+   /* exit(-1); */
 #endif
    return 0;
 }

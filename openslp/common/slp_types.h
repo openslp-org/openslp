@@ -74,6 +74,15 @@ typedef unsigned long uint32_t;
 
 #else
 
+# ifdef HAVE_CONFIG_H
+#  include "config.h"
+# endif /* HAVE_CONFIG_H */
+# include <unistd.h>
+# include <sys/types.h>
+# include <sys/stat.h>
+# include <sys/socket.h>
+# include <arpa/inet.h>
+# include <fcntl.h>
 # include <pthread.h>
 # ifdef HAVE_STDINT_H
 #  include <stdint.h>

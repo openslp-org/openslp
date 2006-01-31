@@ -54,7 +54,7 @@
  * @return A 16-bit unsigned value in native format; the buffer pointer
  *    is moved ahead by 2 bytes on return.
  */
-uint16_t GetUINT16(const uint8_t ** cpp)
+uint16_t GetUINT16(uint8_t ** cpp)
 {
    uint16_t rv = AS_UINT16(*cpp);
    *cpp += 2;
@@ -68,7 +68,7 @@ uint16_t GetUINT16(const uint8_t ** cpp)
  * @return A 32-bit unsigned value in native format; the buffer pointer 
  *    is moved ahead by 3 bytes on return.
  */
-uint32_t GetUINT24(const uint8_t ** cpp)
+uint32_t GetUINT24(uint8_t ** cpp)
 {
    uint32_t rv = AS_UINT24(*cpp);
    *cpp += 3;
@@ -82,7 +82,7 @@ uint32_t GetUINT24(const uint8_t ** cpp)
  * @return A 32-bit unsigned value in native format; the buffer pointer
  *    is moved ahead by 4 bytes on return.
  */
-uint32_t GetUINT32(const uint8_t ** cpp)
+uint32_t GetUINT32(uint8_t ** cpp)
 {
    uint32_t rv = AS_UINT32(*cpp);
    *cpp += 4;
@@ -102,7 +102,7 @@ uint32_t GetUINT32(const uint8_t ** cpp)
  *    @p cppstring pointer; the buffer pointer is moved ahead by @p len bytes
  *    on return. If @p len is zero, returns NULL.
  */
-char * GetStrPtr(const uint8_t ** cpp, size_t len)
+char * GetStrPtr(uint8_t ** cpp, size_t len)
 {
    char * sp = len? (char *)*cpp: 0;
    *cpp += len;

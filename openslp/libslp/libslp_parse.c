@@ -215,7 +215,7 @@ SLPEXP SLPError SLPAPI SLPEscape(
    char hex_digit;
 
    /* Ensure that the parameters are good. */
-   if (!pcInbuf || isTag != SLP_TRUE && isTag != SLP_FALSE)
+   if (!pcInbuf || (isTag != SLP_TRUE && isTag != SLP_FALSE))
       return SLP_PARAMETER_BAD;
 
    /* Loop thru the string, counting the number of reserved characters 
@@ -318,7 +318,7 @@ SLPEXP SLPError SLPAPI SLPUnescape(
    char escaped_digit[2];
 
    /* Ensure that the parameters are good. */
-   if (!pcInbuf || isTag != SLP_TRUE && isTag != SLP_FALSE)
+   if (!pcInbuf || (isTag != SLP_TRUE && isTag != SLP_FALSE))
       return SLP_PARAMETER_BAD;
 
    /* Loop thru the string, counting the number of escape characters 

@@ -39,6 +39,8 @@
 
 EXTRA_DIST = 
 
+AM_CFLAGS = -Werror
+
 bin_PROGRAMS = slptool
 
 INCLUDES = -I$(top_srcdir)/libslp

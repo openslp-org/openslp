@@ -176,10 +176,10 @@
       )
 
 /* buffer-based wire routines */
-uint16_t GetUINT16(const uint8_t ** cpp);
-uint32_t GetUINT24(const uint8_t ** cpp);
-uint32_t GetUINT32(const uint8_t ** cpp);
-char * GetStrPtr(const uint8_t ** cpp, size_t length);
+uint16_t GetUINT16(uint8_t ** cpp);
+uint32_t GetUINT24(uint8_t ** cpp);
+uint32_t GetUINT32(uint8_t ** cpp);
+char * GetStrPtr(uint8_t ** cpp, size_t length);
 
 void PutUINT16(uint8_t ** cpp, size_t val);
 void PutUINT24(uint8_t ** cpp, size_t val);
@@ -374,9 +374,9 @@ SLPMessage SLPMessageRealloc(SLPMessage message);
 void SLPMessageFree(SLPMessage message);
 
 /* Message parsing routines */
-int SLPMessageParseHeader(const SLPBuffer buffer, SLPHeader * header);
+int SLPMessageParseHeader(SLPBuffer buffer, SLPHeader * header);
 int SLPMessageParseBuffer(void * peeraddr, const void * localaddr, 
-      const SLPBuffer buffer, SLPMessage message);
+      SLPBuffer buffer, SLPMessage message);
 
 /*! @} */
 

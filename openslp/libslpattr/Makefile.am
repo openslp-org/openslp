@@ -33,8 +33,9 @@
 
 EXTRA_DIST = libslpattr.dsp libslpattr.dsw libslpattr.mak
 
-#if you're building on Irix, exchange commented and uncommented lines
-#noinst_LTLIBRARIES = libslpattr.a
+AM_CFLAGS = -Werror
+
+#if you're building on Irix, replace .la with .a below
 noinst_LTLIBRARIES = libslpattr.la
 
 if ENABLE_PREDICATES
@@ -43,10 +44,9 @@ else
 PREDICATE_SRCS = libslpattr_tiny.c
 endif
 
-#if you're building on Irix, exchange commented and uncommented lines
-#EXTRA_libslpattr_a_SOURCES = libslpattr.c libslpattr_tiny.c
-#libslpattr_a_SOURCES = $(PREDICATE_SRCS) libslpattr_internal.h
+#if you're building on Irix, replace _la_ with _a_ below
 EXTRA_libslpattr_la_SOURCES = libslpattr.c libslpattr_tiny.c
 libslpattr_la_SOURCES = $(PREDICATE_SRCS) libslpattr_internal.h
 
 noinst_HEADERS = libslpattr.h
+

@@ -49,6 +49,16 @@
 # define inet_aton(opt, bind) ((bind)->s_addr = inet_addr(opt))
 # define strdup _strdup
 #else
+# ifdef HAVE_CONFIG_H
+#  include "config.h"
+# endif /* HAVE_CONFIG_H */
+# ifdef HAVE_STRINGS_H
+#  include <strings.h>
+# else
+#  ifdef HAVE_STRING_H
+#   include <string.h>
+#  endif /* HAVE_STRING_H */
+# endif /* HAVE_STRINGS_H */
 # ifndef HAVE_STRNCASECMP
 static int strncasecmp(const char * s1, const char * s2, size_t len)
 {
@@ -65,6 +75,7 @@ static int strcasecmp(const char * s1, const char * s2)
    return (int)(*(unsigned char *)s1 - *(unsigned char *)s2);
 }
 # endif
+# define SLP_VERSION VERSION
 #endif 
 
 static SLPBoolean mySrvTypeCallback(SLPHandle hslp, 
@@ -575,6 +586,10 @@ int main(int argc, char * argv[])
 
          case PRINT_VERSION:
             PrintVersion(&cmdline);
+	    break;
+
+	 case DUMMY:
+	    break;
       }
    else
    {

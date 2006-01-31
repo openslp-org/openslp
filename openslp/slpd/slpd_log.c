@@ -43,6 +43,8 @@
 
 #include "slp_net.h"
 
+#include <stdio.h>
+#include <stdarg.h>
 #include <time.h>
 
 /** The internal log file object.

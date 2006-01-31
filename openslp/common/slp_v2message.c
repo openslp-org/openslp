@@ -52,7 +52,7 @@
  *
  * @internal
  */
-static int v2ParseAuthBlock(const SLPBuffer buffer, SLPAuthBlock * authblock)
+static int v2ParseAuthBlock(SLPBuffer buffer, SLPAuthBlock * authblock)
 {
 /*  0                   1                   2                   3
     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -103,7 +103,7 @@ static int v2ParseAuthBlock(const SLPBuffer buffer, SLPAuthBlock * authblock)
  *
  * @internal
  */
-static int v2ParseUrlEntry(const SLPBuffer buffer, SLPUrlEntry * urlentry)
+static int v2ParseUrlEntry(SLPBuffer buffer, SLPUrlEntry * urlentry)
 {
 /*  0                   1                   2                   3
     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -169,7 +169,7 @@ static int v2ParseUrlEntry(const SLPBuffer buffer, SLPUrlEntry * urlentry)
  *
  * @internal
  */
-static int v2ParseSrvRqst(const SLPBuffer buffer, SLPSrvRqst * srvrqst)
+static int v2ParseSrvRqst(SLPBuffer buffer, SLPSrvRqst * srvrqst)
 {
 /*  0                   1                   2                   3
     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -233,7 +233,7 @@ static int v2ParseSrvRqst(const SLPBuffer buffer, SLPSrvRqst * srvrqst)
  *
  * @internal
  */
-static int v2ParseSrvRply(const SLPBuffer buffer, SLPSrvRply * srvrply)
+static int v2ParseSrvRply(SLPBuffer buffer, SLPSrvRply * srvrply)
 {
 /*  0                   1                   2                   3
     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -287,7 +287,7 @@ static int v2ParseSrvRply(const SLPBuffer buffer, SLPSrvRply * srvrply)
  *
  * @internal
  */
-static int v2ParseSrvReg(const SLPBuffer buffer, SLPSrvReg * srvreg)
+static int v2ParseSrvReg(SLPBuffer buffer, SLPSrvReg * srvreg)
 {
    int result;
 
@@ -357,7 +357,7 @@ static int v2ParseSrvReg(const SLPBuffer buffer, SLPSrvReg * srvreg)
  *
  * @internal
  */
-static int v2ParseSrvDeReg(const SLPBuffer buffer, SLPSrvDeReg * srvdereg)
+static int v2ParseSrvDeReg(SLPBuffer buffer, SLPSrvDeReg * srvdereg)
 {
    int result;
 
@@ -405,7 +405,7 @@ static int v2ParseSrvDeReg(const SLPBuffer buffer, SLPSrvDeReg * srvdereg)
  *
  * @internal
  */
-static int v2ParseSrvAck(const SLPBuffer buffer, SLPSrvAck * srvack)
+static int v2ParseSrvAck(SLPBuffer buffer, SLPSrvAck * srvack)
 {
 /*  0                   1
     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5
@@ -429,7 +429,7 @@ static int v2ParseSrvAck(const SLPBuffer buffer, SLPSrvAck * srvack)
  *
  * @internal
  */
-static int v2ParseAttrRqst(const SLPBuffer buffer, SLPAttrRqst * attrrqst)
+static int v2ParseAttrRqst(SLPBuffer buffer, SLPAttrRqst * attrrqst)
 {
 /*  0                   1                   2                   3
     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -492,7 +492,7 @@ static int v2ParseAttrRqst(const SLPBuffer buffer, SLPAttrRqst * attrrqst)
  *
  * @internal
  */
-static int v2ParseAttrRply(const SLPBuffer buffer, SLPAttrRply * attrrply)
+static int v2ParseAttrRply(SLPBuffer buffer, SLPAttrRply * attrrply)
 {
 /*  0                   1                   2                   3
     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -560,7 +560,7 @@ static int v2ParseAttrRply(const SLPBuffer buffer, SLPAttrRply * attrrply)
  *
  * @internal
  */
-static int v2ParseDAAdvert(const SLPBuffer buffer, SLPDAAdvert * daadvert)
+static int v2ParseDAAdvert(SLPBuffer buffer, SLPDAAdvert * daadvert)
 {
 /*  0                   1                   2                   3
     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -660,7 +660,7 @@ static int v2ParseDAAdvert(const SLPBuffer buffer, SLPDAAdvert * daadvert)
  *
  * @internal
  */
-static int v2ParseSrvTypeRqst(const SLPBuffer buffer, 
+static int v2ParseSrvTypeRqst(SLPBuffer buffer, 
       SLPSrvTypeRqst * srvtyperqst)
 {
 /*  0                   1                   2                   3
@@ -713,7 +713,7 @@ static int v2ParseSrvTypeRqst(const SLPBuffer buffer,
  *
  * @internal
  */
-static int v2ParseSrvTypeRply(const SLPBuffer buffer, 
+static int v2ParseSrvTypeRply(SLPBuffer buffer, 
       SLPSrvTypeRply * srvtyperply)
 {
 /*  0                   1                   2                   3
@@ -766,7 +766,7 @@ static int v2ParseSrvTypeRply(const SLPBuffer buffer,
  *
  * @internal
  */
-static int v2ParseSAAdvert(const SLPBuffer buffer, SLPSAAdvert * saadvert)
+static int v2ParseSAAdvert(SLPBuffer buffer, SLPSAAdvert * saadvert)
 {
 /*  0                   1                   2                   3
     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -842,7 +842,7 @@ static int v2ParseSAAdvert(const SLPBuffer buffer, SLPSAAdvert * saadvert)
  *
  * @internal
  */
-static int v2ParseExtension(const SLPBuffer buffer, SLPMessage message)
+static int v2ParseExtension(SLPBuffer buffer, SLPMessage message)
 {
 /*  0                   1                   2                   3
     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -893,7 +893,7 @@ static int v2ParseExtension(const SLPBuffer buffer, SLPMessage message)
  * @return Zero on success, or a non-zero error code, either
  *    SLP_ERROR_VER_NOT_SUPPORTED or SLP_ERROR_PARSE_ERROR.
  */
-int SLPv2MessageParseHeader(const SLPBuffer buffer, SLPHeader * header)
+int SLPv2MessageParseHeader(SLPBuffer buffer, SLPHeader * header)
 {
 /*  0                   1                   2                   3
     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -960,7 +960,7 @@ int SLPv2MessageParseHeader(const SLPBuffer buffer, SLPHeader * header)
  *    routine and has already reset the message to accomodate new buffer
  *    data.
  */
-int SLPv2MessageParseBuffer(const SLPBuffer buffer, SLPMessage message)
+int SLPv2MessageParseBuffer(SLPBuffer buffer, SLPMessage message)
 {
    int result;
 

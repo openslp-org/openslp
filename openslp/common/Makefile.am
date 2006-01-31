@@ -31,9 +31,11 @@
 #  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #----------------------------------------------------------------------------
 
-#if you're building on Irix, exchange commented and uncommented lines
-#noinst_LTLIBRARIES = libcommonslpd.a libcommonlibslp.a
+#if you're building on Irix, replace .la with .a below
 noinst_LTLIBRARIES = libcommonslpd.la libcommonlibslp.la
+
+AM_CFLAGS = -Werror
+AM_YFLAGS = -d
 
 EXTRA_DIST = 
 
@@ -45,59 +47,67 @@ if ENABLE_SLPv2_SECURITY
 slp_security_SRCS = slp_auth.c slp_crypto.c slp_spi.c
 endif
 
-#if you're building on Irix, exchange commented and uncommented lines
-#libcommonlibslp_a_SOURCES = \
+#if you're building on Irix, replace .la with .a below
 libcommonlibslp_la_SOURCES = \
+   slp_atomic.c \
    slp_buffer.c \
    slp_compare.c \
    slp_database.c \
+   slp_debug.c \
    slp_dhcp.c \
    slp_iface.c \
    slp_linkedlist.c \
    slp_message.c \
-   slp_net.c \
    slp_network.c \
    slp_parse.c \
    slp_pid.c \
-   slp_predicate.c \
    slp_property.c \
+   slp_thread.c \
+   $(slp_security_SRCS) \
+   $(slp_v1message_SRCS) \
    slp_v2message.c \
    slp_xcast.c \
    slp_xid.c \
-   slp_xmalloc.c \
-   $(slp_v1message_SRCS) \
-   $(slp_security_SRCS)
+   slp_xmalloc.c
 
-#if you're building on Irix, exchange commented and uncommented lines
-#libcommonslpd_a_SOURCES = \
+# Place yacc files before lex files below - lexx files include generated yacc headers
+
+#if you're building on Irix, replace .la with .a below
 libcommonslpd_la_SOURCES = \
+   slp_atomic.c \
    slp_buffer.c \
    slp_compare.c \
    slp_database.c \
+   slp_debug.c \
    slp_dhcp.c \
    slp_iface.c \
    slp_linkedlist.c \
    slp_message.c \
    slp_net.c \
-   slp_network.c \
    slp_parse.c \
    slp_pid.c \
    slp_predicate.c \
    slp_property.c \
+   slp_thread.c \
+   $(slp_security_SRCS) \
+   $(slp_v1message_SRCS) \
    slp_v2message.c \
-   slp_xcast.c \
    slp_xid.c \
    slp_xmalloc.c \
-   $(slp_v1message_SRCS) \
-   $(slp_security_SRCS)
+   slp_filter_y.y \
+   slp_filter_l.l \
+   slp_attr_y.y \
+   slp_attr_l.l
 
 noinst_HEADERS = \
+   slp_atomic.h \
    slp_attr.h \
    slp_auth.h \
    slp_buffer.h \
    slp_compare.h \
    slp_crypto.h \
    slp_database.h \
+   slp_debug.h \
    slp_dhcp.h \
    slp_filter.h \
    slp_iface.h \
@@ -111,6 +121,7 @@ noinst_HEADERS = \
    slp_property.h \
    slp_socket.h \
    slp_spi.h \
+   slp_thread.h \
    slp_types.h \
    slp_utf8.h \
    slp_v1message.h \
@@ -118,3 +129,4 @@ noinst_HEADERS = \
    slp_xcast.h \
    slp_xid.h \
    slp_xmalloc.h
+

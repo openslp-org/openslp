@@ -57,6 +57,13 @@
 #include <string.h>
 #include <errno.h>
 
+#ifndef _WIN32
+# ifdef HAVE_CONFIG_H
+#  include "config.h"
+#  define SLP_VERSION VERSION
+# endif
+#endif
+
 #include "slp_property.h"
 #include "slp_xmalloc.h"
 

@@ -56,6 +56,12 @@
 #include "slp_xid.h"
 #include "slp_net.h"
 
+#include <sys/types.h>
+#include <signal.h>
+#include <stdio.h>
+#include <pwd.h>
+#include <grp.h>
+
 int G_SIGALRM;
 int G_SIGTERM;
 int G_SIGHUP;                                                                                                 
@@ -305,7 +311,7 @@ static int CheckPid(const char * pidfile)
  *
  * @internal
  */
-static int WritePid(const char* pidfile, pid_t pid)
+/* static */ int WritePid(const char* pidfile, pid_t pid)
 {
    FILE * fd;
    char pidstr[14];
@@ -568,7 +574,7 @@ int main(int argc, char * argv[])
          SLPDOutgoingHandler(&fdcount, &readfds, &writefds);
       }
 
-ANDLE_SIGNAL:
+HANDLE_SIGNAL:
 
       if (G_SIGHUP)
       {

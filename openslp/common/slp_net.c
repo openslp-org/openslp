@@ -183,7 +183,7 @@ static int SLP_IN6_IS_ADDR_LOOPBACK(const struct in6_addr * a)
  *
  * @internal
  */
-static int SLPNetAddrInfoToString(const struct addrinfo * src, 
+/* static */ int SLPNetAddrInfoToString(const struct addrinfo * src, 
       char * dst, size_t dstLen)
 {
    if (src->ai_family == AF_INET)

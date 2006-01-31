@@ -162,7 +162,7 @@ static int JoinSLPMulticastGroup(int family, sockfd_t sockfd,
  *
  * @internal
  */
-static int DropSLPMulticastGroup(int family, sockfd_t sockfd, 
+/* static */ int DropSLPMulticastGroup(int family, sockfd_t sockfd, 
       struct sockaddr_storage * maddr, struct sockaddr_storage * addr)
 {
    if (SLPNetIsIPV4() && family == AF_INET)
@@ -267,7 +267,7 @@ static int BindSocketToInetAddr(int family, sockfd_t sock,
  *
  * @internal
  */
-static int BindSocketToLoopback(int family, int sock)
+/* static */ int BindSocketToLoopback(int family, int sock)
 {
    struct sockaddr_storage loaddr;
 

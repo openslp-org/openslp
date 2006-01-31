@@ -60,7 +60,7 @@ SLPList G_OutgoingSocketList = { 0, 0, 0 };
 void OutgoingDatagramRead(SLPList * socklist, SLPDSocket * sock)
 {
    int bytesread;
-   int peeraddrlen = sizeof(struct sockaddr_storage);
+   socklen_t peeraddrlen = sizeof(struct sockaddr_storage);
 
    (void)socklist;
 
@@ -187,7 +187,7 @@ void OutgoingStreamRead(SLPList * socklist, SLPDSocket * sock)
 {
    int bytesread;
    char peek[16];
-   int peeraddrlen = sizeof(struct sockaddr_storage);
+   socklen_t peeraddrlen = sizeof(struct sockaddr_storage);
 
    if (sock->state == STREAM_READ_FIRST)
    {

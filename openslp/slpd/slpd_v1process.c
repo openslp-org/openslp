@@ -39,8 +39,6 @@
  * @ingroup    SlpdCode
  */
 
-#if defined(ENABLE_SLPv1)
-
 #include "slpd_process.h"
 #include "slpd_property.h"
 #include "slpd_database.h"
@@ -797,7 +795,5 @@ int SLPDv1ProcessMessage(struct sockaddr_storage * peeraddr,
 
    return errorcode;
 }                
-
-#endif /* ENABLE_SLPv1 */
 
 /*=========================================================================*/

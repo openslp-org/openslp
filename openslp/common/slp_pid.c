@@ -51,6 +51,7 @@
 # include <windows.h>
 #else
 # include <sys/types.h>
+# include <signal.h>
 # include <unistd.h>
 # include <errno.h>
 #endif

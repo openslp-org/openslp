@@ -200,12 +200,14 @@ int SLPv1AsUTF8(int encoding, char * string, size_t * len)
    {
       if (encoding == SLP_CHAR_UNICODE16)
       {
-         uni = GetUINT16((uint8_t **)&unistring);
+	 uint8_t * ui8string = (uint8_t *)unistring;
+         uni = GetUINT16(&ui8string);
          *len -= 2;
       }
       else
       {
-         uni = GetUINT32((uint8_t **)&unistring);
+	 uint8_t * ui8string = (uint8_t *)unistring;
+         uni = GetUINT32(&ui8string);
          *len -= 4;
       }
       if (*len < 0)
@@ -243,7 +245,6 @@ int SLPv1AsUTF8(int encoding, char * string, size_t * len)
 int SLPv1ToEncoding(char * string, size_t * len, int encoding, 
       const char * utfstring, size_t utflen) 
 {
-   unsigned uni;
    int nc;
    size_t total = 0;
 
@@ -260,6 +261,7 @@ int SLPv1ToEncoding(char * string, size_t * len, int encoding,
       return SLP_ERROR_INTERNAL_ERROR;
    while (utflen)
    {
+      unsigned uni = 0;
       nc = utftouni(&uni, utfstring, utflen);
       utflen -= nc;
       if (nc < 0 || utflen < 0)
@@ -267,14 +269,16 @@ int SLPv1ToEncoding(char * string, size_t * len, int encoding,
       utfstring += nc;
       if (encoding == SLP_CHAR_UNICODE16)
       {
-         if (string)
-            PutUINT16((uint8_t **)&string, uni);
+	 uint8_t * ui8string = (uint8_t *)string;
+         if (ui8string)
+            PutUINT16(&ui8string, uni);
          total += 2;
       }
       else
       {
-         if (string)
-            PutUINT32((uint8_t **)&string, uni);
+	 uint8_t * ui8string = (uint8_t *)string;
+         if (ui8string)
+            PutUINT32(&ui8string, uni);
          total += 4;
       }
       if (total > *len)

@@ -86,6 +86,7 @@ void xmalloc_deinit(void);
 #else    /* ?DEBUG */
 
 #include <stdlib.h>
+#include <string.h>
 
 void * memdup(const void * ptr, size_t srclen);
 

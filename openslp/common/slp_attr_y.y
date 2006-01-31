@@ -261,7 +261,7 @@ SLPAttrList *SLPAllocAttr(char *name, SLPTypes type, void *val, int len)
          switch ( type )
          {
             case string:
-               if ( 0 != (attr->val.stringVal = strdup((unsigned char *)val)) )
+               if ( 0 != (attr->val.stringVal = strdup((char *)val)) )
                   return(attr);
                break;
             case integer:

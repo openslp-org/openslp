@@ -31,7 +31,9 @@
 #  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #----------------------------------------------------------------------------
 
-EXTRA_DIST = 
+EXTRA_DIST =
+
+AM_CFLAGS = -Werror 
 
 lib_LTLIBRARIES = libslp.la
 include_HEADERS = slp.h
@@ -55,8 +57,7 @@ libslp_la_SOURCES = \
 noinst_HEADERS = \
 	libslp.h
 
-#if you're building on Irix, exchange commented and uncommented lines
-#libslp_la_LIBADD = -L../common/libcommonlibslp
 libslp_la_LIBADD = ../common/libcommonlibslp.la
 
 libslp_la_LDFLAGS = -version-info 1:0:0
+
