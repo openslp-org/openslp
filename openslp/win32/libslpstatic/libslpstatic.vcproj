@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8.00"
-	Name="slpstatic"
+	Name="libslpstatic"
 	ProjectGUID="{226ECB7D-B7BE-4B62-9E0C-8DA35480753A}"
 	>
 	<Platforms>
@@ -40,7 +40,7 @@
 				AdditionalIncludeDirectories="..\..\common"
 				PreprocessorDefinitions="_CRT_SECURE_NO_DEPRECATE;SLP_VERSION=\&quot;2.0.0\&quot;;ENABLE_SLPv1;LIBSLP_STATIC;_DEBUG"
 				RuntimeLibrary="3"
-				ProgramDataBaseFileName="$(IntDir)\slpstatic.pdb"
+				ProgramDataBaseFileName="$(IntDir)\$(TargetName).pdb"
 				WarningLevel="4"
 				WarnAsError="true"
 				Detect64BitPortabilityProblems="true"
@@ -102,7 +102,7 @@
 				AdditionalIncludeDirectories="..\..\common"
 				PreprocessorDefinitions="_CRT_SECURE_NO_DEPRECATE;SLP_VERSION=\&quot;2.0.0\&quot;;ENABLE_SLPv1;LIBSLP_STATIC;NDEBUG"
 				RuntimeLibrary="2"
-				ProgramDataBaseFileName="$(IntDir)\slpstatic.pdb"
+				ProgramDataBaseFileName="$(IntDir)\$(TargetName).pdb"
 				WarningLevel="4"
 				WarnAsError="true"
 				Detect64BitPortabilityProblems="true"

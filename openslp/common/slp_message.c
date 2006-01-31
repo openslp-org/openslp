@@ -278,7 +278,7 @@ void SLPMessageFree(SLPMessage message)
  *
  * @return Zero on success, or SLP_ERROR_VER_NOT_SUPPORTED.
  */
-int SLPMessageParseHeader(const SLPBuffer buffer, SLPHeader * header)
+int SLPMessageParseHeader(SLPBuffer buffer, SLPHeader * header)
 {
    /* switch on version field */
    switch (*buffer->curpos)
@@ -311,7 +311,7 @@ int SLPMessageParseHeader(const SLPBuffer buffer, SLPHeader * header)
  *    in @p message will be invalidated.
  */
 int SLPMessageParseBuffer(void * peeraddr,
-      const void * localaddr, const SLPBuffer buffer,
+      const void * localaddr, SLPBuffer buffer,
       SLPMessage message)
 {
    /* Copy in the local and remote address info */

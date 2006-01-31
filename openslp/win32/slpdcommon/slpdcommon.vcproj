@@ -2,9 +2,8 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8.00"
-	Name="libslpcommon"
-	ProjectGUID="{5CC2FD5F-C4D3-4F4C-B6BF-319ED69C3777}"
-	RootNamespace="libslpcommon"
+	Name="slpdcommon"
+	ProjectGUID="{DE6FEBCA-E1F8-4D95-B83A-0933E1D345B6}"
 	>
 	<Platforms>
 		<Platform
@@ -142,7 +141,7 @@
 		<Filter
 			Name="Source Files"
 			Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
-			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
+			UniqueIdentifier="{79BD9304-1BBD-4b2a-80BB-B112CF944CB8}"
 			>
 			<File
 				RelativePath="..\..\common\slp_atomic.c"
@@ -193,15 +192,15 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\common\slp_network.c"
-				>
-			</File>
-			<File
 				RelativePath="..\..\common\slp_parse.c"
 				>
 			</File>
 			<File
 				RelativePath="..\..\common\slp_pid.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\common\slp_predicate.c"
 				>
 			</File>
 			<File
@@ -233,10 +232,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\common\slp_xcast.c"
-				>
-			</File>
-			<File
 				RelativePath="..\..\common\slp_xid.c"
 				>
 			</File>
@@ -248,7 +243,7 @@
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
-			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
+			UniqueIdentifier="{DCC2958B-6294-455f-AD75-04EEDC1DEAE1}"
 			>
 			<File
 				RelativePath="..\..\common\slp_atomic.h"

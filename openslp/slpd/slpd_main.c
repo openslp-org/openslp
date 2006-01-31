@@ -59,8 +59,11 @@
 #include <sys/types.h>
 #include <signal.h>
 #include <stdio.h>
-#include <pwd.h>
-#include <grp.h>
+
+#ifndef _WIN32
+# include <pwd.h>
+# include <grp.h>
+#endif
 
 int G_SIGALRM;
 int G_SIGTERM;
