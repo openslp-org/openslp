@@ -71,8 +71,8 @@
 
 #include "slpd_predicate.h"
 
-#include "libslpattr.h"
-#include "libslpattr_internal.h"
+#include "../libslpattr/libslpattr.h"
+#include "../libslpattr/libslpattr_internal.h"
 
 /* The character that is a wildcard. */
 #define WILDCARD ('*')

@@ -57,11 +57,23 @@
 # pragma warning(disable: 4127)  /* conditional expression is constant */
 # pragma warning(disable: 4706)  /* assignment within conditional */
 
+/* system library includes */
 # define WIN32_LEAN_AND_MEAN
 # include <winsock2.h>           /* must include before windows.h */
-# include <windows.h>            /* included for intptr_t */
-# include <stddef.h>
+# include <windows.h>
 
+/* standard library includes */
+# include <stdio.h>
+# include <stdlib.h>
+# include <stddef.h>
+# include <stdarg.h>
+# include <string.h>
+# include <ctype.h>
+# include <math.h>
+# include <errno.h>
+# include <time.h>
+
+/* inttypes.h stuff for windows */
 typedef signed char int8_t;
 typedef signed short int16_t;
 typedef signed long int32_t;
@@ -69,13 +81,16 @@ typedef unsigned char uint8_t;
 typedef unsigned short uint16_t;
 typedef unsigned long uint32_t;
 
+/* windows -> posix system calls */
 # define sleep Sleep
 
+/* windows -> posix library calls */
 # define strncasecmp _strnicmp
 # define strcasecmp _stricmp
 # define snprintf _snprintf
 # define strdup _strdup
 
+/* file name paths */
 # define SLPD_CONFFILE ETCDIR "/slp.conf"
 # define SLPD_LOGFILE  VARDIR "/log/slpd.log"
 # define SLPD_REGFILE  ETCDIR "/slp.reg"
@@ -87,7 +102,9 @@ typedef unsigned long uint32_t;
 # ifdef HAVE_CONFIG_H
 #  include "config.h"
 # endif /* HAVE_CONFIG_H */
+
 # define SLP_VERSION VERSION
+
 # if STDC_HEADERS
 #  include <stdio.h>
 #  include <stdlib.h>
@@ -96,12 +113,18 @@ typedef unsigned long uint32_t;
 #  include <string.h>
 #  include <ctype.h>
 #  include <math.h>
-# else
+# else   /* ! STDC_HEADERS */
 #  if HAVE_STDIO_H
 #   include <stdio.h>
 #  endif
 #  if HAVE_STDLIB_H
 #   include <stdlib.h>
+#  endif
+#  if HAVE_STDDEF_H
+#   include <stddef.h>
+#  endif
+#  if HAVE_STDARG_H
+#   include <stdarg.h>
 #  endif
 #  if HAVE_STRING_H
 #   include <string.h>
@@ -112,9 +135,6 @@ typedef unsigned long uint32_t;
 #  endif
 #  if HAVE_CTYPE_H
 #   include <ctype.h>
-#  endif
-#  if HAVE_STDARG_H
-#   include <stdarg.h>
 #  endif
 #  if HAVE_MATH_H
 #   include <math.h>
@@ -127,7 +147,8 @@ typedef unsigned long uint32_t;
 #   define memcpy(d,s,n) bcopy((s),(d),(n))
 #   define memmove(d,s,n) bcopy((s),(d),(n))
 #  endif
-# endif
+# endif  /* ! STDC_HEADERS */
+
 # if HAVE_UNISTD_H
 #  include <unistd.h>
 # endif
@@ -143,13 +164,13 @@ typedef unsigned long uint32_t;
 # if TIME_WITH_SYS_TIME
 #  include <sys/time.h>
 #  include <time.h>
-# else
+# else   /* ! TIME_WITH_SYS_TIME */
 #  if HAVE_SYS_TIME_H
 #   include <sys/time.h>
 #  else
 #   include <time.h>
 #  endif
-# endif
+# endif  /* ! TIME_WITH_SYS_TIME */
 # if HAVE_ERRNO_H
 #  include <errno.h>
 # endif
