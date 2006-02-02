@@ -48,9 +48,40 @@
  */
 
 #include <slp.h>
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
+
+#ifdef _WIN32
+
+# include <string.h>
+# include <stdio.h>
+# include <stdlib.h>
+
+# define strncasecmp _strnicmp
+# define strcasecmp _stricmp
+# define inet_aton(opt, bind) ((bind)->s_addr = inet_addr(opt))
+# define strdup _strdup
+
+#else /* ! _WIN32 */
+
+# if HAVE_CONFIG_H
+#  include "config.h"
+# endif
+# if HAVE_STDIO_H
+#  include <stdio.h>
+# endif
+# if HAVE_STDLIB_H
+#  include <stdlib.h>
+# endif
+# if HAVE_STRING_H
+#  include <string.h>
+# else
+#  if HAVE_STRINGS_H
+#   include <strings.h>
+#  endif
+# endif
+
+# define SLP_VERSION VERSION
+
+#endif /* ! _WIN32 */
 
 typedef enum _SLPToolCommand
 {

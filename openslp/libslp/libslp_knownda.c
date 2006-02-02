@@ -50,8 +50,6 @@
 #include "slp_xmalloc.h"
 #include "slp_property.h"
 
-#include <time.h>
-
 /** The cache DAAdvert messages from known DAs. */
 static SLPDatabase G_KnownDACache = {0, 0, 0};
 

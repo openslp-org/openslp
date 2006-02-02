@@ -40,17 +40,10 @@
  * @ingroup    CommonCode
  */
 
-#include "slp_atomic.h"
 #include "slp_types.h"
+#include "slp_atomic.h"
 
-#if !defined(_WIN32)
-# include <unistd.h>
-#endif
-
-#if defined(_WIN32)
-# include <windows.h>
-# define sleep Sleep
-#elif defined(__GNUC__) && defined(__i386__)
+#if defined(__GNUC__) && defined(__i386__)
 # define USE_I386_ATOMICS
 
 __attribute__((always_inline)) 

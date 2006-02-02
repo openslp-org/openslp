@@ -48,6 +48,7 @@
  * @{
  */
 
+#include "slp_types.h"
 #include "slpd.h"
 
 /** The maximum recursion depth for the attribute parser.

@@ -38,7 +38,8 @@
  * @ingroup    SlpdCode
  */
 
-#include "slpd.h"
+#include "slp_types.h"
+
 #include "slpd_log.h"
 #include "slpd_socket.h"
 #include "slpd_incoming.h"
@@ -47,6 +48,7 @@
 #include "slpd_cmdline.h"
 #include "slpd_knownda.h"
 #include "slpd_property.h"
+#include "slpd.h"
 
 #ifdef ENABLE_SLPv2_SECURITY
 # include "slpd_spi.h"
@@ -55,15 +57,6 @@
 #include "slp_xmalloc.h"
 #include "slp_xid.h"
 #include "slp_net.h"
-
-#include <sys/types.h>
-#include <signal.h>
-#include <stdio.h>
-
-#ifndef _WIN32
-# include <pwd.h>
-# include <grp.h>
-#endif
 
 int G_SIGALRM;
 int G_SIGTERM;

@@ -48,8 +48,9 @@
  * @{
  */
 
-#include "slpd.h"
+#include "slp_types.h"
 #include "slpd_socket.h"
+#include "slpd.h"
 
 extern SLPList G_OutgoingSocketList;
 

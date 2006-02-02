@@ -38,14 +38,13 @@
  * @ingroup    SlpdCode
  */
 
-#include "slpd.h"
-
 #include "slpd_knownda.h"
 #include "slpd_property.h"
 #include "slpd_database.h"
 #include "slpd_socket.h"
 #include "slpd_outgoing.h"
 #include "slpd_log.h"
+#include "slpd.h"
 
 #ifdef ENABLE_SLPv2_SECURITY
 # include "slpd_spi.h"
@@ -64,8 +63,6 @@
 # include "slp_auth.h"
 # include "slp_spi.h"
 #endif
-
-#include <limits.h>
 
 /*=========================================================================*/
 SLPDatabase G_SlpdKnownDAs;

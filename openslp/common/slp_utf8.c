@@ -38,8 +38,7 @@
  * @ingroup    CommonCode
  */
 
-#include <sys/types.h>
-
+#include "slp_types.h"
 #include "slp_message.h"
 #include "slp_v1message.h"
 

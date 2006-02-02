@@ -48,11 +48,9 @@
  * @{
  */
 
-#include "slpd.h"
-#include "slp_linkedlist.h"
 #include "slp_types.h"
-
-#include <time.h>
+#include "slp_linkedlist.h"
+#include "slpd.h"
 
 extern SLPList G_IncomingSocketList;
 

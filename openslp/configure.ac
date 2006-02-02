@@ -1,17 +1,15 @@
 #
 # Process this file with autoconf to produce a configure script.
 
-AC_PREREQ(2.59)
 AC_INIT(openslp, 2.0.0, openslp-devel@lists.sourceforge.net)
+AM_INIT_AUTOMAKE
+AC_PREREQ(2.59)
 AC_CONFIG_HEADERS(config.h)
 AC_CONFIG_SRCDIR(slpd/slpd_main.c)
-
-AM_INIT_AUTOMAKE
 
 #
 # Checks for programs
 
-AC_PROG_CXX
 AC_PROG_CC
 AC_PROG_CPP
 AC_PROG_INSTALL
@@ -27,16 +25,20 @@ AC_PROG_YACC
 AC_CHECK_LIB(resolv, inet_aton)
 AC_CHECK_LIB(socket, socket)
 AC_CHECK_LIB(nsl, gethostbyname)
+AC_CHECK_LIB(pthread, pthread_create)
 
 #
 # Checks for header files
 
 AC_HEADER_STDC
-AC_CHECK_HEADERS([arpa/inet.h fcntl.h inttypes.h limits.h memory.h netdb.h stddef.h stdint.h stdlib.h string.h strings.h sys/socket.h unistd.h])
+AC_HEADER_TIME
+AC_HEADER_STAT
+AC_CHECK_HEADERS([unistd.h stdio.h stdlib.h stddef.h stdarg.h stdint.h inttypes.h ctype.h string.h strings.h memory.h math.h limits.h errno.h signal.h fcntl.h pthread.h arpa/inet.h netdb.h sys/types.h sys/time.h sys/socket.h pwd.h grp.h])
 
 #
 # Checks for types
 
+AC_TYPE_SIGNAL
 OPENSLP_CHECK_TYPE(socklen_t, int,
 	[defined to size_t if <sys/socket.h> does not support socklen_t data type])
 OPENSLP_STRUCT_SA_RESTORER
@@ -46,13 +48,11 @@ OPENSLP_STRUCT_SA_RESTORER
 
 AC_REPLACE_FNMATCH
 AC_FUNC_FORK
-AC_PROG_GCC_TRADITIONAL
-AC_FUNC_MALLOC
 AC_FUNC_MEMCMP
 AC_FUNC_SELECT_ARGTYPES
-AC_TYPE_SIGNAL
 AC_FUNC_VPRINTF
-AC_CHECK_FUNCS([alarm gethostbyname gethostname gettimeofday isascii memchr memmove memset select socket strcasecmp strchr strdup strerror strncasecmp strrchr strstr strtol strtoul])
+
+AC_CHECK_FUNCS([strchr memcpy strcasecmp strdup strtol strerror isascii alarm gethostname gettimeofday select socket])
 
 #
 # We don't want /usr/etc or /usr/var
@@ -147,7 +147,6 @@ AC_ARG_ENABLE(slpv2-security,
 slpv2security=$enableval,
 slpv2security=no)
 
-AC_CHECK_LIB(pthread, pthread_create)
 AC_CHECK_LIB(m, log10)
 AC_CHECK_LIB(crypto, DSA_sign) 
 AC_CHECK_FUNCS(DSA_verify DSA_size DSA_free SHA1)

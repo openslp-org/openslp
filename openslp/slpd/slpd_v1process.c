@@ -52,8 +52,6 @@
 #include "slp_compare.h"
 #include "slp_net.h"
 
-#include <limits.h>
-
 /** Process an SLPv1 DA Service Request.
  *
  * @param[in] peeraddr - The address of the remote client.

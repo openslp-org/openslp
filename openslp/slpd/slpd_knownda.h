@@ -48,9 +48,10 @@
  * @{
  */
 
-#include "slpd.h"
+#include "slp_types.h"
 #include "slp_buffer.h"
 #include "slp_message.h"
+#include "slpd.h"
 
 int SLPDKnownDAInit(void);
 int SLPDKnownDADeinit(void);

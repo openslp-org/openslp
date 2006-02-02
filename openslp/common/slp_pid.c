@@ -43,18 +43,8 @@
  * @ingroup    CommonCode
  */
 
-#include "slp_pid.h"
 #include "slp_types.h"
-
-#ifdef _WIN32
-# define WIN32_LEAN_AND_MEAN
-# include <windows.h>
-#else
-# include <sys/types.h>
-# include <signal.h>
-# include <unistd.h>
-# include <errno.h>
-#endif
+#include "slp_pid.h"
 
 /** Return a 32-bit process identifier value for the current process.
  *

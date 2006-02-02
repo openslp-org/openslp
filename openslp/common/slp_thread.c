@@ -40,14 +40,8 @@
  * @ingroup    CommonCode
  */
 
-#include "slp_thread.h"
 #include "slp_types.h"
-
-#ifdef _WIN32
-# include <windows.h>
-#else
-# include <pthread.h>
-#endif
+#include "slp_thread.h"
 
 /** Create a new thread of execution.
  *

@@ -66,15 +66,13 @@
  * @bug No operations can be performed on opaque data types. 
  */
 
-#include <assert.h>
-#include <ctype.h>
-
-#include <stdlib.h>
+#include "slp_types.h"
+#include "slp_debug.h"
 
 #include "slpd_predicate.h"
 
-#include "../libslpattr/libslpattr.h"
-#include "../libslpattr/libslpattr_internal.h"
+#include "libslpattr.h"
+#include "libslpattr_internal.h"
 
 /* The character that is a wildcard. */
 #define WILDCARD ('*')
@@ -402,7 +400,7 @@ static FilterResult wildcard_wc_str(char * pattern, size_t pattern_len,
       size_t match_len;
 
       found = my_memmem(rem_start, rem_len, text_start, text_len, &match_len);
-      assert(found == NULL
+      SLP_ASSERT(found == NULL
             || ((found >= rem_start) && (found <= rem_start + rem_len)));
 
       if (found == NULL)
@@ -423,7 +421,7 @@ static FilterResult wildcard_wc_str(char * pattern, size_t pattern_len,
          return result;
    }
    /*NOTREACHED*/
-   assert(0);
+   SLP_ASSERT(0);
 }
 
 /** Check a pattern against a string.
@@ -540,7 +538,7 @@ static FilterResult int_op(SLPAttributes slp_attr, char * tag,
 
    FilterResult result; /* Value to return. */
 
-   assert(op != PRESENT);
+   SLP_ASSERT(op != PRESENT);
 
    result = FR_UNSET; /* For verification. */ /* TODO Only do this in debug. */
 
@@ -564,8 +562,8 @@ static FilterResult int_op(SLPAttributes slp_attr, char * tag,
 
    /***** Compare. *****/
    value = var->list;
-   assert(value != NULL);
-   assert(op != PRESENT); 
+   SLP_ASSERT(value != NULL);
+   SLP_ASSERT(op != PRESENT); 
    switch (op)
    {
       case(EQUAL):
@@ -580,7 +578,7 @@ static FilterResult int_op(SLPAttributes slp_attr, char * tag,
          }
          break;
       case(APPROX):
-         assert(0); /* TODO: Figure out how this works later. */
+         SLP_ASSERT(0); /* TODO: Figure out how this works later. */
          result = FR_EVAL_FALSE; 
          break;
       case(GREATER):
@@ -606,10 +604,10 @@ static FilterResult int_op(SLPAttributes slp_attr, char * tag,
          }
          break;
       default:
-         assert(0);
+         SLP_ASSERT(0);
    }
 
-   assert(result != FR_UNSET);
+   SLP_ASSERT(result != FR_UNSET);
    return result;
 }
 
@@ -637,7 +635,7 @@ static FilterResult keyw_op(SLPAttributes slp_attr, char * tag, char * rhs,
    (void)rhs;
 	(void)op;
 
-   assert(op != PRESENT);
+   SLP_ASSERT(op != PRESENT);
    return FR_EVAL_FALSE;
 }
 
@@ -662,7 +660,7 @@ static FilterResult bool_op(SLPAttributes slp_attr, char * tag,
 
    FilterResult result;
 
-   assert(op != PRESENT);
+   SLP_ASSERT(op != PRESENT);
 
    result = FR_UNSET;
 
@@ -688,7 +686,7 @@ static FilterResult bool_op(SLPAttributes slp_attr, char * tag,
    else
       result = FR_EVAL_FALSE;
 
-   assert(result != FR_UNSET);
+   SLP_ASSERT(result != FR_UNSET);
    return result;
 }
 
@@ -713,7 +711,7 @@ static FilterResult str_op(SLPAttributes slp_attr, char * tag,
 
    var_t * var;
 
-   assert(op != PRESENT);
+   SLP_ASSERT(op != PRESENT);
 
    /***** Verify rhs. *****/
    str_val = rhs;
@@ -729,11 +727,11 @@ static FilterResult str_op(SLPAttributes slp_attr, char * tag,
 
 
    /***** Compare. *****/
-   assert(op != PRESENT); 
+   SLP_ASSERT(op != PRESENT); 
 
    if (op == APPROX)
    {
-      assert(0); /* TODO: Figure out how this works later. */
+      SLP_ASSERT(0); /* TODO: Figure out how this works later. */
    }
    else if (op == EQUAL)
    {
@@ -753,7 +751,7 @@ static FilterResult str_op(SLPAttributes slp_attr, char * tag,
    {
       value_t * value;
       /* We know that the op must be comparative. */
-      assert(op == LESS || op == GREATER);
+      SLP_ASSERT(op == LESS || op == GREATER);
 
       for (value = var->list; value; value = value->next)
       {
@@ -790,7 +788,7 @@ static FilterResult str_op(SLPAttributes slp_attr, char * tag,
 
    var_t * var;
 
-   assert(op != PRESENT);
+   SLP_ASSERT(op != PRESENT);
 
    /***** Verify and convert rhs. *****/
    str_val = rhs;
@@ -806,11 +804,11 @@ static FilterResult str_op(SLPAttributes slp_attr, char * tag,
 
 
    /***** Compare. *****/
-   assert(op != PRESENT); 
+   SLP_ASSERT(op != PRESENT); 
 
    if (op == APPROX)
    {
-      assert(0); /* TODO: Figure out how this works later. */
+      SLP_ASSERT(0); /* TODO: Figure out how this works later. */
    }
    else if (op == EQUAL)
    {
@@ -830,7 +828,7 @@ static FilterResult str_op(SLPAttributes slp_attr, char * tag,
    {
       value_t * value;
       /* We know that the op must be comparative. */
-      assert(op == LESS || op == GREATER);
+      SLP_ASSERT(op == LESS || op == GREATER);
 
       for (value = var->list; value; value = value->next)
       {
@@ -923,7 +921,7 @@ static char * find_bracket_end(const char * str)
    /***** Count brackets. *****/
    for (cur = str; *cur != '\0'; cur++)
    {
-      assert(open_count >= 0);
+      SLP_ASSERT(open_count >= 0);
 
       /**** Check current character. ****/
       if (*cur == BRACKET_OPEN)
@@ -1147,7 +1145,7 @@ static FilterResult filterv1(const char * start, const char ** end,
                   err = str_op(slp_attr, lhs, lhs_len, rhs, rhs_len, op); 
                   break;
                case(SLP_OPAQUE):
-                  assert(0); /* Opaque is not yet supported. */
+                  SLP_ASSERT(0); /* Opaque is not yet supported. */
             }
          }
       }
@@ -1157,7 +1155,7 @@ static FilterResult filterv1(const char * start, const char ** end,
          err = FR_INTERNAL_SYSTEM_ERROR;
       }
 
-      assert(err != FR_UNSET);
+      SLP_ASSERT(err != FR_UNSET);
       return err;
    }
 
@@ -1379,7 +1377,7 @@ static FilterResult filter(const char * start, const char ** end,
                   err = str_op(slp_attr, lhs, lhs_len, rhs, rhs_len, op); 
                   break;
                case(SLP_OPAQUE):
-                  assert(0); /* Opaque is not yet supported. */
+                  SLP_ASSERT(0); /* Opaque is not yet supported. */
             }
          }
       }
@@ -1389,7 +1387,7 @@ static FilterResult filter(const char * start, const char ** end,
          err = FR_INTERNAL_SYSTEM_ERROR;
       }
 
-      assert(err != FR_UNSET);
+      SLP_ASSERT(err != FR_UNSET);
       return err;
    }
 

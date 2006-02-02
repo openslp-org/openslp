@@ -48,9 +48,10 @@
  * @{
  */
 
-#include "slpd.h"
+#include "slp_types.h"
 #include "slp_buffer.h"
 #include "slp_socket.h"
+#include "slpd.h"
 
 /* Misc constants */
 #define SLPD_SMALLEST_MESSAGE       18   /* 18 bytes is smallest SLPv2 msg */

@@ -52,12 +52,8 @@
  * @{
  */
 
-#include <stdlib.h>
-#include <string.h>
-#include <errno.h>
-
-#include "slp_socket.h"
 #include "slp_types.h"
+#include "slp_socket.h"
 
 /** @todo Find a better constant for MAX_HOSTNAME. */
 #define MAX_HOST_NAME 512

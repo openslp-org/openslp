@@ -38,17 +38,8 @@
  * @ingroup    LibSLPCode
  */
 
-#include <stdlib.h>
-#include <stddef.h>
-#include <string.h>
-#include <assert.h>
-#include <math.h>
-#include <ctype.h>
-
-#ifdef _WIN32
-# define strdup _strdup
-#endif
-
+#include "../common/slp_types.h"
+#include "../common/slp_debug.h"
 #include "libslpattr.h"
 #include "libslpattr_internal.h"
 
@@ -143,8 +134,8 @@ static char const * find_tag_end(const char * tag)
  */
 static char unescape(char d1, char d2)
 {
-   assert(isxdigit((int) d1));
-   assert(isxdigit((int) d2));
+   SLP_ASSERT(isxdigit((int) d1));
+   SLP_ASSERT(isxdigit((int) d2));
 
    if ((d1 >= 'A') && (d1 <= 'F'))
       d1 = d1 - 'A' + 0x0A;
@@ -181,8 +172,8 @@ static char * unescape_into(char * dest, const char * src, size_t len,
    char * start, * write;
    unsigned i;
 
-   assert(dest);
-   assert(src);
+   SLP_ASSERT(dest);
+   SLP_ASSERT(src);
 
    write = start = dest;
 
@@ -486,7 +477,7 @@ static size_t find_unescaped_size(const char * str, size_t len)
    unsigned i;
    size_t size;
 
-   assert(len > 0);
+   SLP_ASSERT(len > 0);
 
    size = len;
 
@@ -673,7 +664,7 @@ static value_t * value_new(size_t extra)
 /* Destroy a value. */
 static void value_free(value_t * value)
 {
-   assert(value->next == 0);
+   SLP_ASSERT(value->next == 0);
    free(value);
 }
 
@@ -698,7 +689,7 @@ static var_t * var_new(char * tag, size_t tag_len)
 {
    var_t * var; /* Variable being created. */
 
-   assert(tag != 0);
+   SLP_ASSERT(tag != 0);
 
    /***** Allocate. *****/
    var = (var_t *) malloc(sizeof(var_t) + tag_len + 1); /* +1 for null. */
@@ -735,7 +726,7 @@ static void var_list_destroy(var_t * var)
    /***** Check for data. *****/
    if (var->list == 0)
    {
-      assert(var->list_size == 0);
+      SLP_ASSERT(var->list_size == 0);
       return;
    }
 
@@ -759,7 +750,7 @@ static void var_list_destroy(var_t * var)
 static void var_free(var_t * var)
 {
    /***** Sanity check. *****/
-   assert(var->next == 0);
+   SLP_ASSERT(var->next == 0);
 
    /***** Free variable. *****/
    var_list_destroy(var);
@@ -771,7 +762,7 @@ static void var_free(var_t * var)
 /* Adds a value to a variable. */
 static SLPError var_insert(var_t * var, value_t * value, SLPInsertionPolicy policy)
 {
-   assert(policy == SLP_ADD || policy == SLP_REPLACE);
+   SLP_ASSERT(policy == SLP_ADD || policy == SLP_REPLACE);
 
    if (value == 0)
       return SLP_OK;
@@ -933,7 +924,7 @@ static SLPError attr_type_verify(struct xx_SLPAttributes * slp_attr,
 {
    (void)slp_attr;
 
-   assert(var->type != -1); /* Check that it's been set. */
+   SLP_ASSERT(var->type != -1); /* Check that it's been set. */
    if (var->type == type)
       return SLP_OK;
 
@@ -1012,7 +1003,7 @@ SLPError SLPAttrSet_bool(SLPAttributes attr_h, const char * tag,
    /***** Set the initial (and only) value. *****/
    /**** Create ****/
    value = value_new(0);
-   assert(value);
+   SLP_ASSERT(value);
 
    /**** Set escaped information. ****/
    if (val == SLP_TRUE)
@@ -1047,7 +1038,7 @@ SLPError SLPAttrSet_str(SLPAttributes attr_h, const char * tag,
    unescaped_len = strlen(val);
 
    value = value_new(unescaped_len);
-   assert(value);
+   SLP_ASSERT(value);
 
    /**** Copy data. ****/
    value->data.va_str = ((char *) value) + sizeof(value_t);
@@ -1101,7 +1092,7 @@ SLPError SLPAttrSet_int(SLPAttributes attr_h, const char * tag, int val,
    /**** Set ****/
    value->data.va_int = val;
    value->escaped_len = count_digits(value->data.va_int);
-   assert(value->escaped_len > 0);
+   SLP_ASSERT(value->escaped_len > 0);
 
    return generic_set_val(slp_attr, tag, (int) strlen(tag), value, policy,
                SLP_INTEGER);
@@ -1230,7 +1221,7 @@ SLPError SLPAttrGet_bool(SLPAttributes attr_h, const char * tag,
    if (var->type != SLP_BOOLEAN)
       return SLP_TYPE_ERROR;
 
-   assert(var->list != 0);
+   SLP_ASSERT(var->list != 0);
 
    *val = var->list->data.va_bool;
 
@@ -1260,7 +1251,7 @@ SLPError SLPAttrGet_keyw(SLPAttributes attr_h, const char * tag)
    if (var->type != SLP_KEYWORD)
       return SLP_TYPE_ERROR;
 
-   assert(var->list == 0);
+   SLP_ASSERT(var->list == 0);
 
    return SLP_OK;
 }
@@ -1310,11 +1301,11 @@ SLPError SLPAttrGet_int(SLPAttributes attr_h, const char * tag, int ** val,
       return SLP_MEMORY_ALLOC_FAILED;
 
    /***** Set values *****/
-   assert(var->list != 0);
+   SLP_ASSERT(var->list != 0);
    value = var->list;
    for (i = 0; i < var->list_size; i++, value = value->next)
    {
-      assert(value != 0);
+      SLP_ASSERT(value != 0);
       (*val)[i] = value->data.va_int;
    }
 
@@ -1367,14 +1358,14 @@ SLPError SLPAttrGet_str(SLPAttributes attr_h, const char * tag, char *** val,
       return SLP_MEMORY_ALLOC_FAILED;
 
    /***** Set values *****/
-   assert(var->list != 0);
+   SLP_ASSERT(var->list != 0);
    value = var->list;
    for (i = 0; i < var->list_size; i++, value = value->next)
    {
-      assert(value != 0);
+      SLP_ASSERT(value != 0);
       /* (*val)[i] = strdup(value->data.va_str); */
       (*val)[i] = malloc(value->unescaped_len + 1);
-      assert((*val)[i] != 0);
+      SLP_ASSERT((*val)[i] != 0);
       memcpy((*val)[i], value->data.va_str, value->unescaped_len);
       (*val)[i][value->unescaped_len] = 0;
    }
@@ -1429,11 +1420,11 @@ SLPError SLPAttrGet_opaque(SLPAttributes attr_h, const char * tag,
       return SLP_MEMORY_ALLOC_FAILED;
 
    /***** Set values *****/
-   assert(var->list != 0);
+   SLP_ASSERT(var->list != 0);
    value = var->list;
    for (i = 0; i < var->list_size; i++, value = value->next)
    {
-      assert(value != 0);
+      SLP_ASSERT(value != 0);
       (*val)[i] = (SLPOpaque *) malloc(sizeof(SLPOpaque));
       if ((*val)[i]->data == 0)
       {
@@ -1535,7 +1526,7 @@ static int internal_store(struct xx_SLPAttributes * slp_attr, char const * tag,
    value_t * val = 0;
    value_t ** next_val_ptr; /* Pointer from the previous val to the next val. */
 
-   assert(type == SLP_BOOLEAN
+   SLP_ASSERT(type == SLP_BOOLEAN
          || type == SLP_STRING
          || type == SLP_OPAQUE
          || type == SLP_INTEGER); /* Ensure that we're dealing with a known type. */
@@ -1602,26 +1593,26 @@ static int internal_store(struct xx_SLPAttributes * slp_attr, char const * tag,
       switch (type)
       {
          case(SLP_BOOLEAN):
-            assert(val_count == 1);
+            SLP_ASSERT(val_count == 1);
 
             /* Set value. */
             if (*cur_start == 't' || *cur_start == 'T')
             {
-               assert(strncasecmp(cur_start, BOOL_TRUE_STR, BOOL_TRUE_STR_LEN)
+               SLP_ASSERT(strncasecmp(cur_start, BOOL_TRUE_STR, BOOL_TRUE_STR_LEN)
                      == 0); /* Make sure that we do, in actual fact, have the string "true". */
                val->data.va_bool = SLP_TRUE;
                val->escaped_len = BOOL_TRUE_STR_LEN;
             }
             else if (*cur_start == 'f' || *cur_start == 'F')
             {
-               assert(strncasecmp(cur_start, BOOL_FALSE_STR,
+               SLP_ASSERT(strncasecmp(cur_start, BOOL_FALSE_STR,
                            BOOL_FALSE_STR_LEN)
                      == 0); /* Make sure that we do, in actual fact, have the string "false". */
                val->data.va_bool = SLP_FALSE;
                val->escaped_len = BOOL_FALSE_STR_LEN;
             }
             else
-               assert(0);
+               SLP_ASSERT(0);
 
             mem_block += val->unescaped_len;
 
@@ -1648,7 +1639,7 @@ static int internal_store(struct xx_SLPAttributes * slp_attr, char const * tag,
             }
             break;
          default:
-            assert(0); /* Unknown type. */
+            SLP_ASSERT(0); /* Unknown type. */
       }
 
 #if 1 /* Jim Meyer's byte allignment code */
@@ -1814,14 +1805,14 @@ SLPError SLPAttrSerialize(SLPAttributes attr_h,
          }
 
          /** Count number of commas needed for multivalued attributes. **/
-         assert(var->list_size >= 0);
+         SLP_ASSERT(var->list_size >= 0);
          size += (var->list_size - 1) * VAR_SEPARATOR_LEN;
 
          /** Count the semantics needed to store a multivalue list **/
          size += VAR_NON_KEYWORD_SEMANTIC_LEN;
       }
       else
-         assert(var->list == 0);
+         SLP_ASSERT(var->list == 0);
 
       /*** Count number of variables ***/
       var_count++;
@@ -1903,16 +1894,16 @@ SLPError SLPAttrSerialize(SLPAttributes attr_h,
 
          /*** Insert value (list) ***/
          value = var->list;
-         assert(value);
+         SLP_ASSERT(value);
          while (value)
          {
             /* foreach member value of an attribute. */
-            assert(var->type != SLP_KEYWORD);
+            SLP_ASSERT(var->type != SLP_KEYWORD);
             switch (var->type)
             {
                case(SLP_BOOLEAN):
-                  assert(value->next == 0); /* Can't be a multivalued list. */
-                  assert(value->data.va_bool == SLP_TRUE
+                  SLP_ASSERT(value->next == 0); /* Can't be a multivalued list. */
+                  SLP_ASSERT(value->data.va_bool == SLP_TRUE
                         || value->data.va_bool == SLP_FALSE);
 
                   if (value->data.va_bool == SLP_TRUE)
@@ -1987,7 +1978,7 @@ SLPError SLPAttrSerialize(SLPAttributes attr_h,
     * be safe than sorry =) *****/
    *cur = '\0';
 
-   assert((unsigned) (cur - build_str) == size && size == strlen(build_str));
+   SLP_ASSERT((unsigned) (cur - build_str) == size && size == strlen(build_str));
 
    *out_buffer = build_str;
 
@@ -2078,7 +2069,7 @@ static SLPError SLPAttrStore(struct xx_SLPAttributes * slp_attr, const char * ta
          SLPError err;
          err = SLPAttrSet_int((SLPAttributes) slp_attr, tag,
                      (int) strtol(val, &end, 10), policy);
-         assert(end == val + len);
+         SLP_ASSERT(end == val + len);
          return err;
       }
    }
@@ -2146,7 +2137,7 @@ static SLPError attr_destringify(struct xx_SLPAttributes * slp_attr,
 
    (void)policy;
 
-   assert(str != 0);
+   SLP_ASSERT(str != 0);
    if (strlen(str) == 0)
       return SLP_OK;
 
@@ -2176,7 +2167,7 @@ static SLPError attr_destringify(struct xx_SLPAttributes * slp_attr,
                if (end == 0)
                {
                   /* FIXME Ummm, I dunno. */
-                  assert(0);
+                  SLP_ASSERT(0);
                }
                /*** Check that the tag ends on a legal ending char. ***/
                if (*end == ',')
@@ -2216,7 +2207,7 @@ static SLPError attr_destringify(struct xx_SLPAttributes * slp_attr,
             if (*end == VAR_INFIX)
             {
                tag_len = (int) (end - cur); /* Note that end is on the character _after_ the last character of the tag (the =). */
-               assert(tag == 0);
+               SLP_ASSERT(tag == 0);
                tag = cur; 
                cur = end + VAR_INFIX_LEN;
                state = VALUE;
@@ -2231,7 +2222,7 @@ static SLPError attr_destringify(struct xx_SLPAttributes * slp_attr,
 
          case(VALUE):
             /* At the beginning of the value portion. */
-            assert(tag != 0); /* We should not be able to get into this state: is the string is malformed? */
+            SLP_ASSERT(tag != 0); /* We should not be able to get into this state: is the string is malformed? */
             {
                /*** Find the end of the entire value list. ***/
                int errval;
@@ -2269,7 +2260,7 @@ static SLPError attr_destringify(struct xx_SLPAttributes * slp_attr,
             /*** End of the attribute? ***/
             else if (*cur == VAR_SUFFIX)
             {
-               assert(tag != 0);
+               SLP_ASSERT(tag != 0);
                tag = 0;
                cur += VAR_SUFFIX_LEN;
 
@@ -2383,7 +2374,7 @@ SLPError SLPAttrFreshen(SLPAttributes slp_attr_h, const char * str)
 //   SLPAttributes attr;
 //   SLPBoolean result;
 //
-//   assert(errcode == SLP_OK || errcode == SLP_LAST_CALL);
+//   SLP_ASSERT(errcode == SLP_OK || errcode == SLP_LAST_CALL);
 //
 //   if (errcode == SLP_OK)
 //   {
@@ -2397,7 +2388,7 @@ SLPError SLPAttrFreshen(SLPAttributes slp_attr_h, const char * str)
 //
 //      destringify(attr, attrlist);
 //      result = hop->cb(hslp, attr, errcode, hop->cookie);
-//      assert(result == SLP_TRUE || result == SLP_FALSE);
+//      SLP_ASSERT(result == SLP_TRUE || result == SLP_FALSE);
 //      SLPAttrFree(attr);
 //   }
 //   else if (errcode == SLP_LAST_CALL)
@@ -2456,7 +2447,7 @@ SLPError SLPAttrFreshen(SLPAttributes slp_attr_h, const char * str)
 // var_t *var;
 // int i;
 //
-// assert(slp_attr != 0);
+// SLP_ASSERT(slp_attr != 0);
 //
 // iter = (struct xx_SLPAttrIterator *)malloc(sizeof(struct xx_SLPAttrIterator)); /* free()'d in SLPAttrIteratorFree(). */
 // if (iter == 0) {
@@ -2476,7 +2467,7 @@ SLPError SLPAttrFreshen(SLPAttributes slp_attr_h, const char * str)
 // var = slp_attr->attrs;
 //
 // for (i = 0; i < iter->element_count; i++, var = var->next) {
-//    assert(var != 0);
+//    SLP_ASSERT(var != 0);
 //    
 //    iter->tags[i] = strdup(var->tag);
 //    
@@ -2568,7 +2559,7 @@ SLPError SLPAttrIteratorAlloc(SLPAttributes attr_h, SLPAttrIterator * iter_h)
    struct xx_SLPAttrIterator * iter;
    struct xx_SLPAttributes * slp_attr = (struct xx_SLPAttributes *) attr_h;
 
-   assert(slp_attr != 0);
+   SLP_ASSERT(slp_attr != 0);
 
    iter = (struct xx_SLPAttrIterator *)
          malloc(sizeof(struct xx_SLPAttrIterator)); /* free()'d in SLPAttrIteratorFree(). */

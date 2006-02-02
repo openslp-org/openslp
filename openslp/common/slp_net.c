@@ -43,11 +43,11 @@
 
 #include "../libslp/slp.h"
 
+#include "slp_types.h"
+#include "slp_debug.h"
 #include "slp_net.h"
 #include "slp_xmalloc.h"
 #include "slp_property.h"
-
-#include <assert.h>
 
 #define slp_min(a,b) (((a)<(b))?(a):(b))
 
@@ -904,7 +904,7 @@ static int SLPNetGetThisHostname(char * hostfdn, size_t hostfdnLen,
          freeaddrinfo(ifaddr);
       }
       else
-         assert(1);  /* TODO: what? assert(1) does nothing by definition! */
+         SLP_ASSERT(1);  /* TODO: what? assert(1) does nothing by definition! */
    }
    return(sts);
 }

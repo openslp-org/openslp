@@ -41,14 +41,11 @@
  * @ingroup    CommonCode
  */
 
-#include <stdlib.h>
-#include <string.h>
-#include <errno.h>
-
 #if !defined(UNICAST_NOT_SUPPORTED)
 # include "../libslp/slp.h"
 #endif
 
+#include "slp_types.h"
 #include "slp_xcast.h"
 #include "slp_message.h"
 #include "slp_net.h"

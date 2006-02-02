@@ -41,8 +41,6 @@
 #include "slp_types.h"
 #include "slp_debug.h"
 
-#include <stdio.h>
-
 int SLPAssertionFailed(const char * assertion, const char * file, int line)
 {
 #ifdef _WIN32

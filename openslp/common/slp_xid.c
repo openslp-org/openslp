@@ -42,16 +42,9 @@
  * @ingroup    CommonCode
  */
 
-#include <stdlib.h>
-#include <time.h>
-
+#include "slp_types.h"
 #include "slp_xid.h"
 #include "slp_pid.h"
-
-#ifndef _WIN32
-# define srand srandom
-# define rand  random
-#endif
 
 /** The last returned transaction id (XID) value. 
  */

@@ -41,10 +41,7 @@
  * @ingroup    LibSLPCode
  */
 
-#include <libslpattr.h>
-#include <stdlib.h>
-#include <string.h>
-#include <assert.h>
+#include "libslpattr.h"
 
 /*****************************************************************************
  *
@@ -135,7 +132,7 @@ SLPError SLPAttrSerialize(SLPAttributes attr_h,
       /* +1 for null. */
       return SLP_BUFFER_OVERFLOW;
    }
-   assert(out_buffer != NULL && *out_buffer != NULL); /* Verify we have somewhere to write. */
+   SLP_ASSERT(out_buffer != NULL && *out_buffer != NULL); /* Verify we have somewhere to write. */
 
 
    /* Check for empty string. */

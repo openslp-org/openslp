@@ -48,8 +48,9 @@
  * @{
  */
 
-#include "slpd.h"
+#include "slp_types.h"
 #include "slp_spi.h"
+#include "slpd.h"
 
 extern SLPSpiHandle G_SlpdSpiHandle;
 

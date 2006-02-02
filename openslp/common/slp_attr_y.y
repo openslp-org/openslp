@@ -59,10 +59,7 @@
 
 %{
 
-#include <unistd.h>
-#include <string.h>
-#include <stdlib.h>
-
+#include "slp_types.h"
 #include "slp_attr.h"
 #include "slp_linkedlist.h"
 

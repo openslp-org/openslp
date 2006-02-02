@@ -48,10 +48,6 @@
  * @{
  */
 
-#include <stdlib.h>
-#include <string.h>
-#include <errno.h>
-
 #include "slp_types.h"
 #include "slp_buffer.h"
 #include "slp_property.h"

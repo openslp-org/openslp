@@ -38,12 +38,9 @@
  * @ingroup    CommonCode
  */
 
+#include "slp_types.h"
 #include "slp_parse.h"
 #include "slp_xmalloc.h"
-
-#include <stdlib.h>
-#include <string.h>
-#include <errno.h>
 
 /** Parse a service URL.
  *

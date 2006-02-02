@@ -48,9 +48,10 @@
  * @{
  */
 
-#include "slpd.h"
+#include "slp_types.h"
 #include "slp_message.h"
 #include "slp_database.h"
+#include "slpd.h"
 
 #define SLPDLOG_TRACEMSG     0x80000000
 #define SLPDLOG_TRACEDROP    0x40000000

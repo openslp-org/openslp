@@ -41,9 +41,7 @@
  * @ingroup    CommonCode
  */
 
-#include <string.h>
-#include <stdio.h>
-
+#include "slp_types.h"
 #include "slp_predicate.h"
 #include "slp_linkedlist.h"
 

@@ -43,31 +43,14 @@
 
 #include "slptool.h"
 
-#ifdef _WIN32
-# define strncasecmp _strnicmp
-# define strcasecmp _stricmp
-# define inet_aton(opt, bind) ((bind)->s_addr = inet_addr(opt))
-# define strdup _strdup
-#else
-# ifdef HAVE_CONFIG_H
-#  include "config.h"
-# endif /* HAVE_CONFIG_H */
-# ifdef HAVE_STRINGS_H
-#  include <strings.h>
-# else
-#  ifdef HAVE_STRING_H
-#   include <string.h>
-#  endif /* HAVE_STRING_H */
-# endif /* HAVE_STRINGS_H */
-# ifndef HAVE_STRNCASECMP
+#ifndef _WIN32
+# ifndef HAVE_STRCASECMP
 static int strncasecmp(const char * s1, const char * s2, size_t len)
 {
    while (len && *s1 && *s2 && ((*s1 ^ *s2) & ~0x20) == 0)
       len--, s1++, s2++;
    return len? (int)(*(unsigned char *)s1 - *(unsigned char *)s2): 0;
 }
-# endif
-# ifndef HAVE_STRCASECMP
 static int strcasecmp(const char * s1, const char * s2)
 {
    while (*s1 && *s2 && ((*s1 ^ *s2) & ~0x20) == 0)
@@ -75,7 +58,6 @@ static int strcasecmp(const char * s1, const char * s2)
    return (int)(*(unsigned char *)s1 - *(unsigned char *)s2);
 }
 # endif
-# define SLP_VERSION VERSION
 #endif 
 
 static SLPBoolean mySrvTypeCallback(SLPHandle hslp, 

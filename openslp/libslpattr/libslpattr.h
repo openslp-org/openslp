@@ -47,10 +47,10 @@
  * @{
  */
 
+#include "../common/slp_types.h"
 #include "../common/slp_compare.h"
 #include "../common/slp_net.h"
 #include "../libslp/slp.h"
-#include <stdio.h>
 
 #define SLP_TAG_BAD 300
 #define SLP_TAG_ERROR 400

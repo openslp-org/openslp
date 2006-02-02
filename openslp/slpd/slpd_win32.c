@@ -38,7 +38,8 @@
  * @ingroup    SlpdCode
  */
 
-#include "slpd.h"
+#include "slp_types.h"
+
 #include "slpd_cmdline.h"
 #include "slpd_log.h"
 #include "slpd_property.h"
@@ -47,6 +48,7 @@
 #include "slpd_incoming.h"
 #include "slpd_outgoing.h"
 #include "slpd_knownda.h"
+#include "slpd.h"
 
 #include "slp_linkedlist.h"
 #include "slp_xid.h"

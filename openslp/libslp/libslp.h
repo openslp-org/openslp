@@ -47,10 +47,10 @@
  * @{
  */
 
+#include "slp_types.h"
 #include "slp_buffer.h"
 #include "slp_linkedlist.h"
 #include "slp_socket.h"
-#include "slp_types.h"
 #include "slp_atomic.h"
 #include "slp_thread.h"
 #include "slp_debug.h"

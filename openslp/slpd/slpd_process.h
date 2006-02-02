@@ -48,8 +48,9 @@
  * @{
  */
 
-#include "slpd.h"  
+#include "slp_types.h"
 #include "slp_buffer.h"
+#include "slpd.h"  
 
 int SLPDProcessMessage(struct sockaddr_storage * peerinfo,
       struct sockaddr_storage * localaddr, SLPBuffer recvbuf, 

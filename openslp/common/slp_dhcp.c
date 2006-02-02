@@ -38,16 +38,11 @@
  * @ingroup    CommonCode
  */
 
+#include "slp_types.h"
 #include "slp_dhcp.h"
 #include "slp_message.h"
 #include "slp_xmalloc.h"
 #include "slp_net.h"
-#include "slp_types.h"
-
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
-#include <errno.h>
 
 /* UDP port numbers, server and client. */
 #define IPPORT_BOOTPS      67

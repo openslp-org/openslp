@@ -41,18 +41,15 @@
  * @ingroup    CommonCode
  */
 
+#include "slp_types.h"
 #include "slp_iface.h"
 #include "slp_xmalloc.h"
 #include "slp_compare.h"
 #include "slp_net.h"
 #include "slp_property.h"
 #include "slp_socket.h"
-#include "slp_types.h"
 
-#include <errno.h>
-#include <stdio.h>
-#include <string.h>
-
+/* fix this ~~~jmc */
 //#ifdef SOLARIS
 //# include <sys/sockio.h>
 //#endif

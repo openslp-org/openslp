@@ -48,8 +48,9 @@
  * @{
  */
 
-#include "slpd.h"
+#include "slp_types.h"
 #include "slp_database.h"
+#include "slpd.h"
 
 #define SLPDDATABASE_INITIAL_URLCOUNT           256
 #define SLPDDATABASE_INITIAL_SRVTYPELISTLEN     2048

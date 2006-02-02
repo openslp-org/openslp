@@ -42,10 +42,7 @@
  * @ingroup    CommonCode
  */
 
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
-
+#include "slp_types.h"
 #include "slp_v1message.h"
 #include "slp_utf8.h"
 

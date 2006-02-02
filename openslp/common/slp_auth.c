@@ -48,8 +48,7 @@
 
 #ifdef ENABLE_SLPv2_SECURITY
 
-#include <time.h>
-
+#include "slp_types.h"
 #include "slp_xmalloc.h"
 #include "slp_auth.h"
 #include "slp_crypto.h"

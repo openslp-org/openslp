@@ -47,11 +47,10 @@
 
 #ifdef ENABLE_SLPv2_SECURITY
 
+#include "slp_types.h"
 #include "slp_spi.h"
 #include "slp_xmalloc.h"
 
-#include <string.h>
-#include <stdio.h>
 #include <openssl/pem.h>
 #include <openssl/bn.h>
 

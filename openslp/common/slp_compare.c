@@ -41,9 +41,7 @@
  * @ingroup    CommonCode
  */
 
-#include <string.h>
-#include <ctype.h>
-
+#include "slp_types.h"
 #include "slp_xmalloc.h"
 #include "slp_compare.h"
 #include "slp_net.h"

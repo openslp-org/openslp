@@ -48,7 +48,7 @@
  * @{
  */
 
-#include <stddef.h>
+#include "slp_types.h" 
 
 #ifdef DEBUG
 
@@ -85,14 +85,7 @@ void xmalloc_deinit(void);
 
 #else    /* ?DEBUG */
 
-#include <stdlib.h>
-#include <string.h>
-
 void * memdup(const void * ptr, size_t srclen);
-
-#ifdef _WIN32
-# define strdup   _strdup
-#endif
 
 #define xmalloc   malloc
 #define xcalloc   calloc

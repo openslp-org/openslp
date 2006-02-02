@@ -100,12 +100,9 @@
 #define yyname        slp_filter_yyname
 #define yyrule        slp_filter_yyrule
 
+#include "slp_types.h"
 #include "slp_filter.h"
 #include "slp_linkedlist.h"
-
-#include <unistd.h>
-#include <string.h>
-#include <stdlib.h>
 
 #ifndef FALSE
 # define FALSE   0

@@ -48,8 +48,9 @@
  * @{
  */
 
-#include "slpd.h"
+#include "slp_types.h"
 #include "slp_iface.h"
+#include "slpd.h"
 
 /** A structure that holds the value of all the properties slpd cares about.
  */

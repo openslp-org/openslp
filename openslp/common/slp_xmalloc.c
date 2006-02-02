@@ -44,18 +44,11 @@
  * @ingroup    CommonCode
  */
 
+#include "slp_types.h"
 #include "slp_xmalloc.h"
-#include <string.h>
 
 #ifdef DEBUG
 
-#include <stdlib.h>
-#include <stdio.h>
-
-#ifdef _WIN32
-# define snprintf _snprintf
-#endif
- 
 static SLPList G_xmalloc_list = {0, 0, 0};
 static FILE * G_xmalloc_fh = 0;
 static size_t G_xmalloc_freemem = 0;

@@ -40,10 +40,6 @@
 
 #include "slpd_cmdline.h"
 
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
-
 #ifndef ETCDIR
 # define ETCDIR "/etc"
 #endif
