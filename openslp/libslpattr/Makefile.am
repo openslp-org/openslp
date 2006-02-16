@@ -33,7 +33,6 @@
 
 EXTRA_DIST = libslpattr.dsp libslpattr.dsw libslpattr.mak
 
-AM_CFLAGS = -Werror
 AM_LDFLAGS = -static
 
 #if you're building on Irix, replace .la with .a below

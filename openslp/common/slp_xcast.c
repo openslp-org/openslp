@@ -327,14 +327,14 @@ int SLPXcastSocketsClose(SLPXcastSockets * socks)
  */
 /* #define SLP_XMIT_TEST */
 #ifdef SLP_XMIT_TEST
-void main(void)
+int main(void)
 {
    SLPIfaceInfo ifaceinfo;
    SLPIfaceInfo ifaceinfo6;
    SLPXcastSockets socks;
    SLPBuffer buffer;
    /* multicast srvloc address */
-   BYTE v6Addr[] = {0xFF, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 
+   uint8_t v6Addr[] = {0xFF, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 
          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x16};
    struct sockaddr_storage dst;
 
@@ -347,7 +347,7 @@ void main(void)
    buffer = SLPBufferAlloc(SLP_MAX_DATAGRAM_SIZE);
    if (buffer)
    {
-      strcpy(buffer->start, "testdata");
+      strcpy((char *)buffer->start, "testdata");
 
       SLPIfaceGetInfo(NULL,&ifaceinfo, AF_INET);
       SLPIfaceGetInfo(NULL,&ifaceinfo6, AF_INET6);
@@ -366,7 +366,7 @@ void main(void)
       SLPXcastSocketsClose(&socks);
 
       /* set up address and scope for v6 multicast */
-      SLPNetSetAddr(&dst, AF_INET6, 0, (BYTE *)v6Addr, sizeof(v6Addr));
+      SLPNetSetAddr(&dst, AF_INET6, 0, (uint8_t *)v6Addr);
       if (SLPMulticastSend(&ifaceinfo6, buffer, &socks, &dst) !=0)
          printf("\n SLPMulticast failed for ipv\n");
       SLPXcastSocketsClose(&socks);
@@ -379,6 +379,8 @@ void main(void)
 #ifdef _WIN32
    WSACleanup();
 #endif
+
+   return 0;
 }
 
 #endif

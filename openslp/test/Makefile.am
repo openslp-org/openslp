@@ -33,8 +33,6 @@
 
 EXTRA_DIST = slp_debug.h
 
-AM_CFLAGS = -Werror
-
 TESTS = \
 	SLPOpen/test.script SLPFindSrvTypes/test.script \
 	SLPFindSrvs/test.script SLPReg/test.script \

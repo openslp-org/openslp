@@ -33,8 +33,6 @@
 
 EXTRA_DIST =
 
-AM_CFLAGS = -Werror
-
 sbin_PROGRAMS = slpd
 
 INCLUDES = \

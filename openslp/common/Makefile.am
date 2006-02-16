@@ -34,7 +34,6 @@
 #if you're building on Irix, replace .la with .a below
 noinst_LTLIBRARIES = libcommonslpd.la libcommonlibslp.la
 
-AM_CFLAGS = -Werror
 AM_YFLAGS = -d
 AM_LDFLAGS = -static
 

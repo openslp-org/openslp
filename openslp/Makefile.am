@@ -36,13 +36,11 @@
 ##
 ##---------------------------------------------------------------------------
 
-SUBDIRS = common libslpattr slpd libslp slptool test
+SUBDIRS = common libslpattr slpd libslp slptool utest
 
 EXTRA_DIST = win32 doc doxygen etc README.W32 FAQ
 
 DOC_DIR = $(prefix)/doc/openslp-$(VERSION)
-
-AM_CFLAGS = -Werror
 
 install-data-local:
 	mkdir -p $(DESTDIR)$(sysconfdir)

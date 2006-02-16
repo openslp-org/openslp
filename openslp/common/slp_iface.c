@@ -159,7 +159,7 @@ int SLPIfaceGetInfo(const char * useifaces, SLPIfaceInfo * ifaceinfo,
 
    /* attempt to retrieve the interfaces from the configuration file */
    interfaceString = (char *)SLPPropertyGet("net.slp.interfaces");
-   if (*interfaceString == 0)
+   if (interfaceString == 0 || *interfaceString == 0)
    {
       /* they don't have any setting in their conf file, so put in the default info */
       if (SLPNetIsIPV6() && ((family == AF_INET6) || (family == AF_UNSPEC)))

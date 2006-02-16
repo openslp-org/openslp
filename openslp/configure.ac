@@ -1,14 +1,16 @@
 #
-# Process this file with autoconf to produce a configure script.
+## Process this file with autoconf to produce a configure script
 
 AC_INIT(openslp, 2.0.0, openslp-devel@lists.sourceforge.net)
 AM_INIT_AUTOMAKE
+
 AC_PREREQ(2.59)
+
 AC_CONFIG_HEADERS(config.h)
 AC_CONFIG_SRCDIR(slpd/slpd_main.c)
 
 #
-# Checks for programs
+# Checks for tools (programs)
 
 AC_PROG_CC
 AC_PROG_CPP
@@ -44,6 +46,13 @@ OPENSLP_CHECK_TYPE(socklen_t, int,
 OPENSLP_STRUCT_SA_RESTORER
 
 #
+# Checks for compiler characteristics
+
+AC_C_CONST
+AC_C_INLINE
+AC_C_BIGENDIAN
+
+#
 # Checks for library functions
 
 AC_REPLACE_FNMATCH
@@ -51,147 +60,144 @@ AC_FUNC_FORK
 AC_FUNC_MEMCMP
 AC_FUNC_SELECT_ARGTYPES
 AC_FUNC_VPRINTF
-
 AC_CHECK_FUNCS([strchr memcpy strcasecmp strdup strtol strerror isascii alarm gethostname gettimeofday select socket])
 
 #
-# We don't want /usr/etc or /usr/var
-
-test "$prefix" = NONE && prefix=/usr
-if test "$prefix" = '/usr'; then 
-    # We don't want /usr/etc and /usr/var
-    test "$sysconfdir" = '${prefix}/etc' && sysconfdir=/etc
-    test "$sharedstatedir" = '${prefix}/com' && localstatedir=/var
-    test "$localstatedir" = '${prefix}/var' && localstatedir=/var
-fi
-
-#
-# Take care of the debug stuff
+# Generic DEBUG support - default is OFF
+#   ON means with symbols, no optimization, DEBUG is defined
+#   OFF means with symbols, full optimization, NDEBUG is defined
 
 AC_ARG_ENABLE(debug,
-[  --enable-debug          Turn on debugging (default off)],
-debug=$enableval, debug=no)
-
-CFLAGS="${CFLAGS:=}"
-LDFLAGS="${LDFLAGS:=}"
-
-case "$debug" in
-  yes) CFLAGS="-g -DDEBUG -D_REENTRANT=1 $CFLAGS" ;;
-  no)  CFLAGS="-DNDEBUG -D_REENTRANT=1 $CFLAGS" ;;
-  *) AC_MSG_ERROR(bad value ${debug} for --enable-debug) ;;
-esac
-
-#
-# System type macros
-
-case "$host_os" in
-  *linux*) CFLAGS="$CFLAGS -DLINUX" ;;
-  *solaris*) CFLAGS="$CFLAGS -DSOLARIS";;
-  *aix*) CFLAGS="$CFLAGS -DAIX";;
-  *hpux*) CFLAGS="$CFLAGS -DHPUX";;
-esac
-
-#
-# SLPv1 support can be turned off
-
-AC_ARG_ENABLE(slpv1,
-[  --enable-slpv1          Turn on SLPv1 support (default on)],
-slpv1=$enableval, slpv1=yes)
-
-#
-# Conditional for optional SLPv1 support
-
-AM_CONDITIONAL(ENABLE_SLPv1, test "$slpv1" = "yes")
-
-if test "$slpv1" = "yes"; then
-    AC_DEFINE(ENABLE_SLPv1, 1, [defined if struct sigaction has member sa_restorer])
+  AS_HELP_STRING([--enable-debug], [Turn on debugging (default is OFF)]),
+  [case "${enableval}" in
+    yes) debug=yes ;;
+    no)  debug=no  ;;
+    *)   AC_MSG_ERROR(bad value ${enableval} for --enable-debug) ;;
+  esac], [debug=no])
+AM_CONDITIONAL(DEBUG, test x$debug = xyes)
+AM_CONDITIONAL(NDEBUG, test x$debug = xno)
+if test x$debug = xyes; then
+  AC_DEFINE(DEBUG, 1, [Defined for debug builds])
+else
+  AC_DEFINE(NDEBUG, 1, [Defined for non-debug builds])
 fi
 
 #
-# Handle predicates 
+# SLPv1 support - default is ON
+#   ON means ENABLE_SLPv1 is defined
 
-AC_ARG_ENABLE(predicates,
-[  --disable-predicates    Turn off predicates],
-predicates=$enableval, predicates=yes)
-
-#
-# Conditional for optional predicates support
-
-AM_CONDITIONAL(ENABLE_PREDICATES, test "$predicates" = "yes")
-
-if test "$predicates" = "yes"; then
-    AC_DEFINE(ENABLE_PREDICATES, 1, [defined if predicates are enabled])
+AC_ARG_ENABLE(slpv1, 
+  AS_HELP_STRING([--enable-slpv1], [Turn on SLPv1 support (default is ON)]),
+  [case "${enableval}" in
+    yes) slpv1=yes ;;
+    no)  slpv1=no  ;;
+    *)   AC_MSG_ERROR(bad value ${enableval} for --enable-slpv1) ;;
+  esac], [slpv1=yes])
+AM_CONDITIONAL(ENABLE_SLPv1, test x$slpv1 = xyes)
+if test x$slpv1 = xyes; then
+  AC_DEFINE(ENABLE_SLPv1, 1, [Defined for SLPv1 support])
 fi
 
 #
-# Enable asyncronous support in libslp SLP API library 
+# Predicate support - default is ON
+#   ON means ENABLE_PREDICATES is defined
+
+AC_ARG_ENABLE(predicates, 
+  AS_HELP_STRING([--disable-predicates], [Turn off predicates (default is ON)]),
+  [case "${enableval}" in
+    yes) predicates=yes ;;
+    no)  predicates=no  ;;
+    *)   AC_MSG_ERROR(bad value ${enableval} for --enable-predicates) ;;
+  esac], [predicates=yes])
+AM_CONDITIONAL(ENABLE_PREDICATES, test x$predicates = xyes)
+if test x$predicates = xyes; then
+  AC_DEFINE(ENABLE_PREDICATES, 1, [Defined for predicate support])
+fi
+
+#
+# Asyncronous API support - default is ON
+#   ON means ENABLE_ASYNC_API is defined
 
 AC_ARG_ENABLE(async-api,
-[  --enable-async-api      Turn on asyncronous support (default off)],
-asyncapi=$enableval, asyncapi=no)
-
-#
-# Conditional for optional asyncronous support in libslp SLP API library
-
-AM_CONDITIONAL(ENABLE_ASYNC_API, test "$asyncapi" = "yes")
-
-if test "$asyncapi" = "yes"; then
-    AC_DEFINE(ENABLE_ASYNC_API, 1, [defined if the async SLP API support is enabled])
+  AS_HELP_STRING([--enable-async-api], [Turn on asyncronous API support (default is ON)]),
+  [case "${enableval}" in
+    yes) asyncapi=yes ;;
+    no)  asyncapi=no  ;;
+    *)   AC_MSG_ERROR(bad value ${enableval} for --enable-async-api) ;;
+  esac], [asyncapi=yes])
+AM_CONDITIONAL(ENABLE_ASYNC_API, test x$asyncapi = xyes)
+if test x$asyncapi = xyes; then
+  AC_DEFINE(ENABLE_ASYNC_API, 1, [Defined for async API support])
 fi
 
 #
-# Enable security support 
+# SLPv2 Security features support - default is ON
+#   ON means ENABLE_SLPv2_SECURITY is defined
 
 AC_ARG_ENABLE(slpv2-security,
-[  --enable-slpv2-security Turn on security support (default off)],
-slpv2security=$enableval,
-slpv2security=no)
-
-AC_CHECK_LIB(m, log10)
-AC_CHECK_LIB(crypto, DSA_sign) 
-AC_CHECK_FUNCS(DSA_verify DSA_size DSA_free SHA1)
-
-#
-# Conditional for optional security support in libslp SLP API library
-
-AM_CONDITIONAL(ENABLE_SLPv2_SECURITY, test "$slpv2security" = "yes")
-if test "$slpv2security" = "yes"; then
-    AC_DEFINE(ENABLE_SLPv2_SECURITY, 1, [defined if the SLPv2 authentication support is enabled])
+  AS_HELP_STRING([--enable-slpv2-security], [Turn on security support (default is ON)]),
+  [case "${enableval}" in
+    yes) slpv2security=yes ;;
+    no)  slpv2security=no  ;;
+    *)   AC_MSG_ERROR(bad value ${enableval} for --enable-slpv2-security) ;;
+  esac], [slpv2security=yes])
+AM_CONDITIONAL(ENABLE_SLPv2_SECURITY, test x$slpv2security = xyes)
+if test x$slpv2security = xyes; then
+  AC_CHECK_LIB(m, log10)
+  AC_CHECK_LIB(crypto, DSA_sign) 
+  AC_CHECK_FUNCS(DSA_verify DSA_size DSA_free SHA1)
+  AC_DEFINE(ENABLE_SLPv2_SECURITY, 1, [Defined for SLPv2 security support])
 fi
 
 #
-# Set C/C++ compiler specific warning/optimization flags
+# System type macros used in OpenSLP source code
 
-if test X"$GCC" = X"yes"; then        
-    CFLAGS="$CFLAGS -Wall"
-    if test X"$debug" = X"yes"; then
-       CFLAGS="$CFLAGS -Werror"
-    fi
-    if test X"$debug" = X"no"; then 
-       OPTFLAGS="-O3"
-    fi
-    
+case "$host_os" in
+  *linux*)   CFLAGS="$CFLAGS -DLINUX"   ;;
+  *solaris*) CFLAGS="$CFLAGS -DSOLARIS" ;;
+  *aix*)     CFLAGS="$CFLAGS -DAIX"     ;;
+  *hpux*)    CFLAGS="$CFLAGS -DHPUX"    ;;
+esac
+
+#
+# Set C/C++ compiler-specific warning/optimization/option flags
+
+if test x$GCC = xyes; then
+  # GCC: turn on all warnings, set warnings as errors
+  #   disable optimization for debug builds
+  #   enable high-level optimizations for non-debug builds
+  CFLAGS="$CFLAGS -Wall -Werror"
+  if test x$debug = xyes; then 
+    OPTFLAGS="-O0"
+  else
+    OPTFLAGS="-O3"
+  fi
 elif $CC -V 2>&1 | grep "WorkShop Compilers"; then
-    # Allow C++ style comments
-    CFLAGS="$CFLAGS -xCC" 
-    if test X"$debug" = X"no"; then
-        OPTFLAGS="-fast"
-        if echo $CC | grep "xarch=v9"; then
-            # "-fast" sets -xarch=v8 disabling 64-bit mode, enable it again
-            OPTFLAGS="$OPTFLAGS -xarch=v9"
-        fi
+  # Solaris Workshop: enable optimizations for debug builds
+  if test x$debug = xno; then
+    OPTFLAGS="-fast"
+    if echo $CC | grep "xarch=v9"; then
+      # "-fast" sets -xarch=v8 disabling 64-bit mode, enable it again
+      OPTFLAGS="$OPTFLAGS -xarch=v9"
     fi
+  fi
 elif echo $host_os | grep -i "osf" >/dev/null; then
-    CFLAGS="$CFLAGS -std"
-    if test X"$debug" = X"no"; then
-        OPTFLAGS="-O"
-    fi
+  # OSF: enable standard C (shouldn't be necessary)
+  #   enable optimizations for non-debug builds
+  CFLAGS="$CFLAGS -std"
+  if test x$debug = xno; then
+    OPTFLAGS="-O"
+  fi
 else
-    if test X"$debug" = X"no"; then
-        OPTFLAGS="-O"
-    fi
+  # everything else: take a wild guess (shouldn't need this)
+  if test x$debug = xno; then
+    OPTFLAGS="-O"
+  fi
 fi
 CFLAGS="$CFLAGS $OPTFLAGS"
+
+#
+# Configuration and output
 
 AC_CONFIG_FILES([Makefile
 		 common/Makefile

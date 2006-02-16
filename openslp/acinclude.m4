@@ -37,3 +37,18 @@ if test $ac_cv_struct_sa_restorer = yes; then
   AC_DEFINE(HAVE_SA_RESTORER, 1, [defined if struct sigaction has member sa_restorer])
 fi
 ])
+
+# SLP_ENABLE_DEFINE(variable, define variable, help message)
+# Provides an --enable-foo option and a way to set an acconfig.h define switch
+# e.g. SLP_ENABLE_DEFINE([memdebug], [MEM_DEBUG], [Memory Debugging])
+#----------------------------------------------------------------
+AC_DEFUN([SLP_ENABLE_DEFINE],
+        [AC_MSG_CHECKING([config option $1 for setting $2])
+        AC_ARG_ENABLE([$1], AC_HELP_STRING([--enable-$1], [$3]), , enableval=no)
+        AC_MSG_RESULT($enableval)
+        case "$1" in
+	        yes) AC_DEFINE([$2], 1, [$3]) ;; 
+	        no) ;; 
+	        *) AC_MSG_ERROR(bad value ${1} for --enable-$1) ;;
+	esac])
+

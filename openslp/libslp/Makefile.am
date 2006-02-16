@@ -33,8 +33,6 @@
 
 EXTRA_DIST =
 
-AM_CFLAGS = -Werror 
-
 lib_LTLIBRARIES = libslp.la
 include_HEADERS = slp.h
 INCLUDES	= -I$(top_srcdir)/common
