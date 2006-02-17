@@ -36,7 +36,7 @@
 ##
 ##---------------------------------------------------------------------------
 
-SUBDIRS = common libslpattr slpd libslp slptool utest
+SUBDIRS = common libslpattr slpd libslp slptool test
 
 EXTRA_DIST = win32 doc doxygen etc README.W32 FAQ
 

@@ -28,6 +28,7 @@ AC_CHECK_LIB(resolv, inet_aton)
 AC_CHECK_LIB(socket, socket)
 AC_CHECK_LIB(nsl, gethostbyname)
 AC_CHECK_LIB(pthread, pthread_create)
+AC_CHECK_LIB(m, log10)
 
 #
 # Checks for header files
@@ -115,35 +116,34 @@ if test x$predicates = xyes; then
 fi
 
 #
-# Asyncronous API support - default is ON
+# Asyncronous API support - default is OFF
 #   ON means ENABLE_ASYNC_API is defined
 
 AC_ARG_ENABLE(async-api,
-  AS_HELP_STRING([--enable-async-api], [Turn on asyncronous API support (default is ON)]),
+  AS_HELP_STRING([--enable-async-api], [Turn on async API support (default is OFF)]),
   [case "${enableval}" in
     yes) asyncapi=yes ;;
     no)  asyncapi=no  ;;
     *)   AC_MSG_ERROR(bad value ${enableval} for --enable-async-api) ;;
-  esac], [asyncapi=yes])
+  esac], [asyncapi=no])
 AM_CONDITIONAL(ENABLE_ASYNC_API, test x$asyncapi = xyes)
 if test x$asyncapi = xyes; then
   AC_DEFINE(ENABLE_ASYNC_API, 1, [Defined for async API support])
 fi
 
 #
-# SLPv2 Security features support - default is ON
+# SLPv2 Security features support - default is OFF
 #   ON means ENABLE_SLPv2_SECURITY is defined
 
 AC_ARG_ENABLE(slpv2-security,
-  AS_HELP_STRING([--enable-slpv2-security], [Turn on security support (default is ON)]),
+  AS_HELP_STRING([--enable-slpv2-security], [Turn on security support (default is OFF)]),
   [case "${enableval}" in
     yes) slpv2security=yes ;;
     no)  slpv2security=no  ;;
     *)   AC_MSG_ERROR(bad value ${enableval} for --enable-slpv2-security) ;;
-  esac], [slpv2security=yes])
+  esac], [slpv2security=no])
 AM_CONDITIONAL(ENABLE_SLPv2_SECURITY, test x$slpv2security = xyes)
 if test x$slpv2security = xyes; then
-  AC_CHECK_LIB(m, log10)
   AC_CHECK_LIB(crypto, DSA_sign) 
   AC_CHECK_FUNCS(DSA_verify DSA_size DSA_free SHA1)
   AC_DEFINE(ENABLE_SLPv2_SECURITY, 1, [Defined for SLPv2 security support])
@@ -153,10 +153,10 @@ fi
 # System type macros used in OpenSLP source code
 
 case "$host_os" in
-  *linux*)   CFLAGS="$CFLAGS -DLINUX"   ;;
-  *solaris*) CFLAGS="$CFLAGS -DSOLARIS" ;;
-  *aix*)     CFLAGS="$CFLAGS -DAIX"     ;;
-  *hpux*)    CFLAGS="$CFLAGS -DHPUX"    ;;
+  *linux*)   CPPFLAGS="$CPPFLAGS -DLINUX"   ;;
+  *solaris*) CPPFLAGS="$CPPFLAGS -DSOLARIS" ;;
+  *aix*)     CPPFLAGS="$CPPFLAGS -DAIX"     ;;
+  *hpux*)    CPPFLAGS="$CPPFLAGS -DHPUX"    ;;
 esac
 
 #

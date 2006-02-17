@@ -751,15 +751,15 @@ int SLPDKnownDAAdd(SLPMessage msg, SLPBuffer buf)
                   == AF_INET
                   && msg->peer.ss_family
                   == AF_INET
-                  && memcmp(&(((sockaddr_in) entry->msg->peer).sin_addr),
-                           &(((sockaddr_in) msg->peer).sin_addr),
+                  && memcmp(&(((struct sockaddr_in *) entry->msg->peer).sin_addr),
+                           &(((struct sockaddr_in *) msg->peer).sin_addr),
                            sizeof(struct in_addr)))
                   || (entry->msg->peer.ss_family
                   == AF_INET6
                   && msg->peer.ss_family
                   == AF_INET6
-                  && memcmp(&(((sockaddr_in6) entry->msg->peer).sin6_addr),
-                           &(((sockaddr_in6) msg->peer).sin6_addr),
+                  && memcmp(&(((struct sockaddr_in6 *) entry->msg->peer).sin6_addr),
+                           &(((struct sockaddr_in6 *) msg->peer).sin6_addr),
                            sizeof(struct in6_addr))))
             {
                SLPDatabaseClose(dh);
