@@ -35,15 +35,13 @@
  * @file       slp_v2message.h
  * @author     John Calcote (jcalcote@novell.com)
  * @attention  Please submit patches to http://www.openslp.org
- * @ingroup    CommonCode
+ * @ingroup    CommonCodeMessageV2
  */
 
 #ifndef SLP_V2MESSAGE_H_INCLUDED
 #define SLP_V2MESSAGE_H_INCLUDED
 
-/*!@defgroup CommonCodeMessageV2 SLPv2 Wire Message */
-
-/*!@addtogroup CommonCodeMessageV2
+/*!@defgroup CommonCodeMessageV2 SLPv2
  * @ingroup CommonCodeMessage
  * @{
  */
@@ -52,7 +50,7 @@
 
 int SLPv2MessageParseHeader(const SLPBuffer buffer, SLPHeader * header);
 
-int SLPv2MessageParseBuffer(const SLPBuffer buffer, SLPMessage message);
+int SLPv2MessageParseBuffer(const SLPBuffer buffer, SLPMessage * msg);
 
 /*! @} */
 

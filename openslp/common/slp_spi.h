@@ -38,7 +38,7 @@
  * @file       slp_spi.h
  * @author     Matthew Peterson, John Calcote (jcalcote@novell.com)
  * @attention  Please submit patches to http://www.openslp.org
- * @ingroup    CommonCode
+ * @ingroup    CommonCodeSPI
  */
 
 #ifndef SLP_SPI_H_INCLUDED
@@ -47,10 +47,8 @@
 #include "slp_linkedlist.h"
 #include "slp_crypto.h"
 
-/*!@defgroup CommonCodeSPI Security Parameter Index */
-
-/*!@addtogroup CommonCodeSPI
- * @ingroup CommonCode
+/*!@defgroup CommonCodeSPI Security Parameter Index
+ * @ingroup CommonCodeSecurity
  * @{
  */
 

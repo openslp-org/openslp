@@ -69,10 +69,12 @@ static SLPBoolean CollateToSLPSrvURLCallback(SLPHandle hSLP,
    SLPHandleInfo * handle = hSLP;
    SLPSrvUrlCollatedItem * collateditem;
 
+#ifdef ENABLE_ASYNC_API
    /* Do not collate for async calls. */
    if (handle->isAsync)
       return handle->params.findsrvs.callback(hSLP, pcSrvURL, 
             sLifetime, errorcode, handle->params.findsrvs.cookie);
+#endif
 
    if (errorcode == SLP_LAST_CALL || handle->callbackcount > 
          SLPPropertyAsInteger(SLPGetProperty("net.slp.maxResults")))
@@ -151,7 +153,7 @@ CLEANUP:
 static SLPBoolean ProcessSrvRplyCallback(SLPError errorcode, 
       void * peeraddr, SLPBuffer replybuf, void * cookie)
 {
-   SLPMessage replymsg;
+   SLPMessage * replymsg;
    SLPBoolean result = SLP_TRUE;
    SLPHandleInfo * handle = (SLPHandleInfo *)cookie;
 
@@ -233,6 +235,8 @@ static SLPBoolean ProcessSrvRplyCallback(SLPError errorcode,
  *    parameters. See docs for SLPFindSrvs.
  *
  * @return Zero on success, or an SLP API error code.
+ * 
+ * @internal
  */
 static SLPError ProcessSrvRqst(SLPHandleInfo * handle)
 {
@@ -282,27 +286,19 @@ static SLPError ProcessSrvRqst(SLPHandleInfo * handle)
    }
 
    /* <service-type> */
-   PutUINT16(&curpos, handle->params.findsrvs.srvtypelen);
-   memcpy(curpos, handle->params.findsrvs.srvtype, 
+   PutL16String(&curpos, handle->params.findsrvs.srvtype, 
          handle->params.findsrvs.srvtypelen);
-   curpos += handle->params.findsrvs.srvtypelen;
 
    /* <scope-list> */
-   PutUINT16(&curpos, handle->params.findsrvs.scopelistlen);
-   memcpy(curpos, handle->params.findsrvs.scopelist,
+   PutL16String(&curpos, handle->params.findsrvs.scopelist,
          handle->params.findsrvs.scopelistlen);
-   curpos += handle->params.findsrvs.scopelistlen;
 
    /* predicate string */
-   PutUINT16(&curpos, handle->params.findsrvs.predicatelen);
-   memcpy(curpos, handle->params.findsrvs.predicate,
+   PutL16String(&curpos, handle->params.findsrvs.predicate,
          handle->params.findsrvs.predicatelen);
-   curpos += handle->params.findsrvs.predicatelen;
 
    /* <SLP SPI> */
-   PutUINT16(&curpos, spistrlen);
-   memcpy(curpos, spistr, spistrlen);
-   curpos += spistrlen;
+   PutL16String(&curpos, (char *)spistr, spistrlen);
 
    /* Call the RqstRply engine. */
    do
@@ -452,7 +448,7 @@ SLPEXP SLPError SLPAPI SLPFindSrvs(
       if (handle->params.findsrvs.srvtype == 0
             || handle->params.findsrvs.scopelist == 0
             || handle->params.findsrvs.predicate == 0
-            || (handle->th = ThreadCreate((ThreadStartProc)
+            || (handle->th = SLPThreadCreate((SLPThreadStartProc)
                   AsyncProcessSrvRqst, handle)) == 0)
       {
          serr = SLP_MEMORY_ALLOC_FAILED;    

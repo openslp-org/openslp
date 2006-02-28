@@ -39,15 +39,13 @@
  * @file       slp_database.h
  * @author     Matthew Peterson, John Calcote (jcalcote@novell.com)
  * @attention  Please submit patches to http://www.openslp.org
- * @ingroup    CommonCode
+ * @ingroup    CommonCodeDB
  */
 
 #ifndef SLP_DATABASE_H_INCLUDED
 #define SLP_DATABASE_H_INCLUDED
 
-/*!@defgroup CommonCodeDB Database */
-
-/*!@addtogroup CommonCodeDB
+/*!@defgroup CommonCodeDB Database
  * @ingroup CommonCode
  * @{
  */
@@ -56,15 +54,18 @@
 #include "slp_buffer.h"
 #include "slp_linkedlist.h"
 
+/** A database entry */
 typedef struct _SLPDatabaseEntry
 {
    SLPListItem listitem;
-   SLPMessage msg;
+   SLPMessage * msg;
    SLPBuffer buf;
 } SLPDatabaseEntry;
 
+/** The database is just a list in this implementation. */
 typedef SLPList SLPDatabase;
 
+/** A database handle is the database and a cursor. */
 typedef struct _SLPDatabaseHandle
 {
    SLPDatabase * database;
@@ -75,7 +76,7 @@ int SLPDatabaseInit(SLPDatabase* database);
 
 void SLPDatabaseDeinit(SLPDatabase * database);
 
-SLPDatabaseEntry * SLPDatabaseEntryCreate(SLPMessage msg, SLPBuffer buf);
+SLPDatabaseEntry * SLPDatabaseEntryCreate(SLPMessage * msg, SLPBuffer buf);
 
 void SLPDatabaseEntryDestroy(SLPDatabaseEntry * entry);
 

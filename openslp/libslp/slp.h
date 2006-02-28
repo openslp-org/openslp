@@ -30,6 +30,34 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *-------------------------------------------------------------------------*/
 
+/** @mainpage OpenSLP - An API for Service Location
+ * 
+ * The OpenSLP project was started by Caldera in an attempt to provide a 
+ * clean solid implementation of RFC 2614 "An API for Service Location". 
+ * This API is based on RFC 2608 "Service Location Protocol, Version 2".
+ * 
+ * Since its inception, OpenSLP has been compiled and used effectively on 
+ * many platforms, including: most Linux distributions, Solaris, Windows,
+ * HPUX, Mac Classic and OSX, BeOS, FreeBSD, and many others. The primary
+ * reason for this prolification is that there is no standardized, secure,
+ * bandwidth-efficient, robust, service advertising protocol available.
+ * 
+ * In the last few years, other advertising protocols have been invented.
+ * Some of them have become quite popular. Apple's Bonjour, for instance,
+ * is really doing well in the zero-conf world. Directories based on LDAP
+ * such as Novell's eDirectory, OpenLDAP, and iPlanet have been configured
+ * to provide some service location infrastructure. The fact remains however,
+ * that no significant solution has ever been created to solve the problems
+ * that SLP was designed to solve.
+ * 
+ * The current version of OpenSLP supports SLPv2 security features, 
+ * asynchronous multi-threaded execution, IP version 6 support, and many 
+ * other features that were missing or not entirely implemented in earlier 
+ * releases of the project.
+ * 
+ * -- John Calcote, Sr. Software Engineer, Novell, Inc. (jcalcote@novell.com)
+ */
+
 /** Main header file for the SLP API exactly as described by RFC 2614.
  *
  * This is the only file that needs to be included in order make all 
@@ -44,9 +72,8 @@
 #ifndef SLP_H_INCLUDED
 #define SLP_H_INCLUDED
 
-/*!@defgroup SlpUAInterface OpenSLP API */
-
-/*!@addtogroup SlpUAInterface
+/*!@defgroup SlpUAInterface OpenSLP API 
+ * @ingroup LibSLPCode
  * @{
  */
 
@@ -55,24 +82,30 @@ extern "C"
 {
 #endif
 
-/** Win32 MSVC auto-exports, BCB uses .def file 
+/** Public interface attributes
  *
- * Note that you must define LIBSLP_STATIC in your compilation 
- * environment if you intend to link against the static version
- * of the Win32 libraries (slpstatic.lib). The default is to
- * link dynamically against the import library (slp.lib).
+ * Note that for Win32 MSVC builds, you must define LIBSLP_STATIC in 
+ * your compilation environment if you intend to link against the static 
+ * version of the Win32 SLP library. The default action is to link against 
+ * the dynamic import library. This macro changes the signature of the 
+ * library imports in your code, so not using it properly will cause 
+ * "missing symbol" linker errors.
  */
-#if defined(_WIN32) && defined(_MSC_VER)
-# define SLPCALLBACK
-# if defined(LIBSLP_STATIC)
+#if defined(_WIN32)
+# if defined(_MSC_VER)
+#  if defined(LIBSLP_STATIC)     /* User must define to link statically. */
+#   define SLPEXP
+#  elif defined(LIBSLP_EXPORTS)
+#   define SLPEXP    __declspec(dllexport)
+#  else
+#   define SLPEXP    __declspec(dllimport)
+#  endif
+# else   /* ! _MSC_VER */
 #  define SLPEXP
-# elif defined(LIBSLP_EXPORTS)
-#  define SLPEXP __declspec(dllexport)
-# else
-#  define SLPEXP __declspec(dllimport)
 # endif
-# define SLPAPI
-#else
+# define SLPCALLBACK __cdecl
+# define SLPAPI      __cdecl
+#else    /* ! _WIN32 */
 # define SLPCALLBACK
 # define SLPEXP
 # define SLPAPI
@@ -255,7 +288,8 @@ typedef struct srvurl {
    /*!< A pointer to a character string containing the network address 
     * family identifier. Possible values are "ipx" for the IPX family, "at" 
     * for the Appletalk family, and "" (i.e. the empty string) for the IP 
-    * address family.
+    * address family. OpenSLP extends the RFC here to add "v6" for IPv6
+    * addresses (since "" indicates ip).
     */
 
    char * s_pcSrvPart;
@@ -537,7 +571,7 @@ SLPEXP void SLPAPI SLPFree(void * pvMem);
 SLPEXP const char * SLPAPI SLPGetProperty(const char * pcName);
 
 /*=========================================================================
- * SLPSetProperty (4.6.8)
+ * SLPSetProperty (4.6.8) - not implementable due to threading issues.
  */
 SLPEXP void SLPAPI SLPSetProperty(
       const char *   pcName, 

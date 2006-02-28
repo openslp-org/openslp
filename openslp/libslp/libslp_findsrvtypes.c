@@ -71,10 +71,12 @@ static SLPBoolean CollateToSLPSrvTypeCallback(SLPHandle hSLP,
 
    handle->callbackcount++;
 
+#ifdef ENABLE_ASYNC_API
    /* Do not collate for async calls. */
-   if (handle->isAsync)
+	if (handle->isAsync)
       return handle->params.findsrvtypes.callback(hSLP, pcSrvTypes, 
             errorcode, handle->params.findsrvtypes.cookie);
+#endif
 
    /* Configure behaviour for desired max results. */
    maxResults = SLPPropertyAsInteger(SLPGetProperty("net.slp.maxResults"));
@@ -154,7 +156,7 @@ static SLPBoolean CollateToSLPSrvTypeCallback(SLPHandle hSLP,
 static SLPBoolean ProcessSrvTypeRplyCallback(SLPError errorcode, 
       void * peerinfo, SLPBuffer replybuf, void * cookie)
 {
-   SLPMessage replymsg;
+   SLPMessage * replymsg;
    SLPBoolean result = SLP_TRUE;
    SLPHandleInfo * handle = (SLPHandleInfo *)cookie;
 
@@ -186,6 +188,8 @@ static SLPBoolean ProcessSrvTypeRplyCallback(SLPError errorcode,
  *    parameters. See docs for SLPFindSrvTypes.
  *
  * @return Zero on success, or an SLP API error code.
+ * 
+ * @internal
  */
 static SLPError ProcessSrvTypeRqst(SLPHandleInfo * handle)
 {
@@ -215,18 +219,12 @@ static SLPError ProcessSrvTypeRqst(SLPHandleInfo * handle)
    if (strcmp(handle->params.findsrvtypes.namingauth, "*") == 0)
       PutUINT16(&curpos, 0xffff); /* 0xffff is wildcard */
    else
-   {
-      PutUINT16(&curpos, handle->params.findsrvtypes.namingauthlen);
-      memcpy(curpos, handle->params.findsrvtypes.namingauth,
+      PutL16String(&curpos, handle->params.findsrvtypes.namingauth,
             handle->params.findsrvtypes.namingauthlen);
-      curpos += handle->params.findsrvtypes.namingauthlen;
-   }
 
    /* <scope-list> */
-   PutUINT16(&curpos, handle->params.findsrvtypes.scopelistlen);
-   memcpy(curpos, handle->params.findsrvtypes.scopelist,
+   PutL16String(&curpos, handle->params.findsrvtypes.scopelist,
          handle->params.findsrvtypes.scopelistlen);
-   curpos += handle->params.findsrvtypes.scopelistlen;
 
    /* Send request, receive reply. */
    do
@@ -376,7 +374,7 @@ SLPError SLPAPI SLPFindSrvTypes(
       /* Ensure strdups and thread create succeed. */
       if (handle->params.findsrvtypes.namingauth == 0
             || handle->params.findsrvtypes.scopelist == 0
-            || (handle->th = ThreadCreate((ThreadStartProc)
+            || (handle->th = SLPThreadCreate((SLPThreadStartProc)
                   AsyncProcessSrvTypeRqst, handle)) == 0)
       {
          serr = SLP_MEMORY_ALLOC_FAILED;

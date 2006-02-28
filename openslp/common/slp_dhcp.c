@@ -35,7 +35,7 @@
  * @file       slp_dhcp.c
  * @author     John Calcote (jcalcote@novell.com)
  * @attention  Please submit patches to http://www.openslp.org
- * @ingroup    CommonCode
+ * @ingroup    CommonCodeDHCP
  */
 
 #include "slp_types.h"
@@ -44,36 +44,36 @@
 #include "slp_xmalloc.h"
 #include "slp_net.h"
 
-/* UDP port numbers, server and client. */
+/** UDP port numbers, server and client. */
 #define IPPORT_BOOTPS      67
 #define IPPORT_BOOTPC      68
 
-/* BOOTP header op codes */
+/** BOOTP header op codes */
 #define BOOTREQUEST        1
 #define BOOTREPLY          2
 
-/* BOOTP header field value maximums */
-#define MAXHTYPES          7     /* Number of htypes defined */
-#define MAXHADDRLEN        6     /* Max hw address length in bytes */
-#define MAXSTRINGLEN       80    /* Max string length */
+/** BOOTP header field value maximums */
+#define MAXHTYPES          7     /*!< Number of htypes defined */
+#define MAXHADDRLEN        6     /*!< Max hw address length in bytes */
+#define MAXSTRINGLEN       80    /*!< Max string length */
 
-/* Some other useful constants */
-#define MAX_MACADDR_SIZE   64    /* Max hardware address length */
-#define MAX_DHCP_RETRIES   2     /* Max dhcp request retries */
+/** Some other useful constants */
+#define MAX_MACADDR_SIZE   64    /*!< Max hardware address length */
+#define MAX_DHCP_RETRIES   2     /*!< Max dhcp request retries */
 
-/* timeout values */
+/** Timeout values */
 #define USECS_PER_MSEC     1000
 #define MSECS_PER_SEC      1000
 #define USECS_PER_SEC      (USECS_PER_MSEC * MSECS_PER_SEC)
 #define INIT_TMOUT_USECS   (250 * USECS_PER_MSEC)
 
-/* DHCP vendor area cookie values */
+/** DHCP vendor area cookie values */
 #define DHCP_COOKIE1       99
 #define DHCP_COOKIE2       130
 #define DHCP_COOKIE3       83
 #define DHCP_COOKIE4       99
 
-/* DHCP Message Types for TAG_DHCP_MSG_TYPE */
+/** DHCP Message Types for TAG_DHCP_MSG_TYPE */
 #define DHCP_MSG_DISCOVER  1
 #define DHCP_MSG_OFFER     2
 #define DHCP_MSG_REQUEST   3
@@ -92,6 +92,8 @@
  *    DHCP requests are to be sent.
  *
  * @return A valid socket, or -1 if no DA connection can be made.
+ * 
+ * @internal
  */
 static sockfd_t dhcpCreateBCSkt(void * peeraddr) 
 {
@@ -125,11 +127,14 @@ static sockfd_t dhcpCreateBCSkt(void * peeraddr)
  * @param[in] sockfd - The socket on which to send.
  * @param[in] buf - The buffer to send.
  * @param[in] bufsz - The size of @p buf.
- * @param[in] peeraddr - The target address.
+ * @param[in] addr - The target address.
+ * @param[in] addrsz - The size of @p addr in bytes.
  * @param[in] timeout - The desired timeout value.
  *
  * @return Zero on success; non-zero on failure, and errno is set to 
  *    either EPIPE (for write error), or ETIMEDOUT (on timeout).
+ * 
+ * @internal
  */ 
 static int dhcpSendRequest(sockfd_t sockfd, void * buf, size_t bufsz,
       void * addr, size_t addrsz, struct timeval * timeout)
@@ -180,6 +185,8 @@ static int dhcpSendRequest(sockfd_t sockfd, void * buf, size_t bufsz,
  *
  * @return Zero on success; non-zero on failure with errno set to
  *    ENOTCONN (socket not connected), or ETIMEDOUT (on timeout error).
+ * 
+ * @internal
  */
 static int dhcpRecvResponse(sockfd_t sockfd, void * buf, size_t bufsz,
       struct timeval * timeout)
@@ -218,6 +225,8 @@ static int dhcpRecvResponse(sockfd_t sockfd, void * buf, size_t bufsz,
  * @return Zero on success; non-zero on failure, with errno set to
  * ENOTCONN (error during read), ETIMEDOUT (read timed out), 
  * ENOMEM (out of memory error), or EINVAL (parse error).
+ * 
+ * @internal
  */
 static int dhcpProcessOptions(unsigned char * data, size_t datasz,
       DHCPInfoCallBack * dhcpInfoCB, void * context)
@@ -259,11 +268,13 @@ static int dhcpProcessOptions(unsigned char * data, size_t datasz,
  * @param[out] htype - The address type returned in @p chaddr.
  *
  * @return Zero on success; non-zero on failure.
+ * 
+ * @internal
  */
 static int dhcpGetAddressInfo(unsigned char * ipaddr, unsigned char * chaddr, 
       unsigned char * hlen, unsigned char * htype)
 {
-#if defined(_WIN32)
+#ifdef _WIN32
 
    HMODULE hmod;  
    DWORD (WINAPI * pGetAdaptersInfo)(PIP_ADAPTER_INFO pAdapterInfo, 

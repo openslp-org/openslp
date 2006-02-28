@@ -82,7 +82,7 @@ int MakeActiveDiscoveryRqst(int ismcast, SLPBuffer * buffer)
 {
    size_t size;
    void * eh;
-   SLPMessage msg;
+   SLPMessage * msg;
    char * prlist = 0;
    size_t prlistlen = 0;
    int errorcode = 0;
@@ -205,12 +205,12 @@ FINISHED:
 
 
 /*-------------------------------------------------------------------------*/
-void SLPDKnownDARegisterAll(SLPMessage daadvert, int immortalonly)
+void SLPDKnownDARegisterAll(SLPMessage * daadvert, int immortalonly)
 /* registers all services with specified DA                                */
 /*-------------------------------------------------------------------------*/
 {
    SLPBuffer buf;
-   SLPMessage msg;
+   SLPMessage * msg;
    SLPSrvReg * srvreg;
    SLPDSocket * sock;
    SLPBuffer sendbuf = 0;
@@ -287,7 +287,7 @@ void SLPDKnownDARegisterAll(SLPMessage daadvert, int immortalonly)
  * 
  * Caller must free outbuf
  *-------------------------------------------------------------------------*/
-int MakeSrvderegFromSrvReg(SLPMessage msg, SLPBuffer inbuf, SLPBuffer * outbuf)
+int MakeSrvderegFromSrvReg(SLPMessage * msg, SLPBuffer inbuf, SLPBuffer * outbuf)
 {
    size_t size;
    SLPBuffer sendbuf;
@@ -389,12 +389,12 @@ int MakeSrvderegFromSrvReg(SLPMessage msg, SLPBuffer inbuf, SLPBuffer * outbuf)
 
 
 /*-------------------------------------------------------------------------*/
-void SLPDKnownDADeregisterAll(SLPMessage daadvert)
+void SLPDKnownDADeregisterAll(SLPMessage * daadvert)
 /* de-registers all services with specified DA                             */
 /*-------------------------------------------------------------------------*/
 {
    SLPBuffer buf;
-   SLPMessage msg;
+   SLPMessage * msg;
    SLPSrvReg * srvreg;
    SLPDSocket * sock;
    SLPBuffer sendbuf = 0;
@@ -672,7 +672,7 @@ int SLPDKnownDADeinit()
 
 
 /*=========================================================================*/
-int SLPDKnownDAAdd(SLPMessage msg, SLPBuffer buf)
+int SLPDKnownDAAdd(SLPMessage * msg, SLPBuffer buf)
 /* Adds a DA to the known DA list if it is new, removes it if DA is going  */
 /* down or adjusts entry if DA changed.                                    */
 /*                                                                         */
@@ -913,7 +913,7 @@ void * SLPDKnownDAEnumStart()
 
 
 /*=========================================================================*/
-SLPMessage SLPDKnownDAEnum(void * eh, SLPMessage * msg, SLPBuffer * buf)
+SLPMessage * SLPDKnownDAEnum(void * eh, SLPMessage ** msg, SLPBuffer * buf)
 /* Enumerate through all Known DAs                                         */
 /*                                                                         */
 /* eh (IN) pointer to opaque data that is used to maintain                 */
@@ -1301,7 +1301,7 @@ FINISHED:
 #endif
 
 /*=========================================================================*/
-void SLPDKnownDAEcho(SLPMessage msg, SLPBuffer buf)
+void SLPDKnownDAEcho(SLPMessage * msg, SLPBuffer buf)
 /* Echo a srvreg message to a known DA                                     */
 /*                                                                */
 /* msg (IN) the SrvReg message descriptor                                  */
@@ -1668,7 +1668,7 @@ void SLPDKnownDAImmortalRefresh(int seconds)
 }
 
 /*=========================================================================*/
-void SLPDKnownDADeRegisterWithAllDas(SLPMessage msg, SLPBuffer buf)
+void SLPDKnownDADeRegisterWithAllDas(SLPMessage * msg, SLPBuffer buf)
 /* Deregister the registration described by the specified message          */
 /*                                                                         */
 /* msg (IN) A message descriptor for a SrvReg or SrvDereg message to       */
@@ -1697,7 +1697,7 @@ void SLPDKnownDADeRegisterWithAllDas(SLPMessage msg, SLPBuffer buf)
 }
 
 /*=========================================================================*/
-void SLPDKnownDARegisterWithAllDas(SLPMessage msg, SLPBuffer buf)
+void SLPDKnownDARegisterWithAllDas(SLPMessage * msg, SLPBuffer buf)
 /* Register the registration described by the specified message with all   */
 /* known DAs                                                               */
 /*                                                                         */
@@ -1721,7 +1721,7 @@ void SLPDKnownDARegisterWithAllDas(SLPMessage msg, SLPBuffer buf)
 void SLPDKnownDADump(void)
 /*=========================================================================*/
 {
-   SLPMessage msg;
+   SLPMessage * msg;
    SLPBuffer buf;
    void * eh;
 

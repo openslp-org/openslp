@@ -41,7 +41,7 @@
  * @file       slp_xmalloc.c
  * @author     Matthew Peterson, John Calcote (jcalcote@novell.com)
  * @attention  Please submit patches to http://www.openslp.org
- * @ingroup    CommonCode
+ * @ingroup    CommonCodeXMalloc
  */
 
 #include "slp_types.h"

@@ -61,7 +61,7 @@
 static SLPBoolean ProcessAttrRplyCallback(SLPError errorcode, 
       void * peeraddr, SLPBuffer replybuf, void * cookie)
 {
-   SLPMessage replymsg;
+   SLPMessage * replymsg;
    SLPHandleInfo * handle = (SLPHandleInfo *)cookie;
    SLPBoolean result = SLP_TRUE;
 
@@ -113,6 +113,8 @@ static SLPBoolean ProcessAttrRplyCallback(SLPError errorcode,
  *    parameters. See docs for SLPFindAttrs.
  *
  * @return Zero on success, or an SLP API error code.
+ * 
+ * @internal
  */
 static SLPError ProcessAttrRqst(SLPHandleInfo * handle)
 {
@@ -154,27 +156,19 @@ static SLPError ProcessAttrRqst(SLPHandleInfo * handle)
    }
 
    /* URL */
-   PutUINT16(&curpos, handle->params.findattrs.urllen);
-   memcpy(curpos, handle->params.findattrs.url, 
+   PutL16String(&curpos, handle->params.findattrs.url, 
          handle->params.findattrs.urllen);
-   curpos += handle->params.findattrs.urllen;
 
    /* <scope-list> */
-   PutUINT16(&curpos, handle->params.findattrs.scopelistlen);
-   memcpy(curpos, handle->params.findattrs.scopelist,
+   PutL16String(&curpos, handle->params.findattrs.scopelist, 
          handle->params.findattrs.scopelistlen);
-   curpos += handle->params.findattrs.scopelistlen;
 
    /* <tag-list>  */
-   PutUINT16(&curpos, handle->params.findattrs.taglistlen);
-   memcpy(curpos, handle->params.findattrs.taglist,
+   PutL16String(&curpos, handle->params.findattrs.taglist, 
          handle->params.findattrs.taglistlen);
-   curpos += handle->params.findattrs.taglistlen;
 
    /* <SLP SPI> */
-   PutUINT16(&curpos, spistrlen);
-   memcpy(curpos, spistr, spistrlen);
-   curpos += spistrlen;
+   PutL16String(&curpos, (char *)spistr, spistrlen);
 
    /* call the RqstRply engine */
    do
@@ -335,7 +329,7 @@ SLPEXP SLPError SLPAPI SLPFindAttrs(
       if (handle->params.findattrs.url == 0
             || handle->params.findattrs.scopelist == 0
             || handle->params.findattrs.taglist == 0
-            || (handle->th = ThreadCreate((ThreadStartProc)
+            || (handle->th = SLPThreadCreate((SLPThreadStartProc)
                   AsyncProcessAttrRqst, handle)) == 0)
       {
          serr = SLP_MEMORY_ALLOC_FAILED;    

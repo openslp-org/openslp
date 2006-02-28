@@ -88,7 +88,9 @@ SLPEXP SLPError SLPAPI SLPDelAttrs(
          || callback == 0)
       return SLP_PARAMETER_BAD;
 
-   (void)pvCookie;   /* nothing else for now */
+   /** @todo Implement attribute deletion. */
+
+   (void)pvCookie;
 
    return SLP_NOT_IMPLEMENTED;
 }

@@ -35,7 +35,7 @@
  * @file       slp_utf8.c
  * @author     Matthew Peterson, John Calcote (jcalcote@novell.com)
  * @attention  Please submit patches to http://www.openslp.org
- * @ingroup    CommonCode
+ * @ingroup    CommonCodeUTF8
  */
 
 #include "slp_types.h"
@@ -51,6 +51,7 @@ typedef struct
    long lval;
 } Tab;
 
+/** UTF-8 conversion table. */
 static Tab tab[] =
 {
    { 0x80, 0x00, 0 * 6,       0x7F,         0 }, /* 1 byte sequence */

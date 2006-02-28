@@ -33,9 +33,9 @@
 /** Service URL parsing routines.
  *
  * @file       slp_parse.c
- * @author     Matthew Peterson, John Calcote (jcalcote@novell.com)
+ * @author     John Calcote (jcalcote@novell.com)
  * @attention  Please submit patches to http://www.openslp.org
- * @ingroup    CommonCode
+ * @ingroup    CommonCodeParse
  */
 
 #include "slp_types.h"
@@ -44,8 +44,15 @@
 
 /** Parse a service URL.
  *
- * Parses a service URL into its constituent parts.
- *
+ * RFC 2614 (Service Location API) indicates this routine is destructive to 
+ * @p srvurl. Not so with this version: A copy of @p srvurl is made at the 
+ * end of the allocated return buffer, and fields in the structure refer
+ * to zero terminated portions of this copy. However, it should be noted that
+ * in order to implement this code as specified in the RFC, the s_pcSrvPart 
+ * field must begin with the character following the delimiting '/', because
+ * it would have been necessary to terminate the s_pcHost field by writing a 
+ * 0 into this position, in such an implementation. 
+ * 
  * @param[in] srvurllen - The size of @p srvurl in bytes.
  * @param[in] srvurl - A pointer to the URL to be parsed.
  * @param[out] parsedurl - The address of storage for the parsed
@@ -55,259 +62,211 @@
  *
  * @remarks The returned pointer must be freed by caller with a call 
  *    to xfree.
+ *
+ * @note Not returning the leading '/' character in the s_pcSrvPart field
+ *    will break backward compatibility with existing OpenSLP 1.x code. This 
+ *    may cause problems in clients that expected to be able to simply paste 
+ *    all of the parts together without supplying any extra delimiters.
  */
 int SLPParseSrvUrl(size_t srvurllen, const char * srvurl,
       SLPParsedSrvUrl ** parsedurl)
 {
-   char * buf;             /* points to location in the SLPSrvUrl buffer */
-   char * empty;           /* always points to an empty string (within buf) */
-   const char * slider1;   /* points to parse locations in srvurl */
-   const char * slider2;   /* points to parse locations srvurl */
-   const char * end;       /* points at the end of srvurl */
-   int isIpv6Host = 0;
+   char * slider1;         /* sliders are buffer walking variables */
+   char * slider2;
+   char * endptr;          /* points to end of url copy buffer */
 
-   /* Allocate memory and set up sliders +5 ensures space for 5 nulls */
-   *parsedurl = (SLPParsedSrvUrl *) xmalloc(srvurllen
-                                          + sizeof(SLPParsedSrvUrl) + 5);
+   /* define net family strings */
+#  define SLP_NF_IP        ""
+#  define SLP_NF_IPv6      "v6"
+#  define SLP_NF_AT        "at"
+#  define SLP_NF_IPX       "ipx"
+#  define SLP_NF_MAX_SIZE  sizeof(SLP_NF_IPX)   /* longest NF */
+
+   /* allocate space for structure + srvurl + longest net family tag */
+   *parsedurl = (SLPParsedSrvUrl *)xmalloc(sizeof(SLPParsedSrvUrl) 
+         + SLP_NF_MAX_SIZE    /* long enough for longest net family */
+         + srvurllen + 1);    /* +1 for null-terminator */
    if (*parsedurl == 0)
       return ENOMEM;
 
-   memset(*parsedurl, 0, srvurllen + sizeof(SLPParsedSrvUrl) + 5);    
-   buf = (char *)*parsedurl + sizeof(SLPParsedSrvUrl);
-   slider1 = slider2 = srvurl;
-   end = slider1 + srvurllen;
+   /* point to family tag buffer, copy url to buffer space */
+   (*parsedurl)->family = (char *)*parsedurl + sizeof(SLPParsedSrvUrl);
+   slider1 = slider2 = (*parsedurl)->family + SLP_NF_MAX_SIZE;
+   memcpy(slider1, srvurl, srvurllen);
 
-   /* Set empty */
-   empty = buf++;
+   /* find end and terminate url copy */
+   endptr = slider1 + srvurllen;
+   *endptr = 0;
 
    /* parse out the service type */
-   slider2 = strstr(slider2, ":/");
+   (*parsedurl)->srvtype = slider1;
+   slider2 = strstr(slider1, "://");
    if (slider2 == 0)
    {
       xfree(*parsedurl);
       *parsedurl = 0;
-      return EINVAL;
-   }    
-   memcpy(buf, slider1, slider2 - slider1);
-   (*parsedurl)->srvtype = buf;
-   buf += (slider2 - slider1) + 1;
+      return EINVAL;       /* ill-formatted URL - missing "://" */
+   }
+   *slider2 = 0;           /* terminate service type at ':' */
+   slider1 = slider2 + 3;  /* skip delimiters "://" */
 
    /* parse out the host */
-   slider2 = slider1 = slider2 + 3; /* + 3 skips the "://" */
-
-   /* check for IPV6 url with [] surrounding the host */
-   if (slider2 < end && *slider2 == '[')
+   /* check for IPv6 numeric address with [] surrounding the host */
+   (*parsedurl)->host = slider1;
+   if (*slider1 == '[' && (slider2 = strchr(slider1, ']')) != 0)
    {
-      /* we have an ipv6 host address */
-      slider2 = strchr(slider2, ']');
-      if (slider2)
-      {
-         slider2++;  /* get past the ending ']' */
-         isIpv6Host = 1;
-      }
-      else
-      {
-         /* get to the next good character */
-         slider2 = slider1;
-         while (slider2 < end && *slider2 != '/' && *slider2 != ':')
-            slider2++;
-      }
-   }
-   else /* ipv4 address */
-      while (slider2 < end && *slider2 != '/' && *slider2 != ':')
-         slider2++;
-
-   if (slider2 - slider1 < 1)
-      (*parsedurl)->host = empty; /* no host part (as per RFC2609) */
-   else
-   {
-      if (isIpv6Host)
-      {
-         /* different condition here - must just get stuff inside beginning 
-          *  '[' and ending ']' 
-          */
-         slider1++;
-         memcpy(buf, slider1, slider2 - slider1 - 1);
-         (*parsedurl)->host = buf;
-         buf += slider2 - slider1;
-      }
-      else
-      {
-         memcpy(buf, slider1, slider2 - slider1);
-         (*parsedurl)->host = buf;
-         buf += (slider2 - slider1) + 1;
-      }
-   }
-
-   /* parse out the port */
-   if (*slider2 == ':')
-   {
-      slider2 ++; /* + 1 skips the ":" */
-      slider1 = slider2; /* set up slider1 at the start of the port str */
-      while (*slider2 && (*slider2 != '/' && *slider2 != ';'))
-         slider2++;
-      if (slider2 - slider1 < 1)
-         (*parsedurl)->port = 80; /** @todo No port, default to 80? */
-      else
-      {
-         memcpy(buf, slider1, slider2 - slider1);
-         (*parsedurl)->port = (uint16_t)atoi(buf);
-         buf += (slider2 - slider1) + 1;
-      }
-   }
-
-   /* parse out the remainder of the url */
-   if (slider2 < end)
-   {
+      (*parsedurl)->host++;   /* skip '[' */
+      *slider2++ = 0;
       slider1 = slider2;
-      memcpy(buf, slider1, end - slider1);
-      (*parsedurl)->remainder = buf;
-      buf += (end - slider2) + 1;
+      strcpy((*parsedurl)->family, SLP_NF_IPv6);
+   }
+   else                       /* assume IP for now */
+      *(*parsedurl)->family = 0;
+
+   /** @todo Parse ipx and appletalk addresses also (format?). */
+
+   /* parse out remainder */
+   slider2 = strchr(slider1, '/');
+   if (slider2)
+   {
+      *slider2++ = 0;      /* terminate port or host */
+      (*parsedurl)->remainder = slider2;
    }
    else
-      (*parsedurl)->remainder = empty; /* no remainder portion */
+      (*parsedurl)->remainder = endptr;
 
-   /* set the net family to always be an empty string for IP */
-   (*parsedurl)->family = empty;
+   /* parse out port */
+   slider2 = strchr(slider1, ':');
+   if (slider2)
+   {
+      *slider2++ = 0;      /* terminate host */
+      (*parsedurl)->port = atoi(slider2);
+   }
+   else
+      (*parsedurl)->port = 0;
 
    return 0;
 }
 
 /*===========================================================================
- *  TESTING CODE enabled by removing #define comment and compiling with the 
- *  following command line:
+ *  TESTING CODE : compile with the following command lines:
  *
  *  $ gcc -g -DSLP_PARSE_TEST -DDEBUG slp_parse.c slp_xmalloc.c 
- *        slp_linkedlist.c
+ *       slp_linkedlist.c
+ *
+ *  C:\> cl -DSLP_PARSE_TEST -DDEBUG slp_parse.c slp_xmalloc.c 
+ *       slp_linkedlist.c
  */
-//#define SLP_PARSE_TEST
 #ifdef SLP_PARSE_TEST 
 
-#define TESTSRVTYPE1       "service:printer.x"
-#define TESTHOST1          "192.168.100.2"
-#define TESTHOST2          "[1111:2222:3333::4444]"
-#define TESTHOST2_PARSED   "1111:2222:3333::4444"
-#define TESTHOST3          "[1111:2222:3333::4444"
-#define TESTPORT1          "4563"
-#define TESTREMAINDER1     "/hello/good/world"
+#define TESTSRVTYPE1 "service:printer.x"
+#define TESTHOST1    "192.168.100.2"
+#define TESTHOST2    "1111:2222:3333::4444"
+#define TESTHOST3    "[dnsname.with.leading.bracket"
+#define TESTPORT1    "4563"
+#define TESTPATH1    "hello/world"
 
-#define TESTURL1        TESTSRVTYPE1"://"TESTHOST1":"TESTPORT1 TESTREMAINDER1
-#define TESTURL2        TESTSRVTYPE1"://"TESTHOST1":"TESTPORT1
-#define TESTURL3        TESTSRVTYPE1"://"TESTHOST1
-#define TESTURL4        "service:badurl"
-#define TESTURL5        TESTSRVTYPE1"://"TESTHOST2":"TESTPORT1 TESTREMAINDER1
-#define TESTURL6        TESTSRVTYPE1"://"TESTHOST3":"TESTPORT1 TESTREMAINDER1
+/* In the following test strings, any delimiters which may be overwritten by
+   zero terminators, are quoted literals. Critical return values are defined 
+   above, and used as macros below. */
+
+#define TESTURL01 TESTSRVTYPE1 "://"  TESTHOST1  ":" TESTPORT1 "/" TESTPATH1
+#define TESTURL02 TESTSRVTYPE1 "://"  TESTHOST1  ":" TESTPORT1
+#define TESTURL03 TESTSRVTYPE1 "://"  TESTHOST1                "/" TESTPATH1
+#define TESTURL04 TESTSRVTYPE1 "://"  TESTHOST1
+#define TESTURL05 TESTSRVTYPE1 "://"
+#define TESTURL06 TESTSRVTYPE1 "://[" TESTHOST2 "]:" TESTPORT1 "/" TESTPATH1
+#define TESTURL07 TESTSRVTYPE1 "://[" TESTHOST2 "]:" TESTPORT1
+#define TESTURL08 TESTSRVTYPE1 "://[" TESTHOST2 "]"            "/" TESTPATH1
+#define TESTURL09 TESTSRVTYPE1 "://[" TESTHOST2 "]"
+#define TESTURL10 TESTSRVTYPE1 "://"  TESTHOST3  ":" TESTPORT1 "/" TESTPATH1
+#define TESTURL11 TESTSRVTYPE1 "://"  TESTHOST3  ":" TESTPORT1
+#define TESTURL12 TESTSRVTYPE1 "://"  TESTHOST3                "/" TESTPATH1
+#define TESTURL13 TESTSRVTYPE1 "://"  TESTHOST3
+#define TESTURL14 TESTSRVTYPE1 "://["
+#define TESTURL15 "service:badurl"
+
+/** @todo Add test cases for IPX and appletalk host address strings. */
+
+static struct test_ts
+{
+   const char * url;
+   const char * srvtype;
+   const char * host;
+   const char * port;
+   const char * path;
+   const char * family;
+   int should_fail;
+} test_table[] = 
+{
+   {TESTURL01, TESTSRVTYPE1, TESTHOST1, TESTPORT1, TESTPATH1, SLP_NF_IP,   0},
+   {TESTURL02, TESTSRVTYPE1, TESTHOST1, TESTPORT1, "",        SLP_NF_IP,   0},
+   {TESTURL03, TESTSRVTYPE1, TESTHOST1, "",        TESTPATH1, SLP_NF_IP,   0},
+   {TESTURL04, TESTSRVTYPE1, TESTHOST1, "",        "",        SLP_NF_IP,   0},
+   {TESTURL05, TESTSRVTYPE1, "",        "",        "",        SLP_NF_IP,   0},
+   {TESTURL06, TESTSRVTYPE1, TESTHOST2, TESTPORT1, TESTPATH1, SLP_NF_IPv6, 0},
+   {TESTURL07, TESTSRVTYPE1, TESTHOST2, TESTPORT1, "",        SLP_NF_IPv6, 0},
+   {TESTURL08, TESTSRVTYPE1, TESTHOST2, "",        TESTPATH1, SLP_NF_IPv6, 0},
+   {TESTURL09, TESTSRVTYPE1, TESTHOST2, "",        "",        SLP_NF_IPv6, 0},
+   {TESTURL10, TESTSRVTYPE1, TESTHOST3, TESTPORT1, TESTPATH1, SLP_NF_IP,   0},
+   {TESTURL11, TESTSRVTYPE1, TESTHOST3, TESTPORT1, "",        SLP_NF_IP,   0},
+   {TESTURL12, TESTSRVTYPE1, TESTHOST3, "",        TESTPATH1, SLP_NF_IP,   0},
+   {TESTURL13, TESTSRVTYPE1, TESTHOST3, "",        "",        SLP_NF_IP,   0},
+   {TESTURL14, TESTSRVTYPE1, "[",       "",        "",        SLP_NF_IP,   0},
+   {TESTURL15, "service:badurl", "",    "",        "",        SLP_NF_IP,   1},
+   {0}
+};
 
 int main(int argc, char * argv[])
 {
-   SLPParsedSrvUrl * parsedurl;
+   int test, ec = 0;
+   struct test_ts * tp;
 
-   printf("Testing srvurl:   %s\n", TESTURL1);
-   if (SLPParseSrvUrl(strlen(TESTURL1), TESTURL1, &parsedurl) != 0)
+   for (test = 1, tp = test_table; tp->url; test++, tp++)
    {
-      printf("FAILURE: SLPParseSrvUrl returned error\n");
-      return -1;
+      SLPParsedSrvUrl * parsedurl = 0;
+      ec++;    /* assume failure, set it right if we don't fail */
+      printf("Test [%2d]: \"%s\"\n", test, tp->url);
+      if (SLPParseSrvUrl(strlen(tp->url), tp->url, &parsedurl) == 0)
+      {
+         if (tp->should_fail)
+            printf("FAILURE: SLPParseSrvUrl should have failed.\n");
+         else if (strcmp(parsedurl->srvtype, tp->srvtype))
+            printf(
+               "FAILURE: wrong srvtype: \"%s\"\n"
+               "             should be: \"%s\"\n", 
+               parsedurl->srvtype, tp->srvtype);
+         else if (strcmp(parsedurl->host, tp->host))
+            printf(
+               "FAILURE: wrong host: \"%s\"\n"
+               "          should be: \"%s\"\n", 
+               parsedurl->host, tp->host);
+         else if (parsedurl->port != atoi(tp->port))
+            printf(
+               "FAILURE: wrong port: \"%d\"\n"
+               "          should be: \"%s\"\n", 
+               parsedurl->port, tp->port);
+         else if (strcmp(parsedurl->remainder, tp->path))
+            printf(
+               "FAILURE: wrong remainder: \"%s\"\n"
+               "               should be: \"%s\"\n", 
+               parsedurl->remainder, tp->path);
+         else if (strcmp(parsedurl->family, tp->family))
+            printf(
+               "FAILURE: wrong family: \"%s\"\n"
+               "            should be: \"%s\"\n", 
+               parsedurl->family, tp->family);
+         else
+            ec--;
+      }
+      else if (!tp->should_fail)
+         printf("FAILURE: SLPParseSrvUrl failed.\n");
+      else
+         ec--;
+      xfree(parsedurl);
    }
-   if (strcmp(parsedurl->srvtype, TESTSRVTYPE1))
-      printf("FAILURE: wrong srvtype\n");
-   else if (strcmp(parsedurl->host, TESTHOST1))
-      printf("FAILURE: wrong host\n");
-   else if (parsedurl->port != (uint16_t)atoi(TESTPORT1))
-      printf("FAILURE: wrong port\n");
-   else if (strcmp(parsedurl->remainder, TESTREMAINDER1))
-      printf("FAILURE: wrong remainder\n");
-   else if (*(parsedurl->family))
-      printf("FAILURE: wrong family\n");
-   else
-      printf("Success!\n");
-   xfree(parsedurl);
-
-   /* TESTURL2 */
-   printf("Testing srvurl:   %s\n", TESTURL2);
-   if (SLPParseSrvUrl(strlen(TESTURL2), TESTURL2, &parsedurl) != 0)
-   {
-      printf("FAILURE: SLPParseSrvUrl returned error\n");
-      return -1;
-   }
-   if (strcmp(parsedurl->srvtype, TESTSRVTYPE1))
-      printf("FAILURE: wrong srvtype\n");
-   else if (strcmp(parsedurl->host, TESTHOST1))
-      printf("FAILURE: wrong host\n");
-   else if (parsedurl->port != atoi(TESTPORT1))
-      printf("FAILURE: wrong port\n");
-
-   /* else if (strcmp(parsedurl->remainder, TESTREMAINDER1))
-   *  printf("FAILURE: wrong remainder\n");
-   */
-   else if (*(parsedurl->family))
-      printf("FAILURE: wrong family\n");
-   else
-      printf("Success!\n");
-   xfree(parsedurl);
-
-   /* TESTURL3 */
-   printf("Testing srvurl:   %s\n", TESTURL3);
-   if (SLPParseSrvUrl(strlen(TESTURL3), TESTURL3, &parsedurl) != 0)
-   {
-      printf("FAILURE: SLPParseSrvUrl returned error\n");
-      return -1;
-   }
-   if (strcmp(parsedurl->srvtype, TESTSRVTYPE1))
-      printf("FAILURE: wrong srvtype\n");
-   else if (strcmp(parsedurl->host, TESTHOST1))
-      printf("FAILURE: wrong host\n");
-   /* else if (parsedurl->port != atoi(TESTPORT1))
-   *  printf("FAILURE: wrong port\n");
-   * else if (strcmp(parsedurl->remainder,TESTREMAINDER1))
-   *  printf("FAILURE: wrong remainder\n");
-   */
-   else if (*(parsedurl->family))
-      printf("FAILURE: wrong family\n");
-   else
-      printf("Success!\n");
-   xfree(parsedurl);
-
-   /* TESTURL4 */
-   printf("Testing srvurl:   %s\n", TESTURL4);
-   if (SLPParseSrvUrl(strlen(TESTURL4), TESTURL4, &parsedurl) == 0)
-      printf("FAILURE: SLPParseSrvUrl should have returned an error\n");
-   else
-      printf("Success!\n");
-   xfree(parsedurl);
-
-   /* TESTURL5 */
-   printf("Testing srvurl:   %s\n", TESTURL5);
-   if (SLPParseSrvUrl(strlen(TESTURL5), TESTURL5, &parsedurl) != 0)
-   {
-      printf("FAILURE: SLPParseSrvUrl returned error\n");
-      return -1;
-   }
-   if (strcmp(parsedurl->srvtype, TESTSRVTYPE1))
-      printf("FAILURE: wrong srvtype\n");
-   else if (strcmp(parsedurl->host, TESTHOST2_PARSED))  /* host should be different */
-      printf("FAILURE: wrong host\n");
-   else if (parsedurl->port != atoi(TESTPORT1))
-      printf("FAILURE: wrong port\n");
-   else if (strcmp(parsedurl->remainder, TESTREMAINDER1))
-      printf("FAILURE: wrong remainder\n");
-   else if (*(parsedurl->family))
-      printf("FAILURE: wrong family\n");
-   else
-      printf("Success!\n");
-   xfree(parsedurl);
-
-   /* TESTURL6 - invalid ipv6 host */
-   printf("Testing srvurl:   %s\n", TESTURL6);
-   if (SLPParseSrvUrl(strlen(TESTURL6), TESTURL6, &parsedurl) != 0)
-   {
-      printf("FAILURE: SLPParseSrvUrl returned error\n");
-      return -1;
-   }
-   if (strcmp(parsedurl->srvtype, TESTSRVTYPE1))
-      printf("FAILURE: wrong srvtype\n");
-
-   xfree(parsedurl);
-   return 0;
+   printf("Error count: %d.\n", ec);
+   return ec? -1: 0;
 }
 #endif
 

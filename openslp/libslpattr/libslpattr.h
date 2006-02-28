@@ -35,15 +35,13 @@
  * @file       libslpattr.h
  * @author     Matthew Peterson, John Calcote (jcalcote@novell.com)
  * @attention  Please submit patches to http://www.openslp.org
- * @ingroup    LibSlpAttrCode
+ * @ingroup    CommonCodeAttrs
  */
 
 #ifndef LIBSLPATTR_H_INCLUDED
 #define LIBSLPATTR_H_INCLUDED
 
-/*!@defgroup LibSlpAttrCode Attribute Parsing */
-
-/*!@addtogroup LibSlpAttrCode
+/*!@addtogroup CommonCodeAttrs
  * @{
  */
 

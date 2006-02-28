@@ -37,7 +37,7 @@
  * @file       slp_auth.h
  * @author     Matthew Peterson, John Calcote (jcalcote@novell.com)
  * @attention  Please submit patches to http://www.openslp.org
- * @ingroup    CommonCode
+ * @ingroup    CommonCodeAuth
  */
 
 #ifndef SLP_AUTH_H_INCLUDED
@@ -46,10 +46,12 @@
 #include "slp_message.h"
 #include "slp_spi.h"
 
-/*!@defgroup CommonCodeAuth Authentication */
-
-/*!@addtogroup CommonCodeAuth
+/*!@defgroup CommonCodeSecurity Security
  * @ingroup CommonCode
+ */
+
+/*!@defgroup CommonCodeAuth Authentication
+ * @ingroup CommonCodeSecurity
  * @{
  */
 

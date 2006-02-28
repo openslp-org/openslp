@@ -37,7 +37,7 @@
  * @file       slp_atomic.c
  * @author     John Calcote (jcalcote@novell.com)
  * @attention  Please submit patches to http://www.openslp.org
- * @ingroup    CommonCode
+ * @ingroup    CommonCodeAtomic
  */
 
 #include "slp_types.h"

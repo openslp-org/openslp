@@ -194,10 +194,6 @@
 				RelativePath="..\..\libslp\libslp_reg.c"
 				>
 			</File>
-			<File
-				RelativePath="..\..\libslp\libslp_thread.c"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"

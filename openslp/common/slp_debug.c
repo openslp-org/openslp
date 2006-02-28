@@ -35,12 +35,23 @@
  * @file       slp_debug.c
  * @author     John Calcote (jcalcote@novell.com)
  * @attention  Please submit patches to http://www.openslp.org
- * @ingroup    CommonCode
+ * @ingroup    CommonCodeDebugAssert
  */
 
 #include "slp_types.h"
 #include "slp_debug.h"
 
+/** Displays a message when SLP_ASSERT macro expression fails
+ * 
+ * Only called by the SLP_ASSERT macro, and then only if the assertion
+ * fails.
+ * 
+ * @param[in] assertion - A text string indicating the failed expression.
+ * @param[in] file - The file name in which the assertion failed.
+ * @param[in] line - The line number on which the assertion failed.
+ * 
+ * @return Zero.
+ */
 int SLPAssertionFailed(const char * assertion, const char * file, int line)
 {
 #ifdef _WIN32

@@ -35,16 +35,14 @@
  * @file       slp_dhcp.h
  * @author     John Calcote (jcalcote@novell.com)
  * @attention  Please submit patches to http://www.openslp.org
- * @ingroup    CommonCode
+ * @ingroup    CommonCodeDHCP
  */
 
 #ifndef SLP_DHCP_H_INCLUDED
 #define SLP_DHCP_H_INCLUDED
 
-/*!@defgroup CommonCodeDHCP DHCP Lookup */
-
-/*!@addtogroup CommonCodeDHCP
- * @ingroup CommonCode
+/*!@defgroup CommonCodeDHCP DHCP
+ * @ingroup CommonCodeNetwork
  * @{
  */
 
@@ -103,8 +101,8 @@
  * followed by a length of remaining data value. 
  */
 
-/* Applicable IANA BOOTP/DHCP option tag values */
-#define TAG_PAD               0     /* Fixed size, 1 byte (0), no length */
+/** Applicable IANA BOOTP/DHCP option tag values */
+#define TAG_PAD               0     /*!< Fixed size, 1 byte (0), no length */
 #define TAG_DHCP_MSG_TYPE     53
 #define TAG_DHCP_PARAM_REQ    55
 #define TAG_CLIENT_IDENTIFIER 61
@@ -112,21 +110,24 @@
 #define TAG_SLP_SCOPE         79
 #define TAG_END               255
 
-/* The Novell (pre-rfc2610 or draft 3) format for the DHCP TAG_SLP_DA option
+/** Novell format for DHCP TAG_SLP_DA.
+ * 
+ * The Novell (pre-rfc2610 or draft 3) format for the DHCP TAG_SLP_DA option
  * has the 'mandatory' flag containing other bits besides simply 'mandatory'.
  * These flags are important because if the DA_NAME_PRESENT flag is set, then 
  * we know we are parsing this format, otherwise it's the rfc2610 format. 
  */
-#define DA_NAME_PRESENT    0x80  /* DA name present in option */
-#define DA_NAME_IS_DNS     0x40  /* DA name is host name or DNS name */
-#define DISABLE_DA_MCAST   0x20  /* Multicast for DA's is disabled */
-#define SCOPE_PRESENT      0x10  /* Scope is present in option */
+#define DA_NAME_PRESENT    0x80  /*!< DA name present in option */
+#define DA_NAME_IS_DNS     0x40  /*!< DA name is host name or DNS name */
+#define DISABLE_DA_MCAST   0x20  /*!< Multicast for DA's is disabled */
+#define SCOPE_PRESENT      0x10  /*!< Scope is present in option */
 
-/* Character type encodings that we expect to be supported. */
-#define CT_ASCII     3       /* standard 7 or 8 bit ASCII */
-#define CT_UTF8      106     /* UTF-8 */
-#define CT_UNICODE   1000    /* normal Unicode */
+/** Character type encodings that we expect to be supported. */
+#define CT_ASCII     3       /*!< standard 7 or 8 bit ASCII */
+#define CT_UTF8      106     /*!< UTF-8 */
+#define CT_UNICODE   1000    /*!< normal Unicode */
 
+/** DHCP interface callback type */
 typedef int DHCPInfoCallBack(int tag, void * optdata, 
       size_t optdatasz, void * context);
 
@@ -136,6 +137,7 @@ int DHCPGetOptionInfo(unsigned char * dhcpOptCodes, int dhcpOptCodeCnt,
 int DHCPParseSLPTags(int tag, void * optdata, size_t optdatasz, 
       void * context);
 
+/** DHCP interface context structure */
 typedef struct _DHCPContext
 {
    int addrlistlen;

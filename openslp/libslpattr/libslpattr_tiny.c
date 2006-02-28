@@ -38,7 +38,7 @@
  * @file       libslpattr_tiny.c
  * @author     Matthew Peterson, John Calcote (jcalcote@novell.com)
  * @attention  Please submit patches to http://www.openslp.org
- * @ingroup    LibSLPCode
+ * @ingroup    CommonCodeAttrs
  */
 
 #include "libslpattr.h"

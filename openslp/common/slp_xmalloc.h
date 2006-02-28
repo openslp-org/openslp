@@ -35,16 +35,14 @@
  * @file       slp_xmalloc.h
  * @author     Matthew Peterson, John Calcote (jcalcote@novell.com)
  * @attention  Please submit patches to http://www.openslp.org
- * @ingroup    CommonCode
+ * @ingroup    CommonCodeXMalloc
  */
 
 #ifndef SLP_XMALLOC_H_INCLUDED
 #define SLP_XMALLOC_H_INCLUDED
 
-/*!@defgroup CommonCodeXMalloc Debug Memory */
-
-/*!@addtogroup CommonCodeXMalloc
- * @ingroup CommonCode
+/*!@defgroup CommonCodeXMalloc Memory
+ * @ingroup CommonCodeDebug
  * @{
  */
 

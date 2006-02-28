@@ -39,7 +39,7 @@
  * @file       slp_database.c
  * @author     Matthew Peterson, John Calcote (jcalcote@novell.com)
  * @attention  Please submit patches to http://www.openslp.org
- * @ingroup    CommonCode
+ * @ingroup    CommonCodeDB
  */
 
 #include "slp_database.h"
@@ -82,7 +82,7 @@ void SLPDatabaseDeinit(SLPDatabase * database)
  *    via SLPMessageFree or SLPBufferFree! Instead, the caller should
  *    use SLPDatabaseEntryDestroy only to free memory.
  */
-SLPDatabaseEntry * SLPDatabaseEntryCreate(SLPMessage msg, SLPBuffer buf)
+SLPDatabaseEntry * SLPDatabaseEntryCreate(SLPMessage * msg, SLPBuffer buf)
 {
    SLPDatabaseEntry * result;
 

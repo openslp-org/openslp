@@ -94,9 +94,7 @@ extern SLPDProperty G_SlpdProperty;
 
 int SLPDPropertyInit(const char * conffile); 
 
-#ifdef DEBUG
 void SLPDPropertyDeinit(void);
-#endif
 
 /*! @} */
 

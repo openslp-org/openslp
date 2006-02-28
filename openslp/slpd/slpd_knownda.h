@@ -55,10 +55,10 @@
 
 int SLPDKnownDAInit(void);
 int SLPDKnownDADeinit(void);
-int SLPDKnownDAAdd(SLPMessage msg, SLPBuffer buf);
+int SLPDKnownDAAdd(SLPMessage * msg, SLPBuffer buf);
 void SLPDKnownDARemove(struct sockaddr_storage * addr);
 void * SLPDKnownDAEnumStart(void);
-SLPMessage SLPDKnownDAEnum(void * eh, SLPMessage * msg, SLPBuffer * buf);
+SLPMessage * SLPDKnownDAEnum(void * eh, SLPMessage ** msg, SLPBuffer * buf);
 void SLPDKnownDAEnumEnd(void * eh);
 int SLPDKnownDAGenerateMyDAAdvert(struct sockaddr_storage * localaddr,
       int errorcode, int deadda, int xid, SLPBuffer * sendbuf);
@@ -68,12 +68,12 @@ int SLPDKnownDAGenerateMyV1DAAdvert(struct sockaddr_storage * localaddr,
       int errorcode, int encoding, unsigned int xid, SLPBuffer * sendbuf);
 #endif
 
-void SLPDKnownDAEcho(SLPMessage msg, SLPBuffer buf);
+void SLPDKnownDAEcho(SLPMessage * msg, SLPBuffer buf);
 void SLPDKnownDAActiveDiscovery(int seconds, int scope);
 void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead, int scope);
 void SLPDKnownDAImmortalRefresh(int seconds);
-void SLPDKnownDADeRegisterWithAllDas(SLPMessage msg, SLPBuffer buf);
-void SLPDKnownDARegisterWithAllDas(SLPMessage msg, SLPBuffer buf);
+void SLPDKnownDADeRegisterWithAllDas(SLPMessage * msg, SLPBuffer buf);
+void SLPDKnownDARegisterWithAllDas(SLPMessage * msg, SLPBuffer buf);
 
 #ifdef DEBUG
 void SLPDKnownDADump(void);

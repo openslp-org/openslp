@@ -32,7 +32,7 @@
 
 /** Header file for test code.
  *
- * @file       slp_debug.h
+ * @file       test/slp_debug.h
  * @date       Wed May 24 14:26:50 EDT 2000
  * @author     Matthew Peterson, John Calcote (jcalcote@novell.com)
  * @attention  Please submit patches to http://www.openslp.org

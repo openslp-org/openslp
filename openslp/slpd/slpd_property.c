@@ -39,13 +39,14 @@
  */
 
 #include "slpd_property.h"
-
 #include "slp_message.h"
 #include "slp_property.h"  
 #include "slp_iface.h"
 #include "slp_net.h"
 #include "slp_xmalloc.h"
 
+/** The global daemon attribute structure
+ */
 SLPDProperty G_SlpdProperty;
 
 /** Initialize the slpd property management subsystem.
@@ -62,11 +63,13 @@ int SLPDPropertyInit(const char * conffile)
    char * urlPrefix[27];    /* sizeof "service:directory-agent://(NULL)" */
    int family = AF_UNSPEC;
 
-   SLPPropertyReadFile(conffile);
+   /* initialize the slp property subsystem */
+   if (SLPPropertyInit(conffile) != 0)
+      return -1;
 
    memset(&G_SlpdProperty, 0, sizeof(G_SlpdProperty));
 
-   /* set the properties without hard defaults                    */
+   /* set the properties without hard defaults */
    G_SlpdProperty.isDA = SLPPropertyAsBoolean(SLPPropertyGet("net.slp.isDA"));
    G_SlpdProperty.activeDADetection = SLPPropertyAsBoolean(SLPPropertyGet("net.slp.activeDADetection"));               
 
@@ -94,7 +97,7 @@ int SLPDPropertyInit(const char * conffile)
    G_SlpdProperty.DAAddresses = SLPPropertyGet("net.slp.DAAddresses");
    G_SlpdProperty.DAAddressesLen = strlen(G_SlpdProperty.DAAddresses);
 
-   /* TODO make sure that we are using scopes correctly.  What about DHCP, etc*/
+   /** @todo Make sure that we are using scopes correctly. What about DHCP, etc? */
    G_SlpdProperty.useScopes = SLPPropertyGet("net.slp.useScopes");
    G_SlpdProperty.useScopesLen = strlen(G_SlpdProperty.useScopes);
    G_SlpdProperty.locale = SLPPropertyGet("net.slp.locale");
@@ -147,15 +150,11 @@ int SLPDPropertyInit(const char * conffile)
    return 0;
 }
 
-#ifdef DEBUG
 /** Release resources associated with configuration data.
- *
- * @note This routine is compiled into DEBUG builds only.
  */
 void SLPDPropertyDeinit(void)
 {
-   SLPPropertyFreeAll();
+   SLPPropertyCleanup();
 }
-#endif
 
 /*=========================================================================*/

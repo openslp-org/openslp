@@ -35,7 +35,7 @@
  * @file       slp_net.h
  * @author     Matthew Peterson, John Calcote (jcalcote@novell.com)
  * @attention  Please submit patches to http://www.openslp.org
- * @ingroup    CommonCode
+ * @ingroup    CommonCodeNetUtil
  */
 
 #ifndef SLP_NET_H_INCLUDED
@@ -45,9 +45,7 @@
  * @ingroup CommonCode
  */
 
-/*!@defgroup CommonCodeNetUtil Utility */
-
-/*!@addtogroup CommonCodeNetUtil
+/*!@defgroup CommonCodeNetUtil Utility
  * @ingroup CommonCodeNetwork
  * @{
  */
@@ -56,9 +54,11 @@
 #include "slp_socket.h"
 
 /** @todo Find a better constant for MAX_HOSTNAME. */
+
+/** The maximum length of a host name in OpenSLP. */
 #define MAX_HOST_NAME 512
 
-/* IPv6 SLP address constants */
+/** IPv6 SLP address constants */
 extern const struct in6_addr in6addr_srvloc_node;
 extern const struct in6_addr in6addr_srvloc_link;
 extern const struct in6_addr in6addr_srvloc_site;
@@ -69,13 +69,14 @@ extern const struct in6_addr in6addr_service_node_mask;
 extern const struct in6_addr in6addr_service_link_mask;
 /* extern const struct in6_addr in6addr_service_site_mask; */
 
+/** IN6 "Any" and "Loopback" address initializer macros */
 #define SLP_IN6ADDR_ANY_INIT        {{{ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 }}}
 #define SLP_IN6ADDR_LOOPBACK_INIT   {{{ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1 }}}
 
 extern const struct in6_addr slp_in6addr_any;
 extern const struct in6_addr slp_in6addr_loopback;
 
-/* Scope definitions */
+/** Scope definitions */
 #define SLP_SCOPE_NODE_LOCAL  0x01
 #define SLP_SCOPE_LINK_LOCAL  0x02
 #define SLP_SCOPE_SITE_LOCAL  0x03

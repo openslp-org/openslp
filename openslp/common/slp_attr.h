@@ -35,20 +35,18 @@
  * @file       slp_attr.h
  * @author     Matthew Peterson, John Calcote (jcalcote@novell.com)
  * @attention  Please submit patches to http://www.openslp.org
- * @ingroup    CommonCode
+ * @ingroup    CommonCodeAttrs
  */
 
 #ifndef SLP_ATTR_H_INCLUDED
 #define SLP_ATTR_H_INCLUDED
 
-/*!@defgroup CommonCode Common Code */
-/*!@defgroup CommonCodeAttrs Attribute */
-
-/*!@addtogroup CommonCodeAttrs
+/*!@defgroup CommonCodeAttrs Attribute
  * @ingroup CommonCode
  * @{
  */
 
+/** Attribute types */
 typedef enum attrTypes
 {
    head           = -1,
@@ -59,6 +57,7 @@ typedef enum attrTypes
    tag
 } SLPTypes;
 
+/** Attribute value */
 typedef union SLP_attr_value
 {
    char * stringVal;
@@ -67,6 +66,7 @@ typedef union SLP_attr_value
    void * opaqueVal;
 } SLPAttrVal;
 
+/** Attribute value list */
 typedef struct SLP_attr_list
 {
    struct SLP_attr_list * next;

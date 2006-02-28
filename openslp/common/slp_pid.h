@@ -35,16 +35,14 @@
  * @file       slp_pid.h
  * @author     Matthew Peterson, John Calcote (jcalcote@novell.com)
  * @attention  Please submit patches to http://www.openslp.org
- * @ingroup    CommonCode
+ * @ingroup    CommonCodePid
  */
 
 #ifndef SLP_PID_H_INCLUDED
 #define SLP_PID_H_INCLUDED
 
-/*!@defgroup CommonCodePid Process ID */
-
-/*!@addtogroup CommonCodePid
- * @ingroup CommonCode
+/*!@defgroup CommonCodePid Process
+ * @ingroup CommonCodePlatform
  * @{
  */
 

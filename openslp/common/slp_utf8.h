@@ -35,7 +35,7 @@
  * @file       slp_utf8.h
  * @author     Matthew Peterson, John Calcote (jcalcote@novell.com)
  * @attention  Please submit patches to http://www.openslp.org
- * @ingroup    CommonCode
+ * @ingroup    CommonCodeUTF8
  */
 
 #ifndef SLP_UTF8_INCLUDED
@@ -45,9 +45,7 @@
 # include <limits.h>
 #endif
 
-/*!@defgroup CommonCodeUTF8 UTF-8 */
-
-/*!@addtogroup CommonCodeUTF8
+/*!@defgroup CommonCodeUTF8 UTF-8 Interface
  * @ingroup CommonCode
  * @{
  */

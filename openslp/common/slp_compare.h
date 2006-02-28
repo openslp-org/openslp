@@ -35,16 +35,18 @@
  * @file       slp_compare.h
  * @author     Matthew Peterson, John Calcote (jcalcote@novell.com)
  * @attention  Please submit patches to http://www.openslp.org
- * @ingroup    CommonCode
+ * @ingroup    CommonCodeStrings
  */
 
 #ifndef SLP_STRING_H_INCLUDED
 #define SLP_STRING_H_INCLUDED
 
-/*!@defgroup CommonCodeStrings Strings */
-
-/*!@addtogroup CommonCodeStrings
+/*!@defgroup CommonCodeUtility Utility
  * @ingroup CommonCode
+ */
+
+/*!@defgroup CommonCodeStrings String Compare
+ * @ingroup CommonCodeUtility
  * @{
  */
 

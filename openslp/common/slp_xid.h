@@ -38,15 +38,13 @@
  * @file       slp_xid.h
  * @author     Matthew Peterson, John Calcote (jcalcote@novell.com)
  * @attention  Please submit patches to http://www.openslp.org
- * @ingroup    CommonCode
+ * @ingroup    CommonCodeXID
  */
 
 #ifndef SLP_XID_H_INCLUDED
 #define SLP_XID_H_INCLUDED
 
-/*!@defgroup CommonCodeXID Transaction ID */
-
-/*!@addtogroup CommonCodeXID
+/*!@defgroup CommonCodeXID Transaction ID
  * @ingroup CommonCode
  * @{
  */

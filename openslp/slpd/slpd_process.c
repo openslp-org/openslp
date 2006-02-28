@@ -67,7 +67,7 @@
  *
  * @internal
  */
-static int ProcessSASrvRqst(SLPMessage message, SLPBuffer * sendbuf,
+static int ProcessSASrvRqst(SLPMessage * message, SLPBuffer * sendbuf,
       int errorcode)
 {
    char localaddr_str[INET6_ADDRSTRLEN + 2];
@@ -195,11 +195,11 @@ FINISHED:
  *
  * @internal
  */
-static int ProcessDASrvRqst(SLPMessage message, SLPBuffer * sendbuf, 
+static int ProcessDASrvRqst(SLPMessage * message, SLPBuffer * sendbuf, 
       int errorcode)
 {
    SLPBuffer tmp = 0;
-   SLPMessage msg = 0;
+   SLPMessage * msg = 0;
    void * eh = 0;
 
    /* Special case for when libslp asks slpd (through the loopback) about
@@ -304,7 +304,7 @@ static int ProcessDASrvRqst(SLPMessage message, SLPBuffer * sendbuf,
  *
  * @internal
  */
-static int ProcessSrvRqst(SLPMessage message, SLPBuffer * sendbuf, 
+static int ProcessSrvRqst(SLPMessage * message, SLPBuffer * sendbuf, 
       int errorcode)
 {
    int i;
@@ -555,7 +555,7 @@ FINISHED:
  *
  * @internal
  */
-static int ProcessSrvReg(SLPMessage message, SLPBuffer recvbuf, 
+static int ProcessSrvReg(SLPMessage * message, SLPBuffer recvbuf, 
       SLPBuffer * sendbuf, int errorcode)
 {
    SLPBuffer result = *sendbuf;
@@ -671,7 +671,7 @@ FINISHED:
  *
  * @internal
  */
-static int ProcessSrvDeReg(SLPMessage message, SLPBuffer * sendbuf, 
+static int ProcessSrvDeReg(SLPMessage * message, SLPBuffer * sendbuf, 
       int errorcode)
 {
    SLPBuffer result = *sendbuf;
@@ -768,7 +768,7 @@ FINISHED:
  *
  * @internal
  */
-static int ProcessSrvAck(SLPMessage message, SLPBuffer * sendbuf, 
+static int ProcessSrvAck(SLPMessage * message, SLPBuffer * sendbuf, 
       int errorcode)
 {
    /* Ignore SrvAck. Just return errorcode to caller */
@@ -791,7 +791,7 @@ static int ProcessSrvAck(SLPMessage message, SLPBuffer * sendbuf,
  *
  * @internal
  */
-static int ProcessAttrRqst(SLPMessage message, SLPBuffer * sendbuf, 
+static int ProcessAttrRqst(SLPMessage * message, SLPBuffer * sendbuf, 
       int errorcode)
 {
    SLPDDatabaseAttrRqstResult * db = 0;
@@ -1035,7 +1035,7 @@ FINISHED:
  *
  * @internal
  */
-static int ProcessDAAdvert(SLPMessage message, SLPBuffer recvbuf, 
+static int ProcessDAAdvert(SLPMessage * message, SLPBuffer recvbuf, 
       SLPBuffer * sendbuf, int errorcode)
 {
    SLPBuffer result = *sendbuf;
@@ -1092,7 +1092,7 @@ RESPOND:
  *
  * @internal
  */
-static int ProcessSrvTypeRqst(SLPMessage message, SLPBuffer * sendbuf,
+static int ProcessSrvTypeRqst(SLPMessage * message, SLPBuffer * sendbuf,
       int errorcode)
 {
    size_t size = 0;
@@ -1210,7 +1210,7 @@ FINISHED:
  *
  * @internal
  */
-static int ProcessSAAdvert(SLPMessage message, SLPBuffer * sendbuf, 
+static int ProcessSAAdvert(SLPMessage * message, SLPBuffer * sendbuf, 
       int errorcode)
 {
    (void)message;
@@ -1237,7 +1237,7 @@ int SLPDProcessMessage(struct sockaddr_storage * peerinfo,
       SLPBuffer * sendbuf)
 {
    SLPHeader header;
-   SLPMessage message = 0;
+   SLPMessage * message = 0;
    int errorcode = 0;
 
 #ifdef DEBUG

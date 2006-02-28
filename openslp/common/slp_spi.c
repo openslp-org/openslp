@@ -38,8 +38,9 @@
  * @file       slp_spi.c
  * @author     Matthew Peterson, John Calcote (jcalcote@novell.com)
  * @attention  Please submit patches to http://www.openslp.org
- * @ingroup    CommonCode
+ * @ingroup    CommonCodeSPI
  */
+
 #ifdef _WIN32
 // nonstandard extension used : translation unit is empty
 # pragma warning (disable : 4206) 

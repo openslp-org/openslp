@@ -54,21 +54,20 @@
  * @author     Matthew Peterson, Michael Day (md@soft-hackle.net), 
  *             John Calcote (jcalcote@novell.com)
  * @attention  Please submit patches to http://www.openslp.org
- * @ingroup    CommonCode
+ * @ingroup    CommonCodeFilter
  */
 
 #ifndef SLP_FILTER_H_INCLUDED
 #define SLP_FILTER_H_INCLUDED
 
-/*!@defgroup CommonCodeFilter LDAPv3 Filter */
-
-/*!@addtogroup CommonCodeFilter
+/*!@defgroup CommonCodeFilter LDAPv3 Filter
  * @ingroup CommonCode
  * @{
  */
 
 #include "slp_attr.h"
 
+/** LDAP operator types */
 typedef enum ldap_operator_types
 {
    ldap_and = 259,    /* to match token values assigned in y_filter.h */
@@ -81,6 +80,7 @@ typedef enum ldap_operator_types
    expr_approx
 } ldapOperatorTypes;
 
+/** LDAP filter structure head pointer */
 typedef struct ldap_filter_struct_head
 {
    struct ldap_filter_struct_head  * next;
@@ -89,6 +89,7 @@ typedef struct ldap_filter_struct_head
    int operator; 
 } filterHead;
 
+/** LDAP filter structure */
 typedef struct ldap_filter_struct
 {
    struct ldap_filter_struct * next;

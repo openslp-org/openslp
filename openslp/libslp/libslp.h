@@ -41,9 +41,7 @@
 #ifndef LIBSLP_H_INCLUDED
 #define LIBSLP_H_INCLUDED
 
-/*!@defgroup LibSLPCode User Agent */
-
-/*!@addtogroup LibSLPCode
+/*!@defgroup LibSLPCode User Agent
  * @{
  */
 
@@ -58,16 +56,6 @@
 #define MINIMUM_DISCOVERY_INTERVAL  300    /* 5 minutes */
 #define MAX_RETRANSMITS             5      /* we'll only re-xmit 5 times! */
 #define SLP_FUNCT_DASRVRQST         0x7f   /* fake id used internally */
-
-#ifndef LIBSLP_CONFFILE
-# ifdef _WIN32
-#  define LIBSLP_CONFFILE "%WINDIR%\\slp.conf"
-#  define LIBSLP_SPIFILE  "%WINDIR%\\slp.spi"
-# else
-#  define LIBSLP_CONFFILE "/etc/slp.conf"
-#  define LIBSLP_SPIFILE "/etc/slp.spi"
-# endif
-#endif
 
 typedef enum
 {
@@ -181,13 +169,13 @@ typedef union _SLPHandleCallParams
  */
 typedef struct _SLPHandleInfo
 {
-#  define SLP_HANDLE_SIG 0xbeeffeed
+#define SLP_HANDLE_SIG 0xbeeffeed
    unsigned int sig;             /*!< A handle signature value. */
    intptr_t inUse;               /*!< A lock used to control access. */
 
-#ifndef ENABLE_ASYNC_API
+#ifdef ENABLE_ASYNC_API
    SLPBoolean isAsync;           /*!< Is operation sync or async? */
-   ThreadHandle th;              /*!< The async operation thread handle. */
+   SLPThreadHandle th;           /*!< The async operation thread handle. */
 #endif
 
    sockfd_t dasock;              /*!< A cached DA socket. */
@@ -261,6 +249,7 @@ void KnownDAProcessSrvRqst(SLPHandleInfo * handle);
 void KnownDAFreeAll(void);
 #endif
 
+void PutL16String(uint8_t ** cpp, const char * str, size_t strsz);
 size_t SizeofURLEntry(size_t urllen, size_t urlauthlen);
 void PutURLEntry(uint8_t ** cpp, const char * url, size_t urllen, 
       const uint8_t * urlauth, size_t urlauthlen);

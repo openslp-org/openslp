@@ -54,7 +54,7 @@
  * @author     Matthew Peterson, Michael Day (md@soft-hackle.net), 
  *             John Calcote (jcalcote@novell.com)
  * @attention  Please submit patches to http://www.openslp.org
- * @ingroup    CommonCode
+ * @ingroup    CommonCodeAttrs
  */
 
 %{

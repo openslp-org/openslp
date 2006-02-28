@@ -39,16 +39,14 @@
  * @file       slp_crypto.h
  * @author     Matthew Peterson, John Calcote (jcalcote@novell.com)
  * @attention  Please submit patches to http://www.openslp.org
- * @ingroup    CommonCode
+ * @ingroup    CommonCodeCrypto
  */
 
 #ifndef SLP_CRYPTO_H_INCLUDED
 #define SLP_CRYPTO_H_INCLUDED
 
-/*!@defgroup CommonCodeCrypto Cryptography */
-
-/*!@addtogroup CommonCodeCrypto
- * @ingroup CommonCode
+/*!@defgroup CommonCodeCrypto Cryptography
+ * @ingroup CommonCodeSecurity
  * @{
  */
 
@@ -57,6 +55,7 @@
 #include <openssl/dsa.h>
 #include <openssl/sha.h>
 
+/** A more descriptive name for DSA in this context. */
 typedef DSA SLPCryptoDSAKey;
 
 int SLPCryptoSHA1Digest(const unsigned char * data, int datalen, 

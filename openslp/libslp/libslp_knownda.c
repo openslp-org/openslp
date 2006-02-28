@@ -44,6 +44,7 @@
 #include "libslp.h"
 #include "slp_dhcp.h"
 #include "slp_net.h"
+#include "slp_parse.h"
 #include "slp_network.h"
 #include "slp_database.h"
 #include "slp_compare.h"
@@ -127,7 +128,7 @@ static SLPBoolean KnownDAListFind(size_t scopelistlen, const char * scopelist,
  *
  * @internal
  */
-static int KnownDAAdd(SLPMessage msg, SLPBuffer buf)
+static int KnownDAAdd(SLPMessage * msg, SLPBuffer buf)
 {
    int result = 0;
    SLPDatabaseHandle dh = SLPDatabaseOpen(&G_KnownDACache);
@@ -188,7 +189,7 @@ static SLPBoolean KnownDADiscoveryCallback(SLPError errorcode,
       void * peerinfo, SLPBuffer replybuf, void * cookie)
 {
    SLPBuffer dupbuf;
-   SLPMessage replymsg;
+   SLPMessage * replymsg;
    SLPBoolean result = SLP_TRUE; /* Default is to continue. */
 
    if (errorcode)                /* Bad response, but do call again. */
@@ -204,9 +205,10 @@ static SLPBoolean KnownDADiscoveryCallback(SLPError errorcode,
    {
       if (replymsg->body.daadvert.errorcode == 0)
       {
-         SLPSrvURL * srvurl;
+         SLPParsedSrvUrl * srvurl;
 
-         if (SLPParseSrvURL(replymsg->body.daadvert.url, &srvurl) == 0)
+         if (SLPParseSrvUrl(replymsg->body.daadvert.urllen, 
+					replymsg->body.daadvert.url, &srvurl) == 0)
          {
             int retval = -1;
 
@@ -217,14 +219,14 @@ static SLPBoolean KnownDADiscoveryCallback(SLPError errorcode,
             {
                memset(&((struct sockaddr_in *)&replymsg->peer)->sin_addr, 0, 
                      sizeof(struct in_addr));
-               retval = inet_pton(replymsg->peer.ss_family, srvurl->s_pcHost, 
+               retval = inet_pton(replymsg->peer.ss_family, srvurl->host, 
                      &((struct sockaddr_in *)&replymsg->peer)->sin_addr);
             }
             else if (replymsg->peer.ss_family == AF_INET6 && SLPNetIsIPV6()) 
             {
                memset(&((struct sockaddr_in6 *)&replymsg->peer)->sin6_addr, 0, 
                      sizeof(struct in6_addr));
-               retval = inet_pton(replymsg->peer.ss_family, srvurl->s_pcHost, 
+               retval = inet_pton(replymsg->peer.ss_family, srvurl->host, 
                      &((struct sockaddr_in6 *)&replymsg->peer)->sin6_addr);
             }
             if (retval == 0)
@@ -233,7 +235,7 @@ static SLPBoolean KnownDADiscoveryCallback(SLPError errorcode,
                struct addrinfo hints;
 
                hints.ai_family = replymsg->peer.ss_family;
-               getaddrinfo(srvurl->s_pcHost, 0, &hints, &he);
+               getaddrinfo(srvurl->host, 0, &hints, &he);
                if (he)
                {
                   /* Reset the peer to the one in the URL. */
@@ -249,7 +251,7 @@ static SLPBoolean KnownDADiscoveryCallback(SLPError errorcode,
                   freeaddrinfo(he);
                }
             }
-            SLPFree(srvurl);
+            xfree(srvurl);
 
             if (retval > 0)
             {

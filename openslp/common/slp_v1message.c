@@ -39,7 +39,7 @@
  * @author     Matthew Peterson, Ganesan Rajagopal, 
  *             John Calcote (jcalcote@novell.com)
  * @attention  Please submit patches to http://www.openslp.org
- * @ingroup    CommonCode
+ * @ingroup    CommonCodeMessageV1
  */
 
 #include "slp_types.h"
@@ -620,7 +620,7 @@ int SLPv1MessageParseHeader(const SLPBuffer buffer, SLPHeader * header)
  * that are necessary for v1 backward-compatibility.
  *
  * @param[in] buffer - The buffer from which data should be parsed.
- * @param[out] message - The message into which @p buffer should be parsed.
+ * @param[out] msg - The message into which @p buffer should be parsed.
  *
  * @return Zero on success, SLP_ERROR_PARSE_ERROR, or 
  *    SLP_ERROR_INTERNAL_ERROR if out of memory.
@@ -633,35 +633,35 @@ int SLPv1MessageParseHeader(const SLPBuffer buffer, SLPHeader * header)
  *    routine and has already reset the message to accomodate new buffer
  *    data.
  */
-int SLPv1MessageParseBuffer(const SLPBuffer buffer, SLPMessage message)
+int SLPv1MessageParseBuffer(const SLPBuffer buffer, SLPMessage * msg)
 {
    int result;
 
    /* parse the header first */
-   result = SLPv1MessageParseHeader(buffer, &message->header);
+   result = SLPv1MessageParseHeader(buffer, &msg->header);
    if (result == 0)
    {
       /* switch on the function id to parse the body */
-      switch (message->header.functionid)
+      switch (msg->header.functionid)
       {
          case SLP_FUNCT_SRVRQST:
-            result = v1ParseSrvRqst(buffer, message->header.encoding,
-                  &message->body.srvrqst);
+            result = v1ParseSrvRqst(buffer, msg->header.encoding,
+                  &msg->body.srvrqst);
             break;
 
          case SLP_FUNCT_SRVREG:
-            result = v1ParseSrvReg(buffer, message->header.encoding,
-                  &message->body.srvreg);
+            result = v1ParseSrvReg(buffer, msg->header.encoding,
+                  &msg->body.srvreg);
             break;
 
          case SLP_FUNCT_SRVDEREG:
-            result = v1ParseSrvDeReg(buffer, message->header.encoding,
-                  &message->body.srvdereg);
+            result = v1ParseSrvDeReg(buffer, msg->header.encoding,
+                  &msg->body.srvdereg);
             break;
 
          case SLP_FUNCT_ATTRRQST:
-            result = v1ParseAttrRqst(buffer, message->header.encoding,
-                  &message->body.attrrqst);
+            result = v1ParseAttrRqst(buffer, msg->header.encoding,
+                  &msg->body.attrrqst);
             break;
 
          case SLP_FUNCT_DAADVERT:
@@ -673,8 +673,8 @@ int SLPv1MessageParseBuffer(const SLPBuffer buffer, SLPMessage message)
             break;
 
          case SLP_FUNCT_SRVTYPERQST:
-            result = v1ParseSrvTypeRqst(buffer, message->header.encoding,
-                  &message->body.srvtyperqst);
+            result = v1ParseSrvTypeRqst(buffer, msg->header.encoding,
+                  &msg->body.srvtyperqst);
             break;
 
          default:

@@ -38,7 +38,7 @@
  * @file       slp_xcast.c
  * @author     Matthew Peterson, John Calcote (jcalcote@novell.com)
  * @attention  Please submit patches to http://www.openslp.org
- * @ingroup    CommonCode
+ * @ingroup    CommonCodeXCast
  */
 
 #if !defined(UNICAST_NOT_SUPPORTED)

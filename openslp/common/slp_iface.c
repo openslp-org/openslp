@@ -38,7 +38,7 @@
  * @file       slp_iface.c
  * @author     Matthew Peterson, John Calcote (jcalcote@novell.com)
  * @attention  Please submit patches to http://www.openslp.org
- * @ingroup    CommonCode
+ * @ingroup    CommonCodeNetIfc
  */
 
 #include "slp_types.h"
@@ -59,7 +59,7 @@
 //# include <arpa/inet.h>
 //#endif
 
-/* the max index for v6 address to test for valid scope ids */
+/** The max index for v6 address to test for valid scope ids. */
 #define MAX_INTERFACE_TEST_INDEX 255
 
 /** Checks a string-list for the occurence of a string

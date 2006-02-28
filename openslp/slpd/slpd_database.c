@@ -129,7 +129,7 @@ void SLPDDatabaseAge(int seconds, int ageall)
  *
  * @remarks All registrations are treated as fresh.
  */
-int SLPDDatabaseReg(SLPMessage msg, SLPBuffer buf)
+int SLPDDatabaseReg(SLPMessage * msg, SLPBuffer buf)
 {
    SLPDatabaseHandle dh;
    SLPDatabaseEntry * entry;
@@ -261,7 +261,7 @@ int SLPDDatabaseReg(SLPMessage msg, SLPBuffer buf)
  *
  * @return Zero on success, or a non-zero value on failure.
  */
-int SLPDDatabaseDeReg(SLPMessage msg)
+int SLPDDatabaseDeReg(SLPMessage * msg)
 {
    SLPDatabaseHandle dh;
    SLPDatabaseEntry * entry = 0;
@@ -384,7 +384,7 @@ int SLPDDatabaseDeReg(SLPMessage msg)
  * @remarks Caller must pass @p result (dereferenced) to 
  *    SLPDDatabaseSrvRqstEnd to free.
  */
-int SLPDDatabaseSrvRqstStart(SLPMessage msg, 
+int SLPDDatabaseSrvRqstStart(SLPMessage * msg, 
       SLPDDatabaseSrvRqstResult ** result)
 {
    SLPDatabaseHandle dh;
@@ -504,7 +504,7 @@ void SLPDDatabaseSrvRqstEnd(SLPDDatabaseSrvRqstResult * result)
  * @remarks Caller must pass @p result (dereferenced) to 
  *    SLPDDatabaseSrvtypeRqstEnd to free it.
  */
-int SLPDDatabaseSrvTypeRqstStart(SLPMessage msg, 
+int SLPDDatabaseSrvTypeRqstStart(SLPMessage * msg, 
       SLPDDatabaseSrvTypeRqstResult ** result)
 {
    SLPDatabaseHandle dh;
@@ -609,7 +609,7 @@ void SLPDDatabaseSrvTypeRqstEnd(SLPDDatabaseSrvTypeRqstResult * result)
  * @remarks Caller must pass @p result (dereferenced) to 
  *    SLPDDatabaseAttrRqstEnd to free it.
  */
-int SLPDDatabaseAttrRqstStart(SLPMessage msg,
+int SLPDDatabaseAttrRqstStart(SLPMessage * msg,
       SLPDDatabaseAttrRqstResult ** result)
 {
    SLPDatabaseHandle dh;
@@ -733,7 +733,7 @@ void * SLPDDatabaseEnumStart(void)
  *
  * @return A pointer to the enumerated entry or 0 if end of enumeration.
  */
-SLPMessage SLPDDatabaseEnum(void * eh, SLPMessage * msg, SLPBuffer * buf)
+SLPMessage * SLPDDatabaseEnum(void * eh, SLPMessage ** msg, SLPBuffer * buf)
 {
    SLPDatabaseEntry * entry;
    entry = SLPDatabaseEnum((SLPDatabaseHandle)eh);
@@ -806,7 +806,7 @@ int SLPDDatabaseReInit(const char * regfile)
 {
    SLPDatabaseHandle dh;
    SLPDatabaseEntry * entry;
-   SLPMessage msg;
+   SLPMessage * msg;
    SLPBuffer buf;
    FILE * fd;
 
@@ -854,7 +854,7 @@ void SLPDDatabaseDeinit(void)
  */
 void SLPDDatabaseDump(void)
 {
-   SLPMessage msg;
+   SLPMessage * msg;
    SLPBuffer buf;
    void * eh;
 

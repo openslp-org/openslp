@@ -37,7 +37,7 @@
  * @file       slp_network.c
  * @author     Matthew Peterson, John Calcote (jcalcote@novell.com)
  * @attention  Please submit patches to http://www.openslp.org
- * @ingroup    CommonCode
+ * @ingroup    CommonCodeNetConn
  */
 
 #include "slp_network.h"

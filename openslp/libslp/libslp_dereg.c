@@ -42,6 +42,7 @@
 
 #include "slp.h"
 #include "libslp.h"
+#include "slp_property.h"
 #include "slp_message.h"
 #include "slp_xmalloc.h"
 
@@ -65,7 +66,7 @@ static SLPBoolean CallbackSrvDeReg(SLPError errorcode,
    if (errorcode == 0)
    {
       /* Parse the replybuf into a message. */
-      SLPMessage replymsg = SLPMessageAlloc();
+      SLPMessage * replymsg = SLPMessageAlloc();
       if (replymsg)
       {
          errorcode = (SLPError)(-SLPMessageParseBuffer(
@@ -89,11 +90,16 @@ static SLPBoolean CallbackSrvDeReg(SLPError errorcode,
 }
 
 /** Formats and sends an SLPDereg wire buffer request.
- *
+ * 
+ * This is an unqualified SLPDereg wire request (the tag-list is empty). 
+ * See SLPDelAttrs for information qualified, or partial deregistrations.
+ * 
  * @param handle - The OpenSLP session handle, containing request 
  *    parameters. See docs for SLPDereg.
  *
  * @return Zero on success, or an SLP API error code.
+ * 
+ * @internal
  */
 static SLPError ProcessSrvDeReg(SLPHandleInfo * handle)
 {
@@ -107,13 +113,10 @@ static SLPError ProcessSrvDeReg(SLPHandleInfo * handle)
 
 #ifdef ENABLE_SLPv2_SECURITY
    if (SLPPropertyAsBoolean(SLPGetProperty("net.slp.securityEnabled")))
-   {
-      int err = SLPAuthSignUrl(handle->hspi, 0, 0, 
+      if (SLPAuthSignUrl(handle->hspi, 0, 0, 
             handle->params.dereg.urllen, handle->params.dereg.url, 
-            &urlauthlen, &urlauth);
-      if (err != 0)
+            &urlauthlen, &urlauth) != 0)
          return SLP_AUTHENTICATION_ABSENT;
-   }
 #endif
 
 /*  0                   1                   2                   3
@@ -137,17 +140,15 @@ static SLPError ProcessSrvDeReg(SLPHandleInfo * handle)
    }
 
    /* <scope-list> */
-   PutUINT16(&curpos, handle->params.dereg.scopelistlen);
-   memcpy(curpos, handle->params.dereg.scopelist, 
+   PutL16String(&curpos, handle->params.dereg.scopelist, 
          handle->params.dereg.scopelistlen);
-   curpos += handle->params.dereg.scopelistlen;
 
    /* URL Entry */
    PutURLEntry(&curpos, handle->params.dereg.url, 
          handle->params.dereg.urllen, urlauth, urlauthlen);
 
    /* empty <tag-list> */
-   PutUINT16(&curpos, 0);
+   PutL16String(&curpos, 0, 0);
 
    /* Call the Request-Reply engine. */
    sock = NetworkConnectToSA(handle, handle->params.dereg.scopelist,
@@ -171,10 +172,11 @@ static SLPError ProcessSrvDeReg(SLPHandleInfo * handle)
 #ifdef ENABLE_ASYNC_API
 /** Thread start procedure for asynchronous service deregistration.
  *
- * @param[in,out] handle - Contains the request parameters, returns the
- *    request result.
+ * @param[in] handle - Contains the request parameters.
  *
  * @return An SLPError code.
+ * 
+ * @internal
  */
 static SLPError AsyncProcessSrvDeReg(SLPHandleInfo * handle)
 {
@@ -230,7 +232,7 @@ SLPError SLPAPI SLPDereg(
          || callback == 0)
       return SLP_PARAMETER_BAD;
 
-   /* Parse the service URL - just to see if we can apparently. */
+   /* Parse the service URL - just to see if we can, apparently. */
    serr = SLPParseSrvURL(srvUrl, &parsedurl);
    SLPFree(parsedurl);
    if (serr != SLP_OK)
@@ -261,7 +263,7 @@ SLPError SLPAPI SLPDereg(
       /* Ensure strdups and thread create succeed. */
       if (handle->params.dereg.url == 0
             || handle->params.dereg.scopelist == 0
-            || (handle->th = ThreadCreate((ThreadStartProc)
+            || (handle->th = SLPThreadCreate((SLPThreadStartProc)
                   AsyncProcessSrvDeReg, handle)) == 0)
       {
          serr = SLP_MEMORY_ALLOC_FAILED;

@@ -38,7 +38,7 @@
  * @file       slp_compare.c
  * @author     Matthew Peterson, John Calcote (jcalcote@novell.com)
  * @attention  Please submit patches to http://www.openslp.org
- * @ingroup    CommonCode
+ * @ingroup    CommonCodeStrings
  */
 
 #include "slp_types.h"
@@ -122,6 +122,7 @@ int strcasecmp(const char * s1, const char * s2)
 # endif 
 #endif 
 
+/** Convert a character to upper case using US ASCII rules. */
 #define usaupr(c) (((c) & 0xC0) == 0x40? (c) & ~0x20: (c))
 
 /** Determines if a specified character is a valid hexadecimal character.
@@ -161,7 +162,7 @@ static int hex2bin(int c)
  *
  * @note Since only valid escapeable characters may be escaped, we will 
  *    assume that escaped characters are sequences of bytes within the 
- *    \00 - \7F range (ascii subset of utf-8). 
+ *    0x00 - 0x7F range (ascii subset of utf-8). 
  */
 static int SLPUnescapeInPlace(size_t len, char * str)
 {

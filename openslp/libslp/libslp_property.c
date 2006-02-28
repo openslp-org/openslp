@@ -43,10 +43,17 @@
 #include "slp.h"
 #include "libslp.h"
 #include "slp_property.h"
+#include "slp_atomic.h"
+
+/** Module static flag indicating property module is initialized */
+static bool s_PropInited = 0;
+
+/** Module static spinlock variable protects property module initialization */
+static intptr_t s_PropInitLock = 0;
 
 /** Returns a string value for a specified property.
  *
- * Returns the value of the corresponding SLP property name.  The
+ * Returns the value of the corresponding SLP property name. The
  * returned string is owned by the library and MUST NOT be freed.
  *
  * @param[in] pcName - Null terminated string with the property name, 
@@ -59,21 +66,20 @@
  */
 SLPEXP const char * SLPAPI SLPGetProperty(const char * pcName)
 {
-   char conffile[MAX_PATH]; 
-
-   memset(conffile, 0, MAX_PATH);
-
-#ifdef _WIN32
-	ExpandEnvironmentStrings((LPCTSTR)LIBSLP_CONFFILE,
-			(LPTSTR)conffile, MAX_PATH);   
-#else
-   strncpy(conffile, LIBSLP_CONFFILE, MAX_PATH - 1);
-#endif
-
-   if (G_SLPPropertyList.head == 0 
-         && SLPPropertyReadFile(conffile) != 0)
+   SLP_ASSERT(pcName && *pcName);
+   if (!pcName || !*pcName)
       return 0;
 
+   if (!s_PropInited)
+   {
+      SLPAcquireSpinLock(&s_PropInitLock);
+      if (!s_PropInited)
+      {
+         SLPPropertyInit(0);
+         s_PropInited = true;
+      }
+      SLPReleaseSpinLock(&s_PropInitLock);
+   }
    return SLPPropertyGet(pcName);
 } 
 
@@ -93,25 +99,38 @@ SLPEXP const char * SLPAPI SLPGetProperty(const char * pcName)
  *    value, and replace it with the new value, specified in @p pcValue. 
  *    While clients aren't technically supposed to save off pointers into
  *    the configuration store for later use, doing so is not prohibited.
+ *    Regardless, even if they don't store the value pointer, there are 
+ *    still multi-threaded race conditions that can't be solved with the
+ *    current design.
  *
  * @remarks We could implement this by maintaining a list of all old values
  *    so they were always valid for the life of the application, but that
  *    could be expensive, memory-wise, depending on the nature of the 
- *    application using this library.
+ *    application using this library. In pathological cases, the property 
+ *    memory store could grow without bounds.
  */
 SLPEXP void SLPAPI SLPSetProperty(
       const char * pcName, 
       const char * pcValue)
 {
-   (void)pcName;
+   SLP_ASSERT(pcName && *pcName);
+   if (!pcName || !*pcName)
+      return;
+
    (void)pcValue;
 
-   /* Following commented out for threading reasons 
+   /* The following is commented out for threading reasons 
 
-   if (G_PropertyInit.head == NULL)
-      if (SLPPropertyReadFile(LIBSLP_CONFFILE) == 0)
-         G_PropertyInit = 1;
-
+   if (!s_PropInited)
+   {
+      SLPAcquireSpinLock(&s_PropInitLock);
+      if (!s_PropInited)
+      {
+         SLPPropertyInit(0);
+         s_PropInited = true;
+      }
+      SLPReleaseSpinLock(&s_PropInitLock);
+   }
    SLPPropertySet(pcName, pcValue);
 
    */

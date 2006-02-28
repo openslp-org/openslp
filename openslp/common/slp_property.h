@@ -35,51 +35,27 @@
  * @file       slp_property.h
  * @author     Matthew Peterson, John Calcote (jcalcote@novell.com)
  * @attention  Please submit patches to http://www.openslp.org
- * @ingroup    CommonCode
+ * @ingroup    CommonCodeProp
  */
 
 #ifndef SLP_PROPERTY_H_INCLUDED
 #define SLP_PROPERTY_H_INCLUDED
 
-#include "slp_linkedlist.h"
-
-/*!@defgroup CommonCodeProp Property Access */
-
-/*!@addtogroup CommonCodeProp
+/*!@defgroup CommonCodeProp Property Access
  * @ingroup CommonCode
  * @{
  */
 
-extern SLPList G_SLPPropertyList;
+const char * SLPPropertyGet(const char * name); 
+int SLPPropertySet(const char * name, const char * value);
 
-typedef struct _SLPProperty
-{
-   /** Make the SLPProperty class list-able. */
-   SLPListItem listitem;
+bool SLPPropertyAsBoolean(const char * value);
+int SLPPropertyAsInteger(const char * value);
+int SLPPropertyAsIntegerVector(const char * value, 
+      int * ivector, int ivectorsz);
 
-   /** The name of this property. */
-   char * propertyName;
-
-   /** The value of this property. */
-   char * propertyValue;
-} SLPProperty;
-
-const char * SLPPropertyGet(const char * pcName); 
-
-int SLPPropertySet(const char * pcName, const char * pcValue);
-
-int SLPPropertyReadFile(const char * conffile);
-
-int SLPPropertyAsBoolean(const char * property);
-
-int SLPPropertyAsInteger(const char * property);
-
-int SLPPropertyAsIntegerVector(const char * property, 
-      int * cvector, int vectorsize);
-
-#ifdef DEBUG
-void SLPPropertyFreeAll(void);
-#endif
+int SLPPropertyInit(const char * conffile);
+void SLPPropertyCleanup(void);
 
 /*! @} */
 

@@ -35,15 +35,13 @@
  * @file       slp_network.h
  * @author     Matthew Peterson, John Calcote (jcalcote@novell.com)
  * @attention  Please submit patches to http://www.openslp.org
- * @ingroup    CommonCode
+ * @ingroup    CommonCodeNetConn
  */
 
 #ifndef SLP_NETWORK_H_INCLUDED
 #define SLP_NETWORK_H_INCLUDED
 
-/*!@defgroup CommonCodeNetAccess Access */
-
-/*!@addtogroup CommonCodeNetAccess
+/*!@defgroup CommonCodeNetConn Connection
  * @ingroup CommonCodeNetwork
  * @{
  */
@@ -54,6 +52,7 @@
 #include "slp_message.h"
 #include "slp_xid.h"
 
+/** Multicast service type values for basic and DA operation. */
 #define SLP_MULTICAST_SERVICE_TYPE_SRVLOC    0x01
 #define SLP_MULTICAST_SERVICE_TYPE_SRVLOCDA  0x02
 

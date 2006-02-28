@@ -48,7 +48,7 @@
 #ifndef SLP_TYPES_H_INCLUDED
 #define SLP_TYPES_H_INCLUDED
 
-/*!@addtogroup CommonCode
+/*!@defgroup CommonCode Common Code 
  * @{
  */
 
@@ -91,17 +91,23 @@ typedef unsigned long uint32_t;
 # define strdup _strdup
 
 /* file name paths */
-# define SLPD_CONFFILE ETCDIR "/slp.conf"
-# define SLPD_LOGFILE  VARDIR "/log/slpd.log"
-# define SLPD_REGFILE  ETCDIR "/slp.reg"
-# define SLPD_PIDFILE  VARDIR "/run/slpd.pid"
-# define SLPD_SPIFILE  ETCDIR "/slp.spi"
+# define SLPD_CONFFILE "%WINDIR%\\slp.conf"
+# define SLPD_SPIFILE  "%WINDIR%\\slp.spi"
+# define SLPD_REGFILE  "%WINDIR%\\slp.reg"
+# define SLPD_LOGFILE  "%WINDIR%\\slpd.log"
+# define SLPD_PIDFILE  "%WINDIR%\\slpd.pid"
+# ifndef LIBSLP_CONFFILE
+#  define LIBSLP_CONFFILE SLPD_CONFFILE
+# endif
+# ifndef LIBSLP_SPIFILE
+#  define LIBSLP_SPIFILE  SLPD_SPIFILE
+# endif
 
 #else	/* ! _WIN32 */
 
 # ifdef HAVE_CONFIG_H
 #  include "config.h"
-# endif /* HAVE_CONFIG_H */
+# endif
 
 # define SLP_VERSION VERSION
 
@@ -193,6 +199,9 @@ typedef unsigned long uint32_t;
 #   include <stdint.h>
 #  endif
 # endif
+# if HAVE_STDBOOL_H
+#  include <stdbool.h>
+# endif
 # if HAVE_PWD_H
 #  include <pwd.h>
 # endif
@@ -200,11 +209,17 @@ typedef unsigned long uint32_t;
 #  include <grp.h>
 # endif
 
-# define SLPD_CONFFILE "%WINDIR%\\slp.conf"
-# define SLPD_LOGFILE  "%WINDIR%\\slpd.log"
-# define SLPD_REGFILE  "%WINDIR%\\slp.reg"
-# define SLPD_PIDFILE  "%WINDIR%\\slpd.pid"
-# define SLPD_SPIFILE  "%WINDIR%\\slp.spi"
+# define SLPD_CONFFILE ETCDIR "/slp.conf"
+# define SLPD_REGFILE  ETCDIR "/slp.reg"
+# define SLPD_SPIFILE  ETCDIR "/slp.spi"
+# define SLPD_LOGFILE  VARDIR "/log/slpd.log"
+# define SLPD_PIDFILE  VARDIR "/run/slpd.pid"
+# ifndef LIBSLP_CONFFILE
+#  define LIBSLP_CONFFILE "/etc/slp.conf"
+# endif
+# ifndef LIBSLP_SPIFILE
+#  define LIBSLP_SPIFILE  "/etc/slp.spi"
+# endif
 
 #endif /* ! _WIN32 */
 
@@ -212,7 +227,7 @@ typedef unsigned long uint32_t;
 # define MAX_PATH 256
 #endif
 
-/* fix this - check for _Bool, not bool */
+/* boolean type for C99 compliance */
 #ifndef bool
 # define bool int
 # define false 0

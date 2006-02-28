@@ -52,11 +52,13 @@
 #include "slp_xcast.h"
 #include "slp_socket.h"
 
+#if !defined(MI_NOT_SUPPORTED)
+
 /** Returns all multi-cast addresses to which a message type can be sent.
  *
  * Returns all the multicast addresses the msgtype can be sent out to. If
- * there is more than one address returned, the address will be in the
- * order that they should be sent to.
+ * there is more than one address returned, the addresses will be in the
+ * order that they should be consumed (according to policy).
  *
  * @param[in] msgtype - The function-id to use in the SLPMessage header
  * @param[in] msg - A pointer to the portion of the SLP message to send. 
@@ -85,8 +87,7 @@ static int NetworkGetMcastAddrs(const char msgtype, uint8_t * msg,
             uint16_t srvtype_len = GetUINT16(&msg);
             const char * srvtype = GetStrPtr(&msg, srvtype_len);
             /* Add IPv6 multicast groups in order they should appear. */
-            SLPNetGetSrvMcastAddr(srvtype,
-                  srvtype_len, SLP_SCOPE_NODE_LOCAL, 
+            SLPNetGetSrvMcastAddr(srvtype, srvtype_len, SLP_SCOPE_NODE_LOCAL, 
                   &ifaceinfo->iface_addr[ifaceinfo->iface_count]);
             SLPNetSetPort(&ifaceinfo->iface_addr[ifaceinfo->iface_count], 
                   SLP_RESERVED_PORT);
@@ -189,6 +190,8 @@ static int NetworkGetMcastAddrs(const char msgtype, uint8_t * msg,
    }
    return SLP_OK;
 }     
+
+#endif   /* ! MI_NOT_SUPPORTED */
 
 /** Connects to slpd and provides a peeraddr to send to.
  *
@@ -680,7 +683,7 @@ CLEANUP:
  * param[in] langtag - Language tag to use in SLP message header
 
  * @param[in] buf - The pointer to the portion of the SLP message to
- *    send. The portion to that should be pointed to is everything after
+ *    send. The portion that should be pointed to is everything after
  *    the pr-list. NetworkXcastRqstRply() automatically generates the 
  *    header and the prlist.
  * @param[in] buftype - The function-id to use in the SLPMessage header.
@@ -1272,5 +1275,40 @@ CLEANUP:
    return result;
 }
 #endif
-   
+
+/*===========================================================================
+ *  TESTING CODE : compile with the following command lines:
+ *
+ *  $ gcc -g -DSLP_NETWORK_TEST -DDEBUG libslp_network.c 
+ *
+ *  C:\> cl -DSLP_NETWORK_TEST -DDEBUG libslp_network.c 
+ */
+#ifdef SLP_NETWORK_TEST
+
+int main(int argc, char * argv[])
+{
+   // static routines
+   int NetworkGetMcastAddrs(const char msgtype, uint8_t * msg, 
+         SLPIfaceInfo * ifaceinfo)
+
+   // non-static routines
+   sockfd_t NetworkConnectToSlpd(void * peeraddr)
+   void NetworkDisconnectDA(SLPHandleInfo * handle)
+   void NetworkDisconnectSA(SLPHandleInfo * handle)
+   sockfd_t NetworkConnectToDA(SLPHandleInfo * handle, const char * scopelist,
+         size_t scopelistlen, void * peeraddr)
+   sockfd_t NetworkConnectToSA(SLPHandleInfo * handle, const char * scopelist,
+         size_t scopelistlen, void * saaddr)
+   SLPError NetworkRqstRply(sockfd_t sock, void * peeraddr, 
+         const char * langtag, size_t extoffset, void * buf, char buftype,
+         size_t bufsize, NetworkRplyCallback callback, void * cookie)
+   SLPError NetworkMcastRqstRply(SLPHandleInfo * handle, void * buf, 
+         char buftype, size_t bufsize, NetworkRplyCallback callback,
+         void * cookie)
+   SLPError NetworkUcastRqstRply(SLPHandleInfo * handle, void * buf, 
+         char buftype, size_t bufsize, NetworkRplyCallback callback, 
+         void * cookie)
+}
+#endif
+
 /*=========================================================================*/

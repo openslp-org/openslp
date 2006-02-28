@@ -38,7 +38,7 @@
  * @file       slp_buffer.h
  * @author     Matthew Peterson, John Calcote (jcalcote@novell.com)
  * @attention  Please submit patches to http://www.openslp.org
- * @ingroup    CommonCode
+ * @ingroup    CommonCodeBuffers
  */
 
 #ifndef SLP_BUFFER_H_INCLUDED
@@ -50,10 +50,8 @@
 #include "slp_linkedlist.h"
 #include "slp_types.h"
 
-/*!@defgroup CommonCodeBuffers Message Buffers */
-
-/*!@addtogroup CommonCodeBuffers
- * @ingroup CommonCode
+/*!@defgroup CommonCodeBuffers Buffers
+ * @ingroup CommonCodeUtility
  * @{
  */
 

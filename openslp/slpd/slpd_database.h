@@ -87,19 +87,19 @@ typedef struct _SLPDDatabaseAttrRqstResult
 } SLPDDatabaseAttrRqstResult;       
 
 void SLPDDatabaseAge(int seconds, int ageall);
-int SLPDDatabaseReg(SLPMessage msg, SLPBuffer buf);
-int SLPDDatabaseDeReg(SLPMessage msg);
-int SLPDDatabaseSrvRqstStart(SLPMessage msg, 
+int SLPDDatabaseReg(SLPMessage * msg, SLPBuffer buf);
+int SLPDDatabaseDeReg(SLPMessage * msg);
+int SLPDDatabaseSrvRqstStart(SLPMessage * msg, 
       SLPDDatabaseSrvRqstResult ** result);
 void SLPDDatabaseSrvRqstEnd(SLPDDatabaseSrvRqstResult * result);
-int SLPDDatabaseSrvTypeRqstStart(SLPMessage msg, 
+int SLPDDatabaseSrvTypeRqstStart(SLPMessage * msg, 
       SLPDDatabaseSrvTypeRqstResult ** result);
 void SLPDDatabaseSrvTypeRqstEnd(SLPDDatabaseSrvTypeRqstResult * result);
-int SLPDDatabaseAttrRqstStart(SLPMessage msg, 
+int SLPDDatabaseAttrRqstStart(SLPMessage * msg, 
       SLPDDatabaseAttrRqstResult ** result);
 void SLPDDatabaseAttrRqstEnd(SLPDDatabaseAttrRqstResult * result);
 void * SLPDDatabaseEnumStart(void);
-SLPMessage SLPDDatabaseEnum(void * eh, SLPMessage * msg, SLPBuffer * buf);
+SLPMessage * SLPDDatabaseEnum(void * eh, SLPMessage ** msg, SLPBuffer * buf);
 void SLPDDatabaseEnumEnd(void * eh);
 int SLPDDatabaseIsEmpty(void);
 int SLPDDatabaseInit(const char * regfile);

@@ -32,7 +32,7 @@
 
 /** Parse URL.
  *
- * Implementation for SLPParseSrvUrl(), SLPEscape(), SLPUnescape() and 
+ * Implementation for SLPParseSrvURL(), SLPEscape(), SLPUnescape() and 
  * SLPFree() calls.
  *
  * @file       libslp_parse.c
@@ -48,10 +48,31 @@
 #include "slp_parse.h"
 #include "slp_message.h"
 
+/** Put a 16-bit-length-preceeded string into a buffer.
+ * 
+ * Write 2 bytes of length in Big-Endian format followed by the specified
+ * number of bytes of string data. Update the pointer on return to point to
+ * the location following the last byte written.
+ * 
+ * @param[in,out] cpp - The address of a buffer pointer.
+ * @param[in] str - The string to write.
+ * @param[in] strsz - The length of @p str.
+ */
+void PutL16String(uint8_t ** cpp, const char * str, size_t strsz)
+{
+   PutUINT16(cpp, strsz);
+   memcpy(*cpp, str, strsz);
+   *cpp += strsz;
+}
+
 /** Calculate the size of a URL Entry.
- *
+ * 
  * @param[in] urllen - the length of the URL.
  * @param[in] urlauthlen - the length of the URL authentication block.
+ *
+ * @remarks Currently OpenSLP only handles a single authentication 
+ *    block. To handle more than this, this routine would have to take
+ *    a sized array of @p urlauthlen values.
  *
  * @return A number of bytes representing the total URL Entry size.
  */
@@ -111,6 +132,8 @@ void PutURLEntry(uint8_t ** cpp, const char * url, size_t urllen,
    memcpy(curpos, url, urllen);
    curpos += urllen;
 
+   /* @todo Enhance OpenSLP to take multiple auth blocks per request. */
+
    /* # of URL auths / Auth. blocks */
    *curpos++ = urlauth? 1: 0;
    memcpy(curpos, urlauth, urlauthlen);
@@ -137,17 +160,22 @@ void SLPAPI SLPFree(void * pvMem)
 /** Parse a service URL into constituent parts.
  *
  * Parses the URL passed in as the argument into a service URL structure
- * and returns it in the ppSrvURL pointer. If a parse error occurs,
- * returns SLP_PARSE_ERROR. The input buffer pcSrvURL is destructively
- * modified during the parse and used to fill in the fields of the
- * return structure. The structure returned in ppSrvURL should be freed
- * with SLPFreeURL. If the URL has no service part, the s_pcSrvPart
- * string is the empty string, "", i.e. not NULL. If pcSrvURL is not a
- * service: URL, then the s_pcSrvType field in the returned data
- * structure is the URL's scheme, which might not be the same as the
- * service type under which the URL was registered. If the transport is
- * IP, the s_pcTransport field is the empty string. If the transport is
- * not IP or there is no port number, the s_iPort field is zero.
+ * and returns it in the @p ppSrvURL pointer. If a parse error occurs, 
+ * returns SLP_PARSE_ERROR. The input buffer @p pcSrvURL is not modified.
+ * Rather, portions of it are copied into a buffer at the end of the
+ * structure allocated for return. Note that this is contrary to the RFC, 
+ * which indicates that it is destructively modified during the parse and 
+ * used to fill in the fields of the return structure. The structure 
+ * returned in @p ppSrvURL should be freed with SLPFree. Again, note that
+ * the RFC refers to a non-existent routine named SLPFreeURL. If the URL 
+ * has no service part, the s_pcSrvPart string is the empty string, ""
+ * (ie, not NULL). If @p pcSrvURL is not a service: URL, then the 
+ * s_pcSrvType field in the returned data structure is the URL's scheme, 
+ * which might not be the same as the service type under which the URL was 
+ * registered. If the transport is IP, the s_pcNetFamily field is the empty 
+ * string. Note that the RFC refers to a non-existent s_pcTransport field
+ * here. If the transport is not IP or there is no port number, the s_iPort 
+ * field is zero.
  *
  * @param[in] pcSrvURL - A pointer to a character buffer containing the 
  *    null terminated URL string to parse. Note that RFC 2614 makes this 
@@ -166,7 +194,7 @@ SLPEXP SLPError SLPAPI SLPParseSrvURL(
       SLPSrvURL ** ppSrvURL)
 {
    int result = SLPParseSrvUrl(strlen(pcSrvURL), pcSrvURL, 
-         (SLPParsedSrvUrl **)ppSrvURL); 
+         (SLPParsedSrvUrl **) ppSrvURL); 
    switch(result)
    {
       case ENOMEM:

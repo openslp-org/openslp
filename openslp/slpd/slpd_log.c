@@ -326,7 +326,7 @@ static void SLPDLogPeerAddr(struct sockaddr_storage * peeraddr)
  *
  * @param[in] message - The message to log.
  */
-void SLPDLogMessageInternals(SLPMessage message)
+void SLPDLogMessageInternals(SLPMessage * message)
 {
    char addr_str[INET6_ADDRSTRLEN];
 
@@ -408,7 +408,7 @@ void SLPDLogMessageInternals(SLPMessage message)
 void SLPDLogMessage(int msglogflags, struct sockaddr_storage * peerinfo,
       struct sockaddr_storage * localaddr, SLPBuffer buf)
 {
-   SLPMessage msg;
+   SLPMessage * msg;
    char addr_str[INET6_ADDRSTRLEN];
 
    if (peerinfo == 0 || buf == 0)

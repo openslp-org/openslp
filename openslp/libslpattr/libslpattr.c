@@ -35,7 +35,7 @@
  * @file       libslpattr.c
  * @author     Matthew Peterson, John Calcote (jcalcote@novell.com)
  * @attention  Please submit patches to http://www.openslp.org
- * @ingroup    LibSLPCode
+ * @ingroup    CommonCodeAttrs
  */
 
 #include "../common/slp_types.h"

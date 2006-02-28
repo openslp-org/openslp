@@ -40,7 +40,7 @@
  * @file       slp_pid.c
  * @author     Matthew Peterson, John Calcote (jcalcote@novell.com)
  * @attention  Please submit patches to http://www.openslp.org
- * @ingroup    CommonCode
+ * @ingroup    CommonCodePid
  */
 
 #include "slp_types.h"

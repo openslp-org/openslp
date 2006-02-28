@@ -35,15 +35,13 @@
  * @file       slp_message.h
  * @author     John Calcote (jcalcote@novell.com)
  * @attention  Please submit patches to http://www.openslp.org
- * @ingroup    CommonCode
+ * @ingroup    CommonCodeMessage
  */
 
 #ifndef SLP_MESSAGE_H_INCLUDED
 #define SLP_MESSAGE_H_INCLUDED
 
-/*!@defgroup CommonCodeMessage Wire Message */
-
-/*!@addtogroup CommonCodeMessage
+/*!@defgroup CommonCodeMessage SLP Messages
  * @ingroup CommonCode
  * @{
  */
@@ -54,19 +52,19 @@
 #include "slp_socket.h"
 #include "slp_types.h"
 
-/* SLP Important constants */
-#define SLP_RESERVED_PORT       427
-#define SLP_MCAST_ADDRESS       0xeffffffd  /* 239.255.255.253 */
-#define SLP_BCAST_ADDRESS       0xffffffff  /* 255.255.255.255 */
-#define SLPv1_DA_MCAST_ADDRESS  0xe0000123  /* 224.0.1.35 */
-#define LOOPBACK_ADDRESS        0x7f000001  /* 127.0.0.1 */
+/** SLP Important constants */
+#define SLP_RESERVED_PORT       427          /*!< The SLP port number */
+#define SLP_MCAST_ADDRESS       0xeffffffd   /*!< 239.255.255.253 */
+#define SLP_BCAST_ADDRESS       0xffffffff   /*!< 255.255.255.255 */
+#define SLPv1_DA_MCAST_ADDRESS  0xe0000123   /*!< 224.0.1.35 */
+#define LOOPBACK_ADDRESS        0x7f000001   /*!< 127.0.0.1 */
 #define SLP_MAX_DATAGRAM_SIZE   1400 
 
 #if !defined(SLP_LIFETIME_MAXIMUM)
 # define SLP_LIFETIME_MAXIMUM   0xffff
 #endif
 
-/* SLP Function ID constants */
+/** SLP Function ID constants */
 #define SLP_FUNCT_SRVRQST        1
 #define SLP_FUNCT_SRVRPLY        2
 #define SLP_FUNCT_SRVREG         3
@@ -79,7 +77,7 @@
 #define SLP_FUNCT_SRVTYPERPLY    10
 #define SLP_FUNCT_SAADVERT       11
 
-/* SLP Protocol Error codes */
+/** SLP Protocol Error codes */
 #define SLP_ERROR_OK                      0
 #define SLP_ERROR_LANGUAGE_NOT_SUPPORTED  1
 #define SLP_ERROR_PARSE_ERROR             2
@@ -97,10 +95,10 @@
 #define SLP_ERROR_MESSAGE_NOT_SUPPORTED   14
 #define SLP_ERROR_REFRESH_REJECTED        15
 
-/* Additional internal error codes */
+/** Additional internal error codes */
 #define SLP_ERROR_RETRY_UNICAST           100
 
-/* SLP Flags */
+/** SLP Flags */
 #define SLP_FLAG_OVERFLOW         0x8000
 #define SLP_FLAG_FRESH            0x4000
 #define SLP_FLAG_MCAST            0x2000
@@ -109,30 +107,32 @@
 # define SLP_FLAG_UCAST           0x0000
 #endif
 
-/* SLP Constants */
-/* Max time to wait for a complete multicast query response */
+/** SLP Constants */
+
+/** Max time to wait for a complete multicast query response */
 #define CONFIG_MC_MAX            15    
 
-/* Wait interval to give up on a unicast request retransmission */
+/** Wait interval to give up on a unicast request retransmission */
 #define CONFIG_RETRY_MAX         15    
 
-/* Default wait between retransmits */
+/** Default wait between retransmits */
 #define CONFIG_RETRY_INTERVAL    3    
 
 #define SLP_DA_SERVICE_TYPE      "service:directory-agent"
 #define SLP_SA_SERVICE_TYPE      "service:service-agent"
 
-/* SLP Registration Sources */
+/** SLP Registration Sources */
 #define SLP_REG_SOURCE_UNKNOWN   0
 #define SLP_REG_SOURCE_REMOTE    1  /* from a remote host    */
 #define SLP_REG_SOURCE_LOCAL     2  /* from localhost or IPC */
 #define SLP_REG_SOURCE_STATIC    3  /* from the slp.reg file */
 
-/* SLP Extension IDs */
-/* format: Extid(2), nxtextoffs(3), pid(4) */
+/** SLP Extension IDs */
+
+/** format: Extid(2), nxtextoffs(3), pid(4) */
 #define SLP_EXTENSION_ID_REG_PID 0x4001
 
-/* Buffer extraction and insertion macros */
+/** Buffer extraction and insertion macros */
 #define AS_UINT16(p) (uint16_t)              \
       (                                      \
          (((const uint8_t *)(p))[0] <<  8) | \
@@ -185,7 +185,7 @@ void PutUINT16(uint8_t ** cpp, size_t val);
 void PutUINT24(uint8_t ** cpp, size_t val);
 void PutUINT32(uint8_t ** cpp, size_t val);
 
-/* SLPHeader structure and associated functions */
+/** SLPHeader structure and associated functions */
 typedef struct _SLPHeader
 {
    int version;
@@ -199,7 +199,7 @@ typedef struct _SLPHeader
    const char * langtag;   /* points into the translated message */
 } SLPHeader;
 
-/* SLPAuthBlock structure and associated functions */
+/** SLPAuthBlock structure and associated functions */
 typedef struct _SLPAuthBlock
 {
    uint16_t bsd;
@@ -212,20 +212,20 @@ typedef struct _SLPAuthBlock
    uint8_t * opaque; /* convenience */
 } SLPAuthBlock;
 
-/* SLPUrlEntry structure and associated functions */
+/** SLPUrlEntry structure and associated functions */
 typedef struct _SLPUrlEntry
 {
-   char reserved; /* always 0 */
+   char reserved;       /*!< always 0 */
    int lifetime;
    size_t urllen;
    const char * url;
    int authcount;
    SLPAuthBlock * autharray; 
-   size_t opaquelen; /* convenience */
-   uint8_t * opaque; /* convenience */
+   size_t opaquelen;    /*!< convenience */
+   uint8_t * opaque;    /*!< convenience */
 } SLPUrlEntry;
 
-/* SLPSrvRqst structure and associated functions */
+/** SLPSrvRqst structure and associated functions */
 typedef struct _SLPSrvRqst
 {
    size_t prlistlen;
@@ -241,6 +241,7 @@ typedef struct _SLPSrvRqst
    const char * spistr;
 } SLPSrvRqst;
 
+/** SLPSrvRply structure and associated functions */
 typedef struct _SLPSrvRply                                                 
 {
    int errorcode;
@@ -248,6 +249,7 @@ typedef struct _SLPSrvRply
    SLPUrlEntry * urlarray;
 } SLPSrvRply;
 
+/** SLPSrvReg structure and associated functions */
 typedef struct _SLPSrvReg
 {
    SLPUrlEntry urlentry;
@@ -261,9 +263,10 @@ typedef struct _SLPSrvReg
    SLPAuthBlock * autharray;
    /* The following are used for OpenSLP specific extensions */
    uint32_t pid;
-   int source; /* convenience */
+   int source;    /*!< convenience */
 } SLPSrvReg;
 
+/** SLPSrvDeReg structure and associated functions */
 typedef struct _SLPSrvDeReg
 {
    size_t scopelistlen;
@@ -273,11 +276,13 @@ typedef struct _SLPSrvDeReg
    const char * taglist;
 } SLPSrvDeReg;
 
+/** SLPSrvAck structure and associated functions */
 typedef struct _SLPSrvAck
 {
    int errorcode;
 } SLPSrvAck;
 
+/** SLPDAAdvert structure and associated functions */
 typedef struct _SLPDAAdvert
 {
    int errorcode;
@@ -294,6 +299,7 @@ typedef struct _SLPDAAdvert
    SLPAuthBlock * autharray;
 } SLPDAAdvert;
 
+/** SLPAttrRqst structure and associated functions */
 typedef struct _SLPAttrRqst
 {
    size_t prlistlen;
@@ -308,6 +314,7 @@ typedef struct _SLPAttrRqst
    const char * spistr;
 } SLPAttrRqst;
 
+/** SLPAttrRply structure and associated functions */
 typedef struct _SLPAttrRply
 {
    int errorcode;
@@ -317,6 +324,7 @@ typedef struct _SLPAttrRply
    SLPAuthBlock * autharray;
 } SLPAttrRply;
 
+/** SLPSrvTypeRqst structure and associated functions */
 typedef struct _SLPSrvTypeRqst
 {
    size_t prlistlen;
@@ -327,6 +335,7 @@ typedef struct _SLPSrvTypeRqst
    const char * scopelist;
 } SLPSrvTypeRqst;
 
+/** SLPSrvTypeRply structure and associated functions */
 typedef struct _SLPSrvTypeRply
 {
    int errorcode;
@@ -334,6 +343,7 @@ typedef struct _SLPSrvTypeRply
    const char * srvtypelist;
 } SLPSrvTypeRply;
 
+/** SLPSAAdvert structure and associated functions */
 typedef struct _SLPSAAdvert
 {
    size_t urllen;
@@ -346,7 +356,7 @@ typedef struct _SLPSAAdvert
    SLPAuthBlock * autharray;
 } SLPSAAdvert;
 
-/* SLP wire protocol message management structures and prototypes */
+/** SLP wire protocol message management structures and prototypes */
 typedef struct _SLPMessage
 {
    struct sockaddr_storage peer;
@@ -366,17 +376,17 @@ typedef struct _SLPMessage
       SLPSrvTypeRply srvtyperply;
       SLPSAAdvert    saadvert;
    } body; 
-} * SLPMessage;
+} SLPMessage;
 
-void SLPMessageFreeInternals(SLPMessage message);
-SLPMessage SLPMessageAlloc(void);
-SLPMessage SLPMessageRealloc(SLPMessage message);
-void SLPMessageFree(SLPMessage message);
+void SLPMessageFreeInternals(SLPMessage * mp);
+SLPMessage * SLPMessageAlloc(void);
+SLPMessage * SLPMessageRealloc(SLPMessage * mp);
+void SLPMessageFree(SLPMessage * mp);
 
 /* Message parsing routines */
 int SLPMessageParseHeader(SLPBuffer buffer, SLPHeader * header);
 int SLPMessageParseBuffer(void * peeraddr, const void * localaddr, 
-      SLPBuffer buffer, SLPMessage message);
+      SLPBuffer buffer, SLPMessage * mp);
 
 /*! @} */
 

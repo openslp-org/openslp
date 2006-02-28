@@ -38,7 +38,7 @@
  * @file       slp_net.c
  * @author     Matthew Peterson, John Calcote (jcalcote@novell.com)
  * @attention  Please submit patches to http://www.openslp.org
- * @ingroup    CommonCode
+ * @ingroup    CommonCodeNetUtil
  */
 
 #include "../libslp/slp.h"
@@ -49,9 +49,10 @@
 #include "slp_xmalloc.h"
 #include "slp_property.h"
 
+/** min - for lack of a portable C alternative. */
 #define slp_min(a,b) (((a)<(b))?(a):(b))
 
-/* IPv6 SLP address constants */
+/** IPv6 SLP address constants */
 const struct in6_addr in6addr_srvloc_node =
 {
    {{ 0xFF,0x1,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x01,0x16 }}
@@ -337,7 +338,7 @@ int SLPNetResolveHostToAddr(const char * host,
  */
 int SLPNetIsIPV6(void)
 {
-   return SLPPropertyAsBoolean(SLPPropertyGet("net.slp.useIPV6"))? 1: 0;
+   return SLPPropertyAsBoolean(SLPPropertyGet("net.slp.useIPv6"))? 1: 0;
 }
 
 /** Determine if we should use IPv4.
@@ -348,7 +349,7 @@ int SLPNetIsIPV6(void)
  */
 int SLPNetIsIPV4(void)
 {
-   return SLPPropertyAsBoolean(SLPPropertyGet("net.slp.useIPV4"))? 1: 0;
+   return SLPPropertyAsBoolean(SLPPropertyGet("net.slp.useIPv6"))? 0: 1;
 }
 
 /** Compare two address buffers.

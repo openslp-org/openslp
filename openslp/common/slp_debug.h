@@ -39,19 +39,21 @@
  * support the C99 standard sized types yet. In this case, we define
  * them here on an as-needed basis.
  *
- * @file       slp_types.h
+ * @file       common/slp_debug.h
  * @author     John Calcote (jcalcote@novell.com)
  * @attention  Please submit patches to http://www.openslp.org
- * @ingroup    CommonCode
+ * @ingroup    CommonCodeDebugAssert
  */
 
 #ifndef SLP_DEBUG_H_INCLUDED
 #define SLP_DEBUG_H_INCLUDED
 
-/*!@defgroup CommonCodeDebug Debugging */
-
-/*!@addtogroup CommonCodeDebug
+/*!@defgroup CommonCodeDebug Debug
  * @ingroup CommonCode
+ */
+
+/*!@defgroup CommonCodeDebugAssert Assert
+ * @ingroup CommonCodeDebug
  * @{
  */
 

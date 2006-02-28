@@ -76,7 +76,7 @@ static SLPBoolean CallbackSrvReg(SLPError errorcode,
    if (errorcode == 0)
    {
       /* Parse the replybuf into a message. */
-      SLPMessage replymsg = SLPMessageAlloc();
+      SLPMessage * replymsg = SLPMessageAlloc();
       if (replymsg)
       {
          errorcode = (SLPError)(-SLPMessageParseBuffer(
@@ -105,6 +105,8 @@ static SLPBoolean CallbackSrvReg(SLPError errorcode,
  *    parameters. See docs for SLPReg.
  *
  * @return Zero on success, or an SLP API error code.
+ * 
+ * @internal
  */
 static SLPError ProcessSrvReg(SLPHandleInfo * handle)
 {
@@ -177,21 +179,18 @@ static SLPError ProcessSrvReg(SLPHandleInfo * handle)
          handle->params.reg.urllen, urlauth, urlauthlen);
 
    /* <service-type> */
-   PutUINT16(&curpos, handle->params.reg.srvtypelen);
-   memcpy(curpos, handle->params.reg.srvtype, handle->params.reg.srvtypelen);
-   curpos += handle->params.reg.srvtypelen;
+   PutL16String(&curpos, handle->params.reg.srvtype, 
+         handle->params.reg.srvtypelen);
 
    /* <scope-list> */
-   PutUINT16(&curpos, handle->params.reg.scopelistlen);
-   memcpy(curpos, handle->params.reg.scopelist, 
+   PutL16String(&curpos, handle->params.reg.scopelist,
          handle->params.reg.scopelistlen);
-   curpos += handle->params.reg.scopelistlen;
 
    /* <attr-list> */
-   PutUINT16(&curpos, handle->params.reg.attrlistlen);
-   memcpy(curpos, handle->params.reg.attrlist, 
+   PutL16String(&curpos, handle->params.reg.attrlist, 
          handle->params.reg.attrlistlen);
-   curpos += handle->params.reg.attrlistlen;
+
+   /** @todo Handle multiple attribute authentication blocks. */
 
    /* Attribute Authentication Blocks */
    *curpos++ = attrauth? 1: 0;
@@ -230,8 +229,7 @@ static SLPError ProcessSrvReg(SLPHandleInfo * handle)
 #ifdef ENABLE_ASYNC_API
 /** Thread start procedure for asynchronous service registration.
  *
- * @param[in,out] handle - Contains the request parameters, returns the
- *    request result.
+ * @param[in] handle - Contains the request parameters.
  *
  * @return An SLPError code.
  *
@@ -387,7 +385,7 @@ SLPEXP SLPError SLPAPI SLPReg(
             || handle->params.reg.srvtype == 0
             || handle->params.reg.scopelist == 0
             || handle->params.reg.attrlist == 0
-            || (handle->th = ThreadCreate((ThreadStartProc)
+            || (handle->th = SLPThreadCreate((SLPThreadStartProc)
                   AsyncProcessSrvReg, handle)) == 0)
       {
          serr = SLP_MEMORY_ALLOC_FAILED;    

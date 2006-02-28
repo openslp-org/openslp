@@ -38,9 +38,10 @@
  * @file       slp_crypto.c
  * @author     Matthew Peterson, John Calcote (jcalcote@novell.com)
  * @attention  Please submit patches to http://www.openslp.org
- * @ingroup    CommonCode
+ * @ingroup    CommonCodeCrypto
  */
 
+/** Used to stop compiler warnings about empty translation units. */
 int G_Dummy_Enable_SLPv2_Security_Crypto;
 
 #ifdef ENABLE_SLPv2_SECURITY

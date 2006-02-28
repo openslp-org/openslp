@@ -35,7 +35,7 @@
  * @file       slp_v2message.c
  * @author     Matthew Peterson, John Calcote (jcalcote@novell.com)
  * @attention  Please submit patches to http://www.openslp.org
- * @ingroup    CommonCode
+ * @ingroup    CommonCodeMessageV2
  */
 
 #include "slp_message.h"
@@ -833,7 +833,7 @@ static int v2ParseSAAdvert(SLPBuffer buffer, SLPSAAdvert * saadvert)
 /** Parse a service extension.
  *
  * @param[in] buffer - The buffer from which data should be parsed.
- * @param[out] message - The service extension object into which 
+ * @param[out] msg - The service extension object into which 
  *    @p buffer should be parsed.
  *
  * @return Zero on success, or a non-zero error code.
@@ -842,7 +842,7 @@ static int v2ParseSAAdvert(SLPBuffer buffer, SLPSAAdvert * saadvert)
  *
  * @internal
  */
-static int v2ParseExtension(SLPBuffer buffer, SLPMessage message)
+static int v2ParseExtension(SLPBuffer buffer, SLPMessage * msg)
 {
 /*  0                   1                   2                   3
     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -853,7 +853,7 @@ static int v2ParseExtension(SLPBuffer buffer, SLPMessage message)
    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ */
 
    int result = 0;
-   int nextoffset = message->header.extoffset;
+   int nextoffset = msg->header.extoffset;
    while (nextoffset)
    {
       int extid;
@@ -866,11 +866,11 @@ static int v2ParseExtension(SLPBuffer buffer, SLPMessage message)
       switch (extid)
       {
          case SLP_EXTENSION_ID_REG_PID:
-            if (message->header.functionid == SLP_FUNCT_SRVREG)
+            if (msg->header.functionid == SLP_FUNCT_SRVREG)
             {
                if (buffer->curpos + 4 > buffer->end)
                   return SLP_ERROR_PARSE_ERROR;
-               message->body.srvreg.pid = GetUINT32(&buffer->curpos);
+               msg->body.srvreg.pid = GetUINT32(&buffer->curpos);
             }
             break;
 
@@ -945,7 +945,7 @@ int SLPv2MessageParseHeader(SLPBuffer buffer, SLPHeader * header)
 /** Parse a wire buffer into an SLPv2 message descriptor.
  *
  * @param[in] buffer - The buffer from which data should be parsed.
- * @param[out] message - The message object into which 
+ * @param[out] msg - The message object into which 
  *    @p buffer should be parsed.
  *
  * @return Zero on success, SLP_ERROR_PARSE_ERROR, or
@@ -960,59 +960,59 @@ int SLPv2MessageParseHeader(SLPBuffer buffer, SLPHeader * header)
  *    routine and has already reset the message to accomodate new buffer
  *    data.
  */
-int SLPv2MessageParseBuffer(SLPBuffer buffer, SLPMessage message)
+int SLPv2MessageParseBuffer(SLPBuffer buffer, SLPMessage * msg)
 {
    int result;
 
    /* parse the header first */
-   result = SLPv2MessageParseHeader(buffer, &message->header);
+   result = SLPv2MessageParseHeader(buffer, &msg->header);
    if (result == 0)
    {
       /* switch on the function id to parse the body */
-      switch (message->header.functionid)
+      switch (msg->header.functionid)
       {
          case SLP_FUNCT_SRVRQST:
-            result = v2ParseSrvRqst(buffer, &message->body.srvrqst);
+            result = v2ParseSrvRqst(buffer, &msg->body.srvrqst);
             break;
 
          case SLP_FUNCT_SRVRPLY:
-            result = v2ParseSrvRply(buffer, &message->body.srvrply);
+            result = v2ParseSrvRply(buffer, &msg->body.srvrply);
             break;
 
          case SLP_FUNCT_SRVREG:
-            result = v2ParseSrvReg(buffer, &message->body.srvreg);
+            result = v2ParseSrvReg(buffer, &msg->body.srvreg);
             break;
 
          case SLP_FUNCT_SRVDEREG:
-            result = v2ParseSrvDeReg(buffer, &message->body.srvdereg);
+            result = v2ParseSrvDeReg(buffer, &msg->body.srvdereg);
             break;
 
          case SLP_FUNCT_SRVACK:
-            result = v2ParseSrvAck(buffer, &message->body.srvack);
+            result = v2ParseSrvAck(buffer, &msg->body.srvack);
             break;
 
          case SLP_FUNCT_ATTRRQST:
-            result = v2ParseAttrRqst(buffer, &message->body.attrrqst);
+            result = v2ParseAttrRqst(buffer, &msg->body.attrrqst);
             break;
 
          case SLP_FUNCT_ATTRRPLY:
-            result = v2ParseAttrRply(buffer, &message->body.attrrply);
+            result = v2ParseAttrRply(buffer, &msg->body.attrrply);
             break;
 
          case SLP_FUNCT_DAADVERT:
-            result = v2ParseDAAdvert(buffer, &message->body.daadvert);
+            result = v2ParseDAAdvert(buffer, &msg->body.daadvert);
             break;
 
          case SLP_FUNCT_SRVTYPERQST:
-            result = v2ParseSrvTypeRqst(buffer, &message->body.srvtyperqst);
+            result = v2ParseSrvTypeRqst(buffer, &msg->body.srvtyperqst);
             break;
 
          case SLP_FUNCT_SRVTYPERPLY:
-            result = v2ParseSrvTypeRply(buffer, &message->body.srvtyperply);
+            result = v2ParseSrvTypeRply(buffer, &msg->body.srvtyperply);
             break;
 
          case SLP_FUNCT_SAADVERT:
-            result = v2ParseSAAdvert(buffer, &message->body.saadvert);
+            result = v2ParseSAAdvert(buffer, &msg->body.saadvert);
             break;
 
          default:
@@ -1020,8 +1020,8 @@ int SLPv2MessageParseBuffer(SLPBuffer buffer, SLPMessage message)
       }
    }
 
-   if (result == 0 && message->header.extoffset)
-      result = v2ParseExtension(buffer, message);
+   if (result == 0 && msg->header.extoffset)
+      result = v2ParseExtension(buffer, msg);
 
    return result;
 }

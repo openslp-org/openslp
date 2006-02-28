@@ -65,7 +65,7 @@
  * @internal
  */
 static int v1ProcessDASrvRqst(struct sockaddr_storage * peeraddr, 
-      struct sockaddr_storage * localaddr, SLPMessage message, 
+      struct sockaddr_storage * localaddr, SLPMessage * message, 
       SLPBuffer * sendbuf, int errorcode)
 {
    if (message->body.srvrqst.scopelistlen == 0 
@@ -93,7 +93,7 @@ static int v1ProcessDASrvRqst(struct sockaddr_storage * peeraddr,
  * @internal
  */
 static int v1ProcessSrvRqst(struct sockaddr_storage * peeraddr, 
-      struct sockaddr_storage * localaddr, SLPMessage message, 
+      struct sockaddr_storage * localaddr, SLPMessage * message, 
       SLPBuffer * sendbuf, int errorcode)
 {
    int i;
@@ -235,7 +235,7 @@ FINISHED:
  * @internal
  */
 static int v1ProcessSrvReg(struct sockaddr_storage * peeraddr, 
-      SLPMessage message, SLPBuffer recvbuf, SLPBuffer * sendbuf, 
+      SLPMessage * message, SLPBuffer recvbuf, SLPBuffer * sendbuf, 
       int errorcode)
 {
    SLPBuffer result = *sendbuf;
@@ -327,7 +327,7 @@ FINISHED:
  * @return Non-zero if message should be silently dropped.
  */
 static int v1ProcessSrvDeReg(struct sockaddr_storage * peeraddr, 
-      SLPMessage message, SLPBuffer * sendbuf, int errorcode)
+      SLPMessage * message, SLPBuffer * sendbuf, int errorcode)
 {
    SLPBuffer result = *sendbuf;
 
@@ -410,7 +410,7 @@ FINISHED:
  * @return Zero on success, or a non-zero value on failure.
  */
 static int v1ProcessAttrRqst(struct sockaddr_storage * peeraddr, 
-      SLPMessage message, SLPBuffer * sendbuf, int errorcode)
+      SLPMessage * message, SLPBuffer * sendbuf, int errorcode)
 {
    SLPDDatabaseAttrRqstResult * db = 0;
    size_t attrlen = 0;
@@ -531,7 +531,7 @@ FINISHED:
  * @return Zero on success, or a non-zero value on failure.
  */
 static int v1ProcessSrvTypeRqst(struct sockaddr_storage * peeraddr, 
-      SLPMessage message, SLPBuffer * sendbuf, int errorcode)
+      SLPMessage * message, SLPBuffer * sendbuf, int errorcode)
 {
    char * type;
    char * end;
@@ -697,7 +697,7 @@ int SLPDv1ProcessMessage(struct sockaddr_storage * peeraddr,
       SLPBuffer recvbuf, SLPBuffer * sendbuf)
 {
    SLPHeader header;
-   SLPMessage message;
+   SLPMessage * message;
    int errorcode = 0;
 
    /* SLPv1 messages are handled only by DAs */

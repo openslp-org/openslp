@@ -77,6 +77,10 @@ const char * inet_ntop(int af, const void * src, char * dst, size_t size);
 # include <sys/types.h>
 # include <sys/socket.h>
 # include <netdb.h>
+
+/** Portability definitions
+ * @todo Move to slp_types.h
+ */
 # define so_bool_t int
 # define sockfd_t int
 # define SLP_INVALID_SOCKET -1

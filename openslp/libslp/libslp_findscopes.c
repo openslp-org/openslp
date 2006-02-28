@@ -100,9 +100,9 @@ SLPEXP SLPError SLPAPI SLPFindScopes(
 /** Returns the refresh intervals configured on the server.
  *
  * Returns the maximum across all DAs of the min-refresh-interval
- * attribute.  This value satisfies the advertised refresh interval
+ * attribute. This value satisfies the advertised refresh interval
  * bounds for all DAs, and, if used by the SA, assures that no refresh
- * registration will be rejected.  If no DA advertises a min-refresh-
+ * registration will be rejected. If no DA advertises a min-refresh-
  * interval attribute, a value of 0 is returned.
  *
  * @return If no error, the maximum refresh interval value allowed by all 

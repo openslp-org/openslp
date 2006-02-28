@@ -35,7 +35,7 @@
  * @file       slp_xcast.h
  * @author     Matthew Peterson, John Calcote (jcalcote@novell.com)
  * @attention  Please submit patches to http://www.openslp.org
- * @ingroup    CommonCode
+ * @ingroup    CommonCodeXCast
  */
 
 #ifndef SLP_XCAST_H_INCLUDED
@@ -46,10 +46,8 @@
 #include "slp_socket.h"
 #include "slp_types.h"
 
-/*!@defgroup CommonCodeXCast Multicast Messages */
-
-/*!@addtogroup CommonCodeXCast
- * @ingroup CommonCode
+/*!@defgroup CommonCodeXCast Multicast
+ * @ingroup CommonCodeNetwork
  * @{
  */
 

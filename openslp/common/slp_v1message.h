@@ -35,28 +35,26 @@
  * @file       slp_v1message.h
  * @author     Ganesan Rajagopal, John Calcote (jcalcote@novell.com)
  * @attention  Please submit patches to http://www.openslp.org
- * @ingroup    CommonCode
+ * @ingroup    CommonCodeMessageV1
  */
 
 #ifndef SLP_V1MESSAGE_H_INCLUDED
 #define SLP_V1MESSAGE_H_INCLUDED
 
-/*!@defgroup CommonCodeMessageV1 SLPv1 Wire Message */
-
-/*!@addtogroup CommonCodeMessageV1
+/*!@defgroup CommonCodeMessageV1 SLPv1
  * @ingroup CommonCodeMessage
  * @{
  */
 
 #include "slp_message.h"
 
-/* SLP language encodings for SLPv1 compatibility */
+/** SLP language encodings for SLPv1 compatibility */
 #define SLP_CHAR_ASCII        3
 #define SLP_CHAR_UTF8         106
 #define SLP_CHAR_UNICODE16    1000
 #define SLP_CHAR_UNICODE32    1001
 
-/* SLPv1 Flags */
+/** SLPv1 Flags */
 #define SLPv1_FLAG_OVERFLOW   0x80
 #define SLPv1_FLAG_MONOLING   0x40
 #define SLPv1_FLAG_URLAUTH    0x20
@@ -65,7 +63,7 @@
 
 int SLPv1MessageParseHeader(const SLPBuffer buffer, SLPHeader * header);
 
-int SLPv1MessageParseBuffer(const SLPBuffer buffer, SLPMessage message); 
+int SLPv1MessageParseBuffer(const SLPBuffer buffer, SLPMessage * msg);
 
 /*! @} */
 

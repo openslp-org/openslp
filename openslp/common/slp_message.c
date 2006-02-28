@@ -35,7 +35,7 @@
  * @file       slp_message.c
  * @author     John Calcote (jcalcote@novell.com)
  * @attention  Please submit patches to http://www.openslp.org
- * @ingroup    CommonCode
+ * @ingroup    CommonCodeMessage
  */
 
 #include "slp_socket.h"
@@ -150,71 +150,71 @@ void PutUINT32(uint8_t ** cpp, size_t val)
 
 /** Free internal buffers in an SLP message.
  *
- * @param[in] message - The message to be freed.
+ * @param[in] mp - Pointer to the message to be freed.
  */
-void SLPMessageFreeInternals(SLPMessage message)
+void SLPMessageFreeInternals(SLPMessage * mp)
 {
    int i;
 
-   switch (message->header.functionid)
+   switch (mp->header.functionid)
    {
       case SLP_FUNCT_SRVRPLY:
-         if (message->body.srvrply.urlarray)
+         if (mp->body.srvrply.urlarray)
          {
-            for (i = 0; i < message->body.srvrply.urlcount; i++)
-               if (message->body.srvrply.urlarray[i].autharray)
+            for (i = 0; i < mp->body.srvrply.urlcount; i++)
+               if (mp->body.srvrply.urlarray[i].autharray)
                {
-                  xfree(message->body.srvrply.urlarray[i].autharray);
-                  message->body.srvrply.urlarray[i].autharray = 0;
+                  xfree(mp->body.srvrply.urlarray[i].autharray);
+                  mp->body.srvrply.urlarray[i].autharray = 0;
                }
 
-            xfree(message->body.srvrply.urlarray);
-            message->body.srvrply.urlarray = 0;
+            xfree(mp->body.srvrply.urlarray);
+            mp->body.srvrply.urlarray = 0;
          }
          break;
 
       case SLP_FUNCT_SRVREG:
-         if (message->body.srvreg.urlentry.autharray)
+         if (mp->body.srvreg.urlentry.autharray)
          {
-            xfree(message->body.srvreg.urlentry.autharray);
-            message->body.srvreg.urlentry.autharray = 0;
+            xfree(mp->body.srvreg.urlentry.autharray);
+            mp->body.srvreg.urlentry.autharray = 0;
          }
-         if (message->body.srvreg.autharray)
+         if (mp->body.srvreg.autharray)
          {
-            xfree(message->body.srvreg.autharray);
-            message->body.srvreg.autharray = 0;
+            xfree(mp->body.srvreg.autharray);
+            mp->body.srvreg.autharray = 0;
          }
          break;
 
       case SLP_FUNCT_SRVDEREG:
-         if (message->body.srvdereg.urlentry.autharray)
+         if (mp->body.srvdereg.urlentry.autharray)
          {
-            xfree(message->body.srvdereg.urlentry.autharray);
-            message->body.srvdereg.urlentry.autharray = 0;
+            xfree(mp->body.srvdereg.urlentry.autharray);
+            mp->body.srvdereg.urlentry.autharray = 0;
          }
          break;
 
       case SLP_FUNCT_ATTRRPLY:
-         if (message->body.attrrply.autharray)
+         if (mp->body.attrrply.autharray)
          {
-            xfree(message->body.attrrply.autharray);
-            message->body.attrrply.autharray = 0;
+            xfree(mp->body.attrrply.autharray);
+            mp->body.attrrply.autharray = 0;
          }
          break;
 
       case SLP_FUNCT_DAADVERT:
-         if (message->body.daadvert.autharray)
+         if (mp->body.daadvert.autharray)
          {
-            xfree(message->body.daadvert.autharray);
-            message->body.daadvert.autharray = 0;
+            xfree(mp->body.daadvert.autharray);
+            mp->body.daadvert.autharray = 0;
          }
          break; 
 
       case SLP_FUNCT_SAADVERT:
-         if (message->body.saadvert.autharray)
+         if (mp->body.saadvert.autharray)
          {
-            xfree(message->body.saadvert.autharray);
-            message->body.saadvert.autharray = 0;
+            xfree(mp->body.saadvert.autharray);
+            mp->body.saadvert.autharray = 0;
          }
          break; 
 
@@ -231,44 +231,44 @@ void SLPMessageFreeInternals(SLPMessage message)
 
 /** Allocate memory for an SLP message descriptor.
  *
- * @return A new SLP message object, or NULL if out of memory.
+ * @return A pointer to a new SLP message object, or NULL if out of memory.
  */
-SLPMessage SLPMessageAlloc(void)
+SLPMessage * SLPMessageAlloc(void)
 {
-   SLPMessage result = (SLPMessage)xmalloc(sizeof(struct _SLPMessage));
-   if (result)
-      memset(result, 0, sizeof(struct _SLPMessage));
-   return result;
+   SLPMessage * mp = (SLPMessage *)xmalloc(sizeof(SLPMessage));
+   if (mp)
+      memset(mp, 0, sizeof(SLPMessage));
+   return mp;
 }
 
 /** Reallocate memory for an SLP message descriptor.
  *
- * @param[in] msg - The message descriptor to be reallocated.
+ * @param[in] mp - The address of a message descriptor to be reallocated.
  *
- * @return A resized version of @p msg, or NULL if out of memory.
+ * @return A resized version of @p mp, or NULL if out of memory.
  */
-SLPMessage SLPMessageRealloc(SLPMessage msg)
+SLPMessage * SLPMessageRealloc(SLPMessage * mp)
 {
-   if (msg == 0)
+   if (mp == 0)
    {
-      msg = SLPMessageAlloc();
-      if (msg == 0)
+      mp = SLPMessageAlloc();
+      if (mp == 0)
          return 0;
    }
    else
-      SLPMessageFreeInternals(msg);
+      SLPMessageFreeInternals(mp);
 
-   return msg;
+   return mp;
 }
 
 /** Frees memory associated with an SLP message descriptor.
  *
- * @param[in] message - The SLP message descriptor to be freed.
+ * @param[in] mp - The address of an SLP message descriptor to be freed.
  */
-void SLPMessageFree(SLPMessage message)
+void SLPMessageFree(SLPMessage * mp)
 {
-   SLPMessageFreeInternals(message);
-   xfree(message);
+   SLPMessageFreeInternals(mp);
+   xfree(mp);
 }
 
 /** Switch on version field to parse v1 or v2 header.
@@ -301,7 +301,8 @@ int SLPMessageParseHeader(SLPBuffer buffer, SLPHeader * header)
  * @param[in] peeraddr - Remote address binding to store in @p message.
  * @param[in] localaddr - Local address binding to store in @p message.
  * @param[in] buffer - The buffer to be parsed.
- * @param[in] message - The message into which @p buffer should be parsed.
+ * @param[in] mp - A pointer to a message into which @p buffer should 
+ *    be parsed.
  *
  * @return Zero on success, SLP_ERROR_PARSE_ERROR, or
  *    SLP_ERROR_INTERNAL_ERROR if out of memory.
@@ -312,25 +313,25 @@ int SLPMessageParseHeader(SLPBuffer buffer, SLPHeader * header)
  */
 int SLPMessageParseBuffer(void * peeraddr,
       const void * localaddr, SLPBuffer buffer,
-      SLPMessage message)
+      SLPMessage * mp)
 {
    /* Copy in the local and remote address info */
    if (peeraddr != 0)
-      memcpy(&message->peer, peeraddr, sizeof(message->peer));
+      memcpy(&mp->peer, peeraddr, sizeof(mp->peer));
    if (localaddr != 0)
-      memcpy(&message->localaddr, localaddr, sizeof(message->localaddr));
+      memcpy(&mp->localaddr, localaddr, sizeof(mp->localaddr));
 
    /* Get ready to parse */
-   SLPMessageFreeInternals(message);
+   SLPMessageFreeInternals(mp);
    buffer->curpos = buffer->start;
 
    /* switch on version field */
    switch (*buffer->curpos)
    {
 #if defined(ENABLE_SLPv1)
-      case 1: return SLPv1MessageParseBuffer(buffer, message);
+      case 1: return SLPv1MessageParseBuffer(buffer, mp);
 #endif
-      case 2: return SLPv2MessageParseBuffer(buffer, message);
+      case 2: return SLPv2MessageParseBuffer(buffer, mp);
    }
    return SLP_ERROR_VER_NOT_SUPPORTED;
 }

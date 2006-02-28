@@ -38,7 +38,7 @@
  * @file       slp_predicate.c
  * @author     Matthew Peterson, John Calcote (jcalcote@novell.com)
  * @attention  Please submit patches to http://www.openslp.org
- * @ingroup    CommonCode
+ * @ingroup    CommonCodePred
  */
 
 #include "slp_types.h"
@@ -91,10 +91,11 @@ static int fnmatch(const char * pattern, const char * string, int flags)
 #else
 # include <fnmatch.h>
 # ifndef FNM_CASEFOLD
-#  define FNM_CASEFOLD 0
+#  define FNM_CASEFOLD 0   /*!< the fnmatch casefold flag - portability. */
 # endif
 #endif
 
+/** More definitions for min and max - we should consolidate these ~~~jmc */
 #define SLP_MIN(a, b) ((a) < (b) ? (a) : (b))
 #define SLP_MAX(a, b) ((a) > (b) ? (a) : (b))
 

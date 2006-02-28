@@ -35,7 +35,7 @@
  * @file       slp_predicate.h
  * @author     Matthew Peterson, John Calcote (jcalcote@novell.com)
  * @attention  Please submit patches to http://www.openslp.org
- * @ingroup    CommonCode
+ * @ingroup    CommonCodePred
  */
 
 #ifndef SLP_PREDICATE_H_INCLUDED
@@ -44,9 +44,7 @@
 #include "slp_attr.h"
 #include "slp_filter.h"
 
-/*!@defgroup CommonCodePred Predicate Matching */
-
-/*!@addtogroup CommonCodePred
+/*!@defgroup CommonCodePred Predicate Matching
  * @ingroup CommonCode
  * @{
  */

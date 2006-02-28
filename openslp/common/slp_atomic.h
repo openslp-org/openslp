@@ -35,16 +35,18 @@
  * @file       slp_atomic.h
  * @author     John Calcote (jcalcote@novell.com)
  * @attention  Please submit patches to http://www.openslp.org
- * @ingroup    CommonCode
+ * @ingroup    CommonCodeAtomic
  */
 
 #ifndef SLP_ATOMIC_H_INCLUDED
 #define SLP_ATOMIC_H_INCLUDED
 
-/*!@defgroup CommonCodeAtomic Atomic Operations */
-
-/*!@addtogroup CommonCodeAtomic
+/*!@defgroup CommonCodePlatform Platform
  * @ingroup CommonCode
+ */
+
+/*!@defgroup CommonCodeAtomic Atomic
+ * @ingroup CommonCodePlatform
  * @{
  */
 

@@ -35,22 +35,25 @@
  * @file       slp_thread.h
  * @author     John Calcote (jcalcote@novell.com)
  * @attention  Please submit patches to http://www.openslp.org
- * @ingroup    CommonCode
+ * @ingroup    CommonCodeThread
  */
 
 #ifndef SLP_THREAD_H_INCLUDED
 #define SLP_THREAD_H_INCLUDED
 
-/*!@addtogroup CommonCodeSync
+/*!@defgroup CommonCodeThread Threading
+ * @ingroup CommonCodePlatform
  * @{
  */
 
-typedef void * ThreadHandle;     /*!< A waitable thread handle type. */
+/** A waitable thread handle type. */
+typedef void * SLPThreadHandle;
 
-typedef void *(*ThreadStartProc)(void *);
+/** Thread start function signature. */
+typedef void * (*SLPThreadStartProc)(void *);
 
-ThreadHandle ThreadCreate(ThreadStartProc startproc, void * arg);
-void * ThreadWait(ThreadHandle th);
+SLPThreadHandle SLPThreadCreate(SLPThreadStartProc startproc, void * arg);
+void * SLPThreadWait(SLPThreadHandle th);
 
 /*! @} */
 

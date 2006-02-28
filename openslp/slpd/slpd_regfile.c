@@ -126,7 +126,7 @@ static char * RegFileReadLine(FILE * fd, char * line, int linesize)
  * @note Eventually the caller needs to call SLPBufferFree and
  *    SLPMessageFree to free memory.
  */
-int SLPDRegFileReadSrvReg(FILE * fd, SLPMessage * msg, SLPBuffer * buf)
+int SLPDRegFileReadSrvReg(FILE * fd, SLPMessage ** msg, SLPBuffer * buf)
 {
    char * slider1;
    char * slider2;

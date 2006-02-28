@@ -37,7 +37,7 @@
  * @file       slp_thread.c
  * @author     John Calcote (jcalcote@novell.com)
  * @attention  Please submit patches to http://www.openslp.org
- * @ingroup    CommonCode
+ * @ingroup    CommonCodeThread
  */
 
 #include "slp_types.h"
@@ -45,10 +45,10 @@
 
 /** Create a new thread of execution.
  *
- * While it could be argued that creating a new thread for each asynch
+ * While it could be argued that creating a new thread for each async
  * request is inefficient, it's equally true that network latency and the
  * most often practiced uses of the SLP API don't mandate the overhead of
- * more heavy-weight constructs such as thread-pools to solve this problem.
+ * more heavy-weight constructs (e.g., thread pools) to solve this problem.
  *
  * @param[in] startproc - The function to run on a new thread.
  * @param[in] arg - Context data to pass to @p startproc.
@@ -62,14 +62,14 @@
  * and the parameter must both be integer values the size of a pointer on 
  * the target platform.
  */
-ThreadHandle ThreadCreate(ThreadStartProc startproc, void * arg)
+SLPThreadHandle SLPThreadCreate(SLPThreadStartProc startproc, void * arg)
 {
 #ifdef _WIN32
-   return (ThreadHandle)CreateThread(0, 0, 
+   return (SLPThreadHandle)CreateThread(0, 0, 
          (LPTHREAD_START_ROUTINE)startproc, arg, 0, 0);
 #else
    pthread_t th;
-   return (ThreadHandle)(pthread_create(&th, 0, startproc, arg)? 0: th);
+   return (SLPThreadHandle)(pthread_create(&th, 0, startproc, arg)? 0: th);
 #endif
 }
 
@@ -82,7 +82,7 @@ ThreadHandle ThreadCreate(ThreadStartProc startproc, void * arg)
  *
  * @return The thread's exit code.
  */
-void * ThreadWait(ThreadHandle th)
+void * SLPThreadWait(SLPThreadHandle th)
 {
    void * result = 0;
 #ifdef _WIN32

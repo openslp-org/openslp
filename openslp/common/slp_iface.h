@@ -35,15 +35,13 @@
  * @file       slp_iface.h
  * @author     Matthew Peterson, John Calcote (jcalcote@novell.com)
  * @attention  Please submit patches to http://www.openslp.org
- * @ingroup    CommonCode
+ * @ingroup    CommonCodeNetIfc
  */
 
 #ifndef SLP_IFACE_H_INCLUDED
 #define SLP_IFACE_H_INCLUDED
 
-/*!@defgroup CommonCodeNetIfc Interface */
-
-/*!@addtogroup CommonCodeNetIfc
+/*!@defgroup CommonCodeNetIfc Interface
  * @ingroup CommonCodeNetwork
  * @{
  */
@@ -52,8 +50,10 @@
 #include "slp_socket.h"
 #include "slp_types.h"
 
+/** The maximum number of interfaces we can handle. */
 #define SLP_MAX_IFACES 100
 
+/** Interface information structure */
 typedef struct _SLPInterfaceInfo
 {
    int iface_count;

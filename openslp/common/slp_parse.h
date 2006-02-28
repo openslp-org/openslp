@@ -35,62 +35,34 @@
  * @file       slp_parse.h
  * @author     Matthew Peterson, John Calcote (jcalcote@novell.com)
  * @attention  Please submit patches to http://www.openslp.org
- * @ingroup    CommonCode
+ * @ingroup    CommonCodeParse
  */
 
 #ifndef SLP_PARSE_H_INCLUDED
 #define SLP_PARSE_H_INCLUDED
 
-/*!@defgroup CommonCodeParse String Parsing */
-
-/*!@addtogroup CommonCodeParse
+/*!@defgroup CommonCodeParse URL Parsing 
  * @ingroup CommonCode
  * @{
  */
 
 #include "slp_types.h"
 
-/** A parsed Universal Resource Locator (URL).
+/** SLPParsedSrvUrl
+ *
+ * This structure is an alias for the libslp interface structure SLPSrvURL,
+ * and as such, MUST remain in sync with it. We use this alias for SLPSrvURL
+ * because slpd uses the internal routine SLPParseSrvUrl, and we don't want 
+ * to create a dependency between slpd source code and libslp interface
+ * types. Please see the definition of SLPSrvURL for details on the fields
+ * of this structure - they have identical semantics.
  */
-typedef struct _SLPParsedSrvUrl
+typedef struct isrvurl 
 {
-   /** The service type.
-    *
-    * A pointer to a character string containing the service
-    * type name, including naming authority.  The service type
-    * name includes the "service:" if the URL is of the service:
-    * scheme.
-    */
    char * srvtype;
-
-   /** The host name.
-    *
-    * A pointer to a character string containing the host
-    * identification information.
-    */
    char * host;
-
-   /** The port number.
-    *
-    * The port number, or zero if none.  The port is only available
-    * if the transport is IP.
-    *
-    */
-   uint16_t port;
-
-   /** The address family identifier.
-    *
-    * A pointer to a character string containing the network address
-    * family identifier.  Possible values are "ipx" for the IPX
-    * family, "at" for the Appletalk family, and "" (i.e. the empty
-    * string) for the IP address family.
-    */
+   int port;
    char * family;
-
-   /** Everything following the "scheme://hostname:port/"
-    *
-    * The remainder of the URL, after the host identification.
-    */
    char * remainder;
 } SLPParsedSrvUrl;
 

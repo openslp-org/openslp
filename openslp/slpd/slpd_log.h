@@ -68,7 +68,7 @@ void SLPDLogBuffer(const char * prefix, size_t bufsize, const char * buf);
 void SLPDLog(const char * msg, ...);
 void SLPDFatal(const char * msg, ...);
 void SLPDLogTime(void);
-void SLPDLogMessageInternals(SLPMessage message);
+void SLPDLogMessageInternals(SLPMessage * message);
 void SLPDLogMessage(int msglogflags, struct sockaddr_storage * peerinfo,
       struct sockaddr_storage * localaddr, SLPBuffer buf);
 void SLPDLogRegistration(const char * prefix, SLPDatabaseEntry * entry);
