@@ -63,6 +63,10 @@ static intptr_t s_PropInitLock = 0;
  *    containing the property value. If the property was not set, 
  *    returns the default value. If an error occurs, returns NULL. 
  *    The returned string MUST NOT be freed.
+ * 
+ * @remarks Since SLPOpen (through InitUserAgentLibrary) now atomically
+ *    checks the open handle count, the properties are now initialized
+ *    there.  Especially since SLPClose already cleans up those properties.
  */
 SLPEXP const char * SLPAPI SLPGetProperty(const char * pcName)
 {
@@ -70,6 +74,7 @@ SLPEXP const char * SLPAPI SLPGetProperty(const char * pcName)
    if (!pcName || !*pcName)
       return 0;
 
+   /*  The following is commented out because SLPOpen handles this
    if (!s_PropInited)
    {
       SLPAcquireSpinLock(&s_PropInitLock);
@@ -80,6 +85,7 @@ SLPEXP const char * SLPAPI SLPGetProperty(const char * pcName)
       }
       SLPReleaseSpinLock(&s_PropInitLock);
    }
+   */
    return SLPPropertyGet(pcName);
 } 
 

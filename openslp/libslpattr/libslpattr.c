@@ -449,7 +449,7 @@ static SLPBoolean is_valid_tag(const char * tag)
     || x == '=' || x == '<' || x == '=' || x == '>' || x == '~' || x == '\0')
 /* Tests a character to see if it should be escaped. To be used for everything
  * but opaques. */
-static SLPBoolean is_legal_slp_char(const char to_test)
+static SLPBoolean is_legal_slp_char(char to_test)
 {
    if (ATTRIBUTE_RESERVED_TEST(to_test))
       return SLP_FALSE;

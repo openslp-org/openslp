@@ -64,6 +64,7 @@ static SLPError InitUserAgentLibrary(void)
    /* Initialize the system if this is the first handle opened. */
    if (SLPAtomicInc(&s_OpenSLPHandleCount) == 1)
    {
+      SLPPropertyInit(0);
 #ifdef _WIN32
       WSADATA wsaData; 
       WORD wVersionRequested = MAKEWORD(1,1); 
@@ -296,7 +297,7 @@ SLPEXP SLPError SLPAPI SLPAssociateIFList(
 
    /* check for invalid parameters */
    if (!hSLP || *(unsigned int*)hSLP != SLP_HANDLE_SIG 
-         || !McastIFList || !*McastIFList == 0)
+         || !McastIFList || !*McastIFList)
       return SLP_PARAMETER_BAD;
 
    handle = (SLPHandleInfo *)hSLP;

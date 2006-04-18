@@ -94,7 +94,7 @@ static int SetMulticastTTL(sockfd_t sockfd, int ttl)
 # ifdef linux
    int optarg = ttl;
 # else
-   Solaris and Tru64 expect a unsigned char parameter
+   /*Solaris and Tru64 expect a unsigned char parameter*/
    unsigned char optarg = (unsigned char)ttl;
 # endif
    if (setsockopt(sockfd, IPPROTO_IP, IP_MULTICAST_TTL, 

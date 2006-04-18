@@ -491,6 +491,8 @@ int SLPNetSetAddr(void * addr, int family,
    if (family == AF_INET)
    {
       struct sockaddr_in * v4 = (struct sockaddr_in *)addr;
+      /*Some platforms require a zero-d structure for a non-wildcard address bind*/
+      memset(v4, 0, sizeof(struct sockaddr_in));
       v4->sin_family = (short)family;
       v4->sin_port = htons(port);
       if (address == 0)

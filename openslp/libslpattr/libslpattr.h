@@ -101,7 +101,7 @@ typedef enum
  ****************************************************************************/
 
 SLPError SLPAttrAlloc(const char * lang, const FILE * template_h,
-      const SLPBoolean strict, SLPAttributes * slp_attr);
+      SLPBoolean strict, SLPAttributes * slp_attr);
 
 SLPError SLPAttrAllocStr(const char * lang, const FILE * template_h,
       SLPBoolean strict, SLPAttributes * slp_attr, const char * str);

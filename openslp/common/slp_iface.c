@@ -244,6 +244,8 @@ int SLPIfaceGetInfo(const char * useifaces, SLPIfaceInfo * ifaceinfo,
                      {
                         v4addr.sin_family = AF_INET;
                         v4addr.sin_port = 0;
+                        /*On some platforms, a non-wildcard address bind requires that sin_zero actually be zero*/
+                        memset(v4addr.sin_zero, 0, 8);
                         sts = bind(fd, (struct sockaddr *) &v4addr,
                                     sizeof(v4addr));
                         if (sts == 0)

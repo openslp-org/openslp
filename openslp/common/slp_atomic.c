@@ -187,7 +187,7 @@ intptr_t SLPAtomicXchg(intptr_t * pn, intptr_t n)
 	return __ATOMIC_EXCH_QUAD(pn, n);
 #else
 	intptr_t tn = *pn;   /* NOTE: This is NOT atomic! */
-	*pun = n;
+	*pn = n;
 	return tn;
 #endif
 }

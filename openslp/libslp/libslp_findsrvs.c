@@ -66,6 +66,7 @@ static SLPBoolean CollateToSLPSrvURLCallback(SLPHandle hSLP,
       const char * pcSrvURL, unsigned short sLifetime, 
       SLPError errorcode)
 {
+   int maxResults;
    SLPHandleInfo * handle = hSLP;
    SLPSrvUrlCollatedItem * collateditem;
 
@@ -76,8 +77,12 @@ static SLPBoolean CollateToSLPSrvURLCallback(SLPHandle hSLP,
             sLifetime, errorcode, handle->params.findsrvs.cookie);
 #endif
 
-   if (errorcode == SLP_LAST_CALL || handle->callbackcount > 
-         SLPPropertyAsInteger(SLPGetProperty("net.slp.maxResults")))
+   /* Configure behaviour for desired max results */
+   maxResults = SLPPropertyAsInteger(SLPGetProperty("net.slp.maxResults"));
+   if (maxResults == -1)
+      maxResults = INT_MAX;
+
+   if (errorcode == SLP_LAST_CALL || handle->callbackcount > maxResults)
    {
       /* We are done so call the caller's callback for each
        * service URL collated item and clean up the collation list.
