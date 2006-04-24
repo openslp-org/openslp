@@ -46,10 +46,14 @@
 #include "slp_atomic.h"
 
 /** Module static flag indicating property module is initialized */
-static bool s_PropInited = 0;
+/* Commented out because SLPOpen handles this
+ * static bool s_PropInited = 0; 
+ */
 
 /** Module static spinlock variable protects property module initialization */
-static intptr_t s_PropInitLock = 0;
+/* Commented out because SLPOpen handles this
+ * static intptr_t s_PropInitLock = 0;
+ */
 
 /** Returns a string value for a specified property.
  *

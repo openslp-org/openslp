@@ -49,8 +49,7 @@ libslp_la_SOURCES = \
 	libslp_network.c \
 	libslp_parse.c \
 	libslp_property.c  \
-	libslp_reg.c \
-	libslp_thread.c
+	libslp_reg.c
 
 noinst_HEADERS = \
 	libslp.h
