@@ -499,6 +499,7 @@ int SLPDRegFileReadSrvReg(FILE * fd, SLPMessage ** msg, SLPBuffer * buf)
    /* this should be ok even if we are not supporting IPv4, 
     * since it's a static service 
     */
+   memset(&peer, 0, sizeof(struct sockaddr_in));
    peer.ss_family = AF_INET;
    ((struct sockaddr_in *)&peer)->sin_addr.s_addr = htonl(INADDR_LOOPBACK);
    result = SLPMessageParseBuffer(&peer, &peer, *buf, *msg);

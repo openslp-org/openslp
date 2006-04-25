@@ -273,6 +273,7 @@ static int BindSocketToInetAddr(int family, sockfd_t sock,
 
    if (SLPNetIsIPV4() && family == AF_INET)
    {
+      memset(&loaddr, 0, sizeof(struct sockaddr_in)); /*Some platforms require sin_zero to be 0*/
       ((struct sockaddr_in*) &loaddr)->sin_family = AF_INET;
       ((struct sockaddr_in*) &loaddr)->sin_addr.s_addr = htonl(INADDR_LOOPBACK);
       return BindSocketToInetAddr(AF_INET, sock, &loaddr);

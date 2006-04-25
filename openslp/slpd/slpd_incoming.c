@@ -578,51 +578,59 @@ int SLPDIncomingInit(void)
    /*-------------------------------------------------------*/
    /* set up address to use for ipv4 loopback and broadcast */
    /*-------------------------------------------------------*/
-   lo4addr.ss_family = AF_INET;
-   ((struct sockaddr_in *) &lo4addr)->sin_family = AF_INET;
-   ((struct sockaddr_in *) &lo4addr)->sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-   mcast4addr.ss_family = AF_INET;
-   ((struct sockaddr_in *) &mcast4addr)->sin_family = AF_INET;
-   ((struct sockaddr_in *) &mcast4addr)->sin_addr.s_addr = htonl(SLP_MCAST_ADDRESS);
+   if(SLPNetIsIPV4())
+   {
+      memset(&lo4addr, 0, sizeof(struct sockaddr_in));  /*sin_zero must be zero on some platforms*/
+      lo4addr.ss_family = AF_INET;
+      ((struct sockaddr_in *) &lo4addr)->sin_family = AF_INET;
+      ((struct sockaddr_in *) &lo4addr)->sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+      memset(&mcast4addr, 0, sizeof(struct sockaddr_in)); /*sin_zero must be zero on some platforms*/
+      mcast4addr.ss_family = AF_INET;
+      ((struct sockaddr_in *) &mcast4addr)->sin_family = AF_INET;
+      ((struct sockaddr_in *) &mcast4addr)->sin_addr.s_addr = htonl(SLP_MCAST_ADDRESS);
+   }
 
    /*-------------------------------------------------------*/
    /* set up address to use for ipv6 loopback and multicast */
    /*-------------------------------------------------------*/
-   lo6addr.ss_family = AF_INET6;
-   ((struct sockaddr_in6 *) &lo6addr)->sin6_family = AF_INET6;
-   ((struct sockaddr_in6 *) &lo6addr)->sin6_scope_id = 0;
-   memcpy(&(((struct sockaddr_in6 *) &lo6addr)->sin6_addr),
-         &slp_in6addr_loopback, sizeof(struct in6_addr));
-   srvloc6addr_node.ss_family = AF_INET6;
-   ((struct sockaddr_in6 *) &srvloc6addr_node)->sin6_family = AF_INET6;
-   ((struct sockaddr_in6 *) &lo6addr)->sin6_scope_id = 0;
-   memcpy(&(((struct sockaddr_in6 *) &srvloc6addr_node)->sin6_addr),
-         &in6addr_srvloc_node, sizeof(struct in6_addr));
-   srvloc6addr_link.ss_family = AF_INET6;
-   ((struct sockaddr_in6 *) &srvloc6addr_link)->sin6_family = AF_INET6;
-   ((struct sockaddr_in6 *) &lo6addr)->sin6_scope_id = 0;
-   memcpy(&(((struct sockaddr_in6 *) &srvloc6addr_link)->sin6_addr),
-         &in6addr_srvloc_link, sizeof(struct in6_addr));
-   srvloc6addr_site.ss_family = AF_INET6;
-   ((struct sockaddr_in6 *) &srvloc6addr_site)->sin6_family = AF_INET6;
-   ((struct sockaddr_in6 *) &lo6addr)->sin6_scope_id = 0;
-   memcpy(&(((struct sockaddr_in6 *) &srvloc6addr_site)->sin6_addr),
-         &in6addr_srvloc_site, sizeof(struct in6_addr));
-   srvlocda6addr_node.ss_family = AF_INET6;
-   ((struct sockaddr_in6 *) &srvlocda6addr_node)->sin6_family = AF_INET6;
-   ((struct sockaddr_in6 *) &lo6addr)->sin6_scope_id = 0;
-   memcpy(&(((struct sockaddr_in6 *) &srvlocda6addr_node)->sin6_addr),
-         &in6addr_srvlocda_node, sizeof(struct in6_addr));
-   srvlocda6addr_link.ss_family = AF_INET6;
-   ((struct sockaddr_in6 *) &srvlocda6addr_link)->sin6_family = AF_INET6;
-   ((struct sockaddr_in6 *) &lo6addr)->sin6_scope_id = 0;
-   memcpy(&(((struct sockaddr_in6 *) &srvlocda6addr_link)->sin6_addr),
-         &in6addr_srvlocda_link, sizeof(struct in6_addr));
-   srvlocda6addr_site.ss_family = AF_INET6;
-   ((struct sockaddr_in6 *) &srvlocda6addr_site)->sin6_family = AF_INET6;
-   ((struct sockaddr_in6 *) &lo6addr)->sin6_scope_id = 0;
-   memcpy(&(((struct sockaddr_in6 *) &srvlocda6addr_site)->sin6_addr),
-         &in6addr_srvlocda_site, sizeof(struct in6_addr));
+   if(SLPNetIsIPV6())
+   {
+      lo6addr.ss_family = AF_INET6;
+      ((struct sockaddr_in6 *) &lo6addr)->sin6_family = AF_INET6;
+      ((struct sockaddr_in6 *) &lo6addr)->sin6_scope_id = 0;
+      memcpy(&(((struct sockaddr_in6 *) &lo6addr)->sin6_addr),
+            &slp_in6addr_loopback, sizeof(struct in6_addr));
+      srvloc6addr_node.ss_family = AF_INET6;
+      ((struct sockaddr_in6 *) &srvloc6addr_node)->sin6_family = AF_INET6;
+      ((struct sockaddr_in6 *) &lo6addr)->sin6_scope_id = 0;
+      memcpy(&(((struct sockaddr_in6 *) &srvloc6addr_node)->sin6_addr),
+            &in6addr_srvloc_node, sizeof(struct in6_addr));
+      srvloc6addr_link.ss_family = AF_INET6;
+      ((struct sockaddr_in6 *) &srvloc6addr_link)->sin6_family = AF_INET6;
+      ((struct sockaddr_in6 *) &lo6addr)->sin6_scope_id = 0;
+      memcpy(&(((struct sockaddr_in6 *) &srvloc6addr_link)->sin6_addr),
+            &in6addr_srvloc_link, sizeof(struct in6_addr));
+      srvloc6addr_site.ss_family = AF_INET6;
+      ((struct sockaddr_in6 *) &srvloc6addr_site)->sin6_family = AF_INET6;
+      ((struct sockaddr_in6 *) &lo6addr)->sin6_scope_id = 0;
+      memcpy(&(((struct sockaddr_in6 *) &srvloc6addr_site)->sin6_addr),
+            &in6addr_srvloc_site, sizeof(struct in6_addr));
+      srvlocda6addr_node.ss_family = AF_INET6;
+      ((struct sockaddr_in6 *) &srvlocda6addr_node)->sin6_family = AF_INET6;
+      ((struct sockaddr_in6 *) &lo6addr)->sin6_scope_id = 0;
+      memcpy(&(((struct sockaddr_in6 *) &srvlocda6addr_node)->sin6_addr),
+            &in6addr_srvlocda_node, sizeof(struct in6_addr));
+      srvlocda6addr_link.ss_family = AF_INET6;
+      ((struct sockaddr_in6 *) &srvlocda6addr_link)->sin6_family = AF_INET6;
+      ((struct sockaddr_in6 *) &lo6addr)->sin6_scope_id = 0;
+      memcpy(&(((struct sockaddr_in6 *) &srvlocda6addr_link)->sin6_addr),
+            &in6addr_srvlocda_link, sizeof(struct in6_addr));
+      srvlocda6addr_site.ss_family = AF_INET6;
+      ((struct sockaddr_in6 *) &srvlocda6addr_site)->sin6_family = AF_INET6;
+      ((struct sockaddr_in6 *) &lo6addr)->sin6_scope_id = 0;
+      memcpy(&(((struct sockaddr_in6 *) &srvlocda6addr_site)->sin6_addr),
+            &in6addr_srvlocda_site, sizeof(struct in6_addr));
+   }
 
    /*--------------------------------------------------------------------*/
    /* Create SOCKET_LISTEN socket for LOOPBACK for the library to talk to*/

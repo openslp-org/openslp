@@ -467,6 +467,7 @@ int SLPDKnownDAFromDHCP()
    alp = ctx.addrlist;
    while (ctx.addrlistlen >= 4)
    {
+      memset(&daaddr, 0, sizeof(struct sockaddr_in)); /*Some platforms require sin_zero be 0*/
       daaddr.ss_family = AF_INET;
       memcpy(&(((struct sockaddr_in *) &daaddr)->sin_addr.s_addr), alp, 4);
       if (&(((struct sockaddr_in *) &daaddr)->sin_addr.s_addr))
@@ -1465,6 +1466,7 @@ void SLPDKnownDAActiveDiscovery(int seconds, int scope)
 
       if (SLPNetIsIPV4())
       {
+         memset(&peeraddr, 0, sizeof(struct sockaddr_in));  /*Some platforms require sin_zero be 0*/
          if (G_SlpdProperty.isBroadcastOnly == 0)
          {
             peeraddr.ss_family = AF_INET;
@@ -1560,6 +1562,7 @@ void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead, int scope)
 
       if (SLPNetIsIPV4())
       {
+         memset(&peeraddr, 0, sizeof(struct sockaddr_in)); /*Some platforms require sin_zero to be 0*/
          if (G_SlpdProperty.isBroadcastOnly == 0)
          {
             peeraddr.ss_family = AF_INET;
