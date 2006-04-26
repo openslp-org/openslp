@@ -782,7 +782,7 @@ int SLPDKnownDAAdd(SLPMessage * msg, SLPBuffer buf)
 #endif
 
          if (daadvert->bootstamp != 0
-               && daadvert->bootstamp <= entrydaadvert->bootstamp)
+               && daadvert->bootstamp != entrydaadvert->bootstamp)
          {
             /* Advertising DA must have went down then came back up */
             SLPDKnownDARegisterAll(msg, 0);
@@ -986,6 +986,7 @@ int SLPDKnownDAGenerateMyDAAdvert(struct sockaddr_storage * localaddr,
    int spistrlen = 0;
    char * spistr = 0;  
 
+   /*TODO: re-evaluate usage of timestamp -- should be time(0)+expiration delay?*/
    G_SlpdProperty.DATimestamp += 1;
 
    if (G_SlpdProperty.securityEnabled)
@@ -999,8 +1000,6 @@ int SLPDKnownDAGenerateMyDAAdvert(struct sockaddr_storage * localaddr,
             G_SlpdProperty.useScopes, spistrlen, spistr, &daadvertauthlen,
             &daadvertauth);
    }
-#else
-   G_SlpdProperty.DATimestamp += 1;
 #endif
 
    /*-------------------------------------------------------------*/
