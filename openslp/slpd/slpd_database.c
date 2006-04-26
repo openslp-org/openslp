@@ -103,14 +103,24 @@ void SLPDDatabaseAge(int seconds, int ageall)
             }
          }
 
-         /* Age entry */
-         srvreg->urlentry.lifetime -= seconds;
+         /* If the entry is local and it's configured for pid watching and 
+          * its pid is invalid, then notify DA's and ensure it times out.
+          */
+         if (srvreg->source == SLP_REG_SOURCE_LOCAL 
+               && srvreg->pid && !SLPPidExists(srvreg->pid))
+         {
+            SLPDLogRegistration("PID Watcher Deregistration", entry);
+            SLPDKnownDADeRegisterWithAllDas(entry->msg, entry->buf);
+            SLPDatabaseRemove(dh, entry);
+            continue;
+         }
 
-         /* Remove entries that have timed out */
+         /* Age entry and remove those that have timed out */
+         srvreg->urlentry.lifetime -= seconds;
          if (srvreg->urlentry.lifetime <= 0)
          {
-            SLPDLogRegistration("Timeout",entry);
-            SLPDatabaseRemove(dh,entry);
+            SLPDLogRegistration("Timeout", entry);
+            SLPDatabaseRemove(dh, entry);
          }
       }
       SLPDatabaseClose(dh);

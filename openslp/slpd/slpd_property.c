@@ -142,7 +142,7 @@ int SLPDPropertyInit(const char * conffile)
    G_SlpdProperty.urlPrefixLen = strlen(G_SlpdProperty.urlPrefix);
 
    /* set other values used internally */
-   G_SlpdProperty.DATimestamp = time(0);     /* DATimestamp must be the boot time of the process */
+   G_SlpdProperty.DATimestamp = (uint32_t)time(0);     /* DATimestamp must be the boot time of the process */
    G_SlpdProperty.activeDiscoveryXmits = 3;  /* ensures xmit on first 3 calls to SLPDKnownDAActiveDiscovery() */
    G_SlpdProperty.nextActiveDiscovery = 0;   /* ensures xmit on first call to SLPDKnownDAActiveDiscovery() */
    G_SlpdProperty.nextPassiveDAAdvert = 0;   /* ensures xmit on first call to SLPDKnownDAPassiveDiscovery()*/

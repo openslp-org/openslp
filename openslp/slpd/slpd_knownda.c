@@ -986,8 +986,8 @@ int SLPDKnownDAGenerateMyDAAdvert(struct sockaddr_storage * localaddr,
    int spistrlen = 0;
    char * spistr = 0;  
 
-   /*TODO: re-evaluate usage of timestamp -- should be time(0)+expiration delay?*/
-   G_SlpdProperty.DATimestamp += 1;
+   /** @todo Use correct delay value - 1000 is just an arbitrary choice. */
+   uint32_t expires = (uint32_t)time(0) + 1000;
 
    if (G_SlpdProperty.securityEnabled)
    {
@@ -995,7 +995,7 @@ int SLPDKnownDAGenerateMyDAAdvert(struct sockaddr_storage * localaddr,
             &spistrlen, &spistr);
 
       SLPAuthSignDAAdvert(G_SlpdSpiHandle, spistrlen, spistr,
-            G_SlpdProperty.DATimestamp, G_SlpdProperty.myUrlLen,
+            expires, G_SlpdProperty.myUrlLen,
             G_SlpdProperty.myUrl, 0, 0, G_SlpdProperty.useScopesLen,
             G_SlpdProperty.useScopes, spistrlen, spistr, &daadvertauthlen,
             &daadvertauth);

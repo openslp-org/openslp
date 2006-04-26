@@ -66,13 +66,15 @@ static SLPError InitUserAgentLibrary(void)
    {
       SLPPropertyInit(0);
 #ifdef _WIN32
-      WSADATA wsaData; 
-      WORD wVersionRequested = MAKEWORD(1,1); 
-      if (WSAStartup(wVersionRequested, &wsaData) != 0)
-      {
-         SLPAtomicDec(&s_OpenSLPHandleCount);
-         return SLP_NETWORK_INIT_FAILED;
-      }
+		{
+			WSADATA wsaData; 
+			WORD wVersionRequested = MAKEWORD(1,1); 
+			if (WSAStartup(wVersionRequested, &wsaData) != 0)
+			{
+				SLPAtomicDec(&s_OpenSLPHandleCount);
+				return SLP_NETWORK_INIT_FAILED;
+			}
+		}
 #endif
 #ifdef DEBUG
       xmalloc_init("libslp_xmalloc.log", 0);
