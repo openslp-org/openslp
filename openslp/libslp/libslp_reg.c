@@ -175,7 +175,7 @@ static SLPError ProcessSrvReg(SLPHandleInfo * handle)
    }
 
    /* URL entry */
-   PutURLEntry(&curpos, handle->params.reg.url, 
+   PutURLEntry(&curpos, handle->params.reg.lifetime, handle->params.reg.url, 
          handle->params.reg.urllen, urlauth, urlauthlen);
 
    /* <service-type> */

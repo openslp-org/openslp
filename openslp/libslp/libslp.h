@@ -80,7 +80,7 @@ typedef struct _SLPSrvUrlCollatedItem
  */
 typedef struct _SLPRegParams
 {
-   int lifetime;                 /*!< The desired registration lifetime. */
+   uint16_t lifetime;            /*!< The desired registration lifetime. */
    int fresh;                    /*!< New or renewed registration. */
    size_t urllen;                /*!< The length of @e url in bytes. */
    const char * url;             /*!< The service: URL to register. */
@@ -251,8 +251,8 @@ void KnownDAFreeAll(void);
 
 void PutL16String(uint8_t ** cpp, const char * str, size_t strsz);
 size_t SizeofURLEntry(size_t urllen, size_t urlauthlen);
-void PutURLEntry(uint8_t ** cpp, const char * url, size_t urllen, 
-      const uint8_t * urlauth, size_t urlauthlen);
+void PutURLEntry(uint8_t ** cpp, uint16_t lifetime, const char * url,
+      size_t urllen, const uint8_t * urlauth, size_t urlauthlen);
 
 /*! @} */
 

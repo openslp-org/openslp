@@ -92,6 +92,7 @@ size_t SizeofURLEntry(size_t urllen, size_t urlauthlen)
  * entry.
  *
  * @param[in,out] cpp - The address of a buffer pointer.
+ * @param[in] lifetime - The lifetime of this registration
  * @param[in] url - The URL to write.
  * @param[in] urllen - The length of @p url.
  * @param[in] urlauth - The URL authentication block to write.
@@ -104,8 +105,8 @@ size_t SizeofURLEntry(size_t urllen, size_t urlauthlen)
  *    block. To handle more than this, PutURLEntry would have to take
  *    arrays of @p urlauth and @p urlauthlen values.
  */
-void PutURLEntry(uint8_t ** cpp, const char * url, size_t urllen, 
-      const uint8_t * urlauth, size_t urlauthlen)
+void PutURLEntry(uint8_t ** cpp, uint16_t lifetime, const char * url,
+      size_t urllen, const uint8_t * urlauth, size_t urlauthlen)
 {
    uint8_t * curpos = *cpp;
 
@@ -123,7 +124,7 @@ void PutURLEntry(uint8_t ** cpp, const char * url, size_t urllen,
    *curpos++ = 0;
 
    /* Lifetime */
-   PutUINT16(&curpos, 0);
+   PutUINT16(&curpos, lifetime);
 
    /* URL Length */
    PutUINT16(&curpos, urllen);

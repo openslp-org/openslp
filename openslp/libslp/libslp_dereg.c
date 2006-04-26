@@ -144,7 +144,7 @@ static SLPError ProcessSrvDeReg(SLPHandleInfo * handle)
          handle->params.dereg.scopelistlen);
 
    /* URL Entry */
-   PutURLEntry(&curpos, handle->params.dereg.url, 
+   PutURLEntry(&curpos, 0, handle->params.dereg.url, 
          handle->params.dereg.urllen, urlauth, urlauthlen);
 
    /* empty <tag-list> */
