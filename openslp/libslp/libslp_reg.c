@@ -201,7 +201,14 @@ static SLPError ProcessSrvReg(SLPHandleInfo * handle)
    if (watchRegPID)
    {
       extoffset = curpos - buf;
-      PutUINT16(&curpos, SLP_EXTENSION_ID_REG_PID);
+
+      /** @todo In some future code base, this should be changed to use the 
+       * non-deprecated official version, SLP_EXTENSION_ID_REG_PID. For now
+       * we need to use the EXPerimental version in order to interoperate
+       * properly with OpenSLP 1.x SA's.
+       */
+
+      PutUINT16(&curpos, SLP_EXTENSION_ID_REG_PID_EXP);
       PutUINT24(&curpos, 0);
       PutUINT32(&curpos, SLPPidGet());
    }

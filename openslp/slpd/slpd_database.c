@@ -69,51 +69,35 @@ static SLPDDatabase G_SlpdDatabase;
 void SLPDDatabaseAge(int seconds, int ageall)
 {
    SLPDatabaseHandle dh;
-   SLPDatabaseEntry * entry;
-   SLPSrvReg * srvreg;
 
-   dh = SLPDatabaseOpen(&G_SlpdDatabase.database);
-   if (dh)
+   if ((dh = SLPDatabaseOpen(&G_SlpdDatabase.database)) != 0)
    {
-      while (1)
+      SLPDatabaseEntry * entry;
+
+      while ((entry = SLPDatabaseEnum(dh)) != 0)
       {
-         entry = SLPDatabaseEnum(dh);
-         if (entry == 0)
-            break;
-
          /* srvreg is the SrvReg message from the database */
-         srvreg = &entry->msg->body.srvreg;
-
-         if (srvreg->urlentry.lifetime == SLP_LIFETIME_MAXIMUM)
-         {
-            if (srvreg->source == SLP_REG_SOURCE_LOCAL 
-                  || srvreg->source == SLP_REG_SOURCE_STATIC)
-            {
-               /* entries that were made from local registrations    */
-               /* and entries made from static registration file     */
-               /* that have a lifetime of SLP_LIFETIME_MAXIMUM must  */
-               /* NEVER be aged                                      */
-               continue;
-            }
-            if (ageall == 0)
-            {
-               /* Don't age any services that have a lifetime of     */
-               /* SLP_LIFETIME_MAXIMUM unless explicitly told to     */
-               continue;
-            }
-         }
+         SLPSrvReg * srvreg = &entry->msg->body.srvreg;
 
          /* If the entry is local and it's configured for pid watching and 
-          * its pid is invalid, then notify DA's and ensure it times out.
+          * its pid is invalid, then notify DA's and remove it.
           */
          if (srvreg->source == SLP_REG_SOURCE_LOCAL 
-               && srvreg->pid && !SLPPidExists(srvreg->pid))
+               && srvreg->pid != 0 && !SLPPidExists(srvreg->pid))
          {
             SLPDLogRegistration("PID Watcher Deregistration", entry);
             SLPDKnownDADeRegisterWithAllDas(entry->msg, entry->buf);
             SLPDatabaseRemove(dh, entry);
             continue;
          }
+
+         /* Don't age entries whose lifetime is set to SLP_LIFETIME_MAXIMUM
+          * if we've been told not to age all entries, or if the entry came 
+          * from the local static registration file.
+          */
+         if (srvreg->urlentry.lifetime == SLP_LIFETIME_MAXIMUM
+               && (!ageall || srvreg->source == SLP_REG_SOURCE_STATIC))
+            continue;
 
          /* Age entry and remove those that have timed out */
          srvreg->urlentry.lifetime -= seconds;

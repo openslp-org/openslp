@@ -865,7 +865,12 @@ static int v2ParseExtension(SLPBuffer buffer, SLPMessage * msg)
       nextoffset = GetUINT24(&buffer->curpos);
       switch (extid)
       {
+         /* Support the standard and experimental versions of this extension 
+          * in order to support 1.2.x for a time while the experimental
+          * version is deprecated.
+          */
          case SLP_EXTENSION_ID_REG_PID:
+         case SLP_EXTENSION_ID_REG_PID_EXP:
             if (msg->header.functionid == SLP_FUNCT_SRVREG)
             {
                if (buffer->curpos + 4 > buffer->end)
@@ -875,7 +880,7 @@ static int v2ParseExtension(SLPBuffer buffer, SLPMessage * msg)
             break;
 
          default:
-            /* These are required extensions. Error if missing. */
+            /* These are required extensions. Error if not handled. */
             if (extid >= 0x4000 && extid <= 0x7FFF)
                return SLP_ERROR_OPTION_NOT_UNDERSTOOD;
             break;

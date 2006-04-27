@@ -129,8 +129,17 @@
 
 /** SLP Extension IDs */
 
+/** @todo Deprecate the use of the experimental version of the PID watcher
+ * extension, which was originally implemented in OpenSLP 1.x. Currently the
+ * 2.x UA code base requests this extension using the EXP version in order to
+ * be compatible with 1.2.x SA's, but the 2.x SA understands both. This allows
+ * some future version of the UA to send the official version and have the 
+ * (then) older version of 2.x SA's understand the official version.
+ */
+
 /** format: Extid(2), nxtextoffs(3), pid(4) */
-#define SLP_EXTENSION_ID_REG_PID 0x4001
+#define SLP_EXTENSION_ID_REG_PID       0x4001
+#define SLP_EXTENSION_ID_REG_PID_EXP   0x9799   /* DEPRECATED */
 
 /** Buffer extraction and insertion macros */
 #define AS_UINT16(p) (uint16_t)              \
