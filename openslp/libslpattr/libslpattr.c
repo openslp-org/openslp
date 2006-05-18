@@ -499,9 +499,9 @@ static size_t find_unescaped_size(const char * str, size_t len)
  * negative, the function treats the string as a null-terminated string. If it
  * is positive, the function will read exactly that number of characters. 
  */
-static size_t find_escaped_size(const char * str, size_t len)
+static size_t find_escaped_size(const char * str, int len)
 {
-   unsigned i; /* Index into str. */
+   int i; /* Index into str. */
    size_t escaped_size; /* The size of the thingy. */
 
    i = 0;
@@ -579,7 +579,7 @@ static void escape(char to_escape, char ** dest, SLPBoolean(test_fn)(char))
  *
  * Returns a pointer to where the addition has ended. 
  */
-static char * escape_into(char * dest, char * src, size_t len)
+static char * escape_into(char * dest, char * src, int len)
 {
    char * cur_dest; /* Current character in dest. */
    cur_dest = dest;
@@ -595,7 +595,7 @@ static char * escape_into(char * dest, char * src, size_t len)
    else
    {
       /* known length. */
-      unsigned i; /* Index into src. */
+      int i; /* Index into src. */
       for (i = 0; i < len; i++)
          escape(src[i], &cur_dest, is_legal_slp_char);
    }
@@ -1046,7 +1046,7 @@ SLPError SLPAttrSet_str(SLPAttributes attr_h, const char * tag,
 
    /**** Set lengths. ****/
    value->unescaped_len = unescaped_len;
-   value->escaped_len = find_escaped_size(value->data.va_str, unescaped_len);
+   value->escaped_len = find_escaped_size(value->data.va_str, (int)unescaped_len);
 
    return generic_set_val(slp_attr, tag, (int) strlen(tag), value, policy,
                SLP_STRING);
@@ -1922,7 +1922,7 @@ SLPError SLPAttrSerialize(SLPAttributes attr_h,
 
                case(SLP_STRING):
                   cur = escape_into(cur, value->data.va_str,
-                        value->unescaped_len);
+                        (int)value->unescaped_len);
                   break;
 
                case(SLP_INTEGER):

@@ -395,7 +395,7 @@ int DHCPGetOptionInfo(unsigned char * dhcpOptCodes, int dhcpOptCodeCnt,
    uint8_t rcvbuf[512];
    struct hostent * hep;
    uint8_t * p;
-   size_t rcvbufsz = 0;
+   int rcvbufsz = 0;
    char host[256];
 
    /* Get our IP and MAC addresses */

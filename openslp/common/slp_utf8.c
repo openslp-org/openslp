@@ -210,7 +210,7 @@ int SLPv1AsUTF8(int encoding, char * string, size_t * len)
          uni = GetUINT32(&ui8string);
          *len -= 4;
       }
-      if (*len < 0)
+      if ((int)(*len) < 0)
          return SLP_ERROR_INTERNAL_ERROR;
 
       nc = unitoutf(utfchar, uni);
@@ -264,7 +264,7 @@ int SLPv1ToEncoding(char * string, size_t * len, int encoding,
       unsigned uni = 0;
       nc = utftouni(&uni, utfstring, utflen);
       utflen -= nc;
-      if (nc < 0 || utflen < 0)
+      if (nc < 0 || (int)(utflen) < 0)
          return SLP_ERROR_INTERNAL_ERROR;
       utfstring += nc;
       if (encoding == SLP_CHAR_UNICODE16)
