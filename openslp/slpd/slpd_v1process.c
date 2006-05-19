@@ -184,7 +184,6 @@ RESPOND:
    /* language code */
    memcpy(result->curpos, message->header.langtag, 2);
    result->curpos += 2;
-   /** @bug is this a bug? */
    PutUINT16(&result->curpos, message->header.encoding);
 
    /* xid */
@@ -707,6 +706,12 @@ int SLPDv1ProcessMessage(struct sockaddr_storage * peeraddr,
    /* Parse just the message header the reset the buffer "curpos" pointer */
    recvbuf->curpos = recvbuf->start;
    errorcode = SLPv1MessageParseHeader(recvbuf, &header);
+
+   /* Reset the buffer "curpos" pointer so that full message can be 
+      parsed later 
+    */
+   recvbuf->curpos = recvbuf->start;
+
 
    /* TRICKY: Duplicate SRVREG recvbufs *before* parsing them it because we 
     * are going to keep them in the 

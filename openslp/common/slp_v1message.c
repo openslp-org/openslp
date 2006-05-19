@@ -587,10 +587,9 @@ int SLPv1MessageParseHeader(const SLPBuffer buffer, SLPHeader * header)
    header->length = GetUINT16(&buffer->curpos);
    header->flags = *buffer->curpos++;
 /* header->dialect = */ buffer->curpos++;  /* dialect */
-   header->encoding = AS_UINT16(buffer->curpos);
    header->langtaglen = 2;
    header->langtag = GetStrPtr(&buffer->curpos, header->langtaglen);
-/* header->chartag = */ GetUINT16(&buffer->curpos); /* character encoding */
+   header->encoding = GetUINT16(&buffer->curpos); /* character encoding */
    header->extoffset = 0; /* not used for SLPv1 */
    header->xid = GetUINT16(&buffer->curpos);
 

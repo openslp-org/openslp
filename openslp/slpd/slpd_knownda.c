@@ -1250,8 +1250,8 @@ int SLPDKnownDAGenerateMyV1DAAdvert(struct sockaddr_storage * localaddr,
 
    /* flags */
    /** @todo We have to handle monoling and all that stuff. */
-   PutUINT16(&result->curpos, (size > SLP_MAX_DATAGRAM_SIZE? 
-         SLPv1_FLAG_OVERFLOW: 0));
+   *result->curpos++ = (size > SLP_MAX_DATAGRAM_SIZE? 
+         SLPv1_FLAG_OVERFLOW: 0);
 
    /* dialect */
    *result->curpos++ = 0;

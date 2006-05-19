@@ -1263,8 +1263,8 @@ int SLPDProcessMessage(struct sockaddr_storage * peerinfo,
    recvbuf->curpos = recvbuf->start;
 
 #if defined(ENABLE_SLPv1)   
-   /* if version == 1 then parse message as a version 1 message */
-   if (errorcode == SLP_ERROR_VER_NOT_SUPPORTED && header.version == 1)
+   /* if version == 1 and the header was correct then parse message as a version 1 message */
+   if ((errorcode == 0) && (header.version == 1))
       errorcode = SLPDv1ProcessMessage(peerinfo, recvbuf, sendbuf);
    else
 #endif
