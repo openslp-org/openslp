@@ -45,6 +45,9 @@
 #include "slpd_outgoing.h"
 #include "slpd_log.h"
 #include "slpd.h"
+#include "slpd_incoming.h"  /*For the global incoming socket map.  Instead of creating a new 
+                              socket for every multicast and broadcast, we'll simply send 
+                              on the existing sockets, using their network interfaces*/
 
 #ifdef ENABLE_SLPv2_SECURITY
 # include "slpd_spi.h"
@@ -1395,7 +1398,7 @@ void SLPDKnownDAEcho(SLPMessage * msg, SLPBuffer buf)
 }
 
 /*=========================================================================*/
-void SLPDKnownDAActiveDiscovery(int seconds, int scope)
+void SLPDKnownDAActiveDiscovery(int seconds, unsigned int scope)
 /* Add a socket to the outgoing list to do active DA discovery SrvRqst     */
 /*                                                                */
 /* seconds (IN) number of seconds that expired since last call             */
@@ -1404,7 +1407,6 @@ void SLPDKnownDAActiveDiscovery(int seconds, int scope)
 /* Returns:  none                                                          */
 /*=========================================================================*/
 {
-   struct sockaddr_storage peeraddr;
    SLPDSocket * sock;
 
    /* Check to see if we should perform active DA detection */
@@ -1433,59 +1435,45 @@ void SLPDKnownDAActiveDiscovery(int seconds, int scope)
 
       G_SlpdProperty.activeDiscoveryXmits --;
 
-      /*--------------------------------------------------*/
-      /* Create new DATAGRAM socket with appropriate peer */
-      /*--------------------------------------------------*/
-      if (SLPNetIsIPV6())
+      /*Send the datagram, either broadcast or multicast*/
+      if((G_SlpdProperty.isBroadcastOnly == 1) && SLPNetIsIPV4())
       {
-         peeraddr.ss_family = AF_INET6;
-         if (scope == SLP_SCOPE_NODE_LOCAL)
-            memcpy(&((struct sockaddr_in6 *) &peeraddr)->sin6_addr,
-                  &in6addr_srvlocda_node, sizeof(struct in6_addr));
-         else if (scope == SLP_SCOPE_LINK_LOCAL)
-            memcpy(&((struct sockaddr_in6 *) &peeraddr)->sin6_addr,
-                  &in6addr_srvlocda_link, sizeof(struct in6_addr));
-         else
-            memcpy(&((struct sockaddr_in6 *) &peeraddr)->sin6_addr,
-                  &in6addr_srvlocda_site, sizeof(struct in6_addr));
-
-         sock = SLPDSocketCreateDatagram(&peeraddr, DATAGRAM_MULTICAST);
-
-         if (sock)
+         struct sockaddr_in peeraddr;
+         memset(&peeraddr, 0, sizeof(struct sockaddr_in));  /*Some platforms require sin_zero be 0*/
+         peeraddr.sin_family = AF_INET;
+         peeraddr.sin_addr.s_addr = htonl(SLP_BCAST_ADDRESS);
+         sock = SLPDSocketCreateDatagram((struct sockaddr_storage*)&peeraddr, DATAGRAM_BROADCAST);
+         if(sock)
          {
-            /*----------------------------------------------------------*/
-            /* Make the srvrqst and add the socket to the outgoing list */
-            /*----------------------------------------------------------*/
             MakeActiveDiscoveryRqst(1, &(sock->sendbuf));
-            SLPDOutgoingDatagramWrite(sock);
+            SLPDOutgoingDatagramWrite(sock, 0, 0);
+            SLPDSocketFree(sock);
          }
       }
-
-      sock = NULL;
-
-      if (SLPNetIsIPV4())
+      else
       {
-         memset(&peeraddr, 0, sizeof(struct sockaddr_in));  /*Some platforms require sin_zero be 0*/
-         if (G_SlpdProperty.isBroadcastOnly == 0)
+         /*   For each incoming socket, find the sockets that can send multicast
+            and send the appropriate datagram. */
+         sock = (SLPDSocket *)G_IncomingSocketList.head;
+         while (sock)
          {
-            peeraddr.ss_family = AF_INET;
-            ((struct sockaddr_in *) &peeraddr)->sin_addr.s_addr = htonl(SLP_MCAST_ADDRESS);
-            sock = SLPDSocketCreateDatagram(&peeraddr, DATAGRAM_MULTICAST);
-         }
-         else
-         {
-            peeraddr.ss_family = AF_INET;
-            ((struct sockaddr_in *) &peeraddr)->sin_addr.s_addr = htonl(SLP_BCAST_ADDRESS);
-            sock = SLPDSocketCreateDatagram(&peeraddr, DATAGRAM_BROADCAST);
-         }
+            if(sock->state == DATAGRAM_MULTICAST)
+            {
+               if((sock->mcastaddr.ss_family == AF_INET6) && 
+                  (scope == ((struct sockaddr_in6*)&sock->mcastaddr)->sin6_scope_id) &&
+                  SLPNetIsIPV6())
+               {
+                  MakeActiveDiscoveryRqst(1, &(sock->sendbuf));
+                  SLPDOutgoingDatagramWrite(sock, 1, 0);
+               }
+               else if((sock->mcastaddr.ss_family == AF_INET) && SLPNetIsIPV4()) 
+               {
+                  MakeActiveDiscoveryRqst(1, &(sock->sendbuf));
+                  SLPDOutgoingDatagramWrite(sock, 1, 0);
+               }
+            }
 
-         if (sock)
-         {
-            /*----------------------------------------------------------*/
-            /* Make the srvrqst and add the socket to the outgoing list */
-            /*----------------------------------------------------------*/
-            MakeActiveDiscoveryRqst(1, &(sock->sendbuf));
-            SLPDOutgoingDatagramWrite(sock);
+            sock = (SLPDSocket *) sock->listitem.next;
          }
       }
    }
@@ -1495,7 +1483,7 @@ void SLPDKnownDAActiveDiscovery(int seconds, int scope)
 }
 
 /*=========================================================================*/
-void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead, int scope)
+void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead, unsigned int scope)
 /* Send passive daadvert messages if properly configured and running as    */
 /* a DA                                                                    */
 /*                                                                        */
@@ -1509,12 +1497,7 @@ void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead, int scope)
 /* Returns:  none                                                          */
 /*=========================================================================*/
 {
-   struct sockaddr_storage peeraddr;
    SLPDSocket * sock;
-#ifdef ENABLE_SLPv1
-   SLPDSocket * v1sock;
-#endif
-
 
    /* SAs don't send passive DAAdverts */
    if (G_SlpdProperty.isDA == 0)
@@ -1528,94 +1511,69 @@ void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead, int scope)
    {
       G_SlpdProperty.nextPassiveDAAdvert = G_SlpdProperty.DAHeartBeat;
 
-      /*--------------------------------------------------*/
-      /* Create new DATAGRAM socket with appropriate peer */
-      /*--------------------------------------------------*/
-      if (SLPNetIsIPV6())
+      /*Send the datagram, either broadcast or multicast*/
+      if((G_SlpdProperty.isBroadcastOnly == 1) && SLPNetIsIPV4())
       {
-         peeraddr.ss_family = AF_INET6;
-         if (scope == SLP_SCOPE_NODE_LOCAL)
-            memcpy(&((struct sockaddr_in6 *) &peeraddr)->sin6_addr,
-                  &in6addr_srvlocda_node, sizeof(struct in6_addr));
-         else if (scope == SLP_SCOPE_LINK_LOCAL)
-            memcpy(&((struct sockaddr_in6 *) &peeraddr)->sin6_addr,
-                  &in6addr_srvlocda_link, sizeof(struct in6_addr));
-         else
-            memcpy(&((struct sockaddr_in6 *) &peeraddr)->sin6_addr,
-                  &in6addr_srvlocda_site, sizeof(struct in6_addr));
-
-         sock = SLPDSocketCreateDatagram(&peeraddr, DATAGRAM_MULTICAST);
-
-         /* Generate the DAAdvert and link it to the write list */
-         if (sock)
+         struct sockaddr_in peeraddr;
+         memset(&peeraddr, 0, sizeof(struct sockaddr_in));  /*Some platforms require sin_zero be 0*/
+         peeraddr.sin_family = AF_INET;
+         peeraddr.sin_addr.s_addr = htonl(SLP_BCAST_ADDRESS);
+         sock = SLPDSocketCreateDatagram((struct sockaddr_storage*)&peeraddr, DATAGRAM_BROADCAST);
+         if(sock)
          {
-            if (SLPDKnownDAGenerateMyDAAdvert(&sock->localaddr, 0, dadead, 0,
-                     &(sock->sendbuf)) == 0)
-               SLPDOutgoingDatagramWrite(sock);
-            else
-               SLPDSocketFree(sock);
+            /* @todo sock doesn't have a localaddr, and some platforms send broadcasts on all
+            network interfaces, so I'm not sure what to send -- I'll just pick a non-loopback
+            interface for now, and perhaps later cycle through the list and send as all local
+            addrs.  Note that the original broadcasting code had the same problem, so this
+            probably wasn't used much.*/
+            if(G_IncomingSocketList.tail)
+            {
+               struct sockaddr_storage* myaddr = &((SLPDSocket *)G_IncomingSocketList.tail)->localaddr;
+               if (SLPDKnownDAGenerateMyDAAdvert(myaddr, 0, dadead, SLPXidGenerate(), &(sock->sendbuf)) == 0)
+                  SLPDOutgoingDatagramWrite(sock, 0, 0);
+#ifdef ENABLE_SLPv1
+               if (SLPDKnownDAGenerateMyV1DAAdvert(myaddr, 0, SLP_CHAR_UTF8, SLPXidGenerate(), &(sock->sendbuf)) == 0)
+                  SLPDOutgoingDatagramWrite(sock, 0, 0);
+#endif
+            }
+            SLPDSocketFree(sock);
          }
       }
-
-      sock = NULL;
-
-      if (SLPNetIsIPV4())
+      else
       {
-         memset(&peeraddr, 0, sizeof(struct sockaddr_in)); /*Some platforms require sin_zero to be 0*/
-         if (G_SlpdProperty.isBroadcastOnly == 0)
+         /*   For each incoming socket, find the sockets that can send multicast
+            and send the appropriate datagram. */
+         sock = (SLPDSocket *)G_IncomingSocketList.head;
+         while (sock)
          {
-            peeraddr.ss_family = AF_INET;
-            ((struct sockaddr_in *) &peeraddr)->sin_addr.s_addr = htonl(SLP_MCAST_ADDRESS);
-            sock = SLPDSocketCreateDatagram(&peeraddr, DATAGRAM_MULTICAST);
-
-#ifdef ENABLE_SLPv1
-            if (!dadead)
+            if(sock->state == DATAGRAM_MULTICAST)
             {
-               peeraddr.ss_family = AF_INET;
-               ((struct sockaddr_in *) &peeraddr)->sin_addr.s_addr = htonl(SLPv1_DA_MCAST_ADDRESS);
-               v1sock = SLPDSocketCreateDatagram(&peeraddr, DATAGRAM_MULTICAST);
+               if((sock->mcastaddr.ss_family == AF_INET6) && 
+                  (scope == ((struct sockaddr_in6*)&sock->mcastaddr)->sin6_scope_id) &&
+                  SLPNetIsIPV6())
+               {
+                  if (SLPDKnownDAGenerateMyDAAdvert(&sock->localaddr, 0, dadead, 
+                                                SLPXidGenerate(), &(sock->sendbuf)) == 0)
+                     SLPDOutgoingDatagramWrite(sock, 1, 0);
+               }
+               else if((sock->mcastaddr.ss_family == AF_INET) && SLPNetIsIPV4()) 
+               {
+                  if(((struct sockaddr_in*)&sock->mcastaddr)->sin_addr.s_addr == htonl(SLP_MCAST_ADDRESS))
+                  {
+                     if (SLPDKnownDAGenerateMyDAAdvert(&sock->localaddr, 0, dadead, 
+                                                   SLPXidGenerate(), &(sock->sendbuf)) == 0)
+                        SLPDOutgoingDatagramWrite(sock, 1, 0);
+                  }
+#ifdef ENABLE_SLPv1
+                  else if (SLPDKnownDAGenerateMyV1DAAdvert(&sock->localaddr, 0,
+                                    SLP_CHAR_UTF8, SLPXidGenerate(), &(sock->sendbuf)) == 0)
+                     SLPDOutgoingDatagramWrite(sock, 1, 0);
+#endif
+               }
             }
-            else
-               v1sock = NULL;
-#endif  
-         }
-         else
-         {
-            peeraddr.ss_family = AF_INET;
-            ((struct sockaddr_in *) &peeraddr)->sin_addr.s_addr = htonl(SLP_BCAST_ADDRESS);
-            sock = SLPDSocketCreateDatagram(&peeraddr, DATAGRAM_BROADCAST);
 
-#ifdef ENABLE_SLPv1
-            if (!dadead)
-               v1sock = SLPDSocketCreateDatagram(&peeraddr, DATAGRAM_BROADCAST);
-            else
-               v1sock = NULL;
-#endif
+            sock = (SLPDSocket *) sock->listitem.next;
          }
-
-         /* Generate the DAAdvert and link it to the write list */
-         if (sock)
-         {
-            if (SLPDKnownDAGenerateMyDAAdvert(&sock->localaddr, 0, dadead, 0,
-                     &(sock->sendbuf)) == 0)
-               SLPDOutgoingDatagramWrite(sock);
-            else
-               SLPDSocketFree(sock);
-         }
-
-#ifdef ENABLE_SLPv1
-         if (v1sock)
-         {
-            /* SLPv1 does not support shutdown messages */
-
-            /* Generate the DAAdvert and write it */
-            if (SLPDKnownDAGenerateMyV1DAAdvert(&sock->localaddr, 0,
-                     SLP_CHAR_UTF8, SLPXidGenerate(), &(v1sock->sendbuf)) == 0)
-               SLPDOutgoingDatagramWrite(v1sock);
-            else
-               SLPDSocketFree(v1sock);
-         }
-#endif
       }
    }
    else

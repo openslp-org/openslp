@@ -119,6 +119,8 @@ static int SetMulticastTTL(sockfd_t sockfd, int ttl)
 static int JoinSLPMulticastGroup(int family, sockfd_t sockfd,
       struct sockaddr_storage * maddr, struct sockaddr_storage * addr)
 {
+   int optresult = -1; /*error in address family specified*/
+
    if (SLPNetIsIPV4() && family == AF_INET)
    {
       struct ip_mreq mreq4;
@@ -130,11 +132,17 @@ static int JoinSLPMulticastGroup(int family, sockfd_t sockfd,
       /* join with specified interface */
       memcpy(&mreq4.imr_interface, &(((struct sockaddr_in *)addr)->sin_addr), 
             sizeof(struct in_addr));
-      return setsockopt(sockfd, IPPROTO_IP, IP_ADD_MEMBERSHIP, 
-            (char*)&mreq4, sizeof(mreq4));               
+      
+      /*While this is not necessary for the receiving side, multicast receive
+        sockets double as the multicast sending sockets, and setting this allows
+        the message to be sent on the correct interface*/
+      optresult = setsockopt(sockfd, IPPROTO_IP, IP_MULTICAST_IF, 
+                             (char*)&mreq4.imr_interface, sizeof(mreq4.imr_interface));
+      if(optresult == 0)
+         optresult = setsockopt(sockfd, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char*)&mreq4,
+                                 sizeof(mreq4)); 
    }
-
-   if (SLPNetIsIPV6() && family == AF_INET6)
+   else if (SLPNetIsIPV6() && family == AF_INET6)
    {
       struct ipv6_mreq mreq6;
 
@@ -144,11 +152,18 @@ static int JoinSLPMulticastGroup(int family, sockfd_t sockfd,
 
       /* join with specified interface */
       mreq6.ipv6mr_interface = ((struct sockaddr_in6 *)addr)->sin6_scope_id;
-      return setsockopt(sockfd, IPPROTO_IPV6, IPV6_JOIN_GROUP, 
-            (char*)&mreq6, sizeof(mreq6));               
+
+      /*While this is not necessary for the receiving side, multicast receive
+      sockets double as the multicast sending sockets, and setting this allows
+      the message to be sent on the correct interface*/
+      optresult = setsockopt(sockfd, IPPROTO_IPV6, IPV6_MULTICAST_IF, 
+                             (char*)&mreq6.ipv6mr_interface, sizeof(mreq6.ipv6mr_interface));
+      if(optresult == 0)
+         optresult = setsockopt(sockfd, IPPROTO_IPV6, IPV6_JOIN_GROUP, 
+                                 (char*)&mreq6, sizeof(mreq6));               
    }
 
-   return -1; /* error in address family specified */
+   return optresult; 
 }
 
 /** Configures a socket NOT to receive mcast traffic on an interface.

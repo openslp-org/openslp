@@ -398,17 +398,20 @@ SLPDSocket * SLPDOutgoingConnect(struct sockaddr_storage * addr)
  * (after net.slp.unicastMaximumWait).
  *
  * @param[in] sock - The socket that will belong on the outgoing list.
+ * @param[in] mcast - If non-zero, the message will be sent to sock->mcastaddr instead of sock->peeraddr.
+ * @param[in] addtolist - If non-zero, the socket is a throwaway to add to the aging list
  */
-void SLPDOutgoingDatagramWrite(SLPDSocket * sock)
+void SLPDOutgoingDatagramWrite(SLPDSocket * sock, int mcast, int addtolist)
 {
    if (sendto(sock->fd, (char*)sock->sendbuf->start,
             (int)(sock->sendbuf->end - sock->sendbuf->start), 0,
-            (struct sockaddr *)&sock->peeraddr,
+            mcast ? (struct sockaddr *)&sock->mcastaddr : (struct sockaddr *)&sock->peeraddr,
             sizeof(struct sockaddr_storage)) >= 0)
    {
       /* Link the socket into the outgoing list so replies will be */
-      /* processed                                                 */
-      SLPListLinkHead(&G_OutgoingSocketList, (SLPListItem *) (sock));
+      /* processed -- if there would be any                        */
+      if(addtolist)
+         SLPListLinkHead(&G_OutgoingSocketList, (SLPListItem *) (sock));
    }
    else
    {

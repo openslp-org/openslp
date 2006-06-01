@@ -49,16 +49,6 @@
 #include "slp_property.h"
 #include "slp_socket.h"
 
-/* fix this ~~~jmc */
-//#ifdef SOLARIS
-//# include <sys/sockio.h>
-//#endif
-//#ifndef _WIN32
-//# include <sys/ioctl.h>
-//# include <net/if.h>
-//# include <arpa/inet.h>
-//#endif
-
 /** The max index for v6 address to test for valid scope ids. */
 #define MAX_INTERFACE_TEST_INDEX 255
 
@@ -119,6 +109,240 @@ static int SLPIfaceContainsAddr(size_t listlen, const char * list,
    return 0;
 }
 
+/* @todo: evaluate network interface discovery on AIX, Solaris, and Hpux */
+#if defined(LINUX) || defined(AIX) || defined(SOLARIS) || defined(HPUX)
+/** Get the default network interface addresses for this host.
+ *
+ * @param[in,out] ifaceinfo - The address of a buffer in which to return 
+ *    information about the requested interfaces.
+ * @param[in] family - A hint indicating the address family to get info 
+ *    for - can be AF_INET, AF_INET6, or AF_UNSPEC for both.
+ *
+ * @return Zero on success; A non-zero value (with errno set) on error.
+ *
+ * @remarks Does NOT return the loopback interface.
+ */
+int SLPIfaceGetDefaultInfo(SLPIfaceInfo* ifaceinfo, int family)
+{
+   sockfd_t fd;
+   int i;
+   struct sockaddr* sa;
+   struct ifreq ifrlist[SLP_MAX_IFACES];
+   struct ifreq ifrflags;
+
+   struct ifconf ifc;
+   ifc.ifc_len = sizeof(struct ifreq) * SLP_MAX_IFACES;
+   ifc.ifc_req = ifrlist;
+
+   if ((family == AF_INET6) || (family == AF_UNSPEC))
+   {
+      fd = socket(AF_INET6, SOCK_DGRAM, 0);
+      if (fd != -1)
+      {
+         #ifdef AIX
+         if (ioctl(fd,OSIOCGIFCONF,&ifc) <0)
+         #else
+         if (ioctl(fd,SIOCGIFCONF,&ifc) < 0)
+         #endif
+            return -1;
+
+         for (i = 0; i < ifc.ifc_len/sizeof(struct ifreq); i++)
+         {
+            sa = (struct sockaddr *)&(ifrlist[i].ifr_addr);
+            if(sa->sa_family == AF_INET6)
+            {
+               /* Get interface flags */
+               memcpy(&ifrflags,&(ifrlist[i]),sizeof(struct ifreq));
+               if(ioctl(fd,SIOCGIFFLAGS, &ifrflags) == 0)
+               {
+                  /* skip the loopback interfaces */
+                  if((ifrflags.ifr_flags & IFF_LOOPBACK) == 0)
+                  {
+                     memcpy(&ifaceinfo->iface_addr[ifaceinfo->iface_count], sa, sizeof(struct sockaddr_in6));
+                     ++ifaceinfo->iface_count;
+                  }
+               }
+            }
+         }
+
+         closesocket(fd);
+      }
+   }
+
+   /*reset ifc_len for next get*/
+   ifc.ifc_len = sizeof(struct ifreq) * SLP_MAX_IFACES;
+
+   if ((family == AF_INET) || (family == AF_UNSPEC))
+   {
+      fd = socket(AF_INET, SOCK_DGRAM, 0);
+      if (fd != -1)
+      {
+         #ifdef AIX
+         if (ioctl(fd,OSIOCGIFCONF,&ifc) < 0)
+         #else
+         if (ioctl(fd,SIOCGIFCONF,&ifc) < 0)
+         #endif
+            return -1;
+
+         for (i = 0; i < ifc.ifc_len/sizeof(struct ifreq); i++)
+         {
+            sa = (struct sockaddr *)&(ifrlist[i].ifr_addr);
+            if(sa->sa_family == AF_INET)
+            {
+               /* Get interface flags */
+               memcpy(&ifrflags,&(ifrlist[i]),sizeof(struct ifreq));
+               if(ioctl(fd,SIOCGIFFLAGS, &ifrflags) == 0)
+               {
+                  /* skip the loopback interfaces */
+                  if((ifrflags.ifr_flags & IFF_LOOPBACK) == 0)
+                  {
+                     memcpy(&ifaceinfo->iface_addr[ifaceinfo->iface_count], sa, sizeof(struct sockaddr_in));
+                     ++ifaceinfo->iface_count;
+                  }
+               }
+            }
+         }
+
+         closesocket(fd);
+      }
+   }
+
+   return 0;
+}
+#elif defined(_WIN32)
+/** Get the default network interface addresses for this host.
+ *
+ * @param[in,out] ifaceinfo - The address of a buffer in which to return 
+ *    information about the requested interfaces.
+ * @param[in] family - A hint indicating the address family to get info 
+ *    for - can be AF_INET, AF_INET6, or AF_UNSPEC for both.
+ *
+ * @return Zero on success; A non-zero value (with errno set) on error.
+ *
+ * @remarks Does NOT return the loopback interface.
+ */
+int SLPIfaceGetDefaultInfo(SLPIfaceInfo* ifaceinfo, int family)
+{
+   /*This uses the Winsock2 WSAIoctl call of SIO_ADDRESS_LIST_QUERY, which
+      is supported by the recommended windows compiler and latest platform sdk
+      (currently visual studio 2005 express)*/
+
+   sockfd_t fd;
+
+   if ((family == AF_INET6) || (family == AF_UNSPEC))
+   {
+      DWORD buflen = 0;
+      char* buffer = NULL;
+      SOCKET_ADDRESS_LIST *plist = NULL;
+      int i;
+
+      fd = socket(AF_INET6, SOCK_DGRAM, 0);
+      if (fd != INVALID_SOCKET)
+      {
+         /*We want to get a reasonable length buffer, so call empty first*/
+         WSAIoctl(fd, SIO_ADDRESS_LIST_QUERY, NULL, 0, buffer, buflen, &buflen, NULL, NULL);
+         if(buflen > 0)
+         {
+            buffer = malloc(buflen);
+            if(0 == WSAIoctl(fd, SIO_ADDRESS_LIST_QUERY, NULL, 0, buffer, buflen, &buflen, NULL, NULL))
+            {
+               plist = (SOCKET_ADDRESS_LIST*)buffer;
+               for(i = 0; i < plist->iAddressCount; ++i)
+               {
+                  if(plist->Address[i].lpSockaddr->sa_family == AF_INET6)
+                  {
+                     memcpy(&ifaceinfo->iface_addr[ifaceinfo->iface_count], plist->Address[i].lpSockaddr, sizeof(struct sockaddr_in6));
+                     ++ifaceinfo->iface_count;
+                  }
+               }
+            }
+            else
+            {
+               free(buffer);
+               return WSAGetLastError();
+            }
+         }
+         else
+            return WSAGetLastError();
+
+         if(buffer)
+            free(buffer);
+
+         closesocket(fd);
+      }
+   }
+
+   if ((family == AF_INET) || (family == AF_UNSPEC))
+   {
+      DWORD buflen = 0;
+      char* buffer = NULL;
+      SOCKET_ADDRESS_LIST *plist = NULL;
+      int i;
+
+      fd = socket(AF_INET, SOCK_DGRAM, 0);
+      if (fd != INVALID_SOCKET)
+      {
+         /*We want to get a reasonable length buffer, so call empty first*/
+         WSAIoctl(fd, SIO_ADDRESS_LIST_QUERY, NULL, 0, buffer, buflen, &buflen, NULL, NULL);
+         if(buflen > 0)
+         {
+            buffer = malloc(buflen);
+            if(0 == WSAIoctl(fd, SIO_ADDRESS_LIST_QUERY, NULL, 0, buffer, buflen, &buflen, NULL, NULL))
+            {
+               plist = (SOCKET_ADDRESS_LIST*)buffer;
+               for(i = 0; i < plist->iAddressCount; ++i)
+               {
+                  if(plist->Address[i].lpSockaddr->sa_family == AF_INET)
+                  {
+                     memcpy(&ifaceinfo->iface_addr[ifaceinfo->iface_count], plist->Address[i].lpSockaddr, sizeof(struct sockaddr_in));
+                     ++ifaceinfo->iface_count;
+                  }
+               }
+            }
+            else
+            {
+               free(buffer);
+               return WSAGetLastError();
+            }
+         }
+         else
+            return WSAGetLastError();
+
+         if(buffer)
+            free(buffer);
+
+         closesocket(fd);
+      }
+   }
+
+   return 0;
+}
+#else
+/** Get the default network interface addresses for this host.
+ *
+ * @param[in,out] ifaceinfo - The address of a buffer in which to return 
+ *    information about the requested interfaces.
+ * @param[in] family - A hint indicating the address family to get info 
+ *    for - can be AF_INET, AF_INET6, or AF_UNSPEC for both.
+ *
+ * @return Zero on success; A non-zero value (with errno set) on error.
+ *
+ * @remarks Does NOT return the loopback interface.
+ */
+int SLPIfaceGetDefaultInfo(SLPIfaceInfo* ifaceinfo, int family)
+{
+   int tmp = family;  /*To prevent an unused parameter error/warning*/
+   tmp = tmp;         /*To prevent an unused local variable error/warning*/
+
+   ifaceinfo->bcast_count = 0;
+   ifaceinfo->iface_count = 0;
+   
+   /*This is the default case, where we don't know how to get the info.
+     This platform MUST define the interfaces in slp.conf*/
+   return -1;
+}
+#endif
+
 /** Get the network interface addresses for this host.
  *
  * @param[in] useifaces - Pointer to comma delimited string of interface 
@@ -161,56 +385,9 @@ int SLPIfaceGetInfo(const char * useifaces, SLPIfaceInfo * ifaceinfo,
    interfaceString = (char *)SLPPropertyGet("net.slp.interfaces");
    if (interfaceString == 0 || *interfaceString == 0)
    {
-      /* they don't have any setting in their conf file, so put in the default info */
-      if (SLPNetIsIPV6() && ((family == AF_INET6) || (family == AF_UNSPEC)))
-      {
-         struct sockaddr_storage storageaddr_any;
-
-         fd = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
-         if (fd != SLP_INVALID_SOCKET)
-         {
-            for (i = 0; i < MAX_INTERFACE_TEST_INDEX; i++)
-            {
-               SLPNetSetAddr(&indexHack, AF_INET6,
-                     0, &slp_in6addr_any);
-               indexHack.sin6_scope_id = i;
-               sts = bind(fd, (struct sockaddr *)&indexHack, sizeof(indexHack));
-               if (sts == 0)
-               {
-                  SLPNetSetAddr(&storageaddr_any, AF_INET6, 0,
-                        &slp_in6addr_any);
-                  memcpy(&ifaceinfo->iface_addr[ifaceinfo->iface_count],
-                        &storageaddr_any, sizeof(storageaddr_any));
-                  ifaceinfo->iface_count++;
-                  break;
-               }
-            }
-            closesocket(fd);
-         }
-      }
-      if (SLPNetIsIPV4() && ((family == AF_INET) || (family == AF_UNSPEC)))
-      {
-         struct sockaddr_storage storageaddr_any;
-         unsigned int addrAny = INADDR_ANY;
-
-         fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-         if (fd != SLP_INVALID_SOCKET)
-         {
-            v4addr.sin_family = AF_INET;
-            v4addr.sin_port = 0;
-            v4addr.sin_addr.s_addr = addrAny;
-            sts = bind(fd, (struct sockaddr *)&v4addr, sizeof(v4addr));
-            if (sts == 0)
-            {
-               SLPNetSetAddr(&storageaddr_any, AF_INET, 0, 
-                     (unsigned char *)&addrAny);
-               memcpy(&ifaceinfo->iface_addr[ifaceinfo->iface_count],
-                     &storageaddr_any, sizeof(storageaddr_any));
-               ifaceinfo->iface_count++;
-            }
-            closesocket(fd);
-         }
-      }
+      i = SLPIfaceGetDefaultInfo(ifaceinfo, family);
+      if (i < 0)
+         return i;
    }
    else
    {

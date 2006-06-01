@@ -554,6 +554,9 @@ int SLPDIncomingInit(void)
 {
    struct sockaddr_storage myaddr;
    struct sockaddr_storage mcast4addr;
+#if defined(ENABLE_SLPv1)
+   struct sockaddr_storage v1mcast4addr;
+#endif
    struct sockaddr_storage lo4addr;
    struct sockaddr_storage lo6addr;
    struct sockaddr_storage srvloc6addr_node;
@@ -588,6 +591,13 @@ int SLPDIncomingInit(void)
       mcast4addr.ss_family = AF_INET;
       ((struct sockaddr_in *) &mcast4addr)->sin_family = AF_INET;
       ((struct sockaddr_in *) &mcast4addr)->sin_addr.s_addr = htonl(SLP_MCAST_ADDRESS);
+#if defined(ENABLE_SLPv1)
+      memset(&v1mcast4addr, 0, sizeof(struct sockaddr_in)); /*sin_zero must be zero on some platforms*/
+      v1mcast4addr.ss_family = AF_INET;
+      ((struct sockaddr_in *) &v1mcast4addr)->sin_family = AF_INET;
+      ((struct sockaddr_in *) &v1mcast4addr)->sin_addr.s_addr = htonl(SLPv1_DA_MCAST_ADDRESS);
+#endif
+
    }
 
    /*-------------------------------------------------------*/
@@ -821,10 +831,7 @@ int SLPDIncomingInit(void)
          /* Discovery.                                                 */
          /* Don't need to do this for ipv6, SLPv1 is not supported.    */
          /*------------------------------------------------------------*/
-         mcast4addr.ss_family = AF_INET;
-         ((struct sockaddr_in *) &mcast4addr)->sin_addr.s_addr = htonl(SLPv1_DA_MCAST_ADDRESS);
-         sock = SLPDSocketCreateBoundDatagram(&myaddr, &mcast4addr,
-                     DATAGRAM_MULTICAST);
+         sock = SLPDSocketCreateBoundDatagram(&myaddr, &v1mcast4addr, DATAGRAM_MULTICAST);
          if (sock)
          {
             SLPListLinkTail(&G_IncomingSocketList, (SLPListItem *) sock);
@@ -832,6 +839,7 @@ int SLPDIncomingInit(void)
                   SLPNetSockAddrStorageToString(&myaddr, addr_str,
                         sizeof(addr_str)));
          }
+
       }
 #endif
 

@@ -126,7 +126,9 @@ int SLPDPropertyInit(const char * conffile)
       xfree(myinterfaces);
       G_SlpdProperty.interfaces = SLPPropertyGet("net.slp.interfaces");
    }
-   G_SlpdProperty.interfacesLen = strlen(G_SlpdProperty.interfaces);
+
+   if(G_SlpdProperty.interfaces)
+      G_SlpdProperty.interfacesLen = strlen(G_SlpdProperty.interfaces);
 
    /* set the value used internally as the url for this agent */
    if (G_SlpdProperty.isDA)

@@ -74,8 +74,16 @@ const char * inet_ntop(int af, const void * src, char * dst, size_t size);
 
 #else
 
+/* @todo: This was copied from openslp 1.2.1 for solaris support. Is it needed?*/
+#ifdef SOLARIS
+#include <sys/sockio.h>
+#endif
+
 # include <sys/types.h>
 # include <sys/socket.h>
+# include <sys/ioctl.h>
+# include <net/if.h>
+# include <net/if_arp.h>
 # include <netdb.h>
 
 /** Portability definitions
