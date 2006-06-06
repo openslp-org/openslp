@@ -96,8 +96,8 @@ static void ExitUserAgentLibrary(void)
    if (SLPAtomicDec(&s_OpenSLPHandleCount) == 0)
    {
       SLPPropertyCleanup();
-#ifdef DEBUG
       KnownDAFreeAll();
+#ifdef DEBUG
       xmalloc_deinit();
 #endif
 #ifdef _WIN32

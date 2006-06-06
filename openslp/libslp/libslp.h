@@ -245,9 +245,7 @@ int KnownDAGetScopes(size_t * scopelistlen, char ** scopelist,
       SLPHandleInfo * handle);
 void KnownDAProcessSrvRqst(SLPHandleInfo * handle);
 
-#ifdef DEBUG
 void KnownDAFreeAll(void);
-#endif
 
 void PutL16String(uint8_t ** cpp, const char * str, size_t strsz);
 size_t SizeofURLEntry(size_t urllen, size_t urlauthlen);

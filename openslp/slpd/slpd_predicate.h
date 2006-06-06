@@ -59,7 +59,7 @@ int SLPDPredicateTest(int version, size_t attrlistlen,
       const char * attrlist, size_t predicatelen, 
       const char * predicate);
 
-int SLPDFilterAttributes(int attrlistlen, const char * attrlist, 
+int SLPDFilterAttributes(size_t attrlistlen, const char * attrlist, 
       size_t taglistlen, const char * taglist, size_t * resultlen, 
       char ** result);
 

@@ -545,7 +545,8 @@ static int v2ParseAttrRply(SLPBuffer buffer, SLPAttrRply * attrrply)
    /* Terminate the attr list for caller convenience - overwrites the
     * first byte of the "# of AttrAuths" field, but we've processed it. 
     */
-   ((uint8_t *)attrrply->attrlist)[attrrply->attrlistlen] = 0;
+   if(attrrply->attrlist)
+      ((uint8_t *)attrrply->attrlist)[attrrply->attrlistlen] = 0;
 
    return 0;
 }

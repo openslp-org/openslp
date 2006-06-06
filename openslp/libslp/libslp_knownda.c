@@ -768,7 +768,6 @@ void KnownDAProcessSrvRqst(SLPHandleInfo * handle)
          SLP_LAST_CALL, handle->params.findsrvs.cookie);
 }
 
-#ifdef DEBUG
 /** Frees all (cached) resources associated with known DAs.
  */
 void KnownDAFreeAll(void)
@@ -789,6 +788,5 @@ void KnownDAFreeAll(void)
    G_KnownDAScopesLen = 0;
    G_KnownDALastCacheRefresh = 0;
 }
-#endif
 
 /*=========================================================================*/
