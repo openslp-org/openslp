@@ -236,7 +236,7 @@ static void ServiceStart(int argc, char ** argv)
    SLPDLog("Startup complete entering main run loop ...\n\n");
    G_SIGTERM   = 0;
    curtime = time(&alarmtime);
-   alarmtime = curtime + SLPD_AGE_INTERVAL;
+   alarmtime = curtime + 2;  /*Start with a shorter time so SAs register with us quickly on startup*/
    while (G_SIGTERM == 0)
    {
       /* load the fdsets up with all valid sockets in the list  */

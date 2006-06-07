@@ -537,8 +537,8 @@ int main(int argc, char * argv[])
    if (SetUpSignalHandlers())
       SLPDFatal("Error setting up signal handlers.\n");
 
-   /* Set up alarm to age database */
-   alarm(SLPD_AGE_INTERVAL);
+   /* Set up alarm to age database -- a shorter start, so SAs register with us quickly on our startup */
+   alarm(2);
 
    /* Main loop */
    SLPDLog("Startup complete entering main run loop ...\n\n");
