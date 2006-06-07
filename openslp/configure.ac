@@ -163,10 +163,10 @@ esac
 # Set C/C++ compiler-specific warning/optimization/option flags
 
 if test x$GCC = xyes; then
-  # GCC: turn on all warnings, set warnings as errors
+  # GCC: turn on all warnings, DON'T set warnings as errors
   #   disable optimization for debug builds
   #   enable high-level optimizations for non-debug builds
-  CFLAGS="$CFLAGS -Wall -Werror"
+  CFLAGS="$CFLAGS -Wall"
   if test x$debug = xyes; then 
     OPTFLAGS="-O0"
   else
