@@ -413,7 +413,7 @@ void SLPDOutgoingDatagramWrite(SLPDSocket * sock, int mcast, int addtolist)
       if(addtolist)
          SLPListLinkHead(&G_OutgoingSocketList, (SLPListItem *) (sock));
    }
-   else
+   else if (!mcast)  /*Since multicast now uses the incoming list, I'll let the incoming handler clean up correctly*/
    {
 #ifdef DEBUG
       SLPDLog("ERROR: Data could not send() in SLPDOutgoingDatagramWrite()");

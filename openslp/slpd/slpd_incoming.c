@@ -578,24 +578,18 @@ int SLPDIncomingInit(void)
             SLPListUnlink(&G_IncomingSocketList, G_IncomingSocketList.head));
 
 
-   /*-------------------------------------------------------*/
-   /* set up address to use for ipv4 loopback and broadcast */
-   /*-------------------------------------------------------*/
+   /*---------------------------------------------------------*/
+   /* set up addresses to use for ipv4 loopback and multicast */
+   /*---------------------------------------------------------*/
    if(SLPNetIsIPV4())
    {
-      memset(&lo4addr, 0, sizeof(struct sockaddr_in));  /*sin_zero must be zero on some platforms*/
-      lo4addr.ss_family = AF_INET;
-      ((struct sockaddr_in *) &lo4addr)->sin_family = AF_INET;
-      ((struct sockaddr_in *) &lo4addr)->sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-      memset(&mcast4addr, 0, sizeof(struct sockaddr_in)); /*sin_zero must be zero on some platforms*/
-      mcast4addr.ss_family = AF_INET;
-      ((struct sockaddr_in *) &mcast4addr)->sin_family = AF_INET;
-      ((struct sockaddr_in *) &mcast4addr)->sin_addr.s_addr = htonl(SLP_MCAST_ADDRESS);
+      int tmpaddr = INADDR_LOOPBACK;
+      SLPNetSetAddr(&lo4addr, AF_INET, SLP_RESERVED_PORT, &tmpaddr);
+      tmpaddr = SLP_MCAST_ADDRESS;
+      SLPNetSetAddr(&mcast4addr, AF_INET, SLP_RESERVED_PORT, &tmpaddr);
 #if defined(ENABLE_SLPv1)
-      memset(&v1mcast4addr, 0, sizeof(struct sockaddr_in)); /*sin_zero must be zero on some platforms*/
-      v1mcast4addr.ss_family = AF_INET;
-      ((struct sockaddr_in *) &v1mcast4addr)->sin_family = AF_INET;
-      ((struct sockaddr_in *) &v1mcast4addr)->sin_addr.s_addr = htonl(SLPv1_DA_MCAST_ADDRESS);
+      tmpaddr = SLPv1_DA_MCAST_ADDRESS;
+      SLPNetSetAddr(&v1mcast4addr, AF_INET, SLP_RESERVED_PORT, &tmpaddr);
 #endif
 
    }
@@ -605,41 +599,15 @@ int SLPDIncomingInit(void)
    /*-------------------------------------------------------*/
    if(SLPNetIsIPV6())
    {
-      lo6addr.ss_family = AF_INET6;
-      ((struct sockaddr_in6 *) &lo6addr)->sin6_family = AF_INET6;
-      ((struct sockaddr_in6 *) &lo6addr)->sin6_scope_id = 0;
-      memcpy(&(((struct sockaddr_in6 *) &lo6addr)->sin6_addr),
-            &slp_in6addr_loopback, sizeof(struct in6_addr));
-      srvloc6addr_node.ss_family = AF_INET6;
-      ((struct sockaddr_in6 *) &srvloc6addr_node)->sin6_family = AF_INET6;
-      ((struct sockaddr_in6 *) &lo6addr)->sin6_scope_id = 0;
-      memcpy(&(((struct sockaddr_in6 *) &srvloc6addr_node)->sin6_addr),
-            &in6addr_srvloc_node, sizeof(struct in6_addr));
-      srvloc6addr_link.ss_family = AF_INET6;
-      ((struct sockaddr_in6 *) &srvloc6addr_link)->sin6_family = AF_INET6;
-      ((struct sockaddr_in6 *) &lo6addr)->sin6_scope_id = 0;
-      memcpy(&(((struct sockaddr_in6 *) &srvloc6addr_link)->sin6_addr),
-            &in6addr_srvloc_link, sizeof(struct in6_addr));
-      srvloc6addr_site.ss_family = AF_INET6;
-      ((struct sockaddr_in6 *) &srvloc6addr_site)->sin6_family = AF_INET6;
-      ((struct sockaddr_in6 *) &lo6addr)->sin6_scope_id = 0;
-      memcpy(&(((struct sockaddr_in6 *) &srvloc6addr_site)->sin6_addr),
-            &in6addr_srvloc_site, sizeof(struct in6_addr));
-      srvlocda6addr_node.ss_family = AF_INET6;
-      ((struct sockaddr_in6 *) &srvlocda6addr_node)->sin6_family = AF_INET6;
-      ((struct sockaddr_in6 *) &lo6addr)->sin6_scope_id = 0;
-      memcpy(&(((struct sockaddr_in6 *) &srvlocda6addr_node)->sin6_addr),
-            &in6addr_srvlocda_node, sizeof(struct in6_addr));
-      srvlocda6addr_link.ss_family = AF_INET6;
-      ((struct sockaddr_in6 *) &srvlocda6addr_link)->sin6_family = AF_INET6;
-      ((struct sockaddr_in6 *) &lo6addr)->sin6_scope_id = 0;
-      memcpy(&(((struct sockaddr_in6 *) &srvlocda6addr_link)->sin6_addr),
-            &in6addr_srvlocda_link, sizeof(struct in6_addr));
-      srvlocda6addr_site.ss_family = AF_INET6;
-      ((struct sockaddr_in6 *) &srvlocda6addr_site)->sin6_family = AF_INET6;
-      ((struct sockaddr_in6 *) &lo6addr)->sin6_scope_id = 0;
-      memcpy(&(((struct sockaddr_in6 *) &srvlocda6addr_site)->sin6_addr),
-            &in6addr_srvlocda_site, sizeof(struct in6_addr));
+      /*@todo: Does our IPv6 support really care about all of these address types,
+        or at the very least why have a da and non-da variants? */
+      SLPNetSetAddr(&lo6addr, AF_INET6, SLP_RESERVED_PORT, &slp_in6addr_loopback);
+      SLPNetSetAddr(&srvloc6addr_node, AF_INET6, SLP_RESERVED_PORT, &in6addr_srvloc_node);
+      SLPNetSetAddr(&srvloc6addr_link, AF_INET6, SLP_RESERVED_PORT, &in6addr_srvloc_link);
+      SLPNetSetAddr(&srvloc6addr_site, AF_INET6, SLP_RESERVED_PORT, &in6addr_srvloc_site);
+      SLPNetSetAddr(&srvlocda6addr_node, AF_INET6, SLP_RESERVED_PORT, &in6addr_srvlocda_node);
+      SLPNetSetAddr(&srvlocda6addr_link, AF_INET6, SLP_RESERVED_PORT, &in6addr_srvlocda_link);
+      SLPNetSetAddr(&srvlocda6addr_site, AF_INET6, SLP_RESERVED_PORT, &in6addr_srvlocda_site);
    }
 
    /*--------------------------------------------------------------------*/

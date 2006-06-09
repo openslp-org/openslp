@@ -111,6 +111,7 @@ static SLPBoolean KnownDAListFind(size_t scopelistlen, const char * scopelist,
             {
                memcpy(daaddr, &entry->msg->peer, daaddrsz);
                result = SLP_TRUE;
+               break;
             }
          }
       }
@@ -208,7 +209,7 @@ static SLPBoolean KnownDADiscoveryCallback(SLPError errorcode,
          SLPParsedSrvUrl * srvurl;
 
          if (SLPParseSrvUrl(replymsg->body.daadvert.urllen, 
-					replymsg->body.daadvert.url, &srvurl) == 0)
+                            replymsg->body.daadvert.url, &srvurl) == 0)
          {
             int retval = -1;
 

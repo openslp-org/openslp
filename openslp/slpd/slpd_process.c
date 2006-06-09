@@ -221,6 +221,30 @@ static int ProcessDASrvRqst(SLPMessage * message, SLPBuffer * sendbuf,
             process that only happens for the DA SrvRqst through
             loopback to the SLPAPI
           */
+
+         /*If we are a DA, always have ourself at the start of the list, so the
+           lib requests can be handled locally for speed */
+         if(G_SlpdProperty.isDA)
+         {
+            struct sockaddr_storage loaddr;
+
+            if(SLPNetIsIPV4())
+            {
+               int addr = INADDR_LOOPBACK;
+               SLPNetSetAddr(&loaddr, AF_INET, SLP_RESERVED_PORT, &addr);
+            }
+            else
+               SLPNetSetAddr(&loaddr, AF_INET6, SLP_RESERVED_PORT, &slp_in6addr_loopback);
+
+            if(0 == SLPDKnownDAGenerateMyDAAdvert(&loaddr, 0, 0, message->header.xid, &tmp))
+            {
+               memcpy((*sendbuf)->curpos, tmp->start, tmp->end - tmp->start);
+               (*sendbuf)->curpos = ((*sendbuf)->curpos) + (tmp->end - tmp->start);
+               SLPBufferFree(tmp);
+               tmp = 0;
+            }
+         }
+
          eh = SLPDKnownDAEnumStart();
          if (eh)
          {
