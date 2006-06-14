@@ -114,12 +114,15 @@ void OutgoingStreamReconnect(SLPList * socklist, SLPDSocket * sock)
    sock->reconns += 1;
    if (sock->reconns > SLPD_CONFIG_MAX_RECONN)
    {
-      sock->state = SOCKET_CLOSE;
       SLPDLog("WARNING: Reconnect tries to agent at %s "
               "exceeded maximum. It\n         is possible that "
               "the agent is malicious. Check it out!\n",
             SLPNetSockAddrStorageToString(&sock->peeraddr, 
                   addr_str, sizeof(addr_str)));
+
+      /*Since we can't connect, remove it as a DA*/
+      SLPDKnownDARemove(&(sock->peeraddr));
+      sock->state = SOCKET_CLOSE;
       return;
    }
 

@@ -889,7 +889,16 @@ void SLPDKnownDARemove(struct sockaddr_storage * addr)
             break;
 
          /* Assume DAs are identical if their peer match */
-         if (memcmp(addr, &(entry->msg->peer), sizeof(*addr)) == 0)
+         if ((entry->msg->peer.ss_family == AF_INET
+              && addr->ss_family == AF_INET
+              && (0 == memcmp(&(((struct sockaddr_in *) &(entry->msg->peer))->sin_addr),
+                              &(((struct sockaddr_in *) addr)->sin_addr),
+                              sizeof(struct in_addr))))
+             || (entry->msg->peer.ss_family == AF_INET6
+                 && addr->ss_family == AF_INET6
+                 && (0 == memcmp(&(((struct sockaddr_in6 *) &(entry->msg->peer))->sin6_addr),
+                                 &(((struct sockaddr_in6 *) addr)->sin6_addr),
+                                 sizeof(struct in6_addr)))))
          {
             SLPDatabaseRemove(dh, entry);
             SLPDLogDAAdvertisement("Removal", entry);
