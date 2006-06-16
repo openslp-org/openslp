@@ -160,7 +160,8 @@ static int v1ParseSrvRqst(const SLPBuffer buffer, int encoding,
       return result;
 
    /* Terminate the predicate string. */
-   *(char *)&srvrqst->predicate[srvrqst->predicatelen] = 0; 
+   if(srvrqst->predicate)
+      *(char *)&srvrqst->predicate[srvrqst->predicatelen] = 0; 
 
    /* Now split out the service type. */
    srvrqst->srvtype = srvrqst->predicate;

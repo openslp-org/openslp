@@ -154,7 +154,8 @@ static int v2ParseUrlEntry(SLPBuffer buffer, SLPUrlEntry * urlentry)
     * the first byte of the "# of URL auths" field, but it's okay because
     * we've already read and stored it away.
     */
-   ((uint8_t *)urlentry->url)[urlentry->urllen] = 0;
+   if(urlentry->url)
+      ((uint8_t *)urlentry->url)[urlentry->urllen] = 0;
 
    return 0;
 }
@@ -646,7 +647,8 @@ static int v2ParseDAAdvert(SLPBuffer buffer, SLPDAAdvert * daadvert)
     * the first byte of the "Length of <scope-list>" field, but it's okay 
     * because we've already read and stored it away.
     */
-   ((uint8_t *)daadvert->url)[daadvert->urllen] = 0;
+   if(daadvert->url)
+      ((uint8_t *)daadvert->url)[daadvert->urllen] = 0;
 
    return 0;
 }
@@ -752,7 +754,8 @@ static int v2ParseSrvTypeRply(SLPBuffer buffer,
     * it's not so - message buffers are always allocated one byte larger than 
     * requested for just this reason.
     */
-   ((uint8_t *)srvtyperply->srvtypelist)[srvtyperply->srvtypelistlen] = 0;
+   if(srvtyperply->srvtypelist)
+      ((uint8_t *)srvtyperply->srvtypelist)[srvtyperply->srvtypelistlen] = 0;
 
    return 0;
 }
@@ -826,7 +829,8 @@ static int v2ParseSAAdvert(SLPBuffer buffer, SLPSAAdvert * saadvert)
     * the first byte of the "Length of <scope-list>" field, but it's okay 
     * because we've already read and stored it away.
     */
-   ((uint8_t *)saadvert->url)[saadvert->urllen] = 0;
+   if(saadvert->url)
+      ((uint8_t *)saadvert->url)[saadvert->urllen] = 0;
 
    return 0;
 }
