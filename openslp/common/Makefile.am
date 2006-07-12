@@ -35,7 +35,6 @@
 noinst_LTLIBRARIES = libcommonslpd.la libcommonlibslp.la
 
 AM_YFLAGS = -d
-AM_LDFLAGS = -static
 
 EXTRA_DIST = 
 
