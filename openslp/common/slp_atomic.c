@@ -43,13 +43,14 @@
 #include "slp_types.h"
 #include "slp_atomic.h"
 
-#if defined(__GNUC__) && defined(__i386__)
-# define USE_I386_ATOMICS
+#if defined(__GNUC__)
+# if defined(__i386__)
+#  define USE_I386_ATOMICS
 
 __attribute__((always_inline)) 
-static inline intptr_t atomic_inc(volatile intptr_t * p)
+static inline int32_t atomic_inc32(volatile int32_t * p)
 {
-	intptr_t rv;
+	int32_t rv;
 	__asm__ __volatile__(
 		"movl $1, %%eax\n\t"
 		"lock\n\t"
@@ -62,9 +63,9 @@ static inline intptr_t atomic_inc(volatile intptr_t * p)
 }
 
 __attribute__((always_inline)) 
-static inline intptr_t atomic_dec(volatile intptr_t * p) 
+static inline int32_t atomic_dec32(volatile int32_t * p) 
 {
-	int rv;
+	int32_t rv;
 	__asm__ __volatile__(
 		"movl $-1, %%eax\n\t"
 		"lock\n\t"
@@ -77,9 +78,9 @@ static inline intptr_t atomic_dec(volatile intptr_t * p)
 }
 
 __attribute__((always_inline))
-static inline intptr_t atomic_xchg(volatile intptr_t * p, intptr_t i) 
+static inline int32_t atomic_xchg32(volatile int32_t * p, int32_t i) 
 {
-	int rv;
+	int32_t rv;
 	__asm__ __volatile__(
 		"xchgl %%eax, (%%ecx)"
 		: "=a" (rv)
@@ -88,6 +89,50 @@ static inline intptr_t atomic_xchg(volatile intptr_t * p, intptr_t i)
 	return rv;
 }
 
+# elif defined(__x86_64__)
+#  define USE_X86_64_ATOMICS 1
+
+__attribute__((always_inline)) 
+static inline int64_t atomic_inc64(volatile int64_t * p)
+{
+   int64_t rv;
+   __asm__ __volatile__(
+      "movq $1, %%rax\n\t"
+      "lock; xaddq %%rax, (%%rcx)\n\t"
+      "incq %%rax"
+      : "=a" (rv) 
+      : "c" (p)
+   );
+   return rv;
+}
+
+__attribute__((always_inline)) 
+static inline int64_t atomic_dec64(volatile int64_t * p) 
+{
+   int64_t rv;
+   __asm__ __volatile__(
+      "movq $-1, %%rax\n\t"
+      "lock; xaddq %%rax, (%%rcx)\n\t"
+      "decq %%rax"
+      : "=a" (rv)
+      : "c" (p)
+   );
+   return rv;
+}
+
+__attribute__((always_inline))
+static inline int64_t atomic_xchg64(volatile int64_t * p, int64_t i) 
+{
+   int64_t rv;
+   __asm__ __volatile__(
+      "xchgq %%rax, (%%rcx)"
+      : "=a" (rv)
+      : "c" (p), "a" (i)
+   );
+   return rv;
+}
+
+# endif
 #elif defined(__DECC) || defined(__DECCXX)
 # include <machine/builtins.h>
 # define USE_ALPHA_ATOMICS 1
@@ -112,7 +157,9 @@ intptr_t SLPAtomicInc(intptr_t * pn)
 #if defined(_WIN32)
    return (intptr_t)InterlockedIncrement((LPLONG)pn);
 #elif defined(USE_I386_ATOMICS)
-   return atomic_inc(pn);
+   return (intptr_t)atomic_inc32((int32_t *)pn);
+#elif defined(USE_X86_64_ATOMICS)
+   return (intptr_t)atomic_inc64((int64_t *)pn);
 #elif defined(_AIX)
    return atomic_add(pn, 1);
 #elif defined(USE_ALPHA_ATOMICS)
@@ -142,7 +189,9 @@ intptr_t SLPAtomicDec(intptr_t * pn)
 #ifdef _WIN32
    return (intptr_t)InterlockedDecrement((LPLONG)pn);
 #elif defined(USE_I386_ATOMICS)
-	return atomic_dec(pn);
+	return (intptr_t)atomic_dec32((int32_t *)pn);
+#elif defined(USE_X86_64_ATOMICS)
+   return (intptr_t)atomic_dec64((int64_t *)pn);
 #elif defined(_AIX)
 	return atomic_add(pn, -1);
 #elif defined(USE_ALPHA_ATOMICS)
@@ -177,7 +226,9 @@ intptr_t SLPAtomicXchg(intptr_t * pn, intptr_t n)
 #if defined(_WIN32)
    return (intptr_t)InterlockedExchange((LPLONG)pn, (LONG)n); 
 #elif defined(USE_I386_ATOMICS)
-	return atomic_xchg(pn, n);
+	return (intptr_t)atomic_xchg32((int32_t *)pn, (int32_t)n);
+#elif defined(USE_X86_64_ATOMICS)
+   return (intptr_t)atomic_xchg64((int64_t *)pn, (int64_t)n);
 #elif defined(_AIX)
 	int value;
    do value = *pn; 
