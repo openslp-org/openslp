@@ -26,7 +26,10 @@
           <Directory Id="directory1" Name="Docs">
             <Directory Id="directory2" Name="html">
               <Component Id="FAQ_comp" DiskId="1" Guid="EFF22D3D-E8E3-4E67-AD0B-7CDC83735ABC">
-                <File Id="file6" Name="FAQ_1.HTM" LongName="faq.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\faq.html" />
+                <File Id="file6" Name="FAQ_1.HTM" LongName="faq.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\faq.html">
+                  <Shortcut Id="FAQ_shortcut" Directory="ProgramMenuDir" Name="OSLP2FAQ" 
+                      LongName="OpenSLP 2.0 FAQ" WorkingDirectory="INSTALLDIR" />
+                </File>
               </Component>
               <Component Id="LOGO_comp" DiskId="1" Guid="16F2B748-B4CF-4C8A-838C-805EFA73765F">
                 <File Id="file7" Name="SMALLL_1.JPG" LongName="smalllogo.jpg" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\smalllogo.jpg" />
@@ -34,7 +37,10 @@
               <Directory Id="directory3" Name="INTROD_1" LongName="IntroductionToSLP">
                 <Component Id="INTRO_comp" DiskId="1" Guid="D933882B-68C8-4AE9-A2D4-A4A2A0D93524">
                   <File Id="file8" Name="AGENTI_1.JPG" LongName="AgentInit.jpg" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\IntroductionToSLP\AgentInit.jpg" />
-                  <File Id="file9" Name="INDEX_1.HTM" LongName="index.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\IntroductionToSLP\index.html" />
+                  <File Id="file9" Name="INDEX_1.HTM" LongName="index.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\IntroductionToSLP\index.html">
+                    <Shortcut Id="INTRO_shortcut" Directory="ProgramMenuDir" Name="OSLP2INT" 
+                        LongName="Introduction To SLP" WorkingDirectory="INSTALLDIR" />
+                  </File>
                   <File Id="file10" Name="SERVIC_1.JPG" LongName="ServiceReg.jpg" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\IntroductionToSLP\ServiceReg.jpg" />
                   <File Id="file11" Name="SERVIC_2.JPG" LongName="ServiceRqst.jpg" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\IntroductionToSLP\ServiceRqst.jpg" />
                 </Component>
@@ -44,7 +50,10 @@
                   <File Id="file12" Name="CALLBA_1.HTM" LongName="Callbacks.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\ProgrammersGuide\Callbacks.html" />
                   <File Id="file13" Name="DIVERG_1.HTM" LongName="Divergence.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\ProgrammersGuide\Divergence.html" />
                   <File Id="file14" Name="EXAMPL_1.HTM" LongName="Examples.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\ProgrammersGuide\Examples.html" />
-                  <File Id="file15" Name="INDEX_1.HTM" LongName="index.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\ProgrammersGuide\index.html" />
+                  <File Id="file15" Name="INDEX_1.HTM" LongName="index.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\ProgrammersGuide\index.html">
+                    <Shortcut Id="PROGUID_shortcut" Directory="ProgramMenuDir" Name="OSLP2PG" 
+                        LongName="Programmer's Guide" WorkingDirectory="INSTALLDIR" />
+                  </File>
                   <File Id="file16" Name="OPENSL_1.HTM" LongName="openslp_security_whitepaper.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\ProgrammersGuide\openslp_security_whitepaper.html" />
                   <File Id="file17" Name="SECURI_1.HTM" LongName="Security.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\ProgrammersGuide\Security.html" />
                   <File Id="file18" Name="SLPATT_1.HTM" LongName="SLPAttrCallback.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\ProgrammersGuide\SLPAttrCallback.html" />
@@ -276,7 +285,10 @@
                   <File Id="file240" Name="GR2728_1.HTM" LongName="group___slp_u_a_interface.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\group___slp_u_a_interface.html" />
                   <File Id="file241" Name="GR2CDB_1.HTM" LongName="group___test_code.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\group___test_code.html" />
                   <File Id="file242" Name="HIERAR_1.HTM" LongName="hierarchy.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\hierarchy.html" />
-                  <File Id="file243" Name="INDEX_1.HTM" LongName="index.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\index.html" />
+                  <File Id="file243" Name="INDEX_1.HTM" LongName="index.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\index.html">
+                    <Shortcut Id="SRCDOC_shortcut" Directory="ProgramMenuDir" Name="OSLP2SRC" 
+                        LongName="Doxygen Source Doc" WorkingDirectory="INSTALLDIR" />
+                  </File>
                   <File Id="file244" Name="LIBSLP_1.HTM" LongName="libslpattr_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\libslpattr_8c-source.html" />
                   <File Id="file245" Name="LIBSLP_2.HTM" LongName="libslpattr_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\libslpattr_8c.html" />
                   <File Id="file246" Name="LIBSLP_3.HTM" LongName="libslpattr_8h-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\libslpattr_8h-source.html" />
@@ -588,7 +600,10 @@
                 <Component Id="USERGUID_comp" DiskId="1" Guid="FB8CF0A3-9D0D-4ABE-80D2-2820086B7695">
                   <File Id="file549" Name="COMMAN_1.HTM" LongName="CommandLine.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\UsersGuide\CommandLine.html" />
                   <File Id="file550" Name="FILELO_1.HTM" LongName="FileLocations.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\UsersGuide\FileLocations.html" />
-                  <File Id="file551" Name="INDEX_1.HTM" LongName="index.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\UsersGuide\index.html" />
+                  <File Id="file551" Name="INDEX_1.HTM" LongName="index.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\UsersGuide\index.html">
+                    <Shortcut Id="USERGUID_shortcut" Directory="ProgramMenuDir" Name="OSLP2UG" 
+                        LongName="User's Guide" WorkingDirectory="INSTALLDIR" />
+                  </File>
                   <File Id="file552" Name="INSTAL_1.HTM" LongName="Installation.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\UsersGuide\Installation.html" />
                   <File Id="file553" Name="OPTIMI_1.HTM" LongName="Optimization.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\UsersGuide\Optimization.html" />
                   <File Id="file554" Name="SECURI_1.HTM" LongName="Security.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\UsersGuide\Security.html" />
