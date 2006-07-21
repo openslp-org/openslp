@@ -1,0 +1,642 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2003/01/wi">
+  <Fragment>
+    <DirectoryRef Id="TARGETDIR">
+      <Directory Id="ProgramFilesFolder" Name="PFiles">
+        <Directory Id="OPENSLPDIR" Name="OpenSLP">
+          <Component Id="UA_comp" DiskId="1" Guid="E60ED64D-8B3E-4864-8A98-D1BA0E77A6C0">
+            <File Id="file0" Name="libslp.dll" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\libslp.dll" />
+            <File Id="file1" Name="libslp.pdb" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\libslp.pdb" />
+          </Component>
+          <Component Id="SADA_comp" DiskId="1" Guid="1E6D2C82-A8A6-44CD-9132-75D89EF9B2B4"
+              SharedDllRefCount="no" KeyPath="no" NeverOverwrite="no" Transitive="no">
+            <File Id="file2" Name="slpd.exe" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\slpd.exe"
+                ReadOnly="no" KeyPath="yes" Vital="yes" Hidden="no" System="no" />
+            <File Id="file3" Name="slpd.pdb" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\slpd.pdb" />
+            <ServiceInstall Id="OpenSLPInstall" DisplayName="Service Location Protocol" 
+                Description="The OpenSLP service agent provides the Service Location Protocol Service and Directory Agent components."
+                Name="slpd" ErrorControl="normal" Start="auto" Type="ownProcess" Vital="yes" />
+            <ServiceControl Id="OpenSLPServiceControl" Name="slpd"
+                Start="install" Stop="both" Remove="uninstall" Wait="yes" />
+          </Component>
+          <Component Id="SLPTOOL_comp" DiskId="1" Guid="D9D5E08A-ED94-48A3-B37E-2B1F4ADC6EFB">
+            <File Id="file4" Name="slptool.exe" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\slptool.exe" />
+            <File Id="file5" Name="slptool.pdb" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\slptool.pdb" />
+          </Component>
+          <Directory Id="directory1" Name="Docs">
+            <Directory Id="directory2" Name="html">
+              <Component Id="FAQ_comp" DiskId="1" Guid="EFF22D3D-E8E3-4E67-AD0B-7CDC83735ABC">
+                <File Id="file6" Name="FAQ_1.HTM" LongName="faq.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\faq.html" />
+              </Component>
+              <Component Id="LOGO_comp" DiskId="1" Guid="16F2B748-B4CF-4C8A-838C-805EFA73765F">
+                <File Id="file7" Name="SMALLL_1.JPG" LongName="smalllogo.jpg" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\smalllogo.jpg" />
+              </Component>
+              <Directory Id="directory3" Name="INTROD_1" LongName="IntroductionToSLP">
+                <Component Id="INTRO_comp" DiskId="1" Guid="D933882B-68C8-4AE9-A2D4-A4A2A0D93524">
+                  <File Id="file8" Name="AGENTI_1.JPG" LongName="AgentInit.jpg" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\IntroductionToSLP\AgentInit.jpg" />
+                  <File Id="file9" Name="INDEX_1.HTM" LongName="index.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\IntroductionToSLP\index.html" />
+                  <File Id="file10" Name="SERVIC_1.JPG" LongName="ServiceReg.jpg" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\IntroductionToSLP\ServiceReg.jpg" />
+                  <File Id="file11" Name="SERVIC_2.JPG" LongName="ServiceRqst.jpg" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\IntroductionToSLP\ServiceRqst.jpg" />
+                </Component>
+              </Directory>
+              <Directory Id="directory4" Name="PROGRA_1" LongName="ProgrammersGuide">
+                <Component Id="PROGUID_comp" DiskId="1" Guid="AC5EA048-EA1E-4EBB-A171-D19F148A95D9">
+                  <File Id="file12" Name="CALLBA_1.HTM" LongName="Callbacks.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\ProgrammersGuide\Callbacks.html" />
+                  <File Id="file13" Name="DIVERG_1.HTM" LongName="Divergence.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\ProgrammersGuide\Divergence.html" />
+                  <File Id="file14" Name="EXAMPL_1.HTM" LongName="Examples.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\ProgrammersGuide\Examples.html" />
+                  <File Id="file15" Name="INDEX_1.HTM" LongName="index.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\ProgrammersGuide\index.html" />
+                  <File Id="file16" Name="OPENSL_1.HTM" LongName="openslp_security_whitepaper.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\ProgrammersGuide\openslp_security_whitepaper.html" />
+                  <File Id="file17" Name="SECURI_1.HTM" LongName="Security.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\ProgrammersGuide\Security.html" />
+                  <File Id="file18" Name="SLPATT_1.HTM" LongName="SLPAttrCallback.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\ProgrammersGuide\SLPAttrCallback.html" />
+                  <File Id="file19" Name="SLPCLO_1.HTM" LongName="SLPClose.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\ProgrammersGuide\SLPClose.html" />
+                  <File Id="file20" Name="SLPDEL_1.HTM" LongName="SLPDelAttrs.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\ProgrammersGuide\SLPDelAttrs.html" />
+                  <File Id="file21" Name="SLPDER_1.HTM" LongName="SLPDereg.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\ProgrammersGuide\SLPDereg.html" />
+                  <File Id="file22" Name="SLPERR_1.HTM" LongName="SLPError.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\ProgrammersGuide\SLPError.html" />
+                  <File Id="file23" Name="SLPESC_1.HTM" LongName="SLPEscape.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\ProgrammersGuide\SLPEscape.html" />
+                  <File Id="file24" Name="SLPFIN_1.HTM" LongName="SLPFindAttrs.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\ProgrammersGuide\SLPFindAttrs.html" />
+                  <File Id="file25" Name="SLPFIN_2.HTM" LongName="SLPFindScopes.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\ProgrammersGuide\SLPFindScopes.html" />
+                  <File Id="file26" Name="SLPFIN_3.HTM" LongName="SLPFindSrvs.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\ProgrammersGuide\SLPFindSrvs.html" />
+                  <File Id="file27" Name="SLPFIN_4.HTM" LongName="SLPFindSrvTypes.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\ProgrammersGuide\SLPFindSrvTypes.html" />
+                  <File Id="file28" Name="SLPFRE_1.HTM" LongName="SLPFree.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\ProgrammersGuide\SLPFree.html" />
+                  <File Id="file29" Name="SLPGET_1.HTM" LongName="SLPGetProperty.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\ProgrammersGuide\SLPGetProperty.html" />
+                  <File Id="file30" Name="SLPGET_2.HTM" LongName="SLPGetRefreshInterval.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\ProgrammersGuide\SLPGetRefreshInterval.html" />
+                  <File Id="file31" Name="SLPOPE_1.HTM" LongName="SLPOpen.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\ProgrammersGuide\SLPOpen.html" />
+                  <File Id="file32" Name="SLPPAR_1.HTM" LongName="SLPParseSrvURL.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\ProgrammersGuide\SLPParseSrvURL.html" />
+                  <File Id="file33" Name="SLPREG_1.HTM" LongName="SLPReg.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\ProgrammersGuide\SLPReg.html" />
+                  <File Id="file34" Name="SLPREG_2.HTM" LongName="SLPRegReport.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\ProgrammersGuide\SLPRegReport.html" />
+                  <File Id="file35" Name="SLPSET_1.HTM" LongName="SLPSetProperty.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\ProgrammersGuide\SLPSetProperty.html" />
+                  <File Id="file36" Name="SLPSRV_1.HTM" LongName="SLPSrvTypeCallback.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\ProgrammersGuide\SLPSrvTypeCallback.html" />
+                  <File Id="file37" Name="SLPSRV_2.HTM" LongName="SLPSrvURLCallback.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\ProgrammersGuide\SLPSrvURLCallback.html" />
+                  <File Id="file38" Name="SLPTYP_1.HTM" LongName="SLPTypes.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\ProgrammersGuide\SLPTypes.html" />
+                  <File Id="file39" Name="SLPUNE_1.HTM" LongName="SLPUnescape.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\ProgrammersGuide\SLPUnescape.html" />
+                  <File Id="file40" Name="SMALLL_1.JPG" LongName="smalllogo.jpg" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\ProgrammersGuide\smalllogo.jpg" />
+                  <File Id="file41" Name="SYNTAX_1.HTM" LongName="Syntax.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\ProgrammersGuide\Syntax.html" />
+                </Component>
+              </Directory>
+              <Directory Id="directory5" Name="SOURCE_1" LongName="SourceCode">
+                <Component Id="SRCDOC_comp" DiskId="1" Guid="5D68207F-4F73-4AD1-AD61-CF2339C0C095">
+                  <File Id="file42" Name="ANNOTA_1.HTM" LongName="annotated.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\annotated.html" />
+                  <File Id="file43" Name="BUG_1.HTM" LongName="bug.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\bug.html" />
+                  <File Id="file44" Name="CLASSE_1.HTM" LongName="classes.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\classes.html" />
+                  <File Id="file45" Name="COMMON_1.HTM" LongName="common_2slp__debug_8h-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\common_2slp__debug_8h-source.html" />
+                  <File Id="file46" Name="COMMON_2.HTM" LongName="common_2slp__debug_8h.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\common_2slp__debug_8h.html" />
+                  <File Id="file47" Name="DIRS_1.HTM" LongName="dirs.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\dirs.html" />
+                  <File Id="file48" Name="DIR_03_1.HTM" LongName="dir_037f5653cd9658c30ea99c524d670f77.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\dir_037f5653cd9658c30ea99c524d670f77.html" />
+                  <File Id="file49" Name="DIR_12_1.HTM" LongName="dir_120640e4dfe69e29703a2868414dbc4b.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\dir_120640e4dfe69e29703a2868414dbc4b.html" />
+                  <File Id="file50" Name="DIR_24_1.HTM" LongName="dir_24a8733e68ff530d1410cb3c44f44c13.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\dir_24a8733e68ff530d1410cb3c44f44c13.html" />
+                  <File Id="file51" Name="DIR_2D_1.HTM" LongName="dir_2db2f10ba87edda9d3b894c7a4a88f6f.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\dir_2db2f10ba87edda9d3b894c7a4a88f6f.html" />
+                  <File Id="file52" Name="DIR_39_1.HTM" LongName="dir_39f480d34541793810c32e3154dcb5a4.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\dir_39f480d34541793810c32e3154dcb5a4.html" />
+                  <File Id="file53" Name="DIR_3B_1.HTM" LongName="dir_3b8a6adf05f4c2ff33532471d7059a38.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\dir_3b8a6adf05f4c2ff33532471d7059a38.html" />
+                  <File Id="file54" Name="DIR_4B_1.HTM" LongName="dir_4b24b4227de1929de5be58c4db371fd2.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\dir_4b24b4227de1929de5be58c4db371fd2.html" />
+                  <File Id="file55" Name="DIR_4B_2.HTM" LongName="dir_4b32e839660c27f2ac9c3880cd806c15.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\dir_4b32e839660c27f2ac9c3880cd806c15.html" />
+                  <File Id="file56" Name="DIR_72_1.HTM" LongName="dir_72321e6c39079bd1921b3678c103c17a.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\dir_72321e6c39079bd1921b3678c103c17a.html" />
+                  <File Id="file57" Name="DIR_77_1.HTM" LongName="dir_772f5f15e259c164e0f273bc31a73b1f.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\dir_772f5f15e259c164e0f273bc31a73b1f.html" />
+                  <File Id="file58" Name="DIR_8C_1.HTM" LongName="dir_8ce3ed1f84fb76fb8561d9eb3bbe4bba.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\dir_8ce3ed1f84fb76fb8561d9eb3bbe4bba.html" />
+                  <File Id="file59" Name="DIR_98_1.HTM" LongName="dir_98a52339b3bf66748ff7276eba8d0522.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\dir_98a52339b3bf66748ff7276eba8d0522.html" />
+                  <File Id="file60" Name="DIR_BC_1.HTM" LongName="dir_bc3e5f2a761b5a6eb813786f894518d4.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\dir_bc3e5f2a761b5a6eb813786f894518d4.html" />
+                  <File Id="file61" Name="DIR_D3_1.HTM" LongName="dir_d35fa811b5fb088a99ae44d0969c0290.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\dir_d35fa811b5fb088a99ae44d0969c0290.html" />
+                  <File Id="file62" Name="DIR_E5_1.HTM" LongName="dir_e55a725cb81cd9ef3f9743b33d82526a.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\dir_e55a725cb81cd9ef3f9743b33d82526a.html" />
+                  <File Id="file63" Name="DIR_E7_1.HTM" LongName="dir_e7f7bfeb484cb1b486d944f4602ab37b.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\dir_e7f7bfeb484cb1b486d944f4602ab37b.html" />
+                  <File Id="file64" Name="DIR_F1_1.HTM" LongName="dir_f10ba2dca2482d32c4c8e686a677a827.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\dir_f10ba2dca2482d32c4c8e686a677a827.html" />
+                  <File Id="file65" Name="doxygen.css" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\doxygen.css" />
+                  <File Id="file66" Name="doxygen.png" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\doxygen.png" />
+                  <File Id="file67" Name="FILES_1.HTM" LongName="files.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\files.html" />
+                  <File Id="file68" Name="FTV2BL_1.PNG" LongName="ftv2blank.png" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\ftv2blank.png" />
+                  <File Id="file69" Name="ftv2doc.png" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\ftv2doc.png" />
+                  <File Id="file70" Name="FTV2FO_1.PNG" LongName="ftv2folderclosed.png" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\ftv2folderclosed.png" />
+                  <File Id="file71" Name="FTV2FO_2.PNG" LongName="ftv2folderopen.png" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\ftv2folderopen.png" />
+                  <File Id="file72" Name="FTV2LA_1.PNG" LongName="ftv2lastnode.png" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\ftv2lastnode.png" />
+                  <File Id="file73" Name="ftv2link.png" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\ftv2link.png" />
+                  <File Id="file74" Name="FTV2ML_1.PNG" LongName="ftv2mlastnode.png" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\ftv2mlastnode.png" />
+                  <File Id="file75" Name="FTV2MN_1.PNG" LongName="ftv2mnode.png" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\ftv2mnode.png" />
+                  <File Id="file76" Name="ftv2node.png" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\ftv2node.png" />
+                  <File Id="file77" Name="FTV2PL_1.PNG" LongName="ftv2plastnode.png" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\ftv2plastnode.png" />
+                  <File Id="file78" Name="FTV2PN_1.PNG" LongName="ftv2pnode.png" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\ftv2pnode.png" />
+                  <File Id="file79" Name="FTV2VE_1.PNG" LongName="ftv2vertline.png" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\ftv2vertline.png" />
+                  <File Id="file80" Name="FUNCTI_1.HTM" LongName="functions.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\functions.html" />
+                  <File Id="file81" Name="FUNCTI_2.HTM" LongName="functions_0x62.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\functions_0x62.html" />
+                  <File Id="file82" Name="FUNCTI_3.HTM" LongName="functions_0x63.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\functions_0x63.html" />
+                  <File Id="file83" Name="FUNCTI_4.HTM" LongName="functions_0x64.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\functions_0x64.html" />
+                  <File Id="file84" Name="FU1075_1.HTM" LongName="functions_0x65.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\functions_0x65.html" />
+                  <File Id="file85" Name="FU107F_1.HTM" LongName="functions_0x66.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\functions_0x66.html" />
+                  <File Id="file86" Name="FU207B_1.HTM" LongName="functions_0x68.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\functions_0x68.html" />
+                  <File Id="file87" Name="FU207D_1.HTM" LongName="functions_0x69.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\functions_0x69.html" />
+                  <File Id="file88" Name="FU7077_1.HTM" LongName="functions_0x6b.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\functions_0x6b.html" />
+                  <File Id="file89" Name="FU7079_1.HTM" LongName="functions_0x6c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\functions_0x6c.html" />
+                  <File Id="file90" Name="FU7073_1.HTM" LongName="functions_0x6d.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\functions_0x6d.html" />
+                  <File Id="file91" Name="FU7075_1.HTM" LongName="functions_0x6e.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\functions_0x6e.html" />
+                  <File Id="file92" Name="FU707F_1.HTM" LongName="functions_0x6f.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\functions_0x6f.html" />
+                  <File Id="file93" Name="FU127B_1.HTM" LongName="functions_0x70.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\functions_0x70.html" />
+                  <File Id="file94" Name="FU1277_1.HTM" LongName="functions_0x72.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\functions_0x72.html" />
+                  <File Id="file95" Name="FU1279_1.HTM" LongName="functions_0x73.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\functions_0x73.html" />
+                  <File Id="file96" Name="FU1273_1.HTM" LongName="functions_0x74.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\functions_0x74.html" />
+                  <File Id="file97" Name="FU1275_1.HTM" LongName="functions_0x75.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\functions_0x75.html" />
+                  <File Id="file98" Name="FU127F_1.HTM" LongName="functions_0x76.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\functions_0x76.html" />
+                  <File Id="file99" Name="FU227B_1.HTM" LongName="functions_0x78.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\functions_0x78.html" />
+                  <File Id="file100" Name="FU8E2C_1.HTM" LongName="functions_vars.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\functions_vars.html" />
+                  <File Id="file101" Name="FU177A_1.HTM" LongName="functions_vars_0x62.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\functions_vars_0x62.html" />
+                  <File Id="file102" Name="FU1B7A_1.HTM" LongName="functions_vars_0x63.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\functions_vars_0x63.html" />
+                  <File Id="file103" Name="FU1F7A_1.HTM" LongName="functions_vars_0x64.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\functions_vars_0x64.html" />
+                  <File Id="file104" Name="FU138A_1.HTM" LongName="functions_vars_0x65.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\functions_vars_0x65.html" />
+                  <File Id="file105" Name="FU178A_1.HTM" LongName="functions_vars_0x66.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\functions_vars_0x66.html" />
+                  <File Id="file106" Name="FU1F8A_1.HTM" LongName="functions_vars_0x68.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\functions_vars_0x68.html" />
+                  <File Id="file107" Name="FU139A_1.HTM" LongName="functions_vars_0x69.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\functions_vars_0x69.html" />
+                  <File Id="file108" Name="FU173B_1.HTM" LongName="functions_vars_0x6b.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\functions_vars_0x6b.html" />
+                  <File Id="file109" Name="FU1B3B_1.HTM" LongName="functions_vars_0x6c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\functions_vars_0x6c.html" />
+                  <File Id="file110" Name="FU1F3B_1.HTM" LongName="functions_vars_0x6d.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\functions_vars_0x6d.html" />
+                  <File Id="file111" Name="FU134B_1.HTM" LongName="functions_vars_0x6e.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\functions_vars_0x6e.html" />
+                  <File Id="file112" Name="FU174B_1.HTM" LongName="functions_vars_0x6f.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\functions_vars_0x6f.html" />
+                  <File Id="file113" Name="FU1F68_1.HTM" LongName="functions_vars_0x70.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\functions_vars_0x70.html" />
+                  <File Id="file114" Name="FU1778_1.HTM" LongName="functions_vars_0x72.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\functions_vars_0x72.html" />
+                  <File Id="file115" Name="FU1B78_1.HTM" LongName="functions_vars_0x73.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\functions_vars_0x73.html" />
+                  <File Id="file116" Name="FU1F78_1.HTM" LongName="functions_vars_0x74.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\functions_vars_0x74.html" />
+                  <File Id="file117" Name="FU1388_1.HTM" LongName="functions_vars_0x75.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\functions_vars_0x75.html" />
+                  <File Id="file118" Name="FU1788_1.HTM" LongName="functions_vars_0x76.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\functions_vars_0x76.html" />
+                  <File Id="file119" Name="FU1F88_1.HTM" LongName="functions_vars_0x78.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\functions_vars_0x78.html" />
+                  <File Id="file120" Name="GLOBAL_1.HTM" LongName="globals.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals.html" />
+                  <File Id="file121" Name="GLOBAL_2.HTM" LongName="globals_0x61.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_0x61.html" />
+                  <File Id="file122" Name="GLOBAL_3.HTM" LongName="globals_0x62.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_0x62.html" />
+                  <File Id="file123" Name="GLOBAL_4.HTM" LongName="globals_0x63.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_0x63.html" />
+                  <File Id="file124" Name="GL50A8_1.HTM" LongName="globals_0x64.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_0x64.html" />
+                  <File Id="file125" Name="GL50AE_1.HTM" LongName="globals_0x65.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_0x65.html" />
+                  <File Id="file126" Name="GL50A4_1.HTM" LongName="globals_0x66.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_0x66.html" />
+                  <File Id="file127" Name="GL50A2_1.HTM" LongName="globals_0x67.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_0x67.html" />
+                  <File Id="file128" Name="GL50A0_1.HTM" LongName="globals_0x68.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_0x68.html" />
+                  <File Id="file129" Name="GL50A6_1.HTM" LongName="globals_0x69.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_0x69.html" />
+                  <File Id="file130" Name="GLA0A6_1.HTM" LongName="globals_0x6a.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_0x6a.html" />
+                  <File Id="file131" Name="GLB0AC_1.HTM" LongName="globals_0x6b.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_0x6b.html" />
+                  <File Id="file132" Name="GLB0AA_1.HTM" LongName="globals_0x6c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_0x6c.html" />
+                  <File Id="file133" Name="GLB0A8_1.HTM" LongName="globals_0x6d.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_0x6d.html" />
+                  <File Id="file134" Name="GLB0AE_1.HTM" LongName="globals_0x6e.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_0x6e.html" />
+                  <File Id="file135" Name="GLB0A4_1.HTM" LongName="globals_0x6f.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_0x6f.html" />
+                  <File Id="file136" Name="GL42A0_1.HTM" LongName="globals_0x70.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_0x70.html" />
+                  <File Id="file137" Name="GL52AC_1.HTM" LongName="globals_0x72.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_0x72.html" />
+                  <File Id="file138" Name="GL52AA_1.HTM" LongName="globals_0x73.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_0x73.html" />
+                  <File Id="file139" Name="GL52A8_1.HTM" LongName="globals_0x74.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_0x74.html" />
+                  <File Id="file140" Name="GL52AE_1.HTM" LongName="globals_0x75.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_0x75.html" />
+                  <File Id="file141" Name="GL52A4_1.HTM" LongName="globals_0x76.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_0x76.html" />
+                  <File Id="file142" Name="GL52A2_1.HTM" LongName="globals_0x77.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_0x77.html" />
+                  <File Id="file143" Name="GL52A0_1.HTM" LongName="globals_0x78.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_0x78.html" />
+                  <File Id="file144" Name="GLC43C_1.HTM" LongName="globals_defs.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_defs.html" />
+                  <File Id="file145" Name="GLA87A_1.HTM" LongName="globals_defs_0x62.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_defs_0x62.html" />
+                  <File Id="file146" Name="GLAC7A_1.HTM" LongName="globals_defs_0x63.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_defs_0x63.html" />
+                  <File Id="file147" Name="GLA08A_1.HTM" LongName="globals_defs_0x64.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_defs_0x64.html" />
+                  <File Id="file148" Name="GLA48A_1.HTM" LongName="globals_defs_0x65.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_defs_0x65.html" />
+                  <File Id="file149" Name="GLA88A_1.HTM" LongName="globals_defs_0x66.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_defs_0x66.html" />
+                  <File Id="file150" Name="GLAC8A_1.HTM" LongName="globals_defs_0x67.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_defs_0x67.html" />
+                  <File Id="file151" Name="GLA49A_1.HTM" LongName="globals_defs_0x69.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_defs_0x69.html" />
+                  <File Id="file152" Name="GLAC3B_1.HTM" LongName="globals_defs_0x6c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_defs_0x6c.html" />
+                  <File Id="file153" Name="GLA04B_1.HTM" LongName="globals_defs_0x6d.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_defs_0x6d.html" />
+                  <File Id="file154" Name="GLA44B_1.HTM" LongName="globals_defs_0x6e.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_defs_0x6e.html" />
+                  <File Id="file155" Name="GLA84B_1.HTM" LongName="globals_defs_0x6f.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_defs_0x6f.html" />
+                  <File Id="file156" Name="GLA078_1.HTM" LongName="globals_defs_0x70.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_defs_0x70.html" />
+                  <File Id="file157" Name="GLAC78_1.HTM" LongName="globals_defs_0x73.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_defs_0x73.html" />
+                  <File Id="file158" Name="GLA088_1.HTM" LongName="globals_defs_0x74.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_defs_0x74.html" />
+                  <File Id="file159" Name="GLA488_1.HTM" LongName="globals_defs_0x75.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_defs_0x75.html" />
+                  <File Id="file160" Name="GLA888_1.HTM" LongName="globals_defs_0x76.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_defs_0x76.html" />
+                  <File Id="file161" Name="GLAC88_1.HTM" LongName="globals_defs_0x77.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_defs_0x77.html" />
+                  <File Id="file162" Name="GLA098_1.HTM" LongName="globals_defs_0x78.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_defs_0x78.html" />
+                  <File Id="file163" Name="GLB35F_1.HTM" LongName="globals_enum.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_enum.html" />
+                  <File Id="file164" Name="GLCB2D_1.HTM" LongName="globals_eval.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_eval.html" />
+                  <File Id="file165" Name="GLB64C_1.HTM" LongName="globals_func.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_func.html" />
+                  <File Id="file166" Name="GL1976_1.HTM" LongName="globals_func_0x61.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_func_0x61.html" />
+                  <File Id="file167" Name="GL1D76_1.HTM" LongName="globals_func_0x62.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_func_0x62.html" />
+                  <File Id="file168" Name="GL1186_1.HTM" LongName="globals_func_0x63.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_func_0x63.html" />
+                  <File Id="file169" Name="GL1586_1.HTM" LongName="globals_func_0x64.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_func_0x64.html" />
+                  <File Id="file170" Name="GL1986_1.HTM" LongName="globals_func_0x65.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_func_0x65.html" />
+                  <File Id="file171" Name="GL1D86_1.HTM" LongName="globals_func_0x66.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_func_0x66.html" />
+                  <File Id="file172" Name="GL1196_1.HTM" LongName="globals_func_0x67.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_func_0x67.html" />
+                  <File Id="file173" Name="GL1596_1.HTM" LongName="globals_func_0x68.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_func_0x68.html" />
+                  <File Id="file174" Name="GL1996_1.HTM" LongName="globals_func_0x69.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_func_0x69.html" />
+                  <File Id="file175" Name="GL193F_1.HTM" LongName="globals_func_0x6a.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_func_0x6a.html" />
+                  <File Id="file176" Name="GL1D3F_1.HTM" LongName="globals_func_0x6b.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_func_0x6b.html" />
+                  <File Id="file177" Name="GL114F_1.HTM" LongName="globals_func_0x6c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_func_0x6c.html" />
+                  <File Id="file178" Name="GL154F_1.HTM" LongName="globals_func_0x6d.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_func_0x6d.html" />
+                  <File Id="file179" Name="GL194F_1.HTM" LongName="globals_func_0x6e.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_func_0x6e.html" />
+                  <File Id="file180" Name="GL1D4F_1.HTM" LongName="globals_func_0x6f.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_func_0x6f.html" />
+                  <File Id="file181" Name="GL257C_1.HTM" LongName="globals_func_0x70.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_func_0x70.html" />
+                  <File Id="file182" Name="GL2D7C_1.HTM" LongName="globals_func_0x72.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_func_0x72.html" />
+                  <File Id="file183" Name="GL218C_1.HTM" LongName="globals_func_0x73.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_func_0x73.html" />
+                  <File Id="file184" Name="GL258C_1.HTM" LongName="globals_func_0x74.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_func_0x74.html" />
+                  <File Id="file185" Name="GL298C_1.HTM" LongName="globals_func_0x75.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_func_0x75.html" />
+                  <File Id="file186" Name="GL2D8C_1.HTM" LongName="globals_func_0x76.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_func_0x76.html" />
+                  <File Id="file187" Name="GL219C_1.HTM" LongName="globals_func_0x77.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_func_0x77.html" />
+                  <File Id="file188" Name="GLB854_1.HTM" LongName="globals_type.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_type.html" />
+                  <File Id="file189" Name="GLBE50_1.HTM" LongName="globals_vars.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\globals_vars.html" />
+                  <File Id="file190" Name="GROUP__1.HTM" LongName="group___common_code.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\group___common_code.html" />
+                  <File Id="file191" Name="GROUP__2.HTM" LongName="group___common_code_atomic.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\group___common_code_atomic.html" />
+                  <File Id="file192" Name="GROUP__3.HTM" LongName="group___common_code_attrs.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\group___common_code_attrs.html" />
+                  <File Id="file193" Name="GROUP__4.HTM" LongName="group___common_code_auth.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\group___common_code_auth.html" />
+                  <File Id="file194" Name="GR8136_1.HTM" LongName="group___common_code_buffers.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\group___common_code_buffers.html" />
+                  <File Id="file195" Name="GR091D_1.HTM" LongName="group___common_code_crypto.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\group___common_code_crypto.html" />
+                  <File Id="file196" Name="GR40B0_1.HTM" LongName="group___common_code_debug.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\group___common_code_debug.html" />
+                  <File Id="file197" Name="GR7F43_1.HTM" LongName="group___common_code_debug_assert.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\group___common_code_debug_assert.html" />
+                  <File Id="file198" Name="GRAB0C_1.HTM" LongName="group___common_code_d_b.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\group___common_code_d_b.html" />
+                  <File Id="file199" Name="GR542E_1.HTM" LongName="group___common_code_d_h_c_p.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\group___common_code_d_h_c_p.html" />
+                  <File Id="file200" Name="GR8F69_1.HTM" LongName="group___common_code_filter.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\group___common_code_filter.html" />
+                  <File Id="file201" Name="GR3042_1.HTM" LongName="group___common_code_list.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\group___common_code_list.html" />
+                  <File Id="file202" Name="GRF30F_1.HTM" LongName="group___common_code_message.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\group___common_code_message.html" />
+                  <File Id="file203" Name="GR044E_1.HTM" LongName="group___common_code_message_v1.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\group___common_code_message_v1.html" />
+                  <File Id="file204" Name="GR0448_1.HTM" LongName="group___common_code_message_v2.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\group___common_code_message_v2.html" />
+                  <File Id="file205" Name="GR9935_1.HTM" LongName="group___common_code_network.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\group___common_code_network.html" />
+                  <File Id="file206" Name="GR17A7_1.HTM" LongName="group___common_code_net_conn.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\group___common_code_net_conn.html" />
+                  <File Id="file207" Name="GR6D05_1.HTM" LongName="group___common_code_net_ifc.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\group___common_code_net_ifc.html" />
+                  <File Id="file208" Name="GR1FAE_1.HTM" LongName="group___common_code_net_util.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\group___common_code_net_util.html" />
+                  <File Id="file209" Name="GR44D8_1.HTM" LongName="group___common_code_parse.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\group___common_code_parse.html" />
+                  <File Id="file210" Name="GRBB28_1.HTM" LongName="group___common_code_pid.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\group___common_code_pid.html" />
+                  <File Id="file211" Name="GR1961_1.HTM" LongName="group___common_code_platform.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\group___common_code_platform.html" />
+                  <File Id="file212" Name="GR2829_1.HTM" LongName="group___common_code_pred.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\group___common_code_pred.html" />
+                  <File Id="file213" Name="GR3C31_1.HTM" LongName="group___common_code_prop.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\group___common_code_prop.html" />
+                  <File Id="file214" Name="GRFABC_1.HTM" LongName="group___common_code_security.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\group___common_code_security.html" />
+                  <File Id="file215" Name="GRF7D3_1.HTM" LongName="group___common_code_strings.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\group___common_code_strings.html" />
+                  <File Id="file216" Name="GR13E2_1.HTM" LongName="group___common_code_s_p_i.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\group___common_code_s_p_i.html" />
+                  <File Id="file217" Name="GR54F2_1.HTM" LongName="group___common_code_thread.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\group___common_code_thread.html" />
+                  <File Id="file218" Name="GR1ED4_1.HTM" LongName="group___common_code_utility.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\group___common_code_utility.html" />
+                  <File Id="file219" Name="GR7083_1.HTM" LongName="group___common_code_u_t_f8.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\group___common_code_u_t_f8.html" />
+                  <File Id="file220" Name="GR7B8D_1.HTM" LongName="group___common_code_x_cast.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\group___common_code_x_cast.html" />
+                  <File Id="file221" Name="GR16C2_1.HTM" LongName="group___common_code_x_i_d.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\group___common_code_x_i_d.html" />
+                  <File Id="file222" Name="GRF035_1.HTM" LongName="group___common_code_x_malloc.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\group___common_code_x_malloc.html" />
+                  <File Id="file223" Name="GR77F1_1.HTM" LongName="group___lib_s_l_p_code.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\group___lib_s_l_p_code.html" />
+                  <File Id="file224" Name="GR5A16_1.HTM" LongName="group___slpd_code.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\group___slpd_code.html" />
+                  <File Id="file225" Name="GR4155_1.HTM" LongName="group___slpd_code_cmd_line.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\group___slpd_code_cmd_line.html" />
+                  <File Id="file226" Name="GR895B_1.HTM" LongName="group___slpd_code_database.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\group___slpd_code_database.html" />
+                  <File Id="file227" Name="GR73AB_1.HTM" LongName="group___slpd_code_in_coming.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\group___slpd_code_in_coming.html" />
+                  <File Id="file228" Name="GRD88D_1.HTM" LongName="group___slpd_code_known_d_a.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\group___slpd_code_known_d_a.html" />
+                  <File Id="file229" Name="GR2099_1.HTM" LongName="group___slpd_code_log.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\group___slpd_code_log.html" />
+                  <File Id="file230" Name="GR77E7_1.HTM" LongName="group___slpd_code_out_going.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\group___slpd_code_out_going.html" />
+                  <File Id="file231" Name="GR3A0A_1.HTM" LongName="group___slpd_code_predicate.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\group___slpd_code_predicate.html" />
+                  <File Id="file232" Name="GRA918_1.HTM" LongName="group___slpd_code_process.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\group___slpd_code_process.html" />
+                  <File Id="file233" Name="GR4F9E_1.HTM" LongName="group___slpd_code_property.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\group___slpd_code_property.html" />
+                  <File Id="file234" Name="GR8C43_1.HTM" LongName="group___slpd_code_reg_file.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\group___slpd_code_reg_file.html" />
+                  <File Id="file235" Name="GR51FD_1.HTM" LongName="group___slpd_code_slpd.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\group___slpd_code_slpd.html" />
+                  <File Id="file236" Name="GR15CE_1.HTM" LongName="group___slpd_code_socket.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\group___slpd_code_socket.html" />
+                  <File Id="file237" Name="GR0DD3_1.HTM" LongName="group___slpd_code_svc_main_file.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\group___slpd_code_svc_main_file.html" />
+                  <File Id="file238" Name="GR4391_1.HTM" LongName="group___slpd_code_s_p_i.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\group___slpd_code_s_p_i.html" />
+                  <File Id="file239" Name="GR5D23_1.HTM" LongName="group___slp_tool_code.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\group___slp_tool_code.html" />
+                  <File Id="file240" Name="GR2728_1.HTM" LongName="group___slp_u_a_interface.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\group___slp_u_a_interface.html" />
+                  <File Id="file241" Name="GR2CDB_1.HTM" LongName="group___test_code.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\group___test_code.html" />
+                  <File Id="file242" Name="HIERAR_1.HTM" LongName="hierarchy.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\hierarchy.html" />
+                  <File Id="file243" Name="INDEX_1.HTM" LongName="index.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\index.html" />
+                  <File Id="file244" Name="LIBSLP_1.HTM" LongName="libslpattr_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\libslpattr_8c-source.html" />
+                  <File Id="file245" Name="LIBSLP_2.HTM" LongName="libslpattr_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\libslpattr_8c.html" />
+                  <File Id="file246" Name="LIBSLP_3.HTM" LongName="libslpattr_8h-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\libslpattr_8h-source.html" />
+                  <File Id="file247" Name="LIBSLP_4.HTM" LongName="libslpattr_8h.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\libslpattr_8h.html" />
+                  <File Id="file248" Name="LIA86F_1.HTM" LongName="libslpattr__internal_8h-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\libslpattr__internal_8h-source.html" />
+                  <File Id="file249" Name="LI857B_1.HTM" LongName="libslpattr__internal_8h.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\libslpattr__internal_8h.html" />
+                  <File Id="file250" Name="LIF7FF_1.HTM" LongName="libslpattr__tiny_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\libslpattr__tiny_8c-source.html" />
+                  <File Id="file251" Name="LI7A64_1.HTM" LongName="libslpattr__tiny_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\libslpattr__tiny_8c.html" />
+                  <File Id="file252" Name="LI7853_1.HTM" LongName="libslp_8h-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\libslp_8h-source.html" />
+                  <File Id="file253" Name="LI4272_1.HTM" LongName="libslp_8h.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\libslp_8h.html" />
+                  <File Id="file254" Name="LI4732_1.HTM" LongName="libslp__delattrs_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\libslp__delattrs_8c-source.html" />
+                  <File Id="file255" Name="LI9F58_1.HTM" LongName="libslp__delattrs_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\libslp__delattrs_8c.html" />
+                  <File Id="file256" Name="LIC8A5_1.HTM" LongName="libslp__dereg_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\libslp__dereg_8c-source.html" />
+                  <File Id="file257" Name="LIF29B_1.HTM" LongName="libslp__dereg_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\libslp__dereg_8c.html" />
+                  <File Id="file258" Name="LIC147_1.HTM" LongName="libslp__findattrs_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\libslp__findattrs_8c-source.html" />
+                  <File Id="file259" Name="LIDA58_1.HTM" LongName="libslp__findattrs_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\libslp__findattrs_8c.html" />
+                  <File Id="file260" Name="LIB7B1_1.HTM" LongName="libslp__findscopes_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\libslp__findscopes_8c-source.html" />
+                  <File Id="file261" Name="LI9660_1.HTM" LongName="libslp__findscopes_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\libslp__findscopes_8c.html" />
+                  <File Id="file262" Name="LI932E_1.HTM" LongName="libslp__findsrvs_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\libslp__findsrvs_8c-source.html" />
+                  <File Id="file263" Name="LID327_1.HTM" LongName="libslp__findsrvs_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\libslp__findsrvs_8c.html" />
+                  <File Id="file264" Name="LIC815_1.HTM" LongName="libslp__findsrvtypes_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\libslp__findsrvtypes_8c-source.html" />
+                  <File Id="file265" Name="LI477E_1.HTM" LongName="libslp__findsrvtypes_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\libslp__findsrvtypes_8c.html" />
+                  <File Id="file266" Name="LI40DC_1.HTM" LongName="libslp__handle_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\libslp__handle_8c-source.html" />
+                  <File Id="file267" Name="LIAEE1_1.HTM" LongName="libslp__handle_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\libslp__handle_8c.html" />
+                  <File Id="file268" Name="LI1175_1.HTM" LongName="libslp__knownda_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\libslp__knownda_8c-source.html" />
+                  <File Id="file269" Name="LI65D9_1.HTM" LongName="libslp__knownda_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\libslp__knownda_8c.html" />
+                  <File Id="file270" Name="LI9630_1.HTM" LongName="libslp__network_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\libslp__network_8c-source.html" />
+                  <File Id="file271" Name="LI8100_1.HTM" LongName="libslp__network_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\libslp__network_8c.html" />
+                  <File Id="file272" Name="LIE863_1.HTM" LongName="libslp__parse_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\libslp__parse_8c-source.html" />
+                  <File Id="file273" Name="LIF399_1.HTM" LongName="libslp__parse_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\libslp__parse_8c.html" />
+                  <File Id="file274" Name="LI1185_1.HTM" LongName="libslp__property_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\libslp__property_8c-source.html" />
+                  <File Id="file275" Name="LI6CFC_1.HTM" LongName="libslp__property_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\libslp__property_8c.html" />
+                  <File Id="file276" Name="LI1F08_1.HTM" LongName="libslp__reg_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\libslp__reg_8c-source.html" />
+                  <File Id="file277" Name="LI45CE_1.HTM" LongName="libslp__reg_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\libslp__reg_8c.html" />
+                  <File Id="file278" Name="MAIN_1.HTM" LongName="main.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\main.html" />
+                  <File Id="file279" Name="MODULE_1.HTM" LongName="modules.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\modules.html" />
+                  <File Id="file280" Name="PAGES_1.HTM" LongName="pages.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\pages.html" />
+                  <File Id="file281" Name="SLPD_8_1.HTM" LongName="slpd_8h-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slpd_8h-source.html" />
+                  <File Id="file282" Name="SLPD_8_2.HTM" LongName="slpd_8h.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slpd_8h.html" />
+                  <File Id="file283" Name="SLPD___1.HTM" LongName="slpd__cmdline_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slpd__cmdline_8c-source.html" />
+                  <File Id="file284" Name="SLPD___2.HTM" LongName="slpd__cmdline_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slpd__cmdline_8c.html" />
+                  <File Id="file285" Name="SLPD___3.HTM" LongName="slpd__cmdline_8h-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slpd__cmdline_8h-source.html" />
+                  <File Id="file286" Name="SLPD___4.HTM" LongName="slpd__cmdline_8h.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slpd__cmdline_8h.html" />
+                  <File Id="file287" Name="SL4BF8_1.HTM" LongName="slpd__database_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slpd__database_8c-source.html" />
+                  <File Id="file288" Name="SL0F94_1.HTM" LongName="slpd__database_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slpd__database_8c.html" />
+                  <File Id="file289" Name="SL8CF8_1.HTM" LongName="slpd__database_8h-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slpd__database_8h-source.html" />
+                  <File Id="file290" Name="SL03B4_1.HTM" LongName="slpd__database_8h.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slpd__database_8h.html" />
+                  <File Id="file291" Name="SL1968_1.HTM" LongName="slpd__incoming_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slpd__incoming_8c-source.html" />
+                  <File Id="file292" Name="SLFB7B_1.HTM" LongName="slpd__incoming_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slpd__incoming_8c.html" />
+                  <File Id="file293" Name="SL5A68_1.HTM" LongName="slpd__incoming_8h-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slpd__incoming_8h-source.html" />
+                  <File Id="file294" Name="SLFF8B_1.HTM" LongName="slpd__incoming_8h.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slpd__incoming_8h.html" />
+                  <File Id="file295" Name="SLC9D3_1.HTM" LongName="slpd__knownda_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slpd__knownda_8c-source.html" />
+                  <File Id="file296" Name="SLFA1D_1.HTM" LongName="slpd__knownda_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slpd__knownda_8c.html" />
+                  <File Id="file297" Name="SLC992_1.HTM" LongName="slpd__knownda_8h-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slpd__knownda_8h-source.html" />
+                  <File Id="file298" Name="SLFA13_1.HTM" LongName="slpd__knownda_8h.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slpd__knownda_8h.html" />
+                  <File Id="file299" Name="SL7116_1.HTM" LongName="slpd__log_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slpd__log_8c-source.html" />
+                  <File Id="file300" Name="SL78DE_1.HTM" LongName="slpd__log_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slpd__log_8c.html" />
+                  <File Id="file301" Name="SL71D0_1.HTM" LongName="slpd__log_8h-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slpd__log_8h-source.html" />
+                  <File Id="file302" Name="SL88D4_1.HTM" LongName="slpd__log_8h.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slpd__log_8h.html" />
+                  <File Id="file303" Name="SL8C6B_1.HTM" LongName="slpd__main_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slpd__main_8c-source.html" />
+                  <File Id="file304" Name="SLC2BB_1.HTM" LongName="slpd__main_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slpd__main_8c.html" />
+                  <File Id="file305" Name="SL7B58_1.HTM" LongName="slpd__outgoing_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slpd__outgoing_8c-source.html" />
+                  <File Id="file306" Name="SLF1AA_1.HTM" LongName="slpd__outgoing_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slpd__outgoing_8c.html" />
+                  <File Id="file307" Name="SLBC58_1.HTM" LongName="slpd__outgoing_8h-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slpd__outgoing_8h-source.html" />
+                  <File Id="file308" Name="SLF5BA_1.HTM" LongName="slpd__outgoing_8h.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slpd__outgoing_8h.html" />
+                  <File Id="file309" Name="SL596F_1.HTM" LongName="slpd__predicate_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slpd__predicate_8c-source.html" />
+                  <File Id="file310" Name="SL9799_1.HTM" LongName="slpd__predicate_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slpd__predicate_8c.html" />
+                  <File Id="file311" Name="SL59AF_1.HTM" LongName="slpd__predicate_8h-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slpd__predicate_8h-source.html" />
+                  <File Id="file312" Name="SLA79B_1.HTM" LongName="slpd__predicate_8h.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slpd__predicate_8h.html" />
+                  <File Id="file313" Name="SL2032_1.HTM" LongName="slpd__predicate__test_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slpd__predicate__test_8c-source.html" />
+                  <File Id="file314" Name="SLFDCF_1.HTM" LongName="slpd__predicate__test_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slpd__predicate__test_8c.html" />
+                  <File Id="file315" Name="SL8B3F_1.HTM" LongName="slpd__process_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slpd__process_8c-source.html" />
+                  <File Id="file316" Name="SL1928_1.HTM" LongName="slpd__process_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slpd__process_8c.html" />
+                  <File Id="file317" Name="SL8B76_1.HTM" LongName="slpd__process_8h-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slpd__process_8h-source.html" />
+                  <File Id="file318" Name="SL1922_1.HTM" LongName="slpd__process_8h.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slpd__process_8h.html" />
+                  <File Id="file319" Name="SL755D_1.HTM" LongName="slpd__property_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slpd__property_8c-source.html" />
+                  <File Id="file320" Name="SLE142_1.HTM" LongName="slpd__property_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slpd__property_8c.html" />
+                  <File Id="file321" Name="SLB65D_1.HTM" LongName="slpd__property_8h-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slpd__property_8h-source.html" />
+                  <File Id="file322" Name="SLE552_1.HTM" LongName="slpd__property_8h.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slpd__property_8h.html" />
+                  <File Id="file323" Name="SLD568_1.HTM" LongName="slpd__regfile_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slpd__regfile_8c-source.html" />
+                  <File Id="file324" Name="SL4B71_1.HTM" LongName="slpd__regfile_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slpd__regfile_8c.html" />
+                  <File Id="file325" Name="SLD5AE_1.HTM" LongName="slpd__regfile_8h-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slpd__regfile_8h-source.html" />
+                  <File Id="file326" Name="SL5B73_1.HTM" LongName="slpd__regfile_8h.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slpd__regfile_8h.html" />
+                  <File Id="file327" Name="SL585A_1.HTM" LongName="slpd__socket_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slpd__socket_8c-source.html" />
+                  <File Id="file328" Name="SL1072_1.HTM" LongName="slpd__socket_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slpd__socket_8c.html" />
+                  <File Id="file329" Name="SL99D6_1.HTM" LongName="slpd__socket_8h-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slpd__socket_8h-source.html" />
+                  <File Id="file330" Name="SL1482_1.HTM" LongName="slpd__socket_8h.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slpd__socket_8h.html" />
+                  <File Id="file331" Name="SL22C5_1.HTM" LongName="slpd__spi_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slpd__spi_8c-source.html" />
+                  <File Id="file332" Name="SL0E5C_1.HTM" LongName="slpd__spi_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slpd__spi_8c.html" />
+                  <File Id="file333" Name="SL2201_1.HTM" LongName="slpd__spi_8h-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slpd__spi_8h-source.html" />
+                  <File Id="file334" Name="SL0E56_1.HTM" LongName="slpd__spi_8h.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slpd__spi_8h.html" />
+                  <File Id="file335" Name="SLC599_1.HTM" LongName="slpd__v1process_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slpd__v1process_8c-source.html" />
+                  <File Id="file336" Name="SLDAFA_1.HTM" LongName="slpd__v1process_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slpd__v1process_8c.html" />
+                  <File Id="file337" Name="SLE37C_1.HTM" LongName="slpd__win32_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slpd__win32_8c-source.html" />
+                  <File Id="file338" Name="SLABE1_1.HTM" LongName="slpd__win32_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slpd__win32_8c.html" />
+                  <File Id="file339" Name="SLE3BA_1.HTM" LongName="slpd__win32_8h-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slpd__win32_8h-source.html" />
+                  <File Id="file340" Name="SLBBE3_1.HTM" LongName="slpd__win32_8h.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slpd__win32_8h.html" />
+                  <File Id="file341" Name="SLPTOO_1.HTM" LongName="slptool_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slptool_8c-source.html" />
+                  <File Id="file342" Name="SLPTOO_2.HTM" LongName="slptool_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slptool_8c.html" />
+                  <File Id="file343" Name="SLPTOO_3.HTM" LongName="slptool_8h-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slptool_8h-source.html" />
+                  <File Id="file344" Name="SLPTOO_4.HTM" LongName="slptool_8h.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slptool_8h.html" />
+                  <File Id="file345" Name="SLP_8H_1.HTM" LongName="slp_8h-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp_8h-source.html" />
+                  <File Id="file346" Name="SLP_8H_2.HTM" LongName="slp_8h.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp_8h.html" />
+                  <File Id="file347" Name="SLP__A_1.HTM" LongName="slp__atomic_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__atomic_8c-source.html" />
+                  <File Id="file348" Name="SLP__A_2.HTM" LongName="slp__atomic_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__atomic_8c.html" />
+                  <File Id="file349" Name="SLP__A_3.HTM" LongName="slp__atomic_8h-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__atomic_8h-source.html" />
+                  <File Id="file350" Name="SLP__A_4.HTM" LongName="slp__atomic_8h.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__atomic_8h.html" />
+                  <File Id="file351" Name="SL57E0_1.HTM" LongName="slp__attr_8h-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__attr_8h-source.html" />
+                  <File Id="file352" Name="SL8785_1.HTM" LongName="slp__attr_8h.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__attr_8h.html" />
+                  <File Id="file353" Name="SLBFAA_1.HTM" LongName="slp__attr__l_8l-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__attr__l_8l-source.html" />
+                  <File Id="file354" Name="SLC5EF_1.HTM" LongName="slp__attr__l_8l.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__attr__l_8l.html" />
+                  <File Id="file355" Name="SLE7A2_1.HTM" LongName="slp__attr__test_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__attr__test_8c-source.html" />
+                  <File Id="file356" Name="SLFB83_1.HTM" LongName="slp__attr__test_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__attr__test_8c.html" />
+                  <File Id="file357" Name="SLF2EA_1.HTM" LongName="slp__attr__y_8y-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__attr__y_8y-source.html" />
+                  <File Id="file358" Name="SLD913_1.HTM" LongName="slp__attr__y_8y.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__attr__y_8y.html" />
+                  <File Id="file359" Name="SL26A3_1.HTM" LongName="slp__auth_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__auth_8c-source.html" />
+                  <File Id="file360" Name="SL0E7B_1.HTM" LongName="slp__auth_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__auth_8c.html" />
+                  <File Id="file361" Name="SL26E0_1.HTM" LongName="slp__auth_8h-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__auth_8h-source.html" />
+                  <File Id="file362" Name="SL0E75_1.HTM" LongName="slp__auth_8h.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__auth_8h.html" />
+                  <File Id="file363" Name="SLP__B_1.HTM" LongName="slp__buffer_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__buffer_8c-source.html" />
+                  <File Id="file364" Name="SLP__B_2.HTM" LongName="slp__buffer_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__buffer_8c.html" />
+                  <File Id="file365" Name="SLP__B_3.HTM" LongName="slp__buffer_8h-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__buffer_8h-source.html" />
+                  <File Id="file366" Name="SLP__B_4.HTM" LongName="slp__buffer_8h.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__buffer_8h.html" />
+                  <File Id="file367" Name="SLP__C_1.HTM" LongName="slp__compare_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__compare_8c-source.html" />
+                  <File Id="file368" Name="SLP__C_2.HTM" LongName="slp__compare_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__compare_8c.html" />
+                  <File Id="file369" Name="SLP__C_3.HTM" LongName="slp__compare_8h-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__compare_8h-source.html" />
+                  <File Id="file370" Name="SLP__C_4.HTM" LongName="slp__compare_8h.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__compare_8h.html" />
+                  <File Id="file371" Name="SL75FF_1.HTM" LongName="slp__crypto_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__crypto_8c-source.html" />
+                  <File Id="file372" Name="SL98FD_1.HTM" LongName="slp__crypto_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__crypto_8c.html" />
+                  <File Id="file373" Name="SL7536_1.HTM" LongName="slp__crypto_8h-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__crypto_8h-source.html" />
+                  <File Id="file374" Name="SL98FF_1.HTM" LongName="slp__crypto_8h.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__crypto_8h.html" />
+                  <File Id="file375" Name="SLP__D_1.HTM" LongName="slp__database_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__database_8c-source.html" />
+                  <File Id="file376" Name="SLP__D_2.HTM" LongName="slp__database_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__database_8c.html" />
+                  <File Id="file377" Name="SLP__D_3.HTM" LongName="slp__database_8h-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__database_8h-source.html" />
+                  <File Id="file378" Name="SLP__D_4.HTM" LongName="slp__database_8h.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__database_8h.html" />
+                  <File Id="file379" Name="SL0BEB_1.HTM" LongName="slp__debug_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__debug_8c-source.html" />
+                  <File Id="file380" Name="SLBA93_1.HTM" LongName="slp__debug_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__debug_8c.html" />
+                  <File Id="file381" Name="SL5EF2_1.HTM" LongName="slp__dhcp_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__dhcp_8c-source.html" />
+                  <File Id="file382" Name="SL7F36_1.HTM" LongName="slp__dhcp_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__dhcp_8c.html" />
+                  <File Id="file383" Name="SL5E31_1.HTM" LongName="slp__dhcp_8h-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__dhcp_8h-source.html" />
+                  <File Id="file384" Name="SL8F38_1.HTM" LongName="slp__dhcp_8h.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__dhcp_8h.html" />
+                  <File Id="file385" Name="SLP__F_1.HTM" LongName="slp__filter_8h-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__filter_8h-source.html" />
+                  <File Id="file386" Name="SLP__F_2.HTM" LongName="slp__filter_8h.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__filter_8h.html" />
+                  <File Id="file387" Name="SLP__F_3.HTM" LongName="slp__filter__l_8l-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__filter__l_8l-source.html" />
+                  <File Id="file388" Name="SLP__F_4.HTM" LongName="slp__filter__l_8l.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__filter__l_8l.html" />
+                  <File Id="file389" Name="SL95AB_1.HTM" LongName="slp__filter__y_8y-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__filter__y_8y-source.html" />
+                  <File Id="file390" Name="SLB34F_1.HTM" LongName="slp__filter__y_8y.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__filter__y_8y.html" />
+                  <File Id="file391" Name="SLP__I_1.HTM" LongName="slp__iface_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__iface_8c-source.html" />
+                  <File Id="file392" Name="SLP__I_2.HTM" LongName="slp__iface_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__iface_8c.html" />
+                  <File Id="file393" Name="SLP__I_3.HTM" LongName="slp__iface_8h-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__iface_8h-source.html" />
+                  <File Id="file394" Name="SLP__I_4.HTM" LongName="slp__iface_8h.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__iface_8h.html" />
+                  <File Id="file395" Name="SLP__L_1.HTM" LongName="slp__linkedlist_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__linkedlist_8c-source.html" />
+                  <File Id="file396" Name="SLP__L_2.HTM" LongName="slp__linkedlist_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__linkedlist_8c.html" />
+                  <File Id="file397" Name="SLP__L_3.HTM" LongName="slp__linkedlist_8h-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__linkedlist_8h-source.html" />
+                  <File Id="file398" Name="SLP__L_4.HTM" LongName="slp__linkedlist_8h.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__linkedlist_8h.html" />
+                  <File Id="file399" Name="SLP__M_1.HTM" LongName="slp__message_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__message_8c-source.html" />
+                  <File Id="file400" Name="SLP__M_2.HTM" LongName="slp__message_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__message_8c.html" />
+                  <File Id="file401" Name="SLP__M_3.HTM" LongName="slp__message_8h-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__message_8h-source.html" />
+                  <File Id="file402" Name="SLP__M_4.HTM" LongName="slp__message_8h.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__message_8h.html" />
+                  <File Id="file403" Name="SLP__N_1.HTM" LongName="slp__network_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__network_8c-source.html" />
+                  <File Id="file404" Name="SLP__N_2.HTM" LongName="slp__network_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__network_8c.html" />
+                  <File Id="file405" Name="SLP__N_3.HTM" LongName="slp__network_8h-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__network_8h-source.html" />
+                  <File Id="file406" Name="SLP__N_4.HTM" LongName="slp__network_8h.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__network_8h.html" />
+                  <File Id="file407" Name="SLAFF3_1.HTM" LongName="slp__net_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__net_8c-source.html" />
+                  <File Id="file408" Name="SL35E4_1.HTM" LongName="slp__net_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__net_8c.html" />
+                  <File Id="file409" Name="SLE004_1.HTM" LongName="slp__net_8h-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__net_8h-source.html" />
+                  <File Id="file410" Name="SL39F4_1.HTM" LongName="slp__net_8h.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__net_8h.html" />
+                  <File Id="file411" Name="SLP__P_1.HTM" LongName="slp__parse_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__parse_8c-source.html" />
+                  <File Id="file412" Name="SLP__P_2.HTM" LongName="slp__parse_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__parse_8c.html" />
+                  <File Id="file413" Name="SLP__P_3.HTM" LongName="slp__parse_8h-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__parse_8h-source.html" />
+                  <File Id="file414" Name="SLP__P_4.HTM" LongName="slp__parse_8h.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__parse_8h.html" />
+                  <File Id="file415" Name="SLEFE6_1.HTM" LongName="slp__pid_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__pid_8c-source.html" />
+                  <File Id="file416" Name="SL29E3_1.HTM" LongName="slp__pid_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__pid_8c.html" />
+                  <File Id="file417" Name="SL21F6_1.HTM" LongName="slp__pid_8h-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__pid_8h-source.html" />
+                  <File Id="file418" Name="SL2DF3_1.HTM" LongName="slp__pid_8h.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__pid_8h.html" />
+                  <File Id="file419" Name="SLB4C2_1.HTM" LongName="slp__predicate_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__predicate_8c-source.html" />
+                  <File Id="file420" Name="SL4631_1.HTM" LongName="slp__predicate_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__predicate_8c.html" />
+                  <File Id="file421" Name="SLF5C2_1.HTM" LongName="slp__predicate_8h-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__predicate_8h-source.html" />
+                  <File Id="file422" Name="SL4A41_1.HTM" LongName="slp__predicate_8h.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__predicate_8h.html" />
+                  <File Id="file423" Name="SL2C4F_1.HTM" LongName="slp__property_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__property_8c-source.html" />
+                  <File Id="file424" Name="SL1EA8_1.HTM" LongName="slp__property_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__property_8c.html" />
+                  <File Id="file425" Name="SL2C02_1.HTM" LongName="slp__property_8h-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__property_8h-source.html" />
+                  <File Id="file426" Name="SL1EA6_1.HTM" LongName="slp__property_8h.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__property_8h.html" />
+                  <File Id="file427" Name="SLP__S_1.HTM" LongName="slp__socket_8h-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__socket_8h-source.html" />
+                  <File Id="file428" Name="SLP__S_2.HTM" LongName="slp__socket_8h.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__socket_8h.html" />
+                  <File Id="file429" Name="SLP__S_3.HTM" LongName="slp__spi_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__spi_8c-source.html" />
+                  <File Id="file430" Name="SLP__S_4.HTM" LongName="slp__spi_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__spi_8c.html" />
+                  <File Id="file431" Name="SL99A4_1.HTM" LongName="slp__spi_8h-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__spi_8h-source.html" />
+                  <File Id="file432" Name="SL248F_1.HTM" LongName="slp__spi_8h.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__spi_8h.html" />
+                  <File Id="file433" Name="SLP__T_1.HTM" LongName="slp__thread_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__thread_8c-source.html" />
+                  <File Id="file434" Name="SLP__T_2.HTM" LongName="slp__thread_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__thread_8c.html" />
+                  <File Id="file435" Name="SLP__T_3.HTM" LongName="slp__thread_8h-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__thread_8h-source.html" />
+                  <File Id="file436" Name="SLP__T_4.HTM" LongName="slp__thread_8h.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__thread_8h.html" />
+                  <File Id="file437" Name="SLEB5E_1.HTM" LongName="slp__types_8h-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__types_8h-source.html" />
+                  <File Id="file438" Name="SLD8AA_1.HTM" LongName="slp__types_8h.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__types_8h.html" />
+                  <File Id="file439" Name="SLP__U_1.HTM" LongName="slp__utf8_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__utf8_8c-source.html" />
+                  <File Id="file440" Name="SLP__U_2.HTM" LongName="slp__utf8_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__utf8_8c.html" />
+                  <File Id="file441" Name="SLP__U_3.HTM" LongName="slp__utf8_8h-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__utf8_8h-source.html" />
+                  <File Id="file442" Name="SLP__U_4.HTM" LongName="slp__utf8_8h.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__utf8_8h.html" />
+                  <File Id="file443" Name="SLP__V_1.HTM" LongName="slp__v1message_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__v1message_8c-source.html" />
+                  <File Id="file444" Name="SLP__V_2.HTM" LongName="slp__v1message_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__v1message_8c.html" />
+                  <File Id="file445" Name="SLP__V_3.HTM" LongName="slp__v1message_8h-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__v1message_8h-source.html" />
+                  <File Id="file446" Name="SLP__V_4.HTM" LongName="slp__v1message_8h.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__v1message_8h.html" />
+                  <File Id="file447" Name="SLEDCE_1.HTM" LongName="slp__v2message_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__v2message_8c-source.html" />
+                  <File Id="file448" Name="SL89C1_1.HTM" LongName="slp__v2message_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__v2message_8c.html" />
+                  <File Id="file449" Name="SL2FCE_1.HTM" LongName="slp__v2message_8h-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__v2message_8h-source.html" />
+                  <File Id="file450" Name="SL8DD1_1.HTM" LongName="slp__v2message_8h.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__v2message_8h.html" />
+                  <File Id="file451" Name="SLP__W_1.HTM" LongName="slp__win32_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__win32_8c-source.html" />
+                  <File Id="file452" Name="SLP__W_2.HTM" LongName="slp__win32_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__win32_8c.html" />
+                  <File Id="file453" Name="SLP__X_1.HTM" LongName="slp__xcast_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__xcast_8c-source.html" />
+                  <File Id="file454" Name="SLP__X_2.HTM" LongName="slp__xcast_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__xcast_8c.html" />
+                  <File Id="file455" Name="SLP__X_3.HTM" LongName="slp__xcast_8h-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__xcast_8h-source.html" />
+                  <File Id="file456" Name="SLP__X_4.HTM" LongName="slp__xcast_8h.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__xcast_8h.html" />
+                  <File Id="file457" Name="SLEFA4_1.HTM" LongName="slp__xid_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__xid_8c-source.html" />
+                  <File Id="file458" Name="SL29EF_1.HTM" LongName="slp__xid_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__xid_8c.html" />
+                  <File Id="file459" Name="SL21B4_1.HTM" LongName="slp__xid_8h-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__xid_8h-source.html" />
+                  <File Id="file460" Name="SL2DFF_1.HTM" LongName="slp__xid_8h.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__xid_8h.html" />
+                  <File Id="file461" Name="SL2CE8_1.HTM" LongName="slp__xmalloc_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__xmalloc_8c-source.html" />
+                  <File Id="file462" Name="SL0DA3_1.HTM" LongName="slp__xmalloc_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__xmalloc_8c.html" />
+                  <File Id="file463" Name="SL6DE8_1.HTM" LongName="slp__xmalloc_8h-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__xmalloc_8h-source.html" />
+                  <File Id="file464" Name="SL01C3_1.HTM" LongName="slp__xmalloc_8h.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\slp__xmalloc_8h.html" />
+                  <File Id="file465" Name="STRUCT_1.HTM" LongName="structisrvurl.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\structisrvurl.html" />
+                  <File Id="file466" Name="STRUCT_2.HTM" LongName="structldap__filter__struct.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\structldap__filter__struct.html" />
+                  <File Id="file467" Name="STRUCT_3.HTM" LongName="structldap__filter__struct__head.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\structldap__filter__struct__head.html" />
+                  <File Id="file468" Name="STRUCT_4.HTM" LongName="structpair.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\structpair.html" />
+                  <File Id="file469" Name="ST700D_1.HTM" LongName="structsrvurl.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\structsrvurl.html" />
+                  <File Id="file470" Name="ST625B_1.HTM" LongName="structxx__value__t.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\structxx__value__t.html" />
+                  <File Id="file471" Name="STF302_1.HTM" LongName="structxx__var__t.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\structxx__var__t.html" />
+                  <File Id="file472" Name="STDAD4_1.HTM" LongName="structxx___s_l_p_attributes.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\structxx___s_l_p_attributes.html" />
+                  <File Id="file473" Name="ST9497_1.HTM" LongName="structxx___s_l_p_attr_iterator.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\structxx___s_l_p_attr_iterator.html" />
+                  <File Id="file474" Name="STF883_1.HTM" LongName="structxx___tiny_attr.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\structxx___tiny_attr.html" />
+                  <File Id="file475" Name="STB6AD_1.HTM" LongName="struct_s_l_p_error_entry.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\struct_s_l_p_error_entry.html" />
+                  <File Id="file476" Name="STA5E9_1.HTM" LongName="struct_s_l_p_opaque.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\struct_s_l_p_opaque.html" />
+                  <File Id="file477" Name="STB5C5_1.HTM" LongName="struct_s_l_p__attr__list.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\struct_s_l_p__attr__list.html" />
+                  <File Id="file478" Name="ST0CD7_1.HTM" LongName="struct_tab.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\struct_tab.html" />
+                  <File Id="file479" Name="ST32E2_1.HTM" LongName="struct___d_h_c_p_context.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\struct___d_h_c_p_context.html" />
+                  <File Id="file480" Name="ST03C5_1.HTM" LongName="struct___s_l_p_attr_rply.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\struct___s_l_p_attr_rply.html" />
+                  <File Id="file481" Name="ST01DA_1.HTM" LongName="struct___s_l_p_attr_rqst.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\struct___s_l_p_attr_rqst.html" />
+                  <File Id="file482" Name="ST2E52_1.HTM" LongName="struct___s_l_p_auth_block.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\struct___s_l_p_auth_block.html" />
+                  <File Id="file483" Name="ST96B2_1.HTM" LongName="struct___s_l_p_buffer.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\struct___s_l_p_buffer.html" />
+                  <File Id="file484" Name="STC34F_1.HTM" LongName="struct___s_l_p_database_entry.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\struct___s_l_p_database_entry.html" />
+                  <File Id="file485" Name="ST9314_1.HTM" LongName="struct___s_l_p_database_handle.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\struct___s_l_p_database_handle.html" />
+                  <File Id="file486" Name="ST0AD1_1.HTM" LongName="struct___s_l_p_de_reg_params.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\struct___s_l_p_de_reg_params.html" />
+                  <File Id="file487" Name="ST4602_1.HTM" LongName="struct___s_l_p_d_a_advert.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\struct___s_l_p_d_a_advert.html" />
+                  <File Id="file488" Name="STE01E_1.HTM" LongName="struct___s_l_p_d_command_line.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\struct___s_l_p_d_command_line.html" />
+                  <File Id="file489" Name="ST4087_1.HTM" LongName="struct___s_l_p_d_database.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\struct___s_l_p_d_database.html" />
+                  <File Id="file490" Name="STB5EB_1.HTM" LongName="struct___s_l_p_d_database_attr_rqst_result.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\struct___s_l_p_d_database_attr_rqst_result.html" />
+                  <File Id="file491" Name="STAA56_1.HTM" LongName="struct___s_l_p_d_database_srv_rqst_result.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\struct___s_l_p_d_database_srv_rqst_result.html" />
+                  <File Id="file492" Name="STB90A_1.HTM" LongName="struct___s_l_p_d_database_srv_type_rqst_result.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\struct___s_l_p_d_database_srv_type_rqst_result.html" />
+                  <File Id="file493" Name="STC980_1.HTM" LongName="struct___s_l_p_d_property.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\struct___s_l_p_d_property.html" />
+                  <File Id="file494" Name="STA9A5_1.HTM" LongName="struct___s_l_p_d_socket.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\struct___s_l_p_d_socket.html" />
+                  <File Id="file495" Name="ST0B16_1.HTM" LongName="struct___s_l_p_find_attrs_params.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\struct___s_l_p_find_attrs_params.html" />
+                  <File Id="file496" Name="ST457A_1.HTM" LongName="struct___s_l_p_find_srvs_params.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\struct___s_l_p_find_srvs_params.html" />
+                  <File Id="file497" Name="STEB21_1.HTM" LongName="struct___s_l_p_find_srv_types_params.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\struct___s_l_p_find_srv_types_params.html" />
+                  <File Id="file498" Name="ST7DD6_1.HTM" LongName="struct___s_l_p_handle_info.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\struct___s_l_p_handle_info.html" />
+                  <File Id="file499" Name="ST92A5_1.HTM" LongName="struct___s_l_p_header.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\struct___s_l_p_header.html" />
+                  <File Id="file500" Name="ST43DA_1.HTM" LongName="struct___s_l_p_interface_info.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\struct___s_l_p_interface_info.html" />
+                  <File Id="file501" Name="STA0E1_1.HTM" LongName="struct___s_l_p_list.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\struct___s_l_p_list.html" />
+                  <File Id="file502" Name="ST3AC4_1.HTM" LongName="struct___s_l_p_list_item.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\struct___s_l_p_list_item.html" />
+                  <File Id="file503" Name="ST9A14_1.HTM" LongName="struct___s_l_p_message.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\struct___s_l_p_message.html" />
+                  <File Id="file504" Name="ST4654_1.HTM" LongName="struct___s_l_p_property.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\struct___s_l_p_property.html" />
+                  <File Id="file505" Name="STC831_1.HTM" LongName="struct___s_l_p_reg_params.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\struct___s_l_p_reg_params.html" />
+                  <File Id="file506" Name="ST904B_1.HTM" LongName="struct___s_l_p_spi_entry.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\struct___s_l_p_spi_entry.html" />
+                  <File Id="file507" Name="ST892A_1.HTM" LongName="struct___s_l_p_spi_handle.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\struct___s_l_p_spi_handle.html" />
+                  <File Id="file508" Name="ST2507_1.HTM" LongName="struct___s_l_p_srv_ack.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\struct___s_l_p_srv_ack.html" />
+                  <File Id="file509" Name="STE11A_1.HTM" LongName="struct___s_l_p_srv_de_reg.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\struct___s_l_p_srv_de_reg.html" />
+                  <File Id="file510" Name="ST390C_1.HTM" LongName="struct___s_l_p_srv_reg.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\struct___s_l_p_srv_reg.html" />
+                  <File Id="file511" Name="ST4103_1.HTM" LongName="struct___s_l_p_srv_rply.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\struct___s_l_p_srv_rply.html" />
+                  <File Id="file512" Name="ST5FE4_1.HTM" LongName="struct___s_l_p_srv_rqst.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\struct___s_l_p_srv_rqst.html" />
+                  <File Id="file513" Name="STADBB_1.HTM" LongName="struct___s_l_p_srv_type_rply.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\struct___s_l_p_srv_type_rply.html" />
+                  <File Id="file514" Name="ST9BC4_1.HTM" LongName="struct___s_l_p_srv_type_rqst.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\struct___s_l_p_srv_type_rqst.html" />
+                  <File Id="file515" Name="ST2893_1.HTM" LongName="struct___s_l_p_srv_url_collated_item.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\struct___s_l_p_srv_url_collated_item.html" />
+                  <File Id="file516" Name="ST56ED_1.HTM" LongName="struct___s_l_p_s_a_advert.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\struct___s_l_p_s_a_advert.html" />
+                  <File Id="file517" Name="ST185C_1.HTM" LongName="struct___s_l_p_tool_command_line.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\struct___s_l_p_tool_command_line.html" />
+                  <File Id="file518" Name="ST114E_1.HTM" LongName="struct___s_l_p_url_entry.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\struct___s_l_p_url_entry.html" />
+                  <File Id="file519" Name="ST9E35_1.HTM" LongName="struct___s_l_p_xcast_sockets.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\struct___s_l_p_xcast_sockets.html" />
+                  <File Id="file520" Name="tabs.css" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\tabs.css" />
+                  <File Id="file521" Name="tab_b.gif" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\tab_b.gif" />
+                  <File Id="file522" Name="tab_l.gif" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\tab_l.gif" />
+                  <File Id="file523" Name="tab_r.gif" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\tab_r.gif" />
+                  <File Id="file524" Name="TEST_2_1.HTM" LongName="test_2slp__debug_8h-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\test_2slp__debug_8h-source.html" />
+                  <File Id="file525" Name="TEST_2_2.HTM" LongName="test_2slp__debug_8h.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\test_2slp__debug_8h.html" />
+                  <File Id="file526" Name="TODO_1.HTM" LongName="todo.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\todo.html" />
+                  <File Id="file527" Name="TREE_1.HTM" LongName="tree.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\tree.html" />
+                  <File Id="file528" Name="UNION__1.HTM" LongName="union_s_l_p__attr__value.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\union_s_l_p__attr__value.html" />
+                  <File Id="file529" Name="UNION__2.HTM" LongName="union___s_l_p_handle_call_params.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\union___s_l_p_handle_call_params.html" />
+                  <File Id="file530" Name="UNION__3.HTM" LongName="union___s_l_p_message_1_1__body.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\union___s_l_p_message_1_1__body.html" />
+                  <File Id="file531" Name="_S_L_P_1.HTM" LongName="_s_l_p_dereg_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\_s_l_p_dereg_8c-source.html" />
+                  <File Id="file532" Name="_S_L_P_2.HTM" LongName="_s_l_p_dereg_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\_s_l_p_dereg_8c.html" />
+                  <File Id="file533" Name="_S_L_P_3.HTM" LongName="_s_l_p_escape_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\_s_l_p_escape_8c-source.html" />
+                  <File Id="file534" Name="_S_L_P_4.HTM" LongName="_s_l_p_escape_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\_s_l_p_escape_8c.html" />
+                  <File Id="file535" Name="_S1D22_1.HTM" LongName="_s_l_p_find_attrs_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\_s_l_p_find_attrs_8c-source.html" />
+                  <File Id="file536" Name="_S75BF_1.HTM" LongName="_s_l_p_find_attrs_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\_s_l_p_find_attrs_8c.html" />
+                  <File Id="file537" Name="_SEE49_1.HTM" LongName="_s_l_p_find_srvs_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\_s_l_p_find_srvs_8c-source.html" />
+                  <File Id="file538" Name="_S29D9_1.HTM" LongName="_s_l_p_find_srvs_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\_s_l_p_find_srvs_8c.html" />
+                  <File Id="file539" Name="_S0F54_1.HTM" LongName="_s_l_p_find_srv_types_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\_s_l_p_find_srv_types_8c-source.html" />
+                  <File Id="file540" Name="_SE441_1.HTM" LongName="_s_l_p_find_srv_types_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\_s_l_p_find_srv_types_8c.html" />
+                  <File Id="file541" Name="_S839F_1.HTM" LongName="_s_l_p_open_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\_s_l_p_open_8c-source.html" />
+                  <File Id="file542" Name="_S19E2_1.HTM" LongName="_s_l_p_open_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\_s_l_p_open_8c.html" />
+                  <File Id="file543" Name="_SA312_1.HTM" LongName="_s_l_p_parse_srv_u_r_l_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\_s_l_p_parse_srv_u_r_l_8c-source.html" />
+                  <File Id="file544" Name="_S952E_1.HTM" LongName="_s_l_p_parse_srv_u_r_l_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\_s_l_p_parse_srv_u_r_l_8c.html" />
+                  <File Id="file545" Name="_S9CF2_1.HTM" LongName="_s_l_p_reg_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\_s_l_p_reg_8c-source.html" />
+                  <File Id="file546" Name="_S64B4_1.HTM" LongName="_s_l_p_reg_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\_s_l_p_reg_8c.html" />
+                  <File Id="file547" Name="_SE9CA_1.HTM" LongName="_s_l_p_unescape_8c-source.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\_s_l_p_unescape_8c-source.html" />
+                  <File Id="file548" Name="_SBB94_1.HTM" LongName="_s_l_p_unescape_8c.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\SourceCode\_s_l_p_unescape_8c.html" />
+                </Component>
+              </Directory>
+              <Directory Id="directory6" Name="USERSG_1" LongName="UsersGuide">
+                <Component Id="USERGUID_comp" DiskId="1" Guid="FB8CF0A3-9D0D-4ABE-80D2-2820086B7695">
+                  <File Id="file549" Name="COMMAN_1.HTM" LongName="CommandLine.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\UsersGuide\CommandLine.html" />
+                  <File Id="file550" Name="FILELO_1.HTM" LongName="FileLocations.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\UsersGuide\FileLocations.html" />
+                  <File Id="file551" Name="INDEX_1.HTM" LongName="index.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\UsersGuide\index.html" />
+                  <File Id="file552" Name="INSTAL_1.HTM" LongName="Installation.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\UsersGuide\Installation.html" />
+                  <File Id="file553" Name="OPTIMI_1.HTM" LongName="Optimization.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\UsersGuide\Optimization.html" />
+                  <File Id="file554" Name="SECURI_1.HTM" LongName="Security.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\UsersGuide\Security.html" />
+                  <File Id="file555" Name="SLPCON_1.HTM" LongName="SlpConf.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\UsersGuide\SlpConf.html" />
+                  <File Id="file556" Name="SLPREG_1.HTM" LongName="SlpReg.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\UsersGuide\SlpReg.html" />
+                  <File Id="file557" Name="SMALLL_1.JPG" LongName="smalllogo.jpg" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\UsersGuide\smalllogo.jpg" />
+                  <File Id="file558" Name="USERFA_1.HTM" LongName="UserFAQ.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\UsersGuide\UserFAQ.html" />
+                  <File Id="file559" Name="WHENTO_1.HTM" LongName="WhenToRunSlpd.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\UsersGuide\WhenToRunSlpd.html" />
+                  <File Id="file560" Name="WHOSHO_1.HTM" LongName="WhoShouldRead.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\html\UsersGuide\WhoShouldRead.html" />
+                </Component>
+              </Directory>
+            </Directory>
+            <Directory Id="directory7" Name="rfc">
+              <Component Id="RFC_comp" DiskId="1" Guid="843746ED-01F9-437D-8EF3-BC02C5AFA983">
+                <File Id="file561" Name="DRAFT-_1.TXT" LongName="draft-ietf-svrloc-ipv6-05.txt" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\rfc\draft-ietf-svrloc-ipv6-05.txt" />
+                <File Id="file562" Name="DRAFT-_2.TXT" LongName="draft-zhao-slp-url-01.txt" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\rfc\draft-zhao-slp-url-01.txt" />
+                <File Id="file563" Name="rfc1766.txt" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\rfc\rfc1766.txt" />
+                <File Id="file564" Name="rfc2165.txt" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\rfc\rfc2165.txt" />
+                <File Id="file565" Name="rfc2254.txt" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\rfc\rfc2254.txt" />
+                <File Id="file566" Name="rfc2396.txt" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\rfc\rfc2396.txt" />
+                <File Id="file567" Name="rfc2608.txt" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\rfc\rfc2608.txt" />
+                <File Id="file568" Name="rfc2609.txt" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\rfc\rfc2609.txt" />
+                <File Id="file569" Name="rfc2610.txt" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\rfc\rfc2610.txt" />
+                <File Id="file570" Name="rfc2614.txt" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\rfc\rfc2614.txt" />
+                <File Id="file571" Name="rfc2926.txt" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\rfc\rfc2926.txt" />
+                <File Id="file572" Name="rfc3059.txt" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\rfc\rfc3059.txt" />
+                <File Id="file573" Name="rfc3082.txt" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\rfc\rfc3082.txt" />
+                <File Id="file574" Name="rfc3111.txt" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\rfc\rfc3111.txt" />
+                <File Id="file575" Name="rfc3224.txt" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\rfc\rfc3224.txt" />
+                <File Id="file576" Name="rfc3421.txt" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\rfc\rfc3421.txt" />
+                <File Id="file577" Name="rfc3528.txt" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\rfc\rfc3528.txt" />
+                <File Id="file578" Name="SRVREG_1.TXT" LongName="srvreg-integrity.txt" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\rfc\srvreg-integrity.txt" />
+                <File Id="file579" Name="THREAT_1.HTM" LongName="threat_analysis_min_security.html" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Docs\rfc\threat_analysis_min_security.html" />
+              </Component>
+            </Directory>
+          </Directory>
+          <Directory Id="directory8" Name="Include">
+            <Component Id="INCLUDE_comp" DiskId="1" Guid="154E989D-07EB-4195-97B5-C1F3F6FBF31B">
+              <File Id="file580" Name="slp.h" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Include\slp.h" />
+            </Component>
+          </Directory>
+          <Directory Id="directory9" Name="Lib">
+            <Component Id="LIB_comp" DiskId="1" Guid="F3D12802-5562-46D0-87D4-3A36A422ADB9">
+              <File Id="file581" Name="libslp.lib" src="C:\dev\svnprojects\openslp-trunk\openslp.msi\OpenSLP\Lib\libslp.lib" />
+            </Component>
+          </Directory>
+        </Directory>
+      </Directory>
+    </DirectoryRef>
+  </Fragment>
+</Wix>
