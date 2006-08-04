@@ -76,6 +76,12 @@ SLPDatabase G_SlpdKnownDAs;
 int G_KnownDATimeSinceLastRefresh = 0;
 /*=========================================================================*/
 
+/*=========================================================================*/
+char* G_ifaceurls = 0;
+int   G_ifaceurlsLen = 0;
+/* Used to filter out our own DA urls */
+/*=========================================================================*/
+
 /*-------------------------------------------------------------------------*/
 int MakeActiveDiscoveryRqst(int ismcast, SLPBuffer * buffer)
 /* Pack a buffer with service:directory-agent SrvRqst                      *
@@ -229,9 +235,8 @@ void SLPDKnownDARegisterAll(SLPMessage * daadvert, int immortalonly)
    /*--------------------------------------*/
    /* Never do a Register All to ourselves */
    /*--------------------------------------*/
-   if (SLPContainsStringList(G_SlpdProperty.interfacesLen,
-            G_SlpdProperty.interfaces, daadvert->body.daadvert.urllen,
-            daadvert->body.daadvert.url) == 1)
+   if(SLPIntersectStringList(G_ifaceurlsLen, G_ifaceurls, daadvert->body.daadvert.urllen,
+                             daadvert->body.daadvert.url) > 0)
       return;
 
    handle = SLPDDatabaseEnumStart();
@@ -263,9 +268,9 @@ void SLPDKnownDARegisterAll(SLPMessage * daadvert, int immortalonly)
          if ((srvreg->source == SLP_REG_SOURCE_LOCAL
                || srvreg->source == SLP_REG_SOURCE_STATIC)
                && SLPIntersectStringList(srvreg->scopelistlen,
-                        srvreg->scopelist,
-                        srvreg->scopelistlen,
-                        srvreg->scopelist))
+                                         srvreg->scopelist,
+                                         srvreg->scopelistlen,
+                                         srvreg->scopelist))
          {
             sendbuf = SLPBufferDup(buf);
             if (sendbuf)
@@ -603,6 +608,52 @@ int SLPKnownDAFromProperties()
 }
 
 /*=========================================================================*/
+void SLPDKnownDAGenerateIfaceURLs()
+/* Initializes G_ifaceurls and G_ifaceurlsLen from GSlpdProperties.ifaceInfo */
+/* Much of this is pulled from SLPDKnownDAGenerateMyDAAdvert               */
+/*=========================================================================*/
+{
+   int i;
+   char localaddr_str[INET6_ADDRSTRLEN + 2];
+   struct sockaddr_storage* localaddr;
+   size_t strmax = G_SlpdProperty.ifaceInfo.iface_count * (G_SlpdProperty.urlPrefixLen + 1);  /*The +1 is for the ','*/
+
+   if(strmax)
+   {
+      ++strmax;  /*For the terminating NULL*/
+      G_ifaceurls = xmalloc(strmax);
+      if(G_ifaceurls)
+      {
+         G_ifaceurls[0] = '\0';
+         for(i = 0; i < G_SlpdProperty.ifaceInfo.iface_count; ++i)
+         {
+            /*build the ipaddr string*/
+            localaddr_str[0] = '\0';
+            localaddr = G_SlpdProperty.ifaceInfo.iface_addr + i;
+            if (localaddr->ss_family == AF_INET)
+               inet_ntop(localaddr->ss_family,
+                     &((struct sockaddr_in *) localaddr)->sin_addr, localaddr_str,
+                     sizeof(localaddr_str));
+            else if (localaddr->ss_family == AF_INET6)
+            {
+               strcpy(localaddr_str, "[");
+               inet_ntop(localaddr->ss_family,
+                     &((struct sockaddr_in6 *) localaddr)->sin6_addr,
+                     &localaddr_str[1], sizeof(localaddr_str) - 1);
+               strcat(localaddr_str, "]");
+            }
+
+            /*Add the url to G_ifaceurls*/
+            strncat(G_ifaceurls, G_SlpdProperty.urlPrefix, G_SlpdProperty.urlPrefixLen);
+            strcat(G_ifaceurls, localaddr_str);
+            strcat(G_ifaceurls, ",");
+         }
+         G_ifaceurlsLen = strlen(G_ifaceurls);
+      }
+   }
+}
+
+/*=========================================================================*/
 int SLPDKnownDAInit()
 /* Initializes the KnownDA list.  Removes all entries and adds entries     */
 /* that are statically configured.  Adds entries configured through DHCP.  */
@@ -625,6 +676,11 @@ int SLPDKnownDAInit()
    /* Discover DHCP DA's and add them to the active discovery list.    */
    /*-----------------------------------------------------------------*/
    SLPDKnownDAFromDHCP();
+
+   /*------------------------------------------------------------------*/
+   /* Generate the list of our URLs                                    */
+   /*------------------------------------------------------------------*/
+   SLPDKnownDAGenerateIfaceURLs();
 
    /*----------------------------------------*/
    /* Lastly, Perform first active discovery */
@@ -670,6 +726,9 @@ int SLPDKnownDADeinit()
    }
 
    SLPDatabaseDeinit(&G_SlpdKnownDAs);
+
+   if(G_ifaceurls)
+      xfree(G_ifaceurls);
 
    return 0;
 } 
@@ -1373,10 +1432,10 @@ void SLPDKnownDAEcho(SLPMessage * msg, SLPBuffer buf)
          {
             /* Do not echo to ourselves if we are a DA*/
             if (G_SlpdProperty.isDA
-                  && SLPContainsStringList(G_SlpdProperty.interfacesLen,
-                                             G_SlpdProperty.interfaces,
-                                             entrydaadvert->urllen,
-                                             entrydaadvert->url) == 1)
+                    && (SLPIntersectStringList(G_ifaceurlsLen, 
+                                               G_ifaceurls, 
+                                               entrydaadvert->urllen,
+                                               entrydaadvert->url) > 0))
             {
                /* don't do anything because it makes no sense to echo */
                /* to myself                                           */
@@ -1623,9 +1682,7 @@ void SLPDKnownDAImmortalRefresh(int seconds)
             entrydaadvert = &(entry->msg->body.daadvert);
 
             /* Assume DAs are identical if their URLs match */
-            if (SLPContainsStringList(G_SlpdProperty.interfacesLen,
-                     G_SlpdProperty.interfaces, entrydaadvert->urllen,
-                     entrydaadvert->url) == 0)
+            if(SLPIntersectStringList(G_ifaceurlsLen, G_ifaceurls, entrydaadvert->urllen, entrydaadvert->url) > 0)
                SLPDKnownDARegisterAll(entry->msg, 1);
          }   
 
