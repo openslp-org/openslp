@@ -807,7 +807,11 @@ int SLPDIncomingInit(void)
                   SLPNetSockAddrStorageToString(&myaddr, addr_str,
                         sizeof(addr_str)));
          }
-
+         else
+            SLPDLog("Couldn't bind to SLPv1 DA Discovery Multicast socket for interface %s (%s)\n",
+                  SLPNetSockAddrStorageToString(&myaddr, addr_str,
+                        sizeof(addr_str)),
+                        strerror(errno));
       }
 #endif
 
@@ -822,6 +826,12 @@ int SLPDIncomingInit(void)
                SLPNetSockAddrStorageToString(&myaddr, addr_str,
                      sizeof(addr_str)));
       }
+      else
+         SLPDLog("Couldn't bind to Unicast socket for interface %s (%s)\n",
+               SLPNetSockAddrStorageToString(&myaddr, addr_str,
+                     sizeof(addr_str)),
+                     strerror(errno));
+ 
    }     
 
    return 0;
