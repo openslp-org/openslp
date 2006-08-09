@@ -616,7 +616,7 @@ void SLPDKnownDAGenerateIfaceURLs()
    int i;
    char localaddr_str[INET6_ADDRSTRLEN + 2];
    struct sockaddr_storage* localaddr;
-   size_t strmax = G_SlpdProperty.ifaceInfo.iface_count * (G_SlpdProperty.urlPrefixLen + 1);  /*The +1 is for the ','*/
+   size_t strmax = G_SlpdProperty.ifaceInfo.iface_count * (G_SlpdProperty.urlPrefixLen + INET6_ADDRSTRLEN + 2 + 1);  /*The +1 is for the ','*/
 
    if(strmax)
    {
