@@ -123,7 +123,7 @@ static SLPError ProcessSrvReg(SLPHandleInfo * handle)
    struct sockaddr_storage saaddr;
 
 #ifdef ENABLE_SLPv2_SECURITY
-   if (SLPPropertyAsBoolean(SLPGetProperty("net.slp.securityEnabled")))
+   if (SLPPropertyAsBoolean("net.slp.securityEnabled"))
    {
       int err = SLPAuthSignUrl(handle->hspi, 0, 0, handle->params.reg.urllen,
             handle->params.reg.url, &urlauthlen, &urlauth);
@@ -137,8 +137,7 @@ static SLPError ProcessSrvReg(SLPHandleInfo * handle)
 #endif
 
    /* Should we send the "Watch Registration PID" extension? */
-   watchRegPID = SLPPropertyAsBoolean(SLPGetProperty(
-         "net.slp.watchRegistrationPID"));
+   watchRegPID = SLPPropertyAsBoolean("net.slp.watchRegistrationPID");
 
 /*  0                   1                   2                   3
     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -371,7 +370,7 @@ SLPEXP SLPError SLPAPI SLPReg(
    handle->params.reg.url = srvUrl;
    handle->params.reg.srvtype = parsedurl->s_pcSrvType;
    handle->params.reg.srvtypelen = strlen(handle->params.reg.srvtype);
-   handle->params.reg.scopelist = SLPGetProperty("net.slp.useScopes");
+   handle->params.reg.scopelist = SLPPropertyGet("net.slp.useScopes", 0, 0);
    handle->params.reg.scopelistlen = strlen(handle->params.reg.scopelist);
    handle->params.reg.attrlistlen = strlen(attrList);
    handle->params.reg.attrlist = attrList;

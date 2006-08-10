@@ -60,7 +60,7 @@ SLPDProperty G_SlpdProperty;
 int SLPDPropertyInit(const char * conffile)
 {
    char * myinterfaces = 0;
-   char * urlPrefix[27];    /* sizeof "service:directory-agent://(NULL)" */
+   char urlPrefix[MAX_URLPREFIX_SZ];
    int family = AF_UNSPEC;
 
    /* initialize the slp property subsystem */
@@ -70,12 +70,12 @@ int SLPDPropertyInit(const char * conffile)
    memset(&G_SlpdProperty, 0, sizeof(G_SlpdProperty));
 
    /* set the properties without hard defaults */
-   G_SlpdProperty.isDA = SLPPropertyAsBoolean(SLPPropertyGet("net.slp.isDA"));
-   G_SlpdProperty.activeDADetection = SLPPropertyAsBoolean(SLPPropertyGet("net.slp.activeDADetection"));               
+   G_SlpdProperty.isDA = SLPPropertyAsBoolean("net.slp.isDA");
+   G_SlpdProperty.activeDADetection = SLPPropertyAsBoolean("net.slp.activeDADetection");
 
    if (G_SlpdProperty.activeDADetection)
    {
-      G_SlpdProperty.DAActiveDiscoveryInterval = atoi(SLPPropertyGet("net.slp.DAActiveDiscoveryInterval"));
+      G_SlpdProperty.DAActiveDiscoveryInterval = SLPPropertyAsInteger("net.slp.DAActiveDiscoveryInterval");
       if (G_SlpdProperty.DAActiveDiscoveryInterval > 1
             && G_SlpdProperty.DAActiveDiscoveryInterval < SLPD_CONFIG_DA_FIND)
          G_SlpdProperty.DAActiveDiscoveryInterval = SLPD_CONFIG_DA_FIND;
@@ -83,28 +83,32 @@ int SLPDPropertyInit(const char * conffile)
    else
       G_SlpdProperty.DAActiveDiscoveryInterval = 0;
 
-   G_SlpdProperty.passiveDADetection = SLPPropertyAsBoolean(SLPPropertyGet("net.slp.passiveDADetection"));                   
-   G_SlpdProperty.isBroadcastOnly = SLPPropertyAsBoolean(SLPPropertyGet("net.slp.isBroadcastOnly"));
-   G_SlpdProperty.multicastTTL = atoi(SLPPropertyGet("net.slp.multicastTTL"));
-   G_SlpdProperty.multicastMaximumWait = atoi(SLPPropertyGet("net.slp.multicastMaximumWait"));
-   G_SlpdProperty.unicastMaximumWait = atoi(SLPPropertyGet("net.slp.unicastMaximumWait"));
-   G_SlpdProperty.randomWaitBound = atoi(SLPPropertyGet("net.slp.randomWaitBound"));
-   G_SlpdProperty.maxResults = atoi(SLPPropertyGet("net.slp.maxResults"));
-   G_SlpdProperty.traceMsg = SLPPropertyAsBoolean(SLPPropertyGet("net.slp.traceMsg"));
-   G_SlpdProperty.traceReg = SLPPropertyAsBoolean(SLPPropertyGet("net.slp.traceReg"));
-   G_SlpdProperty.traceDrop = SLPPropertyAsBoolean(SLPPropertyGet("net.slp.traceDrop"));
-   G_SlpdProperty.traceDATraffic = SLPPropertyAsBoolean(SLPPropertyGet("net.slp.traceDATraffic"));
-   G_SlpdProperty.DAAddresses = SLPPropertyGet("net.slp.DAAddresses");
-   G_SlpdProperty.DAAddressesLen = strlen(G_SlpdProperty.DAAddresses);
+   G_SlpdProperty.passiveDADetection = SLPPropertyAsBoolean("net.slp.passiveDADetection");
+   G_SlpdProperty.isBroadcastOnly = SLPPropertyAsBoolean("net.slp.isBroadcastOnly");
+   G_SlpdProperty.multicastTTL = SLPPropertyAsInteger("net.slp.multicastTTL");
+   G_SlpdProperty.multicastMaximumWait = SLPPropertyAsInteger("net.slp.multicastMaximumWait");
+   G_SlpdProperty.unicastMaximumWait = SLPPropertyAsInteger("net.slp.unicastMaximumWait");
+   G_SlpdProperty.randomWaitBound = SLPPropertyAsInteger("net.slp.randomWaitBound");
+   G_SlpdProperty.maxResults = SLPPropertyAsInteger("net.slp.maxResults");
+   G_SlpdProperty.traceMsg = SLPPropertyAsBoolean("net.slp.traceMsg");
+   G_SlpdProperty.traceReg = SLPPropertyAsBoolean("net.slp.traceReg");
+   G_SlpdProperty.traceDrop = SLPPropertyAsBoolean("net.slp.traceDrop");
+   G_SlpdProperty.traceDATraffic = SLPPropertyAsBoolean("net.slp.traceDATraffic");
+
+   if ((G_SlpdProperty.DAAddresses = SLPPropertyXDup("net.slp.DAAddresses")) != 0)
+      G_SlpdProperty.DAAddressesLen = strlen(G_SlpdProperty.DAAddresses);
 
    /** @todo Make sure that we are using scopes correctly. What about DHCP, etc? */
-   G_SlpdProperty.useScopes = SLPPropertyGet("net.slp.useScopes");
-   G_SlpdProperty.useScopesLen = strlen(G_SlpdProperty.useScopes);
-   G_SlpdProperty.locale = SLPPropertyGet("net.slp.locale");
-   G_SlpdProperty.localeLen = strlen(G_SlpdProperty.locale);
-   G_SlpdProperty.securityEnabled = SLPPropertyAsBoolean(SLPPropertyGet("net.slp.securityEnabled"));
-   G_SlpdProperty.checkSourceAddr = SLPPropertyAsBoolean(SLPPropertyGet("net.slp.checkSourceAddr"));
-   G_SlpdProperty.DAHeartBeat = SLPPropertyAsInteger(SLPPropertyGet("net.slp.DAHeartBeat"));
+
+   if ((G_SlpdProperty.useScopes = SLPPropertyXDup("net.slp.useScopes")) != 0)
+      G_SlpdProperty.useScopesLen = strlen(G_SlpdProperty.useScopes);
+
+   if ((G_SlpdProperty.locale = SLPPropertyXDup("net.slp.locale")) != 0)
+      G_SlpdProperty.localeLen = strlen(G_SlpdProperty.locale);
+
+   G_SlpdProperty.securityEnabled = SLPPropertyAsBoolean("net.slp.securityEnabled");
+   G_SlpdProperty.checkSourceAddr = SLPPropertyAsBoolean("net.slp.checkSourceAddr");
+   G_SlpdProperty.DAHeartBeat = SLPPropertyAsInteger("net.slp.DAHeartBeat");
 
    /* set the net.slp.interfaces property */
    if (SLPNetIsIPV4() && SLPNetIsIPV6())
@@ -114,34 +118,30 @@ int SLPDPropertyInit(const char * conffile)
    else if (SLPNetIsIPV6())
       family = AF_INET6;
 
-   if (SLPIfaceGetInfo(SLPPropertyGet("net.slp.interfaces"),
-            &G_SlpdProperty.ifaceInfo, family) == 0)
-   {
-      if (SLPPropertyGet("net.slp.interfaces"))
-         if (SLPIfaceSockaddrsToString(G_SlpdProperty.ifaceInfo.iface_addr,
-                  G_SlpdProperty.ifaceInfo.iface_count, &myinterfaces) == 0)
-            if (myinterfaces)
-               SLPPropertySet("net.slp.interfaces", myinterfaces);
+   myinterfaces = SLPPropertyXDup("net.slp.interfaces");
+   sts = SLPIfaceGetInfo(myinterfaces, &G_SlpdProperty.ifaceInfo, family);
+   xfree(myinterfaces);
 
-      xfree(myinterfaces);
-      G_SlpdProperty.interfaces = SLPPropertyGet("net.slp.interfaces");
+   if (sts == 0)
+   {
+      myinterfaces = 0;
+      if (SLPIfaceSockaddrsToString(G_SlpdProperty.ifaceInfo.iface_addr,
+            G_SlpdProperty.ifaceInfo.iface_count, &myinterfaces) == 0)
+      {
+         SLPPropertySet("net.slp.interfaces", myinterfaces, true);
+         G_SlpdProperty.interfaces = myinterfaces;
+         G_SlpdProperty.interfacesLen = strlen(G_SlpdProperty.interfaces);
+      }
    }
 
-   if(G_SlpdProperty.interfaces)
-      G_SlpdProperty.interfacesLen = strlen(G_SlpdProperty.interfaces);
-
    /* set the value used internally as the url for this agent */
-   if (G_SlpdProperty.isDA)
-      strcpy((char *) urlPrefix, SLP_DA_SERVICE_TYPE);
-   else
-      strcpy((char *) urlPrefix, SLP_SA_SERVICE_TYPE);
-
-   strcat((char *) urlPrefix, "://");
-
-   SLPPropertySet("net.slp.urlPrefix", (char *) urlPrefix);
-
-   G_SlpdProperty.urlPrefix = SLPPropertyGet("net.slp.urlPrefix");
+   strcpy(G_SlpdProperty.urlPrefix, G_SlpdProperty.isDA? SLP_DA_SERVICE_TYPE: SLP_SA_SERVICE_TYPE);
+   strcat(G_SlpdProperty.urlPrefix, "://");
    G_SlpdProperty.urlPrefixLen = strlen(G_SlpdProperty.urlPrefix);
+
+   /* I don't see why we need to set this - it's not in the spec...
+   SLPPropertySet("net.slp.urlPrefix", G_SlpdProperty.urlPrefix, true);
+   */
 
    /* set other values used internally */
    G_SlpdProperty.DATimestamp = (uint32_t)time(0);     /* DATimestamp must be the boot time of the process */
@@ -156,6 +156,10 @@ int SLPDPropertyInit(const char * conffile)
  */
 void SLPDPropertyDeinit(void)
 {
+   xfree(G_SlpdProperty.useScopes);
+   xfree(G_SlpdProperty.DAAddresses);
+   xfree(G_SlpdProperty.interfaces);
+   xfree(G_SlpdProperty.locale);
    SLPPropertyCleanup();
 }
 

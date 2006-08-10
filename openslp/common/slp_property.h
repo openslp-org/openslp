@@ -46,15 +46,18 @@
  * @{
  */
 
-const char * SLPPropertyGet(const char * name); 
+char * SLPPropertyXDup(const char * name);
+const char * SLPPropertyGet(const char * name, char * buffer, size_t * bufsz);
 int SLPPropertySet(const char * name, const char * value);
 
-bool SLPPropertyAsBoolean(const char * value);
-int SLPPropertyAsInteger(const char * value);
-int SLPPropertyAsIntegerVector(const char * value, 
+bool SLPPropertyAsBoolean(const char * name);
+int SLPPropertyAsInteger(const char * name);
+int SLPPropertyAsIntegerVector(const char * name, 
       int * ivector, int ivectorsz);
 
-int SLPPropertyInit(const char * conffile);
+int SLPPropertySetAppConfFile(const char * aconffile);
+
+int SLPPropertyInit(const char * gconffile);
 void SLPPropertyCleanup(void);
 
 /*! @} */

@@ -52,22 +52,24 @@
 #include "slp_iface.h"
 #include "slpd.h"
 
+#define MAX_URLPREFIX_SZ   (sizeof(SLP_DA_SERVICE_TYPE) + sizeof("://"))
+
 /** A structure that holds the value of all the properties slpd cares about.
  */
 typedef struct _SLPDProperty
 {
    size_t urlPrefixLen;
-   const char * urlPrefix;
+   char urlPrefix[MAX_URLPREFIX_SZ];
    size_t useScopesLen;
-   const char * useScopes; 
+   char * useScopes;
    size_t DAAddressesLen;
-   const char * DAAddresses;
-   uint32_t DATimestamp;  /* here for convenience */
+   char * DAAddresses;
+   uint32_t DATimestamp;
    SLPIfaceInfo ifaceInfo;
    size_t interfacesLen;
-   const char * interfaces;
+   char * interfaces;
    size_t localeLen;
-   const char * locale;
+   char * locale;
    int isBroadcastOnly;
    int passiveDADetection;
    int activeDADetection; 

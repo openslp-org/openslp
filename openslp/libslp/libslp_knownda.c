@@ -361,8 +361,8 @@ static int KnownDADiscoverFromMulticast(size_t scopelistlen,
 {
    int result = 0;
 
-   if (SLPPropertyAsBoolean(SLPGetProperty("net.slp.activeDADetection")) 
-         && SLPPropertyAsInteger(SLPGetProperty("net.slp.DADiscoveryMaximumWait")))
+   if (SLPPropertyAsBoolean("net.slp.activeDADetection") 
+         && SLPPropertyAsInteger("net.slp.DADiscoveryMaximumWait"))
       result = KnownDADiscoveryRqstRply(SLP_INVALID_SOCKET, 0, scopelistlen,
             scopelist, handle);
 
@@ -398,15 +398,15 @@ static int KnownDADiscoverFromDHCP(SLPHandleInfo * handle)
 
    if (!*ctx.scopelist)
    {
-      const char * slp = SLPGetProperty("net.slp.useScopes");
-      if (slp)
-         strcpy(ctx.scopelist, slp);
+      const char * useScopes = SLPPropertyGet("net.slp.useScopes", 0, 0);
+      if (useScopes)
+         strcpy(ctx.scopelist, useScopes);
    }
    scopelistlen = strlen(ctx.scopelist);
 
    SLPNetSetAddr(&peeraddr, AF_INET, SLP_RESERVED_PORT, 0);
 
-   timeout.tv_sec = SLPPropertyAsInteger(SLPGetProperty("net.slp.DADiscoveryMaximumWait"));
+   timeout.tv_sec = SLPPropertyAsInteger("net.slp.DADiscoveryMaximumWait");
    timeout.tv_usec = (timeout.tv_sec % 1000) * 1000;
    timeout.tv_sec = timeout.tv_sec / 1000;
 
@@ -452,7 +452,7 @@ static int KnownDADiscoverFromProperties(size_t scopelistlen,
    char * slider2;
    int result = 0;
 
-   slider1 = slider2 = temp = xstrdup(SLPGetProperty("net.slp.DAAddresses"));
+   slider1 = slider2 = temp = SLPPropertyXDup("net.slp.DAAddresses");
    if (temp)
    {
       char * tempend = temp + strlen(temp);
@@ -461,8 +461,7 @@ static int KnownDADiscoverFromProperties(size_t scopelistlen,
          struct timeval timeout;
          struct sockaddr_storage peeraddr;
 
-         timeout.tv_sec = SLPPropertyAsInteger(
-               SLPGetProperty("net.slp.DADiscoveryMaximumWait"));
+         timeout.tv_sec = SLPPropertyAsInteger("net.slp.DADiscoveryMaximumWait");
          timeout.tv_usec = (timeout.tv_sec % 1000) * 1000;
          timeout.tv_sec = timeout.tv_sec / 1000;
 
@@ -574,14 +573,13 @@ sockfd_t KnownDAConnect(SLPHandleInfo * handle, size_t scopelistlen,
    char * spistr = 0;
 
 #ifdef ENABLE_SLPv2_SECURITY
-   if (SLPPropertyAsBoolean(SLPGetProperty("net.slp.securityEnabled")))
+   if (SLPPropertyAsBoolean("net.slp.securityEnabled"))
       SLPSpiGetDefaultSPI(handle->hspi, SLPSPI_KEY_TYPE_PUBLIC, 
             &spistrlen, &spistr);
 #endif
 
    /* Set up connect timeout. */
-   timeout.tv_sec = SLPPropertyAsInteger(
-         SLPGetProperty("net.slp.DADiscoveryMaximumWait"));
+   timeout.tv_sec = SLPPropertyAsInteger("net.slp.DADiscoveryMaximumWait");
    timeout.tv_usec = (timeout.tv_sec % 1000) * 1000;
    timeout.tv_sec = timeout.tv_sec / 1000;
 
@@ -651,6 +649,7 @@ int KnownDAGetScopes(size_t * scopelistlen,
    size_t newlen;
    SLPDatabaseHandle dh;
    SLPDatabaseEntry * entry;
+   char const * useScopes;
 
    /* Discover all DAs. */
    if (KnownDADiscoverFromIPC(handle) == 0)
@@ -691,10 +690,9 @@ int KnownDAGetScopes(size_t * scopelistlen,
 
    /* Explicitly add in the useScopes property */
    newlen = G_KnownDAScopesLen;
+   useScopes = SLPPropertyGet("net.slp.useScopes", 0, 0);
    while (SLPUnionStringList(G_KnownDAScopesLen, G_KnownDAScopes, 
-         strlen(SLPPropertyGet("net.slp.useScopes")), 
-         SLPPropertyGet("net.slp.useScopes"), &newlen,
-         G_KnownDAScopes) < 0)
+         strlen(useScopes), useScopes, &newlen, G_KnownDAScopes) < 0)
    {
       G_KnownDAScopes = xrealloc(G_KnownDAScopes, newlen);
       if (!G_KnownDAScopes)

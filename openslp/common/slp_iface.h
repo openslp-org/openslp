@@ -62,13 +62,13 @@ typedef struct _SLPInterfaceInfo
    struct sockaddr_storage bcast_addr[SLP_MAX_IFACES];
 } SLPIfaceInfo;
 
-int SLPIfaceGetInfo(const char * useifaces, SLPIfaceInfo * ifaceinfo, 
+int SLPIfaceGetInfo(char const * useifaces, SLPIfaceInfo * ifaceinfo, 
       int family);
 
-int SLPIfaceSockaddrsToString(const struct sockaddr_storage * addrs, 
+int SLPIfaceSockaddrsToString(struct sockaddr_storage const * addrs, 
       int addrcount, char ** addrstr);
 
-int SLPIfaceStringToSockaddrs(const char * addrstr, 
+int SLPIfaceStringToSockaddrs(char const * addrstr, 
       struct sockaddr_storage * addrs, int * addrcount);
 
 /*! @} */

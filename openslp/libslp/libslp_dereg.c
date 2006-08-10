@@ -112,7 +112,7 @@ static SLPError ProcessSrvDeReg(SLPHandleInfo * handle)
    struct sockaddr_storage saaddr;
 
 #ifdef ENABLE_SLPv2_SECURITY
-   if (SLPPropertyAsBoolean(SLPGetProperty("net.slp.securityEnabled")))
+   if (SLPPropertyAsBoolean("net.slp.securityEnabled"))
       if (SLPAuthSignUrl(handle->hspi, 0, 0, 
             handle->params.dereg.urllen, handle->params.dereg.url, 
             &urlauthlen, &urlauth) != 0)
@@ -245,7 +245,7 @@ SLPError SLPAPI SLPDereg(
       return SLP_HANDLE_IN_USE;
 
    /* Set the handle up to reference parameters. */
-   handle->params.dereg.scopelist = SLPGetProperty("net.slp.useScopes");
+   handle->params.dereg.scopelist = SLPPropertyGet("net.slp.useScopes", 0, 0);
    handle->params.dereg.scopelistlen = strlen(handle->params.dereg.scopelist);
    handle->params.dereg.urllen = strlen(srvUrl); 
    handle->params.dereg.url = srvUrl;

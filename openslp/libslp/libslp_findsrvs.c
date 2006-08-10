@@ -78,7 +78,7 @@ static SLPBoolean CollateToSLPSrvURLCallback(SLPHandle hSLP,
 #endif
 
    /* Configure behaviour for desired max results */
-   maxResults = SLPPropertyAsInteger(SLPGetProperty("net.slp.maxResults"));
+   maxResults = SLPPropertyAsInteger("net.slp.maxResults");
    if (maxResults == -1)
       maxResults = INT_MAX;
 
@@ -163,8 +163,7 @@ static SLPBoolean ProcessSrvRplyCallback(SLPError errorcode,
    SLPHandleInfo * handle = (SLPHandleInfo *)cookie;
 
 #ifdef ENABLE_SLPv2_SECURITY
-   SLPBoolean securityEnabled = SLPPropertyAsBoolean(
-         SLPGetProperty("net.slp.securityEnabled"));
+   SLPBoolean securityEnabled = SLPPropertyAsBoolean("net.slp.securityEnabled");
 #endif
 
    /* Check the errorcode and bail if it is set. */
@@ -262,7 +261,7 @@ static SLPError ProcessSrvRqst(SLPHandleInfo * handle)
    }
 
 #ifdef ENABLE_SLPv2_SECURITY
-   if (SLPPropertyAsBoolean(SLPGetProperty("net.slp.securityEnabled")))
+   if (SLPPropertyAsBoolean("net.slp.securityEnabled"))
       SLPSpiGetDefaultSPI(handle->hspi, SLPSPI_KEY_TYPE_PUBLIC, 
             &spistrlen, &spistr);
 #endif
@@ -424,7 +423,7 @@ SLPEXP SLPError SLPAPI SLPFindSrvs(
 
    /* Get a scope list if not supplied. */
    if (pcScopeList == 0 || *pcScopeList == 0)
-      pcScopeList = SLPGetProperty("net.slp.useScopes");
+      pcScopeList = SLPPropertyGet("net.slp.useScopes", 0, 0);
 
    /* Get a search filter if not supplied */
    if (pcSearchFilter == 0)

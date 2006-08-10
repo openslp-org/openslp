@@ -571,11 +571,18 @@ SLPEXP void SLPAPI SLPFree(void * pvMem);
 SLPEXP const char * SLPAPI SLPGetProperty(const char * pcName);
 
 /*=========================================================================
- * SLPSetProperty (4.6.8) - not implementable due to threading issues.
+ * SLPSetProperty (4.6.8) - only partially implemented - can successfully
+ *    be called as long as SLPGetProperty has not yet been called.
  */
 SLPEXP void SLPAPI SLPSetProperty(
       const char *   pcName, 
       const char *   pcValue);
+
+/*=========================================================================
+ * SLPSetAppPropertyFile (post RFC 2614)
+ */
+SLPEXP SLPError SLPAPI SLPSetAppPropertyFile(
+      const char *   pathname);
 
 /*=========================================================================
  * SLPParseAttrs (post RFC 2614)

@@ -86,7 +86,7 @@ static SLPBoolean ProcessAttrRplyCallback(SLPError errorcode,
          {
 #ifdef ENABLE_SLPv2_SECURITY
             /* Validate the attribute authblocks. */
-            if (SLPPropertyAsBoolean(SLPGetProperty("net.slp.securityEnabled"))) 
+            if (SLPPropertyAsBoolean("net.slp.securityEnabled")) 
                   && SLPAuthVerifyString(handle->hspi, 1,
                         attrrply->attrlistlen, attrrply->attrlist,
                         attrrply->authcount, attrrply->autharray))
@@ -127,7 +127,7 @@ static SLPError ProcessAttrRqst(SLPHandleInfo * handle)
    struct sockaddr_storage peeraddr;
 
 #ifdef ENABLE_SLPv2_SECURITY
-   if (SLPPropertyAsBoolean(SLPGetProperty("net.slp.securityEnabled")))
+   if (SLPPropertyAsBoolean("net.slp.securityEnabled"))
       SLPSpiGetDefaultSPI(handle->hspi, SLPSPI_KEY_TYPE_PUBLIC, 
             &spistrlen, &spistr);
 #endif
@@ -300,7 +300,7 @@ SLPEXP SLPError SLPAPI SLPFindAttrs(
 
    /* Get a scope list if none was specified. */
    if (pcScopeList == 0 || *pcScopeList == 0)
-      pcScopeList = SLPGetProperty("net.slp.useScopes");
+      pcScopeList = SLPPropertyGet("net.slp.useScopes", 0, 0);
 
    /* Get a tag list if none was specified. */
    if (pcAttrIds == 0)

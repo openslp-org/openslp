@@ -64,13 +64,18 @@ static SLPError InitUserAgentLibrary(void)
    /* Initialize the system if this is the first handle opened. */
    if (SLPAtomicInc(&s_OpenSLPHandleCount) == 1)
    {
-      SLPPropertyInit(0);
+      if (LIBSLPPropertyInit(LIBSLP_CONFFILE) != 0)
+      {
+         SLPAtomicDec(&s_OpenSLPHandleCount);
+         return SLP_MEMORY_ALLOC_FAILED;
+      }
 #ifdef _WIN32
 		{
 			WSADATA wsaData; 
 			WORD wVersionRequested = MAKEWORD(1,1); 
 			if (WSAStartup(wVersionRequested, &wsaData) != 0)
 			{
+            SLPPropertyCleanup();
 				SLPAtomicDec(&s_OpenSLPHandleCount);
 				return SLP_NETWORK_INIT_FAILED;
 			}
@@ -95,7 +100,6 @@ static void ExitUserAgentLibrary(void)
 {
    if (SLPAtomicDec(&s_OpenSLPHandleCount) == 0)
    {
-      SLPPropertyCleanup();
       KnownDAFreeAll();
 #ifdef DEBUG
       xmalloc_deinit();
@@ -195,7 +199,7 @@ SLPEXP SLPError SLPAPI SLPOpen(
 
    /* Set the language tag. */
    if (pcLang == 0 || *pcLang == 0)
-      pcLang = SLPGetProperty("net.slp.locale");
+      pcLang = SLPPropertyGet("net.slp.locale", 0, 0);
 
    handle->langtaglen = strlen(pcLang);
    handle->langtag = xmemdup(pcLang, handle->langtaglen + 1);

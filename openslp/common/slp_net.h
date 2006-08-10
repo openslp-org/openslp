@@ -95,8 +95,8 @@ int SLPNetSetAddr(void * addr, int family, uint16_t port,
       const void * address);
 int SLPNetSetParams(void * addr, int family, uint16_t port);
 int SLPNetSetPort(void * addr, uint16_t port);
-char * SLPNetSockAddrStorageToString(const void * src, char * dst, 
-      size_t dstLen);
+char * SLPNetSockAddrStorageToString(struct sockaddr_storage const * src, 
+      char * dst, size_t dstLen);
 int SLPNetGetSrvMcastAddr(const char * pSrvType, size_t len, 
       int scope, void * addr);
 int SLPNetExpandIpv6Addr(const char * ipv6Addr, char * result, 

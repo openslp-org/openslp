@@ -45,15 +45,35 @@
 #include "slp_property.h"
 #include "slp_atomic.h"
 
-/** Module static flag indicating property module is initialized */
-/* Commented out because SLPOpen handles this
- * static bool s_PropInited = 0; 
- */
+/** A flag that indicates that we can still allow calls to SLPSetProperty. */
+static bool s_UserAllowedToSet = true;
 
-/** Module static spinlock variable protects property module initialization */
-/* Commented out because SLPOpen handles this
- * static intptr_t s_PropInitLock = 0;
+/** A flag that indicates the property sub-system has been initialized. */
+static bool s_PropInited = 0;
+
+/** The libslp property sub-system initialization wrapper.
+ * 
+ * @param[in] gconffile - The global configuration file to use.
+ * 
+ * @return Zero on success, or a non-zero error value.
+ * 
+ * @internal
  */
+int LIBSLPPropertyInit(char const * gconffile)
+{
+   static intptr_t s_PropInitLock = 0;
+
+   int rv = 0;
+   if (!s_PropInited)
+   {
+      SLPAcquireSpinLock(&s_PropInitLock);
+      if (!s_PropInited && (rv = SLPPropertyInit(gconffile)) == 0);
+         s_PropInited = true;
+      SLPReleaseSpinLock(&s_PropInitLock);
+   }
+   SLP_ASSERT(rv == 0);
+   return rv;
+}
 
 /** Returns a string value for a specified property.
  *
@@ -67,10 +87,6 @@
  *    containing the property value. If the property was not set, 
  *    returns the default value. If an error occurs, returns NULL. 
  *    The returned string MUST NOT be freed.
- * 
- * @remarks Since SLPOpen (through InitUserAgentLibrary) now atomically
- *    checks the open handle count, the properties are now initialized
- *    there.  Especially since SLPClose already cleans up those properties.
  */
 SLPEXP const char * SLPAPI SLPGetProperty(const char * pcName)
 {
@@ -78,19 +94,19 @@ SLPEXP const char * SLPAPI SLPGetProperty(const char * pcName)
    if (!pcName || !*pcName)
       return 0;
 
-   /*  The following is commented out because SLPOpen handles this
-   if (!s_PropInited)
-   {
-      SLPAcquireSpinLock(&s_PropInitLock);
-      if (!s_PropInited)
-      {
-         SLPPropertyInit(0);
-         s_PropInited = true;
-      }
-      SLPReleaseSpinLock(&s_PropInitLock);
-   }
-   */
-   return SLPPropertyGet(pcName);
+   /* This wrapper ensures that we only get initialized once */
+   if (!s_PropInited && LIBSLPPropertyInit(LIBSLP_CONFFILE) != 0)
+      return 0;
+
+   /* At this point, the caller may no longer call SLPSetProperty because
+    * we're about to return a pointer to internal memory, and we can no longer
+    * guarantee thread-safety. This is a defect in RFC 2614 - it defines an 
+    * interface that can't be made to be thread safe, so we allow setting 
+    * until the first call to SLPGetProperty is detected here.
+    */
+   s_UserAllowedToSet = false;
+
+   return SLPPropertyGet(pcName, 0, 0);
 } 
 
 /** Set a property value by name. 
@@ -104,46 +120,50 @@ SLPEXP const char * SLPAPI SLPGetProperty(const char * pcName)
  * @param[in] pcValue - Null terminated string with the property value, 
  *    in UTF-8 character encoding.
  *
- * @remarks This code is currently not implemented because there's no good
- *    way for the library to know when it's safe to delete an old stored 
- *    value, and replace it with the new value, specified in @p pcValue. 
- *    While clients aren't technically supposed to save off pointers into
- *    the configuration store for later use, doing so is not prohibited.
- *    Regardless, even if they don't store the value pointer, there are 
- *    still multi-threaded race conditions that can't be solved with the
- *    current design.
- *
- * @remarks We could implement this by maintaining a list of all old values
- *    so they were always valid for the life of the application, but that
- *    could be expensive, memory-wise, depending on the nature of the 
- *    application using this library. In pathological cases, the property 
- *    memory store could grow without bounds.
+ * @remarks This function is implemented such that it can be successfully 
+ *    called as long as SLPGetProperty has not yet been called in this 
+ *    process. The reason for this is because there's no good way for the 
+ *    library to know when it's safe to delete an old stored value, and 
+ *    replace it with the new value, specified in @p pcValue. While clients 
+ *    aren't technically supposed to save off pointers into the configuration 
+ *    store for later use, doing so is not prohibited. Regardless, even if 
+ *    they don't store the value pointer, there are still multi-threaded 
+ *    race conditions that can't be solved with the current API design.
  */
-SLPEXP void SLPAPI SLPSetProperty(
-      const char * pcName, 
-      const char * pcValue)
+SLPEXP void SLPAPI SLPSetProperty(const char * pcName, const char * pcValue)
 {
    SLP_ASSERT(pcName && *pcName);
    if (!pcName || !*pcName)
       return;
 
-   (void)pcValue;
+   /* This wrapper ensures that we only get initialized once */
+   if (!s_PropInited && LIBSLPPropertyInit(LIBSLP_CONFFILE) != 0)
+      return;
 
-   /* The following is commented out for threading reasons 
-
-   if (!s_PropInited)
+   if (s_UserAllowedToSet)
    {
-      SLPAcquireSpinLock(&s_PropInitLock);
-      if (!s_PropInited)
-      {
-         SLPPropertyInit(0);
-         s_PropInited = true;
-      }
-      SLPReleaseSpinLock(&s_PropInitLock);
+      int rv = SLPPropertySet(pcName, pcValue);
+      SLP_ASSERT(rv == 0);
+      (void)rv;   /* quite the compiler in release code */
    }
-   SLPPropertySet(pcName, pcValue);
+}
 
-   */
+/** Set the application-specific configuration file full path name.
+ *
+ * Sets an application-specific configuration override file. The contents of
+ * this property file will override the contents of the default or global 
+ * UA configuration file (usually /etc/slp.conf or c:\windows\slp.conf).
+ *
+ * @param[in] pathname - Null terminated string containing the full path
+ *    name of the application property override file. [POST RFC 2614]
+ */
+SLPEXP SLPError SLPAPI SLPSetAppPropertyFile(const char * pathname)
+{
+   SLP_ASSERT(pathname && *pathname);
+   if (!pathname || !*pathname)
+      return SLP_PARAMETER_BAD;
+
+   return SLPPropertySetAppConfFile(pathanme)? SLP_PARAMETER_BAD: SLP_OK;
 }
 
 /*=========================================================================*/

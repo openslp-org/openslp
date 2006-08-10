@@ -79,7 +79,7 @@ static SLPBoolean CollateToSLPSrvTypeCallback(SLPHandle hSLP,
 #endif
 
    /* Configure behaviour for desired max results. */
-   maxResults = SLPPropertyAsInteger(SLPGetProperty("net.slp.maxResults"));
+   maxResults = SLPPropertyAsInteger("net.slp.maxResults");
    if (maxResults == -1)
       maxResults = INT_MAX;
 
@@ -351,7 +351,7 @@ SLPError SLPAPI SLPFindSrvTypes(
 
    /* Get a scope list if none was specified. */
    if (pcScopeList == 0 || *pcScopeList == 0)
-      pcScopeList = SLPGetProperty("net.slp.useScopes");
+      pcScopeList = SLPPropertyGet("net.slp.useScopes", 0, 0);
 
    /* Set the handle up to reference parameters. */
    handle->params.findsrvtypes.namingauthlen = strlen(pcNamingAuthority);

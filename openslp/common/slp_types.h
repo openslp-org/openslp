@@ -84,24 +84,18 @@ typedef unsigned long uint32_t;
 /* windows -> posix system calls */
 # define sleep Sleep
 
-/* windows -> posix library calls */
+/* windows -> posix stdlib calls */
 # define strncasecmp _strnicmp
 # define strcasecmp _stricmp
 # define snprintf _snprintf
 # define strdup _strdup
 
 /* file name paths */
-# define SLPD_CONFFILE "%WINDIR%\\slp.conf"
-# define SLPD_SPIFILE  "%WINDIR%\\slp.spi"
-# define SLPD_REGFILE  "%WINDIR%\\slp.reg"
-# define SLPD_LOGFILE  "%WINDIR%\\slpd.log"
-# define SLPD_PIDFILE  "%WINDIR%\\slpd.pid"
-# ifndef LIBSLP_CONFFILE
-#  define LIBSLP_CONFFILE SLPD_CONFFILE
-# endif
-# ifndef LIBSLP_SPIFILE
-#  define LIBSLP_SPIFILE  SLPD_SPIFILE
-# endif
+# define SLPD_CONFFILE  "%WINDIR%\\slp.conf"
+# define SLPD_SPIFILE   "%WINDIR%\\slp.spi"
+# define SLPD_REGFILE   "%WINDIR%\\slp.reg"
+# define SLPD_LOGFILE   "%WINDIR%\\slpd.log"
+# define SLPD_PIDFILE   "%WINDIR%\\slpd.pid"
 
 #else	/* ! _WIN32 */
 
@@ -209,19 +203,23 @@ typedef unsigned long uint32_t;
 #  include <grp.h>
 # endif
 
-# define SLPD_CONFFILE ETCDIR "/slp.conf"
-# define SLPD_REGFILE  ETCDIR "/slp.reg"
-# define SLPD_SPIFILE  ETCDIR "/slp.spi"
-# define SLPD_LOGFILE  VARDIR "/log/slpd.log"
-# define SLPD_PIDFILE  VARDIR "/run/slpd.pid"
-# ifndef LIBSLP_CONFFILE
-#  define LIBSLP_CONFFILE "/etc/slp.conf"
-# endif
-# ifndef LIBSLP_SPIFILE
-#  define LIBSLP_SPIFILE  "/etc/slp.spi"
-# endif
+# define SLPD_CONFFILE  ETCDIR "/slp.conf"
+# define SLPD_REGFILE   ETCDIR "/slp.reg"
+# define SLPD_SPIFILE   ETCDIR "/slp.spi"
+# define SLPD_LOGFILE   VARDIR "/log/slpd.log"
+# define SLPD_PIDFILE   VARDIR "/run/slpd.pid"
 
 #endif /* ! _WIN32 */
+
+/* default libslp global configuration file */
+#ifndef LIBSLP_CONFFILE
+# define LIBSLP_CONFFILE SLPD_CONFFILE
+#endif
+
+/* default libslp global spi file */
+#ifndef LIBSLP_SPIFILE
+# define LIBSLP_SPIFILE  SLPD_SPIFILE
+#endif
 
 #ifndef MAX_PATH
 # define MAX_PATH 256
@@ -232,6 +230,14 @@ typedef unsigned long uint32_t;
 # define bool int
 # define false 0
 # define true !false
+#endif
+
+#ifdef _WIN32
+# define fnamecpy(src,dst,dstsz) \
+      ExpandEnvironmentStrings((LPCTSTR)(src),(LPTSTR)(dst),(DWORD)(dstsz)-1)
+#else
+# define fnamecpy(src,dst,dstsz) \
+      (strncpy((dst),(src),(dstsz)-1)[(dstsz)-1] = 0)
 #endif
 
 /*! @} */

@@ -252,6 +252,8 @@ size_t SizeofURLEntry(size_t urllen, size_t urlauthlen);
 void PutURLEntry(uint8_t ** cpp, uint16_t lifetime, const char * url,
       size_t urllen, const uint8_t * urlauth, size_t urlauthlen);
 
+int LIBSLPPropertyInit(char const * gconffile);
+
 /*! @} */
 
 #endif /* LIBSLP_H_INCLUDED */ 

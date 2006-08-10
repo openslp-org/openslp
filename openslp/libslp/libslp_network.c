@@ -385,9 +385,8 @@ SLPError NetworkRqstRply(sockfd_t sock, void * peeraddr,
    if (SLPNetIsMCast(peeraddr))
    {
       /* Multicast or broadcast target address. */
-      maxwait = SLPPropertyAsInteger(
-            SLPGetProperty("net.slp.multicastMaximumWait"));
-      SLPPropertyAsIntegerVector(SLPGetProperty("net.slp.multicastTimeouts"), 
+      maxwait = SLPPropertyAsInteger("net.slp.multicastMaximumWait");
+      SLPPropertyAsIntegerVector("net.slp.multicastTimeouts", 
             timeouts, MAX_RETRANSMITS);
       xmitcount = 0;          /* Only retry to specific listeners. */
       looprecv = 1;
@@ -397,9 +396,8 @@ SLPError NetworkRqstRply(sockfd_t sock, void * peeraddr,
    {
       /* Unicast/stream target address. */
       socklen_t stypesz = sizeof(socktype);
-      maxwait = SLPPropertyAsInteger(
-            SLPGetProperty("net.slp.unicastMaximumWait"));
-      SLPPropertyAsIntegerVector(SLPGetProperty("net.slp.unicastTimeouts"),
+      maxwait = SLPPropertyAsInteger("net.slp.unicastMaximumWait");
+      SLPPropertyAsIntegerVector("net.slp.unicastTimeouts",
             timeouts, MAX_RETRANSMITS);
       getsockopt(sock, SOL_SOCKET, SO_TYPE, (char *)&socktype, &stypesz);
       if (socktype == SOCK_DGRAM)
@@ -418,9 +416,8 @@ SLPError NetworkRqstRply(sockfd_t sock, void * peeraddr,
    if (buftype == SLP_FUNCT_DASRVRQST)
    {
       /* do something special for SRVRQST that will be discovering DAs */
-      maxwait = SLPPropertyAsInteger(
-            SLPGetProperty("net.slp.DADiscoveryMaximumWait"));
-      SLPPropertyAsIntegerVector(SLPGetProperty("net.slp.DADiscoveryTimeouts"), 
+      maxwait = SLPPropertyAsInteger("net.slp.DADiscoveryMaximumWait");
+      SLPPropertyAsIntegerVector("net.slp.DADiscoveryTimeouts", 
             timeouts, MAX_RETRANSMITS);
       /* DASRVRQST is a fake function - change to SRVRQST. */
       buftype  = SLP_FUNCT_SRVRQST;
@@ -433,7 +430,7 @@ SLPError NetworkRqstRply(sockfd_t sock, void * peeraddr,
     * previous responders there are. This is because the retransmit code 
     * terminates if ever MTU is exceeded for any datagram message. 
     */
-   mtu = SLPPropertyAsInteger(SLPGetProperty("net.slp.MTU"));
+   mtu = SLPPropertyAsInteger("net.slp.MTU");
    if (buftype == SLP_FUNCT_SRVRQST 
          || buftype == SLP_FUNCT_ATTRRQST 
          || buftype == SLP_FUNCT_SRVTYPERQST)
@@ -732,7 +729,7 @@ SLPError NetworkMcastRqstRply(SLPHandleInfo * handle, void * buf,
    langtaglen = strlen(handle->langtag);
 
    xid = SLPXidGenerate();
-   mtu = SLPPropertyAsInteger(SLPGetProperty("net.slp.MTU"));
+   mtu = SLPPropertyAsInteger("net.slp.MTU");
    sendbuf = SLPBufferAlloc(mtu);
    if (!sendbuf)
    {
@@ -761,10 +758,10 @@ SLPError NetworkMcastRqstRply(SLPHandleInfo * handle, void * buf,
 
    { 
       if (SLPNetIsIPV4())
-         SLPIfaceGetInfo(SLPGetProperty("net.slp.interfaces"), 
+         SLPIfaceGetInfo("net.slp.interfaces", 
                &v4outifaceinfo, AF_INET);
       if (SLPNetIsIPV6())
-         SLPIfaceGetInfo(SLPGetProperty("net.slp.interfaces"),
+         SLPIfaceGetInfo("net.slp.interfaces",
                &v6outifaceinfo, AF_INET6);
       if (!v4outifaceinfo.iface_count && !v6outifaceinfo.iface_count) 
       {
@@ -773,21 +770,19 @@ SLPError NetworkMcastRqstRply(SLPHandleInfo * handle, void * buf,
       }
    }
 
-   usebroadcast = SLPPropertyAsBoolean(SLPGetProperty("net.slp.useBroadcast"));
+   usebroadcast = SLPPropertyAsBoolean("net.slp.useBroadcast");
 
    /* multicast/broadcast wait timeouts */
-   maxwait = SLPPropertyAsInteger(
-         SLPGetProperty("net.slp.multicastMaximumWait"));
-   SLPPropertyAsIntegerVector(SLPGetProperty("net.slp.multicastTimeouts"),
+   maxwait = SLPPropertyAsInteger("net.slp.multicastMaximumWait");
+   SLPPropertyAsIntegerVector("net.slp.multicastTimeouts",
          timeouts, MAX_RETRANSMITS);
 
    /* special case for fake SLP_FUNCT_DASRVRQST */
    if (buftype == SLP_FUNCT_DASRVRQST)
    {
       /* do something special for SRVRQST that will be discovering DAs */
-      maxwait = SLPPropertyAsInteger(
-            SLPGetProperty("net.slp.DADiscoveryMaximumWait"));
-      SLPPropertyAsIntegerVector(SLPGetProperty("net.slp.DADiscoveryTimeouts"),
+      maxwait = SLPPropertyAsInteger("net.slp.DADiscoveryMaximumWait");
+      SLPPropertyAsIntegerVector("net.slp.DADiscoveryTimeouts",
             timeouts, MAX_RETRANSMITS);
       /* SLP_FUNCT_DASRVRQST is a fake function.  We really want a SRVRQST */
       buftype  = SLP_FUNCT_SRVRQST;
@@ -932,8 +927,7 @@ SLPError NetworkMcastRqstRply(SLPHandleInfo * handle, void * buf,
                {
                   sockfd_t tcpsockfd;
                   int retval1, retval2, unicastwait = 0;
-                  unicastwait = SLPPropertyAsInteger(
-                        SLPGetProperty("net.slp.unicastMaximumWait"));
+                  unicastwait = SLPPropertyAsInteger("net.slp.unicastMaximumWait");
                   timeout.tv_sec = unicastwait / 1000;
                   timeout.tv_usec = (unicastwait % 1000) * 1000;
 
@@ -1090,7 +1084,7 @@ SLPError NetworkUcastRqstRply(SLPHandleInfo * handle, void * buf,
    /* save off a few things we don't want to recalculate */
    langtaglen = strlen(handle->langtag);
    xid = SLPXidGenerate();
-   mtu = SLPPropertyAsInteger(SLPGetProperty("net.slp.MTU"));
+   mtu = SLPPropertyAsInteger("net.slp.MTU");
    sendbuf = SLPBufferAlloc(mtu);
    if (!sendbuf)
    {
@@ -1099,18 +1093,17 @@ SLPError NetworkUcastRqstRply(SLPHandleInfo * handle, void * buf,
    }
 
    /* unicast wait timeouts */
-   maxwait = SLPPropertyAsInteger(SLPGetProperty("net.slp.unicastMaximumWait"));
-   SLPPropertyAsIntegerVector(SLPGetProperty("net.slp.unicastTimeouts"),
+   maxwait = SLPPropertyAsInteger("net.slp.unicastMaximumWait");
+   SLPPropertyAsIntegerVector("net.slp.unicastTimeouts",
          timeouts, MAX_RETRANSMITS);
 
    /* special case for fake SLP_FUNCT_DASRVRQST */
    if (buftype == SLP_FUNCT_DASRVRQST)
    {
       /* do something special for SRVRQST that will be discovering DAs */
-      maxwait = SLPPropertyAsInteger(SLPGetProperty(
-            "net.slp.DADiscoveryMaximumWait"));
-      SLPPropertyAsIntegerVector(SLPGetProperty(
-            "net.slp.DADiscoveryTimeouts"), timeouts, MAX_RETRANSMITS);
+      maxwait = SLPPropertyAsInteger("net.slp.DADiscoveryMaximumWait");
+      SLPPropertyAsIntegerVector("net.slp.DADiscoveryTimeouts", 
+            timeouts, MAX_RETRANSMITS);
       /* SLP_FUNCT_DASRVRQST is a fake function. We really want to
          send a SRVRQST */
       buftype  = SLP_FUNCT_SRVRQST;

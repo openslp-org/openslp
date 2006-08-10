@@ -208,6 +208,7 @@ static void HandleSigHup(void)
    SLPDKnownDADeinit();
 
    /* re-read properties */
+   SLPDPropertyDeinit();
    SLPDPropertyInit(G_SlpdCommandLine.cfgfile);
 
 #ifdef ENABLE_SLPv2_SECURITY

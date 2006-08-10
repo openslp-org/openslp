@@ -338,7 +338,7 @@ int SLPNetResolveHostToAddr(const char * host,
  */
 int SLPNetIsIPV6(void)
 {
-   return SLPPropertyAsBoolean(SLPPropertyGet("net.slp.useIPv6"))? 1: 0;
+   return SLPPropertyAsBoolean("net.slp.useIPv6")? 1: 0;
 }
 
 /** Determine if we should use IPv4.
@@ -349,7 +349,7 @@ int SLPNetIsIPV6(void)
  */
 int SLPNetIsIPV4(void)
 {
-   return SLPPropertyAsBoolean(SLPPropertyGet("net.slp.useIPv6"))? 0: 1;
+   return SLPPropertyAsBoolean("net.slp.useIPv6")? 0: 1;
 }
 
 /** Compare two address buffers.
@@ -569,16 +569,17 @@ int SLPNetSetPort(void * addr, uint16_t port)
 
 /** Format an address structure as a displayable string.
  *     
- * @param[in] src - The source address to format.
+ * @param[in] src - The source sockaddr_storage buffer to be formatted.
  * @param[out] dst - The destination string buffer.
  * @param[in] dstLen - The size of @p dst in bytes.
  *
- * @return A pointer to @p dst on success, or zero on failure.
+ * @return A pointer to @p dst on success, or zero on failure. Failure can
+ *    occur only if the address family of the sa_storage buffer is unknown.
  *
  * @remarks The format for an IPv4 address is "x.x.x.x". The format for 
  *    an IPv6 address is "x:x:..:x".
  */
-char * SLPNetSockAddrStorageToString(const void * src, 
+char * SLPNetSockAddrStorageToString(struct sockaddr_storage const * src, 
       char * dst, size_t dstLen)
 {
    const struct sockaddr * a = (const struct sockaddr *)src;
