@@ -32,7 +32,7 @@
 
 /** Thread synchronization.
  *
- * Implementation of threading primitives.
+ * Implementation of threading and mutex primitives.
  *
  * @file       slp_thread.c
  * @author     John Calcote (jcalcote@novell.com)
@@ -42,6 +42,7 @@
 
 #include "slp_types.h"
 #include "slp_thread.h"
+#include "slp_xmalloc.h"
 
 /** Create a new thread of execution.
  *
@@ -57,7 +58,7 @@
  * synchronize with the new thread's termination point. In pthread 
  * parlance, this attribute is called "joinable".
  *
- * @note The function address passed for @p startproc must match the 
+ * @remarks The function address passed for @p startproc must match the 
  * following signature: void * startproc(void *), where the return value
  * and the parameter must both be integer values the size of a pointer on 
  * the target platform.
@@ -95,6 +96,83 @@ void * SLPThreadWait(SLPThreadHandle th)
    pthread_join((pthread_t)th, &result);
 #endif
    return result;
+}
+
+/** Create a new mutex lock.
+ *
+ * Create and return a handle to a new mutex lock.
+ * 
+ * @return The new mutex's handle, or zero on failure (generally memory 
+ * allocation failure causes mutex creation failure).
+ */
+SLPMutexHandle SLPMutexCreate(void)
+{
+#ifdef _WIN32
+   CRITICAL_SECTION * mutex = (CRITICAL_SECTION *)xmalloc(sizeof(*mutex));
+   if (mutex != 0)
+      InitializeCriticalSection(mutex);
+#else
+   pthread_mutex_t * mutex = (pthread_mutex_t *)xmalloc(sizeof(*mutex));
+   if (mutex != 0 && pthread_mutex_init(mutex, 0) != 0)
+   {
+      xfree(mutex);
+      mutex = 0;
+   }
+#endif
+   return (SLPMutexHandle)mutex;
+}
+
+/** Acquire a lock on a mutex.
+ *
+ * @param[in] mh - The mutex handle to be acquired.
+ */
+void SLPMutexAcquire(SLPMutexHandle mh)
+{
+#ifdef _WIN32
+   EnterCriticalSection((CRITICAL_SECTION *)mh);
+#else
+   (void)pthread_mutex_lock((pthread_mutex_t *)mh);
+#endif
+}
+
+/** Try to acquire a lock on a mutex.
+ *
+ * @param[in] mh - The mutex handle on which to attempt acquisition.
+ */
+bool SLPMutexTryAcquire(SLPMutexHandle mh)
+{
+#ifdef _WIN32
+   return TryEnterCriticalSection((CRITICAL_SECTION *)mh) != FALSE;
+#else
+   return pthread_mutex_trylock((pthread_mutex_t *)mh) == 0;
+#endif
+}
+
+/** Release a lock on a mutex.
+ *
+ * @param[in] mh - The mutex handle to be released.
+ */
+void SLPMutexRelease(SLPMutexHandle mh)
+{
+#ifdef _WIN32
+   LeaveCriticalSection((CRITICAL_SECTION *)mh);
+#else
+   (void)pthread_mutex_unlock((pthread_mutex_t *)mh);
+#endif
+}
+
+/** Destroy a mutex lock.
+ * 
+ * @param[in] mh - The mutex handle to be destroyed.
+ */
+void SLPMutexDestroy(SLPMutexHandle mh)
+{
+#ifdef _WIN32
+   DeleteCriticalSection((CRITICAL_SECTION *)mh);
+#else
+   (void)pthread_mutex_destroy((pthread_mutex_t *)mh);
+#endif
+   free(mh);
 }
 
 /*=========================================================================*/

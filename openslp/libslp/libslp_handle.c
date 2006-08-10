@@ -48,6 +48,7 @@
 #include "slp_message.h"
 #include "slp_property.h"
 
+static bool s_HandlesInitialized = false; /*!< Indicates we're fully initialized. */
 static intptr_t s_OpenSLPHandleCount = 0; /*!< Tracks OpenSLP handles. */
 
 /** Initialize the User Agent library. 
@@ -70,21 +71,27 @@ static SLPError InitUserAgentLibrary(void)
          return SLP_MEMORY_ALLOC_FAILED;
       }
 #ifdef _WIN32
-		{
-			WSADATA wsaData; 
-			WORD wVersionRequested = MAKEWORD(1,1); 
-			if (WSAStartup(wVersionRequested, &wsaData) != 0)
-			{
-            SLPPropertyCleanup();
-				SLPAtomicDec(&s_OpenSLPHandleCount);
-				return SLP_NETWORK_INIT_FAILED;
-			}
-		}
+      {
+         WSADATA wsaData; 
+         WORD wVersionRequested = MAKEWORD(1,1); 
+         if (WSAStartup(wVersionRequested, &wsaData) != 0)
+         {
+            SLPAtomicDec(&s_OpenSLPHandleCount);
+            return SLP_NETWORK_INIT_FAILED;
+         }
+      }
 #endif
 #ifdef DEBUG
       xmalloc_init("libslp_xmalloc.log", 0);
 #endif
       SLPXidSeed();
+      s_HandlesInitialized = true;
+   }
+   else 
+   {
+      /* wait for first thread to finish before going on */
+      while (!s_HandlesInitialized) 
+         sleep(0);
    }
    return SLP_OK;
 }
@@ -107,6 +114,7 @@ static void ExitUserAgentLibrary(void)
 #ifdef _WIN32
       WSACleanup();
 #endif
+      s_HandlesInitialized = false;
    }
 }
 
@@ -184,7 +192,7 @@ SLPEXP SLPError SLPAPI SLPOpen(
    }
 
    handle->sig = SLP_HANDLE_SIG;
-   handle->inUse = SLP_FALSE;
+   handle->inUse = 0;
 
 #ifdef ENABLE_ASYNC_API
    handle->isAsync = isAsync;

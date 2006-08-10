@@ -68,7 +68,10 @@ int LIBSLPPropertyInit(char const * gconffile)
    {
       SLPAcquireSpinLock(&s_PropInitLock);
       if (!s_PropInited && (rv = SLPPropertyInit(gconffile)) == 0);
+      {
+         atexit(SLPPropertyExit);
          s_PropInited = true;
+      }
       SLPReleaseSpinLock(&s_PropInitLock);
    }
    SLP_ASSERT(rv == 0);
@@ -142,7 +145,7 @@ SLPEXP void SLPAPI SLPSetProperty(const char * pcName, const char * pcValue)
 
    if (s_UserAllowedToSet)
    {
-      int rv = SLPPropertySet(pcName, pcValue, true);
+      int rv = SLPPropertySet(pcName, pcValue, SLP_PA_USERSET);
       SLP_ASSERT(rv == 0);
       (void)rv;   /* quite the compiler in release code */
    }

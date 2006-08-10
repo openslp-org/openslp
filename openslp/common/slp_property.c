@@ -56,7 +56,7 @@
 #include "slp_property.h"
 #include "slp_xmalloc.h"
 #include "slp_linkedlist.h"
-#include "slp_atomic.h"
+#include "slp_thread.h"
 #include "slp_debug.h"
 
 #define ENV_CONFFILE_VARNAME "OpenSLPConfig"
@@ -66,7 +66,7 @@
 typedef struct _SLPProperty
 {
    SLPListItem listitem;   /*!< Make the SLPProperty class list-able. */
-   bool immutable;         /*!< The value may NOT be changed by config files */
+   unsigned attrs;         /*!< Property attributes. */
    char * value;           /*!< The value of this property. Points into the name buffer. */
    char name[1];           /*!< The name/value of this property. The name is zero-terminated */
 } SLPProperty;
@@ -80,8 +80,14 @@ static SLPList s_PropertyList = {0, 0, 0};
 /** The (optional) application-specified property file - module static. */
 static char s_AppPropertyFile[MAX_PATH] = "";
 
+/** The (optional) environment-specified property file - module static. */
+static char s_EnvPropertyFile[MAX_PATH] = "";
+
+/** The (optional) global property file - module static. */
+static char s_GlobalPropertyFile[MAX_PATH] = "";
+
 /** The database lock - module static. */
-static intptr_t s_PropDbLock = 0;
+static SLPMutexHandle s_PropDbLock;
 
 /** Sets all SLP default property values.
  *
@@ -91,67 +97,81 @@ static intptr_t s_PropDbLock = 0;
  */
 static int SetDefaultValues(void)
 {
-   int ec = 0;                                
-
+   /* The table of default property values - comments following some values 
+    * indicate deviations from the default values specified in RFC 2614.
+    */
+   static struct { char * name, * value; unsigned attrs; } defaults[] =
+   {
    /* Section 2.1.1 DA Configuration */
-   ec |= SLPPropertySet("net.slp.isDA", "false", false);
-   ec |= SLPPropertySet("net.slp.DAHeartBeat", "10800", false);
-   ec |= SLPPropertySet("net.slp.DAAttributes", "", false);
+      {"net.slp.isDA", "false", 0},
+      {"net.slp.DAHeartBeat", "10800", 0},
+      {"net.slp.DAAttributes", "", 0},
 
    /* Section 2.1.2 Static Scope Configuration */
-   ec |= SLPPropertySet("net.slp.useScopes", "DEFAULT", false);                                  /* RO */
-   ec |= SLPPropertySet("net.slp.DAAddresses", "", false);                                       /* RO */
+      {"net.slp.useScopes", "DEFAULT", SLP_PA_READONLY},
+      {"net.slp.DAAddresses", "", SLP_PA_READONLY},
 
    /* Section 2.1.3 Tracing and Logging */
-   ec |= SLPPropertySet("net.slp.traceDATraffic", "false", false);
-   ec |= SLPPropertySet("net.slp.traceMsg", "false", false);
-   ec |= SLPPropertySet("net.slp.traceDrop", "false", false);
-   ec |= SLPPropertySet("net.slp.traceReg", "false", false);
+      {"net.slp.traceDATraffic", "false", 0},
+      {"net.slp.traceMsg", "false", 0},
+      {"net.slp.traceDrop", "false", 0},
+      {"net.slp.traceReg", "false", 0},
 
    /* Section 2.1.4 Serialized Proxy Registrations */
-   ec |= SLPPropertySet("net.slp.serializedRegURL", "", false);
+      {"net.slp.serializedRegURL", "", 0},
 
    /* Section 2.1.5 Network Configuration Properties */
-   ec |= SLPPropertySet("net.slp.isBroadcastOnly", "false", false);                              /* RO */
-   ec |= SLPPropertySet("net.slp.passiveDADetection", "true", false);                            /* false */
-   ec |= SLPPropertySet("net.slp.multicastTTL", "255", false);                                   /* 8 */
-   ec |= SLPPropertySet("net.slp.DAActiveDiscoveryInterval", "900", false);                      /* 1 */
-   ec |= SLPPropertySet("net.slp.multicastMaximumWait", "15000", false);                         /* 5000 */
-   ec |= SLPPropertySet("net.slp.multicastTimeouts", "1000,1250,1500,2000,4000", false);         /* 500,750,1000,1500,2000,3000 */
-   ec |= SLPPropertySet("net.slp.DADiscoveryTimeouts", "2000,2000,2000,2000,3000,4000", false);  /* 500,750,1000,1500,2000,3000 */
-   ec |= SLPPropertySet("net.slp.datagramTimeouts", "1000,1250,1500,2000,4000", false);          /* I made up these numbers */
-   ec |= SLPPropertySet("net.slp.randomWaitBound", "1000", false);
-   ec |= SLPPropertySet("net.slp.MTU", "1400", false);
-   ec |= SLPPropertySet("net.slp.interfaces", "", false);
+      {"net.slp.isBroadcastOnly", "false", SLP_PA_READONLY},
+      {"net.slp.passiveDADetection", "true", 0},                           /* false */
+      {"net.slp.multicastTTL", "255", 0},                                  /* 8 */
+      {"net.slp.DAActiveDiscoveryInterval", "900", 0},                     /* 1 */
+      {"net.slp.multicastMaximumWait", "15000"},                           /* 5000 */
+      {"net.slp.multicastTimeouts", "1000,1250,1500,2000,4000", 0},        /* 500,750,1000,1500,2000,3000 */  
+      {"net.slp.DADiscoveryTimeouts", "2000,2000,2000,2000,3000,4000", 0}, /* 500,750,1000,1500,2000,3000 */ 
+      {"net.slp.datagramTimeouts", "1000,1250,1500,2000,4000", 0},         /* I made up these numbers */     
+      {"net.slp.randomWaitBound", "1000", 0},
+      {"net.slp.MTU", "1400", 0},
+      {"net.slp.interfaces", "", 0},
 
    /* Section 2.1.6 SA Configuration */
-   ec |= SLPPropertySet("net.slp.SAAttributes", "", false);
+      {"net.slp.SAAttributes", "", 0},
 
    /* Section 2.1.7 UA Configuration */
-   ec |= SLPPropertySet("net.slp.locale", "en", false);
-   ec |= SLPPropertySet("net.slp.maxResults", "-1", false);                                      /* 256 */
-   ec |= SLPPropertySet("net.slp.typeHint", "", false);
+      {"net.slp.locale", "en", 0},
+      {"net.slp.maxResults", "-1", 0},                                     /* 256 */
+      {"net.slp.typeHint", "", 0},
 
    /* Section 2.1.8 Security */
-   ec |= SLPPropertySet("net.slp.securityEnabled", "false", false);
+      {"net.slp.securityEnabled", "false", 0},
 
    /* Additional properties that transcend RFC 2614 */
-   ec |= SLPPropertySet("net.slp.watchRegistrationPID", "true", false);
-   ec |= SLPPropertySet("net.slp.OpenSLPVersion", SLP_VERSION, false);                           /* RO - I'm guessing */
-   ec |= SLPPropertySet("net.slp.unicastMaximumWait", "5000", false);
-   ec |= SLPPropertySet("net.slp.unicastTimeouts", "500,750,1000,1500,2000,3000", false);
-   ec |= SLPPropertySet("net.slp.DADiscoveryMaximumWait", "2000", false);
-   ec |= SLPPropertySet("net.slp.activeDADetection", "true", false);
-   ec |= SLPPropertySet("net.slp.checkSourceAddr", "true", false);
-   ec |= SLPPropertySet("net.slp.broadcastAddr", "255.255.255.255", false);
+      {"net.slp.watchRegistrationPID", "true", 0},
+      {"net.slp.OpenSLPVersion", SLP_VERSION, 0},
+      {"net.slp.unicastMaximumWait", "5000", 0},
+      {"net.slp.unicastTimeouts", "500,750,1000,1500,2000,3000", 0},
+      {"net.slp.DADiscoveryMaximumWait", "2000", 0},
+      {"net.slp.activeDADetection", "true", 0},
+      {"net.slp.checkSourceAddr", "true", 0},
+      {"net.slp.broadcastAddr", "255.255.255.255", 0},
 
    /* Additional properties that are specific to IPv6 */
-   ec |= SLPPropertySet("net.slp.useIPv6", "false", false);
+      {"net.slp.useIPv6", "false", 0},
+   };
 
-   return ec;
+   int i;
+
+   for (i = 0; i < sizeof(defaults)/sizeof(*defaults); i++)
+      if (SLPPropertySet(defaults[i].name, defaults[i].value, 
+            defaults[i].attrs) != 0)
+         return -1;
+
+   return 0;
 }
 
-/** Reads a specified configuration file into non-immutable properties.
+/** Reads a specified configuration file into non-userset properties.
+ * 
+ * Reads all values from a specified configuration file into the in-memory
+ * database
  * 
  * @param[in] conffile - The name of the file to be read.
  * 
@@ -222,7 +242,7 @@ static bool ReadFileProperties(char const * conffile)
    
          /* set the property (as mutable) */
          if (valuestart && *valuestart)
-            SLPPropertySet(namestart, valuestart, false);
+            SLPPropertySet(namestart, valuestart, 0);
       }
       fclose(fp);
       retval = true;
@@ -232,19 +252,12 @@ static bool ReadFileProperties(char const * conffile)
    return retval;
 }
 
-/** Reads the specified property configuration files.
+/** Reads the property configuration files.
  *
- * Clears all current values from the property table, and then reads and sets 
- * properties from the specified configuration files. All properties read from 
+ * Clears all current values from the property table, and then reads and 
+ * sets properties from the configuration files. All properties read from 
  * configuration files are considered mutable by the application (except for
  * the values of the specified configuration files.
- *
- * @param[in] gconffile - The path of the optional global OpenSLP 
- *    configuration file to be read.
- * @param[in] econffile - The path of the optional environment-specified 
- *    configuration file to be read.
- * @param[in] aconffile - The path of the optional application-specified
- *    configuration file to be read.
  *
  * @return Zero on success, or a non-zero value on error. Properties will 
  *    be set to default on error, or if not set by one or more of the
@@ -252,27 +265,29 @@ static bool ReadFileProperties(char const * conffile)
  * 
  * @internal
  */
-static int ReadPropertyFiles(char const * gconffile, char const * econffile, 
-      char const * aconffile)
+static int ReadPropertyFiles(void)
 {
    /* load all default values first - override later with file entries */
    if (SetDefaultValues() != 0)
       return -1;
 
    /* read global, and then app configuration files */
-   if (gconffile && *gconffile)
-      if (ReadFileProperties(gconffile))
-         SLPPropertySet("net.slp.OpenSLPConfigFile", gconffile, true);
+   if (s_GlobalPropertyFile && *s_GlobalPropertyFile)
+      if (ReadFileProperties(s_GlobalPropertyFile))
+         SLPPropertySet("net.slp.OpenSLPConfigFile", 
+               s_GlobalPropertyFile, SLP_PA_READONLY);
 
    /* read environment specified configuration file */
-   if (econffile && *econffile)
-      if (ReadFileProperties(econffile))
-         SLPPropertySet("net.slp.EnvConfigFile", econffile, true);
+   if (s_EnvPropertyFile && *s_EnvPropertyFile)
+      if (ReadFileProperties(s_EnvPropertyFile))
+         SLPPropertySet("net.slp.EnvConfigFile", 
+               s_EnvPropertyFile, SLP_PA_READONLY);
 
    /* if set, read application-specified configuration file */
-   if (aconffile && *aconffile)
-      if (ReadFileProperties(aconffile))
-         SLPPropertySet("net.slp.AppConfigFile", aconffile, true);
+   if (s_AppPropertyFile && *s_AppPropertyFile)
+      if (ReadFileProperties(s_AppPropertyFile))
+         SLPPropertySet("net.slp.AppConfigFile", 
+               s_AppPropertyFile, SLP_PA_READONLY);
 
    return 0;
 }
@@ -321,12 +336,12 @@ char * SLPPropertyXDup(const char * name)
    if (!name)
       return 0;
 
-   SLPAcquireSpinLock(&s_PropDbLock);
+   SLPMutexAcquire(s_PropDbLock);
 
    if ((property = Find(name)) != 0)
       retval = xstrdup(property->value);
 
-   SLPReleaseSpinLock(&s_PropDbLock);
+   SLPMutexRelease(s_PropDbLock);
 
    return retval;
 }
@@ -374,7 +389,7 @@ char const * SLPPropertyGet(char const * name, char * buffer, size_t * bufszp)
 
    if (bufszp) *bufszp = 0;
 
-   SLPAcquireSpinLock(&s_PropDbLock);
+   SLPMutexAcquire(s_PropDbLock);
 
    if ((property = Find(name)) != 0)
    {
@@ -392,7 +407,7 @@ char const * SLPPropertyGet(char const * name, char * buffer, size_t * bufszp)
          retval = value;
    }
 
-   SLPReleaseSpinLock(&s_PropDbLock);
+   SLPMutexRelease(s_PropDbLock);
 
    return retval;
 }
@@ -405,23 +420,30 @@ char const * SLPPropertyGet(char const * name, char * buffer, size_t * bufszp)
  * @param[in] name - The name of the desired property.
  * @param[in] value - The new value to which @p name should be set or
  *    NULL if the existing value should be removed.
- * @param[in] immutable - the property may NOTE be changed by values 
- *    read from configuration files.
+ * @param[in] attrs - The attributes of this property - zero means no
+ *    attributes are assigned, other values include SLP_PA_USERSET and 
+ *    SLP_PA_READONLY.
  *
  * @return Zero on success; -1 on error, with errno set.
  * 
- * @remarks The @p immutable parameter is actually overloaded. If it's true
- * then the value will be set regardless of the current state of the property.
- * The reason for this is that only the application can specify an immutable
- * value of true, so it should have full power to change values, even if they
- * are already marked immutable. Sorry about the logic - I know it's horrible.
+ * @remarks The @p attrs parameter contains a set of bit flags indicating
+ * various attributes of the property. These attributes control write 
+ * permissions mostly. SLP_PA_USERSET means that an attribute may not
+ * be changed by reading a configuration file, except in a complete 
+ * re-initialization scenario. SLP_PA_READONLY sounds like the same thing, 
+ * but it's not. The difference is that once set, properties with the 
+ * SLP_PA_READONLY attribute may NEVER be reset (again, except in a complete 
+ * re-initialization scenario), while properties with the SLP_PA_USERSET 
+ * attribute may only be reset by passing this same flag in @p attrs, 
+ * indicating that the caller is actually a user, and so has the right
+ * to reset the property value.
  */
-int SLPPropertySet(char const * name, char const * value, bool immutable)
+int SLPPropertySet(char const * name, char const * value, unsigned attrs)
 {
    size_t namesz, valuesz;
    SLPProperty * oldprop;
-   SLPProperty * newprop = 0;
-   bool opimmutable = false;
+   SLPProperty * newprop = 0;    /* we may be just removing the old */
+   bool update = true;           /* reset if old property exists */
 
    /* property names must not be null or empty */
    SLP_ASSERT(name && *name);
@@ -441,31 +463,34 @@ int SLPPropertySet(char const * name, char const * value, bool immutable)
       }
 
       /* set internal pointers to trailing buffer space, copy values */
-      newprop->immutable = immutable;
+      newprop->attrs = attrs;
       memcpy(newprop->name, name, namesz);
       newprop->value = newprop->name + namesz;
       memcpy(newprop->value, value, valuesz);
    }
 
-   SLPAcquireSpinLock(&s_PropDbLock);
+   SLPMutexAcquire(s_PropDbLock);
 
-   /* locate and remove old property if exists and is NOT immutable */
+   /* locate and possibly remove old property */
    if ((oldprop = Find(name))!= 0)
-      if ((opimmutable = oldprop->immutable) == false || immutable == true)
+   {
+      /* update ONLY if old is clean, or new and old are user-settable . */
+      update = !oldprop->attrs 
+            || (oldprop->attrs == SLP_PA_USERSET && attrs == SLP_PA_USERSET);
+      if (update)
          SLPListUnlink(&s_PropertyList, (SLPListItem *)oldprop);
+   }
 
-   /* link in new property, if specified and old property is NOT immutable */
-   if (newprop && (!opimmutable || immutable))
+   /* link in new property, if specified and old property was removed */
+   if (newprop && update)
       SLPListLinkHead(&s_PropertyList, (SLPListItem *)newprop);
 
-   SLPReleaseSpinLock(&s_PropDbLock);
+   SLPMutexRelease(s_PropDbLock);
 
-   if (opimmutable && !immutable)
-      oldprop = newprop;
+   /* if old property was not removed, delete the new one instead */
+   xfree(update? oldprop: newprop);
 
-   xfree(oldprop);   /* free one or the other - never both */
-
-   return (opimmutable && !immutable)? -1: 0;
+   return update? 0: ((errno = EACCES), -1);
 }
 
 /** Converts a property name into a binary boolean value.
@@ -486,7 +511,7 @@ bool SLPPropertyAsBoolean(char const * name)
    bool retval = false;
    SLPProperty * property;
 
-   SLPAcquireSpinLock(&s_PropDbLock);
+   SLPMutexAcquire(s_PropDbLock);
 
    if ((property = Find(name)) != 0)
    {
@@ -497,7 +522,7 @@ bool SLPPropertyAsBoolean(char const * name)
          retval = true;
    }
 
-   SLPReleaseSpinLock(&s_PropDbLock);
+   SLPMutexRelease(s_PropDbLock);
 
    return retval;
 }
@@ -521,12 +546,12 @@ int SLPPropertyAsInteger(char const * name)
    int ivalue = 0;
    SLPProperty * property;
 
-   SLPAcquireSpinLock(&s_PropDbLock);
+   SLPMutexAcquire(s_PropDbLock);
 
    if ((property = Find(name)) != 0)
       ivalue = atoi(property->value);
 
-   SLPReleaseSpinLock(&s_PropDbLock);
+   SLPMutexRelease(s_PropDbLock);
 
    return ivalue;
 }
@@ -555,7 +580,7 @@ int SLPPropertyAsIntegerVector(char const * name,
    int i = 0;
    SLPProperty * property;
 
-   SLPAcquireSpinLock(&s_PropDbLock);
+   SLPMutexAcquire(s_PropDbLock);
 
    if ((property = Find(name)) != 0)
    {
@@ -580,7 +605,7 @@ int SLPPropertyAsIntegerVector(char const * name,
       }
    }
 
-   SLPReleaseSpinLock(&s_PropDbLock);
+   SLPMutexRelease(s_PropDbLock);
 
    return i;
 }
@@ -604,57 +629,26 @@ int SLPPropertySetAppConfFile(const char * aconffile)
       return -1;
 
    if (aconffile)
-      fnamecpy(aconffile, s_AppPropertyFile, sizeof(s_AppPropertyFile));
-
+   {
+      strnenv(s_AppPropertyFile, aconffile, sizeof(s_AppPropertyFile));
+      s_AppPropertyFile[sizeof(s_AppPropertyFile)-1] = 0;
+   }
    return 0;
-}
-
-/** Initialize (or reintialize) the property table.
- *
- * Initialize the property module from configuration options specified in
- * @p conffile. If @p conffile is NULL, then read the values from the 
- * default file name and location. If property module has already been 
- * initialized, call SLPPropertyCleanup to release all existing resources
- * and re-initialize from the specified or default property file.
- * 
- * @param[in] gconffile - The name of the global configuration file to read.
- *    If this parameter is NULL, then use the default global configuration 
- *    file path and name.
- *
- * @return Zero on success, or a non-zero value on error.
- * 
- * @remarks This routine is NOT reentrant, so steps should be taken by the 
- *    caller to ensure that this routine is not called by multiple threads
- *    simultaneously. This routine is designed to be called by the client
- *    library and the daemon. The daemon calls it at startup and at SIGHUP.
- *    The client library calls it the first time any library property call
- *    is made by the library consumer.
- */
-int SLPPropertyInit(const char * gconffile)
-{
-   char const * ecfptr = getenv(ENV_CONFFILE_VARNAME);
-   char ecfbuf[MAX_PATH + 1];
-   char * econffile = 0;
-
-   if (ecfptr)
-      fnamecpy(ecfptr, ecfbuf, sizeof(ecfbuf));
-
-   SLPPropertyCleanup();   /* remove all existing properties */
-
-   s_PropertiesInitialized = true;
-
-   return ReadPropertyFiles(gconffile, econffile, s_AppPropertyFile);
 }
 
 /** Release all resources held by the property module.
  * 
  * Free all associated list memory, and reinitialize the global list head
  * pointer to NULL.
+ * 
+ * @internal
  */
-void SLPPropertyCleanup(void)
+static void SLPPropertyCleanup(void)
 {
    SLPProperty * property;
    SLPProperty * del;
+
+   SLPMutexAcquire(s_PropDbLock);
 
    property = (SLPProperty *)s_PropertyList.head;
    while (property)
@@ -665,23 +659,102 @@ void SLPPropertyCleanup(void)
    }
    memset(&s_PropertyList, 0, sizeof(s_PropertyList));
 
+   SLPMutexRelease(s_PropDbLock);
+}
+
+/** Initialize (or reintialize) the property table.
+ *
+ * Cleanup and reinitialize the property module from configuration files.
+ * 
+ * @return Zero on success, or a non-zero value on error.
+ * 
+ * @remarks The daemon calls this routine at SIGHUP. Thread-safe.
+ */
+int SLPPropertyReinit(void)
+{
+   SLPPropertyCleanup();
+   return ReadPropertyFiles();
+}
+
+/** Initialize (or reintialize) the property table.
+ *
+ * Store the global init file pathname and initialize the property module 
+ * from configuration options specified in @p gconffile. 
+ * 
+ * @param[in] gconffile - The name of the global configuration file to read.
+ *
+ * @return Zero on success, or a non-zero value on error.
+ * 
+ * @remarks This routine is NOT reentrant, so steps should be taken by the 
+ * caller to ensure that this routine is not called by multiple threads
+ * simultaneously. This routine is designed to be called once by the 
+ * client library and the daemon, and before other threads begin accessing
+ * other property sub-system methods.
+ */
+int SLPPropertyInit(const char * gconffile)
+{
+   int sts;
+   char const * econffile = getenv(ENV_CONFFILE_VARNAME);
+
+   if (econffile)
+   {
+      strnenv(s_EnvPropertyFile, econffile, sizeof(s_EnvPropertyFile));
+      s_EnvPropertyFile[sizeof(s_EnvPropertyFile)-1] = 0;
+   }
+   if (gconffile)
+   {
+      strnenv(s_GlobalPropertyFile, gconffile, sizeof(s_GlobalPropertyFile));
+      s_GlobalPropertyFile[sizeof(s_GlobalPropertyFile)-1] = 0;
+   }
+   if ((s_PropDbLock = SLPMutexCreate()) == 0)
+      return -1;
+
+   if ((sts = SLPPropertyReinit()) != 0)
+      SLPMutexDestroy(s_PropDbLock);
+   else
+      s_PropertiesInitialized = true;
+
+   return sts;
+}
+
+/** Release all globally held resources held by the property module.
+ * 
+ * Free all associated property database memory, and destroy the database 
+ * mutex.
+ * 
+ * @remarks This routine is NOT reentrant, so steps should be taken by the
+ * caller to ensure that it is not called by more than one thread at a time.
+ * It should also not be called while other threads are accessing the property
+ * database through any of the other property sub-system access methods.
+ */
+void SLPPropertyExit(void)
+{
+   SLPPropertyCleanup();
+   SLPMutexDestroy(s_PropDbLock);
    s_PropertiesInitialized = false;
 }
 
 /*===========================================================================
  *  TESTING CODE : compile with the following command lines:
  *
- *  $ gcc -g -DSLP_PROPERTY_TEST -DLIBSLP_CONFFILE=\"test.conf\" 
- *       -DSLP_VERSION=\"2.0\" -DDEBUG slp_property.c slp_xmalloc.c 
- *       slp_linkedlist.c slp_debug.c
+ *  $ gcc -g -DSLP_PROPERTY_TEST -DVERSION=\"2.0\" -DDEBUG -DETCDIR=\"./\"
+ *       slp_property.c slp_xmalloc.c slp_linkedlist.c slp_debug.c
  *
- *  C:\> cl -Zi -DSLP_PROPERTY_TEST -DLIBSLP_CONFFILE=\"test.conf\"
- *       -DSLP_VERSION=\"2.0\" -DDEBUG slp_property.c slp_xmalloc.c 
- *       slp_linkedlist.c slp_debug.c
- *
- * NOTE: No database lock required in this single-threaded test routine.
+ *  C:\> cl -Zi -DSLP_PROPERTY_TEST -DSLP_VERSION=\"2.0\" -DDEBUG 
+ *       -D_CRT_SECURE_NO_DEPRECATE slp_property.c slp_xmalloc.c 
+ *       slp_thread.c slp_debug.c slp_linkedlist.c
  */
 #ifdef SLP_PROPERTY_TEST 
+
+# define FAIL (printf("FAIL: %s at line %d.\n", __FILE__, __LINE__), (-1))
+# define PASS (printf("PASS: Success!\n"), (0))
+
+# define TEST_G_CFG_FILENAME "slp_property_test.global.conf"
+# define TEST_A_CFG_FILENAME "slp_property_test.app.cfg"
+
+# ifdef _WIN32
+#  define unlink _unlink
+# endif
 
 int main(int argc, char * argv[])
 {
@@ -691,17 +764,17 @@ int main(int argc, char * argv[])
    FILE * fp;
    char const * pval;
 
-   /* create a configuration file */
-   fp = fopen("slp_property_test.conf", "w+");
+   /* create a global configuration file */
+   fp = fopen(TEST_G_CFG_FILENAME, "w+");
    if (!fp)
-      return -1;
+      return FAIL;
    fputs("\n", fp);
    fputs(" \n", fp);
    fputs("# This is a comment.\n", fp);
    fputs(" # This is another comment.\n", fp);
    fputs(" \t\f# This is the last comment.\n", fp);
    fputs("\t\t   \f\tStrange Text with no equals sign\n", fp);
-   fputs("net.slp.isDA=true\n", fp); /* default false */
+   fputs("net.slp.isDA=true\n", fp);         /* default value is false */
    fputs("net.slp.DAHeartBeat = 10801\n", fp);
    fputs("net.slp.DAAttributes=\n", fp);
    fputs("net.slp.useScopes =DEFAULT\n", fp);
@@ -710,109 +783,84 @@ int main(int argc, char * argv[])
    fputs("net.slp.multicastTimeouts=1001,1251,1501,2001,4001\n", fp);
    fclose(fp);
 
-   /* test default config file read */
-   ec = SLPPropertyInit(0);
+   /* create an application configuration file */
+   fp = fopen(TEST_A_CFG_FILENAME, "w+");
+   if (!fp)
+      return FAIL;
+   fputs("net.slp.DAHeartBeat = 10802\n", fp);
+   fclose(fp);
+
+   /* specify app configuration file */
+   ec = SLPPropertySetAppConfFile(TEST_A_CFG_FILENAME);
    if (ec != 0)
-   {
-      printf("FAILURE: SLPPropertyInit (1).\n");
-      return ec;
-   }
-   pval = SLPPropertyGet("net.slp.isDA", 0, 0);
+      return FAIL;
+
+   /* specify global configuration file - initialize */
+   ec = SLPPropertyInit(TEST_G_CFG_FILENAME);
+   if (ec != 0)
+      return FAIL;
+
+   /* set a mutable value */
+   ec = SLPPropertySet("net.slp.traceDATraffic", "false", 0);
+   if (ec != 0)
+      return FAIL;
+
+   /* set a user-only settable value */
+   ec = SLPPropertySet("net.slp.isDA", "false", SLP_PA_USERSET);
+   if (ec != 0)
+      return FAIL;
+
+   pval = SLPPropertyGet("net.slp.traceDATraffic", 0, 0);
    if (pval == 0 || strcmp(pval, "false") != 0)
-   {
-      printf("FAILURE: net.slp.isDA (1).\n");
-      return -1;
-   }
-   pval = SLPPropertyGet("net.slp.DAHeartBeat", 0, 0);
-   if (pval == 0 || strcmp(pval, "10800") != 0)
-   {
-      printf("FAILURE: net.slp.DAHeartBeat (1).\n");
-      return -1;
-   }
-   pval = SLPPropertyGet("net.slp.DAAttributes", 0, 0);
-   if (pval == 0 || *pval != 0)
-   {
-      printf("FAILURE: net.slp.DAAttributes (1).\n");
-      return -1;
-   }
-   pval = SLPPropertyGet("net.slp.multicastTimeouts", 0, 0);
-   if (pval == 0 || strcmp(pval, "1000,1250,1500,2000,4000") != 0)
-   {
-      printf("FAILURE: net.slp.multicastTimeouts (1).\n");
-      return -1;
-   }
+      return FAIL;
+
    ival = SLPPropertyAsInteger("net.slp.DAHeartBeat");
-   if (ival != 10800)
-   {
-      printf("FAILURE: net.slp.DAHeartBeat (2).\n");
-      return -1;
-   }
+   if (ival != 10802)
+      return FAIL;
+
    bval = SLPPropertyAsBoolean("net.slp.isDA");
    if (bval != false)
-   {
-      printf("FAILURE: net.slp.isDA (2).\n");
-      return -1;
-   }
-   nval = SLPPropertyAsIntegerVector("net.slp.multicastTimeouts", ivec, 10);
-   if (nval != 5 || ivec[0] != 1000 || ivec[1] != 1250 || ivec[2] != 1500
-         || ivec[3] != 2000 || ivec[4] != 4000)
-   {
-      printf("FAILURE: SLPPropertyAsIntegerVector (2).\n");
-      return -1;
-   }
+      return FAIL;
 
-   /* test generated config file read */
-   ec = SLPPropertyInit("slp_property_test.conf");
-   if (ec != 0)
-   {
-      printf("FAILURE: SLPPropertyInit (3).\n");
-      return ec;
-   }
-   ival = SLPPropertyAsInteger("net.slp.DAHeartBeat");
-   if (ival != 10801)
-   {
-      printf("FAILURE: SLPPropertyAsInteger (3).\n");
-      return -1;
-   }
-   bval = SLPPropertyAsBoolean("net.slp.isDA");
-   if (bval == false)
-   {
-      printf("FAILURE: SLPPropertyAsBoolean (3).\n");
-      return -1;
-   }
    nval = SLPPropertyAsIntegerVector("net.slp.multicastTimeouts", ivec, 10);
    if (nval != 5 || ivec[0] != 1001 || ivec[1] != 1251 || ivec[2] != 1501
          || ivec[3] != 2001 || ivec[4] != 4001)
-   {
-      printf("FAILURE: SLPPropertyAsIntegerVector (3).\n");
-      return -1;
-   }
+      return FAIL;
+
    ival = SLPPropertyAsInteger("net.slp.fake");
    if (ival != 0)
-   {
-      printf("FAILURE: SLPPropertyAsInteger (4).\n");
-      return -1;
-   }
+      return FAIL;
+
    bval = SLPPropertyAsBoolean("net.slp.fake");
    if (bval != false)
-   {
-      printf("FAILURE: SLPPropertyAsBoolean (4).\n");
-      return -1;
-   }
+      return FAIL;
+
    nval = SLPPropertyAsIntegerVector("net.slp.fake", ivec, 10);
    if (nval != 0)
-   {
-      printf("FAILURE: SLPPropertyAsIntegerVector (4).\n");
-      return -1;
-   }
-   SLPPropertyCleanup();
+      return FAIL;
 
-   remove("slp_property_test.conf");
+   pval = SLPPropertyGet("net.slp.OpenSLPConfigFile", 0, 0);
+   if (pval == 0 || strcmp(pval, TEST_G_CFG_FILENAME) != 0)
+      return FAIL;
 
-   printf("Success!\n");
+   /* reset a user-only settable value - indicate non-user is setting */
+   ec = SLPPropertySet("net.slp.isDA", "true", 0);
+   if (ec == 0)
+      return FAIL;
 
-   return 0;
+   /* reset a user-only settable value - indicate user is setting */
+   ec = SLPPropertySet("net.slp.isDA", "true", SLP_PA_USERSET);
+   if (ec != 0)
+      return FAIL;
+
+   SLPPropertyExit();
+
+   unlink(TEST_A_CFG_FILENAME);
+   unlink(TEST_G_CFG_FILENAME);
+
+   return PASS;
 }
+
 #endif
 
 /*=========================================================================*/

@@ -46,9 +46,15 @@
  * @{
  */
 
+/** @name SLPPropertySet Property Attributes */
+/*@{*/
+#define SLP_PA_USERSET     0x0001   /*!< Only users may set these values */
+#define SLP_PA_READONLY    0x0002   /*!< Once set, these are immutable */
+/*@}*/
+
 char * SLPPropertyXDup(const char * name);
 const char * SLPPropertyGet(const char * name, char * buffer, size_t * bufsz);
-int SLPPropertySet(const char * name, const char * value, bool immutable);
+int SLPPropertySet(const char * name, const char * value, unsigned attrs);
 
 bool SLPPropertyAsBoolean(const char * name);
 int SLPPropertyAsInteger(const char * name);
@@ -57,8 +63,9 @@ int SLPPropertyAsIntegerVector(const char * name,
 
 int SLPPropertySetAppConfFile(const char * aconffile);
 
+int SLPPropertyReinit(void);
 int SLPPropertyInit(const char * gconffile);
-void SLPPropertyCleanup(void);
+void SLPPropertyExit(void);
 
 /*! @} */
 

@@ -53,13 +53,11 @@
 #endif
 
 #ifdef _WIN32
-# define strnenv(d,s,n) ExpandEnvironmentStrings(s,d,n)
 # define SLPD_USAGE_STRING                                           \
          "-install [auto]|-remove|-start|-stop"                      \
          "|-debug [-d] [-c conf file] [-l log file] [-s spi file] "  \
          "[-r reg file] [-v version]"
 #else
-# define strnenv strncpy
 # define SLPD_USAGE_STRING                                           \
          "[-d] [-c conf file] [-l log file] "                        \
          "[-r reg file] [-s spi file] [-v version]"
@@ -89,12 +87,12 @@ int SLPDParseCommandLine(int argc, char * argv[])
 
    /* Set defaults */
    memset(&G_SlpdCommandLine, 0, sizeof(SLPDCommandLine));
-   strnenv(G_SlpdCommandLine.cfgfile, SLPD_CONFFILE, MAX_PATH - 1);
-   strnenv(G_SlpdCommandLine.logfile, SLPD_LOGFILE, MAX_PATH - 1);
-   strnenv(G_SlpdCommandLine.regfile, SLPD_REGFILE, MAX_PATH - 1);
-   strnenv(G_SlpdCommandLine.pidfile, SLPD_PIDFILE, MAX_PATH - 1);
+   strnenv(G_SlpdCommandLine.cfgfile, SLPD_CONFFILE, sizeof(G_SlpdCommandLine.cfgfile));
+   strnenv(G_SlpdCommandLine.logfile, SLPD_LOGFILE, sizeof(G_SlpdCommandLine.logfile));
+   strnenv(G_SlpdCommandLine.regfile, SLPD_REGFILE, sizeof(G_SlpdCommandLine.regfile));
+   strnenv(G_SlpdCommandLine.pidfile, SLPD_PIDFILE, sizeof(G_SlpdCommandLine.pidfile));
 #ifdef ENABLE_SLPv2_SECURITY
-   strnenv(G_SlpdCommandLine.spifile, SLPD_SPIFILE, MAX_PATH - 1);
+   strnenv(G_SlpdCommandLine.spifile, SLPD_SPIFILE, sizeof(G_SlpdCommandLine.spifile));
 #endif
    G_SlpdCommandLine.action = -1;
 

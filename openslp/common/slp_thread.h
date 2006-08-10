@@ -46,6 +46,13 @@
  * @{
  */
 
+/** @name Threading Primitives. 
+ * 
+ * The thread model is simple, providing only the ability to create and start
+ * a thread, and the ability to wait for that thread to terminate, and return
+ * its error code.
+ */
+/*@{*/
 /** A waitable thread handle type. */
 typedef void * SLPThreadHandle;
 
@@ -54,6 +61,24 @@ typedef void * (*SLPThreadStartProc)(void *);
 
 SLPThreadHandle SLPThreadCreate(SLPThreadStartProc startproc, void * arg);
 void * SLPThreadWait(SLPThreadHandle th);
+/*@}*/
+
+/** @name Mutex Primitives. 
+ * 
+ * These mutex primitives are simple, light-weight, non-recursive
+ * mutual exclusion locks. They're based on pthreads for POSIX platforms
+ * and Win32 CRITICAL_SECTIONS on Windows platforms.
+ */
+/*@{*/
+/** A cross-platform mutex handle abstraction. */
+typedef void * SLPMutexHandle;
+
+SLPMutexHandle SLPMutexCreate(void);
+bool SLPMutexTryAcquire(SLPMutexHandle mh);
+void SLPMutexAcquire(SLPMutexHandle mh);
+void SLPMutexRelease(SLPMutexHandle mh);
+void SLPMutexDestroy(SLPMutexHandle mh);
+/*@}*/
 
 /*! @} */
 

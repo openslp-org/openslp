@@ -59,6 +59,7 @@
 
 /* system library includes */
 # define WIN32_LEAN_AND_MEAN
+# define _WIN32_WINNT 0x0400
 # include <winsock2.h>           /* must include before windows.h */
 # include <windows.h>
 
@@ -232,12 +233,11 @@ typedef unsigned long uint32_t;
 # define true !false
 #endif
 
+/* expand environment strings or copy them, zero terminate, return d */
 #ifdef _WIN32
-# define fnamecpy(src,dst,dstsz) \
-      ExpandEnvironmentStrings((LPCTSTR)(src),(LPTSTR)(dst),(DWORD)(dstsz)-1)
+# define strnenv(d,s,n) (ExpandEnvironmentStrings((s),(d),(n)-1),(d))
 #else
-# define fnamecpy(src,dst,dstsz) \
-      (strncpy((dst),(src),(dstsz)-1)[(dstsz)-1] = 0)
+# define strnenv(d,s,n) ((strncpy((d),(s),(n)-1)[(n)-1] = 0),(d))
 #endif
 
 /*! @} */

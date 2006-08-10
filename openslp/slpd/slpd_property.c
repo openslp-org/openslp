@@ -49,25 +49,25 @@
  */
 SLPDProperty G_SlpdProperty;
 
-/** Initialize the slpd property management subsystem.
+/** Reinitialize the slpd property management subsystem.
  *
- * Reads configuration parameters from a file into the system.
- *
- * @param[in] conffile - The name of the configuration file
- *
- * @return Zero on success, or a non-zero value on failure.
+ * Clears and rereads configuration parameters from files into the system.
+ * Resets slpd-specific overrides.
  */
-int SLPDPropertyInit(const char * conffile)
+void SLPDPropertyReinit(void)
 {
    int sts;
    char * myinterfaces = 0;
    int family = AF_UNSPEC;
 
-   /* initialize the slp property subsystem */
-   if (SLPPropertyInit(conffile) != 0)
-      return -1;
+   /* free previous settings (if any) */
+   xfree(G_SlpdProperty.useScopes);
+   xfree(G_SlpdProperty.DAAddresses);
+   xfree(G_SlpdProperty.interfaces);
+   xfree(G_SlpdProperty.locale);
 
-   memset(&G_SlpdProperty, 0, sizeof(G_SlpdProperty));
+   /* reinitialize property sub-system */
+   (void)SLPPropertyReinit();
 
    /* set the properties without hard defaults */
    G_SlpdProperty.isDA = SLPPropertyAsBoolean("net.slp.isDA");
@@ -128,7 +128,7 @@ int SLPDPropertyInit(const char * conffile)
       if (SLPIfaceSockaddrsToString(G_SlpdProperty.ifaceInfo.iface_addr,
             G_SlpdProperty.ifaceInfo.iface_count, &myinterfaces) == 0)
       {
-         SLPPropertySet("net.slp.interfaces", myinterfaces, true);
+         SLPPropertySet("net.slp.interfaces", myinterfaces, SLP_PA_USERSET);
          G_SlpdProperty.interfaces = myinterfaces;
          G_SlpdProperty.interfacesLen = strlen(G_SlpdProperty.interfaces);
       }
@@ -139,20 +139,39 @@ int SLPDPropertyInit(const char * conffile)
    strcat(G_SlpdProperty.urlPrefix, "://");
    G_SlpdProperty.urlPrefixLen = strlen(G_SlpdProperty.urlPrefix);
 
-   /* I don't see why we need to set this - it's not in the spec...
-   SLPPropertySet("net.slp.urlPrefix", G_SlpdProperty.urlPrefix, true);
-   */
-
    /* set other values used internally */
    G_SlpdProperty.DATimestamp = (uint32_t)time(0);     /* DATimestamp must be the boot time of the process */
    G_SlpdProperty.activeDiscoveryXmits = 3;  /* ensures xmit on first 3 calls to SLPDKnownDAActiveDiscovery() */
    G_SlpdProperty.nextActiveDiscovery = 0;   /* ensures xmit on first call to SLPDKnownDAActiveDiscovery() */
    G_SlpdProperty.nextPassiveDAAdvert = 0;   /* ensures xmit on first call to SLPDKnownDAPassiveDiscovery()*/
 
+}
+
+/** Initialize the slpd property management subsystem.
+ *
+ * Reads configuration parameters from a file into the system.
+ *
+ * @param[in] conffile - The name of the configuration file
+ *
+ * @return Zero on success, or a non-zero value on failure.
+ */
+int SLPDPropertyInit(const char * conffile)
+{
+   /* initialize the slp property subsystem */
+   if (SLPPropertyInit(conffile) != 0)
+      return -1;
+
+   memset(&G_SlpdProperty, 0, sizeof(G_SlpdProperty));
+
+   SLPDPropertyReinit();
+
    return 0;
 }
 
 /** Release resources associated with configuration data.
+ * 
+ * Free all memory stored in the global slpd properties structure, and
+ * exit the properties sub-system.
  */
 void SLPDPropertyDeinit(void)
 {
@@ -160,7 +179,8 @@ void SLPDPropertyDeinit(void)
    xfree(G_SlpdProperty.DAAddresses);
    xfree(G_SlpdProperty.interfaces);
    xfree(G_SlpdProperty.locale);
-   SLPPropertyCleanup();
+
+   SLPPropertyExit();
 }
 
 /*=========================================================================*/

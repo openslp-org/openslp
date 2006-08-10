@@ -95,8 +95,8 @@ typedef struct _SLPDProperty
 
 extern SLPDProperty G_SlpdProperty;
 
+void SLPDPropertyReinit(void);
 int SLPDPropertyInit(const char * conffile); 
-
 void SLPDPropertyDeinit(void);
 
 /*! @} */
