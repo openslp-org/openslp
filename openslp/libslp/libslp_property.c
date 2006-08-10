@@ -142,7 +142,7 @@ SLPEXP void SLPAPI SLPSetProperty(const char * pcName, const char * pcValue)
 
    if (s_UserAllowedToSet)
    {
-      int rv = SLPPropertySet(pcName, pcValue);
+      int rv = SLPPropertySet(pcName, pcValue, true);
       SLP_ASSERT(rv == 0);
       (void)rv;   /* quite the compiler in release code */
    }
@@ -163,7 +163,7 @@ SLPEXP SLPError SLPAPI SLPSetAppPropertyFile(const char * pathname)
    if (!pathname || !*pathname)
       return SLP_PARAMETER_BAD;
 
-   return SLPPropertySetAppConfFile(pathanme)? SLP_PARAMETER_BAD: SLP_OK;
+   return SLPPropertySetAppConfFile(pathname)? SLP_PARAMETER_BAD: SLP_OK;
 }
 
 /*=========================================================================*/

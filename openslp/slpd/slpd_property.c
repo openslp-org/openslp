@@ -59,8 +59,8 @@ SLPDProperty G_SlpdProperty;
  */
 int SLPDPropertyInit(const char * conffile)
 {
+   int sts;
    char * myinterfaces = 0;
-   char urlPrefix[MAX_URLPREFIX_SZ];
    int family = AF_UNSPEC;
 
    /* initialize the slp property subsystem */

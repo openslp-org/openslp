@@ -50,6 +50,7 @@
 
 #include "slp_types.h"
 #include "slp_iface.h"
+#include "slp_message.h"
 #include "slpd.h"
 
 #define MAX_URLPREFIX_SZ   (sizeof(SLP_DA_SERVICE_TYPE) + sizeof("://"))

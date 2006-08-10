@@ -367,7 +367,7 @@ int SLPIfaceGetInfo(const char * useifaces, SLPIfaceInfo * ifaceinfo,
    ifaceinfo->iface_count = 0;
    ifaceinfo->bcast_count = 0;
 
-   if (!useifacelen)
+   if (!useifaceslen)
    {
       /* no specified list - get all available interface addresses */
       if (SLPIfaceGetDefaultInfo(ifaceinfo, family) != 0)
@@ -434,7 +434,7 @@ int SLPIfaceGetInfo(const char * useifaces, SLPIfaceInfo * ifaceinfo,
                         for (i = 0; i < MAX_INTERFACE_TEST_INDEX; i++)
                         {
                            v6addr.sin6_scope_id = i;
-                           if ((sts = bind(fd, (struct sockaddr *)&v6addr, sizeof(v6addr)) == 0)
+                           if ((sts = bind(fd, (struct sockaddr *)&v6addr, sizeof(v6addr))) == 0)
                            {
                               memcpy(&ifaceinfo->iface_addr[ifaceinfo->iface_count++],
                                     &v6addr, sizeof(v6addr));
@@ -464,7 +464,7 @@ int SLPIfaceGetInfo(const char * useifaces, SLPIfaceInfo * ifaceinfo,
       {
          unsigned long addr = INADDR_BROADCAST;
 
-         SLPNetSetAddr(&sa, AF_INET, 0, &broadAddr);
+         SLPNetSetAddr(&sa, AF_INET, 0, &addr);
          memcpy(&ifaceinfo->bcast_addr[ifaceinfo->bcast_count++], &sa, sizeof(sa));
       }
       else

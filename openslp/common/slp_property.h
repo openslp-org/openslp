@@ -48,7 +48,7 @@
 
 char * SLPPropertyXDup(const char * name);
 const char * SLPPropertyGet(const char * name, char * buffer, size_t * bufsz);
-int SLPPropertySet(const char * name, const char * value);
+int SLPPropertySet(const char * name, const char * value, bool immutable);
 
 bool SLPPropertyAsBoolean(const char * name);
 int SLPPropertyAsInteger(const char * name);

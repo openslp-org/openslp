@@ -56,7 +56,10 @@
 #include "slp_property.h"
 #include "slp_xmalloc.h"
 #include "slp_linkedlist.h"
+#include "slp_atomic.h"
 #include "slp_debug.h"
+
+#define ENV_CONFFILE_VARNAME "OpenSLPConfig"
 
 /** A property list entry structure.
  */
@@ -75,7 +78,7 @@ static bool s_PropertiesInitialized = false;
 static SLPList s_PropertyList = {0, 0, 0};
 
 /** The (optional) application-specified property file - module static. */
-static s_AppPropertyFile[MAX_PATH] = "";
+static char s_AppPropertyFile[MAX_PATH] = "";
 
 /** The database lock - module static. */
 static intptr_t s_PropDbLock = 0;
@@ -366,7 +369,7 @@ char const * SLPPropertyGet(char const * name, char * buffer, size_t * bufszp)
 
    /* parameter sanity check */
    SLP_ASSERT(name && (bufsz || !buffer));
-   if (!name || buffer && !bufsz)
+   if (!name || (buffer && !bufsz))
       return 0;
 
    if (bufszp) *bufszp = 0;
@@ -557,8 +560,9 @@ int SLPPropertyAsIntegerVector(char const * name,
    if (property)
    {
       char const * value = property->value;
-      char * end = value + strlen(value);
-      char * slider1, * slider2;
+      char const * end = value + strlen(value);
+      char const * slider1;
+      char const * slider2;
 
       /* clear caller's vector */
       memset(ivector, 0, sizeof(int) * ivectorsz);
@@ -628,7 +632,7 @@ int SLPPropertySetAppConfFile(const char * aconffile)
  */
 int SLPPropertyInit(const char * gconffile)
 {
-   char * ecfptr = getenv(ENV_CONFFILE_VARNAME);
+   char const * ecfptr = getenv(ENV_CONFFILE_VARNAME);
    char ecfbuf[MAX_PATH + 1];
    char * econffile = 0;
 

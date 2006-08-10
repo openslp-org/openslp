@@ -44,6 +44,7 @@
 #include "libslp.h"
 #include "slp_message.h"
 #include "slp_xmalloc.h"
+#include "slp_property.h"
 
 /** SLPFindAttrs callback routine for NetworkRqstRply.
  *

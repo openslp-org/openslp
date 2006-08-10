@@ -35,7 +35,8 @@ EXTRA_DIST =
 
 lib_LTLIBRARIES = libslp.la
 include_HEADERS = slp.h
-INCLUDES	= -I$(top_srcdir)/common
+INCLUDES	= -I$(top_srcdir)/common \
+		  -DETCDIR=\"$(sysconfdir)\"
 
 libslp_la_SOURCES = \
 	libslp_delattrs.c \
