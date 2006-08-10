@@ -78,7 +78,7 @@ int G_KnownDATimeSinceLastRefresh = 0;
 
 /*=========================================================================*/
 char* G_ifaceurls = 0;
-int   G_ifaceurlsLen = 0;
+size_t G_ifaceurlsLen = 0;
 /* Used to filter out our own DA urls */
 /*=========================================================================*/
 

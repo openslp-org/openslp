@@ -484,11 +484,11 @@ int SLPPropertySet(char const * name, char const * value, bool immutable)
 bool SLPPropertyAsBoolean(char const * name)
 {
    bool retval = false;
+   SLPProperty * property;
 
    SLPAcquireSpinLock(&s_PropDbLock);
 
-   SLPProperty * property = Find(name);
-   if (property)
+   if ((property = Find(name)) != 0)
    {
       char const * value = property->value;
       if (*value == 't' || *value == 'T' 
@@ -519,11 +519,11 @@ bool SLPPropertyAsBoolean(char const * name)
 int SLPPropertyAsInteger(char const * name)
 {
    int ivalue = 0;
+   SLPProperty * property;
 
    SLPAcquireSpinLock(&s_PropDbLock);
 
-   SLPProperty * property = Find(name);
-   if (property)
+   if ((property = Find(name)) != 0)
       ivalue = atoi(property->value);
 
    SLPReleaseSpinLock(&s_PropDbLock);
@@ -553,11 +553,11 @@ int SLPPropertyAsIntegerVector(char const * name,
       int * ivector, int ivectorsz)
 {
    int i = 0;
+   SLPProperty * property;
 
    SLPAcquireSpinLock(&s_PropDbLock);
 
-   SLPProperty * property = Find(name);
-   if (property)
+   if ((property = Find(name)) != 0)
    {
       char const * value = property->value;
       char const * end = value + strlen(value);
