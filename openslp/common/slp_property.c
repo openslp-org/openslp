@@ -737,8 +737,9 @@ void SLPPropertyExit(void)
 /*===========================================================================
  *  TESTING CODE : compile with the following command lines:
  *
- *  $ gcc -g -DSLP_PROPERTY_TEST -DVERSION=\"2.0\" -DDEBUG -DETCDIR=\"./\"
- *       slp_property.c slp_xmalloc.c slp_linkedlist.c slp_debug.c
+ *  $ gcc -g -DSLP_PROPERTY_TEST -DDEBUG -DHAVE_CONFIG_H -lpthread 
+ *       -I <path_to_config.h> slp_property.c slp_xmalloc.c slp_linkedlist.c
+ *       slp_debug.c slp_thread.c
  *
  *  C:\> cl -Zi -DSLP_PROPERTY_TEST -DSLP_VERSION=\"2.0\" -DDEBUG 
  *       -D_CRT_SECURE_NO_DEPRECATE slp_property.c slp_xmalloc.c 
