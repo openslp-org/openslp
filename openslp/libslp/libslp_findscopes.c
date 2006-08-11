@@ -84,7 +84,7 @@ SLPEXP SLPError SLPAPI SLPFindScopes(
    *ppcScopeList = 0;
 
    /* Check to see if the handle is in use. */
-   inuse = SLPTryAcquireSpinLock(&handle->inUse);
+   inuse = SLPSpinLockTryAcquire(&handle->inUse);
    SLP_ASSERT(!inuse);
    if (inuse)
       return SLP_HANDLE_IN_USE;
@@ -92,7 +92,7 @@ SLPEXP SLPError SLPAPI SLPFindScopes(
    if (KnownDAGetScopes(&scopelistlen, ppcScopeList, hSLP) != 0)
       serr = SLP_MEMORY_ALLOC_FAILED;
 
-   SLPReleaseSpinLock(&handle->inUse);
+   SLPSpinLockRelease(&handle->inUse);
 
    return serr;
 }

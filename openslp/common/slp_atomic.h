@@ -52,13 +52,19 @@
 
 #include "slp_types.h"
 
+/** @name Atomics */
+/*@{*/
 intptr_t SLPAtomicInc(intptr_t * pn);
 intptr_t SLPAtomicDec(intptr_t * pn);
 intptr_t SLPAtomicXchg(intptr_t * pn, intptr_t n);
+/*@}*/
 
-void SLPAcquireSpinLock(intptr_t * pn);
-bool SLPTryAcquireSpinLock(intptr_t * pn);
-void SLPReleaseSpinLock(intptr_t * pn);
+/** @name Spin Locks. */
+/*@{*/
+void SLPSpinLockAcquire(intptr_t * pn);
+bool SLPSpinLockTryAcquire(intptr_t * pn);
+void SLPSpinLockRelease(intptr_t * pn);
+/*@}*/
 
 /*! @} */
 

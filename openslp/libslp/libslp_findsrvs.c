@@ -416,7 +416,7 @@ SLPEXP SLPError SLPAPI SLPFindSrvs(
       return SLP_PARAMETER_BAD;
 
    /* Check to see if the handle is in use. */
-   inuse = SLPTryAcquireSpinLock(&handle->inUse);
+   inuse = SLPSpinLockTryAcquire(&handle->inUse);
    SLP_ASSERT(!inuse);
    if (inuse)
       return SLP_HANDLE_IN_USE;
@@ -467,7 +467,7 @@ SLPEXP SLPError SLPAPI SLPFindSrvs(
    {
       /* Leave all parameters referenced. */
       serr = ProcessSrvRqst(handle);
-      SLPReleaseSpinLock(&handle->inUse);
+      SLPSpinLockRelease(&handle->inUse);
    }
    return serr;
 }

@@ -43,9 +43,10 @@
 #include "slp_types.h"
 #include "slp_atomic.h"
 
-#if defined(__GNUC__)
-# if defined(__i386__)
-#  define USE_I386_ATOMICS
+#if defined(_WIN32)
+# define USE_WIN32_ATOMICS
+#elif defined(__GNUC__) && defined(__i386__)
+# define USE_GCC_I386_ATOMICS
 
 __attribute__((always_inline)) 
 static inline int32_t atomic_inc32(volatile int32_t * p)
@@ -89,8 +90,8 @@ static inline int32_t atomic_xchg32(volatile int32_t * p, int32_t i)
 	return rv;
 }
 
-# elif defined(__x86_64__)
-#  define USE_X86_64_ATOMICS 1
+#elif defined(__GNUC__) && defined(__x86_64__)
+# define USE_GCC_X86_64_ATOMICS
 
 __attribute__((always_inline)) 
 static inline int64_t atomic_inc64(volatile int64_t * p)
@@ -132,10 +133,61 @@ static inline int64_t atomic_xchg64(volatile int64_t * p, int64_t i)
    return rv;
 }
 
-# endif
+#elif defined(_AIX)
+# define USE_AIX_ATOMICS
 #elif defined(__DECC) || defined(__DECCXX)
+# define USE_ALPHA_ATOMICS
 # include <machine/builtins.h>
-# define USE_ALPHA_ATOMICS 1
+#elif defined(sun) && (defined(__sparc) || defined(__sparc__) || defined(__sparcv8plus) || defined(__sparcv9))
+# define USE_SPARC_ATOMICS
+
+static void sparc_asm_code(void)
+{
+	asm( ".align 8");
+	asm( ".global sparc_atomic_add_32");
+	asm( ".type sparc_atomic_add_32, #function");
+	asm( "sparc_atomic_add_32:");
+	asm( "    membar #LoadLoad | #LoadStore | #StoreStore | #StoreLoad");
+	asm( "    ld [%o0], %l0");
+	asm( "    add %l0, %o1, %l2");
+	asm( "    cas [%o0], %l0, %l2");
+	asm( "    cmp %l0, %l2");
+	asm( "    bne sparc_atomic_add_32");
+	asm( "    nop");
+	asm( "    add %l2, %o1, %o0");
+	asm( "    membar #LoadLoad | #LoadStore | #StoreStore | #StoreLoad");
+	asm( "retl");
+	asm( "nop");
+	
+	asm( ".align 8");
+	asm( ".global sparc_atomic_xchg_32");
+	asm( ".type sparc_atomic_xchg_32, #function");
+	asm( "sparc_atomic_xchg_32:");
+	asm( "    membar #LoadLoad | #LoadStore | #StoreStore | #StoreLoad");
+	asm( "    ld [%o0], %l0");
+	asm( "    mov %o1, %l1");
+	asm( "    cas [%o0], %l0, %l1");
+	asm( "    cmp %l0, %l1");
+	asm( "    bne sparc_atomic_xchg_32");
+	asm( "    nop");
+	asm( "    mov %l0, %o0");
+	asm( "    membar #LoadLoad | #LoadStore | #StoreStore | #StoreLoad");
+	asm( "retl");
+	asm( "nop");
+}
+
+#elif defined(__APPLE__)
+# define USE_APPLE_ATOMICS
+#else
+
+/** The default guarantee of atomicity. A single global mutex that wraps
+ * access to all atomic variables. This is a very poor substitute for true
+ * atomics, but the only substitute that guarantees atomicity in the face
+ * of no native primtives. Please feel free to implement and add atomics
+ * for your platform if you don't find them here.
+ */
+static pthread_mutex_t g_atomic_mutex = PTHREAD_MUTEX_INITIALIZER;
+
 #endif
 
 /** Increment an integer and return the NEW value in an MP-safe manner.
@@ -154,19 +206,26 @@ static inline int64_t atomic_xchg64(volatile int64_t * p, int64_t i)
  */
 intptr_t SLPAtomicInc(intptr_t * pn)
 {
-#if defined(_WIN32)
+#if defined(USE_WIN32_ATOMICS)
    return (intptr_t)InterlockedIncrement((LPLONG)pn);
-#elif defined(USE_I386_ATOMICS)
+#elif defined(USE_GCC_I386_ATOMICS)
    return (intptr_t)atomic_inc32((int32_t *)pn);
-#elif defined(USE_X86_64_ATOMICS)
+#elif defined(USE_GCC_X86_64_ATOMICS)
    return (intptr_t)atomic_inc64((int64_t *)pn);
-#elif defined(_AIX)
+#elif defined(USE_AIX_ATOMICS)
    return atomic_add(pn, 1);
 #elif defined(USE_ALPHA_ATOMICS)
 	/* Note: __ATOMIC_INCREMENT_QUAD returns the __previous__ value. */
 	return __ATOMIC_INCREMENT_QUAD(pn) + 1;
+#elif defined(USE_SPARC_ATOMICS)
+   return sparc_atomic_add_32(pn, 1);
+#elif defined(USE_APPLE_ATOMICS)
+   return (intptr_t)OSAtomicIncrement32((int32_t *)pn);
 #else
-   return ++(*pn);   /* Note: This is NOT atomic! */
+   pthread_mutex_lock(&g_atomic_mutex);
+   intptr_t tn = ++(*pn);
+   pthread_mutex_unlock(&g_atomic_mutex);
+   return tn;
 #endif
 }
 
@@ -186,19 +245,26 @@ intptr_t SLPAtomicInc(intptr_t * pn)
  */
 intptr_t SLPAtomicDec(intptr_t * pn)
 {
-#ifdef _WIN32
+#if defined(USE_WIN32_ATOMICS)
    return (intptr_t)InterlockedDecrement((LPLONG)pn);
-#elif defined(USE_I386_ATOMICS)
+#elif defined(USE_GCC_I386_ATOMICS)
 	return (intptr_t)atomic_dec32((int32_t *)pn);
-#elif defined(USE_X86_64_ATOMICS)
+#elif defined(USE_GCC_X86_64_ATOMICS)
    return (intptr_t)atomic_dec64((int64_t *)pn);
-#elif defined(_AIX)
+#elif defined(USE_AIX_ATOMICS)
 	return atomic_add(pn, -1);
 #elif defined(USE_ALPHA_ATOMICS)
 	/* Note: __ATOMIC_DECREMENT_QUAD returns the __previous__ value. */
 	return __ATOMIC_DECREMENT_QUAD(pn) - 1;
+#elif defined(USE_SPARC_ATOMICS)
+   return sparc_atomic_add_32(pn, -1);
+#elif defined(USE_APPLE_ATOMICS)
+   return (intptr_t)OSAtomicDecrement32((int32_t *)pn);
 #else
-   return --(*pn);   /* Note: This is NOT atomic! */
+   pthread_mutex_lock(&g_atomic_mutex);
+   intptr_t tn = --(*pn);
+   pthread_mutex_unlock(&g_atomic_mutex);
+   return tn;
 #endif
 }
 
@@ -223,22 +289,31 @@ intptr_t SLPAtomicDec(intptr_t * pn)
  */
 intptr_t SLPAtomicXchg(intptr_t * pn, intptr_t n)
 {
-#if defined(_WIN32)
+#if defined(USE_WIN32_ATOMICS)
    return (intptr_t)InterlockedExchange((LPLONG)pn, (LONG)n); 
-#elif defined(USE_I386_ATOMICS)
+#elif defined(USE_GCC_I386_ATOMICS)
 	return (intptr_t)atomic_xchg32((int32_t *)pn, (int32_t)n);
-#elif defined(USE_X86_64_ATOMICS)
+#elif defined(USE_GCC_X86_64_ATOMICS)
    return (intptr_t)atomic_xchg64((int64_t *)pn, (int64_t)n);
-#elif defined(_AIX)
+#elif defined(USE_AIX_ATOMICS)
 	int value;
    do value = *pn; 
    while (!compare_and_swap((atomic_p)pn, &value, (int)n));
 	return value;
 #elif defined(USE_ALPHA_ATOMICS)
 	return __ATOMIC_EXCH_QUAD(pn, n);
+#elif defined(USE_SPARK_ATOMICS)
+   return sparc_atomic_xchg_32(pn, n);
+#elif defined(USE_APPLE_ATOMICS)
+   int32_t value;
+   do value = (int32_t)*pn; 
+   while (!OSAtomicCompareAndSwap32(o, n, (int32_t *)pn));
+   return value;
 #else
-	intptr_t tn = *pn;   /* NOTE: This is NOT atomic! */
+   pthread_mutex_lock(&g_atomic_mutex);
+	intptr_t tn = *pn;
 	*pn = n;
+   pthread_mutex_unlock(&g_atomic_mutex);
 	return tn;
 #endif
 }
@@ -254,7 +329,7 @@ intptr_t SLPAtomicXchg(intptr_t * pn, intptr_t n)
  * @remarks The value at the address in @p pn should be preset to zero
  * as zero indicates the "unlocked" state in this type of lock.
  */
-void SLPAcquireSpinLock(intptr_t * pn)
+void SLPSpinLockAcquire(intptr_t * pn)
 {
    while (SLPAtomicXchg(pn, 1) != 0)
       sleep(0);
@@ -273,7 +348,7 @@ void SLPAcquireSpinLock(intptr_t * pn)
  * @remarks The value at the address in @p pn should be preset to zero
  * as zero indicates the "unlocked" state in this type of lock.
  */
-bool SLPTryAcquireSpinLock(intptr_t * pn)
+bool SLPSpinLockTryAcquire(intptr_t * pn)
 {
    return SLPAtomicXchg(pn, 1)? true: false;
 }
@@ -286,7 +361,7 @@ bool SLPTryAcquireSpinLock(intptr_t * pn)
  * Simple aligned writes to a single-word addresses are inherently atomic 
  * on decent processor architectures.
  */
-void SLPReleaseSpinLock(intptr_t * pn)
+void SLPSpinLockRelease(intptr_t * pn)
 {
    *pn = 0;
 }

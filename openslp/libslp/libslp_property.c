@@ -66,13 +66,13 @@ int LIBSLPPropertyInit(char const * gconffile)
    int rv = 0;
    if (!s_PropInited)
    {
-      SLPAcquireSpinLock(&s_PropInitLock);
+      SLPSpinLockAcquire(&s_PropInitLock);
       if (!s_PropInited && (rv = SLPPropertyInit(gconffile)) == 0);
       {
          atexit(SLPPropertyExit);
          s_PropInited = true;
       }
-      SLPReleaseSpinLock(&s_PropInitLock);
+      SLPSpinLockRelease(&s_PropInitLock);
    }
    SLP_ASSERT(rv == 0);
    return rv;
