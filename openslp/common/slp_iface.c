@@ -156,7 +156,10 @@ int SLPIfaceGetDefaultInfo(SLPIfaceInfo * ifaceinfo, int family)
 #else
          if (ioctl(fd, SIOCGIFCONF, &ifc) < 0)
 #endif
+         {
+            closesocket(fd);
             return -1;
+         }
 
          for (i = 0; i < ifc.ifc_len/sizeof(struct ifreq); i++)
          {
@@ -188,7 +191,10 @@ int SLPIfaceGetDefaultInfo(SLPIfaceInfo * ifaceinfo, int family)
 #else
          if (ioctl(fd, SIOCGIFCONF, &ifc) < 0)
 #endif
+         {
+            closesocket(fd);
             return -1;
+         }
 
          for (i = 0; i < ifc.ifc_len/sizeof(struct ifreq); i++)
          {

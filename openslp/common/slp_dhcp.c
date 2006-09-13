@@ -337,8 +337,8 @@ static int dhcpGetAddressInfo(unsigned char * ipaddr, unsigned char * chaddr,
 
    *hlen = 0;
    
+   memset(&arpreq, 0, sizeof(arpreq));
    sin = (struct sockaddr *)&arpreq.arp_pa;
-   memset(sin, 0, sizeof(struct sockaddr));
    sin->sa_family = AF_INET;
    memcpy(&sin->sa_data, ipaddr, sizeof(struct in_addr));
    
