@@ -756,13 +756,13 @@ SLPError NetworkMcastRqstRply(SLPHandleInfo * handle, void * buf,
    else 
 #endif /* MI_NOT_SUPPORTED */
 
-   { 
+   {
+      char * iflist = SLPPropertyXDup("net.slp.interfaces");
       if (SLPNetIsIPV4())
-         SLPIfaceGetInfo("net.slp.interfaces", 
-               &v4outifaceinfo, AF_INET);
+         SLPIfaceGetInfo(iflist, &v4outifaceinfo, AF_INET);
       if (SLPNetIsIPV6())
-         SLPIfaceGetInfo("net.slp.interfaces",
-               &v6outifaceinfo, AF_INET6);
+         SLPIfaceGetInfo(iflist, &v6outifaceinfo, AF_INET6);
+      xfree(iflist);
       if (!v4outifaceinfo.iface_count && !v6outifaceinfo.iface_count) 
       {
          result = SLP_NETWORK_ERROR;
@@ -815,7 +815,7 @@ SLPError NetworkMcastRqstRply(SLPHandleInfo * handle, void * buf,
       while (xmitcount <= MAX_RETRANSMITS)
       {
          totaltimeout += timeouts[xmitcount];
-         if (totaltimeout >= maxwait || !timeouts[xmitcount])
+         if (totaltimeout > maxwait || !timeouts[xmitcount])
             break; /* we are all done */
 
          timeout.tv_sec = timeouts[xmitcount] / 1000;
