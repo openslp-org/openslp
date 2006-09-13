@@ -129,10 +129,10 @@ static void IncomingStreamWrite(SLPList * socklist, SLPDSocket * sock)
       sock->state = STREAM_WRITE;
    }
 
-   if (sock->sendbuf->end - sock->sendbuf->start != 0)
+   if (sock->sendbuf->end - sock->sendbuf->curpos != 0)
    {
       byteswritten = send(sock->fd, (char *)sock->sendbuf->curpos,
-            (int)(sock->sendbuf->end - sock->sendbuf->start), flags);
+            (int)(sock->sendbuf->end - sock->sendbuf->curpos), flags);
       if (byteswritten > 0)
       {
          /* reset lifetime to max because of activity */
@@ -147,9 +147,9 @@ static void IncomingStreamWrite(SLPList * socklist, SLPDSocket * sock)
       else
       {
 #ifdef _WIN32
-         if (WSAEWOULDBLOCK == WSAGetLastError())
+         if (WSAEWOULDBLOCK != WSAGetLastError())
 #else
-         if (errno == EWOULDBLOCK)
+         if (errno != EWOULDBLOCK)
 #endif
             sock->state = SOCKET_CLOSE; /* Error or conn was closed */
       }

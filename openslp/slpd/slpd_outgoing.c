@@ -317,10 +317,10 @@ void OutgoingStreamWrite(SLPList * socklist, SLPDSocket * sock)
       sock->state = STREAM_WRITE;
    }
 
-   if (sock->sendbuf->end - sock->sendbuf->start > 0)
+   if (sock->sendbuf->end - sock->sendbuf->curpos > 0)
    {
       byteswritten = send(sock->fd, (char *)sock->sendbuf->curpos,
-            (int)(sock->sendbuf->end - sock->sendbuf->start), flags);
+            (int)(sock->sendbuf->end - sock->sendbuf->curpos), flags);
       if (byteswritten > 0)
       {
          /* reset age because of activity */
