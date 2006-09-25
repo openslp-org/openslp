@@ -377,7 +377,7 @@ SLPDSocket * SLPDOutgoingConnect(struct sockaddr_storage * addr)
    while (sock)
    {
       if (sock->state == STREAM_CONNECT_IDLE
-            || sock->state > SOCKET_PENDING_IO)
+            || sock->state > STREAM_CONNECT_CLOSE)
       {
          if (SLPNetCompareAddrs(&(sock->peeraddr), addr) == 0)
             break;
