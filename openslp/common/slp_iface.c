@@ -255,10 +255,8 @@ int SLPIfaceGetDefaultInfo(SLPIfaceInfo* ifaceinfo, int family)
       fd = socket(AF_INET6, SOCK_DGRAM, 0);
       if (fd != INVALID_SOCKET)
       {
-         /* We want to get a reasonable length buffer, so call empty first */
-         if (WSAIoctl(fd, SIO_ADDRESS_LIST_QUERY, 0, 0, 
-               buffer, buflen, &buflen, 0, 0) != 0)
-            return (errno = WSAGetLastError()), -1;
+         /* We want to get a reasonable length buffer, so call empty first to fill in buflen, ignoring errors*/
+         WSAIoctl(fd, SIO_ADDRESS_LIST_QUERY, 0, 0, buffer, buflen, &buflen, 0, 0);
          if (buflen > 0)
          {
             if ((buffer = xmalloc(buflen)) == 0)
@@ -290,10 +288,8 @@ int SLPIfaceGetDefaultInfo(SLPIfaceInfo* ifaceinfo, int family)
       fd = socket(AF_INET, SOCK_DGRAM, 0);
       if (fd != INVALID_SOCKET)
       {
-         /* We want to get a reasonable length buffer, so call empty first */
-         if (WSAIoctl(fd, SIO_ADDRESS_LIST_QUERY, 0, 0, 
-               buffer, buflen, &buflen, 0, 0) != 0)
-            return (errno = WSAGetLastError()), -1;
+         /* We want to get a reasonable length buffer, so call empty first to fill in buflen, ignoring errors */
+         WSAIoctl(fd, SIO_ADDRESS_LIST_QUERY, 0, 0, buffer, buflen, &buflen, 0, 0);
          if (buflen > 0)
          {
             if ((buffer = xmalloc(buflen)) == 0)
