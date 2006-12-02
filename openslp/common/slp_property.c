@@ -108,8 +108,8 @@ static int SetDefaultValues(void)
       {"net.slp.DAAttributes", "", 0},
 
    /* Section 2.1.2 Static Scope Configuration */
-      {"net.slp.useScopes", "DEFAULT", SLP_PA_READONLY},
-      {"net.slp.DAAddresses", "", SLP_PA_READONLY},
+      {"net.slp.useScopes", "DEFAULT", 0},
+      {"net.slp.DAAddresses", "", 0},
 
    /* Section 2.1.3 Tracing and Logging */
       {"net.slp.traceDATraffic", "false", 0},
@@ -121,7 +121,7 @@ static int SetDefaultValues(void)
       {"net.slp.serializedRegURL", "", 0},
 
    /* Section 2.1.5 Network Configuration Properties */
-      {"net.slp.isBroadcastOnly", "false", SLP_PA_READONLY},
+      {"net.slp.isBroadcastOnly", "false", 0},
       {"net.slp.passiveDADetection", "true", 0},                           /* false */
       {"net.slp.multicastTTL", "255", 0},                                  /* 8 */
       {"net.slp.DAActiveDiscoveryInterval", "900", 0},                     /* 1 */

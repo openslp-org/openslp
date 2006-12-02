@@ -126,11 +126,13 @@ static int resolveHost(int af, const char * src, void * dst)
                struct in_addr * d4Src;
                d4Src = &((struct sockaddr_in *)res->ai_addr)->sin_addr;
                memcpy(&d4Dst->s_addr, &d4Src->s_addr, 4);
+               freeaddrinfo(res);
                return 1;
             }
             else
                aicheck = aicheck->ai_next;
          }
+         freeaddrinfo(res);
          /* if aicheck was NULL, sts will still be 0, if not, sts will be 1 */
       }
       return 0;
@@ -149,11 +151,13 @@ static int resolveHost(int af, const char * src, void * dst)
                struct in6_addr * d6Src;
                d6Src = &((struct sockaddr_in6 *)res->ai_addr)->sin6_addr;
                memcpy(&d6Dst->s6_addr, &d6Src->s6_addr, 16); 
+               freeaddrinfo(res);
                return 1;
             }
             else
                aicheck = aicheck->ai_next;
          }
+         freeaddrinfo(res);
       }
       return 0;
    }
