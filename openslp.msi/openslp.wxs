@@ -1,15 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<Wix xmlns="http://schemas.microsoft.com/wix/2003/01/wi">
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
 
   <!-- Language 1033 (English) Codepage 1252 (US-ASCII) : ENU, en-US -->
 
   <Product Name="OpenSLP 2.0" Id="303D9103-5018-49E2-ABF7-8DA48BA81D60"
-      Language="1033" Codepage="1252" Version="2.0.0" Manufacturer="OpenSLP.org"
+      Language="1033" Codepage="1252" Version="$(var.VERSION)" Manufacturer="OpenSLP.org"
       UpgradeCode="B480ABC9-CE49-4B8A-9AA6-333949FD02C5">
 
-    <Package Id="????????-????-????-????-????????????" 
-        Keywords="SLP Service Location User Directory Agent"
-        Description="OpenSLP 2.0 Installer" SummaryCodepage="1252"
+    <Package Keywords="SLP Service Location User Directory Agent"
+        Description="OpenSLP $(var.VERSION) Installer" SummaryCodepage="1252"
         Comments="OpenSLP is an open source implementation of IETF RFC 2608 - Service Location Protocol." 
         Manufacturer="OpenSLP.org" InstallerVersion="150" Languages="1033" 
         InstallPrivileges="elevated" Compressed="yes" />
@@ -35,25 +34,181 @@
         source/target directory structure definition. -->
 
     <Directory Id="TARGETDIR" Name="SourceDir">
+      <Merge Id="vc8runtime" SourceFile="$(env.SystemDrive)\Program Files\Common Files\Merge Modules\Microsoft_VC80_CRT_x86.msm" Language="1033" DiskId="1"/>
+      <Merge Id="vc8policy" SourceFile="$(env.SystemDrive)\Program Files\Common Files\Merge Modules\policy_8_0_Microsoft_VC80_CRT_x86.msm" Language="1033" DiskId="1"/>
+
+      <Directory Id="ProgramFilesFolder" Name="PFiles">
+        <Directory Id="OPENSLPDIR" Name="OpenSLP">
+
+          <Component Id="UA_comp" DiskId="1" Guid="E60ED64D-8B3E-4864-8A98-D1BA0E77A6C0">
+            <File Id="file0" Name="libslp.dll" KeyPath="yes" Source="OpenSLP\libslp.dll" />
+            <File Id="file1" Name="libslp.pdb" Source="OpenSLP\libslp.pdb" />
+          </Component>
+
+          <Component Id="SADA_comp" DiskId="1" Guid="1E6D2C82-A8A6-44CD-9132-75D89EF9B2B4"
+              SharedDllRefCount="no" KeyPath="no" NeverOverwrite="no" Transitive="no">
+            <File Id="file2" Name="slpd.exe" KeyPath="yes" Source="OpenSLP\slpd.exe"
+                ReadOnly="no" Vital="yes" Hidden="no" System="no" />
+            <File Id="file3" Name="slpd.pdb" Source="OpenSLP\slpd.pdb" />
+            <ServiceInstall Id="OpenSLPInstall" DisplayName="Service Location Protocol" 
+                Description="The OpenSLP service agent provides the Service Location Protocol Service and Directory Agent components."
+                Name="slpd" ErrorControl="normal" Start="auto" Type="ownProcess" Vital="yes" />
+            <ServiceControl Id="OpenSLPServiceControl" Name="slpd"
+                Start="install" Stop="both" Remove="uninstall" Wait="yes" />
+          </Component>
+
+          <Component Id="SLPTOOL_comp" DiskId="1" Guid="D9D5E08A-ED94-48A3-B37E-2B1F4ADC6EFB">
+            <File Id="file4" Name="slptool.exe" KeyPath="yes" Source="OpenSLP\slptool.exe" />
+            <File Id="file5" Name="slptool.pdb" Source="OpenSLP\slptool.pdb" />
+          </Component>
+
+          <Directory Id="directory1" Name="Docs">
+            <Directory Id="directory2" Name="html">
+
+              <Component Id="FAQ_comp" DiskId="1" Guid="EFF22D3D-E8E3-4E67-AD0B-7CDC83735ABC">
+                <File Id="file6" Name="faq.html" KeyPath="yes" Source="OpenSLP\Docs\html\faq.html">
+                  <Shortcut Id="FAQ_shortcut" Directory="ProgramMenuDir" Name="OpenSLP 2.0 FAQ" WorkingDirectory="INSTALLDIR" />
+                </File>
+              </Component>
+
+              <Directory Id="directory3" Name="IntroductionToSLP">
+
+                <Component Id="INTRO_comp" DiskId="1" Guid="D933882B-68C8-4AE9-A2D4-A4A2A0D93524">
+                  <File Id="file8" Name="AgentInit.jpg" Source="OpenSLP\Docs\html\IntroductionToSLP\AgentInit.jpg" />
+                  <File Id="file9" Name="index.html" KeyPath="yes" Source="OpenSLP\Docs\html\IntroductionToSLP\index.html">
+                    <Shortcut Id="INTRO_shortcut" Directory="ProgramMenuDir" Name="Introduction To SLP" WorkingDirectory="INSTALLDIR" />
+                  </File>
+                  <File Id="file10" Name="ServiceReg.jpg" Source="OpenSLP\Docs\html\IntroductionToSLP\ServiceReg.jpg" />
+                  <File Id="file11" Name="ServiceRqst.jpg" Source="OpenSLP\Docs\html\IntroductionToSLP\ServiceRqst.jpg" />
+                </Component>
+
+              </Directory>
+              <Directory Id="directory4" Name="ProgrammersGuide">
+
+                <Component Id="PROGUID_comp" DiskId="1" Guid="AC5EA048-EA1E-4EBB-A171-D19F148A95D9">
+                  <File Id="file12" Name="Callbacks.html" Source="OpenSLP\Docs\html\ProgrammersGuide\Callbacks.html" />
+                  <File Id="file13" Name="Divergence.html" Source="OpenSLP\Docs\html\ProgrammersGuide\Divergence.html" />
+                  <File Id="file14" Name="Examples.html" Source="OpenSLP\Docs\html\ProgrammersGuide\Examples.html" />
+                  <File Id="file15" Name="index.html" KeyPath="yes" Source="OpenSLP\Docs\html\ProgrammersGuide\index.html">
+                    <Shortcut Id="PROGUID_shortcut" Directory="ProgramMenuDir" Name="Programmer's Guide" WorkingDirectory="INSTALLDIR" />
+                  </File>
+                  <File Id="file16" Name="openslp_security_whitepaper.html" Source="OpenSLP\Docs\html\ProgrammersGuide\openslp_security_whitepaper.html" />
+                  <File Id="file17" Name="Security.html" Source="OpenSLP\Docs\html\ProgrammersGuide\Security.html" />
+                  <File Id="file18" Name="SLPAttrCallback.html" Source="OpenSLP\Docs\html\ProgrammersGuide\SLPAttrCallback.html" />
+                  <File Id="file19" Name="SLPClose.html" Source="OpenSLP\Docs\html\ProgrammersGuide\SLPClose.html" />
+                  <File Id="file20" Name="SLPDelAttrs.html" Source="OpenSLP\Docs\html\ProgrammersGuide\SLPDelAttrs.html" />
+                  <File Id="file21" Name="SLPDereg.html" Source="OpenSLP\Docs\html\ProgrammersGuide\SLPDereg.html" />
+                  <File Id="file22" Name="SLPError.html" Source="OpenSLP\Docs\html\ProgrammersGuide\SLPError.html" />
+                  <File Id="file23" Name="SLPEscape.html" Source="OpenSLP\Docs\html\ProgrammersGuide\SLPEscape.html" />
+                  <File Id="file24" Name="SLPFindAttrs.html" Source="OpenSLP\Docs\html\ProgrammersGuide\SLPFindAttrs.html" />
+                  <File Id="file25" Name="SLPFindScopes.html" Source="OpenSLP\Docs\html\ProgrammersGuide\SLPFindScopes.html" />
+                  <File Id="file26" Name="SLPFindSrvs.html" Source="OpenSLP\Docs\html\ProgrammersGuide\SLPFindSrvs.html" />
+                  <File Id="file27" Name="SLPFindSrvTypes.html" Source="OpenSLP\Docs\html\ProgrammersGuide\SLPFindSrvTypes.html" />
+                  <File Id="file28" Name="SLPFree.html" Source="OpenSLP\Docs\html\ProgrammersGuide\SLPFree.html" />
+                  <File Id="file29" Name="SLPGetProperty.html" Source="OpenSLP\Docs\html\ProgrammersGuide\SLPGetProperty.html" />
+                  <File Id="file30" Name="SLPGetRefreshInterval.html" Source="OpenSLP\Docs\html\ProgrammersGuide\SLPGetRefreshInterval.html" />
+                  <File Id="file31" Name="SLPOpen.html" Source="OpenSLP\Docs\html\ProgrammersGuide\SLPOpen.html" />
+                  <File Id="file32" Name="SLPParseSrvURL.html" Source="OpenSLP\Docs\html\ProgrammersGuide\SLPParseSrvURL.html" />
+                  <File Id="file33" Name="SLPReg.html" Source="OpenSLP\Docs\html\ProgrammersGuide\SLPReg.html" />
+                  <File Id="file34" Name="SLPRegReport.html" Source="OpenSLP\Docs\html\ProgrammersGuide\SLPRegReport.html" />
+                  <File Id="file35" Name="SLPSetProperty.html" Source="OpenSLP\Docs\html\ProgrammersGuide\SLPSetProperty.html" />
+                  <File Id="file36" Name="SLPSrvTypeCallback.html" Source="OpenSLP\Docs\html\ProgrammersGuide\SLPSrvTypeCallback.html" />
+                  <File Id="file37" Name="SLPSrvURLCallback.html" Source="OpenSLP\Docs\html\ProgrammersGuide\SLPSrvURLCallback.html" />
+                  <File Id="file38" Name="SLPTypes.html" Source="OpenSLP\Docs\html\ProgrammersGuide\SLPTypes.html" />
+                  <File Id="file39" Name="SLPUnescape.html" Source="OpenSLP\Docs\html\ProgrammersGuide\SLPUnescape.html" />
+                  <File Id="file40" Name="smalllogo.jpg" Source="OpenSLP\Docs\html\ProgrammersGuide\smalllogo.jpg" />
+                  <File Id="file41" Name="Syntax.html" Source="OpenSLP\Docs\html\ProgrammersGuide\Syntax.html" />
+                </Component>
+
+                <Directory Id="directory6" Name="UsersGuide">
+
+                  <Component Id="USERGUID_comp" DiskId="1" Guid="FB8CF0A3-9D0D-4ABE-80D2-2820086B7695">
+                    <File Id="file549" Name="CommandLine.html" Source="OpenSLP\Docs\html\UsersGuide\CommandLine.html" />
+                    <File Id="file550" Name="FileLocations.html" Source="OpenSLP\Docs\html\UsersGuide\FileLocations.html" />
+                    <File Id="file551" Name="index.html" KeyPath="yes" Source="OpenSLP\Docs\html\UsersGuide\index.html">
+                      <Shortcut Id="USERGUID_shortcut" Directory="ProgramMenuDir" Name="User's Guide" WorkingDirectory="INSTALLDIR" />
+                    </File>
+                    <File Id="file552" Name="Installation.html" Source="OpenSLP\Docs\html\UsersGuide\Installation.html" />
+                    <File Id="file553" Name="Optimization.html" Source="OpenSLP\Docs\html\UsersGuide\Optimization.html" />
+                    <File Id="file554" Name="Security.html" Source="OpenSLP\Docs\html\UsersGuide\Security.html" />
+                    <File Id="file555" Name="SlpConf.html" Source="OpenSLP\Docs\html\UsersGuide\SlpConf.html" />
+                    <File Id="file556" Name="SlpReg.html" Source="OpenSLP\Docs\html\UsersGuide\SlpReg.html" />
+                    <File Id="file557" Name="smalllogo.jpg" Source="OpenSLP\Docs\html\UsersGuide\smalllogo.jpg" />
+                    <File Id="file558" Name="UserFAQ.html" Source="OpenSLP\Docs\html\UsersGuide\UserFAQ.html" />
+                    <File Id="file559" Name="WhenToRunSlpd.html" Source="OpenSLP\Docs\html\UsersGuide\WhenToRunSlpd.html" />
+                    <File Id="file560" Name="WhoShouldRead.html" Source="OpenSLP\Docs\html\UsersGuide\WhoShouldRead.html" />
+                  </Component>
+
+                </Directory>
+              </Directory>
+              <Directory Id="directory7" Name="rfc">
+
+                <Component Id="RFC_comp" DiskId="1" Guid="843746ED-01F9-437D-8EF3-BC02C5AFA983">
+                  <File Id="file561" Name="draft-ietf-svrloc-ipv6-05.txt" Source="OpenSLP\Docs\rfc\draft-ietf-svrloc-ipv6-05.txt" />
+                  <File Id="file562" Name="draft-zhao-slp-url-01.txt" Source="OpenSLP\Docs\rfc\draft-zhao-slp-url-01.txt" />
+                  <File Id="file563" Name="rfc1766.txt" Source="OpenSLP\Docs\rfc\rfc1766.txt" />
+                  <File Id="file564" Name="rfc2165.txt" Source="OpenSLP\Docs\rfc\rfc2165.txt" />
+                  <File Id="file565" Name="rfc2254.txt" Source="OpenSLP\Docs\rfc\rfc2254.txt" />
+                  <File Id="file566" Name="rfc2396.txt" Source="OpenSLP\Docs\rfc\rfc2396.txt" />
+                  <File Id="file567" Name="rfc2608.txt" KeyPath="yes" Source="OpenSLP\Docs\rfc\rfc2608.txt" />
+                  <File Id="file568" Name="rfc2609.txt" Source="OpenSLP\Docs\rfc\rfc2609.txt" />
+                  <File Id="file569" Name="rfc2610.txt" Source="OpenSLP\Docs\rfc\rfc2610.txt" />
+                  <File Id="file570" Name="rfc2614.txt" Source="OpenSLP\Docs\rfc\rfc2614.txt" />
+                  <File Id="file571" Name="rfc2926.txt" Source="OpenSLP\Docs\rfc\rfc2926.txt" />
+                  <File Id="file572" Name="rfc3059.txt" Source="OpenSLP\Docs\rfc\rfc3059.txt" />
+                  <File Id="file573" Name="rfc3082.txt" Source="OpenSLP\Docs\rfc\rfc3082.txt" />
+                  <File Id="file574" Name="rfc3111.txt" Source="OpenSLP\Docs\rfc\rfc3111.txt" />
+                  <File Id="file575" Name="rfc3224.txt" Source="OpenSLP\Docs\rfc\rfc3224.txt" />
+                  <File Id="file576" Name="rfc3421.txt" Source="OpenSLP\Docs\rfc\rfc3421.txt" />
+                  <File Id="file577" Name="rfc3528.txt" Source="OpenSLP\Docs\rfc\rfc3528.txt" />
+                  <File Id="file578" Name="srvreg-integrity.txt" Source="OpenSLP\Docs\rfc\srvreg-integrity.txt" />
+                  <File Id="file579" Name="threat_analysis_min_security.html" Source="OpenSLP\Docs\rfc\threat_analysis_min_security.html" />
+                </Component>
+
+              </Directory>
+            </Directory>
+          </Directory>
+
+          <Directory Id="directory8" Name="Include">
+            <Component Id="INCLUDE_comp" DiskId="1" Guid="154E989D-07EB-4195-97B5-C1F3F6FBF31B">
+              <File Id="file580" Name="slp.h" Source="OpenSLP\Include\slp.h" />
+            </Component>
+          </Directory>
+
+          <Directory Id="directory9" Name="Lib">
+            <Component Id="LIB_comp" DiskId="1" Guid="F3D12802-5562-46D0-87D4-3A36A422ADB9">
+              <File Id="file581" Name="libslp.lib" Source="OpenSLP\Lib\libslp.lib" />
+            </Component>
+          </Directory>
+        </Directory>
+      </Directory>
 
       <!-- Most of the directory and file references are defined in a secondary 
           WXS file that is mostly generated by the tallow.exe utility from the 
           source directory structure - this file is openslp_files.wxs. -->
 
-      <Directory Id="ProgramMenuFolder" Name="PMenu" LongName="Programs">
-        <Directory Id="ProgramMenuDir" Name="OSLP20" LongName="OpenSLP 2.0" />
+      <Directory Id="ProgramMenuFolder" Name="Programs">
+        <Directory Id="ProgramMenuDir" Name="OpenSLP 2.0" />
       </Directory>
+
       <Directory Id="DesktopFolder" Name="Desktop" />
 
       <!-- See note below where <ComponentRef> refers to this <Component> -->
 
       <Component Id="EMPTY_comp" DiskId="1" Guid="D9A267D1-222E-4FE3-9B6C-1E1D5E055F1D" />
+
     </Directory>
 
     <Feature Id="Complete" Title="OpenSLP 2.0" 
         Description="The complete OpenSLP package."
         Display="expand" ConfigurableDirectory="OPENSLPDIR"
         AllowAdvertise="no" Level="1" InstallDefault="local">
+
+      <Feature Id="VC8RuntimeFeature" Level="1" AllowAdvertise="no" Display="hidden">
+        <MergeRef Id="vc8runtime"/>
+        <MergeRef Id="vc8policy"/> 
+      </Feature>
+
       <Feature Id="UASADA_feature" Title="Client/Server Agents" 
           Description="This feature includes the OpenSLP User Agent DLL, and the Service and Directory Agent system service." 
           AllowAdvertise="no" Level="1" InstallDefault="followParent">
@@ -88,20 +243,13 @@
           <ComponentRef Id="INTRO_comp" />
           <ComponentRef Id="USERGUID_comp" />
           <ComponentRef Id="FAQ_comp" />
+          <ComponentRef Id="RFC_comp" />
         </Feature>
 
         <Feature Id="DEVKITDOC_feature" Title="Dev Kit Doc"
             Description="This feature provides documentation describing the User Agent library application programmer's interface."
             AllowAdvertise="no" Level="5" InstallDefault="followParent">
           <ComponentRef Id="PROGUID_comp" />
-        </Feature>
-
-        <Feature Id="SRCDOC_feature" Title="Source Doc"
-            Description="This feature provides documentation describing the details of the OpenSLP source code - generated with Doxygen."
-            AllowAdvertise="no" Level="5" InstallDefault="followParent">
-          <ComponentRef Id="LOGO_comp" />
-          <ComponentRef Id="SRCDOC_comp" />
-          <ComponentRef Id="RFC_comp" />
         </Feature>
 
       </Feature>
@@ -115,6 +263,10 @@
 
     <UIRef Id="WixUI_Mondo" />
     <UIRef Id="WixUI_ErrorProgressText" />
+
+    <WixVariable Id="WixUILicenseRtf" Value="License.rtf" />
+    <WixVariable Id="WixUIBannerBmp" Value="Bitmaps/bannrbmp.bmp" />
+    <WixVariable Id="WixUIDialogBmp" Value="Bitmaps/dlgbmp.bmp" />
 
   </Product>
 </Wix>

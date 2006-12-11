@@ -31,7 +31,7 @@
 ##  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ##---------------------------------------------------------------------------
 
-EXTRA_DIST =
+EXTRA_DIST = slpd_win32.c slpd_win32.h
 
 sbin_PROGRAMS = slpd
 

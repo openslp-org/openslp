@@ -36,7 +36,7 @@ noinst_LTLIBRARIES = libcommonslpd.la libcommonlibslp.la
 
 AM_YFLAGS = -d
 
-EXTRA_DIST = 
+EXTRA_DIST = slp_win32.c
 
 if ENABLE_SLPv1
 slp_v1message_SRCS = slp_v1message.c slp_utf8.c

@@ -2,21 +2,16 @@ OpenSLP Windows Installer (msi) README file.
 
 Introduction
 -------------
-This directory contains the required source files and scripts to create
-a Windows Installer .msi file for OpenSLP. 
+This directory contains the required source files and scripts to create a 
+Windows Installer .msi file for OpenSLP. 
 
-The WIX toolset is required to build a .msi file from the source files in 
-this directory. WIX is a Microsoft-sponsored open source project hosted by 
-sourceforge.net (http://wix.sf.net) that provides a simple, but powerful 
-layer on top of the Windows Installer database interface. WIX stands for 
-Windows Installer XML. Unpack the WIX archive (ironically, they don't seem 
-to have a .msi file ;-) in some convenient location, add the WIX root
-directory to your path, and create an environment variable called WIX_PATH,
-also set to the root of the WIX directory structure.
-
-This installer code also relies on the fact that the Doxyfile in the openslp
-doxygen directory has been run by the doxygen tool. This is because it packages
-the source comment-based documentation for installation if the user so chooses.
+The WIX toolset version 3.0 is required to build a .msi file from the source 
+files in this directory. WIX is a Microsoft-sponsored open source project 
+hosted by sourceforge.net (http://wix.sf.net) that provides a simple, but 
+powerful layer on top of the Windows Installer database interface. WIX stands 
+for Windows Installer XML. Install WIX 3.0, add the WIX root directory to your 
+path, and create an environment variable called WIX_PATH, also set to the root 
+of the WIX directory structure.
 
 The following scripts are available for your convenience:
 
@@ -24,29 +19,23 @@ makesrc.cmd - creates the installation source directory structure. This script
         takes three optional parameters (plus various help option syntax). By 
         default the script will execute like this:
 
-        c:> makesrc ..\openslp . debug
+        c:> makesrc --src ..\openslp --tgt .
 
-        Where the first parameter is the source of the copy operation, the 
-        second parameter is the destination (current directory), and the third
-        parameter is the build to copy from (debug or release).
+        Where the --src parameter indicates the source of the copy operation, 
+	and the --tgt parameter indicates the target or destination of the copy 
+	operation. An optional --debug parameter allows you to build an 
+	installer based on debug product files, rather than release product 
+	files. The --help command will give you a help screen.
 
-regenfiles.cmd - runs the tallow.exe utility on the directory structure created
-        by makesrc.cmd in order to generate a list of files and components in 
-        the XML format required by the WIX schema. PLEASE BE CAREFUL WITH THIS
-        SCRIPT - A FAIR AMOUNT OF HAND-TAYLORING IS REQUIRED ON THE GENERATED 
-        XML FILE TO MAKE IT WORK PROPERLY WITH THE OPENSLP .MSI FILE. It really
-        only needs to be run when the file set changes, but then you should
-        carefully compare the contents of the old version (saved by the script
-        in openslp_files.wxs.old) with the new one, and hand copy over the 
-        appropriate information. I believe ultimately the correct thing to do 
-        here is to change the HTML documentation into .chm files, or at least 
-        .pdf files to remove the need to generate the openslp_files.wxs file.
-
-build.cmd - runs candle.exe on the two .wxs files, and then light.exe on the
-        resulting .wixobj files linking the appropriate WIX libraries. The 
-        output of build.cmd is an openslp_<version>_<machine_tag>.msi file,
+build.cmd - runs candle.exe on the openslp.wxs file, and then light.exe on the
+        resulting openslp.wixobj file, linking the appropriate WIX libraries. 
+	The output of build.cmd is an openslp_<version>_<machine_tag>.msi file,
         where the default values of <version> and <machine_tag> are 2.0.0 and
         x86, respectively. These options are specified on the build.cmd command
-        line in this order.
+        line, as follows:
+
+	c:> build --ver <version> --arch <machine-arch>
+
+	An --help option is available for a parameter help screen.
 
 Have fun!
