@@ -1,5 +1,5 @@
 /*-------------------------------------------------------------------------
- * Copyright (C) 2000 Caldera Systems, Inc
+ * Copyright (C) 2000-2005 Mike Day <ncmike@ncultra.org>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,31 +28,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Copyright (C) Michael Day, 1999-2001 
- *
- * This program is free software; you can redistribute it and/or 
- * modify it under the terms of the GNU General Public License 
- * as published by the Free Software Foundation; either version 2 
- * of the License, or (at your option) any later version. 
- *
- * This program is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- *
- * You should have received a copy of the GNU General Public License 
- * along with this program; if not, write to the Free Software 
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  
- * 02111-1307, USA. 
  *-------------------------------------------------------------------------*/
 
-/** Flex input file for LDAPv3 search filter.
+/** Lexer for encoding and decoding LDAP filters.
  *
  * @file       slp_filter_l.l
- * @date       04-21-2001
- * @author     Matthew Peterson, Michael Day (md@soft-hackle.net), 
- *             John Calcote (jcalcote@novell.com)
+ * @author     Michael Day (ncmike@ncultra.org), 
  * @attention  Please submit patches to http://www.openslp.org
  * @ingroup    CommonCodeFilter
  */
@@ -61,67 +42,39 @@
 
 #undef YYLMAX
 #define YYLMAX 2048
+#define YY_NEVER_INTERACTIVE 1
+#undef YY_INPUT
+#define YY_INPUT(b, r, m) abort()
+#undef ECHO
+#define ECHO  filtererror(yytext)
+#define exit(i) abort()
+#include "slp_client.h"
+#include "y_filter.h"
+#include <stdarg.h>
 
-#define yymaxdepth    slp_filter_maxdepth
-#define yyparse       slp_filter_parse
-#define yylex         slp_filter_lex
-#define yyerror       slp_filter_error
-#define yylval        slp_filter_lval
-#define yychar        slp_filter_char
-#define yydebug       slp_filter_debug
-#define yypact        slp_filter_pact  
-#define yyr1          slp_filter_r1                    
-#define yyr2          slp_filter_r2                    
-#define yydef         slp_filter_def           
-#define yychk         slp_filter_chk           
-#define yypgo         slp_filter_pgo           
-#define yyact         slp_filter_act           
-#define yyexca        slp_filter_exca
-#define yyerrflag     slp_filter_errflag
-#define yynerrs       slp_filter_nerrs
-#define yyps          slp_filter_ps
-#define yypv          slp_filter_pv
-#define yys           slp_filter_s
-#define yy_yys        slp_filter_yys
-#define yystate       slp_filter_state
-#define yytmp         slp_filter_tmp
-#define yyv           slp_filter_v
-#define yy_yyv        slp_filter_yyv
-#define yyval         slp_filter_val
-#define yylloc        slp_filter_lloc
-#define yyreds        slp_filter_reds
-#define yytoks        slp_filter_toks
-#define yylhs         slp_filter_yylhs
-#define yylen         slp_filter_yylen
-#define yydefred      slp_filter_yydefred
-#define yydgoto       slp_filter_yydgoto
-#define yysindex      slp_filter_yysindex
-#define yyrindex      slp_filter_yyrindex
-#define yygindex      slp_filter_yygindex
-#define yytable       slp_filter_yytable
-#define yycheck       slp_filter_yycheck
-#define yyname        slp_filter_yyname
-#define yyrule        slp_filter_yyrule
-#define YY_NO_UNPUT
+#define filterless yyless
+void filtererror(int8 *, ...);
 
-#include "slp_filter.h"
-#include "slp_filter_y.h"
-#include "slp_xmalloc.h"
+/*
+extern char *lslp_logPath;
 
-static char buf[2052];
+#define yyerror(s) 	_lslpMsgOut(lslp_logPath, lslpPrintSem, LSLP_LOG_ERRORS, NULL, 0, (s), __FILE__, __LINE__);
+*/
+static int16 heapIndex;
+static int8 heap[2052];
+static int8 buf[2052];
 
-void slp_filter_error(char *, ...);
+static int8 *_lslp_strdup(int8 *s);
+void filter_close_lexer(uint32 handle);
+uint32 filter_init_lexer(int8 *s);
 
-void slp_filter_close_lexer(unsigned int handle);
-
-unsigned int slp_filter_init_lexer(const char *s);
 
 %}
 
 /* regex macros for the lexer */
-hexdigit       [0-9a-fA-F]
-reserved       [()\&|!=<>~\n] /* newline in reserved set for convinience */
-not_reserved   [^()\&|!=<>~\n] 
+hexdigit		[0-9a-fA-F]
+reserved                [()\&|!=<>~\n] /* newline in reserved set for convinience */
+not_reserved            [^()\&|!=<>~\n] 
 
 
 /* special lexer states */
@@ -129,13 +82,13 @@ not_reserved   [^()\&|!=<>~\n]
 
 /* table size directives */
 
-%option noyywrap
+%option noyywrap prefix="filter"
 %%
 
-"\""                          { BEGIN QUOTED_STRING; yyless(0); }
+"\""                          { BEGIN QUOTED_STRING; filterless(0); }
 <QUOTED_STRING>[^()\&|!=<>~\n]+  {
                                  BEGIN INITIAL; 
-                                 if(0 != (yylval.filter_string =  xstrdup(yytext)))
+                                 if(NULL != (filterlval.filter_string =  _lslp_strdup(filtertext)))
                                     return(OPERAND) ; 
                                  else 
                                     return(0L) ;
@@ -143,64 +96,95 @@ not_reserved   [^()\&|!=<>~\n]
 
 
 [ \t\v\f]*                    { ; }
-"("                           { yylval.filter_int = L_PAREN; return L_PAREN ; }
-")"                           { yylval.filter_int = R_PAREN; return R_PAREN ; }
-"&"                           { yylval.filter_int = OP_AND; return OP_AND ; }
-"|"                           { yylval.filter_int = OP_OR; return OP_OR ; }
-"!"                           { yylval.filter_int = OP_NOT; return OP_NOT ; }
-"="                           { yylval.filter_int = OP_EQU; return OP_EQU ; }
-">="                          { yylval.filter_int = OP_GT; return OP_GT ; }
-"<="                          { yylval.filter_int = OP_LT; return OP_LT ; }
-"=*"                          { yylval.filter_int = OP_PRESENT; return OP_PRESENT ; }
-"~="                          { yylval.filter_int = OP_APPROX; return OP_APPROX ;  }
+"("                           { filterlval.filter_int = L_PAREN; return L_PAREN ; }
+")"                           { filterlval.filter_int = R_PAREN; return R_PAREN ; }
+"&"                           { filterlval.filter_int = OP_AND; return OP_AND ; }
+"|"                           { filterlval.filter_int = OP_OR; return OP_OR ; }
+"!"                           { filterlval.filter_int = OP_NOT; return OP_NOT ; }
+"="                           { filterlval.filter_int = OP_EQU; return OP_EQU ; }
+">="                          { filterlval.filter_int = OP_GT; return OP_GT ; }
+"<="                          { filterlval.filter_int = OP_LT; return OP_LT ; }
+"=*"                          { filterlval.filter_int = OP_PRESENT; return OP_PRESENT ; }
+"~="                          { filterlval.filter_int = OP_APPROX; return OP_APPROX ;  }
 
 
 [-+][0-9]+                  |
 [-+]"0"[xX]{hexdigit}+      { 
-                              yylval.filter_int = strtol(yytext, (char **) 0, 0) ;
+                              filterlval.filter_int = strtol(filtertext, (char **) 0, 0) ;
                               return VAL_INT;
                             }
 
 [0-9]+                      |
 "0"[xX]{hexdigit}+          { 
-                              yylval.filter_int = strtoul(yytext, (char **) 0, 0);
+                              filterlval.filter_int = strtoul(filtertext, (char **) 0, 0);
                               return VAL_INT;
                             }
 
 [tT][rR][uU][eE]            { 
-                               yylval.filter_int = 1; return VAL_BOOL; 
+                               filterlval.filter_int = 1; return VAL_BOOL; 
                             }
 
 
 [fF][aA][lL][sS][eE]        { 
-                               yylval.filter_int = 0; return VAL_BOOL; 
+                               filterlval.filter_int = 0; return VAL_BOOL; 
                             }
 
 
 [^()\&|!=<>~ \t\v\f]+       {
-                                 if(0 != (yylval.filter_string =  xstrdup(yytext)))
+                                 if(NULL != (filterlval.filter_string =  _lslp_strdup(filtertext)))
                                     return(OPERAND) ; 
                                  else 
                                     return(0L) ;
                             }
 
+
+ 
 %%
 
-void filter_close_lexer(unsigned int handle)
+void filter_close_lexer(uint32 handle)
 {
-   yy_delete_buffer((YY_BUFFER_STATE)handle);
+  assert(handle != 0);
+  filter_delete_buffer((YY_BUFFER_STATE)handle);
 }
 
-unsigned int slp_filter_init_lexer(const char * s)
+
+uint32 filter_init_lexer(int8 *s)
 {
-   memset(&buf[0], 0x00, 2052);
-   strncpy(&buf[0], s, 2048);
-   return((uint)yy_scan_buffer(&buf[0], strlen(s) + 2));
+  memset(&buf[0], 0x00, 2052);
+  memset(&heap[0], 0x00, 2052);
+  heapIndex = 0;
+  strncpy(&buf[0], s, 2048);
+  return((uint32)filter_scan_buffer(&buf[0], strlen(s) + 2));
 }
 
-void slp_filter_error(char *s, ...)
-{
-   return;
-}   
 
-/*=========================================================================*/
+static int8 *_lslp_strdup(int8 *s)
+{
+  int8 *p = &heap[heapIndex];
+  do { heap[heapIndex++] = *s; } while ((*s != 0x00) && (heapIndex < 2049) && (++s));
+  return(p);
+}
+
+/*****
+static int8 *_lslp_strdup_strip_quotes(int8 *s)
+{
+  int8 *p = &heap[heapIndex];
+  do { if(*s != '"') heap[heapIndex++] = *s; } while ((*s != 0x00) && (heapIndex < 2049) && (++s));
+  return(p);
+}
+
+******/
+
+void filtererror(int8 *s, ...)
+{
+	return;
+}	
+
+/*
+int main(int argc, char *argv[])
+{
+
+}	
+
+*/
+
