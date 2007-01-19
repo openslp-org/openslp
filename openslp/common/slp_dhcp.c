@@ -114,6 +114,7 @@ static sockfd_t dhcpCreateBCSkt(void * peeraddr)
          closesocket(sockfd);
          return SLP_INVALID_SOCKET;
       }
+      addr = INADDR_BROADCAST;
       SLPNetSetAddr(peeraddr, AF_INET, IPPORT_BOOTPS, &addr);
    }
    return sockfd;
@@ -642,5 +643,68 @@ int DHCPParseSLPTags(int tag, void * optdata, size_t optdatasz,
    }
    return 0;
 }
+
+/*===========================================================================
+ *  TESTING CODE : compile with the following command lines:
+ *
+ *  $ gcc -g -DSLP_DHCP_TEST -DDEBUG slp_dhcp.c slp_net.c slp_xmalloc.c
+ *       slp_property.c slp_linkedlist.c slp_thread.c slp_debug.c
+ *       slp_message.c slp_v2message.c -lpthread
+ *
+ *  C:\> cl -Zi -DSLP_DHCP_TEST -DDEBUG -D_CRT_SECURE_NO_DEPRECATE 
+ *       -DSLP_VERSION=\"2.0\" slp_dhcp.c slp_net.c slp_xmalloc.c 
+ *       slp_property.c slp_linkedlist.c slp_thread.c slp_debug.c 
+ *       slp_win32.c slp_message.c slp_v2message.c ws2_32.lib
+ */
+#ifdef SLP_DHCP_TEST 
+
+# define FAIL (printf("FAIL: %s at line %d.\n", __FILE__, __LINE__), (-1))
+# define PASS (printf("PASS: Success!\n"), (0))
+
+int main(int argc, char * argv[])
+{
+   int err;
+   DHCPContext ctx;
+   unsigned char * alp, * ale;
+   unsigned char dhcpOpts[] = {TAG_SLP_SCOPE, TAG_SLP_DA};
+
+#ifdef _WIN32
+   {
+      WSADATA wsaData;
+      if ((err = WSAStartup(MAKEWORD(2,2), &wsaData)) != 0)
+         return FAIL;
+   }
+#endif
+
+   *ctx.scopelist = 0;
+   ctx.scopelistlen = 0;
+   ctx.addrlistlen = 0;
+
+   if ((err = DHCPGetOptionInfo(dhcpOpts, sizeof(dhcpOpts), 
+         DHCPParseSLPTags, &ctx)) != 0)
+      return FAIL;
+
+   printf("ScopeList: [%.*s]\n", ctx.scopelistlen, ctx.scopelist);
+   printf("AddrList: [");
+
+   alp = ctx.addrlist;
+   ale = ctx.addrlist + ctx.addrlistlen;
+   while(alp + 3 <= ale)
+   {
+      printf("%u.%u.%u.%u", alp[0], alp[1], alp[2], alp[3]);
+      alp += 4;
+      if (alp + 3 <= ale)
+         printf(", ");
+   }
+   printf("]\n");
+
+#ifdef _WIN32
+   WSACleanup();
+#endif
+
+   return PASS;
+}
+
+#endif
 
 /*=========================================================================*/
