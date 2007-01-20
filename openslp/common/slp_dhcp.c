@@ -331,25 +331,27 @@ static int dhcpGetAddressInfo(unsigned char * ipaddr, unsigned char * chaddr,
    /* Query the ARP cache for our hardware address */
    int sockfd;
    struct arpreq arpreq;
-   struct sockaddr * sin;
+   struct sockaddr_in * sin;
 
    if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == SLP_INVALID_SOCKET)
       return -1;
 
    *hlen = 0;
    
-   memset(&arpreq, 0, sizeof(arpreq));
-   sin = (struct sockaddr *)&arpreq.arp_pa;
-   sin->sa_family = AF_INET;
-   memcpy(&sin->sa_data, ipaddr, sizeof(struct in_addr));
+   sin = (struct sockaddr_in *)&arpreq.arp_pa;
+   memset(sin, 0, sizeof(struct sockaddr_in));
+   sin->sin_family = AF_INET;
+   memcpy(&sin->sin_addr, ipaddr, sizeof(struct in_addr));
    
-   if (ioctl(sockfd, SIOCGARP, &arpreq) >= 0 
-         && (arpreq.arp_flags & ATF_COM))
-   {
-      *hlen = 6;  /* assume IEEE802 compatible */
-      *htype = arpreq.arp_ha.sa_family;
-      memcpy(chaddr, arpreq.arp_ha.sa_data, 6);
-   }
+	/* We should check for an error from ioctl, but this call succeeds 
+		on SuSE linux 10.2, but returns an error code (19 - no such 
+		device). For now, we'll just say that the check for data length 
+		below is sufficient for our needs. */
+
+	ioctl(sockfd, SIOCGARP, &arpreq);
+   *hlen = 6;  /* assume IEEE802 compatible */
+   *htype = arpreq.arp_ha.sa_family;
+   memcpy(chaddr, arpreq.arp_ha.sa_data, 6);
    closesocket(sockfd);
 
 #else
@@ -647,9 +649,10 @@ int DHCPParseSLPTags(int tag, void * optdata, size_t optdatasz,
 /*===========================================================================
  *  TESTING CODE : compile with the following command lines:
  *
- *  $ gcc -g -DSLP_DHCP_TEST -DDEBUG slp_dhcp.c slp_net.c slp_xmalloc.c
- *       slp_property.c slp_linkedlist.c slp_thread.c slp_debug.c
- *       slp_message.c slp_v2message.c -lpthread
+ *  $ gcc -g -DSLP_DHCP_TEST -DDEBUG -DHAVE_CONFIG_H -I <path to config.h>
+ *			slp_dhcp.c slp_net.c slp_xmalloc.c slp_property.c slp_linkedlist.c 
+ *			slp_thread.c slp_debug.c slp_message.c slp_v2message.c 
+ *			slp_v1message.c slp_utf8.c -lpthread
  *
  *  C:\> cl -Zi -DSLP_DHCP_TEST -DDEBUG -D_CRT_SECURE_NO_DEPRECATE 
  *       -DSLP_VERSION=\"2.0\" slp_dhcp.c slp_net.c slp_xmalloc.c 
