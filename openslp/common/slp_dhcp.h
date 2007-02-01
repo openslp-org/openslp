@@ -140,8 +140,8 @@ int DHCPParseSLPTags(int tag, void * optdata, size_t optdatasz,
 /** DHCP interface context structure */
 typedef struct _DHCPContext
 {
-   int addrlistlen;
-   int scopelistlen;
+   size_t addrlistlen;
+   size_t scopelistlen;
    char scopelist[256];
    unsigned char addrlist[256];
 } DHCPContext;

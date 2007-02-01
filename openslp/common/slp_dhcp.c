@@ -557,9 +557,9 @@ int DHCPParseSLPTags(int tag, void * optdata, size_t optdatasz,
                ;           /* ...and add code to handle it later... */
 
             /* copy utf8 string into return buffer */
-            cpysz = optdatasz < sizeof(ctxp->scopelist)? 
+            ctxp->scopelistlen = optdatasz < sizeof(ctxp->scopelist)? 
                   optdatasz: sizeof(ctxp->scopelist);
-            strncpy(ctxp->scopelist, (char*)p, cpysz);
+            strncpy(ctxp->scopelist, (char*)p, ctxp->scopelistlen);
          }
          else
          {
@@ -580,9 +580,9 @@ int DHCPParseSLPTags(int tag, void * optdata, size_t optdatasz,
                wcstombs(ctxp->scopelist, (wchar_t*)p, sizeof(ctxp->scopelist));
             else
             {
-               cpysz = optdatasz < sizeof(ctxp->scopelist)? 
+               ctxp->scopelistlen = optdatasz < sizeof(ctxp->scopelist)? 
                      optdatasz: sizeof(ctxp->scopelist);
-               strncpy(ctxp->scopelist, (char*)p, cpysz);
+               strncpy(ctxp->scopelist, (char*)p, ctxp->scopelistlen);
             }
          }
          break;
@@ -609,9 +609,9 @@ int DHCPParseSLPTags(int tag, void * optdata, size_t optdatasz,
             }
 
             bufsz = sizeof(ctxp->addrlist) - ctxp->addrlistlen;
-            cpysz = (int)optdatasz < bufsz? optdatasz: bufsz;
+            cpysz = optdatasz < bufsz? optdatasz: bufsz;
             memcpy(ctxp->addrlist + ctxp->addrlistlen, p, cpysz);
-            ctxp->addrlistlen += (int)cpysz;
+            ctxp->addrlistlen += cpysz;
          }
          else
          {
@@ -636,7 +636,7 @@ int DHCPParseSLPTags(int tag, void * optdata, size_t optdatasz,
                bufsz = sizeof(ctxp->addrlist) - ctxp->addrlistlen;
                cpysz = dasize < bufsz? dasize: bufsz;
                memcpy(ctxp->addrlist + ctxp->addrlistlen, p, cpysz);
-               ctxp->addrlistlen += (int)cpysz;
+               ctxp->addrlistlen += cpysz;
             }
             if (flags & DISABLE_DA_MCAST)
                ;  /* this is the equivalent of the rfc2610 mandatory bit */

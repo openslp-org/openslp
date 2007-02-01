@@ -59,7 +59,30 @@
 
 /* system library includes */
 # define WIN32_LEAN_AND_MEAN
+
+/*
+ * With Microsoft Platform SDK build environment (SETENV.CMD)
+ * established, hard-coding NT 4.0 version value is an issue
+ * because current Platform SDKs cannot target NT 4.0, which
+ * then causes conflict with NTDDI_VERSION (which is set to
+ * whatever SDK supported version has been selected by the
+ * Platform SDK / SETENV.CMD).
+ */
+
+# ifndef _WIN32_WINNT
 # define _WIN32_WINNT 0x0400
+# endif /* ifndef _WIN32_WINNT */
+
+# ifndef NTDDI_VERSION
+# define NTDDI_VERSION 0x04000000
+# endif /* ifndef NTDDI_VERSION */
+
+/* Need NTDDI_LONGHORN defined for WIN32 decisions regarding inet_pton */
+
+# ifndef NTDDI_LONGHORN
+# define NTDDI_LONGHORN 0x06000000
+# endif /* ifndef NTDDI_LONGHORN */
+
 # include <winsock2.h>           /* must include before windows.h */
 # include <windows.h>
 

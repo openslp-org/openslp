@@ -69,6 +69,17 @@
 # define EAFNOSUPPORT -1
 # define inet_aton(opt, bind) ((bind)->s_addr = inet_addr(opt))
 
+/*
+ * Windows Vista SDK and later provide inet_pton and inet_ntop.
+ * For now, continue using OpenSLP internal versions on all
+ * Windows platforms.
+ */
+
+# if ( NTDDI_VERSION >= NTDDI_LONGHORN )
+#define inet_pton openslp_inet_pton
+#define inet_ntop openslp_inet_ntop
+# endif /* if ( NTDDI_VERSION >= NTDDI_LONGHORN ) */
+
 int inet_pton(int af, const char * src, void * dst);
 const char * inet_ntop(int af, const void * src, char * dst, size_t size);
 
