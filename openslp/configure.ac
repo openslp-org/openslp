@@ -47,6 +47,17 @@ OPENSLP_CHECK_TYPE(socklen_t, int,
 OPENSLP_STRUCT_SA_RESTORER
 
 #
+# Checks for structure members
+
+AC_CHECK_MEMBER([struct sockaddr_in.sin_len],
+	[AC_DEFINE(HAVE_SOCKADDR_IN_SIN_LEN,1,[whether sockaddr_in has sin_len])],
+	[], [#include <netinet/in.h>])
+
+AC_CHECK_MEMBER([struct sockaddr_storage.ss_len],
+	[AC_DEFINE(HAVE_SOCKADDR_STORAGE_SS_LEN,1,[whether sockaddr_storage has ss_len])],
+	[], [#include <netinet/in.h>])
+
+#
 # Checks for compiler characteristics
 
 AC_C_CONST

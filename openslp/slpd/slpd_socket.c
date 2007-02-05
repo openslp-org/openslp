@@ -236,6 +236,9 @@ static int BindSocketToInetAddr(int family, sockfd_t sock,
       if (addr == 0)
       {
          addr = &temp_addr;
+#ifdef HAVE_SOCKADDR_STORAGE_SS_LEN
+			addr->ss_len = sizeof(struct sockaddr_in);
+#endif
          addr->ss_family = AF_INET;
          ((struct sockaddr_in *)addr)->sin_addr.s_addr = INADDR_ANY;
       }
@@ -246,6 +249,9 @@ static int BindSocketToInetAddr(int family, sockfd_t sock,
       if (addr == 0)
       {
          addr = &temp_addr;
+#ifdef HAVE_SOCKADDR_STORAGE_SS_LEN
+			addr->ss_len = sizeof(struct sockaddr_in6);
+#endif
          addr->ss_family = AF_INET6;
          ((struct sockaddr_in6*) addr)->sin6_scope_id = 0;
          memcpy(&((struct sockaddr_in6*)addr)->sin6_addr, 
@@ -289,6 +295,9 @@ static int BindSocketToInetAddr(int family, sockfd_t sock,
    if (SLPNetIsIPV4() && family == AF_INET)
    {
       memset(&loaddr, 0, sizeof(struct sockaddr_in)); /*Some platforms require sin_zero to be 0*/
+#ifdef HAVE_SOCKADDR_STORAGE_SS_LEN
+		((struct sockaddr_in*) &loaddr)->sin_len = sizeof(struct sockaddr_in);
+#endif
       ((struct sockaddr_in*) &loaddr)->sin_family = AF_INET;
       ((struct sockaddr_in*) &loaddr)->sin_addr.s_addr = htonl(INADDR_LOOPBACK);
       return BindSocketToInetAddr(AF_INET, sock, &loaddr);
@@ -296,6 +305,9 @@ static int BindSocketToInetAddr(int family, sockfd_t sock,
 
    if (SLPNetIsIPV6() && family == AF_INET6)
    {
+#ifdef HAVE_SOCKADDR_STORAGE_SS_LEN
+		((struct sockaddr_in6*) &loaddr)->sin6_len = sizeof(struct sockaddr_in6);
+#endif
       ((struct sockaddr_in6*) &loaddr)->sin6_family = AF_INET6;
       memcpy(&(((struct sockaddr_in6 *)&loaddr)->sin6_addr), 
             &slp_in6addr_loopback, sizeof(struct in6_addr));
