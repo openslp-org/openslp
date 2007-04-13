@@ -72,7 +72,7 @@ void OutgoingDatagramRead(SLPList * socklist, SLPDSocket * sock)
       sock->recvbuf->end = sock->recvbuf->start + bytesread;
 
       SLPDProcessMessage(&sock->peeraddr, &sock->localaddr, 
-            sock->recvbuf, &sock->sendbuf);
+            sock->recvbuf, &sock->sendbuf, &sock->sendlist);
 
       /* Completely ignore the message */
 
@@ -244,7 +244,7 @@ void OutgoingStreamRead(SLPList * socklist, SLPDSocket * sock)
          /* check to see if everything was read */
          if (sock->recvbuf->curpos == sock->recvbuf->end)
             switch (SLPDProcessMessage(&(sock->peeraddr), &(sock->localaddr),
-                        sock->recvbuf, &(sock->sendbuf)))
+                        sock->recvbuf, &(sock->sendbuf), 0))
             {
                case SLP_ERROR_DA_BUSY_NOW:
                   sock->state = STREAM_WRITE_WAIT;
@@ -362,6 +362,7 @@ void OutgoingStreamWrite(SLPList * socklist, SLPDSocket * sock)
 
 /** Connect for outbound traffic to a specified remote address.
  *
+ * @param[in] is_TCP - if non-0, this is a tcp connection to the remote device
  * @param[in] addr - The address to be connected to.
  *
  * @remarks Get a pointer to a connected socket that is associated with
@@ -371,57 +372,61 @@ void OutgoingStreamWrite(SLPList * socklist, SLPDSocket * sock)
  *
  * @return A pointer to socket, or null on error.
  */
-SLPDSocket * SLPDOutgoingConnect(struct sockaddr_storage * addr)
+SLPDSocket * SLPDOutgoingConnect(int is_TCP, struct sockaddr_storage * addr)
 {
-   SLPDSocket * sock = (SLPDSocket *) G_OutgoingSocketList.head;
-   while (sock)
+   SLPDSocket * sock = 0;
+   
+   if(is_TCP)
    {
-      if (sock->state == STREAM_CONNECT_IDLE
-            || sock->state > STREAM_CONNECT_CLOSE)
+      sock = (SLPDSocket *) G_OutgoingSocketList.head;
+      while (sock)
       {
-         if (SLPNetCompareAddrs(&(sock->peeraddr), addr) == 0)
-            break;
+        if (sock->state == STREAM_CONNECT_IDLE
+            || sock->state > STREAM_CONNECT_CLOSE)
+        {
+           if (SLPNetCompareAddrs(&(sock->peeraddr), addr) == 0)
+              break;
+        }
+        sock = (SLPDSocket *) sock->listitem.next;
       }
-      sock = (SLPDSocket *) sock->listitem.next;
-   }
 
-   if (sock == 0)
+      if (sock == 0)
+      {
+         sock = SLPDSocketCreateConnected(addr);
+         if (sock)
+            SLPListLinkTail(&(G_OutgoingSocketList), (SLPListItem *) sock);
+      }
+   }
+   else
    {
-      sock = SLPDSocketCreateConnected(addr);
+      sock = SLPDSocketCreateDatagram(addr, DATAGRAM_UNICAST);
       if (sock)
+      {
          SLPListLinkTail(&(G_OutgoingSocketList), (SLPListItem *) sock);
+         sock->reconns = 0;
+         sock->age = G_SlpdProperty.unicastTimeouts[0];
+      }
    }
 
    return sock;
 }
 
-/** Add a ready-to-write outgoing datagram socket to the outgoing list.
+/** Writes the datagram to the socket's peeraddr or mcastaddr
  *
- * The datagram will be written then sit in the list until it ages out
- * (after net.slp.unicastMaximumWait).
- *
- * @param[in] sock - The socket that will belong on the outgoing list.
+ * @param[in] sock - The socket whose peer will be sent to
  * @param[in] mcast - If non-zero, the message will be sent to sock->mcastaddr instead of sock->peeraddr.
- * @param[in] addtolist - If non-zero, the socket is a throwaway to add to the aging list
+ * @param[in] buffer - the buffer to send, could be the sockets sendbuf, or an item in the sendlist, etc.
  */
-void SLPDOutgoingDatagramWrite(SLPDSocket * sock, int mcast, int addtolist)
+void SLPDOutgoingDatagramWrite(SLPDSocket * sock, int mcast, SLPBuffer buffer)
 {
-   if (sendto(sock->fd, (char*)sock->sendbuf->start,
-            (int)(sock->sendbuf->end - sock->sendbuf->start), 0,
-            mcast ? (struct sockaddr *)&sock->mcastaddr : (struct sockaddr *)&sock->peeraddr,
-            sizeof(struct sockaddr_storage)) >= 0)
-   {
-      /* Link the socket into the outgoing list so replies will be */
-      /* processed -- if there would be any                        */
-      if(addtolist)
-         SLPListLinkHead(&G_OutgoingSocketList, (SLPListItem *) (sock));
-   }
-   else if (!mcast)  /*Since multicast now uses the incoming list, I'll let the incoming handler clean up correctly*/
+   if (-1 == sendto(sock->fd, (char*)buffer->start,
+               (int)(buffer->end - buffer->start), 0,
+               mcast ? (struct sockaddr *)&sock->mcastaddr : (struct sockaddr *)&sock->peeraddr,
+               sizeof(struct sockaddr_storage)) >= 0)
    {
 #ifdef DEBUG
       SLPDLog("ERROR: Data could not send() in SLPDOutgoingDatagramWrite()");
 #endif
-      SLPDSocketFree(sock);
    }
 }
 
@@ -483,6 +488,82 @@ void SLPDOutgoingHandler(int * fdcount, fd_set * readfds, fd_set * writefds)
    }
 }
 
+/** Resend messages on sockets whose timeout has expired
+ *
+ * @param[in] seconds - The number of seconds old a socket must be to have
+ * its messages resent.
+ *
+ * @remarks - Ideally, this would be at a resolution lower than one second, 
+ * but given the default timeout values, this isn't too far off the mark, and
+ * should not add too much of a burden to the main loop.
+ */
+void SLPDOutgoingRetry(time_t seconds)
+{
+   SLPDSocket * del = 0;
+   SLPDSocket * sock = (SLPDSocket *) G_OutgoingSocketList.head;
+
+   if(seconds <= 0)
+      return;
+
+   while (sock)
+   {
+      switch (sock->state)
+      {
+       case DATAGRAM_UNICAST:
+          if(0 == sock->sendlist.count)  /*Clean up as fast as we can, as all messages were sent*/
+             del = sock;
+          else
+          {
+             sock->age -= seconds * 1000;
+             if(sock->age <= 0)
+             {
+               ++sock->reconns;
+               if(sock->reconns >= MAX_RETRANSMITS)  
+               {
+                  char addr_str[INET6_ADDRSTRLEN];
+                  SLPDLog("SLPD: Didn't receive response from DA at %s, removing it from list.\n",
+                  SLPNetSockAddrStorageToString(&sock->peeraddr, addr_str, sizeof(addr_str)));
+            
+                  SLPDKnownDARemove(&(sock->peeraddr));
+                  del = sock;
+               }
+               else
+               {
+                  SLPBuffer pbuf;
+                  sock->age = G_SlpdProperty.unicastTimeouts[sock->reconns];
+                  for(pbuf = (SLPBuffer) sock->sendlist.head; pbuf; pbuf = (SLPBuffer) pbuf->listitem.next)
+                     SLPDOutgoingDatagramWrite(sock, 0, pbuf);
+               }
+             }
+          }
+            break;
+
+         case DATAGRAM_MULTICAST:
+         case DATAGRAM_BROADCAST:
+         case STREAM_READ_FIRST:
+         case STREAM_WRITE_FIRST:
+         case STREAM_CONNECT_BLOCK:
+         case STREAM_READ:
+         case STREAM_WRITE:
+         case STREAM_CONNECT_IDLE:
+         case STREAM_WRITE_WAIT:
+         default:
+            break;
+      }
+
+      sock = (SLPDSocket *) sock->listitem.next;
+
+      if (del)
+      {
+         SLPDSocketFree((SLPDSocket *)
+               SLPListUnlink(&G_OutgoingSocketList, (SLPListItem *) del));
+         del = 0;
+      }
+   }
+}
+
+
+
 /** Age the outgoing socket list.
  *
  * @param[in] seconds - The number of seconds old an entry must be to be 
@@ -499,11 +580,14 @@ void SLPDOutgoingAge(time_t seconds)
       {
          case DATAGRAM_MULTICAST:
          case DATAGRAM_BROADCAST:
-         case DATAGRAM_UNICAST:
             if (sock->age > G_SlpdProperty.unicastMaximumWait / 1000)
                del = sock;
             sock->age = sock->age + seconds;
             break;
+
+       case DATAGRAM_UNICAST:
+          /*The Retry logic ages these out*/
+          break;
 
          case STREAM_READ_FIRST:
          case STREAM_WRITE_FIRST:

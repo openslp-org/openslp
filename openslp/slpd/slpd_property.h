@@ -54,6 +54,7 @@
 #include "slpd.h"
 
 #define MAX_URLPREFIX_SZ   (sizeof(SLP_DA_SERVICE_TYPE) + sizeof("://"))
+#define MAX_RETRANSMITS             5      /* we'll only re-xmit 5 times! */
 
 /** A structure that holds the value of all the properties slpd cares about.
  */
@@ -81,6 +82,7 @@ typedef struct _SLPDProperty
    int multicastTTL;
    int multicastMaximumWait;
    int unicastMaximumWait;  
+   int unicastTimeouts[MAX_RETRANSMITS];
    int randomWaitBound;
    int maxResults;
    int traceMsg;

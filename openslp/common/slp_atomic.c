@@ -51,43 +51,43 @@
 __attribute__((always_inline)) 
 static inline int32_t atomic_inc32(volatile int32_t * p)
 {
-	int32_t rv;
-	__asm__ __volatile__(
-		"movl $1, %%eax\n\t"
-		"lock\n\t"
-		"xaddl %%eax, (%%ecx)\n\t"
-		"incl %%eax"
-		: "=a" (rv) 
-		: "c" (p)
-	);
-	return rv;
+   int32_t rv;
+   __asm__ __volatile__(
+      "movl $1, %%eax\n\t"
+      "lock\n\t"
+      "xaddl %%eax, (%%ecx)\n\t"
+      "incl %%eax"
+      : "=a" (rv) 
+      : "c" (p)
+   );
+   return rv;
 }
 
 __attribute__((always_inline)) 
 static inline int32_t atomic_dec32(volatile int32_t * p) 
 {
-	int32_t rv;
-	__asm__ __volatile__(
-		"movl $-1, %%eax\n\t"
-		"lock\n\t"
-		"xaddl %%eax, (%%ecx)\n\t"
-		"decl %%eax"
-		: "=a" (rv)
-		: "c" (p)
-	);	// result left in eax
-	return rv;
+   int32_t rv;
+   __asm__ __volatile__(
+      "movl $-1, %%eax\n\t"
+      "lock\n\t"
+      "xaddl %%eax, (%%ecx)\n\t"
+      "decl %%eax"
+      : "=a" (rv)
+      : "c" (p)
+   );   // result left in eax
+   return rv;
 }
 
 __attribute__((always_inline))
 static inline int32_t atomic_xchg32(volatile int32_t * p, int32_t i) 
 {
-	int32_t rv;
-	__asm__ __volatile__(
-		"xchgl %%eax, (%%ecx)"
-		: "=a" (rv)
-		: "c" (p), "a" (i)
-	);	// result left in eax, no buslock required for xchgl
-	return rv;
+   int32_t rv;
+   __asm__ __volatile__(
+      "xchgl %%eax, (%%ecx)"
+      : "=a" (rv)
+      : "c" (p), "a" (i)
+   );   // result left in eax, no buslock required for xchgl
+   return rv;
 }
 
 #elif defined(__GNUC__) && defined(__x86_64__)
@@ -143,37 +143,37 @@ static inline int64_t atomic_xchg64(volatile int64_t * p, int64_t i)
 
 static void sparc_asm_code(void)
 {
-	asm( ".align 8");
-	asm( ".global sparc_atomic_add_32");
-	asm( ".type sparc_atomic_add_32, #function");
-	asm( "sparc_atomic_add_32:");
-	asm( "    membar #LoadLoad | #LoadStore | #StoreStore | #StoreLoad");
-	asm( "    ld [%o0], %l0");
-	asm( "    add %l0, %o1, %l2");
-	asm( "    cas [%o0], %l0, %l2");
-	asm( "    cmp %l0, %l2");
-	asm( "    bne sparc_atomic_add_32");
-	asm( "    nop");
-	asm( "    add %l2, %o1, %o0");
-	asm( "    membar #LoadLoad | #LoadStore | #StoreStore | #StoreLoad");
-	asm( "retl");
-	asm( "nop");
-	
-	asm( ".align 8");
-	asm( ".global sparc_atomic_xchg_32");
-	asm( ".type sparc_atomic_xchg_32, #function");
-	asm( "sparc_atomic_xchg_32:");
-	asm( "    membar #LoadLoad | #LoadStore | #StoreStore | #StoreLoad");
-	asm( "    ld [%o0], %l0");
-	asm( "    mov %o1, %l1");
-	asm( "    cas [%o0], %l0, %l1");
-	asm( "    cmp %l0, %l1");
-	asm( "    bne sparc_atomic_xchg_32");
-	asm( "    nop");
-	asm( "    mov %l0, %o0");
-	asm( "    membar #LoadLoad | #LoadStore | #StoreStore | #StoreLoad");
-	asm( "retl");
-	asm( "nop");
+   asm( ".align 8");
+   asm( ".global sparc_atomic_add_32");
+   asm( ".type sparc_atomic_add_32, #function");
+   asm( "sparc_atomic_add_32:");
+   asm( "    membar #LoadLoad | #LoadStore | #StoreStore | #StoreLoad");
+   asm( "    ld [%o0], %l0");
+   asm( "    add %l0, %o1, %l2");
+   asm( "    cas [%o0], %l0, %l2");
+   asm( "    cmp %l0, %l2");
+   asm( "    bne sparc_atomic_add_32");
+   asm( "    nop");
+   asm( "    add %l2, %o1, %o0");
+   asm( "    membar #LoadLoad | #LoadStore | #StoreStore | #StoreLoad");
+   asm( "retl");
+   asm( "nop");
+   
+   asm( ".align 8");
+   asm( ".global sparc_atomic_xchg_32");
+   asm( ".type sparc_atomic_xchg_32, #function");
+   asm( "sparc_atomic_xchg_32:");
+   asm( "    membar #LoadLoad | #LoadStore | #StoreStore | #StoreLoad");
+   asm( "    ld [%o0], %l0");
+   asm( "    mov %o1, %l1");
+   asm( "    cas [%o0], %l0, %l1");
+   asm( "    cmp %l0, %l1");
+   asm( "    bne sparc_atomic_xchg_32");
+   asm( "    nop");
+   asm( "    mov %l0, %o0");
+   asm( "    membar #LoadLoad | #LoadStore | #StoreStore | #StoreLoad");
+   asm( "retl");
+   asm( "nop");
 }
 
 #elif defined(__APPLE__)
@@ -215,15 +215,16 @@ intptr_t SLPAtomicInc(intptr_t * pn)
 #elif defined(USE_AIX_ATOMICS)
    return atomic_add(pn, 1);
 #elif defined(USE_ALPHA_ATOMICS)
-	/* Note: __ATOMIC_INCREMENT_QUAD returns the __previous__ value. */
-	return __ATOMIC_INCREMENT_QUAD(pn) + 1;
+   /* Note: __ATOMIC_INCREMENT_QUAD returns the __previous__ value. */
+   return __ATOMIC_INCREMENT_QUAD(pn) + 1;
 #elif defined(USE_SPARC_ATOMICS)
    return sparc_atomic_add_32(pn, 1);
 #elif defined(USE_APPLE_ATOMICS)
    return (intptr_t)OSAtomicIncrement32((int32_t *)pn);
 #else
+   intptr_t tn;
    pthread_mutex_lock(&g_atomic_mutex);
-   intptr_t tn = ++(*pn);
+   tn = ++(*pn);
    pthread_mutex_unlock(&g_atomic_mutex);
    return tn;
 #endif
@@ -248,21 +249,22 @@ intptr_t SLPAtomicDec(intptr_t * pn)
 #if defined(USE_WIN32_ATOMICS)
    return (intptr_t)InterlockedDecrement((LPLONG)pn);
 #elif defined(USE_GCC_I386_ATOMICS)
-	return (intptr_t)atomic_dec32((int32_t *)pn);
+   return (intptr_t)atomic_dec32((int32_t *)pn);
 #elif defined(USE_GCC_X86_64_ATOMICS)
    return (intptr_t)atomic_dec64((int64_t *)pn);
 #elif defined(USE_AIX_ATOMICS)
-	return atomic_add(pn, -1);
+   return atomic_add(pn, -1);
 #elif defined(USE_ALPHA_ATOMICS)
-	/* Note: __ATOMIC_DECREMENT_QUAD returns the __previous__ value. */
-	return __ATOMIC_DECREMENT_QUAD(pn) - 1;
+   /* Note: __ATOMIC_DECREMENT_QUAD returns the __previous__ value. */
+   return __ATOMIC_DECREMENT_QUAD(pn) - 1;
 #elif defined(USE_SPARC_ATOMICS)
    return sparc_atomic_add_32(pn, -1);
 #elif defined(USE_APPLE_ATOMICS)
    return (intptr_t)OSAtomicDecrement32((int32_t *)pn);
 #else
+   intptr_t tn;
    pthread_mutex_lock(&g_atomic_mutex);
-   intptr_t tn = --(*pn);
+   tn = --(*pn);
    pthread_mutex_unlock(&g_atomic_mutex);
    return tn;
 #endif
@@ -292,16 +294,16 @@ intptr_t SLPAtomicXchg(intptr_t * pn, intptr_t n)
 #if defined(USE_WIN32_ATOMICS)
    return (intptr_t)InterlockedExchange((LPLONG)pn, (LONG)n); 
 #elif defined(USE_GCC_I386_ATOMICS)
-	return (intptr_t)atomic_xchg32((int32_t *)pn, (int32_t)n);
+   return (intptr_t)atomic_xchg32((int32_t *)pn, (int32_t)n);
 #elif defined(USE_GCC_X86_64_ATOMICS)
    return (intptr_t)atomic_xchg64((int64_t *)pn, (int64_t)n);
 #elif defined(USE_AIX_ATOMICS)
-	int value;
+   int value;
    do value = *pn; 
    while (!compare_and_swap((atomic_p)pn, &value, (int)n));
-	return value;
+   return value;
 #elif defined(USE_ALPHA_ATOMICS)
-	return __ATOMIC_EXCH_QUAD(pn, n);
+   return __ATOMIC_EXCH_QUAD(pn, n);
 #elif defined(USE_SPARK_ATOMICS)
    return sparc_atomic_xchg_32(pn, n);
 #elif defined(USE_APPLE_ATOMICS)
@@ -310,11 +312,12 @@ intptr_t SLPAtomicXchg(intptr_t * pn, intptr_t n)
    while (!OSAtomicCompareAndSwap32(o, n, (int32_t *)pn));
    return value;
 #else
+   intptr_t tn;
    pthread_mutex_lock(&g_atomic_mutex);
-	intptr_t tn = *pn;
-	*pn = n;
+   tn = *pn;
+   *pn = n;
    pthread_mutex_unlock(&g_atomic_mutex);
-	return tn;
+   return tn;
 #endif
 }
 

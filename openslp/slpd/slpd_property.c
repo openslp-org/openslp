@@ -88,6 +88,7 @@ void SLPDPropertyReinit(void)
    G_SlpdProperty.multicastTTL = SLPPropertyAsInteger("net.slp.multicastTTL");
    G_SlpdProperty.multicastMaximumWait = SLPPropertyAsInteger("net.slp.multicastMaximumWait");
    G_SlpdProperty.unicastMaximumWait = SLPPropertyAsInteger("net.slp.unicastMaximumWait");
+   SLPPropertyAsIntegerVector("net.slp.unicastTimeouts", G_SlpdProperty.unicastTimeouts, MAX_RETRANSMITS);
    G_SlpdProperty.randomWaitBound = SLPPropertyAsInteger("net.slp.randomWaitBound");
    G_SlpdProperty.maxResults = SLPPropertyAsInteger("net.slp.maxResults");
    G_SlpdProperty.traceMsg = SLPPropertyAsBoolean("net.slp.traceMsg");

@@ -60,6 +60,26 @@ static int EnableBroadcast(sockfd_t sockfd)
    return setsockopt(sockfd, SOL_SOCKET, SO_BROADCAST, &on, sizeof(on));
 }
 
+/** Set the multicast interface for a socket.
+ *
+ * @param[in] sockfd - the socket file descriptor for which to set the multicast IF
+ * @param[in] addr - A pointer to the address of the local network interface
+ *
+ * @return Zero on success, or a non-zero value on failure.
+ *
+ * @internal
+ */
+static int SetMulticastIF(int family, sockfd_t sockfd, struct sockaddr_storage * addr)
+{
+   if (SLPNetIsIPV4() && ((family == AF_INET) || (family == AF_UNSPEC)))
+      return setsockopt(sockfd, IPPROTO_IP, IP_MULTICAST_IF, 
+                        (char*)(&(((struct sockaddr_in*)addr)->sin_addr)), sizeof(struct in_addr));
+   else if (SLPNetIsIPV6() && ((family == AF_INET6) || (family == AF_UNSPEC)))
+      return setsockopt(sockfd, IPPROTO_IPV6, IPV6_MULTICAST_IF, 
+                          (char*)(&((struct sockaddr_in6 *)addr)->sin6_scope_id), sizeof(unsigned int));
+   return -1;
+}
+
 /** Set the socket options for ttl (time-to-live).
  *
  * @param[in] sockfd - the socket file descriptor for which to set TTL state.
@@ -70,39 +90,24 @@ static int EnableBroadcast(sockfd_t sockfd)
  *
  * @internal
  */
-static int SetMulticastTTL(sockfd_t sockfd, int ttl)
+static int SetMulticastTTL(int family, sockfd_t sockfd, int ttl)
 {
-
-#ifdef _WIN32
-   so_bool_t reuse = 1;
-   int TTLArg;
-   struct sockaddr_storage mysockaddr;
-
-   memset(&mysockaddr, 0, sizeof(mysockaddr));
-   mysockaddr.ss_family = AF_INET;
-   ((struct sockaddr_in *)&mysockaddr)->sin_port = 0;
-
-   TTLArg = ttl;
-   if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, 
-               (char *)&reuse, sizeof(reuse)) != 0
-         || bind(sockfd, (struct sockaddr *)&mysockaddr, 
-               sizeof(mysockaddr)) != 0
-         || setsockopt(sockfd, IPPROTO_IP, IP_MULTICAST_TTL, 
-               (char *)&TTLArg, sizeof(TTLArg)) != 0)
-      return -1;
+   if (SLPNetIsIPV4() && ((family == AF_INET) || (family == AF_UNSPEC)))
+   {
+#if defined(linux) || defined(_WIN32)
+      int optarg = ttl;
 #else
-# ifdef linux
-   int optarg = ttl;
-# else
-   /*Solaris and Tru64 expect a unsigned char parameter*/
-   unsigned char optarg = (unsigned char)ttl;
-# endif
-   if (setsockopt(sockfd, IPPROTO_IP, IP_MULTICAST_TTL, 
-         (char *)&optarg, sizeof(optarg)) != 0)
-      return -1;
+      /*Solaris and Tru64 expect an unsigned char parameter*/
+      unsigned char optarg = (unsigned char)ttl;
 #endif
-
-   return 0;
+      return setsockopt(sockfd, IPPROTO_IP, IP_MULTICAST_TTL, (char *)&optarg, sizeof(optarg));
+   }
+   else if (SLPNetIsIPV6() && ((family == AF_INET6) || (family == AF_UNSPEC)))
+   {
+      int optarg = ttl;
+      return setsockopt(sockfd, IPPROTO_IPV6, IPV6_MULTICAST_HOPS, (char *)&optarg, sizeof(optarg));
+   }
+   return -1;
 }
 
 /** Configures a socket to receive mcast on a specified interface.
@@ -136,8 +141,12 @@ static int JoinSLPMulticastGroup(int family, sockfd_t sockfd,
       /*While this is not necessary for the receiving side, multicast receive
         sockets double as the multicast sending sockets, and setting this allows
         the message to be sent on the correct interface*/
-      optresult = setsockopt(sockfd, IPPROTO_IP, IP_MULTICAST_IF, 
-                             (char*)&mreq4.imr_interface, sizeof(mreq4.imr_interface));
+      optresult = SetMulticastIF(family, sockfd, addr);
+
+     /*Likewise, we have to correctly set the TTL*/
+     if(optresult == 0)
+         optresult = SetMulticastTTL(family, sockfd, G_SlpdProperty.multicastTTL);
+
       if(optresult == 0)
          optresult = setsockopt(sockfd, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char*)&mreq4,
                                  sizeof(mreq4)); 
@@ -156,11 +165,15 @@ static int JoinSLPMulticastGroup(int family, sockfd_t sockfd,
       /*While this is not necessary for the receiving side, multicast receive
       sockets double as the multicast sending sockets, and setting this allows
       the message to be sent on the correct interface*/
-      optresult = setsockopt(sockfd, IPPROTO_IPV6, IPV6_MULTICAST_IF, 
-                             (char*)&mreq6.ipv6mr_interface, sizeof(mreq6.ipv6mr_interface));
-      if(optresult == 0)
+      optresult = SetMulticastIF(family, sockfd, addr);
+
+     /*Likewise, we have to correctly set the TTL*/
+     if(optresult == 0)
+       optresult = SetMulticastTTL(family, sockfd, G_SlpdProperty.multicastTTL);
+
+     if(optresult == 0)
          optresult = setsockopt(sockfd, IPPROTO_IPV6, IPV6_JOIN_GROUP, 
-                                 (char*)&mreq6, sizeof(mreq6));               
+                                (char*)&mreq6, sizeof(mreq6));   
    }
 
    return optresult; 
@@ -229,7 +242,7 @@ static int BindSocketToInetAddr(int family, sockfd_t sock,
 {
    struct sockaddr_storage temp_addr;
    int result;
-   so_bool_t reuse = 1;
+   int reuse = 1;
 
    if (SLPNetIsIPV4() && family == AF_INET)
    {
@@ -237,7 +250,7 @@ static int BindSocketToInetAddr(int family, sockfd_t sock,
       {
          addr = &temp_addr;
 #ifdef HAVE_SOCKADDR_STORAGE_SS_LEN
-			addr->ss_len = sizeof(struct sockaddr_in);
+         addr->ss_len = sizeof(struct sockaddr_in);
 #endif
          addr->ss_family = AF_INET;
          ((struct sockaddr_in *)addr)->sin_addr.s_addr = INADDR_ANY;
@@ -250,7 +263,7 @@ static int BindSocketToInetAddr(int family, sockfd_t sock,
       {
          addr = &temp_addr;
 #ifdef HAVE_SOCKADDR_STORAGE_SS_LEN
-			addr->ss_len = sizeof(struct sockaddr_in6);
+         addr->ss_len = sizeof(struct sockaddr_in6);
 #endif
          addr->ss_family = AF_INET6;
          ((struct sockaddr_in6*) addr)->sin6_scope_id = 0;
@@ -296,7 +309,7 @@ static int BindSocketToInetAddr(int family, sockfd_t sock,
    {
       memset(&loaddr, 0, sizeof(struct sockaddr_in)); /*Some platforms require sin_zero to be 0*/
 #ifdef HAVE_SOCKADDR_STORAGE_SS_LEN
-		((struct sockaddr_in*) &loaddr)->sin_len = sizeof(struct sockaddr_in);
+      ((struct sockaddr_in*) &loaddr)->sin_len = sizeof(struct sockaddr_in);
 #endif
       ((struct sockaddr_in*) &loaddr)->sin_family = AF_INET;
       ((struct sockaddr_in*) &loaddr)->sin_addr.s_addr = htonl(INADDR_LOOPBACK);
@@ -306,7 +319,7 @@ static int BindSocketToInetAddr(int family, sockfd_t sock,
    if (SLPNetIsIPV6() && family == AF_INET6)
    {
 #ifdef HAVE_SOCKADDR_STORAGE_SS_LEN
-		((struct sockaddr_in6*) &loaddr)->sin6_len = sizeof(struct sockaddr_in6);
+      ((struct sockaddr_in6*) &loaddr)->sin6_len = sizeof(struct sockaddr_in6);
 #endif
       ((struct sockaddr_in6*) &loaddr)->sin6_family = AF_INET6;
       memcpy(&(((struct sockaddr_in6 *)&loaddr)->sin6_addr), 
@@ -353,8 +366,11 @@ void SLPDSocketFree(SLPDSocket * sock)
    /* free send buffer(s) */
    if (sock->sendlist.count)
       while (sock->sendlist.count)
-         SLPBufferFree((SLPBuffer)SLPListUnlink(&sock->sendlist, 
-               sock->sendlist.head));
+      {
+         if(sock->sendbuf == (SLPBuffer) sock->sendlist.head)
+            sock->sendbuf = 0;
+         SLPBufferFree((SLPBuffer)SLPListUnlink(&sock->sendlist, sock->sendlist.head));
+      }
 
    if (sock->sendbuf)
       SLPBufferFree(sock->sendbuf);                        
@@ -402,7 +418,9 @@ SLPDSocket * SLPDSocketCreateDatagram(struct sockaddr_storage * peeraddr,
                   break;
 
                case DATAGRAM_MULTICAST:
-                  SetMulticastTTL(sock->fd, G_SlpdProperty.multicastTTL);
+               /* @todo SetMulticastIF should be called here as well, but this function is currently only
+                  used with DATAGRAM_BROADCAST and DATAGRAM_UNICAST*/
+                  SetMulticastTTL(peeraddr->ss_family, sock->fd, G_SlpdProperty.multicastTTL);
                   break;
 
                default:

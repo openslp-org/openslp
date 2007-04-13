@@ -81,7 +81,7 @@ static void IncomingDatagramRead(SLPList * socklist, SLPDSocket * sock)
       sock->recvbuf->end = sock->recvbuf->start + bytesread;
 
       switch (SLPDProcessMessage(&sock->peeraddr, &sock->localaddr,
-            sock->recvbuf, &sock->sendbuf))
+            sock->recvbuf, &sock->sendbuf, 0))
       {
          case SLP_ERROR_PARSE_ERROR:
          case SLP_ERROR_VER_NOT_SUPPORTED:
@@ -215,7 +215,7 @@ static void IncomingStreamRead(SLPList * socklist, SLPDSocket * sock)
          sock->recvbuf->curpos += bytesread;
          if (sock->recvbuf->curpos == sock->recvbuf->end)
             switch (SLPDProcessMessage(&sock->peeraddr, 
-                  &sock->localaddr, sock->recvbuf, &sock->sendbuf))
+                  &sock->localaddr, sock->recvbuf, &sock->sendbuf, 0))
             {
                case SLP_ERROR_PARSE_ERROR:
                case SLP_ERROR_VER_NOT_SUPPORTED:

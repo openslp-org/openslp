@@ -56,8 +56,9 @@ extern SLPList G_OutgoingSocketList;
 
 void SLPDOutgoingAge(time_t seconds);
 void SLPDOutgoingHandler(int * fdcount, fd_set * readfds, fd_set * writefds);
-void SLPDOutgoingDatagramWrite(SLPDSocket * sock, int mcast, int addtolist);
-SLPDSocket * SLPDOutgoingConnect(struct sockaddr_storage * addr);
+void SLPDOutgoingRetry(time_t seconds);
+void SLPDOutgoingDatagramWrite(SLPDSocket * sock, int mcast, SLPBuffer buffer);
+SLPDSocket * SLPDOutgoingConnect(int is_TCP, struct sockaddr_storage * addr);
 int SLPDOutgoingInit(void);
 int SLPDOutgoingDeinit(int graceful);
 

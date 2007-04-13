@@ -235,7 +235,7 @@ static void ServiceStart(int argc, char ** argv)
    /* main loop */
    SLPDLog("Startup complete entering main run loop ...\n\n");
    G_SIGTERM   = 0;
-   curtime = time(&alarmtime);
+   time(&curtime);
    alarmtime = curtime + 2;  /*Start with a shorter time so SAs register with us quickly on startup*/
    while (G_SIGTERM == 0)
    {
@@ -250,19 +250,23 @@ static void ServiceStart(int argc, char ** argv)
       if (G_SIGALRM)
          goto HANDLE_SIGNAL;
 
-      /* main select */
-      timeout.tv_sec = SLPD_AGE_INTERVAL;
+      /* main select -- we time out every second so the outgoing retries can occur*/
+      time(&curtime);  
+      timeout.tv_sec = 1;
       timeout.tv_usec = 0;
       fdcount = select(highfd + 1, &readfds, &writefds, 0, &timeout);
-      if (fdcount > 0) /* fdcount will be < 0 when timed out */
+      if (fdcount > 0) 
       {
          SLPDIncomingHandler(&fdcount, &readfds, &writefds);
          SLPDOutgoingHandler(&fdcount, &readfds, &writefds);
+         SLPDOutgoingRetry(time(0) - curtime);
       }
+      else if (fdcount == 0)
+         SLPDOutgoingRetry(time(0) - curtime);
 
       /* handle signals */
       HANDLE_SIGNAL:
-      curtime = time(&curtime);
+      time(&curtime);
       if (curtime >= alarmtime)
       {
          HandleSigAlrm();

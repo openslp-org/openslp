@@ -480,6 +480,8 @@ int main(int argc, char * argv[])
    fd_set writefds;
    int highfd;
    int fdcount = 0;
+   time_t curtime;
+   struct timeval timeout;
 
 #ifdef DEBUG
    xmalloc_init("/var/log/slpd_xmalloc.log", 0);
@@ -562,13 +564,20 @@ int main(int argc, char * argv[])
       if (G_SIGALRM || G_SIGHUP)
          goto HANDLE_SIGNAL;
 
-      /* main select */
-      fdcount = select(highfd + 1, &readfds, &writefds, 0, 0);
+      /* main select -- we time out every second so the outgoing retries can occur*/
+      time(&curtime);  
+      timeout.tv_sec = 1;
+      timeout.tv_usec = 0;
+      fdcount = select(highfd + 1, &readfds, &writefds, 0, &timeout);
       if (fdcount > 0) /* fdcount will be < 0 when interrupted by a signal */
       {
          SLPDIncomingHandler(&fdcount, &readfds, &writefds);
          SLPDOutgoingHandler(&fdcount, &readfds, &writefds);
+         SLPDOutgoingRetry(time(0) - curtime);
       }
+      else if (fdcount == 0)
+         SLPDOutgoingRetry(time(0) - curtime);
+
 
 HANDLE_SIGNAL:
 

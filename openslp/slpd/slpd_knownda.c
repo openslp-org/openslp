@@ -171,7 +171,6 @@ int MakeActiveDiscoveryRqst(int ismcast, SLPBuffer * buffer)
    PutUINT24(&result->curpos, 0);
 
    /* xid */
-   /** @todo Generate a real XID. */
    PutUINT16(&result->curpos, SLPXidGenerate());
 
    /* lang tag len */
@@ -246,7 +245,7 @@ void SLPDKnownDARegisterAll(SLPMessage * daadvert, int immortalonly)
    /*----------------------------------------------*/
    /* Establish a new connection with the known DA */
    /*----------------------------------------------*/
-   sock = SLPDOutgoingConnect(&(daadvert->peer));
+   sock = SLPDOutgoingConnect(0, &(daadvert->peer));
    if (sock)
       while (1)
       {
@@ -269,18 +268,17 @@ void SLPDKnownDARegisterAll(SLPMessage * daadvert, int immortalonly)
                || srvreg->source == SLP_REG_SOURCE_STATIC)
                && SLPIntersectStringList(srvreg->scopelistlen,
                                          srvreg->scopelist,
-                                         srvreg->scopelistlen,
-                                         srvreg->scopelist))
+                                         daadvert->body.daadvert.scopelistlen,
+                                         daadvert->body.daadvert.scopelist))
          {
             sendbuf = SLPBufferDup(buf);
             if (sendbuf)
             {
-               /*--------------------------------------------------*/
-               /* link newly constructed buffer to socket sendlist */
-               /*--------------------------------------------------*/
+               /*--------------------------------------------------------------*/
+               /* link newly constructed buffer to socket resendlist, and send */
+               /*--------------------------------------------------------------*/
                SLPListLinkTail(&(sock->sendlist), (SLPListItem *) sendbuf);
-               if (sock->state == STREAM_CONNECT_IDLE)
-                  sock->state = STREAM_WRITE_FIRST;
+               SLPDOutgoingDatagramWrite(sock, 0, sendbuf);
             }
          }
       }
@@ -419,7 +417,7 @@ void SLPDKnownDADeregisterAll(SLPMessage * daadvert)
       return;
 
    /* Establish a new connection with the known DA */
-   sock = SLPDOutgoingConnect(&(daadvert->peer));
+   sock = SLPDOutgoingConnect(0, &(daadvert->peer));
    if (sock)
       while (1)
       {
@@ -428,20 +426,24 @@ void SLPDKnownDADeregisterAll(SLPMessage * daadvert)
             break;
          srvreg = &(msg->body.srvreg);
 
-         /*-------------------------------------------------*/
-         /* Deregister all local (and static) registrations */
-         /*-------------------------------------------------*/
-         if (srvreg->source == SLP_REG_SOURCE_LOCAL
-               || srvreg->source == SLP_REG_SOURCE_STATIC)
+        /*-----------------------------------------------------------*/
+        /* Only Deregister local (or static) registrations of scopes */
+        /* supported by peer DA                                      */
+        /*-----------------------------------------------------------*/
+        if ( ( srvreg->source == SLP_REG_SOURCE_LOCAL ||
+               srvreg->source == SLP_REG_SOURCE_STATIC ) &&
+            SLPIntersectStringList(srvreg->scopelistlen,
+                                   srvreg->scopelist,
+                                   daadvert->body.daadvert.scopelistlen,
+                                   daadvert->body.daadvert.scopelist) )
          {
             if (MakeSrvderegFromSrvReg(msg, buf, &sendbuf) == 0)
             {
-               /*--------------------------------------------------*/
-               /* link newly constructed buffer to socket sendlist */
-               /*--------------------------------------------------*/
+               /*--------------------------------------------------------------*/
+               /* link newly constructed buffer to socket resendlist, and send */
+               /*--------------------------------------------------------------*/
                SLPListLinkTail(&(sock->sendlist), (SLPListItem *) sendbuf);
-               if (sock->state == STREAM_CONNECT_IDLE)
-                  sock->state = STREAM_WRITE_FIRST;
+               SLPDOutgoingDatagramWrite(sock, 0, sendbuf);
             }
          }
       }
@@ -484,17 +486,14 @@ int SLPDKnownDAFromDHCP()
                Get an outgoing socket to the DA and set it up to make
                the service:directoryagent request
               --------------------------------------------------------*/
-         sock = SLPDOutgoingConnect(&daaddr);
+         sock = SLPDOutgoingConnect(0, &daaddr);
          if (sock)
          {
             buf = 0;
             if (MakeActiveDiscoveryRqst(0, &buf) == 0)
             {
-               if (sock->state == STREAM_CONNECT_IDLE)
-                  sock->state = STREAM_WRITE_FIRST;
                SLPListLinkTail(&(sock->sendlist), (SLPListItem *) buf);
-               if (sock->state == STREAM_CONNECT_IDLE)
-                  sock->state = STREAM_WRITE_FIRST;
+               SLPDOutgoingDatagramWrite(sock, 0, buf);
             }
          }
       }
@@ -585,17 +584,14 @@ int SLPKnownDAFromProperties()
                /* Get an outgoing socket to the DA and set it up to make */
                /* the service:directoryagent request                     */
                /*--------------------------------------------------------*/
-               sock = SLPDOutgoingConnect(&daaddr);
+               sock = SLPDOutgoingConnect(0, &daaddr);
                if (sock)
                {
                   buf = 0;
                   if (MakeActiveDiscoveryRqst(0, &buf) == 0)
                   {
-                     if (sock->state == STREAM_CONNECT_IDLE)
-                        sock->state = STREAM_WRITE_FIRST;
                      SLPListLinkTail(&(sock->sendlist), (SLPListItem *) buf);
-                     if (sock->state == STREAM_CONNECT_IDLE)
-                        sock->state = STREAM_WRITE_FIRST;
+                     SLPDOutgoingDatagramWrite(sock, 0, buf);
                   }
                }
             }
@@ -1445,15 +1441,14 @@ void SLPDKnownDAEcho(SLPMessage * msg, SLPBuffer buf)
                /*------------------------------------------*/
                /* Load the socket with the message to send */
                /*------------------------------------------*/
-               sock = SLPDOutgoingConnect(&(entry->msg->peer));
+               sock = SLPDOutgoingConnect(0, &(entry->msg->peer));
                if (sock)
                {
                   dup = SLPBufferDup(buf);
                   if (dup)
                   {
                      SLPListLinkTail(&(sock->sendlist), (SLPListItem *) dup);
-                     if (sock->state == STREAM_CONNECT_IDLE)
-                        sock->state = STREAM_WRITE_FIRST;
+                     SLPDOutgoingDatagramWrite(sock, 0, buf);
                   }
                   else
                      sock->state = SOCKET_CLOSE;
@@ -1514,14 +1509,15 @@ void SLPDKnownDAActiveDiscovery(int seconds, unsigned int scope)
          if(sock)
          {
             MakeActiveDiscoveryRqst(1, &(sock->sendbuf));
-            SLPDOutgoingDatagramWrite(sock, 0, 0);
+            SLPDOutgoingDatagramWrite(sock, 0, sock->sendbuf);
             SLPDSocketFree(sock);
          }
       }
       else
       {
-         /*   For each incoming socket, find the sockets that can send multicast
-            and send the appropriate datagram. */
+         /* For each incoming socket, find the sockets that can send multicast
+            and send the appropriate datagram.  The incoming list is used because 
+            it already has ready-to-use multicast sockets allocated for every interface.*/
          sock = (SLPDSocket *)G_IncomingSocketList.head;
          while (sock)
          {
@@ -1532,12 +1528,12 @@ void SLPDKnownDAActiveDiscovery(int seconds, unsigned int scope)
                   SLPNetIsIPV6())
                {
                   MakeActiveDiscoveryRqst(1, &(sock->sendbuf));
-                  SLPDOutgoingDatagramWrite(sock, 1, 0);
+                  SLPDOutgoingDatagramWrite(sock, 1, sock->sendbuf);
                }
                else if((sock->mcastaddr.ss_family == AF_INET) && SLPNetIsIPV4()) 
                {
                   MakeActiveDiscoveryRqst(1, &(sock->sendbuf));
-                  SLPDOutgoingDatagramWrite(sock, 1, 0);
+                  SLPDOutgoingDatagramWrite(sock, 1, sock->sendbuf);
                }
             }
 
@@ -1598,10 +1594,10 @@ void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead, unsigned int scope)
             {
                struct sockaddr_storage* myaddr = &((SLPDSocket *)G_IncomingSocketList.tail)->localaddr;
                if (SLPDKnownDAGenerateMyDAAdvert(myaddr, 0, dadead, SLPXidGenerate(), &(sock->sendbuf)) == 0)
-                  SLPDOutgoingDatagramWrite(sock, 0, 0);
+                  SLPDOutgoingDatagramWrite(sock, 0, sock->sendbuf);
 #ifdef ENABLE_SLPv1
                if (SLPDKnownDAGenerateMyV1DAAdvert(myaddr, 0, SLP_CHAR_UTF8, SLPXidGenerate(), &(sock->sendbuf)) == 0)
-                  SLPDOutgoingDatagramWrite(sock, 0, 0);
+                  SLPDOutgoingDatagramWrite(sock, 0, sock->sendbuf);
 #endif
             }
             SLPDSocketFree(sock);
@@ -1622,7 +1618,7 @@ void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead, unsigned int scope)
                {
                   if (SLPDKnownDAGenerateMyDAAdvert(&sock->localaddr, 0, dadead, 
                                                 SLPXidGenerate(), &(sock->sendbuf)) == 0)
-                     SLPDOutgoingDatagramWrite(sock, 1, 0);
+                     SLPDOutgoingDatagramWrite(sock, 1, sock->sendbuf);
                }
                else if((sock->mcastaddr.ss_family == AF_INET) && SLPNetIsIPV4()) 
                {
@@ -1630,12 +1626,12 @@ void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead, unsigned int scope)
                   {
                      if (SLPDKnownDAGenerateMyDAAdvert(&sock->localaddr, 0, dadead, 
                                                    SLPXidGenerate(), &(sock->sendbuf)) == 0)
-                        SLPDOutgoingDatagramWrite(sock, 1, 0);
+                        SLPDOutgoingDatagramWrite(sock, 1, sock->sendbuf);
                   }
 #ifdef ENABLE_SLPv1
                   else if (SLPDKnownDAGenerateMyV1DAAdvert(&sock->localaddr, 0,
                                     SLP_CHAR_UTF8, SLPXidGenerate(), &(sock->sendbuf)) == 0)
-                     SLPDOutgoingDatagramWrite(sock, 1, 0);
+                     SLPDOutgoingDatagramWrite(sock, 1, sock->sendbuf);
 #endif
                }
             }

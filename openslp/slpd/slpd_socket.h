@@ -78,7 +78,7 @@ typedef struct _SLPDSocket
 {
    SLPListItem listitem;    
    sockfd_t fd;
-   time_t age;    /* in seconds */
+   time_t age;    /* in seconds -- in unicast dgram sockets, this also drives the resend logic */
    int state;
 
    /* addrs related to the socket */
@@ -91,7 +91,7 @@ typedef struct _SLPDSocket
    SLPBuffer sendbuf;
 
    /* Outgoing socket stuff */
-   int reconns;
+   int reconns; /*For stream sockets, this drives reconnect.  For unicast dgram sockets, this drives resend*/
    SLPList sendlist;
 } SLPDSocket;
 

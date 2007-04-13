@@ -1251,6 +1251,8 @@ static int ProcessSAAdvert(SLPMessage * message, SLPBuffer * sendbuf,
  * @param[in] recvbuf - The message to process.
  * @param[out] sendbuf - The address of storage for the results of the 
  *    processed message.
+ * @param[out] sendlist - if non-0, this function will prune the message 
+ *    with the processed xid from the sendlist.
  *
  * @return Zero on success if @p sendbuf contains a response to send, 
  *    or a non-zero value if @p sendbuf does not contain a response
@@ -1258,7 +1260,7 @@ static int ProcessSAAdvert(SLPMessage * message, SLPBuffer * sendbuf,
  */
 int SLPDProcessMessage(struct sockaddr_storage * peerinfo, 
       struct sockaddr_storage * localaddr, SLPBuffer recvbuf,
-      SLPBuffer * sendbuf)
+      SLPBuffer * sendbuf, SLPList * psendlist)
 {
    SLPHeader header;
    SLPMessage * message = 0;
@@ -1364,6 +1366,26 @@ int SLPDProcessMessage(struct sockaddr_storage * peerinfo,
          }
          else
             SLPDLogParseWarning(peerinfo, recvbuf);
+
+       /*If there was a send list, prune the xid, since the request has been processed*/
+       if(psendlist)
+       {
+          SLPHeader bufhead;
+          SLPBuffer pnext;
+          SLPBuffer pbuf = (SLPBuffer) psendlist->head;
+
+          while(pbuf)
+          {
+            pnext = (SLPBuffer) pbuf->listitem.next;
+
+            if((0 == SLPMessageParseHeader(pbuf, &bufhead)) && (bufhead.xid == header.xid))
+               SLPBufferFree((SLPBuffer)SLPListUnlink(psendlist, (SLPListItem*)pbuf));
+            else 
+               pbuf->curpos = pbuf->start;  /*We parsed the buffer enough to attempt the xid check, we need to reset it for the next parse*/
+
+            pbuf = pnext;
+          }
+       }
 
          if (header.functionid == SLP_FUNCT_SRVREG 
                || header.functionid == SLP_FUNCT_DAADVERT)
