@@ -66,7 +66,6 @@ SLPList G_IncomingSocketList =
 static void IncomingDatagramRead(SLPList * socklist, SLPDSocket * sock)
 {
    int bytesread;
-   int bytestowrite;
    int byteswritten;
    socklen_t peeraddrlen = sizeof(struct sockaddr_storage);
    char addr_str[INET6_ADDRSTRLEN];
@@ -89,17 +88,22 @@ static void IncomingDatagramRead(SLPList * socklist, SLPDSocket * sock)
             break;                    
 
          default:
-            /* check to see if we should send anything */
-            bytestowrite = (int)(sock->sendbuf->end - sock->sendbuf->start);
-            if (bytestowrite > 0)
+            /* check to see if we should send anything, breaking up individual packets in the buffer
+               into different sendto calls (should only be an issue with the loopback DA response)*/
+            sock->sendbuf->curpos = sock->sendbuf->start;
+            while (sock->sendbuf->curpos < sock->sendbuf->end)
             {
-               byteswritten = sendto(sock->fd, (char*)sock->sendbuf->start,
-                     bytestowrite, 0, (struct sockaddr *)&sock->peeraddr,
+               int packetbytes = AS_UINT24(sock->sendbuf->curpos + 2);
+               byteswritten = sendto(sock->fd, (char*)sock->sendbuf->curpos,
+                     packetbytes, 0, (struct sockaddr *)&sock->peeraddr,
                      sizeof(struct sockaddr_storage));
-               if (byteswritten != bytestowrite)
+
+               if (byteswritten != packetbytes)
                   SLPDLog("NETWORK_ERROR - %d replying %s\n", errno,
                         SLPNetSockAddrStorageToString(&(sock->peeraddr),
                               addr_str, sizeof(addr_str)));
+
+               sock->sendbuf->curpos += packetbytes;
             }
       }
    }
@@ -611,7 +615,8 @@ int SLPDIncomingInit(void)
    }
 
    /*--------------------------------------------------------------------*/
-   /* Create SOCKET_LISTEN socket for LOOPBACK for the library to talk to*/
+   /* Create SOCKET_LISTEN socket and datagram socket on LOOPBACK for    */
+   /* the different library versions to talk to.                         */
    /*--------------------------------------------------------------------*/
    if (SLPNetIsIPV4())
    {
@@ -619,12 +624,23 @@ int SLPDIncomingInit(void)
       if (sock)
       {
          SLPListLinkTail(&G_IncomingSocketList, (SLPListItem *) sock);
-         SLPDLog("Listening on loopback...\n");
+         SLPDLog("Listening on loopback TCP...\n");
       }
       else
       {
-         SLPDLog("NETWORK_ERROR - Could not listen on IPv4 loopback\n");
-         SLPDLog("INTERNAL_ERROR - No SLPLIB support will be available\n");
+         SLPDLog("NETWORK_ERROR - Could not listen for TCP on IPv4 loopback\n");
+         SLPDLog("INTERNAL_ERROR - No SLPLIB support will be available with TCP\n");
+      }
+      sock = SLPDSocketCreateBoundDatagram(&lo4addr, &lo4addr, DATAGRAM_UNICAST);
+      if (sock)
+      {
+         SLPListLinkTail(&G_IncomingSocketList, (SLPListItem *) sock);
+         SLPDLog("Listening on loopback UDP...\n");
+      }
+      else
+      {
+         SLPDLog("NETWORK_ERROR - Could not listen for UDP on IPv4 loopback\n");
+         SLPDLog("INTERNAL_ERROR - No SLPLIB support will be available with UDP\n");
       }
    }
    if (SLPNetIsIPV6())
@@ -633,12 +649,23 @@ int SLPDIncomingInit(void)
       if (sock)
       {
          SLPListLinkTail(&G_IncomingSocketList, (SLPListItem *) sock);
-         SLPDLog("Listening on IPv6 loopback...\n");
+         SLPDLog("Listening on IPv6 loopback TCP...\n");
       }
       else
       {
-         SLPDLog("NETWORK_ERROR - Could not listen on IPv6 loopback\n");
-         SLPDLog("INTERNAL_ERROR - No SLPLIB support will be available\n");
+         SLPDLog("NETWORK_ERROR - Could not listen on TCP IPv6 loopback\n");
+         SLPDLog("INTERNAL_ERROR - No SLPLIB support will be available with TCP\n");
+      }
+      sock = SLPDSocketCreateBoundDatagram(&lo6addr, &lo6addr, DATAGRAM_UNICAST);
+      if (sock)
+      {
+         SLPListLinkTail(&G_IncomingSocketList, (SLPListItem *) sock);
+         SLPDLog("Listening on IPv6 loopback UDP...\n");
+      }
+      else
+      {
+         SLPDLog("NETWORK_ERROR - Could not listen on UDP IPv6 loopback\n");
+         SLPDLog("INTERNAL_ERROR - No SLPLIB support will be available with UDP\n");
       }
    }
 

@@ -59,7 +59,7 @@ sockfd_t SLPNetworkConnectStream(void * peeraddr,
    (void)timeout;
    /** @todo Make the socket non-blocking so we can timeout on connect. */
 
-   result = socket(a->sa_family, SOCK_STREAM, 0);
+   result = socket(a->sa_family, SOCK_STREAM, IPPROTO_TCP);
    if (result != SLP_INVALID_SOCKET)
    {
       if (connect(result, peeraddr, sizeof(struct sockaddr_storage)) == 0)
@@ -82,6 +82,36 @@ sockfd_t SLPNetworkConnectStream(void * peeraddr,
          closesocket(result);
          result = SLP_INVALID_SOCKET;
       }
+   }
+   return result;
+}
+
+/** Creates a datagram socket
+ *
+ * @param[in] family -- the family (IPv4, IPv6 to create the socket in)
+ *
+ * @return A datagram socket, or SLP_INVALID_SOCKET on error.
+ */
+sockfd_t SLPNetworkCreateDatagram(short family)
+{
+   /*We don't attempt to call connect(), since it doesn't really connect and
+     recvfrom will fail on some platforms*/
+   sockfd_t result;
+
+   result = socket(family, SOCK_DGRAM, IPPROTO_UDP);
+   if (result != SLP_INVALID_SOCKET)
+   {
+#ifndef _WIN32
+         /* Set the receive and send buffer low water mark to 18 bytes 
+          * (the length of the smallest slpv2 message). Note that Winsock
+          * doesn't support these socket level options, so we skip them.
+          */
+         int lowat = 18;
+         setsockopt(result, SOL_SOCKET, SO_RCVLOWAT, 
+               (char *)&lowat, sizeof(lowat));
+         setsockopt(result, SOL_SOCKET, SO_SNDLOWAT, 
+               (char *)&lowat, sizeof(lowat));
+#endif
    }
    return result;
 }

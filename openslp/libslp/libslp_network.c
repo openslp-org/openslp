@@ -206,17 +206,21 @@ sockfd_t NetworkConnectToSlpd(void * peeraddr)
 {
    sockfd_t sock = SLP_INVALID_SOCKET;
 
+   /*Note that these don't actually test the connection to slpd.
+     They don't have to, since all code that calls this function eventually
+    does a NetworkRqstRply, which has retry logic for the datagram case*/
+
    if (SLPNetIsIPV6()) 
       if (!SLPNetSetAddr(peeraddr, AF_INET6, SLP_RESERVED_PORT, 
             &slp_in6addr_loopback))
-         sock = SLPNetworkConnectStream(peeraddr, 0);
+         sock = SLPNetworkCreateDatagram(AF_INET6);
 
    if (sock == SLP_INVALID_SOCKET && SLPNetIsIPV4()) 
    {
       int tempAddr = INADDR_LOOPBACK;
       if (SLPNetSetAddr(peeraddr, AF_INET, 
             SLP_RESERVED_PORT, &tempAddr) == 0)
-         sock = SLPNetworkConnectStream(peeraddr, 0);
+         sock = SLPNetworkCreateDatagram(AF_INET);
    }
    return sock;
 }
@@ -369,7 +373,8 @@ SLPError NetworkRqstRply(sockfd_t sock, void * peeraddr,
    SLPBuffer recvbuf = 0;
    SLPError result = SLP_OK;
 
-   int looprecv;
+   int looprecv;   /*If non-zero, keep receiving until you timeout/error, etc.*/
+   int stoploopifrecv;   /*... but if this is non-zero, stop on the first valid receipt*/
    int xmitcount;
    int maxwait;
    int socktype;
@@ -390,6 +395,7 @@ SLPError NetworkRqstRply(sockfd_t sock, void * peeraddr,
             timeouts, MAX_RETRANSMITS);
       xmitcount = 0;          /* Only retry to specific listeners. */
       looprecv = 1;
+      stoploopifrecv = 0;     /* Several responders would respond to the multicast */
       socktype = SOCK_DGRAM;  /* Broad/multicast are datagrams. */
    }
    else
@@ -404,11 +410,13 @@ SLPError NetworkRqstRply(sockfd_t sock, void * peeraddr,
       {
          xmitcount = 0;                /* Datagrams must be retried. */
          looprecv  = 1;
+         stoploopifrecv = 1;           /* The peer has sent the single response. */
       }
       else
       {
          xmitcount = MAX_RETRANSMITS;  /* Streams manage own retries. */
          looprecv  = 0;
+         stoploopifrecv = 0;
       }
    }
 
@@ -422,6 +430,7 @@ SLPError NetworkRqstRply(sockfd_t sock, void * peeraddr,
       /* DASRVRQST is a fake function - change to SRVRQST. */
       buftype  = SLP_FUNCT_SRVRQST;
       looprecv = 1;  /* We're streaming replies in from the DA. */
+      stoploopifrecv = 0;  /* These replies are separate datagram responses. */
    }
 
    /* Allocate memory for the prlist on datagram sockets for appropriate 
@@ -450,13 +459,21 @@ SLPError NetworkRqstRply(sockfd_t sock, void * peeraddr,
    {
       size_t size;
       struct timeval timeout;
+      result = SLP_OK;
       
       /* Setup receive timeout. */
       if (socktype == SOCK_DGRAM)
       {
+         /*If we've already received replies from the peer, no need to resend.*/
+         if((rplycount != 0) && (!SLPNetIsMCast(peeraddr)))
+            break;
+
          totaltimeout += timeouts[xmitcount];
          if (totaltimeout >= maxwait || !timeouts[xmitcount])
+         {
+            result = SLP_NETWORK_TIMED_OUT;
             break; /* Max timeout exceeded - we're done. */
+         }
 
          timeout.tv_sec = timeouts[xmitcount] / 1000;
          timeout.tv_usec = (timeouts[xmitcount] % 1000) * 1000;
@@ -646,6 +663,9 @@ SLPError NetworkRqstRply(sockfd_t sock, void * peeraddr,
                      }
                   }
                }
+
+               if(stoploopifrecv)
+                  break;
             }
          }
       } while (looprecv);
@@ -658,7 +678,8 @@ FINISHED:
          && SLPNetIsMCast(peeraddr)))
       result = SLP_LAST_CALL; 
 
-   callback(result, &addr, recvbuf, cookie);
+   if(recvbuf)
+      callback(result, &addr, recvbuf, cookie);
 
    if (result == SLP_LAST_CALL)
       result = 0;
@@ -925,20 +946,20 @@ SLPError NetworkMcastRqstRply(SLPHandleInfo * handle, void * buf,
                 */
                if (retval == SLP_ERROR_RETRY_UNICAST) 
                {
-                  sockfd_t tcpsockfd;
+                  sockfd_t udpsockfd;
                   int retval1, retval2, unicastwait = 0;
                   unicastwait = SLPPropertyAsInteger("net.slp.unicastMaximumWait");
                   timeout.tv_sec = unicastwait / 1000;
                   timeout.tv_usec = (unicastwait % 1000) * 1000;
 
-                  tcpsockfd = SLPNetworkConnectStream(&addr, &timeout);
-                  if (tcpsockfd != SLP_INVALID_SOCKET) 
+                  udpsockfd = SLPNetworkCreateDatagram(addr.ss_family);
+                  if (udpsockfd != SLP_INVALID_SOCKET) 
                   {
                      TO_UINT16(sendbuf->start + 5, SLP_FLAG_UCAST);
                      xid = SLPXidGenerate();
                      TO_UINT16(sendbuf->start + 10, xid);
 
-                     retval1 = SLPNetworkSendMessage(tcpsockfd, SOCK_STREAM, 
+                     retval1 = SLPNetworkSendMessage(udpsockfd, SOCK_DGRAM, 
                            sendbuf, sendbuf->curpos - sendbuf->start, &addr, 
                            &timeout);
                      if (retval1) 
@@ -947,11 +968,11 @@ SLPError NetworkMcastRqstRply(SLPHandleInfo * handle, void * buf,
                            result = SLP_NETWORK_TIMED_OUT;
                         else 
                            result = SLP_NETWORK_ERROR;
-                        closesocket(tcpsockfd);
+                        closesocket(udpsockfd);
                         break;
                      }
 
-                     retval2 = SLPNetworkRecvMessage(tcpsockfd, SOCK_STREAM, 
+                     retval2 = SLPNetworkRecvMessage(udpsockfd, SOCK_DGRAM, 
                            &recvbuf, &addr, &timeout);
                      if (retval2) 
                      {
@@ -962,15 +983,15 @@ SLPError NetworkMcastRqstRply(SLPHandleInfo * handle, void * buf,
                            result = SLP_NETWORK_TIMED_OUT;
                         else 
                            result = SLP_NETWORK_ERROR;
-                        closesocket(tcpsockfd);
+                        closesocket(udpsockfd);
                         break;
                      }
-                     closesocket(tcpsockfd);
+                     closesocket(udpsockfd);
                      result = SLP_OK;
                      goto SNEEK;                               
                   } 
                   else 
-                     break; /* Unsuccessful in opening a TCP conn - retry */
+                     break; /* Unsuccessful in opening a UDP conn - retry */
                }
                else
                {
@@ -1058,214 +1079,13 @@ SLPError NetworkUcastRqstRply(SLPHandleInfo * handle, void * buf,
       char buftype, size_t bufsize, NetworkRplyCallback callback, 
       void * cookie)
 {
-   struct timeval timeout;
-   struct sockaddr_storage addr;
-   SLPBuffer sendbuf = 0;
-   SLPBuffer recvbuf = 0;
-   SLPError result = 0;
-   size_t langtaglen = 0;
-   size_t prlistlen = 0;
-   char * prlist = 0;
-   int xid = 0;
-   int mtu = 0;
-   int size = 0;
-   int rplycount = 0;
-   int maxwait = 0;
-   int timeouts[MAX_RETRANSMITS];
-   int retval1, retval2;
+   /*In reality, this function just sets things up for NetworkRqstRply to operate*/
 
-#if defined(DEBUG)
-   /* This function only supports unicast of the following messages */
-   if (buftype != SLP_FUNCT_SRVRQST && buftype != SLP_FUNCT_ATTRRQST 
-         && buftype != SLP_FUNCT_SRVTYPERQST && buftype != SLP_FUNCT_DASRVRQST)
-      return SLP_PARAMETER_BAD;
-#endif
+   handle->unicastsock  = SLPNetworkCreateDatagram(handle->ucaddr.ss_family);
+   if (handle->unicastsock == SLP_INVALID_SOCKET)
+      return SLP_NETWORK_ERROR;
 
-   /* save off a few things we don't want to recalculate */
-   langtaglen = strlen(handle->langtag);
-   xid = SLPXidGenerate();
-   mtu = SLPPropertyAsInteger("net.slp.MTU");
-   sendbuf = SLPBufferAlloc(mtu);
-   if (!sendbuf)
-   {
-      result = SLP_MEMORY_ALLOC_FAILED;
-      goto FINISHED;
-   }
-
-   /* unicast wait timeouts */
-   maxwait = SLPPropertyAsInteger("net.slp.unicastMaximumWait");
-   SLPPropertyAsIntegerVector("net.slp.unicastTimeouts",
-         timeouts, MAX_RETRANSMITS);
-
-   /* special case for fake SLP_FUNCT_DASRVRQST */
-   if (buftype == SLP_FUNCT_DASRVRQST)
-   {
-      /* do something special for SRVRQST that will be discovering DAs */
-      maxwait = SLPPropertyAsInteger("net.slp.DADiscoveryMaximumWait");
-      SLPPropertyAsIntegerVector("net.slp.DADiscoveryTimeouts", 
-            timeouts, MAX_RETRANSMITS);
-      /* SLP_FUNCT_DASRVRQST is a fake function. We really want to
-         send a SRVRQST */
-      buftype  = SLP_FUNCT_SRVRQST;
-   }
-
-   /* Allocate memory for the prlist for appropriate messages.
-    *  Notice that the prlist is as large as the MTU -- thus assuring that
-    *  there will not be any buffer overwrites regardless of how many
-    *  previous responders there are.   This is because the retransmit
-    *  code terminates if ever MTU is exceeded for any datagram message. 
-    */
-   prlist = (char *)xmalloc(mtu);
-   if (!prlist)
-   {
-      result = SLP_MEMORY_ALLOC_FAILED;
-      goto FINISHED;
-   }
-
-   *prlist = 0;
-   prlistlen = 0;
-
-   /* main unicast segment */
-   timeout.tv_sec = timeouts[0] / 1000;
-   timeout.tv_usec = (timeouts[0] % 1000) * 1000;
-
-   size = (int)(14 + langtaglen + bufsize);
-   if (buftype == SLP_FUNCT_SRVRQST || buftype == SLP_FUNCT_ATTRRQST 
-         || buftype == SLP_FUNCT_SRVTYPERQST)
-      size += (int)(2 + prlistlen);     /* add in room for the prlist */
-
-   if ((sendbuf = SLPBufferRealloc(sendbuf,size)) == 0)
-   {
-      result = SLP_MEMORY_ALLOC_FAILED;
-      goto FINISHED;
-   }
-
-   /* add the header to the send buffer */
-   /* version */
-   *sendbuf->curpos++ = 2;
-
-   /* function id */
-   *sendbuf->curpos++ = buftype;
-
-   /* length */
-   PutUINT24(&sendbuf->curpos, size);
-
-   /* flags */
-   PutUINT16(&sendbuf->curpos, SLP_FLAG_UCAST);  /* this is a unicast */
-
-   /* ext offset */
-   PutUINT24(&sendbuf->curpos, 0);
-
-   /* xid */
-   PutUINT16(&sendbuf->curpos, xid);
-
-   /* lang tag len */
-   PutUINT16(&sendbuf->curpos, langtaglen);
-
-   /* lang tag */
-   memcpy(sendbuf->curpos, handle->langtag, langtaglen);
-   sendbuf->curpos += langtaglen;
-
-   /* Add the prlist to the send buffer */
-   if (prlist)
-   {
-      PutUINT16(&sendbuf->curpos, prlistlen);
-      memcpy(sendbuf->curpos, prlist, prlistlen);
-      sendbuf->curpos += prlistlen;
-   }
-
-   /* add the rest of the message */
-   memcpy(sendbuf->curpos, buf, bufsize);
-   sendbuf->curpos += bufsize;
-
-   /* send the send buffer */
-   handle->unicastsock  = SLPNetworkConnectStream(
-         &handle->ucaddr, &timeout);
-   if (handle->unicastsock != SLP_INVALID_SOCKET)
-   {
-      retval1 = SLPNetworkSendMessage(handle->unicastsock, SOCK_STREAM, 
-            sendbuf, sendbuf->curpos - sendbuf->start, &handle->ucaddr, 
-            &timeout);
-      if (retval1)
-      {
-         if (errno ==   ETIMEDOUT)
-            result = SLP_NETWORK_TIMED_OUT;
-         else
-            result = SLP_NETWORK_ERROR;
-         closesocket(handle->unicastsock);
-         goto FINISHED;
-      }
-
-      retval2 = SLPNetworkRecvMessage(handle->unicastsock, SOCK_STREAM, 
-            &recvbuf, &handle->ucaddr, &timeout);
-      if (retval2)
-      {
-         /* An error occured while receiving the message
-          * probably just a time out error.
-          * we close the TCP connection and break
-          */
-         if (errno ==   ETIMEDOUT)
-         {
-            result = SLP_NETWORK_TIMED_OUT;
-         }
-         else
-         {
-            result = SLP_NETWORK_ERROR;
-         }
-         closesocket(handle->unicastsock);
-         goto FINISHED;
-      }
-      closesocket(handle->unicastsock);
-      result = SLP_OK;
-   }
-   else
-   {
-      result = SLP_NETWORK_TIMED_OUT;
-      goto FINISHED; /* Unsuccessful in opening a TCP connection just break */
-   }
-
-   /* Sneek in and check the XID */
-   if (AS_UINT16(recvbuf->start + 10) == xid)
-   {
-      char addrstr[INET6_ADDRSTRLEN] = "";
-
-      rplycount += 1;
-
-      saddr_ntop(&addr, addrstr, sizeof(addrstr));
-
-      /* Call the callback with the result and recvbuf */
-      if (callback(result, &addr, recvbuf, cookie) == SLP_FALSE)
-         goto CLEANUP; /* Caller doesn't want any more data. */
-
-      /* Add the peer to the previous responder list. */
-      if (prlistlen)
-         strcat(prlist, ",");
-
-      if (*addrstr != 0)
-      {
-         strcat(prlist, addrstr);
-         prlistlen = strlen(prlist);
-      }
-   }
-
-FINISHED:
-
-   /* Notify the callback with SLP_LAST_CALL so that they know we're done */
-   if (rplycount || result == SLP_NETWORK_TIMED_OUT)
-      result = SLP_LAST_CALL;
-
-   callback(result, 0, 0, cookie);
-   if (result == SLP_LAST_CALL)
-      result = SLP_OK;
-
-CLEANUP:
-
-   /* Free resources */
-   xfree(prlist);
-   SLPBufferFree(sendbuf);
-   SLPBufferFree(recvbuf);
-
-   return result;
+   return NetworkRqstRply(handle->unicastsock, &handle->ucaddr, handle->langtag, 0, buf, buftype, bufsize, callback, cookie);
 }
 #endif
 

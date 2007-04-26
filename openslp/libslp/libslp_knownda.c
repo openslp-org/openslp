@@ -383,7 +383,6 @@ static int KnownDADiscoverFromDHCP(SLPHandleInfo * handle)
    size_t scopelistlen;
    DHCPContext ctx;
    uint8_t * alp;
-   struct timeval timeout;
    struct sockaddr_storage peeraddr;
    unsigned char dhcpOpts[] = {TAG_SLP_SCOPE, TAG_SLP_DA};
 
@@ -406,10 +405,6 @@ static int KnownDADiscoverFromDHCP(SLPHandleInfo * handle)
 
    SLPNetSetAddr(&peeraddr, AF_INET, SLP_RESERVED_PORT, 0);
 
-   timeout.tv_sec = SLPPropertyAsInteger("net.slp.DADiscoveryMaximumWait");
-   timeout.tv_usec = (timeout.tv_sec % 1000) * 1000;
-   timeout.tv_sec = timeout.tv_sec / 1000;
-
    alp = ctx.addrlist;
 
    while (ctx.addrlistlen >= 4)
@@ -418,8 +413,7 @@ static int KnownDADiscoverFromDHCP(SLPHandleInfo * handle)
       if (((struct sockaddr_in *)&peeraddr)->sin_addr.s_addr)
       {
          sockfd_t sockfd;
-         if ((sockfd = SLPNetworkConnectStream(&peeraddr, 
-               &timeout)) != SLP_INVALID_SOCKET)
+         if ((sockfd = SLPNetworkCreateDatagram(peeraddr.ss_family)) != SLP_INVALID_SOCKET)
          {
             count = KnownDADiscoveryRqstRply(sockfd, &peeraddr, 
                   scopelistlen, ctx.scopelist, handle);
@@ -458,12 +452,7 @@ static int KnownDADiscoverFromProperties(size_t scopelistlen,
       char * tempend = temp + strlen(temp);
       while (slider1 != tempend)
       {
-         struct timeval timeout;
          struct sockaddr_storage peeraddr;
-
-         timeout.tv_sec = SLPPropertyAsInteger("net.slp.DADiscoveryMaximumWait");
-         timeout.tv_usec = (timeout.tv_sec % 1000) * 1000;
-         timeout.tv_sec = timeout.tv_sec / 1000;
 
          while (*slider2 && *slider2 != ',') 
             slider2++;
@@ -474,7 +463,7 @@ static int KnownDADiscoverFromProperties(size_t scopelistlen,
             sockfd_t sockfd;
 
             SLPNetSetParams(&peeraddr, peeraddr.ss_family, SLP_RESERVED_PORT);
-            sockfd = SLPNetworkConnectStream(&peeraddr, &timeout);
+            sockfd = SLPNetworkCreateDatagram(peeraddr.ss_family);
             if (sockfd != SLP_INVALID_SOCKET)
             {
                result = KnownDADiscoveryRqstRply(sockfd, &peeraddr,
@@ -504,8 +493,9 @@ static int KnownDADiscoverFromIPC(SLPHandleInfo * handle)
 {
    int result = 0;
    struct sockaddr_storage peeraddr;
+   
    sockfd_t sockfd = NetworkConnectToSlpd(&peeraddr);
-
+   
    if (sockfd != SLP_INVALID_SOCKET)
    {
       result = KnownDADiscoveryRqstRply(sockfd, &peeraddr, 0, "", handle);
@@ -567,7 +557,6 @@ static SLPBoolean KnownDAFromCache(size_t scopelistlen,
 sockfd_t KnownDAConnect(SLPHandleInfo * handle, size_t scopelistlen, 
       const char * scopelist, void * peeraddr)
 {
-   struct timeval timeout;
    sockfd_t sock = SLP_INVALID_SOCKET;
    int spistrlen = 0;
    char * spistr = 0;
@@ -577,11 +566,6 @@ sockfd_t KnownDAConnect(SLPHandleInfo * handle, size_t scopelistlen,
       SLPSpiGetDefaultSPI(handle->hspi, SLPSPI_KEY_TYPE_PUBLIC, 
             &spistrlen, &spistr);
 #endif
-
-   /* Set up connect timeout. */
-   timeout.tv_sec = SLPPropertyAsInteger("net.slp.DADiscoveryMaximumWait");
-   timeout.tv_usec = (timeout.tv_sec % 1000) * 1000;
-   timeout.tv_sec = timeout.tv_sec / 1000;
 
    while (1)
    {
@@ -596,10 +580,12 @@ sockfd_t KnownDAConnect(SLPHandleInfo * handle, size_t scopelistlen,
             || (addr->sa_family == AF_INET && SLPNetIsIPV4()))
       {
          SLPNetSetPort(peeraddr, SLP_RESERVED_PORT);
-         sock = SLPNetworkConnectStream(peeraddr, &timeout);
+         sock = SLPNetworkCreateDatagram(addr->sa_family);
+         /*Now test if the DA will actually respond*/
+         if((sock != SLP_INVALID_SOCKET) &&
+            (0 < KnownDADiscoveryRqstRply(sock, peeraddr, scopelistlen, scopelist, handle)))
+            break;
       }
-      if (sock != SLP_INVALID_SOCKET)
-         break;
 
       KnownDABadDA(peeraddr);
    }

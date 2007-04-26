@@ -57,6 +57,7 @@
 #define SLP_MULTICAST_SERVICE_TYPE_SRVLOCDA  0x02
 
 sockfd_t SLPNetworkConnectStream(void * peeraddr, struct timeval * timeout);  
+sockfd_t SLPNetworkCreateDatagram(short family);
 int SLPNetworkSendMessage(sockfd_t sockfd, int socktype, const SLPBuffer buf, 
       size_t bufsz, void * peeraddr, struct timeval * timeout);  
 int SLPNetworkRecvMessage(sockfd_t sockfd, int socktype, SLPBuffer * buf,

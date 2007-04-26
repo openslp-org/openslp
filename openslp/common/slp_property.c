@@ -126,9 +126,9 @@ static int SetDefaultValues(void)
       {"net.slp.multicastTTL", "255", 0},                                  /* 8 */
       {"net.slp.DAActiveDiscoveryInterval", "900", 0},                     /* 1 */
       {"net.slp.multicastMaximumWait", "15000"},                           /* 5000 */
-      {"net.slp.multicastTimeouts", "1000,1250,1500,2000,4000", 0},        /* 500,750,1000,1500,2000,3000 */  
-      {"net.slp.DADiscoveryTimeouts", "2000,2000,2000,2000,3000,4000", 0}, /* 500,750,1000,1500,2000,3000 */ 
-      {"net.slp.datagramTimeouts", "1000,1250,1500,2000,4000", 0},         /* I made up these numbers */     
+      {"net.slp.multicastTimeouts", "500,750,1000,1500,2000,3000", 0},        /* 500,750,1000,1500,2000,3000 */  
+      {"net.slp.DADiscoveryTimeouts", "500,750,1000,1500,2000,3000", 0},   /* 500,750,1000,1500,2000,3000 */ 
+      {"net.slp.datagramTimeouts", "500,750,1000,1500,2000,3000", 0},         /* I made up these numbers */     
       {"net.slp.randomWaitBound", "1000", 0},
       {"net.slp.MTU", "1400", 0},
       {"net.slp.interfaces", "", 0},
@@ -149,7 +149,7 @@ static int SetDefaultValues(void)
       {"net.slp.OpenSLPVersion", SLP_VERSION, 0},
       {"net.slp.unicastMaximumWait", "5000", 0},
       {"net.slp.unicastTimeouts", "500,750,1000,1500,2000,3000", 0},
-      {"net.slp.DADiscoveryMaximumWait", "2000", 0},
+      {"net.slp.DADiscoveryMaximumWait", "5000", 0},
       {"net.slp.activeDADetection", "true", 0},
       {"net.slp.checkSourceAddr", "true", 0},
       {"net.slp.broadcastAddr", "255.255.255.255", 0},

@@ -381,6 +381,13 @@ int SLPIfaceGetInfo(const char * useifaces, SLPIfaceInfo * ifaceinfo,
       /* only allow addresses in configured address set */
       char * p = SLPPropertyXDup("net.slp.interfaces");
 
+      /* If there are no configured addresses, use the passed in addresses*/
+      if(p && (0 == strlen(p)))
+      {
+         xfree(p);
+         p = xstrdup(useifaces);
+      }
+
       if (p)
       {
          char * ep = p + strlen(p);
