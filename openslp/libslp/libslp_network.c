@@ -946,20 +946,20 @@ SLPError NetworkMcastRqstRply(SLPHandleInfo * handle, void * buf,
                 */
                if (retval == SLP_ERROR_RETRY_UNICAST) 
                {
-                  sockfd_t udpsockfd;
+                  sockfd_t tcpsockfd;
                   int retval1, retval2, unicastwait = 0;
                   unicastwait = SLPPropertyAsInteger("net.slp.unicastMaximumWait");
                   timeout.tv_sec = unicastwait / 1000;
                   timeout.tv_usec = (unicastwait % 1000) * 1000;
 
-                  udpsockfd = SLPNetworkCreateDatagram(addr.ss_family);
-                  if (udpsockfd != SLP_INVALID_SOCKET) 
+                  tcpsockfd = SLPNetworkConnectStream(&addr, &timeout);
+                  if (tcpsockfd != SLP_INVALID_SOCKET) 
                   {
                      TO_UINT16(sendbuf->start + 5, SLP_FLAG_UCAST);
                      xid = SLPXidGenerate();
                      TO_UINT16(sendbuf->start + 10, xid);
 
-                     retval1 = SLPNetworkSendMessage(udpsockfd, SOCK_DGRAM, 
+                     retval1 = SLPNetworkSendMessage(tcpsockfd, SOCK_STREAM, 
                            sendbuf, sendbuf->curpos - sendbuf->start, &addr, 
                            &timeout);
                      if (retval1) 
@@ -968,11 +968,11 @@ SLPError NetworkMcastRqstRply(SLPHandleInfo * handle, void * buf,
                            result = SLP_NETWORK_TIMED_OUT;
                         else 
                            result = SLP_NETWORK_ERROR;
-                        closesocket(udpsockfd);
+                        closesocket(tcpsockfd);
                         break;
                      }
 
-                     retval2 = SLPNetworkRecvMessage(udpsockfd, SOCK_DGRAM, 
+                     retval2 = SLPNetworkRecvMessage(tcpsockfd, SOCK_STREAM, 
                            &recvbuf, &addr, &timeout);
                      if (retval2) 
                      {
@@ -983,15 +983,15 @@ SLPError NetworkMcastRqstRply(SLPHandleInfo * handle, void * buf,
                            result = SLP_NETWORK_TIMED_OUT;
                         else 
                            result = SLP_NETWORK_ERROR;
-                        closesocket(udpsockfd);
+                        closesocket(tcpsockfd);
                         break;
                      }
-                     closesocket(udpsockfd);
+                     closesocket(tcpsockfd);
                      result = SLP_OK;
                      goto SNEEK;                               
                   } 
                   else 
-                     break; /* Unsuccessful in opening a UDP conn - retry */
+                     break; /* Unsuccessful in opening a TCP conn - retry */
                }
                else
                {
