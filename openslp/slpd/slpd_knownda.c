@@ -1593,10 +1593,10 @@ void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead, unsigned int scope)
             if(G_IncomingSocketList.tail)
             {
                struct sockaddr_storage* myaddr = &((SLPDSocket *)G_IncomingSocketList.tail)->localaddr;
-               if (SLPDKnownDAGenerateMyDAAdvert(myaddr, 0, dadead, SLPXidGenerate(), &(sock->sendbuf)) == 0)
+               if (SLPDKnownDAGenerateMyDAAdvert(myaddr, 0, dadead, 0, &(sock->sendbuf)) == 0)
                   SLPDOutgoingDatagramWrite(sock, 0, sock->sendbuf);
 #ifdef ENABLE_SLPv1
-               if (SLPDKnownDAGenerateMyV1DAAdvert(myaddr, 0, SLP_CHAR_UTF8, SLPXidGenerate(), &(sock->sendbuf)) == 0)
+               if (SLPDKnownDAGenerateMyV1DAAdvert(myaddr, 0, SLP_CHAR_UTF8, 0, &(sock->sendbuf)) == 0)
                   SLPDOutgoingDatagramWrite(sock, 0, sock->sendbuf);
 #endif
             }
@@ -1616,21 +1616,19 @@ void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead, unsigned int scope)
                   (scope == ((struct sockaddr_in6*)&sock->mcastaddr)->sin6_scope_id) &&
                   SLPNetIsIPV6())
                {
-                  if (SLPDKnownDAGenerateMyDAAdvert(&sock->localaddr, 0, dadead, 
-                                                SLPXidGenerate(), &(sock->sendbuf)) == 0)
+                  if (SLPDKnownDAGenerateMyDAAdvert(&sock->localaddr, 0, dadead, 0, &(sock->sendbuf)) == 0)
                      SLPDOutgoingDatagramWrite(sock, 1, sock->sendbuf);
                }
                else if((sock->mcastaddr.ss_family == AF_INET) && SLPNetIsIPV4()) 
                {
                   if(((struct sockaddr_in*)&sock->mcastaddr)->sin_addr.s_addr == htonl(SLP_MCAST_ADDRESS))
                   {
-                     if (SLPDKnownDAGenerateMyDAAdvert(&sock->localaddr, 0, dadead, 
-                                                   SLPXidGenerate(), &(sock->sendbuf)) == 0)
+                     if (SLPDKnownDAGenerateMyDAAdvert(&sock->localaddr, 0, dadead, 0, &(sock->sendbuf)) == 0)
                         SLPDOutgoingDatagramWrite(sock, 1, sock->sendbuf);
                   }
 #ifdef ENABLE_SLPv1
                   else if (SLPDKnownDAGenerateMyV1DAAdvert(&sock->localaddr, 0,
-                                    SLP_CHAR_UTF8, SLPXidGenerate(), &(sock->sendbuf)) == 0)
+                                    SLP_CHAR_UTF8, 0, &(sock->sendbuf)) == 0)
                      SLPDOutgoingDatagramWrite(sock, 1, sock->sendbuf);
 #endif
                }

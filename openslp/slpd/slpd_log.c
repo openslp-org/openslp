@@ -154,7 +154,18 @@ void SLPDLogBuffer(const char * prefix, size_t bufsize, const char * buf)
    if (G_SlpdLogFile)
    {
       fprintf(G_SlpdLogFile, "%s", prefix);
-      fwrite(buf,bufsize, 1, G_SlpdLogFile);
+      if (buf == NULL || bufsize < 0)
+      {
+         fprintf(G_SlpdLogFile,"<invalid data!>");
+      }
+      else if (bufsize == 0)
+      {
+         fprintf(G_SlpdLogFile,"<empty>");
+      }
+      else
+      {
+         fwrite(buf,bufsize,1,G_SlpdLogFile);
+      }
       fprintf(G_SlpdLogFile, "\n");
       fflush(G_SlpdLogFile);
    }
