@@ -1081,7 +1081,9 @@ SLPError NetworkUcastRqstRply(SLPHandleInfo * handle, void * buf,
 {
    /*In reality, this function just sets things up for NetworkRqstRply to operate*/
 
-   handle->unicastsock  = SLPNetworkCreateDatagram(handle->ucaddr.ss_family);
+   if(handle->unicastsock == SLP_INVALID_SOCKET) /*The unicast code will certainly reuse this socket*/
+      handle->unicastsock  = SLPNetworkCreateDatagram(handle->ucaddr.ss_family);
+
    if (handle->unicastsock == SLP_INVALID_SOCKET)
       return SLP_NETWORK_ERROR;
 
