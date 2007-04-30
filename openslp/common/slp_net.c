@@ -322,6 +322,9 @@ int SLPNetResolveHostToAddr(const char * host,
    if (resolveHost(AF_INET, host, &a4->sin_addr) == 1)
    {
       addr->ss_family = AF_INET;
+#ifdef HAVE_SOCKADDR_STORAGE_SS_LEN
+      addr->ss_len = sizeof(struct sockaddr_in);
+#endif
       return 0;
    }
 
@@ -329,6 +332,9 @@ int SLPNetResolveHostToAddr(const char * host,
    if (resolveHost(AF_INET6, host, &a6->sin6_addr) == 1)
    {
       addr->ss_family = AF_INET6;
+#ifdef HAVE_SOCKADDR_STORAGE_SS_LEN
+      addr->ss_len = sizeof(struct sockaddr_in6);
+#endif
       return 0;
    }
    return -1;
@@ -495,9 +501,11 @@ int SLPNetSetAddr(void * addr, int family,
    if (family == AF_INET)
    {
       struct sockaddr_in * v4 = (struct sockaddr_in *)addr;
-      /*Some platforms require a zero-d structure for a non-wildcard address bind*/
       memset(v4, 0, sizeof(struct sockaddr_in));
       v4->sin_family = (short)family;
+#ifdef HAVE_SOCKADDR_STORAGE_SS_LEN
+      addr->ss_len = sizeof(struct sockaddr_in);
+#endif
       v4->sin_port = htons(port);
       if (address == 0)
          v4->sin_addr.s_addr = INADDR_ANY;
@@ -507,7 +515,11 @@ int SLPNetSetAddr(void * addr, int family,
    else if (family == AF_INET6)
    {
       struct sockaddr_in6 * v6 = (struct sockaddr_in6 *)addr;
+      memset(v6, 0, sizeof(struct sockaddr_in6));
       v6->sin6_family = (short)family;
+#ifdef HAVE_SOCKADDR_STORAGE_SS_LEN
+      addr->ss_len = sizeof(struct sockaddr_in6);
+#endif
       v6->sin6_flowinfo = 0;
       v6->sin6_port = htons(port);
       v6->sin6_scope_id = 0;

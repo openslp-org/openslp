@@ -68,7 +68,7 @@ int SLPBroadcastSend(const SLPIfaceInfo * ifaceinfo, const SLPBuffer msg,
       SLPXcastSockets * socks);
 
 int SLPMulticastSend(const SLPIfaceInfo * ifaceinfo, const SLPBuffer msg,
-      SLPXcastSockets * socks, const void * dst);
+      SLPXcastSockets * socks, struct sockaddr_storage * dst);
 
 int SLPXcastRecvMessage(const SLPXcastSockets * sockets, SLPBuffer * buf, 
       void * peeraddr, struct timeval * timeout);

@@ -49,6 +49,7 @@
 #include "slp_xcast.h"
 #include "slp_message.h"
 #include "slp_net.h"
+#include "slp_property.h"
 
 /** Broadcast a message.
  *
@@ -104,6 +105,57 @@ int SLPBroadcastSend(const SLPIfaceInfo * ifaceinfo,
    return 0;
 }
 
+/** Set the multicast interface for a socket. -- Copied from slpd_socket.c
+ *
+ * @param[in] sockfd - the socket file descriptor for which to set the multicast IF
+ * @param[in] addr - A pointer to the address of the local network interface
+ *
+ * @return Zero on success, or a non-zero value on failure.
+ *
+ * @internal
+ */
+static int SetMulticastIF(int family, sockfd_t sockfd, const struct sockaddr_storage * addr)
+{
+   if (SLPNetIsIPV4() && ((family == AF_INET) || (family == AF_UNSPEC)))
+      return setsockopt(sockfd, IPPROTO_IP, IP_MULTICAST_IF, 
+                        (char*)(&(((struct sockaddr_in*)addr)->sin_addr)), sizeof(struct in_addr));
+   else if (SLPNetIsIPV6() && ((family == AF_INET6) || (family == AF_UNSPEC)))
+      return setsockopt(sockfd, IPPROTO_IPV6, IPV6_MULTICAST_IF, 
+                          (char*)(&((struct sockaddr_in6 *)addr)->sin6_scope_id), sizeof(unsigned int));
+   return -1;
+}
+
+/** Set the socket options for ttl (time-to-live). -- Copied from slpd_socket.c
+ *
+ * @param[in] sockfd - the socket file descriptor for which to set TTL state.
+ * @param[in] ttl - A boolean value indicating whether to enable or disable
+ *    the time-to-live option.
+ *
+ * @return Zero on success, or a non-zero value on failure.
+ *
+ * @internal
+ */
+static int SetMulticastTTL(int family, sockfd_t sockfd, int ttl)
+{
+   if (SLPNetIsIPV4() && ((family == AF_INET) || (family == AF_UNSPEC)))
+   {
+#if defined(linux) || defined(_WIN32)
+      int optarg = ttl;
+#else
+      /*Solaris and Tru64 expect an unsigned char parameter*/
+      unsigned char optarg = (unsigned char)ttl;
+#endif
+      return setsockopt(sockfd, IPPROTO_IP, IP_MULTICAST_TTL, (char *)&optarg, sizeof(optarg));
+   }
+   else if (SLPNetIsIPV6() && ((family == AF_INET6) || (family == AF_UNSPEC)))
+   {
+      int optarg = ttl;
+      return setsockopt(sockfd, IPPROTO_IPV6, IPV6_MULTICAST_HOPS, (char *)&optarg, sizeof(optarg));
+   }
+   return -1;
+}
+
+
 /** Multicast a message.
  *
  * @param[in] ifaceinfo - A pointer to the SLPIfaceInfo structure that 
@@ -119,7 +171,7 @@ int SLPBroadcastSend(const SLPIfaceInfo * ifaceinfo,
  *    SLPXcastSocketsClose.
  */
 int SLPMulticastSend(const SLPIfaceInfo * ifaceinfo, const SLPBuffer msg,
-      SLPXcastSockets * socks, const void * dst)
+      SLPXcastSockets * socks, struct sockaddr_storage * dst)
 {
    int flags = 0;
    int xferbytes;
@@ -132,43 +184,17 @@ int SLPMulticastSend(const SLPIfaceInfo * ifaceinfo, const SLPBuffer msg,
          socks->sock_count < ifaceinfo->iface_count;
          socks->sock_count++)
    {
-      socks->sock[socks->sock_count] = socket(ifaceinfo->iface_addr
-            [socks->sock_count].ss_family, SOCK_DGRAM, 0);
-      if (socks->sock[socks->sock_count] == SLP_INVALID_SOCKET)
-         return -1; /* error creating socket */
-      memcpy(&socks->peeraddr[socks->sock_count], 
-            &ifaceinfo->iface_addr[socks->sock_count],
-            sizeof(ifaceinfo->iface_addr[socks->sock_count]));
-   if (ifaceinfo->iface_addr[socks->sock_count].ss_family == AF_INET) 
-   {
-      struct sockaddr_in * s4 = (struct sockaddr_in *)
-            &socks->peeraddr[socks->sock_count];
-      if (setsockopt(socks->sock[socks->sock_count], IPPROTO_IP, 
-            IP_MULTICAST_IF, (char *)&s4->sin_addr, sizeof(struct in_addr)))
-         return -1; /* error setting socket option */
-      s4->sin_family = AF_INET;
-      s4->sin_port = htons(SLP_RESERVED_PORT);
-      s4->sin_addr.s_addr = htonl(SLP_MCAST_ADDRESS);
-   }
-   else if (ifaceinfo->iface_addr[socks->sock_count].ss_family == AF_INET6) 
-   {
-      const struct sockaddr_in6 * s6dst = (const struct sockaddr_in6 *)dst;
+      int family = ifaceinfo->iface_addr[socks->sock_count].ss_family;
 
-      /* send via IPV6 multicast */
-      if (bind(socks->sock[socks->sock_count], 
-            (struct sockaddr *)&socks->peeraddr[socks->sock_count], 
-            sizeof(struct sockaddr_storage)) != 0) 
-         return -1;  /* error binding socket to address */
-      if (s6dst->sin6_family == AF_INET6) 
-         SLPNetSetAddr(&socks->peeraddr[socks->sock_count], AF_INET6, 
-               SLP_RESERVED_PORT, &s6dst->sin6_addr);
-      else 
-         return -1;
-   }
-   else 
-      return -1;  /* unknown family */
+      socks->sock[socks->sock_count] = socket(family, SOCK_DGRAM, 0);
+      if((socks->sock[socks->sock_count] == SLP_INVALID_SOCKET) ||
+         (SetMulticastIF(family, socks->sock[socks->sock_count], &ifaceinfo->iface_addr[socks->sock_count]) ||
+         (SetMulticastTTL(family, socks->sock[socks->sock_count], SLPPropertyAsInteger("net.slp.multicastTTL")))))
+         return -1; /* error creating socket or setting socket option */
+      
+      memcpy(&socks->peeraddr[socks->sock_count], dst, sizeof(struct sockaddr_storage));
 
-   xferbytes = sendto(socks->sock[socks->sock_count], 
+      xferbytes = sendto(socks->sock[socks->sock_count], 
          (char *)msg->start, (int)(msg->end - msg->start), flags, 
          (struct sockaddr *)&socks->peeraddr[socks->sock_count],
          sizeof(struct sockaddr_storage));
@@ -230,7 +256,7 @@ int SLPXcastRecvMessage(const SLPXcastSockets * sockets, SLPBuffer * buf,
             if (FD_ISSET(sockets->sock[i], &readfds))
             {
                /* Peek at the first 16 bytes of the header */
-   	       socklen_t peeraddrlen = sizeof(struct sockaddr_storage);
+               socklen_t peeraddrlen = sizeof(struct sockaddr_storage);
                bytesread = recvfrom(sockets->sock[i], peek, 16, MSG_PEEK, 
                      peeraddr, &peeraddrlen);
                if (bytesread == 16
