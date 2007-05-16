@@ -722,6 +722,7 @@ SLPError NetworkMcastRqstRply(SLPHandleInfo * handle, void * buf,
    SLPError result = 0;
    size_t langtaglen = 0;
    size_t prlistlen = 0;
+	size_t prlistsize = 0;
    int size = 0;
    char * prlist = 0;
    int xid = 0;
@@ -815,6 +816,7 @@ SLPError NetworkMcastRqstRply(SLPHandleInfo * handle, void * buf,
     * previous responders there are.   This is because the retransmit
     * code terminates if ever MTU is exceeded for any datagram message. 
     */
+	prlistsize = mtu;
    prlist = (char *)xmalloc(mtu);
    if (!prlist)
    {
@@ -1022,6 +1024,11 @@ SNEEK:
                   goto CLEANUP; /* Caller does not want any more info */
 
                /* add the peer to the previous responder list */
+					if (prlistlen + 1 + strlen(addrstr) >= prlistsize)
+					{
+						prlist = xrealloc(prlist, prlistsize + mtu);
+						prlistsize += mtu;
+					}
                if (prlistlen != 0)
                   strcat(prlist, ",");
                if (*addrstr != 0) 
