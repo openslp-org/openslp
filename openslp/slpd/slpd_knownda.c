@@ -114,7 +114,7 @@ int MakeActiveDiscoveryRqst(int ismcast, SLPBuffer * buffer)
    /* figure out what our Prlist will be by going through our list of  */
    /* known DAs                                                        */
    prlistlen = 0;
-   prlist = xmalloc(SLP_MAX_DATAGRAM_SIZE);
+   prlist = xmalloc(SLP_MAX_DATAGRAM_SIZE - size);
    if (prlist == 0)
    {
       /* out of memory */
@@ -131,6 +131,10 @@ int MakeActiveDiscoveryRqst(int ismcast, SLPBuffer * buffer)
       {
          if (SLPDKnownDAEnum(eh, &msg, &tmp) == 0)
             break;
+         /*Make sure we have room for the potential pr addr*/
+         if(SLP_MAX_DATAGRAM_SIZE - size < prlistlen + sizeof(addr_str) + 1) /*1 for the comma*/
+            break;
+
          strcat(prlist,
                SLPNetSockAddrStorageToString(&(msg->peer), addr_str,
                      sizeof(addr_str)));

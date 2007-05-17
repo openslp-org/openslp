@@ -414,7 +414,7 @@ SLPError NetworkRqstRply(sockfd_t sock, void * peeraddr,
       }
       else
       {
-         xmitcount = MAX_RETRANSMITS;  /* Streams manage own retries. */
+         xmitcount = MAX_RETRANSMITS -1;  /* Streams manage own retries, so we want the loop to iterate once. */
          looprecv  = 0;
          stoploopifrecv = 0;
       }
@@ -455,7 +455,7 @@ SLPError NetworkRqstRply(sockfd_t sock, void * peeraddr,
    }
 
    /* ----- Main Retransmission Loop ----- */
-   while (xmitcount <= MAX_RETRANSMITS)
+   while (xmitcount < MAX_RETRANSMITS)
    {
       size_t size;
       struct timeval timeout;
@@ -835,7 +835,7 @@ SLPError NetworkMcastRqstRply(SLPHandleInfo * handle, void * buf,
       xmitcount = 0;
       totaltimeout = 0;
       requestSent = 0;
-      while (xmitcount <= MAX_RETRANSMITS)
+      while (xmitcount < MAX_RETRANSMITS)
       {
          totaltimeout += timeouts[xmitcount];
          if (totaltimeout > maxwait || !timeouts[xmitcount])
