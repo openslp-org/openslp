@@ -137,18 +137,8 @@ static int JoinSLPMulticastGroup(int family, sockfd_t sockfd,
       /* join with specified interface */
       memcpy(&mreq4.imr_interface, &(((struct sockaddr_in *)addr)->sin_addr), 
             sizeof(struct in_addr));
-      
-      /*While this is not necessary for the receiving side, multicast receive
-        sockets double as the multicast sending sockets, and setting this allows
-        the message to be sent on the correct interface*/
-      optresult = SetMulticastIF(family, sockfd, addr);
 
-     /*Likewise, we have to correctly set the TTL*/
-     if(optresult == 0)
-         optresult = SetMulticastTTL(family, sockfd, G_SlpdProperty.multicastTTL);
-
-      if(optresult == 0)
-         optresult = setsockopt(sockfd, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char*)&mreq4,
+      optresult = setsockopt(sockfd, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char*)&mreq4,
                                  sizeof(mreq4)); 
    }
    else if (SLPNetIsIPV6() && family == AF_INET6)
@@ -162,17 +152,7 @@ static int JoinSLPMulticastGroup(int family, sockfd_t sockfd,
       /* join with specified interface */
       mreq6.ipv6mr_interface = ((struct sockaddr_in6 *)addr)->sin6_scope_id;
 
-      /*While this is not necessary for the receiving side, multicast receive
-      sockets double as the multicast sending sockets, and setting this allows
-      the message to be sent on the correct interface*/
-      optresult = SetMulticastIF(family, sockfd, addr);
-
-     /*Likewise, we have to correctly set the TTL*/
-     if(optresult == 0)
-       optresult = SetMulticastTTL(family, sockfd, G_SlpdProperty.multicastTTL);
-
-     if(optresult == 0)
-         optresult = setsockopt(sockfd, IPPROTO_IPV6, IPV6_JOIN_GROUP, 
+      optresult = setsockopt(sockfd, IPPROTO_IPV6, IPV6_JOIN_GROUP, 
                                 (char*)&mreq6, sizeof(mreq6));   
    }
 
@@ -249,6 +229,7 @@ static int BindSocketToInetAddr(int family, sockfd_t sock,
       if (addr == 0)
       {
          addr = &temp_addr;
+       memset(addr, 0, sizeof(struct sockaddr_storage));
 #ifdef HAVE_SOCKADDR_STORAGE_SS_LEN
          addr->ss_len = sizeof(struct sockaddr_in);
 #endif
@@ -262,18 +243,18 @@ static int BindSocketToInetAddr(int family, sockfd_t sock,
       if (addr == 0)
       {
          addr = &temp_addr;
+       memset(addr, 0, sizeof(struct sockaddr_storage));
 #ifdef HAVE_SOCKADDR_STORAGE_SS_LEN
          addr->ss_len = sizeof(struct sockaddr_in6);
 #endif
          addr->ss_family = AF_INET6;
-         ((struct sockaddr_in6*) addr)->sin6_scope_id = 0;
          memcpy(&((struct sockaddr_in6*)addr)->sin6_addr, 
                &slp_in6addr_any, sizeof(struct in6_addr));
       }
       ((struct sockaddr_in6*)addr)->sin6_port = htons(SLP_RESERVED_PORT);
    }
 
-   setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char *)&reuse, sizeof(reuse));
+   result = setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char *)&reuse, sizeof(reuse));
    result = bind(sock, (struct sockaddr *)addr, sizeof(*addr));
 #ifndef _WIN32
    if (result == 0)
@@ -435,9 +416,10 @@ SLPDSocket * SLPDSocketCreateDatagram(struct sockaddr_storage * peeraddr,
             }
             else if (peeraddr->ss_family == AF_INET6) 
             {
+               /* @todo if DATAGRAM_MULTICAST is ever used with this function, we may want to
+                  clear out the scope id*/
                ((struct sockaddr_in6*) &(sock->peeraddr))->sin6_port 
                      = htons(SLP_RESERVED_PORT);
-               ((struct sockaddr_in6*) &(sock->peeraddr))->sin6_scope_id = 0;
                sock->state = type;
             }
             else 
@@ -460,6 +442,27 @@ SLPDSocket * SLPDSocketCreateDatagram(struct sockaddr_storage * peeraddr,
    }
    return sock;
 } 
+
+/** Flags an SLPDSocket as useable for sending multicast packets
+ *
+ * @param[in] family - the socket family
+ * @param[in] psock - the socket to set up the multicast options on
+ *
+ * @return 0 if successful.
+ *
+ * This is used by SLPDIncoming to flag which sockets are to be used
+ * for sending to multicast addresses
+ */
+int SLPDSocketAllowMcastSend(int family, SLPDSocket* psock)
+{
+   int result = SetMulticastIF(family, psock->fd, &psock->localaddr);
+   if(result == 0)
+      result = SetMulticastTTL(family, psock->fd, G_SlpdProperty.multicastTTL);
+   if(result == 0)
+      psock->can_send_mcast = 1;
+
+   return result;
+}
 
 /** Creates and binds a datagram buffer for a remote address.
  *

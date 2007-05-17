@@ -79,9 +79,9 @@ extern const struct in6_addr slp_in6addr_loopback;
 /** Scope definitions */
 #define SLP_SCOPE_NODE_LOCAL  0x01
 #define SLP_SCOPE_LINK_LOCAL  0x02
-#define SLP_SCOPE_SITE_LOCAL  0x03
-#define SLP_SCOPE_ORG_LOCAL   0x04
-#define SLP_SCOPE_GLOBAL      0x05
+#define SLP_SCOPE_SITE_LOCAL  0x05
+#define SLP_SCOPE_ORG_LOCAL   0x08
+#define SLP_SCOPE_GLOBAL      0x0e
 
 int SLPNetResolveHostToAddr(const char * host, 
       struct sockaddr_storage * addr);
@@ -101,6 +101,9 @@ int SLPNetGetSrvMcastAddr(const char * pSrvType, size_t len,
       int scope, void * addr);
 int SLPNetExpandIpv6Addr(const char * ipv6Addr, char * result, 
       size_t resultSize);
+unsigned int SLPNetGetMCastScope(struct sockaddr_storage* addr);
+int SLPNetIsMCastSrvloc(struct sockaddr_storage* addr);
+int SLPNetIsMCastSrvlocDA(struct sockaddr_storage* addr);
 
 /*! @} */
 

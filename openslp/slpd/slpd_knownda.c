@@ -282,7 +282,7 @@ void SLPDKnownDARegisterAll(SLPMessage * daadvert, int immortalonly)
                /* link newly constructed buffer to socket resendlist, and send */
                /*--------------------------------------------------------------*/
                SLPListLinkTail(&(sock->sendlist), (SLPListItem *) sendbuf);
-               SLPDOutgoingDatagramWrite(sock, 0, sendbuf);
+               SLPDOutgoingDatagramWrite(sock, sendbuf);
             }
          }
       }
@@ -447,7 +447,7 @@ void SLPDKnownDADeregisterAll(SLPMessage * daadvert)
                /* link newly constructed buffer to socket resendlist, and send */
                /*--------------------------------------------------------------*/
                SLPListLinkTail(&(sock->sendlist), (SLPListItem *) sendbuf);
-               SLPDOutgoingDatagramWrite(sock, 0, sendbuf);
+               SLPDOutgoingDatagramWrite(sock, sendbuf);
             }
          }
       }
@@ -497,7 +497,7 @@ int SLPDKnownDAFromDHCP()
             if (MakeActiveDiscoveryRqst(0, &buf) == 0)
             {
                SLPListLinkTail(&(sock->sendlist), (SLPListItem *) buf);
-               SLPDOutgoingDatagramWrite(sock, 0, buf);
+               SLPDOutgoingDatagramWrite(sock, buf);
             }
          }
       }
@@ -595,7 +595,7 @@ int SLPKnownDAFromProperties()
                   if (MakeActiveDiscoveryRqst(0, &buf) == 0)
                   {
                      SLPListLinkTail(&(sock->sendlist), (SLPListItem *) buf);
-                     SLPDOutgoingDatagramWrite(sock, 0, buf);
+                     SLPDOutgoingDatagramWrite(sock, buf);
                   }
                }
             }
@@ -685,14 +685,7 @@ int SLPDKnownDAInit()
    /*----------------------------------------*/
    /* Lastly, Perform first active discovery */
    /*----------------------------------------*/
-   if (SLPNetIsIPV4())
-      SLPDKnownDAActiveDiscovery(0, 0);
-   if (SLPNetIsIPV6())
-   {
-      SLPDKnownDAActiveDiscovery(0, SLP_SCOPE_NODE_LOCAL);
-      SLPDKnownDAActiveDiscovery(0, SLP_SCOPE_LINK_LOCAL);
-      SLPDKnownDAActiveDiscovery(0, SLP_SCOPE_SITE_LOCAL);
-   }
+   SLPDKnownDAActiveDiscovery(0);
 
    return 0;
 }
@@ -753,6 +746,7 @@ int SLPDKnownDAAdd(SLPMessage * msg, SLPBuffer buf)
    SLPParsedSrvUrl * parsedurl = NULL;
    int result = 0;
    SLPDatabaseHandle dh = NULL;
+   uint32_t saved_scope = 0;
 
    dh = SLPDatabaseOpen(&G_SlpdKnownDAs);
    if (dh == NULL)
@@ -770,6 +764,14 @@ int SLPDKnownDAAdd(SLPMessage * msg, SLPBuffer buf)
     * the host in the DA service URL.
     *---------------------------------------------------------
     */
+
+   if(SLPNetIsIPV6())
+   {
+      /*We need to save the scope of the address, since a multi-nic machine
+        with multiple link-local addresses has no other way of differentiating route*/
+      saved_scope = ((struct sockaddr_in6*)&msg->peer)->sin6_scope_id;
+   }
+
    if (SLPParseSrvUrl(daadvert->urllen, daadvert->url, &parsedurl))
    {
       /* could not parse the DA service url */
@@ -789,6 +791,13 @@ int SLPDKnownDAAdd(SLPMessage * msg, SLPBuffer buf)
     * the address the DA service URL resolves to 
     */
    msg->peer = daaddr;
+
+   if(SLPNetIsIPV6())
+   {
+      /*reset the scope*/
+      ((struct sockaddr_in6*)&msg->peer)->sin6_scope_id = saved_scope;
+   }
+
 
 
    /*-----------------------------------------------------*/
@@ -1452,7 +1461,7 @@ void SLPDKnownDAEcho(SLPMessage * msg, SLPBuffer buf)
                   if (dup)
                   {
                      SLPListLinkTail(&(sock->sendlist), (SLPListItem *) dup);
-                     SLPDOutgoingDatagramWrite(sock, 0, buf);
+                     SLPDOutgoingDatagramWrite(sock, buf);
                   }
                   else
                      sock->state = SOCKET_CLOSE;
@@ -1465,11 +1474,10 @@ void SLPDKnownDAEcho(SLPMessage * msg, SLPBuffer buf)
 }
 
 /*=========================================================================*/
-void SLPDKnownDAActiveDiscovery(int seconds, unsigned int scope)
+void SLPDKnownDAActiveDiscovery(int seconds)
 /* Add a socket to the outgoing list to do active DA discovery SrvRqst     */
 /*                                                                */
 /* seconds (IN) number of seconds that expired since last call             */
-/* scope   (IN) the multicast scope to use for IPv6 (0 for IPv4)           */
 /*                                                                         */
 /* Returns:  none                                                          */
 /*=========================================================================*/
@@ -1513,7 +1521,7 @@ void SLPDKnownDAActiveDiscovery(int seconds, unsigned int scope)
          if(sock)
          {
             MakeActiveDiscoveryRqst(1, &(sock->sendbuf));
-            SLPDOutgoingDatagramWrite(sock, 0, sock->sendbuf);
+            SLPDOutgoingDatagramWrite(sock, sock->sendbuf);
             SLPDSocketFree(sock);
          }
       }
@@ -1521,23 +1529,35 @@ void SLPDKnownDAActiveDiscovery(int seconds, unsigned int scope)
       {
          /* For each incoming socket, find the sockets that can send multicast
             and send the appropriate datagram.  The incoming list is used because 
-            it already has ready-to-use multicast sockets allocated for every interface.*/
+            it already has ready-to-use multicast sending sockets allocated for every interface.*/
          sock = (SLPDSocket *)G_IncomingSocketList.head;
          while (sock)
          {
-            if(sock->state == DATAGRAM_MULTICAST)
+            if(sock->can_send_mcast)
             {
-               if((sock->mcastaddr.ss_family == AF_INET6) && 
-                  (scope == ((struct sockaddr_in6*)&sock->mcastaddr)->sin6_scope_id) &&
-                  SLPNetIsIPV6())
+               struct sockaddr_storage mcastaddr;
+
+               if(SLPNetIsIPV6() && (sock->localaddr.ss_family == AF_INET6))
                {
                   MakeActiveDiscoveryRqst(1, &(sock->sendbuf));
-                  SLPDOutgoingDatagramWrite(sock, 1, sock->sendbuf);
+
+                  SLPNetSetAddr(&mcastaddr, AF_INET6, SLP_RESERVED_PORT, &in6addr_srvlocda_node);
+                  SLPDOutgoingDatagramMcastWrite(sock, &mcastaddr, sock->sendbuf);
+                  SLPNetSetAddr(&mcastaddr, AF_INET6, SLP_RESERVED_PORT, &in6addr_srvlocda_link);
+                  SLPDOutgoingDatagramMcastWrite(sock, &mcastaddr, sock->sendbuf);
+                  if (!IN6_IS_ADDR_LINKLOCAL(&(((struct sockaddr_in6 *) &sock->localaddr)->sin6_addr)))
+                  {
+                     SLPNetSetAddr(&mcastaddr, AF_INET6, SLP_RESERVED_PORT, &in6addr_srvlocda_site);
+                     SLPDOutgoingDatagramMcastWrite(sock, &mcastaddr, sock->sendbuf);
+                  }
                }
-               else if((sock->mcastaddr.ss_family == AF_INET) && SLPNetIsIPV4()) 
+               else if((sock->localaddr.ss_family == AF_INET) && SLPNetIsIPV4()) 
                {
+                  int tmpaddr = SLP_MCAST_ADDRESS;
                   MakeActiveDiscoveryRqst(1, &(sock->sendbuf));
-                  SLPDOutgoingDatagramWrite(sock, 1, sock->sendbuf);
+
+                  SLPNetSetAddr(&mcastaddr, AF_INET, SLP_RESERVED_PORT, &tmpaddr);
+                  SLPDOutgoingDatagramMcastWrite(sock, &mcastaddr, sock->sendbuf);
                }
             }
 
@@ -1551,7 +1571,7 @@ void SLPDKnownDAActiveDiscovery(int seconds, unsigned int scope)
 }
 
 /*=========================================================================*/
-void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead, unsigned int scope)
+void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead)
 /* Send passive daadvert messages if properly configured and running as    */
 /* a DA                                                                    */
 /*                                                                        */
@@ -1560,7 +1580,6 @@ void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead, unsigned int scope)
 /*                                                                         */
 /* dadead  (IN) nonzero if the DA is dead and a bootstamp of 0 should be   */
 /*              sent                                                       */
-/* scope   (IN) the multicast scope to use for IPv6 (0 for IPv4)           */
 /*                                                                         */
 /* Returns:  none                                                          */
 /*=========================================================================*/
@@ -1598,10 +1617,10 @@ void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead, unsigned int scope)
             {
                struct sockaddr_storage* myaddr = &((SLPDSocket *)G_IncomingSocketList.tail)->localaddr;
                if (SLPDKnownDAGenerateMyDAAdvert(myaddr, 0, dadead, 0, &(sock->sendbuf)) == 0)
-                  SLPDOutgoingDatagramWrite(sock, 0, sock->sendbuf);
+                  SLPDOutgoingDatagramWrite(sock, sock->sendbuf);
 #ifdef ENABLE_SLPv1
                if (SLPDKnownDAGenerateMyV1DAAdvert(myaddr, 0, SLP_CHAR_UTF8, 0, &(sock->sendbuf)) == 0)
-                  SLPDOutgoingDatagramWrite(sock, 0, sock->sendbuf);
+                  SLPDOutgoingDatagramWrite(sock, sock->sendbuf);
 #endif
             }
             SLPDSocketFree(sock);
@@ -1614,26 +1633,42 @@ void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead, unsigned int scope)
          sock = (SLPDSocket *)G_IncomingSocketList.head;
          while (sock)
          {
-            if(sock->state == DATAGRAM_MULTICAST)
+            if(sock->can_send_mcast)
             {
-               if((sock->mcastaddr.ss_family == AF_INET6) && 
-                  (scope == ((struct sockaddr_in6*)&sock->mcastaddr)->sin6_scope_id) &&
-                  SLPNetIsIPV6())
+               struct sockaddr_storage mcastaddr;
+
+               if(SLPNetIsIPV6() && (sock->localaddr.ss_family == AF_INET6))
                {
                   if (SLPDKnownDAGenerateMyDAAdvert(&sock->localaddr, 0, dadead, 0, &(sock->sendbuf)) == 0)
-                     SLPDOutgoingDatagramWrite(sock, 1, sock->sendbuf);
-               }
-               else if((sock->mcastaddr.ss_family == AF_INET) && SLPNetIsIPV4()) 
-               {
-                  if(((struct sockaddr_in*)&sock->mcastaddr)->sin_addr.s_addr == htonl(SLP_MCAST_ADDRESS))
                   {
-                     if (SLPDKnownDAGenerateMyDAAdvert(&sock->localaddr, 0, dadead, 0, &(sock->sendbuf)) == 0)
-                        SLPDOutgoingDatagramWrite(sock, 1, sock->sendbuf);
+                     SLPNetSetAddr(&mcastaddr, AF_INET6, SLP_RESERVED_PORT, &in6addr_srvlocda_node);
+                     SLPDOutgoingDatagramMcastWrite(sock, &mcastaddr, sock->sendbuf);
+                     SLPNetSetAddr(&mcastaddr, AF_INET6, SLP_RESERVED_PORT, &in6addr_srvlocda_link);
+                     SLPDOutgoingDatagramMcastWrite(sock, &mcastaddr, sock->sendbuf);
+                     if (!IN6_IS_ADDR_LINKLOCAL(&(((struct sockaddr_in6 *) &sock->localaddr)->sin6_addr)))
+                     {
+                        SLPNetSetAddr(&mcastaddr, AF_INET6, SLP_RESERVED_PORT, &in6addr_srvlocda_site);
+                        SLPDOutgoingDatagramMcastWrite(sock, &mcastaddr, sock->sendbuf);
+                     }
+                  }
+               }
+               else if((sock->localaddr.ss_family == AF_INET) && SLPNetIsIPV4()) 
+               {
+                  int tmpaddr = SLP_MCAST_ADDRESS;
+
+                  if (SLPDKnownDAGenerateMyDAAdvert(&sock->localaddr, 0, dadead, 0, &(sock->sendbuf)) == 0)
+                  {
+                        SLPNetSetAddr(&mcastaddr, AF_INET, SLP_RESERVED_PORT, &tmpaddr);
+                        SLPDOutgoingDatagramMcastWrite(sock, &mcastaddr, sock->sendbuf);
                   }
 #ifdef ENABLE_SLPv1
-                  else if (SLPDKnownDAGenerateMyV1DAAdvert(&sock->localaddr, 0,
+                  if (SLPDKnownDAGenerateMyV1DAAdvert(&sock->localaddr, 0,
                                     SLP_CHAR_UTF8, 0, &(sock->sendbuf)) == 0)
-                     SLPDOutgoingDatagramWrite(sock, 1, sock->sendbuf);
+                  {
+                        tmpaddr = SLPv1_DA_MCAST_ADDRESS;
+                        SLPNetSetAddr(&mcastaddr, AF_INET, SLP_RESERVED_PORT, &tmpaddr);
+                        SLPDOutgoingDatagramMcastWrite(sock, &mcastaddr, sock->sendbuf);
+                  }
 #endif
                }
             }

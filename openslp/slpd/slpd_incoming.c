@@ -423,6 +423,11 @@ int SLPDIncomingAddService(const char * srvtype, size_t len,
    int res;
    char addr_str[INET6_ADDRSTRLEN];
 
+   /* @todo On Unix platforms, this doesn't work due to a permissions problem.
+    * When slpd starts, it's running as root and can do the subscribe. After
+    * it has been daemonized, it can no longer bind to multicast addresses.
+    * This works on windows*/ 
+
    /* create a listening socket for node-local service request queries */
    res = SLPNetGetSrvMcastAddr(srvtype, len, SLP_SCOPE_NODE_LOCAL, &srvaddr);
    if (res != 0)
@@ -471,28 +476,31 @@ int SLPDIncomingAddService(const char * srvtype, size_t len,
       SLPDLog("INTERNAL_ERROR - No SLPLIB support will be available\n");
    }
 
-   /* create a listening socket for site-local service request queries */
-   res = SLPNetGetSrvMcastAddr(srvtype, len, SLP_SCOPE_SITE_LOCAL, &srvaddr);
-   if (res != 0)
-      return -1;
-
-   sock = SLPDSocketCreateBoundDatagram(localaddr, &srvaddr,
+   if (!IN6_IS_ADDR_LINKLOCAL(&(((struct sockaddr_in6 *)localaddr)->sin6_addr)))
+   {
+      /* create a listening socket for site-local service request queries */
+      res = SLPNetGetSrvMcastAddr(srvtype, len, SLP_SCOPE_SITE_LOCAL, &srvaddr);
+      if (res != 0)
+        return -1;
+   
+      sock = SLPDSocketCreateBoundDatagram(localaddr, &srvaddr,
                DATAGRAM_MULTICAST);
-   if (sock)
-   {
-      SLPListLinkTail(&G_IncomingSocketList, (SLPListItem *) sock);
-      SLPDLog("Listening on %s...\n",
+      if (sock)
+      {
+        SLPListLinkTail(&G_IncomingSocketList, (SLPListItem *) sock);
+        SLPDLog("Listening on %s...\n",
             inet_ntop(AF_INET6,
-                  &(((struct sockaddr_in6 *) &srvaddr)->sin6_addr), addr_str,
-                  sizeof(addr_str)));
-   }
-   else
-   {
-      SLPDLog("NETWORK_ERROR - Could not listen on %s.\n",
+                 &(((struct sockaddr_in6 *) &srvaddr)->sin6_addr), addr_str,
+                 sizeof(addr_str)));
+      }
+      else
+      {
+        SLPDLog("NETWORK_ERROR - Could not listen on %s.\n",
             inet_ntop(AF_INET6,
-                  &(((struct sockaddr_in6 *) &srvaddr)->sin6_addr), addr_str,
-                  sizeof(addr_str)));
-      SLPDLog("INTERNAL_ERROR - No SLPLIB support will be available\n");
+                 &(((struct sockaddr_in6 *) &srvaddr)->sin6_addr), addr_str,
+                 sizeof(addr_str)));
+        SLPDLog("INTERNAL_ERROR - No SLPLIB support will be available\n");
+      }
    }
 
    return 0;
@@ -603,8 +611,7 @@ int SLPDIncomingInit(void)
    /*-------------------------------------------------------*/
    if(SLPNetIsIPV6())
    {
-      /*@todo: Does our IPv6 support really care about all of these address types,
-        or at the very least why have a da and non-da variants? */
+      /*All of these addresses are needed to support RFC 3111*/
       SLPNetSetAddr(&lo6addr, AF_INET6, SLP_RESERVED_PORT, &slp_in6addr_loopback);
       SLPNetSetAddr(&srvloc6addr_node, AF_INET6, SLP_RESERVED_PORT, &in6addr_srvloc_node);
       SLPNetSetAddr(&srvloc6addr_link, AF_INET6, SLP_RESERVED_PORT, &in6addr_srvloc_link);
@@ -819,7 +826,7 @@ int SLPDIncomingInit(void)
       }
 
 #if defined(ENABLE_SLPv1)
-      if (G_SlpdProperty.isDA)
+      if (G_SlpdProperty.isDA && SLPNetIsIPV4())
       {
          /*------------------------------------------------------------*/
          /* Create socket that will handle multicast UDP for SLPv1 DA  */
@@ -848,6 +855,8 @@ int SLPDIncomingInit(void)
       sock = SLPDSocketCreateBoundDatagram(&myaddr, &myaddr, DATAGRAM_UNICAST);
       if (sock)
       {
+         /*These sockets are also used for the outgoing multicast*/
+         SLPDSocketAllowMcastSend(myaddr.ss_family, sock); 
          SLPListLinkTail(&G_IncomingSocketList, (SLPListItem *) sock);
          SLPDLog("Unicast socket on %s ready\n",
                SLPNetSockAddrStorageToString(&myaddr, addr_str,

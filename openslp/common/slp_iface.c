@@ -110,8 +110,111 @@ static int SLPIfaceContainsAddr(size_t listlen, const char * list,
    return 0;
 }
 
-/** @todo: evaluate network interface discovery on AIX, Solaris, and Hpux */
+/** Given an IPv6 address, attempt to find the scope/network interface
+ * 
+ * While there are a few better ways to do this (if_nametoindex, iphlpapi(windows)),
+ * for now we'll use the method that was in this file, attempting to bind to the scope,
+ * but this isn't a final solution.
+ *
+ * @param[in,out] addr - The ipv6 address, whose scopeid is modified
+ *
+ * @return Zero on success, non-zero on error
+ *
+ */
+static int GetV6Scope(struct sockaddr_in6 *addr)
+{
+   sockfd_t fd;
+   int result = -1;
 
+   /* try and bind to verify the address is okay */
+   fd = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
+   if (fd != SLP_INVALID_SOCKET)
+   {
+      /* This loop attempts to find the proper scope value 
+         in case the tested address is an ipv6 link-local 
+         address. In case of a global address a scope value
+         of zero will bind immediately so the loop causes 
+         no harm for global addresses. */
+
+      int i;
+      for (i = 0; i < MAX_INTERFACE_TEST_INDEX; i++)
+      {
+         addr->sin6_scope_id = i;
+         if ((result = bind(fd, (struct sockaddr *)addr, sizeof(struct sockaddr_in6))) == 0)
+            break;
+      }
+      closesocket(fd);
+   }
+   
+   return result;
+}
+
+#if defined(LINUX)
+/* While Linux supports SIOCGIFCONF for getting IPv4 addresses, it does not support
+ * that ioctl for getting IPv6 addresses.  RTNetLink could be used to get this info
+ * for both IPv4 and IPv6, and we may move to that later.  Linux also has the IPv6
+ * interface info readable from /proc/if_inet6, and this solution uses that route
+ */
+
+/** Parses /proc/if_inet6 to get the IPv6 address information of a linux host
+ * 
+ * @param[in,out] ifaceinfo - The address of a buffer in which to return 
+ *    information about the requested interfaces. Note that the address 
+ *    count should be passed in pointing to the next available slot in the 
+ *    address list of this parameter.
+ *
+ * @return Zero on success; A non-zero value (with errno set) on error.
+ *
+ * @remarks Does NOT return the loopback interface.
+ * 
+ * @remarks This routine APPENDS to @p ifaceinfo by assuming that its
+ *    address count field is set to the position of the next available
+ *    slot in the address array.
+ */
+static int SLPIfaceParseProc(SLPIfaceInfo * ifaceinfo)
+{
+   FILE* f;
+   char buf[256];
+   char ifstr[40];
+   struct sockaddr_in6* paddr;
+   
+   if((f = fopen("/proc/net/if_inet6", "r")) == 0)
+      return -1;
+      
+   while(fgets(buf, 256, f))
+   {
+      paddr = (struct sockaddr_in6*)&ifaceinfo->iface_addr[ifaceinfo->iface_count];
+      memset(paddr, 0, sizeof(struct sockaddr_in6));
+      
+      if(18 != sscanf(buf, "%2x%2x%2x%2x%2x%2x%2x%2x%2x%2x%2x%2x%2x%2x%2x%2x %d %*d %*d %*d %s", 
+                  &paddr->sin6_addr.s6_addr[0], &paddr->sin6_addr.s6_addr[1],
+                  &paddr->sin6_addr.s6_addr[2], &paddr->sin6_addr.s6_addr[3],
+                  &paddr->sin6_addr.s6_addr[4], &paddr->sin6_addr.s6_addr[5],
+                  &paddr->sin6_addr.s6_addr[6], &paddr->sin6_addr.s6_addr[7],
+                  &paddr->sin6_addr.s6_addr[8], &paddr->sin6_addr.s6_addr[9],
+                  &paddr->sin6_addr.s6_addr[10], &paddr->sin6_addr.s6_addr[11],
+                  &paddr->sin6_addr.s6_addr[12], &paddr->sin6_addr.s6_addr[13],
+                  &paddr->sin6_addr.s6_addr[14], &paddr->sin6_addr.s6_addr[15],
+                  &paddr->sin6_scope_id, ifstr))
+         continue;
+         
+      if(strstr("lo", ifstr) != 0)
+         continue;  //Ignore loopback
+                  
+      paddr->sin6_family = AF_INET6;
+#ifdef HAVE_SOCKADDR_STORAGE_SS_LEN
+      paddr->sin6_len = sizeof(struct sockaddr_in6);
+#endif
+      ++ifaceinfo->iface_count;
+   }
+   
+   fclose(f);
+   return 0;
+}
+
+#endif /*LINUX, pt1*/
+
+/** @todo: evaluate network interface discovery on AIX, Solaris, and Hpux */
 #if defined(LINUX) || defined(AIX) || defined(SOLARIS) || defined(HPUX)
 
 /** Get all network interface addresses for this host.
@@ -148,6 +251,9 @@ int SLPIfaceGetDefaultInfo(SLPIfaceInfo * ifaceinfo, int family)
 
    if ((family == AF_INET6) || (family == AF_UNSPEC))
    {
+#ifdef LINUX
+     SLPIfaceParseProc(ifaceinfo);
+#else
       fd = socket(AF_INET6, SOCK_DGRAM, 0);
       if (fd != -1)
       {
@@ -169,13 +275,15 @@ int SLPIfaceGetDefaultInfo(SLPIfaceInfo * ifaceinfo, int family)
                /* get interface flags, skip loopback addrs */
                memcpy(&ifrflags, &(ifrlist[i]), sizeof(struct ifreq));
                if (ioctl(fd, SIOCGIFFLAGS, &ifrflags) == 0
-                     && (ifrflags.ifr_flags & IFF_LOOPBACK) == 0)
+                     && (ifrflags.ifr_flags & IFF_LOOPBACK) == 0
+                     && (GetV6Scope((struct sockaddr_in6*)sa) == 0))
                   memcpy(&ifaceinfo->iface_addr[ifaceinfo->iface_count++], 
                         sa, sizeof(struct sockaddr_in6));
             }
          }
          closesocket(fd);
       }
+#endif /*Non-linux IPv6*/
    }
 
    /* reset ifc_len for next get */
@@ -269,7 +377,10 @@ int SLPIfaceGetDefaultInfo(SLPIfaceInfo* ifaceinfo, int family)
             }
             plist = (SOCKET_ADDRESS_LIST*)buffer;
             for (i = 0; i < plist->iAddressCount; ++i)
-               if (plist->Address[i].lpSockaddr->sa_family == AF_INET6)
+               if ((plist->Address[i].lpSockaddr->sa_family == AF_INET6) &&
+                   (0 == GetV6Scope((struct sockaddr_in6*)plist->Address[i].lpSockaddr)) &&
+                   /*Ignore Teredo and loopback pseudo-interfaces*/
+                   (2 < ((struct sockaddr_in6*)plist->Address[i].lpSockaddr)->sin6_scope_id))  
                   memcpy(&ifaceinfo->iface_addr[ifaceinfo->iface_count++], 
                         plist->Address[i].lpSockaddr, sizeof(struct sockaddr_in6));
             xfree(buffer);
@@ -429,29 +540,12 @@ int SLPIfaceGetInfo(const char * useifaces, SLPIfaceInfo * ifaceinfo,
                {
                   if (SLPNetIsIPV6() && ((family == AF_INET6) || (family == AF_UNSPEC)))
                   {
-                     /* try and bind to verify the address is okay */
-                     fd = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
-                     if (fd != SLP_INVALID_SOCKET)
-                     {
-                        /* This loop attempts to find the proper scope value 
-                           in case the tested address is an ipv6 link-local 
-                           address. In case of a global address a scope value
-                           of zero will bind immediately so the loop causes 
-                           no harm for global addresses. */
-
-                        int i;
-                        for (i = 0; i < MAX_INTERFACE_TEST_INDEX; i++)
-                        {
-                           v6addr.sin6_scope_id = i;
-                           if ((sts = bind(fd, (struct sockaddr *)&v6addr, sizeof(v6addr))) == 0)
-                           {
-                              memcpy(&ifaceinfo->iface_addr[ifaceinfo->iface_count++],
+                     v6addr.sin6_family = AF_INET6;
+                     v6addr.sin6_port = 0;
+                     v6addr.sin6_flowinfo = 0;
+                     if((sts = GetV6Scope(&v6addr)) == 0)
+                          memcpy(&ifaceinfo->iface_addr[ifaceinfo->iface_count++],
                                     &v6addr, sizeof(v6addr));
-                              break;
-                           }
-                        }
-                        closesocket(fd);
-                     }
                   }
                }
                else

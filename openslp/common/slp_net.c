@@ -44,6 +44,7 @@
 #include "../libslp/slp.h"
 
 #include "slp_types.h"
+#include "slp_message.h"
 #include "slp_debug.h"
 #include "slp_net.h"
 #include "slp_xmalloc.h"
@@ -91,6 +92,44 @@ const struct in6_addr in6addr_service_site_mask =
 };
 const struct in6_addr slp_in6addr_any = SLP_IN6ADDR_ANY_INIT;
 const struct in6_addr slp_in6addr_loopback = SLP_IN6ADDR_LOOPBACK_INIT;
+
+
+/** Returns the scope embedded in the IPv6 multicast address.  
+ *
+ * @param[in] addr - The address to get the scope from.
+ *
+ * @return the scope that was embedded in the multicast address
+ *
+ * @note the scope is NOT the same as the sin6_scope_id, as that is    
+ * more for the local network interface in slp's eyes.   
+ */
+unsigned int SLPNetGetMCastScope(struct sockaddr_storage* addr)
+{
+   return ((struct sockaddr_in6*)addr)->sin6_addr.s6_addr[1];
+}
+
+/** Checks if the group address of the IPv6 mcast address is of the SRVLOC group 
+ *
+ * @param[in] addr - The address to check
+ *
+ * @return 1 if the address is a member of the SRVLOC ipv6 group, regardless of scope
+ */
+int SLPNetIsMCastSrvloc(struct sockaddr_storage* addr)
+{
+   return htonl(0x116) == *((unsigned long*)((((struct sockaddr_in6*)addr)->sin6_addr.s6_addr) + 12));
+}
+
+/** Checks if the group address of the IPv6 mcast address is of the SRVLOC group 
+ *
+ * @param[in] addr - The address to check
+ *
+ * @return 1 if the address is a member of the SRVLOC-DA ipv6 group, regardless of scope
+ */
+int SLPNetIsMCastSrvlocDA(struct sockaddr_storage* addr)
+{
+   return htonl(0x123) == *((unsigned long*)((((struct sockaddr_in6*)addr)->sin6_addr.s6_addr) + 12));
+}
+
 
 /** Resolve a host name to an address.
  *
@@ -318,6 +357,9 @@ int SLPNetResolveHostToAddr(const char * host,
    struct sockaddr_in6 * a6 = (struct sockaddr_in6 *)addr;
    struct sockaddr_in  * a4 = (struct sockaddr_in  *)addr;
 
+   /*Clear out the addr, because resolve won't fill in everything*/
+   memset(addr, 0, sizeof(struct sockaddr_storage));
+
    /* Quick check for dotted quad IPv4 address. */
    if (resolveHost(AF_INET, host, &a4->sin_addr) == 1)
    {
@@ -527,6 +569,13 @@ int SLPNetSetAddr(void * addr, int family,
          memcpy(&v6->sin6_addr, &slp_in6addr_any, sizeof(struct in6_addr));
       else
          memcpy(&v6->sin6_addr, address, sizeof(v6->sin6_addr));
+      
+#ifndef _WIN32  /*works on linux, not on windows*/
+   /*If the address is multicast, make sure the scope is set correctly*/
+   if(IN6_IS_ADDR_MULTICAST(&v6->sin6_addr))
+      v6->sin6_scope_id = v6->sin6_addr.s6_addr[1] & 0x0f;   
+#endif
+   
    }
    else
       return -1;
@@ -630,12 +679,15 @@ char * SLPNetSockAddrStorageToString(struct sockaddr_storage const * src,
 int SLPNetGetSrvMcastAddr(const char * pSrvType, size_t len,
       int scope, void * addr)
 {
-   struct sockaddr * a = (struct sockaddr *)addr;
+   struct sockaddr_in6 * a = (struct sockaddr_in6 *)addr;
    unsigned long group_id = 0;
    struct in6_addr * v6;
 
    if (a == 0 || pSrvType == 0)
       return -1;
+   
+   memset(a, 0, sizeof(struct sockaddr_in6));
+   
 
    /* Run Hash to get group id */
    while (len-- != 0)
@@ -645,7 +697,7 @@ int SLPNetGetSrvMcastAddr(const char * pSrvType, size_t len,
    }
    group_id &= 0x3FF;
 
-   v6 = &((struct sockaddr_in6 *)addr)->sin6_addr;
+   v6 = &a->sin6_addr;
    if (scope == SLP_SCOPE_NODE_LOCAL)
       memcpy(v6, &in6addr_service_node_mask, sizeof(struct in6_addr));
    else if (scope == SLP_SCOPE_LINK_LOCAL)
@@ -655,9 +707,19 @@ int SLPNetGetSrvMcastAddr(const char * pSrvType, size_t len,
    else
       return -1;
 
+#ifndef _WIN32  
+   /*Linux needs to have the scope set to the multicast scope*/
+   a->sin6_scope_id = scope;
+#endif
+   
    v6->s6_addr[15] |= (group_id & 0xFF);
    v6->s6_addr[14] |= (group_id >> 8);
-   a->sa_family = AF_INET6;
+   a->sin6_family = AF_INET6;
+   #ifdef HAVE_SOCKADDR_STORAGE_SS_LEN
+       a->sin6_len = sizeof(struct sockaddr_in6);
+   #endif
+
+   a->sin6_port = htons(SLP_RESERVED_PORT);
 
    return 0;
 }

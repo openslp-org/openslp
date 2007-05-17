@@ -111,6 +111,43 @@ void SLPDDatabaseAge(int seconds, int ageall)
    }
 }
 
+/** Checks if a srvtype is already in the database
+ *
+ * @param [in] srvtype
+ * @param [in] srvtypelen
+ *
+ * @return 1 if the srvtype is already in the database
+ */
+int SLPDDatabaseSrvtypeUsed(const char* srvtype, size_t srvtypelen)
+{
+   SLPDatabaseHandle dh;
+   SLPDatabaseEntry * entry;
+   SLPSrvReg * entryreg;
+   int result = 0;
+
+   dh = SLPDatabaseOpen(&G_SlpdDatabase.database);
+   if (dh)
+   {
+      while (1)
+      {
+         entry = SLPDatabaseEnum(dh);
+         if (entry == 0) 
+            break;
+
+         /* entry reg is the SrvReg message from the database */
+         entryreg = &entry->msg->body.srvreg;
+         if(SLPCompareString(entryreg->srvtypelen, entryreg->srvtype, srvtypelen, srvtype) == 0)
+         {
+            result = 1;
+            break;
+         }
+      }
+      SLPDatabaseClose(dh);
+   }
+
+   return result;
+}
+
 /** Add a service registration to the database.
  *
  * @param[in] msg - SLPMessage of a SrvReg message as returned by
@@ -144,6 +181,18 @@ int SLPDDatabaseReg(SLPMessage * msg, SLPBuffer buf)
    if (reg->attrlistlen 
          && SLPCheckAttributeListSyntax(reg->attrlist,reg->attrlistlen))
       return SLP_ERROR_INVALID_REGISTRATION;
+
+   /* add a socket to listen for IPv6 requests if we haven't already (includes if this one was already registered) */
+   if (SLPNetIsIPV6() && 
+       (msg->peer.ss_family == AF_INET6) &&
+       !SLPDDatabaseSrvtypeUsed(msg->body.srvreg.srvtype, msg->body.srvreg.srvtypelen))
+   {
+      SLPIfaceGetInfo(G_SlpdProperty.interfaces, &ifaces, AF_INET6);
+      for (i = 0; i < ifaces.iface_count; i++) 
+         if(ifaces.iface_addr[i].ss_family == AF_INET6)
+            SLPDIncomingAddService(msg->body.srvreg.srvtype, 
+                  msg->body.srvreg.srvtypelen, &ifaces.iface_addr[i]);
+   }
 
    dh = SLPDatabaseOpen(&G_SlpdDatabase.database);
    if (dh)
@@ -221,22 +270,6 @@ int SLPDDatabaseReg(SLPMessage * msg, SLPBuffer buf)
          SLPDatabaseAdd(dh, entry);
          SLPDLogRegistration("Registration",entry);
 
-         /* add a socket to listen for IPv6 requests */
-         if (SLPNetIsIPV6() && msg->peer.ss_family == AF_INET6) 
-         {
-            if (msg->body.srvreg.source == SLP_REG_SOURCE_LOCAL) 
-            {
-               SLPIfaceGetInfo(G_SlpdProperty.interfaces, &ifaces, AF_INET6);
-               for (i = 0; i < ifaces.iface_count; i++) 
-                  if (IN6_IS_ADDR_LINKLOCAL(&(((struct sockaddr_in6 *)
-                        &ifaces.iface_addr[i])->sin6_addr)))
-                     SLPDIncomingAddService(msg->body.srvreg.srvtype, 
-                           msg->body.srvreg.srvtypelen, &ifaces.iface_addr[i]);
-            }
-            else 
-               SLPDIncomingAddService(msg->body.srvreg.srvtype, 
-                     msg->body.srvreg.srvtypelen, &msg->peer);
-         }
          result = 0; /* SUCCESS! */
       }
       else

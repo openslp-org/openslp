@@ -88,20 +88,11 @@ static int NetworkGetMcastAddrs(const char msgtype, uint8_t * msg,
             const char * srvtype = GetStrPtr(&msg, srvtype_len);
             /* Add IPv6 multicast groups in order they should appear. */
             SLPNetGetSrvMcastAddr(srvtype, srvtype_len, SLP_SCOPE_NODE_LOCAL, 
-                  &ifaceinfo->iface_addr[ifaceinfo->iface_count]);
-            SLPNetSetPort(&ifaceinfo->iface_addr[ifaceinfo->iface_count], 
-                  SLP_RESERVED_PORT);
-            ifaceinfo->iface_count++;
+                  &ifaceinfo->iface_addr[ifaceinfo->iface_count++]);
             SLPNetGetSrvMcastAddr(srvtype, srvtype_len, SLP_SCOPE_LINK_LOCAL, 
-                  &ifaceinfo->iface_addr[ifaceinfo->iface_count]);
-            SLPNetSetPort(&ifaceinfo->iface_addr[ifaceinfo->iface_count], 
-                  SLP_RESERVED_PORT);
-            ifaceinfo->iface_count++;
+                  &ifaceinfo->iface_addr[ifaceinfo->iface_count++]);
             SLPNetGetSrvMcastAddr(srvtype, srvtype_len, SLP_SCOPE_SITE_LOCAL, 
-                  &ifaceinfo->iface_addr[ifaceinfo->iface_count]);
-            SLPNetSetPort(&ifaceinfo->iface_addr[ifaceinfo->iface_count], 
-                  SLP_RESERVED_PORT);
-            ifaceinfo->iface_count++;
+                  &ifaceinfo->iface_addr[ifaceinfo->iface_count++]);
          }
          if (SLPNetIsIPV4()) 
          {

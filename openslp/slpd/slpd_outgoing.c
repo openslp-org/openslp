@@ -411,21 +411,38 @@ SLPDSocket * SLPDOutgoingConnect(int is_TCP, struct sockaddr_storage * addr)
    return sock;
 }
 
-/** Writes the datagram to the socket's peeraddr or mcastaddr
+/** Writes the datagram to the socket's peeraddr
  *
  * @param[in] sock - The socket whose peer will be sent to
- * @param[in] mcast - If non-zero, the message will be sent to sock->mcastaddr instead of sock->peeraddr.
  * @param[in] buffer - the buffer to send, could be the sockets sendbuf, or an item in the sendlist, etc.
  */
-void SLPDOutgoingDatagramWrite(SLPDSocket * sock, int mcast, SLPBuffer buffer)
+void SLPDOutgoingDatagramWrite(SLPDSocket * sock, SLPBuffer buffer)
 {
-   if (-1 == sendto(sock->fd, (char*)buffer->start,
+   if (0 >= sendto(sock->fd, (char*)buffer->start,
                (int)(buffer->end - buffer->start), 0,
-               mcast ? (struct sockaddr *)&sock->mcastaddr : (struct sockaddr *)&sock->peeraddr,
-               sizeof(struct sockaddr_storage)) >= 0)
+               (struct sockaddr *)&sock->peeraddr,
+               sizeof(struct sockaddr_storage)))
    {
 #ifdef DEBUG
       SLPDLog("ERROR: Data could not send() in SLPDOutgoingDatagramWrite()");
+#endif
+   }
+}
+
+/** Writes the datagram to the mcastaddr
+ *
+ * @param[in] sock - The socket to send on
+ * @param[in] maddr - The mcast addr to send to
+ * @param[in] buffer - the buffer to send, could be the sockets sendbuf, or an item in the sendlist, etc.
+ */
+void SLPDOutgoingDatagramMcastWrite(SLPDSocket * sock, struct sockaddr_storage *maddr, SLPBuffer buffer)
+{
+   if (0 >= sendto(sock->fd, (char*)buffer->start,
+               (int)(buffer->end - buffer->start), 0,
+               (struct sockaddr *)maddr, sizeof(struct sockaddr_storage)))
+   {
+#ifdef DEBUG
+      SLPDLog("ERROR: Data could not send() in SLPDOutgoingDatagramMcastWrite()");
 #endif
    }
 }
@@ -532,7 +549,7 @@ void SLPDOutgoingRetry(time_t seconds)
                   SLPBuffer pbuf;
                   sock->age = G_SlpdProperty.unicastTimeouts[sock->reconns];
                   for(pbuf = (SLPBuffer) sock->sendlist.head; pbuf; pbuf = (SLPBuffer) pbuf->listitem.next)
-                     SLPDOutgoingDatagramWrite(sock, 0, pbuf);
+                     SLPDOutgoingDatagramWrite(sock, pbuf);
                }
              }
           }

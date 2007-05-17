@@ -80,6 +80,11 @@ typedef struct _SLPDSocket
    sockfd_t fd;
    time_t age;    /* in seconds -- in unicast dgram sockets, this also drives the resend logic */
    int state;
+   int can_send_mcast;  /*Instead of allocating outgoing sockets to for sending multicast messages, slpd
+                          uses incoming unicast sockets that were bound to the network interface.  Unicast
+                          sockets are used because some stacks use the multicast address as the source address
+                          if the socket was bound to the multicast address.  Since we don't want to send
+                          mcast out of all the unicast sockets, this flag is used*/
 
    /* addrs related to the socket */
    struct sockaddr_storage localaddr;
@@ -102,6 +107,7 @@ SLPDSocket * SLPDSocketCreateDatagram(struct sockaddr_storage * peeraddr,
       int type); 
 SLPDSocket * SLPDSocketCreateBoundDatagram(struct sockaddr_storage * myaddr,
       struct sockaddr_storage * peeraddr, int type);
+int SLPDSocketAllowMcastSend(int family, SLPDSocket* psock);
 SLPDSocket * SLPDSocketAlloc(void);
 void SLPDSocketFree(SLPDSocket * sock);
 
