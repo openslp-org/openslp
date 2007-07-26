@@ -1088,7 +1088,7 @@ static int ProcessDAAdvert(SLPMessage * message, SLPBuffer recvbuf,
 #ifdef ENABLE_SLPv2_SECURITY
    errorcode = SLPAuthVerifyDAAdvert(G_SlpdSpiHandle, 0, 
          &message->body.daadvert);
-   if (errorcode == 0);
+   if (errorcode == 0)
 #endif
    {
       /* Only process if errorcode is not set */
