@@ -165,7 +165,7 @@ fi
 
 case "$host_os" in
   *linux*)   CPPFLAGS="$CPPFLAGS -DLINUX"   ;;
-  *solaris*) CPPFLAGS="$CPPFLAGS -DSOLARIS" ;;
+  *solaris*) CPPFLAGS="$CPPFLAGS -DSOLARIS" GCC_OS_FLAGS="-mcpu=v9" ;;
   *aix*)     CPPFLAGS="$CPPFLAGS -DAIX"     ;;
   *hpux*)    CPPFLAGS="$CPPFLAGS -DHPUX"    ;;
 esac
@@ -177,7 +177,7 @@ if test x$GCC = xyes; then
   # GCC: turn on all warnings, DON'T set warnings as errors
   #   disable optimization for debug builds
   #   enable high-level optimizations for non-debug builds
-  CFLAGS="$CFLAGS -Wall"
+  CFLAGS="$CFLAGS -Wall $GCC_OS_FLAGS"
   if test x$debug = xyes; then 
     OPTFLAGS="-O0"
   else

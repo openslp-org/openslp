@@ -141,7 +141,10 @@ static inline int64_t atomic_xchg64(volatile int64_t * p, int64_t i)
 #elif defined(sun) && (defined(__sparc) || defined(__sparc__) || defined(__sparcv8plus) || defined(__sparcv9))
 # define USE_SPARC_ATOMICS
 
-static void sparc_asm_code(void)
+int32_t sparc_atomic_add_32(volatile int32_t * p, int32_t i);
+int32_t sparc_atomic_xchg_32(volatile int32_t * p, int32_t i);
+
+void sparc_asm_code(void)
 {
    asm( ".align 8");
    asm( ".global sparc_atomic_add_32");
@@ -304,7 +307,7 @@ intptr_t SLPAtomicXchg(intptr_t * pn, intptr_t n)
    return value;
 #elif defined(USE_ALPHA_ATOMICS)
    return __ATOMIC_EXCH_QUAD(pn, n);
-#elif defined(USE_SPARK_ATOMICS)
+#elif defined(USE_SPARC_ATOMICS)
    return sparc_atomic_xchg_32(pn, n);
 #elif defined(USE_APPLE_ATOMICS)
    int32_t value;
