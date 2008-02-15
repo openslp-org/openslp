@@ -778,6 +778,20 @@ int SLPNetExpandIpv6Addr(const char * ipv6Addr, char * result,
 #endif
 }
 
+/** Return the length of an address, given an opaque pointer to the structure.
+ * @param[in] addr - an opaque pointer to the address whose size is desired.
+ * @return The size of the address in @p addr, based on it's family.
+ */
+int SLPNetAddrLen(void * addr)
+{
+   switch(((struct sockaddr *)addr)->sa_family)
+   {
+      case AF_INET:  return (int)sizeof(struct sockaddr_in);
+      case AF_INET6: return (int)sizeof(struct sockaddr_in6);
+   }
+   return (int)sizeof(struct sockaddr_storage);
+}
+
 /*=========================================================================
  * TEST MAIN
  */

@@ -421,7 +421,7 @@ void SLPDOutgoingDatagramWrite(SLPDSocket * sock, SLPBuffer buffer)
    if (0 >= sendto(sock->fd, (char*)buffer->start,
                (int)(buffer->end - buffer->start), 0,
                (struct sockaddr *)&sock->peeraddr,
-               sizeof(struct sockaddr_storage)))
+               SLPNetAddrLen(&sock->peeraddr)))
    {
 #ifdef DEBUG
       SLPDLog("ERROR: Data could not send() in SLPDOutgoingDatagramWrite()");
@@ -439,7 +439,7 @@ void SLPDOutgoingDatagramMcastWrite(SLPDSocket * sock, struct sockaddr_storage *
 {
    if (0 >= sendto(sock->fd, (char*)buffer->start,
                (int)(buffer->end - buffer->start), 0,
-               (struct sockaddr *)maddr, sizeof(struct sockaddr_storage)))
+               (struct sockaddr *)maddr, SLPNetAddrLen(maddr)))
    {
 #ifdef DEBUG
       SLPDLog("ERROR: Data could not send() in SLPDOutgoingDatagramMcastWrite()");

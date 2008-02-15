@@ -104,6 +104,7 @@ int SLPNetExpandIpv6Addr(const char * ipv6Addr, char * result,
 unsigned int SLPNetGetMCastScope(struct sockaddr_storage* addr);
 int SLPNetIsMCastSrvloc(struct sockaddr_storage* addr);
 int SLPNetIsMCastSrvlocDA(struct sockaddr_storage* addr);
+int SLPNetAddrLen(void * addr);
 
 /*! @} */
 

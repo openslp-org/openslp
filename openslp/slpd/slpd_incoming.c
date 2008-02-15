@@ -96,7 +96,7 @@ static void IncomingDatagramRead(SLPList * socklist, SLPDSocket * sock)
                int packetbytes = AS_UINT24(sock->sendbuf->curpos + 2);
                byteswritten = sendto(sock->fd, (char*)sock->sendbuf->curpos,
                      packetbytes, 0, (struct sockaddr *)&sock->peeraddr,
-                     sizeof(struct sockaddr_storage));
+                     SLPNetAddrLen(&sock->peeraddr));
 
                if (byteswritten != packetbytes)
                   SLPDLog("NETWORK_ERROR - %d replying %s\n", errno,

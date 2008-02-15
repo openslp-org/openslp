@@ -154,7 +154,7 @@ int SLPNetworkSendMessage(sockfd_t sockfd, int socktype,
          if (socktype == SOCK_DGRAM)
             xferbytes = sendto(sockfd, (char *)cur, 
                   (int)(end - cur), flags, peeraddr, 
-                  sizeof(struct sockaddr_storage));
+                  SLPNetAddrLen(peeraddr));
          else
             xferbytes = send(sockfd, (char *)cur, 
                   (int)(end - cur), flags);

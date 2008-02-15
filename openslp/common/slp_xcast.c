@@ -95,7 +95,7 @@ int SLPBroadcastSend(const SLPIfaceInfo * ifaceinfo,
          xferbytes = sendto(socks->sock[socks->sock_count],
                (char *)msg->start, (int)(msg->end - msg->start), 0, 
                (struct sockaddr *)&socks->peeraddr[socks->sock_count],
-               sizeof(struct sockaddr_storage));
+               SLPNetAddrLen(&socks->peeraddr[socks->sock_count]));
          if (xferbytes  < 0)
             return -1;  /* Error sending to broadcast */
       }
@@ -197,7 +197,7 @@ int SLPMulticastSend(const SLPIfaceInfo * ifaceinfo, const SLPBuffer msg,
       xferbytes = sendto(socks->sock[socks->sock_count], 
          (char *)msg->start, (int)(msg->end - msg->start), flags, 
          (struct sockaddr *)&socks->peeraddr[socks->sock_count],
-         sizeof(struct sockaddr_storage));
+         SLPNetAddrLen(&socks->peeraddr[socks->sock_count]));
       if (xferbytes <= 0)
          return -1; /* error sending */
    }
