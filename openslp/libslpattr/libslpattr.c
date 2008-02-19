@@ -538,36 +538,22 @@ static size_t find_escaped_size(const char * str, int len)
  */
 static void escape(char to_escape, char ** dest, SLPBoolean(test_fn)(char))
 {
-   char hex_digit;
+   unsigned char hex_digit;
    if (test_fn(to_escape) == SLP_FALSE)
    {
       /* Insert the escape character. */
-      **dest = ESCAPE_CHARACTER;
-      (*dest)++;
+      *(*dest)++ = ESCAPE_CHARACTER;
 
       /* Do the first digit. */
-      hex_digit = (to_escape & 0xF0) / 0x0F;
-      if ((hex_digit >= 0) && (hex_digit <= 9))
-         **dest = hex_digit + '0';
-      else
-         **dest = hex_digit + 'A' - 0x0A;
-
-      (*dest)++;
+      hex_digit = to_escape >> 4;
+      *(*dest)++ = hex_digit + (unsigned char)(hex_digit < 10? '0': 'A' - 10);
 
       /* Do the last digit. */
       hex_digit = to_escape & 0x0F;
-      if ((hex_digit >= 0) && (hex_digit <= 9))
-         **dest = hex_digit + '0';
-      else
-         **dest = hex_digit + 'A' - 0x0A;
-      (*dest)++;
+      *(*dest)++ = hex_digit + (unsigned char)(hex_digit < 10? '0': 'A' - 10);
    }
    else
-   {
-      /* It's legal. */
-      **dest = to_escape;
-      (*dest)++;
-   }
+      *(*dest)++ = to_escape;
 }
 
 

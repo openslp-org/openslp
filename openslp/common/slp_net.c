@@ -53,45 +53,40 @@
 /** min - for lack of a portable C alternative. */
 #define slp_min(a,b) (((a)<(b))?(a):(b))
 
+#ifdef _AIX
+# define IN6ADDR_SRVLOC_NODE_INIT {{{0x1ff,0,0,0x16010000}}}
+# define IN6ADDR_SRVLOC_LINK_INIT {{{0x2ff,0,0,0x16010000}}}
+# define IN6ADDR_SRVLOC_SITE_INIT {{{0x5ff,0,0,0x16010000}}}
+# define IN6ADDR_SRVLDA_NODE_INIT {{{0x1ff,0,0,0x23010000}}}
+# define IN6ADDR_SRVLDA_LINK_INIT {{{0x2ff,0,0,0x23010000}}}
+# define IN6ADDR_SRVLDA_SITE_INIT {{{0x5ff,0,0,0x23010000}}}
+# define IN6ADDR_SVCNOD_MASK_INIT {{{0x1ff,0,0,0x00100100}}}
+# define IN6ADDR_SVCLNK_MASK_INIT {{{0x2ff,0,0,0x00100100}}}
+# define IN6ADDR_SVCSIT_MASK_INIT {{{0x5ff,0,0,0x00100100}}}
+#else
+# define IN6ADDR_SRVLOC_NODE_INIT {{{0xff,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0x16}}}
+# define IN6ADDR_SRVLOC_LINK_INIT {{{0xff,2,0,0,0,0,0,0,0,0,0,0,0,0,1,0x16}}}
+# define IN6ADDR_SRVLOC_SITE_INIT {{{0xff,5,0,0,0,0,0,0,0,0,0,0,0,0,1,0x16}}}
+# define IN6ADDR_SRVLDA_NODE_INIT {{{0xff,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0x23}}}
+# define IN6ADDR_SRVLDA_LINK_INIT {{{0xff,2,0,0,0,0,0,0,0,0,0,0,0,0,1,0x23}}}
+# define IN6ADDR_SRVLDA_SITE_INIT {{{0xff,5,0,0,0,0,0,0,0,0,0,0,0,0,1,0x23}}}
+# define IN6ADDR_SVCNOD_MASK_INIT {{{0xff,1,0,0,0,0,0,0,0,0,0,0,0,1,0x10,0}}}
+# define IN6ADDR_SVCLNK_MASK_INIT {{{0xff,2,0,0,0,0,0,0,0,0,0,0,0,1,0x10,0}}}
+# define IN6ADDR_SVCSIT_MASK_INIT {{{0xff,5,0,0,0,0,0,0,0,0,0,0,0,1,0x10,0}}}
+#endif
+
 /** IPv6 SLP address constants */
-const struct in6_addr in6addr_srvloc_node =
-{
-   {{ 0xFF,0x1,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x01,0x16 }}
-};
-const struct in6_addr in6addr_srvloc_link =
-{
-   {{ 0xFF,0x2,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x01,0x16 }}
-};
-const struct in6_addr in6addr_srvloc_site =
-{
-   {{ 0xFF,0x5,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x01,0x16 }}
-};
-const struct in6_addr in6addr_srvlocda_node =
-{
-   {{ 0xFF,0x1,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x01,0x23 }}
-};
-const struct in6_addr in6addr_srvlocda_link =
-{
-   {{ 0xFF,0x2,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x01,0x23 }}
-};
-const struct in6_addr in6addr_srvlocda_site =
-{
-   {{ 0xFF,0x5,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x01,0x23 }}
-};
-const struct in6_addr in6addr_service_node_mask =
-{
-   {{ 0xFF,0x1,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x1,0x10,0x00 }}
-};
-const struct in6_addr in6addr_service_link_mask =
-{
-   {{ 0xFF,0x2,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x1,0x10,0x00 }}
-};
-const struct in6_addr in6addr_service_site_mask =
-{
-   {{ 0xFF,0x5,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x1,0x10,0x00 }}
-};
-const struct in6_addr slp_in6addr_any = SLP_IN6ADDR_ANY_INIT;
-const struct in6_addr slp_in6addr_loopback = SLP_IN6ADDR_LOOPBACK_INIT;
+const struct in6_addr in6addr_srvloc_node       = IN6ADDR_SRVLOC_NODE_INIT;
+const struct in6_addr in6addr_srvloc_link       = IN6ADDR_SRVLOC_LINK_INIT;
+const struct in6_addr in6addr_srvloc_site       = IN6ADDR_SRVLOC_SITE_INIT;
+const struct in6_addr in6addr_srvlocda_node     = IN6ADDR_SRVLDA_NODE_INIT;
+const struct in6_addr in6addr_srvlocda_link     = IN6ADDR_SRVLDA_LINK_INIT;
+const struct in6_addr in6addr_srvlocda_site     = IN6ADDR_SRVLDA_SITE_INIT;
+const struct in6_addr in6addr_service_node_mask = IN6ADDR_SVCNOD_MASK_INIT;
+const struct in6_addr in6addr_service_link_mask = IN6ADDR_SVCLNK_MASK_INIT;
+const struct in6_addr in6addr_service_site_mask = IN6ADDR_SVCSIT_MASK_INIT;
+const struct in6_addr slp_in6addr_any           = SLP_IN6ADDR_ANY_INIT;
+const struct in6_addr slp_in6addr_loopback      = SLP_IN6ADDR_LOOPBACK_INIT;
 
 
 /** Returns the scope embedded in the IPv6 multicast address.  

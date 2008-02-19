@@ -70,8 +70,14 @@ extern const struct in6_addr in6addr_service_link_mask;
 /* extern const struct in6_addr in6addr_service_site_mask; */
 
 /** IN6 "Any" and "Loopback" address initializer macros */
-#define SLP_IN6ADDR_ANY_INIT        {{{ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 }}}
-#define SLP_IN6ADDR_LOOPBACK_INIT   {{{ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1 }}}
+#ifdef _AIX
+# define SLP_IN6ADDR_ANY_INIT        {{{0,0,0,0}}}
+# define SLP_IN6ADDR_LOOPBACK_INIT   {{{0,0,0,1}}}
+# define ss_family                   __ss_family
+#else
+# define SLP_IN6ADDR_ANY_INIT        {{{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}}}
+# define SLP_IN6ADDR_LOOPBACK_INIT   {{{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1}}}
+#endif
 
 extern const struct in6_addr slp_in6addr_any;
 extern const struct in6_addr slp_in6addr_loopback;
