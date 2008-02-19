@@ -135,7 +135,7 @@ static inline int64_t atomic_xchg64(volatile int64_t * p, int64_t i)
 
 #elif defined(_AIX)
 # define USE_AIX_ATOMICS
-extern int32_t atomic_add(volatile int32_t * p, int32_t i);
+# include <sys/atomic_op.h>
 #elif defined(__DECC) || defined(__DECCXX)
 # define USE_ALPHA_ATOMICS
 # include <machine/builtins.h>
@@ -217,7 +217,7 @@ intptr_t SLPAtomicInc(intptr_t * pn)
 #elif defined(USE_GCC_X86_64_ATOMICS)
    return (intptr_t)atomic_inc64((int64_t *)pn);
 #elif defined(USE_AIX_ATOMICS)
-   return (intptr_t)atomic_add((int32_t *)pn, 1);
+   return (intptr_t)fetch_and_add((atomic_p)pn, 1);
 #elif defined(USE_ALPHA_ATOMICS)
    /* Note: __ATOMIC_INCREMENT_QUAD returns the __previous__ value. */
    return __ATOMIC_INCREMENT_QUAD(pn) + 1;
@@ -257,7 +257,7 @@ intptr_t SLPAtomicDec(intptr_t * pn)
 #elif defined(USE_GCC_X86_64_ATOMICS)
    return (intptr_t)atomic_dec64((int64_t *)pn);
 #elif defined(USE_AIX_ATOMICS)
-   return (intptr_t)atomic_add((int32_t *)pn, -1);
+   return (intptr_t)fetch_and_add((atomic_p)pn, -1);
 #elif defined(USE_ALPHA_ATOMICS)
    /* Note: __ATOMIC_DECREMENT_QUAD returns the __previous__ value. */
    return __ATOMIC_DECREMENT_QUAD(pn) - 1;
