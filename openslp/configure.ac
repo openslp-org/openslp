@@ -165,10 +165,15 @@ fi
 
 case "$host_os" in
   *linux*)   CPPFLAGS="$CPPFLAGS -DLINUX"   ;;
-  *solaris*) CPPFLAGS="$CPPFLAGS -DSOLARIS" GCC_OS_FLAGS="-mcpu=v9" ;;
+  *solaris*) CPPFLAGS="$CPPFLAGS -DSOLARIS" ;;
   *aix*)     CPPFLAGS="$CPPFLAGS -DAIX"     ;;
   *hpux*)    CPPFLAGS="$CPPFLAGS -DHPUX"    ;;
 esac
+
+# Determine if on sparc and if so set cpu to v9
+if test x$host_cpu = xsparc; then
+	GCC_OS_FLAGS="-mcpu=v9"
+fi
 
 #
 # Set C/C++ compiler-specific warning/optimization/option flags

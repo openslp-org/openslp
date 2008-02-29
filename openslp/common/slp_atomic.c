@@ -148,7 +148,7 @@ int32_t sparc_atomic_xchg_32(volatile int32_t * p, int32_t i);
 void sparc_asm_code(void)
 {
    asm( ".align 8");
-   asm( ".global sparc_atomic_add_32");
+   asm( ".local sparc_atomic_add_32");
    asm( ".type sparc_atomic_add_32, #function");
    asm( "sparc_atomic_add_32:");
    asm( "    membar #LoadLoad | #LoadStore | #StoreStore | #StoreLoad");
@@ -164,7 +164,7 @@ void sparc_asm_code(void)
    asm( "nop");
    
    asm( ".align 8");
-   asm( ".global sparc_atomic_xchg_32");
+   asm( ".local sparc_atomic_xchg_32");
    asm( ".type sparc_atomic_xchg_32, #function");
    asm( "sparc_atomic_xchg_32:");
    asm( "    membar #LoadLoad | #LoadStore | #StoreStore | #StoreLoad");
