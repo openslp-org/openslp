@@ -223,6 +223,7 @@ static int BindSocketToInetAddr(int family, sockfd_t sock,
    struct sockaddr_storage temp_addr;
    int result;
    int reuse = 1;
+   int addrsz = 0;
 
    if (SLPNetIsIPV4() && family == AF_INET)
    {
@@ -237,6 +238,7 @@ static int BindSocketToInetAddr(int family, sockfd_t sock,
          ((struct sockaddr_in *)addr)->sin_addr.s_addr = INADDR_ANY;
       }
       ((struct sockaddr_in *)addr)->sin_port = htons(SLP_RESERVED_PORT);
+      addrsz = sizeof(struct sockaddr_in);
    }
    else if (SLPNetIsIPV6() && family == AF_INET6)
    {
@@ -252,10 +254,11 @@ static int BindSocketToInetAddr(int family, sockfd_t sock,
                &slp_in6addr_any, sizeof(struct in6_addr));
       }
       ((struct sockaddr_in6*)addr)->sin6_port = htons(SLP_RESERVED_PORT);
+      addrsz = sizeof(struct sockaddr_in6);
    }
 
    result = setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char *)&reuse, sizeof(reuse));
-   result = bind(sock, (struct sockaddr *)addr, sizeof(*addr));
+   result = bind(sock, (struct sockaddr *)addr, addrsz);
 #ifndef _WIN32
    if (result == 0)
    {
