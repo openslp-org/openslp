@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8.00"
-	Name="libslp"
+	Name="slp"
 	ProjectGUID="{E02C83C5-5CE3-4D12-A586-80AABA51B530}"
 	RootNamespace="libslp"
 	>
