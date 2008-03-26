@@ -70,21 +70,16 @@
  */
 
 # ifndef _WIN32_WINNT
-# define _WIN32_WINNT 0x0400
+#  define _WIN32_WINNT _WIN32_WINNT_WINXP
 # endif /* ifndef _WIN32_WINNT */
 
 # ifndef NTDDI_VERSION
-# define NTDDI_VERSION 0x04000000
+#  define NTDDI_VERSION NTDDI_WINXP
 # endif /* ifndef NTDDI_VERSION */
 
-/* Need NTDDI_LONGHORN defined for WIN32 decisions regarding inet_pton */
-
-# ifndef NTDDI_LONGHORN
-# define NTDDI_LONGHORN 0x06000000
-# endif /* ifndef NTDDI_LONGHORN */
-
-# include <winsock2.h>           /* must include before windows.h */
 # include <windows.h>
+# include <winsock2.h>
+# include <ws2ipdef.h>
 
 /* standard library includes */
 # include <stdio.h>

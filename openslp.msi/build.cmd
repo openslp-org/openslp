@@ -15,7 +15,9 @@ rem Please ensure that your path contains the WIX tool set directory, and
 rem that your environment contains a WIX_PATH variable that points to the
 rem root of the WIX tool set directory.
 
+set package=openslp
 set version=2.0.0
+set revision=beta1
 set machine=x86
 
 :doparse
@@ -54,10 +56,10 @@ goto doexit
 :dobuild
 rem -------------------------------------------------------------------------
 echo.
-echo Building openslp_%version%_%machine%.msi...
+echo Building openslp_%version%_%revision%_%machine%.msi...
 
-candle -nologo -dVERSION=%version% openslp.wxs
-light -nologo -out openslp_%version%_%machine%.msi openslp.wixobj -ext WixUIExtension -cultures:en-us -sval
+%WIX_PATH%\bin\candle -nologo -dVERSION=%version% openslp.wxs
+%WIX_PATH%\bin\light -nologo -out %package%_%version%_%revision%_%machine%.msi openslp.wixobj -ext WixUIExtension -cultures:en-us -sval
 
 :doexit
 endlocal

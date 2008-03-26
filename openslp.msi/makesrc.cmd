@@ -72,9 +72,10 @@ rem Copy files from %source% to %target%[%build%]
 xcopy %source%\doc\rfc\* %target%\OpenSLP\Docs\rfc /S /I
 xcopy %source%\doc\html\* %target%\OpenSLP\Docs\html /S /I
 xcopy %source%\libslp\slp.h %target%\OpenSLP\Include
-xcopy %source%\win32\%build%\libslp.lib %target%\OpenSLP\Lib
-xcopy %source%\win32\%build%\libslp.dll %target%\OpenSLP
-xcopy %source%\win32\%build%\libslp.pdb %target%\OpenSLP
+xcopy %source%\win32\%build%\slp.lib %target%\OpenSLP\Lib
+xcopy %source%\win32\%build%\slpstatic.lib %target%\OpenSLP\Lib
+xcopy %source%\win32\%build%\slp.dll %target%\OpenSLP
+xcopy %source%\win32\%build%\slp.pdb %target%\OpenSLP
 xcopy %source%\win32\%build%\slpd.exe %target%\OpenSLP
 xcopy %source%\win32\%build%\slpd.pdb %target%\OpenSLP
 xcopy %source%\win32\%build%\slptool.exe %target%\OpenSLP

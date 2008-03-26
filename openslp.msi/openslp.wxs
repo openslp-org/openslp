@@ -3,7 +3,7 @@
 
   <!-- Language 1033 (English) Codepage 1252 (US-ASCII) : ENU, en-US -->
 
-  <Product Name="OpenSLP 2.0" Id="303D9103-5018-49E2-ABF7-8DA48BA81D60"
+  <Product Name="OpenSLP 2.0 beta 1" Id="303D9103-5018-49E2-ABF7-8DA48BA81D60"
       Language="1033" Codepage="1252" Version="$(var.VERSION)" Manufacturer="OpenSLP.org"
       UpgradeCode="B480ABC9-CE49-4B8A-9AA6-333949FD02C5">
 
@@ -34,15 +34,15 @@
         source/target directory structure definition. -->
 
     <Directory Id="TARGETDIR" Name="SourceDir">
-      <Merge Id="vc8runtime" SourceFile="$(env.SystemDrive)\Program Files\Common Files\Merge Modules\Microsoft_VC80_CRT_x86.msm" Language="1033" DiskId="1"/>
-      <Merge Id="vc8policy" SourceFile="$(env.SystemDrive)\Program Files\Common Files\Merge Modules\policy_8_0_Microsoft_VC80_CRT_x86.msm" Language="1033" DiskId="1"/>
+      <Merge Id="vc9runtime" SourceFile="$(env.SystemDrive)\Program Files\Common Files\Merge Modules\Microsoft_VC90_CRT_x86.msm" Language="1033" DiskId="1"/>
+      <Merge Id="vc9policy" SourceFile="$(env.SystemDrive)\Program Files\Common Files\Merge Modules\policy_9_0_Microsoft_VC90_CRT_x86.msm" Language="1033" DiskId="1"/>
 
       <Directory Id="ProgramFilesFolder" Name="PFiles">
         <Directory Id="OPENSLPDIR" Name="OpenSLP">
 
           <Component Id="UA_comp" DiskId="1" Guid="E60ED64D-8B3E-4864-8A98-D1BA0E77A6C0">
-            <File Id="file0" Name="libslp.dll" KeyPath="yes" Source="OpenSLP\libslp.dll" />
-            <File Id="file1" Name="libslp.pdb" Source="OpenSLP\libslp.pdb" />
+            <File Id="file0" Name="slp.dll" KeyPath="yes" Source="OpenSLP\slp.dll" />
+            <File Id="file1" Name="slp.pdb" Source="OpenSLP\slp.pdb" />
           </Component>
 
           <Component Id="SADA_comp" DiskId="1" Guid="1E6D2C82-A8A6-44CD-9132-75D89EF9B2B4"
@@ -177,7 +177,8 @@
 
           <Directory Id="directory9" Name="Lib">
             <Component Id="LIB_comp" DiskId="1" Guid="F3D12802-5562-46D0-87D4-3A36A422ADB9">
-              <File Id="file581" Name="libslp.lib" Source="OpenSLP\Lib\libslp.lib" />
+              <File Id="file581" Name="slp.lib" Source="OpenSLP\Lib\slp.lib" />
+              <File Id="file582" Name="slpstatic.lib" Source="OpenSLP\Lib\slpstatic.lib" />
             </Component>
           </Directory>
         </Directory>
@@ -204,9 +205,9 @@
         Display="expand" ConfigurableDirectory="OPENSLPDIR"
         AllowAdvertise="no" Level="1" InstallDefault="local">
 
-      <Feature Id="VC8RuntimeFeature" Level="1" AllowAdvertise="no" Display="hidden">
-        <MergeRef Id="vc8runtime"/>
-        <MergeRef Id="vc8policy"/> 
+      <Feature Id="VC9RuntimeFeature" Level="1" AllowAdvertise="no" Display="hidden">
+        <MergeRef Id="vc9runtime"/>
+        <MergeRef Id="vc9policy"/> 
       </Feature>
 
       <Feature Id="UASADA_feature" Title="Client/Server Agents" 
