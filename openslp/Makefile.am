@@ -37,7 +37,7 @@
 ##---------------------------------------------------------------------------
 
 EXTRA_DIST = win32 doc doxygen etc README.W32 FAQ
-SUBDIRS = common libslpattr slpd libslp slptool test
+SUBDIRS = obs common libslpattr slpd libslp slptool test
 
 DOC_DIR = $(prefix)/doc/openslp-$(VERSION)
 
