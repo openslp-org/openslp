@@ -31,7 +31,12 @@
 ##  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ##---------------------------------------------------------------------------
 
-EXTRA_DIST = slp_debug.h
+EXTRA_DIST = slp_debug.h \
+	SLPOpen/test.script SLPFindSrvTypes/test.script \
+	SLPFindSrvs/test.script SLPReg/test.script \
+	SLPDereg/test.script SLPFindAttrs/test.script \
+	SLPParseSrvURL/test.script SLPEscape/test.script \
+	SLPUnescape/test.script
 
 TESTS = \
 	SLPOpen/test.script SLPFindSrvTypes/test.script \
@@ -93,8 +98,8 @@ testslp_attr_test_SOURCES = SLP_attr_test/slp_attr_test.c
 ### We have to manually copy files in the VPATH directories. 
 ##dist-hook:
 ##	@for d in `echo $(VPATH) | sed 's/:/ /g'`; do \
-##            if test $$d != $(srcdir); then \
-##                cp -pr $$d $(distdir)/`basename $$d`; \
-##            fi; \
-##        done
+##         if test $$d != $(srcdir); then \
+##            cp -pr $$d $(distdir)/`basename $$d`; \
+##         fi; \
+##      done
 

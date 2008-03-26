@@ -36,10 +36,11 @@
 ##
 ##---------------------------------------------------------------------------
 
-EXTRA_DIST = win32 doc doxygen etc README.W32 FAQ
-SUBDIRS = obs common libslpattr slpd libslp slptool test
+EXTRA_DIST = win32 doc doxygen etc README.W32 FAQ test
+SUBDIRS = obs common libslpattr slpd libslp slptool
 
-DOC_DIR = $(prefix)/doc/openslp-$(VERSION)
+# Add "test" back to SUBDIRS, remove from EXTRA_DIST after we get it working
+#SUBDIRS = obs common libslpattr slpd libslp slptool test
 
 install-data-local:
 	mkdir -p $(DESTDIR)$(sysconfdir)
@@ -56,9 +57,37 @@ install-data-local:
 	if [ -f $$file ]; then true; \
 	else cp -f $(srcdir)/etc/slp.spi $(DESTDIR)$(sysconfdir); \
 	fi
-	rm -rf $(DESTDIR)$(DOC_DIR)
-	mkdir -p $(DESTDIR)$(DOC_DIR)
-	cp -r $(srcdir)/doc/* $(DESTDIR)$(DOC_DIR)
+	rm -rf $(DESTDIR)$(docdir)
+	mkdir -p $(DESTDIR)$(docdir)
+	cp -r $(srcdir)/doc/* $(DESTDIR)$(docdir)
+
+uninstall-local:
+	chmod -R +w $(DESTDIR)$(docdir)
+	rm -rf $(DESTDIR)$(docdir)
+	chmod +w $(DESTDIR)$(sysconfdir)/slp.*
+	rm $(DESTDIR)$(sysconfdir)/slp.reg
+	rm $(DESTDIR)$(sysconfdir)/slp.conf
+	rm $(DESTDIR)$(sysconfdir)/slp.spi
 
 dist-hook:
-	chmod -R og-w $(distdir)
+	rm -rf `find $(distdir) -name .svn`
+
+rpmarch = $(BUILDARCH)
+rpmmacros = --define='_rpmdir $(PWD)' --define='_srcrpmdir $(PWD)'\
+ --define='_sourcedir $(PWD)' --define='_specdir $(PWD)'\
+ --define='_builddir $(PWD)'
+
+rpmcheck:
+	-rm -rf _rpm
+	@which rpm &> /dev/null; \
+        if [ $$? -ne 0 ]; then \
+          echo "*** This make target requires an rpm-based linux distribution."; \
+          exit 1; \
+        fi
+
+srcrpm: rpmcheck dist
+	rpmbuild -bs $(rpmmacros) --nodeps obs/$(PACKAGE).spec
+
+rpms: rpmcheck dist
+	rpmbuild -ba $(rpmmacros) --nodeps --buildroot=$(PWD)/_rpm obs/$(PACKAGE).spec
+	mv $(rpmarch)/* .; rm -rf $(rpmarch)

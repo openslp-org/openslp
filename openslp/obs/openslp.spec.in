@@ -9,9 +9,9 @@
 
 # norootforbuild
 
-Name:           openslp
+Name:           @PACKAGE@
 BuildRequires:  bison flex openssl-devel doxygen
-Summary:        An OpenSLP Implementation of Service Location Protocol V2
+Summary:        An Implementation of Service Location Protocol V2
 Version:        @VERSION@
 Release:        1
 License:        BSD 3-Clause
@@ -19,7 +19,7 @@ Group:          System/Daemons
 URL:            http://www.openslp.org/
 PreReq:         %fillup_prereq %insserv_prereq
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
-Source0:        %name-%version.tar.bz2
+Source0:        %name-%version.tar.gz
 
 #Source1:        slpd.init
 #Source2:        README.SuSE
@@ -56,8 +56,8 @@ and runtime libraries.
 
 Authors:
 --------
-    John Calcote <john.calcote@gmail.com>
     Matthew Peterson <mpeterson@calderasystems.com>
+    John Calcote <john.calcote@gmail.com>
     Ganesan Rajagopal <rganesan@myrealbox.com>
     David McCormack <david.mccormack@ottawa.com>
     Evan Hughes <hughes@lab43.org>
@@ -82,8 +82,8 @@ register the service.
 
 Authors:
 --------
-    John Calcote <john.calcote@gmail.com>
     Matthew Peterson <mpeterson@calderasystems.com>
+    John Calcote <john.calcote@gmail.com>
     Ganesan Rajagopal <rganesan@myrealbox.com>
     David McCormack <david.mccormack@ottawa.com>
     Evan Hughes <hughes@lab43.org>
@@ -105,10 +105,12 @@ This package contains header and library files to compile applications
 with SLP support. It also contains developer documentation to develop
 such applications.
 
+
+
 Authors:
 --------
-    John Calcote <john.calcote@gmail.com>
     Matthew Peterson <mpeterson@calderasystems.com>
+    John Calcote <john.calcote@gmail.com>
     Ganesan Rajagopal <rganesan@myrealbox.com>
     David McCormack <david.mccormack@ottawa.com>
     Evan Hughes <hughes@lab43.org>
@@ -118,25 +120,9 @@ Authors:
 %prep
 %setup -q
 #%patch1
-#%patch2
-#%patch3
-#%patch4
-#%ifarch hppa
-#%patch5
-#%endif
-#%patch6
-#%patch7
-#%patch8
-#%patch9
-#%patch10
-#%patch11
-#%patch12
-#%patch13
-#%patch14
-#autoreconf --force --install
 
 %build
-export CFLAGS="$RPM_OPT_FLAGS -fstack-protector"
+export CFLAGS="$RPM_OPT_FLAGS"
 ./configure \
   --prefix=/usr \
   --libdir=%_libdir \
@@ -148,44 +134,11 @@ make
 
 %install
 rm -rf ${RPM_BUILD_ROOT}
+make DESTDIR=${RPM_BUILD_ROOT} install
 mkdir -p ${RPM_BUILD_ROOT}/etc/slp.reg.d
-cp etc/slp.conf ${RPM_BUILD_ROOT}/etc
-cp etc/slp.reg ${RPM_BUILD_ROOT}/etc
-cp etc/slp.spi ${RPM_BUILD_ROOT}/etc
-mkdir -p ${RPM_BUILD_ROOT}/%_libdir
-libtool install libslp/libslp.la ${RPM_BUILD_ROOT}/%_libdir
-mkdir -p  ${RPM_BUILD_ROOT}/usr/sbin
-libtool install slpd/slpd ${RPM_BUILD_ROOT}/usr/sbin 
-mkdir -p ${RPM_BUILD_ROOT}/usr/bin
-libtool install slptool/slptool ${RPM_BUILD_ROOT}/usr/bin
-mkdir -p ${RPM_BUILD_ROOT}/usr/include
-cp libslp/slp.h ${RPM_BUILD_ROOT}/usr/include
-mkdir -p ${RPM_BUILD_ROOT}%_defaultdocdir/%name
-find . -name CVS -o -name .cvsignore -o -name .xvpics | xargs rm -rf
-cp -a AUTHORS COPYING README FAQ doc/rfc doc/html %SOURCE2 \
-   ${RPM_BUILD_ROOT}%_defaultdocdir/%name
 mkdir -p ${RPM_BUILD_ROOT}/etc/init.d/
-install -m 755 %{SOURCE1} ${RPM_BUILD_ROOT}/etc/init.d/slpd
+install -m 0755 etc/slpd.suse_init ${RPM_BUILD_ROOT}/etc/init.d/slpd
 ln -sf ../../etc/init.d/slpd ${RPM_BUILD_ROOT}/usr/sbin/rcslpd
-ln -sf ../../etc/init.d/slpd ${RPM_BUILD_ROOT}/usr/sbin/rcopenslp
-
-
-#install -D -m 0644 %{SOURCE5} ${RPM_BUILD_ROOT}/etc/logrotate.d/openslp-server
-# install susehelp file
-#mkdir -p $RPM_BUILD_ROOT/usr/share/susehelp/meta/Administration/
-#install -m 0644 %SOURCE3 \
-#	$RPM_BUILD_ROOT/usr/share/susehelp/meta/Administration/
-#mkdir -p $RPM_BUILD_ROOT/usr/share/susehelp/meta/Development/Libraries/
-#install -m 0644 %SOURCE4 \
-#	$RPM_BUILD_ROOT/usr/share/susehelp/meta/Development/Libraries/
-#install -d -m 755 $RPM_BUILD_ROOT/usr/share/omc/svcinfo.d
-#install -m 0644 %SOURCE6 $RPM_BUILD_ROOT/usr/share/omc/svcinfo.d
-#%if 0
-# actually, these files should get translated, but do we really want to
-# add update-desktop-files to needed_for_build ?
-#%suse_update_desktop_file $RPM_BUILD_ROOT/usr/share/susehelp/meta/Administration/openslp.desktop
-#%suse_update_desktop_file $RPM_BUILD_ROOT/usr/share/susehelp/meta/Development/Libraries/openslp-devel.desktop
-#%endif
 
 %post
 %run_ldconfig
@@ -212,12 +165,8 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,root,root)
-%dir %_defaultdocdir/%name
-%dir %_defaultdocdir/%name/html
-%doc %_defaultdocdir/%name/AUTHORS
-%doc %_defaultdocdir/%name/COPYING
-%doc %_defaultdocdir/%name/README
-%doc %_defaultdocdir/%name/README.SuSE
+%doc AUTHORS COPYING ChangeLog NEWS README
+%doc doc/%name/*
 %_libdir/libslp.so.*
 /usr/bin/slptool
 %config(noreplace) /etc/slp.conf
@@ -225,34 +174,14 @@ rm -rf $RPM_BUILD_ROOT
 
 %files server
 %defattr(-,root,root)
-%dir /usr/share/susehelp
-%dir /usr/share/susehelp/meta
-%dir /usr/share/susehelp/meta/Administration
-%doc %dir %_defaultdocdir/%name/FAQ
-%doc %_defaultdocdir/%name/html/IntroductionToSLP
-%doc %_defaultdocdir/%name/html/UsersGuide
-%doc %_defaultdocdir/%name/html/faq.html
-%doc %_defaultdocdir/%name/rfc
-%doc /usr/share/susehelp/meta/Administration/openslp.desktop
 %dir /etc/slp.reg.d/
-/usr/sbin/rcopenslp
 /usr/sbin/rcslpd
 /usr/sbin/slpd
 /etc/init.d/slpd
 %config(noreplace) /etc/slp.reg
-%config(noreplace) /etc/logrotate.d/openslp-server
-%dir /usr/share/omc
-%dir /usr/share/omc/svcinfo.d
-/usr/share/omc/svcinfo.d/slpd.xml
 
 %files devel
 %defattr(-,root,root)
-#%dir /usr/share/susehelp
-#%dir /usr/share/susehelp/meta
-#%dir /usr/share/susehelp/meta/Development
-#%dir /usr/share/susehelp/meta/Development/Libraries
-#%doc %_defaultdocdir/%name/html/ProgrammersGuide
-#%doc /usr/share/susehelp/meta/Development/Libraries/openslp-devel.desktop
 /usr/include/slp.h
 %_libdir/libslp.a
 %_libdir/libslp.la

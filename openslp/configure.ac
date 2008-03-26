@@ -1,7 +1,7 @@
 #
 ## Process this file with autoconf to produce a configure script
 
-AC_INIT(openslp, 2.0-beta1, openslp-devel@lists.sourceforge.net)
+AC_INIT(openslp, 2.0.beta1, openslp-devel@lists.sourceforge.net)
 AM_INIT_AUTOMAKE
 
 AC_PREREQ(2.59)
@@ -226,7 +226,7 @@ AC_CONFIG_FILES([Makefile
 		 libslpattr/Makefile
 		 libslp/Makefile
 		 slpd/Makefile
-		 slptool/Makefile
-		 test/Makefile])
+		 slptool/Makefile])
+#		 test/Makefile])
 AC_OUTPUT
 
