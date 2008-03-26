@@ -819,19 +819,15 @@ int SLPDKnownDAAdd(SLPMessage * msg, SLPBuffer buf)
 #ifdef ENABLE_SLPv2_SECURITY
          if (G_SlpdProperty.checkSourceAddr)
          {
-            if ((entry->msg->peer.ss_family
-                  == AF_INET
-                  && msg->peer.ss_family
-                  == AF_INET
-                  && memcmp(&(((struct sockaddr_in *) entry->msg->peer).sin_addr),
-                           &(((struct sockaddr_in *) msg->peer).sin_addr),
+            if ((entry->msg->peer.ss_family == AF_INET
+                  && msg->peer.ss_family == AF_INET
+                  && memcmp(&(((struct sockaddr_in *)&entry->msg->peer)->sin_addr),
+                           &(((struct sockaddr_in *)&msg->peer)->sin_addr),
                            sizeof(struct in_addr)))
-                  || (entry->msg->peer.ss_family
-                  == AF_INET6
-                  && msg->peer.ss_family
-                  == AF_INET6
-                  && memcmp(&(((struct sockaddr_in6 *) entry->msg->peer).sin6_addr),
-                           &(((struct sockaddr_in6 *) msg->peer).sin6_addr),
+                  || (entry->msg->peer.ss_family == AF_INET6
+                  && msg->peer.ss_family == AF_INET6
+                  && memcmp(&(((struct sockaddr_in6 *)&entry->msg->peer)->sin6_addr),
+                           &(((struct sockaddr_in6 *)&msg->peer)->sin6_addr),
                            sizeof(struct in6_addr))))
             {
                SLPDatabaseClose(dh);
@@ -849,9 +845,7 @@ int SLPDKnownDAAdd(SLPMessage * msg, SLPBuffer buf)
             result = SLP_ERROR_AUTHENTICATION_FAILED;
             goto CLEANUP;
          } 
-
 #endif
-
          if (daadvert->bootstamp != 0
                && daadvert->bootstamp != entrydaadvert->bootstamp)
          {
@@ -1063,7 +1057,7 @@ int SLPDKnownDAGenerateMyDAAdvert(struct sockaddr_storage * localaddr,
 #ifdef ENABLE_SLPv2_SECURITY
    int daadvertauthlen = 0;
    unsigned char * daadvertauth = 0;
-   int spistrlen = 0;
+   size_t spistrlen = 0;
    char * spistr = 0;  
 
    /** @todo Use correct delay value - 1000 is just an arbitrary choice. */
@@ -1075,8 +1069,8 @@ int SLPDKnownDAGenerateMyDAAdvert(struct sockaddr_storage * localaddr,
             &spistrlen, &spistr);
 
       SLPAuthSignDAAdvert(G_SlpdSpiHandle, spistrlen, spistr,
-            expires, G_SlpdProperty.myUrlLen,
-            G_SlpdProperty.myUrl, 0, 0, G_SlpdProperty.useScopesLen,
+            expires, G_SlpdProperty.urlPrefixLen,
+            G_SlpdProperty.urlPrefix, 0, 0, G_SlpdProperty.useScopesLen,
             G_SlpdProperty.useScopes, spistrlen, spistr, &daadvertauthlen,
             &daadvertauth);
    }

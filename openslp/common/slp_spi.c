@@ -44,6 +44,10 @@
 #ifdef _WIN32
 // nonstandard extension used : translation unit is empty
 # pragma warning (disable : 4206) 
+#else
+# if HAVE_CONFIG_H
+#  include <config.h>
+# endif
 #endif
 
 #ifdef ENABLE_SLPv2_SECURITY
@@ -261,10 +265,10 @@ SLPSpiHandle SLPSpiOpen(const char * spifile, int cacheprivate)
    fp = fopen(spifile,"r");
    if (fp)
    {
-      result = xmalloc(sizeof(structSLPSpiHandle));
+      result = xmalloc(sizeof(struct _SLPSpiHandle));
       if (result == 0) 
          return 0;
-      memset(result, 0, sizeof(structSLPSpiHandle));
+      memset(result, 0, sizeof(struct _SLPSpiHandle));
 
       result->spifile = xstrdup(spifile);
       result->cacheprivate = cacheprivate;

@@ -31,8 +31,6 @@
 ##  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ##---------------------------------------------------------------------------
 
-EXTRA_DIST = libslpattr.dsp libslpattr.dsw libslpattr.mak
-
 #if you're building on Irix, replace .la with .a below
 noinst_LTLIBRARIES = libslpattr.la
 

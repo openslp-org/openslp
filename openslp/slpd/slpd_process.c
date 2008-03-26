@@ -825,9 +825,9 @@ static int ProcessAttrRqst(SLPMessage * message, SLPBuffer * sendbuf,
 #ifdef ENABLE_SLPv2_SECURITY
    int i;
    uint8_t * generatedauth = 0;
-   size_t generatedauthlen = 0;
+   int generatedauthlen = 0;
    uint8_t * opaqueauth = 0;
-   size_t opaqueauthlen = 0;
+   int opaqueauthlen = 0;
 #endif
 
    /* if errorcode is set, we can not be sure that message is good

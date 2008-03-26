@@ -41,6 +41,10 @@
  * @ingroup    CommonCodeCrypto
  */
 
+#if HAVE_CONFIG_H
+# include <config.h>
+#endif
+
 /** Used to stop compiler warnings about empty translation units. */
 int G_Dummy_Enable_SLPv2_Security_Crypto;
 
@@ -133,7 +137,7 @@ int SLPCryptoDSASign(SLPCryptoDSAKey * key, const unsigned char * digest,
       int digestlen, unsigned char * signature, int * signaturelen)
 {
    /* it does not look like the type param is used? */
-   return DSA_sign(0, digest, digestlen, signature, signaturelen, key) == 0;
+   return DSA_sign(0, digest, digestlen, signature, (size_t *)signaturelen, key) == 0;
 }
 
 /** Verifies a DSA signature to ensure it matches the specified digest.

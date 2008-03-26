@@ -137,8 +137,8 @@ AC_ARG_ENABLE(async-api,
     no)  asyncapi=no  ;;
     *)   AC_MSG_ERROR(bad value ${enableval} for --enable-async-api) ;;
   esac], [asyncapi=no])
-AM_CONDITIONAL(ENABLE_ASYNC_API, test x$asyncapi = xyes)
-if test x$asyncapi = xyes; then
+AM_CONDITIONAL(ENABLE_ASYNC_API, test x$asyncapi=xyes)
+if test x$asyncapi=xyes; then
   AC_DEFINE(ENABLE_ASYNC_API, 1, [Defined for async API support])
 fi
 
@@ -153,8 +153,8 @@ AC_ARG_ENABLE(slpv2-security,
     no)  slpv2security=no  ;;
     *)   AC_MSG_ERROR(bad value ${enableval} for --enable-slpv2-security) ;;
   esac], [slpv2security=no])
-AM_CONDITIONAL(ENABLE_SLPv2_SECURITY, test x$slpv2security = xyes)
-if test x$slpv2security = xyes; then
+AM_CONDITIONAL(ENABLE_SLPv2_SECURITY, test x$slpv2security=xyes)
+if test x$slpv2security=xyes; then
   AC_CHECK_LIB(crypto, DSA_sign) 
   AC_CHECK_FUNCS(DSA_verify DSA_size DSA_free SHA1)
   AC_DEFINE(ENABLE_SLPv2_SECURITY, 1, [Defined for SLPv2 security support])
@@ -216,6 +216,12 @@ CFLAGS="$CFLAGS $OPTFLAGS"
 # Configuration and output
 
 AC_CONFIG_FILES([Makefile
+		 obs/Makefile
+		 obs/debian.changelog
+		 obs/debian.control
+		 obs/debian.rules
+		 obs/openslp.dsc
+		 obs/openslp.spec
 		 common/Makefile
 		 libslpattr/Makefile
 		 libslp/Makefile

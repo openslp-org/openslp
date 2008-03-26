@@ -107,7 +107,7 @@ static SLPError ProcessSrvDeReg(SLPHandleInfo * handle)
    uint8_t * buf;
    uint8_t * curpos;
    SLPError serr;
-   size_t urlauthlen = 0;
+   int urlauthlen = 0;
    uint8_t * urlauth = 0;
    struct sockaddr_storage saaddr;
 
@@ -181,9 +181,9 @@ static SLPError ProcessSrvDeReg(SLPHandleInfo * handle)
 static SLPError AsyncProcessSrvDeReg(SLPHandleInfo * handle)
 {
    SLPError serr = ProcessSrvDeReg(handle);
-   xfree(handle->params.dereg.scopelist);
-   xfree(handle->params.dereg.url);
-   SLPReleaseSpinLock(&handle->inUse);
+   xfree((void *)handle->params.dereg.scopelist);
+   xfree((void *)handle->params.dereg.url);
+   SLPSpinLockRelease(&handle->inUse);
    return serr;
 }
 #endif
@@ -267,9 +267,9 @@ SLPError SLPAPI SLPDereg(
                   AsyncProcessSrvDeReg, handle)) == 0)
       {
          serr = SLP_MEMORY_ALLOC_FAILED;
-         xfree(handle->params.dereg.scopelist);
-         xfree(handle->params.dereg.url);
-         SLPReleaseSpinLock(&handle->inUse);
+         xfree((void *)handle->params.dereg.scopelist);
+         xfree((void *)handle->params.dereg.url);
+         SLPSpinLockRelease(&handle->inUse);
       }
    }
    else

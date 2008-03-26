@@ -248,7 +248,7 @@ static SLPError ProcessSrvRqst(SLPHandleInfo * handle)
    uint8_t * curpos;
    SLPError serr;
    size_t spistrlen = 0;
-   uint8_t * spistr = 0;
+   char * spistr = 0;
    struct sockaddr_storage peeraddr;
    sockfd_t sock = SLP_INVALID_SOCKET;
 
@@ -356,10 +356,10 @@ static SLPError ProcessSrvRqst(SLPHandleInfo * handle)
 static SLPError AsyncProcessSrvRqst(SLPHandleInfo * handle)
 {
    SLPError serr = ProcessSrvRqst(handle);
-   xfree(handle->params.findsrvs.srvtype);
-   xfree(handle->params.findsrvs.scopelist);
-   xfree(handle->params.findsrvs.predicate);
-   SLPReleaseSpinLock(&handle->inUse);
+   xfree((void *)handle->params.findsrvs.srvtype);
+   xfree((void *)handle->params.findsrvs.scopelist);
+   xfree((void *)handle->params.findsrvs.predicate);
+   SLPSpinLockRelease(&handle->inUse);
    return serr;
 }
 #endif
@@ -400,7 +400,7 @@ SLPEXP SLPError SLPAPI SLPFindSrvs(
       void * pvCookie)
 {
    bool inuse;
-   SLPError serr;
+   SLPError serr = 0;
    SLPHandleInfo * handle = hSLP;
 
    /* Check for invalid parameters. */
@@ -456,10 +456,10 @@ SLPEXP SLPError SLPAPI SLPFindSrvs(
                   AsyncProcessSrvRqst, handle)) == 0)
       {
          serr = SLP_MEMORY_ALLOC_FAILED;    
-         xfree(handle->params.findsrvs.srvtype);
-         xfree(handle->params.findsrvs.scopelist);
-         xfree(handle->params.findsrvs.predicate);
-         SLPReleaseSpinLock(&handle->inUse);
+         xfree((void *)handle->params.findsrvs.srvtype);
+         xfree((void *)handle->params.findsrvs.scopelist);
+         xfree((void *)handle->params.findsrvs.predicate);
+         SLPSpinLockRelease(&handle->inUse);
       }
    }
    else

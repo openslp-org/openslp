@@ -150,9 +150,9 @@ int SLPDRegFileReadSrvReg(FILE * fd, SLPMessage ** msg, SLPBuffer * buf)
 
 #ifdef ENABLE_SLPv2_SECURITY
    unsigned char * urlauth = 0;
-   size_t urlauthlen = 0;
+   int urlauthlen = 0;
    unsigned char * attrauth = 0;
-   size_t attrauthlen = 0;
+   int attrauthlen = 0;
 #endif
 
    /* give the out params an initial NULL value */

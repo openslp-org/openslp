@@ -187,14 +187,14 @@ static int SLPIfaceParseProc(SLPIfaceInfo * ifaceinfo)
       memset(paddr, 0, sizeof(struct sockaddr_in6));
       
       if(18 != sscanf(buf, "%2x%2x%2x%2x%2x%2x%2x%2x%2x%2x%2x%2x%2x%2x%2x%2x %d %*d %*d %*d %s", 
-                  &paddr->sin6_addr.s6_addr[0], &paddr->sin6_addr.s6_addr[1],
-                  &paddr->sin6_addr.s6_addr[2], &paddr->sin6_addr.s6_addr[3],
-                  &paddr->sin6_addr.s6_addr[4], &paddr->sin6_addr.s6_addr[5],
-                  &paddr->sin6_addr.s6_addr[6], &paddr->sin6_addr.s6_addr[7],
-                  &paddr->sin6_addr.s6_addr[8], &paddr->sin6_addr.s6_addr[9],
-                  &paddr->sin6_addr.s6_addr[10], &paddr->sin6_addr.s6_addr[11],
-                  &paddr->sin6_addr.s6_addr[12], &paddr->sin6_addr.s6_addr[13],
-                  &paddr->sin6_addr.s6_addr[14], &paddr->sin6_addr.s6_addr[15],
+                  (unsigned *)&paddr->sin6_addr.s6_addr[0], (unsigned *)&paddr->sin6_addr.s6_addr[1],
+                  (unsigned *)&paddr->sin6_addr.s6_addr[2], (unsigned *)&paddr->sin6_addr.s6_addr[3],
+                  (unsigned *)&paddr->sin6_addr.s6_addr[4], (unsigned *)&paddr->sin6_addr.s6_addr[5],
+                  (unsigned *)&paddr->sin6_addr.s6_addr[6], (unsigned *)&paddr->sin6_addr.s6_addr[7],
+                  (unsigned *)&paddr->sin6_addr.s6_addr[8], (unsigned *)&paddr->sin6_addr.s6_addr[9],
+                  (unsigned *)&paddr->sin6_addr.s6_addr[10], (unsigned *)&paddr->sin6_addr.s6_addr[11],
+                  (unsigned *)&paddr->sin6_addr.s6_addr[12], (unsigned *)&paddr->sin6_addr.s6_addr[13],
+                  (unsigned *)&paddr->sin6_addr.s6_addr[14], (unsigned *)&paddr->sin6_addr.s6_addr[15],
                   &paddr->sin6_scope_id, ifstr))
          continue;
          

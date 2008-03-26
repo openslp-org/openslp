@@ -115,9 +115,9 @@ static SLPError ProcessSrvReg(SLPHandleInfo * handle)
    uint8_t * curpos;
    SLPError serr;
    size_t extoffset = 0;
-   size_t urlauthlen = 0;
+   int urlauthlen = 0;
    uint8_t * urlauth = 0;
-   size_t attrauthlen = 0;
+   int attrauthlen = 0;
    uint8_t * attrauth = 0;
    SLPBoolean watchRegPID;
    struct sockaddr_storage saaddr;
@@ -244,11 +244,11 @@ static SLPError ProcessSrvReg(SLPHandleInfo * handle)
 static SLPError AsyncProcessSrvReg(SLPHandleInfo * handle)
 {
    SLPError serr = ProcessSrvReg(handle);
-   xfree(handle->params.reg.url);
-   xfree(handle->params.reg.srvtype);
-   xfree(handle->params.reg.scopelist);
-   xfree(handle->params.reg.attrlist);
-   SLPReleaseSpinLock(&handle->inUse);
+   xfree((void *)handle->params.reg.url);
+   xfree((void *)handle->params.reg.srvtype);
+   xfree((void *)handle->params.reg.scopelist);
+   xfree((void *)handle->params.reg.attrlist);
+   SLPSpinLockRelease(&handle->inUse);
    return serr;
 }
 #endif
@@ -395,11 +395,11 @@ SLPEXP SLPError SLPAPI SLPReg(
                   AsyncProcessSrvReg, handle)) == 0)
       {
          serr = SLP_MEMORY_ALLOC_FAILED;    
-         xfree(handle->params.reg.url);
-         xfree(handle->params.reg.srvtype);
-         xfree(handle->params.reg.scopelist);
-         xfree(handle->params.reg.attrlist);
-         SLPReleaseSpinLock(&handle->inUse);
+         xfree((void *)handle->params.reg.url);
+         xfree((void *)handle->params.reg.srvtype);
+         xfree((void *)handle->params.reg.scopelist);
+         xfree((void *)handle->params.reg.attrlist);
+         SLPSpinLockRelease(&handle->inUse);
       }
    }
    else

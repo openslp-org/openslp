@@ -87,7 +87,7 @@ static SLPBoolean ProcessAttrRplyCallback(SLPError errorcode,
          {
 #ifdef ENABLE_SLPv2_SECURITY
             /* Validate the attribute authblocks. */
-            if (SLPPropertyAsBoolean("net.slp.securityEnabled")) 
+            if (SLPPropertyAsBoolean("net.slp.securityEnabled") 
                   && SLPAuthVerifyString(handle->hspi, 1,
                         attrrply->attrlistlen, attrrply->attrlist,
                         attrrply->authcount, attrrply->autharray))
@@ -124,7 +124,7 @@ static SLPError ProcessAttrRqst(SLPHandleInfo * handle)
    uint8_t * curpos;
    SLPError serr;
    size_t spistrlen = 0;
-   uint8_t * spistr = 0;
+   char * spistr = 0;
    struct sockaddr_storage peeraddr;
 
 #ifdef ENABLE_SLPv2_SECURITY
@@ -220,10 +220,10 @@ static SLPError ProcessAttrRqst(SLPHandleInfo * handle)
 static SLPError AsyncProcessAttrRqst(SLPHandleInfo * handle)
 {
    SLPError serr = ProcessAttrRqst(handle);
-   xfree(handle->params.findattrs.url);
-   xfree(handle->params.findattrs.scopelist);
-   xfree(handle->params.findattrs.taglist);
-   SLPReleaseSpinLock(&handle->inUse);
+   xfree((void *)handle->params.findattrs.url);
+   xfree((void *)handle->params.findattrs.scopelist);
+   xfree((void *)handle->params.findattrs.taglist);
+   SLPSpinLockRelease(&handle->inUse);
    return serr;
 }
 #endif
@@ -278,7 +278,7 @@ SLPEXP SLPError SLPAPI SLPFindAttrs(
       void * pvCookie)
 {
    bool inuse;
-   SLPError serr;
+   SLPError serr = 0;
    SLPHandleInfo * handle = hSLP; 
 
    /* Check for invalid parameters. */
@@ -334,10 +334,10 @@ SLPEXP SLPError SLPAPI SLPFindAttrs(
                   AsyncProcessAttrRqst, handle)) == 0)
       {
          serr = SLP_MEMORY_ALLOC_FAILED;    
-         xfree(handle->params.findattrs.url);
-         xfree(handle->params.findattrs.scopelist);
-         xfree(handle->params.findattrs.taglist);
-         SLPReleaseSpinLock(&handle->inUse);
+         xfree((void *)handle->params.findattrs.url);
+         xfree((void *)handle->params.findattrs.scopelist);
+         xfree((void *)handle->params.findattrs.taglist);
+         SLPSpinLockRelease(&handle->inUse);
       }
    }
    else

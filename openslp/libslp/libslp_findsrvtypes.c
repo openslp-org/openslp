@@ -274,8 +274,8 @@ static SLPError ProcessSrvTypeRqst(SLPHandleInfo * handle)
 static SLPError AsyncProcessSrvTypeRqst(SLPHandleInfo * handle)
 {
    SLPError result = ProcessSrvTypeRqst(handle);
-   xfree(handle->params.findsrvtypes.namingauth);
-   xfree(handle->params.findsrvtypes.scopelist);
+   xfree((void *)handle->params.findsrvtypes.namingauth);
+   xfree((void *)handle->params.findsrvtypes.scopelist);
    handle->inUse = SLP_FALSE;
    return result;
 }
@@ -378,9 +378,9 @@ SLPError SLPAPI SLPFindSrvTypes(
                   AsyncProcessSrvTypeRqst, handle)) == 0)
       {
          serr = SLP_MEMORY_ALLOC_FAILED;
-         xfree(handle->params.findsrvtypes.namingauth);
-         xfree(handle->params.findsrvtypes.scopelist);
-         SLPReleaseSpinLock(&handle->inUse);
+         xfree((void *)handle->params.findsrvtypes.namingauth);
+         xfree((void *)handle->params.findsrvtypes.scopelist);
+         SLPSpinLockRelease(&handle->inUse);
       }
       return serr;
    }

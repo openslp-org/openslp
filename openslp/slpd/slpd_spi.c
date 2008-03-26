@@ -40,6 +40,10 @@
 #ifdef _WIN32
 // nonstandard extension used : translation unit is empty
 # pragma warning (disable : 4206) 
+#else
+# if HAVE_CONFIG_H
+#  include <config.h>
+# endif
 #endif
 
 #ifdef ENABLE_SLPv2_SECURITY

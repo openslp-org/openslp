@@ -43,6 +43,10 @@
 #include "slp_xmalloc.h"
 #include "slp_v2message.h"
 
+#if HAVE_CONFIG_H
+# include <config.h>
+#endif
+
 #if defined(ENABLE_SLPv1)
 # include "slp_v1message.h"
 #endif

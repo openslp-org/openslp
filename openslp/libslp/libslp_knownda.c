@@ -558,7 +558,7 @@ sockfd_t KnownDAConnect(SLPHandleInfo * handle, size_t scopelistlen,
       const char * scopelist, void * peeraddr)
 {
    sockfd_t sock = SLP_INVALID_SOCKET;
-   int spistrlen = 0;
+   size_t spistrlen = 0;
    char * spistr = 0;
 
 #ifdef ENABLE_SLPv2_SECURITY

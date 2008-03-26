@@ -45,6 +45,10 @@
 #ifdef _WIN32
 // nonstandard extension used : translation unit is empty
 # pragma warning (disable : 4206) 
+#else
+# if HAVE_CONFIG_H
+#  include <config.h>
+# endif
 #endif
 
 #ifdef ENABLE_SLPv2_SECURITY
@@ -138,8 +142,8 @@ static int SLPAuthDigestDAAdvert(unsigned short spistrlen,
       const char * daspistr, unsigned char * digest)
 {
    int result;
-   char * tmpbuf;
-   char * curpos;
+   uint8_t * tmpbuf;
+   uint8_t * curpos;
 
    /* assume success */
    result = 0;
@@ -305,7 +309,7 @@ static int SLPVerifyDigest(SLPSpiHandle hspi, int emptyisfail,
 
          /* verify the signature */
          if (SLPCryptoDSAVerify(key, digest, SLPAUTH_SHA1_DIGEST_SIZE,
-               autharray[i].authstruct, signaturelen))
+               (uint8_t *)autharray[i].authstruct, signaturelen))
             break;
 
          result = SLP_ERROR_AUTHENTICATION_FAILED;
@@ -375,7 +379,7 @@ int SLPAuthVerifyString(SLPSpiHandle hspi, int emptyisfail,
 
             /* verify the signature */
             if (SLPCryptoDSAVerify(key, digest, sizeof(digest),
-                  autharray[i].authstruct, signaturelen))
+                  (uint8_t *)autharray[i].authstruct, signaturelen))
                break;
 
             result = SLP_ERROR_AUTHENTICATION_FAILED;
@@ -465,7 +469,7 @@ int SLPAuthVerifyDAAdvert(SLPSpiHandle hspi, int emptyisfail,
 
             /* verify the signature */
             if (SLPCryptoDSAVerify(key, digest, sizeof(digest),
-                  autharray[i].authstruct, signaturelen))
+                  (uint8_t *)autharray[i].authstruct, signaturelen))
                break;
 
             result = SLP_ERROR_AUTHENTICATION_FAILED;
@@ -514,7 +518,7 @@ int SLPAuthSignString(SLPSpiHandle hspi, int spistrlen, const char * spistr,
    int result;
    SLPCryptoDSAKey * key;
    unsigned char digest[20];
-   int defaultspistrlen = 0;
+   size_t defaultspistrlen = 0;
    char * defaultspistr = 0;
 
    /* NULL out the authblock and spistr just to be safe */
@@ -607,7 +611,7 @@ int SLPAuthSignDAAdvert(SLPSpiHandle hspi, unsigned short spistrlen,
    int result;
    SLPCryptoDSAKey * key;
    unsigned char digest[20];
-   int defaultspistrlen = 0;
+   size_t defaultspistrlen = 0;
    char * defaultspistr = 0;
 
    /* NULL out the authblock and spistr just to be safe */

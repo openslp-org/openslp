@@ -52,6 +52,8 @@
 #include "slp_atomic.h"
 #include "slp_thread.h"
 #include "slp_debug.h"
+#include "slp_spi.h"
+#include "slp_auth.h"
 
 #define MINIMUM_DISCOVERY_INTERVAL  300    /* 5 minutes */
 #define MAX_RETRANSMITS             5      /* we'll only re-xmit 5 times! */
