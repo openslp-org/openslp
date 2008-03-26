@@ -1,6 +1,14 @@
 NEWS - list of user-visible changes between releases of OpenSLP and other
 important events.
 
+New in openslp-2.0.0 beta 1
+---------------------------
+* We've gotten everything put back together again after the massive set of
+  IPv6 changes that went in in 1.3.0.
+* We finally have the pid watcher functionality working.
+* Various modules rewritten for performance.
+* Added doxygen docs based on source code.
+
 New in openslp-1.3.0
 --------------------
 * IPv6 support has been added and is mostly compliant with the RFC.  
