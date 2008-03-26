@@ -1,0 +1,24 @@
+Source: @PACKAGE@
+Section: unknown
+Priority: optional
+Maintainer: John Calcote <john.calcote@gmail.com>
+Build-Depends: debhelper (>= 4.1.16), gcc
+
+Package: @PACKAGE@-client
+Architecture: any
+Depends: ${shlibs:Depends}
+Description: OpenSLP client library package
+ The OpenSLP client package contains the client shared library.
+
+Package: @PACKAGE@-server
+Architecture: any
+Depends: ${shlibs:Depends}
+Description: OpenSLP daemon package
+ The OpenSLP server package contains the slpd daemon.
+
+Package: @PACKAGE@-devel
+Architecture: any
+Depends: ${shlibs:Depends}
+Description: OpenSLP developer package
+ The OpenSLP developer package contains client static library and the slp.h header file.
+

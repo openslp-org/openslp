@@ -37,16 +37,8 @@ test $TEST_TYPE $FILE || {
 	exit 1
 }
 
-aclocal $ACLOCAL_FLAGS
-echo "aclocal done"
-libtoolize --force --copy
-echo "libtoolize done"
-autoheader
-echo "autoheader done"
-automake --add-missing --copy $am_opt
-echo "automake done"
-autoconf
-echo "autoconf done"
+autoreconf --install --verbose $*
+
 cd $ORIGDIR
 
 echo 

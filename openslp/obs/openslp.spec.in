@@ -1,0 +1,264 @@
+#
+# spec file for package @PACKAGE@ (Version @VERSION@)
+#
+# This file and all modifications and additions to the pristine
+# package are under the same license as the package itself.
+#
+# Please submit bugfixes or comments via openslp-devel@lists.sourceforge.net
+#
+
+# norootforbuild
+
+Name:           openslp
+BuildRequires:  bison flex openssl-devel doxygen
+Summary:        An OpenSLP Implementation of Service Location Protocol V2
+Version:        @VERSION@
+Release:        1
+License:        BSD 3-Clause
+Group:          System/Daemons
+URL:            http://www.openslp.org/
+PreReq:         %fillup_prereq %insserv_prereq
+BuildRoot:      %{_tmppath}/%{name}-%{version}-build
+Source0:        %name-%version.tar.bz2
+
+#Source1:        slpd.init
+#Source2:        README.SuSE
+#Source3:        openslp.desktop
+#Source4:        openslp-devel.desktop
+#Source5:        openslp.logrotate
+#Source6:        slpd.xml
+#Patch1:         openslp.diff
+#Patch2:         openslp.audit.diff
+#Patch3:         extensions.diff
+#Patch4:         slptool-timeout.diff
+#Patch5:         hppa.diff
+#Patch6:         v1dadiscovery.diff
+#Patch7:         openslp.poll.diff
+#Patch8:         openslp.v1sladdr.diff
+#Patch9:         openslp.tcpclearovr.diff
+#Patch10:        openslp.checkovr.diff
+#Patch11:        openslp.truncate.diff
+#Patch12:        openslp.emptyanswer.diff
+#Patch13:        openslp.doubleequal.diff
+#Patch14:        openslp.dereg.diff
+
+%description
+Service Location Protocol is an IETF standards track protocol that
+provides a framework that allows networking applications to discover
+the existence, location, and configuration of networked services in
+enterprise networks.
+
+OpenSLP is an open source implementation of the SLPv2 protocol as
+defined by RFC 2608 and RFC 2614.  This package includes the slptool
+and runtime libraries.
+
+
+
+Authors:
+--------
+    John Calcote <john.calcote@gmail.com>
+    Matthew Peterson <mpeterson@calderasystems.com>
+    Ganesan Rajagopal <rganesan@myrealbox.com>
+    David McCormack <david.mccormack@ottawa.com>
+    Evan Hughes <hughes@lab43.org>
+    Matthieu Desmons <mdes@ocegr.fr>
+    Praveen Kumar Amritaluru <praveen@india.hp.com>
+
+%package server
+Group:          System/Daemons
+Summary:        The OpenSLP Implementation of the  Service Location Protocol V2
+
+%description server
+Service Location Protocol is an IETF standards track protocol that
+provides a framework that allows networking applications to discover
+the existence, location, and configuration of networked services in
+enterprise networks.
+
+This package contains the SLP server. Every system, which provides any
+services that should be used via an SLP client must run this server and
+register the service.
+
+
+
+Authors:
+--------
+    John Calcote <john.calcote@gmail.com>
+    Matthew Peterson <mpeterson@calderasystems.com>
+    Ganesan Rajagopal <rganesan@myrealbox.com>
+    David McCormack <david.mccormack@ottawa.com>
+    Evan Hughes <hughes@lab43.org>
+    Matthieu Desmons <mdes@ocegr.fr>
+    Praveen Kumar Amritaluru <praveen@india.hp.com>
+
+%package devel
+Requires:       openssl-devel openslp = %version
+Group:          System/Daemons
+Summary:        OpenSLP Development SDK
+
+%description devel
+Service Location Protocol is an IETF standards track protocol that
+provides a framework that allows networking applications to discover
+the existence, location, and configuration of networked services in
+enterprise networks.
+
+This package contains header and library files to compile applications
+with SLP support. It also contains developer documentation to develop
+such applications.
+
+Authors:
+--------
+    John Calcote <john.calcote@gmail.com>
+    Matthew Peterson <mpeterson@calderasystems.com>
+    Ganesan Rajagopal <rganesan@myrealbox.com>
+    David McCormack <david.mccormack@ottawa.com>
+    Evan Hughes <hughes@lab43.org>
+    Matthieu Desmons <mdes@ocegr.fr>
+    Praveen Kumar Amritaluru <praveen@india.hp.com>
+
+%prep
+%setup -q
+#%patch1
+#%patch2
+#%patch3
+#%patch4
+#%ifarch hppa
+#%patch5
+#%endif
+#%patch6
+#%patch7
+#%patch8
+#%patch9
+#%patch10
+#%patch11
+#%patch12
+#%patch13
+#%patch14
+#autoreconf --force --install
+
+%build
+export CFLAGS="$RPM_OPT_FLAGS -fstack-protector"
+./configure \
+  --prefix=/usr \
+  --libdir=%_libdir \
+  --sysconfdir=%_sysconfdir \
+  --enable-slpv1 \
+  --enable-async-api \
+  --enable-slpv2-security
+make
+
+%install
+rm -rf ${RPM_BUILD_ROOT}
+mkdir -p ${RPM_BUILD_ROOT}/etc/slp.reg.d
+cp etc/slp.conf ${RPM_BUILD_ROOT}/etc
+cp etc/slp.reg ${RPM_BUILD_ROOT}/etc
+cp etc/slp.spi ${RPM_BUILD_ROOT}/etc
+mkdir -p ${RPM_BUILD_ROOT}/%_libdir
+libtool install libslp/libslp.la ${RPM_BUILD_ROOT}/%_libdir
+mkdir -p  ${RPM_BUILD_ROOT}/usr/sbin
+libtool install slpd/slpd ${RPM_BUILD_ROOT}/usr/sbin 
+mkdir -p ${RPM_BUILD_ROOT}/usr/bin
+libtool install slptool/slptool ${RPM_BUILD_ROOT}/usr/bin
+mkdir -p ${RPM_BUILD_ROOT}/usr/include
+cp libslp/slp.h ${RPM_BUILD_ROOT}/usr/include
+mkdir -p ${RPM_BUILD_ROOT}%_defaultdocdir/%name
+find . -name CVS -o -name .cvsignore -o -name .xvpics | xargs rm -rf
+cp -a AUTHORS COPYING README FAQ doc/rfc doc/html %SOURCE2 \
+   ${RPM_BUILD_ROOT}%_defaultdocdir/%name
+mkdir -p ${RPM_BUILD_ROOT}/etc/init.d/
+install -m 755 %{SOURCE1} ${RPM_BUILD_ROOT}/etc/init.d/slpd
+ln -sf ../../etc/init.d/slpd ${RPM_BUILD_ROOT}/usr/sbin/rcslpd
+ln -sf ../../etc/init.d/slpd ${RPM_BUILD_ROOT}/usr/sbin/rcopenslp
+
+
+#install -D -m 0644 %{SOURCE5} ${RPM_BUILD_ROOT}/etc/logrotate.d/openslp-server
+# install susehelp file
+#mkdir -p $RPM_BUILD_ROOT/usr/share/susehelp/meta/Administration/
+#install -m 0644 %SOURCE3 \
+#	$RPM_BUILD_ROOT/usr/share/susehelp/meta/Administration/
+#mkdir -p $RPM_BUILD_ROOT/usr/share/susehelp/meta/Development/Libraries/
+#install -m 0644 %SOURCE4 \
+#	$RPM_BUILD_ROOT/usr/share/susehelp/meta/Development/Libraries/
+#install -d -m 755 $RPM_BUILD_ROOT/usr/share/omc/svcinfo.d
+#install -m 0644 %SOURCE6 $RPM_BUILD_ROOT/usr/share/omc/svcinfo.d
+#%if 0
+# actually, these files should get translated, but do we really want to
+# add update-desktop-files to needed_for_build ?
+#%suse_update_desktop_file $RPM_BUILD_ROOT/usr/share/susehelp/meta/Administration/openslp.desktop
+#%suse_update_desktop_file $RPM_BUILD_ROOT/usr/share/susehelp/meta/Development/Libraries/openslp-devel.desktop
+#%endif
+
+%post
+%run_ldconfig
+
+%postun
+%run_ldconfig
+
+%post server
+%if %sles_version > 0
+%{fillup_and_insserv -y slpd}
+%else
+%{fillup_and_insserv slpd}
+%endif
+
+%postun server
+%restart_on_update slpd
+%insserv_cleanup
+
+%preun server
+%stop_on_removal slpd
+
+%clean
+rm -rf $RPM_BUILD_ROOT
+
+%files
+%defattr(-,root,root)
+%dir %_defaultdocdir/%name
+%dir %_defaultdocdir/%name/html
+%doc %_defaultdocdir/%name/AUTHORS
+%doc %_defaultdocdir/%name/COPYING
+%doc %_defaultdocdir/%name/README
+%doc %_defaultdocdir/%name/README.SuSE
+%_libdir/libslp.so.*
+/usr/bin/slptool
+%config(noreplace) /etc/slp.conf
+%config(noreplace) /etc/slp.spi
+
+%files server
+%defattr(-,root,root)
+%dir /usr/share/susehelp
+%dir /usr/share/susehelp/meta
+%dir /usr/share/susehelp/meta/Administration
+%doc %dir %_defaultdocdir/%name/FAQ
+%doc %_defaultdocdir/%name/html/IntroductionToSLP
+%doc %_defaultdocdir/%name/html/UsersGuide
+%doc %_defaultdocdir/%name/html/faq.html
+%doc %_defaultdocdir/%name/rfc
+%doc /usr/share/susehelp/meta/Administration/openslp.desktop
+%dir /etc/slp.reg.d/
+/usr/sbin/rcopenslp
+/usr/sbin/rcslpd
+/usr/sbin/slpd
+/etc/init.d/slpd
+%config(noreplace) /etc/slp.reg
+%config(noreplace) /etc/logrotate.d/openslp-server
+%dir /usr/share/omc
+%dir /usr/share/omc/svcinfo.d
+/usr/share/omc/svcinfo.d/slpd.xml
+
+%files devel
+%defattr(-,root,root)
+#%dir /usr/share/susehelp
+#%dir /usr/share/susehelp/meta
+#%dir /usr/share/susehelp/meta/Development
+#%dir /usr/share/susehelp/meta/Development/Libraries
+#%doc %_defaultdocdir/%name/html/ProgrammersGuide
+#%doc /usr/share/susehelp/meta/Development/Libraries/openslp-devel.desktop
+/usr/include/slp.h
+%_libdir/libslp.a
+%_libdir/libslp.la
+%_libdir/libslp.so
+
+%changelog
+* Tue Mar 26 2008 - jcalcote@users.sourceforge.net
+- ported from openslp 1.2 spec file in opensuse factory
+

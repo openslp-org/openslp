@@ -1,0 +1,17 @@
+OpenSuSE Build System (OBS)
+---------------------------
+
+The OpenSuSE Build System is available at http://build.opensuse.org. This
+really cool project allows individual contributors to become the package
+maintainer for their own package repositories. It also provides a nice 
+compile farm, with the ability to produce packages for rpm based systems
+and debian based systems, including OpenSuSE, SLES, SLED, RedHat Fedora, 
+Debian, Ubuntu, CentOS, etc.
+
+The files in this directory are used only in the process of building various
+binary packages on the OpenSuSE Build System. The only exception to this 
+statement is the dnx rpm spec file, which is also used to build rpm files 
+from the command line using "make rpms".
+
+While there are Debian spec files in this file set, they probably wouldn't 
+be of much use outside of the OBS.

@@ -1,0 +1,5 @@
+@PACKAGE@ (@VERSION@-1) stable; urgency=low
+
+  * Initial Release
+
+ -- John Calcote <john.calcote@gmail.com>  Tue, 05 Feb 2008 09:20:00 -0700
