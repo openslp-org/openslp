@@ -135,8 +135,8 @@ make
 %install
 rm -rf ${RPM_BUILD_ROOT}
 make DESTDIR=${RPM_BUILD_ROOT} install
-mkdir -p ${RPM_BUILD_ROOT}/etc/slp.reg.d
-mkdir -p ${RPM_BUILD_ROOT}/etc/init.d/
+install -d ${RPM_BUILD_ROOT}/etc/slp.reg.d
+install -d ${RPM_BUILD_ROOT}/etc/init.d
 install -m 0755 etc/slpd.suse_init ${RPM_BUILD_ROOT}/etc/init.d/slpd
 ln -sf ../../etc/init.d/slpd ${RPM_BUILD_ROOT}/usr/sbin/rcslpd
 
@@ -178,6 +178,8 @@ rm -rf $RPM_BUILD_ROOT
 /usr/sbin/rcslpd
 /usr/sbin/slpd
 /etc/init.d/slpd
+/etc/init.d/slpd
+/usr/sbin/rcslpd
 %config(noreplace) /etc/slp.reg
 
 %files devel
