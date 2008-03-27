@@ -216,17 +216,19 @@ CFLAGS="$CFLAGS $OPTFLAGS"
 # Configuration and output
 
 AC_CONFIG_FILES([Makefile
+		 common/Makefile
+		 libslpattr/Makefile
+		 libslp/Makefile
+		 slpd/Makefile
+		 slptool/Makefile
+		 etc/Makefile
+		 doc/Makefile
+		 doc/doxyfile
 		 obs/Makefile
 		 obs/debian.changelog
 		 obs/debian.control
 		 obs/debian.rules
 		 obs/openslp.dsc
-		 obs/openslp.spec
-		 common/Makefile
-		 libslpattr/Makefile
-		 libslp/Makefile
-		 slpd/Makefile
-		 slptool/Makefile])
-#		 test/Makefile])
+		 obs/openslp.spec])
 AC_OUTPUT
 

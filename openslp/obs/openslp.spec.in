@@ -166,7 +166,7 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(-,root,root)
 %doc AUTHORS COPYING ChangeLog NEWS README
-%doc doc/%name/*
+%doc doc/doc/*
 %_libdir/libslp.so.*
 /usr/bin/slptool
 %config(noreplace) /etc/slp.conf

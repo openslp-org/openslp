@@ -36,43 +36,28 @@
 ##
 ##---------------------------------------------------------------------------
 
-EXTRA_DIST = win32 doc doxygen etc README.W32 FAQ test
-SUBDIRS = obs common libslpattr slpd libslp slptool
-
 # Add "test" back to SUBDIRS, remove from EXTRA_DIST after we get it working
-#SUBDIRS = obs common libslpattr slpd libslp slptool test
+EXTRA_DIST = win32 README.W32 FAQ test
+SUBDIRS = common libslpattr slpd libslp slptool etc doc obs
 
-install-data-local:
-	mkdir -p $(DESTDIR)$(sysconfdir)
-	file=$(DESTDIR)$(sysconfdir)/slp.reg; \
-	if [ -f $$file ]; then true; \
-	else cp -f $(srcdir)/etc/slp.reg $(DESTDIR)$(sysconfdir); \
-	fi
-	file=$(DESTDIR)$(sysconfdir)/slp.conf; \
-	if [ -f $$file ]; then true; \
-	else cp -f $(srcdir)/etc/slp.conf \
-	$(DESTDIR)$(sysconfdir); \
-	fi
-	file=$(DESTDIR)$(sysconfdir)/slp.spi; \
-	if [ -f $$file ]; then true; \
-	else cp -f $(srcdir)/etc/slp.spi $(DESTDIR)$(sysconfdir); \
-	fi
-	rm -rf $(DESTDIR)$(docdir)
-	mkdir -p $(DESTDIR)$(docdir)
-	cp -r $(srcdir)/doc/* $(DESTDIR)$(docdir)
+# Additional root-level targets - mostly installation and docs
+docs install-docs:
+	cd doc && $(MAKE) $(AM_MAKEFLAGS) $@
 
-uninstall-local:
-	chmod -R +w $(DESTDIR)$(docdir)
-	rm -rf $(DESTDIR)$(docdir)
-	chmod +w $(DESTDIR)$(sysconfdir)/slp.*
-	rm $(DESTDIR)$(sysconfdir)/slp.reg
-	rm $(DESTDIR)$(sysconfdir)/slp.conf
-	rm $(DESTDIR)$(sysconfdir)/slp.spi
+##install-cfg install-clientcfg install-servercfg install-initscript:
+##	cd etc && $(MAKE) $(AM_MAKEFLAGS) $@
+
+##install-client:
+##	cd client && $(MAKE) $(AM_MAKEFLAGS) install
+
+##install-server:
+##	cd common && $(MAKE) $(AM_MAKEFLAGS) install
+##	cd server && $(MAKE) $(AM_MAKEFLAGS) install
+##	cd stats && $(MAKE) $(AM_MAKEFLAGS) install
 
 dist-hook:
 	rm -rf `find $(distdir) -name .svn`
 
-rpmarch = $(BUILDARCH)
 rpmmacros = --define='_rpmdir $(PWD)' --define='_srcrpmdir $(PWD)'\
  --define='_sourcedir $(PWD)' --define='_specdir $(PWD)'\
  --define='_builddir $(PWD)'
@@ -90,4 +75,5 @@ srcrpm: rpmcheck dist
 
 rpms: rpmcheck dist
 	rpmbuild -ba $(rpmmacros) --nodeps --buildroot=$(PWD)/_rpm obs/$(PACKAGE).spec
-	mv $(rpmarch)/* .; rm -rf $(rpmarch)
+	rpmarch=`rpm --showrc | grep ^build\ arch | sed 's/\(.*: \)\(.*\)/\2/'`; \
+        test -z $${rpmarch} || ( mv $${rpmarch}/* .; rm -rf $${rpmarch} )
