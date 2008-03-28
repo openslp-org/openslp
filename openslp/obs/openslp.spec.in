@@ -1,5 +1,5 @@
 #
-# spec file for package @PACKAGE@ (Version @VERSION@)
+# spec file for package @PACKAGE_NAME@ (Version @PACKAGE_VERSION@)
 #
 # This file and all modifications and additions to the pristine
 # package are under the same license as the package itself.
@@ -9,15 +9,14 @@
 
 # norootforbuild
 
-Name:           @PACKAGE@
+Name:           @PACKAGE_TARNAME@
 BuildRequires:  bison flex openssl-devel doxygen
 Summary:        An Implementation of Service Location Protocol V2
-Version:        @VERSION@
+Version:        @PACKAGE_VERSION@
 Release:        1
 License:        BSD 3-Clause
 Group:          System/Daemons
 URL:            http://www.openslp.org/
-PreReq:         %fillup_prereq %insserv_prereq
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 Source0:        %name-%version.tar.gz
 
@@ -127,7 +126,6 @@ export CFLAGS="$RPM_OPT_FLAGS"
   --prefix=/usr \
   --libdir=%_libdir \
   --sysconfdir=%_sysconfdir \
-  --enable-slpv1 \
   --enable-async-api \
   --enable-slpv2-security
 make
@@ -135,8 +133,8 @@ make
 %install
 rm -rf ${RPM_BUILD_ROOT}
 make DESTDIR=${RPM_BUILD_ROOT} install
-install -d ${RPM_BUILD_ROOT}/etc/slp.reg.d
-install -d ${RPM_BUILD_ROOT}/etc/init.d
+mkdir -p ${RPM_BUILD_ROOT}/etc/slp.reg.d
+mkdir -p ${RPM_BUILD_ROOT}/etc/init.d/
 install -m 0755 etc/slpd.suse_init ${RPM_BUILD_ROOT}/etc/init.d/slpd
 ln -sf ../../etc/init.d/slpd ${RPM_BUILD_ROOT}/usr/sbin/rcslpd
 
@@ -147,11 +145,7 @@ ln -sf ../../etc/init.d/slpd ${RPM_BUILD_ROOT}/usr/sbin/rcslpd
 %run_ldconfig
 
 %post server
-%if %sles_version > 0
-%{fillup_and_insserv -y slpd}
-%else
 %{fillup_and_insserv slpd}
-%endif
 
 %postun server
 %restart_on_update slpd
@@ -178,8 +172,6 @@ rm -rf $RPM_BUILD_ROOT
 /usr/sbin/rcslpd
 /usr/sbin/slpd
 /etc/init.d/slpd
-/etc/init.d/slpd
-/usr/sbin/rcslpd
 %config(noreplace) /etc/slp.reg
 
 %files devel
@@ -192,4 +184,3 @@ rm -rf $RPM_BUILD_ROOT
 %changelog
 * Tue Mar 26 2008 - jcalcote@users.sourceforge.net
 - ported from openslp 1.2 spec file in opensuse factory
-

@@ -37,7 +37,7 @@ test $TEST_TYPE $FILE || {
 	exit 1
 }
 
-autoreconf --install --verbose $*
+autoreconf --install $*
 
 cd $ORIGDIR
 
