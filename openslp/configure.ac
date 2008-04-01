@@ -244,29 +244,30 @@ AC_CONFIG_FILES([Makefile
 		 obs/openslp.spec])
 AC_OUTPUT
 
-echo "------------------------------------------------------------"
-echo
-echo " ${PACKAGE_NAME} Version ${PACKAGE_VERSION} Configuration:"
-echo
-echo " Prefix: '${prefix}'."
-echo " Compiler: '${CC} ${CFLAGS} ${CPPFLAGS}'" 
-echo
-echo " Package features:"
-echo "   SLPv1 Messages: ${slpv1}"
-echo "   SLPv2 Security: ${slpv2security}"
-echo "   SLP Async API:  ${asyncapi}"
-echo "   SLP Predicates: ${predicates}"
-echo "   Debugging:      ${debug}"
-echo
-echo " Now type 'make @<:@prefix=<user-prefix>@:>@ @<:@<target>@:>@'"
-echo "   where the optional <target> is:"
-echo "     all                - build all binaries (default)."
-echo "     docs               - build doxygen documentation."
-echo "     install            - install all binaries and data."
-echo
-echo "   additionally, on rpm-based systems only:"
-echo "     rpmcheck           - check whether rpms may be built."
-echo "     srcrpm             - build only source rpm."
-echo "     rpms               - build source and binary rpms."
-echo
-echo "------------------------------------------------------------"
+echo \
+"------------------------------------------------------------
+
+ ${PACKAGE_NAME} Version ${PACKAGE_VERSION} Configuration:
+
+ Prefix: '${prefix}'.
+ Compiler: '${CC} ${CFLAGS} ${CPPFLAGS}'
+
+ Package features:
+   SLPv1 Messages: ${slpv1}
+   SLPv2 Security: ${slpv2security}
+   SLP Async API:  ${asyncapi}
+   SLP Predicates: ${predicates}
+   Debugging:      ${debug}
+
+ Now type 'make @<:@prefix=<user-prefix>@:>@ @<:@<target>@:>@'
+   where the optional <target> is:
+     all                - build all binaries (default).
+     docs               - build doxygen documentation.
+     install            - install all binaries and data.
+
+   additionally, on rpm-based systems only:
+     rpmcheck           - check whether rpms may be built.
+     srcrpm             - build only source rpm.
+     rpms               - build source and binary rpms.
+
+------------------------------------------------------------"
