@@ -2,11 +2,11 @@
 ## Process this file with autoconf to produce a configure script
 #
 AC_PREREQ(2.59)
-AC_INIT(OpenSLP, 2.0.beta1, openslp-devel@lists.sourceforge.net)
+AC_INIT([OpenSLP], [2.0.beta1], [openslp-devel@lists.sourceforge.net])
 AM_INIT_AUTOMAKE
 AC_CANONICAL_HOST
-AC_CONFIG_HEADERS(config.h)
-AC_CONFIG_SRCDIR(slpd/slpd_main.c)
+AC_CONFIG_HEADERS([config.h])
+AC_CONFIG_SRCDIR([slpd/slpd_main.c])
 
 #
 # Checks for tools (programs)
@@ -23,10 +23,11 @@ AC_PROG_YACC
 #
 # Checks for libraries
 #
-AC_CHECK_LIB(resolv, inet_aton)
-AC_CHECK_LIB(socket, socket)
-AC_CHECK_LIB(nsl, gethostbyname)
-AC_CHECK_LIB(m, log10)
+AC_CHECK_LIB([resolv], [inet_aton])
+AC_CHECK_LIB([socket], [socket])
+AC_CHECK_LIB([nsl], [gethostbyname])
+AC_CHECK_LIB([m], [log10])
+AC_CHECK_LIB([pthread], [pthread_create])
 
 #
 # Checks for header files
@@ -40,7 +41,7 @@ AC_CHECK_HEADERS([unistd.h stdio.h stdlib.h stddef.h stdarg.h stdint.h inttypes.
 # Checks for types
 #
 AC_TYPE_SIGNAL
-OPENSLP_CHECK_TYPE(socklen_t, int,
+OPENSLP_CHECK_TYPE([socklen_t], [int],
 	[defined to size_t if <sys/socket.h> does not support socklen_t data type])
 OPENSLP_STRUCT_SA_RESTORER
 
@@ -115,14 +116,6 @@ AC_ARG_ENABLE([async-api],
     no)  asyncapi=no  ;;
     *)   AC_MSG_ERROR([bad value ${enableval} for --enable-async-api]) ;;
   esac], [asyncapi=no])
-if test "x${asyncapi}" = xyes; then
-  AC_CHECK_LIB([pthread], [pthread_create], [], 
-    [echo "------------------------------------------------------------"
-     echo " The pthread library is required for SLP Async API support. "
-     echo " Continuing without SLP Async API functionality.            "
-     echo "------------------------------------------------------------"
-     asyncapi=no])
-fi
 AM_CONDITIONAL([ENABLE_ASYNC_API], [test "x${asyncapi}" = xyes])
 if test "x${asyncapi}" = xyes; then
   AC_DEFINE([ENABLE_ASYNC_API], 1, [Defined for async API support])
