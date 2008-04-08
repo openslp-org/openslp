@@ -327,7 +327,7 @@ SLPError SLPAPI SLPFindSrvTypes(
       void * pvCookie)
 {
    bool inuse;
-   SLPError serr;
+   SLPError serr = 0;
    SLPHandleInfo * handle = hSLP;
 
    /* Check for invalid parameters. */

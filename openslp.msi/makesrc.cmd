@@ -64,13 +64,14 @@ rmdir /s /q %target%\OpenSLP
 rem Create target directory structure
 mkdir %target%\OpenSLP
 mkdir %target%\OpenSLP\Docs
+mkdir %target%\OpenSLP\Docs\rfc
 mkdir %target%\OpenSLP\Docs\html
 mkdir %target%\OpenSLP\Include
 mkdir %target%\OpenSLP\Lib
 
 rem Copy files from %source% to %target%[%build%]
-xcopy %source%\doc\rfc\* %target%\OpenSLP\Docs\rfc /S /I
-xcopy %source%\doc\html\* %target%\OpenSLP\Docs\html /S /I
+xcopy %source%\doc\doc\rfc\* %target%\OpenSLP\Docs\rfc /S /I
+xcopy %source%\doc\doc\html\* %target%\OpenSLP\Docs\html /S /I
 xcopy %source%\libslp\slp.h %target%\OpenSLP\Include
 xcopy %source%\win32\%build%\slp.lib %target%\OpenSLP\Lib
 xcopy %source%\win32\%build%\slpstatic.lib %target%\OpenSLP\Lib

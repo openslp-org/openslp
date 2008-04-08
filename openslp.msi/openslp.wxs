@@ -3,9 +3,9 @@
 
   <!-- Language 1033 (English) Codepage 1252 (US-ASCII) : ENU, en-US -->
 
-  <Product Name="OpenSLP 2.0 beta 1" Id="303D9103-5018-49E2-ABF7-8DA48BA81D60"
+  <Product Name="OpenSLP 2.0 beta 1" Id="0A87C1A7-8185-4290-8775-0AE05AE8229E"
       Language="1033" Codepage="1252" Version="$(var.VERSION)" Manufacturer="OpenSLP.org"
-      UpgradeCode="B480ABC9-CE49-4B8A-9AA6-333949FD02C5">
+      UpgradeCode="04921844-F7F7-4792-BC7A-AB06FFC3EB29">
 
     <Package Keywords="SLP Service Location User Directory Agent"
         Description="OpenSLP $(var.VERSION) Installer" SummaryCodepage="1252"
@@ -40,12 +40,12 @@
       <Directory Id="ProgramFilesFolder" Name="PFiles">
         <Directory Id="OPENSLPDIR" Name="OpenSLP">
 
-          <Component Id="UA_comp" DiskId="1" Guid="E60ED64D-8B3E-4864-8A98-D1BA0E77A6C0">
+          <Component Id="UA_comp" DiskId="1" Guid="3026A145-2EEF-4FBD-9637-E756B6561B99">
             <File Id="file0" Name="slp.dll" KeyPath="yes" Source="OpenSLP\slp.dll" />
             <File Id="file1" Name="slp.pdb" Source="OpenSLP\slp.pdb" />
           </Component>
 
-          <Component Id="SADA_comp" DiskId="1" Guid="1E6D2C82-A8A6-44CD-9132-75D89EF9B2B4"
+          <Component Id="SADA_comp" DiskId="1" Guid="2494EDC5-A1AB-4BAE-94A5-58346DDD6436"
               SharedDllRefCount="no" KeyPath="no" NeverOverwrite="no" Transitive="no">
             <File Id="file2" Name="slpd.exe" KeyPath="yes" Source="OpenSLP\slpd.exe"
                 ReadOnly="no" Vital="yes" Hidden="no" System="no" />
@@ -57,7 +57,7 @@
                 Start="install" Stop="both" Remove="uninstall" Wait="yes" />
           </Component>
 
-          <Component Id="SLPTOOL_comp" DiskId="1" Guid="D9D5E08A-ED94-48A3-B37E-2B1F4ADC6EFB">
+          <Component Id="SLPTOOL_comp" DiskId="1" Guid="763C6AAE-D512-4C71-B5CB-3C02DEA154EA">
             <File Id="file4" Name="slptool.exe" KeyPath="yes" Source="OpenSLP\slptool.exe" />
             <File Id="file5" Name="slptool.pdb" Source="OpenSLP\slptool.pdb" />
           </Component>
@@ -65,7 +65,7 @@
           <Directory Id="directory1" Name="Docs">
             <Directory Id="directory2" Name="html">
 
-              <Component Id="FAQ_comp" DiskId="1" Guid="EFF22D3D-E8E3-4E67-AD0B-7CDC83735ABC">
+              <Component Id="FAQ_comp" DiskId="1" Guid="4FAD3AAE-DFAB-481D-8DA9-0FFFF1CCDE62">
                 <File Id="file6" Name="faq.html" KeyPath="yes" Source="OpenSLP\Docs\html\faq.html">
                   <Shortcut Id="FAQ_shortcut" Directory="ProgramMenuDir" Name="OpenSLP 2.0 FAQ" WorkingDirectory="INSTALLDIR" />
                 </File>
@@ -73,7 +73,7 @@
 
               <Directory Id="directory3" Name="IntroductionToSLP">
 
-                <Component Id="INTRO_comp" DiskId="1" Guid="D933882B-68C8-4AE9-A2D4-A4A2A0D93524">
+                <Component Id="INTRO_comp" DiskId="1" Guid="C54BB638-7B06-4425-B238-58FC074389ED">
                   <File Id="file8" Name="AgentInit.jpg" Source="OpenSLP\Docs\html\IntroductionToSLP\AgentInit.jpg" />
                   <File Id="file9" Name="index.html" KeyPath="yes" Source="OpenSLP\Docs\html\IntroductionToSLP\index.html">
                     <Shortcut Id="INTRO_shortcut" Directory="ProgramMenuDir" Name="Introduction To SLP" WorkingDirectory="INSTALLDIR" />
@@ -85,7 +85,7 @@
               </Directory>
               <Directory Id="directory4" Name="ProgrammersGuide">
 
-                <Component Id="PROGUID_comp" DiskId="1" Guid="AC5EA048-EA1E-4EBB-A171-D19F148A95D9">
+                <Component Id="PROGUID_comp" DiskId="1" Guid="9689348B-14FA-4C1F-AE7B-B8E9308798F6">
                   <File Id="file12" Name="Callbacks.html" Source="OpenSLP\Docs\html\ProgrammersGuide\Callbacks.html" />
                   <File Id="file13" Name="Divergence.html" Source="OpenSLP\Docs\html\ProgrammersGuide\Divergence.html" />
                   <File Id="file14" Name="Examples.html" Source="OpenSLP\Docs\html\ProgrammersGuide\Examples.html" />
@@ -122,7 +122,7 @@
 
                 <Directory Id="directory6" Name="UsersGuide">
 
-                  <Component Id="USERGUID_comp" DiskId="1" Guid="FB8CF0A3-9D0D-4ABE-80D2-2820086B7695">
+                  <Component Id="USERGUID_comp" DiskId="1" Guid="69ED7F6C-FD44-4DFA-8510-B410B1806C95">
                     <File Id="file549" Name="CommandLine.html" Source="OpenSLP\Docs\html\UsersGuide\CommandLine.html" />
                     <File Id="file550" Name="FileLocations.html" Source="OpenSLP\Docs\html\UsersGuide\FileLocations.html" />
                     <File Id="file551" Name="index.html" KeyPath="yes" Source="OpenSLP\Docs\html\UsersGuide\index.html">
@@ -143,7 +143,7 @@
               </Directory>
               <Directory Id="directory7" Name="rfc">
 
-                <Component Id="RFC_comp" DiskId="1" Guid="843746ED-01F9-437D-8EF3-BC02C5AFA983">
+                <Component Id="RFC_comp" DiskId="1" Guid="FFF06A4C-51EC-40E5-BF35-0B5920B136F9">
                   <File Id="file561" Name="draft-ietf-svrloc-ipv6-05.txt" Source="OpenSLP\Docs\rfc\draft-ietf-svrloc-ipv6-05.txt" />
                   <File Id="file562" Name="draft-zhao-slp-url-01.txt" Source="OpenSLP\Docs\rfc\draft-zhao-slp-url-01.txt" />
                   <File Id="file563" Name="rfc1766.txt" Source="OpenSLP\Docs\rfc\rfc1766.txt" />
@@ -170,13 +170,13 @@
           </Directory>
 
           <Directory Id="directory8" Name="Include">
-            <Component Id="INCLUDE_comp" DiskId="1" Guid="154E989D-07EB-4195-97B5-C1F3F6FBF31B">
+            <Component Id="INCLUDE_comp" DiskId="1" Guid="530F1456-7D49-482A-A94B-B1B747E2E42D">
               <File Id="file580" Name="slp.h" Source="OpenSLP\Include\slp.h" />
             </Component>
           </Directory>
 
           <Directory Id="directory9" Name="Lib">
-            <Component Id="LIB_comp" DiskId="1" Guid="F3D12802-5562-46D0-87D4-3A36A422ADB9">
+            <Component Id="LIB_comp" DiskId="1" Guid="051854DD-E1B6-47EB-9A2F-2F8A99A66319">
               <File Id="file581" Name="slp.lib" Source="OpenSLP\Lib\slp.lib" />
               <File Id="file582" Name="slpstatic.lib" Source="OpenSLP\Lib\slpstatic.lib" />
             </Component>
@@ -196,7 +196,7 @@
 
       <!-- See note below where <ComponentRef> refers to this <Component> -->
 
-      <Component Id="EMPTY_comp" DiskId="1" Guid="D9A267D1-222E-4FE3-9B6C-1E1D5E055F1D" />
+      <Component Id="EMPTY_comp" DiskId="1" Guid="A85912B3-946B-4406-AC84-7B58B0ABED4B" />
 
     </Directory>
 
