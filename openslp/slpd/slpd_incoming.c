@@ -529,11 +529,11 @@ int SLPDIncomingRemoveService(const char * srvtype, size_t len)
       sock = sock_next;
       sock_next = (SLPDSocket *) sock->listitem.next;
 
-      res = SLPNetGetSrvMcastAddr(srvtype, len, SLP_SCOPE_SITE_LOCAL,
+      res = SLPNetGetSrvMcastAddr(srvtype, len, SLP_SCOPE_NODE_LOCAL,
                   &srvaddr_node);
       if (res != 0)
          return -1;
-      res = SLPNetGetSrvMcastAddr(srvtype, len, SLP_SCOPE_SITE_LOCAL,
+      res = SLPNetGetSrvMcastAddr(srvtype, len, SLP_SCOPE_LINK_LOCAL,
                   &srvaddr_link);
       if (res != 0)
          return -1;
