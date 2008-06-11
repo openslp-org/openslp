@@ -2224,10 +2224,13 @@ static SLPError attr_destringify(struct xx_SLPAttributes * slp_attr,
                if (errval != 1)
                   return SLP_PARAMETER_BAD;
 
-               errval = internal_store(slp_attr, tag, tag_len, start, cur,
-                              val_count, type, unescaped_len);
-               if (errval != 1)
-                  return SLP_MEMORY_ALLOC_FAILED;
+               if(unescaped_len)  /*Ignore an attribute that has no value*/
+               {
+                  errval = internal_store(slp_attr, tag, tag_len, start, cur,
+                                 val_count, type, unescaped_len);
+                  if (errval != 1)
+                     return SLP_MEMORY_ALLOC_FAILED;
+               }
 
                state = STOP_VALUE;
             }

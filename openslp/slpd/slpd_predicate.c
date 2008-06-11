@@ -326,7 +326,7 @@ static void * my_memmem(char * haystack, size_t haystack_len, char * needle,
    if (escaped_verify(haystack, haystack_len, &search_len) == 0)
       return 0;
 
-   for (offset = 0; offset <= search_len; offset++)
+   for (offset = 0; offset < search_len; offset++)
    {
       FilterResult err;
 
