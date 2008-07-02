@@ -142,9 +142,6 @@ void HandleSigTerm(void)
    SLPDLog("SLPD daemon shutting down\n");
    SLPDLog("****************************************\n");
 
-   /* close all incoming sockets */
-   SLPDIncomingDeinit();
-
    /* unregister with all DAs */
    SLPDKnownDADeinit();
 
@@ -153,6 +150,9 @@ void HandleSigTerm(void)
 
    /* Do a dead DA passive advert to tell everyone we're goin' down */
    SLPDKnownDAPassiveDAAdvert(0, 1);
+
+   /* close all incoming sockets */
+   SLPDIncomingDeinit();
 
    /* if possible wait until all outgoing socket are done and closed */
    while (SLPDOutgoingDeinit(1))
