@@ -510,6 +510,8 @@ int main(int argc, char * argv[])
          || SLPDKnownDAInit())
       SLPDFatal("slpd initialization failed\n");
    SLPDLog("Agent Interfaces = %s\n", G_SlpdProperty.interfaces);
+   if (G_SlpdProperty.port != SLP_RESERVED_PORT)
+      SLPDLog("Using port %d instead of default %d\n", G_SlpdProperty.port, SLP_RESERVED_PORT);
 
    /* make slpd run as a daemon */
    if (Daemonize(G_SlpdCommandLine.pidfile))

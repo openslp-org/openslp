@@ -237,7 +237,7 @@ static int BindSocketToInetAddr(int family, sockfd_t sock,
          addr->ss_family = AF_INET;
          ((struct sockaddr_in *)addr)->sin_addr.s_addr = INADDR_ANY;
       }
-      ((struct sockaddr_in *)addr)->sin_port = htons(SLP_RESERVED_PORT);
+      ((struct sockaddr_in *)addr)->sin_port = htons(G_SlpdProperty.port);
       addrsz = sizeof(struct sockaddr_in);
    }
    else if (SLPNetIsIPV6() && family == AF_INET6)
@@ -253,7 +253,7 @@ static int BindSocketToInetAddr(int family, sockfd_t sock,
          memcpy(&((struct sockaddr_in6*)addr)->sin6_addr, 
                &slp_in6addr_any, sizeof(struct in6_addr));
       }
-      ((struct sockaddr_in6*)addr)->sin6_port = htons(SLP_RESERVED_PORT);
+      ((struct sockaddr_in6*)addr)->sin6_port = htons(G_SlpdProperty.port);
       addrsz = sizeof(struct sockaddr_in6);
    }
 
@@ -414,7 +414,7 @@ SLPDSocket * SLPDSocketCreateDatagram(struct sockaddr_storage * peeraddr,
             if (peeraddr->ss_family == AF_INET) 
             {
                ((struct sockaddr_in*) &(sock->peeraddr))->sin_port 
-                     = htons(SLP_RESERVED_PORT);
+                     = htons(G_SlpdProperty.port);
                sock->state = type;
             }
             else if (peeraddr->ss_family == AF_INET6) 
@@ -422,7 +422,7 @@ SLPDSocket * SLPDSocketCreateDatagram(struct sockaddr_storage * peeraddr,
                /* @todo if DATAGRAM_MULTICAST is ever used with this function, we may want to
                   clear out the scope id*/
                ((struct sockaddr_in6*) &(sock->peeraddr))->sin6_port 
-                     = htons(SLP_RESERVED_PORT);
+                     = htons(G_SlpdProperty.port);
                sock->state = type;
             }
             else 
@@ -694,7 +694,7 @@ SLPDSocket * SLPDSocketCreateConnected(struct sockaddr_storage * addr)
       ((struct sockaddr_in *)&(sock->peeraddr))->sin_addr 
             = ((struct sockaddr_in*) addr)->sin_addr;
       ((struct sockaddr_in *)&(sock->peeraddr))->sin_port 
-            = htons(SLP_RESERVED_PORT);
+            = htons(G_SlpdProperty.port);
    }
    else if (addr->ss_family == AF_INET6) 
    {
@@ -702,7 +702,7 @@ SLPDSocket * SLPDSocketCreateConnected(struct sockaddr_storage * addr)
       ((struct sockaddr_in6 *)&(sock->peeraddr))->sin6_addr 
             = ((struct sockaddr_in6*) addr)->sin6_addr;
       ((struct sockaddr_in6 *)&(sock->peeraddr))->sin6_port 
-            = htons(SLP_RESERVED_PORT);
+            = htons(G_SlpdProperty.port);
    }
    else 
       goto FAILURE;  /* only ipv4 and ipv6 addresses are supported */

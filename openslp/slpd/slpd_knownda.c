@@ -1533,13 +1533,13 @@ void SLPDKnownDAActiveDiscovery(int seconds)
                {
                   MakeActiveDiscoveryRqst(1, &(sock->sendbuf));
 
-                  SLPNetSetAddr(&mcastaddr, AF_INET6, SLP_RESERVED_PORT, &in6addr_srvlocda_node);
+                  SLPNetSetAddr(&mcastaddr, AF_INET6, G_SlpdProperty.port, &in6addr_srvlocda_node);
                   SLPDOutgoingDatagramMcastWrite(sock, &mcastaddr, sock->sendbuf);
-                  SLPNetSetAddr(&mcastaddr, AF_INET6, SLP_RESERVED_PORT, &in6addr_srvlocda_link);
+                  SLPNetSetAddr(&mcastaddr, AF_INET6, G_SlpdProperty.port, &in6addr_srvlocda_link);
                   SLPDOutgoingDatagramMcastWrite(sock, &mcastaddr, sock->sendbuf);
                   if (!IN6_IS_ADDR_LINKLOCAL(&(((struct sockaddr_in6 *) &sock->localaddr)->sin6_addr)))
                   {
-                     SLPNetSetAddr(&mcastaddr, AF_INET6, SLP_RESERVED_PORT, &in6addr_srvlocda_site);
+                     SLPNetSetAddr(&mcastaddr, AF_INET6, G_SlpdProperty.port, &in6addr_srvlocda_site);
                      SLPDOutgoingDatagramMcastWrite(sock, &mcastaddr, sock->sendbuf);
                   }
                }
@@ -1548,7 +1548,7 @@ void SLPDKnownDAActiveDiscovery(int seconds)
                   int tmpaddr = SLP_MCAST_ADDRESS;
                   MakeActiveDiscoveryRqst(1, &(sock->sendbuf));
 
-                  SLPNetSetAddr(&mcastaddr, AF_INET, SLP_RESERVED_PORT, &tmpaddr);
+                  SLPNetSetAddr(&mcastaddr, AF_INET, G_SlpdProperty.port, &tmpaddr);
                   SLPDOutgoingDatagramMcastWrite(sock, &mcastaddr, sock->sendbuf);
                }
             }
@@ -1633,13 +1633,13 @@ void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead)
                {
                   if (SLPDKnownDAGenerateMyDAAdvert(&sock->localaddr, 0, dadead, 0, &(sock->sendbuf)) == 0)
                   {
-                     SLPNetSetAddr(&mcastaddr, AF_INET6, SLP_RESERVED_PORT, &in6addr_srvlocda_node);
+                     SLPNetSetAddr(&mcastaddr, AF_INET6, G_SlpdProperty.port, &in6addr_srvlocda_node);
                      SLPDOutgoingDatagramMcastWrite(sock, &mcastaddr, sock->sendbuf);
-                     SLPNetSetAddr(&mcastaddr, AF_INET6, SLP_RESERVED_PORT, &in6addr_srvlocda_link);
+                     SLPNetSetAddr(&mcastaddr, AF_INET6, G_SlpdProperty.port, &in6addr_srvlocda_link);
                      SLPDOutgoingDatagramMcastWrite(sock, &mcastaddr, sock->sendbuf);
                      if (!IN6_IS_ADDR_LINKLOCAL(&(((struct sockaddr_in6 *) &sock->localaddr)->sin6_addr)))
                      {
-                        SLPNetSetAddr(&mcastaddr, AF_INET6, SLP_RESERVED_PORT, &in6addr_srvlocda_site);
+                        SLPNetSetAddr(&mcastaddr, AF_INET6, G_SlpdProperty.port, &in6addr_srvlocda_site);
                         SLPDOutgoingDatagramMcastWrite(sock, &mcastaddr, sock->sendbuf);
                      }
                   }
@@ -1650,7 +1650,7 @@ void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead)
 
                   if (SLPDKnownDAGenerateMyDAAdvert(&sock->localaddr, 0, dadead, 0, &(sock->sendbuf)) == 0)
                   {
-                        SLPNetSetAddr(&mcastaddr, AF_INET, SLP_RESERVED_PORT, &tmpaddr);
+                        SLPNetSetAddr(&mcastaddr, AF_INET, G_SlpdProperty.port, &tmpaddr);
                         SLPDOutgoingDatagramMcastWrite(sock, &mcastaddr, sock->sendbuf);
                   }
 #ifdef ENABLE_SLPv1
@@ -1658,7 +1658,7 @@ void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead)
                                     SLP_CHAR_UTF8, 0, &(sock->sendbuf)) == 0)
                   {
                         tmpaddr = SLPv1_DA_MCAST_ADDRESS;
-                        SLPNetSetAddr(&mcastaddr, AF_INET, SLP_RESERVED_PORT, &tmpaddr);
+                        SLPNetSetAddr(&mcastaddr, AF_INET, G_SlpdProperty.port, &tmpaddr);
                         SLPDOutgoingDatagramMcastWrite(sock, &mcastaddr, sock->sendbuf);
                   }
 #endif

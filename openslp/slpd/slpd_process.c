@@ -231,10 +231,10 @@ static int ProcessDASrvRqst(SLPMessage * message, SLPBuffer * sendbuf,
             if(SLPNetIsIPV4())
             {
                int addr = INADDR_LOOPBACK;
-               SLPNetSetAddr(&loaddr, AF_INET, SLP_RESERVED_PORT, &addr);
+               SLPNetSetAddr(&loaddr, AF_INET, G_SlpdProperty.port, &addr);
             }
             else
-               SLPNetSetAddr(&loaddr, AF_INET6, SLP_RESERVED_PORT, &slp_in6addr_loopback);
+               SLPNetSetAddr(&loaddr, AF_INET6, G_SlpdProperty.port, &slp_in6addr_loopback);
 
             if(0 == SLPDKnownDAGenerateMyDAAdvert(&loaddr, 0, 0, message->header.xid, &tmp))
             {

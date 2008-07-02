@@ -153,6 +153,7 @@ static int SetDefaultValues(void)
       {"net.slp.activeDADetection", "true", 0},
       {"net.slp.checkSourceAddr", "true", 0},
       {"net.slp.broadcastAddr", "255.255.255.255", 0},
+      {"net.slp.port", "427", 0},
 
    /* Additional properties that are specific to IPv6 */
       {"net.slp.useIPv6", "false", 0},

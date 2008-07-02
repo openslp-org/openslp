@@ -73,9 +73,12 @@
 static int NetworkGetMcastAddrs(const char msgtype, uint8_t * msg, 
       SLPIfaceInfo * ifaceinfo)
 {
+   int port;
+
    if (!ifaceinfo)
       return SLP_PARAMETER_BAD;
 
+   port = SLPPropertyAsInteger("net.slp.port");
    ifaceinfo->bcast_count = ifaceinfo->iface_count = 0;
    switch (msgtype) 
    {
@@ -99,7 +102,7 @@ static int NetworkGetMcastAddrs(const char msgtype, uint8_t * msg,
             struct in_addr mcastaddr;
             mcastaddr.s_addr = SLP_MCAST_ADDRESS;
             SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count], 
-                  AF_INET, SLP_RESERVED_PORT, &mcastaddr);
+                  AF_INET, port, &mcastaddr);
             ifaceinfo->iface_count++;
          }
          break;
@@ -109,13 +112,13 @@ static int NetworkGetMcastAddrs(const char msgtype, uint8_t * msg,
          {
             /* Add IPv6 multicast groups in order they should appear. */
             SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count],
-                  AF_INET6, SLP_RESERVED_PORT, &in6addr_srvloc_node);
+                  AF_INET6, port, &in6addr_srvloc_node);
             ifaceinfo->iface_count++;
             SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count],
-                  AF_INET6, SLP_RESERVED_PORT, &in6addr_srvloc_link);
+                  AF_INET6, port, &in6addr_srvloc_link);
             ifaceinfo->iface_count++;
             SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count],
-                  AF_INET6, SLP_RESERVED_PORT, &in6addr_srvloc_site);
+                  AF_INET6, port, &in6addr_srvloc_site);
             ifaceinfo->iface_count++;
          }
          if (SLPNetIsIPV4()) 
@@ -123,7 +126,7 @@ static int NetworkGetMcastAddrs(const char msgtype, uint8_t * msg,
             struct in_addr mcastaddr;
             mcastaddr.s_addr = SLP_MCAST_ADDRESS;
             SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count], 
-                  AF_INET, SLP_RESERVED_PORT, &mcastaddr);
+                  AF_INET, port, &mcastaddr);
             ifaceinfo->iface_count++;
          }
          break;
@@ -133,13 +136,13 @@ static int NetworkGetMcastAddrs(const char msgtype, uint8_t * msg,
          {
             /* Add IPv6 multicast groups in order they should appear. */
             SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count],
-                  AF_INET6, SLP_RESERVED_PORT, &in6addr_srvloc_node);
+                  AF_INET6, port, &in6addr_srvloc_node);
             ifaceinfo->iface_count++;
             SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count],
-                  AF_INET6, SLP_RESERVED_PORT, &in6addr_srvloc_link);
+                  AF_INET6, port, &in6addr_srvloc_link);
             ifaceinfo->iface_count++;
             SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count],
-                  AF_INET6, SLP_RESERVED_PORT, &in6addr_srvloc_site);
+                  AF_INET6, port, &in6addr_srvloc_site);
             ifaceinfo->iface_count++;
          }
          if (SLPNetIsIPV4()) 
@@ -147,7 +150,7 @@ static int NetworkGetMcastAddrs(const char msgtype, uint8_t * msg,
             struct in_addr mcastaddr;
             mcastaddr.s_addr = SLP_MCAST_ADDRESS;
             SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count], 
-                  AF_INET, SLP_RESERVED_PORT, &mcastaddr);
+                  AF_INET, port, &mcastaddr);
             ifaceinfo->iface_count++;
          }
          break;
@@ -157,13 +160,13 @@ static int NetworkGetMcastAddrs(const char msgtype, uint8_t * msg,
          {
             /* Add IPv6 multicast groups in order they should appear. */
             SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count],
-                  AF_INET6, SLP_RESERVED_PORT, &in6addr_srvlocda_node);
+                  AF_INET6, port, &in6addr_srvlocda_node);
             ifaceinfo->iface_count++;
             SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count],
-                  AF_INET6, SLP_RESERVED_PORT, &in6addr_srvlocda_link);
+                  AF_INET6, port, &in6addr_srvlocda_link);
             ifaceinfo->iface_count++;
             SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count],
-                  AF_INET6, SLP_RESERVED_PORT, &in6addr_srvlocda_site);
+                  AF_INET6, port, &in6addr_srvlocda_site);
             ifaceinfo->iface_count++;
          }
          if (SLPNetIsIPV4()) 
@@ -171,7 +174,7 @@ static int NetworkGetMcastAddrs(const char msgtype, uint8_t * msg,
             struct in_addr mcastaddr;
             mcastaddr.s_addr = SLP_MCAST_ADDRESS;
             SLPNetSetAddr(&ifaceinfo->iface_addr[ifaceinfo->iface_count], 
-                  AF_INET, SLP_RESERVED_PORT, &mcastaddr);
+                  AF_INET, port, &mcastaddr);
             ifaceinfo->iface_count++;
          }
          break;
@@ -202,7 +205,7 @@ sockfd_t NetworkConnectToSlpd(void * peeraddr)
     does a NetworkRqstRply, which has retry logic for the datagram case*/
 
    if (SLPNetIsIPV6()) 
-      if (!SLPNetSetAddr(peeraddr, AF_INET6, SLP_RESERVED_PORT, 
+      if (!SLPNetSetAddr(peeraddr, AF_INET6, SLPPropertyAsInteger("net.slp.port"), 
             &slp_in6addr_loopback))
          sock = SLPNetworkCreateDatagram(AF_INET6);
 
@@ -210,7 +213,7 @@ sockfd_t NetworkConnectToSlpd(void * peeraddr)
    {
       int tempAddr = INADDR_LOOPBACK;
       if (SLPNetSetAddr(peeraddr, AF_INET, 
-            SLP_RESERVED_PORT, &tempAddr) == 0)
+            SLPPropertyAsInteger("net.slp.port"), &tempAddr) == 0)
          sock = SLPNetworkCreateDatagram(AF_INET);
    }
    return sock;

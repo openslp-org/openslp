@@ -366,7 +366,7 @@ SLPEXP SLPError SLPAPI SLPAssociateIP(
    /** @todo Verify error conditions in associate ip address. */
 
    result = SLPNetResolveHostToAddr(unicast_ip, &handle->ucaddr);
-   if (SLPNetSetPort(&handle->ucaddr, SLP_RESERVED_PORT) != 0)
+   if (SLPNetSetPort(&handle->ucaddr, SLPPropertyAsInteger("net.slp.port")) != 0)
       return SLP_PARAMETER_BAD;
 
    return SLP_OK;

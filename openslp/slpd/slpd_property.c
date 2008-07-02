@@ -110,6 +110,7 @@ void SLPDPropertyReinit(void)
    G_SlpdProperty.securityEnabled = SLPPropertyAsBoolean("net.slp.securityEnabled");
    G_SlpdProperty.checkSourceAddr = SLPPropertyAsBoolean("net.slp.checkSourceAddr");
    G_SlpdProperty.DAHeartBeat = SLPPropertyAsInteger("net.slp.DAHeartBeat");
+   G_SlpdProperty.port = SLPPropertyAsInteger("net.slp.port");
 
    /* set the net.slp.interfaces property */
    if (SLPNetIsIPV4() && SLPNetIsIPV6())

@@ -596,12 +596,12 @@ int SLPDIncomingInit(void)
    if(SLPNetIsIPV4())
    {
       int tmpaddr = INADDR_LOOPBACK;
-      SLPNetSetAddr(&lo4addr, AF_INET, SLP_RESERVED_PORT, &tmpaddr);
+      SLPNetSetAddr(&lo4addr, AF_INET, G_SlpdProperty.port, &tmpaddr);
       tmpaddr = SLP_MCAST_ADDRESS;
-      SLPNetSetAddr(&mcast4addr, AF_INET, SLP_RESERVED_PORT, &tmpaddr);
+      SLPNetSetAddr(&mcast4addr, AF_INET, G_SlpdProperty.port, &tmpaddr);
 #if defined(ENABLE_SLPv1)
       tmpaddr = SLPv1_DA_MCAST_ADDRESS;
-      SLPNetSetAddr(&v1mcast4addr, AF_INET, SLP_RESERVED_PORT, &tmpaddr);
+      SLPNetSetAddr(&v1mcast4addr, AF_INET, G_SlpdProperty.port, &tmpaddr);
 #endif
 
    }
@@ -612,13 +612,13 @@ int SLPDIncomingInit(void)
    if(SLPNetIsIPV6())
    {
       /*All of these addresses are needed to support RFC 3111*/
-      SLPNetSetAddr(&lo6addr, AF_INET6, SLP_RESERVED_PORT, &slp_in6addr_loopback);
-      SLPNetSetAddr(&srvloc6addr_node, AF_INET6, SLP_RESERVED_PORT, &in6addr_srvloc_node);
-      SLPNetSetAddr(&srvloc6addr_link, AF_INET6, SLP_RESERVED_PORT, &in6addr_srvloc_link);
-      SLPNetSetAddr(&srvloc6addr_site, AF_INET6, SLP_RESERVED_PORT, &in6addr_srvloc_site);
-      SLPNetSetAddr(&srvlocda6addr_node, AF_INET6, SLP_RESERVED_PORT, &in6addr_srvlocda_node);
-      SLPNetSetAddr(&srvlocda6addr_link, AF_INET6, SLP_RESERVED_PORT, &in6addr_srvlocda_link);
-      SLPNetSetAddr(&srvlocda6addr_site, AF_INET6, SLP_RESERVED_PORT, &in6addr_srvlocda_site);
+      SLPNetSetAddr(&lo6addr, AF_INET6, G_SlpdProperty.port, &slp_in6addr_loopback);
+      SLPNetSetAddr(&srvloc6addr_node, AF_INET6, G_SlpdProperty.port, &in6addr_srvloc_node);
+      SLPNetSetAddr(&srvloc6addr_link, AF_INET6, G_SlpdProperty.port, &in6addr_srvloc_link);
+      SLPNetSetAddr(&srvloc6addr_site, AF_INET6, G_SlpdProperty.port, &in6addr_srvloc_site);
+      SLPNetSetAddr(&srvlocda6addr_node, AF_INET6, G_SlpdProperty.port, &in6addr_srvlocda_node);
+      SLPNetSetAddr(&srvlocda6addr_link, AF_INET6, G_SlpdProperty.port, &in6addr_srvlocda_link);
+      SLPNetSetAddr(&srvlocda6addr_site, AF_INET6, G_SlpdProperty.port, &in6addr_srvlocda_site);
    }
 
    /*--------------------------------------------------------------------*/

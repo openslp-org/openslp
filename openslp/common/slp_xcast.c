@@ -91,7 +91,7 @@ int SLPBroadcastSend(const SLPIfaceInfo * ifaceinfo,
                sizeof(ifaceinfo->bcast_addr[socks->sock_count]));
 
          SLPNetSetAddr(&socks->peeraddr[socks->sock_count], AF_INET, 
-               SLP_RESERVED_PORT, 0);
+               SLPPropertyAsInteger("net.slp.port"), 0);
          xferbytes = sendto(socks->sock[socks->sock_count],
                (char *)msg->start, (int)(msg->end - msg->start), 0, 
                (struct sockaddr *)&socks->peeraddr[socks->sock_count],
