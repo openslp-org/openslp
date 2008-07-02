@@ -436,7 +436,6 @@ void SLPDLogMessage(int msglogflags, struct sockaddr_storage * peerinfo,
          msg = SLPMessageAlloc();
          if (msg)
          {
-            SLPDLog("\n");
             SLPDLogTime();
             SLPDLog("MESSAGE - ");
             if (msglogflags == SLPDLOG_TRACEMSG_OUT)
@@ -458,6 +457,7 @@ void SLPDLogMessage(int msglogflags, struct sockaddr_storage * peerinfo,
                      &msg->peer, addr_str, sizeof(addr_str)));
             }
             SLPMessageFree(msg);
+            SLPDLog("\n");
          }
       }
    }
@@ -480,7 +480,6 @@ void SLPDLogRegistration(const char * prefix, SLPDatabaseEntry * entry)
 
    if (G_SlpdProperty.traceReg)
    {
-      SLPDLog("\n");
       SLPDLogTime();
       SLPDLog("DATABASE - %s:\n", prefix);
       SLPDLog("    SA address = ");
@@ -513,6 +512,7 @@ void SLPDLogRegistration(const char * prefix, SLPDatabaseEntry * entry)
       SLPDLogBuffer("    attributes = ",
             entry->msg->body.srvreg.attrlistlen,
             entry->msg->body.srvreg.attrlist);
+      SLPDLog("\n");
    }
 }
 
@@ -533,7 +533,6 @@ void SLPDLogDAAdvertisement(const char * prefix, SLPDatabaseEntry * entry)
 
    if (G_SlpdProperty.traceDATraffic)
    {
-      SLPDLog("\n");
       SLPDLogTime();
       SLPDLog("KNOWNDA - %s:\n",prefix);
       SLPDLog("    DA address = %s\n", SLPNetSockAddrStorageToString(
@@ -554,6 +553,7 @@ void SLPDLogDAAdvertisement(const char * prefix, SLPDatabaseEntry * entry)
             entry->msg->body.daadvert.spilistlen,
             entry->msg->body.daadvert.spilist);
 #endif /*ENABLE_SLPV2_SECURITY*/
+      SLPDLog("\n");
    }
 }
 
@@ -570,7 +570,6 @@ void SLPDLogParseWarning(struct sockaddr_storage * peeraddr, SLPBuffer buf)
    if (peeraddr == 0 || buf == 0)
       return;
 
-   SLPDLog("\n");
    SLPDLogTime();
    SLPDLog("*** WARNING Parse Error ***\n");
    SLPDLogPeerAddr(peeraddr);

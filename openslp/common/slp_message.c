@@ -104,11 +104,11 @@ uint32_t GetUINT32(uint8_t ** cpp)
  *
  * @return A pointer to the first character at the address pointed to by 
  *    @p cppstring pointer; the buffer pointer is moved ahead by @p len bytes
- *    on return. If @p len is zero, returns NULL.
+ *    on return.
  */
 char * GetStrPtr(uint8_t ** cpp, size_t len)
 {
-   char * sp = len? (char *)*cpp: 0;
+   char * sp = (char *)*cpp;
    *cpp += len;
    return sp;
 }

@@ -850,7 +850,16 @@ int SLPDKnownDAAdd(SLPMessage * msg, SLPBuffer buf)
                && daadvert->bootstamp != entrydaadvert->bootstamp)
          {
             /* Advertising DA must have went down then came back up */
+            SLPDLogDAAdvertisement("Replacement", entry);
             SLPDKnownDARegisterAll(msg, 0);
+         }
+
+         if ( daadvert->bootstamp == 0 )
+         {
+            /* Dying DA was found in our KnownDA database. Log that it
+             * was removed.
+             */
+            SLPDLogDAAdvertisement("Removal", entry);
          }
 
          /* Remove the entry that is the same as the advertised entry */
@@ -905,17 +914,6 @@ int SLPDKnownDAAdd(SLPMessage * msg, SLPBuffer buf)
 
       return result;
    }
-   else
-   {
-      /* DA is dying */
-      if (entry)
-      {
-         /* Dying DA was found in our KnownDA database. Log that it
-          * was removed.
-          */
-         SLPDLogDAAdvertisement("Removed", entry);
-      }
-   }
 
    CLEANUP:
    /* If we are here, we need to cleanup the message descriptor and the  */
@@ -962,8 +960,8 @@ void SLPDKnownDARemove(struct sockaddr_storage * addr)
                                  &(((struct sockaddr_in6 *) addr)->sin6_addr),
                                  sizeof(struct in6_addr)))))
          {
-            SLPDatabaseRemove(dh, entry);
             SLPDLogDAAdvertisement("Removal", entry);
+            SLPDatabaseRemove(dh, entry);
             break;
          }
       }
