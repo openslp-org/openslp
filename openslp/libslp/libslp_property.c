@@ -69,7 +69,11 @@ int LIBSLPPropertyInit(char const * gconffile)
       SLPSpinLockAcquire(&s_PropInitLock);
       if (!s_PropInited && (rv = SLPPropertyInit(gconffile)) == 0);
       {
-         atexit(SLPPropertyExit);
+         /* Cleaning-up via atexit() will cause problems with applications
+          * that will try to deregister via atexit() as well. Since memory
+          * will be freed at exit anyway, just skip the clean-up routine.
+          */
+      /* atexit(SLPPropertyExit); */
          s_PropInited = true;
       }
       SLPSpinLockRelease(&s_PropInitLock);
