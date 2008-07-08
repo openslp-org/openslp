@@ -70,7 +70,7 @@ typedef struct _SLPDProperty
    SLPIfaceInfo ifaceInfo;
    size_t interfacesLen;
    char * interfaces;
-   int port;
+   uint16_t port;
    size_t localeLen;
    char * locale;
    int isBroadcastOnly;

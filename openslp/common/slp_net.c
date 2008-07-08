@@ -714,7 +714,7 @@ int SLPNetGetSrvMcastAddr(const char * pSrvType, size_t len,
        a->sin6_len = sizeof(struct sockaddr_in6);
    #endif
 
-   a->sin6_port = htons(SLPPropertyAsInteger("net.slp.port"));
+   a->sin6_port = htons((uint16_t)SLPPropertyAsInteger("net.slp.port"));
 
    return 0;
 }

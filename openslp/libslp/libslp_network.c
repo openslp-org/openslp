@@ -73,12 +73,12 @@
 static int NetworkGetMcastAddrs(const char msgtype, uint8_t * msg, 
       SLPIfaceInfo * ifaceinfo)
 {
-   int port;
+   uint16_t port;
 
    if (!ifaceinfo)
       return SLP_PARAMETER_BAD;
 
-   port = SLPPropertyAsInteger("net.slp.port");
+   port = (uint16_t)SLPPropertyAsInteger("net.slp.port");
    ifaceinfo->bcast_count = ifaceinfo->iface_count = 0;
    switch (msgtype) 
    {
@@ -205,7 +205,7 @@ sockfd_t NetworkConnectToSlpd(void * peeraddr)
     does a NetworkRqstRply, which has retry logic for the datagram case*/
 
    if (SLPNetIsIPV6()) 
-      if (!SLPNetSetAddr(peeraddr, AF_INET6, SLPPropertyAsInteger("net.slp.port"), 
+      if (!SLPNetSetAddr(peeraddr, AF_INET6, (uint16_t)SLPPropertyAsInteger("net.slp.port"), 
             &slp_in6addr_loopback))
          sock = SLPNetworkCreateDatagram(AF_INET6);
 
@@ -213,7 +213,7 @@ sockfd_t NetworkConnectToSlpd(void * peeraddr)
    {
       int tempAddr = INADDR_LOOPBACK;
       if (SLPNetSetAddr(peeraddr, AF_INET, 
-            SLPPropertyAsInteger("net.slp.port"), &tempAddr) == 0)
+            (uint16_t)SLPPropertyAsInteger("net.slp.port"), &tempAddr) == 0)
          sock = SLPNetworkCreateDatagram(AF_INET);
    }
    return sock;

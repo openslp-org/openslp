@@ -403,7 +403,7 @@ static int KnownDADiscoverFromDHCP(SLPHandleInfo * handle)
    }
    scopelistlen = strlen(ctx.scopelist);
 
-   SLPNetSetAddr(&peeraddr, AF_INET, SLPPropertyAsInteger("net.slp.port"), 0);
+   SLPNetSetAddr(&peeraddr, AF_INET, (uint16_t)SLPPropertyAsInteger("net.slp.port"), 0);
 
    alp = ctx.addrlist;
 
@@ -462,7 +462,7 @@ static int KnownDADiscoverFromProperties(size_t scopelistlen,
          {
             sockfd_t sockfd;
 
-            SLPNetSetParams(&peeraddr, peeraddr.ss_family, SLPPropertyAsInteger("net.slp.port"));
+            SLPNetSetParams(&peeraddr, peeraddr.ss_family, (uint16_t)SLPPropertyAsInteger("net.slp.port"));
             sockfd = SLPNetworkCreateDatagram(peeraddr.ss_family);
             if (sockfd != SLP_INVALID_SOCKET)
             {
@@ -579,7 +579,7 @@ sockfd_t KnownDAConnect(SLPHandleInfo * handle, size_t scopelistlen,
       if ((addr->sa_family == AF_INET6 && SLPNetIsIPV6())
             || (addr->sa_family == AF_INET && SLPNetIsIPV4()))
       {
-         SLPNetSetPort(peeraddr, SLPPropertyAsInteger("net.slp.port"));
+         SLPNetSetPort(peeraddr, (uint16_t)SLPPropertyAsInteger("net.slp.port"));
          sock = SLPNetworkCreateDatagram(addr->sa_family);
          /*Now test if the DA will actually respond*/
          if((sock != SLP_INVALID_SOCKET) &&
