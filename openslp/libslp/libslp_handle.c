@@ -76,6 +76,7 @@ static SLPError InitUserAgentLibrary(void)
          WORD wVersionRequested = MAKEWORD(1,1); 
          if (WSAStartup(wVersionRequested, &wsaData) != 0)
          {
+            LIBSLPPropertyCleanup();
             SLPAtomicDec(&s_OpenSLPHandleCount);
             return SLP_NETWORK_INIT_FAILED;
          }
@@ -108,6 +109,7 @@ static void ExitUserAgentLibrary(void)
    if (SLPAtomicDec(&s_OpenSLPHandleCount) == 0)
    {
       KnownDAFreeAll();
+      LIBSLPPropertyCleanup();
 #ifdef DEBUG
       xmalloc_deinit();
 #endif

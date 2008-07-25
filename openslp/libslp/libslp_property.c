@@ -51,6 +51,8 @@ static bool s_UserAllowedToSet = true;
 /** A flag that indicates the property sub-system has been initialized. */
 static bool s_PropInited = 0;
 
+static intptr_t s_PropInitLock = 0;
+
 /** The libslp property sub-system initialization wrapper.
  * 
  * @param[in] gconffile - The global configuration file to use.
@@ -61,25 +63,37 @@ static bool s_PropInited = 0;
  */
 int LIBSLPPropertyInit(char const * gconffile)
 {
-   static intptr_t s_PropInitLock = 0;
-
    int rv = 0;
    if (!s_PropInited)
    {
       SLPSpinLockAcquire(&s_PropInitLock);
-      if (!s_PropInited && (rv = SLPPropertyInit(gconffile)) == 0);
+      if (!s_PropInited)
       {
-         /* Cleaning-up via atexit() will cause problems with applications
-          * that will try to deregister via atexit() as well. Since memory
-          * will be freed at exit anyway, just skip the clean-up routine.
-          */
-      /* atexit(SLPPropertyExit); */
-         s_PropInited = true;
+         if ((rv = SLPPropertyInit(gconffile)) == 0)
+            s_PropInited = true;
       }
       SLPSpinLockRelease(&s_PropInitLock);
    }
    SLP_ASSERT(rv == 0);
    return rv;
+}
+
+/** The libslp property sub-system cleanup wrapper.
+ * 
+ * @internal
+ */
+void LIBSLPPropertyCleanup(void)
+{
+   if (s_PropInited)
+   {
+      SLPSpinLockAcquire(&s_PropInitLock);
+      if (s_PropInited)
+      {
+         SLPPropertyExit();
+         s_PropInited = false;
+      }
+      SLPSpinLockRelease(&s_PropInitLock);
+   }
 }
 
 /** Returns a string value for a specified property.

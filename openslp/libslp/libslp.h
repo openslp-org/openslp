@@ -255,6 +255,7 @@ void PutURLEntry(uint8_t ** cpp, uint16_t lifetime, const char * url,
       size_t urllen, const uint8_t * urlauth, size_t urlauthlen);
 
 int LIBSLPPropertyInit(char const * gconffile);
+void LIBSLPPropertyCleanup();
 
 /*! @} */
 
