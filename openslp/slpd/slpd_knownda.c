@@ -1030,12 +1030,16 @@ void SLPDKnownDAEnumEnd(void * eh)
 
 /*=========================================================================*/
 int SLPDKnownDAGenerateMyDAAdvert(struct sockaddr_storage * localaddr,
-      int errorcode, int deadda, int xid, SLPBuffer * sendbuf) 
+      int errorcode, int deadda, int ismcast, int xid, SLPBuffer * sendbuf) 
 /* Pack a buffer with a DAAdvert using information from a SLPDAentry       */
 /*                                                                         */
 /* localaddr (IN) the address of the DA to advertise                       */
 /*                                                                         */
 /* errorcode (IN) the errorcode for the DAAdvert                           */
+/*                                                                         */
+/* deadda (IN) whether the DAAdvert should indicate the DA is shut down    */
+/*                                                                         */
+/* ismcast (IN) whether the mcast flag should be set for the DAAdvert      */
 /*                                                                         */
 /* xid (IN) the xid to for the DAAdvert                                    */
 /*                                                                         */
@@ -1128,8 +1132,9 @@ int SLPDKnownDAGenerateMyDAAdvert(struct sockaddr_storage * localaddr,
    PutUINT24(&result->curpos, size);
 
    /* flags */
-   PutUINT16(&result->curpos, (size > SLP_MAX_DATAGRAM_SIZE? 
-         SLP_FLAG_OVERFLOW: 0));
+   PutUINT16(&result->curpos,
+             (size > SLP_MAX_DATAGRAM_SIZE ? SLP_FLAG_OVERFLOW : 0) |
+             (ismcast ? SLP_FLAG_MCAST : 0));
 
    /* ext offset */
    PutUINT24(&result->curpos, 0);
@@ -1608,7 +1613,7 @@ void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead)
             if(G_IncomingSocketList.tail)
             {
                struct sockaddr_storage* myaddr = &((SLPDSocket *)G_IncomingSocketList.tail)->localaddr;
-               if (SLPDKnownDAGenerateMyDAAdvert(myaddr, 0, dadead, 0, &(sock->sendbuf)) == 0)
+               if (SLPDKnownDAGenerateMyDAAdvert(myaddr, 0, dadead, 1, 0, &(sock->sendbuf)) == 0)
                   SLPDOutgoingDatagramWrite(sock, sock->sendbuf);
 #ifdef ENABLE_SLPv1
                if (SLPDKnownDAGenerateMyV1DAAdvert(myaddr, 0, SLP_CHAR_UTF8, 0, &(sock->sendbuf)) == 0)
@@ -1631,7 +1636,7 @@ void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead)
 
                if(SLPNetIsIPV6() && (sock->localaddr.ss_family == AF_INET6))
                {
-                  if (SLPDKnownDAGenerateMyDAAdvert(&sock->localaddr, 0, dadead, 0, &(sock->sendbuf)) == 0)
+                  if (SLPDKnownDAGenerateMyDAAdvert(&sock->localaddr, 0, dadead, 1, 0, &(sock->sendbuf)) == 0)
                   {
                      SLPNetSetAddr(&mcastaddr, AF_INET6, G_SlpdProperty.port, &in6addr_srvlocda_node);
                      SLPDOutgoingDatagramMcastWrite(sock, &mcastaddr, sock->sendbuf);
@@ -1648,7 +1653,7 @@ void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead)
                {
                   int tmpaddr = SLP_MCAST_ADDRESS;
 
-                  if (SLPDKnownDAGenerateMyDAAdvert(&sock->localaddr, 0, dadead, 0, &(sock->sendbuf)) == 0)
+                  if (SLPDKnownDAGenerateMyDAAdvert(&sock->localaddr, 0, dadead, 1, 0, &(sock->sendbuf)) == 0)
                   {
                         SLPNetSetAddr(&mcastaddr, AF_INET, G_SlpdProperty.port, &tmpaddr);
                         SLPDOutgoingDatagramMcastWrite(sock, &mcastaddr, sock->sendbuf);

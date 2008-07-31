@@ -61,7 +61,7 @@ void * SLPDKnownDAEnumStart(void);
 SLPMessage * SLPDKnownDAEnum(void * eh, SLPMessage ** msg, SLPBuffer * buf);
 void SLPDKnownDAEnumEnd(void * eh);
 int SLPDKnownDAGenerateMyDAAdvert(struct sockaddr_storage * localaddr,
-      int errorcode, int deadda, int xid, SLPBuffer * sendbuf);
+      int errorcode, int deadda, int ismcast, int xid, SLPBuffer * sendbuf);
 
 #if defined(ENABLE_SLPv1)
 int SLPDKnownDAGenerateMyV1DAAdvert(struct sockaddr_storage * localaddr,

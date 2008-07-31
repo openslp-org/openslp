@@ -236,7 +236,7 @@ static int ProcessDASrvRqst(SLPMessage * message, SLPBuffer * sendbuf,
             else
                SLPNetSetAddr(&loaddr, AF_INET6, G_SlpdProperty.port, &slp_in6addr_loopback);
 
-            if(0 == SLPDKnownDAGenerateMyDAAdvert(&loaddr, 0, 0, message->header.xid, &tmp))
+            if(0 == SLPDKnownDAGenerateMyDAAdvert(&loaddr, 0, 0, 0, message->header.xid, &tmp))
             {
                memcpy((*sendbuf)->curpos, tmp->start, tmp->end - tmp->start);
                (*sendbuf)->curpos = ((*sendbuf)->curpos) + (tmp->end - tmp->start);
@@ -270,7 +270,7 @@ static int ProcessDASrvRqst(SLPMessage * message, SLPBuffer * sendbuf,
 
          /* Tack on a "terminator" DAAdvert */
          SLPDKnownDAGenerateMyDAAdvert(&message->localaddr,
-               SLP_ERROR_INTERNAL_ERROR, 0, message->header.xid, &tmp);
+               SLP_ERROR_INTERNAL_ERROR, 0, 0, message->header.xid, &tmp);
          if (((*sendbuf)->curpos) + (tmp->end - tmp->start) <= (*sendbuf)->end)
          {
             memcpy((*sendbuf)->curpos, tmp->start, tmp->end - tmp->start);
@@ -300,7 +300,7 @@ static int ProcessDASrvRqst(SLPMessage * message, SLPBuffer * sendbuf,
                   G_SlpdProperty.useScopes))
       {
          errorcode = SLPDKnownDAGenerateMyDAAdvert(&message->localaddr, 
-               errorcode, 0, message->header.xid, sendbuf);           
+               errorcode, 0, 0, message->header.xid, sendbuf);           
       }
       else
          errorcode = SLP_ERROR_SCOPE_NOT_SUPPORTED;
