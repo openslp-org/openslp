@@ -85,7 +85,12 @@ void SLPDDatabaseAge(int seconds, int ageall)
          if (srvreg->source == SLP_REG_SOURCE_LOCAL 
                && srvreg->pid != 0 && !SLPPidExists(srvreg->pid))
          {
-            SLPDLogRegistration("PID Watcher Deregistration", entry);
+            if (G_SlpdProperty.traceReg)
+            {
+               char buffer[50];
+               sprintf(buffer, "PID Watcher Deregistration (pid=%d)", (int)srvreg->pid);
+               SLPDLogRegistration(buffer, entry);
+            }
             SLPDKnownDADeRegisterWithAllDas(entry->msg, entry->buf);
             SLPDatabaseRemove(dh, entry);
             continue;
@@ -96,7 +101,7 @@ void SLPDDatabaseAge(int seconds, int ageall)
           * from the local static registration file.
           */
          if (srvreg->urlentry.lifetime == SLP_LIFETIME_MAXIMUM
-               && (!ageall || srvreg->source == SLP_REG_SOURCE_STATIC))
+               && (!ageall || srvreg->source == SLP_REG_SOURCE_STATIC || srvreg->source == SLP_REG_SOURCE_LOCAL))
             continue;
 
          /* Age entry and remove those that have timed out */
@@ -268,7 +273,12 @@ int SLPDDatabaseReg(SLPMessage * msg, SLPBuffer buf)
 
          /* add to database */
          SLPDatabaseAdd(dh, entry);
-         SLPDLogRegistration("Registration",entry);
+         if (G_SlpdProperty.traceReg)
+         {
+            char buffer[40];
+            sprintf(buffer, "Registration (pid=%d)", (int)reg->pid);
+            SLPDLogRegistration(buffer, entry);
+         }
 
          result = 0; /* SUCCESS! */
       }

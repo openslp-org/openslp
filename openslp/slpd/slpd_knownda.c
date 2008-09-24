@@ -1760,8 +1760,10 @@ void SLPDKnownDAImmortalRefresh(int seconds)
             /* entrydaadvert is the DAAdvert message from the database */
             entrydaadvert = &(entry->msg->body.daadvert);
 
-            /* Assume DAs are identical if their URLs match */
-            if(SLPIntersectStringList(G_ifaceurlsLen, G_ifaceurls, entrydaadvert->urllen, entrydaadvert->url) > 0)
+            /* Skip ourself, which we detect by matching the entry's url     */
+            /* (ip address) against the list of our own interface addresses. */
+            /* If there's no match, then we can go ahead                     */
+            if(SLPIntersectStringList(G_ifaceurlsLen, G_ifaceurls, entrydaadvert->urllen, entrydaadvert->url) == 0)
                SLPDKnownDARegisterAll(entry->msg, 1);
          }   
 
