@@ -250,6 +250,7 @@ static SLPError ProcessSrvRqst(SLPHandleInfo * handle)
    size_t spistrlen = 0;
    char * spistr = 0;
    struct sockaddr_storage peeraddr;
+   struct sockaddr_in* destaddrs = 0;
    sockfd_t sock = SLP_INVALID_SOCKET;
 
    /* Is this a special attempt to locate DAs? */
@@ -313,6 +314,24 @@ static SLPError ProcessSrvRqst(SLPHandleInfo * handle)
          serr = NetworkUcastRqstRply(handle, buf, SLP_FUNCT_SRVRQST, 
                curpos - buf, ProcessSrvRplyCallback, handle);
          break;
+      }
+      if (SLPNetIsIPV4())
+      {
+         if (KnownDASpanningListFromCache(handle,
+                                          handle->params.findsrvs.scopelistlen,
+                                          handle->params.findsrvs.scopelist,
+                                          &destaddrs) > 0)
+         {
+            serr = NetworkMultiUcastRqstRply(destaddrs,
+                                             handle->langtag,
+                                             buf,
+                                             SLP_FUNCT_SRVRQST,
+                                             curpos - buf,
+                                             ProcessSrvRplyCallback,
+                                             handle);
+            xfree(destaddrs);
+            break;
+         }
       }
 #endif
 

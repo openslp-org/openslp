@@ -440,7 +440,7 @@ int SLPContainsStringList(size_t listlen, const char * list, size_t stringlen,
 
       if (SLPCompareString(itemend - itembegin, itembegin, 
             stringlen, string) == 0)
-         return 1;
+         return 1 + (itembegin - list);         /* 1-based index of the position of the string in the list */
 
       itemend++;
    }
@@ -481,6 +481,79 @@ int SLPIntersectStringList(size_t list1len, const char * list1,
       itemend++;
    }
    return result;
+}
+
+/** Intersects two string lists, and removes the common entries from
+ * the second list. 
+ *
+ * @param[in] list1len - The length in bytes of the list to be checked
+ * @param[in] list1 - A pointer to the string-list to be checked
+ * @param[in] list2len - The length in bytes of the list to be checked
+ *     and updated
+ * @param[in] list2 - A pointer to the string-list to be checked and
+ *     updated
+ * 
+ * @return The number of common entries between @p list1 and @p list2.
+ */
+int SLPIntersectRemoveStringList(int list1len,
+                                 const char* list1,
+                                 int* list2len,
+                                 char* list2)
+{
+    int result = 0;
+    int pos;
+    char* listend = (char*)list1 + list1len;
+    char* itembegin = (char*)list1;
+    char* itemend = itembegin;
+    char* list2end = (char*)list2+(*list2len);
+
+    while(itemend < listend)
+    {
+        itembegin = itemend;
+
+        /* seek to the end of the next list item */
+        while(1)
+        {
+            if(itemend == listend || *itemend == ',')
+            {
+                if(*(itemend - 1) != '\\')
+                {
+                    break;
+                }
+            }
+
+            itemend ++;
+        }
+
+        if(pos = SLPContainsStringList(*list2len,
+                                       list2,
+                                       itemend - itembegin,
+                                       itembegin))
+        {
+            result ++;
+
+            /* String found in the list at position pos (1-based) */
+            /* Remove it from list2                               */
+            char* dest = list2+(pos-1);
+            char* src = dest+(itemend-itembegin);
+            if (src < list2end)
+            {
+                if (*src == ',')
+                    ++src;
+            }
+            while (src < list2end)
+            {
+                *dest++ = *src++;
+            }
+            list2end = dest;
+        }
+
+        itemend ++;    
+    }
+
+    *list2len = list2end-(char *)list2;
+
+    return result;
 }
 
 /** Take the union of two string lists. 

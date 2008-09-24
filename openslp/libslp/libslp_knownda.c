@@ -54,12 +54,6 @@
 /** The cache DAAdvert messages from known DAs. */
 static SLPDatabase G_KnownDACache = {0, 0, 0};
 
-/** Cached known scope list length */
-static size_t G_KnownDAScopesLen = 0;
-
-/** Cached known scope list */
-static char * G_KnownDAScopes = 0;
-
 /** The time of the last Multicast for known DAs */
 static time_t G_KnownDALastCacheRefresh = 0;
 
@@ -118,6 +112,132 @@ static SLPBoolean KnownDAListFind(size_t scopelistlen, const char * scopelist,
       SLPDatabaseClose(dh);
    }
    return result;
+}
+
+/** Find a list of DAs that, between them, handle all the given scopes
+ *
+ * @param[in] scopelistlen - The length of @p scopelist.
+ * @param[in] scopelist - The list of scopes whose DA's should be found. Enough
+ *    DA's to cover this scope list will be returned.
+ * @param[in] spistrlen - The length of @p spistr.
+ * @param[in] spistr - The Security Parameter Index value to use.
+ * @param[out] daaddrs - The addresses of the DA's that, together, match the
+ *    specified search criteria.  NULL if a spanning set of DA's cannot be found.
+ *    The last entry in the list (not to be processed) will have an IP address of
+ *    0.0.0.0
+ *
+ * @return Zero if a spanning set of DA's cannot be found, the number of DA's
+ *    in the returned list on success.
+ *
+ * @internal
+ */
+int KnownDASpanningListFind(int scopelistlen,
+                            const char* scopelist,
+                            int spistrlen,
+                            const char* spistr,
+                            struct sockaddr_in** daaddrs)
+{
+#define NUM_DAS_CHUNK_SIZE	10
+    SLPDatabaseHandle   dh;
+    SLPDatabaseEntry*   entry;
+    char* scopesleft;
+    int scopesleftlen = scopelistlen;
+    int numdas = 0;
+    int numdasallocated = 0;
+    struct sockaddr_in* destaddrs = 0;
+
+    scopesleft = malloc(scopelistlen);
+    if (!scopesleft)
+    {
+        /* memory allocation failure */
+        return 0;
+    }
+    memcpy(scopesleft, scopelist, scopelistlen);
+
+    dh = SLPDatabaseOpen(&G_KnownDACache);
+    if(dh)
+    {
+        /*----------------------------------------*/
+        /* Check for matching entries             */
+        /*----------------------------------------*/
+        while(scopesleftlen)
+        {
+            entry = SLPDatabaseEnum(dh);
+            if(entry == NULL) break;
+            
+            /* Check scopes */
+            if(SLPIntersectStringList(entry->msg->body.daadvert.scopelistlen,
+                                      entry->msg->body.daadvert.scopelist,
+                                      scopesleftlen,
+                                      scopesleft))
+            {
+                /* This DA handles at least one of the remaining scopes */
+#ifdef ENABLE_SLPv2_SECURITY
+                if(SLPCompareString(entry->msg->body.daadvert.spilistlen,
+                                    entry->msg->body.daadvert.spilist,
+                                    spistrlen,
+                                    spistr) == 0)
+#endif
+                {
+                  if (entry->msg->peer.ss_family == AF_INET && SLPNetIsIPV4())
+                  {
+                    /* Remove the DA's scopes from the remaining list of scopes */
+                    (void)SLPIntersectRemoveStringList(entry->msg->body.daadvert.scopelistlen,
+                                                       entry->msg->body.daadvert.scopelist,
+                                                       &scopesleftlen,
+                                                       scopesleft);
+                    if (numdas >= numdasallocated)
+                    {
+                        /* We need a bigger array of addresses */
+                        numdasallocated += NUM_DAS_CHUNK_SIZE;
+                        destaddrs = realloc(destaddrs, numdasallocated * sizeof (struct sockaddr_in));
+                        if (!destaddrs)
+                        {
+                            /* Memory allocation failure */
+                            xfree(scopesleft);
+                            return 0;
+                        }
+                    }
+                    memcpy(&destaddrs[numdas].sin_addr, 
+                           &(((struct sockaddr_in *)&entry->msg->peer)->sin_addr),
+                           sizeof(struct in_addr));
+                    destaddrs[numdas].sin_family = PF_INET;
+                    destaddrs[numdas].sin_port = htons(SLP_RESERVED_PORT);
+                    ++numdas;
+                  }
+                }
+            }
+        }
+        SLPDatabaseClose(dh);
+    }
+
+    if (numdas && scopesleftlen)
+    {
+        /* some, but not all, of the requested scopes are not handled by any of the cached DAs */
+        xfree(destaddrs);
+        destaddrs = 0;
+        numdas = 0;
+    }
+    else if (numdas)
+    {
+        /* Add a terminating address entry with an IP address of 0.0.0.0 */
+        if (numdas >= numdasallocated)
+        {
+            /* We need a bigger array of addresses */
+            numdasallocated += 1;
+            destaddrs = realloc(destaddrs, numdasallocated * sizeof (struct sockaddr_in));
+            if (!destaddrs)
+            {
+                /* Memory allocation failure */
+                xfree(scopesleft);
+                return 0;
+            }
+        }
+        destaddrs[numdas].sin_addr.s_addr = 0;
+    }
+    *daaddrs = destaddrs;
+    xfree(scopesleft);
+    return numdas;
 }
 
 /** Add an entry to the KnownDA cache.
@@ -496,12 +616,63 @@ static int KnownDADiscoverFromIPC(SLPHandleInfo * handle)
    
    sockfd_t sockfd = NetworkConnectToSlpd(&peeraddr);
    
+   /* First clear the database out so we don't hang on to stale DAs */
+   SLPDatabaseHandle dh = SLPDatabaseOpen(&G_KnownDACache);
+   if (dh)
+   {
+      while (1)
+      {
+         SLPDatabaseEntry * entry = SLPDatabaseEnum(dh);
+         if (!entry)
+            break;
+         SLPDatabaseRemove(dh,entry);
+      }
+      SLPDatabaseClose(dh);
+   }
+
    if (sockfd != SLP_INVALID_SOCKET)
    {
+      /* Now we can re-populate the database */
       result = KnownDADiscoveryRqstRply(sockfd, &peeraddr, 0, "", handle);
       closesocket(sockfd);
    }
    return result;
+}
+
+/** Asks slpd about the DA's it knows about.
+ *
+ * @param[in] scopelistlen - The length of @p scopelist.
+ * @param[in] scopelist - The list of scopes that must be supported.
+ * @param[in] handle - The SLP handle associated with this request.
+ *
+ * @return Non-zero on success, zero if DA can not be found.
+ *
+ * @internal
+ */
+SLPBoolean KnownDARefreshCache(int scopelistlen,
+                         const char* scopelist,
+                         SLPHandleInfo * handle)
+/* Refresh the DA Cache if it's time                                       */ 
+/*                                                                         */
+/* Returns: SLP_TRUE if a refresh was performed, SLP_FALSE if not          */
+/*-------------------------------------------------------------------------*/
+{
+    time_t          curtime;
+    
+    curtime = time(&curtime);
+    if(G_KnownDALastCacheRefresh == 0 ||
+       curtime - G_KnownDALastCacheRefresh > MINIMUM_DISCOVERY_INTERVAL)
+    {
+        G_KnownDALastCacheRefresh = curtime;
+
+        /* discover DAs */
+        if(KnownDADiscoverFromIPC(handle) == 0)
+            if(KnownDADiscoverFromProperties(scopelistlen, scopelist, handle) == 0)
+                if(KnownDADiscoverFromDHCP(handle) == 0)
+                    KnownDADiscoverFromMulticast(scopelistlen, scopelist, handle);
+        return SLP_TRUE;
+    }
+    return SLP_FALSE;
 }
 
 /** Asks slpd if it knows about a DA.
@@ -524,25 +695,81 @@ static SLPBoolean KnownDAFromCache(size_t scopelistlen,
    if (KnownDAListFind(scopelistlen, scopelist, spistrlen, spistr, 
          daaddr, sizeof(struct sockaddr_storage)) == SLP_FALSE)
    {
-      time_t curtime = time(&curtime);
-      if (G_KnownDALastCacheRefresh == 0 || curtime 
-            - G_KnownDALastCacheRefresh > MINIMUM_DISCOVERY_INTERVAL)
-      {
-         G_KnownDALastCacheRefresh = curtime;
-
-         /* Discover DAs. */
-         if (KnownDADiscoverFromIPC(handle) == 0
-               && KnownDADiscoverFromProperties(
-                     scopelistlen, scopelist, handle) == 0
-               && KnownDADiscoverFromDHCP(handle) == 0) 
-            KnownDADiscoverFromMulticast(scopelistlen, scopelist, handle);
-      }
-      return KnownDAListFind(scopelistlen, scopelist, spistrlen, spistr, 
-            daaddr, sizeof(struct sockaddr_storage));
+      if (KnownDARefreshCache(scopelistlen,
+                              scopelist,
+                              handle) == SLP_TRUE)
+          return KnownDAListFind(scopelistlen,
+                                 scopelist,
+                                 spistrlen,
+                                 spistr,
+                                 daaddr,
+                                 sizeof (struct in_addr));
+      /* cache wasn't refreshed, so no point in searching again */
+      return SLP_FALSE;
    }
    return SLP_TRUE; 
 }
 
+/** Find a list of DA's whose combined scopes include all the given scopes
+ *
+ * The memory for the list is allocated by this function, and must be
+ * freed by the caller.
+ *
+ * @param[in] handle - The SLP handle associated with this request.
+ * @param[in] scopelistlen - The length of @p scopelist.
+ * @param[in] scopelist - The scopes the DA must support.
+ * @param[out] daaddrs - The peer to which we connected.
+ *
+ * @return SLP_TRUE if a spanning list can be found (*daaddrs is set to
+ *          the address of an array of IP addresses terminated by an entry
+ *          with an IP address of 0.0.0.0)
+ *          SLP_FALSE if a list cannot be found  ie. at least one of the
+ *          given scopes is not handled by any known DA, or a memory
+ *          allocation failed.
+ *
+ */
+SLPBoolean KnownDASpanningListFromCache(SLPHandleInfo * handle,
+                                        int scopelistlen,
+                                        const char* scopelist,
+                                        struct sockaddr_in** daaddrs)
+{
+    SLPBoolean	result      = SLP_TRUE;
+    int     	spistrlen   = 0;
+    char*   	spistr      = 0;
+#ifdef ENABLE_SLPv2_SECURITY
+    if(SLPPropertyAsBoolean(SLPGetProperty("net.slp.securityEnabled")))
+    {
+        SLPSpiGetDefaultSPI(handle->hspi,
+                            SLPSPI_KEY_TYPE_PUBLIC,
+                            &spistrlen,
+                            &spistr);
+    }
+#endif
+
+    if(KnownDASpanningListFind(scopelistlen,
+                               scopelist,
+                               spistrlen,
+                               spistr,
+                               daaddrs) == 0)
+    {
+        result = SLP_FALSE;
+        /* if cache doesn't get refreshed, there's no point in searching again */
+        if (KnownDARefreshCache(scopelistlen,
+                                scopelist,
+                                handle) == SLP_TRUE)
+            result = KnownDASpanningListFind(scopelistlen,
+                                             scopelist,
+                                             spistrlen,
+                                             spistr,
+                                             daaddrs) == 0 ? SLP_FALSE : SLP_TRUE;
+    }
+ 
+#ifdef ENABLE_SLPv2_SECURITY
+    if(spistr) xfree(spistr);
+#endif
+ 
+    return result; 
+}
 
 /** Get a connected socket to a DA that supports the specified scope.
  *
@@ -632,69 +859,90 @@ void KnownDABadDA(void * daaddr)
 int KnownDAGetScopes(size_t * scopelistlen,
       char ** scopelist, SLPHandleInfo * handle)
 {
+   #define SCOPE_LIST_CHUNK_SIZE	64
+
    size_t newlen;
    SLPDatabaseHandle dh;
    SLPDatabaseEntry * entry;
    char const * useScopes;
 
-   /* Discover all DAs. */
-   if (KnownDADiscoverFromIPC(handle) == 0)
-   {
-      KnownDADiscoverFromDHCP(handle);
-      KnownDADiscoverFromProperties(0,"", handle);
-      KnownDADiscoverFromMulticast(0,"", handle);
-   }
+   /** known scope list length */
+   size_t G_KnownDAScopesLen = 0;
 
-   /* Enumerate all the knownda entries and generate a scopelist. */
-   dh = SLPDatabaseOpen(&G_KnownDACache);
-   if (dh)
+   /** known scope list */
+   char * G_KnownDAScopes = xmalloc(SCOPE_LIST_CHUNK_SIZE);
+
+   /** known scope buffer length */
+   size_t G_KnownDAScopesBufferLen = SCOPE_LIST_CHUNK_SIZE;
+
+   if (G_KnownDAScopes)
    {
-      /* Check to find the requested entry. */
-      while (1)
+      /* Discover all DAs. */
+      if (KnownDADiscoverFromIPC(handle) == 0)
       {
-         entry = SLPDatabaseEnum(dh);
-         if (!entry) 
-            break;
+         KnownDADiscoverFromDHCP(handle);
+         KnownDADiscoverFromProperties(0,"", handle);
+         KnownDADiscoverFromMulticast(0,"", handle);
+      }
 
-         newlen = G_KnownDAScopesLen;
-         while (SLPUnionStringList(G_KnownDAScopesLen, G_KnownDAScopes,
-               entry->msg->body.daadvert.scopelistlen,
-               entry->msg->body.daadvert.scopelist, &newlen,
-               G_KnownDAScopes) < 0)
+      /* Enumerate all the knownda entries and generate a scopelist. */
+      dh = SLPDatabaseOpen(&G_KnownDACache);
+      if (dh)
+      {
+         /* Check to find the requested entry. */
+         while (1)
          {
-            G_KnownDAScopes = xrealloc(G_KnownDAScopes, newlen);
-            if (!G_KnownDAScopes)
-            {
-               G_KnownDAScopesLen = 0;
+            entry = SLPDatabaseEnum(dh);
+            if (!entry) 
                break;
-            }
-         }
-         G_KnownDAScopesLen = newlen;
-      }
-      SLPDatabaseClose(dh);
-   }
 
-   /* Explicitly add in the useScopes property */
-   newlen = G_KnownDAScopesLen;
-   useScopes = SLPPropertyGet("net.slp.useScopes", 0, 0);
-   while (SLPUnionStringList(G_KnownDAScopesLen, G_KnownDAScopes, 
-         strlen(useScopes), useScopes, &newlen, G_KnownDAScopes) < 0)
-   {
-      G_KnownDAScopes = xrealloc(G_KnownDAScopes, newlen);
-      if (!G_KnownDAScopes)
-      {
-         G_KnownDAScopesLen = 0;
-         break;
+            newlen = G_KnownDAScopesBufferLen;
+            while (SLPUnionStringList(G_KnownDAScopesLen, G_KnownDAScopes,
+                  entry->msg->body.daadvert.scopelistlen,
+                  entry->msg->body.daadvert.scopelist, &newlen,
+                  G_KnownDAScopes) < 0)
+            {
+               newlen += SCOPE_LIST_CHUNK_SIZE;
+               G_KnownDAScopesBufferLen = newlen;
+               G_KnownDAScopes = xrealloc(G_KnownDAScopes, G_KnownDAScopesBufferLen);
+               if (!G_KnownDAScopes)
+               {
+                  G_KnownDAScopesLen = 0;
+                  break;
+               }
+            }
+            G_KnownDAScopesLen = newlen;
+         }
+         SLPDatabaseClose(dh);
       }
+
+      /* Explicitly add in the useScopes property */
+      useScopes = SLPPropertyGet("net.slp.useScopes", 0, 0);
+      newlen = G_KnownDAScopesBufferLen;
+      while (SLPUnionStringList(G_KnownDAScopesLen, G_KnownDAScopes, 
+            strlen(useScopes), useScopes, &newlen, G_KnownDAScopes) < 0)
+      {
+         G_KnownDAScopesBufferLen = newlen;
+         G_KnownDAScopes = xrealloc(G_KnownDAScopes, newlen);
+         if (!G_KnownDAScopes)
+         {
+            G_KnownDAScopesLen = 0;
+            break;
+         }
+      }
+      G_KnownDAScopesLen = newlen;
    }
-   G_KnownDAScopesLen = newlen;
 
    if (G_KnownDAScopesLen)
    {
-      *scopelist = xmalloc(G_KnownDAScopesLen + 1);
+      if (G_KnownDAScopesLen == G_KnownDAScopesBufferLen)
+      {
+          /* Need space for a terminating NUL */
+         G_KnownDAScopes = xrealloc(G_KnownDAScopes, G_KnownDAScopesLen + 1);
+      }
+      *scopelist = G_KnownDAScopes;
       if (*scopelist == 0)
          return -1;
-      memcpy(*scopelist, G_KnownDAScopes, G_KnownDAScopesLen);
       (*scopelist)[G_KnownDAScopesLen] = 0; 
       *scopelistlen = G_KnownDAScopesLen;
    }
@@ -769,8 +1017,6 @@ void KnownDAFreeAll(void)
       }
       SLPDatabaseClose(dh);
    }
-   xfree(G_KnownDAScopes);
-   G_KnownDAScopesLen = 0;
    G_KnownDALastCacheRefresh = 0;
 }
 

@@ -237,6 +237,14 @@ SLPError NetworkMcastRqstRply(SLPHandleInfo * handle,
 SLPError NetworkUcastRqstRply(SLPHandleInfo * handle, void * buf, 
       char buftype, size_t bufsize, NetworkRplyCallback callback, 
       void * cookie);
+SLPError NetworkMultiUcastRqstRply(
+                         struct sockaddr_in* destaddr,		// This is an array of addresses
+                         const char* langtag,
+                         char* buf,
+                         char buftype,
+                         size_t bufsize,
+                         NetworkRplyCallback callback,
+                         void * cookie);
 #endif
 
 sockfd_t KnownDAConnect(SLPHandleInfo * handle, size_t scopelistlen, 
@@ -246,6 +254,10 @@ void KnownDABadDA(void * daaddr);
 int KnownDAGetScopes(size_t * scopelistlen, char ** scopelist, 
       SLPHandleInfo * handle);
 void KnownDAProcessSrvRqst(SLPHandleInfo * handle);
+SLPBoolean KnownDASpanningListFromCache(SLPHandleInfo * handle,
+                                        int scopelistlen,
+                                        const char* scopelist,
+                                        struct sockaddr_in** daaddrs);
 
 void KnownDAFreeAll(void);
 

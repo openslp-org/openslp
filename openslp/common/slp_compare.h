@@ -74,6 +74,9 @@ int SLPContainsStringList(size_t listlen, const char * list,
 int SLPIntersectStringList(size_t list1len, const char * list1, 
       size_t list2len, const char * list2);
 
+int SLPIntersectRemoveStringList(int list1len, const char* list1,
+      int* list2len, char* list2);
+
 int SLPUnionStringList(size_t list1len, const char * list1, size_t list2len, 
       const char * list2, size_t * unionlistlen, char * unionlist);
 

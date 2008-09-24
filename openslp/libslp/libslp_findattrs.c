@@ -126,6 +126,7 @@ static SLPError ProcessAttrRqst(SLPHandleInfo * handle)
    size_t spistrlen = 0;
    char * spistr = 0;
    struct sockaddr_storage peeraddr;
+   struct sockaddr_in* destaddrs = 0;
 
 #ifdef ENABLE_SLPv2_SECURITY
    if (SLPPropertyAsBoolean("net.slp.securityEnabled"))
@@ -180,6 +181,24 @@ static SLPError ProcessAttrRqst(SLPHandleInfo * handle)
          serr = NetworkUcastRqstRply(handle, buf, SLP_FUNCT_ATTRRQST, 
                curpos - buf, ProcessAttrRplyCallback, handle);
          break;
+      }
+      if (SLPNetIsIPV4())
+      {
+         if (KnownDASpanningListFromCache(handle,
+                                          handle->params.findattrs.scopelistlen,
+                                          handle->params.findattrs.scopelist,
+                                          &destaddrs) > 0)
+         {
+            serr = NetworkMultiUcastRqstRply(destaddrs,
+                                             handle->langtag,
+                                             buf,
+                                             SLP_FUNCT_ATTRRQST,
+                                             curpos - buf,
+                                             ProcessAttrRplyCallback,
+                                             handle);
+            xfree(destaddrs);
+            break;
+         }
       }
 #endif
 
