@@ -79,6 +79,11 @@ static void IncomingDatagramRead(SLPList * socklist, SLPDSocket * sock)
    {
       sock->recvbuf->end = sock->recvbuf->start + bytesread;
 
+      if (!sock->sendbuf)
+         /* Some of the error handling code expects a sendbuf to be available
+          * to be emptied, so make sure there is at least a minimal buffer
+          */
+         sock->sendbuf = SLPBufferAlloc(1);
       switch (SLPDProcessMessage(&sock->peeraddr, &sock->localaddr,
             sock->recvbuf, &sock->sendbuf, 0))
       {
@@ -158,6 +163,14 @@ static void IncomingStreamWrite(SLPList * socklist, SLPDSocket * sock)
             sock->state = SOCKET_CLOSE; /* Error or conn was closed */
       }
    }
+   else
+   {
+      /* nothing to write */
+#ifdef DEBUG
+      SLPDLog("yikes, an empty message is being written!\n");
+#endif
+      sock->state = SOCKET_CLOSE;
+   }
 }
 
 /** Read inbound stream data.
@@ -218,6 +231,11 @@ static void IncomingStreamRead(SLPList * socklist, SLPDSocket * sock)
          sock->age = 0;
          sock->recvbuf->curpos += bytesread;
          if (sock->recvbuf->curpos == sock->recvbuf->end) {
+            if (!sock->sendbuf)
+               /* Some of the error handling code expects a sendbuf to be available
+                * to be emptied, so make sure there is at least a minimal buffer
+                */
+               sock->sendbuf = SLPBufferAlloc(1);
             switch (SLPDProcessMessage(&sock->peeraddr, 
                   &sock->localaddr, sock->recvbuf, &sock->sendbuf, 0))
             {
