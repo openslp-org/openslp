@@ -84,6 +84,14 @@ void SLPDPropertyReinit(void)
       G_SlpdProperty.DAActiveDiscoveryInterval = 0;
 
    G_SlpdProperty.passiveDADetection = SLPPropertyAsBoolean("net.slp.passiveDADetection");
+   G_SlpdProperty.staleDACheckPeriod = SLPPropertyAsInteger("net.slp.staleDACheckPeriod");
+   if (G_SlpdProperty.staleDACheckPeriod > 0)
+   {
+      if (G_SlpdProperty.staleDACheckPeriod < (SLPD_HEARTBEATS_PER_CHECK_PERIOD + 1) * SLPD_AGE_INTERVAL)
+          G_SlpdProperty.staleDACheckPeriod = (SLPD_HEARTBEATS_PER_CHECK_PERIOD + 1) * SLPD_AGE_INTERVAL;
+      SLPDLog("staleDACheckPeriod = %ds\n", G_SlpdProperty.staleDACheckPeriod);
+   }
+
    G_SlpdProperty.isBroadcastOnly = SLPPropertyAsBoolean("net.slp.isBroadcastOnly");
    G_SlpdProperty.multicastTTL = SLPPropertyAsInteger("net.slp.multicastTTL");
    G_SlpdProperty.multicastMaximumWait = SLPPropertyAsInteger("net.slp.multicastMaximumWait");
@@ -110,6 +118,22 @@ void SLPDPropertyReinit(void)
    G_SlpdProperty.securityEnabled = SLPPropertyAsBoolean("net.slp.securityEnabled");
    G_SlpdProperty.checkSourceAddr = SLPPropertyAsBoolean("net.slp.checkSourceAddr");
    G_SlpdProperty.DAHeartBeat = SLPPropertyAsInteger("net.slp.DAHeartBeat");
+   if (G_SlpdProperty.staleDACheckPeriod > 0)
+   {
+      // Adjust the heartbeat interval if we need to send it faster for
+      // stale DA detection
+      int maxHeartbeat = G_SlpdProperty.staleDACheckPeriod / SLPD_HEARTBEATS_PER_CHECK_PERIOD;
+      if ((G_SlpdProperty.DAHeartBeat == 0) ||
+          (G_SlpdProperty.DAHeartBeat > maxHeartbeat))
+      {
+         SLPDLog("Overriding heartbeat to %ds for stale DA check\n", maxHeartbeat);
+         G_SlpdProperty.DAHeartBeat = maxHeartbeat;
+      }
+   }
+   // Can't send it out more frequently than every interval
+   if (G_SlpdProperty.DAHeartBeat < SLPD_AGE_INTERVAL)
+      G_SlpdProperty.DAHeartBeat = SLPD_AGE_INTERVAL;
+
    G_SlpdProperty.port = (uint16_t)SLPPropertyAsInteger("net.slp.port");
 
    /* set the net.slp.interfaces property */

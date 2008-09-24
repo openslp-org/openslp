@@ -217,7 +217,7 @@ static void IncomingStreamRead(SLPList * socklist, SLPDSocket * sock)
          /* reset age to max because of activity */
          sock->age = 0;
          sock->recvbuf->curpos += bytesread;
-         if (sock->recvbuf->curpos == sock->recvbuf->end)
+         if (sock->recvbuf->curpos == sock->recvbuf->end) {
             switch (SLPDProcessMessage(&sock->peeraddr, 
                   &sock->localaddr, sock->recvbuf, &sock->sendbuf, 0))
             {
@@ -231,9 +231,11 @@ static void IncomingStreamRead(SLPList * socklist, SLPDSocket * sock)
                   sock->state = STREAM_WRITE_FIRST;
                   IncomingStreamWrite(socklist, sock);
             }
+         }
       }
-      else
+      else {
          sock->state = SOCKET_CLOSE; /* error in recv() */
+      }
    }
 }
 

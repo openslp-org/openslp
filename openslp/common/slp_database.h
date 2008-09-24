@@ -60,6 +60,11 @@ typedef struct _SLPDatabaseEntry
    SLPListItem listitem;
    SLPMessage * msg;
    SLPBuffer buf;
+   int entryvalue;      // General value.
+                        // Used as a count in the daemon's known DA database
+                        // to indicate the number of "age" intervals before a
+                        // DA is deemed stale and is removed.  It is reset
+                        // each time a DA advert is received.
 } SLPDatabaseEntry;
 
 /** The database is just a list in this implementation. */

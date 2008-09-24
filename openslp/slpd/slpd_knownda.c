@@ -878,6 +878,9 @@ int SLPDKnownDAAdd(SLPMessage * msg, SLPBuffer buf)
          entry = SLPDatabaseEntryCreate(msg, buf);
          if (entry)
          {
+            /* reset the "time to stale" count to indicate the DA is active (not stale) */
+            entry->entryvalue = G_SlpdProperty.staleDACheckPeriod / SLPD_AGE_INTERVAL;
+
             SLPDatabaseAdd(dh, entry);
 
             /* register all the services we know about with this new DA */
@@ -901,7 +904,12 @@ int SLPDKnownDAAdd(SLPMessage * msg, SLPBuffer buf)
          /* create a new database entry using the DAAdvert message */
          entry = SLPDatabaseEntryCreate(msg, buf);
          if (entry)
+         {
+            /* reset the "time to stale" count to indicate the DA is active (not stale) */
+            entry->entryvalue = G_SlpdProperty.staleDACheckPeriod / SLPD_AGE_INTERVAL;
+
             SLPDatabaseAdd(dh, entry);
+         }
          else
          {
             /* Could not create a new entry */
@@ -1568,6 +1576,48 @@ void SLPDKnownDAActiveDiscovery(int seconds)
 }
 
 /*=========================================================================*/
+void SLPDKnownDAStaleDACheck(int seconds)
+/* Check for stale DAs if properly configured                              */
+/*                                                                         */
+/* seconds (IN) number seconds that elapsed since the last call to this    */
+/*              function                                                   */
+/*                                                                         */
+/* Returns:  none                                                          */
+/*=========================================================================*/
+{
+   /* Check to see if we should perform stale DA detection */
+   if (G_SlpdProperty.staleDACheckPeriod == 0)
+      return;
+
+   {
+      SLPDatabaseHandle dh;
+      SLPDatabaseEntry * entry;
+      SLPDatabaseEntry * nextEntry;
+
+      dh = SLPDatabaseOpen(&G_SlpdKnownDAs);
+      if (dh)
+      {
+         nextEntry = SLPDatabaseEnum(dh);
+         while (1)
+         {
+            entry = nextEntry;
+            if (entry == NULL)
+               break;
+            nextEntry = SLPDatabaseEnum(dh);
+            if (!entry->entryvalue)
+            {
+               /* No DAAdvert received for this DA within the check period */
+               SLPDLogDAAdvertisement("Removed - stale", entry);
+               SLPDatabaseRemove(dh, entry);
+            }
+            else
+               entry->entryvalue--;   /* Decrement the "time to stale" count */
+         }
+      }
+   }
+}
+
+/*=========================================================================*/
 void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead)
 /* Send passive daadvert messages if properly configured and running as    */
 /* a DA                                                                    */
@@ -1588,12 +1638,14 @@ void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead)
       return;
 
    /* Check to see if we should perform passive DA detection */
-   if (G_SlpdProperty.passiveDADetection == 0)
+   if ((G_SlpdProperty.passiveDADetection == 0) &&
+       (G_SlpdProperty.staleDACheckPeriod == 0))
       return;
 
+   G_SlpdProperty.nextPassiveDAAdvert = G_SlpdProperty.nextPassiveDAAdvert - seconds;
    if (G_SlpdProperty.nextPassiveDAAdvert <= 0 || dadead)
    {
-      G_SlpdProperty.nextPassiveDAAdvert = G_SlpdProperty.DAHeartBeat;
+      G_SlpdProperty.nextPassiveDAAdvert += G_SlpdProperty.DAHeartBeat;
 
       /*Send the datagram, either broadcast or multicast*/
       if((G_SlpdProperty.isBroadcastOnly == 1) && SLPNetIsIPV4())
@@ -1674,9 +1726,6 @@ void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead)
          }
       }
    }
-   else
-      G_SlpdProperty.nextPassiveDAAdvert = G_SlpdProperty.nextPassiveDAAdvert
-            - seconds;
 }
 
 

@@ -70,6 +70,7 @@ int SLPDKnownDAGenerateMyV1DAAdvert(struct sockaddr_storage * localaddr,
 
 void SLPDKnownDAEcho(SLPMessage * msg, SLPBuffer buf);
 void SLPDKnownDAActiveDiscovery(int seconds);
+void SLPDKnownDAStaleDACheck(int seconds);
 void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead);
 void SLPDKnownDAImmortalRefresh(int seconds);
 void SLPDKnownDADeRegisterWithAllDas(SLPMessage * msg, SLPBuffer buf);

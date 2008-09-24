@@ -81,6 +81,11 @@
  */
 #define SLPD_AGE_INTERVAL 15
 
+/** Number of DA heartbeats sent per check period, when the system is
+ *  performing stale DA removal
+ */
+#define SLPD_HEARTBEATS_PER_CHECK_PERIOD 3
+
 /*! @} */
 
 #endif   /* SLPD_H_INCLUDED */

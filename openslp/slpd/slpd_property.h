@@ -75,6 +75,10 @@ typedef struct _SLPDProperty
    char * locale;
    int isBroadcastOnly;
    int passiveDADetection;
+   int staleDACheckPeriod;              /** The period within which a DA
+                                         *  advert must be received for a DA
+                                         *  to be considered active.
+                                         */
    int activeDADetection; 
    int DAActiveDiscoveryInterval;
    int activeDiscoveryXmits;

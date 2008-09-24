@@ -227,6 +227,7 @@ void HandleSigAlrm(void)
    SLPDOutgoingAge(SLPD_AGE_INTERVAL);
    SLPDKnownDAImmortalRefresh(SLPD_AGE_INTERVAL);
    SLPDKnownDAPassiveDAAdvert(SLPD_AGE_INTERVAL, 0);
+   SLPDKnownDAStaleDACheck(SLPD_AGE_INTERVAL);
    SLPDKnownDAActiveDiscovery(SLPD_AGE_INTERVAL);
    SLPDDatabaseAge(SLPD_AGE_INTERVAL, G_SlpdProperty.isDA);
 }

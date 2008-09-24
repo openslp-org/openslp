@@ -91,6 +91,7 @@ SLPDatabaseEntry * SLPDatabaseEntryCreate(SLPMessage * msg, SLPBuffer buf)
    {
       result->msg = msg;
       result->buf = buf;
+      result->entryvalue = 0;
    }
    return result;
 }
