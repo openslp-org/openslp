@@ -97,7 +97,7 @@ int SLPNetCompareAddrs(const void * addr1, const void * addr2);
 int SLPNetIsMCast(const void * addr);
 int SLPNetIsLocal(const void * addr);
 int SLPNetIsLoopback(const void * addr);
-int SLPNetSetAddr(void * addr, int family, uint16_t port, 
+int SLPNetSetAddr(struct sockaddr_storage * addr, int family, uint16_t port, 
       const void * address);
 int SLPNetSetParams(void * addr, int family, uint16_t port);
 int SLPNetSetPort(void * addr, uint16_t port);

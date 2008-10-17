@@ -532,7 +532,7 @@ int SLPNetIsLoopback(const void * addr)
  *    both address buffers must be large enough to accommodate
  *    the address family specified in @p family.
  */
-int SLPNetSetAddr(void * addr, int family,
+int SLPNetSetAddr(struct sockaddr_storage * addr, int family,
       uint16_t port, const void * address)
 {
    if (family == AF_INET)
