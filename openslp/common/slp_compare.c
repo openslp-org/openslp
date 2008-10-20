@@ -530,12 +530,13 @@ int SLPIntersectRemoveStringList(int list1len,
                                        itemend - itembegin,
                                        itembegin))
         {
-            result ++;
-
             /* String found in the list at position pos (1-based) */
             /* Remove it from list2                               */
             char* dest = list2+(pos-1);
             char* src = dest+(itemend-itembegin);
+
+            result++;
+
             if (src < list2end)
             {
                 if (*src == ',')

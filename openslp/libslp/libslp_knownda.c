@@ -177,6 +177,9 @@ int KnownDASpanningListFind(int scopelistlen,
                                     entry->msg->body.daadvert.spilist,
                                     spistrlen,
                                     spistr) == 0)
+#else
+                (void) spistr;  /*prevent compiler warnings about unused parameters*/
+                (void) spistrlen;
 #endif
                 {
                   if (entry->msg->peer.ss_family == AF_INET && SLPNetIsIPV4())

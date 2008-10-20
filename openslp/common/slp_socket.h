@@ -62,6 +62,7 @@
 # include <iptypes.h>
 # define so_bool_t char
 # define sockfd_t SOCKET
+# define ssize_t int
 # define inet_aton(opt, bind) ((bind)->s_addr = inet_addr(opt))
 # define SLP_INVALID_SOCKET INVALID_SOCKET
 # define ETIMEDOUT 110

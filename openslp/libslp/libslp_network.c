@@ -53,6 +53,60 @@
 #include "slp_xcast.h"
 #include "slp_socket.h"
 
+#ifdef _WIN32
+
+#define DELTA_EPOCH_IN_MICROSECS  11644473600000000ULL
+struct timezone 
+{
+  int  tz_minuteswest; /* minutes W of Greenwich */
+  int  tz_dsttime;     /* type of dst correction */
+};
+
+/** A version of gettimeofday for Windows.
+ *
+ * @param[in] tp - timeval containing number of seconds/microseconds since Jan 1 1970
+ * @param[in] tzp - time zone modifier -- Ignored, since the code isn't using it
+ *
+ * A version of gettimeofday for Windows.  Grabbed from MSDN.
+ *
+ * @internal
+ */
+int gettimeofday(struct timeval *tv, struct timezone *tz)
+{
+  FILETIME ft;
+  unsigned __int64 tmpres = 0;
+  static int tzflag;
+ 
+  if (NULL != tv)
+  {
+    GetSystemTimeAsFileTime(&ft);
+ 
+    tmpres |= ft.dwHighDateTime;
+    tmpres <<= 32;
+    tmpres |= ft.dwLowDateTime;
+ 
+    /*converting file time to unix epoch*/
+    tmpres -= DELTA_EPOCH_IN_MICROSECS; 
+    tmpres /= 10;  /*convert into microseconds*/
+    tv->tv_sec = (long)(tmpres / 1000000UL);
+    tv->tv_usec = (long)(tmpres % 1000000UL);
+  }
+ 
+  if (NULL != tz)
+  {
+    if (!tzflag)
+    {
+      _tzset();
+      tzflag++;
+    }
+    tz->tz_minuteswest = _timezone / 60;
+    tz->tz_dsttime = _daylight;
+  }
+ 
+  return 0;
+}
+#endif
+
 /** Subtracts one timeval from another.
  *
  * @param[in] lhs - timeval to be subtracted from
@@ -757,7 +811,7 @@ SLPError NetworkMcastRqstRply(SLPHandleInfo * handle, void * buf,
    SLPError result = 0;
    size_t langtaglen = 0;
    size_t prlistlen = 0;
-	size_t prlistsize = 0;
+   size_t prlistsize = 0;
    int size = 0;
    char * prlist = 0;
    int xid = 0;
@@ -851,7 +905,7 @@ SLPError NetworkMcastRqstRply(SLPHandleInfo * handle, void * buf,
     * previous responders there are.   This is because the retransmit
     * code terminates if ever MTU is exceeded for any datagram message. 
     */
-	prlistsize = mtu;
+   prlistsize = mtu;
    prlist = (char *)xmalloc(mtu);
    if (!prlist)
    {
@@ -1063,11 +1117,11 @@ SNEEK:
                   goto CLEANUP; /* Caller does not want any more info */
 
                /* add the peer to the previous responder list */
-					if (prlistlen + 1 + strlen(addrstr) >= prlistsize)
-					{
-						prlist = xrealloc(prlist, prlistsize + mtu);
-						prlistsize += mtu;
-					}
+               if (prlistlen + 1 + strlen(addrstr) >= prlistsize)
+               {
+                  prlist = xrealloc(prlist, prlistsize + mtu);
+                  prlistsize += mtu;
+               }
                if (prlistlen != 0)
                   strcat(prlist, ",");
                if (*addrstr != 0) 
@@ -1203,14 +1257,14 @@ SLPError NetworkMultiUcastRqstRply(
     int                 xid             = 0;
     int                 mtu             = 0;
     int                 ndests          = 0;    // Number of destinations
-    int                 nfds            = 0;    // Number of file descriptors in the FD_SET
+    sockfd_t            nfds            = 0;    // Number of file descriptors in the FD_SET
     int                 send_size       = 0;
     int                 selected        = 0;
     int                 xmitcount       = 0;
     int                 rplycount       = 0;
     int                 maxwait         = 0;
     int                 timeouts[MAX_RETRANSMITS];
-    int                 udp_socket      = -1;
+    sockfd_t            udp_socket      = (sockfd_t)-1;
     int                 udp_active      = 0;
     int                 do_send         = 1;
     unsigned short      flags;
@@ -1224,7 +1278,7 @@ SLPError NetworkMultiUcastRqstRply(
     socklen_t           peeraddrlen = sizeof (struct sockaddr_in);
     struct _UcastConnection {
         int         state;
-        int         socket;
+        sockfd_t    socket;
         int         send_offset;
         int         recv_offset;
         int         recv_size;
@@ -1241,6 +1295,13 @@ SLPError NetworkMultiUcastRqstRply(
     {
         return SLP_PARAMETER_BAD;
     }
+#endif
+
+#ifdef _WIN32
+    /*windows gives a warning that timeout_end may not be initted --
+      apparently it doesn't understand while(1)*/
+    timeout_end.tv_sec = 0;
+    timeout_end.tv_usec = 0;
 #endif
 
     /*----------------------------------------------------*/
@@ -1312,12 +1373,11 @@ SLPError NetworkMultiUcastRqstRply(
     {
         struct _UcastConnection *pconn = &pconnections[i];
         pconn->state = CONN_UDP;
-        pconn->socket = -1;
+        pconn->socket = (sockfd_t)-1;
         pconn->send_offset = 0;
         pconn->recv_offset = 0;
         pconn->recv_size = MIN_RECEIVE_SIZE;            /* enough to receive the length field */
         pconn->read_buffer = NULL;
-        pconn->socket = -1;
     }
     if (result != SLP_OK)
         goto FINISHED;
@@ -1430,7 +1490,7 @@ SLPError NetworkMultiUcastRqstRply(
                     flags = MSG_NOSIGNAL;
 #endif
                     if (sendto(udp_socket, 
-                               sendbuf->start,
+                               (char*)sendbuf->start,
                                sendbuf->curpos - sendbuf->start,
                                flags,
                                (struct sockaddr *)&destaddr[i],
@@ -1552,7 +1612,11 @@ SLPError NetworkMultiUcastRqstRply(
         }
         if (selected < 0)
         {
+#ifdef _WIN32
+            if (WSAGetLastError() == WSAEINTR)
+#else
             if (errno == EINTR)
+#endif
                 /* interrupted - just carry on */
                 continue;
             /* error - can't carry on */
@@ -1591,10 +1655,10 @@ SLPError NetworkMultiUcastRqstRply(
                 {
                     udp_recvbuf = SLPBufferRealloc(udp_recvbuf, AS_UINT24(peek + 2));
                     bytesread = recv(udp_socket,
-                                     udp_recvbuf->curpos,
+                                     (char*)udp_recvbuf->curpos,
                                      udp_recvbuf->end - udp_recvbuf->curpos,
                                      0);
-                    if(bytesread != AS_UINT24(peek + 2))
+                    if(bytesread != (int32_t)AS_UINT24(peek + 2))
                     {
                         /* This should never happen but we'll be paranoid*/
                         udp_recvbuf->end = udp_recvbuf->curpos + bytesread;
@@ -1611,13 +1675,13 @@ SLPError NetworkMultiUcastRqstRply(
                     /* We need to read the message to clear the UDP socket */
                     bytesread = recv(udp_socket,
                                      udp_recvbuf->start,
-	                             1,
+                                     1,
                                      0);
 #else
                     /* Reading SLP_MAX_DATAGRAM_SIZE bytes on the socket */
                     udp_recvbuf = SLPBufferRealloc(udp_recvbuf, SLP_MAX_DATAGRAM_SIZE);
                     bytesread = recv(udp_socket,
-                                     udp_recvbuf->curpos,
+                                     (char*)udp_recvbuf->curpos,
                                      udp_recvbuf->end - udp_recvbuf->curpos,
                                      0);
                     if(bytesread != SLP_MAX_DATAGRAM_SIZE)
@@ -1634,7 +1698,7 @@ SLPError NetworkMultiUcastRqstRply(
             {
                 /* Not even the minimum bytes available - read and discard */
                 bytesread = recv(udp_socket,
-                                 udp_recvbuf->start,
+                                 (char*)udp_recvbuf->start,
                                  1,
                                  0);
             }
@@ -1657,7 +1721,7 @@ SLPError NetworkMultiUcastRqstRply(
                     int bytes_sent;
 
                     pconn->state = CONN_TCP_SEND;
-                    bytes_sent = write(pconn->socket, sendbuf->start+pconn->send_offset, send_size-pconn->send_offset);
+                    bytes_sent = send(pconn->socket, (char*)sendbuf->start+pconn->send_offset, send_size-pconn->send_offset, 0);
                     if (bytes_sent > 0)
                     {
                         pconn->send_offset += bytes_sent;
@@ -1687,7 +1751,7 @@ SLPError NetworkMultiUcastRqstRply(
                 if (pconn->state == CONN_TCP_RECEIVE)
                 {
                     int size_to_read = pconn->recv_size - pconn->recv_offset;
-                    int bytes_read = read(pconn->socket, pconn->read_buffer->start+pconn->recv_offset, size_to_read);
+                    int bytes_read = recv(pconn->socket, (char*)pconn->read_buffer->start+pconn->recv_offset, size_to_read, 0);
                     if (bytes_read > 0)
                     {
                         pconn->recv_offset += bytes_read;
@@ -1756,8 +1820,8 @@ SLPError NetworkMultiUcastRqstRply(
                         if (SetNonBlocking(pconn->socket) < 0)
                         {
                             result = SLP_NETWORK_ERROR;
-                            close(pconn->socket);
-                            pconn->socket = -1;
+                            closesocket(pconn->socket);
+                            pconn->socket = (sockfd_t)-1;
                             pconn->state = CONN_FAILED;
                         }
                     }
@@ -1775,7 +1839,11 @@ SLPError NetworkMultiUcastRqstRply(
                             /* Initiate a connect to the destination                */
                             if (connect(pconn->socket, (struct sockaddr *)&destaddr[i], sizeof destaddr[i]) < 0)
                             {
+#ifdef _WIN32
+                                if (WSAGetLastError() != WSAEINPROGRESS)
+#else
                                 if ((errno != 0) && (errno != EINPROGRESS))
+#endif
                                 {
                                     /* Connect operation failed immediately ! */
                                     result = SLP_NETWORK_ERROR;

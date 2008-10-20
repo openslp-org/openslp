@@ -324,7 +324,7 @@ static SLPError ProcessSrvRqst(SLPHandleInfo * handle)
          {
             serr = NetworkMultiUcastRqstRply(destaddrs,
                                              handle->langtag,
-                                             buf,
+                                             (char*)buf,
                                              SLP_FUNCT_SRVRQST,
                                              curpos - buf,
                                              ProcessSrvRplyCallback,

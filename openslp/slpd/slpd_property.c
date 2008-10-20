@@ -44,6 +44,7 @@
 #include "slp_iface.h"
 #include "slp_net.h"
 #include "slp_xmalloc.h"
+#include "slpd_log.h"
 
 /** The global daemon attribute structure
  */

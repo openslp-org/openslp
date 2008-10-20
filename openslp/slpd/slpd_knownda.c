@@ -1594,6 +1594,8 @@ void SLPDKnownDAStaleDACheck(int seconds)
       SLPDatabaseEntry * entry;
       SLPDatabaseEntry * nextEntry;
 
+      (void) seconds;  /*unused parameter warning*/
+
       dh = SLPDatabaseOpen(&G_SlpdKnownDAs);
       if (dh)
       {

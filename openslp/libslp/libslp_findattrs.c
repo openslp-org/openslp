@@ -45,6 +45,7 @@
 #include "slp_message.h"
 #include "slp_xmalloc.h"
 #include "slp_property.h"
+#include "slp_net.h"
 
 /** SLPFindAttrs callback routine for NetworkRqstRply.
  *
@@ -191,7 +192,7 @@ static SLPError ProcessAttrRqst(SLPHandleInfo * handle)
          {
             serr = NetworkMultiUcastRqstRply(destaddrs,
                                              handle->langtag,
-                                             buf,
+                                             (char*)buf,
                                              SLP_FUNCT_ATTRRQST,
                                              curpos - buf,
                                              ProcessAttrRplyCallback,
