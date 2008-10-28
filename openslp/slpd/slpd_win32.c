@@ -195,10 +195,18 @@ static void ServiceStart(int argc, char ** argv)
    if (!ReportStatusToSCMgr(SERVICE_START_PENDING, NO_ERROR, 3000))
       goto cleanup_winsock;
 
-   /* initialize the log file */
-   if (SLPDLogFileOpen(G_SlpdCommandLine.logfile, 1))
+   /* Initialize the preferences so we know if the log file is to be
+      overwritten or appended.*/
+   if (SLPDPropertyInit(G_SlpdCommandLine.cfgfile))
    {
-      SLPDLog("Could not open logfile %s\n",G_SlpdCommandLine.logfile);
+      fprintf(stderr, "slpd initialization failed during property load\n");
+      goto cleanup_winsock;
+   }
+
+   /* initialize the log file */
+   if (SLPDLogFileOpen(G_SlpdCommandLine.logfile, G_SlpdProperty.appendLog))
+   {
+      fprintf(stderr, "Could not open logfile %s\n",G_SlpdCommandLine.logfile);
       goto cleanup_winsock;
    }
 
@@ -217,8 +225,8 @@ static void ServiceStart(int argc, char ** argv)
       goto cleanup_winsock;
 
    /* initialize for the first time */
-   if (SLPDPropertyInit(G_SlpdCommandLine.cfgfile) 
-         || SLPDDatabaseInit(G_SlpdCommandLine.regfile) 
+   SLPDPropertyReinit();  /*So we get any property-related log messages*/
+   if (SLPDDatabaseInit(G_SlpdCommandLine.regfile) 
          || SLPDIncomingInit() 
          || SLPDOutgoingInit() 
          || SLPDKnownDAInit())

@@ -287,6 +287,16 @@ int SLPCompareString(size_t str1len, const char * str1,
    while (str2len && isspace(str2[str2len - 1]))
       str2len--;
 
+   /*A quick check for empty strings before we start xmemduping and xfreeing*/
+   if (str1len == 0 || str2len == 0)
+   {
+      if(str1len == str2len)
+         return 0;
+      if(str1len < str2len)
+         return -1;
+      return 1;
+   }
+
    /* Make modifiable copies. If either fails, compare original strings. */
    cpy1 = xmemdup(str1, str1len);
    cpy2 = xmemdup(str2, str2len);

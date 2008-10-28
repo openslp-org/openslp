@@ -481,8 +481,13 @@ int main(int argc, char * argv[])
       SLPDFatal("slpd is already running. Check %s\n",
             G_SlpdCommandLine.pidfile);
 
+   /* Initialize the preferences so we know if the log file is to be
+      overwritten or appended.*/
+   if (SLPDPropertyInit(G_SlpdCommandLine.cfgfile))
+      SLPDFatal("slpd initialization failed during property load\n");
+
    /* initialize the log file */
-   if (SLPDLogFileOpen(G_SlpdCommandLine.logfile, 1))
+   if (SLPDLogFileOpen(G_SlpdCommandLine.logfile, G_SlpdProperty.appendLog))
       SLPDFatal("Could not open logfile %s\n",G_SlpdCommandLine.logfile);
 
    /* seed the XID generator */
@@ -501,11 +506,12 @@ int main(int argc, char * argv[])
 #endif
 
    /* initialize for the first time */
-   if (SLPDPropertyInit(G_SlpdCommandLine.cfgfile)
+   SLPDPropertyReinit();  /*So we get any property-related log messages*/
+   if (
 #ifdef ENABLE_SLPv2_SECURITY
-         || SLPDSpiInit(G_SlpdCommandLine.spifile)
+         SLPDSpiInit(G_SlpdCommandLine.spifile) ||
 #endif     
-         || SLPDDatabaseInit(G_SlpdCommandLine.regfile)
+         SLPDDatabaseInit(G_SlpdCommandLine.regfile)
          || SLPDIncomingInit() 
          || SLPDOutgoingInit() 
          || SLPDKnownDAInit())

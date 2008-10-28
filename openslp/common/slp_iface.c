@@ -215,7 +215,34 @@ static int SLPIfaceParseProc(SLPIfaceInfo * ifaceinfo)
 #endif /*LINUX, pt1*/
 
 /** @todo: evaluate network interface discovery on AIX, Solaris, and Hpux */
-#if defined(LINUX) || defined(AIX) || defined(SOLARIS) || defined(HPUX)
+#if defined(LINUX) || defined(AIX) || defined(SOLARIS) || defined(HPUX) || defined(DARWIN)
+
+/** Small helper for SLPIfaceGetDefaultInfo
+ *
+ * Returns the size of the ifr structure, which is dependent upon the address family.
+ * The size includes the size of the ifr_name field
+ *
+ * @param[in] ifr - the ifr structure to size
+ *
+ * @return The calculated size of the structure
+ *
+ * @internal
+ */
+int sizeof_ifreq(struct ifreq* ifr)
+{
+   int len = sizeof(struct sockaddr);  /*The default for most addr types*/
+
+#ifdef HAVE_SOCKADDR_STORAGE_SS_LEN
+   if (len < ifr->ifr_addr.sa_len)
+      len = ifr->ifr_addr.sa_len;
+#else
+   if (ifr->ifr_addr.sa_family == AF_INET6)
+      len = sizeof(struct sockaddr_in6);
+#endif
+
+   len += sizeof(ifr->ifr_name);
+   return len;
+}
 
 /** Get all network interface addresses for this host.
  * 
@@ -239,11 +266,12 @@ static int SLPIfaceParseProc(SLPIfaceInfo * ifaceinfo)
  */
 int SLPIfaceGetDefaultInfo(SLPIfaceInfo * ifaceinfo, int family)
 {
-   int i;
    sockfd_t fd;
-   struct sockaddr * sa;
    struct ifreq ifrlist[SLP_MAX_IFACES];
    struct ifreq ifrflags;
+   struct ifreq * ifr;
+   struct sockaddr* sa;
+   char * p;
 
    struct ifconf ifc;
    ifc.ifc_len = sizeof(struct ifreq) * SLP_MAX_IFACES;
@@ -267,13 +295,16 @@ int SLPIfaceGetDefaultInfo(SLPIfaceInfo * ifaceinfo, int family)
             return -1;
          }
 
-         for (i = 0; i < ifc.ifc_len/sizeof(struct ifreq); i++)
+         for (p = ifc.ifc_buf; p < ifc.ifc_buf + ifc.ifc_len;)
          {
-            sa = (struct sockaddr *)&(ifrlist[i].ifr_addr);
+            ifr = (struct ifreq*) p;
+            sa = (struct sockaddr*)&(ifr->ifr_addr);
+            p += sizeof_ifreq(ifr);  /*for next iteration*/
+
             if (sa->sa_family == AF_INET6)
             {
                /* get interface flags, skip loopback addrs */
-               memcpy(&ifrflags, &(ifrlist[i]), sizeof(struct ifreq));
+               memcpy(&ifrflags, ifr, sizeof(struct ifreq));
                if (ioctl(fd, SIOCGIFFLAGS, &ifrflags) == 0
                      && (ifrflags.ifr_flags & IFF_LOOPBACK) == 0
                      && (GetV6Scope((struct sockaddr_in6*)sa) == 0))
@@ -304,13 +335,16 @@ int SLPIfaceGetDefaultInfo(SLPIfaceInfo * ifaceinfo, int family)
             return -1;
          }
 
-         for (i = 0; i < ifc.ifc_len/sizeof(struct ifreq); i++)
+         for (p = ifc.ifc_buf; p < ifc.ifc_buf + ifc.ifc_len;)
          {
-            sa = (struct sockaddr *)&(ifrlist[i].ifr_addr);
+            ifr = (struct ifreq*) p;
+            sa = (struct sockaddr*)&(ifr->ifr_addr);
+            p += sizeof_ifreq(ifr);  /*for next iteration*/
+
             if (sa->sa_family == AF_INET)
             {
                /* get interface flags, skip loopback addrs */
-               memcpy(&ifrflags, &(ifrlist[i]), sizeof(struct ifreq));
+               memcpy(&ifrflags, ifr, sizeof(struct ifreq));
                if (ioctl(fd, SIOCGIFFLAGS, &ifrflags) == 0
                      && (ifrflags.ifr_flags & IFF_LOOPBACK) == 0)
                   memcpy(&ifaceinfo->iface_addr[ifaceinfo->iface_count++], 

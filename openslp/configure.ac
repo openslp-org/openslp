@@ -173,6 +173,7 @@ case "${host_os}" in
   *solaris*) CPPFLAGS="$CPPFLAGS -DSOLARIS" ;;
   *aix*)     CPPFLAGS="$CPPFLAGS -DAIX"     ;;
   *hpux*)    CPPFLAGS="$CPPFLAGS -DHPUX"    ;;
+  *darwin*)  CPPFLAGS="$CPPFLAGS -DDARWIN"  ;;
 esac
 
 # Determine if building for sparc and if so set cpu to v9

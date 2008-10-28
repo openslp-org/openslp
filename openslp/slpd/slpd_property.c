@@ -104,6 +104,7 @@ void SLPDPropertyReinit(void)
    G_SlpdProperty.traceReg = SLPPropertyAsBoolean("net.slp.traceReg");
    G_SlpdProperty.traceDrop = SLPPropertyAsBoolean("net.slp.traceDrop");
    G_SlpdProperty.traceDATraffic = SLPPropertyAsBoolean("net.slp.traceDATraffic");
+   G_SlpdProperty.appendLog = SLPPropertyAsBoolean("net.slp.appendLog");
 
    if ((G_SlpdProperty.DAAddresses = SLPPropertyXDup("net.slp.DAAddresses")) != 0)
       G_SlpdProperty.DAAddressesLen = strlen(G_SlpdProperty.DAAddresses);

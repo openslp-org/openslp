@@ -116,6 +116,7 @@ static int SetDefaultValues(void)
       {"net.slp.traceMsg", "false", 0},
       {"net.slp.traceDrop", "false", 0},
       {"net.slp.traceReg", "false", 0},
+      {"net.slp.appendLog", "true", 0},
 
    /* Section 2.1.4 Serialized Proxy Registrations */
       {"net.slp.serializedRegURL", "", 0},

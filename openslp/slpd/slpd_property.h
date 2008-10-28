@@ -98,6 +98,7 @@ typedef struct _SLPDProperty
    int securityEnabled;
    int checkSourceAddr;
    int DAHeartBeat;
+   int appendLog;
 } SLPDProperty;
 
 extern SLPDProperty G_SlpdProperty;
