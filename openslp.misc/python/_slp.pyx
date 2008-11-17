@@ -122,7 +122,11 @@ cdef class SLPConn:
     # functions if no explicit parameter is specified in the call
     def __init__(self, char *lang, int async, object defaultcookie = None):
         self.cookie = defaultcookie
-        err = SLPOpen(lang, async, &self.slph)
+        if async:
+            f = SLP_TRUE
+        else:
+            f = SLP_FALSE
+        err = SLPOpen(lang, f, &self.slph)
         if err != SLP_OK:
             raise EnvironmentError(err, "")
 
@@ -140,7 +144,7 @@ cdef class SLPConn:
                  object callback, object cookie = None):
         pycb = (callback, cookie or self.cookie)
         return SLPReg(self.slph, srvurl, <unsigned short>lifetime, "",
-                      attrs, 1, errcb, <void *>pycb)
+                      attrs, SLP_TRUE, errcb, <void *>pycb)
                  
     # deregister an SLP service
     def deregister(self, char *srvurl, object callback,
@@ -200,7 +204,11 @@ def parsesrvurl(char *srvurl):
 def escape(char *s, int isTag):
     """Escape given string"""
     cdef char *outs
-    err = SLPEscape(s, &outs, isTag)
+    if isTag:
+        f = SLP_TRUE
+    else:
+        f = SLP_FALSE
+    err = SLPEscape(s, &outs, f)
     if err != SLP_OK:
         raise EnvironmentError(err, "")
     ret = outs
@@ -210,7 +218,11 @@ def escape(char *s, int isTag):
 def unescape(char *s, int isTag):
     """Unescape given string"""
     cdef char *outs
-    err = SLPUnescape(s, &outs, isTag)
+    if isTag:
+        f = SLP_TRUE
+    else:
+        f = SLP_FALSE
+    err = SLPUnescape(s, &outs, f)
     if err != SLP_OK:
         raise EnvironmentError(err, "")
     ret = outs
