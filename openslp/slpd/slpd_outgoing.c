@@ -409,7 +409,7 @@ SLPDSocket * SLPDOutgoingConnect(int is_TCP, struct sockaddr_storage * addr)
       {
          SLPListLinkTail(&(G_OutgoingSocketList), (SLPListItem *) sock);
          sock->reconns = 0;
-         sock->age = G_SlpdProperty.unicastTimeouts[0];
+         sock->age = 0;
       }
    }
 
@@ -536,8 +536,8 @@ void SLPDOutgoingRetry(time_t seconds)
              del = sock;
           else
           {
-             sock->age -= seconds * 1000;
-             if(sock->age <= 0)
+             sock->age += seconds;
+             if(sock->age >= G_SlpdProperty.unicastTimeouts[sock->reconns] / 1000)
              {
                ++sock->reconns;
                if(sock->reconns >= MAX_RETRANSMITS)  
@@ -552,7 +552,7 @@ void SLPDOutgoingRetry(time_t seconds)
                else
                {
                   SLPBuffer pbuf;
-                  sock->age = G_SlpdProperty.unicastTimeouts[sock->reconns];
+                  sock->age = 0;
                   for(pbuf = (SLPBuffer) sock->sendlist.head; pbuf; pbuf = (SLPBuffer) pbuf->listitem.next)
                      SLPDOutgoingDatagramWrite(sock, pbuf);
                }
