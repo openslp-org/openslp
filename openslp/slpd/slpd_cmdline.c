@@ -114,7 +114,7 @@ int SLPDParseCommandLine(int argc, char * argv[])
       {
          G_SlpdCommandLine.action = SLPD_REMOVE;
       }
-      else if (strcmp(argv[i], "-debug") == 0)
+	  else if ((strcmp(argv[i], "-debug") == 0) || (strcmp(argv[i], "-d") == 0))
       {
          G_SlpdCommandLine.action = SLPD_DEBUG;
       }
