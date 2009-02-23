@@ -294,12 +294,14 @@ int SLPDRegFileReadSrvReg(FILE * fd, SLPMessage ** msg, SLPBuffer * buf)
                   goto CLEANUP;
                }
 
-               /* make sure there are no spaces in the scope list */
+               /* make sure there are no spaces in the scope list
+		NOTE: There's nothing in the spec that indicates that
+		scopes can't contain spaces. Commenting out for now. --jmc
                if (strchr(slider2, ' '))
                {
                   result = SLP_ERROR_SCOPE_NOT_SUPPORTED;
                   goto CLEANUP;
-               }
+               } */
 
                scopelist = xstrdup(TrimWhitespace(slider2));
                if (scopelist == 0)
