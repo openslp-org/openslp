@@ -205,7 +205,7 @@ int KnownDASpanningListFind(int scopelistlen,
                            &(((struct sockaddr_in *)&entry->msg->peer)->sin_addr),
                            sizeof(struct in_addr));
                     destaddrs[numdas].sin_family = PF_INET;
-                    destaddrs[numdas].sin_port = htons(SLP_RESERVED_PORT);
+                    destaddrs[numdas].sin_port = htons((uint16_t)SLPPropertyAsInteger("net.slp.port"));
                     ++numdas;
                   }
                 }
