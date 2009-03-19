@@ -219,7 +219,8 @@ static int SLPIfaceParseProc(SLPIfaceInfo * ifaceinfo)
 
 /** Small helper for SLPIfaceGetDefaultInfo
  *
- * Returns the size of the ifr structure, which is dependent upon the address family.
+ * Returns the size of the ifr structure, which is dependent upon
+ * whether or not the socket address contains a length.
  * The size includes the size of the ifr_name field
  *
  * @param[in] ifr - the ifr structure to size
@@ -230,18 +231,14 @@ static int SLPIfaceParseProc(SLPIfaceInfo * ifaceinfo)
  */
 int sizeof_ifreq(struct ifreq* ifr)
 {
-   int len = sizeof(struct sockaddr);  /*The default for most addr types*/
-
 #ifdef HAVE_SOCKADDR_STORAGE_SS_LEN
-   if (len < ifr->ifr_addr.sa_len)
-      len = ifr->ifr_addr.sa_len;
+  int len = ifr->ifr_addr.sa_len + sizeof(ifr->ifr_name);
+  if(len < sizeof(struct ifreq))
+    len = sizeof(struct ifreq);
+  return len;
 #else
-   if (ifr->ifr_addr.sa_family == AF_INET6)
-      len = sizeof(struct sockaddr_in6);
+  return sizeof(struct ifreq);
 #endif
-
-   len += sizeof(ifr->ifr_name);
-   return len;
 }
 
 /** Get all network interface addresses for this host.
