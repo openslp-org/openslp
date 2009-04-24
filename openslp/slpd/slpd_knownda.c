@@ -135,11 +135,18 @@ int MakeActiveDiscoveryRqst(int ismcast, SLPBuffer * buffer)
          if(SLP_MAX_DATAGRAM_SIZE - size < prlistlen + sizeof(addr_str) + 1) /*1 for the comma*/
             break;
 
-         strcat(prlist,
-               SLPNetSockAddrStorageToString(&(msg->peer), addr_str,
-                     sizeof(addr_str)));
-         strcat(prlist, ",");
-         prlistlen = strlen(prlist);
+         *addr_str = 0;
+         SLPNetSockAddrStorageToString(&(msg->peer), addr_str,
+                     sizeof(addr_str));
+         size_t addrstrlen = strlen(addr_str);
+         if (addrstrlen > 0 && SLPContainsStringList(prlistlen,
+                     prlist, addrstrlen, addr_str) == 0)
+         {
+            if (prlistlen != 0)
+               strcat(prlist, ",");
+            strcat(prlist, addr_str);
+            prlistlen = strlen(prlist);
+         }
       }
 
       SLPDKnownDAEnumEnd(eh);

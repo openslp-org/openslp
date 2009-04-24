@@ -734,11 +734,12 @@ SLPError NetworkRqstRply(sockfd_t sock, void * peeraddr,
                {
                   /* Convert peeraddr to string and length. */
                   char addrstr[INET6_ADDRSTRLEN] = "";
-                  saddr_ntop(&addr, addrstr, sizeof(addrstr));
-                  if (*addrstr != 0)
+                  SLPNetSockAddrStorageToString(&addr,
+                           addrstr, sizeof(addrstr));
+                  size_t addrstrlen = strlen(addrstr);
+                  if (addrstrlen > 0 && SLPContainsStringList(prlistlen,
+                           prlist, addrstrlen, addrstr) == 0)
                   {
-                     size_t addrstrlen = strlen(addrstr);
-
                      /* Append to the prlist if we won't overflow. */
                      if (prlistlen + addrstrlen + 1 < mtu)
                      {
@@ -1103,7 +1104,7 @@ SNEEK:
             {
                char addrstr[INET6_ADDRSTRLEN] = "";
 
-               saddr_ntop(&addr, addrstr, sizeof(addrstr));
+               SLPNetSockAddrStorageToString(&addr, addrstr, sizeof(addrstr));
 
                ++replies_this_period;
                rplycount += 1;
@@ -1117,15 +1118,17 @@ SNEEK:
                   goto CLEANUP; /* Caller does not want any more info */
 
                /* add the peer to the previous responder list */
-               if (prlistlen + 1 + strlen(addrstr) >= prlistsize)
+               size_t addrstrlen = strlen(addrstr);
+               if (addrstrlen > 0 && SLPContainsStringList(prlistlen,
+                           prlist, addrstrlen, addrstr) == 0)
                {
-                  prlist = xrealloc(prlist, prlistsize + mtu);
-                  prlistsize += mtu;
-               }
-               if (prlistlen != 0)
-                  strcat(prlist, ",");
-               if (*addrstr != 0) 
-               {
+                  if (prlistlen + 1 + addrstrlen >= prlistsize)
+                  {
+                     prlist = xrealloc(prlist, prlistsize + mtu);
+                     prlistsize += mtu;
+                  }
+                  if (prlistlen != 0)
+                     strcat(prlist, ",");
                   strcat(prlist, addrstr);
                   prlistlen = strlen(prlist);
                }
