@@ -419,14 +419,14 @@ int SLPCompareSrvType(size_t lsrvtypelen, const char * lsrvtype,
 
 /** Scan a string list for a string. 
  *
- * Determine if a specifed string list contains a specified string.
+ * Determine if a specified string list contains a specified string.
  * 
  * @param[in] list - A list of strings to search for @p string.
  * @param[in] listlen - The length of @p list in bytes.
  * @param[in] string - A string to locate in @p list.
  * @param[in] stringlen - The length of @p string in bytes.
  * 
- * @return Zero if @p string is found in @p list; non-zero if not. 
+ * @return Non-zero if @p string is found in @p list; zero if not.
  *
  * @remarks The @p list parameter is a zero-terminated string consisting
  *    of a comma-separated list of sub-strings. This routine actually
