@@ -129,6 +129,8 @@ int MakeActiveDiscoveryRqst(int ismcast, SLPBuffer * buffer)
    {
       while (1)
       {
+			size_t addrstrlen;
+
          if (SLPDKnownDAEnum(eh, &msg, &tmp) == 0)
             break;
          /*Make sure we have room for the potential pr addr*/
@@ -138,7 +140,7 @@ int MakeActiveDiscoveryRqst(int ismcast, SLPBuffer * buffer)
          *addr_str = 0;
          SLPNetSockAddrStorageToString(&(msg->peer), addr_str,
                      sizeof(addr_str));
-         size_t addrstrlen = strlen(addr_str);
+         addrstrlen = strlen(addr_str);
          if (addrstrlen > 0 && SLPContainsStringList(prlistlen,
                      prlist, addrstrlen, addr_str) == 0)
          {

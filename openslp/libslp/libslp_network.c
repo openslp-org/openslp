@@ -733,10 +733,11 @@ SLPError NetworkRqstRply(sockfd_t sock, void * peeraddr,
                if (prlist)
                {
                   /* Convert peeraddr to string and length. */
-                  char addrstr[INET6_ADDRSTRLEN] = "";
+                  size_t addrstrlen;
+						char addrstr[INET6_ADDRSTRLEN] = "";
                   SLPNetSockAddrStorageToString(&addr,
                            addrstr, sizeof(addrstr));
-                  size_t addrstrlen = strlen(addrstr);
+                  addrstrlen = strlen(addrstr);
                   if (addrstrlen > 0 && SLPContainsStringList(prlistlen,
                            prlist, addrstrlen, addrstr) == 0)
                   {
@@ -1103,6 +1104,7 @@ SNEEK:
             if (AS_UINT16(recvbuf->start + 10) == xid)
             {
                char addrstr[INET6_ADDRSTRLEN] = "";
+					size_t addrstrlen;
 
                SLPNetSockAddrStorageToString(&addr, addrstr, sizeof(addrstr));
 
@@ -1118,7 +1120,7 @@ SNEEK:
                   goto CLEANUP; /* Caller does not want any more info */
 
                /* add the peer to the previous responder list */
-               size_t addrstrlen = strlen(addrstr);
+               addrstrlen = strlen(addrstr);
                if (addrstrlen > 0 && SLPContainsStringList(prlistlen,
                            prlist, addrstrlen, addrstr) == 0)
                {
