@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="8.00"
 	Name="slpd"
 	ProjectGUID="{53129836-E380-4C7A-AC39-8D73E5ACFFC1}"
 	TargetFrameworkVersion="131072"
