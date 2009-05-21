@@ -18,13 +18,19 @@ download the 850 MB ISO image).
 The OpenSLP maintainers will now upgrade project and make files for the 
 latest version of Visual Studio Express (read "free") with each new minor 
 version of the OpenSLP project. This new policy begins with OpenSLP version 
-2.0, which requires Visual Studio 2008 Express, Visual C++ component. Please 
-download this product from Microsoft at: 
+2.0, which requires at least Visual Studio 2005 Express, Visual C++ component.
+Please download this product (or the latest) from Microsoft at: 
 
     http://www.microsoft.com/express/vc
 
+Visual Studio 2005 Express requires the user to acquire a recent version of
+the WIN32 SDK.
+
 Visual Studio 2008 Express version comes prepackaged and preconfigured to use
-a reasonably recent version of the WIN32 SDK. 
+a reasonably recent version of the WIN32 SDK. The VS solution and project files
+are configured for VS 2005, but VS 2008 will automatically upgrade them within
+your work area. (If you're a maintainer, please don't accidentally commit the 
+upgraded versions when you check in changes.)
 
 Current State
 -------------
