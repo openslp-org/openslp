@@ -295,7 +295,7 @@ static void IncomingSocketListen(SLPList * socklist, SLPDSocket * sock)
                 * (the length of the smallest slpv2 message). Note that Winsock
                 * doesn't support these socket level options, so we skip them.
                 */
-               int lowat;
+               int lowat = 18;
                setsockopt(connsock->fd, SOL_SOCKET, SO_RCVLOWAT, 
                      (char *)&lowat, sizeof(lowat));
                setsockopt(connsock->fd, SOL_SOCKET, SO_SNDLOWAT, 
