@@ -592,8 +592,8 @@ int SLPDDatabaseSrvTypeRqstStart(SLPMessage * msg,
                         (*result)->srvtypelist, entryreg->srvtypelen,
                         entryreg->srvtype) == 0)
             {
-               /* Check to see if we allocated a big enough srvtypelist */
-               if ((*result)->srvtypelistlen + entryreg->srvtypelen 
+               /* Check to see if we allocated a big enough srvtypelist, not forgetting to allow for a comma separator */
+               if ((*result)->srvtypelistlen + entryreg->srvtypelen + 1
                      > G_SlpdDatabase.srvtypelistlen)
                {
                   /* Oops we did not allocate a big enough result */
