@@ -572,7 +572,6 @@ SLPError NetworkRqstRply(sockfd_t sock, void * peeraddr,
          timeout.tv_sec = maxwait / 1000;
          timeout.tv_usec = (maxwait % 1000) * 1000;
       }
-      xmitcount++;
 
    /*  0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -625,6 +624,7 @@ SLPError NetworkRqstRply(sockfd_t sock, void * peeraddr,
          result = SLP_MEMORY_ALLOC_FAILED;
          goto CLEANUP;
       }
+      xmitcount++;
 
       /* -- Begin SLP Header -- */
 
@@ -936,8 +936,6 @@ SLPError NetworkMcastRqstRply(SLPHandleInfo * handle, void * buf,
          timeout.tv_sec = timeouts[xmitcount] / 1000;
          timeout.tv_usec = (timeouts[xmitcount] % 1000) * 1000;
 
-         xmitcount++;
-
          /* re-allocate buffer and make sure that the send buffer does not
           * exceed MTU for datagram transmission 
           */
@@ -957,6 +955,7 @@ SLPError NetworkMcastRqstRply(SLPHandleInfo * handle, void * buf,
             result = SLP_MEMORY_ALLOC_FAILED;
             goto FINISHED;
          }
+         xmitcount++;
 
          /* Add the header to the send buffer */
 
