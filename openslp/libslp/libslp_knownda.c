@@ -144,7 +144,13 @@ int KnownDASpanningListFind(int scopelistlen,
     int scopesleftlen = scopelistlen;
     int numdas = 0;
     int numdasallocated = 0;
+
     struct sockaddr_in* destaddrs = 0;
+    /* Although we are creating a list of IPV4 socket addresses, they may be copied as if they were
+     * generic socket addresses, so pad out the list to make sure there is enough memory following
+     * the last one
+     */
+    #define DESTADDR_PADDING    (sizeof (struct sockaddr_storage) - sizeof (struct sockaddr_in))
 
     scopesleft = malloc(scopelistlen);
     if (!scopesleft)
@@ -193,7 +199,7 @@ int KnownDASpanningListFind(int scopelistlen,
                     {
                         /* We need a bigger array of addresses */
                         numdasallocated += NUM_DAS_CHUNK_SIZE;
-                        destaddrs = realloc(destaddrs, numdasallocated * sizeof (struct sockaddr_in));
+                        destaddrs = realloc(destaddrs, numdasallocated * sizeof (struct sockaddr_in) + DESTADDR_PADDING);
                         if (!destaddrs)
                         {
                             /* Memory allocation failure */
@@ -228,7 +234,7 @@ int KnownDASpanningListFind(int scopelistlen,
         {
             /* We need a bigger array of addresses */
             numdasallocated += 1;
-            destaddrs = realloc(destaddrs, numdasallocated * sizeof (struct sockaddr_in));
+            destaddrs = realloc(destaddrs, numdasallocated * sizeof (struct sockaddr_in) + DESTADDR_PADDING);
             if (!destaddrs)
             {
                 /* Memory allocation failure */
