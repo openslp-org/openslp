@@ -249,9 +249,7 @@ static FilterResult unescape_cmp(const char * escaped, size_t escaped_len,
    unsigned esc_i; /* Index into escaped. */
    unsigned ver_i; /* Index into verbatim. */
 
-   int unescaped_count;
-
-   unescaped_count = esc_i = ver_i = 0;
+   esc_i = ver_i = 0;
 
    /***** Compare every pair of characters. *****/
    while (1)
@@ -260,11 +258,11 @@ static FilterResult unescape_cmp(const char * escaped, size_t escaped_len,
       if (esc_i >= escaped_len)
       {
          if (punescaped_count != NULL)
-            *punescaped_count = unescaped_count;
+            *punescaped_count = (size_t)ver_i;
 
          if (strict_len == SLP_TRUE)
          {
-            if (ver_i >= verbatim_len)
+            if (ver_i == verbatim_len)
                return FR_EVAL_TRUE;
             else
                return FR_EVAL_FALSE;
@@ -272,6 +270,10 @@ static FilterResult unescape_cmp(const char * escaped, size_t escaped_len,
 
          return FR_EVAL_TRUE;
       }
+      
+      /**** Check for end of string being matched ****/
+      if (ver_i >= verbatim_len)
+	  return FR_EVAL_FALSE;
 
       /**** Check for escaping ****/
       if (escaped[esc_i] == '\\')
@@ -298,7 +300,6 @@ static FilterResult unescape_cmp(const char * escaped, size_t escaped_len,
             return FR_EVAL_FALSE;
       }
 
-      unescaped_count++;
       esc_i++;
       ver_i++;
    }
@@ -321,12 +322,16 @@ static void * my_memmem(char * haystack, size_t haystack_len, char * needle,
       size_t needle_len, size_t * punescaped_len) 
 {
    unsigned offset;
-   size_t search_len;
+   size_t unescaped_needle_len;
 
-   if (escaped_verify(haystack, haystack_len, &search_len) == 0)
+   if (escaped_verify(needle, needle_len, &unescaped_needle_len) == 0)
       return 0;
 
-   for (offset = 0; offset < search_len; offset++)
+   /**** check that the string is at least as big as the substring ****/
+   if (haystack_len < unescaped_needle_len)
+      return 0;
+
+   for (offset = 0; offset <= haystack_len-unescaped_needle_len; offset++)
    {
       FilterResult err;
 
@@ -343,9 +348,9 @@ static void * my_memmem(char * haystack, size_t haystack_len, char * needle,
 
 /** Internal wildcard pattern match.
  *
- * @param[in] pattern - The pattern to evaluate.
+ * @param[in] pattern - The (unescaped) pattern to evaluate.
  * @param[in] pattern_len - The length of @p pattern in bytes.
- * @param[in] str - The string to test the pattern on.
+ * @param[in] str - The (escaped) string to test the pattern on.
  * @param[in] str_len - The length of @p str.
  *
  * @return -1 error, 0 success, 1 failure.
@@ -359,49 +364,54 @@ static FilterResult wildcard_wc_str(char * pattern, size_t pattern_len,
    size_t text_len; /* Length of the text. */
    char * found; /* The start of a string found in a search. */
 
-   char * rem_start; /* Start of the remaining characters being searched for. */
-   size_t rem_len; /* Length of the remaining charcters being searched for. */
+   size_t match_len;  /* Number of bytes in the matching string (unescaped) */
 
-   if (pattern_len == 0 && str_len == 0)
-      return FR_EVAL_TRUE;
-
-   if (pattern_len == 0)
-      return FR_EVAL_FALSE;
-
-   /***** Find text following wildcard *****/
-   /**** Find end of WCs ****/
-   text_start = pattern;
-   text_len = 0;
-   while (*text_start == WILDCARD)
-   {
-      text_start++;
-      if (text_start == pattern + pattern_len)
-      {
-         /* No following text. Therefore we match. */
-         return FR_EVAL_TRUE;
-      }
-   }
-
-   /**** Find end of text. ****/
-   found = memchr(text_start, WILDCARD, pattern_len - text_len);
-   if (found == NULL)
-   {
-      /* No trailing WC. Set to end. */
-      found = pattern + pattern_len;
-   }
-   text_len = found - text_start;
-
-   /***** Look for the text in the source string *****/
-   rem_start = str;
-   rem_len = str_len;
    while (1)
    {
-      int result;
-      size_t match_len;
+      if (pattern_len == 0 && str_len == 0)
+         return FR_EVAL_TRUE;
 
-      found = my_memmem(rem_start, rem_len, text_start, text_len, &match_len);
+      if (pattern_len == 0)
+         return FR_EVAL_FALSE;
+
+      /***** Find text following wildcard *****/
+      /**** Find end of WCs ****/
+      text_start = pattern;
+      text_len = 0;
+      while (*text_start == WILDCARD)
+      {
+         text_start++;
+         if (text_start == pattern + pattern_len)
+         {
+            /* No following text. Therefore we match. */
+            return FR_EVAL_TRUE;
+         }
+      }
+
+      /**** Find end of text. ****/
+      found = memchr(text_start, WILDCARD, pattern_len - text_len);
+      if (found == NULL)
+      {
+         size_t unescaped_pattern_len;
+         /* No trailing WC. Set to end of pattern. */
+         found = pattern + pattern_len;
+         /* This must match the end of the string */
+         if (escaped_verify(text_start, found - text_start, &unescaped_pattern_len) == 0)
+            /* Invalid character escapes in pattern */
+            return FR_EVAL_FALSE;
+         if (unescaped_pattern_len > str_len)
+            /* Remaining string not long enough to match */
+            return FR_EVAL_FALSE;
+         str = str + str_len - unescaped_pattern_len;
+         str_len = unescaped_pattern_len;
+      }
+      text_len = found - text_start;
+
+      /***** Look for the text in the source string *****/
+
+      found = my_memmem(str, str_len, text_start, text_len, &match_len);
       SLP_ASSERT(found == NULL
-            || ((found >= rem_start) && (found <= rem_start + rem_len)));
+            || ((found >= str) && (found <= str + str_len)));
 
       if (found == NULL)
       {
@@ -409,16 +419,34 @@ static FilterResult wildcard_wc_str(char * pattern, size_t pattern_len,
          return FR_EVAL_FALSE;
       }
 
-      rem_len = str_len - (found - str);
-      rem_start = found + 1;
+      /* Originally, the code made a recursive call to itself to process the
+       * remainder of the pattern and, if it failed, it restarted the search
+       * one character after the start of the first piece of literal text. In
+       * this way, it would cope with patterns without a trailing wildcard, by
+       * repeating the search until it matched at the end.
+       * We can improve the efficiency by taking advantage of the fact that the
+       * string being searched does not contain escaped character sequences, so
+       * when we find the pattern does not have a trailing wildcard, we need
+       * only look at the end of the string (after finding out the equivalent
+       * length of the pattern text when unescaped) - see the code before the
+       * call to my_memmem().
+       * We could still make a recursive call at this point, but this would make
+       * the function tail-recursive, so we just make it iterative instead
+       */
 
-      /**** Make recursive call. ****/
-      result = wildcard_wc_str(text_start + text_len,
-                     (pattern + pattern_len) - (text_start + text_len),
-                     found + text_len, rem_len - match_len);
-
-      if (result != FR_EVAL_FALSE)
-         return result;
+      /*
+      return wildcard_wc_str(text_start + text_len,
+                             (pattern + pattern_len) - (text_start + text_len),
+                             found + match_len,
+                             (str + str_len) - (found + match_len));
+      */
+      /**** Set up the values for the next iteration ****/
+      SLP_ASSERT((pattern + pattern_len) >= (text_start + text_len));
+      pattern_len = (pattern + pattern_len) - (text_start + text_len);
+      pattern = text_start + text_len;
+      SLP_ASSERT((str + str_len) >= (found + match_len));
+      str_len = (str + str_len) - (found + match_len);
+      str = found + match_len;
    }
    /*NOTREACHED*/
    SLP_ASSERT(0);
