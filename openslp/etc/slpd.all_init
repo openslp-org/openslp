@@ -39,10 +39,10 @@ multicast_route_set()
     CMD_GET_INTERFACE="netstat -i | awk 'BEGIN{}(NR>2)&&(!/^lo*/){print \$1}'"
     CMD_ADD_ROUTE="route add -net 224.0.0.0 netmask 240.0.0.0"
 
-    err_unreachable_found=`ping $PING_OPTIONS_1 $MULTICAST_ADDRESS 2>$1 1>/dev/null`
+    err_unreachable_found=`ping $PING_OPTIONS_1 $MULTICAST_ADDRESS 2>&1 1>/dev/null`
 
 	if [ $? = 2 ]; then
-        err_unreachable_found=`ping $PING_OPTIONS_2 $MULTICAST_ADDRESS 2>$1 1>/dev/null`
+        err_unreachable_found=`ping $PING_OPTIONS_2 $MULTICAST_ADDRESS 2>&1 1>/dev/null`
 	fi
 
 
