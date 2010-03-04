@@ -104,6 +104,20 @@ static void IncomingDatagramRead(SLPList * socklist, SLPDSocket * sock)
                      SLPNetAddrLen(&sock->peeraddr));
 
                if (byteswritten != packetbytes)
+               {
+                  /* May be an overflow reply */
+                  int flags = AS_UINT16(sock->sendbuf->curpos + 5);
+                  if ((byteswritten == -1) && (errno == EMSGSIZE) && (flags & SLP_FLAG_OVERFLOW))
+                  {
+                      int byteswrittenmax = sendto(sock->fd, (char*)sock->sendbuf->curpos,
+                                SLP_MAX_DATAGRAM_SIZE, 0, (struct sockaddr *)&sock->peeraddr,
+                                SLPNetAddrLen(&sock->peeraddr));
+                      if (byteswrittenmax == SLP_MAX_DATAGRAM_SIZE)
+                         byteswritten = packetbytes;
+                  }
+               }
+
+               if (byteswritten != packetbytes)
                   SLPDLog("NETWORK_ERROR - %d replying %s\n", errno,
                         SLPNetSockAddrStorageToString(&(sock->peeraddr),
                               addr_str, sizeof(addr_str)));
