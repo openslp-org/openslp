@@ -1625,6 +1625,7 @@ void SLPDKnownDAStaleDACheck(int seconds)
                entry->entryvalue--;   /* Decrement the "time to stale" count */
          }
       }
+      SLPDatabaseClose(dh);
    }
 }
 
