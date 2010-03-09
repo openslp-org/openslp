@@ -1844,7 +1844,7 @@ SLPError NetworkMultiUcastRqstRply(
                             if (connect(pconn->socket, (struct sockaddr *)&destaddr[i], sizeof destaddr[i]) < 0)
                             {
 #ifdef _WIN32
-                                if (WSAGetLastError() != WSAEINPROGRESS)
+                                if (WSAGetLastError() != WSAEINPROGRESS && WSAGetLastError() != WSAEWOULDBLOCK)
 #else
                                 if ((errno != 0) && (errno != EINPROGRESS))
 #endif
@@ -1853,7 +1853,8 @@ SLPError NetworkMultiUcastRqstRply(
                                     result = SLP_NETWORK_ERROR;
                                     pconn->state = CONN_FAILED;
                                 }
-                                pconn->state = CONN_TCP_CONNECT;
+                                else
+                                    pconn->state = CONN_TCP_CONNECT;
                             }
                             else
                             {
