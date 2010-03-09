@@ -107,7 +107,13 @@ static void IncomingDatagramRead(SLPList * socklist, SLPDSocket * sock)
                {
                   /* May be an overflow reply */
                   int flags = AS_UINT16(sock->sendbuf->curpos + 5);
-                  if ((byteswritten == -1) && (errno == EMSGSIZE) && (flags & SLP_FLAG_OVERFLOW))
+                  if ((byteswritten == -1) &&
+#ifdef _WIN32
+                      (WSAGetLastError() == WSAEMSGSIZE) &&
+#else
+                      (errno == EMSGSIZE) &&
+#endif
+                      (flags & SLP_FLAG_OVERFLOW))
                   {
                       int byteswrittenmax = sendto(sock->fd, (char*)sock->sendbuf->curpos,
                                 SLP_MAX_DATAGRAM_SIZE, 0, (struct sockaddr *)&sock->peeraddr,
