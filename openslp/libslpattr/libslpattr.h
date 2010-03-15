@@ -58,7 +58,8 @@
  */
 typedef void * SLPAttributes;
 typedef void * SLPAttrIterator;
-typedef void * SLPTemplate; 
+typedef void * SLPAttrValueIterator;
+typedef void * SLPTemplate;
 
 /* The callback for receiving attributes from a SLPFindAttrObj(). */
 typedef SLPBoolean SLPAttrObjCallback(SLPHandle hslp,
@@ -70,6 +71,17 @@ typedef struct
    size_t len;
    void * data;
 } SLPOpaque;
+
+/* A datatype to encapsulate an attribute value */
+typedef struct
+{
+   size_t len;
+   union {
+      SLPBoolean va_bool;
+      int va_int;
+      char *va_str;
+   } data;
+} SLPValue;
 
 /*****************************************************************************
  *
@@ -154,6 +166,8 @@ SLPError SLPAttrSerialize(SLPAttributes attr_h,
 
 SLPError SLPAttrFreshen(SLPAttributes attr_h, const char * new_attrs);
 
+SLPError SLPAttributeSearchString(size_t search_str_len, const char * search_str, size_t *processed_len, char * *processed_str);
+
 /* Functions. */
 SLPError SLPRegAttr(SLPHandle slp_h, const char * srvurl,
       unsigned short lifetime, const char * srvtype, SLPAttributes attr_h,
@@ -170,10 +184,12 @@ SLPError SLPFindAttrObj(SLPHandle hslp, const char * srvurlorsrvtype,
  ****************************************************************************/
 
 SLPError SLPAttrIteratorAlloc(SLPAttributes attr, SLPAttrIterator * iter);
-      void SLPAttrIteratorFree(SLPAttrIterator iter);
+void SLPAttrIteratorFree(SLPAttrIterator iter);
 
 SLPBoolean SLPAttrIterNext(SLPAttrIterator iter_h, char const * *tag,
       SLPType * type);
+
+SLPBoolean SLPAttrIterValueNext(SLPAttrIterator iter_h, SLPValue *value);
 
 /*! @} */
 

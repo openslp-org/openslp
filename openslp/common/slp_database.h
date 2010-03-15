@@ -54,12 +54,16 @@
 #include "slp_buffer.h"
 #include "slp_linkedlist.h"
 
+#define SLP_DATABASE_NUM_HANDLES        2
+
 /** A database entry */
 typedef struct _SLPDatabaseEntry
 {
    SLPListItem listitem;
    SLPMessage * msg;
    SLPBuffer buf;
+   void *handles[SLP_DATABASE_NUM_HANDLES];
+                        /* General pointers - used for parsed attributes and normalised srvtype in the daemon */
    int entryvalue;      // General value.
                         // Used as a count in the daemon's known DA database
                         // to indicate the number of "age" intervals before a

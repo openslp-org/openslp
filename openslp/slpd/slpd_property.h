@@ -73,6 +73,19 @@ typedef struct _SLPDProperty
    uint16_t port;
    size_t localeLen;
    char * locale;
+
+   int indexingPropertiesSet;           /** Indexes are only maintained from startup,
+                                         *  and may not be switched on and off without
+                                         *  restarting the daemon.  This flag ensures
+                                         *  that the indexing properties are not changed
+                                         *  if the file is re-read
+                                         */
+#ifdef ENABLE_PREDICATES
+   size_t indexedAttributesLen;
+   char * indexedAttributes;
+#endif
+   int srvtypeIsIndexed;
+
    int isBroadcastOnly;
    int passiveDADetection;
    int staleDACheckPeriod;              /** The period within which a DA

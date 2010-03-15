@@ -204,7 +204,6 @@ static char * unescape_into(char * dest, const char * src, size_t len,
    return start;
 }
 
-
 /* Finds the end of a value list, while checking that the value contains legal
  * characters. 
  *
@@ -434,6 +433,14 @@ static int count_digits(int number)
 
 
 /* Verifies that a tag contains only legal characters. */
+static SLPBoolean is_valid_tag_len(const char * tag, size_t tag_len)
+{
+   (void)tag;
+   (void)tag_len;
+   /* TODO Check. */
+   return SLP_TRUE;
+}
+
 static SLPBoolean is_valid_tag(const char * tag)
 {
    (void)tag;
@@ -668,10 +675,8 @@ static void value_free(value_t * value)
 /* See libslpattr_internal.h for struct. */
 
 /* Create a new variable. 
- *
- * FIXME should take tag_len as an argument
  */
-static var_t * var_new(char * tag, size_t tag_len)
+static var_t * var_new(const char * tag, size_t tag_len)
 {
    var_t * var; /* Variable being created. */
 
@@ -931,6 +936,7 @@ static SLPError generic_set_val(struct xx_SLPAttributes * slp_attr, const char *
 /* 
  * slp_attr  - the attr object to add to.
  * tag       - the name of the tag to add to.
+ * tag_len   - the length of the tag to add to.
  * value     - the already-allocated value object with fields set
  * policy    - the policy to use when inserting.
  * attr_type - the type of the value being added.
@@ -938,10 +944,10 @@ static SLPError generic_set_val(struct xx_SLPAttributes * slp_attr, const char *
 {
    var_t * var;   
    /***** Create a new attribute. *****/
-   if ((var = attr_val_find_str(slp_attr, tag, strlen(tag))) == 0)
+   if ((var = attr_val_find_str(slp_attr, tag, tag_len)) == 0)
    {
       /*** Couldn't find a value with this tag. Make a new one. ***/
-      var = var_new((char *) tag, tag_len);    
+      var = var_new((char *) tag, tag_len);
       if (var == 0)
          return SLP_MEMORY_ALLOC_FAILED;
       var->type = attr_type;     
@@ -1047,7 +1053,7 @@ SLPError SLPAttrSet_keyw_len(SLPAttributes attr_h, const char * tag,
    struct xx_SLPAttributes * slp_attr = (struct xx_SLPAttributes *) attr_h;
 
    /***** Sanity check. *****/
-   if (is_valid_tag(tag) == SLP_FALSE)
+   if (is_valid_tag_len(tag, tag_len) == SLP_FALSE)
       return SLP_TAG_BAD;
 
    return generic_set_val(slp_attr, tag, tag_len, 0, SLP_REPLACE,
@@ -1518,9 +1524,8 @@ static int internal_store(struct xx_SLPAttributes * slp_attr, char const * tag,
          || type == SLP_INTEGER); /* Ensure that we're dealing with a known type. */
 
 
-   /***** Allocate space for the variable. *****/
-   block_size = sizeof(var_t) + (tag_len); /* The var_t */
-   var = (var_t *) malloc(block_size);
+   /***** Allocate the variable. *****/
+   var = var_new(tag, tag_len);
 
    if (var == 0)
       return 0;
@@ -1540,10 +1545,6 @@ static int internal_store(struct xx_SLPAttributes * slp_attr, char const * tag,
 
 
    /***** Initialize var_t. *****/
-   var->tag_len = tag_len;
-   var->tag = ((char *) var) + sizeof(var_t);
-   memcpy((char *) var->tag, tag, var->tag_len);
-
    var->type = type;
 
    var->list_size = val_count;
@@ -1642,7 +1643,6 @@ static int internal_store(struct xx_SLPAttributes * slp_attr, char const * tag,
    attr_add(slp_attr, var); 
    return 1; /* Success. */
 }
-
 
 /* Iterates across a set of variables. Either by using a given list of tag 
  * names, or looping across all list members. 
@@ -2314,6 +2314,41 @@ SLPError SLPAttrFreshen(SLPAttributes slp_attr_h, const char * str)
    return err;
 }
 
+#ifdef ENABLE_PREDICATES
+/* Processes a search string to make it compatible with an index created
+ * from attribute strings
+ *
+ * Params:
+ *  search_str -- (IN) the string we'll use to search
+ *  search_str_len -- (IN) the length of the string
+ *  processed_str -- (OUT) processed string
+ *  processed_len -- (OUT) number of characters in processed string
+ *
+ * Returns:
+ *  SLP_OK on success, error code on failure
+ */
+SLPError SLPAttributeSearchString(size_t search_str_len, const char * search_str, size_t *processed_len, char * *processed_str)
+{
+   char *x;
+   char *dest = (char *)malloc(search_str_len + 1);
+   *processed_len = 0;
+   *processed_str = (char *)0;
+   if (!dest)
+      return SLP_MEMORY_ALLOC_FAILED;
+
+   /* The only processing we do on attribute strings is to unescape them (see internal_store()) */
+   x = unescape_into(dest, search_str, search_str_len, processed_len);
+   if (!x)
+   {
+      /* The search string was malformed */
+      free(dest);
+      return SLP_PARSE_ERROR;
+   }
+   dest[*processed_len] = '\0';
+   *processed_str = dest;
+   return SLP_OK;
+}
+#endif /* ENABLE_PREDICATES */
 
 /******************************************************************************
  *
@@ -2538,11 +2573,12 @@ struct xx_SLPAttrIterator
 {
    struct xx_SLPAttributes * slp_attr;
    var_t * current;
+   value_t * current_value;
 };
 
 
 
-/* Allocates a new iterator for the given attribute handle. */
+/* Allocates a new attribute iterator for the given attribute handle. */
 SLPError SLPAttrIteratorAlloc(SLPAttributes attr_h, SLPAttrIterator * iter_h)
 {
    struct xx_SLPAttrIterator * iter;
@@ -2556,6 +2592,7 @@ SLPError SLPAttrIteratorAlloc(SLPAttributes attr_h, SLPAttrIterator * iter_h)
       return SLP_MEMORY_ALLOC_FAILED;
 
    iter->current = 0;
+   iter->current_value = 0;
    iter->slp_attr = slp_attr;
 
    *iter_h = (SLPAttrIterator) iter;
@@ -2588,6 +2625,7 @@ SLPBoolean SLPAttrIterNext(SLPAttrIterator iter_h, char const * *tag,
 {
    struct xx_SLPAttrIterator * iter = (struct xx_SLPAttrIterator *) iter_h;
 
+   iter->current_value = 0;
    if (iter->current == 0)
       iter->current = iter->slp_attr->attrs;
    else
@@ -2601,6 +2639,46 @@ SLPBoolean SLPAttrIterNext(SLPAttrIterator iter_h, char const * *tag,
 
    *tag = iter->current->tag;
    *type = iter->current->type;
+
+   return SLP_TRUE;
+}
+
+/* Gets the next value. 
+ *
+ * Returns SLP_FALSE if there are no values left to iterate over, or SLP_TRUE.
+ */
+SLPBoolean SLPAttrIterValueNext(SLPAttrIterator iter_h, SLPValue *value)
+{
+   struct xx_SLPAttrIterator * iter = (struct xx_SLPAttrIterator *) iter_h;
+
+   SLP_ASSERT(value != 0);
+
+   if (iter->current == 0)
+      iter->current = iter->slp_attr->attrs;
+   if (iter->current_value == 0)
+      iter->current_value = iter->current->list;
+   else
+   {
+      iter->current_value = iter->current_value->next;
+      if (iter->current_value == 0)
+      {
+         return SLP_FALSE; /* Done. */
+      }
+   }
+
+   value->len = iter->current_value->unescaped_len;
+   switch (iter->current->type)
+   {
+   case SLP_BOOLEAN:
+      value->data.va_bool = iter->current_value->data.va_bool;
+      break;
+   case SLP_INTEGER:
+      value->data.va_int = iter->current_value->data.va_int;
+      break;
+   default:
+      value->data.va_str = iter->current_value->data.va_str;
+      break;
+   }
 
    return SLP_TRUE;
 }

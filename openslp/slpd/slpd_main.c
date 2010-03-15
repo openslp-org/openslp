@@ -63,6 +63,7 @@ int G_SIGTERM;
 int G_SIGHUP;                                                                                                 
 #ifdef DEBUG
 int G_SIGINT;     /* Signal being used for dumping registrations */
+int G_SIGUSR1;    /* Signal being used to dump information about the database */
 #endif 
 
 /** Configures fd_set objects with sockets.
@@ -183,6 +184,19 @@ void HandleSigTerm(void)
    xmalloc_deinit();    
 #endif
 }
+
+#ifdef DEBUG
+/** Handles a SIGUSR1 signal from the system.
+ *
+ * @internal
+ */
+static void HandleSigUsr1(void)
+{
+   /* Output some debug data */
+   extern void SLPDDatabaseUsr1(void);
+   SLPDDatabaseUsr1();
+}
+#endif
 
 /** Handles a SIG_HUP signal from the system.
  *
@@ -402,6 +416,10 @@ static void SignalHandler(int signum)
       case SIGINT:
          G_SIGINT = 1;
          break;
+
+      case SIGUSR1:
+         G_SIGUSR1 = 1;
+         break;
 #endif
 
       case SIGPIPE:
@@ -438,6 +456,7 @@ static int SetUpSignalHandlers(void)
 
 #ifdef DEBUG
    result |= sigaction(SIGINT, &sa, 0);
+   result |= sigaction(SIGUSR1, &sa, 0);
 #endif
 
    signal(SIGHUP, SignalHandler);
@@ -538,6 +557,7 @@ int main(int argc, char * argv[])
    G_SIGHUP    = 0;    
 #ifdef DEBUG
    G_SIGINT    = 0;
+   G_SIGUSR1   = 0;    
 #endif
 
    while (G_SIGTERM == 0)
@@ -588,6 +608,12 @@ HANDLE_SIGNAL:
          HandleSigInt();
          G_SIGINT = 0;
       }        
+
+      if (G_SIGUSR1)
+      {
+         HandleSigUsr1();
+         G_SIGUSR1 = 0;
+      }
 #endif
 
    } /* End of main loop */

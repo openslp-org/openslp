@@ -33,7 +33,7 @@
 /** Header file for LDAPv3 search filter parser.
  *
  * @file       slpd_predicate.h
- * @author     Matthew Peterson, John Calcote (jcalcote@novell.com)
+ * @author     Matthew Peterson, John Calcote (jcalcote@novell.com), Richard Morrell
  * @attention  Please submit patches to http://www.openslp.org
  * @ingroup    SlpdCode
  */
@@ -51,10 +51,58 @@
 #include "slp_types.h"
 #include "slpd.h"
 
-/** The maximum recursion depth for the attribute parser.
+/** The maximum recursion depth for the attribute and predicate parsers.
  */
-#define SLPD_ATTR_RECURSION_DEPTH   50
-                                        
+#define SLPD_ATTR_RECURSION_DEPTH         50
+#define SLPD_PREDICATE_RECURSION_DEPTH    50
+
+/* The character that is a wildcard. */
+#define WILDCARD ('*')
+
+/** Result codes for the predicate parser.
+ */
+typedef enum
+{
+   PREDICATE_PARSE_OK = 0,          /*!< Success. */
+   PREDICATE_PARSE_ERROR,           /*!< Parse failure */
+   PREDICATE_PARSE_INTERNAL_ERROR   /*!< Failure unrelated to the parse - usually memory allocation */
+} SLPDPredicateParseResult;
+
+/* Predicate tree node types */
+typedef enum {
+   NODE_AND,
+   NODE_OR,
+   NODE_NOT,
+   EQUAL,
+   APPROX,
+   GREATER,
+   LESS,
+   PRESENT
+} SLPDPredicateTreeNodeType;
+
+#define Operation SLPDPredicateTreeNodeType
+
+/* Predicate tree node */
+typedef struct __SLPDPredicateTreeNode
+{
+   SLPDPredicateTreeNodeType nodeType;
+   struct __SLPDPredicateTreeNode *next;     /* next node in a combination */
+   union {
+      struct __SLPDPredicateLogicalBody
+      {
+         struct __SLPDPredicateTreeNode *first;
+      } logical;
+      struct __SLPDPredicateComparisonBody
+      {
+         size_t tag_len;
+         char *tag_str;
+         size_t value_len;
+         char *value_str;
+         char storage[2];
+      } comparison;
+   } nodeBody;
+} SLPDPredicateTreeNode;
+
 int SLPDPredicateTest(int version, size_t attrlistlen, 
       const char * attrlist, size_t predicatelen, 
       const char * predicate);
@@ -62,6 +110,18 @@ int SLPDPredicateTest(int version, size_t attrlistlen,
 int SLPDFilterAttributes(size_t attrlistlen, const char * attrlist, 
       size_t taglistlen, const char * taglist, size_t * resultlen, 
       char ** result);
+
+#if defined (ENABLE_SLPv1)
+SLPDPredicateParseResult createPredicateParseTreev1(
+   const char * start, const char ** end, SLPDPredicateTreeNode * *ppNode, int recursion_depth);
+#endif
+SLPDPredicateParseResult createPredicateParseTree(
+   const char * start, const char ** end, SLPDPredicateTreeNode * *ppNode, int recursion_depth);
+
+void freePredicateParseTree(SLPDPredicateTreeNode *pNode);
+
+int SLPDPredicateTestTree(SLPDPredicateTreeNode *parseTree, 
+      SLPAttributes slp_attr);
 
 /*! @} */
 

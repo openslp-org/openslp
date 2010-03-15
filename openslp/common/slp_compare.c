@@ -254,6 +254,69 @@ static int SLPCompareNormalizedString(const char * str1,
 #endif /* HAVE_ICU */
 }
 
+/** Normalizes a string
+ *
+ * Normalizes a string by (optionally) removing leading and trailing white space,
+ * folding internal white space, folding case (upper->lower), and unescaping
+ * the string.
+ * 
+ * @param[in] len - The length of the string to be normalised, in bytes.
+ * @param[in] srcstr - A pointer to the string to be normalised.
+ * @param[in] dststr - A pointer to the buffer for the normalised string.
+ * @param[in] trim - A flag to specify whether to trim leading and trailing space
+ *                   completely (if non-zero) or just fold it (if zero).
+ *
+ * @return Size of normalised string in bytes.
+ *
+ * @remarks @p dststr may be the same as @p srcstr for "update in place".
+ */
+size_t SLPNormalizeString(size_t len, const char * srcstr, char * dststr, int trim)
+{
+   char *upd = dststr;
+   while (len > 0 && *srcstr)
+   {
+      if (isspace(*srcstr))
+      {
+         while (isspace(*srcstr) && len > 0)
+         {
+            ++srcstr, --len;
+         }
+         if (!trim || (upd != dststr && len > 0))
+            /* Internal whitespace */
+            *upd++ = ' ';
+      }
+      else if (*srcstr == '\\')
+      {
+         if (len < 3)
+         {
+            /* This indicates incorrect escaping, but just copy verbatim */
+            *upd++ = *srcstr++;
+            --len;
+         }
+         else
+         {
+            if (ishex(srcstr[1]) && ishex(srcstr[2]))
+            {
+               *upd++ = (char)(hex2bin(srcstr[0]) * 16 + hex2bin(srcstr[1]));
+               len -= 3;
+            }
+            else
+            {
+               /* This indicates incorrect escaping, but just copy verbatim */
+               *upd++ = *srcstr++;
+               --len;
+            }
+         }
+      }
+      else
+      {
+         *upd++ = tolower(*srcstr++);
+         --len;
+      }
+   }
+   return upd - dststr;
+}
+
 /** Compares two non-normalized strings. 
  *
  * Normalizes two strings by removing leading and trailing white space,

@@ -72,7 +72,8 @@ slpd_SOURCES = \
 	slpd_process.c \
 	slpd_property.c \
 	slpd_regfile.c \
-	slpd_socket.c
+	slpd_socket.c\
+	slpd_index.c
 
 noinst_HEADERS = \
 	$(slp_predicate_HDRS) \
@@ -88,7 +89,8 @@ noinst_HEADERS = \
 	slpd_outgoing.h \
 	slpd_regfile.h \
 	slpd_incoming.h \
-	slpd_socket.h
+	slpd_socket.h\
+	slpd_index.h
     
 #if you're building on Irix, replace .la with .a below
 slpd_LDADD = ../common/libcommonslpd.la ../libslpattr/libslpattr.la

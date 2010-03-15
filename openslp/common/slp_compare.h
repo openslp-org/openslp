@@ -59,6 +59,8 @@ int strcasecmp(const char * s1, const char * s2);
 # endif
 #endif
 
+size_t SLPNormalizeString(size_t len, const char * srcstr, char * dststr, int trim);
+
 int SLPCompareString(size_t str1len, const char * str1, 
       size_t str2len, const char * str2);
 

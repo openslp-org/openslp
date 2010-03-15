@@ -42,6 +42,7 @@
  */
 
 #include "libslpattr.h"
+#include "../common/slp_debug.h"
 
 /*****************************************************************************
  *
@@ -114,9 +115,9 @@ SLPError SLPAttrFreshen(SLPAttributes attr_h, const char * new_attrs)
 SLPError SLPAttrSerialize(SLPAttributes attr_h,
       const char * tags /* NULL terminated */,
       char ** out_buffer /* Where to write. if *out_buffer == NULL, space is alloc'd */,
-      int bufferlen, /* Size of buffer. */
-                          int * count, /* Bytes needed/written. */
-                          SLPBoolean find_delta)
+      size_t bufferlen, /* Size of buffer. */
+      size_t * count, /* Bytes needed/written. */
+      SLPBoolean find_delta)
 {
    struct xx_TinyAttr * slp_attr = (struct xx_TinyAttr *) attr_h;
 
@@ -221,14 +222,14 @@ SLPError SLPAttrGet_keyw(SLPAttributes attr_h, const char * tag)
 
 
 SLPError SLPAttrGet_int(SLPAttributes attr_h, const char * tag, int * val[],
-      int * size)
+      size_t * size)
 {
    return SLP_NOT_IMPLEMENTED;
 }
 
 
 SLPError SLPAttrGet_str(SLPAttributes attr_h, const char * tag, char *** val,
-      int * size)
+      size_t * size)
 {
    return SLP_NOT_IMPLEMENTED;
 }
@@ -236,7 +237,7 @@ SLPError SLPAttrGet_str(SLPAttributes attr_h, const char * tag, char *** val,
 
 
 SLPError SLPAttrGet_opaque(SLPAttributes attr_h, const char * tag,
-      SLPOpaque *** val, int * size)
+      SLPOpaque *** val, size_t * size)
 {
    return SLP_NOT_IMPLEMENTED;
 }
@@ -287,6 +288,11 @@ void SLPAttrIteratorFree(SLPAttrIterator iter)
 
 SLPBoolean SLPAttrIterNext(SLPAttrIterator iter_h, char const * *tag,
       SLPType * type)
+{
+   return SLP_NOT_IMPLEMENTED;
+}
+
+SLPBoolean SLPAttrIterValueNext(SLPAttrIterator iter_h, SLPValue *value)
 {
    return SLP_NOT_IMPLEMENTED;
 }

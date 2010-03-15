@@ -85,12 +85,15 @@ void SLPDatabaseDeinit(SLPDatabase * database)
 SLPDatabaseEntry * SLPDatabaseEntryCreate(SLPMessage * msg, SLPBuffer buf)
 {
    SLPDatabaseEntry * result;
+   int i;
 
    result = (SLPDatabaseEntry *)xmalloc(sizeof(SLPDatabaseEntry));
    if (result)
    {
       result->msg = msg;
       result->buf = buf;
+      for (i = 0; i < SLP_DATABASE_NUM_HANDLES; i++)
+          result->handles[i] = (void *)0;
       result->entryvalue = 0;
    }
    return result;

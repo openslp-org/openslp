@@ -36,14 +36,9 @@
  * as specified in RFC 2254.
  *
  * @file       slpd_predicate.c
- * @author     Matthew Peterson, John Calcote (jcalcote@novell.com)
+ * @author     Matthew Peterson, John Calcote (jcalcote@novell.com), Richard Morrell
  * @attention  Please submit patches to http://www.openslp.org
  * @ingroup    SlpdCode
- *
- * @todo The current implementation reparses the predicate string every time 
- * it is evaluated. This implementation should be refactored to parse the 
- * predicate string once, build some sort of data structure out of that, 
- * and then compare the predicate DS with the attribute DS.
  *
  * @par Assumptions
  * @li If a tag specified in the query string does not exist, that's a FALSE
@@ -54,11 +49,6 @@
  *     operator must evaluate to the same type as the tag referenced on the 
  *     left-hand-side. 
  *
- * @bug If trash follows the last operand to a binary argument, it will
- * be ignored if the operand is not evaluated due to short circuiting: 
- * ie, in "(&(first=*)(second<=3)trash)", "trash" will be silently 
- * ignored _if_ "(first=*)" is true.
- *
  * @bug Escaped '*' characters are treated as wildcards in the string 
  * equality operator: ie, in "(string=abc\2axyz)" will match the literal 
  * string "abc\2axyz" instead of "abc*xyz". 
@@ -68,14 +58,16 @@
 
 #include "slp_types.h"
 #include "slp_debug.h"
+#include "../libslpattr/libslpattr.h"
+#include "../libslpattr/libslpattr_internal.h"
+#ifdef DEBUG
+#include "slpd_log.h"
+#endif
+#include "slp_xmalloc.h"
 
 #include "slpd_predicate.h"
 
-#include "../libslpattr/libslpattr.h"
-#include "../libslpattr/libslpattr_internal.h"
-
-/* The character that is a wildcard. */
-#define WILDCARD ('*')
+/* Parse character definitions. */
 #define BRACKET_OPEN '('
 #define BRACKET_CLOSE ')'
 
@@ -532,17 +524,6 @@ static int is_bool_string(const char * str, size_t str_len, SLPBoolean * val)
    }
    return 0;
 }
-
-/** Comparator operators.
- */
-typedef enum
-{
-   EQUAL,
-   APPROX,
-   GREATER,
-   LESS,
-   PRESENT
-} Operation;
 
 /** Perform an integer operation.
  *
@@ -1423,6 +1404,616 @@ static FilterResult filter(const char * start, const char ** end,
    return FR_PARSE_ERROR;
 }
 
+/** Free a predicate parse tree.
+ *
+ * @param[in] pNode - The root node of the tree to be freed.
+ */
+void freePredicateParseTree(SLPDPredicateTreeNode *pNode)
+{
+   SLPDPredicateTreeNode *pNextNode;
+   while (pNode)
+   {
+      switch (pNode->nodeType)
+      {
+      case NODE_AND:
+      case NODE_OR:
+      case NODE_NOT:
+         freePredicateParseTree(pNode->nodeBody.logical.first);
+         break;
+      default:
+         break;
+      }
+      pNextNode = pNode->next;
+      xfree(pNode);
+      pNode = pNextNode;
+   }
+}
+
+/** Free a predicate parse tree and return a value.
+ *
+ * @param[in] pNode - Pointer to the root node of the tree to be freed.
+ * @param[in] return_value - The value to be returned.
+ *
+ * @return The return_value passed in.
+ *
+ * @internal
+ */
+static int freePredicateParseTreeReturn(SLPDPredicateTreeNode* *ppNode, int return_value)
+{
+   freePredicateParseTree(*ppNode);
+   *ppNode = (SLPDPredicateTreeNode*)0;
+   return return_value;
+}
+
+/** Create a parse tree from the predicate.
+ *
+ * @param[in] start - The start of the string to work in.
+ * @param[out] end - The end of the string processed. After successful 
+ *    processing (ie, no PARSE_ERRORs), this will be pointed at the 
+ *    character following the last char in this level of the expression.
+ * @param[out] ppNode - The parse tree.
+ * @param[in] recursion_depth - The maximum depth to recurse during search.
+ *
+ * @return PREDICATE_PARSE_OK on successful parse.
+ *    PREDICATE_PARSE_ERROR otherwise. The end of the expression is
+ *    returned through end.
+ *
+ * @internal
+ */
+SLPDPredicateParseResult createPredicateParseTree(
+   const char * start, const char ** end, SLPDPredicateTreeNode * *ppNode, int recursion_depth)
+{
+   char *operator; /* Pointer to the operator substring. */
+   const char * cur; /* Current working character. */
+   const char * last_char; /* The last character in the working string. */
+   SLPDPredicateParseResult err = PREDICATE_PARSE_INTERNAL_ERROR; /* The result of a recursive call. */
+
+   *ppNode = (SLPDPredicateTreeNode *)0;
+
+   if (recursion_depth <= 0)
+      return PREDICATE_PARSE_ERROR;
+
+   recursion_depth--;
+
+   if (*start != BRACKET_OPEN)
+      return PREDICATE_PARSE_ERROR;
+
+   /***** Get the current expression. *****/
+   last_char = *end = find_bracket_end(start);
+   if (*end == 0)
+      return PREDICATE_PARSE_ERROR;
+   (*end)++; /* Move the end pointer past the closing bracket. */
+
+   /**** 
+    * Check for the three legal characters that can follow an expression,
+    * if the following character isn't one of those, the following character 
+    * is trash.
+    ****/
+   if (!(**end == BRACKET_OPEN || **end == BRACKET_CLOSE || **end == '\0'))
+      return PREDICATE_PARSE_ERROR;
+
+   /***** check for boolean op. *****/
+   cur = start;
+   cur++;
+
+   switch (*cur)
+   {
+      case('&'):
+         /***** And. *****/
+      case('|'):
+         /***** Or. *****/
+         {
+            SLPDPredicateTreeNode * *ppNextNode;
+            SLPDPredicateTreeNodeType nodeType;
+            *ppNode = (SLPDPredicateTreeNode *)xmalloc(sizeof (SLPDPredicateTreeNode));
+            if (!(*ppNode))
+               return PREDICATE_PARSE_INTERNAL_ERROR;
+            if (*cur == '&')
+               nodeType = NODE_AND;
+            else
+               nodeType = NODE_OR;
+            (*ppNode)->nodeType = nodeType;
+            (*ppNode)->next = (SLPDPredicateTreeNode *)0;
+            (*ppNode)->nodeBody.logical.first = (SLPDPredicateTreeNode *)0;
+            /* Next node needs to be added to the start of the logical chain */
+            ppNextNode = &(*ppNode)->nodeBody.logical.first;
+
+            cur++; /* Move past operator. */
+
+            /*** Ensure that we have at least one operator. ***/
+            if (*cur != BRACKET_OPEN || cur >= last_char)
+               return freePredicateParseTreeReturn(ppNode, PREDICATE_PARSE_ERROR);
+
+            /*** Evaluate each operand. ***/
+            /* NOTE: Due to the condition on the above "if", we are guarenteed that the first iteration of the loop is valid. */
+            do
+            {
+               SLPDPredicateTreeNode * pCurrentNode;
+               err = createPredicateParseTree(cur, &cur, ppNextNode, recursion_depth);
+               /*** Propagate errors. ***/
+               if (err != PREDICATE_PARSE_OK)
+                  return freePredicateParseTreeReturn(ppNode, err);
+               /* Flatten the parse tree as we go  ie. transform &(A)(&(B)(C)) into &(A)(B)(C) */
+               if ((*ppNextNode)->nodeType == nodeType)
+               {
+                  pCurrentNode = (*ppNextNode)->nodeBody.logical.first;
+                  (*ppNextNode)->nodeBody.logical.first = (SLPDPredicateTreeNode *)0;
+                  freePredicateParseTree(*ppNextNode);
+                  *ppNextNode = pCurrentNode;
+                  while (pCurrentNode->next)
+                     pCurrentNode = pCurrentNode->next;
+               }
+               else
+                  pCurrentNode = *ppNextNode;
+               /* Next node needs to be added to the end of the logical chain */
+               ppNextNode = &pCurrentNode->next;
+            }
+            while (*cur == BRACKET_OPEN && cur < last_char); 
+         }
+         return PREDICATE_PARSE_OK;
+
+      case('!'):
+         /***** Not. *****/
+         /**** Child. ****/
+         *ppNode = (SLPDPredicateTreeNode *)xmalloc(sizeof (SLPDPredicateTreeNode));
+         if (!(*ppNode))
+            return PREDICATE_PARSE_INTERNAL_ERROR;
+         (*ppNode)->nodeType = NODE_NOT;
+         (*ppNode)->next = (SLPDPredicateTreeNode *)0;
+         (*ppNode)->nodeBody.logical.first = (SLPDPredicateTreeNode *)0;
+
+         cur++;
+
+         err = createPredicateParseTree(cur, &cur, &(*ppNode)->nodeBody.logical.first, recursion_depth);
+         /*** Return errors. ***/
+         if (err != PREDICATE_PARSE_OK)
+            return freePredicateParseTreeReturn(ppNode, err);
+         return PREDICATE_PARSE_OK;
+
+      default:
+         /***** Unknown operator. *****/
+         ;
+         /* We don't do anything here because this will catch the first character of every leaf predicate. */
+   }
+
+   /***** Check for leaf operator. *****/
+   if (IS_VALID_TAG_CHAR(*cur))
+   {
+      SLPDPredicateTreeNodeType op;
+      char * lhs, * rhs; /* The two operands. */
+      char * val_start; /* The character after the operator. ie, the start of the rhs. */
+      size_t lhs_len, rhs_len; /* Length of the lhs/rhs. */
+
+      /**** Demux leaf op. ****/
+      /* Since all search operators contain a "=", we look for the equals 
+       * sign, and then poke around on either side of that for the real 
+       * value. 
+       */
+      operator = (char *) memchr(cur, '=', last_char - cur);
+      if (operator == 0)
+      {
+         /**** No search operator. ****/
+         return PREDICATE_PARSE_ERROR;
+      }
+
+      /* The rhs always follows the operator. (This doesn't really make 
+      sense for PRESENT ops, but ignore that). */
+      val_start = operator + 1; 
+
+      /* Check for APPROX, GREATER, or LESS. Note that we shuffle the 
+      operator pointer back to point at the start of the op. */
+      if (operator == cur)
+      {
+         /* Check that we can poke back one char. */
+         return PREDICATE_PARSE_ERROR;
+      }
+
+      switch (*(operator - 1))
+      {
+         case('~'):
+            op = EQUAL; /* See Assumptions. */
+            operator--;
+            break;
+         case('>'):
+            op = GREATER;
+            operator--;
+            break;
+         case('<'):
+            op = LESS;
+            operator--;
+            break;
+         default:
+            /* No prefix to the '='. */
+            /**** Check for PRESENT. ****/
+            if ((operator == last_char - 2) && (*(operator + 1) == '*'))
+               op = PRESENT;
+            /**** It's none of the above: therefore it's EQUAL. ****/
+            else
+               op = EQUAL;
+      }
+
+      /***** Get operands. *****/
+      /**** Left. ****/
+      lhs_len = operator - cur;
+      lhs = (char *) cur;
+
+      /**** Right ****/
+      rhs_len = last_char - val_start;
+      rhs = val_start;
+
+      /***** Create leaf node. *****/
+      *ppNode = (SLPDPredicateTreeNode *)xmalloc(sizeof (SLPDPredicateTreeNode) + lhs_len + rhs_len);
+      if (!(*ppNode))
+         return PREDICATE_PARSE_INTERNAL_ERROR;
+
+      (*ppNode)->nodeType = op;
+      (*ppNode)->next = (SLPDPredicateTreeNode *)0;
+
+      /* Finished with "operator" now - just use as temporary pointer to assist with copying the
+       * attribute name (lhs) and required value (rhs) into the node
+       */
+      operator = (*ppNode)->nodeBody.comparison.storage;
+      strncpy(operator, lhs, lhs_len);
+      operator[lhs_len] = '\0';
+      (*ppNode)->nodeBody.comparison.tag_len = lhs_len;
+      (*ppNode)->nodeBody.comparison.tag_str = operator;
+      operator += lhs_len + 1;
+      strncpy(operator, rhs, rhs_len);
+      operator[rhs_len] = '\0';
+      (*ppNode)->nodeBody.comparison.value_len = rhs_len;
+      (*ppNode)->nodeBody.comparison.value_str = operator;
+
+      return PREDICATE_PARSE_OK;
+   }
+
+   /***** No operator. *****/
+   return PREDICATE_PARSE_ERROR;
+}
+
+#if defined(ENABLE_SLPv1)
+/** Create a parse tree from the predicate.
+ *
+ * @param[in] start - The start of the string to work in.
+ * @param[out] end - The end of the string processed. After successful 
+ *    processing (ie, no PARSE_ERRORs), this will be pointed at the 
+ *    character following the last char in this level of the expression.
+ * @param[out] ppNode - The parse tree.
+ * @param[in] recursion_depth - The maximum depth to recurse during search.
+ *
+ * @return PREDICATE_PARSE_OK on successful parse.
+ *    PREDICATE_PARSE_ERROR otherwise. The end of the expression is
+ *    returned through end.
+ *
+ * @internal
+ */
+SLPDPredicateParseResult createPredicateParseTreev1(
+   const char * start, const char ** end, SLPDPredicateTreeNode * *ppNode, int recursion_depth)
+{
+   char *operator; /* Pointer to the operator substring. */
+   const char * cur; /* Current working character. */
+   const char * last_char; /* The last character in the working string. */
+   SLPDPredicateParseResult err = PREDICATE_PARSE_INTERNAL_ERROR; /* The result of a recursive call. */
+
+   *ppNode = (SLPDPredicateTreeNode *)0;
+
+   if (recursion_depth <= 0)
+      return PREDICATE_PARSE_ERROR;
+
+   recursion_depth--;
+
+   if (*start == 0)
+   {
+      *end = start;
+      return PREDICATE_PARSE_OK;
+   }
+
+   if (*start != BRACKET_OPEN)
+      return PREDICATE_PARSE_ERROR;
+
+   /***** Get the current expression. *****/
+   last_char = *end = find_bracket_end(start);
+   if (*end == 0)
+      return PREDICATE_PARSE_ERROR;
+   (*end)++; /* Move the end pointer past the closing bracket. */
+
+   /**** 
+    * Check for the three legal characters that can follow an expression,
+    * if the following character isn't one of those, the following character 
+    * is trash.
+    ****/
+   if (!(**end == BRACKET_OPEN || **end == BRACKET_CLOSE || **end == '\0'))
+      return PREDICATE_PARSE_ERROR;
+
+   /***** check for boolean op. *****/
+   cur = start;
+   cur++;
+
+   switch (*cur)
+   {
+      case('&'):
+         /***** And. *****/
+      case('|'):
+         /***** Or. *****/
+         {
+            SLPDPredicateTreeNode * *ppNextNode;
+            SLPDPredicateTreeNodeType nodeType;
+            *ppNode = (SLPDPredicateTreeNode *)xmalloc(sizeof (SLPDPredicateTreeNode));
+            if (!(*ppNode))
+               return PREDICATE_PARSE_INTERNAL_ERROR;
+            if (*cur == '&')
+               nodeType = NODE_AND;
+            else
+               nodeType = NODE_OR;
+            (*ppNode)->nodeType = nodeType;
+            (*ppNode)->next = (SLPDPredicateTreeNode *)0;
+            (*ppNode)->nodeBody.logical.first = (SLPDPredicateTreeNode *)0;
+            /* Next node needs to be added to the start of the logical chain */
+            ppNextNode = &(*ppNode)->nodeBody.logical.first;
+
+            cur++; /* Move past operator. */
+
+            /*** Ensure that we have at least one operator. ***/
+            if (*cur != BRACKET_OPEN || cur >= last_char)
+               return freePredicateParseTreeReturn(ppNode, PREDICATE_PARSE_ERROR);
+
+            /*** Evaluate each operand. ***/
+            /* NOTE: Due to the condition on the above "if", we are guarenteed that the first iteration of the loop is valid. */
+            do
+            {
+               SLPDPredicateTreeNode * pCurrentNode;
+               err = createPredicateParseTreev1(cur, &cur, ppNextNode, recursion_depth);
+               /*** Propagate errors. ***/
+               if (err != PREDICATE_PARSE_OK)
+                  return freePredicateParseTreeReturn(ppNode, err);
+               /* Flatten the parse tree as we go  ie. transform &(A)(&(B)(C)) into &(A)(B)(C) */
+               if ((*ppNextNode)->nodeType == nodeType)
+               {
+                  pCurrentNode = (*ppNextNode)->nodeBody.logical.first;
+                  (*ppNextNode)->nodeBody.logical.first = (SLPDPredicateTreeNode *)0;
+                  freePredicateParseTree(*ppNextNode);
+                  *ppNextNode = pCurrentNode;
+                  while (pCurrentNode->next)
+                     pCurrentNode = pCurrentNode->next;
+               }
+               else
+                  pCurrentNode = *ppNextNode;
+               /* Next node needs to be added to the end of the logical chain */
+               ppNextNode = &pCurrentNode->next;
+            }
+            while (*cur == BRACKET_OPEN && cur < last_char); 
+         }
+         return PREDICATE_PARSE_OK;
+
+      case('!'):
+         /***** Not. *****/
+         /**** Child. ****/
+         *ppNode = (SLPDPredicateTreeNode *)xmalloc(sizeof (SLPDPredicateTreeNode));
+         if (!(*ppNode))
+            return PREDICATE_PARSE_INTERNAL_ERROR;
+         (*ppNode)->nodeType = NODE_NOT;
+         (*ppNode)->next = (SLPDPredicateTreeNode *)0;
+         (*ppNode)->nodeBody.logical.first = (SLPDPredicateTreeNode *)0;
+
+         cur++;
+
+         err = createPredicateParseTreev1(cur, &cur, &(*ppNode)->nodeBody.logical.first, recursion_depth);
+         /*** Return errors. ***/
+         if (err != PREDICATE_PARSE_OK)
+            return freePredicateParseTreeReturn(ppNode, err);
+         return PREDICATE_PARSE_OK;
+
+      default:
+         /***** Unknown operator. *****/
+         ;
+         /* We don't do anything here because this will catch the first character of every leaf predicate. */
+   }
+
+   /***** Check for leaf operator. *****/
+   if (IS_VALID_TAG_CHAR(*cur))
+   {
+      SLPDPredicateTreeNodeType op;
+      char * lhs, * rhs; /* The two operands. */
+      char * val_start; /* The character after the operator. ie, the start of the rhs. */
+      size_t lhs_len, rhs_len; /* Length of the lhs/rhs. */
+
+      /**** Demux leaf op. ****/
+      /* Since all search operators contain a "=", we look for the equals 
+       * sign, and then poke around on either side of that for the real 
+       * value. 
+       */
+      operator = (char *) memchr(cur, '=', last_char - cur);
+      if (operator == 0 || *(operator + 1) != '=')
+      {
+         /**** No search operator. ****/
+         return PREDICATE_PARSE_ERROR;
+      }
+
+      /* The rhs always follows the operator. (This doesn't really make 
+      sense for PRESENT ops, but ignore that). */
+      val_start = operator + 2; 
+
+      /* Check for APPROX, GREATER, or LESS. Note that we shuffle the 
+      operator pointer back to point at the start of the op. */
+      if (operator == cur)
+      {
+         /* Check that we can poke back one char. */
+         return PREDICATE_PARSE_ERROR;
+      }
+
+      op = EQUAL; /* See Assumptions. */
+
+      /***** Get operands. *****/
+      /**** Left. ****/
+      lhs_len = operator - cur;
+      lhs = (char *) cur;
+
+      /**** Right ****/
+      rhs_len = last_char - val_start;
+      rhs = val_start;
+
+      /***** Create leaf node. *****/
+      *ppNode = (SLPDPredicateTreeNode *)xmalloc(sizeof (SLPDPredicateTreeNode) + lhs_len + rhs_len);
+      if (!(*ppNode))
+         return PREDICATE_PARSE_INTERNAL_ERROR;
+
+      (*ppNode)->nodeType = op;
+      (*ppNode)->next = (SLPDPredicateTreeNode *)0;
+
+      /* Finished with "operator" now - just use as temporary pointer to assist with copying the
+       * attribute name (lhs) and required value (rhs) into the node
+       */
+      operator = (*ppNode)->nodeBody.comparison.storage;
+      strncpy(operator, lhs, lhs_len);
+      operator[lhs_len] = '\0';
+      (*ppNode)->nodeBody.comparison.tag_len = lhs_len;
+      (*ppNode)->nodeBody.comparison.tag_str = operator;
+      operator += lhs_len + 1;
+      strncpy(operator, rhs, rhs_len);
+      operator[rhs_len] = '\0';
+      (*ppNode)->nodeBody.comparison.value_len = rhs_len;
+      (*ppNode)->nodeBody.comparison.value_str = operator;
+
+      return PREDICATE_PARSE_OK;
+   }
+
+   /***** No operator. *****/
+   return PREDICATE_PARSE_ERROR;
+}
+
+#endif
+
+/** Apply the predicate to the attribute values, and see if they pass.
+ *
+ * @param[in] parseTree - The parsed predicate tree.
+ * @param[in] slp_attr - The attributes handle to compare on.
+ *
+ * @return FR_EVAL_TRUE if the attribute values pass the predicate test.
+ *    FR_EVAL_FALSE if they do not pass. Any other value indicates an error.
+ *
+ * @internal
+ */
+static FilterResult treeFilter(SLPDPredicateTreeNode *parseTree,
+      SLPAttributes slp_attr)
+{
+   FilterResult err = FR_UNSET; /* The result of an evaluation. */
+   FilterResult stop_condition = FR_UNSET;
+
+   switch (parseTree->nodeType)
+   {
+      case NODE_AND:
+         /***** And. *****/
+      case NODE_OR:
+         /***** Or. *****/
+         {
+            SLPDPredicateTreeNode *parseSubTree;
+
+            if (parseTree->nodeType == NODE_AND)
+               stop_condition = FR_EVAL_FALSE;
+            else
+               stop_condition = FR_EVAL_TRUE;
+
+            parseSubTree = parseTree->nodeBody.logical.first;
+            /*** Evaluate each operand. ***/
+            /* NOTE: Due to the condition on the above "if", we are guarenteed that the first iteration of the loop is valid. */
+            do
+            {
+               err = treeFilter(parseSubTree, slp_attr);
+               /*** Propagate errors. ***/
+               if (err != FR_EVAL_TRUE && err != FR_EVAL_FALSE)
+                  return err;
+
+               /*** Short circuit. ***/
+               if (err == stop_condition)
+                  return stop_condition;
+               parseSubTree = parseSubTree->next;
+            }
+            while (parseSubTree);
+
+            /*** If we ever get here, it means we've evaluated every operand without short circuiting. ***/
+            return(stop_condition
+                  == FR_EVAL_TRUE
+                  ? FR_EVAL_FALSE
+                  : FR_EVAL_TRUE);
+         }
+
+      case NODE_NOT:
+         /***** Not. *****/
+         /**** Child. ****/
+         err = treeFilter(parseTree->nodeBody.logical.first, slp_attr);
+         /*** Return errors. ***/
+         if (err != FR_EVAL_TRUE && err != FR_EVAL_FALSE)
+            return err;
+
+         /*** Perform "not". ***/
+         return (err == FR_EVAL_TRUE ? FR_EVAL_FALSE : FR_EVAL_TRUE);
+
+      default:
+         /* Leaf (comparison) node. */
+         {
+            SLPType type;
+            SLPError slp_err;
+
+            /***** Do leaf operation. *****/
+            /**** Check that tag exists. ****/
+            slp_err = SLPAttrGetType_len(slp_attr, parseTree->nodeBody.comparison.tag_str, parseTree->nodeBody.comparison.tag_len, &type);
+            if (slp_err == SLP_TAG_ERROR)
+            {
+               /* Tag  doesn't exist. */
+               return FR_EVAL_FALSE;
+            }
+            else if (slp_err == SLP_OK)
+            {
+               /* Tag exists. */
+               /**** Do operation. *****/
+               if (parseTree->nodeType == PRESENT)
+               {
+                  /*** Since the PRESENT operation is the same for all types, 
+                  do that now. ***/
+                  return FR_EVAL_TRUE;
+               }
+               else
+               {
+                  /*** A type-specific operation. ***/
+                  char * lhs = parseTree->nodeBody.comparison.tag_str;
+                  size_t lhs_len = parseTree->nodeBody.comparison.tag_len;
+                  char * rhs = parseTree->nodeBody.comparison.value_str;
+                  size_t rhs_len = parseTree->nodeBody.comparison.value_len;
+
+                  switch (type)
+                  {
+                     case(SLP_BOOLEAN):
+                        err = bool_op(slp_attr, lhs, lhs_len, rhs, rhs_len, parseTree->nodeType); 
+                        break;
+                     case(SLP_INTEGER):
+                        err = int_op(slp_attr, lhs, lhs_len, rhs, parseTree->nodeType); 
+                        break;
+                     case(SLP_KEYWORD):
+                        err = keyw_op(slp_attr, lhs, rhs, parseTree->nodeType); 
+                        break;
+                     case(SLP_STRING):
+                        err = str_op(slp_attr, lhs, lhs_len, rhs, rhs_len, parseTree->nodeType); 
+                        break;
+                     case(SLP_OPAQUE):
+                        SLP_ASSERT(0); /* Opaque is not yet supported. */
+                  }
+               }
+            }
+            else
+            {
+               /* Some other tag-related error. */
+               err = FR_INTERNAL_SYSTEM_ERROR;
+            }
+
+            SLP_ASSERT(err != FR_UNSET);
+            return err;
+         }
+   }
+
+   /***** No operator. *****/
+   return FR_PARSE_ERROR;
+}
+
+
 /** Determine whether an attribute list satisfies a predicate.
  *
  * @param[in] version - The SLP version of the predicate string 
@@ -1502,6 +2093,28 @@ int SLPDPredicateTest(int version, size_t attrlistlen,
    return result;
 }
 
+/** Determine whether a set of attributes satisfies a predicate parse tree.
+ *
+ * @param[in] parseTree - Tree representation of the predicate.
+ * @param[in] slp_attr - The set of attributes.
+ *
+ * @return A Boolean value; true if test succeeds. Non-zero if test fails
+ *    or some other error is detected.
+ */
+int SLPDPredicateTestTree(SLPDPredicateTreeNode *parseTree, 
+      SLPAttributes slp_attr)
+{
+   FilterResult err;
+
+   /* A NULL predicate is always true. */
+   if (!parseTree)
+      return 1;
+
+   err = treeFilter(parseTree, slp_attr);
+
+   return (err == FR_EVAL_TRUE);
+}
+
 /** Copies attributes from a list to a string.
  *
  * Copies attributes from the specified attribute list to a result string
@@ -1563,5 +2176,62 @@ int SLPDFilterAttributes(size_t attrlistlen, const char * attrlist,
 
    return(*resultlen == 0);
 }
+
+#ifdef DEBUG
+void print_parse_tree(SLPDPredicateTreeNode *tree)
+{
+   SLPDPredicateTreeNode *pTreeNode;
+   char buffer[100];
+
+   if (!tree)
+      return;
+   SLPDLog("(");
+   switch (tree->nodeType)
+   {
+   case NODE_AND:
+   case NODE_OR:
+      if (tree->nodeType == NODE_AND)
+         SLPDLog("&");
+      else
+         SLPDLog("|");
+      for (pTreeNode = tree->nodeBody.logical.first; pTreeNode; pTreeNode = pTreeNode->next)
+         print_parse_tree(pTreeNode);
+      break;
+   case NODE_NOT:
+      SLPDLog("!");
+      print_parse_tree(tree->nodeBody.logical.first);
+      break;
+   case PRESENT:
+      strncpy(buffer, tree->nodeBody.comparison.tag_str, tree->nodeBody.comparison.tag_len);
+      strcpy(buffer+tree->nodeBody.comparison.tag_len, "=*");
+      SLPDLog(buffer);
+      break;
+   default:
+      strncpy(buffer, tree->nodeBody.comparison.tag_str, tree->nodeBody.comparison.tag_len);
+      switch (tree->nodeType)
+      {
+      case EQUAL:
+         strcpy(buffer+tree->nodeBody.comparison.tag_len, "=");
+         break;
+      case APPROX:
+         strcpy(buffer+tree->nodeBody.comparison.tag_len, "~=");
+         break;
+      case GREATER:
+         strcpy(buffer+tree->nodeBody.comparison.tag_len, ">=");
+         break;
+      case LESS:
+         strcpy(buffer+tree->nodeBody.comparison.tag_len, "<=");
+         break;
+      default:
+         strcpy(buffer+tree->nodeBody.comparison.tag_len, "?=");
+         break;
+      }
+      strncat(buffer, tree->nodeBody.comparison.value_str, tree->nodeBody.comparison.value_len);
+      SLPDLog(buffer);
+      break;
+   }
+   SLPDLog(")");
+}
+#endif /* DEBUG */
 
 /*=========================================================================*/

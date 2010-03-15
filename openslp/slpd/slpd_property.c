@@ -122,8 +122,9 @@ void SLPDPropertyReinit(void)
    G_SlpdProperty.DAHeartBeat = SLPPropertyAsInteger("net.slp.DAHeartBeat");
    if (G_SlpdProperty.staleDACheckPeriod > 0)
    {
-      // Adjust the heartbeat interval if we need to send it faster for
-      // stale DA detection
+      /* Adjust the heartbeat interval if we need to send it faster for
+       * stale DA detection
+       */
       int maxHeartbeat = G_SlpdProperty.staleDACheckPeriod / SLPD_HEARTBEATS_PER_CHECK_PERIOD;
       if ((G_SlpdProperty.DAHeartBeat == 0) ||
           (G_SlpdProperty.DAHeartBeat > maxHeartbeat))
@@ -132,7 +133,7 @@ void SLPDPropertyReinit(void)
          G_SlpdProperty.DAHeartBeat = maxHeartbeat;
       }
    }
-   // Can't send it out more frequently than every interval
+   /* Can't send it out more frequently than every interval */
    if (G_SlpdProperty.DAHeartBeat < SLPD_AGE_INTERVAL)
       G_SlpdProperty.DAHeartBeat = SLPD_AGE_INTERVAL;
 
@@ -149,6 +150,39 @@ void SLPDPropertyReinit(void)
    myinterfaces = SLPPropertyXDup("net.slp.interfaces");
    sts = SLPIfaceGetInfo(myinterfaces, &G_SlpdProperty.ifaceInfo, family);
    xfree(myinterfaces);
+
+   if (!G_SlpdProperty.indexingPropertiesSet)
+   {
+#ifdef ENABLE_PREDICATES
+      G_SlpdProperty.indexedAttributesLen = 0;
+      if ((G_SlpdProperty.indexedAttributes = SLPPropertyXDup("net.slp.indexedAttributes")) != 0)
+         G_SlpdProperty.indexedAttributesLen = strlen(G_SlpdProperty.indexedAttributes);
+#endif
+
+      G_SlpdProperty.srvtypeIsIndexed = SLPPropertyAsBoolean("net.slp.indexSrvtype");
+      G_SlpdProperty.indexingPropertiesSet = 1;
+   }
+   else
+   {
+#ifdef ENABLE_PREDICATES
+      int attrchg = 0;
+      char *indexedAttributes = SLPPropertyXDup("net.slp.indexedAttributes");
+      if (!indexedAttributes && G_SlpdProperty.indexedAttributes)
+         attrchg = 1;
+      else if (indexedAttributes && !G_SlpdProperty.indexedAttributes)
+         attrchg = 1;
+      else if (indexedAttributes)
+      {
+         if (strcmp(indexedAttributes, G_SlpdProperty.indexedAttributes) != 0)
+            attrchg = 1;
+      }
+      if (attrchg)
+         SLPDLog("Cannot change value of net.slp.indexedAttributes without restarting the daemon\n");
+      xfree(indexedAttributes);
+#endif
+      if (G_SlpdProperty.srvtypeIsIndexed != SLPPropertyAsBoolean("net.slp.indexSrvtype"))
+         SLPDLog("Cannot change value of net.slp.indexSrvtype without restarting the daemon\n");
+   }
 
    if (sts == 0)
    {
@@ -206,6 +240,9 @@ void SLPDPropertyDeinit(void)
    xfree(G_SlpdProperty.useScopes);
    xfree(G_SlpdProperty.DAAddresses);
    xfree(G_SlpdProperty.interfaces);
+#ifdef ENABLE_PREDICATES
+   xfree(G_SlpdProperty.indexedAttributes);
+#endif
    xfree(G_SlpdProperty.locale);
 
    SLPPropertyExit();
