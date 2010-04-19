@@ -6,6 +6,25 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 
+15/03/2010 richard.morrell@uk.thalesgroup.com
+Update to introduce indexing of service types and attributes to improve search
+performance when the daemon has a large number (hundreds) of services.
+Indexing is optional, and controlled by the configuration file.
+Predicate searching has been refactored to pre-parse the predicate and the
+attributes, so even non-indexed searches should see a speed-up.
+
+24/09/2008 richard.morrell@uk.thalesgroup.com
+Add an option to the slp.conf file whereby all DAs can be configured to
+regularly broadcast their presence (DA Advert) at a settable rate (dependent
+on the daemon's timer interval), and all DAs & SAs so configured will monitor
+the broadcasts, and remove a DA from the list of known DAs if three
+consecutive broadcasts are missed.
+
+24/09/2008 richard.morrell@uk.thalesgroup.com
+Implement "multi-unicast" for IPv4 - find a spanning list of DAs that,
+together, support all the scopes, and search all of them by unicast in
+parallel.
+
 *** TAG OpenSLP-1.3.0 ***
 03/02/2004 beastham@emware.com
 IPv6 support has been added to OpenSLP.  It is generally transparent to the
