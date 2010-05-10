@@ -2629,12 +2629,11 @@ SLPBoolean SLPAttrIterNext(SLPAttrIterator iter_h, char const * *tag,
    if (iter->current == 0)
       iter->current = iter->slp_attr->attrs;
    else
-   {
       iter->current = iter->current->next;
-      if (iter->current == 0)
-      {
-         return SLP_FALSE; /* Done. */
-      }
+
+   if (iter->current == 0)
+   {
+      return SLP_FALSE; /* Done. */
    }
 
    *tag = iter->current->tag;
@@ -2655,15 +2654,17 @@ SLPBoolean SLPAttrIterValueNext(SLPAttrIterator iter_h, SLPValue *value)
 
    if (iter->current == 0)
       iter->current = iter->slp_attr->attrs;
+   if (iter->current == 0)
+      return SLP_FALSE; /* No tags */
+
    if (iter->current_value == 0)
       iter->current_value = iter->current->list;
    else
-   {
       iter->current_value = iter->current_value->next;
-      if (iter->current_value == 0)
-      {
-         return SLP_FALSE; /* Done. */
-      }
+
+   if (iter->current_value == 0)
+   {
+      return SLP_FALSE; /* Done. */
    }
 
    value->len = iter->current_value->unescaped_len;
