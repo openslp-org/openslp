@@ -622,12 +622,19 @@ int SLPDIncomingInit(void)
    SLPIfaceInfo ifaces;
    int i;
 
+#if 1
+   /* 
+    * do not remove ipv6 multicast service sockets previously
+    * created from database init (slp.reg)
+    */
+#else
    /*------------------------------------------------------------*/
    /* First, remove all of the sockets that might be in the list */
    /*------------------------------------------------------------*/
    while (G_IncomingSocketList.count)
       SLPDSocketFree((SLPDSocket *)
             SLPListUnlink(&G_IncomingSocketList, G_IncomingSocketList.head));
+#endif
 
 
    /*---------------------------------------------------------*/

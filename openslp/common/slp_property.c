@@ -158,6 +158,7 @@ static int SetDefaultValues(void)
 
    /* Additional properties that are specific to IPv6 */
       {"net.slp.useIPv6", "false", 0},
+      {"net.slp.useIPv4", "true", 0},
    };
 
    int i;

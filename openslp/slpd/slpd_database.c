@@ -419,7 +419,6 @@ int SLPDDatabaseReg(SLPMessage * msg, SLPBuffer buf)
 
    /* add a socket to listen for IPv6 requests if we haven't already (includes if this one was already registered) */
    if (SLPNetIsIPV6() && 
-       (msg->peer.ss_family == AF_INET6) &&
        !SLPDDatabaseSrvtypeUsed(msg->body.srvreg.srvtype, msg->body.srvreg.srvtypelen))
    {
       SLPIfaceGetInfo(G_SlpdProperty.interfaces, &ifaces, AF_INET6);

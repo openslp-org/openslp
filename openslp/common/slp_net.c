@@ -396,7 +396,7 @@ int SLPNetIsIPV6(void)
  */
 int SLPNetIsIPV4(void)
 {
-   return SLPPropertyAsBoolean("net.slp.useIPv6")? 0: 1;
+   return SLPPropertyAsBoolean("net.slp.useIPv4")? 1: 0;
 }
 
 /** Compare two address buffers.

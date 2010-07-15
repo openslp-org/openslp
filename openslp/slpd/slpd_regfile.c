@@ -502,7 +502,7 @@ int SLPDRegFileReadSrvReg(FILE * fd, SLPMessage ** msg, SLPBuffer * buf)
     * since it's a static service 
     */
    memset(&peer, 0, sizeof(struct sockaddr_in));
-   peer.ss_family = AF_INET;
+   peer.ss_family = AF_UNSPEC;
    ((struct sockaddr_in *)&peer)->sin_addr.s_addr = htonl(INADDR_LOOPBACK);
    result = SLPMessageParseBuffer(&peer, &peer, *buf, *msg);
    (*msg)->body.srvreg.source = SLP_REG_SOURCE_STATIC;
