@@ -1386,6 +1386,10 @@ static int SLPDDatabaseAttrRqstProcessEntry(
    SLPSrvReg * entryreg,
    SLPDDatabaseAttrRqstResult ** result)
 {
+#ifdef ENABLE_SLPv2_SECURITY
+   int i;
+#endif
+
    if (SLPCompareString(attrrqst->urllen, attrrqst->url, 
             entryreg->urlentry.urllen, entryreg->urlentry.url) == 0 
          || SLPCompareSrvType(attrrqst->urllen, attrrqst->url, 
