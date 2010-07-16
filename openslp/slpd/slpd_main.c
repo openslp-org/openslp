@@ -374,6 +374,14 @@ static int Daemonize(const char * pidfile)
 
    /* suid to daemon */
    /* TODO: why do the following lines mess up my signal handlers? */
+   
+   /*IPv6 Operation requires that the process owner has permissons to 
+     open multicast sockets under IPv6, this process owner is 'daemon'. 
+     As a quick workaround for correct IPv6 operation, to run this 
+     process as root, define SETUIDS.  */
+    /*TODO: warn if 'daemon' user has insufficient privileges and ipv6 requested.*/
+    /*TODO: allow different user to be specified as process owner. */
+#ifndef SETUIDS 
    pwent = getpwnam("daemon"); 
    if (pwent)
    {
@@ -383,7 +391,7 @@ static int Daemonize(const char * pidfile)
          /* TODO: should we log here and return fail */
       }
    }
-
+#endif
    /* Set cwd to / (root)*/
    chdir("/");
 
