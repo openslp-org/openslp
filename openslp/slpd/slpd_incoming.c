@@ -69,6 +69,7 @@ static void IncomingDatagramRead(SLPList * socklist, SLPDSocket * sock)
    int byteswritten;
    socklen_t peeraddrlen = sizeof(struct sockaddr_storage);
    char addr_str[INET6_ADDRSTRLEN];
+   SLPDSocket * sendsock = 0;
 
    (void)socklist;
 
@@ -84,6 +85,7 @@ static void IncomingDatagramRead(SLPList * socklist, SLPDSocket * sock)
           * to be emptied, so make sure there is at least a minimal buffer
           */
          sock->sendbuf = SLPBufferAlloc(1);
+
       switch (SLPDProcessMessage(&sock->peeraddr, &sock->localaddr,
             sock->recvbuf, &sock->sendbuf, 0))
       {
@@ -93,13 +95,23 @@ static void IncomingDatagramRead(SLPList * socklist, SLPDSocket * sock)
             break;                    
 
          default:
+            /* If the socket is a multicast socket, find the designated UDP output socket for sending*/
+            if(DATAGRAM_MULTICAST == sock->state)
+            {
+               sendsock = (SLPDSocket *) G_IncomingSocketList.head;
+               while (sendsock && !sendsock->can_send_mcast)
+                  sendsock = (SLPDSocket *) sendsock->listitem.next;
+            }
+            if(!sendsock)
+               sendsock = sock;
+
             /* check to see if we should send anything, breaking up individual packets in the buffer
                into different sendto calls (should only be an issue with the loopback DA response)*/
             sock->sendbuf->curpos = sock->sendbuf->start;
             while (sock->sendbuf->curpos < sock->sendbuf->end)
             {
                int packetbytes = AS_UINT24(sock->sendbuf->curpos + 2);
-               byteswritten = sendto(sock->fd, (char*)sock->sendbuf->curpos,
+               byteswritten = sendto(sendsock->fd, (char*)sock->sendbuf->curpos,
                      packetbytes, 0, (struct sockaddr *)&sock->peeraddr,
                      SLPNetAddrLen(&sock->peeraddr));
 
@@ -115,7 +127,7 @@ static void IncomingDatagramRead(SLPList * socklist, SLPDSocket * sock)
 #endif
                       (flags & SLP_FLAG_OVERFLOW))
                   {
-                      int byteswrittenmax = sendto(sock->fd, (char*)sock->sendbuf->curpos,
+                      int byteswrittenmax = sendto(sendsock->fd, (char*)sock->sendbuf->curpos,
                                 SLP_MAX_DATAGRAM_SIZE, 0, (struct sockaddr *)&sock->peeraddr,
                                 SLPNetAddrLen(&sock->peeraddr));
                       if (byteswrittenmax == SLP_MAX_DATAGRAM_SIZE)
