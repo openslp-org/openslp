@@ -95,6 +95,7 @@ static void IncomingDatagramRead(SLPList * socklist, SLPDSocket * sock)
             break;                    
 
          default:
+#ifdef DARWIN
             /* If the socket is a multicast socket, find the designated UDP output socket for sending*/
             if(DATAGRAM_MULTICAST == sock->state)
             {
@@ -102,6 +103,7 @@ static void IncomingDatagramRead(SLPList * socklist, SLPDSocket * sock)
                while (sendsock && !sendsock->can_send_mcast)
                   sendsock = (SLPDSocket *) sendsock->listitem.next;
             }
+#endif
             if(!sendsock)
                sendsock = sock;
 
