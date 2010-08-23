@@ -444,6 +444,10 @@ SLPEXP SLPError SLPAPI SLPFindSrvs(
    if (pcScopeList == 0 || *pcScopeList == 0)
       pcScopeList = SLPPropertyGet("net.slp.useScopes", 0, 0);
 
+   /* Ensure there's a scope list of some sort... */
+   if (pcScopeList == 0)
+      pcScopeList = "";
+
    /* Get a search filter if not supplied */
    if (pcSearchFilter == 0)
       pcSearchFilter = "";
