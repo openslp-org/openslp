@@ -275,19 +275,19 @@ static int ReadPropertyFiles(void)
       return -1;
 
    /* read global, and then app configuration files */
-   if (s_GlobalPropertyFile && *s_GlobalPropertyFile)
+   if (*s_GlobalPropertyFile)
       if (ReadFileProperties(s_GlobalPropertyFile))
          SLPPropertySet("net.slp.OpenSLPConfigFile", 
                s_GlobalPropertyFile, SLP_PA_READONLY);
 
    /* read environment specified configuration file */
-   if (s_EnvPropertyFile && *s_EnvPropertyFile)
+   if (*s_EnvPropertyFile)
       if (ReadFileProperties(s_EnvPropertyFile))
          SLPPropertySet("net.slp.EnvConfigFile", 
                s_EnvPropertyFile, SLP_PA_READONLY);
 
    /* if set, read application-specified configuration file */
-   if (s_AppPropertyFile && *s_AppPropertyFile)
+   if (*s_AppPropertyFile)
       if (ReadFileProperties(s_AppPropertyFile))
          SLPPropertySet("net.slp.AppConfigFile", 
                s_AppPropertyFile, SLP_PA_READONLY);
@@ -668,6 +668,9 @@ static void SLPPropertyCleanup(void)
 /** Initialize (or reintialize) the property table.
  *
  * Cleanup and reinitialize the property module from configuration files.
+ * Since this can happen anytime, we do the entire operation within the lock
+ * to keep changing state from messing up user threads. SLP mutexes are
+ * reentrant, so we can call mutex acquire from within the lock.
  * 
  * @return Zero on success, or a non-zero value on error.
  * 
@@ -675,8 +678,12 @@ static void SLPPropertyCleanup(void)
  */
 int SLPPropertyReinit(void)
 {
+   int ret;
+   SLPMutexAcquire(s_PropDbLock);
    SLPPropertyCleanup();
-   return ReadPropertyFiles();
+   ret = ReadPropertyFiles();
+   SLPMutexRelease(s_PropDbLock);
+   return ret;
 }
 
 /** Initialize (or reintialize) the property table.
@@ -740,9 +747,9 @@ void SLPPropertyExit(void)
 /*===========================================================================
  *  TESTING CODE : compile with the following command lines:
  *
- *  $ gcc -g -DSLP_PROPERTY_TEST -DDEBUG -DHAVE_CONFIG_H -lpthread 
- *       -I <path_to_config.h> slp_property.c slp_xmalloc.c slp_linkedlist.c
- *       slp_debug.c slp_thread.c
+ *  $ gcc -g -O0 -DSLP_PROPERTY_TEST -DDEBUG -DHAVE_CONFIG_H -lpthread 
+ *       -I .. slp_property.c slp_xmalloc.c slp_linkedlist.c slp_debug.c 
+ *       slp_thread.c -o slp-prop-test
  *
  *  C:\> cl -Zi -DSLP_PROPERTY_TEST -DSLP_VERSION=\"2.0\" -DDEBUG 
  *       -D_CRT_SECURE_NO_DEPRECATE slp_property.c slp_xmalloc.c 

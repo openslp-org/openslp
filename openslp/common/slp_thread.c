@@ -100,7 +100,9 @@ void * SLPThreadWait(SLPThreadHandle th)
 
 /** Create a new mutex lock.
  *
- * Create and return a handle to a new mutex lock.
+ * Create and return a handle to a new recursive mutex lock. Note that 
+ * Windows CRITICAL_SECTION objects are recursive by default, whereas
+ * pthread mutexes have to be configured that way with an attribute.
  * 
  * @return The new mutex's handle, or zero on failure (generally memory 
  * allocation failure causes mutex creation failure).
@@ -112,11 +114,18 @@ SLPMutexHandle SLPMutexCreate(void)
    if (mutex != 0)
       InitializeCriticalSection(mutex);
 #else
-   pthread_mutex_t * mutex = (pthread_mutex_t *)xmalloc(sizeof(*mutex));
-   if (mutex != 0 && pthread_mutex_init(mutex, 0) != 0)
+   pthread_mutex_t * mutex = 0;
+   pthread_mutexattr_t attr;
+   if (pthread_mutexattr_init(&attr) == 0)
    {
-      xfree(mutex);
-      mutex = 0;
+      (void)pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
+      mutex = (pthread_mutex_t *)xmalloc(sizeof(*mutex));
+      if (mutex != 0 && pthread_mutex_init(mutex, &attr) != 0)
+      {
+         xfree(mutex);
+         mutex = 0;
+      }
+      (void)pthread_mutexattr_destroy(&attr);
    }
 #endif
    return (SLPMutexHandle)mutex;
