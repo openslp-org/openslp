@@ -9,6 +9,10 @@ AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_SRCDIR([slpd/slpd_main.c])
 
 #
+# This is enabled for pthread UNIX98 extensions
+AC_USE_SYSTEM_EXTENSIONS
+
+#
 # Checks for tools (programs)
 #
 AC_PROG_CC

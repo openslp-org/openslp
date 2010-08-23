@@ -203,9 +203,7 @@ typedef unsigned long uint32_t;
 #  include <fcntl.h>
 # endif
 # if HAVE_PTHREAD_H
-#  define __USE_UNIX98
 #  include <pthread.h>
-#  undef __USE_UNIX98
 # endif
 # if HAVE_INTTYPES_H
 #  include <inttypes.h>

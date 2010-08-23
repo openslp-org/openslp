@@ -598,10 +598,10 @@ int SLPIntersectRemoveStringList(int list1len,
             itemend ++;
         }
 
-        if(pos = SLPContainsStringList(*list2len,
+        if ((pos = SLPContainsStringList(*list2len,
                                        list2,
                                        itemend - itembegin,
-                                       itembegin))
+                                       itembegin)) != 0)
         {
             /* String found in the list at position pos (1-based) */
             /* Remove it from list2                               */
