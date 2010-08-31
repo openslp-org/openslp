@@ -84,6 +84,7 @@ libcommonslpd_la_SOURCES = \
    slp_linkedlist.c \
    slp_message.c \
    slp_net.c \
+   slp_network.c \
    slp_parse.c \
    slp_pid.c \
    slp_predicate.c \
