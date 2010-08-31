@@ -114,7 +114,7 @@ int MakeActiveDiscoveryRqst(int ismcast, SLPBuffer * buffer)
    /* figure out what our Prlist will be by going through our list of  */
    /* known DAs                                                        */
    prlistlen = 0;
-   prlist = xmalloc(SLP_MAX_DATAGRAM_SIZE - size);
+   prlist = xmalloc(G_SlpdProperty.MTU - size);
    if (prlist == 0)
    {
       /* out of memory */
@@ -134,7 +134,7 @@ int MakeActiveDiscoveryRqst(int ismcast, SLPBuffer * buffer)
          if (SLPDKnownDAEnum(eh, &msg, &tmp) == 0)
             break;
          /*Make sure we have room for the potential pr addr*/
-         if(SLP_MAX_DATAGRAM_SIZE - size < prlistlen + sizeof(addr_str) + 1) /*1 for the comma*/
+         if(G_SlpdProperty.MTU - size < prlistlen + sizeof(addr_str) + 1) /*1 for the comma*/
             break;
 
          *addr_str = 0;
@@ -351,7 +351,7 @@ int MakeSrvderegFromSrvReg(SLPMessage * msg, SLPBuffer inbuf, SLPBuffer * outbuf
    PutUINT24(&sendbuf->curpos, size);
 
    /* flags */
-   PutUINT16(&sendbuf->curpos, (size > SLP_MAX_DATAGRAM_SIZE? 
+   PutUINT16(&sendbuf->curpos, (size > G_SlpdProperty.MTU? 
          SLP_FLAG_OVERFLOW: 0));
 
    /* ext offset */
@@ -1150,7 +1150,7 @@ int SLPDKnownDAGenerateMyDAAdvert(struct sockaddr_storage * localaddr,
 
    /* flags */
    PutUINT16(&result->curpos,
-             (size > SLP_MAX_DATAGRAM_SIZE ? SLP_FLAG_OVERFLOW : 0) |
+             (size > G_SlpdProperty.MTU ? SLP_FLAG_OVERFLOW : 0) |
              (ismcast ? SLP_FLAG_MCAST : 0));
 
    /* ext offset */
@@ -1344,7 +1344,7 @@ int SLPDKnownDAGenerateMyV1DAAdvert(struct sockaddr_storage * localaddr,
 
    /* flags */
    /** @todo We have to handle monoling and all that stuff. */
-   *result->curpos++ = (size > SLP_MAX_DATAGRAM_SIZE? 
+   *result->curpos++ = (size > G_SlpdProperty.MTU? 
          SLPv1_FLAG_OVERFLOW: 0);
 
    /* dialect */

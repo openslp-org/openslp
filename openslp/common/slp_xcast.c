@@ -49,6 +49,7 @@
 #include "slp_xcast.h"
 #include "slp_message.h"
 #include "slp_net.h"
+#include "slp_network.h"
 #include "slp_property.h"
 
 /** Broadcast a message.
@@ -81,6 +82,8 @@ int SLPBroadcastSend(const SLPIfaceInfo * ifaceinfo,
 
          if (socks->sock[socks->sock_count] == SLP_INVALID_SOCKET)
             return -1;  /* error creating socket */
+
+         SLPNetworkSetSndRcvBuf(socks->sock[socks->sock_count]);
 
          if (setsockopt(socks->sock[socks->sock_count], SOL_SOCKET,
                SO_BROADCAST, &on, sizeof(on)) != 0)
@@ -192,6 +195,7 @@ int SLPMulticastSend(const SLPIfaceInfo * ifaceinfo, const SLPBuffer msg,
          (SetMulticastTTL(family, socks->sock[socks->sock_count], SLPPropertyAsInteger("net.slp.multicastTTL")))))
          return -1; /* error creating socket or setting socket option */
       
+      SLPNetworkSetSndRcvBuf(socks->sock[socks->sock_count]);
       memcpy(&socks->peeraddr[socks->sock_count], dst, sizeof(struct sockaddr_storage));
 
       xferbytes = sendto(socks->sock[socks->sock_count], 
@@ -231,7 +235,9 @@ int SLPXcastRecvMessage(const SLPXcastSockets * sockets, SLPBuffer * buf,
    int recvloop;
    char peek[16];
    int result = 0;
+   int mtu;
 
+   mtu = SLPPropertyGetMTU();
    /* recv loop */
    recvloop = 1;
    while (recvloop)
@@ -270,7 +276,7 @@ int SLPXcastRecvMessage(const SLPXcastSockets * sockets, SLPBuffer * buf,
 #endif
                )
                {
-                  if (AS_UINT24(peek + 2) <=  SLP_MAX_DATAGRAM_SIZE)
+                  if (AS_UINT24(peek + 2) <=  mtu)
                   {
                      *buf = SLPBufferRealloc(*buf, AS_UINT24(peek + 2));
                      bytesread = recv(sockets->sock[i], (char *)(*buf)->curpos,
@@ -289,12 +295,12 @@ int SLPXcastRecvMessage(const SLPXcastSockets * sockets, SLPBuffer * buf,
                   {
                      /* we got a bad message, or one that is too big! */
 #ifndef UNICAST_NOT_SUPPORTED
-                     /* Reading SLP_MAX_DATAGRAM_SIZE bytes on the socket */
-                     *buf = SLPBufferRealloc(*buf, SLP_MAX_DATAGRAM_SIZE);
+                     /* Reading mtu bytes on the socket */
+                     *buf = SLPBufferRealloc(*buf, mtu);
                      bytesread = recv(sockets->sock[i], (char *)(*buf)->curpos,
                            (int)((*buf)->end - (*buf)->curpos), 0);
                      /* This should never happen but we'll be paranoid*/
-                     if (bytesread != SLP_MAX_DATAGRAM_SIZE)
+                     if (bytesread != mtu)
                         (*buf)->end = (*buf)->curpos + bytesread;
 
                      result = SLP_ERROR_RETRY_UNICAST;
@@ -363,14 +369,16 @@ int main(void)
    uint8_t v6Addr[] = {0xFF, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 
          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x16};
    struct sockaddr_storage dst;
+   int mtu;
 
 #ifdef _WIN32
    WSADATA wsadata;
    WSAStartup(MAKEWORD(2, 2), &wsadata);
 #endif
 
+   mtu = SLPPropertyGetMTU();
    //const struct in6_addr in6addr;
-   buffer = SLPBufferAlloc(SLP_MAX_DATAGRAM_SIZE);
+   buffer = SLPBufferAlloc(mtu);
    if (buffer)
    {
       strcpy((char *)buffer->start, "testdata");

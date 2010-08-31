@@ -43,6 +43,33 @@
 #include "slp_network.h"
 #include "slp_net.h"
 
+/**
+ * Sets the SO_SNDBUF and SO_RCVBUF values on a given socket.
+ *
+ * @param[in] sock - the socket file descriptor for which to set the
+ *                     SO_SNDBUF and SO_RCVBUF values.
+ * @param[in] size - A pointer to the integer which specifies the buffer size.
+ *                   If null, MTU value is used as buffer size.
+ */
+void SLPNetworkSetSndRcvBuf(sockfd_t sock)
+{
+#ifndef _WIN32
+   int sndbufSize;
+   int rcvBufSize;
+
+   SLPPropertyInternalGetSndRcvBufSize(&sndbufSize, &rcvBufSize);
+   if (sndbufSize)
+   {
+       setsockopt(sock, SOL_SOCKET, SO_SNDBUF, &sndbufSize, sizeof(int));
+   }
+
+   if (rcvBufSize)
+   {
+       setsockopt(sock, SOL_SOCKET, SO_RCVBUF, &rcvBufSize, sizeof(int));
+   }
+#endif
+}
+
 /** Connect a TCP stream to the specified peer.
  *
  * @param[in] peeraddr - A pointer to the peer to connect to.
@@ -111,6 +138,8 @@ sockfd_t SLPNetworkCreateDatagram(short family)
                (char *)&lowat, sizeof(lowat));
          setsockopt(result, SOL_SOCKET, SO_SNDLOWAT, 
                (char *)&lowat, sizeof(lowat));
+
+         SLPNetworkSetSndRcvBuf(result);
 #endif
    }
    return result;

@@ -126,7 +126,7 @@ static int ProcessSASrvRqst(SLPMessage * message, SLPBuffer * sendbuf,
       PutUINT24(&result->curpos, size);
 
       /* flags */
-      PutUINT16(&result->curpos, (size > SLP_MAX_DATAGRAM_SIZE? 
+      PutUINT16(&result->curpos, (size > G_SlpdProperty.MTU? 
             SLP_FLAG_OVERFLOW: 0));
 
       /* ext offset */
@@ -289,7 +289,7 @@ static int ProcessDASrvRqst(SLPMessage * message, SLPBuffer * sendbuf,
 
    /* Normal case where a remote Agent asks for a DA */
 
-   *sendbuf = SLPBufferRealloc(*sendbuf, SLP_MAX_DATAGRAM_SIZE);
+   *sendbuf = SLPBufferRealloc(*sendbuf, G_SlpdProperty.MTU);
    if (*sendbuf == 0)
       return SLP_ERROR_INTERNAL_ERROR;
    if (G_SlpdProperty.isDA)
@@ -492,7 +492,7 @@ RESPOND:
    PutUINT24(&result->curpos, size);
 
    /* flags */
-   PutUINT16(&result->curpos, (size > SLP_MAX_DATAGRAM_SIZE? 
+   PutUINT16(&result->curpos, (size > G_SlpdProperty.MTU? 
          SLP_FLAG_OVERFLOW: 0));
 
    /* ext offset */
@@ -990,7 +990,7 @@ RESPOND:
    PutUINT24(&result->curpos, size);
 
    /* flags */
-   PutUINT16(&result->curpos, (size > SLP_MAX_DATAGRAM_SIZE? 
+   PutUINT16(&result->curpos, (size > G_SlpdProperty.MTU? 
          SLP_FLAG_OVERFLOW: 0));
 
    /* ext offset */
@@ -1185,7 +1185,7 @@ RESPOND:
    PutUINT24(&result->curpos, size);
 
    /* flags */
-   PutUINT16(&result->curpos, (size > SLP_MAX_DATAGRAM_SIZE?
+   PutUINT16(&result->curpos, (size > G_SlpdProperty.MTU?
          SLP_FLAG_OVERFLOW: 0));
 
    /* ext offset */

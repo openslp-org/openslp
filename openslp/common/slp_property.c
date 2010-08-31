@@ -58,6 +58,7 @@
 #include "slp_linkedlist.h"
 #include "slp_thread.h"
 #include "slp_debug.h"
+#include "slp_socket.h"
 
 #define ENV_CONFFILE_VARNAME "OpenSLPConfig"
 
@@ -88,6 +89,15 @@ static char s_GlobalPropertyFile[MAX_PATH] = "";
 
 /** The database lock - module static. */
 static SLPMutexHandle s_PropDbLock;
+
+/** The global MTU configuration property value. */
+static int s_GlobalPropertyMTU = 1400;
+
+/** The internl property which holds global RCVBUF size */
+static int s_GlobalPropertyInternalRcvBufSize;
+
+/** The internal property which holds global SNDBUF size */
+static int s_GlobalPropertyInternalSndBufSize;
 
 /** Sets all SLP default property values.
  *
@@ -169,6 +179,95 @@ static int SetDefaultValues(void)
          return -1;
 
    return 0;
+}
+
+/**
+ * Initializes the MTU configuration property value. If the user specified
+ * value is more than the value that is allowed by the kernel, MTU value is
+ * adjusted to the actual value set by the kernel. If the default values of
+ * SO_SNDBUF and SO_RCVBUF are greater than the global MTU value, SO_SNDBUF
+ * and SO_RCVBUF are not set explicitly.
+ *
+ * @internal
+ */
+static void InitializeMTUPropertyValue()
+{
+   int mtuChanged = 0;
+   int family;
+   sockfd_t sock;
+   int value = 0;
+   socklen_t valSize = sizeof(int);
+
+   s_GlobalPropertyInternalRcvBufSize = s_GlobalPropertyInternalSndBufSize = 0;
+   s_GlobalPropertyMTU = SLPPropertyAsInteger("net.slp.MTU");
+
+# ifndef _WIN32
+   family = SLPPropertyAsBoolean("net.slp.useIPv4") ? AF_INET : AF_INET6;
+
+   if ((sock = socket(family, SOCK_DGRAM, 0)) != SLP_INVALID_SOCKET)
+   {
+      if (getsockopt(sock, SOL_SOCKET, SO_RCVBUF, &value, &valSize) != -1)
+      {
+         if (value < s_GlobalPropertyMTU)
+         {
+            setsockopt(sock, SOL_SOCKET, SO_RCVBUF,
+                &s_GlobalPropertyMTU, sizeof(int));
+            s_GlobalPropertyInternalRcvBufSize = s_GlobalPropertyMTU;
+         }
+      }
+
+      if (getsockopt(sock, SOL_SOCKET, SO_SNDBUF, &value, &valSize) != -1)
+      {
+         if (value < s_GlobalPropertyMTU)
+         {
+            setsockopt(sock, SOL_SOCKET, SO_SNDBUF,
+                &s_GlobalPropertyMTU, sizeof(int));
+            s_GlobalPropertyInternalSndBufSize = s_GlobalPropertyMTU;
+         }
+      }
+
+      // If the actual value set by the kernel is less than the MTU value,
+      // adjust here.
+      if (s_GlobalPropertyInternalRcvBufSize &&
+          getsockopt(sock, SOL_SOCKET, SO_RCVBUF, &value, &valSize) != -1)
+      {
+         if (value < s_GlobalPropertyMTU)
+         {
+            s_GlobalPropertyInternalRcvBufSize = value;
+         }
+      }
+
+      if (s_GlobalPropertyInternalSndBufSize && 
+          getsockopt(sock, SOL_SOCKET, SO_SNDBUF, &value, &valSize) != -1)
+      {
+         if (value < s_GlobalPropertyMTU)
+         {
+            s_GlobalPropertyInternalSndBufSize = value;
+         }
+      }
+
+      close(sock);
+
+      // If both values are set adjust the s_GlobalPropertyMTU value.
+      if (s_GlobalPropertyInternalRcvBufSize 
+         && s_GlobalPropertyInternalSndBufSize)
+      {
+          s_GlobalPropertyMTU = s_GlobalPropertyInternalRcvBufSize;
+          if (s_GlobalPropertyMTU < s_GlobalPropertyInternalSndBufSize)
+          {
+             s_GlobalPropertyMTU = s_GlobalPropertyInternalSndBufSize;
+          }
+          mtuChanged = 1;
+      }
+   }
+
+   if (mtuChanged)
+   {
+      char tmp[13];
+      snprintf(tmp, 13, "%d", s_GlobalPropertyMTU);
+      SLPPropertySet("net.slp.MTU", tmp, 0);
+   }
+#endif
 }
 
 /** Reads a specified configuration file into non-userset properties.
@@ -317,6 +416,34 @@ static SLPProperty * Find(char const * name)
       property = (SLPProperty *)property->listitem.next;
 
    return property;
+}
+
+/** Return MTU configuration property value
+ * @return Returns MTU value
+ *
+ * @remarks MTU configuration property value is read from the configuration
+ *    file if specified and initialized only once. This special function is
+ *    added to access MTU configuration property value in both client and
+ *    server code to avoid performance issues.
+ */
+int SLPPropertyGetMTU()
+{
+    return s_GlobalPropertyMTU;
+}
+
+/** Gets the SNDBUF and RCVBUF sizes.
+ *
+ * @param[in] sndBufSize - A poniter to the integer to which global SNDBUF
+ *                          value is assigned
+ * @param[in] sndBufSize - A poniter to the integer to which global RCVBUF
+ *                          value is assigned
+ */
+void SLPPropertyInternalGetSndRcvBufSize(int *sndBufSize, int *rcvBufSize)
+{
+   SLP_ASSERT(sndBufSize);
+   SLP_ASSERT(rcvBufSize);
+   *sndBufSize = s_GlobalPropertyInternalSndBufSize;
+   *rcvBufSize = s_GlobalPropertyInternalRcvBufSize;
 }
 
 /** Return an allocated copy of a property by name.
@@ -682,6 +809,7 @@ int SLPPropertyReinit(void)
    SLPMutexAcquire(s_PropDbLock);
    SLPPropertyCleanup();
    ret = ReadPropertyFiles();
+   InitializeMTUPropertyValue();
    SLPMutexRelease(s_PropDbLock);
    return ret;
 }

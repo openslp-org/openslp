@@ -65,7 +65,7 @@ void OutgoingDatagramRead(SLPList * socklist, SLPDSocket * sock)
    (void)socklist;
 
    bytesread = recvfrom(sock->fd, (char*)sock->recvbuf->start, 
-         SLP_MAX_DATAGRAM_SIZE, 0, (struct sockaddr *)&sock->peeraddr, 
+         G_SlpdProperty.MTU, 0, (struct sockaddr *)&sock->peeraddr, 
          &peeraddrlen);
    if (bytesread > 0)
    {

@@ -176,7 +176,7 @@ RESPOND:
    /* flags */
    /** @todo Set the flags correctly. */
    *result->curpos++ = (uint8_t)(message->header.flags 
-         | (size > SLP_MAX_DATAGRAM_SIZE? SLPv1_FLAG_OVERFLOW: 0));
+         | (size > G_SlpdProperty.MTU? SLPv1_FLAG_OVERFLOW: 0));
 
    /* dialect */
    *result->curpos++ = 0;
@@ -483,7 +483,7 @@ RESPOND:
    /* flags */
    /** @todo Set the flags correctly. */
    *result->curpos++ = (uint8_t)(message->header.flags 
-         | (size > SLP_MAX_DATAGRAM_SIZE? 
+         | (size > G_SlpdProperty.MTU? 
                SLPv1_FLAG_OVERFLOW: 0));  
 
    /* dialect */
@@ -622,7 +622,7 @@ static int v1ProcessSrvTypeRqst(struct sockaddr_storage * peeraddr,
    /* flags */
    /** @todo Set the flags correctly. */
    *result->curpos++ = (uint8_t)(message->header.flags 
-         | (size > SLP_MAX_DATAGRAM_SIZE?
+         | (size > G_SlpdProperty.MTU?
                SLPv1_FLAG_OVERFLOW: 0));
 
    /* dialect */

@@ -110,7 +110,7 @@ SLPDSocket * SLPDSocketCreateBoundDatagram(struct sockaddr_storage * myaddr,
 int SLPDSocketAllowMcastSend(int family, SLPDSocket* psock);
 SLPDSocket * SLPDSocketAlloc(void);
 void SLPDSocketFree(SLPDSocket * sock);
-
+void SLPDSocketSetSendRecvBuff(sockfd_t sock);
 /*! @} */
 
 #endif   /* SLPD_SOCKET_H_INCLUDED */

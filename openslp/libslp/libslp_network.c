@@ -528,7 +528,7 @@ SLPError NetworkRqstRply(sockfd_t sock, void * peeraddr,
     * previous responders there are. This is because the retransmit code 
     * terminates if ever MTU is exceeded for any datagram message. 
     */
-   mtu = SLPPropertyAsInteger("net.slp.MTU");
+   mtu = SLPPropertyGetMTU();
    if (buftype == SLP_FUNCT_SRVRQST 
          || buftype == SLP_FUNCT_ATTRRQST 
          || buftype == SLP_FUNCT_SRVTYPERQST)
@@ -842,7 +842,7 @@ SLPError NetworkMcastRqstRply(SLPHandleInfo * handle, void * buf,
    langtaglen = strlen(handle->langtag);
 
    xid = SLPXidGenerate();
-   mtu = SLPPropertyAsInteger("net.slp.MTU");
+   mtu = SLPPropertyGetMTU();
    sendbuf = SLPBufferAlloc(mtu);
    if (!sendbuf)
    {
@@ -1313,7 +1313,7 @@ SLPError NetworkMultiUcastRqstRply(
     /*----------------------------------------------------*/
     langtaglen = strlen(langtag);
     xid = SLPXidGenerate();
-    mtu = SLPPropertyAsInteger("net.slp.MTU");
+    mtu = SLPPropertyGetMTU();
     sendbuf = SLPBufferAlloc(mtu);
     if(sendbuf == 0)
     {
@@ -1395,6 +1395,9 @@ SLPError NetworkMultiUcastRqstRply(
         result = SLP_NETWORK_ERROR;
         goto FINISHED;
     }
+
+    SLPNetworkSetSndRcvBuf(udp_socket);
+
     udp_bind_address.sin_family = AF_INET;
     udp_bind_address.sin_addr.s_addr = htonl(INADDR_ANY);
     udp_bind_address.sin_port = htons(0);
@@ -1655,7 +1658,7 @@ SLPError NetworkMultiUcastRqstRply(
 #endif
                )
             {
-                if(AS_UINT24(peek + 2) <=  SLP_MAX_DATAGRAM_SIZE)
+                if(AS_UINT24(peek + 2) <=  mtu)
                 {
                     udp_recvbuf = SLPBufferRealloc(udp_recvbuf, AS_UINT24(peek + 2));
                     bytesread = recv(udp_socket,
@@ -1682,13 +1685,13 @@ SLPError NetworkMultiUcastRqstRply(
                                      1,
                                      0);
 #else
-                    /* Reading SLP_MAX_DATAGRAM_SIZE bytes on the socket */
-                    udp_recvbuf = SLPBufferRealloc(udp_recvbuf, SLP_MAX_DATAGRAM_SIZE);
+                    /* Reading MTU bytes on the socket */
+                    udp_recvbuf = SLPBufferRealloc(udp_recvbuf, mtu);
                     bytesread = recv(udp_socket,
                                      (char*)udp_recvbuf->curpos,
                                      udp_recvbuf->end - udp_recvbuf->curpos,
                                      0);
-                    if(bytesread != SLP_MAX_DATAGRAM_SIZE)
+                    if(bytesread != mtu)
                     {
                         /* This should never happen but we'll be paranoid*/
                         udp_recvbuf->end = udp_recvbuf->curpos + bytesread;

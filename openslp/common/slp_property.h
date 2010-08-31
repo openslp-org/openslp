@@ -67,6 +67,12 @@ int SLPPropertyReinit(void);
 int SLPPropertyInit(const char * gconffile);
 void SLPPropertyExit(void);
 
+/*! Special function to access MTU configuration property value. This provides
+ *  fast access to the MTU value both in client libraries and server program.
+ */
+int SLPPropertyGetMTU(void);
+
+void SLPPropertyInternalGetSndRcvBufSize(int *sndBufSize, int *rcvBufSize);
 /*! @} */
 
 #endif   /* SLP_PROPERTY_H_INCLUDED */

@@ -112,6 +112,7 @@ typedef struct _SLPDProperty
    int checkSourceAddr;
    int DAHeartBeat;
    int appendLog;
+   int MTU;
 } SLPDProperty;
 
 extern SLPDProperty G_SlpdProperty;

@@ -224,6 +224,10 @@ the API
 on the same SLPHandle, either directly or indirectly. If an attempt is
 made to do so, this error is returned from the called API function.</td>
     </tr>
+    <tr>
+      <td>SLP_BUFFER_OVERFLOW</td>
+      <td> If the registered SLP message is larger than MTU size, this error is returned.</td>
+    </tr>
   </tbody>
 </table>
 <p>Be aware, especially if the call is async, of error codes that may

@@ -74,7 +74,7 @@ static void IncomingDatagramRead(SLPList * socklist, SLPDSocket * sock)
    (void)socklist;
 
    bytesread = recvfrom(sock->fd, (char*)sock->recvbuf->start, 
-         SLP_MAX_DATAGRAM_SIZE, 0, (struct sockaddr *)&sock->peeraddr, 
+         G_SlpdProperty.MTU, 0, (struct sockaddr *)&sock->peeraddr, 
          &peeraddrlen);
    if (bytesread > 0)
    {
@@ -98,7 +98,13 @@ static void IncomingDatagramRead(SLPList * socklist, SLPDSocket * sock)
 #ifdef DARWIN
             /* If the socket is a multicast socket, find the designated UDP output socket for sending*/
             if(DATAGRAM_MULTICAST == sock->state)
-               sendsock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+            {
+               if ((sendsock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) !=
+                  SLP_INVALID_SOCKET)
+               {
+                  SLPNetworkSetSndRcvBuf(sendsock, 0);
+               }
+            }
 #endif
             if(SLP_INVALID_SOCKET == sendsock)
                sendsock = sock->fd;
@@ -126,9 +132,9 @@ static void IncomingDatagramRead(SLPList * socklist, SLPDSocket * sock)
                       (flags & SLP_FLAG_OVERFLOW))
                   {
                       int byteswrittenmax = sendto(sendsock, (char*)sock->sendbuf->curpos,
-                                SLP_MAX_DATAGRAM_SIZE, 0, (struct sockaddr *)&sock->peeraddr,
+                                G_SlpdProperty.MTU, 0, (struct sockaddr *)&sock->peeraddr,
                                 SLPNetAddrLen(&sock->peeraddr));
-                      if (byteswrittenmax == SLP_MAX_DATAGRAM_SIZE)
+                      if (byteswrittenmax == G_SlpdProperty.MTU)
                          byteswritten = packetbytes;
                   }
                }

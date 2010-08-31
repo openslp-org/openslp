@@ -40,6 +40,7 @@
 
 #include "slpd_socket.h"
 #include "slpd_property.h"
+#include "slp_property.h"
 
 #include "slp_message.h"
 #include "slp_xmalloc.h"
@@ -333,6 +334,32 @@ SLPDSocket * SLPDSocketAlloc(void)
    return sock;
 }
 
+/**
+ * Sets the SO_SNDBUF and SO_RCVBUF values on a given socket.
+ *
+ * @param[in] sock - the socket file descriptor for which to set the
+ *                     SO_SNDBUF and SO_RCVBUF values.
+ *
+ */
+void SLPDSocketSetSendRecvBuff(sockfd_t sock)
+{
+#ifndef _WIN32
+   int sndbufSize;
+   int rcvBufSize;
+
+   SLPPropertyInternalGetSndRcvBufSize(&sndbufSize, &rcvBufSize);
+   if (sndbufSize)
+   {
+       setsockopt(sock, SOL_SOCKET, SO_SNDBUF, &sndbufSize, sizeof(int));
+   }
+
+   if (rcvBufSize)
+   {
+       setsockopt(sock, SOL_SOCKET, SO_RCVBUF, &rcvBufSize, sizeof(int));
+   }
+#endif
+}
+
 /** Frees memory associated with the specified SLPDSocket.
  *
  * @param[in] sock - A pointer to the socket to free.
@@ -380,10 +407,10 @@ SLPDSocket * SLPDSocketCreateDatagram(struct sockaddr_storage * peeraddr,
    sock = SLPDSocketAlloc();
    if (sock)
    {
-      /* SLP_MAX_DATAGRAM_SIZE is as big as a datagram SLP     */
+      /* G_SlpdProperty.MTU is as big as a datagram SLP     */
       /* can be.                                               */
-      sock->recvbuf = SLPBufferAlloc(SLP_MAX_DATAGRAM_SIZE);
-      sock->sendbuf = SLPBufferAlloc(SLP_MAX_DATAGRAM_SIZE);
+      sock->recvbuf = SLPBufferAlloc(G_SlpdProperty.MTU);
+      sock->sendbuf = SLPBufferAlloc(G_SlpdProperty.MTU);
       if (sock->recvbuf && sock->sendbuf)
       {
          if (peeraddr->ss_family == AF_INET)
@@ -395,6 +422,7 @@ SLPDSocket * SLPDSocketCreateDatagram(struct sockaddr_storage * peeraddr,
 
          if (sock->fd != SLP_INVALID_SOCKET)
          {
+            SLPDSocketSetSendRecvBuff(sock->fd);
             switch(type)
             {
                case DATAGRAM_BROADCAST:
@@ -486,8 +514,8 @@ SLPDSocket * SLPDSocketCreateBoundDatagram(struct sockaddr_storage * myaddr,
    sock = SLPDSocketAlloc();
    if (sock)
    {
-      sock->recvbuf = SLPBufferAlloc(SLP_MAX_DATAGRAM_SIZE);
-      sock->sendbuf = SLPBufferAlloc(SLP_MAX_DATAGRAM_SIZE);
+      sock->recvbuf = SLPBufferAlloc(G_SlpdProperty.MTU);
+      sock->sendbuf = SLPBufferAlloc(G_SlpdProperty.MTU);
       if (SLPNetIsIPV4() && peeraddr->ss_family == AF_INET)
          sock->fd = socket(PF_INET, SOCK_DGRAM, 0);
       else if (SLPNetIsIPV6() && peeraddr->ss_family == AF_INET6)
@@ -497,6 +525,7 @@ SLPDSocket * SLPDSocketCreateBoundDatagram(struct sockaddr_storage * myaddr,
 
       if (sock->fd != SLP_INVALID_SOCKET)
       {
+         SLPDSocketSetSendRecvBuff(sock->fd);
 #ifdef _WIN32
          if (BindSocketToInetAddr(peeraddr->ss_family, 
                sock->fd, myaddr) == 0)
