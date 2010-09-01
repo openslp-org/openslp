@@ -351,7 +351,7 @@ int MakeSrvderegFromSrvReg(SLPMessage * msg, SLPBuffer inbuf, SLPBuffer * outbuf
    PutUINT24(&sendbuf->curpos, size);
 
    /* flags */
-   PutUINT16(&sendbuf->curpos, (size > G_SlpdProperty.MTU? 
+   PutUINT16(&sendbuf->curpos, (size > (size_t)G_SlpdProperty.MTU? 
          SLP_FLAG_OVERFLOW: 0));
 
    /* ext offset */
@@ -1150,7 +1150,7 @@ int SLPDKnownDAGenerateMyDAAdvert(struct sockaddr_storage * localaddr,
 
    /* flags */
    PutUINT16(&result->curpos,
-             (size > G_SlpdProperty.MTU ? SLP_FLAG_OVERFLOW : 0) |
+             (size > (size_t)G_SlpdProperty.MTU ? SLP_FLAG_OVERFLOW : 0) |
              (ismcast ? SLP_FLAG_MCAST : 0));
 
    /* ext offset */
@@ -1344,7 +1344,7 @@ int SLPDKnownDAGenerateMyV1DAAdvert(struct sockaddr_storage * localaddr,
 
    /* flags */
    /** @todo We have to handle monoling and all that stuff. */
-   *result->curpos++ = (size > G_SlpdProperty.MTU? 
+   *result->curpos++ = (size > (size_t)G_SlpdProperty.MTU? 
          SLPv1_FLAG_OVERFLOW: 0);
 
    /* dialect */

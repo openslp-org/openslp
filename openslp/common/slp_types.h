@@ -69,6 +69,10 @@
  * Platform SDK / SETENV.CMD).
  */
 
+/*#if'd this out, because it was causing problems with different
+ *versions of the platform SDK
+ */
+#if 0
 # ifndef _WIN32_WINNT
 #  define _WIN32_WINNT 0x0400
 # endif /* ifndef _WIN32_WINNT */
@@ -76,6 +80,7 @@
 # ifndef NTDDI_VERSION
 #  define NTDDI_VERSION NTDDI_WINXP
 # endif /* ifndef NTDDI_VERSION */
+#endif
 
 # include <windows.h>
 # include <winsock2.h>

@@ -276,7 +276,7 @@ int SLPXcastRecvMessage(const SLPXcastSockets * sockets, SLPBuffer * buf,
 #endif
                )
                {
-                  if (AS_UINT24(peek + 2) <=  mtu)
+                  if (AS_UINT24(peek + 2) <=  (unsigned int)mtu)
                   {
                      *buf = SLPBufferRealloc(*buf, AS_UINT24(peek + 2));
                      bytesread = recv(sockets->sock[i], (char *)(*buf)->curpos,

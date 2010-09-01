@@ -192,16 +192,17 @@ static int SetDefaultValues(void)
  */
 static void InitializeMTUPropertyValue()
 {
+#ifndef _WIN32
    int mtuChanged = 0;
    int family;
    sockfd_t sock;
    int value = 0;
    socklen_t valSize = sizeof(int);
-
+#endif
    s_GlobalPropertyInternalRcvBufSize = s_GlobalPropertyInternalSndBufSize = 0;
    s_GlobalPropertyMTU = SLPPropertyAsInteger("net.slp.MTU");
 
-# ifndef _WIN32
+#ifndef _WIN32
    family = SLPPropertyAsBoolean("net.slp.useIPv4") ? AF_INET : AF_INET6;
 
    if ((sock = socket(family, SOCK_DGRAM, 0)) != SLP_INVALID_SOCKET)

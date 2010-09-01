@@ -310,7 +310,7 @@ size_t SLPNormalizeString(size_t len, const char * srcstr, char * dststr, int tr
       }
       else
       {
-         *upd++ = tolower(*srcstr++);
+         *upd++ = (char)tolower(*srcstr++);
          --len;
       }
    }

@@ -328,7 +328,7 @@ char *strdup_len(const char *str, size_t max_len)
 char *get_value_string(IndexTreeNode *pnode)
 {
    if (!pnode)
-      return strdup("!! ERROR: No node !!");
+      return strdup_len("!! ERROR: No node !!", 20);
    return strdup_len(pnode->value_str, pnode->value_str_len);
 }
 

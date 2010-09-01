@@ -2010,7 +2010,7 @@ static FilterResult treeFilter(SLPDPredicateTreeNode *parseTree,
    }
 
    /***** No operator. *****/
-   return FR_PARSE_ERROR;
+  /* return FR_PARSE_ERROR; */
 }
 
 

@@ -1658,7 +1658,7 @@ SLPError NetworkMultiUcastRqstRply(
 #endif
                )
             {
-                if(AS_UINT24(peek + 2) <=  mtu)
+                if(AS_UINT24(peek + 2) <=  (unsigned int)mtu)
                 {
                     udp_recvbuf = SLPBufferRealloc(udp_recvbuf, AS_UINT24(peek + 2));
                     bytesread = recv(udp_socket,

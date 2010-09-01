@@ -357,6 +357,8 @@ void SLPDSocketSetSendRecvBuff(sockfd_t sock)
    {
        setsockopt(sock, SOL_SOCKET, SO_RCVBUF, &rcvBufSize, sizeof(int));
    }
+#else
+	(void)sock;
 #endif
 }
 

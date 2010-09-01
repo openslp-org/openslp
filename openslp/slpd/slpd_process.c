@@ -126,7 +126,7 @@ static int ProcessSASrvRqst(SLPMessage * message, SLPBuffer * sendbuf,
       PutUINT24(&result->curpos, size);
 
       /* flags */
-      PutUINT16(&result->curpos, (size > G_SlpdProperty.MTU? 
+      PutUINT16(&result->curpos, (size > (size_t)G_SlpdProperty.MTU? 
             SLP_FLAG_OVERFLOW: 0));
 
       /* ext offset */
@@ -492,7 +492,7 @@ RESPOND:
    PutUINT24(&result->curpos, size);
 
    /* flags */
-   PutUINT16(&result->curpos, (size > G_SlpdProperty.MTU? 
+   PutUINT16(&result->curpos, (size > (size_t)G_SlpdProperty.MTU? 
          SLP_FLAG_OVERFLOW: 0));
 
    /* ext offset */
@@ -990,7 +990,7 @@ RESPOND:
    PutUINT24(&result->curpos, size);
 
    /* flags */
-   PutUINT16(&result->curpos, (size > G_SlpdProperty.MTU? 
+   PutUINT16(&result->curpos, (size > (size_t)G_SlpdProperty.MTU? 
          SLP_FLAG_OVERFLOW: 0));
 
    /* ext offset */
@@ -1185,7 +1185,7 @@ RESPOND:
    PutUINT24(&result->curpos, size);
 
    /* flags */
-   PutUINT16(&result->curpos, (size > G_SlpdProperty.MTU?
+   PutUINT16(&result->curpos, (size > (size_t)G_SlpdProperty.MTU?
          SLP_FLAG_OVERFLOW: 0));
 
    /* ext offset */
