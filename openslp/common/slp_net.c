@@ -148,7 +148,9 @@ static int resolveHost(int af, const char * src, void * dst)
 
    if (af == AF_INET)
    {
-      struct in_addr * d4Dst = (struct in_addr *) dst;
+      struct sockaddr_in *addr4 = (struct sockaddr_in *)dst;
+      struct in_addr * d4Dst = (struct in_addr *) &addr4->sin_addr;
+
       hints.ai_family = PF_INET;
       if (getaddrinfo(src, 0, &hints, &res) == 0)
       {
@@ -173,7 +175,9 @@ static int resolveHost(int af, const char * src, void * dst)
    }
    if (af == AF_INET6)
    {
-      struct in6_addr * d6Dst = (struct in6_addr *) dst;
+      struct sockaddr_in6 *addr6 = (struct sockaddr_in6 *)dst;
+      struct in6_addr * d6Dst = (struct in6_addr *) &addr6->sin6_addr;
+
       hints.ai_family = PF_INET6;
       if (getaddrinfo(src, 0, &hints, &res) == 0)
       {
@@ -184,7 +188,8 @@ static int resolveHost(int af, const char * src, void * dst)
             {
                struct in6_addr * d6Src;
                d6Src = &((struct sockaddr_in6 *)res->ai_addr)->sin6_addr;
-               memcpy(&d6Dst->s6_addr, &d6Src->s6_addr, 16); 
+               memcpy(&d6Dst->s6_addr, &d6Src->s6_addr, 16);
+               addr6->sin6_scope_id = ((struct sockaddr_in6 *)res->ai_addr)->sin6_scope_id;
                freeaddrinfo(res);
                return 1;
             }
@@ -356,7 +361,7 @@ int SLPNetResolveHostToAddr(const char * host,
    memset(addr, 0, sizeof(struct sockaddr_storage));
 
    /* Quick check for dotted quad IPv4 address. */
-   if (resolveHost(AF_INET, host, &a4->sin_addr) == 1)
+   if (resolveHost(AF_INET, host, a4) == 1)
    {
       addr->ss_family = AF_INET;
 #ifdef HAVE_SOCKADDR_STORAGE_SS_LEN
@@ -366,7 +371,7 @@ int SLPNetResolveHostToAddr(const char * host,
    }
 
    /* Try an IPv6 address. */
-   if (resolveHost(AF_INET6, host, &a6->sin6_addr) == 1)
+   if (resolveHost(AF_INET6, host, a6) == 1)
    {
       addr->ss_family = AF_INET6;
 #ifdef HAVE_SOCKADDR_STORAGE_SS_LEN
