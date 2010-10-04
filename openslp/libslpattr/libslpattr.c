@@ -1539,7 +1539,7 @@ static int internal_store(struct xx_SLPAttributes * slp_attr, char const * tag,
    mem_block = (char *) malloc(block_size);
    if (mem_block == 0)
    {
-      free(val);
+      free(var);
       return 0;
    }
 
