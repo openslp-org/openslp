@@ -586,6 +586,7 @@ int SLPKnownDAFromProperties()
                      daaddr_isset = 1;
                      /* we'll continue searching for an IPv6 address, but we'll use the first IPv4 address if none are found */
                   }
+                  ai_ref = ai_ref->ai_next;
                }
 
                freeaddrinfo(ai);
