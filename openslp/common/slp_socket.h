@@ -60,6 +60,8 @@
 # include <winsock2.h>
 # include <ws2tcpip.h>
 # include <iptypes.h>
+# include <iphlpapi.h>
+# pragma comment(lib, "IPHLPAPI.lib")
 # define so_bool_t char
 # define sockfd_t SOCKET
 # define ssize_t int
@@ -97,6 +99,9 @@ const char * inet_ntop(int af, const void * src, char * dst, size_t size);
 # include <net/if.h>
 # include <net/if_arp.h>
 # include <netdb.h>
+#if defined(LINUX)
+# include <ifaddrs.h>
+#endif
 
 /** Portability definitions
  * @todo Move to slp_types.h
