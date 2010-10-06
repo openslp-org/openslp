@@ -835,6 +835,68 @@ static int v2ParseSAAdvert(SLPBuffer buffer, SLPSAAdvert * saadvert)
    return 0;
 }
 
+/* -------------------------------------------------------------------
+   The following code is for managing a list of extension references
+   maintained by the extension parser. This allows us to verify that
+   there are no extension reference loops in the message. This code 
+   assumes we we have bigger fish to fry if we run out of memory so
+   it simply doesn't add a reference to the list if it can't allocate.
+   ------------------------------------------------------------------- */
+
+struct extref {
+   struct extref * next;
+   int ref;
+};
+
+/** Add an extension reference to a list of references.
+ * 
+ * The list should previously have been checked for duplicates before
+ * this routine is called with a reference.
+ *
+ * @param list - The address of the list to which an extension
+ *    reference should be added.
+ * @param ref - The reference to be added to the list.
+ */
+static void addExtRefToList(struct extref ** list, int ref) {
+   struct extref * er = (struct extref *)malloc(sizeof(struct extref));
+   if (er) {
+      er->ref = ref;
+      er->next = *list;
+      *list = er;
+   }
+}
+
+/** Check if a given reference has already been processed.
+ *
+ * @param list - The list to be checked for duplicate entry.
+ * @param ref - The reference to check for.
+ *
+ * @return A boolean value - True (1) if the specified reference is
+ *    already in the list, False (0) if not found.
+ */
+static int isExtRefInList(struct extref * list, int ref) {
+   struct extref * cur = list;
+   while (cur) {
+      if (cur->ref == ref)
+         return 1;
+      cur = cur->next;
+   }
+   return 0;
+}
+
+/** Destroy an existing reference list.
+ *
+ * @param list - The list to be destroyed.
+ */
+static void cleanupExtRefList(struct extref * list) {
+   struct extref * cur = list; 
+   while (cur) {
+      struct extref * save = cur;
+      cur = cur->next;
+      free(save);
+   }
+}
+
 /** Parse a service extension.
  *
  * @param[in] buffer - The buffer from which data should be parsed.
@@ -858,13 +920,26 @@ static int v2ParseExtension(SLPBuffer buffer, SLPMessage * msg)
    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ */
 
    int result = 0;
+   struct extref * erlist = 0;
    int nextoffset = msg->header.extoffset;
+
    while (nextoffset)
    {
       int extid;
+
+      /* check for circular reference in list */
+      if (isExtRefInList(erlist, nextoffset)) {
+         result = SLP_ERROR_PARSE_ERROR;
+         goto errout;
+      }
+      addExtRefToList(&erlist, nextoffset);
+
       buffer->curpos = buffer->start + nextoffset;
-      if (buffer->curpos + 5 > buffer->end)
-         return SLP_ERROR_PARSE_ERROR;
+      
+      if (buffer->curpos + 5 > buffer->end) {
+         result = SLP_ERROR_PARSE_ERROR;
+         goto errout;
+      }
 
       extid = GetUINT16(&buffer->curpos);
       nextoffset = GetUINT24(&buffer->curpos);
@@ -878,19 +953,26 @@ static int v2ParseExtension(SLPBuffer buffer, SLPMessage * msg)
          case SLP_EXTENSION_ID_REG_PID_EXP:
             if (msg->header.functionid == SLP_FUNCT_SRVREG)
             {
-               if (buffer->curpos + 4 > buffer->end)
-                  return SLP_ERROR_PARSE_ERROR;
+               if (buffer->curpos + 4 > buffer->end) {
+                  result = SLP_ERROR_PARSE_ERROR;
+                  goto errout;
+               }
                msg->body.srvreg.pid = GetUINT32(&buffer->curpos);
             }
             break;
 
          default:
             /* These are required extensions. Error if not handled. */
-            if (extid >= 0x4000 && extid <= 0x7FFF)
-               return SLP_ERROR_OPTION_NOT_UNDERSTOOD;
+            if (extid >= 0x4000 && extid <= 0x7FFF) {
+               result = SLP_ERROR_OPTION_NOT_UNDERSTOOD;
+               goto errout;
+            }
             break;
       }
    }
+
+errout:
+   cleanupExtRefList(erlist);
    return result;
 }
 
