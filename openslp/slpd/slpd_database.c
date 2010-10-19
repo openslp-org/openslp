@@ -551,9 +551,9 @@ int SLPDDatabaseReg(SLPMessage * msg, SLPBuffer buf)
          SLPDatabaseAdd(dh, entry);
 
          /* Update the service type index with the new entry */
+         entry->handles[HANDLE_SRVTYPE] = (void *)pNormalisedSrvtype;
          if (G_SlpdProperty.srvtypeIsIndexed)
          {
-            entry->handles[HANDLE_SRVTYPE] = (void *)pNormalisedSrvtype;
             srvtype_index_tree = add_to_index(srvtype_index_tree, pNormalisedSrvtype->srvtypelen, pNormalisedSrvtype->srvtype, (void *)entry);
          }
 
