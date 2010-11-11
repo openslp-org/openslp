@@ -155,7 +155,6 @@ static int SLPIfaceContainsAddr(size_t listlen, const char * list,
  */
 static int GetV6Scope(struct sockaddr_in6 *addr, char *iface)
 {
-   sockfd_t fd;
    int result = -1;
 #if defined(LINUX)
    struct ifaddrs *ifa, *ifaddr;
@@ -194,6 +193,7 @@ static int GetV6Scope(struct sockaddr_in6 *addr, char *iface)
    }
    freeifaddrs(ifaddr);
 #elif defined _WIN32
+   sockfd_t fd;
    DWORD retVal = 0;
    int i = 0;
    ULONG flg = GAA_FLAG_INCLUDE_PREFIX;
@@ -305,6 +305,7 @@ static int GetV6Scope(struct sockaddr_in6 *addr, char *iface)
    if(pAddr!=NULL)
       HeapFree(GetProcessHeap(), 0, (pAddr));
 #else
+   sockfd_t fd;
    fd = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
    if (fd != SLP_INVALID_SOCKET)
    {
@@ -343,17 +344,15 @@ static int GetV6Scope(struct sockaddr_in6 *addr, char *iface)
  *    address count field is set to the position of the next available
  *    slot in the address array.
  */
-static int SLPIfaceParseProc(SLPIfaceInfo * ifaceinfo)
+static int SLPIfaceGetV6Addr(SLPIfaceInfo * ifaceinfo)
 {
    struct sockaddr_in6* paddr, *ifaddr;
-   struct ifaddrs *ifa;
+   struct ifaddrs *ifa, *ifaddrs;
 
-   if (getifaddrs(&ifa)) {
-           return -1;
-   }
+   if (getifaddrs(&ifaddrs))
+      return -1;
 
-
-  for (; ifa; ifa = ifa->ifa_next)
+   for (ifa = ifaddrs; ifa && ifaceinfo->iface_count < SLP_MAX_IFACES; ifa = ifa->ifa_next)
    {
       if(ifa->ifa_addr->sa_family != AF_INET6)
           continue;
@@ -374,7 +373,7 @@ static int SLPIfaceParseProc(SLPIfaceInfo * ifaceinfo)
 #endif
       ++ifaceinfo->iface_count;
    }
-   freeifaddrs(ifa);
+   freeifaddrs(ifaddrs);
    return 0;
 }
 
@@ -443,7 +442,7 @@ int SLPIfaceGetDefaultInfo(SLPIfaceInfo * ifaceinfo, int family)
    if ((family == AF_INET6) || (family == AF_UNSPEC))
    {
 #ifdef LINUX
-     SLPIfaceParseProc(ifaceinfo);
+      SLPIfaceGetV6Addr(ifaceinfo);
 #else
       fd = socket(AF_INET6, SOCK_DGRAM, 0);
       if (fd != -1)
@@ -458,7 +457,7 @@ int SLPIfaceGetDefaultInfo(SLPIfaceInfo * ifaceinfo, int family)
             return -1;
          }
 
-         for (p = ifc.ifc_buf; p < ifc.ifc_buf + ifc.ifc_len;)
+         for (p = ifc.ifc_buf; p < ifc.ifc_buf + ifc.ifc_len && ifaceinfo->iface_count < SLP_MAX_IFACES;)
          {
             ifr = (struct ifreq*) p;
             sa = (struct sockaddr*)&(ifr->ifr_addr);
@@ -498,7 +497,7 @@ int SLPIfaceGetDefaultInfo(SLPIfaceInfo * ifaceinfo, int family)
             return -1;
          }
 
-         for (p = ifc.ifc_buf; p < ifc.ifc_buf + ifc.ifc_len;)
+         for (p = ifc.ifc_buf; p < ifc.ifc_buf + ifc.ifc_len && ifaceinfo->iface_count < SLP_MAX_IFACES;)
          {
             ifr = (struct ifreq*) p;
             sa = (struct sockaddr*)&(ifr->ifr_addr);
@@ -573,7 +572,7 @@ int SLPIfaceGetDefaultInfo(SLPIfaceInfo* ifaceinfo, int family)
                return (errno = WSAGetLastError()), -1;
             }
             plist = (SOCKET_ADDRESS_LIST*)buffer;
-            for (i = 0; i < plist->iAddressCount; ++i)
+            for (i = 0; i < plist->iAddressCount && ifaceinfo->iface_count < SLP_MAX_IFACES; ++i)
                if ((plist->Address[i].lpSockaddr->sa_family == AF_INET6) &&
                    (0 == GetV6Scope((struct sockaddr_in6*)plist->Address[i].lpSockaddr, NULL)) &&
                    /*Ignore Teredo and loopback pseudo-interfaces*/
@@ -610,7 +609,7 @@ int SLPIfaceGetDefaultInfo(SLPIfaceInfo* ifaceinfo, int family)
                return (errno = WSAGetLastError()), -1;
             }
             plist = (SOCKET_ADDRESS_LIST*)buffer;
-            for (i = 0; i < plist->iAddressCount; ++i)
+            for (i = 0; i < plist->iAddressCount && ifaceinfo->iface_count < SLP_MAX_IFACES; ++i)
                if (plist->Address[i].lpSockaddr->sa_family == AF_INET)
                   memcpy(&ifaceinfo->iface_addr[ifaceinfo->iface_count++], 
                         plist->Address[i].lpSockaddr, sizeof(struct sockaddr_in));
