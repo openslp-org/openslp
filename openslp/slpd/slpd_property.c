@@ -139,6 +139,7 @@ void SLPDPropertyReinit(void)
       G_SlpdProperty.DAHeartBeat = SLPD_AGE_INTERVAL;
 
    G_SlpdProperty.port = (uint16_t)SLPPropertyAsInteger("net.slp.port");
+   G_SlpdProperty.useDHCP = SLPPropertyAsBoolean("net.slp.useDHCP");
 
    /* set the net.slp.interfaces property */
    if (SLPNetIsIPV4() && SLPNetIsIPV6())

@@ -677,7 +677,8 @@ SLPBoolean KnownDARefreshCache(int scopelistlen,
         /* discover DAs */
         if(KnownDADiscoverFromIPC(handle) == 0)
             if(KnownDADiscoverFromProperties(scopelistlen, scopelist, handle) == 0)
-                if(KnownDADiscoverFromDHCP(handle) == 0)
+                if (! SLPPropertyAsBoolean(SLPGetProperty("net.slp.useDHCP"))
+                            || KnownDADiscoverFromDHCP(handle) == 0)
                     KnownDADiscoverFromMulticast(scopelistlen, scopelist, handle);
         return SLP_TRUE;
     }
@@ -889,7 +890,8 @@ int KnownDAGetScopes(size_t * scopelistlen,
       /* Discover all DAs. */
       if (KnownDADiscoverFromIPC(handle) == 0)
       {
-         KnownDADiscoverFromDHCP(handle);
+         if (SLPPropertyAsBoolean(SLPGetProperty("net.slp.useDHCP")))
+            KnownDADiscoverFromDHCP(handle);
          KnownDADiscoverFromProperties(0,"", handle);
          KnownDADiscoverFromMulticast(0,"", handle);
       }
@@ -976,7 +978,8 @@ void KnownDAProcessSrvRqst(SLPHandleInfo * handle)
    /* Discover all DAs. */
    if (KnownDADiscoverFromIPC(handle) == 0)
    {
-      KnownDADiscoverFromDHCP(handle);
+      if (SLPPropertyAsBoolean(SLPGetProperty("net.slp.useDHCP")))
+         KnownDADiscoverFromDHCP(handle);
       KnownDADiscoverFromProperties(0,"", handle);
       KnownDADiscoverFromMulticast(0,"", handle);
    }

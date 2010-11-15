@@ -685,7 +685,8 @@ int SLPDKnownDAInit()
    /*-----------------------------------------------------------------*/
    /* Discover DHCP DA's and add them to the active discovery list.    */
    /*-----------------------------------------------------------------*/
-   SLPDKnownDAFromDHCP();
+   if (G_SlpdProperty.useDHCP)
+      SLPDKnownDAFromDHCP();
 
    /*------------------------------------------------------------------*/
    /* Generate the list of our URLs                                    */

@@ -113,6 +113,7 @@ typedef struct _SLPDProperty
    int DAHeartBeat;
    int appendLog;
    int MTU;
+   int useDHCP;
 } SLPDProperty;
 
 extern SLPDProperty G_SlpdProperty;
