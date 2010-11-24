@@ -110,7 +110,7 @@ static BOOL ReportStatusToSCMgr(DWORD dwCurrentState,
 
       /* report the status of the service to the service control manager.*/
       if ((fResult = SetServiceStatus( sshStatusHandle, &ssStatus)) == 0)
-         SLPDLog("SetServiceStatus failed"); 
+         SLPDLog("SetServiceStatus failed\n"); 
    }
    return fResult; 
 } 
