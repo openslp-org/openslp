@@ -42,7 +42,7 @@
 # pragma warning (disable : 4206) 
 #else
 # if HAVE_CONFIG_H
-#  include <config.h>
+#  include "config.h"
 # endif
 #endif
 

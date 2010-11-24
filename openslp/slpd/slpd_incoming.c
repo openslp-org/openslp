@@ -970,6 +970,21 @@ int SLPDIncomingDeinit(void)
  */
 void SLPDIncomingSocketDump(void)
 {
+   char str1[INET6_ADDRSTRLEN];
+   char str2[INET6_ADDRSTRLEN];
+   char str3[INET6_ADDRSTRLEN];
+   SLPDSocket * sock = (SLPDSocket *) G_IncomingSocketList.head;
+   SLPDLog("========================================================================\n");
+   SLPDLog("Dumping IncomingSocketList\n");
+   SLPDLog("========================================================================\n");
+   while (sock)
+   {
+      SLPDLog("localaddr=%s peeraddr=%s mcastaddr=%s\n",
+         SLPNetSockAddrStorageToString(&(sock->localaddr), str1, sizeof(str1)),
+         SLPNetSockAddrStorageToString(&(sock->peeraddr), str2, sizeof(str2)),
+         SLPNetSockAddrStorageToString(&(sock->mcastaddr), str3, sizeof(str3)));
+      sock = (SLPDSocket *) sock->listitem.next;
+   }
 }
 #endif
 

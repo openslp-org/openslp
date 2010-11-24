@@ -30,6 +30,11 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *-------------------------------------------------------------------------*/
 
+#ifndef SLPD_INDEX_H_INCLUDED
+#define SLPD_INDEX_H_INCLUDED
+
+#include "slpd.h"
+
 /******************************************************************************
  *
  *                             Individual values
@@ -110,3 +115,6 @@ size_t find_leading_and_call(
 #ifdef DEBUG
 void print_tree(IndexTreeNode *root_node, unsigned depth);
 #endif
+
+#endif   /* SLPD_INDEX_H_INCLUDED */
+

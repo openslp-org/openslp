@@ -1884,7 +1884,6 @@ void SLPDDatabaseDump(void)
 #ifdef DEBUG
 void SLPDDatabaseUsr1(void)
 {
-   extern void print_tree(IndexTreeNode *root_node, unsigned depth);
    SLPTagIndex *tag_index;
    if (!srvtype_index_tree)
       SLPDLog("Service type index is empty\n");

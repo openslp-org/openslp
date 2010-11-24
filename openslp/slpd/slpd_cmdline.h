@@ -49,6 +49,7 @@
  */
 
 #include "slp_types.h"
+#include "slpd.h"
 
 typedef enum
 {

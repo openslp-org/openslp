@@ -41,6 +41,10 @@
 #ifndef SLPD_H_INCLUDED
 #define SLPD_H_INCLUDED
 
+#if HAVE_CONFIG_H
+# include "config.h"
+#endif
+
 /*!@defgroup SlpdCode Service & Directory Agent */
 /*!@defgroup SlpdCodeSlpd Internal */
 
