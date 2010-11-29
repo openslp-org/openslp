@@ -60,7 +60,7 @@
 #else
 # define SLPD_USAGE_STRING                                           \
          "[-d] [-c conf file] [-l log file] "                        \
-         "[-r reg file] [-s spi file] [-v version]"
+         "[-r reg file] [-s spi file] [-p pidfile] [-v version]"
 #endif
 
 /** Global variable containing command line options.
