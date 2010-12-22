@@ -253,29 +253,42 @@ static char * unescape_into(char * dest, const char * src, size_t len,
       {
          if (state == START_VAL)
          {
+            int this_type = TYPE_OPAQUE;	/* may be either a string or an opaque */
+
+            (*cur)++;
+            if (!IS_VALID_HEX(**cur))
+               return 0;	/* not even a valid escape sequence */
+
             /*** Test if we're starting an opaque. ***/
-            (*cur)++;
-            if ((**cur) != '0')
+            if (((**cur) != 'F') && ((**cur) != 'f'))
             {
-               /* Panic: truncated escaped value. */
-               return 0;
+               /* Opaque must start with \FF, so this must be a string */
+               this_type = TYPE_STR;
             }
 
             (*cur)++;
-            if ((**cur) != '0')
+            if (!IS_VALID_HEX(**cur))
+               return 0;	/* not even a valid escape sequence */
+
+            /*** Test if we're starting an opaque. ***/
+            if ((this_type == TYPE_OPAQUE) && ((**cur) != 'F') && ((**cur) != 'f'))
             {
-               /* Panic: truncated escaped value. */
-               return 0;
+               /* Opaque must start with \FF, so this must be a string */
+               this_type = TYPE_STR;
             }
 
-            /*** We're starting an opaque. Ensure proper typing. ***/
+            /*** We're starting a string or an opaque. Ensure proper typing. ***/
             if (type_guess == TYPE_UNKNOWN)
-               type_guess = TYPE_OPAQUE;
-            else if (type_guess != TYPE_OPAQUE)
+               type_guess = this_type;
+            else if (((this_type != TYPE_OPAQUE) && (type_guess == TYPE_OPAQUE)) ||
+                     ((this_type == TYPE_OPAQUE) && (type_guess != TYPE_OPAQUE)))
             {
                /* An opaque is mixed in with non-opaques. Fail. */
                return 0;
             }
+            else if (this_type == TYPE_STR)
+               /* This value can't be a more specific type, so the whole attribute list can't either */
+               type_guess = TYPE_STR;
          }
          else
          {
@@ -330,7 +343,7 @@ static char * unescape_into(char * dest, const char * src, size_t len,
             /** Opaque. **/
          if (type_guess == TYPE_OPAQUE)
          {
-            /* Type error! The string starts with a \00, but has a bare character somewhere following. */
+            /* Type error! The string starts with a \FF, but has a bare character somewhere following. */
             return 0;
          }
             /** Int. **/
@@ -1539,7 +1552,7 @@ static int internal_store(struct xx_SLPAttributes * slp_attr, char const * tag,
    mem_block = (char *) malloc(block_size);
    if (mem_block == 0)
    {
-      free(var);
+      free(val);
       return 0;
    }
 
