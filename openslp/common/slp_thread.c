@@ -118,7 +118,11 @@ SLPMutexHandle SLPMutexCreate(void)
    pthread_mutexattr_t attr;
    if (pthread_mutexattr_init(&attr) == 0)
    {
+#ifdef __USE_UNIX98
       (void)pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
+#else
+      (void)pthread_mutexattr_setkind_np(&attr, PTHREAD_MUTEX_RECURSIVE_NP);
+#endif
       mutex = (pthread_mutex_t *)xmalloc(sizeof(*mutex));
       if (mutex != 0 && pthread_mutex_init(mutex, &attr) != 0)
       {
