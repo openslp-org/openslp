@@ -323,6 +323,7 @@ void SLPDDatabaseAge(int seconds, int ageall)
             }
             SLPDKnownDADeRegisterWithAllDas(entry->msg, entry->buf);
             SLPDDatabaseRemove(dh, entry);
+	    SLPDIncomingRemoveService(srvreg->srvtype, srvreg->srvtypelen);
             continue;
          }
 
@@ -340,6 +341,7 @@ void SLPDDatabaseAge(int seconds, int ageall)
          {
             SLPDLogRegistration("Timeout", entry);
             SLPDDatabaseRemove(dh, entry);
+	    SLPDIncomingRemoveService(srvreg->srvtype, srvreg->srvtypelen);
          }
       }
       SLPDatabaseClose(dh);
