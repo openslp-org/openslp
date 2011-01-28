@@ -62,7 +62,22 @@ multicast_route_set()
             if [ $retval = 0 ]; then
                 echo $MSG_SUCCES_ON_ADD
             else
-                echo $MSG_FAILED_TO_ADD
+                FLAG_ROUTE_ADDED=1
+                INTERFACE_LIST=`eval $CMD_GET_INTERFACE`
+                for SINGLE_INTERFACE in $INTERFACE_LIST
+                 do
+                      $CMD_ADD_ROUTE $SINGLE_INTERFACE > /dev/null 2>&1
+                      retval=$?
+                      if [ $1 != 0 ]; then
+                         if [ $retval = 0 ]; then
+                             FLAG_ROUTE_ADDED=$retval
+                         fi
+                      fi
+                 done
+                 if [ $FLAG_ROUTE_ADDED = 0 ]; then
+                         echo $MSG_SUCCES_ON_ADD
+                         retval=$FLAG_ROUTE_ADDED
+                 fi
             fi
         fi
 
