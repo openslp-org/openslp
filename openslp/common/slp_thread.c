@@ -118,7 +118,7 @@ SLPMutexHandle SLPMutexCreate(void)
    pthread_mutexattr_t attr;
    if (pthread_mutexattr_init(&attr) == 0)
    {
-#ifdef __USE_UNIX98
+#if defined(__USE_UNIX98) || defined(DARWIN)
       (void)pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
 #else
       (void)pthread_mutexattr_setkind_np(&attr, PTHREAD_MUTEX_RECURSIVE_NP);
