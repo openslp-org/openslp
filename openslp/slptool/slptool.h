@@ -100,6 +100,7 @@ typedef struct _SLPToolCommandLine
 {
    SLPToolCommand cmd;
    const char * lang;
+   const char * time;
    const char * interfaces;
    const char * unicastifc;
    const char * scopes;

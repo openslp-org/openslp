@@ -260,6 +260,11 @@ void Register(SLPToolCommandLine * cmdline)
    SLPHandle hslp;
    char srvtype[80] = "", * s;
    size_t len = 0;
+   unsigned int lt = 0;
+
+   if (cmdline->time) {
+       lt = atoi(cmdline->time);
+   }
 
    if (strncasecmp(cmdline->cmdparam1, "service:", 8) == 0)
       len = 8;
@@ -276,8 +281,12 @@ void Register(SLPToolCommandLine * cmdline)
 
    if (SLPOpen(cmdline->lang, SLP_FALSE, &hslp) == SLP_OK)
    {
-      result = SLPReg(hslp, cmdline->cmdparam1, SLP_LIFETIME_DEFAULT, srvtype,
-                     cmdline->cmdparam2, SLP_TRUE, mySLPRegReport, 0);
+      if (!lt || lt > SLP_LIFETIME_MAXIMUM)
+           result = SLPReg(hslp, cmdline->cmdparam1, SLP_LIFETIME_DEFAULT, srvtype,
+                           cmdline->cmdparam2, SLP_TRUE, mySLPRegReport, 0);
+      else
+           result = SLPReg(hslp, cmdline->cmdparam1, lt, srvtype,
+                           cmdline->cmdparam2, SLP_TRUE, mySLPRegReport, 0);
       if (result != SLP_OK)
          printf("errorcode: %i\n", result);
       SLPClose(hslp);
@@ -354,6 +363,15 @@ int ParseCommandLine(int argc, char * argv[], SLPToolCommandLine * cmdline)
          i++;
          if (i < argc)
             cmdline->lang = argv[i];
+         else
+            return 1;
+      }
+      else if (strcasecmp(argv[i], "-t") == 0
+            || strcasecmp(argv[i], "--time") == 0)
+      {
+         i++;
+         if (i < argc)
+            cmdline->time = argv[i];
          else
             return 1;
       }
@@ -488,6 +506,7 @@ void DisplayUsage()
    printf("      -v (or --version) displays the versions of slptool and OpenSLP.\n");
    printf("      -s (or --scope) followed by a comma-separated list of scopes.\n");
    printf("      -l (or --language) followed by a language tag.\n");
+   printf("      -t (or --time) followed by a lifetime tag.\n");
 #ifndef MI_NOT_SUPPORTED
    printf("      -i (or --interfaces) followed by a comma-separated list of interfaces.\n");
 #endif /* MI_NOT_SUPPORTED */
