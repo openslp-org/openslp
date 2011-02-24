@@ -260,10 +260,10 @@ void Register(SLPToolCommandLine * cmdline)
    SLPHandle hslp;
    char srvtype[80] = "", * s;
    size_t len = 0;
-   unsigned short lt = 0;
+   unsigned int lt = 0;
 
    if (cmdline->time) {
-       lt = (unsigned short)atoi(cmdline->time);
+       lt = atoi(cmdline->time);
    }
 
    if (strncasecmp(cmdline->cmdparam1, "service:", 8) == 0)
@@ -285,7 +285,7 @@ void Register(SLPToolCommandLine * cmdline)
            result = SLPReg(hslp, cmdline->cmdparam1, SLP_LIFETIME_DEFAULT, srvtype,
                            cmdline->cmdparam2, SLP_TRUE, mySLPRegReport, 0);
       else
-           result = SLPReg(hslp, cmdline->cmdparam1, lt, srvtype,
+           result = SLPReg(hslp, cmdline->cmdparam1, (unsigned short)lt, srvtype,
                            cmdline->cmdparam2, SLP_TRUE, mySLPRegReport, 0);
       if (result != SLP_OK)
          printf("errorcode: %i\n", result);
