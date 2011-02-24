@@ -858,7 +858,6 @@ static int v2ParseExtension(SLPBuffer buffer, SLPMessage * msg)
    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ */
 
    int result = 0;
-   struct extref * erlist = 0;
    int bufsz = (int)(buffer->end - buffer->start);
    int nextoffset = msg->header.extoffset;
 

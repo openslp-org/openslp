@@ -260,10 +260,10 @@ void Register(SLPToolCommandLine * cmdline)
    SLPHandle hslp;
    char srvtype[80] = "", * s;
    size_t len = 0;
-   unsigned int lt = 0;
+   unsigned short lt = 0;
 
    if (cmdline->time) {
-       lt = atoi(cmdline->time);
+       lt = (unsigned short)atoi(cmdline->time);
    }
 
    if (strncasecmp(cmdline->cmdparam1, "service:", 8) == 0)

@@ -322,8 +322,8 @@ void SLPDDatabaseAge(int seconds, int ageall)
                SLPDLogRegistration(buffer, entry);
             }
             SLPDKnownDADeRegisterWithAllDas(entry->msg, entry->buf);
+            SLPDIncomingRemoveService(srvreg->srvtype, srvreg->srvtypelen);
             SLPDDatabaseRemove(dh, entry);
-	    SLPDIncomingRemoveService(srvreg->srvtype, srvreg->srvtypelen);
             continue;
          }
 
@@ -340,8 +340,8 @@ void SLPDDatabaseAge(int seconds, int ageall)
          if (srvreg->urlentry.lifetime <= 0)
          {
             SLPDLogRegistration("Timeout", entry);
+            SLPDIncomingRemoveService(srvreg->srvtype, srvreg->srvtypelen);
             SLPDDatabaseRemove(dh, entry);
-	    SLPDIncomingRemoveService(srvreg->srvtype, srvreg->srvtypelen);
          }
       }
       SLPDatabaseClose(dh);
