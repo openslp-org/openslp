@@ -36,6 +36,8 @@
 ##
 ##---------------------------------------------------------------------------
 
+ACLOCAL_AMFLAGS = -I m4
+
 # Add "test" back to SUBDIRS, remove from EXTRA_DIST after we get it working
 EXTRA_DIST = win32 README.W32 FAQ test
 SUBDIRS = common libslpattr slpd libslp slptool etc doc obs

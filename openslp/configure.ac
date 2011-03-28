@@ -2,11 +2,12 @@
 ## Process this file with autoconf to produce a configure script
 #
 AC_PREREQ(2.59)
-AC_INIT([OpenSLP], [2.0.beta1], [openslp-devel@lists.sourceforge.net])
+AC_INIT([OpenSLP], [2.0.beta2], [openslp-devel@lists.sourceforge.net])
 AM_INIT_AUTOMAKE
 AC_CANONICAL_HOST
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_SRCDIR([slpd/slpd_main.c])
+AC_CONFIG_MACRO_DIR([m4])
 
 #
 # This is enabled for pthread UNIX98 extensions
@@ -143,7 +144,19 @@ if test "x${slpv2security}" = xyes; then
      echo " The OpenSSL crypto library is required for SLPv2 security. "
      echo " Continuing without SLPv2 security functionality.           "
      echo "------------------------------------------------------------"
-     slpv2security=no], [-ldl])
+     slpv2security=no], [-ldl -lz])
+  AC_CHECK_LIB([z], [inflate], [],
+    [echo "--------------------------------------------------------------"
+     echo " The OpenSSL crypto library requires zlib for SLPv2 security. "
+     echo " Continuing without SLPv2 security functionality.             "
+     echo "--------------------------------------------------------------"
+     slpv2security=no])
+  AC_CHECK_LIB([dl], [dlopen], [],
+    [echo "------------------------------------------------------------"
+     echo " The OpenSSL crypto library requires dl for SLPv2 security. "
+     echo " Continuing without SLPv2 security functionality.           "
+     echo "------------------------------------------------------------"
+     slpv2security=no])
 fi
 AM_CONDITIONAL([ENABLE_SLPv2_SECURITY], [test "x${slpv2security}" = xyes])
 if test "x${slpv2security}" = xyes; then
