@@ -1,6 +1,10 @@
 NEWS - list of user-visible changes between releases of OpenSLP and other
 important events.
 
+New in openslp-2.0.0 beta 2
+---------------------------
+* bug fixes and general hardening.
+
 New in openslp-2.0.0 beta 1
 ---------------------------
 * We've gotten everything put back together again after the massive set of

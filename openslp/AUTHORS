@@ -14,12 +14,10 @@ http://www.calderasystems.com
 Funded original development of OpenSLP source code and continues to fund
 maintenance and enhancement of the OpenSLP project
 
-
 Matthew Peterson <mpeterson@calderasystems.com>
 -----------------------------------------------
 Original OpenSLP maintainer and principal author of code contributed by
 Caldera Systems, Inc.
-
 
 Ganesan Rajagopal   <rganesan@myrealbox.com>
 --------------------------------------------
@@ -27,42 +25,57 @@ Author of the SLPv1 compatibility code, the OpenSLP make system, numerous
 platform and architecture ports (including 64-bit), and countless bug 
 fixes.
 
-
 David McCormack     <david.mccormack@ottawa.com>
 ------------------------------------------------
 Author of original test suite, some libslp features and many bug fixes
-
 
 Evan Hughes <hughes@lab43.org>
 ------------------------------
 Contributed all of the predicate parsing and LDAPv3 filter code
 
-
 Matthieu Desmons <mdes@ocegr.fr>
 --------------------------------
 Contributed major code changes for the original Win32 port
-
 
 Praveen Kumar Amritaluru <praveen@india.hp.com>
 -----------------------------------------------
 Has provided extremely good testing coverage and continues to 
 submits patches from time to time that fix otherwise hard to find bugs
 
-
 John Calcote <jcalcote@novell.com>
 ----------------------------------
 Excellent DHCP code and Win32 porting work!
 Current project maintainer.
-
 
 Michael Day <mday@soft-hackle.net>
 ----------------------------------
 Special thanks to Mike Day who has graciously contributed the SLP filter and
 predicate code in the the OpenSLP 1.1.x branch.
 
-
 Michael Schroeder <mls@suse.de>
 -------------------------------
 Has submitted chroot functionality to plug security holes and provide 
 zeroconf functionality.
+
+Matthew Hird <gingerprince@users.sourceforge.net>
+-------------------------------------------------
+
+Nick Wagner <nwagner@etcconnect.com>
+------------------------------------
+
+Alan Adams <alan.adams@novell.com>
+----------------------------------
+
+Varun Chandramohan <c_varun@users.sourceforge.net>
+--------------------------------------------------
+
+Roel van de Kraats <rkraats@dds.nl>
+-----------------------------------
+
+Aaron Burgemeister <dajoker@gmail.com>
+--------------------------------------
+
+Richard Morrell <rim-tus@users.sourceforge.net>
+-----------------------------------------------
+
 

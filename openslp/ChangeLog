@@ -6,6 +6,115 @@ major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
 
+01/05/2011 alanadams@users.sourceforge.net
+Web site update to apply consistent template across both the main site and documentation pages.  Addition of print style sheet.  Updated download buttons to be SF-style blocks.
+
+27/03/2011 jcalcote@users.sourceforge.net
+Add libz and libdl as link dependencies to SLPv2 security option. Add m4 directory and move acinclude.m4 there, as per autoconf recommendations.
+Updated project website and documentation.
+
+23/01/2011 nick_wagner@users.sourceforge.net
+My win32 change gave a warning I didn't like on OSX, so I changed it slightly
+Removed two items that were causing warnings on windows, and fixed a crash when the database is removing a service.
+
+22/02/2011 c_varun@users.sourceforge.net
+slptool did not support dynamic registration with desired age field. This means registrations done using slptool would expire in default time 3 hours. This patch adds an optional switch to pass age parameter to fix the problem. If no options are specified then default timeout of 3 hours is taken.
+
+22/02/2011 nick_wagner@users.sourceforge.net
+Fixed OSX build of thread.c
+
+27/01/2011 c_varun@users.sourceforge.net
+The script fixes muticast issues when no address are set.
+The Problem was found and fixed by Pete Zannucci.
+I just came across a problem with the current version of openslp.  It appears that the watchPID and Ager (slpd_database.c) code can leak memory and file descriptors. 
+Could you check the latest code and see if the following has been addressed?  These two changes need to be done in slpd_database.c otherwise the sfcbd process will keep allocating more fd's.
+
+BUG: (Fixed)
+REMOVE the incoming service and sockets, not just the database entry
+
+23/12/2010 rim-tus@users.sourceforge.net
+Update courtesy of Roel van de Kraats to make recursive mutexes work in the absence of __USE_UNIX98.
+
+22/12/2010 rim-tus@users.sourceforge.net
+Fix for a problem I saw when an attribute started with an escaped reserved character such as '(' (\28) - the daemon crashed.
+Problem with parsing for OPAQUE values - parser gets confused between OPAQUE values and strings starting
+with an escaped character, and thinks they're malformed OPAQUE values.  Also, the parser was expecting an OPAQUE
+value to start with "\00", but the RFC says they should start with "\FF".
+
+29/11/2010 nick_wagner@users.sourceforge.net
+Exposed -p to --help parameter
+
+24/11/2010 rkraats@users.sourceforge.net
+Fixed some missing EOLs in DEBUG output.
+Make sure config.h is included everywhere by including it through slpd.h.
+Implemented SLPDIncomingSocketDump() and SLPDOutgoingSocketDump().
+
+15/11/2010 rkraats@users.sourceforge.net
+Added a boolean configuration option 'net.slp.useDHCP' (default 'true') to
+optionally disable using DHCP for DA and/or scope discovery.
+
+11/11/2010 rkraats@users.sourceforge.net
+Fixed memory leak in SLPIfaceParseProc, introduced in r1646.
+Renamed SLPIfaceParseProc to SLPIfaceGetV6Addr, since it no longer uses /proc.
+Check for overflow of iface_count.
+Fixed compiler warning on unused 'fd'. 
+
+18/10/2010 c_varun@users.sourceforge.net
+This fixes a memory leak in slpd.
+
+Note from patch submitter: Pete
+There has been no growth since starting slpd.  The fix appears to have corrected the leak.The pointer would need to be added to pNormalisedSrvtype would need to be
+either freed before leaving the Register call (if not stored indexed) or cleaned up by the Deregistration.  The patch adds it to the structure to allow pNormalisedSrvtype to be freed in a consistent manner (whether indexed or
+non-indexed storage database storage is done) by the Deregistration code.
+
+07/10/2010 jcalcote@users.sourceforge.net
+A better way of doing the circular extension check - thanks to Michael Schroeder.
+
+06/10/2010 jcalcote@users.sourceforge.net
+Add an endless loop check to the extension parser for v2 messages.
+
+04/10/2010 c_varun@users.sourceforge.net
+Major changes to include optional % parameters for slpd daemon to bind on ipv6 address. Further details are found in http://sourceforge.net/tracker/?func=detail&aid=3040496&group_id=1730&atid=101730
+
+03/10/2010 c_varun@users.sourceforge.net
+Fixing the bug #1958388
+Typo in code. Based on bug #2982506
+
+08/09/2010 nick_wagner@users.sourceforge.net
+Committed slptool_lib.patch submitted by Varun_C to fix an slptool IPv6 issue.  With multiple NICs, each bound to a different localhost address, slptool was having difficulty connecting to a server on the non-dominant interface.
+
+01/09/2010 nick_wagner@users.sourceforge.net
+Made changes so Visual studio express 2005 would build openslp again.
+
+31/08/2010 nick_wagner@users.sourceforge.net
+Added slp_network.c to libcommonslpd
+Added patch SLPRegPatchAug24 by Varun Chandramohan -- see the openslp.devel archives.  It allows MTU to be greater than 1400 bytes.
+
+23/08/2010 jcalcote@users.sourceforge.net
+Convert from use of __USE_UNIX98 to AC_USE_SYSTEM_EXTENSIONS. Fixed one warning.
+Ensure null scope list in SLPFindSrvs can't cause a crash.
+Added recursion to posix mutexs; added lock around sighup call in properties.
+
+12/08/2010 nick_wagner@users.sourceforge.net
+Tweaked the darwin change again -- the linked list solution wasn't working well in all cases.  At least the socket allocation isn't forced on all platforms.
+made the last fix to slpd_incoming.c Darwin only
+slpd_incoming.c IncomingDatagramRead() now chooses a unicast socket to send over if the receiving socket was listening to multicast.  This fixes a bug on Snow Leopard, where those sendto's were failing with errno 49.
+
+16/07/2010 rim-tus@users.sourceforge.net
+Update the slp.conf file comment to reflect the current protocol defaults correctly  ie. IPv4 enabled and IPv6 disabled, and correct the incorrect case in the commented-out directives.
+Incorporate the conditional compilation of the code to switch to the "daemon" user. Taken from (part of) Matt Pendlebury's patch in bug report #3026763
+
+15/07/2010 rim-tus@users.sourceforge.net
+Fix compile error when SLPv2 security is enabled, as reported in bug #2983069
+Applied Anthony Tong's IPv6 patch from his forum posting in http://sourceforge.net/mailarchive/forum.php?thread_name=487B7A7B.7070308%40TrustedCS.com&forum_name=openslp-devel
+after discussion with Varun Chandramohan
+
+10/05/2010 rim-tus@users.sourceforge.net
+Oops. Correct bug introduced in indexing updates that caused segfault when registering with no attributes
+
+19/04/2010 rim-tus@users.sourceforge.net
+Just an update to the ChangeLog with the major Thales-submitted changes
+
 15/03/2010 richard.morrell@uk.thalesgroup.com
 Update to introduce indexing of service types and attributes to improve search
 performance when the daemon has a large number (hundreds) of services.
