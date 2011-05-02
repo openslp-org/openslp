@@ -1,107 +1,141 @@
-<!DOCTYPE html PUBLIC "-//w3c//dtd html 4.0 transitional//en">
-<html>
-<head>
-  <meta http-equiv="Content-Type"
- content="text/html; charset=iso-8859-1">
-  <meta name="GENERATOR"
- content="Mozilla/4.76C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.4.2 i686) [Netscape]">
-  <title>OpenSLP Users Guide - Security</title>
-</head>
-<body alink="#ff0000" bgcolor="#ffffff" link="#0000ee" text="#000000"
- vlink="#551a8b">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
 
-<table style="width:100%">
-  <tbody>
-    <tr>
-      <td>
-        <h1 style="margin:10px;">Security</h1>
-      </td>
-      <td>
-        <h1><img style="float:right;margin:10px;" src="../images/oslp-logo-web-50.jpg"></h1>
-      </td>
-    </tr>
-  </tbody>
-</table>
-<hr width="100%" /> 
+<!-- #BeginTemplate "../../../openslp.dwt" -->
+
+<!--
+    
+    Pristine 1.0
+    
+    Design copyright Matt Dibb 2006
+    www.mdibb.net
+
+    Please feel free to use and modify this template for use on your site.  I dont mind
+    if you use it for your personal site or a commercial site, but I do insist that it is
+    not sold or given away in some "50,000 Templates!" package or something like that.
+
+-->
+
+    <head profile="http://www.w3.org/2005/10/profile">
+        <meta http-equiv="Content-Language" content="en-gb" />
+        <meta http-equiv="Content-Type" content="text/html; charset=windows-1252" />
+        <link rel="stylesheet" type="text/css" href="../../../site.css" />
+        <link rel="stylesheet" type="text/css" href="../../../print.css" media="print" />
+        <link rel="alternate" type="application/rss+xml" title="OpenSLP&#8230;Recent Activity" href="http://www.sourceforge.net/export/rss2_keepsake.php?group_id=1730" />
+        <link rel="alternate" type="application/rss+xml" title="OpenSLP&#8230;News" href="http://www.sourceforge.net/export/rss2_projnews.php?group_id=1730" />
+        <link rel="alternate" type="application/rss+xml" title="OpenSLP&#8230;File Releases" href="http://www.sourceforge.net/api/file/index/project-id/1730/mtime/desc/limit/20/rss" />
+        <link rel="alternate" type="application/rss+xml" title="OpenSLP&#8230;Reviews" href="http://www.sourceforge.net/projects/openslp/reviews_feed.rss" />
+		<link rel="shortcut icon" href="../../../images/openslp_favicon_256color_48px.ico" />
+        <!-- #BeginEditable "Page%20Style%20and%20Scripts" -->
+	    <!-- #EndEditable -->
+        <!-- #BeginEditable "Page%20Title" -->
+  <title>OpenSLP Users Guide - Security</title>
+	    <!-- #EndEditable -->
+    </head>
+    <body>
+        <div id="content">
+            <div id="header">
+            	<a href="http://openslp.org/">
+				<img src="../../../images/openslp_logo_web_color_150px.jpg" alt="" /></a>
+            </div>
+            <div id="body">
+                <!-- #BeginEditable "Left%20Navigation%20-%20Context%20Specific" -->
+
+                <!-- #EndEditable -->
+                <div id="links">
+                    <p><a href="../../../index.html">About</a><br/>
+                       what is openslp</p>
+                    <p><a href="../../../download.html">Download</a><br/>
+                       how to get openslp</p>
+                    <p><a href="../../../contribute.html">Contribute</a><br/>
+                       how to help out</p>
+                    <p><a href="../../../documentation.html">Documentation</a><br/>
+                       how to find out more</p>
+                    <p><a href="../../../credits.html">Credits</a><br/>
+                       who to blame</p>
+                    <p><a href="http://sourceforge.net/projects/openslp"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=1730&amp;type=2" alt="Get OpenSLP at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></p>
+                </div>
+
+                <div id="main">
+                <!-- #BeginEditable "Page%20Content" -->
+
+<h2>Security<br />
+<span id="breadcrumbs"><a href="index.html">OpenSLP User's Guide</a> &raquo; Advanced Topics &raquo; <a href="Security.html">Security</a></span></h2>
 
 <h3>Protecting the daemon against attacks</h3>
-The following measures have been taken to protect the OpenSLP daemon
-from
-attacks:
+<p>The following measures have been taken to protect the OpenSLP daemon from attacks:</p>
 <ul>
   <li>
-The OpenSLP daemon (slpd) must run as root initially in order to bind
-to
-the well known SLP port.&nbsp; However, slpd will relinquish root
-privileges
-and suid() to the daemon user (if it exists).</li>
+  The OpenSLP daemon (slpd) must run as root initially in order to bind to the 
+  well known SLP port.&nbsp; However, slpd will relinquish root privileges and suid() 
+  to the daemon user (if it exists).</li>
   <li>
-If slpd includes paranoid SLP message checking code .&nbsp; This slows
-down the operation of slpd slightly but ensures that malformed or
-intentionally
-malicious SLP messages will not cause segmentation faults in the daemon.</li>
+  If slpd includes paranoid SLP message checking code .&nbsp; This slows down the 
+  operation of slpd slightly but ensures that malformed or intentionally 
+  malicious SLP messages will not cause segmentation faults in the daemon.</li>
 </ul>
-<h3>
-Protecting the integrity of service registrations</h3>
-As of version 0.9.0, OpenSLP fully supports the SLPv2 message
-authentication
-blocks to ensure that registrations can not be modified in transit and
-that they are sent to and received from valid agents.&nbsp;&nbsp; When
-properly installed and configured, OpenSLP will automatically provide
-this
-level of security to all SLP enabled applications with out any need to
-recompile or relink.&nbsp;&nbsp; Installation of secure OpenSLP is a
-little
-involved...
-<p>Currently, OpenSLP uses DSS signatures to ensure the authenticity
-and
-integrity of certain SLP messages.&nbsp; In order to do this,
-administrators
-need to: build a security enabled OpenSLP, provide&nbsp; (or generate)
-a DSA&nbsp; public and private keys, and setup the /etc/slp.spi
-file.&nbsp;&nbsp;
-The administrator also has to ensure that OpenSSL crypto libraries are
-properly installed before secure OpenSLP will work.
+
+<h3>Protecting the integrity of service registrations</h3>
+
+<p>As of version 0.9.0, OpenSLP fully supports the SLPv2 
+message authentication blocks to ensure that registrations 
+can not be modified in transit and that they are sent to and 
+received from valid agents.&nbsp;&nbsp; When properly installed and 
+configured, OpenSLP will automatically provide this level of 
+security to all SLP enabled applications with out any need 
+to recompile or relink.&nbsp;&nbsp; Installation of secure OpenSLP is 
+a little involved...</p>
+<p>Currently, OpenSLP uses DSS signatures to ensure the authenticity and 
+integrity of certain SLP messages.&nbsp; In order to do this, administrators 
+need to: build a security enabled OpenSLP, provide&nbsp; (or generate) a DSA&nbsp; 
+public and private keys, and setup the /etc/slp.spi file.&nbsp;&nbsp; The 
+administrator also has to ensure that OpenSSL crypto libraries are properly 
+installed before secure OpenSLP will work.
 </p>
-<p>Step 1:&nbsp;&nbsp; Since we not sure how many installations will
-require
-OpenSLP security so the security features&nbsp; are not currently built
-in by default.&nbsp; To build a security into open slp OpenSLP you will
-have to use --enable-security on the ./configure command line
+<p>Step 1:&nbsp;&nbsp; Since we not sure how many installations will require 
+OpenSLP security so the security features&nbsp; are not currently built in by 
+default.&nbsp; To build a security into open slp OpenSLP you will have to use 
+--enable-security on the ./configure command line
 </p>
-<p>Step 2:&nbsp; Generate DSA public and private key files in PEM
-format
-using the OpenSSL command line.&nbsp;&nbsp; I'll provide details on
-exactly
-how this is done when I get more time in the mean time, you can figure
-it out by reading the openssl man pages.
+<p>Step 2:&nbsp; Generate DSA public and private key files in PEM format using 
+the OpenSSL command line.&nbsp;&nbsp; I'll provide details on exactly how this 
+is done when I get more time in the mean time, you can figure it out by reading 
+the openssl man pages.
 </p>
-<p>Step 3: Copy the private DSA key PEM key file to very safe locations
-on hosts that will be registering services.&nbsp; The public DSA key
-PEM
-file goes on all hosts that will be registering services and on all
-hosts
-that will be finding services.
+<p>Step 3: Copy the private DSA key PEM key file to very safe locations on hosts 
+that will be registering services.&nbsp; The public DSA key PEM file goes on all 
+hosts that will be registering services and on all hosts that will be finding 
+services.
 </p>
-<p>Step 4: Edit the /etc/slp.spi file to assign an SPI to the DSA
-keys.&nbsp;
-Details on how to do this are documented in the comments of the slp.spi
-file
-<br>
-&nbsp;
+<p>Step 4: Edit the /etc/slp.spi file to assign an SPI to the DSA keys.&nbsp; 
+Details on how to do this are documented in the comments of the slp.spi file
 </p>
 <h3>User Level Access Control</h3>
-Plans have been made to provide a mechanism that will enforce user
-level
-access control that will allow the administrator to specify the users
-or
-groups that can register services with SLP.
-<br>
-&nbsp;
+<p>Plans have been made to provide a mechanism that will 
+enforce user level access control that will allow the 
+administrator to specify the users or groups that can 
+register services with SLP.</p>
 <h3>Help</h3>
-If you find a security hole in OpenSLP,&nbsp; <i>please</i> bring it
-to
-the attention of the <a href="mailto:openslp-devel@lists.sourceforge.net">OpenSLP
-maintainer</a>.&nbsp; Thanks.
-</body>
+<p>If you find a security hole in OpenSLP, <i>please</i> bring 
+it to the attention of <a href="mailto:jcalcote@novell.com">
+the OpenSLP maintainer</a>.&nbsp; Thanks.</p>
+
+<p id="breadcrumbs0">Prepared by: <a href="http://www.calderasystems.com">Caldera Systems Inc</a><br />
+Maintained by: <a href="http://www.openslp.org/">openslp.org</a></p>
+
+                <!-- #EndEditable -->
+                </div>
+            </div>
+
+            <div id="footer">
+                Copyright &copy; 2011 <a href="http://www.openslp.org/">openslp.org</a>. All Rights Reserved.<br/>
+                Design by <a href="http://www.mdibb.net" title="Website of Matt Dibb">Matt Dibb</a>
+                2006. <a href="http://jigsaw.w3.org/css-validator/check/referer" title="Validate CSS">CSS</a> 
+                <a href="http://validator.w3.org/check/referer" title="Validate XHTML">XHTML</a>
+                <br/>Courtesy of <a href="http://www.openwebdesign.org">Open Web Design</a>
+                &amp; <a href="http://seo-services.us">seo</a>
+            </div>
+        </div>
+    </body>
+<!-- #EndTemplate -->
 </html>

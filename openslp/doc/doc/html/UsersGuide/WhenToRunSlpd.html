@@ -1,76 +1,130 @@
-<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
-<html>
-<head>
-   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-   <meta name="GENERATOR" content="Mozilla/4.72C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.2.14 i686) [Netscape]">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<!-- #BeginTemplate "../../../openslp.dwt" -->
+
+<!--
+    
+    Pristine 1.0
+    
+    Design copyright Matt Dibb 2006
+    www.mdibb.net
+
+    Please feel free to use and modify this template for use on your site.  I dont mind
+    if you use it for your personal site or a commercial site, but I do insist that it is
+    not sold or given away in some "50,000 Templates!" package or something like that.
+
+-->
+
+    <head profile="http://www.w3.org/2005/10/profile">
+        <meta http-equiv="Content-Language" content="en-gb" />
+        <meta http-equiv="Content-Type" content="text/html; charset=windows-1252" />
+        <link rel="stylesheet" type="text/css" href="../../../site.css" />
+        <link rel="stylesheet" type="text/css" href="../../../print.css" media="print" />
+        <link rel="alternate" type="application/rss+xml" title="OpenSLP&#8230;Recent Activity" href="http://www.sourceforge.net/export/rss2_keepsake.php?group_id=1730" />
+        <link rel="alternate" type="application/rss+xml" title="OpenSLP&#8230;News" href="http://www.sourceforge.net/export/rss2_projnews.php?group_id=1730" />
+        <link rel="alternate" type="application/rss+xml" title="OpenSLP&#8230;File Releases" href="http://www.sourceforge.net/api/file/index/project-id/1730/mtime/desc/limit/20/rss" />
+        <link rel="alternate" type="application/rss+xml" title="OpenSLP&#8230;Reviews" href="http://www.sourceforge.net/projects/openslp/reviews_feed.rss" />
+		<link rel="shortcut icon" href="../../../images/openslp_favicon_256color_48px.ico" />
+        <!-- #BeginEditable "Page%20Style%20and%20Scripts" -->
+	    <!-- #EndEditable -->
+        <!-- #BeginEditable "Page%20Title" -->
    <title>OpenSLP Users Guide - When To Run slpd</title>
-</head>
-<body text="#000000" bgcolor="#FFFFFF" link="#0000EE" vlink="#551A8B" alink="#FF0000">
+	    <!-- #EndEditable -->
+    </head>
+    <body>
+        <div id="content">
+            <div id="header">
+            	<a href="http://openslp.org/">
+				<img src="../../../images/openslp_logo_web_color_150px.jpg" alt="" /></a>
+            </div>
+            <div id="body">
+                <!-- #BeginEditable "Left%20Navigation%20-%20Context%20Specific" -->
 
-<table style="width:100%">
-  <tbody>
-    <tr>
-      <td>
-        <h1 style="margin:10px;">When to Run slpd</h1>
-      </td>
-      <td>
-        <h1><img style="float:right;margin:10px;" src="../images/oslp-logo-web-50.jpg"></h1>
-      </td>
-    </tr>
-  </tbody>
-</table>
-<hr width="100%" /> 
+                <!-- #EndEditable -->
+                <div id="links">
+                    <p><a href="../../../index.html">About</a><br/>
+                       what is openslp</p>
+                    <p><a href="../../../download.html">Download</a><br/>
+                       how to get openslp</p>
+                    <p><a href="../../../contribute.html">Contribute</a><br/>
+                       how to help out</p>
+                    <p><a href="../../../documentation.html">Documentation</a><br/>
+                       how to find out more</p>
+                    <p><a href="../../../credits.html">Credits</a><br/>
+                       who to blame</p>
+                    <p><a href="http://sourceforge.net/projects/openslp"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=1730&amp;type=2" alt="Get OpenSLP at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></p>
+                </div>
 
-<p><tt>slpd</tt> provides SA (and possibly DA) functionality along with
-the ability to maintain a consistent state with respect to the locations
-of other SLP agents on the network.&nbsp; The SLP library (<tt>libslp.so</tt>)
-provides UA functionality internally on a per process basis with out the
-need to communicate with slpd. This means that in certain cases, the slp
-daemon does not always have to be loaded on every machine.&nbsp; We're
-not sure if this will be a valuable feature to a majority of users, but
-at least it offers the additional flexibility to minimize the overhead for
-SLP for those machines that will only need UA capabilities.&nbsp; (If you're
-wondering about the meaning of DA, SA, and UA, you should probably read
-<a href="../IntroductionToSLP/index.html">An
-Introduction to SLP</a>).
-<br>&nbsp;
-<h3>
-When is slpd needed?</h3>
+                <div id="main">
+                <!-- #BeginEditable "Page%20Content" -->
 
-<ul>
-<li>
-slpd must be running on all machines that will be registering services.&nbsp;
-In other words, slpd is required on all machines that run applications
-that make calls to one of the following SLP APIs <tt>SLPReg()</tt>,
-<tt>SLPDeReg()</tt>,
-or <tt>SLPDelAttrs().&nbsp; </tt><a href="../ProgrammersGuide/index.html">See
-the OpenSLP Programmers Guide for details.</a></li>
+<h2>When To Run slpd<br />
+<span id="breadcrumbs"><a href="index.html">OpenSLP User's Guide</a> &raquo; Advanced Topics &raquo; <a href="WhenToRunSlpd.html">When To Run slpd</a></span></h2>
 
-<li>
-slpd is the process that maintains static registrations from the /etc/slp.reg
-file.&nbsp; If you expect the registrations for this file to be available
-to other machines, you must run slpd.</li>
+<p><tt>slpd</tt> provides SA (and possibly DA) functionality along with the 
+ability to maintain a consistent state with respect to the locations of other 
+SLP agents on the network.&nbsp; The SLP library (<tt>libslp.so</tt>) provides 
+UA functionality internally on a per process basis with out the need to 
+communicate with slpd. This means that in certain cases, the slp daemon does not 
+always have to be loaded on every machine.&nbsp; We're not sure if this will be 
+a valuable feature to a majority of users, but at least it offers the additional 
+flexibility to minimize the overhead for SLP for those machines that will only 
+need UA capabilities.&nbsp; (If you're wondering about the meaning of DA, SA, 
+and UA, you should probably read
+<a href="../IntroductionToSLP/index.html">An Introduction to SLP</a>).</p>
 
-<li>
-slpd is required for automatic DA and scope discovery to work correctly.&nbsp;
-If you do not run slpd, then DAs and scopes can only be discovered via DHCP
-or the <tt><a href="SlpConf.html">/etc/slp.conf</a></tt> file. (Note: Due
-to a lack of a standard DHCP API DA discovery via DHCP is not yet supported).</li>
-</ul>
-
-<h3>
-When is slpd not needed?</h3>
+<h3>When is slpd needed?</h3>
 
 <ul>
 <li>
-slpd is not needed if a machine will only be requesting services.&nbsp;
-In other words, slpd is not required on machines if a call will never
-be made to <tt>SLPReg()</tt>, <tt>SLPDeReg()</tt>, or <tt>SLPDelAttrs().</tt></li>
+slpd must be running on all machines that will be registering services.&nbsp; In 
+other words, slpd is required on all machines that run applications that make 
+calls to one of the following SLP APIs <tt>SLPReg()</tt>,
+<tt>SLPDeReg()</tt>, or <tt>SLPDelAttrs().&nbsp; </tt><a href="../ProgrammersGuide/index.html">
+See the OpenSLP Programmers Guide for details.</a></li>
 
 <li>
-slpd is not needed on a machine if manual or DHCP DA or scope discovery
-is sufficient.</li>
+slpd is the process that maintains static registrations from the /etc/slp.reg 
+file.&nbsp; If you expect the registrations for this file to be available to other 
+machines, you must run slpd.</li>
+
+<li>
+slpd is required for automatic DA and scope discovery to work correctly.&nbsp; If you 
+do not run slpd, then DAs and scopes can only be discovered via DHCP or the <tt><a href="SlpConf.html">
+/etc/slp.conf</a></tt> file. (Note: Due to a lack of a standard DHCP API DA 
+discovery via DHCP is not yet supported).</li>
 </ul>
 
-</body>
+<h3>When is slpd not needed?</h3>
+
+<ul>
+<li>
+slpd is not needed if a machine will only be requesting services.&nbsp; In other 
+words, slpd is not required on machines if a call will never be made to <tt>
+SLPReg()</tt>, <tt>SLPDeReg()</tt>, or <tt>SLPDelAttrs().</tt></li>
+
+<li>
+slpd is not needed on a machine if manual or DHCP DA or scope discovery is 
+sufficient.</li>
+</ul>
+
+<p id="breadcrumbs0">Prepared by: <a href="http://www.calderasystems.com">Caldera Systems Inc</a><br />
+Maintained by: <a href="http://www.openslp.org/">openslp.org</a></p>
+
+                <!-- #EndEditable -->
+                </div>
+            </div>
+
+            <div id="footer">
+                Copyright &copy; 2011 <a href="http://www.openslp.org/">openslp.org</a>. All Rights Reserved.<br/>
+                Design by <a href="http://www.mdibb.net" title="Website of Matt Dibb">Matt Dibb</a>
+                2006. <a href="http://jigsaw.w3.org/css-validator/check/referer" title="Validate CSS">CSS</a> 
+                <a href="http://validator.w3.org/check/referer" title="Validate XHTML">XHTML</a>
+                <br/>Courtesy of <a href="http://www.openwebdesign.org">Open Web Design</a>
+                &amp; <a href="http://seo-services.us">seo</a>
+            </div>
+        </div>
+    </body>
+<!-- #EndTemplate -->
 </html>

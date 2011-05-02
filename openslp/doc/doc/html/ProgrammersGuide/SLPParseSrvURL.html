@@ -1,69 +1,105 @@
-<!DOCTYPE html PUBLIC "-//w3c//dtd html 4.0 transitional//en">
-<html>
-<head>
-  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-  <meta name="GENERATOR" content="Mozilla/4.77C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.4.2 i686) [Netscape]">
-  <title>OpenSLP Programmers Guide - SLPParseSrvURL()</title>
-</head>
-<body alink="#ff0000" bgcolor="#ffffff" link="#0000ef" text="#000000" vlink="#51188e">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
 
-<table style="width:100%">
-  <tbody>
-    <tr>
-      <td>
-        <h1 style="margin:10px;">SLPParseSrvURL</h1>
-      </td>
-      <td>
-        <h1><img style="float:right;margin:10px;" src="../images/oslp-logo-web-50.jpg"></h1>
-      </td>
-    </tr>
-  </tbody>
-</table>
-<hr width="100%" />
+<!-- #BeginTemplate "../../../openslp.dwt" -->
+
+<!--
+    
+    Pristine 1.0
+    
+    Design copyright Matt Dibb 2006
+    www.mdibb.net
+
+    Please feel free to use and modify this template for use on your site.  I dont mind
+    if you use it for your personal site or a commercial site, but I do insist that it is
+    not sold or given away in some "50,000 Templates!" package or something like that.
+
+-->
+
+    <head profile="http://www.w3.org/2005/10/profile">
+        <meta http-equiv="Content-Language" content="en-gb" />
+        <meta http-equiv="Content-Type" content="text/html; charset=windows-1252" />
+        <link rel="stylesheet" type="text/css" href="../../../site.css" />
+        <link rel="stylesheet" type="text/css" href="../../../print.css" media="print" />
+        <link rel="alternate" type="application/rss+xml" title="OpenSLP&#8230;Recent Activity" href="http://www.sourceforge.net/export/rss2_keepsake.php?group_id=1730" />
+        <link rel="alternate" type="application/rss+xml" title="OpenSLP&#8230;News" href="http://www.sourceforge.net/export/rss2_projnews.php?group_id=1730" />
+        <link rel="alternate" type="application/rss+xml" title="OpenSLP&#8230;File Releases" href="http://www.sourceforge.net/api/file/index/project-id/1730/mtime/desc/limit/20/rss" />
+        <link rel="alternate" type="application/rss+xml" title="OpenSLP&#8230;Reviews" href="http://www.sourceforge.net/projects/openslp/reviews_feed.rss" />
+		<link rel="shortcut icon" href="../../../images/openslp_favicon_256color_48px.ico" />
+        <!-- #BeginEditable "Page%20Style%20and%20Scripts" -->
+	    <!-- #EndEditable -->
+        <!-- #BeginEditable "Page%20Title" -->
+  <title>OpenSLP Programmers Guide - SLPParseSrvURL()</title>
+	    <!-- #EndEditable -->
+    </head>
+    <body>
+        <div id="content">
+            <div id="header">
+            	<a href="http://openslp.org/">
+				<img src="../../../images/openslp_logo_web_color_150px.jpg" alt="" /></a>
+            </div>
+            <div id="body">
+                <!-- #BeginEditable "Left%20Navigation%20-%20Context%20Specific" -->
+
+                <!-- #EndEditable -->
+                <div id="links">
+                    <p><a href="../../../index.html">About</a><br/>
+                       what is openslp</p>
+                    <p><a href="../../../download.html">Download</a><br/>
+                       how to get openslp</p>
+                    <p><a href="../../../contribute.html">Contribute</a><br/>
+                       how to help out</p>
+                    <p><a href="../../../documentation.html">Documentation</a><br/>
+                       how to find out more</p>
+                    <p><a href="../../../credits.html">Credits</a><br/>
+                       who to blame</p>
+                    <p><a href="http://sourceforge.net/projects/openslp"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=1730&amp;type=2" alt="Get OpenSLP at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></p>
+                </div>
+
+                <div id="main">
+                <!-- #BeginEditable "Page%20Content" -->
+
+<h2>SLPParseSrvURL<br />
+<span id="breadcrumbs"><a href="index.html">OpenSLP Programmer's Guide</a> &raquo; Parsing Functions &raquo; <a href="SLPParseSrvURL.html">SLPParseSrvURL</a></span></h2>
 
 <h3>Declaration</h3>
-<tt>#include &lt;slp.h&gt;</tt>
-<p><tt><a href="SLPTypes.html#SLPEXP">SLPEXP</a> <a
- href="SLPError.html">SLPError</a> <a href="SLPTypes.html#SLPAPI">SLPAPI</a>
-SLPParseSrvURL(<br>
-&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; const char *
-<a href="#srvurl">srvurl</a>,</tt>
-<br>
-<tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <a
- href="SLPTypes.html#SLPSrvURL">SLPSrvURL</a> **
-<a href="#parsedurl">parsedurl</a>);</tt>
-</p>
+
+<pre>#include &lt;slp.h&gt;
+
+<a href="SLPTypes.html#SLPEXP">SLPEXP</a> <a href="SLPError.html">SLPError</a> <a href="SLPTypes.html#SLPAPI">SLPAPI</a> SLPParseSrvURL(
+    const char * <a href="#srvurl">srvurl</a>,
+    <a href="SLPTypes.html#SLPSrvURL">SLPSrvURL</a> ** <a href="#parsedurl">parsedurl</a>);
+</pre>
+
 <h3>Description</h3>
-Parses a Service URL passed in as a character string and returns the
-results
-in a pointer to a dynamically allocated <tt><a
- href="SLPTypes.html#SLPSrvURL">SLPSrvURL</a></tt>
-structure.&nbsp; The pointer returned in <tt>parsedurl</tt> should be
-freed
-by <a href="SLPFree.html">SLPFree()</a>.&nbsp;<br>
+
+<p>Parses a Service URL passed in as a character string and 
+returns the results in a pointer to a dynamically allocated
+<tt><a href="SLPTypes.html#SLPSrvURL">SLPSrvURL</a></tt>
+structure.&nbsp; The pointer returned in <tt>parsedurl</tt> 
+should be freed by <a href="SLPFree.html">SLPFree()</a>.</p>
+
 <h3>Parameters</h3>
+
 <table nosave="" border="1" cellpadding="5">
   <tbody>
     <tr nosave="" valign="top">
       <td nosave=""><a name="srvurl"></a><tt>srvurl</tt></td>
-      <td nosave="">Pointer to a character buffer containing the null
-terminated
-URL string to parse.&nbsp; See <a href="Syntax.html#Service%20Url">Syntax</a>
-for more information on Service URL syntax.</td>
+      <td nosave="">Pointer to a character buffer containing the null terminated 
+	  URL string to parse.&nbsp; See <a href="Syntax.html#Service%20Url">Syntax</a>
+	  for more information on Service URL syntax.</td>
     </tr>
     <tr nosave="" valign="top">
       <td nosave=""><a name="parsedurl"></a><tt>parsedurl</tt></td>
-      <td nosave="">Pointer to a pointer for the <tt><a
- href="SLPTypes.html#SLPSrvURL">SLPSrvURL</a></tt>
-structure that receives the parsed URL.&nbsp; The memory should be
-freed
-by a call to <a href="SLPFree.html">SLPFree()</a> when no longer
-needed.</td>
+      <td nosave="">Pointer to a pointer for the <tt><a href="SLPTypes.html#SLPSrvURL">SLPSrvURL</a></tt>
+	  structure that receives the parsed URL.&nbsp; The memory should be freed by a 
+	  call to <a href="SLPFree.html">SLPFree()</a> when no longer needed.</td>
     </tr>
   </tbody>
 </table>
-<h3>
-Returns</h3>
+
+<h3>Returns</h3>
+
 <table nosave="" border="1">
   <tbody>
     <tr nosave="">
@@ -80,19 +116,19 @@ Returns</h3>
     </tr>
     <tr>
       <td>SLP_PARAMETER_BAD</td>
-      <td>If a parameter passed into a function is bad, this error is
-returned.</td>
+      <td>If a parameter passed into a function is bad, this error is returned.</td>
     </tr>
     <tr>
       <td>SLP_INTERNAL_SYSTEM_ERROR</td>
-      <td>A basic failure of the API causes this error to be returned.
-This occurs
-when a system call or library fails. The operation could not recover.</td>
+      <td>A basic failure of the API causes this error to be returned. This 
+	  occurs when a system call or library fails. The operation could not 
+	  recover.</td>
     </tr>
   </tbody>
 </table>
-<h3>
-Status</h3>
+
+<h3>Status</h3>
+
 <table nosave="" cellpadding="5">
   <tbody>
     <tr nosave="" valign="top">
@@ -101,9 +137,29 @@ Status</h3>
     </tr>
   </tbody>
 </table>
-<h3>
-See Also</h3>
-<a href="SLPFree.html">SLPFree</a>, <a href="SLPTypes.html">SLPTypes</a>,
-<a href="Syntax.html">Syntax</a>
-</body>
+
+<br />
+<h3>See Also</h3>
+
+<p><a href="SLPFree.html">SLPFree</a>, <a href="SLPTypes.html">SLPTypes</a>,
+<a href="Syntax.html">Syntax</a></p>
+
+<p id="breadcrumbs0">Prepared by: <a href="http://www.calderasystems.com">Caldera Systems Inc</a><br />
+Maintained by: <a href="http://www.openslp.org/">openslp.org</a></p>
+
+                <!-- #EndEditable -->
+                </div>
+            </div>
+
+            <div id="footer">
+                Copyright &copy; 2011 <a href="http://www.openslp.org/">openslp.org</a>. All Rights Reserved.<br/>
+                Design by <a href="http://www.mdibb.net" title="Website of Matt Dibb">Matt Dibb</a>
+                2006. <a href="http://jigsaw.w3.org/css-validator/check/referer" title="Validate CSS">CSS</a> 
+                <a href="http://validator.w3.org/check/referer" title="Validate XHTML">XHTML</a>
+                <br/>Courtesy of <a href="http://www.openwebdesign.org">Open Web Design</a>
+                &amp; <a href="http://seo-services.us">seo</a>
+            </div>
+        </div>
+    </body>
+<!-- #EndTemplate -->
 </html>

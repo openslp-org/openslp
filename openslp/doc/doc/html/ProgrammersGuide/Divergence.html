@@ -1,29 +1,75 @@
-<!DOCTYPE html PUBLIC "-//w3c//dtd html 4.0 transitional//en">
-<html>
-<head>
-  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-  <meta name="GENERATOR" content="Mozilla/4.77C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.4.2 i686) [Netscape]">
-  <title>OpenSLP Programmers Guide - Divergence from RFC 2614</title>
-</head>
-<body alink="#ff0000" bgcolor="#ffffff" link="#0000ee" text="#000000" vlink="#51188e">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
 
-<table style="width:100%">
-  <tbody>
-    <tr>
-      <td>
-        <h1 style="margin:10px;">Divergence from RFC 2614</h1>
-      </td>
-      <td>
-        <h1><img style="float:right;margin:10px;" src="../images/oslp-logo-web-50.jpg"></h1>
-      </td>
-    </tr>
-  </tbody>
-</table>
-<hr width="100%" />
+<!-- #BeginTemplate "../../../openslp.dwt" -->
+
+<!--
+    
+    Pristine 1.0
+    
+    Design copyright Matt Dibb 2006
+    www.mdibb.net
+
+    Please feel free to use and modify this template for use on your site.  I dont mind
+    if you use it for your personal site or a commercial site, but I do insist that it is
+    not sold or given away in some "50,000 Templates!" package or something like that.
+
+-->
+
+    <head profile="http://www.w3.org/2005/10/profile">
+        <meta http-equiv="Content-Language" content="en-gb" />
+        <meta http-equiv="Content-Type" content="text/html; charset=windows-1252" />
+        <link rel="stylesheet" type="text/css" href="../../../site.css" />
+        <link rel="stylesheet" type="text/css" href="../../../print.css" media="print" />
+        <link rel="alternate" type="application/rss+xml" title="OpenSLP&#8230;Recent Activity" href="http://www.sourceforge.net/export/rss2_keepsake.php?group_id=1730" />
+        <link rel="alternate" type="application/rss+xml" title="OpenSLP&#8230;News" href="http://www.sourceforge.net/export/rss2_projnews.php?group_id=1730" />
+        <link rel="alternate" type="application/rss+xml" title="OpenSLP&#8230;File Releases" href="http://www.sourceforge.net/api/file/index/project-id/1730/mtime/desc/limit/20/rss" />
+        <link rel="alternate" type="application/rss+xml" title="OpenSLP&#8230;Reviews" href="http://www.sourceforge.net/projects/openslp/reviews_feed.rss" />
+		<link rel="shortcut icon" href="../../../images/openslp_favicon_256color_48px.ico" />
+        <!-- #BeginEditable "Page%20Style%20and%20Scripts" -->
+	    <!-- #EndEditable -->
+        <!-- #BeginEditable "Page%20Title" -->
+  <title>OpenSLP Programmers Guide - Divergence from RFC 2614</title>
+	    <!-- #EndEditable -->
+    </head>
+    <body>
+        <div id="content">
+            <div id="header">
+            	<a href="http://openslp.org/">
+				<img src="../../../images/openslp_logo_web_color_150px.jpg" alt="" /></a>
+            </div>
+            <div id="body">
+                <!-- #BeginEditable "Left%20Navigation%20-%20Context%20Specific" -->
+
+                <!-- #EndEditable -->
+                <div id="links">
+                    <p><a href="../../../index.html">About</a><br/>
+                       what is openslp</p>
+                    <p><a href="../../../download.html">Download</a><br/>
+                       how to get openslp</p>
+                    <p><a href="../../../contribute.html">Contribute</a><br/>
+                       how to help out</p>
+                    <p><a href="../../../documentation.html">Documentation</a><br/>
+                       how to find out more</p>
+                    <p><a href="../../../credits.html">Credits</a><br/>
+                       who to blame</p>
+                    <p><a href="http://sourceforge.net/projects/openslp"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=1730&amp;type=2" alt="Get OpenSLP at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></p>
+                </div>
+
+                <div id="main">
+                <!-- #BeginEditable "Page%20Content" -->
+
+<h2></h2>
+
+<h2>Divergence from RFC 2614<br />
+<span id="breadcrumbs"><a href="index.html">OpenSLP Programmer's Guide</a> &raquo; Misc. Information &raquo; <a href="Divergence.html">Divergence from RFC 2614</a></span></h2>
 
 <h3>SLP Service URLs are required</h3>
-SLP Service URL syntax is required for all functions that accept URL
-strings. The following is a list of affected functions:
+
+<p>SLP Service URL syntax is required for all functions that 
+accept URL strings. The following is a list of affected 
+functions:</p>
+
 <ul>
   <li>
     <tt>SLPReg</tt></li>
@@ -38,204 +84,171 @@ strings. The following is a list of affected functions:
   <li>
     <tt>SLPSrvURLCallback</tt></li>
 </ul>
-The decision to require SLP Service URL syntax was made based on in
-part
-the following scenario:
-<blockquote>Suppose that two calls were made to SLPReg with&nbsp; <tt>srvurl</tt>s
-and <tt>srvtype</tt>s of "192.168.100.2","http" and
-"192.168.100.2","ftp".
-Now the developer wants to deregister one service with out
-deregistering
-the other. How can it be done? The SLPDeReg call does not
-have a service type parameter, so it would be impossible for the
-underlying
-implementation to distinguish between the two registrations. In an
-attempt
-to standardize, OpenSLP expects valid Service URLS.</blockquote>
-OpenSLP requires strict Service URL syntax because a Service URL can be
-treated as a unique database key that identifies a registered service.
-Not requiring Service URL syntax allows for several ambiguities like
-the
-one mentioned above.
-&nbsp;<br>
-<h3>
-Scopelist may be the empty string ("")</h3>
-In the calls where a scope list is accepted as a parameter, RFC 2614
-says
-that this parameter may not be the empty string or a NULL pointer
-value. OpenSLP allows scope list to be NULL or the empty string. If the
-empty string is passed in as a scopelist, then OpenSLP will use the
-scopelist
-the system administrator has configured for the machine. This saves
-99% of all developers the time of calling SLPFindScopes and parsing the
-result.
-<p>Scoping is almost entirely an administrative task that is only
-required
-for scalebility of the SLP wire protocol. Having to deal with and
-understand scopes will be a burden to the large majority of
-programmers. Unless they are writing some sort of SLP browser, they
-will be very content
-to use the scope that the machine is configured to use. <br>
-</p>
-<p>This extension by no means mandates the use of NULL or empty scope
-strings. Programmers who want complete implementations of SLP
-applications may indeed use the API to acquire knowledge about existing
-scopes on the network, and then present a scoping choice (if more than
-one is available) to the user.<br>
-</p>
+
+<p>The decision to require SLP Service URL syntax was made 
+based on in part the following scenario:</p>
+
+<blockquote>Suppose that two calls were made to SLPReg with <tt>srvurl</tt> 
+and <tt>srvtype</tt> of &quot;192.168.100.2&quot;,&quot;http&quot;
+and also &quot;192.168.100.2&quot;,&quot;ftp&quot;. 
+Now the developer wants to deregister one service with out deregistering the 
+other. How can it be done? The SLPDeReg call does not have a service type 
+parameter, so it would be impossible for the underlying implementation to 
+distinguish between the two registrations. In an attempt to standardize, 
+OpenSLP expects valid Service URLS.</blockquote>
+
+<p>OpenSLP requires strict Service URL syntax because a Service 
+URL can be treated as a unique database key that identifies 
+a registered service. Not requiring Service URL syntax 
+allows for several ambiguities like the one mentioned above.</p>
+
+<h3>Scopelist may be the empty string (&quot;&quot;)</h3>
+
+<p>In the calls where a scope list is accepted as a parameter, 
+RFC 2614 says that this parameter may not be the empty 
+string or a NULL pointer value. OpenSLP allows scope list to 
+be NULL or the empty string. If the empty string is passed 
+in as a scopelist, then OpenSLP will use the scopelist the 
+system administrator has configured for the machine. This 
+saves 99% of all developers the time of calling 
+SLPFindScopes and parsing the result.</p>
+
+<p>Scoping is almost entirely an administrative task that is only required for 
+scalebility of the SLP wire protocol. Having to deal with and understand scopes 
+will be a burden to the large majority of programmers. Unless they are writing 
+some sort of SLP browser, they will be very content to use the scope that the 
+machine is configured to use.</p>
+
+<p>This extension by no means mandates the use of NULL or empty scope strings. 
+Programmers who want complete implementations of SLP applications may indeed use 
+the API to acquire knowledge about existing scopes on the network, and then 
+present a scoping choice (if more than one is available) to the user.</p>
+
 <h3>The SLPSetProperty is ignored</h3>
-The SLPSetProperty and SLPGetProperty calls are impossible to implement
-in a way that would be both scalable and thread safe. The
-SLPGetProperty
-call could never be made thread safe unless return value was a pointer
-to a buffer dynamically allocated by the library and freed by the
-caller. The SLPSetProperty call would still access the data store in
-such
-a way that mutexes would be required to ensure that SLPSetProperty and
-SLPGetProperty were never using the same buffers at the same time. Even
-if a thread-safe data store were devised, the SLPGetProperty call
-would be used so frequently during internal operations of the library
-that
-performance might be adversely affected due to mutex bottlenecking or
-the
-amount of processing required to resolve the attribute name to a value.<br>
-<h3>
-NULL and empty string are acceptable parameters</h3>
-According to RFC 2614, NULL is not exceptable value for any parameter.
-Instead programmers are instructed to passed the empty string "".
-OpenSLP allows programmers to use either NULL or the empty string.
-It is very easy to deal with both NULL and empty string in the
-implementation,
-and allows developers to write more familiar and slightly more
-efficient
-code. There should not be any reason why the compiler should be
-required
-to pass a pointer to a static constant empty string when NULL would do
-just
-as well. This is why the vast majority of C APIs use NULL, and not the
-empty string, to
-indicate an ignored parameter or default value.<br>
-<h3>
-Incremental registrations and de-registrations</h3>
-The only reason I can think of ever wanting to expose the functionality
-of incremental registration and deregistration is to represent dynamic
-data via SLP attributes. I can think of a long list of reasons why
-this is a very bad idea. Without a doubt, it is best to instruct
-SLP developers to minimize whenever possible, the number of calls that
-ultimately generate SrvReg and SrvDereg messages. If dynamic data
-is to be represented, it is best to do it via a specialized protocol
-optimized
-for the given service. OpenSLP does not support incremental
-registrations
-and de-registrations via SLPReg and SLPDelAttrs because we have found
-that when developers really learn what happens "under the SLP covers"
-they
-are very careful *not* to call them very often.
-<p>In addition to poor usage of network resources, incremental
-registrations
-and de-registrations require additional code that decreases the
-efficiency
-of, and increases the size and complexity of the OpenSLP API and agent
-implementations.
-</p>
-<p>The work around for this behavior involves the following:
-</p>
+
+<p>The SLPSetProperty and SLPGetProperty calls are impossible 
+to implement in a way that would be both scalable and thread 
+safe. The SLPGetProperty call could never be made thread 
+safe unless return value was a pointer to a buffer 
+dynamically allocated by the library and freed by the 
+caller. The SLPSetProperty call would still access the data 
+store in such a way that mutexes would be required to ensure 
+that SLPSetProperty and SLPGetProperty were never using the 
+same buffers at the same time. Even if a thread-safe data 
+store were devised, the SLPGetProperty call would be used so 
+frequently during internal operations of the library that 
+performance might be adversely affected due to mutex 
+bottlenecking or the amount of processing required to 
+resolve the attribute name to a value.</p>
+
+<h3>NULL and empty string are acceptable parameters</h3>
+
+<p>According to RFC 2614, NULL is not exceptable value for any 
+parameter. Instead programmers are instructed to passed the 
+empty string (&quot;&quot;). OpenSLP allows programmers to use either 
+NULL or the empty string. It is very easy to deal with both 
+NULL and empty string in the implementation, and allows 
+developers to write more familiar and slightly more 
+efficient code. There should not be any reason why the 
+compiler should be required to pass a pointer to a static 
+constant empty string when NULL would do just as well. This 
+is why the vast majority of C APIs use NULL, and not the 
+empty string, to indicate an ignored parameter or default 
+value.</p>
+
+<h3>Incremental registrations and de-registrations</h3>
+
+<p>The only reason I can think of ever wanting to expose the 
+functionality of incremental registration and deregistration 
+is to represent dynamic data via SLP attributes. I can think 
+of a long list of reasons why this is a very bad idea. 
+Without a doubt, it is best to instruct SLP developers to 
+minimize whenever possible, the number of calls that 
+ultimately generate SrvReg and SrvDereg messages. If dynamic 
+data is to be represented, it is best to do it via a 
+specialized protocol optimized for the given service. 
+OpenSLP does not support incremental registrations and 
+de-registrations via SLPReg and SLPDelAttrs because we have 
+found that when developers really learn what happens &quot;under 
+the SLP covers&quot; they are very careful *not* to call them 
+very often.</p>
+
+<p>In addition to poor usage of network resources, incremental registrations and 
+de-registrations require additional code that decreases the efficiency of, and 
+increases the size and complexity of the OpenSLP API and agent implementations.</p>
+
+<p>The work around for this behavior involves the following:</p>
+
 <ul>
   <li>
-Design application usage of SLP such that SLP is not used to store
-great
-quantities of data</li>
+  Design application usage of SLP such that SLP is not used to store great 
+  quantities of data</li>
   <li>
-Design application usage of SLP such that SLP is not used to store
-dynamic
-data</li>
+  Design application usage of SLP such that SLP is not used to store dynamic 
+  data</li>
   <li>
-If the need does arise to add or remove an attribute from an existing
-registration
-simply re-register the service with new attributes as a "fresh"
-registration.</li>
+  If the need does arise to add or remove an attribute from an existing 
+  registration simply re-register the service with new attributes as a &quot;fresh&quot; 
+  registration.</li>
 </ul>
-<h3>
-Addition of a very simple attribute parsing function</h3>
-The following function is included, without explicit documentation,
-with the OpenSLP library, and has proven
-to be very useful:<br>
-<br>
-<><tt>/*=========================================================================*/</tt>
-<br>
-<tt>SLPEXP SLPError SLPAPI SLPParseAttrs(<br>
-&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; const char * pcAttrList,</tt>
-<br>
-<tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-const char * pcAttrId,</tt>
-<br>
-<tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-char **&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ppcAttrVal);</tt><br>
-<br>
-<tt>/* Used to get individual attribute values from an attribute string
-that&nbsp;&nbsp; */</tt>
-<br>
-<tt>/* is passed to the
-SLPAttrCallback&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-*/</tt>
-<br>
-<tt>/*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-*/</tt>
-<br>
-<tt>/* pcAttrList (IN) A character buffer containing a comma separated,
-null&nbsp;&nbsp; */</tt>
-<br>
-<tt>/*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-terminated list of attribute id/value assignments, in&nbsp;&nbsp; */</tt>
-<br>
-<tt>/*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-SLP wire format; i.e.&nbsp;
-"(attr-id=attr-value-list)"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-*/</tt>
-<br>
-<tt>/*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-*/</tt>
-<br>
-<tt>/* pcAttrId (IN)&nbsp;&nbsp; The string indicating which attribute
-value to return.&nbsp; */</tt>
-<br>
-<tt>/*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-MUST not be null.&nbsp; MUST not be the empty string ("").&nbsp;&nbsp;
-*/</tt>
-<br>
-<tt>/*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-*/</tt>
-<br>
-<tt>/* ppcAttrVal (OUT) A pointer to a pointer to the buffer to
-receive&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-*/</tt>
-<br>
-<tt>/*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-attribute value.&nbsp; The memory should be freed by a call */</tt>
-<br>
-<tt>/*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-to SLPFree() when no longer
-needed.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-*/</tt>
-<br>
-<tt>/*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-*/</tt>
-<br>
-<tt>/* Returns: Returns SLP_PARSE_ERROR if an attribute of the
-specified
-id&nbsp;&nbsp;&nbsp; */</tt>
-<br>
-<tt>/*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; was not
-found otherwise
-SLP_OK&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-*/</tt>
-<br>
-<tt>/*=========================================================================*/</tt>
-&nbsp;<br>
-</>
+
+<h3>Addition of a very simple attribute parsing function</h3>
+
+<p>The following function is included, without explicit 
+documentation, with the OpenSLP library, and has proven to 
+be very useful:</p>
+
+<pre>
+&lt;&gt;
+/*=========================================================================*/
+
+SLPEXP SLPError SLPAPI SLPParseAttrs(
+       const char * pcAttrList,
+       const char * pcAttrId,
+       char **      ppcAttrVal );
+
+/* Used to get individual attribute values from an attribute string that   */
+/* is passed to the SLPAttrCallback                                        */
+/*                                                                         */
+/* pcAttrList (IN) A character buffer containing a comma separated, null   */
+/*                terminated list of attribute id/value assignments, in    */
+/*                SLP wire format; i.e. "(attr-id=attr-value-list)"        */
+/*                                                                         */
+/* pcAttrId (IN)   The string indicating which attribute value to return.  */
+/*                MUST not be null.  MUST not be the empty string ("").    */
+/*                                                                         */
+/* ppcAttrVal (OUT) A pointer to a pointer to the buffer to receive        */
+/*                 attribute value.  The memory should be freed by a call  */
+/*                 to SLPFree() when no longer needed.                     */
+/*                                                                         */
+/* Returns: Returns SLP_PARSE_ERROR if an attribute of the specified id    */
+/*          was not found otherwise SLP_OK                                 */
+/*=========================================================================*/
+&lt/&gt
+</pre>
+
 <h3>Some .conf properties are ignored</h3>
-See the <a href="../UsersGuide/SlpConf.html">OpenSLP Users Guide</a>
-for
-more details.
-</body>
+
+<p>See the <a href="../UsersGuide/SlpConf.html">OpenSLP Users Guide</a>
+for more details.</p>
+
+<p id="breadcrumbs0">Prepared by: <a href="http://www.calderasystems.com">Caldera Systems Inc</a><br />
+Maintained by: <a href="http://www.openslp.org/">openslp.org</a></p>
+
+
+                <!-- #EndEditable -->
+                </div>
+            </div>
+
+            <div id="footer">
+                Copyright &copy; 2011 <a href="http://www.openslp.org/">openslp.org</a>. All Rights Reserved.<br/>
+                Design by <a href="http://www.mdibb.net" title="Website of Matt Dibb">Matt Dibb</a>
+                2006. <a href="http://jigsaw.w3.org/css-validator/check/referer" title="Validate CSS">CSS</a> 
+                <a href="http://validator.w3.org/check/referer" title="Validate XHTML">XHTML</a>
+                <br/>Courtesy of <a href="http://www.openwebdesign.org">Open Web Design</a>
+                &amp; <a href="http://seo-services.us">seo</a>
+            </div>
+        </div>
+    </body>
+<!-- #EndTemplate -->
 </html>

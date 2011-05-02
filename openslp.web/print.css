@@ -1,0 +1,36 @@
+﻿
+body {
+	font-family				: Georgia, "Times New Roman", Times, serif;
+	font-size				: 12pt;
+	background				: white;
+}
+
+#content {
+	width					: 100%;
+	margin					: 0;
+	float					: none;
+}
+
+#header img {
+	width					: 50%;
+}
+
+#links {
+	display					: none;
+}
+
+#main {
+	margin					: 2% 5% 5% 5%;
+	border-left				: none;
+}
+
+#main h2 {
+	background-image		: none;
+	padding-left			: 0px;
+}
+
+a:link, a:visited {
+	color					: #781351;
+}
+
+

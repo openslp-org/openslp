@@ -1,96 +1,168 @@
-<!DOCTYPE html PUBLIC "-//w3c//dtd html 4.0 transitional//en">
-<html>
-<head>
-  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-  <meta name="GENERATOR" content="Mozilla/4.72C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.2.14 i686) [Netscape]">
-  <title>OpenSLP Programmers Guide - SLP Data Types</title>
-</head>
-<body alink="#ff0000" bgcolor="#ffffff" link="#0000ef" text="#000000" vlink="#51188e">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
 
-<table style="width:100%">
-  <tbody>
-    <tr>
-      <td>
-        <h1 style="margin:10px;">SLP Data Types</h1>
-      </td>
-      <td>
-        <h1><img style="float:right;margin:10px;" src="../images/oslp-logo-web-50.jpg"></h1>
-      </td>
-    </tr>
-  </tbody>
-</table>
-<hr width="100%" />
+<!-- #BeginTemplate "../../../openslp.dwt" -->
+
+<!--
+    
+    Pristine 1.0
+    
+    Design copyright Matt Dibb 2006
+    www.mdibb.net
+
+    Please feel free to use and modify this template for use on your site.  I dont mind
+    if you use it for your personal site or a commercial site, but I do insist that it is
+    not sold or given away in some "50,000 Templates!" package or something like that.
+
+-->
+
+    <head profile="http://www.w3.org/2005/10/profile">
+        <meta http-equiv="Content-Language" content="en-gb" />
+        <meta http-equiv="Content-Type" content="text/html; charset=windows-1252" />
+        <link rel="stylesheet" type="text/css" href="../../../site.css" />
+        <link rel="stylesheet" type="text/css" href="../../../print.css" media="print" />
+        <link rel="alternate" type="application/rss+xml" title="OpenSLP&#8230;Recent Activity" href="http://www.sourceforge.net/export/rss2_keepsake.php?group_id=1730" />
+        <link rel="alternate" type="application/rss+xml" title="OpenSLP&#8230;News" href="http://www.sourceforge.net/export/rss2_projnews.php?group_id=1730" />
+        <link rel="alternate" type="application/rss+xml" title="OpenSLP&#8230;File Releases" href="http://www.sourceforge.net/api/file/index/project-id/1730/mtime/desc/limit/20/rss" />
+        <link rel="alternate" type="application/rss+xml" title="OpenSLP&#8230;Reviews" href="http://www.sourceforge.net/projects/openslp/reviews_feed.rss" />
+		<link rel="shortcut icon" href="../../../images/openslp_favicon_256color_48px.ico" />
+        <!-- #BeginEditable "Page%20Style%20and%20Scripts" -->
+	    <!-- #EndEditable -->
+        <!-- #BeginEditable "Page%20Title" -->
+  <title>OpenSLP Programmers Guide - SLP Data Types</title>
+	    <!-- #EndEditable -->
+    </head>
+    <body>
+        <div id="content">
+            <div id="header">
+            	<a href="http://openslp.org/">
+				<img src="../../../images/openslp_logo_web_color_150px.jpg" alt="" /></a>
+            </div>
+            <div id="body">
+                <!-- #BeginEditable "Left%20Navigation%20-%20Context%20Specific" -->
+
+                <!-- #EndEditable -->
+                <div id="links">
+                    <p><a href="../../../index.html">About</a><br/>
+                       what is openslp</p>
+                    <p><a href="../../../download.html">Download</a><br/>
+                       how to get openslp</p>
+                    <p><a href="../../../contribute.html">Contribute</a><br/>
+                       how to help out</p>
+                    <p><a href="../../../documentation.html">Documentation</a><br/>
+                       how to find out more</p>
+                    <p><a href="../../../credits.html">Credits</a><br/>
+                       who to blame</p>
+                    <p><a href="http://sourceforge.net/projects/openslp"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=1730&amp;type=2" alt="Get OpenSLP at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></p>
+                </div>
+
+                <div id="main">
+                <!-- #BeginEditable "Page%20Content" -->
+
+<h2>SLP Data Types<br />
+<span id="breadcrumbs"><a href="index.html">OpenSLP Programmer's Guide</a> &raquo; Misc. Information &raquo; <a href="SLPTypes.html">SLP Data Types</a></span></h2>
 
 <h3><a name="SLPEXP"></a>SLPEXP</h3>
-An API function declaration modifier, which allows various linkage
-specifications to be applied to API functions in a portable manner, as
-required by platforms and compilation tools. Many platforms simply
-define this to be nothing. Win32 platform linkers define this to be
-__declspec(dllimport), which notifies Win32 compilation tools that this
-function should be imported from a Win32 dynamic
-link library.
-<h3><a name="SLPAPI"></a>SLPAPI <br>
-</h3>
-An API function address modifier, which allows various linkage
-attributes to be applied to API functions in a portable manner, as
-required by platforms and compilation tools. Many platforms simply
-define this macro to be nothing.<br>
-<h3><a name="SLPCALLBACK"></a>SLPCALLBACK </h3>
-An API function address modifier, which allows various linkage
-attributes to be applied to API functions in a portable manner, as
-required by platforms and compilation tools. Many platforms simply
-define this macro to be nothing.<br>
+
+<p>An API function declaration modifier, which allows various 
+linkage specifications to be applied to API functions in a 
+portable manner, as required by platforms and compilation 
+tools. Many platforms simply define this to be nothing. 
+Win32 platform linkers define this to be 
+__declspec(dllimport), which notifies Win32 compilation 
+tools that this function should be imported from a Win32 
+dynamic link library.</p>
+
+<h3><a name="SLPAPI"></a>SLPAPI</h3>
+
+<p>An API function address modifier, which allows various 
+linkage attributes to be applied to API functions in a 
+portable manner, as required by platforms and compilation 
+tools. Many platforms simply define this macro to be 
+nothing.</p>
+					
+<h3><a name="SLPCALLBACK"></a>SLPCALLBACK</h3>
+
+<p>An API function address modifier, which allows various 
+linkage attributes to be applied to API functions in a 
+portable manner, as required by platforms and compilation 
+tools. Many platforms simply define this macro to be 
+nothing.</p>
+					
 <h3><a name="SLPURLLifetime"></a>SLPURLLifetime</h3>
-An enumerated type with a range of 0 - 65535.&nbsp; There are two
-defined
-values <tt>of:</tt>
-<blockquote><tt>SLP_LIFETIME_DEFAULT&nbsp;&nbsp;&nbsp; 10800</tt>
-  <br>
-  <tt>SLP_LIFETIME_MAXIMUM&nbsp;&nbsp;&nbsp; 65535</tt></blockquote>
-<h3>
-<a name="SLPError"></a>SLPError</h3>
-An enumerated type with a range of -26 - 1.&nbsp; See <a
- href="SLPError.html">SLPError
-Codes </a>for more detail.
-<br>
-&nbsp;
+
+<p>An enumerated type with a range of 0 - 65535.&nbsp; There are two 
+defined values of:</p>
+
+<blockquote>
+  <tt>SLP_LIFETIME_DEFAULT&nbsp;&nbsp;&nbsp; 10800</tt>
+  <br />
+  <tt>SLP_LIFETIME_MAXIMUM&nbsp;&nbsp;&nbsp; 65535</tt>
+</blockquote>
+  
+<h3><a name="SLPError"></a>SLPError</h3>
+
+<p>An enumerated type with a range of -26 - 1.&nbsp; See
+<a href="SLPError.html">SLPError Codes </a>for more detail.</p>
+
 <h3><a name="SLPBoolean"></a>SLPBoolean</h3>
-A boolean value with one of the following values:
-<blockquote><tt>SLP_FALSE&nbsp;&nbsp;&nbsp; 0</tt>
-  <br>
-  <tt>SLP_TRUE&nbsp;&nbsp;&nbsp;&nbsp; 1</tt></blockquote>
-<h3>
-<a name="SLPSrvURL"></a>SLPSrvURL</h3>
-Structure that is used to index the parts of a parsed Service URL that
-is returned by <a href="SLPParseSrvURL.html">SLPParseSrvURL()</a>.&nbsp;
-The structure contains the following members.
+
+<p>A boolean value with one of the following values:</p>
+
+<blockquote>
+  <tt>SLP_FALSE&nbsp;&nbsp;&nbsp; 0</tt>
+  <br />
+  <tt>SLP_TRUE&nbsp;&nbsp;&nbsp;&nbsp; 1</tt>
+</blockquote>
+  
+<h3><a name="SLPSrvURL"></a>SLPSrvURL</h3>
+
+<p>Structure that is used to index the parts of a parsed 
+Service URL that is returned by <a href="SLPParseSrvURL.html">
+SLPParseSrvURL()</a>.&nbsp; The structure contains the following 
+members.</p>
+					
 <blockquote><tt>char* s_pcSrvType</tt>
-  <blockquote>A pointer to a character string containing the service
-type
-name, including naming authority.&nbsp; The service type name includes
-the "service:" if the URL is of the service: scheme.</blockquote>
+  <blockquote>A pointer to a character string containing the service type name, 
+	  including naming authority.&nbsp; The service type name includes the &quot;service:&quot; 
+	  if the URL is of the service: scheme.</blockquote>
   <tt>char* s_pcHost</tt>
-  <blockquote>A pointer to a character string containing the host
-identification
-information.</blockquote>
+  <blockquote>A pointer to a character string containing the host identification 
+	  information.</blockquote>
   <tt>int s_iPort</tt>
-  <blockquote>The port number, or zero if none.&nbsp; The port is only
-available
-if the transport is IP</blockquote>
+  <blockquote>The port number, or zero if none.&nbsp; The port is only available if 
+	  the transport is IP</blockquote>
   <tt>char* s_pcNetFamily</tt>
-  <blockquote>A pointer to a character string containing the network
-address
-family identifier.&nbsp; Possible values are "ipx" for the IPX family,
-"at" for the Appletalk family, and "" (the empty string) for IP address
-family.&nbsp; OpenSLP only supports the IP address family.</blockquote>
+  <blockquote>A pointer to a character string containing the network address 
+	  family identifier.&nbsp; Possible values are &quot;ipx&quot; for the IPX family, &quot;at&quot; for 
+	  the Appletalk family, and &quot;&quot; (the empty string) for IP address family.&nbsp; 
+	  OpenSLP only supports the IP address family.</blockquote>
   <tt>char* s_pcSrvPart</tt>
   <blockquote>The remainder of the URL.</blockquote>
 </blockquote>
-<h3>
-<a name="SLPHandle"></a>SLPHandle</h3>
-The SLPHandle type is returned by <a href="SLPOpen.html">SLPOpen()</a>
-and is a parameter to all SLP Functions.&nbsp; The type is opaque to
-the
-caller.
-</body>
+
+<h3><a name="SLPHandle"></a>SLPHandle</h3>
+
+<p>The SLPHandle type is returned by <a href="SLPOpen.html">SLPOpen()</a>
+and is a parameter to all SLP Functions.&nbsp; The type is opaque 
+to the caller.</p>
+
+<p id="breadcrumbs0">Prepared by: <a href="http://www.calderasystems.com">Caldera Systems Inc</a><br />
+Maintained by: <a href="http://www.openslp.org/">openslp.org</a></p>
+
+                <!-- #EndEditable -->
+                </div>
+            </div>
+
+            <div id="footer">
+                Copyright &copy; 2011 <a href="http://www.openslp.org/">openslp.org</a>. All Rights Reserved.<br/>
+                Design by <a href="http://www.mdibb.net" title="Website of Matt Dibb">Matt Dibb</a>
+                2006. <a href="http://jigsaw.w3.org/css-validator/check/referer" title="Validate CSS">CSS</a> 
+                <a href="http://validator.w3.org/check/referer" title="Validate XHTML">XHTML</a>
+                <br/>Courtesy of <a href="http://www.openwebdesign.org">Open Web Design</a>
+                &amp; <a href="http://seo-services.us">seo</a>
+            </div>
+        </div>
+    </body>
+<!-- #EndTemplate -->
 </html>

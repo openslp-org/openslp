@@ -1,108 +1,155 @@
-<!DOCTYPE html PUBLIC "-//w3c//dtd html 4.0 transitional//en">
-<html>
-<head>
-  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-  <meta name="GENERATOR" content="Mozilla/4.72C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.2.14 i686) [Netscape]">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<!-- #BeginTemplate "../../../openslp.dwt" -->
+
+<!--
+    
+    Pristine 1.0
+    
+    Design copyright Matt Dibb 2006
+    www.mdibb.net
+
+    Please feel free to use and modify this template for use on your site.  I dont mind
+    if you use it for your personal site or a commercial site, but I do insist that it is
+    not sold or given away in some "50,000 Templates!" package or something like that.
+
+-->
+
+    <head profile="http://www.w3.org/2005/10/profile">
+        <meta http-equiv="Content-Language" content="en-gb" />
+        <meta http-equiv="Content-Type" content="text/html; charset=windows-1252" />
+        <link rel="stylesheet" type="text/css" href="../../../site.css" />
+        <link rel="stylesheet" type="text/css" href="../../../print.css" media="print" />
+        <link rel="alternate" type="application/rss+xml" title="OpenSLP&#8230;Recent Activity" href="http://www.sourceforge.net/export/rss2_keepsake.php?group_id=1730" />
+        <link rel="alternate" type="application/rss+xml" title="OpenSLP&#8230;News" href="http://www.sourceforge.net/export/rss2_projnews.php?group_id=1730" />
+        <link rel="alternate" type="application/rss+xml" title="OpenSLP&#8230;File Releases" href="http://www.sourceforge.net/api/file/index/project-id/1730/mtime/desc/limit/20/rss" />
+        <link rel="alternate" type="application/rss+xml" title="OpenSLP&#8230;Reviews" href="http://www.sourceforge.net/projects/openslp/reviews_feed.rss" />
+		<link rel="shortcut icon" href="../../../images/openslp_favicon_256color_48px.ico" />
+        <!-- #BeginEditable "Page%20Style%20and%20Scripts" -->
+	    <!-- #EndEditable -->
+        <!-- #BeginEditable "Page%20Title" -->
   <title>OpenSLP Programmer's Guide - Index</title>
-</head>
-<body alink="#ff0000" bgcolor="#ffffff" link="#0000ef" text="#000000" vlink="#51188e">
+	    <!-- #EndEditable -->
+    </head>
+    <body>
+        <div id="content">
+            <div id="header">
+            	<a href="http://openslp.org/">
+				<img src="../../../images/openslp_logo_web_color_150px.jpg" alt="" /></a>
+            </div>
+            <div id="body">
+                <!-- #BeginEditable "Left%20Navigation%20-%20Context%20Specific" -->
 
-<table nosave="">
-  <tbody>
-    <tr nosave="" valign="CENTER">
-      <td nosave="">
-        <h1>
-          <img src="../images/oslp-logo-web-150.jpg">
-        </h1>
-      </td>
-      <td nosave="">
-        <h1>
-          <hr width="100%" style="height:1px;color:#805b0a;background-color:#805b0a;border-width:0;"/>
-          Programmer's Guide
-          <hr width="100%" style="height:1px;color:#805b0a;background-color:#805b0a;border-width:0;"/>
-      </h1>
-      </td>
-    </tr>
-  </tbody>
-</table>
+                <!-- #EndEditable -->
+                <div id="links">
+                    <p><a href="../../../index.html">About</a><br/>
+                       what is openslp</p>
+                    <p><a href="../../../download.html">Download</a><br/>
+                       how to get openslp</p>
+                    <p><a href="../../../contribute.html">Contribute</a><br/>
+                       how to help out</p>
+                    <p><a href="../../../documentation.html">Documentation</a><br/>
+                       how to find out more</p>
+                    <p><a href="../../../credits.html">Credits</a><br/>
+                       who to blame</p>
+                    <p><a href="http://sourceforge.net/projects/openslp"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=1730&amp;type=2" alt="Get OpenSLP at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></p>
+                </div>
 
-<table nosave="" border="1" cellpadding="5" cols="2" width="100%">
+                <div id="main">
+                <!-- #BeginEditable "Page%20Content" -->
+
+<h2>OpenSLP Programmer's Guide<br />
+<span id="breadcrumbs"><a href="index.html">OpenSLP Programmer's Guide</a> &raquo; <a href="index.html">Index</a></span></h2>
+
+<table>
   <tbody>
-    <tr nosave="" valign="top">
-      <td nosave="">
+    <tr>
+      <td>
       <h3>SLP Handle Functions</h3>
-Functions used to open and close SLPHandles:
+	  <p>Functions used to open and close SLPHandles:</p>
       <p><b><a href="SLPOpen.html">SLPOpen()</a></b>
-      <br>
+      <br />
       <b><a href="SLPClose.html">SLPClose()</a></b></p>
       </td>
       <td>
       <h3>Parsing Functions</h3>
-Useful parsing functions:
+	  <p>Useful parsing functions:</p>
       <p><b><a href="SLPParseSrvURL.html">SLPParseSrvURL()</a></b>
-      <br>
+      <br />
       <b><a href="SLPEscape.html">SLPEscape()</a></b>
-      <br>
+      <br />
       <b><a href="SLPUnescape.html">SLPUnescape()</a></b>
-      <br>
+      <br />
       <b><a href="SLPFree.html">SLPFree()</a></b></p>
       </td>
     </tr>
-    <tr nosave="" valign="top">
-      <td nosave="">
+    <tr>
+      <td>
       <h3>Service Registration Functions</h3>
-Functions that should be called by applications that provide a service:
+	  <p>Functions that should be called by applications that provide a service:</p>
       <p><b><a href="SLPReg.html">SLPReg()</a></b>
-      <br>
+      <br />
       <b><a href="SLPDereg.html">SLPDereg()</a></b>
-      <br>
+      <br />
       <b><a href="SLPDelAttrs.html">SLPDelAttrs()</a></b></p>
       </td>
       <td>
       <h3>Configuration Functions</h3>
-Functions that may be called to determine the configuration of the SLP
-on the local machine and on the network:
+	  <p>Functions that may be called to determine the configuration of the SLP on 
+	  the local machine and on the network:</p>
       <p><b><a href="SLPGetRefreshInterval.html">SLPGetRefreshInterval()</a></b>
-      <br>
+      <br />
       <b><a href="SLPFindScopes.html">SLPFindScopes()</a></b>
-      <br>
+      <br />
       <b><a href="SLPGetProperty.html">SLPGetProperty()</a></b>
-      <br>
+      <br />
       <b><a href="SLPSetProperty.html">SLPSetProperty()</a></b></p>
       </td>
     </tr>
-    <tr nosave="" valign="top">
-      <td nosave="">
+    <tr>
+      <td>
       <h3>Service Location Functions</h3>
-Functions that may be called by applications that use services:
+	  <p>Functions that may be called by applications that use services:</p>
       <p><b><a href="SLPFindSrvs.html">SLPFindSrvs()</a></b>
-      <br>
+      <br />
       <b><a href="SLPFindSrvTypes.html">SLPFindSrvTypes()</a></b>
-      <br>
+      <br />
       <b><a href="SLPFindAttrs.html">SLPFindAttrs()</a></b></p>
       </td>
-      <td nosave="">
-      <h3>Misc Information</h3>
-Quick links to useful information:
+      <td>
+      <h3>Miscellaneous Information</h3>
+	  <p>Quick links to useful information:</p>
       <p><b><a href="Callbacks.html">Callbacks</a></b>
-      <br>
-      <b><a href="Syntax.html">Syntax</a></b>
-      <br>
+      <br />
+      <b><a href="Divergence.html">Divergence from RFC 2614</a></b>
+      <br />
       <b><a href="SLPError.html">Error Codes</a></b>
-      <br>
-      <b><a href="Divergence.html">Divergence from RFC 2614</a></b></p>
+      <br />
+      <b><a href="Syntax.html">Syntax</a></b>
+      <br />
+      <b><a href="Security.html">Security</a></b></p>
       </td>
     </tr>
   </tbody>
 </table>
 
-<p><font size="-1">Originally Prepared by <a
- href="http://www.calderasystems.com">Caldera
-Systems, Inc</a></font>
-<font size="-1"><br>
-Currently Maintained by <a href="http://www.openslp.org">openslp.org</a></font><br>
-</p>
+<p id="breadcrumbs0">Prepared by: <a href="http://www.calderasystems.com">Caldera Systems Inc</a><br />
+Maintained by: <a href="http://www.openslp.org/">openslp.org</a></p>
 
-</body>
+                <!-- #EndEditable -->
+                </div>
+            </div>
 
+            <div id="footer">
+                Copyright &copy; 2011 <a href="http://www.openslp.org/">openslp.org</a>. All Rights Reserved.<br/>
+                Design by <a href="http://www.mdibb.net" title="Website of Matt Dibb">Matt Dibb</a>
+                2006. <a href="http://jigsaw.w3.org/css-validator/check/referer" title="Validate CSS">CSS</a> 
+                <a href="http://validator.w3.org/check/referer" title="Validate XHTML">XHTML</a>
+                <br/>Courtesy of <a href="http://www.openwebdesign.org">Open Web Design</a>
+                &amp; <a href="http://seo-services.us">seo</a>
+            </div>
+        </div>
+    </body>
+<!-- #EndTemplate -->
 </html>

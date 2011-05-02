@@ -1,171 +1,212 @@
-<!DOCTYPE html PUBLIC "-//w3c//dtd html 4.0 transitional//en">
-<html>
-<head>
-  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-  <meta name="GENERATOR" content="Mozilla/4.77C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.4.2 i686) [Netscape]">
-  <title>OpenSLP Programmers Guide - Callbacks</title>
-</head>
-<body alink="#ff0000" bgcolor="#ffffff" link="#0000ee" text="#000000" vlink="#51188e">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
 
-<table style="width:100%">
-  <tbody>
-    <tr>
-      <td>
-        <h1 style="margin:10px;">Callbacks</h1>
-      </td>
-      <td>
-        <h1><img style="float:right;margin:10px;" src="../images/oslp-logo-web-50.jpg"></h1>
-      </td>
-    </tr>
-  </tbody>
-</table>
-<hr width="100%" />
+<!-- #BeginTemplate "../../../openslp.dwt" -->
+
+<!--
+    
+    Pristine 1.0
+    
+    Design copyright Matt Dibb 2006
+    www.mdibb.net
+
+    Please feel free to use and modify this template for use on your site.  I dont mind
+    if you use it for your personal site or a commercial site, but I do insist that it is
+    not sold or given away in some "50,000 Templates!" package or something like that.
+
+-->
+
+    <head profile="http://www.w3.org/2005/10/profile">
+        <meta http-equiv="Content-Language" content="en-gb" />
+        <meta http-equiv="Content-Type" content="text/html; charset=windows-1252" />
+        <link rel="stylesheet" type="text/css" href="../../../site.css" />
+        <link rel="stylesheet" type="text/css" href="../../../print.css" media="print" />
+        <link rel="alternate" type="application/rss+xml" title="OpenSLP&#8230;Recent Activity" href="http://www.sourceforge.net/export/rss2_keepsake.php?group_id=1730" />
+        <link rel="alternate" type="application/rss+xml" title="OpenSLP&#8230;News" href="http://www.sourceforge.net/export/rss2_projnews.php?group_id=1730" />
+        <link rel="alternate" type="application/rss+xml" title="OpenSLP&#8230;File Releases" href="http://www.sourceforge.net/api/file/index/project-id/1730/mtime/desc/limit/20/rss" />
+        <link rel="alternate" type="application/rss+xml" title="OpenSLP&#8230;Reviews" href="http://www.sourceforge.net/projects/openslp/reviews_feed.rss" />
+		<link rel="shortcut icon" href="../../../images/openslp_favicon_256color_48px.ico" />
+        <!-- #BeginEditable "Page%20Style%20and%20Scripts" -->
+	    <!-- #EndEditable -->
+        <!-- #BeginEditable "Page%20Title" -->
+  <title>OpenSLP Programmers Guide - Callbacks</title>
+	    <!-- #EndEditable -->
+    </head>
+    <body>
+        <div id="content">
+            <div id="header">
+            	<a href="http://openslp.org/">
+				<img src="../../../images/openslp_logo_web_color_150px.jpg" alt="" /></a>
+            </div>
+            <div id="body">
+                <!-- #BeginEditable "Left%20Navigation%20-%20Context%20Specific" -->
+
+                <!-- #EndEditable -->
+                <div id="links">
+                    <p><a href="../../../index.html">About</a><br/>
+                       what is openslp</p>
+                    <p><a href="../../../download.html">Download</a><br/>
+                       how to get openslp</p>
+                    <p><a href="../../../contribute.html">Contribute</a><br/>
+                       how to help out</p>
+                    <p><a href="../../../documentation.html">Documentation</a><br/>
+                       how to find out more</p>
+                    <p><a href="../../../credits.html">Credits</a><br/>
+                       who to blame</p>
+                    <p><a href="http://sourceforge.net/projects/openslp"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=1730&amp;type=2" alt="Get OpenSLP at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></p>
+                </div>
+
+                <div id="main">
+                <!-- #BeginEditable "Page%20Content" -->
+
+<h2>Callbacks<br />
+<span id="breadcrumbs"><a href="index.html">OpenSLP Programmer's Guide</a> &raquo; Misc. Information &raquo; <a href="Callbacks.html">Callbacks</a></span></h2>
 
 <h3>What's a callback function?</h3>
-If you are new to asynchronous programming, or have never used callback
-functions before, just think of the SLP callback functions as code the
-you write but never call directly. Yep, that's
-right,
-you will probably never call your callback functions directly. Instead,
-it will be called by the library when it is ready to report the status
-or results of an operation. This allows your program to do other
-things while data is being collected by the callback function. Callback
-functions are required for all of the major SLP APIs. For more
-information,
-see <a href="SLPReg.html">SLPReg</a>,
+
+<p>If you are new to asynchronous programming, or have never 
+used callback functions before, just think of the SLP 
+callback functions as code the you write but never call 
+directly. Yep, that's right, you will probably never call 
+your callback functions directly. Instead, it will be called 
+by the library when it is ready to report the status or 
+results of an operation. This allows your program to do 
+other things while data is being collected by the callback 
+function. Callback functions are required for all of the 
+major SLP APIs. For more information, see <a href="SLPReg.html">
+SLPReg</a>,
 <a href="SLPDereg.html">SLPDeReg</a>,
 <a href="SLPDelAttrs.html">SLPDelAttrs</a>,
 <a href="SLPFindSrvs.html">SLPFindSrvs</a>,
-<a href="SLPFindAttrs.html">SLPFindAttrs</a>,
-and <a href="SLPFindSrvTypes.html">SLPFindSrvTypes</a>.
-<p>Callback functions must accept the parameters that the caller (the
-SLP
-library) expects to pass to them. This is why callback function
-types
-are defined. See <a href="SLPRegReport.html">SLPRegReport</a>,
+<a href="SLPFindAttrs.html">SLPFindAttrs</a>, and <a href="SLPFindSrvTypes.html">
+SLPFindSrvTypes</a>.</p>
+
+<p>Callback functions must accept the parameters that the caller (the SLP 
+library) expects to pass to them. This is why callback function types are 
+defined. See <a href="SLPRegReport.html">SLPRegReport</a>,
 <a href="SLPSrvURLCallback.html">SLPSrvURLCallback</a>,
 <a href="SLPAttrCallback.html">SLPAttrCallback</a>.
 </p>
+
 <h3>What's different about SLP callback functions?</h3>
-Callback functions are an integral part of the SLP API. Developers
-usually
-associate callbacks with asynchronous APIs, but the SLP API uses
-callbacks
-for both synchronous and asynchronous operations. Whether the
-callback
-is called synchronously or asynchronously, depends on the <tt><a
- href="SLPOpen.html#isasync">isasync</a>
-</tt>parameter in the call to <tt><a href="SLPOpen.html">SLPOpen</a></tt>.
-Remember the following rules and you should not have any problems with
-your callback functions.
+
+<p>Callback functions are an integral part of the SLP API. 
+Developers usually associate callbacks with asynchronous 
+APIs, but the SLP API uses callbacks for both synchronous 
+and asynchronous operations. Whether the callback is called 
+synchronously or asynchronously, depends on the <tt><a
+href="SLPOpen.html#isasync">isasync</a>
+</tt>parameter in the call to <tt><a href="SLPOpen.html">SLPOpen</a></tt>.</p>
+ 
+<p>Remember the following rules and you should not have any 
+problems with your callback functions.</p>
+
 <ul>
-  <li>Callback functions are called in both synchronous and
-asynchronous
-cases. The only difference is that in a synchronous case, the
-initiating
-function
-(SLPReg, SLPFindSrvs, etc) will block until all results are
-reported
-to the callback function.</li>
-  <li>The memory passed in to callback functions is owned by the
-library. i.e. the callback must <tt>strdup</tt> strings before
-modifiying them
-because the memory passed in will either be <tt>free</tt><span
- style="font-family: monospace;">'d</span> by the library
-when
-the callback returns, or is owned by the library, and will be managed
-as if it had not been changed by your callback function. In fact, to
-this end, pointers to buffers passed to your callback functions are
-declared <small><span
- style="font-family: courier new,courier,monospace;">const</span></small>
-in the function signature, making it difficult (but not impossible) for
-you to write to these buffers.<br>
+  <li>Callback functions are called in both synchronous and asynchronous cases. 
+  The only difference is that in a synchronous case, the initiating function 
+  (SLPReg, SLPFindSrvs, etc) will block until all results are reported to the 
+  callback function.</li>
+  <li>The memory passed in to callback functions is owned by the library. i.e. 
+  the callback must <tt>strdup</tt> strings before modifiying them because the 
+  memory passed in will either be <tt>free'd</tt> by the library when the callback 
+  returns, or is owned by the library, and will be managed as if it had not been 
+  changed by your callback function. In fact, to this end, pointers to buffers 
+  passed to your callback functions are declared <tt>const</tt>
+  in the function signature, making it difficult (but not impossible) for you to 
+  write to these buffers.
   </li>
-  <li> <span style="color: rgb(255, 0, 0);">Make your callback
-functions as efficient as possible.</span> This is especially important
-when a call is made with an async <tt><a href="SLPTypes.html#SLPHandle">SLPHandle</a></tt>
-because results are not collected or collated by the library before the
-callback function is called. In other words,&nbsp; in async mode,
-the library will call the callback each time a reply message is
-received
-until the request times out. This means that while the SLP client
-library is hanging out inside your callback function, the clock is
-ticking on the server.<br>
+  <li><text color="red">Make your callback functions as 
+  efficient as possible.</text> This is especially important when a call is made 
+  with an async <tt><a href="SLPTypes.html#SLPHandle">SLPHandle</a></tt>
+  because results are not collected or collated by the library before the 
+  callback function is called. In other words, in async mode, the library will 
+  call the callback each time a reply message is received until the request 
+  times out. This means that while the SLP client library is hanging out inside 
+  your callback function, the clock is ticking on the server.
   </li>
-  <li>If the <tt>errcode</tt> upon entry to the callback is set to
-anything
-but <tt>SLP_OK</tt>,
-the rest of the parameters may be invalid. Check the error code
-first.</li>
-  <li>Use the <tt>cookie</tt> parameter. It is the best way to get
-information
-to and from your callback. This parameter allows your application tp
-provide context to the callback. When you call an SLP API that accepts
-a callback, it also accepts a cookie. Just pass your context with your
-function, and the library will pass your context to your callback
-function.<br>
+  <li>If the <tt>errcode</tt> upon entry to the callback is set to anything but <tt>
+  SLP_OK</tt>, the rest of the parameters may be invalid. Check the error code 
+  first.</li>
+  <li>Use the <tt>cookie</tt> parameter. It is the best way to get information 
+  to and from your callback. This parameter allows your application tp provide 
+  context to the callback. When you call an SLP API that accepts a callback, it 
+  also accepts a cookie. Just pass your context with your function, and the 
+  library will pass your context to your callback function.
   </li>
 </ul>
-<h3>
-How does OpenSLP library handle asynchronous operation?</h3>
-When an SLP library call is made with an SLPHandle that was opened in
-async
-mode, the library does everything it can without blocking.&nbsp; It
-then
-creates a thread (hopefully a user-level thread) and returns
-SLP_OK.
-The newly created thread processes the request (possibly blocking to
-wait
-for data to arrive from the network) and calls the callback function as
-data is received.
-<p>An important thing to remember is that <i>no collection or
-collation
-of results is performed by the library when a call is initiated in
-async
-mode. </i>This means that the callback may be called multiple times
-with
-the same result. This would happen for example if two SAs or DAs
-maintained the same registration. It is therefore, up to your
-async-aware callback function to perform this collation on behalf of
-your application.<br>
-</p>
-<p>Currently all the code is in libslp to allow for asynchronous
-operation
-except for the calls to pthread_create(). The reason for this is
-mainly that no one has really needed asynchronous operation. If
-you
-feel like you have a good reason to use asynchronous operation then
-please
-send email to <a href="mailto:openslp-devel@lists.sourceforge.net">openslp-devel@lists.sourceforge.net</a>.
-</p>
+
+<h3>How does OpenSLP library handle asynchronous operation?</h3>
+
+<p>When an SLP library call is made with an SLPHandle that was 
+opened in async mode, the library does everything it can 
+without blocking.&nbsp; It then creates a thread (hopefully a 
+user-level thread) and returns SLP_OK. The newly created 
+thread processes the request (possibly blocking to wait for 
+data to arrive from the network) and calls the callback 
+function as data is received.</p>
+
+<p>An important thing to remember is that <i>no collection or collation of 
+results is performed by the library when a call is initiated in async mode. </i>
+This means that the callback may be called multiple times with the same result. 
+This would happen for example if two SAs or DAs maintained the same 
+registration. It is therefore, up to your async-aware callback function to 
+perform this collation on behalf of your application.</p>
+
+<p>Currently all the code is in libslp to allow for asynchronous operation 
+except for the calls to pthread_create(). The reason for this is mainly that no 
+one has really needed asynchronous operation. If you feel like you have a good 
+reason to use asynchronous operation then please send email to <a href="mailto:openslp-devel@lists.sourceforge.net">
+openslp-devel@lists.sourceforge.net</a>.</p>
+
 <h3>How does OpenSLP library handle synchronous operation?</h3>
-When an SLP library call is made with an SLPHandle that was opened in
-synchronous
-mode, the library will not create a thread. Instead, the calling
-thread will perform all processing (which may block) and report results
-to the callback function. When in synchronous mode, all of the results
-are
-collated to ensure no duplicates are returned before any calls are made
-to your callback functions. The API function
-call
-will not return until all results are finished being reported to your
-callback function.
+
+<p>When an SLP library call is made with an SLPHandle that was 
+opened in synchronous mode, the library will not create a 
+thread. Instead, the calling thread will perform all 
+processing (which may block) and report results to the 
+callback function. When in synchronous mode, all of the 
+results are collated to ensure no duplicates are returned 
+before any calls are made to your callback functions. The 
+API function call will not return until all results are 
+finished being reported to your callback function.</p>
+
 <h3>Why not just have separate synchronous and asynchronous APIs?</h3>
-That would have been good choice, but for some reason, the SLP
-designers
-thought their way would be better. OpenSLP API is just an
-implementation
-of a standardized specification described in RFC 2614. Furthermore, a
-non-callback version may be implemented in terms of the callback
-version. This allows programmers to add value without duplicating
-effort. If you want such a wrapper library, please feel free to write
-one, and add it to the OpenSLP project - that way everyone can benefit!<br>
+
+<p>That would have been good choice, but for some reason, the 
+SLP designers thought their way would be better. OpenSLP API 
+is just an implementation of a standardized specification 
+described in RFC 2614. Furthermore, a non-callback version 
+may be implemented in terms of the callback version. This 
+allows programmers to add value without duplicating effort. 
+If you want such a wrapper library, please feel free to 
+write one, and add it to the OpenSLP project - that way 
+everyone can benefit!</p>
+
 <h3>Can I see some example code?</h3>
-Yes, example code can be found in the documentation for the <a
- href="SLPReg.html">SLPReg</a>,
+
+<p>Yes, example code can be found in the documentation for the
+<a href="SLPReg.html">SLPReg</a>,
 <a href="SLPFindSrvs.html">SLPFindSrv</a>,
-<a href="SLPFindAttrs.html">SLPFindAttrs</a> and <a
- href="SLPFindSrvTypes.html">SLPFindSrvTypes</a>
-functions.
-</body>
+<a href="SLPFindAttrs.html">SLPFindAttrs</a> and
+<a href="SLPFindSrvTypes.html">SLPFindSrvTypes</a>
+functions.</p>
+
+<p id="breadcrumbs0">Prepared by: <a href="http://www.calderasystems.com">Caldera Systems Inc</a><br />
+Maintained by: <a href="http://www.openslp.org/">openslp.org</a></p>
+
+                <!-- #EndEditable -->
+                </div>
+            </div>
+
+            <div id="footer">
+                Copyright &copy; 2011 <a href="http://www.openslp.org/">openslp.org</a>. All Rights Reserved.<br/>
+                Design by <a href="http://www.mdibb.net" title="Website of Matt Dibb">Matt Dibb</a>
+                2006. <a href="http://jigsaw.w3.org/css-validator/check/referer" title="Validate CSS">CSS</a> 
+                <a href="http://validator.w3.org/check/referer" title="Validate XHTML">XHTML</a>
+                <br/>Courtesy of <a href="http://www.openwebdesign.org">Open Web Design</a>
+                &amp; <a href="http://seo-services.us">seo</a>
+            </div>
+        </div>
+    </body>
+<!-- #EndTemplate -->
 </html>

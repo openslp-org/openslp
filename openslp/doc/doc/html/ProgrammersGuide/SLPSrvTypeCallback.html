@@ -1,102 +1,166 @@
-<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
-<html>
-<head>
-   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-   <meta name="GENERATOR" content="Mozilla/4.77C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.4.2 i686) [Netscape]">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<!-- #BeginTemplate "../../../openslp.dwt" -->
+
+<!--
+    
+    Pristine 1.0
+    
+    Design copyright Matt Dibb 2006
+    www.mdibb.net
+
+    Please feel free to use and modify this template for use on your site.  I dont mind
+    if you use it for your personal site or a commercial site, but I do insist that it is
+    not sold or given away in some "50,000 Templates!" package or something like that.
+
+-->
+
+    <head profile="http://www.w3.org/2005/10/profile">
+        <meta http-equiv="Content-Language" content="en-gb" />
+        <meta http-equiv="Content-Type" content="text/html; charset=windows-1252" />
+        <link rel="stylesheet" type="text/css" href="../../../site.css" />
+        <link rel="stylesheet" type="text/css" href="../../../print.css" media="print" />
+        <link rel="alternate" type="application/rss+xml" title="OpenSLP&#8230;Recent Activity" href="http://www.sourceforge.net/export/rss2_keepsake.php?group_id=1730" />
+        <link rel="alternate" type="application/rss+xml" title="OpenSLP&#8230;News" href="http://www.sourceforge.net/export/rss2_projnews.php?group_id=1730" />
+        <link rel="alternate" type="application/rss+xml" title="OpenSLP&#8230;File Releases" href="http://www.sourceforge.net/api/file/index/project-id/1730/mtime/desc/limit/20/rss" />
+        <link rel="alternate" type="application/rss+xml" title="OpenSLP&#8230;Reviews" href="http://www.sourceforge.net/projects/openslp/reviews_feed.rss" />
+		<link rel="shortcut icon" href="../../../images/openslp_favicon_256color_48px.ico" />
+        <!-- #BeginEditable "Page%20Style%20and%20Scripts" -->
+	    <!-- #EndEditable -->
+        <!-- #BeginEditable "Page%20Title" -->
    <title>OpenSLP Programmers Guide - SLPSrvTypeCallback</title>
-</head>
-<body text="#000000" bgcolor="#FFFFFF" link="#0000EF" vlink="#51188E" alink="#FF0000">
+	    <!-- #EndEditable -->
+    </head>
+    <body>
+        <div id="content">
+            <div id="header">
+            	<a href="http://openslp.org/">
+				<img src="../../../images/openslp_logo_web_color_150px.jpg" alt="" /></a>
+            </div>
+            <div id="body">
+                <!-- #BeginEditable "Left%20Navigation%20-%20Context%20Specific" -->
 
-<table style="width:100%">
-  <tbody>
-    <tr>
-      <td>
-        <h1 style="margin:10px;">SLPSrvTypeCallback</h1>
-      </td>
-      <td>
-        <h1><img style="float:right;margin:10px;" src="../images/oslp-logo-web-50.jpg"></h1>
-      </td>
-    </tr>
-  </tbody>
-</table>
-<hr width="100%" />
+                <!-- #EndEditable -->
+                <div id="links">
+                    <p><a href="../../../index.html">About</a><br/>
+                       what is openslp</p>
+                    <p><a href="../../../download.html">Download</a><br/>
+                       how to get openslp</p>
+                    <p><a href="../../../contribute.html">Contribute</a><br/>
+                       how to help out</p>
+                    <p><a href="../../../documentation.html">Documentation</a><br/>
+                       how to find out more</p>
+                    <p><a href="../../../credits.html">Credits</a><br/>
+                       who to blame</p>
+                    <p><a href="http://sourceforge.net/projects/openslp"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=1730&amp;type=2" alt="Get OpenSLP at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></p>
+                </div>
 
-<tt>Declaration</tt></h3>
-<tt>typedef <a href="/C:/dev/svnprojects/openslp-trunk/openslp.web/doc/html/ProgrammersGuide/SLPTypes.html#SLPBoolean">SLPBoolean</a> SLPSrvTypeCallback(
-<a href="/C:/dev/svnprojects/openslp-trunk/openslp.web/doc/html/ProgrammersGuide/SLPTypes.html#SLPHandle">SLPHandle</a>
-<a href="#hslp">hslp</a>,</tt>
-<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-const char* <a href="#srvtypes">srvtypes</a>,</tt>
-<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                <div id="main">
+                <!-- #BeginEditable "Page%20Content" -->
 
-<a href="/C:/dev/svnprojects/openslp-trunk/openslp.web/doc/html/ProgrammersGuide/SLPTypes.html#SLPError">SLPError</a> <a href="#errcode">errcode</a>,</tt>
-<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-void* <a href="#cookie">cookie</a> )</tt>
-<h3>
-Description</h3>
-The <tt>SLPSrvTypeCallback</tt> type is the type of the callback function
-passed as a parameter to the <tt><a href="SLPFindSrvTypes.html">SLPFindSrvTypes()</a></tt>
-function.&nbsp; If the hslp parameter was opened asynchronously, the results
-returned through the callback may be uncollated.&nbsp; If the hslp handle
-parameter was opened synchronously, then the results will be collated to
-remove duplicates.
-<h3>
-Parameters</h3>
+<h2>SLPSrvTypeCallback<br />
+<span id="breadcrumbs"><a href="index.html">OpenSLP Programmer's Guide</a> &raquo; Service Location Functions &raquo; <a href="SLPSrvTypeCallback.html">SLPSrvTypeCallback</a></span></h2>
+
+<h3>Declaration</h3>
+
+<pre>#include &lt;slp.h&gt;
+
+typedef <a href="SLPTypes.html#SLPBoolean">SLPBoolean</a> SLPSrvTypeCallback(
+    <a href="SLPTypes.html#SLPHandle">SLPHandle</a>   <a href="#hslp">hslp</a>,
+    const char* <a href="#srvtypes">srvtypes</a>,
+    <a href="SLPTypes.html#SLPError">SLPError</a>    <a href="#errcode">errcode</a>,
+    void*       <a href="#cookie">cookie</a>);
+</pre>
+    
+<h3>Description</h3>
+
+<p>The <tt>SLPSrvTypeCallback</tt> type is the type of the 
+callback function passed as a parameter to the
+<tt><a href="SLPFindSrvTypes.html">SLPFindSrvTypes()</a></tt>
+function.&nbsp; If the hslp parameter was opened asynchronously, 
+the results returned through the callback may be 
+uncollated.&nbsp; If the hslp handle parameter was opened 
+synchronously, then the results will be collated to remove 
+duplicates.</p>
+
+<h3>Parameters</h3>
 
 <table BORDER CELLPADDING=5 NOSAVE >
 <tr VALIGN=TOP NOSAVE>
 <td NOSAVE><a NAME="hslp"></a><tt>hslp</tt></td>
 
-<td NOSAVE>The language specific <tt>SLPHandle</tt> that was passed in
-to the <tt>SLPFindSrvTypes()</tt> function.</td>
+<td NOSAVE>The language specific <tt>SLPHandle</tt> that was passed in to the <tt>
+SLPFindSrvTypes()</tt> function.</td>
 </tr>
 
 <tr>
 <td><a NAME="srvtypes"></a><tt>srvtypes</tt></td>
 
-<td>Pointer to a comma separated list of service types.&nbsp; See <a href="Syntax.html#Service Type">Syntax</a>
+<td>Pointer to a comma separated list of service types.&nbsp; See <a href="Syntax.html#Service Type">
+Syntax</a>
 for more information on service type syntax.&nbsp;</td>
 </tr>
 
 <tr VALIGN=TOP NOSAVE>
 <td><a NAME="errcode"></a><tt>errcode</tt></td>
 
-<td NOSAVE>An error code indicating if an error occurred during the operation.&nbsp;
+<td NOSAVE>An error code indicating if an error occurred during the operation.&nbsp; 
 The callback should check this error code before processing the parameters.&nbsp;</td>
 </tr>
 
 <tr VALIGN=TOP NOSAVE>
 <td NOSAVE><a NAME="cookie"></a><tt>cookie</tt></td>
 
-<td NOSAVE>The same cookie that was passed as a parameter to the <tt>SLPFindSrvTypes()</tt>
+<td NOSAVE>The same cookie that was passed as a parameter to the <tt>
+SLPFindSrvTypes()</tt>
 call</td>
 </tr>
-
-<caption ALIGN=BOTTOM>&nbsp;</caption>
 </table>
 
-<h3>
-Returns</h3>
-The callback should return <tt>SLP_TRUE</tt> if more data is desired.&nbsp;
-The callback may continue to return <tt>SLP_TRUE</tt> until it is called
-with an errcode of <tt>SLP_LAST_CALL</tt>.&nbsp; If no more data is requested
-the callback should return <tt>SLP_FALSE</tt>.
-<br>&nbsp;
-<h3>
-Status</h3>
+<h3>Returns</h3>
+
+<p>The callback should return <tt>SLP_TRUE</tt> if more data is 
+desired.&nbsp; The callback may continue to return <tt>SLP_TRUE</tt> 
+until it is called with an errcode of <tt>SLP_LAST_CALL</tt>.&nbsp; 
+If no more data is requested the callback should return
+<tt>SLP_FALSE</tt>.</p>
+
+<h3>Status</h3>
 
 <table CELLPADDING=5 NOSAVE >
 <tr VALIGN=TOP NOSAVE>
 <td NOSAVE>OpenSLP 0.6.0</td>
 
-<td NOSAVE>SLPSrvTyperCallback functions are not called because SLPFindSrvTypes()
-is not implemented</td>
+<td NOSAVE>SLPSrvTyperCallback functions are not called because 
+SLPFindSrvTypes() is not implemented</td>
 </tr>
 </table>
 
-<h3>
-See Also</h3>
-<a href="Syntax.html">Syntax</a>,
-<a href="Callbacks.html">Callbacks</a>
-</body>
+<br />
+<h3>See Also</h3>
+
+<p><a href="Syntax.html">Syntax</a>,
+<a href="Callbacks.html">Callbacks</a>,
+<a href="SLPFindSrvTypes.html">SLPFindSrvTypes()</a></p>
+
+<p id="breadcrumbs0">Prepared by: <a href="http://www.calderasystems.com">Caldera Systems Inc</a><br />
+Maintained by: <a href="http://www.openslp.org/">openslp.org</a></p>
+
+
+                <!-- #EndEditable -->
+                </div>
+            </div>
+
+            <div id="footer">
+                Copyright &copy; 2011 <a href="http://www.openslp.org/">openslp.org</a>. All Rights Reserved.<br/>
+                Design by <a href="http://www.mdibb.net" title="Website of Matt Dibb">Matt Dibb</a>
+                2006. <a href="http://jigsaw.w3.org/css-validator/check/referer" title="Validate CSS">CSS</a> 
+                <a href="http://validator.w3.org/check/referer" title="Validate XHTML">XHTML</a>
+                <br/>Courtesy of <a href="http://www.openwebdesign.org">Open Web Design</a>
+                &amp; <a href="http://seo-services.us">seo</a>
+            </div>
+        </div>
+    </body>
+<!-- #EndTemplate -->
 </html>

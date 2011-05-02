@@ -1,212 +1,295 @@
-<!DOCTYPE HTML PUBLIC "-//w3c//dtd html 4.0 transitional//en">
-<html>
-<head>
-  <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-  <meta name="GENERATOR" content="Mozilla/4.77C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.4.2 i686) [Netscape]">
-  <title>OpenSLP Programmers Guide - SLPError Codes</title>
-</head>
-<body bgcolor="#ffffff" link="#0000ef" text="#000000" vlink="#51188e"
- alink="#ff0000">
-<table style="width: 100%;">
-  <tbody>
-    <tr>
-      <td>
-      <h1 style="margin: 10px;">SLPError Codes</h1>
-      </td>
-      <td>
-      <h1><img style="margin: 10px; float: right;" src="../images/oslp-logo-web-50.jpg"></h1>
-      </td>
-    </tr>
-  </tbody>
-</table>
-<hr width="100%">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
 
-<p>The following is an explanation of the SLP error codes are returned
-by SLP functions:
-<br>
-&nbsp;
-<table style="width: 100%;" nosave="" border="1" cellpadding="5">
-  <tbody>
-    <tr nosave="">
-      <td nosave=""><a name="SLP_LAST_CALL"></a>SLP_LAST_CALL</td>
-      <td>1</td>
-      <td>Passed to callback functions when the API library has no more
-data
-for them and therefore no further calls will
-      <br>
-be made to the callback on the currently outstanding operation. The
-callback can use this to signal the main body of the client code that
-no
-more data will be forthcoming on the operation, so that the main body
-of
-the client code can break out of data collection loops. On the last
-call
-of a callback during both a synchronous and synchronous call, the error
-code parameter has value SLP_LAST_CALL, and the other parameters are
-all
-NULL. If no results are returned by an API operation, then only one
-call
-is made, with the error parameter set to SLP_LAST_CALL.</td>
-    </tr>
-    <tr>
-      <td><a name="SLP_OK"></a>SLP_OK</td>
-      <td>0</td>
-      <td>indicates that the no error occurred during the operation.</td>
-    </tr>
-    <tr>
-      <td><a name="LANGUAGE_NOT_SUPPORTED"></a>SLP_LANGUAGE_NOT_SUPPORTED</td>
-      <td>-1</td>
-      <td>No DA or SA has service advertisement or attribute
-information in the
-language requested, but at least one DA or SA indicated, via the
-LANGUAGE_NOT_SUPPORTED
-error code, that it might have information for that service in another
-language</td>
-    </tr>
-    <tr>
-      <td><a name="PARSE_ERROR"></a>SLP_PARSE_ERROR</td>
-      <td>-2</td>
-      <td>The SLP message was rejected by a remote SLP agent. The API
-returns
-this error only when no information was retrieved, and at least one SA
-or DA indicated a protocol error. The data supplied through the API may
-be malformed or a may have been damaged in transit.</td>
-    </tr>
-    <tr>
-      <td><a name="INVALID_REGISTRATION"></a>SLP_INVALID_REGISTRATION</td>
-      <td>-3</td>
-      <td>The API may return this error if an attempt to register a
-service was
-rejected by all DAs because of a malformed URL or attributes. SLP does
-not return the error if at least one DA accepted the
-registration.&nbsp;
-The deregistered service url does not conform to valid service url
-syntax.&nbsp;
-The service url being deregistered is not registered this means that
-either
-it was never registered via a call to SLPReg() or that the registration
-lifetime has expired.&nbsp;&nbsp; SLP_INVALID_REGISTRATION is commonly
-returned when an attempt is made to deregister a service that was
-registered
-by a call to SLPReg() on a different host.</td>
-    </tr>
-    <tr>
-      <td><a name="SCOPE_NOT_SUPPORTED"></a>SLP_SCOPE_NOT_SUPPORTED</td>
-      <td>-4</td>
-      <td>The API returns this error if the SA has been configured with
-net.slp.useScopes
-value-list of scopes and the SA request did not specify one or more of
-these allowable scopes, and no others. It may be returned by a DA or SA
-if the scope included in a request is not supported by the DA or
-SA.&nbsp;</td>
-    </tr>
-    <tr>
-      <td><a name="AUTHENTICATION_ABSENT"></a>SLP_AUTHENTICATION_ABSENT</td>
-      <td>-6</td>
-      <td>If the SLP framework supports authentication, this error
-arises when
-the UA or SA failed to send an authenticator for requests or
-registrations
-in a protected scope.</td>
-    </tr>
-    <tr>
-      <td><a name="AUTHENTICATION_FAILED"></a>SLP_AUTHENTICATION_FAILED</td>
-      <td>-7</td>
-      <td>If the SLP framework supports authentication, this error
-arises when
-a authentication on an SLP message failed</td>
-    </tr>
-    <tr>
-      <td><a name="SLP_INVALID_UPDATE"></a>SLP_INVALID_UPDATE</td>
-      <td>-13</td>
-      <td>An update for a non-existing registration was issued, or the
-update
-includes a service type or scope different than that in the initial
-registration,
-etc.</td>
-    </tr>
-    <tr>
-      <td><a name="SLP_REFRESH_REJECTED"></a>SLP_REFRESH_REJECTED</td>
-      <td>-15</td>
-      <td>The SA attempted to refresh a registration more frequently
-than the
-minimum refresh interval. The SA should call the appropriate API
-function
-to obtain the minimum refresh interval to use.</td>
-    </tr>
-    <tr>
-      <td><a name="SLP_NOT_IMPLEMENTED"></a>SLP_NOT_IMPLEMENTED</td>
-      <td>-17</td>
-      <td>If an unimplemented feature is used, this error is returned.</td>
-    </tr>
-    <tr>
-      <td><a name="SLP_BUFFER_OVERFLOW"></a>SLP_BUFFER_OVERFLOW</td>
-      <td>-18</td>
-      <td>An outgoing request overflowed the maximum network MTU size.
-The request
+<!-- #BeginTemplate "../../../openslp.dwt" -->
+
+<!--
+    
+    Pristine 1.0
+    
+    Design copyright Matt Dibb 2006
+    www.mdibb.net
+
+    Please feel free to use and modify this template for use on your site.  I dont mind
+    if you use it for your personal site or a commercial site, but I do insist that it is
+    not sold or given away in some "50,000 Templates!" package or something like that.
+
+-->
+
+    <head profile="http://www.w3.org/2005/10/profile">
+        <meta http-equiv="Content-Language" content="en-gb" />
+        <meta http-equiv="Content-Type" content="text/html; charset=windows-1252" />
+        <link rel="stylesheet" type="text/css" href="../../../site.css" />
+        <link rel="stylesheet" type="text/css" href="../../../print.css" media="print" />
+        <link rel="alternate" type="application/rss+xml" title="OpenSLP&#8230;Recent Activity" href="http://www.sourceforge.net/export/rss2_keepsake.php?group_id=1730" />
+        <link rel="alternate" type="application/rss+xml" title="OpenSLP&#8230;News" href="http://www.sourceforge.net/export/rss2_projnews.php?group_id=1730" />
+        <link rel="alternate" type="application/rss+xml" title="OpenSLP&#8230;File Releases" href="http://www.sourceforge.net/api/file/index/project-id/1730/mtime/desc/limit/20/rss" />
+        <link rel="alternate" type="application/rss+xml" title="OpenSLP&#8230;Reviews" href="http://www.sourceforge.net/projects/openslp/reviews_feed.rss" />
+		<link rel="shortcut icon" href="../../../images/openslp_favicon_256color_48px.ico" />
+        <!-- #BeginEditable "Page%20Style%20and%20Scripts" -->
+	    <!-- #EndEditable -->
+        <!-- #BeginEditable "Page%20Title" -->
+   <title>OpenSLP Programmers Guide - SLPError Codes</title>
+	    <!-- #EndEditable -->
+    </head>
+    <body>
+        <div id="content">
+            <div id="header">
+            	<a href="http://openslp.org/">
+				<img src="../../../images/openslp_logo_web_color_150px.jpg" alt="" /></a>
+            </div>
+            <div id="body">
+                <!-- #BeginEditable "Left%20Navigation%20-%20Context%20Specific" -->
+
+                <!-- #EndEditable -->
+                <div id="links">
+                    <p><a href="../../../index.html">About</a><br/>
+                       what is openslp</p>
+                    <p><a href="../../../download.html">Download</a><br/>
+                       how to get openslp</p>
+                    <p><a href="../../../contribute.html">Contribute</a><br/>
+                       how to help out</p>
+                    <p><a href="../../../documentation.html">Documentation</a><br/>
+                       how to find out more</p>
+                    <p><a href="../../../credits.html">Credits</a><br/>
+                       who to blame</p>
+                    <p><a href="http://sourceforge.net/projects/openslp"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=1730&amp;type=2" alt="Get OpenSLP at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></p>
+                </div>
+
+                <div id="main">
+                <!-- #BeginEditable "Page%20Content" -->
+
+<h2>SLPError Codes<br />
+<span id="breadcrumbs"><a href="index.html">OpenSLP Programmer's Guide</a> &raquo; Miscellaneous Information &raquo; <a href="SLPError.html">SLPError Codes</a></span></h2>
+
+<p>The following is an explanation of the SLP error codes are returned by SLP 
+functions:</p>
+
+<table BORDER WIDTH="100%" NOSAVE >
+<tr>
+<th>Name</th>
+<th>Value</th>
+<th>Description</th>
+</tr>
+<tr NOSAVE>
+<td NOSAVE><a NAME="SLP_LAST_CALL"></a>SLP_LAST_CALL</td>
+
+<td>1</td>
+
+<td>Passed to callback functions when the API library has no more data for them 
+and therefore no further calls will
+<br>be made to the callback on the currently outstanding operation. The callback 
+can use this to signal the main body of the client code that no more data will 
+be forthcoming on the operation, so that the main body of the client code can 
+break out of data collection loops. On the last call of a callback during both a 
+synchronous and synchronous call, the error code parameter has value 
+SLP_LAST_CALL, and the other parameters are all NULL. If no results are returned 
+by an API operation, then only one call is made, with the error parameter set to 
+SLP_LAST_CALL.</td>
+</tr>
+
+<tr>
+<td><a NAME="SLP_OK"></a>SLP_OK</td>
+
+<td>0</td>
+
+<td>indicates that the no error occurred during the operation.</td>
+</tr>
+
+<tr>
+<td><a NAME="LANGUAGE_NOT_SUPPORTED"></a>SLP_LANGUAGE_NOT_SUPPORTED</td>
+
+<td>-1</td>
+
+<td>No DA or SA has service advertisement or attribute information in the 
+language requested, but at least one DA or SA indicated, via the 
+LANGUAGE_NOT_SUPPORTED error code, that it might have information for that 
+service in another language</td>
+</tr>
+
+<tr>
+<td><a NAME="PARSE_ERROR"></a>SLP_PARSE_ERROR</td>
+
+<td>-2</td>
+
+<td>The SLP message was rejected by a remote SLP agent. The API returns this 
+error only when no information was retrieved, and at least one SA or DA 
+indicated a protocol error. The data supplied through the API may be malformed 
+or a may have been damaged in transit.</td>
+</tr>
+
+<tr>
+<td><a NAME="INVALID_REGISTRATION"></a>SLP_INVALID_REGISTRATION</td>
+
+<td>-3</td>
+
+<td>The API may return this error if an attempt to register a service was 
+rejected by all DAs because of a malformed URL or attributes. SLP does not 
+return the error if at least one DA accepted the registration.&nbsp; The 
+deregistered service url does not conform to valid service url syntax.&nbsp; The 
+service url being deregistered is not registered this means that either it was 
+never registered via a call to SLPReg() or that the registration lifetime has 
+expired.&nbsp;&nbsp; SLP_INVALID_REGISTRATION is commonly returned when an 
+attempt is made to deregister a service that was registered by a call to 
+SLPReg() on a different host.</td>
+</tr>
+
+<tr>
+<td><a NAME="SCOPE_NOT_SUPPORTED"></a>SLP_SCOPE_NOT_SUPPORTED</td>
+
+<td>-4</td>
+
+<td>The API returns this error if the SA has been configured with 
+net.slp.useScopes value-list of scopes and the SA request did not specify one or 
+more of these allowable scopes, and no others. It may be returned by a DA or SA 
+if the scope included in a request is not supported by the DA or SA.&nbsp;</td>
+</tr>
+
+<tr>
+<td><a NAME="AUTHENTICATION_ABSENT"></a>SLP_AUTHENTICATION_ABSENT</td>
+
+<td>-6</td>
+
+<td>If the SLP framework supports authentication, this error arises when the UA 
+or SA failed to send an authenticator for requests or registrations in a 
+protected scope.</td>
+</tr>
+
+<tr>
+<td><a NAME="AUTHENTICATION_FAILED"></a>SLP_AUTHENTICATION_FAILED</td>
+
+<td>-7</td>
+
+<td>If the SLP framework supports authentication, this error arises when a 
+authentication on an SLP message failed</td>
+</tr>
+
+<tr>
+<td><a NAME="SLP_INVALID_UPDATE"></a>SLP_INVALID_UPDATE</td>
+
+<td>-13</td>
+
+<td>An update for a non-existing registration was issued, or the update includes 
+a service type or scope different than that in the initial registration, etc.</td>
+</tr>
+
+<tr>
+<td><a NAME="SLP_REFRESH_REJECTED"></a>SLP_REFRESH_REJECTED</td>
+
+<td>-15</td>
+
+<td>The SA attempted to refresh a registration more frequently than the minimum 
+refresh interval. The SA should call the appropriate API function to obtain the 
+minimum refresh interval to use.</td>
+</tr>
+
+<tr>
+<td><a NAME="SLP_NOT_IMPLEMENTED"></a>SLP_NOT_IMPLEMENTED</td>
+
+<td>-17</td>
+
+<td>If an unimplemented feature is used, this error is returned.</td>
+</tr>
+
+<tr>
+<td><a NAME="SLP_BUFFER_OVERFLOW"></a>SLP_BUFFER_OVERFLOW</td>
+
+<td>-18</td>
+
+<td>An outgoing request overflowed the maximum network MTU size. The request 
 should be reduced in size or broken into pieces and tried again.</td>
-    </tr>
-    <tr>
-      <td><a name="SLP_NETWORK_TIMED_OUT"></a>SLP_NETWORK_TIMED_OUT</td>
-      <td>-19</td>
-      <td>When no reply can be obtained in the time specified by the
-configured
+</tr>
+
+<tr>
+<td><a NAME="SLP_NETWORK_TIMED_OUT"></a>SLP_NETWORK_TIMED_OUT</td>
+
+<td>-19</td>
+
+<td>When no reply can be obtained in the time specified by the configured 
 timeout interval for a unicast request, this error is returned.</td>
-    </tr>
-    <tr>
-      <td><a name="SLP_NETWORK_INIT_FAILED"></a>SLP_NETWORK_INIT_FAILED</td>
-      <td>-20</td>
-      <td>If the network cannot initialize properly, this error is
-returned.
-Will also be returned if an SA or DA agent (slpd) can not be contacted.
-See SLPReg() and SLPDeReg() for more information.</td>
-    </tr>
-    <tr>
-      <td><a name="SLP_MEMORY_ALLOC_FAILED"></a>SLP_MEMORY_ALLOC_FAILED&nbsp;</td>
-      <td>-21</td>
-      <td>Out of memory error</td>
-    </tr>
-    <tr>
-      <td><a name="SLP_PARAMETER_BAD"></a>SLP_PARAMETER_BAD</td>
-      <td>-22</td>
-      <td>If a parameter passed into a function is bad, this error is
+</tr>
+
+<tr>
+<td><a NAME="SLP_NETWORK_INIT_FAILED"></a>SLP_NETWORK_INIT_FAILED</td>
+
+<td>-20</td>
+
+<td>If the network cannot initialize properly, this error is returned. Will also 
+be returned if an SA or DA agent (slpd) can not be contacted. See SLPReg() and 
+SLPDeReg() for more information.</td>
+</tr>
+
+<tr>
+<td><a NAME="SLP_MEMORY_ALLOC_FAILED"></a>SLP_MEMORY_ALLOC_FAILED&nbsp;</td>
+
+<td>-21</td>
+
+<td>Out of memory error</td>
+</tr>
+
+<tr>
+<td><a NAME="SLP_PARAMETER_BAD"></a>SLP_PARAMETER_BAD</td>
+
+<td>-22</td>
+
+<td>If a parameter passed into a function is bad, this error is returned.</td>
+</tr>
+
+<tr>
+<td><a NAME="SLP_NETWORK_ERROR"></a>SLP_NETWORK_ERROR</td>
+
+<td>-23</td>
+
+<td>The failure of networking during normal operations causes this error to be 
 returned.</td>
-    </tr>
-    <tr>
-      <td><a name="SLP_NETWORK_ERROR"></a>SLP_NETWORK_ERROR</td>
-      <td>-23</td>
-      <td>The failure of networking during normal operations causes
-this error
-to be returned.</td>
-    </tr>
-    <tr>
-      <td><a name="SLP_INTERNAL_SYSTEM_ERROR"></a>SLP_INTERNAL_SYSTEM_ERROR</td>
-      <td>-24</td>
-      <td>A basic failure of the API causes this error to be returned.
-This occurs
+</tr>
+
+<tr>
+<td><a NAME="SLP_INTERNAL_SYSTEM_ERROR"></a>SLP_INTERNAL_SYSTEM_ERROR</td>
+
+<td>-24</td>
+
+<td>A basic failure of the API causes this error to be returned. This occurs 
 when a system call or library fails. The operation could not recover.</td>
-    </tr>
-    <tr>
-      <td><a name="SLP_HANDLE_IN_USE"></a>SLP_HANDLE_IN_USE</td>
-      <td>-25</td>
-      <td>In the C API, callback functions are not permitted to
-recursively call
-into the API on the same SLPHandle, either directly or indirectly. If
-an
-attempt is made to do so, this error is returned from the called API
-function.</td>
-    </tr>
-    <tr>
-      <td><a name="SLP_TYPE_ERROR"></a>SLP_TYPE_ERROR&nbsp;</td>
-      <td>-26</td>
-      <td>If the API supports type checking of registrations against
-service
-type templates, this error can arise if the attributes in a
-registration
-do not match the service type template for the service.</td>
-    </tr>
-  </tbody>
+</tr>
+
+<tr>
+<td><a NAME="SLP_HANDLE_IN_USE"></a>SLP_HANDLE_IN_USE</td>
+
+<td>-25</td>
+
+<td>In the C API, callback functions are not permitted to recursively call into 
+the API on the same SLPHandle, either directly or indirectly. If an attempt is 
+made to do so, this error is returned from the called API function.</td>
+</tr>
+
+<tr>
+<td><a NAME="SLP_TYPE_ERROR"></a>SLP_TYPE_ERROR&nbsp;</td>
+
+<td>-26</td>
+
+<td>If the API supports type checking of registrations against service type 
+templates, this error can arise if the attributes in a registration do not match 
+the service type template for the service.</td>
+</tr>
 </table>
-</p>
-</body>
+
+<p id="breadcrumbs0">Prepared by: <a href="http://www.calderasystems.com">Caldera Systems Inc</a><br />
+Maintained by: <a href="http://www.openslp.org/">openslp.org</a></p>
+
+                <!-- #EndEditable -->
+                </div>
+            </div>
+
+            <div id="footer">
+                Copyright &copy; 2011 <a href="http://www.openslp.org/">openslp.org</a>. All Rights Reserved.<br/>
+                Design by <a href="http://www.mdibb.net" title="Website of Matt Dibb">Matt Dibb</a>
+                2006. <a href="http://jigsaw.w3.org/css-validator/check/referer" title="Validate CSS">CSS</a> 
+                <a href="http://validator.w3.org/check/referer" title="Validate XHTML">XHTML</a>
+                <br/>Courtesy of <a href="http://www.openwebdesign.org">Open Web Design</a>
+                &amp; <a href="http://seo-services.us">seo</a>
+            </div>
+        </div>
+    </body>
+<!-- #EndTemplate -->
 </html>

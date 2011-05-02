@@ -1,168 +1,220 @@
-<!DOCTYPE doctype PUBLIC "-//w3c//dtd html 4.0 transitional//en">
-<html>
-<head>
-    
-  <meta http-equiv="Content-Type"
- content="text/html; charset=iso-8859-1">
-    
-  <meta name="GENERATOR"
- content="Mozilla/4.72C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.2.14 i686) [Netscape]">
-  <title>OpenSLP Users Guide - The slp.conf File</title>
-</head>
-  <body text="#000000" bgcolor="#ffffff" link="#0000ee" vlink="#551a8b"
- alink="#ff0000">
-  
-<table style="width:100%">
-  <tbody>
-    <tr>
-      <td>
-        <h1 style="margin:10px;">The slp.conf File</h1>
-      </td>
-      <td>
-        <h1><img style="float:right;margin:10px;" src="../images/oslp-logo-web-50.jpg"></h1>
-      </td>
-    </tr>
-  </tbody>
-</table>
-<hr width="100%" /> 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
 
-<p>The slp.conf file contains configuration information that affects the operation
-of the OpenSLP daemon (slpd) and any application that uses the OpenSLP library.&nbsp;&nbsp;&nbsp;
-The master slp.conf file is located at <tt>/etc/slp.conf</tt>.&nbsp; There
-is <a href="CommandLine.html">command line option</a> that forces slpd to
-read a different configuration file, but the SLP library is hard coded to
-read from <tt>/etc/slp.conf</tt> and can only be changed by re-compiling
-the library. </p>
+<!-- #BeginTemplate "../../../openslp.dwt" -->
+
+<!--
+    
+    Pristine 1.0
+    
+    Design copyright Matt Dibb 2006
+    www.mdibb.net
+
+    Please feel free to use and modify this template for use on your site.  I dont mind
+    if you use it for your personal site or a commercial site, but I do insist that it is
+    not sold or given away in some "50,000 Templates!" package or something like that.
+
+-->
+
+    <head profile="http://www.w3.org/2005/10/profile">
+        <meta http-equiv="Content-Language" content="en-gb" />
+        <meta http-equiv="Content-Type" content="text/html; charset=windows-1252" />
+        <link rel="stylesheet" type="text/css" href="../../../site.css" />
+        <link rel="stylesheet" type="text/css" href="../../../print.css" media="print" />
+        <link rel="alternate" type="application/rss+xml" title="OpenSLP&#8230;Recent Activity" href="http://www.sourceforge.net/export/rss2_keepsake.php?group_id=1730" />
+        <link rel="alternate" type="application/rss+xml" title="OpenSLP&#8230;News" href="http://www.sourceforge.net/export/rss2_projnews.php?group_id=1730" />
+        <link rel="alternate" type="application/rss+xml" title="OpenSLP&#8230;File Releases" href="http://www.sourceforge.net/api/file/index/project-id/1730/mtime/desc/limit/20/rss" />
+        <link rel="alternate" type="application/rss+xml" title="OpenSLP&#8230;Reviews" href="http://www.sourceforge.net/projects/openslp/reviews_feed.rss" />
+		<link rel="shortcut icon" href="../../../images/openslp_favicon_256color_48px.ico" />
+        <!-- #BeginEditable "Page%20Style%20and%20Scripts" -->
+	    <!-- #EndEditable -->
+        <!-- #BeginEditable "Page%20Title" -->
+  <title>OpenSLP Users Guide - The slp.conf File</title>
+	    <!-- #EndEditable -->
+    </head>
+    <body>
+        <div id="content">
+            <div id="header">
+            	<a href="http://openslp.org/">
+				<img src="../../../images/openslp_logo_web_color_150px.jpg" alt="" /></a>
+            </div>
+            <div id="body">
+                <!-- #BeginEditable "Left%20Navigation%20-%20Context%20Specific" -->
+
+                <!-- #EndEditable -->
+                <div id="links">
+                    <p><a href="../../../index.html">About</a><br/>
+                       what is openslp</p>
+                    <p><a href="../../../download.html">Download</a><br/>
+                       how to get openslp</p>
+                    <p><a href="../../../contribute.html">Contribute</a><br/>
+                       how to help out</p>
+                    <p><a href="../../../documentation.html">Documentation</a><br/>
+                       how to find out more</p>
+                    <p><a href="../../../credits.html">Credits</a><br/>
+                       who to blame</p>
+                    <p><a href="http://sourceforge.net/projects/openslp"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=1730&amp;type=2" alt="Get OpenSLP at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></p>
+                </div>
+
+                <div id="main">
+                <!-- #BeginEditable "Page%20Content" -->
+
+<h2>The slp.conf File<br />
+<span id="breadcrumbs"><a href="index.html">OpenSLP User's Guide</a> &raquo; Configuration &raquo; <a href="SlpConf.html">The slp.conf File</a></span></h2>
+
+<p>The slp.conf file contains configuration information that affects the 
+operation of the OpenSLP daemon (slpd) and any application that uses the OpenSLP 
+library.&nbsp; The master slp.conf file is located at <tt>
+/etc/slp.conf</tt>.&nbsp; There is <a href="CommandLine.html">command line 
+option</a> that forces slpd to read a different configuration file, but the SLP 
+library is hard coded to read from <tt>/etc/slp.conf</tt> and can only be 
+changed by re-compiling the library. </p>
 <p>The OpenSLP slp.conf file diverges <i>slightly</i> from the <a
- href="../../rfc/rfc2614.txt">RFC 2614</a> specification for the slp configuration
-file, so you should probably read <a
- href="#Divergence%20from%20RFC%202614">Divergence from RFC 2614</a> even
-if you are familiar with the RFC spec. <br>
-&nbsp; </p>
-<h3> File Syntax</h3>
- The slp.conf file syntax is very simple.&nbsp; OpenSLP follows the syntax 
-specified in <a href="../../rfc/rfc2614.txt">RFC 2614</a> which is simply 
-a list of key/value pairs separated by newlines; comment lines begin with
-a '#' or a ';'.&nbsp; A good example file is copied to <tt>/etc/slp.conf</tt>
- with the OpenSLP distribution. Take a look at it or <a
- href="../../rfc/rfc2614.txt">read the RFC if you need more details</a>. <br>
-&nbsp; 
-<h3> Settings</h3>
- The following is a list of settings that are supported by OpenSLP: 
+ href="../../rfc/rfc2614.txt">RFC 2614</a> specification for the slp 
+configuration file, so you should probably read <a
+ href="#Divergence%20from%20RFC%202614">Divergence from RFC 2614</a> even if you 
+are familiar with the RFC spec.</p>
+<h3>File Syntax</h3>
+<p>The slp.conf file syntax is very simple.&nbsp; OpenSLP follows the 
+syntax specified in <a href="../../rfc/rfc2614.txt">RFC 2614</a> 
+which is simply a list of key/value pairs separated by 
+newlines; comment lines begin with a '#' or a ';'.&nbsp; A good 
+example file is copied to <tt>/etc/slp.conf</tt>
+with the OpenSLP distribution. Take a look at it or
+<a href="../../rfc/rfc2614.txt">read the RFC if you need more details</a>.</p>
+<h3>Settings</h3>
+<p>The following is a list of settings that are supported by OpenSLP:</p>
 <p><b>net.slp.useScopes</b> </p>
-<blockquote>This option is a comma delimited list of strings indicating the
-only scopes a UA or SA is allowed when making requests or registering or
-the scopes a DA must support. The default value is "DEFAULT".</blockquote>
+<blockquote>This option is a comma delimited list of strings indicating the only 
+	scopes a UA or SA is allowed when making requests or registering or the 
+	scopes a DA must support. The default value is &quot;DEFAULT&quot;.</blockquote>
  
 <p><b>net.slp.DAAddresses</b></p>
  
 <blockquote>Allows administrator to force UA and SA agents to use specific DAs.&nbsp; 
-  If this setting is not used dynamic DA discovery will be used to determine which 
-  DAs to use.&nbsp; Default is to use dynamic DA discovery.</blockquote>
+	If this setting is not used dynamic DA discovery will be used to determine 
+	which DAs to use.&nbsp; Default is to use dynamic DA discovery.</blockquote>
  
 <p><b>net.slp.interfaces</b></p>
 <blockquote> 
-  <p>A comma-separated list of interfaces (local IP addresses) that will be used. 
-    This parameter is optional for the UA, but required for an SA or DA to operate 
-    properly. Both IPv4 and IPv6 addresses may be specified. While site-local 
-    and global IPv6 addresses are allowed, a DA or SA can only receive IPv6 multicast 
-    on link-local addresses.</p>
+  <p>A comma-separated list of interfaces (local IP addresses) that will be 
+  used. This parameter is optional for the UA, but required for an SA or DA to 
+  operate properly. Both IPv4 and IPv6 addresses may be specified. While 
+  site-local and global IPv6 addresses are allowed, a DA or SA can only receive 
+  IPv6 multicast on link-local addresses.</p>
 </blockquote>
 <p><b>net.slp.broadcastAddr</b></p>
 <blockquote> 
-  <p>This option is a string indicating the broadcast address to use when sending 
-    broadcast packets. This parameter is only applicable when the other broadcast 
-    configuration variables are set. The default value is &quot;255.255.255.255&quot;.</p>
+  <p>This option is a string indicating the broadcast address to use when 
+  sending broadcast packets. This parameter is only applicable when the other 
+  broadcast configuration variables are set. The default value is 
+  &quot;255.255.255.255&quot;.</p>
 </blockquote>
 <p><b>net.slp.isBroadcastOnly</b> </p>
-<blockquote>Force broadcasts to be used instead of multicast. This setting 
-is seldom necessary since OpenSLP will automatically use broadcast if multicast 
-is unavailable. Default is false.</blockquote>
+<blockquote>Force broadcasts to be used instead of multicast. This setting is 
+	seldom necessary since OpenSLP will automatically use broadcast if multicast 
+	is unavailable. Default is false.</blockquote>
  <b>net.slp.passiveDADetection</b> 
-<blockquote>A boolean indicating whether passive DA detection should be used.
-Default is true.</blockquote>
+<blockquote>A boolean indicating whether passive DA detection should be used. 
+	Default is true.</blockquote>
  <b>net.slp.DAActiveDiscoveryInterval</b> 
-<blockquote>A 16 bit positive integer giving the number of seconds between 
-DA active discovery queries.&nbsp; Default is 900 seconds (15 minutes).&nbsp; 
-If the property is set to zero, active discovery is turned off.&nbsp; This 
-is useful when the DAs available are explicitly restricted to those obtained 
-from DHCP or the net.slp.DAAddresses property.</blockquote>
+<blockquote>A 16 bit positive integer giving the number of seconds between DA 
+	active discovery queries.&nbsp; Default is 900 seconds (15 minutes).&nbsp; If the 
+	property is set to zero, active discovery is turned off.&nbsp; This is useful 
+	when the DAs available are explicitly restricted to those obtained from DHCP 
+	or the net.slp.DAAddresses property.</blockquote>
  <b>net.slp.multicastTTL</b> 
-<blockquote>A positive integer that is less than or equal to 255.&nbsp; The
-default is&nbsp; 255.</blockquote>
+<blockquote>A positive integer that is less than or equal to 255.&nbsp; The default 
+	is&nbsp; 255.</blockquote>
  <b>net.slp.multicastMaximumWait</b> 
-<blockquote>An integer giving the maximum amount of time (in milliseconds) 
-to perform multicast requests.&nbsp; Default is 15000 ms or 15 secs.</blockquote>
+<blockquote>An integer giving the maximum amount of time (in milliseconds) to 
+	perform multicast requests.&nbsp; Default is 15000 ms or 15 secs.</blockquote>
  <b>net.slp.unicastMaxi</b>mumWait 
-<blockquote>An integer giving the maximum amount of time (in milliseconds) 
-to perform unicast requests. Default is 15000 ms or 15 secs.</blockquote>
+<blockquote>An integer giving the maximum amount of time (in milliseconds) to 
+	perform unicast requests. Default is 15000 ms or 15 secs.</blockquote>
  <b>net.slp.randomWaitBound</b> 
 <blockquote>An integer giving the maximum value for all random wait parameters. 
-Default is 1000 or 1 sec.</blockquote>
+	Default is 1000 or 1 sec.</blockquote>
  <b>net.slp.MTU</b> 
-<blockquote>A integer giving the network packet MTU in bytes.&nbsp; Default 
-is 1400 bytes.</blockquote>
+<blockquote>A integer giving the network packet MTU in bytes.&nbsp; Default is 1400 
+	bytes.</blockquote>
  <b>net.slp.interfaces</b> 
-<blockquote>A list of IP address of network interfaces on which the DA/SA 
-should listen for slp requests.&nbsp; By default, OpenSLP will use all interfaces.</blockquote>
+<blockquote>A list of IP address of network interfaces on which the DA/SA should 
+	listen for slp requests.&nbsp; By default, OpenSLP will use all interfaces.</blockquote>
  <b>net.slp.securityEnabled</b> 
 <blockquote>Indicates whether all agents should use authentication blocks.</blockquote>
- net.slp.locale 
-<blockquote>A RFC 1766 Language Tag [6] for the language locale.&nbsp; Setting
-this property causes the property value to become the default locale for
-SLP messages.&nbsp; Default is "en".&nbsp; This property is also used for
-SA and DA configuration.</blockquote>
+ 				    <strong>net.slp.locale</strong> 
+<blockquote>A RFC 1766 Language Tag [6] for the language locale.&nbsp; Setting this 
+	property causes the property value to become the default locale for SLP 
+	messages.&nbsp; Default is &quot;en&quot;.&nbsp; This property is also used for SA and DA 
+	configuration.</blockquote>
  <b>net.slp.maxResults</b> 
 <blockquote>A 32 bit integer giving the maximum number of results to accumulate 
-and return for a synchronous request before the timeout, or the maximum number
-of results to return through a callback if the request results are reported
-asynchronously.</blockquote>
+	and return for a synchronous request before the timeout, or the maximum 
+	number of results to return through a callback if the request results are 
+	reported asynchronously.</blockquote>
  <b>net.slp.isDA&nbsp;</b> 
-<blockquote>A boolean indicating if the SLP server is to act as a DA. If false,
-not run as a DA. Default is false.</blockquote>
+<blockquote>A boolean indicating if the SLP server is to act as a DA. If false, 
+	not run as a DA. Default is false.</blockquote>
  <b>net.slp.DAHeartBeat</b> 
 <blockquote>A 32 bit integer giving the number of seconds for the DA heartbeat.&nbsp; 
-Default is 3 hours (10800 seconds).&nbsp; Ignored if net.slp.isDA is false.</blockquote>
+	Default is 3 hours (10800 seconds).&nbsp; Ignored if net.slp.isDA is false.</blockquote>
  
 <b>net.slp.DAAttributes</b> (currently ignored) 
 <blockquote>
   <p>A comma-separated list of parenthesized attribute/value list pairs that the 
-    DA must advertise in DAAdverts.&nbsp; The property must be in the SLP attribute 
-    list wire format, including escapes for reserved characters. [7]</p>
+  DA must advertise in DAAdverts.&nbsp; The property must be in the SLP 
+  attribute list wire format, including escapes for reserved characters. [7]</p>
 </blockquote>
   
 <p><b>net.slp.useIPV4</b></p>
 <blockquote> 
   <p>This parameter specifies whether or not IPv4 should be used for SLP. This 
-    parameter defaults to true.</p>
+  parameter defaults to true.</p>
 </blockquote>
 <p><b>net.slp.useIPV6</b></p>
 <blockquote> 
   <p>This parameter specifies whether or not IPv6 should be used for SLP. This 
-    parameter defaults to true.</p>
+  parameter defaults to true.</p>
 </blockquote>
 <h3> <a name="Divergance from RFC 2614"></a>Divergence from RFC 2614</h3>
- OpenSLP does not support all of the settings that are specified by RFC 2614.&nbsp;
-The reasons for not supporting some of the settings range from the implementors'
-opinions that they are either not useful or very difficult to implement with
-regard to their usefulness.&nbsp; The following is a list of options that
-OpenSLP has no plans to support. 
+ 				   OpenSLP does not support all of the settings that are 
+					specified by RFC 2614.&nbsp; The reasons for not supporting some 
+					of the settings range from the implementors' opinions that 
+					they are either not useful or very difficult to implement 
+					with regard to their usefulness.&nbsp; The following is a list of 
+					options that OpenSLP has no plans to support. 
 <p><b>net.slp.serializedRegURL</b> </p>
-<blockquote>slpd accepts the [-r] command line parameter that specifies the
-serialized registration file to use.</blockquote>
+<blockquote>slpd accepts the [-r] command line parameter that specifies the 
+	serialized registration file to use.</blockquote>
  <b>net.slp.multicastTimeouts</b> 
-<blockquote>OpenSLP does not honor this parameter.&nbsp; Currently multicast 
-timeouts are generated internally based on the net.slp.multicastMaximumWait 
-parameter.</blockquote>
+<blockquote>OpenSLP does not honor this parameter.&nbsp; Currently multicast timeouts 
+	are generated internally based on the net.slp.multicastMaximumWait 
+	parameter.</blockquote>
  <b>net.slp.DADiscoveryTimeouts</b> 
-<blockquote>OpenSLP does not honor this parameter.&nbsp; Currently multicast 
-timeouts are generated internally based on the net.slp.multicastMaximumWait 
-parameter.</blockquote>
+<blockquote>OpenSLP does not honor this parameter.&nbsp; Currently multicast timeouts 
+	are generated internally based on the net.slp.multicastMaximumWait 
+	parameter.</blockquote>
  <b>net.slp.datagramTimeouts</b> 
-<blockquote>OpenSLP does not honor this parameter.&nbsp; Currently unicast 
-timeouts are generated internally based on the net.slp.unicastMaximumWait 
-parameter.</blockquote>
-  <br>
-&nbsp; 
-</body>
+<blockquote>OpenSLP does not honor this parameter.&nbsp; Currently unicast timeouts 
+	are generated internally based on the net.slp.unicastMaximumWait parameter.</blockquote>
+	
+<p id="breadcrumbs0">Prepared by: <a href="http://www.calderasystems.com">Caldera Systems Inc</a><br />
+Maintained by: <a href="http://www.openslp.org/">openslp.org</a></p>
+
+                <!-- #EndEditable -->
+                </div>
+            </div>
+
+            <div id="footer">
+                Copyright &copy; 2011 <a href="http://www.openslp.org/">openslp.org</a>. All Rights Reserved.<br/>
+                Design by <a href="http://www.mdibb.net" title="Website of Matt Dibb">Matt Dibb</a>
+                2006. <a href="http://jigsaw.w3.org/css-validator/check/referer" title="Validate CSS">CSS</a> 
+                <a href="http://validator.w3.org/check/referer" title="Validate XHTML">XHTML</a>
+                <br/>Courtesy of <a href="http://www.openwebdesign.org">Open Web Design</a>
+                &amp; <a href="http://seo-services.us">seo</a>
+            </div>
+        </div>
+    </body>
+<!-- #EndTemplate -->
 </html>

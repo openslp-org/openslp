@@ -1,103 +1,131 @@
-<!DOCTYPE html PUBLIC "-//w3c//dtd html 4.0 transitional//en">
-<html>
-<head>
-  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-  <meta name="GENERATOR" content="Mozilla/4.77C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.4.2 i686) [Netscape]">
-  <title>OpenSLP Programmers Guide - SLPFindAttrs</title>
-</head>
-<body alink="#ff0000" bgcolor="#ffffff" link="#0000ef" text="#000000" vlink="#51188e">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
 
-<table style="width:100%">
-  <tbody>
-    <tr>
-      <td>
-        <h1 style="margin:10px;">SLPFindAttrs</h1>
-      </td>
-      <td>
-        <h1><img style="float:right;margin:10px;" src="../images/oslp-logo-web-50.jpg"></h1>
-      </td>
-    </tr>
-  </tbody>
-</table>
-<hr width="100%" />
+<!-- #BeginTemplate "../../../openslp.dwt" -->
+
+<!--
+    
+    Pristine 1.0
+    
+    Design copyright Matt Dibb 2006
+    www.mdibb.net
+
+    Please feel free to use and modify this template for use on your site.  I dont mind
+    if you use it for your personal site or a commercial site, but I do insist that it is
+    not sold or given away in some "50,000 Templates!" package or something like that.
+
+-->
+
+    <head profile="http://www.w3.org/2005/10/profile">
+        <meta http-equiv="Content-Language" content="en-gb" />
+        <meta http-equiv="Content-Type" content="text/html; charset=windows-1252" />
+        <link rel="stylesheet" type="text/css" href="../../../site.css" />
+        <link rel="stylesheet" type="text/css" href="../../../print.css" media="print" />
+        <link rel="alternate" type="application/rss+xml" title="OpenSLP&#8230;Recent Activity" href="http://www.sourceforge.net/export/rss2_keepsake.php?group_id=1730" />
+        <link rel="alternate" type="application/rss+xml" title="OpenSLP&#8230;News" href="http://www.sourceforge.net/export/rss2_projnews.php?group_id=1730" />
+        <link rel="alternate" type="application/rss+xml" title="OpenSLP&#8230;File Releases" href="http://www.sourceforge.net/api/file/index/project-id/1730/mtime/desc/limit/20/rss" />
+        <link rel="alternate" type="application/rss+xml" title="OpenSLP&#8230;Reviews" href="http://www.sourceforge.net/projects/openslp/reviews_feed.rss" />
+		<link rel="shortcut icon" href="../../../images/openslp_favicon_256color_48px.ico" />
+        <!-- #BeginEditable "Page%20Style%20and%20Scripts" -->
+	    <!-- #EndEditable -->
+        <!-- #BeginEditable "Page%20Title" -->
+  <title>OpenSLP Programmers Guide - SLPFindAttrs</title>
+	    <!-- #EndEditable -->
+    </head>
+    <body>
+        <div id="content">
+            <div id="header">
+            	<a href="http://openslp.org/">
+				<img src="../../../images/openslp_logo_web_color_150px.jpg" alt="" /></a>
+            </div>
+            <div id="body">
+                <!-- #BeginEditable "Left%20Navigation%20-%20Context%20Specific" -->
+
+                <!-- #EndEditable -->
+                <div id="links">
+                    <p><a href="../../../index.html">About</a><br/>
+                       what is openslp</p>
+                    <p><a href="../../../download.html">Download</a><br/>
+                       how to get openslp</p>
+                    <p><a href="../../../contribute.html">Contribute</a><br/>
+                       how to help out</p>
+                    <p><a href="../../../documentation.html">Documentation</a><br/>
+                       how to find out more</p>
+                    <p><a href="../../../credits.html">Credits</a><br/>
+                       who to blame</p>
+                    <p><a href="http://sourceforge.net/projects/openslp"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=1730&amp;type=2" alt="Get OpenSLP at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></p>
+                </div>
+
+                <div id="main">
+                <!-- #BeginEditable "Page%20Content" -->
+
+<h2>SLPFindAttrs<br />
+<span id="breadcrumbs"><a href="index.html">OpenSLP Programmer's Guide</a> &raquo; Service Location Functions &raquo; <a href="SLPFindAttrs.html">SLPFindAttrs</a></span></h2>
 
 <h3>Declaration</h3>
-<tt>#include &lt;slp.h&gt;</tt>
-<p><tt><a href="SLPTypes.html#SLPEXP">SLPEXP</a> <a
- href="/C:/dev/svnprojects/openslp-trunk/openslp.web/doc/html/ProgrammersGuide/SLPError.html">SLPError</a> <a href="SLPTypes.html#SLPAPI">SLPAPI</a>
-SLPFindAttrs(<br>
-&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; <a
- href="SLPTypes.html#SLPHandle">SLPHandle</a> &nbsp; &nbsp; &nbsp;
-<a href="#hslp">hslp</a>,</tt>
-<br>
-<tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-const char * &nbsp;&nbsp; srvurl,</tt>
-<br>
-<tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-const char * &nbsp;&nbsp; <a href="#scopelist">scopelist</a>,</tt>
-<br>
-<tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-const char * &nbsp;&nbsp; attrids,</tt>
-<br>
-<tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-<a href="SLPAttrCallback.html">SLPAttrCallback</a> <a href="#callback">callback</a>,</tt>
-<br>
-<tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-void * &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <a href="#cookie">cookie</a>);</tt>
-</p>
+
+<pre>#include &lt;slp.h&gt;
+
+<a href="SLPTypes.html#SLPEXP">SLPEXP</a> <a href="SLPError.html">SLPError</a> <a href="SLPTypes.html#SLPAPI">SLPAPI</a>SLPFindAttrs(
+    <a href="SLPTypes.html#SLPHandle">SLPHandle</a>      <a href="#hslp">hslp</a>,
+    const char *    srvurl,
+    const char *    <a href="#scopelist">scopelist</a>,
+    const char *    attrids,
+    <a href="SLPAttrCallback.html">SLPAttrCallback</a> <a href="#callback">callback</a>,
+    void *          <a href="#cookie">cookie</a>);
+</pre>
+
 <h3>Description</h3>
-This function returns service attributes matching the <tt>attrids</tt>
-for the indicated Service URL or service type. OpenSLP does
+
+<p>This function returns service attributes matching the <tt>attrids</tt>
+for the indicated Service URL or service type. OpenSLP does 
 not support location of attributes by service type with <tt>attrids</tt>
-containing wildcards (see status below).
+containing wildcards (see status below).</p>
+
 <h3>Parameters</h3>
+
 <table nosave="" border="1" cellpadding="5">
   <tbody>
     <tr nosave="" valign="top">
       <td nosave=""><a name="hslp"></a><tt>hslp</tt></td>
-      <td nosave="">The language specific <tt>SLPHandle</tt> on which
-to search
-for attributes the service.</td>
+      <td nosave="">The language specific <tt>SLPHandle</tt> on which to search 
+	  for attributes the service.</td>
     </tr>
     <tr nosave="" valign="top">
       <td nosave=""><a name="srvurlorsrvtype"></a><tt>srvurl</tt></td>
-      <td nosave="">The service URL of the service to the attributes
-of.&nbsp; See <a href="Syntax.html#Service%20Type">Syntax</a>
-for more information SLP Service URLs.</td>
+      <td nosave="">The service URL of the service to the attributes of.&nbsp; See <a href="Syntax.html#Service%20Type">
+	  Syntax</a>
+	  for more information SLP Service URLs.</td>
     </tr>
     <tr nosave="" valign="top">
       <td nosave=""><a name="attrids"></a><tt>attrids</tt></td>
-      <td>A comma separated list of attribute ids to return. Use the
-empty string
-("") for all attributes.&nbsp; Wildcards are not supported.</td>
+      <td>A comma separated list of attribute ids to return. Use the empty 
+	  string (&quot;&quot;) for all attributes.&nbsp; Wildcards are not supported.</td>
     </tr>
     <tr nosave="" valign="top">
       <td><a name="scopelist"></a><tt>scopelist</tt></td>
-      <td nosave="">A pointer to a comma separated list of scope
-names.&nbsp; <i>May
-be the empty string</i> if you wish to use scopes this machine is
-configured
-for..&nbsp;</td>
+      <td nosave="">A pointer to a comma separated list of scope names.&nbsp; <i>May 
+	  be the empty string</i> if you wish to use scopes this machine is 
+	  configured for..&nbsp;</td>
     </tr>
     <tr nosave="" valign="top">
       <td><a name="callback"></a><tt>callback</tt></td>
-      <td nosave="">The address of an <a href="SLPAttrCallback.html">SLPAttrCallback</a>
-function that will be called to report the results of the
-operation.&nbsp;
-May not be NULL. See <a href="Callbacks.html">Callbacks</a> for more
-information
-on how callbacks are used by the SLPAPI.</td>
+      <td nosave="">The address of an <a href="SLPAttrCallback.html">
+	  SLPAttrCallback</a>
+	  function that will be called to report the results of the operation.&nbsp; May 
+	  not be NULL. See <a href="Callbacks.html">Callbacks</a> for more 
+	  information on how callbacks are used by the SLPAPI.</td>
     </tr>
     <tr nosave="" valign="top">
       <td nosave=""><a name="cookie"></a><tt>cookie</tt></td>
-      <td nosave="">Pointer to memory that gets passed to the callback
-code.&nbsp;
-May be NULL.</td>
+      <td nosave="">Pointer to memory that gets passed to the callback code.&nbsp; 
+	  May be NULL.</td>
     </tr>
   </tbody>
 </table>
-<h3>
-Returns</h3>
+
+<h3>Returns</h3>
+
 <table nosave="" border="1">
   <tbody>
     <tr nosave="">
@@ -106,40 +134,33 @@ Returns</h3>
     </tr>
     <tr>
       <td>SLP_PARSE_ERROR</td>
-      <td>The SLP message was rejected by a remote SLP agent. The API
-returns
-this error only when no information was retrieved, and at least one SA
-or DA indicated a protocol error. The data supplied through the API may
-be malformed or a may have been damaged in transit.</td>
+      <td>The SLP message was rejected by a remote SLP agent. The API returns 
+	  this error only when no information was retrieved, and at least one SA or 
+	  DA indicated a protocol error. The data supplied through the API may be 
+	  malformed or a may have been damaged in transit.</td>
     </tr>
     <tr>
       <td>SLP_AUTHENTICATION_ABSENT</td>
-      <td>If the SLP framework supports authentication, this error
-arises when
-the UA or SA failed to send an authenticator for requests or
-registrations.</td>
+      <td>If the SLP framework supports authentication, this error arises when 
+	  the UA or SA failed to send an authenticator for requests or 
+	  registrations.</td>
     </tr>
     <tr>
       <td>SLP_AUTHENTICATION_FAILED</td>
-      <td>If the SLP framework supports authentication, this error
-arises when
-a authentication on an SLP message failed.</td>
+      <td>If the SLP framework supports authentication, this error arises when a 
+	  authentication on an SLP message failed.</td>
     </tr>
     <tr>
       <td>SLP_NETWORK_TIMED_OUT</td>
-      <td>When no reply can be obtained in the time specified by the
-configured
-timeout interval for a unicast request, this error is returned.&nbsp;
-In
-other words, slpd is running, but something is wrong with it</td>
+      <td>When no reply can be obtained in the time specified by the configured 
+	  timeout interval for a unicast request, this error is returned.&nbsp; In other 
+	  words, slpd is running, but something is wrong with it</td>
     </tr>
     <tr>
       <td>SLP_NETWORK_INIT_FAILED</td>
-      <td>If the network cannot initialize properly, this error is
-returned.
-Will also be returned if an SA or DA agent (slpd) can not be
-contacted.&nbsp;
-slpd must be running in order to call SLPReg() or SLPDereg().</td>
+      <td>If the network cannot initialize properly, this error is returned. 
+	  Will also be returned if an SA or DA agent (slpd) can not be contacted.&nbsp; 
+	  slpd must be running in order to call SLPReg() or SLPDereg().</td>
     </tr>
     <tr>
       <td>SLP_MEMORY_ALLOC_FAILED&nbsp;</td>
@@ -147,123 +168,127 @@ slpd must be running in order to call SLPReg() or SLPDereg().</td>
     </tr>
     <tr>
       <td>SLP_PARAMETER_BAD</td>
-      <td>If a parameter passed into a function is bad, this error is
-returned.</td>
+      <td>If a parameter passed into a function is bad, this error is returned.</td>
     </tr>
     <tr>
       <td>SLP_NETWORK_ERROR</td>
-      <td>The failure of networking during normal operations causes
-this error
-to be returned.&nbsp; In OpenSLP, this is the error you'll get if an
-underlying
-socket() call failed.</td>
+      <td>The failure of networking during normal operations causes this error 
+	  to be returned.&nbsp; In OpenSLP, this is the error you'll get if an underlying 
+	  socket() call failed.</td>
     </tr>
     <tr>
       <td>SLP_INTERNAL_SYSTEM_ERROR</td>
-      <td>A basic failure of the API causes this error to be returned.
-This occurs
-when a system call or library fails. The operation could not recover.</td>
+      <td>A basic failure of the API causes this error to be returned. This 
+	  occurs when a system call or library fails. The operation could not 
+	  recover.</td>
     </tr>
     <tr>
       <td>SLP_HANDLE_IN_USE</td>
-      <td>Callback functions are not permitted to recursively call into
-the API
-on the same SLPHandle, either directly or indirectly. If an attempt is
-made to do so, this error is returned from the called API function.</td>
+      <td>Callback functions are not permitted to recursively call into the API 
+	  on the same SLPHandle, either directly or indirectly. If an attempt is 
+	  made to do so, this error is returned from the called API function.</td>
     </tr>
   </tbody>
 </table>
-<p>If no service types can be found, no error is returned.&nbsp;
-However,
-no calls (other than the SLP_LAST_CALL) will be made to the
-SLPSrvTypesCallback.&nbsp;
-Be aware, especially if the call is async, of error codes that may be
-passed
-to the <tt>SLPAttrCallback</tt> callback function.
-&nbsp;
-</p>
+
+<p>If no service types can be found, no error is returned.&nbsp; However, no 
+calls (other than the SLP_LAST_CALL) will be made to the SLPSrvTypesCallback.&nbsp; 
+Be aware, especially if the call is async, of error codes that may be passed to 
+the <tt>SLPAttrCallback</tt> callback function.</p>
+
 <h3>Status</h3>
+
 <table nosave="" cellpadding="5">
   <tbody>
     <tr nosave="" valign="top">
       <td nosave="">OpenSLP 0.9.1</td>
-      <td nosave="">Fully implemented as specified by RFC2614 except
-for finding
-attributes by service type or with attrids containing wildcards.&nbsp;
-These behaviors are expected to be depreciated in the next RFC 2614
-revision.</td>
+      <td nosave="">Fully implemented as specified by RFC2614 except for finding 
+	  attributes by service type or with attrids containing wildcards.&nbsp; These 
+	  behaviors are expected to be depreciated in the next RFC 2614 revision.</td>
     </tr>
   </tbody>
 </table>
-<h3>
-See Also</h3>
-<a href="SLPSrvTypeCallback.html">SLPSrvTypeCallback</a>, <a
- href="Syntax.html">Syntax</a>,
-<a href="Callbacks.html">Callbacks</a>
+
+<h3>See Also</h3>
+
+<p><a href="SLPSrvTypeCallback.html">SLPSrvTypeCallback</a>,
+<a href="Syntax.html">Syntax</a>,
+<a href="Callbacks.html">Callbacks</a></p>
+
 <h3>Example Code</h3>
-<blockquote><tt>SLPBoolean myAttrCallback(SLPHandle hslp,</tt> <br>
-  <tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-const char* attrlist,</tt> <br>
-  <tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-SLPError errcode,</tt> <br>
-  <tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-void* cookie )</tt> <br>
-  <tt>{</tt> <br>
-  <tt>&nbsp;&nbsp;&nbsp; if(errcode == SLP_OK)</tt> <br>
-  <tt>&nbsp;&nbsp;&nbsp; {</tt> <br>
-  <tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-printf("%s\n",attrlist);</tt> <br>
-  <tt>&nbsp;&nbsp;&nbsp; }</tt>
-  <p><tt>&nbsp;&nbsp;&nbsp; return SLP_FALSE;</tt> <br>
-  <tt>}</tt> <br>
-&nbsp; </p>
-  <p><tt>int main(int argc, char* argv[])</tt> <br>
-  <tt>{</tt> <br>
-  <tt>&nbsp;&nbsp;&nbsp; SLPError&nbsp;&nbsp;&nbsp; result;</tt> <br>
-  <tt>&nbsp;&nbsp;&nbsp; SLPHandle&nbsp;&nbsp; hslp;</tt> </p>
-  <p><tt>&nbsp;&nbsp;&nbsp; if(SLPOpen("en",SLP_FALSE,&amp;hslp) ==
-SLP_OK)</tt> <br>
-  <tt>&nbsp;&nbsp;&nbsp; {</tt> </p>
-  <p><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; result =
-SLPFindAttrs(hslp,</tt> <br>
-  <tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-"service:myservice.x://myhost.mydomain.org"</tt> <br>
-  <tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-"", /* return all attributes */</tt> <br>
-  <tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-"", /* use configured scopes */</tt> <br>
-  <tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-myAttrCallback,</tt> <br>
-  <tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-NULL);</tt> <br>
-  <tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if(result != SLP_OK)</tt>
-  <br>
-  <tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {</tt> <br>
-  <tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-printf("errorcode: %i\n",result);</tt> <br>
-  <tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; }</tt> </p>
-  <p><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; result =
-SLPFindAttrs(hslp,</tt> <br>
-  <tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-"service:myservice.x://myhost.mydomain.org"</tt> <br>
-  <tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-"attr1,attr2", /* return attr1 and attr1 only */</tt> <br>
-  <tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-"", /* use configured scopes */</tt> <br>
-  <tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-myAttrCallback,</tt> <br>
-  <tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-NULL);</tt> <br>
-  <tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if(result != SLP_OK)</tt>
-  <br>
-  <tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {</tt> <br>
-  <tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-printf("errorcode: %i\n",result);</tt> <br>
-  <tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; }</tt> </p>
-  <p><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; SLPClose(hslp);</tt>
-  <br>
-  <tt>&nbsp;&nbsp;&nbsp; }</tt> <br>
-  <tt>}</tt></p>
-</blockquote>
-</body>
+
+<pre>  #include &lt;slp.h&gt;
+
+  SLPBoolean myAttrCallback(
+      SLPHandle hslp, 
+      const char* attrlist, 
+      SLPError errcode, 
+      void* cookie ) 
+  { 
+      if(errcode == SLP_OK) 
+      { 
+          printf(&quot;%s\n&quot;,attrlist); 
+      }
+      
+      return SLP_FALSE; 
+  } 
+
+  int main(int argc, char* argv[]) 
+  { 
+      SLPError    result; 
+      SLPHandle   hslp;
+      
+      if(SLPOpen(&quot;en&quot;,SLP_FALSE,&amp;hslp) == SLP_OK) 
+      {
+          result =
+              SLPFindAttrs(
+                  hslp, 
+                  &quot;service:myservice.x://myhost.mydomain.org&quot; 
+                  &quot;&quot;, /* return all attributes */ 
+                  &quot;&quot;, /* use configured scopes */ 
+                  myAttrCallback, 
+                  NULL); 
+                  
+          if(result != SLP_OK)
+          { 
+              printf(&quot;errorcode: %i\n&quot;,result); 
+          }
+          
+          result =
+              SLPFindAttrs(
+                  hslp, 
+                  &quot;service:myservice.x://myhost.mydomain.org&quot; 
+                  &quot;attr1,attr2&quot;, /* return attr1 and attr1 only */ 
+                  &quot;&quot;, /* use configured scopes */ 
+                  myAttrCallback, 
+                  NULL); 
+
+          if(result != SLP_OK)
+          { 
+              printf(&quot;errorcode: %i\n&quot;,result); 
+          }
+          
+          SLPClose(hslp);
+      } 
+  }
+</pre>
+
+<p id="breadcrumbs0">Prepared by: <a href="http://www.calderasystems.com">Caldera Systems Inc</a><br />
+Maintained by: <a href="http://www.openslp.org/">openslp.org</a></p>
+
+                <!-- #EndEditable -->
+                </div>
+            </div>
+
+            <div id="footer">
+                Copyright &copy; 2011 <a href="http://www.openslp.org/">openslp.org</a>. All Rights Reserved.<br/>
+                Design by <a href="http://www.mdibb.net" title="Website of Matt Dibb">Matt Dibb</a>
+                2006. <a href="http://jigsaw.w3.org/css-validator/check/referer" title="Validate CSS">CSS</a> 
+                <a href="http://validator.w3.org/check/referer" title="Validate XHTML">XHTML</a>
+                <br/>Courtesy of <a href="http://www.openwebdesign.org">Open Web Design</a>
+                &amp; <a href="http://seo-services.us">seo</a>
+            </div>
+        </div>
+    </body>
+<!-- #EndTemplate -->
 </html>

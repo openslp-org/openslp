@@ -1,0 +1,480 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<!-- #BeginTemplate "../../openslp.dwt" -->
+
+<!--
+    
+    Pristine 1.0
+    
+    Design copyright Matt Dibb 2006
+    www.mdibb.net
+
+    Please feel free to use and modify this template for use on your site.  I dont mind
+    if you use it for your personal site or a commercial site, but I do insist that it is
+    not sold or given away in some "50,000 Templates!" package or something like that.
+
+-->
+
+    <head profile="http://www.w3.org/2005/10/profile">
+        <meta http-equiv="Content-Language" content="en-gb" />
+        <meta http-equiv="Content-Type" content="text/html; charset=windows-1252" />
+        <link rel="stylesheet" type="text/css" href="../../site.css" />
+        <link rel="stylesheet" type="text/css" href="../../print.css" media="print" />
+        <link rel="alternate" type="application/rss+xml" title="OpenSLP&#8230;Recent Activity" href="http://www.sourceforge.net/export/rss2_keepsake.php?group_id=1730" />
+        <link rel="alternate" type="application/rss+xml" title="OpenSLP&#8230;News" href="http://www.sourceforge.net/export/rss2_projnews.php?group_id=1730" />
+        <link rel="alternate" type="application/rss+xml" title="OpenSLP&#8230;File Releases" href="http://www.sourceforge.net/api/file/index/project-id/1730/mtime/desc/limit/20/rss" />
+        <link rel="alternate" type="application/rss+xml" title="OpenSLP&#8230;Reviews" href="http://www.sourceforge.net/projects/openslp/reviews_feed.rss" />
+		<link rel="shortcut icon" href="../../images/openslp_favicon_256color_48px.ico" />
+        <!-- #BeginEditable "Page%20Style%20and%20Scripts" -->
+	    <!-- #EndEditable -->
+        <!-- #BeginEditable "Page%20Title" -->
+        <title>OpenSLP - SLP Security</title>
+	    <!-- #EndEditable -->
+    </head>
+    <body>
+        <div id="content">
+            <div id="header">
+            	<a href="http://openslp.org/">
+				<img src="../../images/openslp_logo_web_color_150px.jpg" alt="" /></a>
+            </div>
+            <div id="body">
+                <!-- #BeginEditable "Left%20Navigation%20-%20Context%20Specific" -->
+
+                <!-- #EndEditable -->
+                <div id="links">
+                    <p><a href="../../index.html">About</a><br/>
+                       what is openslp</p>
+                    <p><a href="../../download.html">Download</a><br/>
+                       how to get openslp</p>
+                    <p><a href="../../contribute.html">Contribute</a><br/>
+                       how to help out</p>
+                    <p><a href="../../documentation.html">Documentation</a><br/>
+                       how to find out more</p>
+                    <p><a href="../../credits.html">Credits</a><br/>
+                       who to blame</p>
+                    <p><a href="http://sourceforge.net/projects/openslp"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=1730&amp;type=2" alt="Get OpenSLP at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></p>
+                </div>
+
+                <div id="main">
+                <!-- #BeginEditable "Page%20Content" -->
+
+<h2>SLP Security</h2>
+
+<h3>The SLP Security Problem</h3>
+
+<p>The SLP security problem can be divided into three 
+categories:&nbsp; SLP security attacks, security configuration 
+and management problems, and ignorance of secure SLPv2 
+usage.&nbsp; The following is an introduction to problems that 
+will be examined in more detail later in this document.</p>
+
+<p>The obvious SLP security problems are those that are similar to the one that 
+is described by the following example from
+<a href="srvreg-integrity.html">Simple Service Registration Transaction Integrity for SLPv2</a>:</p>
+
+<blockquote>
+<p>Imagine that in an enterprise environment there is a malicious 
+or overly curious individual that would like to obtain confidential 
+information.&nbsp; SLP could be exploited to obtain information from software 
+that was otherwise secured only by virtue of manual configuration.&nbsp; For 
+example, an OpenSource help desk application consisting of &quot;server&quot; and 
+&quot;client&quot; software is SLP enabled because the network administrators got 
+tired of helping employees set up the &quot;client&quot; software with location and 
+configuration information used to connect with the &quot;server&quot; software.</p>
+
+<p>Since the source code is readily available, a sneaky employee makes a few 
+modifications to the server code that allows him to obtain user names and 
+passwords.&nbsp; He recompiles the source and brings up the &quot;rogue&quot; help desk 
+server.&nbsp; Since the &quot;rogue&quot; help desk server and the real help desk server 
+both have similar SLP registerations, it is possible that clients may connect to 
+the &quot;rogue&quot; server instead of the real one.&nbsp; When the users log in, the 
+&quot;rogue&quot; server saves off a copies of user names and passwords.&nbsp; The 
+malicious employee can use these user names and passwords later to impersonate 
+other people.</p>
+</blockquote>
+
+<p>The obvious solution to this and other related SLP security 
+problems is to build security features into the SLP protocol 
+itself.&nbsp; This is the approach that is taken by SLPv2 and it 
+is indeed successful in preventing nearly all of the SLP 
+security attacks in a way that requires very little effort 
+on the part of user and application developer.&nbsp; However, it 
+places a huge security configuration and management burdon 
+on the system administrator and makes (application level) 
+interoperability between SLP implementations difficult if 
+not impossible.&nbsp; In other words, the SLPv2 security 
+specification does a great job at solving most SLP security 
+problems from a protocol perspective, but in most 
+applications, it creates a configuration and management 
+nighmare that challenges the fundamental SLP usability 
+claim:</p>
+
+<blockquote>&quot;Using this protocol, computers using the [network] need little 
+or no static configuration of network services for network based 
+applications.
+<br /><br />
+-- RFC 2608 (abstract)</blockquote>
+	
+<p>SLPv2 uses public key cryptography to generate signatures 
+that ensure integrity of SLP messages.&nbsp; Authenticity of 
+SLP message signatures is established by the relationship of 
+SPI and keys -- unfortunately this is a relationship that 
+has to be established manually or by some other trusted PKI 
+framework.&nbsp; Another unfortunate reality is that there are 
+no standards for PKI frameworks to which SLP protocol 
+implementors can write nor are there any standard for manual 
+configuration.&nbsp; The result is that none of the secure SLPv2 
+security implementations are interoperable from a security 
+configuration or management standpoint.&nbsp; With out security 
+configuration and management standards, software developers 
+have a difficult time writing management software and System 
+administrators are stuck with the prospect of having to 
+manually configure key distibution and SPI configuration.</p>
+
+<p>Finally, very little information is given in RFC 2608 or in RFC 2614 
+(especially) to educates developers of SLP software about the subelties of SLP 
+security and how SLP must be used in order to be secure.&nbsp; It turns out that 
+there many things that developers can do to write software that is resistant to 
+SLP related attacks that do not require use of SLPv2 protocol security features.&nbsp; 
+As discussed later in this document, it may be possible for educated developers 
+to write acceptibly secure SLP enabled software that does not require any 
+security configuration or management overhead.</p>
+
+<h3>Limiting SLP Security Requirements</h3>
+
+<p>Most Internet security problems are approached with the 
+assumption that no one is trustworthy and that no one is 
+trackable or accountable.&nbsp; This is probably not an 
+appropriate approach to SLP security because SLP is not 
+intended for the Internet.</p>
+					
+<blockquote>SLP is intended to function within networks under cooperative&nbsp; 
+administrative control.&nbsp; Such networks permit a policy to be&nbsp; implemented 
+regarding security, multicast routing and organization of services and 
+clients into goups which are not be feasible on the scale of the Internet as 
+a whole.
+<br /><br />
+-- RFC 2608 (section 1.1 Applicability Statement)</blockquote>
+
+<p>In approaching the SLP security problem, one should continue 
+to assume that no one is trustworthy, however, it SHOULD NOT 
+be assumed that no one is accountable or trackable.&nbsp; In 
+fact, in &quot;networks under cooperative administrative control&quot; 
+it is very easy track and confront individuals that corrupt 
+otherwise insecure systems as long as it can be identified 
+that a corruption has been attempted or has occured.&nbsp; 
+Because they can be held accountable, fear of consequences 
+keep otherwise untrustworthy individuals in line.</p>
+					
+<p>SLPv2 security as described by RFC 2608 supplies, at the protocol level , 
+everything that is needed to ensure that service location information was sent 
+by a trusted entity (authentication) and that the information was not changed in
+transit (integrity).&nbsp; At the application level, this means that an 
+application developer (probably using the SLP API) can trust *all* SLP delivered 
+information.&nbsp; This allows the developer to be more relaxed about how 
+service specific communication is performed.</p>
+
+<p>Blind trust of SLP deliverd information (URLs, etc) is especially significant 
+in common situations where confidential information (username and password) are 
+exchanged with an entity authenticated only by the fact that it was
+located via secure SLP.&nbsp; For example, LDAP enabled software uses SLP to 
+locate an LDAP directory.&nbsp; If SLP information is secure, the username and 
+password to establish a connection with the LDAP directory can be sent with out 
+having to use any other method to establish the identity of LDAP directory.&nbsp; 
+However, with LDAP (and many other protocols)&nbsp; is is now possible to 
+establish the identity of both the &quot;server&quot; and &quot;client&quot; nodes without trusting 
+the service location method.&nbsp; In fact, for any SSL or 
+equivilant transport it is crucial to cyptographically establish the identity of 
+the &quot;other side&quot; in a way that is seperate from the URL that was used to 
+initiate the connection.</p>
+
+<p>As expressed in <a href="srvreg-integrity.html">Simple Service Registration Transaction
+Integrity for SLPv2</a>, SLPv2 security does not really do much protect confidential 
+data and resources unless the service-specific protocols are secure.&nbsp; 
+Why would it be useful to have a secure location mechanism if protocol being use 
+to actually control confidential data and resources can be easilly compromised?&nbsp; 
+If SLP security is not interest to anyone unless they use SLP in 
+conjunction with some other secure protocol, then SLP security is only 
+valuable if it can be used without disrupting the operation already secure 
+software.</p>
+
+<h3>Security by Fear</h3>
+
+<p>Under heavy attack, secure software ultimately has one alternative, it can 
+stop working rather than give access to confidental data and resources.&nbsp;
+Ignoring requests for services turns out to be only alternative.</p>
+
+<p>Continuing the LDAP example from above, it is possible to write a secure LDAP 
+enabled &quot;client&quot; application that uses &quot;insecure&quot; SLP to discover the LDAP 
+server.&nbsp; The client would locate URLs for *all* LDAP services using SLP.
+The client would try to establish an SSL connection with each of the 
+discovered LDAP servers until an LDAP server that comes to an LDAP server that 
+is trusted.&nbsp; If SLP finds an LDAP servers that is not trusted it should
+display a warning message (thus helping to track down the rogue or 
+misconfigured LDAP server).&nbsp; In this example above there is one no chance 
+for security compromise in the LDAP application due to it's use of SLP.&nbsp; 
+There is, however a chance that &quot;suppresion attacks&quot; could burdon the 
+application.</p>
+
+<h3>SLP Security Attacks</h3>
+
+<p>As mentioned in the previous section, the use of secure 
+service specific protocols/frameworks in an environment 
+&quot;under cooperative administrative control&quot; greatly reduces 
+the scope of the SLP security problem.&nbsp; Instead of having 
+to ensure that every bit of SLP information is delivered 
+with authenticity and integrity, it could be argued that SLP 
+only has to worry about a those portions SLP delivered 
+information that can be subverted with out alerting the 
+system administrator.&nbsp; However, since the system 
+administrators can't be expected to be constantly vigilant 
+or timely in their response to alerts, it is also important 
+that SLP enabled software be still be written in a way that 
+does not compromize confidental data or resources when under 
+attack.</p>
+
+<p>Since SLP controlled information is publically available, most SLP security 
+attacks are calculated to compromize information and resources controlled by 
+service-specific protocols than information that is controlled by SLP itself.&nbsp; 
+There are two categories of SLP attack: impersonation attacks, and disruption 
+attacks.&nbsp; Impersonation attacks involve manipulation of SLP in order 
+trick SLP enabled software into using rogue service.&nbsp; The ultimate 
+goal of impersonation attacks is to obtain confidential information.&nbsp; 
+Disruption attacks involve manipulations of SLP in order to disrupt or halt 
+normal operation of SLP enabled software with the ultimate goal of making life 
+hard for the system adminstrator.</p>
+
+<p>If SLP enabled software uses secure service-specific protocols, impersonation 
+attacks have almost no chance of being successful.&nbsp; SLP related disruption 
+attacks, on the other hand, have a very good chance of being successful.&nbsp; 
+The following table is a list of disruption attacks that could be directed at 
+SLP enabled software:</p>
+
+<table>
+<tr>
+<th><b>Attack</b></th>
+<th><b>Description</b></th>
+</tr>
+
+<tr>
+<td>Unauthorized Directory Agent</td>
+
+<td>An unauthorized directory agent could be installed on the network with the 
+intention of sending incorrect information to UAs.&nbsp;&nbsp; A malicious DA 
+could disrupt the operation of SLP enabled applications by returning 
+unauthorized service URLs, by returning unauthorized attributes, or by simply 
+not returning any results at all.&nbsp; Since UAs are required to use a DA if it 
+exists, it is possible that it might attach to the unauthorized DA and receive 
+service URLs that point to rogue services,&nbsp; receive attributes that disrupt 
+normal operation, or&nbsp; not receive any service location information at all</td>
+</tr>
+
+<tr>
+<td>Unauthorized Service Agent</td>
+
+<td>An unauthorized service agent could be installed on the network with the 
+intention of duplicating a registrations made by authorized SAs.&nbsp; In 
+environments involving DAs, unauthorized SA would cause the unauthorized 
+registration, deregistration, and registration problems described below.&nbsp;&nbsp; 
+In a multicast environments an unauthorized SA could&nbsp; cause duplicate 
+replies to be sent to service, attribute and service type requests.&nbsp;&nbsp; 
+Duplicate replies may cause problems when several differing attributes lists are 
+returned for the same service URL.&nbsp;&nbsp; UAs would be unable to tell which 
+attributes are really valid.</td>
+</tr>
+
+<tr>
+<td>Unauthorized Registrations with DA</td>
+
+<td>Contacting the DA to register many bogus services of the same service-type 
+as a valid service.&nbsp; Even SLP enabled applications that rely on service 
+specific security protocols (SSL, etc) would take a long time to connect to a 
+valid service as&nbsp; it would probably have to iterate through a&nbsp; lot of 
+bogus services before it found a valid one.</td>
+</tr>
+
+<tr>
+<td>Unauthorized Deregistration with DA</td>
+
+<td>Contacting the DA to de-registering valid registrations so that they can not 
+be found by UAs.</td>
+</tr>
+
+<tr>
+<td>Unauthorized Reregistration with DA</td>
+
+<td>Contacting the DA to replacing an existing registration with a new 
+registration with modified attributes.&nbsp;</td>
+</tr>
+
+<tr>
+<td>Man-in-the-middle Modification&nbsp;</td>
+
+<td>Contacting the DA to register many bogus services of the same service-type 
+as a valid service.&nbsp; Even SLP enabled applications that rely on service 
+specific security protocols (SSL, etc) would take a long time to connect to a 
+valid service as&nbsp; it would probably have to iterate through a&nbsp; lot of 
+bogus services before it found a valid one.</td>
+</tr>
+
+<tr>
+<td>Man-in-the-middle Replay</td>
+
+<td>&quot;transport-time&quot; retransmission of SLP registration, or reply messages that 
+were previously &quot;sniffed&quot; from the network.</td>
+</tr>
+
+<tr>
+<td>Man-in-the-middle Scrambling</td>
+
+<td>Blind &quot;transport-time&quot; modification of messages that makes them invalid so 
+that they will be rejected by the valid SLP implementations.</td>
+</tr>
+</table>
+
+<br />
+<h3>Preventing Disruption Attacks</h3>
+
+<p>There are several approaches to solving security problems.&nbsp; The first 
+approach is to use SLPv2 security as specified by RFC 2608 and deal with the 
+associated manual configuration and management overhead.&nbsp; The second 
+approach is to use custom security extensions to the SLPv2 protocol&nbsp; which 
+may or may not be interoperable with other SLP software.&nbsp; The third 
+approach would be to not use any SLP security enhancements at all.</p>
+
+<p>Though provisions for security have been designed into the SLPv2 protocol, 
+security is not a mandatory feature.&nbsp;&nbsp; The following table presents 
+the vulnerability of SLPv2 to attack:</p>
+
+<table>
+<tr>
+<th><b>Attack</b></th>
+
+<th><b>SLPv2 with RFC2608 security</b></th>
+
+<th><b>SLPv2 with SSRTI-SLPv2</b></th>
+
+<th><b>SLPv2 without security</b></th>
+</tr>
+
+<tr>
+<td>Unauthorized Directory Agent</td>
+
+<td class="center"><b><font color="#33CC00">PREVENTABLE</font></b></td>
+
+<td class="center"><b><font color="#FF9900">DETECTABLE</font></b></td>
+
+<td class="center"><b><font color="#FF9900">DETECTABLE</font></b></td>
+</tr>
+
+<tr>
+<td>Unauthorized Service Agent</td>
+
+<td class="center"><b><font color="#33CC00">PREVENTABLE</font></b></td>
+
+<td class="center"><b><font color="#FF9900">DETECTABLE</font></b></td>
+
+<td class="center"><b><font color="#FF9900">DETECTABLE</font></b></td>
+</tr>
+
+<tr>
+<td>Unauthorized Registrations with DA</td>
+
+<td class="center"><b><font color="#33CC00">PREVENTABLE</font></b></td>
+
+<td class="center"><b><font color="#33CC00">PREVENTABLE</font></b></td>
+
+<td class="center"><b><font color="#FF9900">DETECTABLE</font></b></td>
+</tr>
+
+<tr>
+<td>Unauthorized Deregistration with DA</td>
+
+<td class="center"><b><font color="#33CC00">PREVENTABLE</font></b></td>
+
+<td class="center"><b><font color="#33CC00">PREVENTABLE</font></b></td>
+
+<td class="center"><b><font color="#CC0000">VULNERABLE</font></b></td>
+</tr>
+
+<tr>
+<td>Unauthorized Reregistration with DA</td>
+
+<td class="center"><b><font color="#33CC00">PREVENTABLE</font></b></td>
+
+<td class="center"><b><font color="#33CC00">PREVENTABLE</font></b></td>
+
+<td class="center"><b><font color="#CC0000">VULNERABLE</font></b></td>
+</tr>
+
+<tr>
+<td>Man-in-the-middle Modification</td>
+
+<td class="center"><b><font color="#33CC00">PREVENTABLE</font></b></td>
+
+<td class="center"><b><font color="#CC0000">VULNERABLE</font></b></td>
+
+<td class="center"><b><font color="#CC0000">VULNERABLE</font></b></td>
+</tr>
+
+<tr>
+<td>Man-in-the-middle Replay</td>
+
+<td class="center"><b><font color="#805b0a">DETERRABLE</font></b></td>
+
+<td class="center"><b><font color="#33CC00">PREVENTABLE</font></b></td>
+
+<td class="center"><b><font color="#CC0000">VULNERABLE</font></b></td>
+</tr>
+
+<tr>
+<td>Man-in-the-middle Scrambling</td>
+
+<td class="center"><b><font color="#CC0000">VULNERABLE</font></b></td>
+
+<td class="center"><b><font color="#CC0000">VULNERABLE</font></b></td>
+
+<td class="center"><b><font color="#CC0000">VULNERABLE</font></b></td>
+</tr>
+</table>
+
+<table>
+<tr>
+<th colspan="2"><b>Definitions:</b></th>
+</tr>
+<tr>
+<td class="center"><b><font color="#33CC00">PREVENTABLE</font></b></td> 
+<td>Attack can be prevented entirely.</td>
+</tr>
+<tr>
+<td class="center"><b><font color="#FF9900">DETECTABLE</font></b></td> 
+<td>Attack can not be prevented, but can be detected by appropriately written SLP 
+software</td>
+</tr>
+<tr>
+<td class="center"><b><font color="#805b0a">DETERRABLE</font></b></td> 
+<td>Attack can not be detected or entirely prevented, but it can be deterred</td>
+</tr>
+<tr>
+<td class="center"><b><font color="#CC0000">VULNERABLE</font></b></td> 
+<td>Attack can not be prevented, deterred or detected</td>
+</tr>
+</table>
+                                                
+                <!-- #EndEditable -->
+                </div>
+            </div>
+
+            <div id="footer">
+                Copyright &copy; 2011 <a href="http://www.openslp.org/">openslp.org</a>. All Rights Reserved.<br/>
+                Design by <a href="http://www.mdibb.net" title="Website of Matt Dibb">Matt Dibb</a>
+                2006. <a href="http://jigsaw.w3.org/css-validator/check/referer" title="Validate CSS">CSS</a> 
+                <a href="http://validator.w3.org/check/referer" title="Validate XHTML">XHTML</a>
+                <br/>Courtesy of <a href="http://www.openwebdesign.org">Open Web Design</a>
+                &amp; <a href="http://seo-services.us">seo</a>
+            </div>
+        </div>
+    </body>
+<!-- #EndTemplate -->
+</html>

@@ -1,97 +1,151 @@
-<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
-<html>
-<head>
-   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-   <meta name="GENERATOR" content="Mozilla/4.76C-CCK-MCD Caldera Systems OpenLinux [en] (X11; U; Linux 2.4.2 i686) [Netscape]">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<!-- #BeginTemplate "../../../openslp.dwt" -->
+
+<!--
+    
+    Pristine 1.0
+    
+    Design copyright Matt Dibb 2006
+    www.mdibb.net
+
+    Please feel free to use and modify this template for use on your site.  I dont mind
+    if you use it for your personal site or a commercial site, but I do insist that it is
+    not sold or given away in some "50,000 Templates!" package or something like that.
+
+-->
+
+    <head profile="http://www.w3.org/2005/10/profile">
+        <meta http-equiv="Content-Language" content="en-gb" />
+        <meta http-equiv="Content-Type" content="text/html; charset=windows-1252" />
+        <link rel="stylesheet" type="text/css" href="../../../site.css" />
+        <link rel="stylesheet" type="text/css" href="../../../print.css" media="print" />
+        <link rel="alternate" type="application/rss+xml" title="OpenSLP&#8230;Recent Activity" href="http://www.sourceforge.net/export/rss2_keepsake.php?group_id=1730" />
+        <link rel="alternate" type="application/rss+xml" title="OpenSLP&#8230;News" href="http://www.sourceforge.net/export/rss2_projnews.php?group_id=1730" />
+        <link rel="alternate" type="application/rss+xml" title="OpenSLP&#8230;File Releases" href="http://www.sourceforge.net/api/file/index/project-id/1730/mtime/desc/limit/20/rss" />
+        <link rel="alternate" type="application/rss+xml" title="OpenSLP&#8230;Reviews" href="http://www.sourceforge.net/projects/openslp/reviews_feed.rss" />
+		<link rel="shortcut icon" href="../../../images/openslp_favicon_256color_48px.ico" />
+        <!-- #BeginEditable "Page%20Style%20and%20Scripts" -->
+	    <!-- #EndEditable -->
+        <!-- #BeginEditable "Page%20Title" -->
    <title>OpenSLP Programmers Guide - Security</title>
-</head>
-<body text="#000000" bgcolor="#FFFFFF" link="#0000EF" vlink="#51188E" alink="#FF0000">
+	    <!-- #EndEditable -->
+    </head>
+    <body>
+        <div id="content">
+            <div id="header">
+            	<a href="http://openslp.org/">
+				<img src="../../../images/openslp_logo_web_color_150px.jpg" alt="" /></a>
+            </div>
+            <div id="body">
+                <!-- #BeginEditable "Left%20Navigation%20-%20Context%20Specific" -->
 
-<table style="width:100%">
-  <tbody>
-    <tr>
-      <td>
-        <h1 style="margin:10px;">Writing Secure SLP Enabled Applications</h1>
-      </td>
-      <td>
-        <h1><img style="float:right;margin:10px;" src="../images/oslp-logo-web-50.jpg"></h1>
-      </td>
-    </tr>
-  </tbody>
-</table>
-<hr width="100%" />
+                <!-- #EndEditable -->
+                <div id="links">
+                    <p><a href="../../../index.html">About</a><br/>
+                       what is openslp</p>
+                    <p><a href="../../../download.html">Download</a><br/>
+                       how to get openslp</p>
+                    <p><a href="../../../contribute.html">Contribute</a><br/>
+                       how to help out</p>
+                    <p><a href="../../../documentation.html">Documentation</a><br/>
+                       how to find out more</p>
+                    <p><a href="../../../credits.html">Credits</a><br/>
+                       who to blame</p>
+                    <p><a href="http://sourceforge.net/projects/openslp"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=1730&amp;type=2" alt="Get OpenSLP at SourceForge.net. Fast, secure and Free Open Source software downloads"/></a></p>
+                </div>
 
-<h3>
-Introduction</h3>
-Major changes were made to the OpenSLP 0.8.x codebase to add SLPv2 message
-authentication support for OpenSLP 0.9.0.&nbsp;&nbsp; Until this time,
-there were no plans to ever implement SLPv2 security due to the ideas expressed
-in a internal Caldera document entitled "OpenSLP and SLPv2 Authentication".&nbsp;&nbsp;&nbsp;
-The document&nbsp; (<a href="openslp_security_whitepaper.html">full text
-available</a>) mostly references and draws conclusions from discussion
-from the srvloc@srvloc.org mailing list.&nbsp;&nbsp; The following is the
-concluding paragraphs of the document.
-<br>&nbsp;
-<blockquote><i>For those that are not willing to endure the tedium of reading
-the entire mailing list discussion,&nbsp; the conclusion was eventually
-made (at least by the author) that though SLP authentication may be&nbsp;
-appropriate in some specialized SLP deployments, it is probably not beneficial
-in normal network computer environments.&nbsp;&nbsp;&nbsp; This conclusion
-is based on the following premises:</i></blockquote>
+                <div id="main">
+                <!-- #BeginEditable "Page%20Content" -->
+
+<h2>Writing Secure SLP Enabled Applications<br />
+<span id="breadcrumbs"><a href="index.html">OpenSLP Programmer's Guide</a> &raquo; Misc. Information &raquo; <a href="Security.html">Writing Secure SLP Enabled Applications</a></span></h2>
+
+<h3>Introduction</h3>
+
+<p>Major changes were made to the OpenSLP 0.8.x codebase to add 
+SLPv2 message authentication support for OpenSLP 0.9.0.&nbsp; 
+Until this time, there were no plans to ever implement SLPv2 
+security due to the ideas expressed in a internal Caldera 
+document entitled &quot;OpenSLP and SLPv2 Authentication&quot;.&nbsp; The 
+document (<a href="../../security/openslp_security_whitepaper.html">full 
+text available</a>) mostly references and draws conclusions 
+from discussion from the srvloc@srvloc.org mailing list.&nbsp; 
+The following is the concluding paragraphs of the document.</p>
+
+<blockquote><i>For those that are not willing to endure the tedium of reading 
+the entire mailing list discussion, the conclusion was eventually made (at 
+least by the author) that though SLP authentication may be appropriate in 
+some specialized SLP deployments, it is probably not beneficial in normal 
+network computer environments.&nbsp; This conclusion is based on the following 
+premises:</i></blockquote>
 
 <ul>
-<ul>
-<li>
-<i>Implementation of SLP authentication in the absence of public key infrastructure
-standards would require enough manual configuration to invalidate all claims
-SLP has to increased usability.</i></li>
+	<li><i>Implementation of SLP authentication in the absence of public key 
+	infrastructure standards would require enough manual configuration to invalidate 
+	all claims SLP has to increased usability.</i></li>
+	
+	<li><i>Common helper protocols DNS, DHCP, IP, even ARP are currently insecure for 
+	usability reasons.&nbsp;&nbsp; SLP fits into this category of protocols where lack of 
+	security may be considered a feature when it allows for maximal usability.</i></li>
+	
+	<li><i>Given the lack of security in the above mentioned (and other) protocols 
+	self-established authentication of end to end communication is required anyway 
+	for secure communication of network software entities.</i></li>
 
-<li>
-<i>Common helper protocols DNS, DHCP, IP, even ARP are currently insecure
-for usability reasons.&nbsp;&nbsp; SLP fits into this category of protocols
-where lack of security may be considered a feature when it allows for maximal
-usability.</i></li>
-
-<li>
-<i>Given the lack of security in the above mentioned (and other) protocols
-self-established authentication of end to end communication is required
-anyway for secure communication of network software entities.</i></li>
-
-<li>
-<i>In the presence of appropriate end to end security mechanisms,&nbsp;
-SLP related security attacks are limited to the realm of "denial of service"
-or "disruptions" -- even when no authentication is implemented in SLP.&nbsp;&nbsp;
-In other words there is not a risk of compromise of confidential information
-that can be attributed to SLP as long as appropriate end to end security
-is established.</i></li>
+	<li><i>In the presence of appropriate end to end security mechanisms, SLP related 
+	security attacks are limited to the realm of &quot;denial of service&quot; or 
+	&quot;disruptions&quot; -- even when no authentication is implemented in SLP.&nbsp; In other 
+	words there is not a risk of compromise of confidential information that can be 
+	attributed to SLP as long as appropriate end to end security is established.</i></li>
 </ul>
-<i></i>
-<p><br><i>So, for the OpenSLP project, there are not any plans to implement
-SLPv2 security.&nbsp;&nbsp; (This may change in the future depending on
-the success of ongoing PKI standardization efforts.)&nbsp;&nbsp; There
-are, however, many things that could be done to reduce opportunities for
-"denial of service attacks" or other malicious SLP related disruptions.&nbsp;&nbsp;
-These will be addressed in future versions of OpenSLP.&nbsp;&nbsp;&nbsp;
-Also, in order to inform developers about the importance of writing secure
-applications, plans have been made to include an SLP&nbsp;Security HOWTO
-as part of the OpenSLP&nbsp;Documentation.</i></ul>
-The existence of SLPv2 authentication in OpenSLP <b>does not </b>eliminate
-the need to provide secure end-to-end communication for service specific
-protocols&nbsp;&nbsp; (read the <a href="openslp_security_whitepaper.html">full
-text</a> of the paper if you don't know what I'm talking about here).&nbsp;
-OpenSLP&nbsp;security does not do any good at all if the authentication,
-integrity, and/or privacy of service specific communication weak.
-<br>&nbsp;
-<h3>
-Who should read this document?</h3>
-If you are a developer that writes SLP enabled software, you should read
-this document.&nbsp; If you are a system or network administrator that
-is concerned with how to setup and maintain secure SLP&nbsp;installations,
-you should read the <a href="../UsersGuide/Security.html">Security section
-of the OpenSLP&nbsp;Users guide.</a>
-<br>&nbsp;
-<br>&nbsp;
-<p>*** PLEASE&nbsp;PATIENT&nbsp;UNTIL&nbsp;I&nbsp;GET&nbsp;SOME&nbsp;TIME&nbsp;TO&nbsp;WRITE&nbsp;THE&nbsp;REST&nbsp;OF&nbsp;THIS&nbsp;DOCUMENT
-***
-</body>
+
+<p><i>So, for the OpenSLP project, there are not any plans to implement 
+SLPv2 security.&nbsp; (This may change in the future depending on the 
+success of ongoing PKI standardization efforts.)&nbsp; There are, however, 
+many things that could be done to reduce opportunities for &quot;denial of service 
+attacks&quot; or other malicious SLP related disruptions.&nbsp; These will be 
+addressed in future versions of OpenSLP.&nbsp; Also, in order to 
+inform developers about the importance of writing secure applications, plans 
+have been made to include an SLP Security HOWTO as part of the 
+OpenSLP Documentation.</i></p>
+
+<p>The existence of SLPv2 authentication in OpenSLP <b>does not </b>
+eliminate the need to provide secure end-to-end 
+communication for service specific protocols&nbsp;&nbsp; (read the 
+<a href="../../security/openslp_security_whitepaper.html">
+full text</a> of the paper if you don't know what I'm 
+talking about here).&nbsp; OpenSLP&nbsp;security does not do any good 
+at all if the authentication, integrity, and/or privacy of 
+service specific communication weak.</p>
+
+<h3>Who should read this document?</h3>
+
+<p>If you are a developer that writes SLP enabled software, you 
+should read this document.&nbsp; If you are a system or network 
+administrator that is concerned with how to setup and 
+maintain secure SLP&nbsp;installations, you should read 
+<a href="../UsersGuide/Security.html">the Security section of the OpenSLP Users guide</a>.</p>
+
+<p>*** PLEASE BE PATIENT UNTIL I GET SOME TIME TO WRITE THE REST OF THIS DOCUMENT ***</p>
+
+<p id="breadcrumbs0">Prepared by: <a href="http://www.calderasystems.com">Caldera Systems Inc</a><br />
+Maintained by: <a href="http://www.openslp.org/">openslp.org</a></p>
+                                
+                <!-- #EndEditable -->
+                </div>
+            </div>
+
+            <div id="footer">
+                Copyright &copy; 2011 <a href="http://www.openslp.org/">openslp.org</a>. All Rights Reserved.<br/>
+                Design by <a href="http://www.mdibb.net" title="Website of Matt Dibb">Matt Dibb</a>
+                2006. <a href="http://jigsaw.w3.org/css-validator/check/referer" title="Validate CSS">CSS</a> 
+                <a href="http://validator.w3.org/check/referer" title="Validate XHTML">XHTML</a>
+                <br/>Courtesy of <a href="http://www.openwebdesign.org">Open Web Design</a>
+                &amp; <a href="http://seo-services.us">seo</a>
+            </div>
+        </div>
+    </body>
+<!-- #EndTemplate -->
 </html>
