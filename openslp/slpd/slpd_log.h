@@ -59,11 +59,7 @@
 #define SLPDLOG_TRACEMSG_OUT (SLPDLOG_TRACEMSG | 0x00000002)
 
 int SLPDLogFileOpen(const char * path, int append);
-
-#ifdef DEBUG
 int SLPDLogFileClose(void);
-#endif
-
 void SLPDLogBuffer(const char * prefix, size_t bufsize, const char * buf);
 void SLPDLog(const char * msg, ...);
 void SLPDFatal(const char * msg, ...);

@@ -59,8 +59,7 @@ static FILE * G_SlpdLogFile = 0;
  */
 int SLPDLogFileOpen(const char * path, int append)
 {
-   if (G_SlpdLogFile)
-      fclose(G_SlpdLogFile); /* logfile was already open close it */
+   SLPDLogFileClose(); /* close logfile if it was already open */
 
    if (*path == 0)
       G_SlpdLogFile = stdout; /* Log to console. */
@@ -77,22 +76,29 @@ int SLPDLogFileOpen(const char * path, int append)
          G_SlpdLogFile = fopen(path,"w");
 
       if (G_SlpdLogFile == 0)
+      {
+         G_SlpdLogFile = stdout;
+         SLPDLog("Could not open log file %s: %s\n", path, strerror(errno));
          return -1;  /* could not open the log file */
+      }
    }
    return 0;
 }
 
-#ifdef DEBUG
 /** Releases resources associated with the log file.
  *
  * @return Zero - always.
  */
 int SLPDLogFileClose(void)
 {
-   fclose(G_SlpdLogFile);
+   if (G_SlpdLogFile)
+   {
+      if (G_SlpdLogFile != stdout)
+         fclose(G_SlpdLogFile);
+      G_SlpdLogFile = 0;
+   }
    return 0;
 }
-#endif
 
 /** Logs a message.
  *
