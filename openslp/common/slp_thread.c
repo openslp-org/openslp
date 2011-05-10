@@ -118,11 +118,15 @@ SLPMutexHandle SLPMutexCreate(void)
    pthread_mutexattr_t attr;
    if (pthread_mutexattr_init(&attr) == 0)
    {
-#if defined(__USE_UNIX98) || defined(DARWIN)
+#ifdef HAVE_PTHREAD_MUTEXATTR_SETTYPE
       (void)pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
 #else
+#ifdef HAVE_PTHREAD_MUTEXATTR_SETKIND_NP
       (void)pthread_mutexattr_setkind_np(&attr, PTHREAD_MUTEX_RECURSIVE_NP);
-#endif
+#else
+#error "Don't know how to make mutex recursive"
+#endif /* HAVE_PTHREAD_MUTEXATTR_SETKIND_NP */
+#endif /* HAVE_PTHREAD_MUTEXATTR_SETTYPE */
       mutex = (pthread_mutex_t *)xmalloc(sizeof(*mutex));
       if (mutex != 0 && pthread_mutex_init(mutex, &attr) != 0)
       {
@@ -131,7 +135,7 @@ SLPMutexHandle SLPMutexCreate(void)
       }
       (void)pthread_mutexattr_destroy(&attr);
    }
-#endif
+#endif /* _WIN32 */
    return (SLPMutexHandle)mutex;
 }
 

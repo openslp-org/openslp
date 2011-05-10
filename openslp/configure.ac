@@ -78,6 +78,7 @@ AC_FUNC_MEMCMP
 AC_FUNC_SELECT_ARGTYPES
 AC_FUNC_VPRINTF
 AC_CHECK_FUNCS([strchr memcpy strcasecmp strdup strtol strerror isascii alarm gethostname gettimeofday select socket])
+AC_CHECK_FUNCS([pthread_mutexattr_settype pthread_mutexattr_setkind_np])
 
 #
 # SLPv1 support - default is ON
