@@ -713,7 +713,7 @@ static SLPBoolean KnownDAFromCache(size_t scopelistlen,
                                  spistrlen,
                                  spistr,
                                  daaddr,
-                                 sizeof (struct in_addr));
+                                 sizeof (struct sockaddr_storage));
       /* cache wasn't refreshed, so no point in searching again */
       return SLP_FALSE;
    }
