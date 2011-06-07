@@ -314,6 +314,34 @@ sockfd_t NetworkConnectToSlpd(void * peeraddr)
    return sock;
 }
 
+/** Checks if an old DA/SA connection is still usable, the server
+  * may have closed it in the meantime. We detect this by calling
+  * select() with a timeout of zero, if select signals available
+  * data the socket was closed.
+  */
+static SLPError NetworkCheckConnection(sockfd_t fd)
+{
+   int r;
+   fd_set readfd;
+   struct timeval tv;
+
+   FD_ZERO(&readfd);
+   FD_SET(fd, &readfd);
+   tv.tv_sec = 0;
+   tv.tv_usec = 0;
+   while ((r = select(fd + 1, &readfd, 0, 0, &tv)) == -1)
+   {
+#ifdef _WIN32
+     if (WSAGetLastError() != WSAEINTR)
+#else
+     if (errno != EINTR)
+#endif
+        break;
+   }
+   /* r == 0 means timeout, everything else is an error */
+   return r == 0 ? SLP_OK : SLP_NETWORK_ERROR;
+}
+
 /** Disconnect from the connected DA.
  *
  * Called after DA fails to respond.
@@ -322,7 +350,7 @@ sockfd_t NetworkConnectToSlpd(void * peeraddr)
  */
 void NetworkDisconnectDA(SLPHandleInfo * handle)
 {
-   if (handle->dasock)
+   if (handle->dasock != SLP_INVALID_SOCKET)
    {
       closesocket(handle->dasock);
       handle->dasock = SLP_INVALID_SOCKET;
@@ -338,7 +366,7 @@ void NetworkDisconnectDA(SLPHandleInfo * handle)
  */
 void NetworkDisconnectSA(SLPHandleInfo * handle)
 {
-   if (handle->sasock)
+   if (handle->sasock != SLP_INVALID_SOCKET)
    {
       closesocket(handle->sasock);
       handle->sasock = SLP_INVALID_SOCKET;
@@ -365,7 +393,8 @@ sockfd_t NetworkConnectToDA(SLPHandleInfo * handle, const char * scopelist,
     */
    if (handle->dasock != SLP_INVALID_SOCKET && handle->dascope != 0 
          && SLPCompareString(handle->dascopelen, handle->dascope, 
-               scopelistlen, scopelist) == 0)
+               scopelistlen, scopelist) == 0
+         && NetworkCheckConnection(handle->dasock) == SLP_OK)
       memcpy(peeraddr, &handle->daaddr, sizeof(struct sockaddr_storage));
    else
    {
@@ -412,7 +441,8 @@ sockfd_t NetworkConnectToSA(SLPHandleInfo * handle, const char * scopelist,
 {
    if (handle->sasock != SLP_INVALID_SOCKET && handle->sascope != 0 
          && SLPCompareString(handle->sascopelen, handle->sascope,
-               scopelistlen, scopelist) == 0)
+               scopelistlen, scopelist) == 0
+         && NetworkCheckConnection(handle->sasock) == SLP_OK)
       memcpy(saaddr, &handle->saaddr, sizeof(handle->saaddr));
    else
    {
