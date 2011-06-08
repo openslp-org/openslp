@@ -928,19 +928,16 @@ int SLPDKnownDAAdd(SLPMessage * msg, SLPBuffer buf)
             goto CLEANUP;
          }
       }
-
-      SLPDatabaseClose(dh);
-
-      return result;
+   } else {
+      /* If we are here, we need to cleanup the message descriptor and the  */
+      /* message buffer because they were not added to the database and not */
+      /* cleaning them up would result in a memory leak. This is because we */
+      /* return zero, so the caller thinks it must not do the cleanup.      */
+      SLPMessageFree(msg);
+      SLPBufferFree(buf);
    }
 
    CLEANUP:
-   /* If we are here, we need to cleanup the message descriptor and the  */
-   /* message buffer because they were not added to the database and not */
-   /* cleaning them up would result in a memory leak                     */
-   /* We also need to make sure the Database handle is closed.           */
-   SLPMessageFree(msg);
-   SLPBufferFree(buf);
    if (dh)
       SLPDatabaseClose(dh);
 
