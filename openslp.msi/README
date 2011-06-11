@@ -5,11 +5,11 @@ Introduction
 This directory contains the required source files and scripts to create a 
 Windows Installer .msi file for OpenSLP. 
 
-The WIX toolset version 3.0 is required to build a .msi file from the source 
+The WIX toolset version 3.5 is required to build a .msi file from the source 
 files in this directory. WIX is a Microsoft-sponsored open source project 
 hosted by sourceforge.net (http://wix.sf.net) that provides a simple, but 
 powerful layer on top of the Windows Installer database interface. WIX stands 
-for Windows Installer XML. Install WIX 3.0, add the WIX root directory to your 
+for Windows Installer XML. Install WIX 3.5, add the WIX root directory to your 
 path, and create an environment variable called WIX_PATH, also set to the root 
 of the WIX directory structure.
 
