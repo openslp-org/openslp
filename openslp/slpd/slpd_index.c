@@ -307,7 +307,7 @@ char *strdup_len(const char *str, size_t max_len)
 
    for (p = str; max_len && *p; --max_len, p++)
       ;
-   len = p - str;
+   len = (int)(p - str);
    result = (char *)malloc(len+1);
    if (result)
    {

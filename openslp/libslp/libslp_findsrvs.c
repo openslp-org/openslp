@@ -318,7 +318,7 @@ static SLPError ProcessSrvRqst(SLPHandleInfo * handle)
       if (SLPNetIsIPV4())
       {
          if (KnownDASpanningListFromCache(handle,
-                                          handle->params.findsrvs.scopelistlen,
+                                          (int)handle->params.findsrvs.scopelistlen,
                                           handle->params.findsrvs.scopelist,
                                           &destaddrs) > 0)
          {

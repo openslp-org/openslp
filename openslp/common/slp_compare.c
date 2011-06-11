@@ -513,7 +513,7 @@ int SLPContainsStringList(size_t listlen, const char * list, size_t stringlen,
 
       if (SLPCompareString(itemend - itembegin, itembegin, 
             stringlen, string) == 0)
-         return 1 + (itembegin - list);         /* 1-based index of the position of the string in the list */
+         return (int)(1 + (itembegin - list));  /* 1-based index of the position of the string in the list */
 
       itemend++;
    }
@@ -578,7 +578,7 @@ int SLPIntersectRemoveStringList(int list1len,
     char* listend = (char*)list1 + list1len;
     char* itembegin = (char*)list1;
     char* itemend = itembegin;
-    char* list2end = (char*)list2+(*list2len);
+    char* list2end = (char*)list2 + (*list2len);
 
     while(itemend < listend)
     {
@@ -595,7 +595,7 @@ int SLPIntersectRemoveStringList(int list1len,
                 }
             }
 
-            itemend ++;
+            itemend++;
         }
 
         if ((pos = SLPContainsStringList(*list2len,
@@ -622,10 +622,10 @@ int SLPIntersectRemoveStringList(int list1len,
             list2end = dest;
         }
 
-        itemend ++;    
+        itemend++;    
     }
 
-    *list2len = list2end-(char *)list2;
+    *list2len = (int)(list2end - (char *)list2);
 
     return result;
 }

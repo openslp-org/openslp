@@ -191,7 +191,7 @@ int KnownDASpanningListFind(int scopelistlen,
                   if (entry->msg->peer.ss_family == AF_INET && SLPNetIsIPV4())
                   {
                     /* Remove the DA's scopes from the remaining list of scopes */
-                    (void)SLPIntersectRemoveStringList(entry->msg->body.daadvert.scopelistlen,
+                    (void)SLPIntersectRemoveStringList((int)entry->msg->body.daadvert.scopelistlen,
                                                        entry->msg->body.daadvert.scopelist,
                                                        &scopesleftlen,
                                                        scopesleft);
@@ -705,7 +705,7 @@ static SLPBoolean KnownDAFromCache(size_t scopelistlen,
    if (KnownDAListFind(scopelistlen, scopelist, spistrlen, spistr, 
          daaddr, sizeof(struct sockaddr_storage)) == SLP_FALSE)
    {
-      if (KnownDARefreshCache(scopelistlen,
+      if (KnownDARefreshCache((int)scopelistlen,
                               scopelist,
                               handle) == SLP_TRUE)
           return KnownDAListFind(scopelistlen,

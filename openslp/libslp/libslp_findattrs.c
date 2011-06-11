@@ -186,7 +186,7 @@ static SLPError ProcessAttrRqst(SLPHandleInfo * handle)
       if (SLPNetIsIPV4())
       {
          if (KnownDASpanningListFromCache(handle,
-                                          handle->params.findattrs.scopelistlen,
+                                          (int)handle->params.findattrs.scopelistlen,
                                           handle->params.findattrs.scopelist,
                                           &destaddrs) > 0)
          {

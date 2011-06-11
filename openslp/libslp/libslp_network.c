@@ -329,7 +329,7 @@ static SLPError NetworkCheckConnection(sockfd_t fd)
    FD_SET(fd, &readfd);
    tv.tv_sec = 0;
    tv.tv_usec = 0;
-   while ((r = select(fd + 1, &readfd, 0, 0, &tv)) == -1)
+   while ((r = select((int)(fd + 1), &readfd, 0, 0, &tv)) == -1)
    {
 #ifdef _WIN32
      if (WSAGetLastError() != WSAEINTR)
@@ -1341,7 +1341,7 @@ SLPError NetworkMultiUcastRqstRply(
     /*----------------------------------------------------*/
     /* Save off a few things we don't want to recalculate */
     /*----------------------------------------------------*/
-    langtaglen = strlen(langtag);
+    langtaglen = (int)strlen(langtag);
     xid = SLPXidGenerate();
     mtu = SLPPropertyGetMTU();
     sendbuf = SLPBufferAlloc(mtu);
@@ -1440,7 +1440,7 @@ SLPError NetworkMultiUcastRqstRply(
     /*----------------------------------------*/
     /* re-allocate buffer if necessary        */
     /*----------------------------------------*/
-    send_size = 14 + langtaglen + bufsize;
+    send_size = 14 + langtaglen + (int)bufsize;
     if(buftype == SLP_FUNCT_SRVRQST ||
        buftype == SLP_FUNCT_ATTRRQST ||
        buftype == SLP_FUNCT_SRVTYPERQST)
@@ -1528,7 +1528,7 @@ SLPError NetworkMultiUcastRqstRply(
 #endif
                     if (sendto(udp_socket, 
                                (char*)sendbuf->start,
-                               sendbuf->curpos - sendbuf->start,
+                               (int)(sendbuf->curpos - sendbuf->start),
                                flags,
                                (struct sockaddr *)&destaddr[i],
                                sizeof destaddr[i]) < 0)
@@ -1609,7 +1609,7 @@ SLPError NetworkMultiUcastRqstRply(
         /*---------------------------------*/
         /* Wait for something to do        */
         /*---------------------------------*/
-        selected = select(nfds,
+        selected = select((int)nfds,
                           &read_fds,
                           &write_fds,
                           0,
@@ -1693,7 +1693,7 @@ SLPError NetworkMultiUcastRqstRply(
                     udp_recvbuf = SLPBufferRealloc(udp_recvbuf, AS_UINT24(peek + 2));
                     bytesread = recv(udp_socket,
                                      (char*)udp_recvbuf->curpos,
-                                     udp_recvbuf->end - udp_recvbuf->curpos,
+                                     (int)(udp_recvbuf->end - udp_recvbuf->curpos),
                                      0);
                     if(bytesread != (int32_t)AS_UINT24(peek + 2))
                     {
@@ -1719,7 +1719,7 @@ SLPError NetworkMultiUcastRqstRply(
                     udp_recvbuf = SLPBufferRealloc(udp_recvbuf, mtu);
                     bytesread = recv(udp_socket,
                                      (char*)udp_recvbuf->curpos,
-                                     udp_recvbuf->end - udp_recvbuf->curpos,
+                                     (int)(udp_recvbuf->end - udp_recvbuf->curpos),
                                      0);
                     if(bytesread != mtu)
                     {
@@ -1854,7 +1854,7 @@ SLPError NetworkMultiUcastRqstRply(
                     }
                     else
                     {
-                        if (SetNonBlocking(pconn->socket) < 0)
+                        if (SetNonBlocking((int)pconn->socket) < 0)
                         {
                             result = SLP_NETWORK_ERROR;
                             closesocket(pconn->socket);
