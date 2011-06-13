@@ -24,6 +24,7 @@ if "%~0" == "--src"     set src=%~1
 if "%~0" == "--tgt"     set target=%~1
 if "%~0" == "--arch"    set arch=%~1
 if "%~0" == "--build"	set build=%~1
+if "%~0" == "--help"    goto dohelp
 if "%~0" == ""			goto docheckarch
 shift
 goto doparse
@@ -31,7 +32,8 @@ goto doparse
 :dohelp
 echo.
 echo Usage: makesrc [--src ^<srcdir^>] [--tgt ^<tgtdir^>] 
-echo                [--arch ^<win32^|x64^>] [--build ^<debug^|release^>] [--help]
+echo                [--arch ^<win32^|x64^>] [--build ^<debug^|release^>]
+echo                [--help]
 echo.
 echo Where ^<srcdir^> is the location of the root of the openslp source directory, 
 echo and ^<tgtdir^> is the location to build the install directory structure.
@@ -41,8 +43,8 @@ echo (win32 is the default). Use --help to get this help screen.
 echo.
 echo Default: "makesrc --src %source% --tgt %target% --build %build% --arch %arch%"
 echo.
-echo NOTE! Please ensure that the WIX_PATH environment variable contains the
-echo directory in which the WIX tool set has been installed.
+echo Use --help to get this help screen.
+echo.
 goto doexit
 
 :docheckarch

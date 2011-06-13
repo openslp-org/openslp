@@ -2,16 +2,20 @@
 
 rem -------------------------------------------------------------------------
 rem Usage: build [--version <version>] [--revision <revision>]
-rem              [--machine <x86|amd64>] [--build <debug|release>]
+rem              [--arch <win32|x64>] [--build <debug|release>]
 rem              [--help]
 rem
-rem build.cmd rebuilds the openslp installer against wix 3.0 (build 1821)
+rem build.cmd rebuilds the openslp installer against wix 3.5
 rem -------------------------------------------------------------------------
 
 setlocal
 
-if "%WIX_PATH" == "" goto dohelp
+if NOT "%WIX_PATH" == "" goto dostart
+echo *** Error: You must point the WIX_PATH environment variable at your WIX binaries.
+echo.
+goto dohelp
 
+:dostart
 rem -------------------------------------------------------------------------
 rem Please ensure that your path contains the WIX tool set directory, and 
 rem that your environment contains a WIX_PATH variable that points to the
@@ -20,7 +24,7 @@ rem root of the WIX tool set directory.
 set package=openslp
 set version=2.0.0
 set revision=beta2
-set machine=x86
+set arch=win32
 set build=release
 
 :doparse
@@ -28,34 +32,37 @@ rem -------------------------------------------------------------------------
 shift
 if "%~0" == "--version"  set version=%~1
 if "%~0" == "--revision" set revision=%~1
-if "%~0" == "--machine"  set machine=%~1
+if "%~0" == "--arch"     set arch=%~1
 if "%~0" == "--build"    set build=%~1
-if "%~0" == ""           goto docheckmachine
+if "%~0" == "--help"     goto dohelp
+if "%~0" == ""           goto docheckarch
 shift
 goto doparse
 
 :dohelp
 echo.
 echo Usage: build.cmd [--version ^<version^>] [--revision ^<revision^>]
-echo                  [--machine ^<x86^|amd64^>] [--build ^<debug^|release^>]
+echo                  [--arch ^<win32^|x64^>] [--build ^<debug^|release^>]
 echo                  [--help]
 echo.
-echo Where ^<version^> is a three-part dot-separated version number of OpenSLP.
+echo Where ^<version^> is a three-part dot-separated version number of OpenSLP
 echo and ^<revision^> is any string value that can be interpreted as a revision.
-echo The current defaults are %version% and %revision%. The default --machine tag
-echo is %machine%. The default --build type is %build%. Use --help to get this
-echo help screen.
+echo.
+echo Default: build --version %version% --revision %revision% --arch %arch% --build %build%
+echo.
+echo Use --help to get this help screen.
 echo.
 echo NOTE! Please ensure that the WIX_PATH environment variable contains the
 echo directory in which the WIX tool set has been installed.
+echo.
 goto doexit
 
-:docheckmachine
+:docheckarch
 rem -------------------------------------------------------------------------
-rem Be sure they're using a valid machine type...
-if "%machine%" == "x86" goto docheckbuild
-if "%machine%" == "amd64" goto docheckbuild
-echo *** Error: Unknown machine type %machine%.
+rem Be sure they're using a valid architecture...
+if "%arch%" == "win32" goto docheckbuild
+if "%arch%" == "x64" goto docheckbuild
+echo *** Error: Unknown architecture %arch%.
 goto dohelp
 
 :docheckbuild
@@ -66,6 +73,9 @@ goto dohelp
 
 :dobuild
 rem -------------------------------------------------------------------------
+set machine=x86
+if "%arch%" == "x64" set machine=%arch%
+
 set version_revision=%version%
 if NOT "%revision%" == "" set version_revision=%version_revision%_%revision%
 
@@ -77,7 +87,7 @@ set output=%package%_%version_revision%_%machine_build%.msi
 echo.
 echo Building %output%...
 
-%WIX_PATH%\candle -nologo -dVERSION=%version% -dREVISION=%revision% %package%.wxs
+%WIX_PATH%\candle -nologo -dVERSION=%version% -dREVISION=%revision% -dMACHINE=%machine% -dBUILD=%build% %package%.wxs
 %WIX_PATH%\light -nologo -out %output% %package%.wixobj -ext WixUIExtension -cultures:en-us -sval
 
 :doexit
