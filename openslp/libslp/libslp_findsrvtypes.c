@@ -198,6 +198,7 @@ static SLPError ProcessSrvTypeRqst(SLPHandleInfo * handle)
    uint8_t * curpos;
    SLPError serr = SLP_OK;
    struct sockaddr_storage peeraddr;
+   struct sockaddr_in* destaddrs = 0;
 
 /* 0                   1                   2                   3
    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -235,6 +236,24 @@ static SLPError ProcessSrvTypeRqst(SLPHandleInfo * handle)
          serr = NetworkUcastRqstRply(handle, buf, SLP_FUNCT_SRVTYPERQST,
                curpos - buf, ProcessSrvTypeRplyCallback, handle);
          break;
+      }
+      if (SLPNetIsIPV4())
+      {
+         if (KnownDASpanningListFromCache(handle,
+                                          handle->params.findsrvs.scopelistlen,
+                                          handle->params.findsrvs.scopelist,
+                                          &destaddrs) > 0)
+         {
+            serr = NetworkMultiUcastRqstRply(destaddrs,
+                                             handle->langtag,
+                                             (char*)buf,
+                                             SLP_FUNCT_SRVTYPERQST,
+                                             curpos - buf,
+                                             ProcessSrvTypeRplyCallback,
+                                             handle);
+            xfree(destaddrs);
+            break;
+         }
       }
 #endif
       sock = NetworkConnectToDA(handle, 
