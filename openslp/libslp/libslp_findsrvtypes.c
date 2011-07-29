@@ -42,6 +42,7 @@
 
 #include "slp.h"
 #include "libslp.h"
+#include "slp_net.h"
 #include "slp_property.h"
 #include "slp_xmalloc.h"
 #include "slp_compare.h"
@@ -240,7 +241,7 @@ static SLPError ProcessSrvTypeRqst(SLPHandleInfo * handle)
       if (SLPNetIsIPV4())
       {
          if (KnownDASpanningListFromCache(handle,
-                                          handle->params.findsrvs.scopelistlen,
+                                          (int)handle->params.findsrvs.scopelistlen,
                                           handle->params.findsrvs.scopelist,
                                           &destaddrs) > 0)
          {

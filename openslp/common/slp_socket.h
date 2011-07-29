@@ -67,9 +67,15 @@
 # define ssize_t int
 # define inet_aton(opt, bind) ((bind)->s_addr = inet_addr(opt))
 # define SLP_INVALID_SOCKET INVALID_SOCKET
-# define ETIMEDOUT 110
-# define ENOTCONN  107
-# define EAFNOSUPPORT -1
+# ifndef ETIMEDOUT
+#  define ETIMEDOUT 110
+# endif
+# ifndef ENOTCONN
+#  define ENOTCONN  107
+# endif
+# ifndef EAFNOSUPPORT
+#  define EAFNOSUPPORT -1
+# endif
 # define inet_aton(opt, bind) ((bind)->s_addr = inet_addr(opt))
 
 /*
