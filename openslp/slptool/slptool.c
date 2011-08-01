@@ -279,6 +279,9 @@ void Register(SLPToolCommandLine * cmdline)
    strncpy(srvtype, cmdline->cmdparam1, len);
    srvtype[len] = 0;
 
+   /* Clear property (if set), otherwise the register function is quite useless */
+   SLPSetProperty("net.slp.watchRegistrationPID", 0);
+
    if (SLPOpen(cmdline->lang, SLP_FALSE, &hslp) == SLP_OK)
    {
       if (!lt || lt > SLP_LIFETIME_MAXIMUM)
