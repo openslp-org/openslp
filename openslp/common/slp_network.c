@@ -273,10 +273,10 @@ int SLPNetworkRecvMessage(sockfd_t sockfd, int socktype,
    }
 
    /* Now check the version and read the rest of the message. */
-   if (*peek == 2)
+   if ((*peek == 1) || (*peek == 2))
    {
       /* Allocate the receive buffer as large as necessary. */
-      *buf = SLPBufferRealloc(*buf, AS_UINT24(peek + 2));
+      *buf = SLPBufferRealloc(*buf, PEEK_LENGTH(peek));
       if (*buf)
       {
          while ((*buf)->curpos < (*buf)->end)

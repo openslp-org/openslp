@@ -236,6 +236,7 @@ int SLPXcastRecvMessage(const SLPXcastSockets * sockets, SLPBuffer * buf,
    char peek[16];
    int result = 0;
    int mtu;
+   unsigned int msglen;
 
    mtu = SLPPropertyGetMTU();
    /* recv loop */
@@ -276,14 +277,16 @@ int SLPXcastRecvMessage(const SLPXcastSockets * sockets, SLPBuffer * buf,
 #endif
                )
                {
-                  if (AS_UINT24(peek + 2) <=  (unsigned int)mtu)
+                  msglen = PEEK_LENGTH(peek);
+
+                  if (msglen <= (unsigned int)mtu)
                   {
-                     *buf = SLPBufferRealloc(*buf, AS_UINT24(peek + 2));
+                     *buf = SLPBufferRealloc(*buf, msglen);
                      bytesread = recv(sockets->sock[i], (char *)(*buf)->curpos,
                            (int)((*buf)->end - (*buf)->curpos), 0);
 
                      /* This should never happen but we'll be paranoid*/
-                     if (bytesread != (int)AS_UINT24(peek + 2))
+                     if (bytesread != (int)msglen)
                         (*buf)->end = (*buf)->curpos + bytesread;
 
                      /* Message read. We're done! */

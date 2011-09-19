@@ -218,7 +218,7 @@ static SLPError ProcessSrvReg(SLPHandleInfo * handle)
    if (sock != SLP_INVALID_SOCKET)
    {
       serr = NetworkRqstRply(sock, &saaddr, handle->langtag, extoffset,
-            buf, SLP_FUNCT_SRVREG, curpos - buf, CallbackSrvReg, handle);
+            buf, SLP_FUNCT_SRVREG, curpos - buf, CallbackSrvReg, handle, false);
       if (serr)
          NetworkDisconnectSA(handle);
    }

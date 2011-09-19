@@ -196,6 +196,7 @@ void OutgoingStreamRead(SLPList * socklist, SLPDSocket * sock)
    int bytesread;
    char peek[16];
    socklen_t peeraddrlen = sizeof(struct sockaddr_storage);
+   unsigned int msglen;
 
    if (sock->state == STREAM_READ_FIRST)
    {
@@ -207,7 +208,9 @@ void OutgoingStreamRead(SLPList * socklist, SLPDSocket * sock)
       if (bytesread > 0)
       {
          /* allocate the recvbuf big enough for the whole message */
-         sock->recvbuf = SLPBufferRealloc(sock->recvbuf, AS_UINT24(peek + 2));
+         msglen = PEEK_LENGTH(peek);
+
+         sock->recvbuf = SLPBufferRealloc(sock->recvbuf, msglen);
          if (sock->recvbuf)
             sock->state = STREAM_READ;
          else

@@ -226,17 +226,18 @@ typedef SLPBoolean NetworkRplyCallback(SLPError errorcode,
       void * peeraddr, SLPBuffer replybuf, void * cookie);
 
 SLPError NetworkRqstRply(sockfd_t sock, void * peeraddr,
-      const char * langtag, size_t extoffset, void * buf, char buftype,
-      size_t bufsize, NetworkRplyCallback callback, void * cookie); 
+      const char * langtag, size_t extoffset, void * buf, char buftype, 
+      size_t bufsize, NetworkRplyCallback callback, void * cookie, 
+      int isV1); 
 
 SLPError NetworkMcastRqstRply(SLPHandleInfo * handle,
       void * buf, char buftype, size_t bufsize, 
-      NetworkRplyCallback callback, void * cookie);
+      NetworkRplyCallback callback, void * cookie, int isV1);
 
 #ifndef UNICAST_NOT_SUPPORTED
 SLPError NetworkUcastRqstRply(SLPHandleInfo * handle, void * buf, 
       char buftype, size_t bufsize, NetworkRplyCallback callback, 
-      void * cookie);
+      void * cookie, int isV1);
 SLPError NetworkMultiUcastRqstRply(
                          struct sockaddr_in* destaddr,		// This is an array of addresses
                          const char* langtag,
@@ -244,7 +245,8 @@ SLPError NetworkMultiUcastRqstRply(
                          char buftype,
                          size_t bufsize,
                          NetworkRplyCallback callback,
-                         void * cookie);
+                         void * cookie,
+                         int isV1);
 #endif
 
 sockfd_t KnownDAConnect(SLPHandleInfo * handle, size_t scopelistlen, 

@@ -468,6 +468,62 @@ static int v1ParseAttrRqst(const SLPBuffer buffer, int encoding,
    return 0;
 }
 
+/** Parse an SLPv1 Attribute Reply message.
+ *
+ * @param[in] buffer - The buffer containing the data to be parsed.
+ * @param[in] encoding - The language encoding of the message.
+ * @param[out] attrrply - The attribute reply object into which 
+ *                        buffer should be parsed.
+ *
+ * @return Zero on success, SLP_ERROR_INTERNAL_ERROR (out of memory) or
+ *    SLP_ERROR_PARSE_ERROR.
+ *
+ * @internal
+ */
+static int v1ParseAttrRply(const SLPBuffer buffer, int encoding,
+      SLPAttrRply * attrrply)
+{
+/*  0                   1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |  Error Code                   | Length of <attr-list> string  |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                                                               |
+   \                          <attr-list>                          \
+   |                                                               |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ */
+ 
+   int result;
+
+   /* Enforce SLPv1 attribute request size limits. */
+   if (buffer->end - buffer->curpos < 4)
+      return SLP_ERROR_PARSE_ERROR;
+
+   /* slpv1 doesn't have auths */
+   attrrply->authcount = 0;
+   attrrply->autharray = 0;
+
+   /* Parse the error code */
+   attrrply->errorcode = GetUINT16(&buffer->curpos);
+
+   /* Parse the attributes as UTF8*/
+   attrrply->attrlistlen = GetUINT16(&buffer->curpos);
+   attrrply->attrlist = GetStrPtr(&buffer->curpos, attrrply->attrlistlen);
+   if (buffer->curpos > buffer->end)
+      return SLP_ERROR_PARSE_ERROR;
+   if ((result = SLPv1AsUTF8(encoding, (char *)attrrply->attrlist,
+         &attrrply->attrlistlen)) != 0)
+      return result;
+
+    /* Terminate the attr list for caller convenience - overwrites the
+    *  byte after the string, but the buffer should have more than enough allocated.
+    */
+   if((attrrply->attrlist) && ((buffer->allocated - (buffer->end - buffer->start)) > 0))
+      ((uint8_t *)attrrply->attrlist)[attrrply->attrlistlen] = 0;
+
+   return 0;
+}
+
 /** Parse an SLPv1 Service Type Request message.
  *
  * @param[in] buffer - The buffer containing the data to be parsed.
@@ -662,6 +718,11 @@ int SLPv1MessageParseBuffer(const SLPBuffer buffer, SLPMessage * msg)
          case SLP_FUNCT_ATTRRQST:
             result = v1ParseAttrRqst(buffer, msg->header.encoding,
                   &msg->body.attrrqst);
+            break;
+
+         case SLP_FUNCT_ATTRRPLY:
+            result = v1ParseAttrRply(buffer, msg->header.encoding,
+                  &msg->body.attrrply);
             break;
 
          case SLP_FUNCT_DAADVERT:

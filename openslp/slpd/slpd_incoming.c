@@ -114,7 +114,8 @@ static void IncomingDatagramRead(SLPList * socklist, SLPDSocket * sock)
             sock->sendbuf->curpos = sock->sendbuf->start;
             while (sock->sendbuf->curpos < sock->sendbuf->end)
             {
-               int packetbytes = AS_UINT24(sock->sendbuf->curpos + 2);
+               int packetbytes = PEEK_LENGTH(sock->sendbuf->curpos);
+
                byteswritten = sendto(sendsock, (char*)sock->sendbuf->curpos,
                      packetbytes, 0, (struct sockaddr *)&sock->peeraddr,
                      SLPNetAddrLen(&sock->peeraddr));
@@ -236,10 +237,8 @@ static void IncomingStreamRead(SLPList * socklist, SLPDSocket * sock)
             (struct sockaddr *)&sock->peeraddr, &peeraddrlen);
       if (bytesread > 0)
       {
-         if (*peek == 2)
-            recvlen = AS_UINT24(peek + 2);
-         else if (*peek == 1) /* SLPv1 packet */
-            recvlen = AS_UINT16(peek + 2);
+         recvlen = PEEK_LENGTH(peek);
+
          /* allocate the recvbuf big enough for the whole message */
          sock->recvbuf = SLPBufferRealloc(sock->recvbuf, recvlen);
          if (sock->recvbuf)

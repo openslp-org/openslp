@@ -48,6 +48,7 @@
 #include "slp_network.h"
 #include "slp_iface.h"
 #include "slp_message.h"
+#include "slp_v1message.h"
 #include "slp_compare.h"
 #include "slp_xmalloc.h"
 #include "slp_xcast.h"
@@ -145,6 +146,56 @@ void timeval_add(struct timeval *lhs, struct timeval *rhs)
         lhs->tv_usec -= 1000000;
         ++lhs->tv_sec;
     }
+}
+
+/** Returns the appropriate buffer size for the various RequestReply functions
+ *
+ * @param[in] v1 - Whether or not this is a SLPv1 packet
+ * @param[in] buftype - The message type
+ * @param[in] langsize - the language tag size
+ * @param[in] prlistlen - the current size of the prlist, only used for appropriate buftypes
+ * @param[in] bufsize - The size of the message
+ *
+ * @return the size
+ */
+size_t CalcBufferSize(int v1, char buftype, size_t langsize, size_t prlistlen, size_t bufsize)
+{
+   size_t size = 0;
+
+   if(v1)
+   {
+      /*  1  Version         
+        + 1  Function-ID
+        + 2  Length
+        + 1  Flags/Reserved
+        + 1  Dialect
+        + 2  Language Code
+        + 2  Char Encoding 
+        + 2  XID                  */
+      size =  12;
+   }
+   else
+   {
+      /*  1  Version
+        + 1  Function-ID
+        + 3  Length
+        + 2  Flags
+        + 3  Extension Offset
+        + 2  XID
+        + 2  Lang Tag Len   */
+      size = 14 + langsize;
+   }   
+
+   size += bufsize;  
+   
+   if (buftype == SLP_FUNCT_SRVRQST 
+         || buftype == SLP_FUNCT_ATTRRQST 
+         || buftype == SLP_FUNCT_SRVTYPERQST)
+   {
+         size += (2 + prlistlen); /* <PRList> Len/String  */
+   }
+ 
+   return size;
 }
 
 #if !defined(MI_NOT_SUPPORTED)
@@ -476,15 +527,17 @@ sockfd_t NetworkConnectToSA(SLPHandleInfo * handle, const char * scopelist,
  * @param[in] bufsize - The size of @p buf.
  * @param[in] callback - The user callback to call with response data.
  * @param[in] cookie - A pass through value from the caller to @p callback.
+ * @param[in] isV1 - Whether or not to use a V1 header.
  *
  * @return SLP_OK on success, or an SLP error code on failure.
  */ 
 SLPError NetworkRqstRply(sockfd_t sock, void * peeraddr, 
       const char * langtag, size_t extoffset, void * buf, char buftype,
-      size_t bufsize, NetworkRplyCallback callback, void * cookie)
+      size_t bufsize, NetworkRplyCallback callback, void * cookie, int isV1)
 {
    char * prlist = 0;
    unsigned short flags;
+   char v1flags;
 
    size_t mtu = 0;
    size_t prlistlen = 0;
@@ -603,42 +656,7 @@ SLPError NetworkRqstRply(sockfd_t sock, void * peeraddr,
          timeout.tv_usec = (maxwait % 1000) * 1000;
       }
 
-   /*  0                   1                   2                   3
-       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-      |    Version    |  Function-ID  |            Length             |
-      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-      | Length, contd.|O|F|R|       reserved          |Next Ext Offset|
-      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-      |  Next Extension Offset, contd.|              XID              |
-      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-      |      Language Tag Length      |         Language Tag          \
-      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ */
-
-      /* Calculate the (new) size of the send buffer. */
-      size = (int)(
-            + 1               /* Version              */
-            + 1               /* Function-ID          */
-            + 3               /* Length               */
-            + 2               /* Flags                */
-            + 3               /* Extension Offset     */
-            + 2               /* XID                  */
-            + 2 + langtaglen  /* Lang Tag Len/Value   */
-            + bufsize);       /* Message              */
-   
-      if (buftype == SLP_FUNCT_SRVRQST 
-            || buftype == SLP_FUNCT_ATTRRQST 
-            || buftype == SLP_FUNCT_SRVTYPERQST)
-      {
-      /*  0                   1                   2                   3
-         0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-         +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-         |      length of <PRList>       |        <PRList> String        \
-         +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ */
-
-         size += (int)(
-               + 2 + prlistlen); /* <PRList> Len/String  */
-      }
+      size = CalcBufferSize(isV1, buftype, langtaglen, prlistlen, bufsize);
 
       /* Ensure the send buffer size does not exceed MTU for datagrams. */
       if (socktype == SOCK_DGRAM && size > mtu)
@@ -657,42 +675,81 @@ SLPError NetworkRqstRply(sockfd_t sock, void * peeraddr,
       xmitcount++;
 
       /* -- Begin SLP Header -- */
+      if(isV1)
+      {
+         /* Version */
+         *sendbuf->curpos++ = 1;
 
-      /* Version */
-      *sendbuf->curpos++ = 2;
+         /* Function-ID */
+         *sendbuf->curpos++ = buftype;
 
-      /* Function-ID */
-      *sendbuf->curpos++ = buftype;
+         /* Length */
+         PutUINT16(&sendbuf->curpos, size);
 
-      /* Length */
-      PutUINT24(&sendbuf->curpos, size);
+         /* flags */
+         v1flags = 0;
+         if (buftype == SLP_FUNCT_SRVREG)
+            v1flags |= SLPv1_FLAG_FRESH;
+         *sendbuf->curpos++ = v1flags;
 
-      /* Flags */
-      flags = (SLPNetIsMCast(peeraddr)? SLP_FLAG_MCAST : 0);
-      if (buftype == SLP_FUNCT_SRVREG)
-         flags |= SLP_FLAG_FRESH;
-      PutUINT16(&sendbuf->curpos, flags);
+         /* dialect */
+         *sendbuf->curpos++ = 0;
 
-      /* Extension Offset - TRICKY: The extoffset was passed into us 
-       * relative to the start of the user's message, not the SLP header. 
-       * We need to fix up the offset to be relative to the beginning of 
-       * the SLP message.
-       */
-      if (extoffset != 0)
-         PutUINT24(&sendbuf->curpos, extoffset + langtaglen + 14);
+         /* Language code.  For now, we'll take the first two bytes of the tag */
+         if(langtaglen < 2)
+         {
+            *sendbuf->curpos++ = 'e';
+            *sendbuf->curpos++ = 'n';
+         }
+         else
+         {
+            *sendbuf->curpos++ = langtag[0];
+            *sendbuf->curpos++ = langtag[1];
+         }
+
+         /* Character encoding -- assume UTF8 */
+         PutUINT16(&sendbuf->curpos, SLP_CHAR_UTF8);
+
+         /* XID */
+         PutUINT16(&sendbuf->curpos, xid);
+      }
       else
-         PutUINT24(&sendbuf->curpos, 0);
+      {
+         /* Version */
+         *sendbuf->curpos++ = 2;
 
-      /* XID */
-      PutUINT16(&sendbuf->curpos, xid);
+         /* Function-ID */
+         *sendbuf->curpos++ = buftype;
 
-      /* Language Tag Length */
-      PutUINT16(&sendbuf->curpos, langtaglen);
+         /* Length */
+         PutUINT24(&sendbuf->curpos, size);
 
-      /* Language Tag */
-      memcpy(sendbuf->curpos, langtag, langtaglen);
-      sendbuf->curpos += langtaglen;
+         /* Flags */
+         flags = (SLPNetIsMCast(peeraddr)? SLP_FLAG_MCAST : 0);
+         if (buftype == SLP_FUNCT_SRVREG)
+            flags |= SLP_FLAG_FRESH;
+         PutUINT16(&sendbuf->curpos, flags);
 
+         /* Extension Offset - TRICKY: The extoffset was passed into us 
+          * relative to the start of the user's message, not the SLP header. 
+          * We need to fix up the offset to be relative to the beginning of 
+          * the SLP message.
+          */
+         if (extoffset != 0)
+            PutUINT24(&sendbuf->curpos, extoffset + langtaglen + 14);
+         else
+            PutUINT24(&sendbuf->curpos, 0);
+
+         /* XID */
+         PutUINT16(&sendbuf->curpos, xid);
+
+         /* Language Tag Length */
+         PutUINT16(&sendbuf->curpos, langtaglen);
+
+         /* Language Tag */
+         memcpy(sendbuf->curpos, langtag, langtaglen);
+         sendbuf->curpos += langtaglen;
+      }
       /* -- End SLP Header -- */
 
       /* -- Begin SLP Message -- */
@@ -829,12 +886,13 @@ CLEANUP:
  * @param[in] bufsize - The size of the buffer pointed to by buf.
  * @param[in] callback - The callback to use for reporting results.
  * @param[in] cookie - The cookie to pass to the callback.
+ * @param[in] isV1 - Whether or not to use a v1 header.
  *
  * @return SLP_OK on success. SLP_ERROR on failure.
  */ 
 SLPError NetworkMcastRqstRply(SLPHandleInfo * handle, void * buf, 
       char buftype, size_t bufsize, NetworkRplyCallback callback,
-      void * cookie)
+      void * cookie, int isV1)
 {
    struct timeval timeout;
    struct sockaddr_storage addr;
@@ -969,10 +1027,7 @@ SLPError NetworkMcastRqstRply(SLPHandleInfo * handle, void * buf,
          /* re-allocate buffer and make sure that the send buffer does not
           * exceed MTU for datagram transmission 
           */
-         size = (int)(14 + langtaglen + bufsize);
-         if (buftype == SLP_FUNCT_SRVRQST || buftype == SLP_FUNCT_ATTRRQST 
-               || buftype == SLP_FUNCT_SRVTYPERQST)
-            size += (int)(2 + prlistlen); /* add in room for the prlist */
+         size = (int)CalcBufferSize(isV1, buftype, langtaglen, prlistlen, bufsize);
 
          if (size > mtu)
          {
@@ -988,31 +1043,68 @@ SLPError NetworkMcastRqstRply(SLPHandleInfo * handle, void * buf,
          xmitcount++;
 
          /* Add the header to the send buffer */
+         if(isV1)
+         {
+            /* Version */
+            *sendbuf->curpos++ = 1;
 
-         /* version */
-         *sendbuf->curpos++ = 2;
+            /* Function-ID */
+            *sendbuf->curpos++ = buftype;
 
-         /* function id */
-         *sendbuf->curpos++ = buftype;
+            /* Length */
+            PutUINT16(&sendbuf->curpos, size);
 
-         /* length */
-         PutUINT24(&sendbuf->curpos, size);
+            /* flags */
+            *sendbuf->curpos++ = 0;
 
-         /* flags */
-         PutUINT16(&sendbuf->curpos, SLP_FLAG_MCAST);
+            /* dialect */
+            *sendbuf->curpos++ = 0;
 
-         /* ext offset */
-         PutUINT24(&sendbuf->curpos, 0);
+            /* Language code.  For now, we'll take the first two bytes of the tag */
+            if(langtaglen < 2)
+            {
+               *sendbuf->curpos++ = 'e';
+               *sendbuf->curpos++ = 'n';
+            }
+            else
+            {
+               *sendbuf->curpos++ = handle->langtag[0];
+               *sendbuf->curpos++ = handle->langtag[1];
+            }
 
-         /* xid */
-         PutUINT16(&sendbuf->curpos, xid);
+            /* Character encoding -- assume UTF8 */
+            PutUINT16(&sendbuf->curpos, SLP_CHAR_UTF8);
 
-         /* lang tag len */
-         PutUINT16(&sendbuf->curpos, langtaglen);
+            /* XID */
+            PutUINT16(&sendbuf->curpos, xid);
+         }
+         else
+         {
+            /* version */
+            *sendbuf->curpos++ = 2;
 
-         /* lang tag */
-         memcpy(sendbuf->curpos, handle->langtag, langtaglen);
-         sendbuf->curpos += langtaglen;
+            /* function id */
+            *sendbuf->curpos++ = buftype;
+
+            /* length */
+            PutUINT24(&sendbuf->curpos, size);
+
+            /* flags */
+            PutUINT16(&sendbuf->curpos, SLP_FLAG_MCAST);
+
+            /* ext offset */
+            PutUINT24(&sendbuf->curpos, 0);
+
+            /* xid */
+            PutUINT16(&sendbuf->curpos, xid);
+
+            /* lang tag len */
+            PutUINT16(&sendbuf->curpos, langtaglen);
+
+            /* lang tag */
+            memcpy(sendbuf->curpos, handle->langtag, langtaglen);
+            sendbuf->curpos += langtaglen;
+         }
 
          /* Add the prlist to the send buffer */
          if (prlist)
@@ -1129,7 +1221,7 @@ SLPError NetworkMcastRqstRply(SLPHandleInfo * handle, void * buf,
 #if !defined(UNICAST_NOT_SUPPORTED)
 SNEEK:
 #endif
-            /* Sneek in and check the XID */
+            /* Sneek in and check the XID -- it's in the same place in v1 and v2*/
             if (AS_UINT16(recvbuf->start + 10) == xid)
             {
                char addrstr[INET6_ADDRSTRLEN] = "";
@@ -1211,12 +1303,13 @@ CLEANUP:
  * @param[in] bufsize - the size of the buffer pointed to by @p buf.
  * @param[in] callback - The callback to use for reporting results.
  * @param[in] cookie - The cookie to pass to the callback.
+ * @param[in] isV1 - Whether or not to use a v1 header.
  *
  * @return SLP_OK on success. SLP_ERROR on failure.
  */
 SLPError NetworkUcastRqstRply(SLPHandleInfo * handle, void * buf, 
       char buftype, size_t bufsize, NetworkRplyCallback callback, 
-      void * cookie)
+      void * cookie, int isV1)
 {
    /*In reality, this function just sets things up for NetworkRqstRply to operate*/
 
@@ -1226,7 +1319,7 @@ SLPError NetworkUcastRqstRply(SLPHandleInfo * handle, void * buf,
    if (handle->unicastsock == SLP_INVALID_SOCKET)
       return SLP_NETWORK_ERROR;
 
-   return NetworkRqstRply(handle->unicastsock, &handle->ucaddr, handle->langtag, 0, buf, buftype, bufsize, callback, cookie);
+   return NetworkRqstRply(handle->unicastsock, &handle->ucaddr, handle->langtag, 0, buf, buftype, bufsize, callback, cookie, isV1);
 }
 
 /** Set the given socket to be non-blocking
@@ -1257,6 +1350,7 @@ static int SetNonBlocking(int sock)
  * @param[in] bufsize - the size of the buffer pointed to by buf
  * @param[in] callback - the callback to use for reporting results
  * @param[in] cookie - the cookie to pass to the callback
+ * @param[in] isV1 - Whether or not to use a V1 header.
  *
  * @return SLP_OK on success
  *
@@ -1269,7 +1363,8 @@ SLPError NetworkMultiUcastRqstRply(
                          char buftype,
                          size_t bufsize,
                          NetworkRplyCallback callback,
-                         void * cookie)
+                         void * cookie,
+                         int isV1)
 {
     /* Minimum amount of data we need to read to get the packet length */
     #define             MIN_RECEIVE_SIZE  5
@@ -1302,6 +1397,8 @@ SLPError NetworkMultiUcastRqstRply(
     int                 udp_active      = 0;
     int                 do_send         = 1;
     unsigned short      flags;
+    char                v1flags;
+    unsigned int        msglen;
     struct timeval      now;
     struct timeval      timeout;
     struct timeval      timeout_end;
@@ -1440,14 +1537,7 @@ SLPError NetworkMultiUcastRqstRply(
     /*----------------------------------------*/
     /* re-allocate buffer if necessary        */
     /*----------------------------------------*/
-    send_size = 14 + langtaglen + (int)bufsize;
-    if(buftype == SLP_FUNCT_SRVRQST ||
-       buftype == SLP_FUNCT_ATTRRQST ||
-       buftype == SLP_FUNCT_SRVTYPERQST)
-    {
-        /* add in room for the prlist */
-        send_size += 2 + prlistlen;
-    }
+    send_size = (int)CalcBufferSize(isV1, buftype, langtaglen, prlistlen, bufsize);
     if (send_size > mtu)
     {
         if((sendbuf = SLPBufferRealloc(sendbuf,send_size)) == 0)
@@ -1460,29 +1550,63 @@ SLPError NetworkMultiUcastRqstRply(
     /*-----------------------------------*/
     /* Add the header to the send buffer */
     /*-----------------------------------*/
-    /*version*/
-    sendbuf->curpos = sendbuf->start ;
-    *(sendbuf->curpos++)       = 2;
-    /*function id*/
-    *(sendbuf->curpos++)   = buftype;
-    /*length*/
-    PutUINT24(&sendbuf->curpos, send_size);
-    /*flags*/
-    flags = 0;
-    if (buftype == SLP_FUNCT_SRVREG)
+    if(isV1)
     {
-        flags |= SLP_FLAG_FRESH;
+         /* Version */
+         *sendbuf->curpos++ = 1;
+         /* Function-ID */
+         *sendbuf->curpos++ = buftype;
+         /* Length */
+         PutUINT16(&sendbuf->curpos, send_size);
+         /* flags */
+         v1flags = 0;
+         if (buftype == SLP_FUNCT_SRVREG)
+            v1flags |= SLPv1_FLAG_FRESH;
+         *sendbuf->curpos++ = v1flags;
+         /* dialect */
+         *sendbuf->curpos++ = 0;
+         /* Language code.  For now, we'll take the first two bytes of the tag */
+         if(langtaglen < 2)
+         {
+            *sendbuf->curpos++ = 'e';
+            *sendbuf->curpos++ = 'n';
+         }
+         else
+         {
+            *sendbuf->curpos++ = langtag[0];
+            *sendbuf->curpos++ = langtag[1];
+         }
+         /* Character encoding -- assume UTF8 */
+         PutUINT16(&sendbuf->curpos, SLP_CHAR_UTF8);
+         /* XID */
+         PutUINT16(&sendbuf->curpos, xid);
     }
-    PutUINT16(&sendbuf->curpos, flags);
-    /*ext offset*/
-    PutUINT24(&sendbuf->curpos, 0);
-    /*xid*/
-    PutUINT16(&sendbuf->curpos, xid);
-    /*lang tag len*/
-    PutUINT16(&sendbuf->curpos,langtaglen);
-    /*lang tag*/
-    memcpy(sendbuf->curpos, langtag, langtaglen);
-    sendbuf->curpos = sendbuf->curpos + langtaglen ;
+    else
+    {
+       /*version*/
+       sendbuf->curpos = sendbuf->start ;
+       *(sendbuf->curpos++)       = 2;
+       /*function id*/
+       *(sendbuf->curpos++)   = buftype;
+       /*length*/
+       PutUINT24(&sendbuf->curpos, send_size);
+       /*flags*/
+       flags = 0;
+       if (buftype == SLP_FUNCT_SRVREG)
+       {
+           flags |= SLP_FLAG_FRESH;
+       }
+       PutUINT16(&sendbuf->curpos, flags);
+       /*ext offset*/
+       PutUINT24(&sendbuf->curpos, 0);
+       /*xid*/
+       PutUINT16(&sendbuf->curpos, xid);
+       /*lang tag len*/
+       PutUINT16(&sendbuf->curpos,langtaglen);
+       /*lang tag*/
+       memcpy(sendbuf->curpos, langtag, langtaglen);
+       sendbuf->curpos = sendbuf->curpos + langtaglen ;
+    }
 
     /*-----------------------------------------------*/
     /* Add the zero length prlist to the send buffer */
@@ -1688,14 +1812,16 @@ SLPError NetworkMultiUcastRqstRply(
 #endif
                )
             {
-                if(AS_UINT24(peek + 2) <=  (unsigned int)mtu)
+                msglen = PEEK_LENGTH(peek);
+
+                if(msglen <=  (unsigned int)mtu)
                 {
-                    udp_recvbuf = SLPBufferRealloc(udp_recvbuf, AS_UINT24(peek + 2));
+                    udp_recvbuf = SLPBufferRealloc(udp_recvbuf, msglen);
                     bytesread = recv(udp_socket,
                                      (char*)udp_recvbuf->curpos,
                                      (int)(udp_recvbuf->end - udp_recvbuf->curpos),
                                      0);
-                    if(bytesread != (int32_t)AS_UINT24(peek + 2))
+                    if(bytesread != (int32_t)msglen)
                     {
                         /* This should never happen but we'll be paranoid*/
                         udp_recvbuf->end = udp_recvbuf->curpos + bytesread;
@@ -1795,7 +1921,8 @@ SLPError NetworkMultiUcastRqstRply(
                         if ((pconn->recv_offset == pconn->recv_size) && (pconn->recv_size == MIN_RECEIVE_SIZE))
                         {
                             /* Determine the full message size */
-                            int full_size = AS_UINT24((const char *)pconn->read_buffer->start + 2);
+                            int full_size = PEEK_LENGTH(pconn->read_buffer->start);
+
                             if (full_size > MIN_RECEIVE_SIZE)
                             {
                                 SLPBuffer new_buffer = SLPBufferAlloc(full_size);

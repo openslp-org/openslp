@@ -312,7 +312,7 @@ static SLPError ProcessSrvRqst(SLPHandleInfo * handle)
       if (handle->dounicast == 1) 
       {
          serr = NetworkUcastRqstRply(handle, buf, SLP_FUNCT_SRVRQST, 
-               curpos - buf, ProcessSrvRplyCallback, handle);
+               curpos - buf, ProcessSrvRplyCallback, handle, false);
          break;
       }
       if (SLPNetIsIPV4())
@@ -328,7 +328,7 @@ static SLPError ProcessSrvRqst(SLPHandleInfo * handle)
                                              SLP_FUNCT_SRVRQST,
                                              curpos - buf,
                                              ProcessSrvRplyCallback,
-                                             handle);
+                                             handle, false);
             xfree(destaddrs);
             break;
          }
@@ -344,13 +344,13 @@ static SLPError ProcessSrvRqst(SLPHandleInfo * handle)
       {
          /* Use multicast as a last resort. */
          serr = NetworkMcastRqstRply(handle, buf, SLP_FUNCT_SRVRQST, 
-               curpos - buf, ProcessSrvRplyCallback, 0);
+               curpos - buf, ProcessSrvRplyCallback, 0, false);
          break;
       }
 
       serr = NetworkRqstRply(sock, &peeraddr, handle->langtag, 0, buf, 
             SLP_FUNCT_SRVRQST, curpos - buf, ProcessSrvRplyCallback, 
-            handle);
+            handle, false);
       if (serr)
          NetworkDisconnectDA(handle);
 

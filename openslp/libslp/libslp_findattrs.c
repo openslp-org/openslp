@@ -128,50 +128,87 @@ static SLPError ProcessAttrRqst(SLPHandleInfo * handle)
    char * spistr = 0;
    struct sockaddr_storage peeraddr;
    struct sockaddr_in* destaddrs = 0;
+   int isV1 = SLPPropertyAsBoolean("net.slp.preferSLPv1");
 
-#ifdef ENABLE_SLPv2_SECURITY
-   if (SLPPropertyAsBoolean("net.slp.securityEnabled"))
-      SLPSpiGetDefaultSPI(handle->hspi, SLPSPI_KEY_TYPE_PUBLIC, 
-            &spistrlen, &spistr);
-#endif
-
-/*  0                   1                   2                   3
-    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |         length of URL         |              URL              \
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |    length of <scope-list>     |      <scope-list> string      \
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |  length of <tag-list> string  |       <tag-list> string       \
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |   length of <SLP SPI> string  |        <SLP SPI> string       \
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ */
-
-   buf = curpos = xmalloc(
-         + 2 + handle->params.findattrs.urllen
-         + 2 + handle->params.findattrs.scopelistlen
-         + 2 + handle->params.findattrs.taglistlen
-         + 2 + spistrlen);
-   if (buf == 0)
+   if(isV1)
    {
-      xfree(spistr);
-      return SLP_MEMORY_ALLOC_FAILED;
+   /* SLPv1 */
+   /*  0                   1                   2                   3
+       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |         length of URL         |              URL              \
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |    length of <scope-list>     |      <scope-list> string      \
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |  length of <tag-list> string  |       <tag-list> string       \
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ */
+
+      buf = curpos = xmalloc(
+            + 2 + handle->params.findattrs.urllen
+            + 2 + handle->params.findattrs.scopelistlen
+            + 2 + handle->params.findattrs.taglistlen);
+
+      if (buf == 0)
+         return SLP_MEMORY_ALLOC_FAILED;
+
+      /* URL */
+      PutL16String(&curpos, handle->params.findattrs.url, 
+            handle->params.findattrs.urllen);
+
+      /* <scope-list> */
+      PutL16String(&curpos, handle->params.findattrs.scopelist, 
+            handle->params.findattrs.scopelistlen);
+
+      /* <tag-list>  */
+      PutL16String(&curpos, handle->params.findattrs.taglist, 
+            handle->params.findattrs.taglistlen);
    }
+   else
+   {	
+#ifdef ENABLE_SLPv2_SECURITY
+      if (SLPPropertyAsBoolean("net.slp.securityEnabled"))
+         SLPSpiGetDefaultSPI(handle->hspi, SLPSPI_KEY_TYPE_PUBLIC, 
+               &spistrlen, &spistr);
+#endif
+   /* SLPv2 */
+   /*  0                   1                   2                   3
+       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |         length of URL         |              URL              \
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |    length of <scope-list>     |      <scope-list> string      \
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |  length of <tag-list> string  |       <tag-list> string       \
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |   length of <SLP SPI> string  |        <SLP SPI> string       \
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ */
 
-   /* URL */
-   PutL16String(&curpos, handle->params.findattrs.url, 
-         handle->params.findattrs.urllen);
+      buf = curpos = xmalloc(
+            + 2 + handle->params.findattrs.urllen
+            + 2 + handle->params.findattrs.scopelistlen
+            + 2 + handle->params.findattrs.taglistlen
+            + 2 + spistrlen);
+      if (buf == 0)
+      {
+         xfree(spistr);
+         return SLP_MEMORY_ALLOC_FAILED;
+      }
 
-   /* <scope-list> */
-   PutL16String(&curpos, handle->params.findattrs.scopelist, 
-         handle->params.findattrs.scopelistlen);
+      /* URL */
+      PutL16String(&curpos, handle->params.findattrs.url, 
+            handle->params.findattrs.urllen);
 
-   /* <tag-list>  */
-   PutL16String(&curpos, handle->params.findattrs.taglist, 
-         handle->params.findattrs.taglistlen);
+      /* <scope-list> */
+      PutL16String(&curpos, handle->params.findattrs.scopelist, 
+            handle->params.findattrs.scopelistlen);
 
-   /* <SLP SPI> */
-   PutL16String(&curpos, (char *)spistr, spistrlen);
+      /* <tag-list>  */
+      PutL16String(&curpos, handle->params.findattrs.taglist, 
+            handle->params.findattrs.taglistlen);
+
+      /* <SLP SPI> */
+      PutL16String(&curpos, (char *)spistr, spistrlen);
+   }
 
    /* call the RqstRply engine */
    do
@@ -180,7 +217,7 @@ static SLPError ProcessAttrRqst(SLPHandleInfo * handle)
       if (handle->dounicast == 1) 
       {
          serr = NetworkUcastRqstRply(handle, buf, SLP_FUNCT_ATTRRQST, 
-               curpos - buf, ProcessAttrRplyCallback, handle);
+               curpos - buf, ProcessAttrRplyCallback, handle, isV1);
          break;
       }
       if (SLPNetIsIPV4())
@@ -196,7 +233,7 @@ static SLPError ProcessAttrRqst(SLPHandleInfo * handle)
                                              SLP_FUNCT_ATTRRQST,
                                              curpos - buf,
                                              ProcessAttrRplyCallback,
-                                             handle);
+                                             handle, isV1);
             xfree(destaddrs);
             break;
          }
@@ -209,13 +246,13 @@ static SLPError ProcessAttrRqst(SLPHandleInfo * handle)
       {
          /* use multicast as a last resort */
          serr = NetworkMcastRqstRply(handle, buf, SLP_FUNCT_ATTRRQST, 
-               curpos - buf, ProcessAttrRplyCallback, 0);
+               curpos - buf, ProcessAttrRplyCallback, 0, isV1);
          break;
       }
 
       serr = NetworkRqstRply(sock, &peeraddr, handle->langtag, 0, buf, 
             SLP_FUNCT_ATTRRQST, curpos - buf, ProcessAttrRplyCallback, 
-            handle);
+            handle, isV1);
       if (serr)
          NetworkDisconnectDA(handle);
 

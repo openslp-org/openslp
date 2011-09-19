@@ -151,6 +151,7 @@ static int SetDefaultValues(void)
       {"net.slp.locale", "en", 0},
       {"net.slp.maxResults", "-1", 0},                                     /* 256 */
       {"net.slp.typeHint", "", 0},
+	  {"net.slp.preferSLPv1", "false", 0},
 
    /* Section 2.1.8 Security */
       {"net.slp.securityEnabled", "false", 0},

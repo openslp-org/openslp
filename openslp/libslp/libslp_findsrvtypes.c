@@ -235,7 +235,7 @@ static SLPError ProcessSrvTypeRqst(SLPHandleInfo * handle)
       if (handle->dounicast == 1) 
       {
          serr = NetworkUcastRqstRply(handle, buf, SLP_FUNCT_SRVTYPERQST,
-               curpos - buf, ProcessSrvTypeRplyCallback, handle);
+               curpos - buf, ProcessSrvTypeRplyCallback, handle, false);
          break;
       }
       if (SLPNetIsIPV4())
@@ -251,7 +251,7 @@ static SLPError ProcessSrvTypeRqst(SLPHandleInfo * handle)
                                              SLP_FUNCT_SRVTYPERQST,
                                              curpos - buf,
                                              ProcessSrvTypeRplyCallback,
-                                             handle);
+                                             handle, false);
             xfree(destaddrs);
             break;
          }
@@ -265,12 +265,12 @@ static SLPError ProcessSrvTypeRqst(SLPHandleInfo * handle)
       if (sock == SLP_INVALID_SOCKET)
       {
          serr = NetworkMcastRqstRply(handle, buf, SLP_FUNCT_SRVTYPERQST, 
-               curpos - buf, ProcessSrvTypeRplyCallback, 0);
+               curpos - buf, ProcessSrvTypeRplyCallback, 0, false);
          break;
       }
       serr = NetworkRqstRply(sock, &peeraddr, handle->langtag, 0, buf,
             SLP_FUNCT_SRVTYPERQST, curpos - buf, ProcessSrvTypeRplyCallback,
-            handle);
+            handle, false);
 
       if (serr)
          NetworkDisconnectDA(handle);

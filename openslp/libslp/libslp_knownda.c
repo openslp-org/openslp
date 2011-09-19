@@ -466,10 +466,10 @@ static int KnownDADiscoveryRqstRply(sockfd_t sock,
 
    if (sock == SLP_INVALID_SOCKET)
       NetworkMcastRqstRply(handle, buf, SLP_FUNCT_DASRVRQST, 
-            cur - buf, KnownDADiscoveryCallback, &result);
+            cur - buf, KnownDADiscoveryCallback, &result, false);
    else
       NetworkRqstRply(sock, peeraddr, "en", 0, buf, SLP_FUNCT_DASRVRQST,
-            cur - buf, KnownDADiscoveryCallback, &result);
+            cur - buf, KnownDADiscoveryCallback, &result, false);
 
    xfree(buf);
    return result;
