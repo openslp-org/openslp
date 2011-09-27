@@ -10,46 +10,45 @@
 
 package com.solers.slp;
 
-import java.util.*;
-import java.io.*;
+import java.io.DataOutput;
+import java.util.Locale;
 
 /**
  * The ServiceDeregistration SLP Message.
- *
+ * 
  * @author Patrick Callis
  */
 class ServiceDeregistration extends SLPMessage {
 
-    private ServiceURL _url;
-    private String _scopes;
+	private ServiceURL _url;
+	private String _scopes;
 
-    ServiceDeregistration(ServiceURL url, Locale locale, String scopes) {
-	super(locale, SRVDEREG);
-	_url = url;
-	_scopes = scopes;
-    }
+	ServiceDeregistration(ServiceURL url, Locale locale, String scopes) {
+		super(locale, SRVDEREG);
+		_url = url;
+		_scopes = scopes;
+	}
 
-    protected void writeBody(DataOutput out) throws java.io.IOException {
-	byte[] temp = _scopes.getBytes();
-	out.writeShort((short)temp.length); // scopes length
-	out.write(temp); // scopes
+	protected void writeBody(DataOutput out) throws java.io.IOException {
+		byte[] temp = _scopes.getBytes();
+		out.writeShort((short) temp.length); // scopes length
+		out.write(temp); // scopes
 
-	_url.writeExternal(out); // url entry
+		_url.writeExternal(out); // url entry
 
-	out.writeShort((short)0); // length of tag list
-    }
+		out.writeShort((short) 0); // length of tag list
+	}
 
-    protected int calcSize() {
-	int size = 2  // Length of scope list
-	    + _scopes.getBytes().length   // scopes
-	    + _url.calcSize()  // URL-Entry
-	    + 2;   // Length of tag list
+	protected int calcSize() {
+		int size = 2 // Length of scope list
+				+ _scopes.getBytes().length // scopes
+				+ _url.calcSize() // URL-Entry
+				+ 2; // Length of tag list
 
-	return size;
-    }
+		return size;
+	}
 
-    public String toString() {
-	return "ServiceDeregistration: " +
-	    "URL: " + _url;
-    }
+	public String toString() {
+		return "ServiceDeregistration: " + "URL: " + _url;
+	}
 }

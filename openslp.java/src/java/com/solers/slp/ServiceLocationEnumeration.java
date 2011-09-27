@@ -17,13 +17,13 @@ import java.util.Enumeration;
  */
 public interface ServiceLocationEnumeration extends Enumeration {
 
-    /**
-     * Returns the next result from an SLP request.
-     */
-    public abstract Object next() throws ServiceLocationException;
+	/**
+	 * Returns the next result from an SLP request.
+	 */
+	public abstract Object next() throws ServiceLocationException;
 
-    /**
-     * Frees all resources allocated by the enumeration.
-     */
-    public abstract void destroy();
+	/**
+	 * Frees all resources allocated by the enumeration.
+	 */
+	public abstract void destroy();
 }
