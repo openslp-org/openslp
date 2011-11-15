@@ -105,7 +105,10 @@ SLPBuffer SLPBufferRealloc(SLPBuffer buf, size_t size)
           * occupy the last field of the buffer.
           */
          result = xrealloc(buf, sizeof(struct _SLPBuffer) + size + 1);
-         result->allocated = size;
+         if( result )
+         {
+             result->allocated = size;
+         }
       }
       if (result)
       {
