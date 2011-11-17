@@ -185,6 +185,44 @@ FINISHED:
    return errorcode;
 }
 
+int CheckAndResizeBuffer(SLPBuffer * sendbuf, SLPBuffer tmp, size_t grow_size)
+{
+	int retVal = 0;
+
+    if( (*sendbuf)->curpos + (tmp->end - tmp->start) > ( (*sendbuf)->start + (*sendbuf)->allocated) )
+    {
+		  /* Grow the sendbuf buffer - note that SLPBufferRealloc may potentially do a memset if the DEBUG flag is set
+		     Therefore we have to copy the old contents into the buffer afterwards to be sure
+		  */
+#ifdef DEBUG
+		  SLPBuffer duplicate = SLPBufferDup( (*sendbuf) );
+#endif
+		  /* store how far we are from the start of the buffer */
+		  size_t currentPosFromStart = (*sendbuf)->curpos - (*sendbuf)->start;
+
+		  /* check to make sure we're growing by at least the size of the tmp buffer */
+		  *sendbuf = SLPBufferRealloc( (*sendbuf), ((*sendbuf)->allocated + ((tmp->end - tmp->start) > grow_size?(tmp->end - tmp->start):grow_size)) );
+	      if (*sendbuf == 0)
+	      {
+	         retVal = SLP_ERROR_INTERNAL_ERROR;
+	      }
+	      else
+	      {
+		     /* update the current position to what it was before */
+		     (*sendbuf)->curpos = (*sendbuf)->start + currentPosFromStart;
+#ifdef DEBUG
+    		  memcpy( (*sendbuf)->start, duplicate->start, duplicate->end - duplicate->start );
+#endif
+	      }
+#ifdef DEBUG
+		  SLPBufferFree(duplicate);
+		  duplicate = 0;
+#endif
+    }
+
+    return retVal;
+}
+
 /** Process a DA service request message.
  *
  * @param[in] message - The message to process.
@@ -195,22 +233,21 @@ FINISHED:
  *
  * @internal
  */
-static int ProcessDASrvRqst(SLPMessage * message, SLPBuffer * sendbuf, 
-      int errorcode)
+static int ProcessDASrvRqst(SLPMessage * message, SLPBuffer * sendbuf, int errorcode)
 {
    SLPBuffer tmp = 0;
    SLPMessage * msg = 0;
    void * eh = 0;
+   /* TODO should really be a configurable property, maybe G_SlpdProperty.MTU? Left at 4096 to retain same behaviour */
+   size_t initial_buffer_size = 4096;
+   size_t grow_size = initial_buffer_size;
 
    /* Special case for when libslp asks slpd (through the loopback) about
       a known DAs. Fill sendbuf with DAAdverts from all known DAs.        
     */
    if (SLPNetIsLoopback(&message->peer))
    {
-      /* TODO: be smarter about how much memory is allocated here!
-         4096 may not be big enough to handle all DAAdverts
-       */
-      *sendbuf = SLPBufferRealloc(*sendbuf, 4096);
+      *sendbuf = SLPBufferRealloc(*sendbuf, initial_buffer_size);
       if (*sendbuf == 0)
          return SLP_ERROR_INTERNAL_ERROR;
 
@@ -234,7 +271,9 @@ static int ProcessDASrvRqst(SLPMessage * message, SLPBuffer * sendbuf,
                SLPNetSetAddr(&loaddr, AF_INET, G_SlpdProperty.port, &addr);
             }
             else
+			{
                SLPNetSetAddr(&loaddr, AF_INET6, G_SlpdProperty.port, &slp_in6addr_loopback);
+			}
 
             if(0 == SLPDKnownDAGenerateMyDAAdvert(&loaddr, 0, 0, 0, message->header.xid, &tmp))
             {
@@ -243,6 +282,10 @@ static int ProcessDASrvRqst(SLPMessage * message, SLPBuffer * sendbuf,
                SLPBufferFree(tmp);
                tmp = 0;
             }
+			else 
+			{
+				SLPDLog("Unable to add initial DAAdvert due to error\n");
+			}
          }
 
          eh = SLPDKnownDAEnumStart();
@@ -250,43 +293,63 @@ static int ProcessDASrvRqst(SLPMessage * message, SLPBuffer * sendbuf,
          {
             while (1)
             {
-               if (SLPDKnownDAEnum(eh, &msg, &tmp) == 0)
+               /* iterate over all database entries */
+               if (SLPDKnownDAEnum(eh, &msg, &tmp) == 0) 
+			   {
                   break;
+			   }
 
-               if (((*sendbuf)->curpos) + (tmp->end - tmp->start) 
-                     > (*sendbuf)->end)
-                  break;
+               /* if we resize succesfully.. */
+               if( CheckAndResizeBuffer(sendbuf, tmp, grow_size) == 0 )
+               {
+            	   /* buffer should now be resized to an appropriate size to handle all current database entries */
 
-               /* TRICKY: Fix up the XID. */
-               tmp->curpos = tmp->start + 10;
-               TO_UINT16(tmp->curpos, message->header.xid);
+                   /* TRICKY: Fix up the XID. */
+                   tmp->curpos = tmp->start + 10;
+                   TO_UINT16(tmp->curpos, message->header.xid);
 
-               memcpy((*sendbuf)->curpos, tmp->start, tmp->end - tmp->start);
-               (*sendbuf)->curpos = ((*sendbuf)->curpos) 
-                     + (tmp->end - tmp->start);
+    			   /* copy all data out of tmp into the sendbuf */
+                   memcpy((*sendbuf)->curpos, tmp->start, tmp->end - tmp->start);
+    			   /* increment the current position in sendbuf */
+                   (*sendbuf)->curpos = ((*sendbuf)->curpos) + (tmp->end - tmp->start);
+               }
+               else
+               {
+            	   errorcode = SLP_ERROR_INTERNAL_ERROR;
+               }
             }
             SLPDKnownDAEnumEnd(eh);
          }
+ 		/* tmp can store database entries which should not be freed by anyone else so reset the pointer to prevent double deletion */
+ 		tmp = 0;
 
-         /* Tack on a "terminator" DAAdvert */
-         SLPDKnownDAGenerateMyDAAdvert(&message->localaddr,
-               SLP_ERROR_INTERNAL_ERROR, 0, 0, message->header.xid, &tmp);
-         if (((*sendbuf)->curpos) + (tmp->end - tmp->start) <= (*sendbuf)->end)
-         {
-            memcpy((*sendbuf)->curpos, tmp->start, tmp->end - tmp->start);
-            (*sendbuf)->curpos = ((*sendbuf)->curpos) 
-                  + (tmp->end - tmp->start);
-         }
+ 		/* Tack on a "terminator" DAAdvert
+ 		   Note that this function *always* returns the error code passed as its second parameter (or SLP_ERROR_INTERNAL_ERROR if the buffer fails to resize)
+ 		   The errorcode is also inserted into the srvrply header by this function
+ 		*/
+ 		SLPDKnownDAGenerateMyDAAdvert(&message->localaddr, SLP_ERROR_INTERNAL_ERROR, 0, 0, message->header.xid, &tmp);
 
-         /* mark the end of the sendbuf */
-         (*sendbuf)->end = (*sendbuf)->curpos;
+ 		/* if we resize succesfully.. */
+        if ( CheckAndResizeBuffer(sendbuf, tmp, grow_size) == 0 )
+        {
+     		memcpy((*sendbuf)->curpos, tmp->start, tmp->end - tmp->start);
+     		(*sendbuf)->curpos = ((*sendbuf)->curpos) + (tmp->end - tmp->start);
 
-         if (tmp)
-            SLPBufferFree(tmp);
+     		/* mark the end of the sendbuf */
+     		(*sendbuf)->end = (*sendbuf)->curpos;
+
+        }
+        else
+        {
+     	   errorcode = SLP_ERROR_INTERNAL_ERROR;
+        }
+
+        SLPBufferFree(tmp);
+ 		tmp = 0;
       }
       return errorcode;
    }
-
+   
    /* Normal case where a remote Agent asks for a DA */
 
    *sendbuf = SLPBufferRealloc(*sendbuf, G_SlpdProperty.MTU);

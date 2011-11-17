@@ -52,6 +52,7 @@
 #include "slp_buffer.h"
 #include "slpd.h"  
 
+int CheckAndResizeBuffer(SLPBuffer * sendbuf, SLPBuffer tmp, size_t grow_size);
 int SLPDProcessMessage(struct sockaddr_storage * peerinfo,
       struct sockaddr_storage * localaddr, SLPBuffer recvbuf, 
       SLPBuffer * sendbuf, SLPList * psendlist);
