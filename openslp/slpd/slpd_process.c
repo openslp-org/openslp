@@ -201,7 +201,7 @@ int CheckAndResizeBuffer(SLPBuffer * sendbuf, SLPBuffer tmp, size_t grow_size)
 		  size_t currentPosFromStart = (*sendbuf)->curpos - (*sendbuf)->start;
 
 		  /* check to make sure we're growing by at least the size of the tmp buffer */
-		  *sendbuf = SLPBufferRealloc( (*sendbuf), ((*sendbuf)->allocated + ((tmp->end - tmp->start) > grow_size?(tmp->end - tmp->start):grow_size)) );
+		  *sendbuf = SLPBufferRealloc( (*sendbuf), ((*sendbuf)->allocated + ((size_t)(tmp->end - tmp->start) > grow_size?(tmp->end - tmp->start):grow_size)) );
 	      if (*sendbuf == 0)
 	      {
 	         retVal = SLP_ERROR_INTERNAL_ERROR;
