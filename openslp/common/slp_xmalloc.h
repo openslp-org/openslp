@@ -83,14 +83,14 @@ void xmalloc_deinit(void);
 
 #else    /* ?DEBUG */
 
-void * memdup(const void * ptr, size_t srclen);
+void * _xmemdup(const void * ptr, size_t srclen);
 
 #define xmalloc   malloc
 #define xcalloc   calloc
 #define xrealloc  realloc
 #define xfree     free
 #define xstrdup   strdup
-#define xmemdup   memdup
+#define xmemdup   _xmemdup
 
 #endif   /* ?DEBUG */
 

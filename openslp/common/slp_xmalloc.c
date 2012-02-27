@@ -350,7 +350,7 @@ void xmalloc_deinit(void)
  * @return A pointer to the duplicated memory block, or NULL on memory
  *    allocation failure.
  */
-void * memdup(const void * ptr, size_t size)
+void * _xmemdup(const void * ptr, size_t size)
 {
    void * cpy = malloc(size);
    if (cpy)
