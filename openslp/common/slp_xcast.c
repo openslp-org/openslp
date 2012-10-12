@@ -374,6 +374,47 @@ int main(void)
    struct sockaddr_storage dst;
    int mtu;
 
+   socks.sock = malloc(slp_max_ifaces*sizeof(sockfd_t));
+   if (socks.sock == NULL)
+   {
+      fprintf(stderr, "socks.sock malloc(%d) failed\n",
+         slp_max_ifaces*sizeof(sockfd_t));
+      exit(1);
+   }
+   socks.peeraddr = malloc(slp_max_ifaces*sizeof(struct sockaddr_storage));
+   if (socks.peeraddr == NULL)
+   {
+      fprintf(stderr, "socks.peeraddr malloc(%d) failed\n",
+         slp_max_ifaces*sizeof(struct sockaddr_storage));
+      exit(1);
+   }
+   ifaceinfo.iface_addr = malloc(slp_max_ifaces*sizeof(struct sockaddr_storage));
+   if (ifaceinfo.iface_addr == NULL)
+   {
+      fprintf(stderr, "ifaceinfo.iface_addr malloc(%d) failed\n",
+         slp_max_ifaces*sizeof(struct sockaddr_storage));
+      exit(1);
+   }
+   ifaceinfo.bcast_addr = malloc(slp_max_ifaces*sizeof(struct sockaddr_storage));
+   if (ifaceinfo.bcast_addr == NULL)
+   {
+      fprintf(stderr, "ifaceinfo.bcast_addr malloc(%d) failed\n",
+         slp_max_ifaces*sizeof(struct sockaddr_storage));
+      exit(1);
+   }
+   ifaceinfo6.iface_addr = malloc(slp_max_ifaces*sizeof(struct sockaddr_storage));
+   if (ifaceinfo.bcast_addr == NULL)
+   {
+      fprintf(stderr, "ifaceinfo6.iface_addr malloc(%d) failed\n",
+         slp_max_ifaces*sizeof(struct sockaddr_storage));
+      exit(1);
+   }
+   ifaceinfo6.bcast_addr = malloc(slp_max_ifaces*sizeof(struct sockaddr_storage));
+   if (ifaceinfo.bcast_addr == NULL) {
+      fprintf(stderr, "ifaceinfo6.bcast_addr malloc(%d) failed\n",
+         slp_max_ifaces*sizeof(struct sockaddr_storage));
+      exit(1);
+   }
 #ifdef _WIN32
    WSADATA wsadata;
    WSAStartup(MAKEWORD(2, 2), &wsadata);
@@ -412,6 +453,12 @@ int main(void)
 
       SLPBufferFree(buffer);
    }
+   xfree(ifaceinfo.iface_addr);
+   xfree(ifaceinfo.bcast_addr);
+   xfree(ifaceinfo6.iface_addr);
+   xfree(ifaceinfo6.bcast_addr);
+   xfree(socks.sock);
+   xfree(socks.peeraddr);
 
 #ifdef _WIN32
    WSACleanup();

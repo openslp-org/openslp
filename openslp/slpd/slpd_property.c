@@ -66,6 +66,8 @@ void SLPDPropertyReinit(void)
    xfree(G_SlpdProperty.DAAddresses);
    xfree(G_SlpdProperty.interfaces);
    xfree(G_SlpdProperty.locale);
+   xfree(G_SlpdProperty.ifaceInfo.iface_addr);
+   xfree(G_SlpdProperty.ifaceInfo.bcast_addr);
 
    /* reinitialize property sub-system */
    (void)SLPPropertyReinit();
@@ -149,7 +151,22 @@ void SLPDPropertyReinit(void)
    else if (SLPNetIsIPV6())
       family = AF_INET6;
 
+   slp_max_ifaces = SLPPropertyAsInteger("net.slp.max_ifaces");
+   if (slp_max_ifaces <= 0)
+      slp_max_ifaces = SLP_MAX_IFACES;
    myinterfaces = SLPPropertyXDup("net.slp.interfaces");
+   G_SlpdProperty.ifaceInfo.iface_addr = malloc(slp_max_ifaces *
+      sizeof(struct sockaddr_storage));
+   if (G_SlpdProperty.ifaceInfo.iface_addr == NULL)
+   {
+      SLPDLog("Cannot allocate iface_addr for %d addresses\n", slp_max_ifaces);
+   }
+   G_SlpdProperty.ifaceInfo.bcast_addr = malloc(slp_max_ifaces *
+      sizeof(struct sockaddr_storage));
+   if (G_SlpdProperty.ifaceInfo.bcast_addr == NULL)
+   {
+      SLPDLog("Cannot allocate bcast_addr for %d addresses\n", slp_max_ifaces);
+   }
    sts = SLPIfaceGetInfo(myinterfaces, &G_SlpdProperty.ifaceInfo, family);
    xfree(myinterfaces);
 
@@ -246,6 +263,8 @@ void SLPDPropertyDeinit(void)
    xfree(G_SlpdProperty.indexedAttributes);
 #endif
    xfree(G_SlpdProperty.locale);
+   xfree(G_SlpdProperty.ifaceInfo.iface_addr);
+   xfree(G_SlpdProperty.ifaceInfo.bcast_addr);
 
    SLPPropertyExit();
 }

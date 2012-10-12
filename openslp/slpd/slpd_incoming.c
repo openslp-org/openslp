@@ -751,9 +751,26 @@ int SLPDIncomingInit(void)
    /*   string in a safety way                                            */
    /*---------------------------------------------------------------------*/
 
+   ifaces.iface_addr = malloc(slp_max_ifaces*sizeof(struct sockaddr_storage));
+   if (ifaces.iface_addr == NULL)
+   {
+      SLPDLog("can't allocate %d iface_addrs\n", slp_max_ifaces);
+      exit(1);
+   }
+   ifaces.bcast_addr = malloc(slp_max_ifaces*sizeof(struct sockaddr_storage));
+   if (ifaces.bcast_addr == NULL)
+   {
+      SLPDLog("can't allocate %d bcast_addrs\n", slp_max_ifaces);
+      exit(1);
+   }
+   ifaces.bcast_addr = malloc(slp_max_ifaces*sizeof(struct sockaddr_storage));
    if (G_SlpdProperty.interfaces != NULL)
-      SLPIfaceGetInfo(G_SlpdProperty.interfaces, &ifaces, AF_UNSPEC);
-   else
+   {
+      if (SLPIfaceGetInfo(G_SlpdProperty.interfaces, &ifaces, AF_UNSPEC) < 0) {
+         SLPDLog("SLPIfaceGetInfo failed: %s\n", strerror(errno));
+         exit(1);
+      }
+   } else
       ifaces.iface_count = 0;
 
    for (i = 0; i < ifaces.iface_count; i++)

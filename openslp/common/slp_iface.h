@@ -52,14 +52,15 @@
 
 /** The maximum number of interfaces we can handle. */
 #define SLP_MAX_IFACES 100
+extern int slp_max_ifaces;
 
 /** Interface information structure */
 typedef struct _SLPInterfaceInfo
 {
    int iface_count;
    int bcast_count;
-   struct sockaddr_storage iface_addr[SLP_MAX_IFACES];
-   struct sockaddr_storage bcast_addr[SLP_MAX_IFACES];
+   struct sockaddr_storage *iface_addr;
+   struct sockaddr_storage *bcast_addr;
 } SLPIfaceInfo;
 
 int SLPIfaceGetInfo(char const * useifaces, SLPIfaceInfo * ifaceinfo, 

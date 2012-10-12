@@ -916,6 +916,7 @@ SLPError NetworkMcastRqstRply(SLPHandleInfo * handle, void * buf,
    SLPIfaceInfo v4outifaceinfo;
    SLPIfaceInfo v6outifaceinfo;
    SLPXcastSockets xcastsocks;
+   int alistsize;
    int currIntf = 0;
    int requestSent;
 
@@ -929,6 +930,16 @@ SLPError NetworkMcastRqstRply(SLPHandleInfo * handle, void * buf,
    /* save off a few things we don't want to recalculate */
    langtaglen = strlen(handle->langtag);
 
+   /* initialize pointers freed on error */
+   dstifaceinfo.iface_addr = NULL;
+   dstifaceinfo.bcast_addr = NULL;
+   v4outifaceinfo.iface_addr = NULL;
+   v4outifaceinfo.bcast_addr = NULL;
+   v6outifaceinfo.iface_addr = NULL;
+   v6outifaceinfo.bcast_addr = NULL;
+   xcastsocks.sock = NULL;
+   xcastsocks.peeraddr = NULL;
+
    xid = SLPXidGenerate();
    mtu = SLPPropertyGetMTU();
    sendbuf = SLPBufferAlloc(mtu);
@@ -938,9 +949,60 @@ SLPError NetworkMcastRqstRply(SLPHandleInfo * handle, void * buf,
       goto FINISHED;
    }
 
+   alistsize = slp_max_ifaces * sizeof(struct sockaddr_storage);
+
+   dstifaceinfo.iface_count = 0;
+   dstifaceinfo.iface_addr = malloc(alistsize);
+   if (dstifaceinfo.iface_addr == NULL)
+   {
+      result = SLP_MEMORY_ALLOC_FAILED;
+      goto FINISHED;
+   }
+   dstifaceinfo.bcast_addr = malloc(alistsize);
+   if (dstifaceinfo.bcast_addr == NULL)
+   {
+      result = SLP_MEMORY_ALLOC_FAILED;
+      goto FINISHED;
+   }
    v4outifaceinfo.iface_count = 0;
+   v4outifaceinfo.iface_addr = malloc(alistsize);
+   if (v4outifaceinfo.iface_addr == NULL)
+   {
+      result = SLP_MEMORY_ALLOC_FAILED;
+      goto FINISHED;
+   }
+   v4outifaceinfo.bcast_addr = malloc(alistsize);
+   if (v4outifaceinfo.bcast_addr == NULL)
+   {
+      result = SLP_MEMORY_ALLOC_FAILED;
+      goto FINISHED;
+   }
    v6outifaceinfo.iface_count = 0;
+   v6outifaceinfo.iface_addr = malloc(alistsize);
+   if (v6outifaceinfo.iface_addr == NULL)
+   {
+      result = SLP_MEMORY_ALLOC_FAILED;
+      goto FINISHED;
+   }
+   v6outifaceinfo.bcast_addr = malloc(alistsize);
+   if (v6outifaceinfo.bcast_addr == NULL)
+   {
+      result = SLP_MEMORY_ALLOC_FAILED;
+      goto FINISHED;
+   }
    xcastsocks.sock_count = 0;
+   xcastsocks.sock = malloc(slp_max_ifaces * sizeof(sockfd_t));
+   if (xcastsocks.sock == NULL)
+   {
+      result = SLP_MEMORY_ALLOC_FAILED;
+      goto FINISHED;
+   }
+   xcastsocks.peeraddr = malloc(alistsize);
+   if (xcastsocks.peeraddr == NULL)
+   {
+      result = SLP_MEMORY_ALLOC_FAILED;
+      goto FINISHED;
+   }
 
 #if !defined(MI_NOT_SUPPORTED)
    /* Determine which multicast addresses to send to. */
@@ -1290,6 +1352,14 @@ CLEANUP:
    SLPBufferFree(sendbuf);
    SLPBufferFree(recvbuf);
    SLPXcastSocketsClose(&xcastsocks);
+   xfree(xcastsocks.sock);
+   xfree(xcastsocks.peeraddr);
+   xfree(dstifaceinfo.iface_addr);
+   xfree(dstifaceinfo.bcast_addr);
+   xfree(v4outifaceinfo.iface_addr);
+   xfree(v4outifaceinfo.bcast_addr);
+   xfree(v6outifaceinfo.iface_addr);
+   xfree(v6outifaceinfo.bcast_addr);
 
    return result;
 }

@@ -404,7 +404,6 @@ int SLPDDatabaseReg(SLPMessage * msg, SLPBuffer buf)
    SLPSrvReg * entryreg;
    SLPSrvReg * reg;
    int result;
-   SLPIfaceInfo ifaces;
    int i;
 
    /* reg is the SrvReg message being registered */
@@ -423,11 +422,32 @@ int SLPDDatabaseReg(SLPMessage * msg, SLPBuffer buf)
    if (SLPNetIsIPV6() && 
        !SLPDDatabaseSrvtypeUsed(msg->body.srvreg.srvtype, msg->body.srvreg.srvtypelen))
    {
+      SLPIfaceInfo ifaces;
+
+      ifaces.iface_addr = malloc(slp_max_ifaces *
+            sizeof(struct sockaddr_storage));
+      if (ifaces.iface_addr == NULL)
+      {
+         fprintf(stderr, "iface_addr malloc(%d) failed\n",
+            slp_max_ifaces * sizeof(struct sockaddr_storage));
+         exit(1);
+      }
+      ifaces.bcast_addr = malloc(slp_max_ifaces *
+            sizeof(struct sockaddr_storage));
+      if (ifaces.bcast_addr == NULL)
+      {
+         fprintf(stderr, "bcast_addr malloc(%d) failed\n",
+            slp_max_ifaces * sizeof(struct sockaddr_storage));
+         exit(1);
+      }
+
       SLPIfaceGetInfo(G_SlpdProperty.interfaces, &ifaces, AF_INET6);
       for (i = 0; i < ifaces.iface_count; i++) 
          if(ifaces.iface_addr[i].ss_family == AF_INET6)
             SLPDIncomingAddService(msg->body.srvreg.srvtype, 
                   msg->body.srvreg.srvtypelen, &ifaces.iface_addr[i]);
+      xfree(ifaces.iface_addr);
+      xfree(ifaces.bcast_addr);
    }
 
    dh = SLPDatabaseOpen(&G_SlpdDatabase.database);

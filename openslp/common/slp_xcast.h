@@ -57,10 +57,10 @@ typedef struct _SLPXcastSockets
    int sock_count;
 
    /** An array of sockets managed by this structure. */
-   sockfd_t sock[SLP_MAX_IFACES];
+   sockfd_t *sock;
 
    /** An array of addresses that matches each socket in the sock array. */
-   struct sockaddr_storage peeraddr[SLP_MAX_IFACES];
+   struct sockaddr_storage *peeraddr;
 
 } SLPXcastSockets;
 

@@ -55,6 +55,8 @@
 /** The max interface name lenght is 20 */
 #define MAX_IFACE_LEN 20
 
+int slp_max_ifaces = SLP_MAX_IFACES;
+
 /** Custom designed wrapper for inet_pton to allow <ip>%<iface> format
  *
  *
@@ -352,7 +354,7 @@ static int SLPIfaceGetV6Addr(SLPIfaceInfo * ifaceinfo)
    if (getifaddrs(&ifaddrs))
       return -1;
 
-   for (ifa = ifaddrs; ifa && ifaceinfo->iface_count < SLP_MAX_IFACES; ifa = ifa->ifa_next)
+   for (ifa = ifaddrs; ifa && ifaceinfo->iface_count < slp_max_ifaces; ifa = ifa->ifa_next)
    {
       if(ifa->ifa_addr->sa_family != AF_INET6)
           continue;
@@ -374,6 +376,11 @@ static int SLPIfaceGetV6Addr(SLPIfaceInfo * ifaceinfo)
       ++ifaceinfo->iface_count;
    }
    freeifaddrs(ifaddrs);
+   if (ifa)
+   {
+      errno = ENOBUFS;
+      return -1;
+   }
    return 0;
 }
 
@@ -429,14 +436,18 @@ int sizeof_ifreq(struct ifreq* ifr)
 int SLPIfaceGetDefaultInfo(SLPIfaceInfo * ifaceinfo, int family)
 {
    sockfd_t fd;
-   struct ifreq ifrlist[SLP_MAX_IFACES];
+   struct ifreq *ifrlist;
    struct ifreq ifrflags;
    struct ifreq * ifr;
    struct sockaddr* sa;
    char * p;
 
    struct ifconf ifc;
-   ifc.ifc_len = sizeof(struct ifreq) * SLP_MAX_IFACES;
+   ifrlist = malloc(sizeof(struct ifreq) * slp_max_ifaces);
+   if (ifrlist == NULL) {
+      return -1;
+   }
+   ifc.ifc_len = sizeof(struct ifreq) * slp_max_ifaces;
    ifc.ifc_req = ifrlist;
 
    if ((family == AF_INET6) || (family == AF_UNSPEC))
@@ -454,10 +465,11 @@ int SLPIfaceGetDefaultInfo(SLPIfaceInfo * ifaceinfo, int family)
 #endif
          {
             closesocket(fd);
+            xfree(ifrlist);
             return -1;
          }
 
-         for (p = ifc.ifc_buf; p < ifc.ifc_buf + ifc.ifc_len && ifaceinfo->iface_count < SLP_MAX_IFACES;)
+         for (p = ifc.ifc_buf; p < ifc.ifc_buf + ifc.ifc_len && ifaceinfo->iface_count < slp_max_ifaces;)
          {
             ifr = (struct ifreq*) p;
             sa = (struct sockaddr*)&(ifr->ifr_addr);
@@ -480,7 +492,7 @@ int SLPIfaceGetDefaultInfo(SLPIfaceInfo * ifaceinfo, int family)
    }
 
    /* reset ifc_len for next get */
-   ifc.ifc_len = sizeof(struct ifreq) * SLP_MAX_IFACES;
+   ifc.ifc_len = sizeof(struct ifreq) * slp_max_ifaces;
 
    if ((family == AF_INET) || (family == AF_UNSPEC))
    {
@@ -494,10 +506,11 @@ int SLPIfaceGetDefaultInfo(SLPIfaceInfo * ifaceinfo, int family)
 #endif
          {
             closesocket(fd);
+            xfree(ifrlist);
             return -1;
          }
 
-         for (p = ifc.ifc_buf; p < ifc.ifc_buf + ifc.ifc_len && ifaceinfo->iface_count < SLP_MAX_IFACES;)
+         for (p = ifc.ifc_buf; p < ifc.ifc_buf + ifc.ifc_len && ifaceinfo->iface_count < slp_max_ifaces;)
          {
             ifr = (struct ifreq*) p;
             sa = (struct sockaddr*)&(ifr->ifr_addr);
@@ -516,6 +529,7 @@ int SLPIfaceGetDefaultInfo(SLPIfaceInfo * ifaceinfo, int family)
          closesocket(fd);
       }
    }
+   xfree(ifrlist);
    return 0;
 }
 
@@ -572,7 +586,7 @@ int SLPIfaceGetDefaultInfo(SLPIfaceInfo* ifaceinfo, int family)
                return (errno = WSAGetLastError()), -1;
             }
             plist = (SOCKET_ADDRESS_LIST*)buffer;
-            for (i = 0; i < plist->iAddressCount && ifaceinfo->iface_count < SLP_MAX_IFACES; ++i)
+            for (i = 0; i < plist->iAddressCount && ifaceinfo->iface_count < slp_max_ifaces; ++i)
                if ((plist->Address[i].lpSockaddr->sa_family == AF_INET6) &&
                    (0 == GetV6Scope((struct sockaddr_in6*)plist->Address[i].lpSockaddr, NULL)) &&
                    /*Ignore Teredo and loopback pseudo-interfaces*/
@@ -609,7 +623,7 @@ int SLPIfaceGetDefaultInfo(SLPIfaceInfo* ifaceinfo, int family)
                return (errno = WSAGetLastError()), -1;
             }
             plist = (SOCKET_ADDRESS_LIST*)buffer;
-            for (i = 0; i < plist->iAddressCount && ifaceinfo->iface_count < SLP_MAX_IFACES; ++i)
+            for (i = 0; i < plist->iAddressCount && ifaceinfo->iface_count < slp_max_ifaces; ++i)
                if (plist->Address[i].lpSockaddr->sa_family == AF_INET)
                   memcpy(&ifaceinfo->iface_addr[ifaceinfo->iface_count++], 
                         plist->Address[i].lpSockaddr, sizeof(struct sockaddr_in));
@@ -1078,6 +1092,21 @@ int main(int argc, char * argv[])
    WSAStartup(MAKEWORD(2, 2), &wsadata);
 #endif
 
+   ifaceinfo.iface_addr = malloc(slp_max_ifaces*sizeof(struct sockaddr_storage));
+   if (ifaceinfo.iface_addr == NULL)
+   {
+      fprintf(stderr, "iface_addr malloc(%d) failed\n",
+         slp_max_ifaces * sizeof(struct sockaddr_storage));
+      exit(1);
+   }
+   ifaceinfo.bcast_addr = malloc(slp_max_ifaces*sizeof(struct sockaddr_storage));
+   if (ifaceinfo.bcast_addr == NULL)
+   {
+      fprintf(stderr, "bcast_addr malloc(%d) failed\n",
+         slp_max_ifaces * sizeof(struct sockaddr_storage));
+      exit(1);
+   }
+
    if (SLPIfaceGetInfo(0, &ifaceinfo, AF_INET) == 0)
       for (i = 0; i < ifaceinfo.iface_count; i++)
       {
@@ -1130,6 +1159,8 @@ int main(int argc, char * argv[])
          printf("sock addr string v6 = %s\n", addrstr);
          xfree(addrstr);
       }
+   xfree(ifaceinfo.iface_addr);
+   xfree(ifaceinfo.bcast_addr);
 
 #ifdef _WIN32
    WSACleanup();
