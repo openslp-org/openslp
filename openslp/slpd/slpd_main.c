@@ -284,7 +284,7 @@ static int CheckPid(const char * pidfile)
    if (fd)
    {
       memset(pidstr,0,14);
-      fread(pidstr,13,1,fd);
+      (void)fread(pidstr,13,1,fd);
       pid = atoi(pidstr);
       if (pid && kill(pid, 0) == 0)
          return -1;  /* we are already running */
@@ -332,10 +332,7 @@ static int CheckPid(const char * pidfile)
  */
 static int Daemonize(const char * pidfile)
 {
-   FILE * fd;
-   struct passwd * pwent;
    pid_t pid;
-   char pidstr[14];
 
    /* fork() if we should detach */
    if (G_SlpdCommandLine.detach)
@@ -354,10 +351,12 @@ static int Daemonize(const char * pidfile)
          break;
 
       default:
+      {
          /* parent writes pid (or child) pid file and dies */
-         fd = fopen(pidfile,"w");
+         FILE * fd = fopen(pidfile,"w");
          if (fd)
          {
+            char pidstr[14];
             sprintf(pidstr,"%i",(int)pid);
             fwrite(pidstr,strlen(pidstr),1,fd);
             fclose(fd);
@@ -365,39 +364,62 @@ static int Daemonize(const char * pidfile)
          if (G_SlpdCommandLine.detach)
             exit(0);
          break;
+      }
    }
+
+   /* Change directory, close files, reset umask, detach from
+      console, and (maybe) drop permissions if daemonizing (-d) */
 
    if (G_SlpdCommandLine.detach)
    {
-      close(0);
-      close(1);
-      close(2);
-   }
-   setsid(); /* will only fail if we are already the process group leader */
+      int i;
 
-   /* suid to daemon */
-   /* TODO: why do the following lines mess up my signal handlers? */
-   
-   /*IPv6 Operation requires that the process owner has permissons to 
-     open multicast sockets under IPv6, this process owner is 'daemon'. 
-     As a quick workaround for correct IPv6 operation, to run this 
-     process as root, define SETUIDS.  */
-    /*TODO: warn if 'daemon' user has insufficient privileges and ipv6 requested.*/
-    /*TODO: allow different user to be specified as process owner. */
+      /* change directory to root */
+      (void)chdir("/");
+
+      /* close all open file handles */
+      for (i = 0; i < 8192; i++)
+         close(i);
+
+      umask(0); /* change file file mode mask */
+      setsid(); /* create a new sid for the child process */
+
+   }
+   return 0;
+}
+
+/** Drop privileges to reduce security risk.
+ *
+ * @return Zero on success, or a non-zero value if slpd could not daemonize 
+ *    (or if slpd is already running).
+ *
+ * @internal
+ */
+static int DropPrivileges()
+{
 #ifndef SETUIDS 
-   pwent = getpwnam("daemon"); 
+   /* suid to daemon */
+
+   /* TODO: why do the following lines mess up my signal handlers? */
+ 
+   /* IPv6 Operation requires that the process owner has permissons to 
+      open multicast sockets under IPv6, this process owner is 'daemon'. 
+      As a quick workaround for correct IPv6 operation, to run this 
+      process as root, define SETUIDS. */
+
+   /* TODO: warn if 'daemon' user has insufficient privileges and ipv6 requested.*/
+   /* TODO: allow different user to be specified as process owner. */
+
+   struct passwd * pwent = getpwnam("daemon"); 
    if (pwent)
    {
-      if (setgroups(1, &pwent->pw_gid) < 0 ||   setgid(pwent->pw_gid) < 0 
+      if (setgroups(1, &pwent->pw_gid) < 0 || setgid(pwent->pw_gid) < 0 
             || setuid(pwent->pw_uid) < 0)
       {
          /* TODO: should we log here and return fail */
       }
    }
 #endif
-   /* Set cwd to / (root)*/
-   chdir("/");
-
    return 0;
 }
 
@@ -516,6 +538,10 @@ int main(int argc, char * argv[])
    if (SLPDPropertyInit(G_SlpdCommandLine.cfgfile))
       SLPDFatal("slpd initialization failed during property load\n");
 
+   /* make slpd run as a daemon */
+   if (Daemonize(G_SlpdCommandLine.pidfile))
+      SLPDFatal("Could not daemonize\n");
+
    /* initialize the log file */
    if (SLPDLogFileOpen(G_SlpdCommandLine.logfile, G_SlpdProperty.appendLog))
       SLPDFatal("Could not open logfile %s\n",G_SlpdCommandLine.logfile);
@@ -550,9 +576,9 @@ int main(int argc, char * argv[])
    if (G_SlpdProperty.port != SLP_RESERVED_PORT)
       SLPDLog("Using port %d instead of default %d\n", G_SlpdProperty.port, SLP_RESERVED_PORT);
 
-   /* make slpd run as a daemon */
-   if (Daemonize(G_SlpdCommandLine.pidfile))
-      SLPDFatal("Could not daemonize\n");
+   /* drop privileges to reduce security risk */
+   if (DropPrivileges())
+      SLPDFatal("Could not drop privileges\n");
 
    /* Setup signal handlers */
    if (SetUpSignalHandlers())
