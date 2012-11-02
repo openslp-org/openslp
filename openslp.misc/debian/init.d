@@ -11,27 +11,27 @@ case "$1" in
   start)
 	echo -n "Starting $DESC: "
 	start-stop-daemon --start --quiet --pidfile /var/run/$NAME.pid \
-		--exec $DAEMON
+		--exec $DAEMON -- -p /var/run/$NAME.pid
 	echo "$NAME."
 	;;
   stop)
 	echo -n "Stopping $DESC: "
 	start-stop-daemon --stop --quiet --pidfile /var/run/$NAME.pid \
-		--exec $DAEMON
+		--exec $DAEMON -- -p /var/run/$NAME.pid
 	echo "$NAME."
 	;;
   reload)
 	echo "Reloading $DESC configuration files."
 	start-stop-daemon --stop --signal 1 --quiet --pidfile \
-		/var/run/$NAME.pid --exec $DAEMON
+		/var/run/$NAME.pid --exec $DAEMON -- -p /var/run/$NAME.pid
   ;;
   restart|force-reload)
 	echo -n "Restarting $DESC: "
 	start-stop-daemon --stop --quiet --pidfile \
-		/var/run/$NAME.pid --exec $DAEMON
+		/var/run/$NAME.pid --exec $DAEMON -- -p /var/run/$NAME.pid
 	sleep 1
 	start-stop-daemon --start --quiet --pidfile \
-		/var/run/$NAME.pid --exec $DAEMON
+		/var/run/$NAME.pid --exec $DAEMON -- -p /var/run/$NAME.pid
 	echo "$NAME."
 	;;
   *)

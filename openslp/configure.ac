@@ -54,6 +54,11 @@ OPENSLP_STRUCT_SA_RESTORER
 #
 # Checks for structure members
 #
+AC_CHECK_MEMBER([struct sockaddr_storage.ss_family],
+	[AC_DEFINE(HAVE_SOCKADDR_STORAGE_SS_FAMILY,1,[whether sockaddr_storage 
+has ss_family])],
+        [], [#include <sys/socket.h>])
+
 AC_CHECK_MEMBER([struct sockaddr_in.sin_len],
 	[AC_DEFINE(HAVE_SOCKADDR_IN_SIN_LEN,1,[whether sockaddr_in has sin_len])],
 	[], [#include <netinet/in.h>])
