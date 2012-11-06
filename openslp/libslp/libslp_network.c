@@ -443,8 +443,8 @@ sockfd_t NetworkConnectToDA(SLPHandleInfo * handle, const char * scopelist,
     * discover a DA that supports the scope.
     */
    if (handle->dasock != SLP_INVALID_SOCKET && handle->dascope != 0 
-         && SLPCompareString(handle->dascopelen, handle->dascope, 
-               scopelistlen, scopelist) == 0
+         && SLPSubsetStringList(handle->dascopelen, handle->dascope, 
+               scopelistlen, scopelist) != 0
          && NetworkCheckConnection(handle->dasock) == SLP_OK)
       memcpy(peeraddr, &handle->daaddr, sizeof(struct sockaddr_storage));
    else
@@ -491,8 +491,8 @@ sockfd_t NetworkConnectToSA(SLPHandleInfo * handle, const char * scopelist,
       size_t scopelistlen, void * saaddr)
 {
    if (handle->sasock != SLP_INVALID_SOCKET && handle->sascope != 0 
-         && SLPCompareString(handle->sascopelen, handle->sascope,
-               scopelistlen, scopelist) == 0
+         && SLPSubsetStringList(handle->sascopelen, handle->sascope,
+               scopelistlen, scopelist) != 0
          && NetworkCheckConnection(handle->sasock) == SLP_OK)
       memcpy(saaddr, &handle->saaddr, sizeof(handle->saaddr));
    else
