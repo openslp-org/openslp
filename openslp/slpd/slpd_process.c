@@ -310,7 +310,7 @@ static int ProcessDASrvRqst(SLPMessage * message, SLPBuffer * sendbuf, int error
                    if (*(tmp->start) == 1)
                        *(tmp->start + 4) = 0;
                    else
-                       ToUINT16(tmp->start + 5, 0);   
+                       TO_UINT16(tmp->start + 5, 0);   
 
     			   /* copy all data out of tmp into the sendbuf */
                    memcpy((*sendbuf)->curpos, tmp->start, tmp->end - tmp->start);
