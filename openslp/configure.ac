@@ -216,7 +216,7 @@ if test "x${GCC}" = xyes; then
   if test "x${debug}" = xyes; then 
     OPTFLAGS="-O0"
   else
-    OPTFLAGS="-O3"
+    OPTFLAGS="-O2"
   fi
 elif $CC -V 2>&1 | grep "WorkShop Compilers"; then
   # Solaris Workshop: enable optimizations for debug builds
