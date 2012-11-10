@@ -304,9 +304,13 @@ static int ProcessDASrvRqst(SLPMessage * message, SLPBuffer * sendbuf, int error
                {
             	   /* buffer should now be resized to an appropriate size to handle all current database entries */
 
-                   /* TRICKY: Fix up the XID. */
+                   /* TRICKY: Fix up the XID and clear the flags. */
                    tmp->curpos = tmp->start + 10;
                    TO_UINT16(tmp->curpos, message->header.xid);
+                   if (*(tmp->start) == 1)
+                       *(tmp->start + 4) = 0;
+                   else
+                       ToUINT16(tmp->start + 5, 0);   
 
     			   /* copy all data out of tmp into the sendbuf */
                    memcpy((*sendbuf)->curpos, tmp->start, tmp->end - tmp->start);
