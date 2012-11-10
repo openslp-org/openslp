@@ -285,7 +285,7 @@ void Register(SLPToolCommandLine * cmdline)
    if (SLPOpen(cmdline->lang, SLP_FALSE, &hslp) == SLP_OK)
    {
       if (!lt || lt > SLP_LIFETIME_MAXIMUM)
-           result = SLPReg(hslp, cmdline->cmdparam1, SLP_LIFETIME_DEFAULT, srvtype,
+           result = SLPReg(hslp, cmdline->cmdparam1, SLP_LIFETIME_MAXIMUM, srvtype,
                            cmdline->cmdparam2, SLP_TRUE, mySLPRegReport, 0);
       else
            result = SLPReg(hslp, cmdline->cmdparam1, (unsigned short)lt, srvtype,
