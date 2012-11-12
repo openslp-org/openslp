@@ -227,7 +227,7 @@ int SLPNetworkSendMessage(sockfd_t sockfd, int socktype,
 int SLPNetworkRecvMessage(sockfd_t sockfd, int socktype, 
       SLPBuffer * buf, void * peeraddr, struct timeval * timeout)
 {
-   int xferbytes;
+   int xferbytes, recvlen;
    fd_set readfds;
    char peek[16];
 
@@ -273,10 +273,11 @@ int SLPNetworkRecvMessage(sockfd_t sockfd, int socktype,
    }
 
    /* Now check the version and read the rest of the message. */
-   if ((*peek == 1) || (*peek == 2))
+   if (xferbytes >= 5 && (*peek == 1 || *peek == 2))
    {
       /* Allocate the receive buffer as large as necessary. */
-      *buf = SLPBufferRealloc(*buf, PEEK_LENGTH(peek));
+      recvlen = PEEK_LENGTH(peek);
+      *buf = SLPBufferRealloc(*buf, recvlen);
       if (*buf)
       {
          while ((*buf)->curpos < (*buf)->end)

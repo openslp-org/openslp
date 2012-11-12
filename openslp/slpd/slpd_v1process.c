@@ -701,11 +701,12 @@ int SLPDv1ProcessMessage(struct sockaddr_storage * peeraddr,
 
    /* SLPv1 messages are handled only by DAs */
    if (!G_SlpdProperty.isDA)
-      errorcode = SLP_ERROR_VER_NOT_SUPPORTED;
+      return SLP_ERROR_VER_NOT_SUPPORTED;
 
    /* Parse just the message header the reset the buffer "curpos" pointer */
    recvbuf->curpos = recvbuf->start;
-   errorcode = SLPv1MessageParseHeader(recvbuf, &header);
+   if ((errorcode = SLPv1MessageParseHeader(recvbuf, &header)) != 0)
+      return errorcode;
 
    /* Reset the buffer "curpos" pointer so that full message can be 
       parsed later 

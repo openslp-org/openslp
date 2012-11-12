@@ -184,7 +184,7 @@
       )
 
 /* Assuming the current byte is the packet version, returns the length */
-#define PEEK_LENGTH(p) ((*p == 1) ? AS_UINT16(p + 2) : AS_UINT24(p + 2))
+#define PEEK_LENGTH(p) ((*p == 2) ? AS_UINT24(p + 2) : (*p == 1) ? AS_UINT16(p + 2) : 1)
 
 /* buffer-based wire routines */
 uint16_t GetUINT16(uint8_t ** cpp);

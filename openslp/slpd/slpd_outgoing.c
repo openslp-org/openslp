@@ -219,7 +219,7 @@ void OutgoingStreamRead(SLPList * socklist, SLPDSocket * sock)
             sock->state = SOCKET_CLOSE;
          }
       }
-      else
+      else if (bytesread == -1)
       {
 #ifdef _WIN32
          if (WSAEWOULDBLOCK != WSAGetLastError())
@@ -231,6 +231,10 @@ void OutgoingStreamRead(SLPList * socklist, SLPDSocket * sock)
             /* Socket will be closed if connect times out               */
             OutgoingStreamReconnect(socklist, sock);
          }
+      }
+      else
+      {
+         sock->state = SOCKET_CLOSE;
       }
    }
 

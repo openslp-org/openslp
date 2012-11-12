@@ -235,7 +235,7 @@ static void IncomingStreamRead(SLPList * socklist, SLPDSocket * sock)
       /*---------------------------------------------------*/
       bytesread = recvfrom(sock->fd, (char *)peek, 16, MSG_PEEK,
             (struct sockaddr *)&sock->peeraddr, &peeraddrlen);
-      if (bytesread > 0)
+      if (bytesread > 0 && bytesread >= (*peek == 2? 5: 4))
       {
          recvlen = PEEK_LENGTH(peek);
 
