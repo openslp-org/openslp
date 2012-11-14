@@ -44,6 +44,7 @@
 
 #include "slp_types.h"
 #include "slp_v1message.h"
+#include "slp_compare.h"
 #include "slp_utf8.h"
 
 /** Parse an SLPv1 URL entry.
@@ -177,7 +178,9 @@ static int v1ParseSrvRqst(const SLPBuffer buffer, int encoding,
    srvrqst->predicate += srvrqst->srvtypelen + 1;
 
    /* Now split out the scope (if any). */
-   if (*srvrqst->predicate == '/')
+   /* Special case DA discovery, empty scope is allowed here */
+   if (*srvrqst->predicate == '/' && SLPCompareString(srvrqst->srvtypelen,
+         srvrqst->srvtype, 15, "directory-agent") != 0)
    {
       /* No scope, so set default scope. */
       srvrqst->scopelist = "DEFAULT";

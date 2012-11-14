@@ -68,23 +68,27 @@ static int v1ProcessDASrvRqst(struct sockaddr_storage * peeraddr,
       struct sockaddr_storage * localaddr, SLPMessage * message, 
       SLPBuffer * sendbuf, int errorcode)
 {
-   if (message->body.srvrqst.scopelistlen == 0 
-         || SLPIntersectStringList(message->body.srvrqst.scopelistlen, 
-               message->body.srvrqst.scopelist, G_SlpdProperty.useScopesLen,
-               G_SlpdProperty.useScopes))
-      errorcode = SLPDKnownDAGenerateMyV1DAAdvert(localaddr, errorcode,
-            message->header.encoding, message->header.xid, sendbuf);
+   if (G_SlpdProperty.isDA)
+   {
+      if (message->body.srvrqst.scopelistlen == 0
+            || SLPIntersectStringList(message->body.srvrqst.scopelistlen,
+                  message->body.srvrqst.scopelist,G_SlpdProperty.useScopesLen,
+                  G_SlpdProperty.useScopes))
+         errorcode = SLPDKnownDAGenerateMyV1DAAdvert(localaddr, errorcode,
+               message->header.encoding, message->header.xid, sendbuf);
+      else
+         errorcode = SLP_ERROR_SCOPE_NOT_SUPPORTED;
+   }
    else
-      errorcode =  SLP_ERROR_SCOPE_NOT_SUPPORTED;
+      errorcode = SLP_ERROR_MESSAGE_NOT_SUPPORTED;
 
    /* don't return errorcodes to multicast messages */
-   if (errorcode == 0)
-      if (message->header.flags & SLP_FLAG_MCAST || SLPNetIsMCast(peeraddr))
-      {
-         (*sendbuf)->end = (*sendbuf)->start;
-         return errorcode;
-      }
-
+   if (errorcode != 0 && (message->header.flags & SLP_FLAG_MCAST) 
+         || SLPNetIsMCast(peeraddr))
+   {
+      (*sendbuf)->end = (*sendbuf)->start;
+      return errorcode;
+   }
    return errorcode;
 }
 
