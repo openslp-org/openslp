@@ -690,6 +690,50 @@ static int SLPD_Get_Iface_From_Ip(char *ip, char *iface) {
    return 0;
 }
 
+/** Get an IP address for an interface
+ *
+ * Fills in sockaddr with a valid address on the given interface and returns
+ * the length of the socket address
+ *
+ * @param[in] ifaddrs0 - pointer to ifaddrlist, or NULL
+ * @param[in] ifname - Pointer to interface name
+ * @param[in] family - A hint indicating the address family to get info 
+ *    for - can be AF_INET, AF_INET6, or AF_UNSPEC for both.
+ * @param[out] sa - sockaddr containing an address on interface "ifname"
+ *
+ * @return Zero on failure, sizeof(sockaddr_in) for AF_INET,
+ *     sizeof(sockaddr_in6) for AF_INET6
+ */
+static int ifname_to_addr(struct ifaddrs *ifaddrs0, char *ifname, int family,
+                          struct sockaddr *sa)
+{
+   int salen = 0;
+   struct ifaddrs *ifaddrs, *ifa;
+
+   ifaddrs = ifaddrs0;
+
+   if (ifaddrs == NULL && getifaddrs(&ifaddrs) < 0)
+      return 0;
+   for (ifa = ifaddrs; ifa; ifa = ifa->ifa_next)
+   {
+      if (strcmp(ifa->ifa_name, ifname) != 0)
+         continue;
+      if (family != AF_UNSPEC && ifa->ifa_addr->sa_family != family)
+         continue;
+      switch (ifa->ifa_addr->sa_family) {
+      case AF_INET: salen = sizeof(struct sockaddr_in); break;
+      case AF_INET6: salen = sizeof(struct sockaddr_in6); break;
+      default:
+         continue;
+      }
+      memcpy(sa, ifa->ifa_addr, salen);
+      break;
+   }
+   if (!ifaddrs0)
+      freeifaddrs(ifaddrs);
+   return salen;
+}
+
 /** Get the network interface addresses for this host.
  * 
  * Returns either a complete list or a subset of the list of network interface 
@@ -739,7 +783,11 @@ int SLPIfaceGetInfo(const char * useifaces, SLPIfaceInfo * ifaceinfo,
       {
          char *token, *saveptr;
          char interface[MAX_IFACE_LEN];
+         struct ifaddrs *ifaddrs;
          int ret = 0;
+
+         if (getifaddrs(&ifaddrs) < 0)
+            ifaddrs = NULL;
 
          for (token = strtok_r(p, ",", &saveptr); token;
             token = strtok_r(NULL, ",", &saveptr))
@@ -793,7 +841,20 @@ int SLPIfaceGetInfo(const char * useifaces, SLPIfaceInfo * ifaceinfo,
                else
                   sts = (errno = EINVAL), -1;   /* not v4, not v6 */
             }
+            else if (if_nametoindex(token))
+            {
+               struct sockaddr_storage ss;
+               int salen;
+
+               salen = ifname_to_addr(ifaddrs, token, family,
+                                      (struct sockaddr *)&ss);
+               if (salen > 0)
+                  memcpy(&ifaceinfo->iface_addr[ifaceinfo->iface_count++],
+                         &ss, salen);
+            }
          }
+         if (ifaddrs)
+            freeifaddrs(ifaddrs);
       }
       xfree(p);
    }
