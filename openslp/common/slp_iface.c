@@ -748,29 +748,24 @@ int SLPIfaceGetInfo(const char * useifaces, SLPIfaceInfo * ifaceinfo,
 
       if (p)
       {
-         char * ep = p + strlen(p);
-         char * slider1 = p;
-         char * slider2 = p;
+         char *token, *saveptr;
          char interface[MAX_IFACE_LEN];
          int ret = 0;
 
-         while (slider1 < ep)
+         for (token = strtok_r(p, ",", &saveptr); token;
+            token = strtok_r(NULL, ",", &saveptr))
          {
-            while (*slider2 != 0 && *slider2 != ',') 
-               slider2++;
-            *slider2 = 0;
-
-            ret = SLPD_Get_Iface_From_Ip(slider1, (char *)&interface);
+            ret = SLPD_Get_Iface_From_Ip(token, (char *)&interface);
 
             if (SLPIfaceContainsAddr(useifaceslen, useifaces, 
-                  strlen(slider1), slider1))
+                  strlen(token), token))
             {
                sockfd_t fd;
                struct sockaddr_in v4addr;
                struct sockaddr_in6 v6addr;
 
                /* check if an ipv4 address was given */
-               if (SLP_inet_pton(AF_INET, slider1, &v4addr.sin_addr) == 1)
+               if (SLP_inet_pton(AF_INET, token, &v4addr.sin_addr) == 1)
                {
                   if (SLPNetIsIPV4() && ((family == AF_INET) || (family == AF_UNSPEC)))
                   {
@@ -787,7 +782,7 @@ int SLPIfaceGetInfo(const char * useifaces, SLPIfaceInfo * ifaceinfo,
                      }
                   }
                }
-               else if (SLP_inet_pton(AF_INET6, slider1, &v6addr.sin6_addr) == 1)
+               else if (SLP_inet_pton(AF_INET6, token, &v6addr.sin6_addr) == 1)
                {
                   if (SLPNetIsIPV6() && ((family == AF_INET6) || (family == AF_UNSPEC)))
                   {
@@ -809,7 +804,6 @@ int SLPIfaceGetInfo(const char * useifaces, SLPIfaceInfo * ifaceinfo,
                else
                   sts = (errno = EINVAL), -1;   /* not v4, not v6 */
             }
-            slider1 = ++slider2;
          }
       }
       xfree(p);
