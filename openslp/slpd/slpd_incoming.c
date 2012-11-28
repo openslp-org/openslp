@@ -617,11 +617,57 @@ int SLPDIncomingRemoveService(const char * srvtype, size_t len)
    return 0;
 }
 
+/** Find an existing listening socket
+ *
+ * @param[in] sockaddr - The address of the interface to listen to.
+ *
+ * @return The existing listening socket on success, or NULL on failure.
+ *
+ * @internal
+ */
+static SLPDSocket * FindListeningSocket(struct sockaddr_storage * sockaddr)
+{
+   SLPDSocket * sock = (SLPDSocket *) G_IncomingSocketList.head;
+
+   while (sock)
+   {
+      if (sock->state == SOCKET_LISTEN
+          && SLPNetCompareAddrs(&(sock->localaddr), sockaddr) == 0)
+         break;
+      sock = (SLPDSocket *) sock->listitem.next;
+   }
+
+   return sock;
+}
+
 /** Initialize incoming socket list for all network interfaces.
  *
  * @return Zero on success, or a non-zero value on failure.
  */
 int SLPDIncomingInit(void)
+{
+#if 1
+   /* 
+    * do not remove ipv6 multicast service sockets previously
+    * created from database init (slp.reg)
+    */
+#else
+   /*------------------------------------------------------------*/
+   /* First, remove all of the sockets that might be in the list */
+   /*------------------------------------------------------------*/
+   while (G_IncomingSocketList.count)
+      SLPDSocketFree((SLPDSocket *)
+            SLPListUnlink(&G_IncomingSocketList, G_IncomingSocketList.head));
+#endif
+
+   return SLPDIncomingReinit();
+}
+
+/** Reinitialize incoming socket list for all network interfaces.
+ *
+ * @return Zero on success, or a non-zero value on failure.
+ */
+int SLPDIncomingReinit(void)
 {
    struct sockaddr_storage myaddr;
    struct sockaddr_storage mcast4addr;
@@ -641,21 +687,6 @@ int SLPDIncomingInit(void)
    SLPIfaceInfo ifaces;
    int i;
 
-#if 1
-   /* 
-    * do not remove ipv6 multicast service sockets previously
-    * created from database init (slp.reg)
-    */
-#else
-   /*------------------------------------------------------------*/
-   /* First, remove all of the sockets that might be in the list */
-   /*------------------------------------------------------------*/
-   while (G_IncomingSocketList.count)
-      SLPDSocketFree((SLPDSocket *)
-            SLPListUnlink(&G_IncomingSocketList, G_IncomingSocketList.head));
-#endif
-
-
    /*---------------------------------------------------------*/
    /* set up addresses to use for ipv4 loopback and multicast */
    /*---------------------------------------------------------*/
@@ -669,7 +700,6 @@ int SLPDIncomingInit(void)
       tmpaddr = SLPv1_DA_MCAST_ADDRESS;
       SLPNetSetAddr(&v1mcast4addr, AF_INET, G_SlpdProperty.port, &tmpaddr);
 #endif
-
    }
 
    /*-------------------------------------------------------*/
@@ -693,52 +723,68 @@ int SLPDIncomingInit(void)
    /*--------------------------------------------------------------------*/
    if (SLPNetIsIPV4())
    {
-      sock = SLPDSocketCreateListen(&lo4addr);
+      sock = FindListeningSocket(&lo4addr);
       if (sock)
       {
-         SLPListLinkTail(&G_IncomingSocketList, (SLPListItem *) sock);
-         SLPDLog("Listening on loopback TCP...\n");
+         SLPDLog("Already listening on IPv4 loopback.\n");
       }
       else
       {
-         SLPDLog("NETWORK_ERROR - Could not listen for TCP on IPv4 loopback\n");
-         SLPDLog("INTERNAL_ERROR - No SLPLIB support will be available with TCP\n");
-      }
-      sock = SLPDSocketCreateBoundDatagram(&lo4addr, &lo4addr, DATAGRAM_UNICAST);
-      if (sock)
-      {
-         SLPListLinkTail(&G_IncomingSocketList, (SLPListItem *) sock);
-         SLPDLog("Listening on loopback UDP...\n");
-      }
-      else
-      {
-         SLPDLog("NETWORK_ERROR - Could not listen for UDP on IPv4 loopback\n");
-         SLPDLog("INTERNAL_ERROR - No SLPLIB support will be available with UDP\n");
+         sock = SLPDSocketCreateListen(&lo4addr);
+         if (sock)
+         {
+            SLPListLinkTail(&G_IncomingSocketList, (SLPListItem *) sock);
+            SLPDLog("Listening on loopback TCP...\n");
+         }
+         else
+         {
+            SLPDLog("NETWORK_ERROR - Could not listen for TCP on IPv4 loopback\n");
+            SLPDLog("INTERNAL_ERROR - No SLPLIB support will be available with TCP\n");
+         }
+         sock = SLPDSocketCreateBoundDatagram(&lo4addr, &lo4addr, DATAGRAM_UNICAST);
+         if (sock)
+         {
+            SLPListLinkTail(&G_IncomingSocketList, (SLPListItem *) sock);
+            SLPDLog("Listening on loopback UDP...\n");
+         }
+         else
+         {
+            SLPDLog("NETWORK_ERROR - Could not listen for UDP on IPv4 loopback\n");
+            SLPDLog("INTERNAL_ERROR - No SLPLIB support will be available with UDP\n");
+         }
       }
    }
    if (SLPNetIsIPV6())
    {
-      sock = SLPDSocketCreateListen(&lo6addr);
+      sock = FindListeningSocket(&lo6addr);
       if (sock)
       {
-         SLPListLinkTail(&G_IncomingSocketList, (SLPListItem *) sock);
-         SLPDLog("Listening on IPv6 loopback TCP...\n");
+         SLPDLog("Already listening on IPv6 loopback.\n");
       }
       else
       {
-         SLPDLog("NETWORK_ERROR - Could not listen on TCP IPv6 loopback\n");
-         SLPDLog("INTERNAL_ERROR - No SLPLIB support will be available with TCP\n");
-      }
-      sock = SLPDSocketCreateBoundDatagram(&lo6addr, &lo6addr, DATAGRAM_UNICAST);
-      if (sock)
-      {
-         SLPListLinkTail(&G_IncomingSocketList, (SLPListItem *) sock);
-         SLPDLog("Listening on IPv6 loopback UDP...\n");
-      }
-      else
-      {
-         SLPDLog("NETWORK_ERROR - Could not listen on UDP IPv6 loopback\n");
-         SLPDLog("INTERNAL_ERROR - No SLPLIB support will be available with UDP\n");
+         sock = SLPDSocketCreateListen(&lo6addr);
+         if (sock)
+         {
+            SLPListLinkTail(&G_IncomingSocketList, (SLPListItem *) sock);
+            SLPDLog("Listening on IPv6 loopback TCP...\n");
+         }
+         else
+         {
+            SLPDLog("NETWORK_ERROR - Could not listen on TCP IPv6 loopback\n");
+            SLPDLog("INTERNAL_ERROR - No SLPLIB support will be available with TCP\n");
+         }
+         sock = SLPDSocketCreateBoundDatagram(&lo6addr, &lo6addr, DATAGRAM_UNICAST);
+         if (sock)
+         {
+            SLPListLinkTail(&G_IncomingSocketList, (SLPListItem *) sock);
+            SLPDLog("Listening on IPv6 loopback UDP...\n");
+         }
+         else
+         {
+            SLPDLog("NETWORK_ERROR - Could not listen on UDP IPv6 loopback\n");
+            SLPDLog("INTERNAL_ERROR - No SLPLIB support will be available with UDP\n");
+         }
       }
    }
 
@@ -776,6 +822,17 @@ int SLPDIncomingInit(void)
    for (i = 0; i < ifaces.iface_count; i++)
    {
       memcpy(&myaddr, &ifaces.iface_addr[i], sizeof(struct sockaddr_storage));
+
+      /*------------------------------------------------*/
+      /* Check for existing listening socket            */
+      /*------------------------------------------------*/
+      if (FindListeningSocket(&myaddr))
+      {
+         SLPDLog("Already listening on %s.\n",
+               SLPNetSockAddrStorageToString(&myaddr, addr_str,
+                     sizeof(addr_str)));
+         continue;
+      }
 
       /*------------------------------------------------*/
       /* Create TCP_LISTEN that will handle unicast TCP */

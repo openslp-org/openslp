@@ -61,6 +61,7 @@ int SLPDIncomingRemoveService(const char * srvtype, size_t len);
 void SLPDIncomingHandler(int * fdcount, fd_set * readfds, fd_set * writefds);
 int SLPDIncomingInit(void);
 int SLPDIncomingDeinit(void);
+int SLPDIncomingReinit(void);
 
 #ifdef DEBUG
 void SLPDIncomingSocketDump(void);

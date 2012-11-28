@@ -199,10 +199,8 @@ static void HandleSigUsr1(void)
 #endif
 
 /** Handles a SIG_HUP signal from the system.
- *
- * @internal
  */
-static void HandleSigHup(void)
+void HandleSigHup(void)
 {
    /* Reinitialize */
    SLPDLog("****************************************\n");
@@ -224,6 +222,9 @@ static void HandleSigHup(void)
    /* Re-read the static registration file (slp.reg)*/
    SLPDDatabaseReInit(G_SlpdCommandLine.regfile);
 
+   /* Reopen listening sockets */
+   SLPDIncomingReinit();
+
    /* Rebuild Known DA database */
    SLPDKnownDAInit();
 
@@ -231,6 +232,7 @@ static void HandleSigHup(void)
    SLPDLogTime();
    SLPDLog("SLPD daemon reset finished\n");
    SLPDLog("****************************************\n\n");
+   SLPDLog("Agent Interfaces = %s\n", G_SlpdProperty.interfaces);
 }
 
 /** Handles a SIG_ALRM signal from the system.

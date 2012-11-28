@@ -73,6 +73,160 @@ void LoadFdSets(SLPList * socklist, int * highfd,
       fd_set * readfds, fd_set * writefds);
 void HandleSigTerm(void);
 void HandleSigAlrm(void);
+void HandleSigHup(void);
+
+/* Callback parameter type redefined here as some versions of the Windows SDK
+   do not specify a calling convention for the callback type; the compiler 
+   will typically default to assuming CDECL, but the function must really be 
+   STDCALL.  That way lies crashes. */
+typedef VOID (WINAPI *PSLP_IPINTERFACE_CHANGE_CALLBACK)(IN PVOID CallerContext,
+                                                        IN PMIB_IPINTERFACE_ROW Row OPTIONAL,
+                                                        IN MIB_NOTIFICATION_TYPE NotificationType);
+
+typedef NETIO_STATUS (WINAPI *PNotifyIpInterfaceChange)(IN ADDRESS_FAMILY Family,
+                                                        IN PSLP_IPINTERFACE_CHANGE_CALLBACK Callback,
+                                                        IN PVOID CallerContext,
+                                                        IN BOOLEAN InitialNotification,
+                                                        IN OUT HANDLE *NotificationHandle);
+typedef NETIO_STATUS (WINAPI *PCancelMibChangeNotify2)(IN HANDLE NotificationHandle);
+
+/* interface address monitoring data (encapsulated to provide a bit of abstraction) */
+struct interface_monitor
+{
+   HANDLE hAddrChange;
+   /* WinXP data (IPv4 only) */
+   OVERLAPPED addrChange;
+   /* WinVista data (IPv4+IPv6) */
+   HMODULE hNetIoLib;
+   PNotifyIpInterfaceChange pNotifyIpInterfaceChange;
+   PCancelMibChangeNotify2 pCancelMibChangeNotify2;
+   BOOL addrChanged;
+};
+
+/** Callback for Vista+ IPv4/IPv6 interface change monitoring.
+ *
+ * @internal
+ */
+static VOID CALLBACK InterfaceMonitorCallback(IN PVOID CallerContext, IN PMIB_IPINTERFACE_ROW Row OPTIONAL, IN MIB_NOTIFICATION_TYPE NotificationType)
+{
+   struct interface_monitor *self = (struct interface_monitor *) CallerContext;
+   Row;  /* unused */
+   NotificationType;  /* unused */
+
+   self->addrChanged = TRUE;
+}
+
+/** Initializes the interface monitoring.
+ *
+ * @param[in] self - An uninitialized struct interface_monitor.
+ *
+ * @internal
+ */
+static void InterfaceMonitorInit(struct interface_monitor *self)
+{
+   self->hAddrChange = NULL;
+   memset(&self->addrChange, 0, sizeof(self->addrChange));
+
+   /* try to load the Vista+ IPv6 functions */
+   self->hNetIoLib = LoadLibraryA("iphlpapi");
+   if (self->hNetIoLib)
+   {
+      self->pNotifyIpInterfaceChange = (PNotifyIpInterfaceChange) GetProcAddress(self->hNetIoLib, "NotifyIpInterfaceChange");
+      self->pCancelMibChangeNotify2 = (PCancelMibChangeNotify2) GetProcAddress(self->hNetIoLib, "CancelMibChangeNotify2");
+      if (!(self->pNotifyIpInterfaceChange && self->pNotifyIpInterfaceChange))
+      {
+         FreeLibrary(self->hNetIoLib);
+         self->hNetIoLib = NULL;
+      }
+      self->addrChanged = FALSE;
+   }
+
+   /* register for IP change notifications */
+   if (self->hNetIoLib)
+   {
+      /* Note that the cast is required here as some versions of the Windows SDK do not specify a calling
+         convention for the callback type; the compiler will typically default to assuming CDECL, but the
+         function must really be STDCALL.  Without the cast we get a compiler error when that happens. */
+      if (self->pNotifyIpInterfaceChange(AF_UNSPEC, &InterfaceMonitorCallback, self, FALSE, &self->hAddrChange))
+      {
+         SLPDLog("Error watching for IPv4/IPv6 interface changes; continuing anyway...\n");
+      }
+   }
+   else
+   {
+      if (NotifyAddrChange(&self->hAddrChange, &self->addrChange) != ERROR_IO_PENDING)
+      {
+         SLPDLog("Error watching for IPv4 interface changes, continuing anyway...\n");
+      }
+   }
+}
+
+/** Deinitializes the interface monitoring.
+ *
+ * @param[in] self - A struct interface_monitor.
+ *
+ * @internal
+ */
+static void InterfaceMonitorDeinit(struct interface_monitor *self)
+{
+   if (self->hNetIoLib)
+   {
+      /* Vista+ */
+      if (self->hAddrChange)
+      {
+         self->pCancelMibChangeNotify2(self->hAddrChange);
+         self->hAddrChange = NULL;
+         FreeLibrary(self->hNetIoLib);
+         self->hNetIoLib = NULL;
+      }
+   }
+   else
+   {
+      /* XP */
+      if (self->hAddrChange)
+      {
+         CancelIPChangeNotify(&self->addrChange);
+         self->hAddrChange = NULL;
+      }
+   }
+}
+
+/** Reports whether interfaces have been changed.
+ *
+ * @param[in] self - An initialized struct interface_monitor.
+ *
+ * @return A boolean value; TRUE if interfaces have changed, FALSE otherwise.
+ *
+ * @internal
+ */
+static BOOL InterfacesChanged(struct interface_monitor *self)
+{
+   if (self->hNetIoLib)
+   {
+      /* Vista+ */
+      if (self->addrChanged)
+      {
+         self->addrChanged = FALSE;
+         return TRUE;
+      }
+      return FALSE;
+   }
+   else
+   {
+      /* XP */
+      if (self->hAddrChange)
+      {
+         DWORD dwResult;
+         if (GetOverlappedResult(self->hAddrChange, &self->addrChange, &dwResult, FALSE))
+         {
+            /* start watching again for further interface changes */
+            NotifyAddrChange(&self->hAddrChange, &self->addrChange);
+            return TRUE;
+         }
+      }
+   }
+   return FALSE;
+}
 
 /** Reports the current status of the service to the SCM.
  *
@@ -96,7 +250,8 @@ static BOOL ReportStatusToSCMgr(DWORD dwCurrentState,
       if (dwCurrentState == SERVICE_START_PENDING)
          ssStatus.dwControlsAccepted = 0;
       else
-         ssStatus.dwControlsAccepted = SERVICE_ACCEPT_STOP; 
+         ssStatus.dwControlsAccepted = SERVICE_ACCEPT_STOP
+                                     | SERVICE_ACCEPT_PARAMCHANGE;
 
       ssStatus.dwCurrentState = dwCurrentState; 
       ssStatus.dwWin32ExitCode = dwWin32ExitCode; 
@@ -153,7 +308,7 @@ static LPTSTR GetLastErrorText(LPTSTR lpszBuf, DWORD dwSize)
 static void ServiceStop(void) 
 {
    G_SIGTERM = 1;
-   ReportStatusToSCMgr(SERVICE_STOPPED, NO_ERROR, 3000);
+   ReportStatusToSCMgr(SERVICE_STOP_PENDING, NO_ERROR, 3000);
 } 
 
 /** Start the service and report it.
@@ -173,7 +328,8 @@ static void ServiceStart(int argc, char ** argv)
    time_t alarmtime;
    struct timeval timeout;
    WSADATA wsaData; 
-   WORD wVersionRequested = MAKEWORD(1, 1); 
+   WORD wVersionRequested = MAKEWORD(1, 1);
+   struct interface_monitor monitor;
 
    /* service initialization */
    if (!ReportStatusToSCMgr(SERVICE_START_PENDING, NO_ERROR, 3000))
@@ -224,6 +380,9 @@ static void ServiceStart(int argc, char ** argv)
    if (!ReportStatusToSCMgr(SERVICE_START_PENDING, NO_ERROR, 3000))
       goto cleanup_winsock;
 
+   /* start watching for address changes *before* we initialise, to minimise races */
+   InterfaceMonitorInit(&monitor);
+
    /* initialize for the first time */
    SLPDPropertyReinit();  /*So we get any property-related log messages*/
    if (SLPDDatabaseInit(G_SlpdCommandLine.regfile) 
@@ -243,6 +402,7 @@ static void ServiceStart(int argc, char ** argv)
    /* main loop */
    SLPDLog("Startup complete entering main run loop ...\n\n");
    G_SIGTERM   = 0;
+   G_SIGHUP = 0;
    time(&curtime);
    alarmtime = curtime + 2;  /*Start with a shorter time so SAs register with us quickly on startup*/
    while (G_SIGTERM == 0)
@@ -273,12 +433,19 @@ static void ServiceStart(int argc, char ** argv)
          SLPDOutgoingRetry(time(0) - curtime);
 
       /* handle signals */
-      HANDLE_SIGNAL:
+HANDLE_SIGNAL:
       time(&curtime);
       if (curtime >= alarmtime)
       {
          HandleSigAlrm();
          alarmtime = curtime + SLPD_AGE_INTERVAL;
+      }
+
+      /* check for interface changes */
+      if (InterfacesChanged(&monitor) || G_SIGHUP)
+      {
+         G_SIGHUP = 0;
+         HandleSigHup();
       }
    }
 
@@ -287,7 +454,8 @@ static void ServiceStart(int argc, char ** argv)
 
 cleanup_winsock:
 
-   WSACleanup();     
+   InterfaceMonitorDeinit(&monitor);
+   WSACleanup();
 } 
 
 /** Handles console control events.
@@ -322,12 +490,15 @@ static VOID WINAPI ServiceCtrl(DWORD dwCtrlCode)
    switch(dwCtrlCode)
    {
       case SERVICE_CONTROL_STOP: 
-         ReportStatusToSCMgr(SERVICE_STOP_PENDING, NO_ERROR, 0); 
          ServiceStop(); 
          return; 
 
       case SERVICE_CONTROL_INTERROGATE: 
-         break; 
+         break;
+
+      case SERVICE_CONTROL_PARAMCHANGE:
+         G_SIGHUP = 1;
+         break;
 
       default: 
          break; 
@@ -360,7 +531,7 @@ static void WINAPI SLPDServiceMain(DWORD argc, LPTSTR * argv)
 
    /* try to report the stopped status to the service control manager. */
    if (sshStatusHandle)
-      ReportStatusToSCMgr(SERVICE_STOPPED, 0, 0);
+      ReportStatusToSCMgr(SERVICE_STOPPED, G_SIGTERM ? NO_ERROR : 1, 0);
 } 
 
 /** Install the service.
