@@ -675,30 +675,19 @@ int SLPIfaceGetDefaultInfo(SLPIfaceInfo* ifaceinfo, int family)
  */ 
 static int SLPD_Get_Iface_From_Ip(char *ip, char *iface) {
 
-    char *ip_ptr = ip;
-   unsigned int i = 0;
-   int ret = -1;
+   char *p;
 
-    if(iface == NULL)
-             return ret;
+   if (iface == NULL)
+      return -1;
 
-    while(i != strlen(ip)) {
-             if(*ip_ptr != '%') {
-                      ip_ptr++;
-                      i++;
-                      continue;
-             } else {
-                      ip_ptr++;
-                      if (strlen(ip_ptr) >= MAX_IFACE_LEN) {
-                             break;
-                      } else {
-                             strcpy(iface, ip_ptr);
-                             ret = 0;
-                             break;
-                      }
-            }
-    }
-    return ret;
+   p = strchr(ip, '%');
+   if (p == NULL)
+      return -1;
+   ++p;
+   if (strlen(p) >= MAX_IFACE_LEN)
+      return -1;
+   (void) strcpy(iface, p);
+   return 0;
 }
 
 /** Get the network interface addresses for this host.
