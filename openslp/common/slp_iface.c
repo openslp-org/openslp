@@ -57,8 +57,245 @@
 
 int slp_max_ifaces = SLP_MAX_IFACES;
 
-/** Custom designed wrapper for inet_pton to allow <ip>%<iface> format
+/**
+ * A Windows implementation of getifaddrs/freeifaddrs.
+ */
+#ifdef _WIN32
+
+struct ifa_data
+{
+   char ifa_name[IF_NAMESIZE];
+   struct sockaddr_storage ifa_addr;
+   struct sockaddr_storage ifa_netmask;
+};
+
+/* struct ifaddrs: kyped from linux man pages */
+struct ifaddrs
+{
+   struct ifaddrs * ifa_next;
+   char * ifa_name;
+   unsigned int ifa_flags;
+   struct sockaddr * ifa_addr;
+   struct sockaddr * ifa_netmask;
+
+/* NOTE: The following fields are not currently implemented:
+   union
+   {
+      struct sockaddr * ifu_broadaddr;
+      struct sockaddr * ifu_dstaddr;
+   } ifa_ifu;
+#define ifa_broadaddr ifa_ifu.ifu_broadaddr
+#define ifa_dstaddr ifa_ifu.ifu_dstaddr
+   void * ifa_data;
+*/
+};
+
+/* freeifaddrs is a simple passthru to xfree */
+#define freeifaddrs xfree
+
+/** Return an allocated buffer of interface address structures.
  *
+ * @param[out] ifap the address of storage for a list of interface address structures.
+ *
+ * @return zero on success and -1 (plus errno) on failure.
+ */
+static int getifaddrs(struct ifaddrs** ifap)
+{
+#define GAA_FLAGS (GAA_FLAG_INCLUDE_PREFIX | GAA_FLAG_SKIP_ANYCAST | GAA_FLAG_SKIP_DNS_SERVER | GAA_FLAG_SKIP_FRIENDLY_NAME | GAA_FLAG_SKIP_MULTICAST)
+#define DEFAULT_BUFFER_SIZE 15000
+#define MAX_TRIES 3
+
+   DWORD dwRet = 0;
+   DWORD dwSize = DEFAULT_BUFFER_SIZE;
+   IP_ADAPTER_ADDRESSES * pAdapterAddresses = 0;
+   IP_ADAPTER_ADDRESSES * adapter;
+   struct ifaddrs * ifa;
+   struct ifaddrs * ift;
+   unsigned i;
+   int n = 0;
+
+   for (i = MAX_TRIES; i && dwRet != ERROR_BUFFER_OVERFLOW; --i)
+   {
+      pAdapterAddresses = (IP_ADAPTER_ADDRESSES*)xrealloc(pAdapterAddresses, dwSize);
+      dwRet = GetAdaptersAddresses(AF_UNSPEC, GAA_FLAGS, 0, pAdapterAddresses, &dwSize);
+   }
+
+   switch (dwRet)
+   {
+      case ERROR_SUCCESS:
+         break;
+      case ERROR_BUFFER_OVERFLOW:
+         xfree(pAdapterAddresses);
+         errno = ENOMEM;
+         return -1;
+      default:
+         xfree(pAdapterAddresses);
+         errno = EFAULT;
+         return -1;
+   }
+
+   for (adapter = pAdapterAddresses; adapter; adapter = adapter->Next)
+   {
+      IP_ADAPTER_UNICAST_ADDRESS * unicast;
+      for (unicast = adapter->FirstUnicastAddress; unicast; unicast = unicast->Next)
+         if (unicast->Address.lpSockaddr->sa_family == AF_INET || unicast->Address.lpSockaddr->sa_family == AF_INET6)
+            ++n;
+   }
+
+   ift = ifa = (struct ifaddrs*)xcalloc(sizeof(struct ifaddrs) + sizeof(struct ifa_data), n);
+
+   for (adapter = pAdapterAddresses; adapter; adapter = adapter->Next)
+   {
+      int unicastIndex = 0;
+      IP_ADAPTER_UNICAST_ADDRESS * unicast;
+      for (unicast = adapter->FirstUnicastAddress; unicast; unicast = unicast->Next, ++unicastIndex)
+      {
+         struct ifa_data * data;
+         ULONG prefixLength;
+
+         /* is IP adapter? */
+         if (unicast->Address.lpSockaddr->sa_family != AF_INET && unicast->Address.lpSockaddr->sa_family != AF_INET6)
+            continue;
+
+         /* internal data pointer */
+         data = (struct ifa_data*)&ift[1];
+
+         /* name */
+         ift->ifa_name = data->ifa_name;
+         strncpy_s(ift->ifa_name, IF_NAMESIZE, adapter->AdapterName, _TRUNCATE);
+
+         /* flags */
+         ift->ifa_flags = 0;
+         if (adapter->OperStatus == IfOperStatusUp)
+            ift->ifa_flags |= IFF_UP;
+         if (adapter->IfType == IF_TYPE_SOFTWARE_LOOPBACK)
+            ift->ifa_flags |= IFF_LOOPBACK;
+         if (!(adapter->Flags & IP_ADAPTER_NO_MULTICAST))
+            ift->ifa_flags |= IFF_MULTICAST;
+
+         /* address */
+         ift->ifa_addr = (struct sockaddr*)&data->ifa_addr;
+         memcpy(ift->ifa_addr, unicast->Address.lpSockaddr, unicast->Address.iSockaddrLength);
+
+         /* netmask */
+         ift->ifa_netmask = (struct sockaddr*)&data->ifa_netmask;
+
+         prefixLength = 0;
+
+#if _WIN32_WINNT >= 0x0600
+# define IN6_IS_ADDR_TEREDO(addr) (((uint32_t*)(addr))[0] == ntohl(0x20010000))
+
+         if (unicast->Address.lpSockaddr->sa_family == AF_INET6
+               && adapter->TunnelType == TUNNEL_TYPE_TEREDO
+               && IN6_IS_ADDR_TEREDO(&((struct sockaddr_in6*)unicast->Address.lpSockaddr)->sin6_addr)
+               && unicast->OnLinkPrefixLength != 32)
+            prefixLength = 32;
+         else
+            prefixLength = unicast->OnLinkPrefixLength;
+#else
+# define IN_LINKLOCAL(a) ((((uint32_t)(a)) & 0xaffff0000) == 0xa9fe0000)
+         {
+            IP_ADAPTER_PREFIX * prefix;
+            for (prefix = adapter->FirstPrefix; prefix; prefix = prefix->Next)
+            {
+               LPSOCKADDR lpSockaddr = prefix->Address.lpSockaddr;
+               if (lpSockaddr->sa_family != unicast->Address.lpSockaddr->sa_family)
+                  continue;
+
+               if (lpSockaddr->sa_family == AF_INET && adapter->OperStatus != IfOperStatusUp)
+               {
+                  if (IN_LINKLOCAL(ntohl((struct sockaddr_in*)unicast->Address.lpSockaddr)->sin_addr.s_addr))
+                     prefixLength = 16;
+                  break;
+               }
+               if (lpSockaddr->sa_family == AF_INET6 && !prefix->PrefixLength 
+                     && IN6_IS_ADDR_UNSPECIFIED(&((struct sockaddr_in6*)lpSockaddr)->sin6_addr))
+                  continue;
+
+               prefixLength = prefix->PrefixLength;
+               break;
+            }
+         }
+#endif /* _WIN32_WINNT >= 0x0600 */
+
+         ift->ifa_netmask->sa_family = unicast->Address.lpSockaddr->sa_family;
+         switch (unicast->Address.lpSockaddr->sa_family)
+         {
+            case AF_INET:
+               if (!prefixLength || prefixLength > 32) 
+                  prefixLength = 32;
+
+#if _WIN32_WINNT >= 0x0600
+               {
+                  ULONG Mask;
+                  ConvertLengthToIpv4Mask(prefixLength, &Mask);
+                  ((struct sockaddr_in*)ift->ifa_netmask)->sin_addr.s_addr = htonl(Mask);
+               }
+#else
+               ((struct sockaddr_in*)ift->ifa_netmask)->sin_addr.s_addr = htonl(0xffffffffU << (32 - prefixLength));
+#endif
+               break;
+
+            case AF_INET6:
+            {
+               ULONG i, j;
+               if (!prefixLength || prefixLength > 128) 
+                  prefixLength = 128;
+               for (i = prefixLength, j = 0; i > 0; i -= 8, ++j)
+                  ((struct sockaddr_in6*)ift->ifa_netmask)->sin6_addr.s6_addr[j] = i >= 8? 0xff: (ULONG)((0xffU << (8 - i)) & 0xffU);
+               break;
+            }
+         }
+
+         /* link and move to next structure in linked list */
+         ift->ifa_next = (struct ifaddrs*)&data[1];
+         ift = ift->ifa_next;
+      }
+   }
+
+   /* cleanup and return structure */
+   xfree(pAdapterAddresses);
+   *ifap = ifa;
+   return 0;
+}
+
+/** Parse a string into tokens separated by delimiter characters.
+ *
+ * @param[in] str the string to be parsed or NULL on successive iterations.
+ * @param[in] delim the delimiter set used to separate tokens.
+ * @param[out] saveptr the next str to use when str is NULL.
+ *
+ * @return Each call returns a pointer to the next token.
+ */
+char * strtok_r(char * str, const char * delim, char ** saveptr)
+{
+   char * token;
+
+   /* restore save ptr on successive iterations */
+   if (!str)
+      str = *saveptr;
+
+   /* skip leading delims */
+   str += strspn(str, delim);
+   if (!*str)
+      return 0;
+
+   /* locate end of token */
+   token = str;
+   str = strpbrk(token, delim);
+   if (!str)
+      *saveptr = strchr(token, 0);
+   else
+   {
+      *str = 0;
+      *saveptr = str + 1;
+   }
+   return token;
+}
+
+#endif  /* _WIN32 */
+
+/** Custom designed wrapper for inet_pton to allow <ip>%<iface> format
  *
  * @param[in] af - A integer representing address family
  * @param[in] src - A pointer to source address
