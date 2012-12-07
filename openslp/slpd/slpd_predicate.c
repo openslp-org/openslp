@@ -1341,6 +1341,10 @@ static FilterResult filter(const char * start, const char ** end,
                op = EQUAL;
       }
 
+      /* extension to standard: allow double equal too */
+      if (op == EQUAL && operator[1] == '=')
+          val_start++;
+
       /***** Get operands. *****/
       /**** Left. ****/
       lhs_len = operator - cur;
