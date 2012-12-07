@@ -92,29 +92,33 @@
 
 <p>SourceForge uses GNU list server software so you may configure your account to receive as much or as little of our list traffic as you desire. If you want to keep the traffic to a minimum, try the <em>digest form</em>, wherein you get one consolidated message per day.</p>
 
-<h2>Getting the Lastest Development Code</h2>
+<h2>Getting the Latest Development Code</h2>
 
-<p>The very latest code is available from the OpenSLP Subversion repository for read-only access. Patches made to the source code should be made to reasonably late trunk or branch revisions (preferrably HEAD) so they can easily be merged into the code base by an OpenSLP team member.</p>
+<p>The very latest code is available from the OpenSLP Mercurial DVCS repository for read-only access. Patches made to the source code should be made to reasonably late branch revisions (preferrably at the tip) so they can easily be merged into the code base by an OpenSLP team member.</p>
 
-<p>To check out the source code from the <a href="https://sourceforge.net/scm/?type=svn&group_id=1730">OpenSLP Subversion repository</a>, install a <a href="http://subversion.apache.org">Subversion client</a> for your operating system and issue the following command from a command shell prompt: </p>
+<p>To check out the source code from the <a href="http://sourceforge.net/p/openslp/mercurial/ci/7241e81df4e5aef94587f4909e2b5cef9b1973a3/tree/">OpenSLP Mercurial repository</a>, install a <a href="http://mercurial.selenic.com">Mercurial client</a> for your operating system and issue the following command from a command shell prompt: </p>
 
-<code>$ svn co https://openslp.svn.sourceforge.net/svnroot/openslp openslp</code>
+<code>$ hg clone http://hg.code.sf.net/p/openslp/mercurial openslp-mercurial</code>
 
-<p>While the above command will work, it's probably not what you want because it will check out the entire openslp repository, including all branches and tags. To check out just the trunk line, for example, use:</p>
+<p>This command will create a directory within the current directory called <em>openslp-mercurial</em> containing a local copy of the entire openslp repository.</p>
 
-<code>$ svn co https://openslp.svn.sourceforge.net/svnroot/openslp/trunk openslp-trunk</code>
+<p>For Microsoft Windows users, a GUI tool like <a href="http://tortoisehg.bitbucket.org/">TortoiseHG</a>, or <a href="http://mercurial.selenic.com/wiki/OtherTools">another tool of your choice</a>, may be used to accomplish the same task. Follow the instructions for the tool, using the above URL in the proper location, to check out OpenSLP source code with a Windows-based graphical tool.</p>
 
-<p>This command will create a directory within the current directory called <em>openslp-trunk</em> containing just the trunk line code.</p>
+<h2>Building the Code</h2>
 
-<p>For Microsoft Windows users, a GUI tool like <a href="http://tortoisesvn.net">TortoiseSVN</a> may be used to accomplish the same task. Follow the instructions for the tool, using the above URL in the proper location, to check out OpenSLP source code with a Windows-based graphical tool.</p>
+<p>Instructions for building the OpenSLP source code from a downloadable archive are included with the archive. Building the OpenSLP source code from a repository is just a bit different. To build on a Linux system from a repository work area, you must first boot-strap the autotools. First, ensure you have reasonable up to date versions of Autoconf, Automake and Libtool installed. Then simply run the following command from the openslp-mercurial/openslp directory:</p>
+
+<code>$ autoreconf -i</code>
+
+<p>This command will put your work area into a state similar to the code you will find in a downloadable archive, building a configure script for you so you can then run configure and make to build the project.</p>
 
 <h2>Submitting Patches</h2>
 
 <p>If you find a bug in the OpenSLP source code you may certainly fix it in your copy. We encourage you to go the extra mile and submit a patch to the OpenSLP project.</p>
 
-<p>Using the Subversion instructions above, check out a copy of the HEAD revision of the branch you're working on. Make another copy of the code to use as a baseline for your patch. For this discussion we'll call one of these copies <b>modified</b> and the other <b>pristine</b>. Make your changes to <b>modified</b> and then 'diff' <b>modified</b> against <b>pristine</b> and redirect the output to a <em>patch file</em> in this manner:</p>
+<p>Using the Mercurial instructions above, check out a copy the OpenSLP repository and update to the branch you're working on. Make your changes to your repository and then capture a 'diff' of the changes to a <em>patch file</em> from the root of the repository in this manner:</p>
 
-<code>$ diff -urN modified pristine > bug-fix.patch</code>
+<code>$ hg diff > bug-fix.patch</code>
 
 <p>Now, simply email <b>bug-fix.patch</b> to the <a href="mailto:openslp-devel@lists.sourceforge.net">openslp-devel mailing list</a> along with a short explanation of the nature of the bug and how you fixed it.</p>
 
