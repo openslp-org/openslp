@@ -61,7 +61,7 @@
                                          
 /** Maximum number of sockets.
  */
-#define SLPD_MAX_SOCKETS 128
+#define SLPD_MAX_SOCKETS 256
 
 /** A "comfortable" number of sockets.
  *

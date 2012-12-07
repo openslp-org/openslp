@@ -365,17 +365,28 @@ sockfd_t NetworkConnectToSlpd(void * peeraddr)
    return sock;
 }
 
-/** Checks if an old DA/SA connection is still usable, the server
-  * may have closed it in the meantime. We detect this by calling
-  * select() with a timeout of zero, if select signals available
-  * data the socket was closed.
-  */
+/** Check if the socket is still alive - the server may have closed it.
+ *
+ * @param[in] fd - The socket decriptor to check.
+ *
+ * @return SLP_OK if socket is still alive; SLP_NETWORK_ERROR if not.
+ */
 static SLPError NetworkCheckConnection(sockfd_t fd)
 {
    int r;
-   fd_set readfd;
-   struct timeval tv;
+#ifdef HAVE_POLL
+    struct pollfd readfd;
+#else
+    fd_set readfd;
+    struct timeval tv;
+#endif
 
+#ifdef HAVE_POLL
+    readfd.fd = fd;
+    readfd.events = POLLIN;
+    while ((r = poll(&readfd, 1, 0)) == -1 && errno == EINTR)
+        ;
+#else
    FD_ZERO(&readfd);
    FD_SET(fd, &readfd);
    tv.tv_sec = 0;
@@ -389,6 +400,7 @@ static SLPError NetworkCheckConnection(sockfd_t fd)
 #endif
         break;
    }
+#endif
    /* r == 0 means timeout, everything else is an error */
    return r == 0 ? SLP_OK : SLP_NETWORK_ERROR;
 }
