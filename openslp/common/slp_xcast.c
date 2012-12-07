@@ -240,7 +240,7 @@ int SLPXcastRecvMessage(const SLPXcastSockets * sockets, SLPBuffer * buf,
    int recvloop;
    char peek[16];
    int result = 0;
-   int mtu;
+   unsigned mtu;
    unsigned int msglen;
 
    mtu = SLPPropertyGetMTU();
@@ -334,7 +334,7 @@ int SLPXcastRecvMessage(const SLPXcastSockets * sockets, SLPBuffer * buf,
                      bytesread = recv(sockets->sock[i], (char *)(*buf)->curpos,
                            (int)((*buf)->end - (*buf)->curpos), 0);
                      /* This should never happen but we'll be paranoid*/
-                     if (bytesread != msglen)
+                     if (bytesread != (int)msglen)
                         (*buf)->end = (*buf)->curpos + bytesread;
 
                      result = SLP_ERROR_RETRY_UNICAST;

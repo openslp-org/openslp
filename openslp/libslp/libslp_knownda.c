@@ -133,7 +133,7 @@ static SLPBoolean KnownDAListFind(size_t scopelistlen, const char * scopelist,
  */
 int KnownDASpanningListFind(int scopelistlen,
                             const char* scopelist,
-                            int spistrlen,
+                            size_t spistrlen,
                             const char* spistr,
                             struct sockaddr_in** daaddrs)
 {
@@ -181,7 +181,7 @@ int KnownDASpanningListFind(int scopelistlen,
 #ifdef ENABLE_SLPv2_SECURITY
                 if(SLPCompareString(entry->msg->body.daadvert.spilistlen,
                                     entry->msg->body.daadvert.spilist,
-                                    spistrlen,
+                                    (int)spistrlen,
                                     spistr) == 0)
 #else
                 (void) spistr;  /*prevent compiler warnings about unused parameters*/
