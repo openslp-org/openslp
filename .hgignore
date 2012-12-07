@@ -1,3 +1,6 @@
+.cproject
+.project
+.settings
 openslp/win32/.*x64
 openslp/win32/.*Win32
 Makefile
@@ -5,6 +8,19 @@ Makefile.in
 .deps
 .libs
 
+syntax: glob
+*~
+*.o
+*.lo
+*.la
+*.a
+*_l.c
+*_y.c
+*_y.h
+*.sdf
+*.suo
+*.vcxproj.user
+openslp/win32/ipch
 openslp/autom4te.cache
 openslp/aclocal.m4
 openslp/common/slp-conf-test
@@ -36,15 +52,3 @@ openslp/slpd/slpd
 openslp/slptool/slptool
 openslp/stamp-h1
 openslp/ylwrap
-
-syntax: glob
-*.o
-*.lo
-*.la
-*.a
-*_l.c
-*_y.c
-*_y.h
-*.sdf
-*.suo
-*.vcxproj.user
