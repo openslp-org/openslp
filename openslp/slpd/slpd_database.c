@@ -450,6 +450,15 @@ int SLPDDatabaseReg(SLPMessage * msg, SLPBuffer buf)
       xfree(ifaces.bcast_addr);
    }
 
+   /* fixup the lifetime a bit */
+   if (reg->urlentry.lifetime > 0 && reg->urlentry.lifetime < SLP_LIFETIME_MAXIMUM)
+   {
+      if (reg->urlentry.lifetime >= SLP_LIFETIME_MAXIMUM - SLPD_AGE_INTERVAL)
+         reg->urlentry.lifetime = SLP_LIFETIME_MAXIMUM - 1;
+      else
+         reg->urlentry.lifetime += SLPD_AGE_INTERVAL;
+   }
+
    dh = SLPDatabaseOpen(&G_SlpdDatabase.database);
    if (dh)
    {
