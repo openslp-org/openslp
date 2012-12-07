@@ -462,16 +462,15 @@ void SLPDOutgoingDatagramMcastWrite(SLPDSocket * sock, struct sockaddr_storage *
 /** Handles outgoing requests pending on specified file discriptors.
  *
  * @param[in,out] fdcount - The number of file descriptors marked in fd_sets.
- * @param[in] readfds - The set of file descriptors with pending read IO.
- * @param[in] writefds - The set of file descriptors with pending write IO.
+ * @param[in] fdset - The set of file descriptors with pending read/write IO.
  */
-void SLPDOutgoingHandler(int * fdcount, fd_set * readfds, fd_set * writefds)
+void SLPDOutgoingHandler(int * fdcount, SLPD_fdset * fdset)
 {
    SLPDSocket * sock;
    sock = (SLPDSocket *) G_OutgoingSocketList.head;
    while (sock && *fdcount)
    {
-      if (FD_ISSET(sock->fd, readfds))
+      if (SLPD_fdset_readok(fdset, sock))
       {
          switch (sock->state)
          {
@@ -493,7 +492,7 @@ void SLPDOutgoingHandler(int * fdcount, fd_set * readfds, fd_set * writefds)
 
          *fdcount = *fdcount - 1;
       }
-      else if (FD_ISSET(sock->fd, writefds))
+      else if (SLPD_fdset_writeok(fdset, sock))
       {
          switch (sock->state)
          {

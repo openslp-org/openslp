@@ -227,8 +227,12 @@ int SLPMulticastSend(const SLPIfaceInfo * ifaceinfo, const SLPBuffer msg,
 int SLPXcastRecvMessage(const SLPXcastSockets * sockets, SLPBuffer * buf,
       void * peeraddr, struct timeval * timeout)
 {
+#if HAVE_POLL
+    struct pollfd readfds[SLP_MAX_IFACES];
+#else
    fd_set readfds;
    sockfd_t highfd;
+#endif
    int i;
    int readable;
    int bytesread;
@@ -243,6 +247,15 @@ int SLPXcastRecvMessage(const SLPXcastSockets * sockets, SLPBuffer * buf,
    recvloop = 1;
    while (recvloop)
    {
+#if HAVE_POLL
+      for (i=0; i<sockets->sock_count; i++)
+      {
+         readfds[i].fd = sockets->sock[i];
+         readfds[i].events = POLLIN;
+         readfds[i].revents = 0;
+      }
+      readable = poll(readfds, sockets->sock_count, timeout ? timeout->tv_sec * 1000 + timeout->tv_usec / 1000 : -1);
+#else
       /* Set the readfds */
       FD_ZERO(&readfds);
       highfd = 0;
@@ -255,12 +268,17 @@ int SLPXcastRecvMessage(const SLPXcastSockets * sockets, SLPBuffer * buf,
 
       /* Select */
       readable = select((int)(highfd + 1), &readfds, 0, 0, timeout);
+#endif
       if (readable > 0)
       {
          /* Read the datagram */
          for (i = 0; i < sockets->sock_count; i++)
          {
+#if HAVE_POLL
+            if ((readfds[i].revents & POLLIN) != 0)
+#else
             if (FD_ISSET(sockets->sock[i], &readfds))
+#endif
             {
                /* Peek at the first 16 bytes of the header */
                socklen_t peeraddrlen = sizeof(struct sockaddr_storage);

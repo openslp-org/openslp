@@ -50,6 +50,7 @@
 
 #include "slp_types.h"
 #include "slp_linkedlist.h"
+#include "slpd_socket.h"
 #include "slpd.h"
 
 extern SLPList G_IncomingSocketList;
@@ -58,7 +59,7 @@ void SLPDIncomingAge(time_t seconds);
 int SLPDIncomingAddService(const char * srvtype, size_t len, 
       struct sockaddr_storage * localaddr);
 int SLPDIncomingRemoveService(const char * srvtype, size_t len);
-void SLPDIncomingHandler(int * fdcount, fd_set * readfds, fd_set * writefds);
+void SLPDIncomingHandler(int * fdcount, SLPD_fdset * fdset);
 int SLPDIncomingInit(void);
 int SLPDIncomingDeinit(void);
 int SLPDIncomingReinit(void);

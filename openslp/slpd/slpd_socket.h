@@ -98,7 +98,44 @@ typedef struct _SLPDSocket
    /* Outgoing socket stuff */
    int reconns; /*For stream sockets, this drives reconnect.  For unicast dgram sockets, this drives resend*/
    SLPList sendlist;
+#if HAVE_POLL
+   int fdsetnr;
+#endif
 } SLPDSocket;
+
+typedef struct _SLPD_fdset
+{
+#if HAVE_POLL
+   struct pollfd * fds;
+   int used;
+   int allocated;
+#else
+   fd_set readfds;
+   fd_set writefds;
+   SOCKET highfd;
+#endif
+} SLPD_fdset;
+
+#if HAVE_POLL
+
+/* NOTE: the following code supports only one fdset at a time */
+
+#define SLPD_fdset_readok(fdset, sock) ((sock)->fdsetnr != -1 && (sock)->fdsetnr < (fdset)->used && (fdset)->fds[(sock)->fdsetnr].fd == (sock)->fd ? ((fdset)->fds[(sock)->fdsetnr].revents & ((fdset)->fds[(sock)->fdsetnr].events & POLLIN ? (POLLIN|POLLERR|POLLHUP) : POLLIN)) != 0 : 0)
+#define SLPD_fdset_writeok(fdset, sock) ((sock)->fdsetnr != -1 && (sock)->fdsetnr < (fdset)->used && (fdset)->fds[(sock)->fdsetnr].fd == (sock)->fd ? ((fdset)->fds[(sock)->fdsetnr].revents & ((fdset)->fds[(sock)->fdsetnr].events & POLLOUT ? (POLLOUT|POLLERR|POLLHUP) : POLLOUT)) != 0 : 0)
+
+#define SLPD_fdset_reset(fdset) ((fdset)->used = 0)
+#define SLPD_fdset_init(fdset) ((fdset)->used = (fdset)->allocated = 0, (fdset)->fds = 0)
+#define SLPD_fdset_free(fdset) ((fdset)->allocated && xfree((fdset)->fds), SLPD_fdset_init(fdset))
+
+#else
+
+#define SLPD_fdset_readok(fdset, sock) (FD_ISSET((sock)->fd, &(fdset)->readfds))
+#define SLPD_fdset_writeok(fdset, sock) (FD_ISSET((sock)->fd, &(fdset)->writefds))
+#define SLPD_fdset_reset(fdset) do { FD_ZERO(&(fdset)->readfds); FD_ZERO(&(fdset)->writefds); (fdset)->highfd = 0; } while(0)
+#define SLPD_fdset_init(fdset)
+#define SLPD_fdset_free(fdset)
+
+#endif
 
 SLPDSocket * SLPDSocketCreateConnected(struct sockaddr_storage * addr);
 SLPDSocket * SLPDSocketCreateListen(struct sockaddr_storage * peeraddr);

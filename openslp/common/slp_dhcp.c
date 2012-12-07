@@ -140,7 +140,11 @@ static sockfd_t dhcpCreateBCSkt(void * peeraddr)
 static int dhcpSendRequest(sockfd_t sockfd, void * buf, size_t bufsz,
       void * addr, size_t addrsz, struct timeval * timeout)
 {
+#if HAVE_POLL
+   struct pollfd writefd;
+#else
    fd_set writefds;
+#endif
    int xferbytes;
    int flags = 0;
 
@@ -148,10 +152,17 @@ static int dhcpSendRequest(sockfd_t sockfd, void * buf, size_t bufsz,
    flags = MSG_NOSIGNAL;
 #endif
 
+#if HAVE_POLL
+   writefd.fd = sockfd;
+   writefd.events = POLLOUT;
+   writefd.revents = 0;
+   xferbytes = poll(&writefd, 1, timeout ? timeout->tv_sec * 1000 + timeout->tv_usec / 1000 : -1);
+#else
    FD_ZERO(&writefds);
    FD_SET(sockfd, &writefds);
-
-   if ((xferbytes = select((int)sockfd + 1, 0, &writefds, 0, timeout)) > 0)
+   xferbytes = select((int)sockfd + 1, 0, &writefds, 0, timeout);
+#endif
+   if(xferbytes > 0)
    {
       if ((xferbytes = sendto(sockfd, (char *)buf, (int)bufsz, flags, 
             addr, (int)addrsz)) <= 0)
@@ -193,12 +204,23 @@ static int dhcpRecvResponse(sockfd_t sockfd, void * buf, size_t bufsz,
       struct timeval * timeout)
 {
    int xferbytes;
+#if HAVE_POLL
+   struct pollfd readfd;
+#else
    fd_set readfds;
+#endif
 
+#if HAVE_POLL
+   readfd.fd = sockfd;
+   readfd.events = POLLIN;
+   readfd.revents = 0;
+   xferbytes = poll(&readfd, 1, timeout ? timeout->tv_sec * 1000 + timeout->tv_usec / 1000 : -1);
+#else
    FD_ZERO(&readfds);
    FD_SET(sockfd, &readfds);
-
-   if ((xferbytes = select((int)sockfd + 1, &readfds, 0 , 0, timeout)) > 0)
+   xferbytes = select((int)sockfd + 1, &readfds, 0 , 0, timeout);
+#endif
+   if(xferbytes > 0)
    {
       if ((xferbytes = recvfrom(sockfd, (char *)buf, (int)bufsz, 0, 0, 0)) <= 0)
       {

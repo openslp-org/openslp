@@ -362,16 +362,15 @@ static void IncomingSocketListen(SLPList * socklist, SLPDSocket * sock)
 /** Handles outgoing requests pending on the specified file discriptors.
  *
  * @param[in,out] fdcount - The number of file descriptors marked in fd_sets.
- * @param[in] readfds - The set of file descriptors with pending read IO.
- * @param[in] writefds - The set of file descriptors with pending read IO.
+ * @param[in] fdset - Teh file descripters with pending read/write I/O.
  */
-void SLPDIncomingHandler(int * fdcount, fd_set * readfds, fd_set * writefds)
+void SLPDIncomingHandler(int * fdcount, SLPD_fdset * fdset)
 {
    SLPDSocket * sock;
    sock = (SLPDSocket *)G_IncomingSocketList.head;
    while (sock && *fdcount)
    {
-      if (FD_ISSET(sock->fd, readfds))
+      if (SLPD_fdset_readok(fdset, sock))
       {
          switch (sock->state)
          {
@@ -396,7 +395,7 @@ void SLPDIncomingHandler(int * fdcount, fd_set * readfds, fd_set * writefds)
 
          *fdcount = *fdcount - 1;
       }
-      else if (FD_ISSET(sock->fd, writefds))
+      else if (SLPD_fdset_writeok(fdset, sock))
       {
          switch (sock->state)
          {

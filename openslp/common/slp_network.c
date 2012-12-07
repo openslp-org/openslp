@@ -164,7 +164,11 @@ int SLPNetworkSendMessage(sockfd_t sockfd, int socktype,
       const SLPBuffer buf, size_t bufsz, void * peeraddr, 
       struct timeval * timeout)
 {
+#if HAVE_POLL
+   struct pollfd writefd;
+#else
    fd_set writefds;
+#endif
    int xferbytes;
    int flags = 0;
    const uint8_t * cur = buf->start;
@@ -176,10 +180,17 @@ int SLPNetworkSendMessage(sockfd_t sockfd, int socktype,
 
    while (cur < end)
    {
+#if HAVE_POLL
+      writefd.fd = sockfd;
+      writefd.events = POLLOUT;
+      writefd.revents = 0;
+      xferbytes = poll(&writefd, 1, timeout ? timeout->tv_sec * 1000 + timeout->tv_usec / 1000 : -1);
+#else
       FD_ZERO(&writefds);
       FD_SET(sockfd, &writefds);
 
       xferbytes = select((int)sockfd + 1, 0, &writefds, 0, timeout);
+#endif
       if (xferbytes > 0)
       {
          if (socktype == SOCK_DGRAM)
@@ -228,13 +239,24 @@ int SLPNetworkRecvMessage(sockfd_t sockfd, int socktype,
       SLPBuffer * buf, void * peeraddr, struct timeval * timeout)
 {
    int xferbytes, recvlen;
+#if HAVE_POLL
+   struct pollfd readfd;
+#else
    fd_set readfds;
+#endif
    char peek[16];
 
    /* Take a peek at the packet to get version and size information. */
+#if HAVE_POLL
+    readfd.fd = sockfd;
+    readfd.events = POLLIN;
+    readfd.revents = 0;
+    xferbytes = poll(&readfd, 1, timeout ? timeout->tv_sec * 1000 + timeout->tv_usec / 1000 : -1);
+#else
    FD_ZERO(&readfds);
    FD_SET(sockfd, &readfds);
    xferbytes = select((int)sockfd + 1, &readfds, 0, 0, timeout);
+#endif
    if (xferbytes > 0)
    {
       if (socktype == SOCK_DGRAM)
@@ -282,9 +304,15 @@ int SLPNetworkRecvMessage(sockfd_t sockfd, int socktype,
       {
          while ((*buf)->curpos < (*buf)->end)
          {
-            FD_ZERO(&readfds);
+#if HAVE_POLL
+            readfd.fd = sockfd;
+            readfd.events = POLLIN;
+            readfd.revents = 0;
+            xferbytes = poll(&readfd, 1, timeout ? timeout->tv_sec * 1000 + timeout->tv_usec / 1000 : -1);
+#else
             FD_SET(sockfd, &readfds);
             xferbytes = select((int)sockfd + 1, &readfds, 0, 0, timeout);
+#endif
             if (xferbytes > 0)
             {
                xferbytes = recv(sockfd, (char *)(*buf)->curpos,

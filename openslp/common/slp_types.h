@@ -226,6 +226,9 @@ typedef unsigned long uint32_t;
 # if HAVE_GRP_H
 #  include <grp.h>
 # endif
+# if HAVE_POLL
+#  include <sys/poll.h>
+# endif
 
 # define SLPD_CONFFILE  ETCDIR "/slp.conf"
 # define SLPD_REGFILE   ETCDIR "/slp.reg"

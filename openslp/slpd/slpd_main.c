@@ -72,43 +72,110 @@ int G_SIGUSR1;    /* Signal being used to dump information about the database */
  *    monitored by OpenSLP components.
  * @param[out] highfd - The address of storage for returning the value 
  *    of the highest file descriptor (number) in use.
- * @param[out] readfds - The fd_set to fill with read descriptors.
- * @param[out] writefds - The fd_set to fill with write descriptors.
+ * @param[out] fdset - The fdset to fill with read/write descriptors.
  */
-void LoadFdSets(SLPList * socklist, sockfd_t * highfd, fd_set * readfds, 
-      fd_set * writefds)
+void LoadFdSets(SLPList * socklist, SLPD_fdset * fdset)
 {
+#if HAVE_POLL
+
    SLPDSocket * sock = 0;
    SLPDSocket * del = 0;
 
    sock = (SLPDSocket *)socklist->head;
    while (sock)
    {
-      if (sock->fd > *highfd)
-         *highfd = sock->fd;
+      if (fdset->used == fdset->allocated)
+      {
+         fdset->allocated += 32;
+         if (fdset->used)
+            fdset->fds = xrealloc(fdset->fds, fdset->allocated * sizeof(*fdset->fds));
+         else
+            fdset->fds = xmalloc(fdset->allocated * sizeof(*fdset->fds));
+         if (!fdset->fds)
+            SLPDFatal("No memory for fdset.\n");
+      }
+      fdset->fds[fdset->used].fd = sock->fd;
+      fdset->fds[fdset->used].events = 0;
+      fdset->fds[fdset->used].revents = 0;
+      switch (sock->state)
+      {
+         case DATAGRAM_UNICAST:
+         case DATAGRAM_MULTICAST:
+         case DATAGRAM_BROADCAST:
+            fdset->fds[fdset->used].events |= POLLIN;
+            break;
+
+         case SOCKET_LISTEN:
+            if (socklist->count < SLPD_MAX_SOCKETS)
+               fdset->fds[fdset->used].events |= POLLIN;
+            break;
+
+         case STREAM_READ:
+         case STREAM_READ_FIRST:
+            fdset->fds[fdset->used].events |= POLLIN;
+            break;
+
+         case STREAM_WRITE:
+         case STREAM_WRITE_FIRST:
+         case STREAM_CONNECT_BLOCK:
+            fdset->fds[fdset->used].events |= POLLOUT;
+            break;
+
+         case SOCKET_CLOSE:
+            del = sock;
+            break;
+
+         default:
+            break;
+      }
+
+      if (fdset->fds[fdset->used].events)
+         sock->fdsetnr = fdset->used++;
+      else
+         sock->fdsetnr = -1;
+
+      sock = (SLPDSocket*)sock->listitem.next;
+
+      if (del)
+      {
+         SLPDSocketFree((SLPDSocket*)SLPListUnlink(socklist,(SLPListItem*)del));
+         del = 0;
+      }
+   }
+
+#else   /* HAVE_POLL */
+
+   SLPDSocket* sock = 0;
+   SLPDSocket* del = 0;
+
+   sock = (SLPDSocket*)socklist->head;
+   while(sock)
+   {
+      if (sock->fd > fdset->highfd)
+         fdset->highfd = sock->fd;
 
       switch(sock->state)
       {
          case DATAGRAM_UNICAST:
          case DATAGRAM_MULTICAST:
          case DATAGRAM_BROADCAST:
-            FD_SET(sock->fd,readfds);
+            FD_SET(sock->fd, &fdset->readfds);
             break;
 
          case SOCKET_LISTEN:
             if (socklist->count < SLPD_MAX_SOCKETS)
-               FD_SET(sock->fd,readfds);
+               FD_SET(sock->fd, &fdset->readfds);
             break;
 
          case STREAM_READ:
          case STREAM_READ_FIRST:
-            FD_SET(sock->fd,readfds);
+            FD_SET(sock->fd, &fdset->readfds);
             break;
 
          case STREAM_WRITE:
          case STREAM_WRITE_FIRST:
          case STREAM_CONNECT_BLOCK:
-            FD_SET(sock->fd,writefds);
+            FD_SET(sock->fd, &fdset->writefds);
             break;
 
          case SOCKET_CLOSE:
@@ -119,13 +186,15 @@ void LoadFdSets(SLPList * socklist, sockfd_t * highfd, fd_set * readfds,
             break;
       }
       sock = (SLPDSocket*)sock->listitem.next;
-      if(del)
+      if (del)
       {
          SLPDSocketFree((SLPDSocket *)SLPListUnlink(socklist,
                (SLPListItem*)del));
          del = 0;
       }
    }
+
+#endif  /* HAVE_POLL */
 }
 
 /** Handles a SIG_TERM signal from the system.
@@ -133,10 +202,10 @@ void LoadFdSets(SLPList * socklist, sockfd_t * highfd, fd_set * readfds,
 void HandleSigTerm(void)
 {
    struct timeval timeout;
-   fd_set readfds;
-   fd_set writefds;
-   sockfd_t highfd = 0;
+   SLPD_fdset fdset;
    int fdcount = 0;
+
+   SLPD_fdset_init(&fdset);
 
    SLPDLog("****************************************\n");
    SLPDLogTime();
@@ -158,13 +227,16 @@ void HandleSigTerm(void)
    /* if possible wait until all outgoing socket are done and closed */
    while (SLPDOutgoingDeinit(1))
    {
-      FD_ZERO(&writefds);
-      FD_ZERO(&readfds);
-      LoadFdSets(&G_OutgoingSocketList, &highfd, &readfds, &writefds);
-      fdcount = select((int)(highfd + 1), &readfds, &writefds, 0, &timeout);
+      SLPD_fdset_reset(&fdset);
+      LoadFdSets(&G_OutgoingSocketList, &fdset);
+#if HAVE_POLL
+      fdcount = poll(fdset.fds, fdset.used, timeout.tv_sec * 1000 + timeout.tv_usec / 1000);
+#else
+      fdcount = select((int)fdset.highfd + 1, &fdset.readfds, &fdset.writefds, 0, &timeout);
+#endif
       if (fdcount == 0)
          break;
-      SLPDOutgoingHandler(&fdcount, &readfds, &writefds);
+      SLPDOutgoingHandler(&fdcount, &fdset);
    }
 
    SLPDOutgoingDeinit(0);
@@ -511,16 +583,18 @@ static int SetUpSignalHandlers(void)
  */
 int main(int argc, char * argv[])
 {
-   fd_set readfds;
-   fd_set writefds;
-   int highfd;
+   SLPD_fdset fdset;
    int fdcount = 0;
    time_t curtime;
+#if !HAVE_POLL
    struct timeval timeout;
+#endif
 
 #ifdef DEBUG
    xmalloc_init("/var/log/slpd_xmalloc.log", 0);
 #endif
+
+   SLPD_fdset_init(&fdset);
 
    /* Parse the command line */
    if (SLPDParseCommandLine(argc,argv))
@@ -602,11 +676,9 @@ int main(int argc, char * argv[])
    while (G_SIGTERM == 0)
    {
       /* load the fdsets up with all valid sockets in the list  */
-      highfd = 0;
-      FD_ZERO(&readfds);
-      FD_ZERO(&writefds);
-      LoadFdSets(&G_IncomingSocketList, &highfd, &readfds, &writefds);
-      LoadFdSets(&G_OutgoingSocketList, &highfd, &readfds, &writefds);
+      SLPD_fdset_reset(&fdset);
+      LoadFdSets(&G_IncomingSocketList, &fdset);
+      LoadFdSets(&G_OutgoingSocketList, &fdset);
 
       /* before select(), check to see if we got a signal */
       if (G_SIGALRM || G_SIGHUP)
@@ -614,13 +686,17 @@ int main(int argc, char * argv[])
 
       /* main select -- we time out every second so the outgoing retries can occur*/
       time(&curtime);  
+#if HAVE_POLL
+      fdcount = poll(fdset.fds, fdset.used, 1000);
+#else
       timeout.tv_sec = 1;
       timeout.tv_usec = 0;
-      fdcount = select(highfd + 1, &readfds, &writefds, 0, &timeout);
+      fdcount = select(fdset.highfd + 1, &fdset.readfds, &fdset.writefds, 0, &timeout);
+#endif
       if (fdcount > 0) /* fdcount will be < 0 when interrupted by a signal */
       {
-         SLPDIncomingHandler(&fdcount, &readfds, &writefds);
-         SLPDOutgoingHandler(&fdcount, &readfds, &writefds);
+         SLPDIncomingHandler(&fdcount, &fdset);
+         SLPDOutgoingHandler(&fdcount, &fdset);
          SLPDOutgoingRetry(time(0) - curtime);
       }
       else if (fdcount == 0)

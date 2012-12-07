@@ -69,8 +69,7 @@ extern int G_SIGHUP;
 extern int G_SIGINT;
 
 /* externals (functions) from slpd_main.c */
-void LoadFdSets(SLPList * socklist, int * highfd, 
-      fd_set * readfds, fd_set * writefds);
+void LoadFdSets(SLPList * socklist, SLPD_fdset * fdset);
 void HandleSigTerm(void);
 void HandleSigAlrm(void);
 void HandleSigHup(void);
@@ -320,16 +319,18 @@ static void ServiceStop(void)
  */
 static void ServiceStart(int argc, char ** argv)
 {
-   fd_set readfds;
-   fd_set writefds;
-   int highfd;
+   SLPD_fdset fdset;
    int fdcount = 0;
    time_t curtime;
    time_t alarmtime;
+#if !HAVE_POLL
    struct timeval timeout;
+#endif
    WSADATA wsaData; 
    WORD wVersionRequested = MAKEWORD(1, 1);
    struct interface_monitor monitor;
+
+   SLPD_fdset_init(&fdset);
 
    /* service initialization */
    if (!ReportStatusToSCMgr(SERVICE_START_PENDING, NO_ERROR, 3000))
@@ -408,11 +409,9 @@ static void ServiceStart(int argc, char ** argv)
    while (G_SIGTERM == 0)
    {
       /* load the fdsets up with all valid sockets in the list  */
-      highfd = 0;
-      FD_ZERO(&readfds);
-      FD_ZERO(&writefds);
-      LoadFdSets(&G_IncomingSocketList, &highfd, &readfds, &writefds);
-      LoadFdSets(&G_OutgoingSocketList, &highfd, &readfds, &writefds);
+      SLPD_fdset_reset(&fdset);
+      LoadFdSets(&G_IncomingSocketList, &fdset);
+      LoadFdSets(&G_OutgoingSocketList, &fdset);
 
       /* Before select(), check to see if we got a signal */
       if (G_SIGALRM)
@@ -420,13 +419,17 @@ static void ServiceStart(int argc, char ** argv)
 
       /* main select -- we time out every second so the outgoing retries can occur*/
       time(&curtime);  
+#if HAVE_POLL
+      fdcount = poll(fdset.fds, fdset.used, 1000);
+#else
       timeout.tv_sec = 1;
       timeout.tv_usec = 0;
-      fdcount = select(highfd + 1, &readfds, &writefds, 0, &timeout);
+      fdcount = select((int)fdset.highfd + 1, &fdset.readfds, &fdset.writefds, 0, &timeout);
+#endif
       if (fdcount > 0) 
       {
-         SLPDIncomingHandler(&fdcount, &readfds, &writefds);
-         SLPDOutgoingHandler(&fdcount, &readfds, &writefds);
+         SLPDIncomingHandler(&fdcount, &fdset);
+         SLPDOutgoingHandler(&fdcount, &fdset);
          SLPDOutgoingRetry(time(0) - curtime);
       }
       else if (fdcount == 0)
