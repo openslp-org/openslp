@@ -49,6 +49,7 @@
 
 #include "slp_xmalloc.h"
 #include "slp_message.h"
+#include "slp_v1message.h"
 #include "slp_net.h"
 
 SLPList G_IncomingSocketList =
@@ -285,6 +286,16 @@ static void IncomingStreamRead(SLPList * socklist, SLPDSocket * sock)
                   break;                    
 
                default:
+                  /* some clients cannot cope with the OVERFLOW
+                   * bit set on a TCP stream, so always clear it
+                   */
+                  if (sock->sendbuf && sock->sendbuf->end - sock->sendbuf->start > 5)
+                  {
+                     if (sock->sendbuf->start[0] == 1)
+                        sock->sendbuf->start[4] &= ~SLPv1_FLAG_OVERFLOW;
+                     else
+                        sock->sendbuf->start[5] &= ~(SLP_FLAG_OVERFLOW >> 8);
+                  }
                   sock->state = STREAM_WRITE_FIRST;
                   IncomingStreamWrite(socklist, sock);
             }
