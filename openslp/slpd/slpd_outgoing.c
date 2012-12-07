@@ -423,10 +423,29 @@ SLPDSocket * SLPDOutgoingConnect(int is_TCP, struct sockaddr_storage * addr)
    return sock;
 }
 
+/** Check that there is an outgoing socket for the specified address
+ *
+ * @param[in] addr - The address of the peer to check.
+ *
+ * @return a boolean value; true if there is, false if not.
+ */
+int SLPDHaveOutgoingConnectedSocket(struct sockaddr_storage* addr)
+{
+   SLPDSocket* sock = (SLPDSocket*)G_OutgoingSocketList.head;
+   while (sock)
+   {
+      if (sock->state >= STREAM_CONNECT_IDLE &&
+            SLPNetCompareAddrs(&sock->peeraddr, addr) == 0)
+         return 1;
+      sock = (SLPDSocket*)sock->listitem.next;
+   }
+   return 0;
+}
+
 /** Writes the datagram to the socket's peeraddr
  *
- * @param[in] sock - The socket whose peer will be sent to
- * @param[in] buffer - the buffer to send, could be the sockets sendbuf, or an item in the sendlist, etc.
+ * @param[in] sock - The socket whose peer will be sent to.
+ * @param[in] buffer - The buffer to send, could be the sockets sendbuf, or an item in the sendlist, etc.
  */
 void SLPDOutgoingDatagramWrite(SLPDSocket * sock, SLPBuffer buffer)
 {
@@ -449,9 +468,9 @@ void SLPDOutgoingDatagramWrite(SLPDSocket * sock, SLPBuffer buffer)
  */
 void SLPDOutgoingDatagramMcastWrite(SLPDSocket * sock, struct sockaddr_storage *maddr, SLPBuffer buffer)
 {
-   if (0 >= sendto(sock->fd, (char*)buffer->start,
+   if (sendto(sock->fd, (char*)buffer->start,
                (int)(buffer->end - buffer->start), 0,
-               (struct sockaddr *)maddr, SLPNetAddrLen(maddr)))
+               (struct sockaddr *)maddr, SLPNetAddrLen(maddr)) < 0)
    {
 #ifdef DEBUG
       SLPDLog("ERROR: Data could not send() in SLPDOutgoingDatagramMcastWrite()\n");

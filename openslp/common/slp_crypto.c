@@ -156,7 +156,7 @@ int SLPCryptoDSAVerify(SLPCryptoDSAKey * key, const unsigned char * digest,
    /* it does not look like the type param is used? */
    /* broken DSA_verify() declaration */
    return DSA_verify(0, digest, digestlen, (unsigned char *)signature,
-         signaturelen, key);
+         signaturelen, key) > 0? 1:0;
 }
 
 #endif   /* ENABLE_SLPv2_SECURITY */

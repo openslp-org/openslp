@@ -39,6 +39,7 @@
  */
 
 #include "slpd_process.h"
+#include "slpd_outgoing.h"
 #include "slpd_property.h"
 #include "slpd_database.h"
 #include "slpd_knownda.h"
@@ -1140,9 +1141,15 @@ static int ProcessDAAdvert(SLPMessage * message, SLPBuffer recvbuf,
    /* If net.slp.passiveDADetection is turned off then we ignore
       DAAdverts with xid == 0
     */
-   if(G_SlpdProperty.passiveDADetection == 0 
-         && message->header.xid == 0)
-      goto RESPOND;
+   if (G_SlpdProperty.passiveDADetection == 0 && message->header.xid == 0)
+   {
+      /* do not ignore replies of our DiscoveryRequests made for
+       * static and dhcp configured DAs. For now we check this by
+       * testing if the sockaddr is on the outgoing socket list
+       */
+      if (!SLPDHaveOutgoingConnectedSocket(&message->peer))
+         goto RESPOND;
+   }
 
    /* If net.slp.DAActiveDiscoveryInterval == 0 then we ignore
       DAAdverts with xid != 0
