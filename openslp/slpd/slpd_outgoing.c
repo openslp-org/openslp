@@ -116,6 +116,8 @@ void OutgoingStreamReconnect(SLPList * socklist, SLPDSocket * sock)
    /* We only allow SLPD_CONFIG_MAX_RECONN reconnection retries      */
    /* before we stop                                                 */
    /*----------------------------------------------------------------*/
+   if (sock->reconns == -1)
+      sock->reconns = 0;
    sock->reconns += 1;
    if (sock->reconns > SLPD_CONFIG_MAX_RECONN)
    {
@@ -234,7 +236,14 @@ void OutgoingStreamRead(SLPList * socklist, SLPDSocket * sock)
       }
       else
       {
-         sock->state = SOCKET_CLOSE;
+         /* An EOF occured. This could mean that the other side closed
+          * the connection due to the idle timeout. If we finished some
+          * requests try a reconnect, otherwise simply drop the connection
+          */
+         if (sock->reconns == -1)
+             OutgoingStreamReconnect(socklist,sock);
+         else
+             sock->state = SOCKET_CLOSE;
       }
    }
 
@@ -272,9 +281,11 @@ void OutgoingStreamRead(SLPList * socklist, SLPDSocket * sock)
                   sock->sendbuf = NULL;
                   sock->state = STREAM_WRITE_FIRST;
                   /* clear the reconnection count since we actually
-                   * transmitted a successful message exchange
+                   * transmitted a successful message exchange. We
+                   * use -1 to indicate that the socket had at
+                   * least one successful communication.
                    */
-                  sock->reconns = 0;
+                  sock->reconns = -1;
                   break;
             }
       }
@@ -292,6 +303,43 @@ void OutgoingStreamRead(SLPList * socklist, SLPDSocket * sock)
          }
       }
    }
+}
+
+/** Check if the socket is still alive, the server may have closed it.
+ *
+ * @param[in] fd - The socket descriptor to check.
+ *
+ * @return zero on timeout; -1 on any type of error (errno is set)
+ *
+ * @note See the UA version of this function in libslp_network.c
+ *
+ * @internal
+ */
+static int NetworkCheckConnection(sockfd_t fd)
+{
+    int r;
+#ifdef HAVE_POLL
+    struct pollfd readfd;
+#else
+    fd_set readfd;
+    struct timeval tv;
+#endif
+
+#ifdef HAVE_POLL
+    readfd.fd = (int)fd;
+    readfd.events = POLLIN;
+    while ((r = poll(&readfd, 1, 0)) == -1 && errno == EINTR)
+        ;
+#else
+    FD_ZERO(&readfd);
+    FD_SET((int)fd, &readfd);
+    tv.tv_sec = 0;
+    tv.tv_usec = 0;
+    while ((r = select((int)(fd + 1), &readfd, 0, 0, &tv)) == -1 && errno == EINTR)
+        ;
+#endif
+    /* r == 0 means timeout, everything else is an error */
+    return r == 0 ? 0 : -1;
 }
 
 /** Write data to an outbound, stream-oriented socket.
@@ -327,6 +375,16 @@ void OutgoingStreamWrite(SLPList * socklist, SLPDSocket * sock)
       /* make sure that the start and curpos pointers are the same */
       sock->sendbuf->curpos = sock->sendbuf->start;
       sock->state = STREAM_WRITE;
+
+      /* test the socket if it was already used */
+      if (sock->reconns == -1 && sock->age > 10)
+      {
+         if (NetworkCheckConnection(sock->fd) != 0)
+         {
+            OutgoingStreamReconnect(socklist,sock);
+            return;
+         }
+      }
    }
 
    if (sock->sendbuf->end - sock->sendbuf->curpos > 0)
