@@ -42,6 +42,12 @@
 
 %{
 
+#if ((__GNUC__ * 100) + __GNUC_MINOR__) >= 402
+# pragma GCC diagnostic ignored "-Wunused-function"
+# pragma GCC diagnostic ignored "-Wint-to-pointer-cast"
+# pragma GCC diagnostic ignored "-Wpointer-to-int-cast"
+#endif
+
 #undef YYLMAX
 #define YYLMAX 2048
 
