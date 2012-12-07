@@ -48,6 +48,7 @@
 #include "slp_types.h"
 #include "slp_xcast.h"
 #include "slp_message.h"
+#include "slp_v1message.h"
 #include "slp_net.h"
 #include "slp_network.h"
 #include "slp_property.h"
@@ -295,9 +296,18 @@ int SLPXcastRecvMessage(const SLPXcastSockets * sockets, SLPBuffer * buf,
 #endif
                )
                {
-                  msglen = PEEK_LENGTH(peek);
-
-                  if (msglen <= (unsigned int)mtu)
+                  int ovlbit;
+                  if (peek[0] == 1)
+                  {
+                     msglen = PEEK_LENGTH(peek);
+                     ovlbit = peek[4] & SLPv1_FLAG_OVERFLOW;
+                  }
+                  else
+                  {
+                     msglen = PEEK_LENGTH(peek);
+                     ovlbit = peek[5] & (SLP_FLAG_OVERFLOW >> 8);
+                  }
+                  if (msglen <= mtu && !ovlbit)
                   {
                      *buf = SLPBufferRealloc(*buf, msglen);
                      bytesread = recv(sockets->sock[i], (char *)(*buf)->curpos,
@@ -317,11 +327,14 @@ int SLPXcastRecvMessage(const SLPXcastSockets * sockets, SLPBuffer * buf,
                      /* we got a bad message, or one that is too big! */
 #ifndef UNICAST_NOT_SUPPORTED
                      /* Reading mtu bytes on the socket */
-                     *buf = SLPBufferRealloc(*buf, mtu);
+                     if (msglen > mtu)
+                        msglen = mtu;
+                     *buf = SLPBufferRealloc(*buf, msglen);
+
                      bytesread = recv(sockets->sock[i], (char *)(*buf)->curpos,
                            (int)((*buf)->end - (*buf)->curpos), 0);
                      /* This should never happen but we'll be paranoid*/
-                     if (bytesread != mtu)
+                     if (bytesread != msglen)
                         (*buf)->end = (*buf)->curpos + bytesread;
 
                      result = SLP_ERROR_RETRY_UNICAST;
