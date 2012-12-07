@@ -268,8 +268,10 @@ ERROR:
  *    digest could not be verified.
  *
  * @internal
+ *
+ * NOTE: This method should be static, but it's not currently used.
  */
-static int SLPVerifyDigest(SLPSpiHandle hspi, int emptyisfail,
+/*static*/ int SLPVerifyDigest(SLPSpiHandle hspi, int emptyisfail,
       SLPCryptoDSAKey * key, unsigned char * digest, int authcount, 
       const SLPAuthBlock * autharray)
 {

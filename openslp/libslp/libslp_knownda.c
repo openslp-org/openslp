@@ -744,7 +744,7 @@ SLPBoolean KnownDASpanningListFromCache(SLPHandleInfo * handle,
                                         struct sockaddr_in** daaddrs)
 {
     SLPBoolean	result      = SLP_TRUE;
-    int     	spistrlen   = 0;
+    size_t     	spistrlen   = 0;
     char*   	spistr      = 0;
 #ifdef ENABLE_SLPv2_SECURITY
     if(SLPPropertyAsBoolean(SLPGetProperty("net.slp.securityEnabled")))

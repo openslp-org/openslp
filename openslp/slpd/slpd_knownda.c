@@ -221,6 +221,9 @@ FINISHED:
    if (prlist)
       xfree(prlist);
 
+   /** TODO: incorporate errorcode into return value. */
+   (void)errorcode;
+
    return 0;
 }
 

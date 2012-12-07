@@ -550,7 +550,7 @@ void DisplayUsage()
 
 int main(int argc, char * argv[])
 {
-   int result;
+   int result = 0;
    SLPToolCommandLine cmdline;
 
    /* zero out the cmdline */
@@ -601,7 +601,7 @@ int main(int argc, char * argv[])
       result = 1;
    }
 
-   return 0;
+   return result;
 }
 
 /*=========================================================================*/ 

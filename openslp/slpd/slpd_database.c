@@ -428,7 +428,7 @@ int SLPDDatabaseReg(SLPMessage * msg, SLPBuffer buf)
             sizeof(struct sockaddr_storage));
       if (ifaces.iface_addr == NULL)
       {
-         fprintf(stderr, "iface_addr malloc(%d) failed\n",
+         fprintf(stderr, "iface_addr malloc(%lu) failed\n",
             slp_max_ifaces * sizeof(struct sockaddr_storage));
          exit(1);
       }
@@ -436,7 +436,7 @@ int SLPDDatabaseReg(SLPMessage * msg, SLPBuffer buf)
             sizeof(struct sockaddr_storage));
       if (ifaces.bcast_addr == NULL)
       {
-         fprintf(stderr, "bcast_addr malloc(%d) failed\n",
+         fprintf(stderr, "bcast_addr malloc(%lu) failed\n",
             slp_max_ifaces * sizeof(struct sockaddr_storage));
          exit(1);
       }
@@ -1036,17 +1036,13 @@ static int SLPDDatabaseSrvRqstStartScan(SLPMessage * msg,
    SLPDatabaseHandle dh;
    SLPDatabaseEntry * entry;
    SLPSrvReg * entryreg;
-   SLPSrvRqst * srvrqst;
-
-#ifdef ENABLE_SLPv2_SECURITY
-   int i;
-#endif
+   /* SLPSrvRqst * srvrqst; */
 
    dh = (*result)->reserved;
    if (dh)
    {
       /* srvrqst is the SrvRqst being made */
-      srvrqst = &(msg->body.srvrqst);
+      /* srvrqst = &(msg->body.srvrqst); */
 
       /* Check to see if there is matching entry */
       while (1)
@@ -1099,10 +1095,6 @@ int SLPDDatabaseSrvRqstStart(SLPMessage * msg,
    int start_result;
    int use_index = 0;
    
-#ifdef ENABLE_SLPv2_SECURITY
-   int i;
-#endif
-
 #ifdef ENABLE_PREDICATES
    SLPDPredicateTreeNode * predicate_parse_tree = (SLPDPredicateTreeNode *)0;
 #endif
@@ -1514,10 +1506,6 @@ int SLPDDatabaseAttrRqstStartIndexType(SLPMessage * msg,
    char urlnull;
    char *urlnullptr;
 
-#ifdef ENABLE_SLPv2_SECURITY
-   int i;
-#endif
-
    /* attrrqst is the AttrRqst being made */
    attrrqst = &msg->body.attrrqst;
 
@@ -1580,10 +1568,6 @@ int SLPDDatabaseAttrRqstStartScan(SLPMessage * msg,
    SLPSrvReg * entryreg;
    SLPAttrRqst * attrrqst;
 
-#ifdef ENABLE_SLPv2_SECURITY
-   int i;
-#endif
-
    dh = (*result)->reserved;
    if (dh)
    {
@@ -1625,10 +1609,6 @@ int SLPDDatabaseAttrRqstStart(SLPMessage * msg,
    SLPDatabaseHandle dh;
    int start_result = 1;
 
-#ifdef ENABLE_SLPv2_SECURITY
-   int i;
-#endif
-
    *result = xmalloc(sizeof(SLPDDatabaseAttrRqstResult));
    if (*result == 0)
       return SLP_ERROR_INTERNAL_ERROR;
@@ -1649,6 +1629,10 @@ int SLPDDatabaseAttrRqstStart(SLPMessage * msg,
          start_result = SLPDDatabaseAttrRqstStartScan(msg, result);
       }
    }
+
+   /** TODO: Figure out what to do with start_result. */
+   (void)start_result;
+
    return 0;
 }
 

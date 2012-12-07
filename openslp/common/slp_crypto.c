@@ -137,7 +137,7 @@ int SLPCryptoDSASign(SLPCryptoDSAKey * key, const unsigned char * digest,
       int digestlen, unsigned char * signature, int * signaturelen)
 {
    /* it does not look like the type param is used? */
-   return DSA_sign(0, digest, digestlen, signature, (size_t *)signaturelen, key) == 0;
+   return DSA_sign(0, digest, digestlen, signature, (unsigned*)signaturelen, key) == 0;
 }
 
 /** Verifies a DSA signature to ensure it matches the specified digest.

@@ -371,6 +371,9 @@ SLPEXP SLPError SLPAPI SLPAssociateIP(
    if (SLPNetSetPort(&handle->ucaddr, (uint16_t)SLPPropertyAsInteger("net.slp.port")) != 0)
       return SLP_PARAMETER_BAD;
 
+   /** TODO: incorporate result into return value. */
+   (void)result;
+
    return SLP_OK;
 #else
    (void)hSLP;

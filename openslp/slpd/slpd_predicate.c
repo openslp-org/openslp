@@ -2174,7 +2174,10 @@ int SLPDFilterAttributes(size_t attrlistlen, const char * attrlist,
    ((char *)taglist)[taglistlen] = tagnull;
    ((char *)attrlist)[attrlistlen] = attrnull;
 
-   return(*resultlen == 0);
+   /** TODO: incorporate err into result. */
+   (void)err;
+
+   return *resultlen == 0;
 }
 
 #ifdef DEBUG

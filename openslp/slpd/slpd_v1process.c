@@ -83,7 +83,7 @@ static int v1ProcessDASrvRqst(struct sockaddr_storage * peeraddr,
       errorcode = SLP_ERROR_MESSAGE_NOT_SUPPORTED;
 
    /* don't return errorcodes to multicast messages */
-   if (errorcode != 0 && (message->header.flags & SLP_FLAG_MCAST) 
+   if ((errorcode != 0 && (message->header.flags & SLP_FLAG_MCAST) != 0) 
          || SLPNetIsMCast(peeraddr))
    {
       (*sendbuf)->end = (*sendbuf)->start;

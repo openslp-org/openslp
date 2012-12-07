@@ -918,7 +918,6 @@ SLPError NetworkMcastRqstRply(SLPHandleInfo * handle, void * buf,
    SLPXcastSockets xcastsocks;
    int alistsize;
    int currIntf = 0;
-   int requestSent;
 
 #if defined(DEBUG)
    /* This function only supports multicast or broadcast of these messages */
@@ -1075,7 +1074,6 @@ SLPError NetworkMcastRqstRply(SLPHandleInfo * handle, void * buf,
       /* main retransmission loop */
       xmitcount = 0;
       totaltimeout = 0;
-      requestSent = 0;
       while (xmitcount < MAX_RETRANSMITS)
       {
          int replies_this_period = 0;
@@ -1192,9 +1190,6 @@ SLPError NetworkMcastRqstRply(SLPHandleInfo * handle, void * buf,
                result = SLPMulticastSend(&v6outifaceinfo, sendbuf, &xcastsocks, 
                      &dstifaceinfo.iface_addr[currIntf]);
          }
-
-         if (!result)
-            requestSent = 1;
 
          /* main recv loop */
          while(1)
