@@ -672,6 +672,7 @@ int SLPDIncomingReinit(void)
    struct sockaddr_storage mcast4addr;
 #if defined(ENABLE_SLPv1)
    struct sockaddr_storage v1mcast4addr;
+   struct sockaddr_storage v1slmcast4addr;
 #endif
    struct sockaddr_storage lo4addr;
    struct sockaddr_storage lo6addr;
@@ -689,7 +690,7 @@ int SLPDIncomingReinit(void)
    /*---------------------------------------------------------*/
    /* set up addresses to use for ipv4 loopback and multicast */
    /*---------------------------------------------------------*/
-   if(SLPNetIsIPV4())
+   if (SLPNetIsIPV4())
    {
       int tmpaddr = INADDR_LOOPBACK;
       SLPNetSetAddr(&lo4addr, AF_INET, G_SlpdProperty.port, &tmpaddr);
@@ -698,6 +699,8 @@ int SLPDIncomingReinit(void)
 #if defined(ENABLE_SLPv1)
       tmpaddr = SLPv1_DA_MCAST_ADDRESS;
       SLPNetSetAddr(&v1mcast4addr, AF_INET, G_SlpdProperty.port, &tmpaddr);
+      tmpaddr = SLPv1_SL_MCAST_ADDRESS;
+      SLPNetSetAddr(&v1slmcast4addr, AF_INET, G_SlpdProperty.port, &tmpaddr);
 #endif
    }
 
@@ -965,26 +968,41 @@ int SLPDIncomingReinit(void)
       }
 
 #if defined(ENABLE_SLPv1)
-      if (G_SlpdProperty.isDA && SLPNetIsIPV4())
+      if (SLPNetIsIPV4())
       {
          /*------------------------------------------------------------*/
-         /* Create socket that will handle multicast UDP for SLPv1 DA  */
-         /* Discovery.                                                 */
-         /* Don't need to do this for ipv6, SLPv1 is not supported.    */
+         /* Create socket that will handle multicast UDP for SLPv1     */
+         /* Service Location General Multicast address.                */
          /*------------------------------------------------------------*/
-         sock = SLPDSocketCreateBoundDatagram(&myaddr, &v1mcast4addr, DATAGRAM_MULTICAST);
+         sock =  SLPDSocketCreateBoundDatagram(&myaddr, &v1slmcast4addr, DATAGRAM_MULTICAST);
          if (sock)
          {
-            SLPListLinkTail(&G_IncomingSocketList, (SLPListItem *) sock);
-            SLPDLog("SLPv1 DA Discovery Multicast socket on %s ready\n",
-                  SLPNetSockAddrStorageToString(&myaddr, addr_str,
-                        sizeof(addr_str)));
+            SLPListLinkTail(&G_IncomingSocketList,(SLPListItem*)sock);
+            SLPDLog("SLPv1 Service Location General Multicast socket on %s ready\n", 
+                  SLPNetSockAddrStorageToString(&myaddr, addr_str, sizeof(addr_str)));
          }
-         else
-            SLPDLog("Couldn't bind to SLPv1 DA Discovery Multicast socket for interface %s (%s)\n",
-                  SLPNetSockAddrStorageToString(&myaddr, addr_str,
-                        sizeof(addr_str)),
-                        strerror(errno));
+
+         if (G_SlpdProperty.isDA)
+         {
+            /*------------------------------------------------------------*/
+            /* Create socket that will handle multicast UDP for SLPv1 DA  */
+            /* Discovery.                                                 */
+            /* Don't need to do this for ipv6, SLPv1 is not supported.    */
+            /*------------------------------------------------------------*/
+            sock = SLPDSocketCreateBoundDatagram(&myaddr, &v1mcast4addr, DATAGRAM_MULTICAST);
+            if (sock)
+            {
+               SLPListLinkTail(&G_IncomingSocketList, (SLPListItem *) sock);
+               SLPDLog("SLPv1 DA Discovery Multicast socket on %s ready\n",
+                     SLPNetSockAddrStorageToString(&myaddr, addr_str,
+                           sizeof(addr_str)));
+            }
+            else
+               SLPDLog("Couldn't bind to SLPv1 DA Discovery Multicast socket for interface %s (%s)\n",
+                     SLPNetSockAddrStorageToString(&myaddr, addr_str,
+                           sizeof(addr_str)),
+                           strerror(errno));
+         }
       }
 #endif
 
