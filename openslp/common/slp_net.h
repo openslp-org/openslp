@@ -71,11 +71,15 @@ extern const struct in6_addr in6addr_service_link_mask;
 
 /** IN6 "Any" and "Loopback" address initializer macros */
 #ifdef _AIX
+# include <standards.h>          /* define _AIXVERSION_nnn */
 # define SLP_IN6ADDR_ANY_INIT        {{{0,0,0,0}}}
 # define SLP_IN6ADDR_LOOPBACK_INIT   {{{0,0,0,1}}}
 #ifndef HAVE_SOCKADDR_STORAGE_SS_FAMILY
 // ss_family is not present, use __ss_family (AIX 5.?)
-# define ss_family                   __ss_family
+# ifndef _AIXVERSION_530
+/* Older sys/sockets.h only have __ss_family, newer have ss_family */
+#  define ss_family                  __ss_family
+# endif
 #endif
 #else
 # define SLP_IN6ADDR_ANY_INIT        {{{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}}}

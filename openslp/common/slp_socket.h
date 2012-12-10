@@ -84,10 +84,8 @@
  * Windows platforms.
  */
 
-# if ( NTDDI_VERSION >= NTDDI_LONGHORN )
 #define inet_pton openslp_inet_pton
 #define inet_ntop openslp_inet_ntop
-# endif /* if ( NTDDI_VERSION >= NTDDI_LONGHORN ) */
 
 int inet_pton(int af, const char * src, void * dst);
 const char * inet_ntop(int af, const void * src, char * dst, size_t size);

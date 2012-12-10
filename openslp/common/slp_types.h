@@ -236,6 +236,11 @@ typedef unsigned long uint32_t;
 # define SLPD_LOGFILE   VARDIR "/log/slpd.log"
 # define SLPD_PIDFILE   VARDIR "/run/slpd.pid"
 
+#ifdef __hpux
+/* HP-UX defines socklen_t, but gets it wrong */
+# define socklen_t int
+#endif
+
 #endif /* ! _WIN32 */
 
 /* default libslp global configuration file */

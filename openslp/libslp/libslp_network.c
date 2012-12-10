@@ -917,7 +917,7 @@ SLPError NetworkMcastRqstRply(SLPHandleInfo * handle, void * buf,
    int size = 0;
    char * prlist = 0;
    int xid = 0;
-   int mtu = 0;
+   size_t mtu = 0;
    int xmitcount = 0;
    int rplycount = 0;
    int maxwait = 0;
@@ -1458,13 +1458,13 @@ SLPError NetworkMultiUcastRqstRply(
     SLPBuffer           sendbuf         = 0;
     SLPBuffer           udp_recvbuf     = 0;
     SLPError            result          = SLP_OK;
-    int                 langtaglen      = 0;
+    size_t              langtaglen      = 0;
     int                 prlistlen       = 0;
     int                 xid             = 0;
-    int                 mtu             = 0;
+    size_t              mtu             = 0;
     int                 ndests          = 0;    // Number of destinations
     sockfd_t            nfds            = 0;    // Number of file descriptors in the FD_SET
-    int                 send_size       = 0;
+    size_t              send_size       = 0;
     int                 selected        = 0;
     int                 xmitcount       = 0;
     int                 rplycount       = 0;
@@ -1961,7 +1961,10 @@ SLPError NetworkMultiUcastRqstRply(
                     int bytes_sent;
 
                     pconn->state = CONN_TCP_SEND;
-                    bytes_sent = send(pconn->socket, (char*)sendbuf->start+pconn->send_offset, send_size-pconn->send_offset, 0);
+                     bytes_sent = send(pconn->socket, 
+                                      (char*)sendbuf->start+pconn->send_offset, 
+                                      (int)(send_size-pconn->send_offset), 
+                                      0);
                     if (bytes_sent > 0)
                     {
                         pconn->send_offset += bytes_sent;

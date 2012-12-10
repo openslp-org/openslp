@@ -35,6 +35,13 @@
 
 #include "slpd.h"
 
+ #ifdef _WIN32
+
+/* windows -> posix stdlib calls */
+# define strdup _strdup
+
+#endif
+ 
 /******************************************************************************
  *
  *                             Individual values

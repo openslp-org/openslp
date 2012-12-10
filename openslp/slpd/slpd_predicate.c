@@ -1401,11 +1401,8 @@ static FilterResult filter(const char * start, const char ** end,
       }
 
       SLP_ASSERT(err != FR_UNSET);
-      return err;
    }
-
-   /***** No operator. *****/
-   return FR_PARSE_ERROR;
+   return err;
 }
 
 /** Free a predicate parse tree.

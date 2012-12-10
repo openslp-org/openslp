@@ -42,6 +42,7 @@
 
 #include "slp_types.h"
 #include "slp_atomic.h"
+#include <assert.h>
 
 #if defined(_WIN32)
 # define USE_WIN32_ATOMICS
@@ -145,6 +146,8 @@ static inline int64_t atomic_xchg64(volatile int64_t * p, int64_t i)
 int32_t sparc_atomic_add_32(volatile int32_t * p, int32_t i);
 int32_t sparc_atomic_xchg_32(volatile int32_t * p, int32_t i);
 
+#if defined(__sparcv9)
+
 void sparc_asm_code(void)
 {
    asm( ".align 8");
@@ -179,6 +182,33 @@ void sparc_asm_code(void)
    asm( "retl");
    asm( "nop");
 }
+
+#else
+
+#include <atomic.h>
+
+int32_t sparc_atomic_add_32(volatile int32_t * p, int32_t i)
+{
+  return (int32_t)atomic_add_32_nv((uint32_t *)p, i);
+}
+
+void sparc_asm_code(void)
+{
+   asm( ".align 8");
+   asm( ".local sparc_atomic_xchg_32");
+   asm( ".type sparc_atomic_xchg_32, #function");
+   asm( "sparc_atomic_xchg_32:");
+   asm( "    stbar");
+   asm( "    mov %o1, %l0");
+   asm( "    swap [%o0], %l0");
+   asm( "    nop");
+   asm( "    mov %l0, %o0");
+   asm( "    stbar");
+   asm( "retl");
+   asm( "nop");
+}
+
+#endif /* __sparcv9 */
 
 #elif defined(__APPLE__)
 # define USE_APPLE_ATOMICS
@@ -217,7 +247,8 @@ intptr_t SLPAtomicInc(intptr_t * pn)
 #elif defined(USE_GCC_X86_64_ATOMICS)
    return (intptr_t)atomic_inc64((int64_t *)pn);
 #elif defined(USE_AIX_ATOMICS)
-   return (intptr_t)fetch_and_add((atomic_p)pn, 1) + 1;
+   assert(sizeof *(atomic_l *)pn == sizeof *pn);
+   return fetch_and_addlp(pn, 1) + 1;
 #elif defined(USE_ALPHA_ATOMICS)
    /* Note: __ATOMIC_INCREMENT_QUAD returns the __previous__ value. */
    return __ATOMIC_INCREMENT_QUAD(pn) + 1;
@@ -257,7 +288,8 @@ intptr_t SLPAtomicDec(intptr_t * pn)
 #elif defined(USE_GCC_X86_64_ATOMICS)
    return (intptr_t)atomic_dec64((int64_t *)pn);
 #elif defined(USE_AIX_ATOMICS)
-   return (intptr_t)fetch_and_add((atomic_p)pn, -1) - 1;
+   assert(sizeof *(atomic_l *)pn == sizeof *pn);
+   return fetch_and_addlp(pn, -1) - 1;
 #elif defined(USE_ALPHA_ATOMICS)
    /* Note: __ATOMIC_DECREMENT_QUAD returns the __previous__ value. */
    return __ATOMIC_DECREMENT_QUAD(pn) - 1;
@@ -303,8 +335,9 @@ intptr_t SLPAtomicXchg(intptr_t * pn, intptr_t n)
    return (intptr_t)atomic_xchg64((int64_t *)pn, (int64_t)n);
 #elif defined(USE_AIX_ATOMICS)
    int value;
+   assert(sizeof *(atomic_l *)pn == sizeof *pn);
    do value = *pn; 
-   while (!compare_and_swap((atomic_p)pn, &value, (int)n));
+   while (!compare_and_swaplp(pn, &value, n));
    return value;
 #elif defined(USE_ALPHA_ATOMICS)
    return __ATOMIC_EXCH_QUAD(pn, n);
