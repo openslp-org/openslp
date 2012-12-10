@@ -51,13 +51,13 @@
 static bool s_HandlesInitialized = false; /*!< Indicates we're fully initialized. */
 static intptr_t s_OpenSLPHandleCount = 0; /*!< Tracks OpenSLP handles. */
 
-/** Initialize the User Agent library. 
+/** Initialize the User Agent library.
  *
- * Initializes the network sub-system if required, the debug memory 
- * allocator, and the transaction id (XID) sub-system. 
+ * Initializes the network sub-system if required, the debug memory
+ * allocator, and the transaction id (XID) sub-system.
  *
  * @return An OpenSLP API error code.
- * 
+ *
  * @internal
  */
 static SLPError InitUserAgentLibrary(void)
@@ -72,8 +72,8 @@ static SLPError InitUserAgentLibrary(void)
       }
 #ifdef _WIN32
       {
-         WSADATA wsaData; 
-         WORD wVersionRequested = MAKEWORD(1,1); 
+         WSADATA wsaData;
+         WORD wVersionRequested = MAKEWORD(1,1);
          if (WSAStartup(wVersionRequested, &wsaData) != 0)
          {
             LIBSLPPropertyCleanup();
@@ -88,20 +88,20 @@ static SLPError InitUserAgentLibrary(void)
       SLPXidSeed();
       s_HandlesInitialized = true;
    }
-   else 
+   else
    {
       /* wait for first thread to finish before going on */
-      while (!s_HandlesInitialized) 
+      while (!s_HandlesInitialized)
          sleep(0);
    }
    return SLP_OK;
 }
 
-/** Cleans up the User Agent library. 
+/** Cleans up the User Agent library.
  *
  * Deinitializes the network sub-system if required, and the debug
  * memory allocator.
- * 
+ *
  * @internal
  */
 static void ExitUserAgentLibrary(void)
@@ -144,20 +144,20 @@ static void ExitUserAgentLibrary(void)
  * SLP_NOT_IMPLEMENTED flag may be returned when the isAsync flag
  * is SLP_TRUE (resp. SLP_FALSE).
  *
- * @param[in] pcLang -  A pointer to an array of characters containing 
- *    the [RFC 1766] Language Tag for the natural language locale of 
+ * @param[in] pcLang -  A pointer to an array of characters containing
+ *    the [RFC 1766] Language Tag for the natural language locale of
  *    requests and registrations issued on the handle. (Pass NULL or
  *    the empty string to use the default locale.)
  *
- * @param[in] isAsync - An SLPBoolean indicating whether the SLPHandle 
+ * @param[in] isAsync - An SLPBoolean indicating whether the SLPHandle
  *    should be opened for asynchronous operation or not.
  *
- * @param[out] phSLP - A pointer to an SLPHandle, in which the open  
- *    SLPHandle is returned. If an error occurs, the value upon return 
+ * @param[out] phSLP - A pointer to an SLPHandle, in which the open
+ *    SLPHandle is returned. If an error occurs, the value upon return
  *    is NULL.
  *
  * @return An SLPError code; SLP_OK(0) on success, SLP_PARAMETER_BAD,
- *    SLP_NOT_IMPLEMENTED, SLP_MEMORY_ALLOC_FAILED, 
+ *    SLP_NOT_IMPLEMENTED, SLP_MEMORY_ALLOC_FAILED,
  *    SLP_NETWORK_INIT_FAILED, SLP_INTERNAL_SYSTEM_ERROR
  */
 SLPEXP SLPError SLPAPI SLPOpen(
@@ -259,7 +259,7 @@ SLPEXP void SLPAPI SLPClose(SLPHandle hSLP)
    SLP_ASSERT(handle->inUse == 0);
 
 #ifdef ENABLE_SLPv2_SECURITY
-   if (handle->hspi) 
+   if (handle->hspi)
       SLPSpiClose(handle->hspi);
 #endif
 
@@ -269,7 +269,7 @@ SLPEXP void SLPAPI SLPClose(SLPHandle hSLP)
 #ifndef UNICAST_NOT_SUPPORTED
    xfree(handle->unicastscope);
    if (handle->unicastsock != SLP_INVALID_SOCKET)
-      closesocket(handle->dasock);
+      closesocket(handle->unicastsock);
 #endif
 
    xfree(handle->sascope);
@@ -288,19 +288,19 @@ SLPEXP void SLPAPI SLPClose(SLPHandle hSLP)
 /** Associates an interface list with an SLP handle.
  *
  * Associates a list of interfaces @p McastIFList on which multicast needs
- * to be done with a particular SLPHandle @p hSLP. @p McastIFList is a comma 
+ * to be done with a particular SLPHandle @p hSLP. @p McastIFList is a comma
  * separated list of host interface IP addresses.
  *
- * @param[in] hSLP - The SLPHandle with which the interface list is to be 
+ * @param[in] hSLP - The SLPHandle with which the interface list is to be
  *    associated with.
  *
- * @param[in] McastIFList - A comma separated list of host interface IP 
+ * @param[in] McastIFList - A comma separated list of host interface IP
  *    addresses on which multicast needs to be done.
  *
  * @return An SLPError code.
  */
 SLPEXP SLPError SLPAPI SLPAssociateIFList(
-      SLPHandle hSLP, 
+      SLPHandle hSLP,
       const char * McastIFList)
 {
 #ifndef MI_NOT_SUPPORTED
@@ -312,7 +312,7 @@ SLPEXP SLPError SLPAPI SLPAssociateIFList(
    SLP_ASSERT(*McastIFList != 0);
 
    /* check for invalid parameters */
-   if (!hSLP || *(unsigned int*)hSLP != SLP_HANDLE_SIG 
+   if (!hSLP || *(unsigned int*)hSLP != SLP_HANDLE_SIG
          || !McastIFList || !*McastIFList)
       return SLP_PARAMETER_BAD;
 
@@ -332,20 +332,20 @@ SLPEXP SLPError SLPAPI SLPAssociateIFList(
 
 /** Associates a unicast IP address with an open SLP handle.
  *
- * Associates an IP address @p unicast_ip with a particular SLPHandle 
+ * Associates an IP address @p unicast_ip with a particular SLPHandle
  * @p hSLP. @p unicast_ip is the IP address of the SA/DA from which service
  * is requested.
  *
- * @param[in] hSLP - The SLPHandle with which the @p unicast_ip address is 
+ * @param[in] hSLP - The SLPHandle with which the @p unicast_ip address is
  *    to be associated.
  *
- * @param[in] unicast_ip - IP address of the SA/DA from which service 
+ * @param[in] unicast_ip - IP address of the SA/DA from which service
  *    is requested.
  *
  * @return An SLPError code.
  */
 SLPEXP SLPError SLPAPI SLPAssociateIP(
-      SLPHandle hSLP, 
+      SLPHandle hSLP,
       const char * unicast_ip)
 {
 #ifndef UNICAST_NOT_SUPPORTED

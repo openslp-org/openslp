@@ -32,7 +32,7 @@
 
 /** Parse URL.
  *
- * Implementation for SLPParseSrvURL(), SLPEscape(), SLPUnescape() and 
+ * Implementation for SLPParseSrvURL(), SLPEscape(), SLPUnescape() and
  * SLPFree() calls.
  *
  * @file       libslp_parse.c
@@ -49,11 +49,11 @@
 #include "slp_message.h"
 
 /** Put a 16-bit-length-preceeded string into a buffer.
- * 
+ *
  * Write 2 bytes of length in Big-Endian format followed by the specified
  * number of bytes of string data. Update the pointer on return to point to
  * the location following the last byte written.
- * 
+ *
  * @param[in,out] cpp - The address of a buffer pointer.
  * @param[in] str - The string to write.
  * @param[in] strsz - The length of @p str.
@@ -66,17 +66,17 @@ void PutL16String(uint8_t ** cpp, const char * str, size_t strsz)
 }
 
 /** Calculate the size of a URL Entry.
- * 
+ *
  * @param[in] urllen - the length of the URL.
  * @param[in] urlauthlen - the length of the URL authentication block.
  *
- * @remarks Currently OpenSLP only handles a single authentication 
+ * @remarks Currently OpenSLP only handles a single authentication
  *    block. To handle more than this, this routine would have to take
  *    a sized array of @p urlauthlen values.
  *
  * @return A number of bytes representing the total URL Entry size.
  */
-size_t SizeofURLEntry(size_t urllen, size_t urlauthlen) 
+size_t SizeofURLEntry(size_t urllen, size_t urlauthlen)
 {
    /* reserved(1) + lifetime(2) + urllen(2) + url + #auths(2) + authlen */
    return 1 + 2 + 2 + urllen + 2 + urlauthlen;
@@ -84,11 +84,11 @@ size_t SizeofURLEntry(size_t urllen, size_t urlauthlen)
 
 /** Write a URL Entry to a network buffer.
  *
- * This routine inserts all the fields of a URL entry (as defined by 
+ * This routine inserts all the fields of a URL entry (as defined by
  * RFC 2608, Section 4.3 URL Entries) into a buffer starting at the
  * location specified by the address stored in @p cpp, returning an
- * updated address value in @p cpp, such that on exit it points to 
- * the next location in the buffer after the last byte of the URL 
+ * updated address value in @p cpp, such that on exit it points to
+ * the next location in the buffer after the last byte of the URL
  * entry.
  *
  * @param[in,out] cpp - The address of a buffer pointer.
@@ -101,7 +101,7 @@ size_t SizeofURLEntry(size_t urllen, size_t urlauthlen)
  * @remarks The pointer contained in @p cpp is updated to reflect the
  *    next buffer position after the URL Entry written on exit.
  *
- * @remarks Currently OpenSLP only handles a single authentication 
+ * @remarks Currently OpenSLP only handles a single authentication
  *    block. To handle more than this, PutURLEntry would have to take
  *    arrays of @p urlauth and @p urlauthlen values.
  */
@@ -136,23 +136,25 @@ void PutURLEntry(uint8_t ** cpp, uint16_t lifetime, const char * url,
    /* @todo Enhance OpenSLP to take multiple auth blocks per request. */
 
    /* # of URL auths / Auth. blocks */
-   *curpos++ = urlauth? 1: 0;
-   memcpy(curpos, urlauth, urlauthlen);
-   curpos += urlauthlen;
-
+   *curpos++ = urlauthlen? 1: 0;
+   if (urlauthlen > 0)
+   {
+      memcpy(curpos, urlauth, urlauthlen);
+      curpos += urlauthlen;
+   }
    *cpp = curpos;
 }
 
 /** Free a block of memory acquired through the OpenSLP interface.
  *
- * Frees memory returned from SLPParseSrvURL, SLPFindScopes, SLPEscape, 
+ * Frees memory returned from SLPParseSrvURL, SLPFindScopes, SLPEscape,
  * and SLPUnescape.
  *
- * @param[in] pvMem - A pointer to the storage allocated by the 
+ * @param[in] pvMem - A pointer to the storage allocated by the
  *    SLPParseSrvURL, SLPEscape, SLPUnescape, or SLPFindScopes functions.
  *    Ignored if NULL.
  */
-void SLPAPI SLPFree(void * pvMem)                                                  
+void SLPAPI SLPFree(void * pvMem)
 {
    if (pvMem)
       xfree(pvMem);
@@ -161,29 +163,29 @@ void SLPAPI SLPFree(void * pvMem)
 /** Parse a service URL into constituent parts.
  *
  * Parses the URL passed in as the argument into a service URL structure
- * and returns it in the @p ppSrvURL pointer. If a parse error occurs, 
+ * and returns it in the @p ppSrvURL pointer. If a parse error occurs,
  * returns SLP_PARSE_ERROR. The input buffer @p pcSrvURL is not modified.
  * Rather, portions of it are copied into a buffer at the end of the
- * structure allocated for return. Note that this is contrary to the RFC, 
- * which indicates that it is destructively modified during the parse and 
- * used to fill in the fields of the return structure. The structure 
+ * structure allocated for return. Note that this is contrary to the RFC,
+ * which indicates that it is destructively modified during the parse and
+ * used to fill in the fields of the return structure. The structure
  * returned in @p ppSrvURL should be freed with SLPFree. Again, note that
- * the RFC refers to a non-existent routine named SLPFreeURL. If the URL 
+ * the RFC refers to a non-existent routine named SLPFreeURL. If the URL
  * has no service part, the s_pcSrvPart string is the empty string, ""
- * (ie, not NULL). If @p pcSrvURL is not a service: URL, then the 
- * s_pcSrvType field in the returned data structure is the URL's scheme, 
- * which might not be the same as the service type under which the URL was 
- * registered. If the transport is IP, the s_pcNetFamily field is the empty 
+ * (ie, not NULL). If @p pcSrvURL is not a service: URL, then the
+ * s_pcSrvType field in the returned data structure is the URL's scheme,
+ * which might not be the same as the service type under which the URL was
+ * registered. If the transport is IP, the s_pcNetFamily field is the empty
  * string. Note that the RFC refers to a non-existent s_pcTransport field
- * here. If the transport is not IP or there is no port number, the s_iPort 
+ * here. If the transport is not IP or there is no port number, the s_iPort
  * field is zero.
  *
- * @param[in] pcSrvURL - A pointer to a character buffer containing the 
- *    null terminated URL string to parse. Note that RFC 2614 makes this 
- *    parameter non-const, and the routine destructive, but this is 
- *    unecessary from an API perspective, as the memory for the output 
+ * @param[in] pcSrvURL - A pointer to a character buffer containing the
+ *    null terminated URL string to parse. Note that RFC 2614 makes this
+ *    parameter non-const, and the routine destructive, but this is
+ *    unecessary from an API perspective, as the memory for the output
  *    parameter is allocated.
- * @param[in] ppSrvURL - A pointer to a pointer for the SLPSrvURL structure 
+ * @param[in] ppSrvURL - A pointer to a pointer for the SLPSrvURL structure
  *    to receive the parsed URL. The memory should be freed by a call to
  *    SLPFree when no longer needed.
  *
@@ -194,8 +196,8 @@ SLPEXP SLPError SLPAPI SLPParseSrvURL(
       const char * pcSrvURL,
       SLPSrvURL ** ppSrvURL)
 {
-   int result = SLPParseSrvUrl(strlen(pcSrvURL), pcSrvURL, 
-         (SLPParsedSrvUrl **) ppSrvURL); 
+   int result = SLPParseSrvUrl(strlen(pcSrvURL), pcSrvURL,
+         (SLPParsedSrvUrl **) ppSrvURL);
    switch(result)
    {
       case ENOMEM:
@@ -203,7 +205,7 @@ SLPEXP SLPError SLPAPI SLPParseSrvURL(
 
       case EINVAL:
          return SLP_PARSE_ERROR;
-   } 
+   }
    return SLP_OK;
 }
 
@@ -222,15 +224,15 @@ SLPEXP SLPError SLPAPI SLPParseSrvURL(
  * should be deallocated using SLPFree when the memory is no longer
  * needed.
  *
- * @param[in] pcInbuf - Pointer to he input buffer to process for escape 
+ * @param[in] pcInbuf - Pointer to he input buffer to process for escape
  *    characters.
- * @param[out] ppcOutBuf - Pointer to a pointer for the output buffer with 
+ * @param[out] ppcOutBuf - Pointer to a pointer for the output buffer with
  *    the SLP reserved characters escaped. Must be freed using SLPFree
  *    when the memory is no longer needed.
- * @param[in] isTag - When true, the input buffer is checked for bad tag 
+ * @param[in] isTag - When true, the input buffer is checked for bad tag
  *    characters.
  *
- * @return Return SLP_PARSE_ERROR if any characters are bad tag characters 
+ * @return Return SLP_PARSE_ERROR if any characters are bad tag characters
  *    and the isTag flag is true, otherwise SLP_OK, or the appropriate error
  *    code if another error occurs.
  */
@@ -247,10 +249,10 @@ SLPEXP SLPError SLPAPI SLPEscape(
    if (!pcInbuf || (isTag != SLP_TRUE && isTag != SLP_FALSE))
       return SLP_PARAMETER_BAD;
 
-   /* Loop thru the string, counting the number of reserved characters 
-    * and checking for bad tags when required.  This is also used to 
+   /* Loop thru the string, counting the number of reserved characters
+    * and checking for bad tags when required.  This is also used to
     * calculate the size of the new string to create.
-    * ASSUME: that pcInbuf is a NULL terminated string. 
+    * ASSUME: that pcInbuf is a NULL terminated string.
     */
    current_inbuf = (char *)pcInbuf;
    amount_of_escape_characters = 0;
@@ -262,28 +264,26 @@ SLPEXP SLPError SLPAPI SLPEscape(
          return SLP_PARSE_ERROR;
       if ((strchr(ATTRIBUTE_RESERVE_STRING, *current_inbuf)) ||
          ((*current_inbuf >= 0x00) && (*current_inbuf <= 0x1F)) ||
-         (*current_inbuf == 0x7F))         
+         (*current_inbuf == 0x7F))
          amount_of_escape_characters++;
       current_inbuf++;
    }
 
    /* Allocate the string. */
-   *ppcOutBuf = xmalloc(sizeof(char) * (strlen(pcInbuf) 
-         + amount_of_escape_characters * 2 + 1));
-
-   if (!ppcOutBuf)
+   if ((*ppcOutBuf = xmalloc(sizeof(char) * (strlen(pcInbuf)
+         + amount_of_escape_characters * 2 + 1))) == 0)
       return SLP_MEMORY_ALLOC_FAILED;
 
-   /* Go over it, again. Replace each of the escape characters with their 
-    * hex equivalent. 
+   /* Go over it, again. Replace each of the escape characters with their
+    * hex equivalent.
     */
    current_inbuf = (char *)pcInbuf;
    current_outBuf = *ppcOutBuf;
    while (*current_inbuf)
    {
       /* Check to see if it is an escape character. */
-      if ((strchr(ATTRIBUTE_RESERVE_STRING, *current_inbuf)) 
-            || ((*current_inbuf >= 0x00) && (*current_inbuf <= 0x1F)) 
+      if ((strchr(ATTRIBUTE_RESERVE_STRING, *current_inbuf))
+            || ((*current_inbuf >= 0x00) && (*current_inbuf <= 0x1F))
             || (*current_inbuf == 0x7F))
       {
          /* Insert the escape character. */
@@ -327,16 +327,16 @@ SLPEXP SLPError SLPAPI SLPEscape(
  * should be deallocated using SLPFree() when the memory is no longer
  * needed.
  *
- * @param[in] pcInbuf - Pointer to he input buffer to process for escape 
+ * @param[in] pcInbuf - Pointer to he input buffer to process for escape
  *    characters.
- * @param[out] ppcOutBuf - Pointer to a pointer for the output buffer with 
+ * @param[out] ppcOutBuf - Pointer to a pointer for the output buffer with
  *    the SLP reserved characters escaped. Must be freed using SLPFree
  *    when the memory is no longer needed.
- * @param[in] isTag - When true, the input buffer is checked for bad tag 
+ * @param[in] isTag - When true, the input buffer is checked for bad tag
  *    characters.
  *
- * @return Return SLP_PARSE_ERROR if any characters are bad tag characters 
- *    and the isTag flag is true, otherwise SLP_OK, or the appropriate 
+ * @return Return SLP_PARSE_ERROR if any characters are bad tag characters
+ *    and the isTag flag is true, otherwise SLP_OK, or the appropriate
  *    error code if another error occurs.
  */
 SLPEXP SLPError SLPAPI SLPUnescape(
@@ -352,10 +352,10 @@ SLPEXP SLPError SLPAPI SLPUnescape(
    if (!pcInbuf || (isTag != SLP_TRUE && isTag != SLP_FALSE))
       return SLP_PARAMETER_BAD;
 
-   /* Loop thru the string, counting the number of escape characters 
-    * and checking for bad tags when required.  This is also used to 
+   /* Loop thru the string, counting the number of escape characters
+    * and checking for bad tags when required.  This is also used to
     * calculate the size of the new string to create.
-    * ASSUME: that pcInbuf is a NULL terminated string. 
+    * ASSUME: that pcInbuf is a NULL terminated string.
     */
    current_Inbuf = (char *)pcInbuf;
    output_buffer_size = strlen(pcInbuf);
@@ -423,12 +423,12 @@ SLPEXP SLPError SLPAPI SLPUnescape(
  * Used to get individual attribute values from an attribute string that
  * is passed to the SLPAttrCallback.
  *
- * @param[in] pcAttrList - A character buffer containing a comma separated, 
- *    null terminated list of attribute id/value assignments, in SLP wire 
+ * @param[in] pcAttrList - A character buffer containing a comma separated,
+ *    null terminated list of attribute id/value assignments, in SLP wire
  *    format; i.e. "(attr-id=attr-value-list)".
- * @param[in] pcAttrId - The string indicating which attribute value to 
+ * @param[in] pcAttrId - The string indicating which attribute value to
  *    return. MUST not be null. MUST not be the empty string ("").
- * @param[out] ppcAttrVal - A pointer to a pointer to the buffer to receive 
+ * @param[out] ppcAttrVal - A pointer to a pointer to the buffer to receive
  *    the attribute value. The memory should be freed by a call to SLPFree
  *    when no longer needed.
  *
@@ -464,14 +464,14 @@ SLPEXP SLPError SLPAPI SLPParseAttrs(
       while (*slider2 && *slider2 != '=' && *slider2 !=')')
          slider2++;
 
-      if (attridlen == (unsigned)(slider2 - slider1) 
+      if (attridlen == (unsigned)(slider2 - slider1)
             && strncasecmp(slider1, pcAttrId, slider2 - slider1) == 0)
       {
          /* Found the attribute id. */
          slider1 = slider2;
-         if (*slider1 == '=') 
+         if (*slider1 == '=')
             slider1++;
-         while (*slider2 && *slider2 !=')') 
+         while (*slider2 && *slider2 !=')')
             slider2++;
 
          *ppcAttrVal = xmalloc((slider2 - slider1) + 1);

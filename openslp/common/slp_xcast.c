@@ -55,28 +55,28 @@
 
 /** Broadcast a message.
  *
- * @param[in] ifaceinfo - A pointer to the SLPIfaceInfo structure that 
+ * @param[in] ifaceinfo - A pointer to the SLPIfaceInfo structure that
  *    contains information about the interfaces on which to send.
  * @param[in] msg - The buffer to be sent.
  * @param[out] socks - The address of storage for returning the sockets
- *    that were used to broadcast. 
+ *    that were used to broadcast.
  *
  * @return Zero on sucess, or a non-zero value with @a errno set on error.
  *
- * @remarks The sockets returned in @p socks may be used to receive 
+ * @remarks The sockets returned in @p socks may be used to receive
  *    responses. Must be close by caller using SLPXcastSocketsClose.
- */                        
-int SLPBroadcastSend(const SLPIfaceInfo * ifaceinfo, 
+ */
+int SLPBroadcastSend(const SLPIfaceInfo * ifaceinfo,
       const SLPBuffer msg, SLPXcastSockets * socks)
 {
    int xferbytes;
    so_bool_t on = 1;
 
-   for (socks->sock_count = 0; 
-         socks->sock_count < ifaceinfo->bcast_count; 
+   for (socks->sock_count = 0;
+         socks->sock_count < ifaceinfo->bcast_count;
          socks->sock_count++)
    {
-      if (ifaceinfo[socks->sock_count].bcast_addr->ss_family == AF_INET) 
+      if (ifaceinfo[socks->sock_count].bcast_addr->ss_family == AF_INET)
       {
          socks->sock[socks->sock_count] = socket(ifaceinfo[socks->sock_count]
                .bcast_addr->ss_family, SOCK_DGRAM, 0);
@@ -90,20 +90,20 @@ int SLPBroadcastSend(const SLPIfaceInfo * ifaceinfo,
                SO_BROADCAST, &on, sizeof(on)) != 0)
             return -1;  /* Error setting socket option */
 
-         memcpy(&socks->peeraddr[socks->sock_count], 
-               &ifaceinfo->bcast_addr[socks->sock_count], 
+         memcpy(&socks->peeraddr[socks->sock_count],
+               &ifaceinfo->bcast_addr[socks->sock_count],
                sizeof(ifaceinfo->bcast_addr[socks->sock_count]));
 
-         SLPNetSetAddr(&socks->peeraddr[socks->sock_count], AF_INET, 
+         SLPNetSetAddr(&socks->peeraddr[socks->sock_count], AF_INET,
                (uint16_t)SLPPropertyAsInteger("net.slp.port"), 0);
          xferbytes = sendto(socks->sock[socks->sock_count],
-               (char *)msg->start, (int)(msg->end - msg->start), 0, 
+               (char *)msg->start, (int)(msg->end - msg->start), 0,
                (struct sockaddr *)&socks->peeraddr[socks->sock_count],
                SLPNetAddrLen(&socks->peeraddr[socks->sock_count]));
          if (xferbytes  < 0)
             return -1;  /* Error sending to broadcast */
       }
-      else 
+      else
          socks->sock[socks->sock_count] = 0; /* assume bcast for IPV4 only */
    }
    return 0;
@@ -121,10 +121,10 @@ int SLPBroadcastSend(const SLPIfaceInfo * ifaceinfo,
 static int SetMulticastIF(int family, sockfd_t sockfd, const struct sockaddr_storage * addr)
 {
    if (SLPNetIsIPV4() && ((family == AF_INET) || (family == AF_UNSPEC)))
-      return setsockopt(sockfd, IPPROTO_IP, IP_MULTICAST_IF, 
+      return setsockopt(sockfd, IPPROTO_IP, IP_MULTICAST_IF,
                         (char*)(&(((struct sockaddr_in*)addr)->sin_addr)), sizeof(struct in_addr));
    else if (SLPNetIsIPV6() && ((family == AF_INET6) || (family == AF_UNSPEC)))
-      return setsockopt(sockfd, IPPROTO_IPV6, IPV6_MULTICAST_IF, 
+      return setsockopt(sockfd, IPPROTO_IPV6, IPV6_MULTICAST_IF,
                           (char*)(&((struct sockaddr_in6 *)addr)->sin6_scope_id), sizeof(unsigned int));
    return -1;
 }
@@ -162,16 +162,16 @@ static int SetMulticastTTL(int family, sockfd_t sockfd, int ttl)
 
 /** Multicast a message.
  *
- * @param[in] ifaceinfo - A pointer to the SLPIfaceInfo structure that 
+ * @param[in] ifaceinfo - A pointer to the SLPIfaceInfo structure that
  *    contains information about the interfaces on which to send.
  * @param[in] msg - The buffer to be sent.
  * @param[out] socks - The address of storage for the sockets that were used
  *    to multicast.
- * @param[in] dst - The target address, if using ipv6; can be null for IPv4.  
+ * @param[in] dst - The target address, if using ipv6; can be null for IPv4.
  *
  * @return Zero on sucess, or a non-zero value, with errno set on error.
  *
- * @remarks May be used to receive responses. Must be close by caller using 
+ * @remarks May be used to receive responses. Must be close by caller using
  *    SLPXcastSocketsClose.
  */
 int SLPMulticastSend(const SLPIfaceInfo * ifaceinfo, const SLPBuffer msg,
@@ -195,12 +195,12 @@ int SLPMulticastSend(const SLPIfaceInfo * ifaceinfo, const SLPBuffer msg,
          (SetMulticastIF(family, socks->sock[socks->sock_count], &ifaceinfo->iface_addr[socks->sock_count]) ||
          (SetMulticastTTL(family, socks->sock[socks->sock_count], SLPPropertyAsInteger("net.slp.multicastTTL")))))
          return -1; /* error creating socket or setting socket option */
-      
+
       SLPNetworkSetSndRcvBuf(socks->sock[socks->sock_count]);
       memcpy(&socks->peeraddr[socks->sock_count], dst, sizeof(struct sockaddr_storage));
 
-      xferbytes = sendto(socks->sock[socks->sock_count], 
-         (char *)msg->start, (int)(msg->end - msg->start), flags, 
+      xferbytes = sendto(socks->sock[socks->sock_count],
+         (char *)msg->start, (int)(msg->end - msg->start), flags,
          (struct sockaddr *)&socks->peeraddr[socks->sock_count],
          SLPNetAddrLen(&socks->peeraddr[socks->sock_count]));
       if (xferbytes <= 0)
@@ -211,19 +211,20 @@ int SLPMulticastSend(const SLPIfaceInfo * ifaceinfo, const SLPBuffer msg,
 
 /** Receives datagram messages.
  *
- * Receives messages from one of the sockets in the specified 
+ * Receives messages from one of the sockets in the specified
  * SLPXcastsSockets structure, @p sockets.
- * 
- * @param[in] sockets - A pointer to the SOPXcastSockets structure that 
+ *
+ * @param[in] sockets - A pointer to the SOPXcastSockets structure that
  *    describes the sockets from which to read messages.
- * @param[out] buf - A pointer to an SLPBuffer that will contain the 
+ * @param[out] buf - A pointer to an SLPBuffer that will contain the
  *    received message upon successful return.
- * @param[out] peeraddr - A pointer to a sockaddr structure that will 
+ * @param[out] peeraddr - A pointer to a sockaddr structure that will
  *    contain the address of the peer from which the message was received.
- * @param[in,out] timeout - A pointer to the timeval structure that 
+ * @param[in,out] timeout - A pointer to the timeval structure that
  *    indicates how much time to wait for a message to arrive.
  *
- * @return Zero on success, or a non-zero with errno set on failure.
+ * @return SLP_ERROR_OK on success, or a non-zero SLP_ERROR_* code
+ *    optionally with errno set on failure.
  */
 int SLPXcastRecvMessage(const SLPXcastSockets * sockets, SLPBuffer * buf,
       void * peeraddr, struct timeval * timeout)
@@ -239,7 +240,7 @@ int SLPXcastRecvMessage(const SLPXcastSockets * sockets, SLPBuffer * buf,
    int bytesread;
    int recvloop;
    char peek[16];
-   int result = 0;
+   int result = SLP_ERROR_OK;
    unsigned mtu;
    unsigned int msglen;
 
@@ -283,14 +284,14 @@ int SLPXcastRecvMessage(const SLPXcastSockets * sockets, SLPBuffer * buf,
             {
                /* Peek at the first 16 bytes of the header */
                socklen_t peeraddrlen = sizeof(struct sockaddr_storage);
-               bytesread = recvfrom(sockets->sock[i], peek, 16, MSG_PEEK, 
+               bytesread = recvfrom(sockets->sock[i], peek, 16, MSG_PEEK,
                      peeraddr, &peeraddrlen);
                if (bytesread == 16
 #ifdef _WIN32
-                     /* Win32 returns WSAEMSGSIZE if the message is larger 
-                      * than the requested size, even with MSG_PEEK. But if 
-                      * this is the error code we can be sure that the 
-                      * message is at least 16 bytes 
+                     /* Win32 returns WSAEMSGSIZE if the message is larger
+                      * than the requested size, even with MSG_PEEK. But if
+                      * this is the error code we can be sure that the
+                      * message is at least 16 bytes
                       */
                      || (bytesread == -1 && WSAGetLastError() == WSAEMSGSIZE)
 #endif
@@ -309,7 +310,9 @@ int SLPXcastRecvMessage(const SLPXcastSockets * sockets, SLPBuffer * buf,
                   }
                   if (msglen <= mtu && !ovlbit)
                   {
-                     *buf = SLPBufferRealloc(*buf, msglen);
+                     if ((*buf = SLPBufferRealloc(*buf, msglen)) == 0)
+                        return SLP_MEMORY_ALLOC_FAILED;
+
                      bytesread = recv(sockets->sock[i], (char *)(*buf)->curpos,
                            (int)((*buf)->end - (*buf)->curpos), 0);
 
@@ -318,7 +321,7 @@ int SLPXcastRecvMessage(const SLPXcastSockets * sockets, SLPBuffer * buf,
                         (*buf)->end = (*buf)->curpos + bytesread;
 
                      /* Message read. We're done! */
-                     result = 0; 
+                     result = 0;
                      recvloop = 0;
                      break;
                   }
@@ -348,17 +351,17 @@ int SLPXcastRecvMessage(const SLPXcastSockets * sockets, SLPBuffer * buf,
                   /* Not even 16 bytes available */
                }
             }
-         }   
+         }
       }
       else if (readable == 0)
       {
-         result = -1;
+         result = SLP_NETWORK_TIMED_OUT;
          errno = ETIMEDOUT;
          recvloop = 0;
       }
       else
       {
-         result = -1;
+         result = SLP_NETWORK_ERROR;
          recvloop = 0;
       }
    }
@@ -367,10 +370,10 @@ int SLPXcastRecvMessage(const SLPXcastSockets * sockets, SLPBuffer * buf,
 
 /** Closes sockets.
  *
- * Closes the sockets in the @p socks parameter, which were previously 
+ * Closes the sockets in the @p socks parameter, which were previously
  * opened by calls to SLPMulticastSend and SLPBroadcastSend.
  *
- * @param[in,out] socks - A pointer to the SLPXcastSockets structure 
+ * @param[in,out] socks - A pointer to the SLPXcastSockets structure
  *    being closed.
  *
  * @return Zero on sucess, or a non-zero with errno set on error.
@@ -388,7 +391,7 @@ int SLPXcastSocketsClose(SLPXcastSockets * socks)
 /*===========================================================================
  * TESTING CODE may be compiling with the following command line:
  *
- * $ gcc -g -DDEBUG -DSLP_XMIT_TEST slp_xcast.c slp_iface.c slp_buffer.c 
+ * $ gcc -g -DDEBUG -DSLP_XMIT_TEST slp_xcast.c slp_iface.c slp_buffer.c
  *    slp_linkedlist.c slp_compare.c slp_xmalloc.c
  */
 /* #define SLP_XMIT_TEST */
@@ -400,7 +403,7 @@ int main(void)
    SLPXcastSockets socks;
    SLPBuffer buffer;
    /* multicast srvloc address */
-   uint8_t v6Addr[] = {0xFF, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 
+   uint8_t v6Addr[] = {0xFF, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00,
          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x16};
    struct sockaddr_storage dst;
    int mtu;

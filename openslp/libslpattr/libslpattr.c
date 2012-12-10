@@ -108,10 +108,10 @@
 /* Tests a character to see if it's a digit. */
 #define IS_DIGIT(x)  ((x) >= '0' && (x) <= '9')
 
-/* Find the end of a tag, while checking that said tag is valid. 
+/* Find the end of a tag, while checking that said tag is valid.
  *
  * Returns: Pointer to the character immediately following the end of the tag,
- * or 0 if the tag is improperly formed. 
+ * or 0 if the tag is improperly formed.
  */
 static char const * find_tag_end(const char * tag)
 {
@@ -128,7 +128,7 @@ static char const * find_tag_end(const char * tag)
 }
 
 
-/* Unescapes an escaped character. 
+/* Unescapes an escaped character.
  *
  * val should point to the escape character starting the value.
  */
@@ -155,14 +155,14 @@ static char unescape(char d1, char d2)
 }
 
 
-/* Unescapes a string. 
+/* Unescapes a string.
  *
  * Params:
  *  dest -- (IN) Where to write
  *  src -- (IN) Unescaped string
  *  len -- (IN) length of src
- *  unescaped_len -- (OUT) number of characters in unescaped 
- * 
+ *  unescaped_len -- (OUT) number of characters in unescaped
+ *
  * Returns: Pointer to start of unescaped string. If an error occurs, 0 is
  * returned (an error consists of an escaped value being truncated).
  */
@@ -182,7 +182,7 @@ static char * unescape_into(char * dest, const char * src, size_t len,
       if (src[i] == ESCAPE_CHARACTER)
       {
          /*** Check that the characters are legal, and that the value has
-          * not been truncated. 
+          * not been truncated.
           ***/
          if ((i + 2 < len) && isxdigit((int) src[i + 1]) && isxdigit((int)
                                                                   src[i + 2]))
@@ -205,7 +205,7 @@ static char * unescape_into(char * dest, const char * src, size_t len,
 }
 
 /* Finds the end of a value list, while checking that the value contains legal
- * characters. 
+ * characters.
  *
  * PARAMS:
  *  value -- (IN) The start of the value list
@@ -213,13 +213,13 @@ static char * unescape_into(char * dest, const char * src, size_t len,
  *  type -- (OUT) The type of the value list
  *  unescaped_size -- (OUT) The size of the unescaped value list. ASSUMING THAT THE LIST IS EITHER OPAQUE OR STRING!
  *  cur -- (OUT) End of the parse.
- * 
+ *
  * Returns: 0 on parse error. 1 on valid parse.
  *
  * Note: function not marked "static" so test routine can find it outside
  * of module.
  */
-/* static */ int find_value_list_end(char const * value, int * value_count, 
+/* static */ int find_value_list_end(char const * value, int * value_count,
       SLPType * type, size_t * unescaped_len, char const * *cur)
 {
    enum
@@ -399,7 +399,7 @@ static char * unescape_into(char * dest, const char * src, size_t len,
 
 
 /* Finds the end of a value, while checking that the value contains legal
- * characters. 
+ * characters.
  *
  * Returns: see find_tag_end().
  */
@@ -418,7 +418,7 @@ static char * unescape_into(char * dest, const char * src, size_t len,
 }
 
 
-/* Find the number of digits (base 10) necessary to represent an integer. 
+/* Find the number of digits (base 10) necessary to represent an integer.
  *
  * Returns the number of digits.
  */
@@ -485,12 +485,12 @@ static SLPBoolean opaque_test(char to_test)
 }
 
 
-/* Find the size of an unescaped string (given the escaped string). 
+/* Find the size of an unescaped string (given the escaped string).
  *
- * Note that len must be positive. 
+ * Note that len must be positive.
  *
  * Returns: If positive, the length of the string. If negative, there is some
- * sort of error. 
+ * sort of error.
  */
 static size_t find_unescaped_size(const char * str, size_t len)
 {
@@ -513,11 +513,11 @@ static size_t find_unescaped_size(const char * str, size_t len)
 }
 
 
-/* Find the size of an escaped string. 
+/* Find the size of an escaped string.
  *
  * The "optional" len argument is the length of the string.  If it is
  * negative, the function treats the string as a null-terminated string. If it
- * is positive, the function will read exactly that number of characters. 
+ * is positive, the function will read exactly that number of characters.
  */
 static size_t find_escaped_size(const char * str, int len)
 {
@@ -551,10 +551,10 @@ static size_t find_escaped_size(const char * str, int len)
 
 
 /* Escape a single character. Writes the escaped value into dest, and
- * increments dest. 
+ * increments dest.
  *
  * NOTE: Most of this code is stolen from Dave McCormack's SLPEscape() code.
- * (For OpenSLP). 
+ * (For OpenSLP).
  */
 static void escape(char to_escape, char ** dest, SLPBoolean(test_fn)(char))
 {
@@ -578,12 +578,12 @@ static void escape(char to_escape, char ** dest, SLPBoolean(test_fn)(char))
 
 
 /* Escape the passed string (src), writing it into the other passed string
- * (dest). 
+ * (dest).
  *
  * If the len argument is negative, the src is treated as null-terminated,
- * otherwise that length is escaped. 
+ * otherwise that length is escaped.
  *
- * Returns a pointer to where the addition has ended. 
+ * Returns a pointer to where the addition has ended.
  */
 static char * escape_into(char * dest, char * src, int len)
 {
@@ -610,18 +610,18 @@ static char * escape_into(char * dest, char * src, int len)
 
 
 /* Special case for escaping opaque strings. Escapes _every_ character in the
- * string. 
+ * string.
  *
- * Note that the size parameter _must_ be defined. 
- * 
- * Returns a pointer to where the addition has ended. 
+ * Note that the size parameter _must_ be defined.
+ *
+ * Returns a pointer to where the addition has ended.
  */
 static char * escape_opaque_into(char * dest, char * src, size_t len)
 {
    unsigned i; /* Index into src. */
    char * cur_dest;
 
-   cur_dest = dest; 
+   cur_dest = dest;
 
    for (i = 0; i < len; i++)
       escape(src[i], &cur_dest, opaque_test);
@@ -638,12 +638,12 @@ static char * escape_opaque_into(char * dest, char * src, size_t len)
  * In SLP an individual attribute can be associated with a list of values. A
  * value is the data associated with a tag. Depending on the type of
  * attribute, there can be zero, one, or many values associated with a single
- * tag. 
+ * tag.
  *****************************************************************************/
 
 /* See libslpattr_internal.h for implementation. */
 
-/* Create and initialize a new value. 
+/* Create and initialize a new value.
  *
  * Params:
  *  extra -- amount of memory to allocate in addition to that needed for the value. This memory can be found at (return_value + sizeof(value_t))
@@ -678,16 +678,16 @@ static void value_free(value_t * value)
  *
  *                              Individual attributes (vars)
  *
- *  What is a var? 
+ *  What is a var?
  *
  *  A var is a variable tag that is associated with a list of values. Zero or
  *  more vars are kept in a single SLPAttributes object. Each value stored in
- *  a var is kept in a value struct. 
+ *  a var is kept in a value struct.
  *****************************************************************************/
 
 /* See libslpattr_internal.h for struct. */
 
-/* Create a new variable. 
+/* Create a new variable.
  */
 static var_t * var_new(const char * tag, size_t tag_len)
 {
@@ -788,12 +788,12 @@ static SLPError var_insert(var_t * var, value_t * value, SLPInsertionPolicy poli
 
 /******************************************************************************
  *
- *                             All the attributes. 
+ *                             All the attributes.
  *
  *****************************************************************************/
 
 /*
- * SLPAttrAlloc() creates and initializes a new instance of SLPAttributes. 
+ * SLPAttrAlloc() creates and initializes a new instance of SLPAttributes.
  */
 SLPError SLPAttrAlloc(const char * lang, const FILE * template_h,
       SLPBoolean strict, SLPAttributes * slp_attr_h)
@@ -832,7 +832,7 @@ SLPError SLPAttrAlloc(const char * lang, const FILE * template_h,
 
 
 static SLPError attr_destringify(struct xx_SLPAttributes * slp_attr,
-      const char * str, SLPInsertionPolicy); 
+      const char * str, SLPInsertionPolicy);
 
 /* Allocates a new attribute list from a string. */
 SLPError SLPAttrAllocStr(const char * lang, const FILE * template_h,
@@ -855,7 +855,7 @@ SLPError SLPAttrAllocStr(const char * lang, const FILE * template_h,
 }
 
 
-/* Destroys the passed SLPAttributes(). 
+/* Destroys the passed SLPAttributes().
  */
 void SLPAttrFree(SLPAttributes slp_attr_h)
 {
@@ -887,7 +887,7 @@ void SLPAttrFree(SLPAttributes slp_attr_h)
 static void attr_add(struct xx_SLPAttributes * slp_attr, var_t * var)
 {
    var->next = slp_attr->attrs;
-   slp_attr->attrs = var; 
+   slp_attr->attrs = var;
 
    slp_attr->attr_count++;
 }
@@ -923,7 +923,7 @@ var_t * attr_val_find_str(struct xx_SLPAttributes * slp_attr,
  * other error code (meant to be forwarded to the application) if the match is
  * bad.
  */
-static SLPError attr_type_verify(struct xx_SLPAttributes * slp_attr, 
+static SLPError attr_type_verify(struct xx_SLPAttributes * slp_attr,
       var_t * var, SLPType type)
 {
    (void)slp_attr;
@@ -944,9 +944,9 @@ static SLPError attr_type_verify(struct xx_SLPAttributes * slp_attr,
 /*****************************************************************************/
 static SLPError generic_set_val(struct xx_SLPAttributes * slp_attr, const char * tag,
       size_t tag_len, value_t * value, SLPInsertionPolicy policy,
-      SLPType attr_type) 
+      SLPType attr_type)
 /* Finds and sets the value named in tag.                                    */
-/* 
+/*
  * slp_attr  - the attr object to add to.
  * tag       - the name of the tag to add to.
  * tag_len   - the length of the tag to add to.
@@ -955,7 +955,7 @@ static SLPError generic_set_val(struct xx_SLPAttributes * slp_attr, const char *
  * attr_type - the type of the value being added.
  *****************************************************************************/
 {
-   var_t * var;   
+   var_t * var;
    /***** Create a new attribute. *****/
    if ((var = attr_val_find_str(slp_attr, tag, tag_len)) == 0)
    {
@@ -963,29 +963,29 @@ static SLPError generic_set_val(struct xx_SLPAttributes * slp_attr, const char *
       var = var_new((char *) tag, tag_len);
       if (var == 0)
          return SLP_MEMORY_ALLOC_FAILED;
-      var->type = attr_type;     
+      var->type = attr_type;
       /** Add variable to list. **/
       attr_add(slp_attr, var);
    }
    else
    {
-      SLPError err;   
+      SLPError err;
       /*** The attribute already exists. ***/
       /*** Verify type. ***/
-      err = attr_type_verify(slp_attr, var, attr_type);   
+      err = attr_type_verify(slp_attr, var, attr_type);
       if (err == SLP_TYPE_ERROR && policy == SLP_REPLACE)
       {
-         var_list_destroy(var); 
+         var_list_destroy(var);
          var->type = attr_type;
       }
       else if (err != SLP_OK)
       {
-         value_free(value); 
+         value_free(value);
          return err;
       }
-   }   
-   /***** Set value *****/ 
-   var_insert(var, value, policy); 
+   }
+   /***** Set value *****/
+   var_insert(var, value, policy);
 
    return SLP_OK;
 }
@@ -1008,7 +1008,8 @@ SLPError SLPAttrSet_bool(SLPAttributes attr_h, const char * tag,
    /***** Set the initial (and only) value. *****/
    /**** Create ****/
    value = value_new(0);
-   SLP_ASSERT(value);
+   if (!value)
+      return SLP_MEMORY_ALLOC_FAILED;
 
    /**** Set escaped information. ****/
    if (val == SLP_TRUE)
@@ -1043,7 +1044,8 @@ SLPError SLPAttrSet_str(SLPAttributes attr_h, const char * tag,
    unescaped_len = strlen(val);
 
    value = value_new(unescaped_len);
-   SLP_ASSERT(value);
+   if (!value)
+      return SLP_MEMORY_ALLOC_FAILED;
 
    /**** Copy data. ****/
    value->data.va_str = ((char *) value) + sizeof(value_t);
@@ -1134,12 +1136,12 @@ SLPError SLPAttrSet_opaque(SLPAttributes attr_h, const char * tag,
 static SLPError SLPAttrStore(struct xx_SLPAttributes * slp_attr, const char * tag,
       const char * val, size_t len, SLPInsertionPolicy policy);
 
-/* Set an attribute of unknown type. 
+/* Set an attribute of unknown type.
  *
- * Note that the policy in this case is a special case: If the policy is 
- * SLP_REPLACE, we delete the current list and replace it with the passed 
- * value. If it's a multivalue list, we replace the current value with the 
- * ENTIRE passed list. 
+ * Note that the policy in this case is a special case: If the policy is
+ * SLP_REPLACE, we delete the current list and replace it with the passed
+ * value. If it's a multivalue list, we replace the current value with the
+ * ENTIRE passed list.
  *
  * FIXME Should we "elide" whitespace?
  */
@@ -1156,9 +1158,9 @@ SLPError SLPAttrSet_guess(SLPAttributes attr_h, const char * tag,
    if (val == 0)
       return SLP_PARAMETER_BAD;
 
-   /***** 
-    * If we have a replace policy and we're inserting a multivalued list, 
-    * the values will clobber each other. Therefore if we have a replace, we 
+   /*****
+    * If we have a replace policy and we're inserting a multivalued list,
+    * the values will clobber each other. Therefore if we have a replace, we
     * delete the current list, and use an add policy.
     *****/
    if (policy == SLP_REPLACE)
@@ -1206,7 +1208,7 @@ SLPError SLPAttrSet_guess(SLPAttributes attr_h, const char * tag,
  *
  *****************************************************************************/
 
-/* Get the value of a boolean attribute. Note that it _cannot_ be multivalued. 
+/* Get the value of a boolean attribute. Note that it _cannot_ be multivalued.
  */
 SLPError SLPAttrGet_bool(SLPAttributes attr_h, const char * tag,
       SLPBoolean * val)
@@ -1237,7 +1239,7 @@ SLPError SLPAttrGet_bool(SLPAttributes attr_h, const char * tag,
  * exist, no value is passed out. Instead, if the keyword exists, an SLP_OK is
  * returned, if it doesn't exist, an SLP_TAG_ERROR is returned. If the tag
  * does exist, but is associated with a non-keyword attribute, SLP_TYPE_ERROR
- * is returned. 
+ * is returned.
  */
 SLPError SLPAttrGet_keyw(SLPAttributes attr_h, const char * tag)
 {
@@ -1263,21 +1265,21 @@ SLPError SLPAttrGet_keyw(SLPAttributes attr_h, const char * tag)
 
 
 /* Get an integer value. Since integer attributes can be multivalued, an array
- * is returned that contains all values corresponding to the given tag. 
+ * is returned that contains all values corresponding to the given tag.
  *
  *
  * Note: On success, an array of SLP_INTEGERs is created. It is the caller's
- * responsibility to free the memory returned through val. 
- * 
+ * responsibility to free the memory returned through val.
+ *
  * Returns:
  *  SLP_OK
  *    Returned if the attribute is found. The array containing the values is
- *    placed in val, and size is set to the number of values in val. 
+ *    placed in val, and size is set to the number of values in val.
  *  SLP_TYPE_ERROR
  *    Returned if the tag exists, but the associated value is not of type
  *    SLP_INTEGER.
  *  SLP_MEMORY_ALLOC_FAILED
- *    Memory allocation failed. 
+ *    Memory allocation failed.
  */
 SLPError SLPAttrGet_int(SLPAttributes attr_h, const char * tag, int ** val,
       size_t * size)
@@ -1318,23 +1320,23 @@ SLPError SLPAttrGet_int(SLPAttributes attr_h, const char * tag, int ** val,
 }
 
 /* Get string values. Since string attributes can be multivalued, an array
- * is returned that contains all values corresponding to the given tag. 
+ * is returned that contains all values corresponding to the given tag.
  *
  *
  * Note: On success, an array of SLP_STRINGs is created. It is the caller's
  * responsibility to free the memory returned through val. Note that the array
  * referencing the strings is allocated separately from each string value,
- * meaning that each value must explicitly be deallocated. 
- * 
+ * meaning that each value must explicitly be deallocated.
+ *
  * Returns:
  *  SLP_OK
  *    Returned if the attribute is found. The array containing the values is
- *    placed in val, and size is set to the number of values in val. 
+ *    placed in val, and size is set to the number of values in val.
  *  SLP_TYPE_ERROR
  *    Returned if the tag exists, but the associated value is not of type
  *    SLP_INTEGER.
  *  SLP_MEMORY_ALLOC_FAILED
- *    Memory allocation failed. 
+ *    Memory allocation failed.
  */
 SLPError SLPAttrGet_str(SLPAttributes attr_h, const char * tag, char *** val,
       size_t * size)
@@ -1379,24 +1381,24 @@ SLPError SLPAttrGet_str(SLPAttributes attr_h, const char * tag, char *** val,
 }
 
 /* Get opaque values. Since opaque attributes can be multivalued, an array
- * is returned that contains all values corresponding to the given tag. 
+ * is returned that contains all values corresponding to the given tag.
  *
  *
  * Note: On success, an array of SLP_OPAQUEs is created. It is the caller's
  * responsibility to free the memory returned through val. Note that the array
  * referencing the opaques is allocated separately from each opaque struct,
- * and from the corresponding opaque value, meaning that each value must 
- * explicitly be deallocated, as must each opaque struct. 
- * 
+ * and from the corresponding opaque value, meaning that each value must
+ * explicitly be deallocated, as must each opaque struct.
+ *
  * Returns:
  *  SLP_OK
  *    Returned if the attribute is found. The array containing the values is
- *    placed in val, and size is set to the number of values in val. 
+ *    placed in val, and size is set to the number of values in val.
  *  SLP_TYPE_ERROR
  *    Returned if the tag exists, but the associated value is not of type
  *    SLP_INTEGER.
  *  SLP_MEMORY_ALLOC_FAILED
- *    Memory allocation failed. 
+ *    Memory allocation failed.
  */
 SLPError SLPAttrGet_opaque(SLPAttributes attr_h, const char * tag,
       SLPOpaque *** val, size_t * size)
@@ -1449,14 +1451,14 @@ SLPError SLPAttrGet_opaque(SLPAttributes attr_h, const char * tag,
    return SLP_OK;
 }
 
-/* Finds the type of the given attribute. 
+/* Finds the type of the given attribute.
  *
  * Returns:
  *  SLP_OK
  *    If the attribute is set. The type is returned through the type
  *    parameter.
  *  SLP_TAG_ERROR
- *    If the attribute is not set. 
+ *    If the attribute is not set.
  */
 SLPError SLPAttrGetType_len(SLPAttributes attr_h, const char * tag,
       size_t tag_len, SLPType * type)
@@ -1498,13 +1500,13 @@ static char * fix_memory_alignment(char * p)
 
 /******************************************************************************
  *
- *                          Attribute (En|De)coding 
+ *                          Attribute (En|De)coding
  *
  *****************************************************************************/
 
 
-/* Stores a list of serialized attributes. Takes advantage of foreknowledge of 
- * stuff string sizes, etc. 
+/* Stores a list of serialized attributes. Takes advantage of foreknowledge of
+ * stuff string sizes, etc.
  *
  * Params:
  *  tag -- (IN) the name of the attribute
@@ -1548,11 +1550,11 @@ static int internal_store(struct xx_SLPAttributes * slp_attr, char const * tag,
          + unescaped_len /* The size of the unescaped data. */
 #if 1 /* Jim Meyer's byte allignment code */
          + val_count * (sizeof(long) - 1); /* Padding */
-#endif     
+#endif
    mem_block = (char *) malloc(block_size);
    if (mem_block == 0)
    {
-      free(val);
+      free(var);
       return 0;
    }
 
@@ -1653,21 +1655,21 @@ static int internal_store(struct xx_SLPAttributes * slp_attr, char const * tag,
 
    mem_block = mem_block + sizeof(value_t);
 
-   attr_add(slp_attr, var); 
+   attr_add(slp_attr, var);
    return 1; /* Success. */
 }
 
-/* Iterates across a set of variables. Either by using a given list of tag 
- * names, or looping across all list members. 
+/* Iterates across a set of variables. Either by using a given list of tag
+ * names, or looping across all list members.
  *
  * Params:
  *  slp_attr -- (IN) the attribute list we're working in
- *  tag_cur -- (IN/OUT) the current position in the tag string. Must be 
- *    initialized to point to the start of a tag list. 
- *  tag_end -- (IN/OUT) the end of the current tag. Must be initialized to 
+ *  tag_cur -- (IN/OUT) the current position in the tag string. Must be
+ *    initialized to point to the start of a tag list.
+ *  tag_end -- (IN/OUT) the end of the current tag. Must be initialized to
  *    the same value as tag_cur.
- *  var -- (IN/OUT) the variable in question. Must be initialized to the first 
- *    variable in a list of attributes. 
+ *  var -- (IN/OUT) the variable in question. Must be initialized to the first
+ *    variable in a list of attributes.
  *
  * Returns:
  *  1 if there are more vars to be iterated over
@@ -1725,28 +1727,28 @@ static int var_iter(struct xx_SLPAttributes * slp_attr, char ** tag_cur,
    }
 }
 
-/* Gets the escaped stringified version of an attribute list. 
+/* Gets the escaped stringified version of an attribute list.
  *
  * The string returned must be free()'d by the caller.
  *
  * Params:
  * attr_h -- (IN) Attribute handle to add serialize.
- * tags -- (IN) The tags to serialize. If 0, all tags are serialized. 
- * out_buffer -- (IN/OUT) A buffer to write the serialized string to. If 
- *               (*out_buffer == 0), then a new buffer is allocated by 
- *               the API. 
- * bufferlen -- (IN) The length of the buffer. Ignored if 
- *              (*out_buffer == 0). 
+ * tags -- (IN) The tags to serialize. If 0, all tags are serialized.
+ * out_buffer -- (IN/OUT) A buffer to write the serialized string to. If
+ *               (*out_buffer == 0), then a new buffer is allocated by
+ *               the API.
+ * bufferlen -- (IN) The length of the buffer. Ignored if
+ *              (*out_buffer == 0).
  * count -- (OUT) The size needed/used of out_buffer (includes trailing null).
- * find_delta -- (IN)  If find_delta is set to true, only the attributes that 
+ * find_delta -- (IN)  If find_delta is set to true, only the attributes that
  *               have changed since the last serialize are updated.
- * 
+ *
  * Returns:
- * SLP_OK -- Serialization occured. 
- * SLP_BUFFER_OVERFLOW -- If (*out_buffer) is defined, but bufferlen is 
- *                    smaller than the amount of memory necessary to serialize 
+ * SLP_OK -- Serialization occured.
+ * SLP_BUFFER_OVERFLOW -- If (*out_buffer) is defined, but bufferlen is
+ *                    smaller than the amount of memory necessary to serialize
  *                    the attr. list.
- * SLP_MEMORY_ALLOC_FAILED -- Ran out of memory. 
+ * SLP_MEMORY_ALLOC_FAILED -- Ran out of memory.
  */
 SLPError SLPAttrSerialize(SLPAttributes attr_h,
       const char * tags /* 0 terminated */,
@@ -1982,20 +1984,20 @@ SLPError SLPAttrSerialize(SLPAttributes attr_h,
    *out_buffer = build_str;
 
    return SLP_OK;
-}   
+}
 
 
 
-/* Stores an escaped value into an attribute. Determines type of attribute at 
+/* Stores an escaped value into an attribute. Determines type of attribute at
  * the same time.
  *
- * tag must be null terminated. 
+ * tag must be null terminated.
  * val must be of length len.
  * policy will only be respected where it can be (ints, strings, and opaques).
  *
- * the contents of tag are NOT verified. 
- * 
- * Returns: 
+ * the contents of tag are NOT verified.
+ *
+ * Returns:
  *  SLP_PARAMETER_BAD - Syntax error in the value.
  *  SLP_MEMORY_ALLOC_FAILED
  */
@@ -2086,7 +2088,9 @@ static SLPError SLPAttrStore(struct xx_SLPAttributes * slp_attr, const char * ta
    if (is_str == SLP_TRUE)
    {
       unescaped_len = find_unescaped_size(val, len);
-      unescaped = (char *) malloc(unescaped_len + 1); 
+      unescaped = (char *) malloc(unescaped_len + 1);
+      if (!unescaped)
+         return SLP_MEMORY_ALLOC_FAILED;
       if (unescape_into(unescaped, val, len, 0) != 0)
       {
          SLPError err;
@@ -2101,7 +2105,7 @@ static SLPError SLPAttrStore(struct xx_SLPAttributes * slp_attr, const char * ta
 
 
    /* We don't bother checking for a keyword attribute since it can't have a
-    * value. 
+    * value.
     */
 
    return SLP_PARAMETER_BAD; /* Could not determine type. */
@@ -2109,12 +2113,12 @@ static SLPError SLPAttrStore(struct xx_SLPAttributes * slp_attr, const char * ta
 
 
 
-/* Converts an attribute string into an attr struct. 
+/* Converts an attribute string into an attr struct.
  *
  * Note that the attribute string is trashed.
  *
  * Returns:
- *  SLP_PARAMETER_BAD -- If there is a parse error in the attribute string. 
+ *  SLP_PARAMETER_BAD -- If there is a parse error in the attribute string.
  *  SLP_OK -- If everything went okay.
  */
 static SLPError attr_destringify(struct xx_SLPAttributes * slp_attr,
@@ -2124,7 +2128,7 @@ static SLPError attr_destringify(struct xx_SLPAttributes * slp_attr,
    enum
    {
       /* Note: everything contained in []s in this enum is a production from
-      * RFC 2608's grammar defining attribute lists. 
+      * RFC 2608's grammar defining attribute lists.
       */
       START_ATTR /* The start of an individual [attribute]. */,
       START_TAG /* The start of a [attr-tag]. */,
@@ -2159,14 +2163,14 @@ static SLPError attr_destringify(struct xx_SLPAttributes * slp_attr,
             else
             {
                /* At the start of a keyword:
-                * Gobble up the keyword and set it. 
+                * Gobble up the keyword and set it.
                 */
                end = find_tag_end(cur);
 
                if (end == 0)
                {
                   /* FIXME Ummm, I dunno. */
-                  SLP_ASSERT(0);
+                  return SLP_PARAMETER_BAD;
                }
                /*** Check that the tag ends on a legal ending char. ***/
                if (*end == ',')
@@ -2207,7 +2211,7 @@ static SLPError attr_destringify(struct xx_SLPAttributes * slp_attr,
             {
                tag_len = (int) (end - cur); /* Note that end is on the character _after_ the last character of the tag (the =). */
                SLP_ASSERT(tag == 0);
-               tag = cur; 
+               tag = cur;
                cur = end + VAR_INFIX_LEN;
                state = VALUE;
             }
@@ -2300,14 +2304,14 @@ static SLPError attr_destringify(struct xx_SLPAttributes * slp_attr,
 //}
 
 
-/* Adds the tags named in attrs to the receiver. Note that the new attributes 
+/* Adds the tags named in attrs to the receiver. Note that the new attributes
  * _replace_ the old ones.
  *
  * Returns:
  *  SLP_OK -- Update occured as expected.
  *  SLP_MEMORY_ALLOC_FAILED -- Guess.
- *  SLP_PARAMETER_BAD -- Syntax error in the attribute string. Although 
- *    slp_attr_h is still valid, its contents may have arbitrarily changed. 
+ *  SLP_PARAMETER_BAD -- Syntax error in the attribute string. Although
+ *    slp_attr_h is still valid, its contents may have arbitrarily changed.
  */
 SLPError SLPAttrFreshen(SLPAttributes slp_attr_h, const char * str)
 {
@@ -2316,7 +2320,7 @@ SLPError SLPAttrFreshen(SLPAttributes slp_attr_h, const char * str)
          slp_attr_h;
 
    // char *mangle; /* A copy of the passed in string, since attr_destringify tends to chew data. */
-   // 
+   //
    // mangle = strdup(str);
    // if (str == 0) {
    //    return SLP_MEMORY_ALLOC_FAILED;
@@ -2370,20 +2374,20 @@ SLPError SLPAttributeSearchString(size_t search_str_len, const char * search_str
  *****************************************************************************/
 
 /* Register attributes. */
-//SLPError SLPRegAttr( 
-// SLPHandle slp_h, 
-// const char* srvurl, 
-// unsigned short lifetime, 
-// const char* srvtype, 
-// SLPAttributes attr_h, 
-// SLPBoolean fresh, 
-// SLPRegReport callback, 
-// void* cookie 
+//SLPError SLPRegAttr(
+// SLPHandle slp_h,
+// const char* srvurl,
+// unsigned short lifetime,
+// const char* srvtype,
+// SLPAttributes attr_h,
+// SLPBoolean fresh,
+// SLPRegReport callback,
+// void* cookie
 //) {
 // char *str;
 // SLPError err;
-// 
-////  err = SLPAttrSerialize(attr_h, int *count, char **str, SLPBoolean find_delta); 
+//
+////  err = SLPAttrSerialize(attr_h, int *count, char **str, SLPBoolean find_delta);
 //
 // if (str == 0) {
 //    return SLP_INTERNAL_SYSTEM_ERROR;
@@ -2418,7 +2422,7 @@ SLPError SLPAttributeSearchString(size_t search_str_len, const char * search_str
 //      if (SLPAttrAlloc("en", 0, SLP_FALSE, &attr) != SLP_OK)
 //      {
 //         /* FIXME Ummm, should prolly tell application about the internal
-//          * error.  
+//          * error.
 //          */
 //         return SLP_FALSE;
 //      }
@@ -2439,16 +2443,16 @@ SLPError SLPAttributeSearchString(size_t search_str_len, const char * search_str
 //
 /* Find the attributes of a given service. */
 //SLPError SLPFindAttrObj(
-//    SLPHandle hslp, 
-//    const char* srvurlorsrvtype, 
-//    const char* scopelist, 
-//    const char* attrids, 
-//    SLPAttrObjCallback *callback, 
+//    SLPHandle hslp,
+//    const char* srvurlorsrvtype,
+//    const char* scopelist,
+//    const char* attrids,
+//    SLPAttrObjCallback *callback,
 //    void* cookie
 //) {
 // struct hop_attr *hop;
 // SLPError err;
-// 
+//
 // hop = (struct hop_attr*)malloc(sizeof(struct hop_attr));
 // hop->cb = callback;
 // hop->cookie = cookie;
@@ -2456,7 +2460,7 @@ SLPError SLPAttributeSearchString(size_t search_str_len, const char * search_str
 // err = SLPFindAttrs(hslp, srvurlorsrvtype, scopelist, attrids, attr_callback, hop);
 //
 // free(hop);
-// 
+//
 // return err;
 //}
 
@@ -2500,14 +2504,14 @@ SLPError SLPAttributeSearchString(size_t search_str_len, const char * search_str
 //    free(iter);
 //    return SLP_MEMORY_ALLOC_FAILED;
 // }
-// 
+//
 // var = slp_attr->attrs;
 //
 // for (i = 0; i < iter->element_count; i++, var = var->next) {
 //    SLP_ASSERT(var != 0);
-//    
+//
 //    iter->tags[i] = strdup(var->tag);
-//    
+//
 //    /***** Check that strdup succeeded. *****/
 //    if (iter->tags[i] == 0) {
 //       /**** Unallocate structure. ****/
@@ -2516,23 +2520,23 @@ SLPError SLPAttributeSearchString(size_t search_str_len, const char * search_str
 //       for (up_to_i = 0; up_to_i < i; up_to_i++) {
 //          free(iter->tags[up_to_i]);
 //       }
-//       
+//
 //       /*** Unallocate the tag list ***/
 //       free(iter->tags);
-//       
+//
 //       return SLP_MEMORY_ALLOC_FAILED;
 //    }
 // }
 //
 // *iter_h = (SLPAttrIterator)iter;
-// 
+//
 // return SLP_OK;
 //}
 //
 //
-// /* Dealloc's an iterator and the associated memory. 
+// /* Dealloc's an iterator and the associated memory.
 // *
-// * Everything free()'d here was alloc'd in SLPAttrIteratorAlloc(). 
+// * Everything free()'d here was alloc'd in SLPAttrIteratorAlloc().
 // */
 // static void SLPAttrIteratorFree(SLPAttrIterator iter_h) {
 // struct xx_SLPAttrIterator *iter = (struct xx_SLPAttrIterator*)iter_h;
@@ -2543,17 +2547,17 @@ SLPError SLPAttributeSearchString(size_t search_str_len, const char * search_str
 //    free(iter->tags[i]);
 //    iter->tags[i] = 0;
 // }
-// 
+//
 // free(iter->tags);
-// 
-// free(iter); 
+//
+// free(iter);
 //}
 //
 //
-// /* Gets the next tag name (and type). 
+// /* Gets the next tag name (and type).
 // *
-// * Note: The value of tag _must_ be copied out before the next call to 
-// *  SLPAttrIterNext(). In other words, DO NOT keep pointers to the tag string 
+// * Note: The value of tag _must_ be copied out before the next call to
+// *  SLPAttrIterNext(). In other words, DO NOT keep pointers to the tag string
 // *  after the next call to SLPAttrIterNext().
 // *
 // * Returns SLP_FALSE if there are no tags left to iterate over, or SLP_TRUE.
@@ -2573,7 +2577,7 @@ SLPError SLPAttributeSearchString(size_t search_str_len, const char * search_str
 // if (err != SLP_OK) {
 //    return SLP_FALSE; /* FIXME Ummm, try to get the next one. */
 // }
-// 
+//
 // return SLP_TRUE;
 //}
 //
@@ -2614,9 +2618,9 @@ SLPError SLPAttrIteratorAlloc(SLPAttributes attr_h, SLPAttrIterator * iter_h)
 }
 
 
-/* Dealloc's an iterator and the associated memory. 
+/* Dealloc's an iterator and the associated memory.
  *
- * Everything free()'d here was alloc'd in SLPAttrIteratorAlloc(). 
+ * Everything free()'d here was alloc'd in SLPAttrIteratorAlloc().
  */
 void SLPAttrIteratorFree(SLPAttrIterator iter_h)
 {
@@ -2625,10 +2629,10 @@ void SLPAttrIteratorFree(SLPAttrIterator iter_h)
    free(iter);
 }
 
-/* Gets the next tag name (and type). 
+/* Gets the next tag name (and type).
  *
- * Note: The value of tag _must_ be copied out before the next call to 
- *    SLPAttrIterNext(). In other words, DO NOT keep pointers to the tag string 
+ * Note: The value of tag _must_ be copied out before the next call to
+ *    SLPAttrIterNext(). In other words, DO NOT keep pointers to the tag string
  *    after the next call to SLPAttrIterNext().
  *
  * Returns SLP_FALSE if there are no tags left to iterate over, or SLP_TRUE.
@@ -2655,7 +2659,7 @@ SLPBoolean SLPAttrIterNext(SLPAttrIterator iter_h, char const * *tag,
    return SLP_TRUE;
 }
 
-/* Gets the next value. 
+/* Gets the next value.
  *
  * Returns SLP_FALSE if there are no values left to iterate over, or SLP_TRUE.
  */

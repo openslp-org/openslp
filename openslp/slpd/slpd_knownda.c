@@ -45,8 +45,8 @@
 #include "slpd_outgoing.h"
 #include "slpd_log.h"
 #include "slpd.h"
-#include "slpd_incoming.h"  /*For the global incoming socket map.  Instead of creating a new 
-                              socket for every multicast and broadcast, we'll simply send 
+#include "slpd_incoming.h"  /*For the global incoming socket map.  Instead of creating a new
+                              socket for every multicast and broadcast, we'll simply send
                               on the existing sockets, using their network interfaces*/
 
 #ifdef ENABLE_SLPv2_SECURITY
@@ -129,7 +129,7 @@ int MakeActiveDiscoveryRqst(int ismcast, SLPBuffer * buffer)
    {
       while (1)
       {
-			size_t addrstrlen;
+         size_t addrstrlen;
 
          if (SLPDKnownDAEnum(eh, &msg, &tmp) == 0)
             break;
@@ -199,7 +199,7 @@ int MakeActiveDiscoveryRqst(int ismcast, SLPBuffer * buffer)
    result->curpos += prlistlen;
 
    /* service type */
-   PutUINT16(&result->curpos, 23);                                         
+   PutUINT16(&result->curpos, 23);
 
    /* 23 is the length of SLP_DA_SERVICE_TYPE */
    memcpy(result->curpos, SLP_DA_SERVICE_TYPE, 23);
@@ -300,13 +300,13 @@ void SLPDKnownDARegisterAll(SLPMessage * daadvert, int immortalonly)
       }
 
    SLPDDatabaseEnumEnd(handle);
-}  
+}
 
 
 /*-------------------------------------------------------------------------*/
 /* Pack a buffer with a SrvDereg message using information from an existing
  * SrvReg message
- * 
+ *
  * Caller must free outbuf
  *-------------------------------------------------------------------------*/
 int MakeSrvderegFromSrvReg(SLPMessage * msg, SLPBuffer inbuf, SLPBuffer * outbuf)
@@ -354,7 +354,7 @@ int MakeSrvderegFromSrvReg(SLPMessage * msg, SLPBuffer inbuf, SLPBuffer * outbuf
    PutUINT24(&sendbuf->curpos, size);
 
    /* flags */
-   PutUINT16(&sendbuf->curpos, (size > (size_t)G_SlpdProperty.MTU? 
+   PutUINT16(&sendbuf->curpos, (size > (size_t)G_SlpdProperty.MTU?
          SLP_FLAG_OVERFLOW: 0));
 
    /* ext offset */
@@ -380,7 +380,7 @@ int MakeSrvderegFromSrvReg(SLPMessage * msg, SLPBuffer inbuf, SLPBuffer * outbuf
    if (srvreg->urlentry.opaque == 0)
    {
       /* url-entry reserved */
-      *sendbuf->curpos++ = 0;        
+      *sendbuf->curpos++ = 0;
 
       /* url-entry lifetime */
       PutUINT16(&sendbuf->curpos, srvreg->urlentry.lifetime);
@@ -738,7 +738,7 @@ int SLPDKnownDADeinit()
       xfree(G_ifaceurls);
 
    return 0;
-} 
+}
 
 
 /*=========================================================================*/
@@ -802,7 +802,7 @@ int SLPDKnownDAAdd(SLPMessage * msg, SLPBuffer buf)
    /* free the parsed url created in call to SLPParseSrvUrl() */
    xfree(parsedurl);
    /* set the peer address in the DAAdvert message so that it matches
-    * the address the DA service URL resolves to 
+    * the address the DA service URL resolves to
     */
    msg->peer = daaddr;
 
@@ -858,7 +858,7 @@ int SLPDKnownDAAdd(SLPMessage * msg, SLPBuffer buf)
             SLPDatabaseClose(dh);
             result = SLP_ERROR_AUTHENTICATION_FAILED;
             goto CLEANUP;
-         } 
+         }
 #endif
          if (daadvert->bootstamp != 0
                && daadvert->bootstamp != entrydaadvert->bootstamp)
@@ -1049,7 +1049,7 @@ void SLPDKnownDAEnumEnd(void * eh)
 
 /*=========================================================================*/
 int SLPDKnownDAGenerateMyDAAdvert(struct sockaddr_storage * localaddr,
-      int errorcode, int deadda, int ismcast, int xid, SLPBuffer * sendbuf) 
+      int errorcode, int deadda, int ismcast, int xid, SLPBuffer * sendbuf)
 /* Pack a buffer with a DAAdvert using information from a SLPDAentry       */
 /*                                                                         */
 /* localaddr (IN) the address of the DA to advertise                       */
@@ -1079,7 +1079,7 @@ int SLPDKnownDAGenerateMyDAAdvert(struct sockaddr_storage * localaddr,
    int daadvertauthlen = 0;
    unsigned char * daadvertauth = 0;
    size_t spistrlen = 0;
-   char * spistr = 0;  
+   char * spistr = 0;
 
    /** @todo Use correct delay value - 1000 is just an arbitrary choice. */
    uint32_t expires = (uint32_t)time(0) + 1000;
@@ -1126,7 +1126,7 @@ int SLPDKnownDAGenerateMyDAAdvert(struct sockaddr_storage * localaddr,
    size += G_SlpdProperty.useScopesLen;
 #ifdef ENABLE_SLPv2_SECURITY
    size += spistrlen;
-   size += daadvertauthlen; 
+   size += daadvertauthlen;
 #endif
 
    result = SLPBufferRealloc(result, size);
@@ -1183,7 +1183,7 @@ int SLPDKnownDAGenerateMyDAAdvert(struct sockaddr_storage * localaddr,
          PutUINT32(&result->curpos, G_SlpdProperty.DATimestamp);
 
       /* url len */
-      PutUINT16(&result->curpos, G_SlpdProperty.urlPrefixLen 
+      PutUINT16(&result->curpos, G_SlpdProperty.urlPrefixLen
             + strlen(localaddr_str));
 
       /* url */
@@ -1346,7 +1346,7 @@ int SLPDKnownDAGenerateMyV1DAAdvert(struct sockaddr_storage * localaddr,
 
    /* flags */
    /** @todo We have to handle monoling and all that stuff. */
-   *result->curpos++ = (size > (size_t)G_SlpdProperty.MTU? 
+   *result->curpos++ = (size > (size_t)G_SlpdProperty.MTU?
          SLPv1_FLAG_OVERFLOW: 0);
 
    /* dialect */
@@ -1388,7 +1388,7 @@ int SLPDKnownDAGenerateMyV1DAAdvert(struct sockaddr_storage * localaddr,
 
    result->curpos += scopelistlen;
 
-FINISHED: 
+FINISHED:
 
    *sendbuf = result;
 
@@ -1457,8 +1457,8 @@ void SLPDKnownDAEcho(SLPMessage * msg, SLPBuffer buf)
          {
             /* Do not echo to ourselves if we are a DA*/
             if (G_SlpdProperty.isDA
-                    && (SLPIntersectStringList(G_ifaceurlsLen, 
-                                               G_ifaceurls, 
+                    && (SLPIntersectStringList(G_ifaceurlsLen,
+                                               G_ifaceurls,
                                                entrydaadvert->urllen,
                                                entrydaadvert->url) > 0))
             {
@@ -1529,12 +1529,15 @@ void SLPDKnownDAActiveDiscovery(int seconds)
       /*Send the datagram, either broadcast or multicast*/
       if((G_SlpdProperty.isBroadcastOnly == 1) && SLPNetIsIPV4())
       {
-         struct sockaddr_in peeraddr;
-         memset(&peeraddr, 0, sizeof(struct sockaddr_in));  /*Some platforms require sin_zero be 0*/
-         peeraddr.sin_family = AF_INET;
-         peeraddr.sin_addr.s_addr = htonl(SLP_BCAST_ADDRESS);
-         sock = SLPDSocketCreateDatagram((struct sockaddr_storage*)&peeraddr, DATAGRAM_BROADCAST);
-         if(sock)
+         /* Use sockaddr_storage consistently for SLPDSocketCreateDatagram */
+         struct sockaddr_storage peeraddr;
+         struct sockaddr_in * p_peeraddr = (struct sockaddr_in *)&peeraddr;
+                                            /* Use sockaddr_in cast for ipv4 only */
+         memset(&peeraddr, 0, sizeof(struct sockaddr_storage));  /*Some platforms require sin_zero be 0*/
+         p_peeraddr->sin_family = AF_INET;
+         p_peeraddr->sin_addr.s_addr = htonl(SLP_BCAST_ADDRESS);
+         sock = SLPDSocketCreateDatagram(&peeraddr, DATAGRAM_BROADCAST);
+         if (sock)
          {
             MakeActiveDiscoveryRqst(1, &(sock->sendbuf));
             SLPDOutgoingDatagramWrite(sock, sock->sendbuf);
@@ -1544,7 +1547,7 @@ void SLPDKnownDAActiveDiscovery(int seconds)
       else
       {
          /* For each incoming socket, find the sockets that can send multicast
-            and send the appropriate datagram.  The incoming list is used because 
+            and send the appropriate datagram.  The incoming list is used because
             it already has ready-to-use multicast sending sockets allocated for every interface.*/
          sock = (SLPDSocket *)G_IncomingSocketList.head;
          while (sock)
@@ -1567,7 +1570,7 @@ void SLPDKnownDAActiveDiscovery(int seconds)
                      SLPDOutgoingDatagramMcastWrite(sock, &mcastaddr, sock->sendbuf);
                   }
                }
-               else if((sock->localaddr.ss_family == AF_INET) && SLPNetIsIPV4()) 
+               else if((sock->localaddr.ss_family == AF_INET) && SLPNetIsIPV4())
                {
                   int tmpaddr = SLP_MCAST_ADDRESS;
                   MakeActiveDiscoveryRqst(1, &(sock->sendbuf));
@@ -1582,7 +1585,7 @@ void SLPDKnownDAActiveDiscovery(int seconds)
       }
    }
    else
-      G_SlpdProperty.nextActiveDiscovery = 
+      G_SlpdProperty.nextActiveDiscovery =
             G_SlpdProperty.nextActiveDiscovery - seconds;
 }
 
@@ -1662,13 +1665,16 @@ void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead)
       G_SlpdProperty.nextPassiveDAAdvert += G_SlpdProperty.DAHeartBeat;
 
       /*Send the datagram, either broadcast or multicast*/
-      if((G_SlpdProperty.isBroadcastOnly == 1) && SLPNetIsIPV4())
+      if ((G_SlpdProperty.isBroadcastOnly == 1) && SLPNetIsIPV4())
       {
-         struct sockaddr_in peeraddr;
-         memset(&peeraddr, 0, sizeof(struct sockaddr_in));  /*Some platforms require sin_zero be 0*/
-         peeraddr.sin_family = AF_INET;
-         peeraddr.sin_addr.s_addr = htonl(SLP_BCAST_ADDRESS);
-         sock = SLPDSocketCreateDatagram((struct sockaddr_storage*)&peeraddr, DATAGRAM_BROADCAST);
+         /* Use sockaddr_storage consistently for SLPDSocketCreateDatagram */
+         struct sockaddr_storage peeraddr;
+         struct sockaddr_in *p_peeraddr = (struct sockaddr_in *)&peeraddr;
+                                           /* Use sockaddr_in cast for ipv4 only */
+         memset(&peeraddr, 0, sizeof(struct sockaddr_storage));  /*Some platforms require sin_zero be 0*/
+         p_peeraddr->sin_family = AF_INET;
+         p_peeraddr->sin_addr.s_addr = htonl(SLP_BCAST_ADDRESS);
+         sock = SLPDSocketCreateDatagram(&peeraddr, DATAGRAM_BROADCAST);
          if(sock)
          {
             /* @todo sock doesn't have a localaddr, and some platforms send broadcasts on all
@@ -1715,7 +1721,7 @@ void SLPDKnownDAPassiveDAAdvert(int seconds, int dadead)
                      }
                   }
                }
-               else if((sock->localaddr.ss_family == AF_INET) && SLPNetIsIPV4()) 
+               else if((sock->localaddr.ss_family == AF_INET) && SLPNetIsIPV4())
                {
                   int tmpaddr = SLP_MCAST_ADDRESS;
 
@@ -1779,7 +1785,7 @@ void SLPDKnownDAImmortalRefresh(int seconds)
             /* If there's no match, then we can go ahead                     */
             if(SLPIntersectStringList(G_ifaceurlsLen, G_ifaceurls, entrydaadvert->urllen, entrydaadvert->url) == 0)
                SLPDKnownDARegisterAll(entry->msg, 1);
-         }   
+         }
 
          SLPDatabaseClose(dh);
       }

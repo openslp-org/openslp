@@ -32,7 +32,7 @@
 
 /** Register a service.
  *
- * Implementation for functions register and deregister services -- 
+ * Implementation for functions register and deregister services --
  * SLPReg() call.
  *
  * @file       libslp_reg.c
@@ -58,8 +58,8 @@
  * @return SLP_FALSE (to stop any iterative callbacks).
  *
  * @note The SLPv2 wire protocol error codes are negated values of SLP
- * API error codes (SLPError values). Thus, the algorithm for converting 
- * from an SLPv2 wire protocol error to a client SLPReg error is to simply 
+ * API error codes (SLPError values). Thus, the algorithm for converting
+ * from an SLPv2 wire protocol error to a client SLPReg error is to simply
  * negate the wire protocol error value and cast the result to an SLPError.
  *
  * @todo Verify that no non-SLPError wire values make it back to this
@@ -67,7 +67,7 @@
  *
  * @internal
  */
-static SLPBoolean CallbackSrvReg(SLPError errorcode, 
+static SLPBoolean CallbackSrvReg(SLPError errorcode,
       void * peeraddr, SLPBuffer replybuf, void * cookie)
 {
    SLPHandleInfo * handle = (SLPHandleInfo *)cookie;
@@ -81,7 +81,7 @@ static SLPBoolean CallbackSrvReg(SLPError errorcode,
       {
          errorcode = (SLPError)(-SLPMessageParseBuffer(
                peeraddr, 0, replybuf, replymsg));
-         if (errorcode == 0 
+         if (errorcode == 0
                && replymsg->header.functionid == SLP_FUNCT_SRVACK)
             errorcode = (SLPError)(-replymsg->body.srvack.errorcode);
          else
@@ -93,7 +93,7 @@ static SLPBoolean CallbackSrvReg(SLPError errorcode,
    }
 
    /* Call the user's callback function. */
-   handle->params.reg.callback(handle, errorcode, 
+   handle->params.reg.callback(handle, errorcode,
          handle->params.reg.cookie);
 
    return SLP_FALSE;
@@ -101,11 +101,11 @@ static SLPBoolean CallbackSrvReg(SLPError errorcode,
 
 /** Formats and sends an SLPReg wire buffer request.
  *
- * @param handle - The OpenSLP session handle, containing request 
+ * @param handle - The OpenSLP session handle, containing request
  *    parameters. See docs for SLPReg.
  *
  * @return Zero on success, or an SLP API error code.
- * 
+ *
  * @internal
  */
 static SLPError ProcessSrvReg(SLPHandleInfo * handle)
@@ -151,11 +151,11 @@ static SLPError ProcessSrvReg(SLPHandleInfo * handle)
    |  length of attr-list string   |          <attr-list>          \
    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
    |# of AttrAuths |(if present) Attribute Authentication Blocks...\
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ 
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
    |    WATCH-PID extension ID     |    next extension offset      \
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ 
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
    |  nxo (cont)   |     process identifier to be monitored        \
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ 
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
    |  PID (cont)   |
    +-+-+-+-+-+-+-+-+ */
 
@@ -164,7 +164,7 @@ static SLPError ProcessSrvReg(SLPHandleInfo * handle)
          + 2 + handle->params.reg.srvtypelen
          + 2 + handle->params.reg.scopelistlen
          + 2 + handle->params.reg.attrlistlen
-         + 1 + attrauthlen 
+         + 1 + attrauthlen
          + (watchRegPID? (2 + 3 + 4): 0));
    if (buf == 0)
    {
@@ -174,11 +174,11 @@ static SLPError ProcessSrvReg(SLPHandleInfo * handle)
    }
 
    /* URL entry */
-   PutURLEntry(&curpos, handle->params.reg.lifetime, handle->params.reg.url, 
+   PutURLEntry(&curpos, handle->params.reg.lifetime, handle->params.reg.url,
          handle->params.reg.urllen, urlauth, urlauthlen);
 
    /* <service-type> */
-   PutL16String(&curpos, handle->params.reg.srvtype, 
+   PutL16String(&curpos, handle->params.reg.srvtype,
          handle->params.reg.srvtypelen);
 
    /* <scope-list> */
@@ -186,7 +186,7 @@ static SLPError ProcessSrvReg(SLPHandleInfo * handle)
          handle->params.reg.scopelistlen);
 
    /* <attr-list> */
-   PutL16String(&curpos, handle->params.reg.attrlist, 
+   PutL16String(&curpos, handle->params.reg.attrlist,
          handle->params.reg.attrlistlen);
 
    /** @todo Handle multiple attribute authentication blocks. */
@@ -201,7 +201,7 @@ static SLPError ProcessSrvReg(SLPHandleInfo * handle)
    {
       extoffset = curpos - buf;
 
-      /** @todo In some future code base, this should be changed to use the 
+      /** @todo In some future code base, this should be changed to use the
        * non-deprecated official version, SLP_EXTENSION_ID_REG_PID. For now
        * we need to use the EXPerimental version in order to interoperate
        * properly with OpenSLP 1.x SA's.
@@ -223,7 +223,7 @@ static SLPError ProcessSrvReg(SLPHandleInfo * handle)
          NetworkDisconnectSA(handle);
    }
    else
-      serr = SLP_NETWORK_INIT_FAILED;    
+      serr = SLP_NETWORK_INIT_FAILED;
 
    xfree(buf);
    xfree(urlauth);
@@ -267,7 +267,7 @@ static SLPError AsyncProcessSrvReg(SLPHandleInfo * handle)
  * in the service: scheme, the @p pcSrvType parameter is ignored. If the
  * @p fresh flag is SLP_FALSE, then an existing registration is updated.
  * Rules for new and updated registrations, and the format for @p pcAttrs
- * and @p pcScopeList can be found in [RFC 2608]. Registrations and 
+ * and @p pcScopeList can be found in [RFC 2608]. Registrations and
  * updates take place in the language locale of the @p hSLP handle.
  *
  * @par
@@ -276,37 +276,37 @@ static SLPError AsyncProcessSrvReg(SLPHandleInfo * handle)
  *
  * @param[in] hSLP - The language-specific SLPHandle on which to register
  *    the advertisement.
- * @param[in] srvUrl - The URL to register. May not be the empty string. 
- *    May not be NULL. Must conform to SLP Service URL syntax. 
+ * @param[in] srvUrl - The URL to register. May not be the empty string.
+ *    May not be NULL. Must conform to SLP Service URL syntax.
  *    SLP_INVALID_REGISTRATION will be returned if not.
- * @param[in] lifetime - An unsigned short giving the life time of the 
+ * @param[in] lifetime - An unsigned short giving the life time of the
  *    service advertisement, in seconds. The value must be an unsigned
  *    integer less than or equal to SLP_LIFETIME_MAXIMUM, and greater
- *    than zero. If SLP_LIFETIME_MAXIMUM is used, the registration 
+ *    than zero. If SLP_LIFETIME_MAXIMUM is used, the registration
  *    will remain for the life of the calling process. Also, OpenSLP,
- *    will not allow registrations to be made with SLP_LIFETIME_MAXIMUM 
+ *    will not allow registrations to be made with SLP_LIFETIME_MAXIMUM
  *    unless SLP_REG_FLAG_WATCH_PID is also used. Note that RFC 2614
- *    defines this parameter as const unsigned short. The 'const' is 
+ *    defines this parameter as const unsigned short. The 'const' is
  *    superfluous.
- * @param[in] srvType - The service type. If @p pURL is a "service:" 
- *    URL, then this parameter is ignored. (ALWAYS ignored since the SLP 
- *    Service URL syntax required for the @p pcSrvURL encapsulates the 
+ * @param[in] srvType - The service type. If @p pURL is a "service:"
+ *    URL, then this parameter is ignored. (ALWAYS ignored since the SLP
+ *    Service URL syntax required for the @p pcSrvURL encapsulates the
  *    service type.)
- * @param[in] attrList -  A comma separated list of attribute assignment 
- *    expressions for the attributes of the advertisement. Use empty 
+ * @param[in] attrList -  A comma separated list of attribute assignment
+ *    expressions for the attributes of the advertisement. Use empty
  *    string ("") for no attributes.
- * @param[in] fresh - An SLPBoolean that is SLP_TRUE if the registration 
- *    is new or SLP_FALSE if a RE-registration. Use of non-fresh 
- *    registrations is deprecated (post RFC 2614). SLP_TRUE must be 
- *    passed in for this parameter or SLP_BAD_PARAMETER will be returned. 
- *    It also appears that this flag has been overloaded to accept certain 
+ * @param[in] fresh - An SLPBoolean that is SLP_TRUE if the registration
+ *    is new or SLP_FALSE if a RE-registration. Use of non-fresh
+ *    registrations is deprecated (post RFC 2614). SLP_TRUE must be
+ *    passed in for this parameter or SLP_BAD_PARAMETER will be returned.
+ *    It also appears that this flag has been overloaded to accept certain
  *    specific values of "true" for internal purposes... (jmc)
- * @param[in] callback - A callback to report the operation completion 
+ * @param[in] callback - A callback to report the operation completion
  *    status.
- * @param[in] cookie - Memory passed to the callback code from the 
+ * @param[in] cookie - Memory passed to the callback code from the
  *    client. May be NULL.
  *
- * @return If an error occurs in starting the operation, one of the 
+ * @return If an error occurs in starting the operation, one of the
  *    SLPError codes is returned.
  */
 SLPEXP SLPError SLPAPI SLPReg(
@@ -324,8 +324,8 @@ SLPEXP SLPError SLPAPI SLPReg(
    SLPSrvURL * parsedurl = 0;
    SLPHandleInfo * handle = hSLP;
 
-   /** @todo Add code to accept non- "service:" scheme 
-    * URL's - normalize with srvType parameter info. 
+   /** @todo Add code to accept non- "service:" scheme
+    * URL's - normalize with srvType parameter info.
     */
    (void)srvType; /* not used yet */
 
@@ -338,10 +338,10 @@ SLPEXP SLPError SLPAPI SLPReg(
    SLP_ASSERT(attrList != 0);
    SLP_ASSERT(callback != 0);
 
-   if (handle == 0 || handle->sig != SLP_HANDLE_SIG 
-         || srvUrl == 0 || *srvUrl == 0 
+   if (handle == 0 || handle->sig != SLP_HANDLE_SIG
+         || srvUrl == 0 || *srvUrl == 0
          || lifetime == 0
-         || attrList == 0 
+         || attrList == 0
          || callback == 0)
       return SLP_PARAMETER_BAD;
 
@@ -375,14 +375,14 @@ SLPEXP SLPError SLPAPI SLPReg(
    handle->params.reg.attrlistlen = strlen(attrList);
    handle->params.reg.attrlist = attrList;
    handle->params.reg.callback = callback;
-   handle->params.reg.cookie = cookie; 
+   handle->params.reg.cookie = cookie;
 
 #ifdef ENABLE_ASYNC_API
    if (handle->isAsync)
    {
       /* Copy all of the referenced parameters before creating thread. */
       handle->params.reg.url = xstrdup(handle->params.reg.url);
-      handle->params.reg.srvtype = xstrdup(handle->params.reg.url);
+      handle->params.reg.srvtype = xstrdup(handle->params.reg.srvtype);
       handle->params.reg.scopelist = xstrdup(handle->params.reg.scopelist);
       handle->params.reg.attrlist = xstrdup(handle->params.reg.attrlist);
 
@@ -394,7 +394,7 @@ SLPEXP SLPError SLPAPI SLPReg(
             || (handle->th = SLPThreadCreate((SLPThreadStartProc)
                   AsyncProcessSrvReg, handle)) == 0)
       {
-         serr = SLP_MEMORY_ALLOC_FAILED;    
+         serr = SLP_MEMORY_ALLOC_FAILED;
          xfree((void *)handle->params.reg.url);
          xfree((void *)handle->params.reg.srvtype);
          xfree((void *)handle->params.reg.scopelist);
@@ -406,7 +406,7 @@ SLPEXP SLPError SLPAPI SLPReg(
 #endif
    {
       /* Reference all the parameters. */
-      serr = ProcessSrvReg(handle);            
+      serr = ProcessSrvReg(handle);
       SLPSpinLockRelease(&handle->inUse);
    }
    SLPFree(parsedurl);

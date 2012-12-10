@@ -97,63 +97,60 @@ static void IncomingDatagramRead(SLPList * socklist, SLPDSocket * sock)
 
          default:
 #ifdef DARWIN
-            /* If the socket is a multicast socket, find the designated UDP output socket for sending*/
-            if(DATAGRAM_MULTICAST == sock->state)
-            {
-               if ((sendsock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) !=
-                  SLP_INVALID_SOCKET)
-               {
+            /* If the socket is a multicast socket, find the designated UDP output socket for sending */
+            if (sock->state == DATAGRAM_MULTICAST)
+               if ((sendsock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) != SLP_INVALID_SOCKET)
                   SLPNetworkSetSndRcvBuf(sendsock, 0);
-               }
-            }
 #endif
-            if(SLP_INVALID_SOCKET == sendsock)
+            if (sendsock == SLP_INVALID_SOCKET)
                sendsock = sock->fd;
 
             /* check to see if we should send anything, breaking up individual packets in the buffer
                into different sendto calls (should only be an issue with the loopback DA response)*/
-            sock->sendbuf->curpos = sock->sendbuf->start;
-            while (sock->sendbuf->curpos < sock->sendbuf->end)
+            if (sock->sendbuf)
             {
-               int packetbytes = PEEK_LENGTH(sock->sendbuf->curpos);
-
-               byteswritten = sendto(sendsock, (char*)sock->sendbuf->curpos,
-                     packetbytes, 0, (struct sockaddr *)&sock->peeraddr,
-                     SLPNetAddrLen(&sock->peeraddr));
-
-               if (byteswritten != packetbytes)
+               sock->sendbuf->curpos = sock->sendbuf->start;
+               while (sock->sendbuf->curpos < sock->sendbuf->end)
                {
-                  /* May be an overflow reply */
-                  int flags = AS_UINT16(sock->sendbuf->curpos + 5);
-                  if ((byteswritten == -1) &&
-#ifdef _WIN32
-                      (WSAGetLastError() == WSAEMSGSIZE) &&
-#else
-                      (errno == EMSGSIZE) &&
-#endif
-                      (flags & SLP_FLAG_OVERFLOW))
+                  int packetbytes = AS_UINT24(sock->sendbuf->curpos + 2);
+                  byteswritten = sendto(sock->fd, (char*)sock->sendbuf->curpos,
+                        packetbytes, 0, (struct sockaddr *)&sock->peeraddr,
+                        SLPNetAddrLen(&sock->peeraddr));
+
+                  if (byteswritten != packetbytes)
                   {
-                      int byteswrittenmax = sendto(sendsock, (char*)sock->sendbuf->curpos,
+                     /* May be an overflow reply */
+                     int flags = AS_UINT16(sock->sendbuf->curpos + 5);
+                     if ((byteswritten == -1) &&
+#ifdef _WIN32
+                           (WSAGetLastError() == WSAEMSGSIZE) &&
+#else
+                           (errno == EMSGSIZE) &&
+#endif
+                           (flags & SLP_FLAG_OVERFLOW))
+                     {
+                        int byteswrittenmax = sendto(sendsock, (char*)sock->sendbuf->curpos,
                                 G_SlpdProperty.MTU, 0, (struct sockaddr *)&sock->peeraddr,
                                 SLPNetAddrLen(&sock->peeraddr));
-                      if (byteswrittenmax == G_SlpdProperty.MTU)
-                         byteswritten = packetbytes;
+                        if (byteswrittenmax == G_SlpdProperty.MTU)
+                           byteswritten = packetbytes;
+                     }
                   }
+
+                  if (byteswritten != packetbytes)
+                     SLPDLog("NETWORK_ERROR - %d replying %s\n", errno,
+                           SLPNetSockAddrStorageToString(&(sock->peeraddr),
+                                 addr_str, sizeof(addr_str)));
+
+                  sock->sendbuf->curpos += packetbytes;
                }
 
-               if (byteswritten != packetbytes)
-                  SLPDLog("NETWORK_ERROR - %d replying %s\n", errno,
-                        SLPNetSockAddrStorageToString(&(sock->peeraddr),
-                              addr_str, sizeof(addr_str)));
-
-               sock->sendbuf->curpos += packetbytes;
+               /* Only close if we allocated a new socket */
+               if (sendsock != sock->fd)
+                  closesocket(sendsock);
             }
-
-            if(sendsock != sock->fd)  /*Only close if we allocated a new socket*/
-              closesocket(sendsock);
-
+            break;
       }
-   }
 }
 
 /** Write inbound stream data.
@@ -373,6 +370,8 @@ static void IncomingSocketListen(SLPList * socklist, SLPDSocket * sock)
 #endif
             SLPListLinkHead(socklist, (SLPListItem *)connsock);
          }
+         else
+            closesocket(fd);
       }
    }
 }

@@ -89,21 +89,21 @@ const struct in6_addr slp_in6addr_any           = SLP_IN6ADDR_ANY_INIT;
 const struct in6_addr slp_in6addr_loopback      = SLP_IN6ADDR_LOOPBACK_INIT;
 
 
-/** Returns the scope embedded in the IPv6 multicast address.  
+/** Returns the scope embedded in the IPv6 multicast address.
  *
  * @param[in] addr - The address to get the scope from.
  *
  * @return the scope that was embedded in the multicast address
  *
- * @note the scope is NOT the same as the sin6_scope_id, as that is    
- * more for the local network interface in slp's eyes.   
+ * @note the scope is NOT the same as the sin6_scope_id, as that is
+ * more for the local network interface in slp's eyes.
  */
 unsigned int SLPNetGetMCastScope(struct sockaddr_storage* addr)
 {
    return ((struct sockaddr_in6*)addr)->sin6_addr.s6_addr[1];
 }
 
-/** Checks if the group address of the IPv6 mcast address is of the SRVLOC group 
+/** Checks if the group address of the IPv6 mcast address is of the SRVLOC group
  *
  * @param[in] addr - The address to check
  *
@@ -114,7 +114,7 @@ int SLPNetIsMCastSrvloc(struct sockaddr_storage* addr)
    return htonl(0x116) == *((unsigned long*)((((struct sockaddr_in6*)addr)->sin6_addr.s6_addr) + 12));
 }
 
-/** Checks if the group address of the IPv6 mcast address is of the SRVLOC group 
+/** Checks if the group address of the IPv6 mcast address is of the SRVLOC group
  *
  * @param[in] addr - The address to check
  *
@@ -134,7 +134,7 @@ int SLPNetIsMCastSrvlocDA(struct sockaddr_storage* addr)
  *
  * @return 1 if successful, 0 on failure, and -1 if @p af is unknown.
  *
- * @note The buffer pointed to by @p dst must be at least large enough to 
+ * @note The buffer pointed to by @p dst must be at least large enough to
  *    hold an address of the family specified by @p af.
  *
  * @internal
@@ -207,7 +207,7 @@ static int resolveHost(int af, const char * src, void * dst)
  *
  * @param[in] a - The IPv6 address to be checked.
  *
- * @return A boolean value; True (1) if @p a is the IPv6 loopback 
+ * @return A boolean value; True (1) if @p a is the IPv6 loopback
  *    address, or False (0) if not.
  *
  * @internal
@@ -227,7 +227,7 @@ static int SLP_IN6_IS_ADDR_LOOPBACK(const struct in6_addr * a)
  *
  * @internal
  */
-/* static */ int SLPNetAddrInfoToString(const struct addrinfo * src, 
+/* static */ int SLPNetAddrInfoToString(const struct addrinfo * src,
       char * dst, size_t dstLen)
 {
    if (src->ai_family == AF_INET)
@@ -249,13 +249,13 @@ static int SLP_IN6_IS_ADDR_LOOPBACK(const struct in6_addr * a)
 /** Format that portion of an IPv6 shorthand address before the '::'.
  *
  * @param[in] start - Points to the start of a formatted IPv6 address
- *    thats in shorthand notation (eg., xxxx: ... :: ... :xxxx). 
+ *    thats in shorthand notation (eg., xxxx: ... :: ... :xxxx).
  * @param[out] result - Points to the output buffer where the address
  *    in @p start is to be expanded.
  *
  * @return Zero.
  *
- * @remarks Copies character data from @p start into the pre-formatted 
+ * @remarks Copies character data from @p start into the pre-formatted
  *    template in @p result till it comes to a double colon.
  *
  * @internal
@@ -266,6 +266,9 @@ static int handlePreArea(const char * start, char * result)
    const char * slider2;
    const char * end;
 
+   if (start == 0)
+      return 0;
+
    end = strstr(start, "::");
    if (end == 0)
    {
@@ -273,8 +276,6 @@ static int handlePreArea(const char * start, char * result)
       if (end == 0)
          end = start + strlen(start);
    }
-   if ((start == 0) || end == 0)
-      return 0;
 
    slider1 = start;
    while (slider1 < end)
@@ -298,16 +299,16 @@ static int handlePreArea(const char * start, char * result)
 
 /** Format that portion of an IPv6 shorthand address after the '::'.
  *
- * @param[in] start - Points to the second colon in the double-colon 
+ * @param[in] start - Points to the second colon in the double-colon
  *    of a shorthand-formatted IPv6 address.
- *    (eg., xxxx: ... :: ... :xxxx). 
+ *    (eg., xxxx: ... :: ... :xxxx).
  * @param[out] result - Points to the output buffer where the address
  *    is to be expanded.
  *
  * @return Zero.
  *
- * @remarks Copies character data backward from @p start into the 
- *    pre-formatted template in @p result till it returns to the first 
+ * @remarks Copies character data backward from @p start into the
+ *    pre-formatted template in @p result till it returns to the first
  *    character in @p start - the second colon in the double-colon mark.
  *
  * @internal
@@ -343,15 +344,15 @@ static int handlePostArea(char * start, char * result)
 /** Returns an address for the specified host name.
  *
  * @param[in] host - A pointer to hostname to resolve.
- * @param[out] addr - The address of storage for the returned address 
+ * @param[out] addr - The address of storage for the returned address
  *    data.
  *
  * @return Zero on success, or non-zero on error.
  *
- * @remarks This routine returns address data of unspecified family, so 
+ * @remarks This routine returns address data of unspecified family, so
  *    the output buffer is purposely defined as a sockaddr_storage buffer.
  */
-int SLPNetResolveHostToAddr(const char * host, 
+int SLPNetResolveHostToAddr(const char * host,
       struct sockaddr_storage * addr)
 {
    struct sockaddr_in6 * a6 = (struct sockaddr_in6 *)addr;
@@ -533,7 +534,7 @@ int SLPNetIsLoopback(const void * addr)
  *
  * @return Zero on success, or a non-zero value on failure.
  *
- * @note The size of @p addr is determined by @p family, and 
+ * @note The size of @p addr is determined by @p family, and
  *    both address buffers must be large enough to accommodate
  *    the address family specified in @p family.
  */
@@ -569,13 +570,13 @@ int SLPNetSetAddr(struct sockaddr_storage * addr, int family,
          memcpy(&v6->sin6_addr, &slp_in6addr_any, sizeof(struct in6_addr));
       else
          memcpy(&v6->sin6_addr, address, sizeof(v6->sin6_addr));
-      
+
 #ifndef _WIN32  /*works on linux, not on windows*/
    /*If the address is multicast, make sure the scope is set correctly*/
    if(IN6_IS_ADDR_MULTICAST(&v6->sin6_addr))
-      v6->sin6_scope_id = v6->sin6_addr.s6_addr[1] & 0x0f;   
+      v6->sin6_scope_id = v6->sin6_addr.s6_addr[1] & 0x0f;
 #endif
-   
+
    }
    else
       return -1;
@@ -633,7 +634,7 @@ int SLPNetSetPort(void * addr, uint16_t port)
 }
 
 /** Format an address structure as a displayable string.
- *     
+ *
  * @param[in] src - The source sockaddr_storage buffer to be formatted.
  * @param[out] dst - The destination string buffer.
  * @param[in] dstLen - The size of @p dst in bytes.
@@ -641,10 +642,10 @@ int SLPNetSetPort(void * addr, uint16_t port)
  * @return A pointer to @p dst on success, or zero on failure. Failure can
  *    occur only if the address family of the sa_storage buffer is unknown.
  *
- * @remarks The format for an IPv4 address is "x.x.x.x". The format for 
+ * @remarks The format for an IPv4 address is "x.x.x.x". The format for
  *    an IPv6 address is "x:x:..:x".
  */
-char * SLPNetSockAddrStorageToString(struct sockaddr_storage const * src, 
+char * SLPNetSockAddrStorageToString(struct sockaddr_storage const * src,
       char * dst, size_t dstLen)
 {
    const struct sockaddr * a = (const struct sockaddr *)src;
@@ -685,9 +686,9 @@ int SLPNetGetSrvMcastAddr(const char * pSrvType, size_t len,
 
    if (a == 0 || pSrvType == 0)
       return -1;
-   
+
    memset(a, 0, sizeof(struct sockaddr_in6));
-   
+
 
    /* Run Hash to get group id */
    while (len-- != 0)
@@ -707,11 +708,11 @@ int SLPNetGetSrvMcastAddr(const char * pSrvType, size_t len,
    else
       return -1;
 
-#ifndef _WIN32  
+#ifndef _WIN32
    /*Linux needs to have the scope set to the multicast scope*/
    a->sin6_scope_id = scope;
 #endif
-   
+
    v6->s6_addr[15] |= (group_id & 0xFF);
    v6->s6_addr[14] |= (group_id >> 8);
    a->sin6_family = AF_INET6;
@@ -734,7 +735,7 @@ int SLPNetGetSrvMcastAddr(const char * pSrvType, size_t len,
  *
  * @remarks The @p result buffer must be at least 40 bytes.
  */
-int SLPNetExpandIpv6Addr(const char * ipv6Addr, char * result, 
+int SLPNetExpandIpv6Addr(const char * ipv6Addr, char * result,
       size_t resultSize)
 {
    char templateAddr[] = "0000:0000:0000:0000:0000:0000:0000:0000";
@@ -750,7 +751,7 @@ int SLPNetExpandIpv6Addr(const char * ipv6Addr, char * result,
    strcpy(result, templateAddr);
 
    /* The stragety here is to divide the string up into a pre (before the
-    * double colon), and a post (after the ::) area, and tackle each piece 
+    * double colon), and a post (after the ::) area, and tackle each piece
     * seperately. The pre-area will copy from the front, the post from the
     * rear.
     */
@@ -771,9 +772,9 @@ int SLPNetExpandIpv6Addr(const char * ipv6Addr, char * result,
 
    inet_pton(AF_INET6, ipv6Addr, &in6.sin6_addr);
    in6.sin6_family = AF_INET6;
-   if (inet_ntop(in6.sin6_family, &in6.sin6_addr, result, resultSize)) 
+   if (inet_ntop(in6.sin6_family, &in6.sin6_addr, result, resultSize))
       return 0;
-   else 
+   else
       return -1;
 #endif
 }
@@ -962,12 +963,12 @@ int main(int argc, char * argv[])
 #if 0
 /** Returns local hostname.
  *
- * @param[out] hostfdn - A pointer to char pointer that is set to buffer 
+ * @param[out] hostfdn - A pointer to char pointer that is set to buffer
  *    contining this machine's FDN.
- * @param[in] hostfdnLen - The length of @p hostfdn. 
- * @param[in] numeric_only - A flag that forces the return of numeric 
+ * @param[in] hostfdnLen - The length of @p hostfdn.
+ * @param[in] numeric_only - A flag that forces the return of numeric
  *    addresss.
- * @param[in] family - A hint: The family to get info for - can be 
+ * @param[in] family - A hint: The family to get info for - can be
  *    AF_INET, AF_INET6, or AF_UNSPEC for both.
  *
  * @remarks Caller must free returns @p hostfdn string with xfree.
@@ -990,9 +991,9 @@ static int SLPNetGetThisHostname(char * hostfdn, size_t hostfdnLen,
       sts = getaddrinfo(host, 0, &hints, &ifaddr);
       if (sts == 0)
       {
-         /* If the hostname has a '.' then it is probably a qualified 
+         /* If the hostname has a '.' then it is probably a qualified
           * domain name. If it is not then we better use the IP address.
-          */ 
+          */
          if (!numeric_only && strchr(host, '.'))
             strncpy(hostfdn, host, hostfdnLen);
          else
@@ -1015,7 +1016,7 @@ static int SLPNetGetThisHostname(char * hostfdn, size_t hostfdnLen,
  *
  * @return Zero if @p addr1 is the same as @p addr2. Non-zero if not.
  *
- * @note The sizes of @p addr1 and @p addr2 must be at least 
+ * @note The sizes of @p addr1 and @p addr2 must be at least
  *    sizeof(struct sockaddr_storage) if the address families are not
  *    one of AF_INET or AF_INET6.
  *
@@ -1034,7 +1035,7 @@ static int SLPNetCompareStructs(const void * addr1, const void * addr2)
          struct sockaddr_in * v42 = (struct sockaddr_in *)addr2;
          if (v41->sin_family == v42->sin_family
                && v41->sin_port == v42->sin_port)
-            return memcmp(&v41->sin_addr, &v42->sin_addr, 
+            return memcmp(&v41->sin_addr, &v42->sin_addr,
                   sizeof(v41->sin_addr));
       }
       else if (a1->sa_family == AF_INET6)
@@ -1060,9 +1061,9 @@ static int SLPNetCompareStructs(const void * addr1, const void * addr2)
  *
  * @return The ipv6 scope of the address.
  *
- * @remarks The @p v6Addr parameter must be pointer to a 16-byte IPv6 
+ * @remarks The @p v6Addr parameter must be pointer to a 16-byte IPv6
  *    address in binary form.
- * 
+ *
  * @internal
  */
 static int setScopeFromAddress(const struct in6_addr * v6Addr)

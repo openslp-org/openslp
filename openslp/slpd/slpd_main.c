@@ -60,17 +60,17 @@
 
 int G_SIGALRM;
 int G_SIGTERM;
-int G_SIGHUP;                                                                                                 
+int G_SIGHUP;
 #ifdef DEBUG
 int G_SIGINT;     /* Signal being used for dumping registrations */
 int G_SIGUSR1;    /* Signal being used to dump information about the database */
-#endif 
+#endif
 
 /** Configures fd_set objects with sockets.
  *
- * @param[in] socklist - The list of sockets that is being currently 
+ * @param[in] socklist - The list of sockets that is being currently
  *    monitored by OpenSLP components.
- * @param[out] highfd - The address of storage for returning the value 
+ * @param[out] highfd - The address of storage for returning the value
  *    of the highest file descriptor (number) in use.
  * @param[out] fdset - The fdset to fill with read/write descriptors.
  */
@@ -216,7 +216,7 @@ void HandleSigTerm(void)
    SLPDKnownDADeinit();
 
    timeout.tv_sec  = 5;
-   timeout.tv_usec = 0; 
+   timeout.tv_usec = 0;
 
    /* Do a dead DA passive advert to tell everyone we're goin' down */
    SLPDKnownDAPassiveDAAdvert(0, 1);
@@ -253,7 +253,7 @@ void HandleSigTerm(void)
    SLPDDatabaseDeinit();
    SLPDPropertyDeinit();
    SLPDLogFileClose();
-   xmalloc_deinit();    
+   xmalloc_deinit();
 #endif
 }
 
@@ -352,7 +352,7 @@ static int CheckPid(const char * pidfile)
    char pidstr[14];
 
    /* make sure that we're not running already
-      read the pid from the file 
+      read the pid from the file
     */
    fd = fopen(pidfile, "r");
    if (fd)
@@ -399,7 +399,7 @@ static int CheckPid(const char * pidfile)
  * @param[in] pidfile - The name of a file to which the process id should
  *    be written.
  *
- * @return Zero on success, or a non-zero value if slpd could not daemonize 
+ * @return Zero on success, or a non-zero value if slpd could not daemonize
  *    (or if slpd is already running).
  *
  * @internal
@@ -464,30 +464,30 @@ static int Daemonize(const char * pidfile)
 
 /** Drop privileges to reduce security risk.
  *
- * @return Zero on success, or a non-zero value if slpd could not daemonize 
+ * @return Zero on success, or a non-zero value if slpd could not daemonize
  *    (or if slpd is already running).
  *
  * @internal
  */
 static int DropPrivileges()
 {
-#ifndef SETUIDS 
+#ifndef SETUIDS
    /* suid to daemon */
 
    /* TODO: why do the following lines mess up my signal handlers? */
- 
-   /* IPv6 Operation requires that the process owner has permissons to 
-      open multicast sockets under IPv6, this process owner is 'daemon'. 
-      As a quick workaround for correct IPv6 operation, to run this 
+
+   /* IPv6 Operation requires that the process owner has permissons to
+      open multicast sockets under IPv6, this process owner is 'daemon'.
+      As a quick workaround for correct IPv6 operation, to run this
       process as root, define SETUIDS. */
 
    /* TODO: warn if 'daemon' user has insufficient privileges and ipv6 requested.*/
    /* TODO: allow different user to be specified as process owner. */
 
-   struct passwd * pwent = getpwnam("daemon"); 
+   struct passwd * pwent = getpwnam("daemon");
    if (pwent)
    {
-      if (setgroups(1, &pwent->pw_gid) < 0 || setgid(pwent->pw_gid) < 0 
+      if (setgroups(1, &pwent->pw_gid) < 0 || setgid(pwent->pw_gid) < 0
             || setuid(pwent->pw_uid) < 0)
       {
          /* TODO: should we log here and return fail */
@@ -549,6 +549,7 @@ static int SetUpSignalHandlers(void)
    int result;
    struct sigaction sa;
 
+   memset(&sa, 0, sizeof(struct sigaction));
    sa.sa_handler = SignalHandler;
    sigemptyset(&sa.sa_mask);
    sa.sa_flags = 0; /* SA_ONESHOT; */
@@ -642,10 +643,10 @@ int main(int argc, char * argv[])
    if (
 #ifdef ENABLE_SLPv2_SECURITY
          SLPDSpiInit(G_SlpdCommandLine.spifile) ||
-#endif     
+#endif
          SLPDDatabaseInit(G_SlpdCommandLine.regfile)
-         || SLPDIncomingInit() 
-         || SLPDOutgoingInit() 
+         || SLPDIncomingInit()
+         || SLPDOutgoingInit()
          || SLPDKnownDAInit())
       SLPDFatal("slpd initialization failed\n");
    SLPDLog("Agent Interfaces = %s\n", G_SlpdProperty.interfaces);
@@ -667,10 +668,10 @@ int main(int argc, char * argv[])
    SLPDLog("Startup complete entering main run loop ...\n\n");
    G_SIGALRM   = 0;
    G_SIGTERM   = 0;
-   G_SIGHUP    = 0;    
+   G_SIGHUP    = 0;
 #ifdef DEBUG
    G_SIGINT    = 0;
-   G_SIGUSR1   = 0;    
+   G_SIGUSR1   = 0;
 #endif
 
    while (G_SIGTERM == 0)
@@ -685,7 +686,7 @@ int main(int argc, char * argv[])
          goto HANDLE_SIGNAL;
 
       /* main select -- we time out every second so the outgoing retries can occur*/
-      time(&curtime);  
+      time(&curtime);
 #if HAVE_POLL
       fdcount = poll(fdset.fds, fdset.used, 1000);
 #else
@@ -722,7 +723,7 @@ HANDLE_SIGNAL:
       {
          HandleSigInt();
          G_SIGINT = 0;
-      }        
+      }
 
       if (G_SIGUSR1)
       {

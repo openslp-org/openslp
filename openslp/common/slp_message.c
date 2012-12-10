@@ -69,7 +69,7 @@ uint16_t GetUINT16(uint8_t ** cpp)
  *
  * @param[in,out] cpp - The address of a pointer from which to extract.
  *
- * @return A 32-bit unsigned value in native format; the buffer pointer 
+ * @return A 32-bit unsigned value in native format; the buffer pointer
  *    is moved ahead by 3 bytes on return.
  */
 uint32_t GetUINT24(uint8_t ** cpp)
@@ -96,13 +96,13 @@ uint32_t GetUINT32(uint8_t ** cpp)
 /** Extract a string buffer address into a character pointer.
  *
  * Note that this routine doesn't actually copy the string. It only casts
- * the buffer pointer to a character pointer and moves the value at @p cpp 
+ * the buffer pointer to a character pointer and moves the value at @p cpp
  * ahead by @p len bytes.
  *
  * @param[in,out] cpp - The address of a pointer from which to extract.
  * @param[in] len - The length of the string to extract.
  *
- * @return A pointer to the first character at the address pointed to by 
+ * @return A pointer to the first character at the address pointed to by
  *    @p cppstring pointer; the buffer pointer is moved ahead by @p len bytes
  *    on return.
  */
@@ -212,7 +212,7 @@ void SLPMessageFreeInternals(SLPMessage * mp)
             xfree(mp->body.daadvert.autharray);
             mp->body.daadvert.autharray = 0;
          }
-         break; 
+         break;
 
       case SLP_FUNCT_SAADVERT:
          if (mp->body.saadvert.autharray)
@@ -220,7 +220,7 @@ void SLPMessageFreeInternals(SLPMessage * mp)
             xfree(mp->body.saadvert.autharray);
             mp->body.saadvert.autharray = 0;
          }
-         break; 
+         break;
 
       case SLP_FUNCT_ATTRRQST:
       case SLP_FUNCT_SRVACK:
@@ -271,8 +271,11 @@ SLPMessage * SLPMessageRealloc(SLPMessage * mp)
  */
 void SLPMessageFree(SLPMessage * mp)
 {
-   SLPMessageFreeInternals(mp);
-   xfree(mp);
+   if (mp)
+   {
+      SLPMessageFreeInternals(mp);
+      xfree(mp);
+   }
 }
 
 /** Switch on version field to parse v1 or v2 header.
@@ -305,7 +308,7 @@ int SLPMessageParseHeader(SLPBuffer buffer, SLPHeader * header)
  * @param[in] peeraddr - Remote address binding to store in @p message.
  * @param[in] localaddr - Local address binding to store in @p message.
  * @param[in] buffer - The buffer to be parsed.
- * @param[in] mp - A pointer to a message into which @p buffer should 
+ * @param[in] mp - A pointer to a message into which @p buffer should
  *    be parsed.
  *
  * @return Zero on success, SLP_ERROR_PARSE_ERROR, or

@@ -64,7 +64,7 @@
 static char * TrimWhitespace(char * str)
 {
    char * end;
-   
+
    end = str+strlen(str)-1;
    while (*str && *str <= 0x20)
       str++;
@@ -96,11 +96,11 @@ static char * RegFileReadLine(FILE * fd, char * line, int linesize)
       if (fgets(line,linesize,fd) == 0)
          return 0;
 
-      while(*line && *line <= 0x20 && *line != 0x0d && *line != 0x0a) 
+      while(*line && *line <= 0x20 && *line != 0x0d && *line != 0x0a)
          line++;
 
       if (*line == 0x0d || *line == 0x0a)
-         break;    
+         break;
 
       if (*line != 0 && *line != '#' && *line != ';')
          break;
@@ -164,7 +164,7 @@ int SLPDRegFileReadSrvReg(FILE * fd, SLPMessage ** msg, SLPBuffer * buf)
    {
       slider1 = RegFileReadLine(fd, line, 4096);
       if (slider1 == 0)
-         return -1; 
+         return -1;
 
    } while (*slider1 == 0x0d ||  *slider1 == 0x0a);
 
@@ -187,7 +187,7 @@ int SLPDRegFileReadSrvReg(FILE * fd, SLPMessage ** msg, SLPBuffer * buf)
       if (srvtype == 0)
       {
          result = SLP_ERROR_INVALID_REGISTRATION;
-         goto CLEANUP;   
+         goto CLEANUP;
       }
       *srvtype = 0;
       srvtype=xstrdup(TrimWhitespace(slider1));
@@ -204,19 +204,19 @@ int SLPDRegFileReadSrvReg(FILE * fd, SLPMessage ** msg, SLPBuffer * buf)
       if (slider2)
       {
          *slider2 = 0; /* squash comma to null terminate lang */
-         langtag = xstrdup(TrimWhitespace(slider1)); 
+         langtag = xstrdup(TrimWhitespace(slider1));
          if (langtag == 0)
          {
             result = SLP_ERROR_INVALID_REGISTRATION;
-            goto CLEANUP;   
+            goto CLEANUP;
          }
-         langtaglen = strlen(langtag);     
-         slider1 = slider2 + 1;                                  
+         langtaglen = strlen(langtag);
+         slider1 = slider2 + 1;
       }
       else
       {
          result = SLP_ERROR_INVALID_REGISTRATION;
-         goto CLEANUP;   
+         goto CLEANUP;
       }
 
       /* ltime */
@@ -235,7 +235,7 @@ int SLPDRegFileReadSrvReg(FILE * fd, SLPMessage ** msg, SLPBuffer * buf)
       if (lifetime < 1 || lifetime > SLP_LIFETIME_MAXIMUM)
       {
          result = SLP_ERROR_INVALID_REGISTRATION;
-         goto CLEANUP;   
+         goto CLEANUP;
       }
 
       /* get the srvtype if one was not derived by the srvurl */
@@ -251,14 +251,14 @@ int SLPDRegFileReadSrvReg(FILE * fd, SLPMessage ** msg, SLPBuffer * buf)
          if (srvtypelen == 0)
          {
             result = SLP_ERROR_INVALID_REGISTRATION;
-            goto CLEANUP;   
+            goto CLEANUP;
          }
       }
    }
    else
    {
       result = SLP_ERROR_INVALID_REGISTRATION;
-      goto CLEANUP;   
+      goto CLEANUP;
    }
 
    /* read all the attributes including the scopelist */
@@ -275,8 +275,8 @@ int SLPDRegFileReadSrvReg(FILE * fd, SLPMessage ** msg, SLPBuffer * buf)
          break;
 
       /* Check to see if it is the scopes line */
-      /* FIXME We can collapse the scope stuff into the value getting and 
-         just make it a special case (do strcmp on the tag as opposed to the 
+      /* FIXME We can collapse the scope stuff into the value getting and
+         just make it a special case (do strcmp on the tag as opposed to the
          line) of attribute getting. */
       if (strncasecmp(slider1,"scopes", 6) == 0)
       {
@@ -295,8 +295,8 @@ int SLPDRegFileReadSrvReg(FILE * fd, SLPMessage ** msg, SLPBuffer * buf)
                }
 
                /* make sure there are no spaces in the scope list
-		NOTE: There's nothing in the spec that indicates that
-		scopes can't contain spaces. Commenting out for now. --jmc
+      NOTE: There's nothing in the spec that indicates that
+      scopes can't contain spaces. Commenting out for now. --jmc
                if (strchr(slider2, ' '))
                {
                   result = SLP_ERROR_SCOPE_NOT_SUPPORTED;
@@ -317,19 +317,30 @@ int SLPDRegFileReadSrvReg(FILE * fd, SLPMessage ** msg, SLPBuffer * buf)
       {
          /* line contains an attribute (slow but it works)*/
          /* TODO Fix this so we do not have to realloc memory each time! */
-         TrimWhitespace(slider1); 
+         TrimWhitespace(slider1);
 
          if (attrlist == 0)
          {
             attrlistlen += strlen(slider1) + 2;
             attrlist = xmalloc(attrlistlen + 1);
+            if (attrlist == 0)
+            {
+               result = SLP_ERROR_INTERNAL_ERROR;
+               goto CLEANUP;
+            }
             *attrlist = 0;
          }
          else
          {
+            char * tmp_attrlist;
             attrlistlen += strlen(slider1) + 3;
-            attrlist = xrealloc(attrlist,
-            attrlistlen + 1);
+            if ((tmp_attrlist = xrealloc(attrlist, attrlistlen + 1)) == 0)
+            {
+               xfree(attrlist);
+               result = SLP_ERROR_INTERNAL_ERROR;
+               goto CLEANUP;
+            }
+            attrlist = tmp_attrlist;
             strcat(attrlist, ",");
          }
 
@@ -373,9 +384,9 @@ int SLPDRegFileReadSrvReg(FILE * fd, SLPMessage ** msg, SLPBuffer * buf)
    /* generate authentication blocks */
    if (G_SlpdProperty.securityEnabled)
    {
-      SLPAuthSignUrl(G_SlpdSpiHandle, 0, 0, urllen, url, 
+      SLPAuthSignUrl(G_SlpdSpiHandle, 0, 0, urllen, url,
             &urlauthlen, &urlauth);
-      SLPAuthSignString(G_SlpdSpiHandle, 0, 0, attrlistlen, attrlist, 
+      SLPAuthSignString(G_SlpdSpiHandle, 0, 0, attrlistlen, attrlist,
             &attrauthlen, &attrauth);
    }
 #endif
@@ -394,7 +405,7 @@ int SLPDRegFileReadSrvReg(FILE * fd, SLPMessage ** msg, SLPBuffer * buf)
 #ifdef ENABLE_SLPv2_SECURITY
    bufsize += urlauthlen;
    bufsize += attrauthlen;
-#endif  
+#endif
 
    tmp = *buf = SLPBufferAlloc(bufsize);
    if (tmp == 0)
@@ -498,8 +509,8 @@ int SLPDRegFileReadSrvReg(FILE * fd, SLPMessage ** msg, SLPBuffer * buf)
       goto CLEANUP;
    }
 
-   /* this should be ok even if we are not supporting IPv4, 
-    * since it's a static service 
+   /* this should be ok even if we are not supporting IPv4,
+    * since it's a static service
     */
    memset(&peer, 0, sizeof(struct sockaddr_in));
    peer.ss_family = AF_UNSPEC;

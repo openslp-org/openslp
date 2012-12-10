@@ -32,7 +32,7 @@
 
 /** Implementation for SLPGetProperty and SLPSetProperty
  *
- * These routines represent the internal implementation of the property 
+ * These routines represent the internal implementation of the property
  * management routines. Some really creative string management needs to be
  * done to properly implement the API, as designed in RFC 2614 because the
  * SLPGetProperty routine returns reference (pointer) into the property
@@ -40,9 +40,9 @@
  * old values because an outstanding reference might exist so such a value.
  *
  * @par
- * One possible solution to this problem might be to cache all old values 
+ * One possible solution to this problem might be to cache all old values
  * in a table that may only be freed at the time the program terminates,
- * but this could get expensive, memory-wise. We may try this approach 
+ * but this could get expensive, memory-wise. We may try this approach
  * anyway - for the few times properties will need to be set at run-time,
  * the cost may be worth it.
  *
@@ -102,12 +102,12 @@ static int s_GlobalPropertyInternalSndBufSize;
 /** Sets all SLP default property values.
  *
  * @return Zero on success, or non-zero with errno set on error.
- * 
+ *
  * @internal
  */
 static int SetDefaultValues(void)
 {
-   /* The table of default property values - comments following some values 
+   /* The table of default property values - comments following some values
     * indicate deviations from the default values specified in RFC 2614.
     */
    static struct { char * name, * value; unsigned attrs; } defaults[] =
@@ -137,9 +137,9 @@ static int SetDefaultValues(void)
       {"net.slp.multicastTTL", "255", 0},                                  /* 8 */
       {"net.slp.DAActiveDiscoveryInterval", "900", 0},                     /* 1 */
       {"net.slp.multicastMaximumWait", "15000"},                           /* 5000 */
-      {"net.slp.multicastTimeouts", "500,750,1000,1500,2000,3000", 0},        /* 500,750,1000,1500,2000,3000 */  
-      {"net.slp.DADiscoveryTimeouts", "500,750,1000,1500,2000,3000", 0},   /* 500,750,1000,1500,2000,3000 */ 
-      {"net.slp.datagramTimeouts", "500,750,1000,1500,2000,3000", 0},         /* I made up these numbers */     
+      {"net.slp.multicastTimeouts", "500,750,1000,1500,2000,3000", 0},        /* 500,750,1000,1500,2000,3000 */
+      {"net.slp.DADiscoveryTimeouts", "500,750,1000,1500,2000,3000", 0},   /* 500,750,1000,1500,2000,3000 */
+      {"net.slp.datagramTimeouts", "500,750,1000,1500,2000,3000", 0},         /* I made up these numbers */
       {"net.slp.randomWaitBound", "1000", 0},
       {"net.slp.MTU", "1400", 0},
       {"net.slp.interfaces", "", 0},
@@ -151,7 +151,7 @@ static int SetDefaultValues(void)
       {"net.slp.locale", "en", 0},
       {"net.slp.maxResults", "-1", 0},                                     /* 256 */
       {"net.slp.typeHint", "", 0},
-	  {"net.slp.preferSLPv1", "false", 0},
+     {"net.slp.preferSLPv1", "false", 0},
 
    /* Section 2.1.8 Security */
       {"net.slp.securityEnabled", "false", 0},
@@ -176,7 +176,7 @@ static int SetDefaultValues(void)
    int i;
 
    for (i = 0; i < sizeof(defaults)/sizeof(*defaults); i++)
-      if (SLPPropertySet(defaults[i].name, defaults[i].value, 
+      if (SLPPropertySet(defaults[i].name, defaults[i].value,
             defaults[i].attrs) != 0)
          return -1;
 
@@ -240,7 +240,7 @@ static void InitializeMTUPropertyValue()
          }
       }
 
-      if (s_GlobalPropertyInternalSndBufSize && 
+      if (s_GlobalPropertyInternalSndBufSize &&
           getsockopt(sock, SOL_SOCKET, SO_SNDBUF, &value, &valSize) != -1)
       {
          if (value < s_GlobalPropertyMTU)
@@ -252,7 +252,7 @@ static void InitializeMTUPropertyValue()
       close(sock);
 
       // If both values are set adjust the s_GlobalPropertyMTU value.
-      if (s_GlobalPropertyInternalRcvBufSize 
+      if (s_GlobalPropertyInternalRcvBufSize
          && s_GlobalPropertyInternalSndBufSize)
       {
           s_GlobalPropertyMTU = s_GlobalPropertyInternalRcvBufSize;
@@ -274,15 +274,15 @@ static void InitializeMTUPropertyValue()
 }
 
 /** Reads a specified configuration file into non-userset properties.
- * 
+ *
  * Reads all values from a specified configuration file into the in-memory
  * database
- * 
+ *
  * @param[in] conffile - The name of the file to be read.
- * 
- * @return A Boolean value of true if the file could be opened and read, 
+ *
+ * @return A Boolean value of true if the file could be opened and read,
  *    or false if the file did not exist, or could not be opened.
- * 
+ *
  * @internal
  */
 static bool ReadFileProperties(char const * conffile)
@@ -307,46 +307,53 @@ static bool ReadFileProperties(char const * conffile)
          char * namestart;
          char * nameend;
          char * valuestart;
-         char * valueend; 
-   
+         char * valueend;
+
          /* trim leading white space */
          while (*line && *line <= 0x20)
             line++;
-   
+
          if (*line == 0)
             continue;
-   
+
          /* skip all comments: # or ; to EOL */
          if (*line == '#' || *line == ';')
             continue;
-   
+
          /* parse out the property name */
          namestart = line;
-   
+
          /* ignore lines not containing '=' */
          nameend = strchr(namestart, '=');
          if (nameend == 0)
             continue;
-   
+
          /* capture value start for later */
          valuestart = nameend + 1;
-   
+
+         /* paranoid check immediately to make sure that valuestart
+          * is valid but more importantly that there is a value on this
+          * line to actually be read.
+          */
+         if (!valuestart || *valuestart == 0)
+            continue;
+
          /* trim trailing white space from name */
          *nameend-- = 0;
          while (*nameend <= 0x20)
             *nameend-- = 0;
-   
+
          /* parse out the property value - trim leading white space */
          while (*valuestart && *valuestart <= 0x20)
             valuestart++;
-   
+
          /* find end of value, trim trailing white space */
          valueend = valuestart + strlen(valuestart);
          while (valueend != valuestart && *valueend <= 0x20)
             *valueend-- = 0;
-   
+
          /* set the property (as mutable) */
-         if (valuestart && *valuestart)
+         if (*valuestart)
             SLPPropertySet(namestart, valuestart, 0);
       }
       fclose(fp);
@@ -359,15 +366,15 @@ static bool ReadFileProperties(char const * conffile)
 
 /** Reads the property configuration files.
  *
- * Clears all current values from the property table, and then reads and 
- * sets properties from the configuration files. All properties read from 
+ * Clears all current values from the property table, and then reads and
+ * sets properties from the configuration files. All properties read from
  * configuration files are considered mutable by the application (except for
  * the values of the specified configuration files.
  *
- * @return Zero on success, or a non-zero value on error. Properties will 
+ * @return Zero on success, or a non-zero value on error. Properties will
  *    be set to default on error, or if not set by one or more of the
  *    configuration files.
- * 
+ *
  * @internal
  */
 static int ReadPropertyFiles(void)
@@ -379,19 +386,19 @@ static int ReadPropertyFiles(void)
    /* read global, and then app configuration files */
    if (*s_GlobalPropertyFile)
       if (ReadFileProperties(s_GlobalPropertyFile))
-         SLPPropertySet("net.slp.OpenSLPConfigFile", 
+         SLPPropertySet("net.slp.OpenSLPConfigFile",
                s_GlobalPropertyFile, SLP_PA_READONLY);
 
    /* read environment specified configuration file */
    if (*s_EnvPropertyFile)
       if (ReadFileProperties(s_EnvPropertyFile))
-         SLPPropertySet("net.slp.EnvConfigFile", 
+         SLPPropertySet("net.slp.EnvConfigFile",
                s_EnvPropertyFile, SLP_PA_READONLY);
 
    /* if set, read application-specified configuration file */
    if (*s_AppPropertyFile)
       if (ReadFileProperties(s_AppPropertyFile))
-         SLPPropertySet("net.slp.AppConfigFile", 
+         SLPPropertySet("net.slp.AppConfigFile",
                s_AppPropertyFile, SLP_PA_READONLY);
 
    return 0;
@@ -400,14 +407,14 @@ static int ReadPropertyFiles(void)
 /** Locate a property entry by name.
  *
  * Locates and returns an entry in the property list by property name.
- * 
+ *
  * @param[in] name - The property name.
  *
- * @return A pointer to the requested property entry, or NULL if the 
+ * @return A pointer to the requested property entry, or NULL if the
  *    requested property entry was not found.
  *
  * @remarks Assumes the database lock.
- * 
+ *
  * @internal
  */
 static SLPProperty * Find(char const * name)
@@ -450,13 +457,13 @@ void SLPPropertyInternalGetSndRcvBufSize(int *sndBufSize, int *rcvBufSize)
 }
 
 /** Return an allocated copy of a property by name.
- * 
+ *
  * @param[in] name - The name of the property to return.
- * 
+ *
  * @return A pointer to an allocated buffer containing a copy of the property
  *    named by @p name.
- * 
- * @remarks The caller is responsible for releasing the memory returned by 
+ *
+ * @remarks The caller is responsible for releasing the memory returned by
  * calling xfree on it.
  */
 char * SLPPropertyXDup(const char * name)
@@ -480,28 +487,28 @@ char * SLPPropertyXDup(const char * name)
 }
 
 /** Return a property by name.
- * 
+ *
  * This is the internal property access routine. If the @p buffer and @p bufszp
  * parameters are used, then this routine will return a copy of the internal
  * value string. Otherwise it returns a pointer to the internal value string.
  *
  * @param[in] name - The name of the property to return.
- * @param[out] buffer - The address of storage for the requested property 
+ * @param[out] buffer - The address of storage for the requested property
  *    value. This parameter is optional, and may be specified as NULL.
  * @param[in/out] bufszp - On entry, contains the size of @p buffer. On exit,
  *    returns the number of bytes used or required. If @p buffer is too small
  *    then this parameter returns the number of bytes required to return all
- *    of the value. If too large, then this parameter returns the number of 
+ *    of the value. If too large, then this parameter returns the number of
  *    bytes used in @p buffer.
- * 
+ *
  * @return A pointer to the value of the property named by @p name. If the
  *    @p buffer and @p bufszp parameters are specified, returns a pointer to
  *    @p buffer, otherwise a pointer to the internal value buffer is returned.
- * 
- * @remarks If an internal value string pointer is returned, then OpenSLP 
- * is absolved of all responsibility regarding concurrent access to the 
+ *
+ * @remarks If an internal value string pointer is returned, then OpenSLP
+ * is absolved of all responsibility regarding concurrent access to the
  * internal property database.
- * 
+ *
  * @remarks The correct way to call this routine with a @p buffer parameter
  * is to size the buffer as appropriate, or size it to zero. This routine will
  * return the required size in *bufszp. Then call it again with a @p buffer
@@ -546,7 +553,7 @@ char const * SLPPropertyGet(char const * name, char * buffer, size_t * bufszp)
 }
 
 /** Set a new value for a property by name.
- * 
+ *
  * If the value is NULL or empty, then simply erase the existing value and
  * return.
  *
@@ -554,20 +561,20 @@ char const * SLPPropertyGet(char const * name, char * buffer, size_t * bufszp)
  * @param[in] value - The new value to which @p name should be set or
  *    NULL if the existing value should be removed.
  * @param[in] attrs - The attributes of this property - zero means no
- *    attributes are assigned, other values include SLP_PA_USERSET and 
+ *    attributes are assigned, other values include SLP_PA_USERSET and
  *    SLP_PA_READONLY.
  *
  * @return Zero on success; -1 on error, with errno set.
- * 
+ *
  * @remarks The @p attrs parameter contains a set of bit flags indicating
- * various attributes of the property. These attributes control write 
+ * various attributes of the property. These attributes control write
  * permissions mostly. SLP_PA_USERSET means that an attribute may not
- * be changed by reading a configuration file, except in a complete 
- * re-initialization scenario. SLP_PA_READONLY sounds like the same thing, 
- * but it's not. The difference is that once set, properties with the 
- * SLP_PA_READONLY attribute may NEVER be reset (again, except in a complete 
- * re-initialization scenario), while properties with the SLP_PA_USERSET 
- * attribute may only be reset by passing this same flag in @p attrs, 
+ * be changed by reading a configuration file, except in a complete
+ * re-initialization scenario. SLP_PA_READONLY sounds like the same thing,
+ * but it's not. The difference is that once set, properties with the
+ * SLP_PA_READONLY attribute may NEVER be reset (again, except in a complete
+ * re-initialization scenario), while properties with the SLP_PA_USERSET
+ * attribute may only be reset by passing this same flag in @p attrs,
  * indicating that the caller is actually a user, and so has the right
  * to reset the property value.
  */
@@ -608,7 +615,7 @@ int SLPPropertySet(char const * name, char const * value, unsigned attrs)
    if ((oldprop = Find(name))!= 0)
    {
       /* update ONLY if old is clean, or new and old are user-settable . */
-      update = !oldprop->attrs 
+      update = !oldprop->attrs
             || (oldprop->attrs == SLP_PA_USERSET && attrs == SLP_PA_USERSET);
       if (update)
          SLPListUnlink(&s_PropertyList, (SLPListItem *)oldprop);
@@ -631,11 +638,11 @@ int SLPPropertySet(char const * name, char const * value, unsigned attrs)
  * Returns the value of the specified property name as a binary boolean value.
  *
  * @param[in] name - The property name of the value to be returned as boolean.
- * 
+ *
  * @return true if @p name refers to a FALSE boolean string value;
  *    false if @p name refers to a TRUE boolean string value.
- * 
- * @remarks Ensures that @p name is not a non-existent property, and that it 
+ *
+ * @remarks Ensures that @p name is not a non-existent property, and that it
  *    contains a non-NULL value. If @p name is non-existent, or refers to a
  *    null value, returns false.
  */
@@ -649,8 +656,8 @@ bool SLPPropertyAsBoolean(char const * name)
    if ((property = Find(name)) != 0)
    {
       char const * value = property->value;
-      if (*value == 't' || *value == 'T' 
-            || *value == 'y' || *value == 'Y' 
+      if (*value == 't' || *value == 'T'
+            || *value == 'y' || *value == 'Y'
             || *value == '1')
          retval = true;
    }
@@ -667,7 +674,7 @@ bool SLPPropertyAsBoolean(char const * name)
  * @param[in] name - The name of the property whose value should be returned
  *    as an integer.
  *
- * @return An integer value of the string value associated with 
+ * @return An integer value of the string value associated with
  *    @p value.
  *
  * @remarks Ensures that @p name is a true property with a string value before
@@ -700,14 +707,14 @@ int SLPPropertyAsInteger(char const * name)
  * @return The number of integer values returned in @p ivector, or zero in
  *    case of any sort of read or conversion error.
  *
- * @remarks The array is pre-initialized to zero so that all 
+ * @remarks The array is pre-initialized to zero so that all
  *    un-initialized entries are zero on return.
  *
  * @remarks Ensures that @p name is not NULL and that it refers to an existing
- *    property with a non-null value before attempting to evaluate it. If 
+ *    property with a non-null value before attempting to evaluate it. If
  *    @p name is null or empty, returns 0.
  */
-int SLPPropertyAsIntegerVector(char const * name, 
+int SLPPropertyAsIntegerVector(char const * name,
       int * ivector, int ivectorsz)
 {
    int i = 0;
@@ -728,7 +735,7 @@ int SLPPropertyAsIntegerVector(char const * name,
       slider1 = slider2 = value;
       for (i = 0; i < ivectorsz && slider2 < end; i++)
       {
-         while (*slider2 && *slider2 != ',') 
+         while (*slider2 && *slider2 != ',')
             slider2++;
 
          /* atoi stops converting at first non-numeric character */
@@ -744,16 +751,16 @@ int SLPPropertyAsIntegerVector(char const * name,
 }
 
 /** Configure the property sub-system to read an app conf file on init.
- * 
+ *
  * Configure the property sub-system to read an application-specific property
- * file at the time the global property file is read. The optional application 
- * configuration file settings override any settings obtained from the global 
+ * file at the time the global property file is read. The optional application
+ * configuration file settings override any settings obtained from the global
  * configuration file.
- * 
- * @param[in] aconffile - The full path name of an application-specific 
+ *
+ * @param[in] aconffile - The full path name of an application-specific
  *    configuration file.
- * 
- * @return Zero on success, or a non-zero error code if the property 
+ *
+ * @return Zero on success, or a non-zero error code if the property
  *    sub-system has already been initialized.
  */
 int SLPPropertySetAppConfFile(const char * aconffile)
@@ -770,10 +777,10 @@ int SLPPropertySetAppConfFile(const char * aconffile)
 }
 
 /** Release all resources held by the property module.
- * 
+ *
  * Free all associated list memory, and reinitialize the global list head
  * pointer to NULL.
- * 
+ *
  * @internal
  */
 static void SLPPropertyCleanup(void)
@@ -801,9 +808,9 @@ static void SLPPropertyCleanup(void)
  * Since this can happen anytime, we do the entire operation within the lock
  * to keep changing state from messing up user threads. SLP mutexes are
  * reentrant, so we can call mutex acquire from within the lock.
- * 
+ *
  * @return Zero on success, or a non-zero value on error.
- * 
+ *
  * @remarks The daemon calls this routine at SIGHUP. Thread-safe.
  */
 int SLPPropertyReinit(void)
@@ -819,16 +826,16 @@ int SLPPropertyReinit(void)
 
 /** Initialize (or reintialize) the property table.
  *
- * Store the global init file pathname and initialize the property module 
- * from configuration options specified in @p gconffile. 
- * 
+ * Store the global init file pathname and initialize the property module
+ * from configuration options specified in @p gconffile.
+ *
  * @param[in] gconffile - The name of the global configuration file to read.
  *
  * @return Zero on success, or a non-zero value on error.
- * 
- * @remarks This routine is NOT reentrant, so steps should be taken by the 
+ *
+ * @remarks This routine is NOT reentrant, so steps should be taken by the
  * caller to ensure that this routine is not called by multiple threads
- * simultaneously. This routine is designed to be called once by the 
+ * simultaneously. This routine is designed to be called once by the
  * client library and the daemon, and before other threads begin accessing
  * other property sub-system methods.
  */
@@ -859,10 +866,10 @@ int SLPPropertyInit(const char * gconffile)
 }
 
 /** Release all globally held resources held by the property module.
- * 
- * Free all associated property database memory, and destroy the database 
+ *
+ * Free all associated property database memory, and destroy the database
  * mutex.
- * 
+ *
  * @remarks This routine is NOT reentrant, so steps should be taken by the
  * caller to ensure that it is not called by more than one thread at a time.
  * It should also not be called while other threads are accessing the property
@@ -878,15 +885,15 @@ void SLPPropertyExit(void)
 /*===========================================================================
  *  TESTING CODE : compile with the following command lines:
  *
- *  $ gcc -g -O0 -DSLP_PROPERTY_TEST -DDEBUG -DHAVE_CONFIG_H -lpthread 
- *       -I .. slp_property.c slp_xmalloc.c slp_linkedlist.c slp_debug.c 
+ *  $ gcc -g -O0 -DSLP_PROPERTY_TEST -DDEBUG -DHAVE_CONFIG_H -lpthread
+ *       -I .. slp_property.c slp_xmalloc.c slp_linkedlist.c slp_debug.c
  *       slp_thread.c -o slp-prop-test
  *
- *  C:\> cl -Zi -DSLP_PROPERTY_TEST -DSLP_VERSION=\"2.0\" -DDEBUG 
- *       -D_CRT_SECURE_NO_DEPRECATE slp_property.c slp_xmalloc.c 
+ *  C:\> cl -Zi -DSLP_PROPERTY_TEST -DSLP_VERSION=\"2.0\" -DDEBUG
+ *       -D_CRT_SECURE_NO_DEPRECATE slp_property.c slp_xmalloc.c
  *       slp_thread.c slp_debug.c slp_linkedlist.c
  */
-#ifdef SLP_PROPERTY_TEST 
+#ifdef SLP_PROPERTY_TEST
 
 # define FAIL (printf("FAIL: %s at line %d.\n", __FILE__, __LINE__), (-1))
 # define PASS (printf("PASS: Success!\n"), (0))

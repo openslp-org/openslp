@@ -32,11 +32,11 @@
 
 /** Header file that defines SLPv1 wire protocol message structures.
  *
- * This file contains buffer parsing routines specific to version 1 of 
+ * This file contains buffer parsing routines specific to version 1 of
  * the SLP wire protocol.
  *
  * @file       slp_v1message.c
- * @author     Matthew Peterson, Ganesan Rajagopal, 
+ * @author     Matthew Peterson, Ganesan Rajagopal,
  *             John Calcote (jcalcote@novell.com)
  * @attention  Please submit patches to http://www.openslp.org
  * @ingroup    CommonCodeMessageV1
@@ -51,7 +51,7 @@
  *
  * @param[in] buffer - The buffer containing the data to be parsed.
  * @param[in] encoding - The language encoding of the message.
- * @param[out] urlentry - The URL entry object into which 
+ * @param[out] urlentry - The URL entry object into which
  *    @p buffer should be parsed.
  *
  * @return Zero on success, SLP_ERROR_INTERNAL_ERROR (out of memory) or
@@ -93,7 +93,7 @@ static int v1ParseUrlEntry(const SLPBuffer buffer, int encoding,
       return SLP_ERROR_PARSE_ERROR;
 
    result = SLPv1AsUTF8(encoding, (char *)urlentry->url,
-         &urlentry->urllen); 
+         &urlentry->urllen);
    if (result != 0)
       return result;
 
@@ -108,7 +108,7 @@ static int v1ParseUrlEntry(const SLPBuffer buffer, int encoding,
  *
  * @param[in] buffer - The buffer containing the data to be parsed.
  * @param[in] encoding - The language encoding of the message.
- * @param[out] srvrqst - The service request object into which 
+ * @param[out] srvrqst - The service request object into which
  *    @p buffer should be parsed.
  *
  * @return Zero on success, SLP_ERROR_INTERNAL_ERROR (out of memory) or
@@ -134,7 +134,7 @@ static int v1ParseSrvRqst(const SLPBuffer buffer, int encoding,
    \               Service Request <predicate>, contd.             \
    |                                                               |
    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ */
-  
+
    char * tmp;
    int result;
 
@@ -154,6 +154,8 @@ static int v1ParseSrvRqst(const SLPBuffer buffer, int encoding,
    /* Parse the predicate string. */
    srvrqst->predicatelen = GetUINT16(&buffer->curpos);
    srvrqst->predicate = GetStrPtr(&buffer->curpos, srvrqst->predicatelen);
+   if (!srvrqst->predicate)
+      return SLP_ERROR_PARSE_ERROR;
    if (buffer->curpos > buffer->end)
       return SLP_ERROR_PARSE_ERROR;
    if ((result = SLPv1AsUTF8(encoding, (char *) srvrqst->predicate,
@@ -161,8 +163,7 @@ static int v1ParseSrvRqst(const SLPBuffer buffer, int encoding,
       return result;
 
    /* Terminate the predicate string. */
-   if(srvrqst->predicate)
-      *(char *)&srvrqst->predicate[srvrqst->predicatelen] = 0; 
+   *(char *)&srvrqst->predicate[srvrqst->predicatelen] = 0;
 
    /* Now split out the service type. */
    srvrqst->srvtype = srvrqst->predicate;
@@ -201,7 +202,7 @@ static int v1ParseSrvRqst(const SLPBuffer buffer, int encoding,
       srvrqst->predicatelen -= srvrqst->scopelistlen + 1;
    }
    srvrqst->predicatelen--;
-   tmp = (char *)&srvrqst->predicate[srvrqst->predicatelen]; 
+   tmp = (char *)&srvrqst->predicate[srvrqst->predicatelen];
    *tmp = 0;   /* Terminate the predicate. */
 
    /* SLPv1 service requests don't have SPI strings. */
@@ -215,7 +216,7 @@ static int v1ParseSrvRqst(const SLPBuffer buffer, int encoding,
  *
  * @param[in] buffer - The buffer containing the data to be parsed.
  * @param[in] encoding - The language encoding of the message.
- * @param[out] srvreg - The service registration object into which 
+ * @param[out] srvreg - The service registration object into which
  *    @p buffer should be parsed.
  *
  * @return Zero on success, SLP_ERROR_INTERNAL_ERROR (out of memory) or
@@ -299,7 +300,7 @@ static int v1ParseSrvReg(const SLPBuffer buffer, int encoding,
  *
  * @param[in] buffer - The buffer containing the data to be parsed.
  * @param[in] encoding - The language encoding of the message.
- * @param[out] srvdereg - The service deregister object into which 
+ * @param[out] srvdereg - The service deregister object into which
  *    @p buffer should be parsed.
  *
  * @return Zero on success, SLP_ERROR_INTERNAL_ERROR (out of memory) or
@@ -336,7 +337,7 @@ static int v1ParseSrvDeReg(const SLPBuffer buffer, int encoding,
 
    /* Parse the URL, and convert to UTF-8. */
    srvdereg->urlentry.urllen = GetUINT16(&buffer->curpos);
-   srvdereg->urlentry.url = GetStrPtr(&buffer->curpos, 
+   srvdereg->urlentry.url = GetStrPtr(&buffer->curpos,
          srvdereg->urlentry.urllen);
    if (buffer->curpos > buffer->end)
       return SLP_ERROR_PARSE_ERROR;
@@ -348,7 +349,7 @@ static int v1ParseSrvDeReg(const SLPBuffer buffer, int encoding,
    srvdereg->urlentry.reserved = 0;
    srvdereg->urlentry.lifetime = 0;
 
-   /* Almost no one used SLPv1 security, so we'll just ignore it for 
+   /* Almost no one used SLPv1 security, so we'll just ignore it for
     * now, and hope we never have to parse an SLPv1 request with security
     * enabled.
     */
@@ -373,7 +374,7 @@ static int v1ParseSrvDeReg(const SLPBuffer buffer, int encoding,
  *
  * @param[in] buffer - The buffer containing the data to be parsed.
  * @param[in] encoding - The language encoding of the message.
- * @param[out] attrrqst - The attribute request object into which 
+ * @param[out] attrrqst - The attribute request object into which
  *    @p buffer should be parsed.
  *
  * @return Zero on success, SLP_ERROR_INTERNAL_ERROR (out of memory) or
@@ -420,7 +421,7 @@ static int v1ParseAttrRqst(const SLPBuffer buffer, int encoding,
 
    /* Parse the <Previous Responders Addr Spec>, and convert to UTF-8. */
    attrrqst->prlistlen = GetUINT16(&buffer->curpos);
-   attrrqst->prlist = GetStrPtr(&buffer->curpos, 
+   attrrqst->prlist = GetStrPtr(&buffer->curpos,
          attrrqst->prlistlen);
    if (buffer->curpos > buffer->end)
       return SLP_ERROR_PARSE_ERROR;
@@ -441,7 +442,7 @@ static int v1ParseAttrRqst(const SLPBuffer buffer, int encoding,
    attrrqst->scopelistlen = GetUINT16(&buffer->curpos);
    if (attrrqst->scopelistlen)
    {
-      attrrqst->scopelist = GetStrPtr(&buffer->curpos, 
+      attrrqst->scopelist = GetStrPtr(&buffer->curpos,
             attrrqst->scopelistlen);
       if (buffer->curpos > buffer->end)
          return SLP_ERROR_PARSE_ERROR;
@@ -475,7 +476,7 @@ static int v1ParseAttrRqst(const SLPBuffer buffer, int encoding,
  *
  * @param[in] buffer - The buffer containing the data to be parsed.
  * @param[in] encoding - The language encoding of the message.
- * @param[out] attrrply - The attribute reply object into which 
+ * @param[out] attrrply - The attribute reply object into which
  *                        buffer should be parsed.
  *
  * @return Zero on success, SLP_ERROR_INTERNAL_ERROR (out of memory) or
@@ -495,7 +496,7 @@ static int v1ParseAttrRply(const SLPBuffer buffer, int encoding,
    \                          <attr-list>                          \
    |                                                               |
    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ */
- 
+
    int result;
 
    /* Enforce SLPv1 attribute request size limits. */
@@ -531,7 +532,7 @@ static int v1ParseAttrRply(const SLPBuffer buffer, int encoding,
  *
  * @param[in] buffer - The buffer containing the data to be parsed.
  * @param[in] encoding - The language encoding of the message.
- * @param[out] srvtyperqst - The service type request object into which 
+ * @param[out] srvtyperqst - The service type request object into which
  *    @p buffer should be parsed.
  *
  * @return Zero on success, SLP_ERROR_INTERNAL_ERROR (out of memory) or
@@ -585,7 +586,7 @@ static int v1ParseSrvTypeRqst(const SLPBuffer buffer, int encoding,
       srvtyperqst->namingauth = 0;
    else
    {
-      srvtyperqst->namingauth = GetStrPtr(&buffer->curpos, 
+      srvtyperqst->namingauth = GetStrPtr(&buffer->curpos,
             srvtyperqst->namingauthlen);
       if (buffer->curpos > buffer->end)
          return SLP_ERROR_PARSE_ERROR;
@@ -598,7 +599,7 @@ static int v1ParseSrvTypeRqst(const SLPBuffer buffer, int encoding,
    srvtyperqst->scopelistlen = GetUINT16(&buffer->curpos);
    if (srvtyperqst->scopelistlen)
    {
-      srvtyperqst->scopelist = GetStrPtr(&buffer->curpos, 
+      srvtyperqst->scopelist = GetStrPtr(&buffer->curpos,
             srvtyperqst->scopelistlen);
       if (buffer->curpos > buffer->end)
          return SLP_ERROR_PARSE_ERROR;
@@ -617,10 +618,10 @@ static int v1ParseSrvTypeRqst(const SLPBuffer buffer, int encoding,
 /** Parse an SLPv1 message header.
  *
  * @param[in] buffer - The buffer from which data should be parsed.
- * @param[out] header - The SLP message header into which 
+ * @param[out] header - The SLP message header into which
  *    @p buffer should be parsed.
  *
- * @return Zero on success, SLP_ERROR_VER_NOT_SUPPORTED, 
+ * @return Zero on success, SLP_ERROR_VER_NOT_SUPPORTED,
  *    or SLP_ERROR_PARSE_ERROR.
  *
  * @todo Add more flag constraints.
@@ -654,7 +655,7 @@ int SLPv1MessageParseHeader(const SLPBuffer buffer, SLPHeader * header)
    header->xid = GetUINT16(&buffer->curpos);
 
    /* Enforce function id value range. */
-   if (header->functionid < SLP_FUNCT_SRVRQST 
+   if (header->functionid < SLP_FUNCT_SRVRQST
          || header->functionid > SLP_FUNCT_SRVTYPERPLY)
       return SLP_ERROR_PARSE_ERROR;
 
@@ -681,14 +682,14 @@ int SLPv1MessageParseHeader(const SLPBuffer buffer, SLPHeader * header)
  * @param[in] buffer - The buffer from which data should be parsed.
  * @param[out] msg - The message into which @p buffer should be parsed.
  *
- * @return Zero on success, SLP_ERROR_PARSE_ERROR, or 
+ * @return Zero on success, SLP_ERROR_PARSE_ERROR, or
  *    SLP_ERROR_INTERNAL_ERROR if out of memory.
  *
  * @remarks If successful, pointers in the SLPMessage reference memory in
- *    the parsed SLPBuffer. If SLPBufferFree is called then the pointers 
+ *    the parsed SLPBuffer. If SLPBufferFree is called then the pointers
  *    in SLPMessage will be invalidated.
  *
- * @remarks It is assumed that SLPMessageParseBuffer is calling this 
+ * @remarks It is assumed that SLPMessageParseBuffer is calling this
  *    routine and has already reset the message to accomodate new buffer
  *    data.
  */
@@ -731,7 +732,7 @@ int SLPv1MessageParseBuffer(const SLPBuffer buffer, SLPMessage * msg)
          case SLP_FUNCT_DAADVERT:
             /* We are a SLPv2 DA, drop advertisements from other v1
              * DAs (including our own). The message will be ignored
-             * by SLPDv1ProcessMessage(). 
+             * by SLPDv1ProcessMessage().
              */
             result = 0;
             break;
