@@ -193,7 +193,7 @@ int KnownDASpanningListFind(int scopelistlen,
                            entry->msg->body.daadvert.scopelist, &scopesleftlen, scopesleft);
                      if (numdas >= numdasallocated)
                      {
-                        char * tmp_destaddrs;
+                        struct sockaddr_in * tmp_destaddrs;
                         /* We need a bigger array of addresses */
                         numdasallocated += NUM_DAS_CHUNK_SIZE;
                         if ((tmp_destaddrs = xrealloc(destaddrs, numdasallocated * sizeof (struct sockaddr_in) + DESTADDR_PADDING)) == 0)
@@ -229,7 +229,7 @@ int KnownDASpanningListFind(int scopelistlen,
          /* Add a terminating address entry with an IP address of 0.0.0.0 */
          if (numdas >= numdasallocated)
          {
-            char * tmp_destaddrs;
+            struct sockaddr_in * tmp_destaddrs;
             /* We need a bigger array of addresses */
             numdasallocated += 1;
             if ((tmp_destaddrs = xrealloc(destaddrs, numdasallocated * sizeof (struct sockaddr_in) + DESTADDR_PADDING)) == 0)

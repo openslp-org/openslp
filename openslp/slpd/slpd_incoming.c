@@ -151,6 +151,7 @@ static void IncomingDatagramRead(SLPList * socklist, SLPDSocket * sock)
             }
             break;
       }
+   }
 }
 
 /** Write inbound stream data.
