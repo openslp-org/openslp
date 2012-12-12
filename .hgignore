@@ -23,6 +23,7 @@ syntax: glob
 openslp/win32/ipch
 openslp/autom4te.cache
 openslp/aclocal.m4
+openslp/common/slp-compare-test
 openslp/common/slp-conf-test
 openslp/compile
 openslp/config.guess

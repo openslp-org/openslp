@@ -131,10 +131,12 @@ noinst_HEADERS = \
    slp_xid.h \
    slp_xmalloc.h
 
-TESTS = slp-conf-test
+TESTS = slp-conf-test slp-compare-test
 
-check_PROGRAMS = slp-conf-test
+check_PROGRAMS = slp-conf-test slp-compare-test
 
 slp_conf_test_CPPFLAGS = -DSLP_PROPERTY_TEST -DDEBUG -DHAVE_CONFIG_H
 slp_conf_test_SOURCES = slp_property.c slp_thread.c slp_debug.c slp_linkedlist.c slp_xmalloc.c
 
+slp_compare_test_CPPFLAGS = -DSLP_COMPARE_TEST -DDEBUG -DHAVE_CONFIG_H
+slp_compare_test_SOURCES = slp_compare.c slp_linkedlist.c slp_xmalloc.c

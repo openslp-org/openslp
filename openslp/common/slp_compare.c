@@ -66,17 +66,17 @@ int32_t u_strncasecmp(const UChar * s1, const UChar * s2,
 
 #ifndef _WIN32
 # ifndef HAVE_STRNCASECMP
-/** Case-insensitive, size-constrained, lexical comparison. 
+/** Case-insensitive, size-constrained, lexical comparison.
  *
- * Compares a specified maximum number of characters of two strings for 
+ * Compares a specified maximum number of characters of two strings for
  * lexical equivalence in a case-insensitive manner.
  *
  * @param[in] s1 - The first string to be compared.
  * @param[in] s2 - The second string to be compared.
  * @param[in] len - The maximum number of characters to compare.
- * 
+ *
  * @return Zero if at least @p len characters of @p s1 are the same as
- *    the corresponding characters in @p s2 within the ASCII printable 
+ *    the corresponding characters in @p s2 within the ASCII printable
  *    range; a value less than zero if @p s1 is lexically less than
  *    @p s2; or a value greater than zero if @p s1 is lexically greater
  *    than @p s2.
@@ -95,20 +95,20 @@ int strncasecmp(const char * s1, const char * s2, size_t len)
    }
    return len? (int)(*(unsigned char *)s1 - (int)*(unsigned char *)s2): 0;
 }
-# endif 
+# endif
 
 # ifndef HAVE_STRCASECMP
-/** Case-insensitive lexical comparison. 
+/** Case-insensitive lexical comparison.
  *
- * Compares two strings for lexical equivalence in a case-insensitive 
+ * Compares two strings for lexical equivalence in a case-insensitive
  * manner.
  *
  * @param[in] s1 - The first string to be compared.
  * @param[in] s2 - The second string to be compared.
- * 
- * @return Zero if @p s1 is the same as @p s2 within the ASCII printable 
+ *
+ * @return Zero if @p s1 is the same as @p s2 within the ASCII printable
  *    range; a value less than zero if @p s1 is lexically less than @p s2;
- *    or a value greater than zero if @p s1 is lexically greater than 
+ *    or a value greater than zero if @p s1 is lexically greater than
  *    @p s2.
  *
  * @internal
@@ -119,8 +119,8 @@ int strcasecmp(const char * s1, const char * s2)
       s1++, s2++;
    return (int)(*(unsigned char *)s1 - (int)*(unsigned char *)s2);
 }
-# endif 
-#endif 
+# endif
+#endif
 
 /** Convert a character to upper case using US ASCII rules. */
 #define usaupr(c) (((c) & 0xC0) == 0x40? (c) & ~0x20: (c))
@@ -131,9 +131,9 @@ int strcasecmp(const char * s1, const char * s2)
  *
  * @returns 1 if @p c is a valid hexadecimal character; 0 if not.
  */
-static int ishex(int c)	
+static int ishex(int c)
 {
-   c = usaupr(c); 
+   c = usaupr(c);
    return (c >= '0' && c <= '9') || ((c >= 'A' && c <= 'F')? 1: 0);
 }
 
@@ -145,24 +145,24 @@ static int ishex(int c)
  */
 static int hex2bin(int c)
 {
-   c = usaupr(c); 
+   c = usaupr(c);
    return c - (c <= '9'? '0': 'A' - 10);
 }
 
 /** Unescape an SLP string in place.
  *
- * Replace escape sequences with corresponding character codes in a 
+ * Replace escape sequences with corresponding character codes in a
  * specified string.
  *
  * @param[in] len - The length in bytes of @p str.
- * @param[in,out] str - The string in which escape sequences should be 
+ * @param[in,out] str - The string in which escape sequences should be
  *    replaced with corresponding characters.
  *
  * @returns The new (shorter) length of @p str.
  *
- * @note Since only valid escapeable characters may be escaped, we will 
- *    assume that escaped characters are sequences of bytes within the 
- *    0x00 - 0x7F range (ascii subset of utf-8). 
+ * @note Since only valid escapeable characters may be escaped, we will
+ *    assume that escaped characters are sequences of bytes within the
+ *    0x00 - 0x7F range (ascii subset of utf-8).
  */
 static int SLPUnescapeInPlace(size_t len, char * str)
 {
@@ -183,12 +183,12 @@ static int SLPUnescapeInPlace(size_t len, char * str)
 
 /** Fold internal white space within a string.
  *
- * Folds all internal white space to a single space character within a 
- * specified string. Modified the @p str parameter with the result and 
+ * Folds all internal white space to a single space character within a
+ * specified string. Modified the @p str parameter with the result and
  * returns the new length of the string.
  *
  * @param[in] len - The length in bytes of @p str.
- * @param[in,out] str - The string from which extraneous white space 
+ * @param[in,out] str - The string from which extraneous white space
  *    should be removed.
  *
  * @return The new (shorter) length of @p str.
@@ -197,7 +197,7 @@ static int SLPUnescapeInPlace(size_t len, char * str)
  *    already been removed from @p str.
  */
 static int SLPFoldWhiteSpace(size_t len, char * str)
-{         
+{
    char * p = str, * ep = str + len;
    while (p < ep)
    {
@@ -214,17 +214,17 @@ static int SLPFoldWhiteSpace(size_t len, char * str)
    return (int)len;
 }
 
-/** Lexical compare routine. 
+/** Lexical compare routine.
  *
- * Performs a lexical string compare on two normalized UTF-8 strings as 
+ * Performs a lexical string compare on two normalized UTF-8 strings as
  * described in RFC 2608, section 6.4.
- * 
+ *
  * @param[in] str1 - A pointer to string to be compared.
  * @param[in] str2 - A pointer to string to be compared.
  * @param[in] length - The maximum length to compare in bytes.
- * 
- * @return Zero if @p str1 is equal to @p str2, less than zero if @p str1 
- *    is greater than @p str2, greater than zero if @p str1 is less than 
+ *
+ * @return Zero if @p str1 is equal to @p str2, less than zero if @p str1
+ *    is greater than @p str2, greater than zero if @p str1 is less than
  *    @p str2.
  */
 static int SLPCompareNormalizedString(const char * str1,
@@ -237,9 +237,9 @@ static int SLPCompareNormalizedString(const char * str1,
    UChar * ustr2 = xmalloc((length + 1) * sizeof(UChar));
    if (ustr1 && ustr2)
    {
-      u_strFromUTF8(ustr1, (int32_t)length + 1, 0, str1, 
+      u_strFromUTF8(ustr1, (int32_t)length + 1, 0, str1,
             (int32_t)length, &uerr);
-      u_strFromUTF8(ustr2, (int32_t)length + 1, 0, str2, 
+      u_strFromUTF8(ustr2, (int32_t)length + 1, 0, str2,
             (int32_t)length, &uerr);
    }
    if (ustr1 != 0 && ustr2 != 0 && uerr == 0)
@@ -259,7 +259,7 @@ static int SLPCompareNormalizedString(const char * str1,
  * Normalizes a string by (optionally) removing leading and trailing white space,
  * folding internal white space, folding case (upper->lower), and unescaping
  * the string.
- * 
+ *
  * @param[in] len - The length of the string to be normalised, in bytes.
  * @param[in] srcstr - A pointer to the string to be normalised.
  * @param[in] dststr - A pointer to the buffer for the normalised string.
@@ -317,22 +317,22 @@ size_t SLPNormalizeString(size_t len, const char * srcstr, char * dststr, int tr
    return upd - dststr;
 }
 
-/** Compares two non-normalized strings. 
+/** Compares two non-normalized strings.
  *
  * Normalizes two strings by removing leading and trailing white space,
  * folding internal white space and unescaping the strings first, and then
  * calling SLPCompareNormalizedString (as per RFC 2608, section 6.4).
- * 
+ *
  * @param[in] str1 - A pointer to string to be compared.
  * @param[in] str1len - The length of str1 in bytes.
  * @param[in] str2 - A pointer to string to be compared.
  * @param[in] str2len - The length of str2 in bytes.
- * 
- * @return Zero if @p str1 is equal to @p str2, less than zero if @p str1 
- *    is greater than @p str2, greater than zero if @p str1 is less than 
+ *
+ * @return Zero if @p str1 is equal to @p str2, less than zero if @p str1
+ *    is greater than @p str2, greater than zero if @p str1 is less than
  *    @p str2.
  */
-int SLPCompareString(size_t str1len, const char * str1, 
+int SLPCompareString(size_t str1len, const char * str1,
       size_t str2len, const char * str2)
 {
    int result;
@@ -392,20 +392,20 @@ int SLPCompareString(size_t str1len, const char * str1,
    return result;
 }
 
-/** Compare service type for matching naming authority. 
+/** Compare service type for matching naming authority.
  *
- * Compares a service type string with a naming authority to determine 
- * if they refer to the same naming authority, as described in RFC 2608, 
+ * Compares a service type string with a naming authority to determine
+ * if they refer to the same naming authority, as described in RFC 2608,
  * section ??.
- * 
+ *
  * @param[in] srvtype - The service type to be compared.
  * @param[in] srvtypelen - The length of @p srvtype in bytes.
  * @param[in] namingauth - The naming authority to be matched.
  * @param[in] namingauthlen - The length of @p namingauth in bytes.
- * 
+ *
  * @return Zero if @p srvtype matches @p namingauth; non-zero if not.
  */
-int SLPCompareNamingAuth(size_t srvtypelen, const char * srvtype, 
+int SLPCompareNamingAuth(size_t srvtypelen, const char * srvtype,
       size_t namingauthlen, const char * namingauth)
 {
    const char * dot;
@@ -428,31 +428,31 @@ int SLPCompareNamingAuth(size_t srvtypelen, const char * srvtype,
    return 1;
 }
 
-/** Compare service types. 
+/** Compare service types.
  *
  * Determine if two service type strings refer to the same service type.
- * 
+ *
  * @param[in] lsrvtype - The first service type to be compared.
  * @param[in] lsrvtypelen - The length of @p lsrvtype in bytes.
  * @param[in] rsrvtype - The second service type to be compared.
  * @param[in] rsrvtypelen - The length of @p rsrvtype in bytes.
- * 
- * @return Zero if @p lsrvtype is the same as @p lsrvtype; non-zero 
+ *
+ * @return Zero if @p lsrvtype is the same as @p lsrvtype; non-zero
  *    if they are different.
  */
-int SLPCompareSrvType(size_t lsrvtypelen, const char * lsrvtype, 
+int SLPCompareSrvType(size_t lsrvtypelen, const char * lsrvtype,
       size_t rsrvtypelen, const char * rsrvtype)
 {
    char * colon;
 
    /* Skip "service:" */
-   if (strncasecmp(lsrvtype, "service:", lsrvtypelen > 8? 
+   if (strncasecmp(lsrvtype, "service:", lsrvtypelen > 8?
          8: lsrvtypelen) == 0)
    {
       lsrvtypelen = lsrvtypelen - 8;
       lsrvtype = lsrvtype + 8;
    }
-   if (strncasecmp(rsrvtype, "service:", rsrvtypelen > 8? 
+   if (strncasecmp(rsrvtype, "service:", rsrvtypelen > 8?
          8: rsrvtypelen) == 0)
    {
       rsrvtypelen = rsrvtypelen - 8;
@@ -480,16 +480,16 @@ int SLPCompareSrvType(size_t lsrvtypelen, const char * lsrvtype,
    return 1;
 }
 
-/** Scan a string list for a string. 
+/** Scan a string list for a string.
  *
  * Determine if a specified string list contains a specified string.
- * 
+ *
  * @param[in] list - A list of strings to search for @p string.
  * @param[in] listlen - The length of @p list in bytes.
  * @param[in] string - A string to locate in @p list.
  * @param[in] stringlen - The length of @p string in bytes.
- * 
- * @return Non-zero if @p string is found in @p list; zero if not.
+ *
+ * @return 1-based index of position of @p string in @p list; zero if not in list.
  *
  * @remarks The @p list parameter is a zero-terminated string consisting
  *    of a comma-separated list of sub-strings. This routine actually
@@ -511,7 +511,7 @@ int SLPContainsStringList(size_t listlen, const char * list, size_t stringlen,
       while (itemend != listend && itemend[0] != ',')
          itemend++;
 
-      if (SLPCompareString(itemend - itembegin, itembegin, 
+      if (SLPCompareString(itemend - itembegin, itembegin,
             stringlen, string) == 0)
          return (int)(1 + (itembegin - list));  /* 1-based index of the position of the string in the list */
 
@@ -520,15 +520,15 @@ int SLPContainsStringList(size_t listlen, const char * list, size_t stringlen,
    return 0;
 }
 
-/** Intersects two string lists. 
+/** Intersects two string lists.
  *
  * Calculates the number of common entries between two string-lists.
- * 
+ *
  * @param[in] list1 - A pointer to the string-list to be checked
  * @param[in] list1len - The length in bytes of the list to be checked
  * @param[in] list2 - A pointer to the string-list to be checked
  * @param[in] list2len - The length in bytes of the list to be checked
- * 
+ *
  * @return The number of common entries between @p list1 and @p list2.
  */
 int SLPIntersectStringList(size_t list1len, const char * list1,
@@ -544,10 +544,10 @@ int SLPIntersectStringList(size_t list1len, const char * list1,
       itembegin = itemend;
 
       /* Seek to the end of the next list item, break on commas. */
-      while (itemend != listend && itemend[0] != ',')
+      while (itemend < listend && itemend[0] != ',')
          itemend++;
 
-      if (SLPContainsStringList(list2len, list2, 
+      if (SLPContainsStringList(list2len, list2,
             itemend - itembegin, itembegin))
          result++;
 
@@ -557,7 +557,7 @@ int SLPIntersectStringList(size_t list1len, const char * list1,
 }
 
 /** Intersects two string lists, and removes the common entries from
- * the second list. 
+ * the second list.
  *
  * @param[in] list1len - The length in bytes of the list to be checked
  * @param[in] list1 - A pointer to the string-list to be checked
@@ -565,7 +565,7 @@ int SLPIntersectStringList(size_t list1len, const char * list1,
  *     and updated
  * @param[in] list2 - A pointer to the string-list to be checked and
  *     updated
- * 
+ *
  * @return The number of common entries between @p list1 and @p list2.
  */
 int SLPIntersectRemoveStringList(int list1len,
@@ -622,7 +622,7 @@ int SLPIntersectRemoveStringList(int list1len,
             list2end = dest;
         }
 
-        itemend++;    
+        itemend++;
     }
 
     *list2len = (int)(list2end - (char *)list2);
@@ -630,34 +630,34 @@ int SLPIntersectRemoveStringList(int list1len,
     return result;
 }
 
-/** Take the union of two string lists. 
+/** Take the union of two string lists.
  *
- * Generates a string list that contains all unique strings within 
+ * Generates a string list that contains all unique strings within
  * two specified string lists.
- * 
+ *
  * @param[in] list1 - A pointer to the first string-list.
  * @param[in] list1len - The length in bytes of @p list1.
  * @param[in] list2 - A pointer to the second string-list.
  * @param[in] list2len - The length in bytes of @p list2.
  * @param[out] unionlist - A pointer to a buffer that will receive
  *    the union of @p list1 and @p list2.
- * @param[in,out] unionlistlen - A pointer to the size in bytes of the 
- *    @p unionlist buffer on entry; also receives the number of bytes 
+ * @param[in,out] unionlistlen - A pointer to the size in bytes of the
+ *    @p unionlist buffer on entry; also receives the number of bytes
  * written to the @p unionlist buffer on success.
- * 
- * @return The length of the resulting union list, or a negative value 
+ *
+ * @return The length of the resulting union list, or a negative value
  *    if @p unionlist is not large enough. If a negative value is returned
  *    @p *unionlist will return the required size of @p unionlist.
- * 
- * @remarks In order ensure that @p unionlist does not contain duplicates, 
- *    @p list1 must not have any duplicates. Also, as a speed optimization, 
- *    if neither @p list1 nor @p list2 contain internal duplicates, the 
+ *
+ * @remarks In order ensure that @p unionlist does not contain duplicates,
+ *    @p list1 must not have any duplicates. Also, as a speed optimization,
+ *    if neither @p list1 nor @p list2 contain internal duplicates, the
  *    larger list should be passed in as @p list1.
  *
- * @remarks To avoid buffer overflow errors pass @p list1len + 
+ * @remarks To avoid buffer overflow errors pass @p list1len +
  *    @p list2len + 1 as the value for @p unionlistlen.
  */
-int SLPUnionStringList(size_t list1len, const char * list1, size_t list2len, 
+int SLPUnionStringList(size_t list1len, const char * list1, size_t list2len,
       const char * list2, size_t * unionlistlen, char * unionlist)
 {
    char * listend = (char *)list2 + list2len;
@@ -713,25 +713,25 @@ int SLPUnionStringList(size_t list1len, const char * list1, size_t list2len,
    return (int)copiedlen;
 }
 
-/** Test if a list is a proper sub-set of another list. 
+/** Test if a list is a proper sub-set of another list.
  *
  * Determines if @p sublist is a proper sub-set of @p list.
- * 
+ *
  * @param[in] list - The list to compare @p sublist against.
  * @param[in] listlen - The length of @p list in bytes.
  * @param[in] sublist - The sub-list to be compared against @p list.
  * @param[in] sublistlen - The length of @p sublist in bytes.
- * 
+ *
  * @return A Boolean value; true if @p sublist is a proper subset of
  *    @p list; false if not.
  */
-int SLPSubsetStringList(size_t listlen, const char * list, 
+int SLPSubsetStringList(size_t listlen, const char * list,
       size_t sublistlen, const char * sublist)
 {
    unsigned curpos;
    int sublistcount;
 
-   /* Quick check for empty lists. Note that an empty sub-list is not 
+   /* Quick check for empty lists. Note that an empty sub-list is not
     * considered a proper subset of any value of list.
     */
    if (sublistlen == 0 || listlen == 0)
@@ -748,18 +748,18 @@ int SLPSubsetStringList(size_t listlen, const char * list,
    }
 
    /* Intersect the lists, return 1 if proper subset, 0 if not. */
-   return SLPIntersectStringList(listlen, list, sublistlen, 
+   return SLPIntersectStringList(listlen, list, sublistlen,
          sublist) == sublistcount? 1 : 0;
 }
 
-/** Test URL conformance. 
+/** Test URL conformance.
  *
- * Test if a service URL conforms to accepted syntax as described in 
+ * Test if a service URL conforms to accepted syntax as described in
  * RFC 2608, section ??.
- * 
+ *
  * @param[in] srvurl     The service url string to check.
  * @param[in] srvurllen  The length of @p srvurl in bytes.
- * 
+ *
  * @return Zero if @p srvurl has acceptable syntax, non-zero on failure.
  */
 int SLPCheckServiceUrlSyntax(const char * srvurl, size_t srvurllen)
@@ -782,14 +782,14 @@ int SLPCheckServiceUrlSyntax(const char * srvurl, size_t srvurllen)
    return 0;
 }
 
-/** Test URL conformance. 
+/** Test URL conformance.
  *
- * Test if a service URL conforms to accepted syntax as described in 
+ * Test if a service URL conforms to accepted syntax as described in
  * RFC 2608, section ??.
- * 
+ *
  * @param[in] attrlist - The attribute list string to check.
  * @param[in] attrlistlen - The length of @p attrlist in bytes.
- * 
+ *
  * @return Zero if @p srvurl has acceptable syntax, non-zero on failure.
  */
 int SLPCheckAttributeListSyntax(const char * attrlist, size_t attrlistlen)
@@ -818,5 +818,59 @@ int SLPCheckAttributeListSyntax(const char * attrlist, size_t attrlistlen)
    }
    return 0;
 }
+
+#ifdef SLP_COMPARE_TEST
+
+/* ---------------- Test main for the slp_compare.c module ----------------
+ *
+ * Compile with:
+ *    gcc -g -Wall -I .. -o0 -D SLP_COMPARE_TEST -D DEBUG -D HAVE_CONFIG_H \
+ *       -o slp-compare-test slp_compare.c slp_linkedlist.c slp_xmalloc.c
+ */
+int main(void)
+{
+   /* test data */
+   static char lst1[] = "item_a_1,item_aa_2,item_aaa_3, item_aaaa_4";
+   static char lst2[] = "item_a_1";
+   static char lst3[] = "item_aa_2, item_aaaaa_5";
+   static char lst4[] = "item_aaaaa_5,item_aaaaaa_6";
+   static char str1[] = "item_x";
+   static char str2[] = "item_a_1";
+   static char str3[] = "item_aa_2";
+
+   int count;
+
+   /* *** SLPContainsStringList ***
+    */
+   count = SLPContainsStringList(sizeof lst1 - 1, lst1, sizeof str1 - 1, str1);
+   if (count != 0)
+      return -1;
+
+   count = SLPContainsStringList(sizeof lst1 - 1, lst1, sizeof str2 - 1 , str2);
+   if (count != 1)
+      return -1;
+
+   count = SLPContainsStringList(sizeof lst1 - 1, lst1, sizeof str3 - 1, str3);
+   if (count != 10)
+      return -1;
+
+   /* *** SLPIntersectStringList ***
+    */
+   count = SLPIntersectStringList(sizeof lst1 - 1, lst1, sizeof lst2 - 1, lst2);
+   if (count != 1)
+      return -1;
+
+   count = SLPIntersectStringList(sizeof lst1 - 1, lst1, sizeof lst3 - 1, lst3);
+   if (count != 1)
+      return -1;
+
+   count = SLPIntersectStringList(sizeof lst1 - 1, lst1, sizeof lst4 - 1, lst4);
+   if (count != 0)
+      return -1;
+
+   return 0;
+}
+
+#endif /* SLP_COMPARE_TEST */
 
 /*=========================================================================*/
