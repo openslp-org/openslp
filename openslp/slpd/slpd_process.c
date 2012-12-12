@@ -1475,9 +1475,11 @@ int SLPDProcessMessage(struct sockaddr_storage * peerinfo,
                goto FINISHED;
 
             /* TRICKY: If there is an error we need to free the
-             * duplicated recvbuf
+             * duplicated recvbuf - then clear the recvbuf pointer
+             * so SLPDLogMessage() doesn't crash below.
              */
             SLPBufferFree(recvbuf);
+            recvbuf = 0;
          }
          SLPMessageFree(message);
       }
