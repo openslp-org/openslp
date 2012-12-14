@@ -103,7 +103,7 @@ const char * inet_ntop(int af, const void * src, char * dst, size_t size);
 # include <net/if.h>
 # include <net/if_arp.h>
 # include <netdb.h>
-#if defined(LINUX)
+#if defined(LINUX) || defined (DARWIN)
 # include <ifaddrs.h>
 #endif
 
