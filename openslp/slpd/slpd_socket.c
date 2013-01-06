@@ -259,6 +259,9 @@ static int BindSocketToInetAddr(int family, sockfd_t sock,
    }
 
    result = setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char *)&reuse, sizeof(reuse));
+#if DARWIN
+	 result = setsockopt(sock, SOL_SOCKET, SO_REUSEPORT, (char *)&reuse, sizeof(reuse));
+#endif
    result = bind(sock, (struct sockaddr *)addr, addrsz);
 #ifndef _WIN32
    if (result == 0)

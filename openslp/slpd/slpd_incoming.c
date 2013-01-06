@@ -52,6 +52,10 @@
 #include "slp_v1message.h"
 #include "slp_net.h"
 
+#ifdef DARWIN
+#include "slp_network.h"
+#endif
+
 SLPList G_IncomingSocketList =
 {
    0, 0, 0
@@ -100,7 +104,7 @@ static void IncomingDatagramRead(SLPList * socklist, SLPDSocket * sock)
             /* If the socket is a multicast socket, find the designated UDP output socket for sending */
             if (sock->state == DATAGRAM_MULTICAST)
                if ((sendsock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) != SLP_INVALID_SOCKET)
-                  SLPNetworkSetSndRcvBuf(sendsock, 0);
+                  SLPNetworkSetSndRcvBuf(sendsock);
 #endif
             if (sendsock == SLP_INVALID_SOCKET)
                sendsock = sock->fd;
@@ -113,7 +117,7 @@ static void IncomingDatagramRead(SLPList * socklist, SLPDSocket * sock)
                while (sock->sendbuf->curpos < sock->sendbuf->end)
                {
                   int packetbytes = AS_UINT24(sock->sendbuf->curpos + 2);
-                  byteswritten = sendto(sock->fd, (char*)sock->sendbuf->curpos,
+                  byteswritten = sendto(sendsock, (char*)sock->sendbuf->curpos,
                         packetbytes, 0, (struct sockaddr *)&sock->peeraddr,
                         SLPNetAddrLen(&sock->peeraddr));
 
