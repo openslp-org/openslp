@@ -19,7 +19,9 @@ syntax: glob
 *_y.h
 *.sdf
 *.suo
-*.vcxproj.user
+*.ncb
+*.vcxproj.*user
+*.vcproj.*user
 openslp/win32/ipch
 openslp/autom4te.cache
 openslp/aclocal.m4

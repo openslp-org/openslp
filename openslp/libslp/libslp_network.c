@@ -1126,7 +1126,7 @@ SLPError NetworkMcastRqstRply(SLPHandleInfo * handle, void * buf,
           */
          size = (int)CalcBufferSize(isV1, buftype, langtaglen, prlistlen, bufsize);
 
-         if (size > mtu)
+         if (size > (int)mtu)
          {
             if (!xmitcount)
                result = SLP_BUFFER_OVERFLOW;
@@ -1963,7 +1963,7 @@ SLPError NetworkMultiUcastRqstRply(
                                      (char*)udp_recvbuf->curpos,
                                      (int)(udp_recvbuf->end - udp_recvbuf->curpos),
                                      0);
-                    if (bytesread != mtu)
+                    if (bytesread != (int)mtu)
                     {
                         /* This should never happen but we'll be paranoid*/
                         udp_recvbuf->end = udp_recvbuf->curpos + bytesread;
@@ -2007,7 +2007,7 @@ SLPError NetworkMultiUcastRqstRply(
                     if (bytes_sent > 0)
                     {
                         pconn->send_offset += bytes_sent;
-                        if (pconn->send_offset >= send_size)
+                        if (pconn->send_offset >= (int)send_size)
                         {
                             pconn->state = CONN_TCP_RECEIVE;
                         }
