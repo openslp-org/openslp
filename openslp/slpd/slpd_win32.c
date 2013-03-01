@@ -132,7 +132,7 @@ static void InterfaceMonitorInit(struct interface_monitor *self)
    {
       self->pNotifyIpInterfaceChange = (PNotifyIpInterfaceChange) GetProcAddress(self->hNetIoLib, "NotifyIpInterfaceChange");
       self->pCancelMibChangeNotify2 = (PCancelMibChangeNotify2) GetProcAddress(self->hNetIoLib, "CancelMibChangeNotify2");
-      if (!(self->pNotifyIpInterfaceChange && self->pNotifyIpInterfaceChange))
+      if (!(self->pNotifyIpInterfaceChange && self->pCancelMibChangeNotify2))
       {
          FreeLibrary(self->hNetIoLib);
          self->hNetIoLib = NULL;
