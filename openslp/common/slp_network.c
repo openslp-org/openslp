@@ -275,7 +275,11 @@ int SLPNetworkRecvMessage(sockfd_t sockfd, int socktype,
           * data queued on the socket is larger than the specified buffer. 
           * Just ignore it.
           */
-         if (WSAGetLastError() != WSAEMSGSIZE)
+         if (WSAGetLastError() == WSAEMSGSIZE)
+		 {
+			 xferbytes = 16;
+		 }
+		 else
 #endif
          {
             errno = ENOTCONN;
