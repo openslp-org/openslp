@@ -1,10 +1,137 @@
 ============================================================================
-OpenSLP Change Log (HEAD)
+OpenSLP Change Log (tip)
 -------------------------
-Please make entries to this log (in addition to the CVS log) that describe 
+Please make entries to this log (in addition to the hg log) that describe 
 major changes to the OpenSLP code base.  An entries should be separated by
 blank lines and include the date, developer's email, and change description.
 =============================================================================
+
+*** TAG openslp-2.0.0 ***
+
+07/06/2013   John Calcote <john.calcote@gmail.com>
+Prepare for 2.0.0 release. Update ChangeLog, NEWS, configure.ac (version), etc. Tag as openslp-2.0.0
+
+14/05/2013   nwagner@nwagner7-32132.etclink.net
+Added Robert Hegner's fixes to get slptool working again on Windows.
+
+28/02/2013   John Calcote <john.calcote@gmail.com>
+glambert: Fix to win32 interface change notify code.
+
+22/02/2013   John Calcote <john.calcote@gmail.com>
+A few tweaks to the Windows build system and the hgignore file.
+
+25/01/2013   John Calcote <john.calcote@gmail.com>
+patch - snewton: fix slptool to honor -s scope list.
+
+05/01/2013   Nick Wagner <nevyn@wingedbeast.org>
+Added OS X fix to allow response to multicast requests.
+
+13/12/2012   Nick Wagner <nevyn@wingedbeast.org>
+I haven't done any testing yet, but now it compiles on OS X lion...
+
+12/12/2012   John Calcote <john.calcote@gmail.com>
+Add basic unit test framework and a few tests for slp_compare.c; Thales buffer patch to fix SLPDLogMessage crash. Fix compiler errors from ticket #114 fix that were accidentally left out.
+
+10/12/2012   John Calcote <john.calcote@gmail.com>
+Ticket #114: general improvements from Thales UK. Ticket #115: cross platform improvements (AIX/HPUX)
+
+07/12/2012   John Calcote <john.calcote@gmail.com>
+SuSE patch: openslp.lifetime.diff; SuSE patch: openslp.slpdreconnect.diff; Fix windows build errors/warnings resulting from last set of linux patches. SuSE patch: openslp.loopbacksocket.diff; SuSE patch: openslp.fixdsareturn.diff; SuSE patch: openslp.doublequal.diff - allow double equal in predicates. SuSE patch: openslp.emptyanswer.diff - handle empty response. SuSE patch: openslp.checkovr.diff; SuSE patch: openslp.tcpclearovr.diff; SuSE patch: openslp.v1sladdr.diff - v1 message multicast listener; Suppress Linux warnings in (flex) generated code (gcc 4.2 or later). 
+
+06/12/2012   John Calcote <john.calcote@gmail.com>
+Fix all warnings on linux build (ubuntu 12.04); SuSE patch: poll.diff - use poll over select when available. version: update version and website in preparation for 2.0 release; Update .hgignore file to properly handle explicit file references
+
+28/11/2012   John Calcote <john.calcote@gmail.com>
+win32: fix broken win32 build due to previous patches; Really add the .hgignore file this time. :); compac: dynamic network interface reinitialization; ibm: interface naming enhancements; ibm: interface speed enhancements; ibm: interface parsing improvements; Add .hgignore file to root of repo.
+
+14/11/2012   jcalcote@users.sourceforge.net
+Convert some source files to unix line endings. SuSE patch: v1dadiscovery.diff
+
+12/11/2012   jcalcote@users.sourceforge.net
+SuSE patch: openslp.audit.diff
+
+10/11/2012   jcalcote@users.sourceforge.net
+SuSE patch: openslp.diff; SuSE patch: fix inadvertent compile error introduced with this patch. SuSE patch: slptool-timeout.diff; SuSE patch: openslp.clrflags.diff; SuSE patch: hppa.diff
+
+06/11/2012   nick_wagner@users.sourceforge.net
+Addressed bug http://sourceforge.net/tracker/?func=detail&aid=1751139&group_id=1730&atid=101730.
+
+02/11/2012   nick_wagner@users.sourceforge.net
+Added change to debian init.d to write a pid file, added in Jim Marshall's AIX building patches.
+
+01/11/2012   jcalcote@users.sourceforge.net
+Fix AIX atomic - should calculate proper return value based on specified mod.
+
+18/10/2012   jcalcote@users.sourceforge.net
+Enhance daemonizing code to daemonize before general initialization, close all file handles before detaching, and drop privileges after sockets are open.
+
+12/10/2012   nick_wagner@users.sourceforge.net
+Merged in the ability to make MAX_SLP_IFACES.  Patch supplied by David Stevens (dlstevens@us.ibm.com)
+
+27/02/2012   rkraats@users.sourceforge.net
+Applied Dan Streetman's rename_memdup.patch to prevent conflicts with net-snmp (see http://sourceforge.net/tracker/?func=detail&aid=3481708&group_id=1730&atid=351730)
+
+22/12/2011   gingerprince@users.sourceforge.net
+Fixed signed/unsigned mismatch warning as pointed out by Gerard van den Bosch [gerard@de-haardt.com]
+
+17/11/2011   gingerprince@users.sourceforge.net
+change static buffer for loopback DAAdvert request to resize itself dynamically
+
+15/11/2011   gingerprince@users.sourceforge.net
+update slp_buffer.c to check the result of the xrealloc
+
+27/09/2011   jcalcote@users.sourceforge.net
+Remove metacharacter translation in java client. Update log4j library.
+
+19/09/2011   nick_wagner@users.sourceforge.net
+Added support for experimental net.slp.preferSLPv1 conf parameter.  We can now request slp attributes with the slpv1 command.  Fixed several slpv1 related bugs, although we still won't be able to do many v1 requests.
+
+01/08/2011   rkraats@users.sourceforge.net
+slptool now clears the net.slp.watchRegistrationPID property before calling
+
+29/07/2011   jcalcote@users.sourceforge.net
+Added VS2010 solution and project files; updated code with minor changes to fix new warnings for VS2010.
+
+25/07/2011   rkraats@users.sourceforge.net
+Use the same 'multi-unicast' method (see r1597) as findsrvs and findattrs for findsrvtypes.
+
+14/06/2011   jcalcote@users.sourceforge.net
+Updated the doxygen doc logo to reflect the new website format. Modify download.html page to reflect 2.0 beta2 downloads.
+
+13/06/2011   jcalcote@users.sourceforge.net
+64-bit Windows msi installer builds: enhance build scripts. Upgrade win32 projects to VS 2008. Enhance projects to build amd64 builds. Enhance msi build scripts to copy build x64 msi files.
+
+11/06/2011   jcalcote@users.sourceforge.net
+Minor typecasts and other changes required for a clean 64-bit windows build. Update WIX project files for building msi installer; changes for WIX 3.5.
+
+08/06/2011   mlschroe@users.sourceforge.net
+- fix double free if SLPDKnownDAAdd() fails
+
+07/06/2011   mlschroe@users.sourceforge.net
+- fix NetworkDisconnectSA/DA to work even if file descriptor zero
+
+25/05/2011   rkraats@users.sourceforge.net
+Fixed bug introduced in r1597, causing 'slptool findsrvtypes' to fail in case another host acts as DA.
+
+10/05/2011   rkraats@users.sourceforge.net
+Explicitly check for functions to set mutex recursive.
+
+04/05/2011   jcalcote@users.sourceforge.net
+Tagging 2.0 beta2 release.
+
+04/05/2011   rkraats@users.sourceforge.net
+Use stdout for log if log file couldn't be opened.
+
+02/05/2011   alanadams@users.sourceforge.net
+Fix broken FAQ link. Clean up additional files orphaned by the latest web update.
+
+*** TAG 2.0.beta2 ***
+
+02/05/2011   jcalcote@users.sourceforge.net
+Updated ChangeLog, NEWS, and AUTHORS in preparation for 2.0.0 beta 2 release.
+
+02/05/2011 alanadams@users.sourceforge.net
+Web site update to apply consistent template across both the main site and documentation pages.  Addition of print style sheet.  Updated download buttons to be SF-style blocks.
 
 01/05/2011 alanadams@users.sourceforge.net
 Web site update to apply consistent template across both the main site and documentation pages.  Addition of print style sheet.  Updated download buttons to be SF-style blocks.

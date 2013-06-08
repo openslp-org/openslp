@@ -1,6 +1,11 @@
 NEWS - list of user-visible changes between releases of OpenSLP and other
 important events.
 
+New in openslp-2.0.0
+--------------------
+* Suse patches applied except for those that add significant new features
+  or change the standard interface.
+
 New in openslp-2.0.0 beta 2
 ---------------------------
 * bug fixes and general hardening.

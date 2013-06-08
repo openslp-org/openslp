@@ -2,7 +2,7 @@
 ## Process this file with autoconf to produce a configure script
 #
 AC_PREREQ(2.59)
-AC_INIT([OpenSLP], [2.0], [openslp-devel@lists.sourceforge.net])
+AC_INIT([OpenSLP], [2.0.0], [openslp-devel@lists.sourceforge.net])
 AM_INIT_AUTOMAKE
 AC_CANONICAL_HOST
 AC_CONFIG_HEADERS([config.h])

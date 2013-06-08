@@ -23,7 +23,7 @@ rem root of the WIX tool set directory.
 
 set package=openslp
 set version=2.0.0
-set revision=beta2
+set revision=0
 set arch=win32
 set build=release
 
