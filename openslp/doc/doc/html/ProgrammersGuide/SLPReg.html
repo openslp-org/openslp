@@ -267,7 +267,8 @@ to the SLPRegReport callback function.</p>
 
 <h3>Example Code</h3>
 
-<pre>#include &lt;slp.h&gt;
+<pre>
+  #include &lt;slp.h&gt;
 
   void MySLPRegReport(SLPHandle hslp, SLPError errcode, void* cookie)
   {
@@ -275,11 +276,12 @@ to the SLPRegReport callback function.</p>
  
       *(SLPError*)cookie = errcode;
       
-      /* You could do something else here like print out    */
-      /* the errcode, etc.  Remember, as a general rule,    */
-      /* do not try to do too much in a callback because    */
-      /* it is being executed by the same thread that is    */
-      /* reading slp packets from the wire.                 */
+      /* You could do something else here like print out
+       * the errcode, etc.  Remember, as a general rule,
+       * do not try to do too much in a callback because
+       * it is being executed by the same thread that is
+       * reading slp packets from the wire.
+       */
   }
   
   int main(int argc, char* argv[])
@@ -288,17 +290,16 @@ to the SLPRegReport callback function.</p>
       SLPError callbackerr;
       SLPHandle hslp;
       
-      err = SLPOpen(&quot;en&quot;,SLP_FALSE,&amp;hslp);
+      err = SLPOpen(&quot;en&quot;, SLP_FALSE, &amp;hslp);
  
-      if(err != SLP_OK)
+      if (err != SLP_OK)
       {
-          printf(&quot;Error opening slp handle %i\n&quot;,err);
+          printf(&quot;Error opening slp handle %i\n&quot;, err);
           return err;
       }
       
       /* Register a service with SLP */
-      err =
-          SLPReg(
+      err = SLPReg(
               hslp,
               &quot;service:myservice.myorg://hostname.domain.com:6672&quot;,
               SLP_LIFETIME_MAXIMUM,
@@ -306,34 +307,35 @@ to the SLPRegReport callback function.</p>
               &quot;(public_key=......my_pgp_key.......)&quot;,
               SLP_TRUE,
               MySLPRegReport,
-              &amp;callbackerr );
+              &amp;callbackerr);
 
-      /* err may contain an error code that occurred as the slp library    */
-      /* _prepared_ to make the call.                                      */
-      if(( err != SLP_OK) || (callbackerr != SLP_OK))
+      /* err may contain an error code that occurred as the slp library
+       * _prepared_ to make the call.
+       */
+      if (err != SLP_OK)
       {
-          printf(&quot;Error registering service with slp %i\n&quot;,err);
+          printf(&quot;Error registering service with slp %i\n&quot;, err);
           return err;
       }
       
-      /* callbackerr may contain an error code (that was assigned through  */
-      /* the callback cookie) that occurred as slp packets were sent on    */
-      /* the wire */
-      if( callbackerr != SLP_OK)
+      /* callbackerr may contain an error code (that was assigned through
+       * the callback cookie) that occurred as slp packets were sent on
+       * the wire.
+       */
+      if (callbackerr != SLP_OK)
       {
-          printf(&quot;Error registering service with slp %i\n&quot;,callbackerr);
+          printf(&quot;Error registering service with slp %i\n&quot;, callbackerr);
           return callbackerr;
       }
       
       /* Now that we're done using slp, close the slp handle */
       SLPClose(hslp);
       
-      /* rest of program */
+      /* the rest of program */
   }
 </pre>
 
-<p id="breadcrumbs0">Prepared by: <a href="http://www.calderasystems.com">Caldera Systems Inc</a><br />
-Maintained by: <a href="http://www.openslp.org/">openslp.org</a></p>
+<p id="breadcrumbs0">Maintained by: <a href="http://www.openslp.org/">openslp.org</a></p>
 
                 <!-- #EndEditable -->
                 </div>
