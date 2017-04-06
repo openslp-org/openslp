@@ -588,13 +588,10 @@ int SLPIntersectRemoveStringList(int list1len,
         /* seek to the end of the next list item */
         while(1)
         {
-            if(itemend == listend || *itemend == ',')
-            {
-                if(*(itemend - 1) != '\\')
-                {
-                    break;
-                }
-            }
+            if(itemend == listend)
+                break;
+            if(*itemend == ',' && *(itemend - 1) != '\\')
+                break;
 
             itemend++;
         }
@@ -684,9 +681,10 @@ int SLPUnionStringList(size_t list1len, const char * list1, size_t list2len,
       /* seek to the end of the next list item */
       while (1)
       {
-         if (itemend == listend || *itemend == ',')
-            if (*(itemend - 1) != '\\')
-               break;
+         if(itemend == listend)
+             break;
+         if(*itemend == ',' && *(itemend - 1) != '\\')
+             break;
          itemend++;
       }
 
