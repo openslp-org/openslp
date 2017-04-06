@@ -1087,7 +1087,7 @@ int SLPIfaceGetInfo(const char * useifaces, SLPIfaceInfo * ifaceinfo,
                   }
                }
                else
-                  sts = (errno = EINVAL), -1;   /* not v4, not v6 */
+                  sts = ((errno = EINVAL), -1); /* not v4, not v6 */
             }
             else if (if_nametoindex(token))
             {
