@@ -1,6 +1,8 @@
 .cproject
+.codelite
 .project
 .settings
+OpenSLP.workspace
 openslp/win32/.*x64
 openslp/win32/.*Win32
 Makefile
@@ -62,3 +64,4 @@ openslp/common/slp-conf-test.trs
 openslp/common/test-suite.log
 openslp/openslp-*.tar.gz
 openslp/test-driver
+
