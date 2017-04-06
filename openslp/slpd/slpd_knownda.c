@@ -574,7 +574,7 @@ int SLPKnownDAFromProperties()
                {
                   if (SLPNetIsIPV6() && ai_ref->ai_addr->sa_family == AF_INET6)
                   {
-                     memcpy(&daaddr, &ai_ref->ai_addr,
+                     memcpy(&daaddr, ai_ref->ai_addr,
                            sizeof(struct sockaddr_in6));
                      daaddr_isset = 1;
                      break;
@@ -584,7 +584,7 @@ int SLPKnownDAFromProperties()
                         && !daaddr_isset
                         && ai_ref->ai_addr->sa_family == AF_INET)
                   {
-                     memcpy(&daaddr, &ai_ref->ai_addr,
+                     memcpy(&daaddr, ai_ref->ai_addr,
                            sizeof(struct sockaddr_in));
                      daaddr_isset = 1;
                      /* we'll continue searching for an IPv6 address, but we'll use the first IPv4 address if none are found */
