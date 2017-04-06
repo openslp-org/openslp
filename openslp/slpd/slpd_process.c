@@ -615,13 +615,17 @@ RESPOND:
          else
 #endif
          {
-            /* Use an opaque copy if available (and authentication is
-             * not being used).
-             */
+            /* Use an opaque copy if available. */
 
             /* TRICKY: Fix up the lifetime. */
             TO_UINT16(urlentry->opaque + 1, urlentry->lifetime);
             memcpy(result->curpos, urlentry->opaque, urlentry->opaquelen);
+
+            /* TRICKY: Fix up the result authblock count. */
+            if (urlentry->authcount)
+                result->curpos[1 + 2 + 2 + urlentry->urllen] = (uint8_t)urlentry->authcount;
+                /* 1 reserved + 2 lifetime + 2 url length */
+
             result->curpos += urlentry->opaquelen;
          }
       }
