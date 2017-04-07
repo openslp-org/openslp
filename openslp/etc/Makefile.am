@@ -4,7 +4,7 @@ dist_sysconf_DATA = slp.conf slp.reg slp.spi
 
 #make sure the slpd log directory is there
 install-data-hook:
-	mkdir -p $(localstatedir)/log
+	mkdir -p $(DESTDIR)$(localstatedir)/log
 
 ##install-data-local:
 ##	mkdir -p $(DESTDIR)$(sysconfdir)
