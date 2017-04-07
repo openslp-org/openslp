@@ -645,7 +645,7 @@ static int SLPIfaceGetV6Addr(SLPIfaceInfo * ifaceinfo)
  *
  * @internal
  */
-int sizeof_ifreq(struct ifreq* ifr)
+static int sizeof_ifreq(struct ifreq* ifr)
 {
 #ifdef HAVE_SOCKADDR_STORAGE_SS_LEN
   int len = ifr->ifr_addr.sa_len + sizeof(ifr->ifr_name);

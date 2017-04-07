@@ -106,7 +106,7 @@ static xallocation_t * _xmalloc_find(void * ptr)
  *
  * @return A pointer to the newly allocated memory block.
  */
-void * _xmalloc(const char * file, int line, size_t size)
+void * slp_xmalloc(const char * file, int line, size_t size)
 {
    xallocation_t * x;
 
@@ -161,10 +161,10 @@ void * _xmalloc(const char * file, int line, size_t size)
  *
  * @return A pointer to the newly allocated and cleared memory block.
  */
-void * _xcalloc(const char * file, int line, int numblks, size_t size)
+void * slp_xcalloc(const char * file, int line, int numblks, size_t size)
 {
    size_t blksz = numblks * size;
-   void * ptr = _xmalloc(file, line, blksz);
+   void * ptr = slp_xmalloc(file, line, blksz);
    if (ptr)
       memset(ptr, 0, blksz);
    return ptr;
@@ -183,16 +183,16 @@ void * _xcalloc(const char * file, int line, int numblks, size_t size)
  *    NULL for @p buf actually allocates a new buffer, passing 0 
  *    for @p size actually allocates a new buffer.
  */
-void * _xrealloc(const char * file, int line, void * ptr, size_t size)
+void * slp_xrealloc(const char * file, int line, void * ptr, size_t size)
 {
    xallocation_t * x;
 
    if (!ptr)
-      return _xmalloc(file, line, size);
+      return slp_xmalloc(file, line, size);
 
    if (!size)
    {
-      _xfree(file, line, ptr);
+      slp_xfree(file, line, ptr);
       return 0;
    }
 
@@ -202,9 +202,9 @@ void * _xrealloc(const char * file, int line, void * ptr, size_t size)
       void * newptr = ptr;
       if (x->size != size)
       {
-         newptr = _xmalloc(file, line, size);
+         newptr = slp_xmalloc(file, line, size);
          memcpy(newptr, ptr, x->size);
-         _xfree(file, line, x);
+         slp_xfree(file, line, x);
       }
       return newptr;
    }
@@ -225,10 +225,10 @@ void * _xrealloc(const char * file, int line, void * ptr, size_t size)
  * @return A pointer to the duplicated string, or NULL on memory
  *    allocation failure.
  */
-char * _xstrdup(const char * file, int line, const char * str)
+char * slp_xstrdup(const char * file, int line, const char * str)
 {
    size_t strsz = strlen(str) + 1;
-   char * ptr = _xmalloc(file, line, strsz);
+   char * ptr = slp_xmalloc(file, line, strsz);
    if (ptr)
       memcpy(ptr, str, strsz);
    return ptr;
@@ -244,9 +244,9 @@ char * _xstrdup(const char * file, int line, const char * str)
  * @return A pointer to the duplicated memory block, or NULL on memory
  *    allocation failure.
  */
-void * _xmemdup(const char * file, int line, const void * ptr, size_t size)
+void * slp_xmemdup(const char * file, int line, const void * ptr, size_t size)
 {
-   void * cpy = _xmalloc(file, line, size);
+   void * cpy = slp_xmalloc(file, line, size);
    if (cpy)
       memcpy(cpy, ptr, size);
    return cpy;
@@ -258,7 +258,7 @@ void * _xmemdup(const char * file, int line, const void * ptr, size_t size)
  * @param[in] line - The line number where @e xfree was called.
  * @param[in] ptr - The address of the block to be free'd.
  */
-void _xfree(const char * file, int line, void * ptr)
+void slp_xfree(const char * file, int line, void * ptr)
 {
    xallocation_t * x;
 
@@ -290,7 +290,7 @@ void _xfree(const char * file, int line, void * ptr)
  * @return A boolean true (1) on success, or false (0) the log file 
  *    fails to open.
 */
-int xmalloc_init(const char * filename, size_t freemem)
+int slp_xmalloc_init(const char * filename, size_t freemem)
 {
    G_xmalloc_fh = fopen(filename, "w");
    if (G_xmalloc_fh == 0)
@@ -303,7 +303,7 @@ int xmalloc_init(const char * filename, size_t freemem)
  *
  * @return 0
  */
-int xmalloc_report(void)
+int slp_xmalloc_report(void)
 {
    xallocation_t * x;
 
@@ -325,7 +325,7 @@ int xmalloc_report(void)
 
 /** Deinitialize the debug memory allocator.
  */
-void xmalloc_deinit(void)
+void slp_xmalloc_deinit(void)
 {
    xmalloc_report();
 
@@ -350,7 +350,7 @@ void xmalloc_deinit(void)
  * @return A pointer to the duplicated memory block, or NULL on memory
  *    allocation failure.
  */
-void * _xmemdup(const void * ptr, size_t size)
+void * slp_xmemdup(const void * ptr, size_t size)
 {
    void * cpy = malloc(size);
    if (cpy)

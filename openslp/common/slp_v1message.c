@@ -275,10 +275,10 @@ static int v1ParseSrvReg(const SLPBuffer buffer, int encoding,
          || (tmp = strstr(srvreg->attrlist, "scope")) != 0)
    {
       tmp += 5;
-      while (*tmp && (isspace(*tmp) || *tmp == '='))
+      while (*tmp && (isspace((unsigned char)*tmp) || *tmp == '='))
          tmp++;      /* Find start of scope string. */
       srvreg->scopelist = tmp;
-      while (*tmp && !isspace(*tmp) && *tmp != ')')
+      while (*tmp && !isspace((unsigned char)*tmp) && *tmp != ')')
          tmp++;      /* Find end of scope string. */
       srvreg->scopelistlen = tmp - srvreg->scopelist;
       /** @todo Should we convert to UTF-8 here? */

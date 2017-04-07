@@ -63,34 +63,38 @@ typedef struct xallocation
    size_t size;
 } xallocation_t;
 
-void * _xmalloc(const char * file, int line, size_t size);
-void * _xcalloc(const char * file, int line, int numblks, size_t size);
-void * _xrealloc(const char * file, int line, void * ptr, size_t size);
-char * _xstrdup(const char * file, int line, const char * str);
-void * _xmemdup(const char * file, int line, const void * ptr, size_t size);
-void   _xfree(const char * file, int line, void * ptr);
+void * slp_xmalloc(const char * file, int line, size_t size);
+void * slp_xcalloc(const char * file, int line, int numblks, size_t size);
+void * slp_xrealloc(const char * file, int line, void * ptr, size_t size);
+char * slp_xstrdup(const char * file, int line, const char * str);
+void * slp_xmemdup(const char * file, int line, const void * ptr, size_t size);
+void   slp_xfree(const char * file, int line, void * ptr);
 
-int xmalloc_init(const char * filename, size_t freemem);
-int xmalloc_report(void);
-void xmalloc_deinit(void);
+int slp_xmalloc_init(const char * filename, size_t freemem);
+int slp_xmalloc_report(void);
+void slp_xmalloc_deinit(void);
 
-#define xmalloc(s)      _xmalloc(__FILE__,__LINE__,(s))
-#define xcalloc(n,s)    _xcalloc(__FILE__,__LINE__,(n),(s))
-#define xrealloc(p,s)   _xrealloc(__FILE__,__LINE__,(p),(s))
-#define xfree(p)        _xfree(__FILE__,__LINE__,(p))
-#define xstrdup(p)      _xstrdup(__FILE__,__LINE__,(p))
-#define xmemdup(p,s)    _xmemdup(__FILE__,__LINE__,(p),(s))
+#define xmalloc(s)      slp_xmalloc(__FILE__,__LINE__,(s))
+#define xcalloc(n,s)    slp_xcalloc(__FILE__,__LINE__,(n),(s))
+#define xrealloc(p,s)   slp_xrealloc(__FILE__,__LINE__,(p),(s))
+#define xfree(p)        slp_xfree(__FILE__,__LINE__,(p))
+#define xstrdup(p)      slp_xstrdup(__FILE__,__LINE__,(p))
+#define xmemdup(p,s)    slp_xmemdup(__FILE__,__LINE__,(p),(s))
+
+#define xmalloc_init    slp_xmalloc_init
+#define xmalloc_report  slp_xmalloc_report
+#define xmalloc_deinit  slp_xmalloc_deinit
 
 #else    /* ?DEBUG */
 
-void * _xmemdup(const void * ptr, size_t srclen);
+void * slp_xmemdup(const void * ptr, size_t srclen);
 
 #define xmalloc   malloc
 #define xcalloc   calloc
 #define xrealloc  realloc
 #define xfree     free
 #define xstrdup   strdup
-#define xmemdup   _xmemdup
+#define xmemdup   slp_xmemdup
 
 #endif   /* ?DEBUG */
 

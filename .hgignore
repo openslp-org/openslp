@@ -62,6 +62,5 @@ openslp/common/slp-compare-test.trs
 openslp/common/slp-conf-test.log
 openslp/common/slp-conf-test.trs
 openslp/common/test-suite.log
-openslp/openslp-*.tar.gz
 openslp/test-driver
 

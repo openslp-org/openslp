@@ -65,9 +65,6 @@ extern const struct in6_addr in6addr_srvloc_site;
 extern const struct in6_addr in6addr_srvlocda_node;
 extern const struct in6_addr in6addr_srvlocda_link;
 extern const struct in6_addr in6addr_srvlocda_site;
-extern const struct in6_addr in6addr_service_node_mask;
-extern const struct in6_addr in6addr_service_link_mask;
-/* extern const struct in6_addr in6addr_service_site_mask; */
 
 /** IN6 "Any" and "Loopback" address initializer macros */
 #ifdef _AIX

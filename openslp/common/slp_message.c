@@ -58,7 +58,7 @@
  * @return A 16-bit unsigned value in native format; the buffer pointer
  *    is moved ahead by 2 bytes on return.
  */
-uint16_t GetUINT16(uint8_t ** cpp)
+uint16_t slp_GetUINT16(uint8_t ** cpp)
 {
    uint16_t rv = AS_UINT16(*cpp);
    *cpp += 2;
@@ -72,7 +72,7 @@ uint16_t GetUINT16(uint8_t ** cpp)
  * @return A 32-bit unsigned value in native format; the buffer pointer
  *    is moved ahead by 3 bytes on return.
  */
-uint32_t GetUINT24(uint8_t ** cpp)
+uint32_t slp_GetUINT24(uint8_t ** cpp)
 {
    uint32_t rv = AS_UINT24(*cpp);
    *cpp += 3;
@@ -86,7 +86,7 @@ uint32_t GetUINT24(uint8_t ** cpp)
  * @return A 32-bit unsigned value in native format; the buffer pointer
  *    is moved ahead by 4 bytes on return.
  */
-uint32_t GetUINT32(uint8_t ** cpp)
+uint32_t slp_GetUINT32(uint8_t ** cpp)
 {
    uint32_t rv = AS_UINT32(*cpp);
    *cpp += 4;
@@ -106,7 +106,7 @@ uint32_t GetUINT32(uint8_t ** cpp)
  *    @p cppstring pointer; the buffer pointer is moved ahead by @p len bytes
  *    on return.
  */
-char * GetStrPtr(uint8_t ** cpp, size_t len)
+char * slp_GetStrPtr(uint8_t ** cpp, size_t len)
 {
    char * sp = (char *)*cpp;
    *cpp += len;
@@ -120,7 +120,7 @@ char * GetStrPtr(uint8_t ** cpp, size_t len)
  *
  * @note The buffer address is moved ahead by 2 bytes on return.
  */
-void PutUINT16(uint8_t ** cpp, size_t val)
+void slp_PutUINT16(uint8_t ** cpp, size_t val)
 {
    TO_UINT16(*cpp, val);
    *cpp += 2;
@@ -133,7 +133,7 @@ void PutUINT16(uint8_t ** cpp, size_t val)
  *
  * @note The buffer address is moved ahead by 3 bytes on return.
  */
-void PutUINT24(uint8_t ** cpp, size_t val)
+void slp_PutUINT24(uint8_t ** cpp, size_t val)
 {
    TO_UINT24(*cpp, val);
    *cpp += 3;
@@ -146,7 +146,7 @@ void PutUINT24(uint8_t ** cpp, size_t val)
  *
  * @note The buffer address is moved ahead by 4 bytes on return.
  */
-void PutUINT32(uint8_t ** cpp, size_t val)
+void slp_PutUINT32(uint8_t ** cpp, size_t val)
 {
    TO_UINT32(*cpp, val);
    *cpp += 4;

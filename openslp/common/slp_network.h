@@ -62,7 +62,7 @@ int SLPNetworkSendMessage(sockfd_t sockfd, int socktype, const SLPBuffer buf,
       size_t bufsz, void * peeraddr, struct timeval * timeout);  
 int SLPNetworkRecvMessage(sockfd_t sockfd, int socktype, SLPBuffer * buf,
       void * peeraddr, struct timeval * timeout); 
-const char * saddr_ntop(const void * src, char * dst, size_t dstsz);
+const char * slp_saddr_ntop(const void * src, char * dst, size_t dstsz);
 
 void SLPNetworkSetSndRcvBuf(sockfd_t sock);
 /*! @} */

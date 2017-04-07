@@ -188,14 +188,23 @@
 #define PEEK_LENGTH(p) ((*p == 2) ? AS_UINT24(p + 2) : (*p == 1) ? AS_UINT16(p + 2) : 1)
 
 /* buffer-based wire routines */
-uint16_t GetUINT16(uint8_t ** cpp);
-uint32_t GetUINT24(uint8_t ** cpp);
-uint32_t GetUINT32(uint8_t ** cpp);
-char * GetStrPtr(uint8_t ** cpp, size_t length);
+uint16_t slp_GetUINT16(uint8_t ** cpp);
+uint32_t slp_GetUINT24(uint8_t ** cpp);
+uint32_t slp_GetUINT32(uint8_t ** cpp);
+char * slp_GetStrPtr(uint8_t ** cpp, size_t length);
 
-void PutUINT16(uint8_t ** cpp, size_t val);
-void PutUINT24(uint8_t ** cpp, size_t val);
-void PutUINT32(uint8_t ** cpp, size_t val);
+void slp_PutUINT16(uint8_t ** cpp, size_t val);
+void slp_PutUINT24(uint8_t ** cpp, size_t val);
+void slp_PutUINT32(uint8_t ** cpp, size_t val);
+
+#define GetUINT16 slp_GetUINT16
+#define GetUINT24 slp_GetUINT24
+#define GetUINT32 slp_GetUINT32
+#define GetStrPtr slp_GetStrPtr
+
+#define PutUINT16 slp_PutUINT16
+#define PutUINT24 slp_PutUINT24
+#define PutUINT32 slp_PutUINT32
 
 /** SLPHeader structure and associated functions */
 typedef struct _SLPHeader

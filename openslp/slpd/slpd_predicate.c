@@ -161,7 +161,7 @@ static int escaped_verify(char * escaped, size_t len, size_t * punescaped_len)
       /* Verify escape sequences. */
       if (seq_pos == 1 || seq_pos == 2)
       {
-         if (!isxdigit((int) escaped[i]))
+         if (!isxdigit((unsigned char)escaped[i]))
             return 0;
 
          if (seq_pos == 2)
@@ -198,7 +198,7 @@ static int escaped_verify(char * escaped, size_t len, size_t * punescaped_len)
  */
 static int unescape_check(char d1, char d2, char * val) 
 {
-   if (!isxdigit((int) d1) || !isxdigit((int) d2))
+   if (!isxdigit((unsigned char)d1) || !isxdigit((unsigned char)d2))
       return 0;
 
    if ((d1 >= 'A') && (d1 <= 'F'))
@@ -285,10 +285,10 @@ static FilterResult unescape_cmp(const char * escaped, size_t escaped_len,
 
       if (unesc != verbatim[ver_i])        /* quick check for equality*/
       {
-         if (!isascii(unesc)         /* case insensitive check */
-               || !isalpha(unesc)
-               || !isalpha(verbatim[ver_i])
-               || tolower(unesc) != tolower(verbatim[ver_i]))
+         if (!isascii((unsigned char)unesc)         /* case insensitive check */
+               || !isalpha((unsigned char)unesc)
+               || !isalpha((unsigned char)verbatim[ver_i])
+               || tolower((unsigned char)unesc) != tolower((unsigned char)verbatim[ver_i]))
             return FR_EVAL_FALSE;
       }
 
@@ -866,7 +866,7 @@ static FilterResult str_op(SLPAttributes slp_attr, char * tag,
    int i;
 
    for (i = 0; str[i] != 0; i++)
-      if (!((!isdigit((int) str[i])) || str[i] == '-'))
+      if (!((!isdigit((unsigned char)str[i])) || str[i] == '-'))
          return 0;
 
    return 1;

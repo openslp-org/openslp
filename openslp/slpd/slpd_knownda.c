@@ -488,7 +488,7 @@ int SLPDKnownDAFromDHCP()
    *ctx.scopelist = 0;
    ctx.addrlistlen = 0;
 
-   DHCPGetOptionInfo(dhcpOpts, sizeof(dhcpOpts), DHCPParseSLPTags, &ctx);
+   slp_DHCPGetOptionInfo(dhcpOpts, sizeof(dhcpOpts), slp_DHCPParseSLPTags, &ctx);
 
    alp = ctx.addrlist;
    while (ctx.addrlistlen >= 4)

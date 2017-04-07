@@ -405,7 +405,7 @@ static int dhcpGetAddressInfo(unsigned char * ipaddr, unsigned char * chaddr,
  *    ENOTCONN (read error), ETIMEDOUT (read timeout), ENOMEM (out of
  *    memory), or EINVAL (on parse error).
  */
-int DHCPGetOptionInfo(unsigned char * dhcpOptCodes, int dhcpOptCodeCnt, 
+int slp_DHCPGetOptionInfo(unsigned char * dhcpOptCodes, int dhcpOptCodeCnt, 
       DHCPInfoCallBack * dhcpInfoCB, void * context)
 {
    uint32_t xid;
@@ -539,7 +539,7 @@ int DHCPGetOptionInfo(unsigned char * dhcpOptCodes, int dhcpOptCodeCnt,
  * @return Zero on success, or a non-zero value to stop the caller from 
  *    continuing to parse the buffer and call this routine.
  */
-int DHCPParseSLPTags(int tag, void * optdata, size_t optdatasz, 
+int slp_DHCPParseSLPTags(int tag, void * optdata, size_t optdatasz, 
       void * context)
 {
    size_t cpysz, bufsz, dasize;
@@ -707,8 +707,8 @@ int main(int argc, char * argv[])
    ctx.scopelistlen = 0;
    ctx.addrlistlen = 0;
 
-   if ((err = DHCPGetOptionInfo(dhcpOpts, sizeof(dhcpOpts), 
-         DHCPParseSLPTags, &ctx)) != 0)
+   if ((err = slp_DHCPGetOptionInfo(dhcpOpts, sizeof(dhcpOpts), 
+         slp_DHCPParseSLPTags, &ctx)) != 0)
       return FAIL;
 
    printf("ScopeList: [%.*s]\n", ctx.scopelistlen, ctx.scopelist);

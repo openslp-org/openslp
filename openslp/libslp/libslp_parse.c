@@ -102,10 +102,10 @@ size_t SizeofURLEntry(size_t urllen, size_t urlauthlen)
  *    next buffer position after the URL Entry written on exit.
  *
  * @remarks Currently OpenSLP only handles a single authentication
- *    block. To handle more than this, PutURLEntry would have to take
+ *    block. To handle more than this, slp_PutURLEntry would have to take
  *    arrays of @p urlauth and @p urlauthlen values.
  */
-void PutURLEntry(uint8_t ** cpp, uint16_t lifetime, const char * url,
+void slp_PutURLEntry(uint8_t ** cpp, uint16_t lifetime, const char * url,
       size_t urllen, const uint8_t * urlauth, size_t urlauthlen)
 {
    uint8_t * curpos = *cpp;

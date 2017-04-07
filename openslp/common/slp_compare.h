@@ -52,10 +52,12 @@
 
 #ifndef _WIN32
 # ifndef HAVE_STRNCASECMP
-int strncasecmp(const char * s1, const char * s2, size_t len);
+int slp_strncasecmp(const char * s1, const char * s2, size_t len);
+# define strncasecmp slp_strncasecmp
 # endif
 # ifndef HAVE_STRCASECMP
-int strcasecmp(const char * s1, const char * s2);
+int slp_strcasecmp(const char * s1, const char * s2);
+# define strcasecmp slp_strcasecmp
 # endif
 #endif
 

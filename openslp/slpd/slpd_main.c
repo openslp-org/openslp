@@ -358,10 +358,11 @@ static int CheckPid(const char * pidfile)
    if (fd)
    {
       memset(pidstr,0,14);
-      (void)fread(pidstr,13,1,fd);
-      pid = atoi(pidstr);
-      if (pid && kill(pid, 0) == 0)
-         return -1;  /* we are already running */
+      if (fread(pidstr,13,1,fd) > 0) {
+         pid = atoi(pidstr);
+         if (pid && kill(pid, 0) == 0)
+            return -1;  /* we are already running */
+      }
       fclose(fd);
    }
    return 0;
@@ -449,7 +450,8 @@ static int Daemonize(const char * pidfile)
       int i;
 
       /* change directory to root */
-      (void)chdir("/");
+      if (chdir("/") != 0)
+         ; /* TODO: ... */
 
       /* close all open file handles */
       for (i = 0; i < 8192; i++)

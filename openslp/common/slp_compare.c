@@ -83,9 +83,10 @@ int32_t u_strncasecmp(const UChar * s1, const UChar * s2,
  *
  * @internal
  */
-int strncasecmp(const char * s1, const char * s2, size_t len)
+int slp_strncasecmp(const char * s1, const char * s2, size_t len)
 {
-   while (*s1 && (*s1 == *s2 || tolower(*s1) == tolower(*s2)))
+   while (*s1 && (*s1 == *s2
+         || tolower((unsigned char)*s1) == tolower((unsigned char)*s2)))
    {
       len--;
       if (len == 0)
@@ -93,7 +94,7 @@ int strncasecmp(const char * s1, const char * s2, size_t len)
       s1++;
       s2++;
    }
-   return len? (int)(*(unsigned char *)s1 - (int)*(unsigned char *)s2): 0;
+   return len? (unsigned char)*s1 - (unsigned char)*s2: 0;
 }
 # endif
 
@@ -113,11 +114,12 @@ int strncasecmp(const char * s1, const char * s2, size_t len)
  *
  * @internal
  */
-int strcasecmp(const char * s1, const char * s2)
+int slp_strcasecmp(const char * s1, const char * s2)
 {
-   while (*s1 && (*s1 == *s2 || tolower(*s1) == tolower(*s2)))
+   while (*s1 && (*s1 == *s2 
+         || tolower((unsigned char)*s1) == tolower((unsigned char)*s2)))
       s1++, s2++;
-   return (int)(*(unsigned char *)s1 - (int)*(unsigned char *)s2);
+   return (unsigned char)*s1 - (unsigned char)*s2;
 }
 # endif
 #endif
@@ -202,13 +204,13 @@ static int SLPFoldWhiteSpace(size_t len, char * str)
    char * p = str, * ep = str + len;
    while (p < ep)
    {
-      if (isspace(*p))
+      if (isspace((unsigned char)*p))
       {
-         char * ws2p = ++p;            /* Point ws2p to the second ws char. */
-         while (p < ep && isspace(*p)) /* Scan till we hit a non-ws char. */
+         char * ws2p = ++p;                           /* Point ws2p to the second ws char. */
+         while (p < ep && isspace((unsigned char)*p)) /* Scan till we hit a non-ws char. */
             p++;
-         len -= p - ws2p;              /* Reduce the length by extra ws. */
-         memmove(ws2p, p, ep - p);     /* Overwrite the extra white space. */
+         len -= p - ws2p;                             /* Reduce the length by extra ws. */
+         memmove(ws2p, p, ep - p);                    /* Overwrite the extra white space. */
       }
       p++;
    }
@@ -276,9 +278,9 @@ size_t SLPNormalizeString(size_t len, const char * srcstr, char * dststr, int tr
    char *upd = dststr;
    while (len > 0 && *srcstr)
    {
-      if (isspace(*srcstr))
+      if (isspace((unsigned char)*srcstr))
       {
-         while (isspace(*srcstr) && len > 0)
+         while (isspace((unsigned char)*srcstr) && len > 0)
          {
             ++srcstr, --len;
          }
@@ -311,7 +313,7 @@ size_t SLPNormalizeString(size_t len, const char * srcstr, char * dststr, int tr
       }
       else
       {
-         *upd++ = (char)tolower(*srcstr++);
+         *upd++ = (char)tolower((unsigned char)*srcstr++);
          --len;
       }
    }
@@ -340,15 +342,15 @@ int SLPCompareString(size_t str1len, const char * str1,
    char * cpy1, * cpy2;
 
    /* Remove leading white space. */
-   while (str1len && isspace(*str1))
+   while (str1len && isspace((unsigned char)*str1))
       str1++, str1len--;
-   while (str2len && isspace(*str2))
+   while (str2len && isspace((unsigned char)*str2))
       str2++, str2len--;
 
    /* Remove trailing white space. */
-   while (str1len && isspace(str1[str1len - 1]))
+   while (str1len && isspace((unsigned char)str1[str1len - 1]))
       str1len--;
-   while (str2len && isspace(str2[str2len - 1]))
+   while (str2len && isspace((unsigned char)str2[str2len - 1]))
       str2len--;
 
    /*A quick check for empty strings before we start xmemduping and xfreeing*/

@@ -364,7 +364,7 @@ int SLPNetworkRecvMessage(sockfd_t sockfd, int socktype,
  * @returns A const pointer to @p dst on success; or NULL on failure, 
  *    and sets @a errno to EAFNOSUPPORT.
  */ 
-const char * saddr_ntop(const void * src, char * dst, size_t dstsz)
+const char * slp_saddr_ntop(const void * src, char * dst, size_t dstsz)
 {
    switch (((const struct sockaddr *)src)->sa_family)
    {

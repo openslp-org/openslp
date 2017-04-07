@@ -134,8 +134,8 @@ static char const * find_tag_end(const char * tag)
  */
 static char unescape(char d1, char d2)
 {
-   SLP_ASSERT(isxdigit((int) d1));
-   SLP_ASSERT(isxdigit((int) d2));
+   SLP_ASSERT(isxdigit((unsigned char)d1));
+   SLP_ASSERT(isxdigit((unsigned char)d2));
 
    if ((d1 >= 'A') && (d1 <= 'F'))
       d1 = d1 - 'A' + 0x0A;
@@ -184,8 +184,8 @@ static char * unescape_into(char * dest, const char * src, size_t len,
          /*** Check that the characters are legal, and that the value has
           * not been truncated.
           ***/
-         if ((i + 2 < len) && isxdigit((int) src[i + 1]) && isxdigit((int)
-                                                                  src[i + 2]))
+         if ((i + 2 < len) && isxdigit((unsigned char)src[i + 1]) 
+               && isxdigit((unsigned char)src[i + 2]))
          {
             *write = unescape(src[i + 1], src[i + 2]);
             i += 2;
@@ -2049,14 +2049,14 @@ static SLPError SLPAttrStore(struct xx_SLPAttributes * slp_attr, const char * ta
 
 
    /***** Check integer *****/
-   if (*val == '-' || isdigit((int) * val))
+   if (*val == '-' || isdigit((unsigned char)*val))
    {
       /*** Verify. ***/
       SLPBoolean is_int = SLP_TRUE; /* Flag true if the attr is an int. */
       for (i = 1; i < len; i++)
       {
          /* We start at 1 since first char has already been checked. */
-         if (!isdigit((int) val[i]))
+         if (!isdigit((unsigned char)val[i]))
          {
             is_int = SLP_FALSE;
             break;

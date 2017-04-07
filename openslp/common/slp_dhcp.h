@@ -131,10 +131,10 @@
 typedef int DHCPInfoCallBack(int tag, void * optdata, 
       size_t optdatasz, void * context);
 
-int DHCPGetOptionInfo(unsigned char * dhcpOptCodes, int dhcpOptCodeCnt, 
+int slp_DHCPGetOptionInfo(unsigned char * dhcpOptCodes, int dhcpOptCodeCnt, 
       DHCPInfoCallBack * dhcpInfoCB, void * context);
 
-int DHCPParseSLPTags(int tag, void * optdata, size_t optdatasz, 
+int slp_DHCPParseSLPTags(int tag, void * optdata, size_t optdatasz, 
       void * context);
 
 /** DHCP interface context structure */

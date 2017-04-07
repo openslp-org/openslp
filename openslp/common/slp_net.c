@@ -76,18 +76,20 @@
 #endif
 
 /** IPv6 SLP address constants */
-const struct in6_addr in6addr_srvloc_node       = IN6ADDR_SRVLOC_NODE_INIT;
-const struct in6_addr in6addr_srvloc_link       = IN6ADDR_SRVLOC_LINK_INIT;
-const struct in6_addr in6addr_srvloc_site       = IN6ADDR_SRVLOC_SITE_INIT;
-const struct in6_addr in6addr_srvlocda_node     = IN6ADDR_SRVLDA_NODE_INIT;
-const struct in6_addr in6addr_srvlocda_link     = IN6ADDR_SRVLDA_LINK_INIT;
-const struct in6_addr in6addr_srvlocda_site     = IN6ADDR_SRVLDA_SITE_INIT;
-const struct in6_addr in6addr_service_node_mask = IN6ADDR_SVCNOD_MASK_INIT;
-const struct in6_addr in6addr_service_link_mask = IN6ADDR_SVCLNK_MASK_INIT;
-const struct in6_addr in6addr_service_site_mask = IN6ADDR_SVCSIT_MASK_INIT;
-const struct in6_addr slp_in6addr_any           = SLP_IN6ADDR_ANY_INIT;
-const struct in6_addr slp_in6addr_loopback      = SLP_IN6ADDR_LOOPBACK_INIT;
+const struct in6_addr in6addr_srvloc_node   = IN6ADDR_SRVLOC_NODE_INIT;
+const struct in6_addr in6addr_srvloc_link   = IN6ADDR_SRVLOC_LINK_INIT;
+const struct in6_addr in6addr_srvloc_site   = IN6ADDR_SRVLOC_SITE_INIT;
 
+const struct in6_addr in6addr_srvlocda_node = IN6ADDR_SRVLDA_NODE_INIT;
+const struct in6_addr in6addr_srvlocda_link = IN6ADDR_SRVLDA_LINK_INIT;
+const struct in6_addr in6addr_srvlocda_site = IN6ADDR_SRVLDA_SITE_INIT;
+
+const struct in6_addr slp_in6addr_any      = SLP_IN6ADDR_ANY_INIT;
+const struct in6_addr slp_in6addr_loopback = SLP_IN6ADDR_LOOPBACK_INIT;
+
+static const struct in6_addr in6addr_service_node_mask = IN6ADDR_SVCNOD_MASK_INIT;
+static const struct in6_addr in6addr_service_link_mask = IN6ADDR_SVCLNK_MASK_INIT;
+static const struct in6_addr in6addr_service_site_mask = IN6ADDR_SVCSIT_MASK_INIT;
 
 /** Returns the scope embedded in the IPv6 multicast address.
  *

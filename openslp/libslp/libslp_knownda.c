@@ -520,7 +520,7 @@ static int KnownDADiscoverFromDHCP(SLPHandleInfo * handle)
    *ctx.scopelist = 0;
    ctx.addrlistlen = 0;
 
-   DHCPGetOptionInfo(dhcpOpts, sizeof(dhcpOpts), DHCPParseSLPTags, &ctx);
+   slp_DHCPGetOptionInfo(dhcpOpts, sizeof(dhcpOpts), slp_DHCPParseSLPTags, &ctx);
 
    if (!*ctx.scopelist)
    {

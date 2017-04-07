@@ -142,7 +142,7 @@ int gettimeofday(struct timeval *tv, struct timezone *tz)
  *
  * @internal
  */
-void timeval_subtract(struct timeval *lhs, struct timeval *rhs)
+static void timeval_subtract(struct timeval *lhs, struct timeval *rhs)
 {
     lhs->tv_sec -= rhs->tv_sec;
     lhs->tv_usec -= rhs->tv_usec;
@@ -162,7 +162,7 @@ void timeval_subtract(struct timeval *lhs, struct timeval *rhs)
  *
  * @internal
  */
-void timeval_add(struct timeval *lhs, struct timeval *rhs)
+static void timeval_add(struct timeval *lhs, struct timeval *rhs)
 {
     lhs->tv_sec += rhs->tv_sec;
     lhs->tv_usec += rhs->tv_usec;
@@ -183,7 +183,7 @@ void timeval_add(struct timeval *lhs, struct timeval *rhs)
  *
  * @return the size
  */
-size_t CalcBufferSize(int v1, char buftype, size_t langsize, size_t prlistlen, size_t bufsize)
+static size_t CalcBufferSize(int v1, char buftype, size_t langsize, size_t prlistlen, size_t bufsize)
 {
    size_t size = 0;
 

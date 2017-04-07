@@ -263,10 +263,14 @@ SLPBoolean KnownDASpanningListFromCache(SLPHandleInfo * handle,
 
 void KnownDAFreeAll(void);
 
-void PutL16String(uint8_t ** cpp, const char * str, size_t strsz);
-size_t SizeofURLEntry(size_t urllen, size_t urlauthlen);
-void PutURLEntry(uint8_t ** cpp, uint16_t lifetime, const char * url,
+void slp_PutL16String(uint8_t ** cpp, const char * str, size_t strsz);
+size_t slp_SizeofURLEntry(size_t urllen, size_t urlauthlen);
+void slp_PutURLEntry(uint8_t ** cpp, uint16_t lifetime, const char * url,
       size_t urllen, const uint8_t * urlauth, size_t urlauthlen);
+
+#define PutL16String   slp_PutL16String
+#define SizeofURLEntry slp_SizeofURLEntry
+#define PutURLEntry    slp_PutURLEntry
 
 int LIBSLPPropertyInit(char const * gconffile);
 void LIBSLPPropertyCleanup();
