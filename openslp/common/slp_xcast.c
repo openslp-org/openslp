@@ -70,6 +70,7 @@ int SLPBroadcastSend(const SLPIfaceInfo * ifaceinfo,
       const SLPBuffer msg, SLPXcastSockets * socks)
 {
    int xferbytes;
+   int broadAddr = INADDR_BROADCAST;
    so_bool_t on = 1;
 
    for (socks->sock_count = 0;
@@ -95,7 +96,8 @@ int SLPBroadcastSend(const SLPIfaceInfo * ifaceinfo,
                sizeof(ifaceinfo->bcast_addr[socks->sock_count]));
 
          SLPNetSetAddr(&socks->peeraddr[socks->sock_count], AF_INET,
-               (uint16_t)SLPPropertyAsInteger("net.slp.port"), 0);
+               (uint16_t)SLPPropertyAsInteger("net.slp.port"), 
+               (unsigned char *)&broadAddr);
          xferbytes = sendto(socks->sock[socks->sock_count],
                (char *)msg->start, (int)(msg->end - msg->start), 0,
                (struct sockaddr *)&socks->peeraddr[socks->sock_count],

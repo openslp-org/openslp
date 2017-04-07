@@ -1077,7 +1077,7 @@ SLPError NetworkMcastRqstRply(SLPHandleInfo * handle, void * buf,
       }
    }
 
-   usebroadcast = SLPPropertyAsBoolean("net.slp.useBroadcast");
+   usebroadcast = SLPPropertyAsBoolean("net.slp.isBroadcastOnly");
 
    /* multicast/broadcast wait timeouts */
    maxwait = SLPPropertyAsInteger("net.slp.multicastMaximumWait");
