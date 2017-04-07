@@ -202,8 +202,8 @@ void * slp_xrealloc(const char * file, int line, void * ptr, size_t size)
       void * newptr = ptr;
       if (x->size != size)
       {
-         newptr = slp_xmalloc(file, line, size);
-         memcpy(newptr, ptr, x->size);
+         if ((newptr = slp_xmalloc(file, line, size)) != 0)
+            memcpy(newptr, ptr, x->size);
          slp_xfree(file, line, x);
       }
       return newptr;
