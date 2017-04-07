@@ -417,8 +417,14 @@ static int GetV6Scope(struct sockaddr_in6 *addr, char *iface)
    {
       for (; ifa; ifa = ifa->ifa_next)
       {
+         /* filter out NULL address interfaces */
+         if (!ifa->ifa_addr)
+            continue;
+
+         /* filter out non-v6 interfaces */
          if (ifa->ifa_addr->sa_family != AF_INET6)
             continue;
+
          paddr = (struct sockaddr_in6 *)ifa->ifa_addr;
          if (!memcmp(&paddr->sin6_addr, &addr->sin6_addr, sizeof(struct in6_addr)))
          {
@@ -433,8 +439,14 @@ static int GetV6Scope(struct sockaddr_in6 *addr, char *iface)
 
    for (; ifa; ifa = ifa->ifa_next)
    {
+      /* filter out NULL address interfaces */
+      if (!ifa->ifa_addr)
+         continue;
+
+      /* filter out non-v6 interfaces */
       if (ifa->ifa_addr->sa_family != AF_INET6)
          continue;
+
       paddr = (struct sockaddr_in6 *)ifa->ifa_addr;
       if ((!strcmp(iface, ifa->ifa_name)) && (!memcmp(&paddr->sin6_addr, &addr->sin6_addr, sizeof(struct in6_addr))))
       {
@@ -600,9 +612,15 @@ static int SLPIfaceGetV6Addr(SLPIfaceInfo * ifaceinfo)
 
    for (ifa = ifaddrs; ifa && ifaceinfo->iface_count < slp_max_ifaces; ifa = ifa->ifa_next)
    {
+      /* filter out NULL address interfaces */
+      if (!ifa->ifa_addr)
+         continue;
+
+      /* filter out non-v6 interfaces */
       if (ifa->ifa_addr->sa_family != AF_INET6)
           continue;
 
+      /* filter out loopback interfaces */
       if (!strcmp("lo", ifa->ifa_name))
           continue;
 
@@ -1135,7 +1153,7 @@ int SLPIfaceGetInfo(const char * useifaces, SLPIfaceInfo * ifaceinfo,
    return sts;
 }
 
-/** Extract Interface Name from scope id.
+/** Extract Interface Name from scope id. This function is called by v6 code only.
  *
  * @param[in] scope_id - The scope id of interface
  * @param[in,out] iface - The interface name got from scope id
@@ -1156,8 +1174,14 @@ static int SLPGetIfaceNameFromScopeId(unsigned int scope_id, char *iface)
    ifaddr = ifa;
    for (; ifa; ifa = ifa->ifa_next)
    {
+      /* filter out NULL address interfaces */
+      if (!ifa->ifa_addr)
+         continue;
+
+      /* filter out non-v6 interfaces */
       if (ifa->ifa_addr->sa_family != AF_INET6)
          continue;
+
       if (((struct sockaddr_in6 *)ifa->ifa_addr)->sin6_scope_id == scope_id)
       {
          if (strlen(ifa->ifa_name) >= MAX_IFACE_LEN)
