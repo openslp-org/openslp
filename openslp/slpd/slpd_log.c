@@ -442,6 +442,7 @@ void SLPDLogMessage(int msglogflags, struct sockaddr_storage * peerinfo,
          msg = SLPMessageAlloc();
          if (msg)
          {
+            int parseresult;
             SLPDLogTime();
             SLPDLog("MESSAGE - ");
             if (msglogflags == SLPDLOG_TRACEMSG_OUT)
@@ -453,11 +454,12 @@ void SLPDLogMessage(int msglogflags, struct sockaddr_storage * peerinfo,
             else
                SLPDLog("\n");
 
-            if (SLPMessageParseBuffer(peerinfo, localaddr, buf, msg) == 0)
+            parseresult = SLPMessageParseBuffer(peerinfo, localaddr, buf, msg);
+            if (parseresult == 0)
                SLPDLogMessageInternals(msg);
             else
             {
-               SLPDLog("Message parsing failed\n");
+               SLPDLog("Message parsing failed with code %d\n", parseresult);
                SLPDLog("Peer: \n");
                SLPDLog("   IP address: %s\n", SLPNetSockAddrStorageToString(
                      &msg->peer, addr_str, sizeof(addr_str)));
