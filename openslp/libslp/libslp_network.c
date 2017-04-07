@@ -983,6 +983,7 @@ SLPError NetworkMcastRqstRply(SLPHandleInfo * handle, void * buf,
    v6outifaceinfo.bcast_addr = NULL;
    xcastsocks.sock = NULL;
    xcastsocks.peeraddr = NULL;
+   xcastsocks.sock_count = 0;
 
    xid = SLPXidGenerate();
    mtu = getmtu();
@@ -1034,7 +1035,6 @@ SLPError NetworkMcastRqstRply(SLPHandleInfo * handle, void * buf,
       result = SLP_MEMORY_ALLOC_FAILED;
       goto FINISHED;
    }
-   xcastsocks.sock_count = 0;
    xcastsocks.sock = malloc(slp_max_ifaces * sizeof(sockfd_t));
    if (xcastsocks.sock == NULL)
    {
