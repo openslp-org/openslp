@@ -371,21 +371,29 @@ sockfd_t NetworkConnectToSlpd(void * peeraddr)
 {
    sockfd_t sock = SLP_INVALID_SOCKET;
 
-   /*Note that these don't actually test the connection to slpd.
-     They don't have to, since all code that calls this function eventually
-    does a NetworkRqstRply, which has retry logic for the datagram case*/
+   /* Note that these don't actually test the connection to slpd.
+    * They don't have to, since all code that calls this function eventually
+    * does a NetworkRqstRply, which has retry logic for the datagram case.
+    */
+   struct timeval timeout;
+   timeout.tv_sec = SLPPropertyAsInteger(SLPGetProperty("net.slp.randomWaitBound"));
+   timeout.tv_usec = (timeout.tv_sec % 1000) * 1000;
+   timeout.tv_sec = timeout.tv_sec / 1000;
 
    if (SLPNetIsIPV6())
-      if (!SLPNetSetAddr(peeraddr, AF_INET6, (uint16_t)SLPPropertyAsInteger("net.slp.port"),
+      if (!SLPNetSetAddr(peeraddr, AF_INET6,
+            (uint16_t)SLPPropertyAsInteger("net.slp.port"),
             &slp_in6addr_loopback))
-         sock = SLPNetworkCreateDatagram(AF_INET6);
+         sock = SLPNetworkConnectStream(peeraddr, &timeout);                
 
    if (sock == SLP_INVALID_SOCKET && SLPNetIsIPV4())
    {
       int tempAddr = INADDR_LOOPBACK;
       if (SLPNetSetAddr(peeraddr, AF_INET,
             (uint16_t)SLPPropertyAsInteger("net.slp.port"), &tempAddr) == 0)
-         sock = SLPNetworkCreateDatagram(AF_INET);
+      {
+         sock = SLPNetworkConnectStream(peeraddr, &timeout);
+      }
    }
    return sock;
 }
