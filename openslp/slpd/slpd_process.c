@@ -462,6 +462,15 @@ static int ProcessSrvRqst(SLPMessage * message, SLPBuffer * sendbuf,
          message->body.srvrqst.srvtype, 23, SLP_DA_SERVICE_TYPE) == 0)
    {
       errorcode = ProcessDASrvRqst(message, sendbuf, errorcode);
+
+      if (result != *sendbuf)
+      {
+         // The pointer stored at *sendbuf can be modified by a realloc
+         // operation in ProcessDASrvRqst().  Fix up the local copy of
+         // that pointer if necessary.
+         result = *sendbuf;
+      }
+
       if (errorcode == 0)
       {
          /* Since we have an errorcode of 0, we were successful,
