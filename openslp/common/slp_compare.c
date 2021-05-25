@@ -169,10 +169,10 @@ static int hex2bin(int c)
 static int SLPUnescapeInPlace(size_t len, char * str)
 {
    char * fp = str, * tp = str, * ep = str + len;
-   while (fp < ep - 2)
+   while (fp < ep)
    {
       char c = *fp++;
-      if (c == '\\' && *fp && ishex(fp[0]) && ishex(fp[1]))
+      if (fp <= (ep - 2) && c == '\\' && *fp && ishex(fp[0]) && ishex(fp[1]))
       {
          c = (char)(hex2bin(fp[0]) * 16 + hex2bin(fp[1]));
          fp += 2;
@@ -431,6 +431,9 @@ int SLPCompareNamingAuth(size_t srvtypelen, const char * srvtype,
    return 1;
 }
 
+#define SERVICE_TAG  "service:"
+#define SERVICE_LEN  (sizeof(SERVICE_TAG)-1)
+
 /** Compare service types.
  *
  * Determine if two service type strings refer to the same service type.
@@ -449,17 +452,15 @@ int SLPCompareSrvType(size_t lsrvtypelen, const char * lsrvtype,
    char * colon;
 
    /* Skip "service:" */
-   if (strncasecmp(lsrvtype, "service:", lsrvtypelen > 8?
-         8: lsrvtypelen) == 0)
+   if (lsrvtypelen >= SERVICE_LEN && strncasecmp(lsrvtype, SERVICE_TAG, SERVICE_LEN) == 0)
    {
-      lsrvtypelen = lsrvtypelen - 8;
-      lsrvtype = lsrvtype + 8;
+      lsrvtypelen = lsrvtypelen - SERVICE_LEN;
+      lsrvtype = lsrvtype + SERVICE_LEN;
    }
-   if (strncasecmp(rsrvtype, "service:", rsrvtypelen > 8?
-         8: rsrvtypelen) == 0)
+   if (rsrvtypelen >= SERVICE_LEN && strncasecmp(rsrvtype, SERVICE_TAG, SERVICE_LEN) == 0)
    {
-      rsrvtypelen = rsrvtypelen - 8;
-      rsrvtype = rsrvtype + 8;
+      rsrvtypelen = rsrvtypelen - SERVICE_LEN;
+      rsrvtype = rsrvtype + SERVICE_LEN;
    }
    if (memchr(lsrvtype, ':', lsrvtypelen))
    {
