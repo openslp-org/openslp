@@ -70,8 +70,6 @@ libcommonlibslp_la_SOURCES = \
    slp_xid.c \
    slp_xmalloc.c
 
-# Place yacc files before lex files below - lexx files include generated yacc headers
-
 #if you're building on Irix, replace .la with .a below
 libcommonslpd_la_SOURCES = \
    slp_atomic.c \
@@ -99,6 +97,9 @@ libcommonslpd_la_SOURCES = \
    slp_filter_l.l \
    slp_attr_y.y \
    slp_attr_l.l
+   
+#lexx files include generated yacc headers
+BUILT_SOURCES = slp_filter_y.h slp_attr_y.h
 
 noinst_HEADERS = \
    slp_atomic.h \
