@@ -81,12 +81,17 @@ static size_t getmtu(void)
 
 #ifdef _WIN32
 
-#define DELTA_EPOCH_IN_MICROSECS  11644473600000000ULL
+#define DELTA_EPOCH_IN_MICROSECS 11644473600000000ULL
+
+/* timezone may have been defined already for MinGW */
+#ifndef _TIMEZONE_DEFINED /* also in sys/time.h */
+#define _TIMEZONE_DEFINED
 struct timezone
 {
   int  tz_minuteswest; /* minutes W of Greenwich */
   int  tz_dsttime;     /* type of dst correction */
 };
+#endif /* _TIMEZONE_DEFINED */
 
 /** A version of gettimeofday for Windows.
  *
