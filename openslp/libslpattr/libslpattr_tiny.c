@@ -193,7 +193,7 @@ SLPError SLPAttrSet_int(SLPAttributes attr_h, const char * tag, int val,
 
 
 SLPError SLPAttrSet_opaque(SLPAttributes attr_h, const char * tag,
-      const char * val, const unsigned int len, SLPInsertionPolicy policy)
+      const char * val, const size_t len, SLPInsertionPolicy policy)
 {
    return SLP_NOT_IMPLEMENTED;
 }
