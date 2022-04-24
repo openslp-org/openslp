@@ -1048,7 +1048,7 @@ int SLPIfaceGetInfo(const char * useifaces, SLPIfaceInfo * ifaceinfo,
       if (p)
       {
          char *token, *saveptr;
-         char interface[MAX_IFACE_LEN];
+         char iface[MAX_IFACE_LEN];
          struct ifaddrs *ifaddrs;
          int ret = 0;
 
@@ -1058,7 +1058,7 @@ int SLPIfaceGetInfo(const char * useifaces, SLPIfaceInfo * ifaceinfo,
          for (token = strtok_r(p, ",", &saveptr); token;
                token = strtok_r(NULL, ",", &saveptr))
          {
-            ret = SLPD_Get_Iface_From_Ip(token, (char *)&interface);
+            ret = SLPD_Get_Iface_From_Ip(token, (char *)&iface);
 
             if (SLPIfaceContainsAddr(useifaceslen, useifaces,
                   strlen(token), token))
@@ -1094,7 +1094,7 @@ int SLPIfaceGetInfo(const char * useifaces, SLPIfaceInfo * ifaceinfo,
                      v6addr.sin6_flowinfo = 0;
                      if (!ret)
                      {
-                        if ((sts = GetV6Scope(&v6addr, interface)) == 0)
+                        if ((sts = GetV6Scope(&v6addr, iface)) == 0)
                            memcpy(&ifaceinfo->iface_addr[ifaceinfo->iface_count++], &v6addr, sizeof(v6addr));
                      }
                      else
