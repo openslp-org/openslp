@@ -56,8 +56,9 @@ static uint16_t G_Xid = 0;
  */
 void SLPXidSeed(void)
 {
-   srand((unsigned)(SLPPidGet() | time(0)));
-   G_Xid = (uint16_t)rand();
+   /* Psuedo random number generation without side-effects */
+   const uint32_t PRIME = 17977;
+   G_Xid = (uint16_t)(SLPPidGet() * clock() * PRIME);
 }
 
 /** Returns the next serial transaction id (XID).
