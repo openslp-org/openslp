@@ -280,7 +280,7 @@ static SLPError ProcessSrvRqst(SLPHandleInfo * handle)
    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ */
 
    buf = curpos = xmalloc(
-         + 2 + handle->params.findsrvs.srvtypelen
+         2 + handle->params.findsrvs.srvtypelen
          + 2 + handle->params.findsrvs.scopelistlen
          + 2 + handle->params.findsrvs.predicatelen
          + 2 + spistrlen);
