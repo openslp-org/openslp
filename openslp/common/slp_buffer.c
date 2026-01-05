@@ -30,6 +30,13 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *-------------------------------------------------------------------------*/
 
+/* Copyright (c) 2019 VMware, Inc.
+ * SPDX-License-Identifier: BSD-3-Clause
+ * This file is provided under the BSD-3-Clause license.
+ * See COPYING file for more details and other copyrights
+ * that may apply.
+ */
+
 /** Functions for managing SLP message buffers.
  *
  * This file provides a higher level abstraction over malloc and free that
@@ -151,6 +158,22 @@ SLPBuffer SLPBufferDup(SLPBuffer buf)
 void SLPBufferFree(SLPBuffer buf)
 {
    xfree(buf);
+}
+
+/** Report remaining free buffer size in bytes.
+ *
+ * Check if buffer is allocated and if so return bytes left in a
+ * @c SLPBuffer object.
+ *
+ * @param[in] buf The SLPBuffer to be freed.
+ */
+size_t
+RemainingBufferSpace(SLPBuffer buf)
+{
+   if (buf->allocated == 0) {
+      return 0;
+   }
+   return buf->end - buf->curpos;
 }
 
 /*=========================================================================*/

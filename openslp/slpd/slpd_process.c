@@ -30,6 +30,13 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *-------------------------------------------------------------------------*/
 
+/* Copyright (c) 2019 VMware, Inc.
+ * SPDX-License-Identifier: BSD-3-Clause
+ * This file is provided under the BSD-3-Clause license.
+ * See COPYING file for more details and other copyrights
+ * that may apply.
+ */
+
 /** Processes incoming SLP messages.
  *
  * @file       slpd_process.c
@@ -523,13 +530,27 @@ RESPOND:
    {
       for (i = 0; i < db->urlcount; i++)
       {
-         /* urlentry is the url from the db result */
          urlentry = db->urlarray[i];
+         if (urlentry->opaque != NULL) {
+            const int64_t newsize = size + urlentry->opaquelen;
+            if (urlentry->opaquelen <= 0 || newsize > INT_MAX)
+            {
+               SLPDLog("Invalid opaquelen %d or sizeo of opaque url is too big, size=%d\n",
+                       urlentry->opaquelen, size);
+               errorcode = SLP_ERROR_PARSE_ERROR;
+               goto FINISHED;
+            }
+            size +=  urlentry->opaquelen;
+         }
+         else
+         {
+            /* urlentry is the url from the db result */
+            size += urlentry->urllen + 6; /*  1 byte for reserved  */
+                                          /*  2 bytes for lifetime */
+                                          /*  2 bytes for urllen   */
+                                          /*  1 byte for authcount */
+          }
 
-         size += urlentry->urllen + 6; /*  1 byte for reserved  */
-                                       /*  2 bytes for lifetime */
-                                       /*  2 bytes for urllen   */
-                                       /*  1 byte for authcount */
 #ifdef ENABLE_SLPv2_SECURITY
          /* make room to include the authblock that was asked for */
          if (G_SlpdProperty.securityEnabled
@@ -603,7 +624,7 @@ RESPOND:
          urlentry = db->urlarray[i];
 
 #ifdef ENABLE_SLPv1
-         if (urlentry->opaque == 0)
+         if (urlentry->opaque == NULL)
          {
             /* url-entry reserved */
             *result->curpos++ = 0;
@@ -615,8 +636,18 @@ RESPOND:
             PutUINT16(&result->curpos, urlentry->urllen);
 
             /* url-entry url */
-            memcpy(result->curpos, urlentry->url, urlentry->urllen);
-            result->curpos += urlentry->urllen;
+            if (RemainingBufferSpace(result) >= urlentry->urllen)
+            {
+               memcpy(result->curpos, urlentry->url, urlentry->urllen);
+               result->curpos = result->curpos + urlentry->urllen;
+            }
+            else
+            {
+                SLPDLog("Url too big (ask: %d have %" PRId64 "), failing request\n",
+                        urlentry->opaquelen, (int64_t) RemainingBufferSpace(result));
+                errorcode = SLP_ERROR_PARSE_ERROR;
+                goto FINISHED;
+            }
 
             /* url-entry auths */
             *result->curpos++ = 0;
@@ -628,7 +659,18 @@ RESPOND:
 
             /* TRICKY: Fix up the lifetime. */
             TO_UINT16(urlentry->opaque + 1, urlentry->lifetime);
-            memcpy(result->curpos, urlentry->opaque, urlentry->opaquelen);
+
+            if (RemainingBufferSpace(result) >= urlentry->opaquelen)
+            {
+                memcpy(result->curpos, urlentry->opaque, urlentry->opaquelen);
+            }
+            else
+            {
+                SLPDLog("Opaque Url too big (ask: %d have %" PRId64 "), failing request\n",
+                       urlentry->opaquelen, (int64_t) RemainingBufferSpace(result));
+                errorcode = SLP_ERROR_PARSE_ERROR;
+                goto FINISHED;
+            }
 
             /* TRICKY: Fix up the result authblock count. */
             if (urlentry->authcount)
