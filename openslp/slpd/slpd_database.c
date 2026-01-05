@@ -429,7 +429,7 @@ int SLPDDatabaseReg(SLPMessage * msg, SLPBuffer buf)
             sizeof(struct sockaddr_storage));
       if (ifaces.iface_addr == NULL)
       {
-         fprintf(stderr, "iface_addr malloc(%lu) failed\n",
+         fprintf(stderr, "iface_addr malloc(%zu) failed\n",
             slp_max_ifaces * sizeof(struct sockaddr_storage));
          exit(1);
       }
@@ -437,7 +437,7 @@ int SLPDDatabaseReg(SLPMessage * msg, SLPBuffer buf)
             sizeof(struct sockaddr_storage));
       if (ifaces.bcast_addr == NULL)
       {
-         fprintf(stderr, "bcast_addr malloc(%lu) failed\n",
+         fprintf(stderr, "bcast_addr malloc(%zu) failed\n",
             slp_max_ifaces * sizeof(struct sockaddr_storage));
          exit(1);
       }
