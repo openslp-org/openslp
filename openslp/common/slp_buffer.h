@@ -30,6 +30,13 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *-------------------------------------------------------------------------*/
 
+/* Copyright (c) 2019 VMware, Inc.
+ * SPDX-License-Identifier: BSD-3-Clause
+ * This file is provided under the BSD-3-Clause license.
+ * See COPYING file for more details and other copyrights
+ * that may apply.
+ */
+
 /** Header file that defines SLP message buffer management routines.
  *
  * Includes structures, constants and functions that used to handle memory 
@@ -77,6 +84,8 @@ void SLPBufferFree(SLPBuffer buf);
 SLPBuffer SLPBufferListRemove(SLPBuffer * list, SLPBuffer buf);
 
 SLPBuffer SLPBufferListAdd(SLPBuffer * list, SLPBuffer buf);
+
+size_t RemainingBufferSpace(SLPBuffer buf);
 
 /*! @} */
 
