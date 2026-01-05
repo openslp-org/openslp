@@ -353,7 +353,7 @@ void SLPDLogMessageInternals(SLPMessage * message)
    SLPDLog("Header:\n");
    SLPDLog("   version = %i\n", message->header.version);
    SLPDLog("   functionid = %i\n", message->header.functionid);
-   SLPDLog("   length = %i\n", message->header.length);
+   SLPDLog("   length = %zu\n", message->header.length);
    SLPDLog("   flags = %i\n", message->header.flags);
    SLPDLog("   extoffset = %i\n", message->header.extoffset);
    SLPDLog("   xid = %i\n", message->header.xid);
@@ -581,7 +581,7 @@ void SLPDLogParseWarning(struct sockaddr_storage * peeraddr, SLPBuffer buf)
    SLPDLogTime();
    SLPDLog("*** WARNING Parse Error ***\n");
    SLPDLogPeerAddr(peeraddr);
-   SLPDLog("message size = %i\n",buf->end - buf->start);
+   SLPDLog("message size = %td\n",buf->end - buf->start);
    SLPDLog("message dump follows:\n");    
    for (curpos = buf->start; curpos < buf->end; curpos++)
    {

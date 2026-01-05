@@ -58,11 +58,19 @@
 #define SLPDLOG_TRACEMSG_IN  (SLPDLOG_TRACEMSG | 0x00000001)
 #define SLPDLOG_TRACEMSG_OUT (SLPDLOG_TRACEMSG | 0x00000002)
 
+#if defined(__GNUC__) || defined(__clang__)
+# define SLPDLOG_PRINTF_LIKE(fmt_index, first_arg) __attribute__((format(printf, fmt_index, first_arg)))
+#else
+# define SLPDLOG_PRINTF_LIKE(fmt_index, first_arg)
+#endif
+
 int SLPDLogFileOpen(const char * path, int append);
 int SLPDLogFileClose(void);
 void SLPDLogBuffer(const char * prefix, size_t bufsize, const char * buf);
-void SLPDLog(const char * msg, ...);
-void SLPDFatal(const char * msg, ...);
+void SLPDLog(const char * msg, ...)
+   SLPDLOG_PRINTF_LIKE(1, 2);
+void SLPDFatal(const char * msg, ...)
+   SLPDLOG_PRINTF_LIKE(1, 2);
 void SLPDLogTime(void);
 void SLPDLogMessageInternals(SLPMessage * message);
 void SLPDLogMessage(int msglogflags, struct sockaddr_storage * peerinfo,
