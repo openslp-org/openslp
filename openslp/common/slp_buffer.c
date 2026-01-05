@@ -165,7 +165,7 @@ void SLPBufferFree(SLPBuffer buf)
  * Check if buffer is allocated and if so return bytes left in a
  * @c SLPBuffer object.
  *
- * @param[in] buf The SLPBuffer to be freed.
+ * @param[in] buf The SLPBuffer to get the free space size from.
  */
 size_t
 RemainingBufferSpace(SLPBuffer buf)

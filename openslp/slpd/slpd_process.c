@@ -535,7 +535,7 @@ RESPOND:
             const int64_t newsize = size + urlentry->opaquelen;
             if (urlentry->opaquelen <= 0 || newsize > INT_MAX)
             {
-               SLPDLog("Invalid opaquelen %d or sizeo of opaque url is too big, size=%d\n",
+               SLPDLog("Invalid opaquelen %zu or size of opaque url is too big, size=%zu\n",
                        urlentry->opaquelen, size);
                errorcode = SLP_ERROR_PARSE_ERROR;
                goto FINISHED;
@@ -643,8 +643,8 @@ RESPOND:
             }
             else
             {
-                SLPDLog("Url too big (ask: %d have %" PRId64 "), failing request\n",
-                        urlentry->opaquelen, (int64_t) RemainingBufferSpace(result));
+                SLPDLog("Url too big (ask: %zu have %zu), failing request\n",
+                        urlentry->opaquelen, RemainingBufferSpace(result));
                 errorcode = SLP_ERROR_PARSE_ERROR;
                 goto FINISHED;
             }
@@ -666,8 +666,8 @@ RESPOND:
             }
             else
             {
-                SLPDLog("Opaque Url too big (ask: %d have %" PRId64 "), failing request\n",
-                       urlentry->opaquelen, (int64_t) RemainingBufferSpace(result));
+                SLPDLog("Opaque Url too big (ask: %zu have %zu), failing request\n",
+                       urlentry->opaquelen, RemainingBufferSpace(result));
                 errorcode = SLP_ERROR_PARSE_ERROR;
                 goto FINISHED;
             }
