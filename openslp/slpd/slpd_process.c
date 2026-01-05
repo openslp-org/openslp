@@ -532,8 +532,7 @@ RESPOND:
       {
          urlentry = db->urlarray[i];
          if (urlentry->opaque != NULL) {
-            const int64_t newsize = size + urlentry->opaquelen;
-            if (urlentry->opaquelen <= 0 || newsize > INT_MAX)
+            if (urlentry->opaquelen == 0 || (size > SIZE_MAX - urlentry->opaquelen))
             {
                SLPDLog("Invalid opaquelen %zu or size of opaque url is too big, size=%zu\n",
                        urlentry->opaquelen, size);
